@@ -885,22 +885,25 @@ describe('NetworkMultiSelectorList', () => {
         isVisible: true,
         caipChainId: 'eip155:137',
         displayEdit: true,
+        isActiveNetwork: false,
         networkTypeOrRpcUrl: 'https://polygon-rpc.com',
         isReadOnly: false,
       });
     });
 
-    it('sets displayEdit=false when network caipChainId matches selectedChainIdCaip', () => {
-      mockFormatChainIdToCaip.mockReturnValue('eip155:1');
+    it('sets isActiveNetwork=true when network caipChainId matches selectedChainIdCaip, without blocking displayEdit', () => {
+      // eip155:137 is not a main chain, so this isolates the active-network
+      // flag from the isMainChain guard on displayEdit.
+      mockFormatChainIdToCaip.mockReturnValue('eip155:137');
 
       const networkWithUrl: Network[] = [
         {
-          id: 'eip155:1',
-          name: 'Ethereum',
+          id: 'eip155:137',
+          name: 'Polygon',
           isSelected: true,
-          imageSource: { uri: 'eth.png' },
-          caipChainId: 'eip155:1' as CaipChainId,
-          networkTypeOrRpcUrl: 'https://rpc.example.com',
+          imageSource: { uri: 'polygon.png' },
+          caipChainId: 'eip155:137' as CaipChainId,
+          networkTypeOrRpcUrl: 'https://polygon-rpc.com',
         },
       ];
 
@@ -916,7 +919,7 @@ describe('NetworkMultiSelectorList', () => {
       });
 
       expect(mockOpenModal).toHaveBeenCalledWith(
-        expect.objectContaining({ displayEdit: false }),
+        expect.objectContaining({ displayEdit: true, isActiveNetwork: true }),
       );
     });
 

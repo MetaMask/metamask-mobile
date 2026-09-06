@@ -10,6 +10,7 @@ import Engine from '../../../core/Engine';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useNftDetection } from '../../hooks/useNftDetection';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const styles = StyleSheet.create({
   alertBar: {
@@ -21,6 +22,7 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { identify } = useAnalytics();
   const { detectNfts } = useNftDetection();
+  const { popularEvmNetworks } = useNetworkEnablement();
 
   const showToastAndEnableNFtDetection = useCallback(() => {
     toast({
@@ -38,8 +40,8 @@ const CollectibleDetectionModal = () => {
       [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.ON,
     };
     identify(traits);
-    detectNfts();
-  }, [identify, detectNfts]);
+    detectNfts(popularEvmNetworks);
+  }, [identify, detectNfts, popularEvmNetworks]);
 
   return (
     <View style={styles.alertBar}>

@@ -4,6 +4,7 @@ import { useNftRefresh } from './useNftRefresh';
 import Engine from '../../../core/Engine';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import type { Hex } from '@metamask/utils';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
@@ -37,6 +38,7 @@ jest.mock('../../../selectors/networkController', () => ({
 describe('useNftRefresh', () => {
   const mockDetectNfts = jest.fn();
   const mockCheckAndUpdateAllNftsOwnershipStatus = jest.fn();
+  const defaultChainIds: Hex[] = ['0x1', '0x89'];
 
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
@@ -53,7 +55,6 @@ describe('useNftRefresh', () => {
 
     mockUseNftDetection.mockReturnValue({
       detectNfts: mockDetectNfts,
-      chainIdsToDetectNftsFor: ['0x1', '0x89'],
       abortDetection: jest.fn(),
     });
 
@@ -80,7 +81,7 @@ describe('useNftRefresh', () => {
   });
 
   it('returns refreshing and onRefresh', () => {
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultChainIds));
 
     expect(result.current.refreshing).toBe(false);
     expect(result.current.onRefresh).toBeDefined();
@@ -88,7 +89,7 @@ describe('useNftRefresh', () => {
   });
 
   it('sets refreshing to true during refresh and false after', async () => {
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultChainIds));
 
     expect(result.current.refreshing).toBe(false);
 
@@ -99,18 +100,19 @@ describe('useNftRefresh', () => {
     expect(result.current.refreshing).toBe(false);
   });
 
-  it('calls useNftDetection.detectNfts on refresh', async () => {
-    const { result } = renderHook(() => useNftRefresh());
+  it('calls useNftDetection.detectNfts with the given chainIds on refresh', async () => {
+    const { result } = renderHook(() => useNftRefresh(defaultChainIds));
 
     await act(async () => {
       await result.current.onRefresh();
     });
 
     expect(mockDetectNfts).toHaveBeenCalledTimes(1);
+    expect(mockDetectNfts).toHaveBeenCalledWith(defaultChainIds);
   });
 
   it('calls NftController.checkAndUpdateAllNftsOwnershipStatus for each network', async () => {
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultChainIds));
 
     await act(async () => {
       await result.current.onRefresh();
@@ -126,12 +128,6 @@ describe('useNftRefresh', () => {
   });
 
   it('calls checkAndUpdateAllNftsOwnershipStatus for all networks when "All popular networks" is selected', async () => {
-    mockUseNftDetection.mockReturnValue({
-      detectNfts: mockDetectNfts,
-      chainIdsToDetectNftsFor: ['0x1', '0x89', '0xa'],
-      abortDetection: jest.fn(),
-    });
-
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectEvmNetworkConfigurationsByChainId) {
         return {
@@ -152,7 +148,7 @@ describe('useNftRefresh', () => {
       return undefined;
     });
 
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(['0x1', '0x89', '0xa']));
 
     await act(async () => {
       await result.current.onRefresh();
@@ -174,7 +170,7 @@ describe('useNftRefresh', () => {
     const mockError = new Error('Detection failed');
     mockDetectNfts.mockRejectedValueOnce(mockError);
 
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultChainIds));
 
     await act(async () => {
       await result.current.onRefresh();
@@ -184,29 +180,17 @@ describe('useNftRefresh', () => {
   });
 
   it('does not call checkAndUpdateAllNftsOwnershipStatus when no chains are enabled', async () => {
-    mockUseNftDetection.mockReturnValue({
-      detectNfts: mockDetectNfts,
-      chainIdsToDetectNftsFor: [],
-      abortDetection: jest.fn(),
-    });
-
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh([]));
 
     await act(async () => {
       await result.current.onRefresh();
     });
 
-    expect(mockDetectNfts).toHaveBeenCalled();
+    expect(mockDetectNfts).toHaveBeenCalledWith([]);
     expect(mockCheckAndUpdateAllNftsOwnershipStatus).not.toHaveBeenCalled();
   });
 
   it('skips network client IDs that are undefined', async () => {
-    mockUseNftDetection.mockReturnValue({
-      detectNfts: mockDetectNfts,
-      chainIdsToDetectNftsFor: ['0x1'],
-      abortDetection: jest.fn(),
-    });
-
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectEvmNetworkConfigurationsByChainId) {
         return {
@@ -219,7 +203,7 @@ describe('useNftRefresh', () => {
       return undefined;
     });
 
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(['0x1']));
 
     await act(async () => {
       await result.current.onRefresh();
@@ -243,7 +227,7 @@ describe('useNftRefresh', () => {
       callOrder.push('ownership-end');
     });
 
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultChainIds));
 
     await act(async () => {
       await result.current.onRefresh();
