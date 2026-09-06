@@ -27,9 +27,17 @@ const styleSheet = (params: {
       ...(style as ViewStyle),
       flexDirection: 'row',
       borderWidth: 0,
+      flexShrink: 1,
+      minWidth: 0,
+      maxWidth: '100%',
+    },
+    accountName: {
+      flexShrink: 1,
+      minWidth: 0,
     },
     dropdownIcon: {
       marginLeft: 8,
+      flexShrink: 0,
     },
     accountAddressLabel: {
       color: colors.text.alternative,

@@ -33,6 +33,7 @@ const PickerAccount = forwardRef<View, PickerAccountProps>(
           variant={TextVariant.BodyMDMedium}
           testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
           numberOfLines={1}
+          style={styles.accountName}
         >
           {accountName}
         </DSText>
