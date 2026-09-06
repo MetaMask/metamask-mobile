@@ -193,16 +193,25 @@ class CommandQueueServer implements Resource {
   }
 
   async getExportedState(
-    timeout = 10000,
+    timeout = 20000,
     pollInterval = 500,
   ): Promise<Record<string, unknown>> {
     const deadline = Date.now() + timeout;
+    // Re-enqueue periodically: on iOS CI the app can miss a single exportState
+    // queue item while busy (perps liquidation smokes flake at 10s).
+    // Start clock now so we do not immediately duplicate the caller's enqueue.
+    let lastEnqueueAt = Date.now();
+    const requeueEveryMs = 5_000;
 
     while (Date.now() < deadline) {
       if (this._exportedState !== null) {
         const state = this._exportedState;
         this._exportedState = null;
         return state;
+      }
+      if (Date.now() - lastEnqueueAt >= requeueEveryMs) {
+        this.requestStateExport();
+        lastEnqueueAt = Date.now();
       }
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
