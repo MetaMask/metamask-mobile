@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 
 import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,32 +18,22 @@ export function useSendNavbar() {
   const nestedStackState = useNavigationState((state) => state);
 
   const handleBackPress = useCallback(() => {
+    // If the nested Send stack has its own history (e.g. Amount -> Recipient),
+    // pop it directly. Synthesizing "back" via `navigate()` to the previous
+    // route name is NOT a pop under React Navigation 7 semantics — it can
+    // push a duplicate route instead of removing the current one, which
+    // causes the nested stack to grow indefinitely and produces an infinite
+    // back-navigation loop between screens.
+    if (nestedStackState.index > 0) {
+      navigation.goBack();
+      return;
+    }
+
     const parentState = parentNavigation?.getState();
     const sendStackState =
       parentState?.routes.some((route) => route.name === 'Send') === true
         ? parentState
         : nestedStackState;
-
-    const sendRoute = sendStackState.routes.find(
-      (route) => route.name === 'Send',
-    );
-    // Handle nested Send route navigation
-    const sendRouteState = sendRoute?.state;
-    if (sendRouteState && sendRouteState.routes.length > 1) {
-      const currentIndex = sendRouteState.index;
-      const previousRoute = currentIndex
-        ? sendRouteState.routes[currentIndex - 1]
-        : null;
-
-      const screenName = previousRoute?.name || Routes.SEND.ASSET;
-      // `screenName` is read from live navigation state, so it's a runtime
-      // string rather than a compile-time Send screen literal.
-      navigateWithDetails(navigationForStack, [
-        Routes.SEND.DEFAULT,
-        { screen: screenName },
-      ]);
-      return;
-    }
 
     // Handle main stack navigation
     const sendRouteIndex = sendStackState.routes.findIndex(
@@ -58,17 +47,19 @@ export function useSendNavbar() {
 
     const previousMainRoute = sendStackState.routes[sendRouteIndex - 1];
 
-    // Navigate to previous route with special handling for specific routes
     if (previousMainRoute.name === 'Home') {
       navigationForStack.navigate(Routes.WALLET_VIEW);
-    } else {
-      // Destination route name/params come from live navigation state.
-      navigateWithDetails(navigationForStack, [
-        previousMainRoute.name,
-        previousMainRoute.params,
-      ]);
+      return;
     }
-  }, [navigationForStack, nestedStackState, parentNavigation]);
+
+    // Pop the outer 'Send' route to reveal the existing previous screen
+    // (e.g. TokenDetails). Reconstructing "back" via navigate(name, params)
+    // is NOT a pop — it can push a duplicate of the previous screen on top
+    // of 'Send' instead of removing it, leaving the original 'Send' screen
+    // still on the stack underneath and causing a back-navigation loop once
+    // the duplicate is later popped.
+    navigationForStack.goBack();
+  }, [navigation, navigationForStack, nestedStackState, parentNavigation]);
 
   return {
     Amount: getHeaderCompactStandardNavbarOptions({
