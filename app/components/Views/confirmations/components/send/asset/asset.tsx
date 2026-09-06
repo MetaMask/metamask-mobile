@@ -55,6 +55,8 @@ const AssetSendHeader = () => {
 };
 
 const SKELETON_ROW_COUNT = 4;
+/** Shared so Tokens and NFTs keep the same space below the section label. */
+const ASSET_SECTION_LABEL_TW = 'mx-4 mb-2';
 
 /**
  * Placeholder rows shown while a first-time asset load is in flight for a pay
@@ -304,7 +306,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               (filteredTokens.length > 0 ||
                 filteredHighlightedItemsInAssetList.length > 0) && (
                 <Text
-                  twClassName="m-4 mt-2 mb-2"
+                  twClassName={`${ASSET_SECTION_LABEL_TW} mt-2`}
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}
@@ -322,7 +324,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               <>
                 {filteredNfts.length > 0 && (
                   <Text
-                    twClassName="m-4 mt-4 mb-4"
+                    twClassName={`${ASSET_SECTION_LABEL_TW} mt-4`}
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
                     fontWeight={FontWeight.Medium}
