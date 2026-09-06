@@ -12,6 +12,9 @@ import {
   HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
   HomepageEarnSectionVariant,
   HomepagePerpsPillsEmptyVariant,
+  PERPS_SECTION_PRIORITY_AB_KEY,
+  PERPS_SECTION_PRIORITY_VARIANTS,
+  PerpsSectionPriorityVariant,
 } from './abTestConfig';
 
 interface MockABTestResult {
@@ -28,6 +31,14 @@ const defaultUseABTestImplementation = (key: string): MockABTestResult => {
           HomepagePerpsPillsEmptyVariant.Control
         ],
       variantName: HomepagePerpsPillsEmptyVariant.Control,
+      isActive: true,
+    };
+  }
+  if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
+    return {
+      variant:
+        PERPS_SECTION_PRIORITY_VARIANTS[PerpsSectionPriorityVariant.Control],
+      variantName: PerpsSectionPriorityVariant.Control,
       isActive: true,
     };
   }
@@ -125,6 +136,7 @@ jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
 }));
 
 jest.mock('../../UI/Perps/hooks', () => ({
+  useIsActivePerpsTrader: jest.fn(() => false),
   usePerpsLivePositions: jest.fn(() => ({
     positions: [],
     isInitialLoading: false,
@@ -294,6 +306,7 @@ interface UseHomeViewedEventParamsSnapshot {
   sectionName?: string;
   sectionIndex?: number;
   totalSectionsLoaded?: number;
+  isActivePerpsTrader?: boolean;
 }
 
 // Mock useHomeViewedEvent to avoid analytics side-effects in
@@ -767,6 +780,139 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(7);
       });
+    });
+  });
+
+  describe('Perps section priority experiment', () => {
+    const perpsHooksMock = jest.requireMock('../../UI/Perps/hooks');
+
+    const setVariant = (variant: PerpsSectionPriorityVariant) => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
+          return {
+            variant: PERPS_SECTION_PRIORITY_VARIANTS[variant],
+            variantName: variant,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+    };
+
+    const sectionIndexOf = (name: string) =>
+      getUseHomeViewedEventCalls().find((c) => c[0]?.sectionName === name)?.[0]
+        ?.sectionIndex;
+
+    // `clearAllMocks` leaves `mockReturnValue` in place, so restore the default
+    // rather than leaking eligibility into any later block.
+    afterEach(() => {
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
+    });
+
+    it('keeps Tokens above Perps for the control variant even when the user is an active trader', () => {
+      setVariant(PerpsSectionPriorityVariant.Control);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('tokens')).toBe(0);
+      expect(sectionIndexOf('perps')).toBe(1);
+    });
+
+    it('renders Perps above Tokens for the treatment variant when the user is an active trader', () => {
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('perps')).toBe(0);
+      expect(sectionIndexOf('tokens')).toBe(1);
+    });
+
+    it('keeps Tokens above Perps for the treatment variant when the user is not an active trader', () => {
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('tokens')).toBe(0);
+      expect(sectionIndexOf('perps')).toBe(1);
+    });
+
+    it('falls back to the control order when the flag is unresolved', () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
+          return {
+            variant:
+              PERPS_SECTION_PRIORITY_VARIANTS[
+                PerpsSectionPriorityVariant.Control
+              ],
+            variantName: PerpsSectionPriorityVariant.Control,
+            isActive: false,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('tokens')).toBe(0);
+      expect(sectionIndexOf('perps')).toBe(1);
+    });
+
+    it('leaves the sections after Perps and Tokens in place when reordered', () => {
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('predict')).toBe(2);
+      expect(sectionIndexOf('defi')).toBe(3);
+      expect(sectionIndexOf('nfts')).toBe(4);
+    });
+
+    it.each([
+      [PerpsSectionPriorityVariant.Control],
+      [PerpsSectionPriorityVariant.Treatment],
+    ])(
+      'reports eligibility on the perps section for the %s arm so both arms are comparable',
+      (variant) => {
+        setVariant(variant);
+        perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+        renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+        const perpsCall = getUseHomeViewedEventCalls().find(
+          (c) => c[0]?.sectionName === 'perps',
+        )?.[0];
+        expect(perpsCall?.isActivePerpsTrader).toBe(true);
+      },
+    );
+
+    it('reports ineligibility rather than omitting it', () => {
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const perpsCall = getUseHomeViewedEventCalls().find(
+        (c) => c[0]?.sectionName === 'perps',
+      )?.[0];
+      expect(perpsCall?.isActivePerpsTrader).toBe(false);
+    });
+
+    it('keeps Tokens first when Perps is disabled, regardless of variant', () => {
+      jest
+        .requireMock('../../UI/Perps')
+        .selectPerpsEnabledFlag.mockReturnValue(false);
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(sectionIndexOf('tokens')).toBe(0);
+      expect(sectionIndexOf('perps')).toBeUndefined();
     });
   });
 });

@@ -714,4 +714,43 @@ describe('useHomeViewedEvent', () => {
       expect(mockSubscribeToScroll).not.toHaveBeenCalled();
     });
   });
+
+  describe('perps priority eligibility', () => {
+    it.each([[true], [false]])(
+      'reports perps_priority_eligible=%p when supplied',
+      (isActivePerpsTrader) => {
+        renderHook(() =>
+          useHomeViewedEvent({
+            ...defaultParams,
+            sectionName: HomeSectionNames.PERPS,
+            sectionRef: null,
+            isLoading: false,
+            isActivePerpsTrader,
+          }),
+        );
+
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            perps_priority_eligible: isActivePerpsTrader,
+          }),
+        );
+      },
+    );
+
+    it('omits the property for sections that do not supply it', () => {
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          isLoading: false,
+        }),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          perps_priority_eligible: expect.anything(),
+        }),
+      );
+    });
+  });
 });

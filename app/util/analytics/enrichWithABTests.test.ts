@@ -4,6 +4,7 @@ import { WHATS_HAPPENING_EXPLORE_AB_KEY } from '../../components/Views/TrendingV
 import {
   HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
   HOMEPAGE_EARN_SECTION_AB_KEY,
+  PERPS_SECTION_PRIORITY_AB_KEY,
 } from '../../components/Views/Homepage/abTestConfig';
 import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
@@ -351,5 +352,76 @@ describe('enrichWithABTests', () => {
 
     expect(result.properties.button_type).toBe('card');
     expect(result.sensitiveProperties).toEqual({ sensitive: 'value' });
+  });
+
+  describe('perps section priority', () => {
+    it.each([
+      [MetaMetricsEvents.HOME_VIEWED],
+      [MetaMetricsEvents.PERPS_UI_INTERACTION],
+      [MetaMetricsEvents.PERPS_TRADE_TRANSACTION],
+      [MetaMetricsEvents.ACTION_BUTTON_CLICKED],
+      [MetaMetricsEvents.TOKEN_DETAILS_OPENED],
+    ])('enriches %s with the assigned variant', (eventName) => {
+      const event = AnalyticsEventBuilder.createEventBuilder(eventName).build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(
+          PERPS_SECTION_PRIORITY_AB_KEY,
+          'treatment',
+        ),
+      ]);
+    });
+
+    it('enriches a token-row tap so the guardrail can be split by variant', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TOKEN_DETAILS_OPENED,
+      )
+        .addProperties({ source: 'mobile-token-list' })
+        .build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties).toMatchObject({
+        source: 'mobile-token-list',
+        active_ab_tests: [
+          createActiveABTestAssignment(
+            PERPS_SECTION_PRIORITY_AB_KEY,
+            'treatment',
+          ),
+        ],
+      });
+    });
+
+    it('carries the control variant so both arms are comparable', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ACTION_BUTTON_CLICKED,
+      ).build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'control',
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(PERPS_SECTION_PRIORITY_AB_KEY, 'control'),
+      ]);
+    });
+
+    it('does not enrich events outside the mapping', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_HOME_VIEWED,
+      ).build();
+
+      const result = enrichWithABTests(event, {
+        [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toBeUndefined();
+    });
   });
 });
