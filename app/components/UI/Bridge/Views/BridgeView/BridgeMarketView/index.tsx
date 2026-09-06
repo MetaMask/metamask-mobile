@@ -94,6 +94,7 @@ import { SwapsMarketOrderConfirmButton } from '../../../components/SwapsMarketOr
 import { useBridgeViewOnFocus } from '../../../hooks/useBridgeViewOnFocus/index.ts';
 import { type BridgeRouteParams } from '../../../hooks/useSwapBridgeNavigation/index.ts';
 import SwapDiscoveryFeed from '../../../components/SwapDiscoveryFeed/SwapDiscoveryFeed';
+import BridgeOrdersTabBar from '../../../components/BridgeOrdersTabBar/BridgeOrdersTabBar';
 import {
   RobinhoodBanner,
   RobinhoodBannerSurface,
@@ -675,12 +676,7 @@ const BridgeMarketViewContent = ({
                 onPress={handleRobinhoodBannerPress}
               />
             ) : null}
-            {shouldShowDiscoveryFeed ? (
-              <SwapDiscoveryFeed
-                mode={discoveryFeedVariant.mode}
-                isNearBottom={isNearBottom}
-              />
-            ) : null}
+            {shouldShowDiscoveryFeed ? <BridgeOrdersTabBar /> : null}
           </Box>
         </ScrollView>
 
