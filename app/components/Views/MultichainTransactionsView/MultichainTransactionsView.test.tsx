@@ -319,7 +319,7 @@ describe('MultichainTransactionsView', () => {
     },
   );
 
-  it('keeps swaps carrying bridge history on the redesigned row instead of the legacy bridge row', async () => {
+  it('enriches same-chain swaps with quote tokens on the redesigned row', async () => {
     const bridgeHistoryItem = {
       status: { srcChain: { txHash: 'tx-123' } },
       quote: {
@@ -352,7 +352,17 @@ describe('MultichainTransactionsView', () => {
     );
 
     expect(ActivityListItemRow).toHaveBeenCalledWith(
-      expect.objectContaining({ bridgeHistoryItem }),
+      expect.objectContaining({
+        bridgeHistoryItem,
+        item: expect.objectContaining({
+          type: 'swap',
+          status: 'success',
+          data: expect.objectContaining({
+            sourceToken: expect.objectContaining({ symbol: 'SOL' }),
+            destinationToken: expect.objectContaining({ symbol: 'USDC' }),
+          }),
+        }),
+      }),
       undefined,
     );
   });
