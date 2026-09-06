@@ -54,3 +54,14 @@ export const IDOS_PRIVACY_POLICY_URL =
 export const IDOS_TERMS_URL = 'https://www.idos.network/legal/user-agreement';
 export const SUMSUB_PRIVACY_POLICY_URL = 'https://sumsub.com/privacy-notice/';
 export const SUMSUB_TERMS_URL = 'https://sumsub.com/terms-and-conditions/';
+
+// Dev-only Sumsub sandbox mint. Never CI/GitHub secrets.
+export const SUMSUB_ACCESS_TOKEN = process.env.MM_SUMSUB_ACCESS_TOKEN ?? '';
+export const SUMSUB_SANDBOX_APP_TOKEN =
+  process.env.MM_SUMSUB_SANDBOX_APP_TOKEN ?? '';
+export const SUMSUB_SANDBOX_SECRET_KEY =
+  process.env.MM_SUMSUB_SANDBOX_SECRET_KEY ?? '';
+export const SUMSUB_SANDBOX_LEVEL_NAME =
+  process.env.MM_SUMSUB_SANDBOX_LEVEL_NAME ?? '';
+export const SUMSUB_SANDBOX_USER_ID =
+  process.env.MM_SUMSUB_SANDBOX_USER_ID ?? 'mm-mobile-vba-sandbox';

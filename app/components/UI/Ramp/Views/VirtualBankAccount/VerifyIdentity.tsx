@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Linking, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import Logger from '../../../../../util/Logger';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -39,6 +40,8 @@ import {
 } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
+import { launchSumSubSdk } from './launchSumSubSdk';
+import { resolveSumSubAccessToken } from './mintSumSubSandboxAccessToken';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -129,6 +132,7 @@ const VbaVerifyIdentity = () => {
   const tw = useTailwind();
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
+  const [isLaunchingSumSub, setIsLaunchingSumSub] = useState(false);
   const chevronRotation = useSharedValue(0);
 
   const animatedChevronStyle = useAnimatedStyle(() => ({
@@ -137,8 +141,22 @@ const VbaVerifyIdentity = () => {
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleContinue = useCallback(() => {
-    // The next screen in the VBA KYC flow isn't built yet.
+  const handleContinue = useCallback(async () => {
+    setIsLaunchingSumSub(true);
+    try {
+      const accessToken = await resolveSumSubAccessToken();
+      const result = await launchSumSubSdk({
+        accessToken,
+        onTokenExpired: resolveSumSubAccessToken,
+      });
+      Logger.log('[VBA KYC] Sumsub SDK closed', result);
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-kyc', provider: 'sumsub' },
+      });
+    } finally {
+      setIsLaunchingSumSub(false);
+    }
   }, []);
 
   const toggleDataAndPrivacy = useCallback(() => {
@@ -323,6 +341,8 @@ const VbaVerifyIdentity = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
+          isDisabled={isLaunchingSumSub}
+          isLoading={isLaunchingSumSub}
           onPress={handleContinue}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
         >
