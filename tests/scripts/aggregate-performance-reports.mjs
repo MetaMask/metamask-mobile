@@ -504,8 +504,26 @@ function createSummary(groupedResults) {
     onboarding: { android: 0, ios: 0 },
     'imported-wallet': { android: 0, ios: 0 },
   };
+  const executedTestsByCategory = {
+    onboarding: { android: 0, ios: 0 },
+    'imported-wallet': { android: 0, ios: 0 },
+  };
 
   const uniqueFailedTestNames = new Set();
+
+  Object.values(testExecutions).forEach(execution => {
+    const platformKey = execution.testInfo.platform.toLowerCase();
+    const scenario = resolveScenarioFromTestFilePath(
+      execution.testInfo.testFilePath,
+    );
+
+    if (
+      (platformKey === 'android' || platformKey === 'ios') &&
+      executedTestsByCategory[scenario]
+    ) {
+      executedTestsByCategory[scenario][platformKey]++;
+    }
+  });
 
   Object.values(testExecutions).forEach(execution => {
     // If test passed at least once, it's considered passed (successful retry)
@@ -625,6 +643,10 @@ function createSummary(groupedResults) {
       // Category/platform failure counts for Slack RESULTS BY CATEGORY.
       // Reflects quality-gate failures even when CI jobs exit green.
       failedTestsByCategory,
+      // Category/platform execution counts for Slack RESULTS BY CATEGORY.
+      // A non-zero count means the category ran, even if its job was cancelled
+      // or its reusable-workflow name was not matched by the Slack script.
+      executedTestsByCategory,
       failedTestsByPlatform,
       branch: process.env.BRANCH_NAME || process.env.GITHUB_REF_NAME || 'unknown',
       commit: process.env.GITHUB_SHA || 'unknown',
