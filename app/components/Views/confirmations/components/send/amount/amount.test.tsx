@@ -61,7 +61,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       currencyRates: {
         ETH: {
           conversionRate: 2000,
-          conversionDate: Date.now(),
+          conversionDate: 1700000000000,
         },
       },
     },
@@ -182,6 +182,37 @@ describe('Amount', () => {
     expect(getByTestId('send_amount').children[0]).toEqual('0');
     fireEvent.press(getByTestId('fiat_toggle'));
     expect(getByTestId('send_amount').children[0]).toEqual('0.00');
+  });
+
+  it('seeds token amount from predefinedAmount and stays in token mode', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    const { getByTestId, getByText } = renderComponent();
+
+    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+    expect(getByText('ETH')).toBeTruthy();
+    expect(
+      mockAmountSelectionMetrics.setAmountInputTypeToken,
+    ).toHaveBeenCalled();
+  });
+
+  it('does not restore predefinedAmount after the user clears the field', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+
+    // Clear every digit until the keypad reports an empty value.
+    const deleteButton = getByTestId('keypad-delete-button');
+    for (let i = 0; i < 10; i++) {
+      fireEvent.press(deleteButton);
+    }
+
+    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    expect(
+      mockAmountSelectionMetrics.setAmountInputTypeToken,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('asset passed in nav params should be used if present', () => {

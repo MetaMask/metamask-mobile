@@ -24,10 +24,11 @@ export const useRouteParams = () => {
   const flatAssets = useMemo(() => Object.values(assets).flat(), [assets]);
   const { nfts, isLoading: isNftsLoading } = useEVMNfts();
 
-  const { asset: paramsAsset } = useParams<{
+  const { asset: paramsAsset, predefinedAmount } = useParams<{
     asset: AssetType;
+    predefinedAmount?: string;
   }>();
-  const { asset, updateAsset } = useSendContext();
+  const { asset, updateAsset, updateValue } = useSendContext();
 
   useEffect(() => {
     if (asset) {
@@ -58,15 +59,29 @@ export const useRouteParams = () => {
 
       if (filteredAsset) {
         updateAsset(filteredAsset);
+        if (predefinedAmount) {
+          updateValue(predefinedAmount);
+        }
       } else if (paramsAsset.symbol || paramsAsset.ticker) {
         // If the asset is not found in the user's owned assets or NFTs,
         // but has token symbol information (e.g., from trending/discovery),
         // use the params asset with default zero balance.
         // This ensures token details are displayed on the Send screen.
         updateAsset(createAssetFromParams(paramsAsset));
+        if (predefinedAmount) {
+          updateValue(predefinedAmount);
+        }
       }
     }
-  }, [asset, paramsAsset, nfts, flatAssets, updateAsset]);
+  }, [
+    asset,
+    paramsAsset,
+    nfts,
+    flatAssets,
+    updateAsset,
+    updateValue,
+    predefinedAmount,
+  ]);
 
   // True while NFT processing is in progress and the asset hasn't been
   // resolved into the send context yet (i.e. navigated from NftDetails).

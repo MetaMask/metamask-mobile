@@ -100,6 +100,37 @@ describe('useRouteParams', () => {
     });
   });
 
+  it('calls updateValue with predefinedAmount after applying params asset', async () => {
+    const asset = {
+      id: '123',
+      address: 'dummy_address',
+      chainId: 'dummy_chainId',
+      symbol: 'USDC',
+      decimals: 6,
+      name: 'USD Coin',
+    };
+    mockUseParams.mockReturnValue({ asset, predefinedAmount: '25.515000' });
+    const mockUpdateAsset = jest.fn();
+    const mockUpdateValue = jest.fn();
+    mockUseSendContext.mockReturnValue({
+      updateAsset: mockUpdateAsset,
+      updateValue: mockUpdateValue,
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectAssetsBySelectedAccountGroup) {
+        return { '0x1': [] };
+      }
+    });
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
+
+    renderHookWithProvider(() => useRouteParams(), mockState);
+
+    await waitFor(() => {
+      expect(mockUpdateAsset).toHaveBeenCalled();
+      expect(mockUpdateValue).toHaveBeenCalledWith('25.515000');
+    });
+  });
+
   it('calls updateAsset with params asset when token not found but has ticker (zero balance scenario)', async () => {
     const asset = {
       id: '123',

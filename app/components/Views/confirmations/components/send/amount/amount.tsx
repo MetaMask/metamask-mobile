@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -43,7 +49,10 @@ import {
 export const Amount = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { header: renderAmountHeader } = useSendNavbar().Amount;
-  const { location } = useParams<{ location?: string }>();
+  const { location, predefinedAmount } = useParams<{
+    location?: string;
+    predefinedAmount?: string;
+  }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, value } = useSendContext();
   const { balance } = useBalance();
@@ -70,10 +79,27 @@ export const Amount = () => {
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
   const { isLoading: isNftLoading } = useRouteParams();
+  const hasSeededPredefinedAmountRef = useRef(false);
 
   useEffect(() => {
+    if (predefinedAmount) {
+      setFiatMode(false);
+      return;
+    }
     setFiatMode(primaryCurrency === 'Fiat');
-  }, [primaryCurrency, setFiatMode]);
+  }, [primaryCurrency, predefinedAmount, setFiatMode]);
+
+  // Seed once from navigation params. Do not re-run when the user clears the
+  // field — that would restore the QR amount while send-context value stays
+  // empty (AmountKeyboard already called updateValue('')).
+  useEffect(() => {
+    if (!predefinedAmount || hasSeededPredefinedAmountRef.current) {
+      return;
+    }
+    hasSeededPredefinedAmountRef.current = true;
+    setAmountInputTypeToken();
+    setAmount(predefinedAmount);
+  }, [predefinedAmount, setAmountInputTypeToken]);
 
   useEffect(() => {
     if (location && location === InitSendLocation.AssetOverview) {
