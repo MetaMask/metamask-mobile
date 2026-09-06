@@ -1,0 +1,224 @@
+/* eslint-disable react/prop-types */
+
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { LayoutChangeEvent, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
+
+import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
+import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
+import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
+import { TabBarProps } from '../TabBar/TabBar.types';
+import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
+import TabBarFloatingItem from './TabBarFloatingItem';
+import {
+  FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
+  FLOATING_ICON_BY_TAB_BAR_ICON_KEY,
+  TAB_BAR_FLOATING_INSET_REDUCTION,
+  TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
+  TAB_BAR_FLOATING_TEST_IDS,
+} from './TabBarFloating.constants';
+
+export interface TabBarFloatingProps extends TabBarProps {
+  /**
+   * Measured height of the bar, so the navigator can pad tab scenes by the
+   * amount the bar overlays. Reports 0 on unmount, which is how the hidden-bar
+   * cases (browser, keyboard open) avoid leaving a dead gap.
+   */
+  onHeightChange?: (height: number) => void;
+}
+
+type TabBarFloatingRoute = TabBarProps['state']['routes'][number];
+
+/**
+ * Treatment bottom navigation for the Header & NavBar refresh experiment
+ * tabs sit in a floating rounded pill with a separate circular
+ * search button alongside it, both over the content rather than on an opaque
+ * bar. Control keeps `TabBar`; the navigator picks between them on the flag.
+ */
+const TabBarFloating = ({
+  state,
+  descriptors,
+  navigation,
+  onHeightChange,
+}: TabBarFloatingProps) => {
+  const tw = useTailwind();
+  const { bottom: bottomInset } = useSafeAreaInsets();
+
+  // Tightens the gap against iOS's generous home-indicator inset, but Android
+  // reports much smaller insets (0 on some emulators), where subtracting alone
+  // left the pill flush against the system navigation bar.
+  const bottomPadding = Math.max(
+    bottomInset - TAB_BAR_FLOATING_INSET_REDUCTION,
+    TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
+  );
+  const { navigateToMoneyHome } = useMoneyNavigation();
+
+  const lastReportedHeight = useRef<number>(0);
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const height = event.nativeEvent.layout.height;
+      if (Math.abs(height - lastReportedHeight.current) > 2) {
+        lastReportedHeight.current = height;
+        onHeightChange?.(height);
+      }
+    },
+    [onHeightChange],
+  );
+
+  useEffect(() => () => onHeightChange?.(0), [onHeightChange]);
+
+  // The search button is a circle matching the pill's height. Measured rather
+  // than hardcoded so it tracks the pill's padding and font sizes.
+  const [pillHeight, setPillHeight] = useState(0);
+
+  const handlePillLayout = useCallback((event: LayoutChangeEvent) => {
+    setPillHeight(Math.round(event.nativeEvent.layout.height));
+  }, []);
+
+  const handleSearchPress = useCallback(() => {
+    trackExploreSearchOpened('nav_bar');
+    navigation.navigate(Routes.EXPLORE_SEARCH);
+  }, [navigation]);
+
+  // Tabs that stay mounted on blur (Explore) can only clean up via `onLeave`,
+  // so the bar has to fire it — see the matching block in `TabBar`.
+  const previousTabIndexRef = useRef<number>(state.index);
+
+  const renderTabBarItem = useCallback(
+    (route: TabBarFloatingRoute, index: number) => {
+      const descriptor = descriptors[route.key];
+      if (!descriptor) return null;
+      const { options } = descriptor;
+      if (options?.isHidden) return null;
+
+      const tabBarIconKey = options.tabBarIconKey;
+      // Same key scheme as `TabBar` so e2e selectors work across both arms.
+      const key = `tab-bar-item-${tabBarIconKey}`;
+      const isSelected = options?.isSelected
+        ? options.isSelected(state.routeNames[state.index])
+        : state.index === index;
+      const baseIcon = FLOATING_ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
+      const icon = isSelected
+        ? (FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey] ?? baseIcon)
+        : baseIcon;
+      if (!icon) return null;
+
+      const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
+      const labelText = labelKey ? strings(labelKey) : '';
+
+      const onPress = () => {
+        if (previousTabIndexRef.current !== index) {
+          const previousRoute = state.routes[previousTabIndexRef.current];
+          descriptors[previousRoute?.key]?.options?.onLeave?.();
+          previousTabIndexRef.current = index;
+        }
+        options.callback?.();
+        switch (options.rootScreenName) {
+          case Routes.WALLET_VIEW:
+            navigation.navigate(Routes.WALLET.HOME, {
+              screen: Routes.WALLET_VIEW,
+            });
+            break;
+          case Routes.TRENDING_VIEW:
+            navigation.navigate(Routes.TRENDING_VIEW);
+            break;
+          case Routes.TRANSACTIONS_VIEW:
+            navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+              screen: Routes.TRANSACTIONS_VIEW,
+              params: { entryPoint: ActivityScreenEntryPoint.BottomNavClick },
+            });
+            break;
+          case Routes.MONEY.HOME:
+            navigateToMoneyHome();
+            break;
+          case Routes.SOCIAL_LEADERBOARD.TAB:
+            navigation.navigate(Routes.SOCIAL_LEADERBOARD.TAB);
+            break;
+          case Routes.REWARDS_VIEW:
+            navigation.navigate(Routes.REWARDS_VIEW);
+            break;
+        }
+      };
+
+      return (
+        <TabBarFloatingItem
+          key={key}
+          testID={key}
+          iconName={icon}
+          label={labelText}
+          isActive={isSelected}
+          onPress={onPress}
+        />
+      );
+    },
+    [
+      descriptors,
+      state.routeNames,
+      state.index,
+      state.routes,
+      navigation,
+      navigateToMoneyHome,
+    ],
+  );
+
+  return (
+    <View
+      style={[
+        tw.style('absolute bottom-0 left-0 right-0 px-4'),
+        { paddingBottom: bottomPadding },
+      ]}
+      testID={TAB_BAR_FLOATING_TEST_IDS.CONTAINER}
+      onLayout={handleLayout}
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-3"
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="flex-1 rounded-full border border-muted bg-section p-1"
+          testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
+          onLayout={handlePillLayout}
+        >
+          {state.routes.map((route: TabBarFloatingRoute, index: number) =>
+            renderTabBarItem(route, index),
+          )}
+        </Box>
+        <ButtonIcon
+          iconName={IconName.Search}
+          iconProps={{ color: IconColor.IconDefault }}
+          size={ButtonIconSize.Lg}
+          onPress={handleSearchPress}
+          testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
+          accessibilityLabel={strings('wallet.search_accessibility_label')}
+          twClassName={`rounded-full border border-muted bg-section ${
+            pillHeight ? `h-[${pillHeight}px] w-[${pillHeight}px]` : 'h-14 w-14'
+          }`}
+        />
+      </Box>
+    </View>
+  );
+};
+
+export default TabBarFloating;

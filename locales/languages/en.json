@@ -709,7 +709,8 @@
     "settings": "Settings",
     "rewards": "Rewards",
     "trending": "Explore",
-    "money": "Money"
+    "money": "Money",
+    "social": "Social"
   },
   "drawer": {
     "send_button": "Send",
