@@ -2,7 +2,7 @@ import '../../../../tests/component-view/mocks';
 import { renderTokenList } from '../../../../tests/component-view/renderers/networkManager';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { act, waitFor } from '@testing-library/react-native';
-import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../AssetElement/AssetElement.testIds';
 
 /** Flushes Tokens' InteractionManager callback so its list replaces loading skeleton. */
 const waitForTokenListLoad = async () => {
