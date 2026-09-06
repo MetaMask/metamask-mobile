@@ -638,7 +638,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   testID="market-insights-entry-card"
                 />
               ) : (
-                <MarketInsightsEntryCardSkeleton />
+                <MarketInsightsEntryCardSkeleton source="token_details" />
               )}
             </View>
           ) : null}
