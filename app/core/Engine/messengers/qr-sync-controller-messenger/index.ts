@@ -28,7 +28,7 @@ export function getQrSyncControllerMessenger(
 
   rootMessenger.delegate({
     messenger,
-    actions: ['QrSyncProvisioningService:importSecretsToVault'],
+    actions: ['AccountTreeController:importState'],
   });
 
   return messenger;

@@ -37,7 +37,6 @@ describe('dispatchQrSyncCommand', () => {
       type: E2ECommandTypes.applyQrSyncSyncReady,
       args: {
         mnemonic: 'test test test test test test test test test test test junk',
-        isPrimary: true,
         walletName: 'Extension Wallet',
         accountName: 'Synced Account',
       },
@@ -45,7 +44,6 @@ describe('dispatchQrSyncCommand', () => {
 
     expect(mockApplyTestSyncReadyPayload).toHaveBeenCalledWith({
       mnemonic: 'test test test test test test test test test test test junk',
-      isPrimary: true,
       walletName: 'Extension Wallet',
       accountName: 'Synced Account',
     });
@@ -56,7 +54,6 @@ describe('dispatchQrSyncCommand', () => {
       type: E2ECommandTypes.applyQrSyncSyncReady,
       args: {
         mnemonic: { not: 'a-string' },
-        isPrimary: false,
         walletName: 123,
         accountName: null,
       },
@@ -64,7 +61,6 @@ describe('dispatchQrSyncCommand', () => {
 
     expect(mockApplyTestSyncReadyPayload).toHaveBeenCalledWith({
       mnemonic: '',
-      isPrimary: false,
       walletName: undefined,
       accountName: undefined,
     });

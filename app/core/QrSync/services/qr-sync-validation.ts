@@ -1,26 +1,15 @@
+import type {
+  AccountTreePayload,
+  AccountWalletMnemonicPayload,
+} from '@metamask/account-tree-controller';
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
 
 import { isUUID } from '../../SDKConnect/utils/isUUID';
-import {
-  QrSyncActionTypes,
-  QrSyncMessageVersion,
-  QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
-} from '../constants';
+import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import type {
-  QrSyncAccountGroup,
   QrSyncConnectionRequest,
   QrSyncError,
-  QrSyncProvisioningEntry,
-  QrSyncProvisioningEntryEnrichmentContext,
-  QrSyncProvisioningEntryResolution,
-  QrSyncProvisioningMetadata,
-  QrSyncReadyData,
-  QrSyncReadyMnemonicData,
-  QrSyncReadyPrivateKeyData,
-  QrSyncSecretImportEntry,
-  QrSyncSecretImportPreconditions,
   QrSyncSyncReadyMessage,
 } from '../types';
 
@@ -180,96 +169,22 @@ export function parseQrSyncConnectionRequest(
 
 // --- Sync-ready payload parsing ---
 
-const decodeSecretValue = (value: string): string => {
-  try {
-    return bytesToString(base64ToBytes(value));
-  } catch {
-    return value;
-  }
-};
-
-const isQrSyncAccountGroup = (data: unknown): data is QrSyncAccountGroup => {
+const isAccountTreePayload = (data: unknown): data is AccountTreePayload => {
   if (!isRecord(data)) {
     return false;
   }
 
-  const { groupIndex, name, pinned, hidden } =
-    data as Partial<QrSyncAccountGroup>;
+  const candidate = data as Partial<AccountTreePayload>;
 
-  return (
-    typeof groupIndex === 'number' &&
-    Number.isInteger(groupIndex) &&
-    groupIndex >= 0 &&
-    typeof name === 'string' &&
-    name.length > 0 &&
-    (pinned === undefined || typeof pinned === 'boolean') &&
-    (hidden === undefined || typeof hidden === 'boolean')
+  return Boolean(
+    candidate.version === 1 &&
+      candidate.wallets &&
+      Array.isArray(candidate.wallets),
   );
 };
-
-const isQrSyncReadyMnemonicData = (
-  data: unknown,
-): data is QrSyncReadyMnemonicData => {
-  if (!isRecord(data)) {
-    return false;
-  }
-
-  const entry = data as Partial<QrSyncReadyMnemonicData>;
-
-  if (
-    entry.type !== QrSyncSecretTypes.MNEMONIC ||
-    typeof entry.mnemonic !== 'string' ||
-    entry.mnemonic.length === 0
-  ) {
-    return false;
-  }
-
-  if (
-    entry.name !== undefined &&
-    (typeof entry.name !== 'string' || entry.name.length === 0)
-  ) {
-    return false;
-  }
-
-  if (
-    entry.groups !== undefined &&
-    (!Array.isArray(entry.groups) || !entry.groups.every(isQrSyncAccountGroup))
-  ) {
-    return false;
-  }
-
-  if (entry.isPrimary !== undefined && typeof entry.isPrimary !== 'boolean') {
-    return false;
-  }
-
-  return true;
-};
-
-const isQrSyncReadyPrivateKeyData = (
-  data: unknown,
-): data is QrSyncReadyPrivateKeyData => {
-  if (!isRecord(data)) {
-    return false;
-  }
-
-  const entry = data as Partial<QrSyncReadyPrivateKeyData>;
-
-  return (
-    entry.type === QrSyncSecretTypes.PRIVATE_KEY &&
-    typeof entry.privateKey === 'string' &&
-    entry.privateKey.length > 0 &&
-    typeof entry.name === 'string' &&
-    entry.name.length > 0 &&
-    (entry.pinned === undefined || typeof entry.pinned === 'boolean') &&
-    (entry.hidden === undefined || typeof entry.hidden === 'boolean')
-  );
-};
-
-const isQrSyncReadyData = (data: unknown): data is QrSyncReadyData =>
-  isQrSyncReadyMnemonicData(data) || isQrSyncReadyPrivateKeyData(data);
 
 /**
- * Validates sync-ready import entries and deadline.
+ * Validates sync-ready message envelope and AccountTreePayload.
  */
 function validateSyncReadyMessage(
   message: Partial<QrSyncSyncReadyMessage>,
@@ -292,36 +207,18 @@ function validateSyncReadyMessage(
     );
   }
 
-  if (!Array.isArray(message.data)) {
+  const payload = message.data;
+  if (!isAccountTreePayload(payload)) {
     return buildValidationError(
       'INVALID_PAYLOAD',
-      'QR sync message payload is malformed.',
+      'QR sync message payload is malformed or uses an unsupported version.',
     );
   }
 
-  if (message.data.length === 0) {
+  if (payload.wallets.length === 0) {
     return buildValidationError(
       'INVALID_PAYLOAD',
-      'QR sync payload must include at least one secret import.',
-    );
-  }
-
-  if (!message.data.every(isQrSyncReadyData)) {
-    return buildValidationError(
-      'INVALID_PAYLOAD',
-      'QR sync payload contains a malformed import entry.',
-    );
-  }
-
-  const primaryMnemonics = message.data.filter(
-    (entry) =>
-      entry.type === QrSyncSecretTypes.MNEMONIC && entry.isPrimary === true,
-  );
-
-  if (primaryMnemonics.length > 1) {
-    return buildValidationError(
-      'INVALID_PAYLOAD',
-      'QR sync payload may include at most one primary mnemonic.',
+      'QR sync payload must include at least one wallet.',
     );
   }
 
@@ -329,111 +226,33 @@ function validateSyncReadyMessage(
 }
 
 /**
- * Returns whether remaining QR sync secrets can be imported into the vault.
+ * Validates that the payload includes a primary mnemonic wallet with a secret
+ * value, required to create the vault during new-user onboarding.
+ *
+ * @param payload - The `AccountTreePayload` received from the extension.
  */
-export function isQrSyncReadyForSecretImport(
-  preconditions: QrSyncSecretImportPreconditions,
-): boolean {
-  const { provisioningStatus, pendingSecretImports } = preconditions;
-
-  return (
-    provisioningStatus === QrSyncProvisioningStatuses.AWAITING_PASSWORD &&
-    Boolean(pendingSecretImports?.length)
-  );
-}
-
-/**
- * Asserts Phase B enrichment preconditions and resolves the metadata entry.
- */
-export function resolveQrSyncProvisioningEntryForEnrichment(
-  context: QrSyncProvisioningEntryEnrichmentContext,
-  index: number,
-): QrSyncProvisioningEntryResolution {
-  if (!isQrSyncReadyForSecretImport(context)) {
-    throw new Error('QR sync enrichment requires ready for secret import');
-  }
-
-  const { provisioningMetadata } = context;
-  if (!provisioningMetadata) {
-    throw new Error('QR sync enrichment requires provisioning metadata');
-  }
-
-  const entryIndex = provisioningMetadata.entries.findIndex(
-    (metadataEntry) => metadataEntry.index === index,
-  );
-
-  if (entryIndex === -1) {
-    throw new Error(`QR sync metadata has no entry at index ${index}`);
-  }
-
-  return {
-    entryIndex,
-    entry: provisioningMetadata.entries[entryIndex],
-  };
-}
-
-const toControllerState = (
-  entries: QrSyncReadyData[],
-  version: QrSyncMessageVersion,
+export function validateQrSyncPayloadForOnboarding(
+  payload: AccountTreePayload | undefined,
 ): {
-  pendingSecretImports: QrSyncSecretImportEntry[];
-  provisioningMetadata: QrSyncProvisioningMetadata;
-} => {
-  const { pendingSecretImports, provisioningEntries } = entries.reduce<{
-    pendingSecretImports: QrSyncSecretImportEntry[];
-    provisioningEntries: QrSyncProvisioningEntry[];
-  }>(
-    (state, entry, index) => {
-      if (entry.type === QrSyncSecretTypes.MNEMONIC) {
-        state.pendingSecretImports.push({
-          index,
-          type: entry.type,
-          value: decodeSecretValue(entry.mnemonic),
-          isPrimary: Boolean(entry.isPrimary),
-        });
-        state.provisioningEntries.push({
-          index,
-          type: entry.type,
-          isPrimary: Boolean(entry.isPrimary),
-          name: entry.name,
-          groups: entry.groups?.map((group) => ({
-            groupIndex: group.groupIndex,
-            name: group.name,
-            ...(group.pinned !== undefined ? { pinned: group.pinned } : {}),
-            ...(group.hidden !== undefined ? { hidden: group.hidden } : {}),
-          })),
-        });
-        return state;
-      }
-
-      state.pendingSecretImports.push({
-        index,
-        type: entry.type,
-        value: decodeSecretValue(entry.privateKey),
-      });
-      state.provisioningEntries.push({
-        index,
-        type: entry.type,
-        name: entry.name,
-        ...(entry.pinned ? { pinned: entry.pinned } : {}),
-        ...(entry.hidden ? { hidden: entry.hidden } : {}),
-      });
-      return state;
-    },
-    { pendingSecretImports: [], provisioningEntries: [] },
+  valid: boolean;
+  error?: QrSyncError;
+} {
+  const primaryMnemonic = payload?.wallets.find(
+    (w): w is AccountWalletMnemonicPayload => w.type === 'mnemonic',
   );
 
-  return {
-    pendingSecretImports,
-    provisioningMetadata: {
-      version,
-      entries: provisioningEntries,
-    },
-  };
-};
+  if (!primaryMnemonic?.value) {
+    return buildValidationError(
+      'INVALID_PAYLOAD',
+      'QR sync payload must include a primary mnemonic for new-user onboarding.',
+    );
+  }
+
+  return { valid: true };
+}
 
 /**
- * Validates a `sync-ready` wire message and maps it to controller state shapes.
+ * Validates a `sync-ready` wire message and returns the {@link AccountTreePayload}.
  */
 export function parseQrSyncSyncReadyMessage(
   data: unknown,
@@ -441,8 +260,7 @@ export function parseQrSyncSyncReadyMessage(
 ): {
   valid: boolean;
   error?: QrSyncError;
-  pendingSecretImports?: QrSyncSecretImportEntry[];
-  provisioningMetadata?: QrSyncProvisioningMetadata;
+  pendingPayload?: AccountTreePayload;
 } {
   if (!isRecord(data)) {
     return buildValidationError(
@@ -476,36 +294,8 @@ export function parseQrSyncSyncReadyMessage(
     return messageValidation;
   }
 
-  const { pendingSecretImports, provisioningMetadata } = toControllerState(
-    message.data as QrSyncReadyData[],
-    message.version as QrSyncMessageVersion,
-  );
-
   return {
     valid: true,
-    pendingSecretImports,
-    provisioningMetadata,
+    pendingPayload: message.data,
   };
-}
-
-/** Validates that the pending secret imports include a primary mnemonic. */
-export function validateQrSyncSecretImportsForOnboarding(
-  secretImports: QrSyncSecretImportEntry[] | undefined,
-): {
-  valid: boolean;
-  error?: QrSyncError;
-} {
-  const hasPrimaryMnemonic = secretImports?.some(
-    (entry) =>
-      entry.type === QrSyncSecretTypes.MNEMONIC && entry.isPrimary === true,
-  );
-
-  if (!hasPrimaryMnemonic) {
-    return buildValidationError(
-      'INVALID_PAYLOAD',
-      'QR sync payload must include a primary mnemonic when onboarding is not completed.',
-    );
-  }
-
-  return { valid: true };
 }
