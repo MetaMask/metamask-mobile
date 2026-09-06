@@ -10,14 +10,17 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
-import type { UseSwapQuotesParams } from '../useSwapQuotes/types';
 
-export interface UseDebouncedUpdateParams extends UseSwapQuotesParams {
+export interface UseDebouncedUpdateParams {
   featureId: FeatureId;
   debounceWait: number;
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
   genericQuoteRequest?: GenericQuoteRequest;
+  /**
+   * The raw source input amount before normalization into {@link GenericQuoteRequest.srcTokenAmount}
+   */
+  rawSrcAmount?: string;
 }
 
 interface UpdateQuoteParamsOptions {
@@ -36,7 +39,7 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     quoteRequestIndex = 0,
     quoteRequestCount = 1,
     debounceWait,
-    quoteParams,
+    rawSrcAmount: srcAmount,
   } = params;
 
   const metricsContext = useUnifiedSwapBridgeContext(featureId);
@@ -45,7 +48,7 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
    * Updates quote parameters in the bridge controller
    */
   const updateQuoteParams = useCallback(
-    async (options?: UpdateQuoteParamsOptions) => {
+    async (options: UpdateQuoteParamsOptions = {}) => {
       if (!genericQuoteRequest) {
         return;
       }
@@ -73,8 +76,13 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     [metricsContext, quoteRequestIndex, quoteRequestCount, genericQuoteRequest],
   );
 
-  const { srcToken, destToken, srcAmount } = quoteParams;
-  const { destChainId, walletAddress } = genericQuoteRequest ?? {};
+  const {
+    srcChainId,
+    destChainId,
+    srcTokenAddress,
+    destTokenAddress,
+    walletAddress,
+  } = genericQuoteRequest ?? {};
 
   // Start the trace when the user commits a request, before the debounce timer.
   const debouncedUpdateQuoteParams = useMemo(() => {
@@ -84,11 +92,11 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
       requestOptions: UpdateQuoteParamsOptions = {},
     ) => {
       if (
-        !srcToken ||
-        !destToken ||
+        !srcTokenAddress ||
+        !destTokenAddress ||
+        // Checks if the input field has been cleared
         srcAmount === undefined ||
         !destChainId ||
-        !destToken?.chainId ||
         !walletAddress
       ) {
         debounced.cancel();
@@ -99,8 +107,8 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
       const traceId =
         srcAmount && srcAmount !== '.'
           ? swapQuoteFetchTrace.start({
-              sourceToken: srcToken,
-              destToken,
+              srcChainId,
+              destChainId,
               isRefresh: requestOptions.isRefresh ?? false,
             })
           : undefined;
@@ -124,8 +132,9 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     return debouncedWithTrace;
   }, [
     destChainId,
-    destToken,
-    srcToken,
+    srcChainId,
+    destTokenAddress,
+    srcTokenAddress,
     srcAmount,
     updateQuoteParams,
     walletAddress,

@@ -191,8 +191,8 @@ export const useBridgeQuoteRequest = (
       const traceId =
         sourceAmount && sourceAmount !== '.'
           ? swapQuoteFetchTrace.start({
-              sourceToken,
-              destToken,
+              srcChainId: sourceToken?.chainId,
+              destChainId: destToken?.chainId,
               isRefresh: requestOptions.isRefresh ?? false,
             })
           : undefined;
