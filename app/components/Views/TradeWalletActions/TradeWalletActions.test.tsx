@@ -106,6 +106,7 @@ jest.mock('../../UI/Perps/selectors/perpsController', () => {
   return {
     selectIsFirstTimePerpsUser: jest.fn(),
     selectPerpsMode: jest.fn(() => MockedPerpsMode.Lite),
+    selectPerpsLastViewedMarketSymbol: jest.fn(() => 'BTC'),
   };
 });
 

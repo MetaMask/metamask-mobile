@@ -6,6 +6,7 @@ import { selectCanSignTransactions } from '../../../../../../selectors/accountsC
 import { selectPerpsEnabledFlag } from '../../../../../UI/Perps';
 import {
   selectIsFirstTimePerpsUser,
+  selectPerpsLastViewedMarketSymbol,
   selectPerpsMode,
 } from '../../../../../UI/Perps/selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
@@ -42,6 +43,7 @@ interface SelectorOverrides {
   isFirstTimePerpsUser?: boolean;
   isProModeEnabled?: boolean;
   perpsMode?: PerpsMode;
+  lastViewedMarketSymbol?: string;
 }
 
 const mockSelectorState = (overrides: SelectorOverrides = {}) => {
@@ -51,6 +53,7 @@ const mockSelectorState = (overrides: SelectorOverrides = {}) => {
     isFirstTimePerpsUser = false,
     isProModeEnabled = false,
     perpsMode = PerpsMode.Lite,
+    lastViewedMarketSymbol = 'BTC',
   } = overrides;
 
   mockUseSelector.mockImplementation((selector: unknown) => {
@@ -59,6 +62,8 @@ const mockSelectorState = (overrides: SelectorOverrides = {}) => {
     if (selector === selectIsFirstTimePerpsUser) return isFirstTimePerpsUser;
     if (selector === selectPerpsProModeEnabledFlag) return isProModeEnabled;
     if (selector === selectPerpsMode) return perpsMode;
+    if (selector === selectPerpsLastViewedMarketSymbol)
+      return lastViewedMarketSymbol;
     return undefined;
   });
 };
@@ -95,6 +100,27 @@ describe('PerpsButton', () => {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: expect.objectContaining({
         market: expect.objectContaining({ symbol: 'BTC' }),
+      }),
+    });
+  });
+
+  it('navigates to the last viewed Pro market when one has been recorded', () => {
+    mockSelectorState({
+      isProModeEnabled: true,
+      perpsMode: PerpsMode.Pro,
+      lastViewedMarketSymbol: 'ETH',
+    });
+
+    const { getByTestId } = render(
+      <PerpsButton actionPosition={ActionPosition.FIRST_POSITION} />,
+    );
+
+    fireEvent.press(getByTestId(HomepageActionButtonsGridTestIds.PERPS_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: expect.objectContaining({
+        market: expect.objectContaining({ symbol: 'ETH' }),
       }),
     });
   });

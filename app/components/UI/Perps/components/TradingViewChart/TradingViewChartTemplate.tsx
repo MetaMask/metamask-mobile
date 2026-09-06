@@ -397,6 +397,9 @@ export const createTradingViewChartTemplate = (
 
         // Edge detection variables for historical data loading
         window.lastHistoryFetchTime = 0;
+        window.lastReportedVisibleCandleCount = null;
+        window.isPinchZoomActive = false;
+        window.pinchTrackingInstalled = false;
         window.HISTORY_FETCH_COOLDOWN = 2000; // 2 seconds cooldown between fetches
         window.EDGE_THRESHOLD = 5; // Consider "at edge" if within 5 candles from start
         // Set up edge detection for loading more historical data
@@ -406,10 +409,67 @@ export const createTradingViewChartTemplate = (
             }
 
             try {
+                // Lightweight Charts emits visible-range changes for pans,
+                // programmatic framing, resize, and initial layout as well as
+                // pinch zoom. Track two-finger gestures so only actual user zoom
+                // changes are persisted.
+                if (!window.pinchTrackingInstalled) {
+                    var chartContainer = document.getElementById('container');
+                    if (chartContainer) {
+                        chartContainer.addEventListener('touchstart', function(event) {
+                            window.isPinchZoomActive = event.touches.length >= 2;
+                        }, { passive: true });
+                        chartContainer.addEventListener('touchmove', function(event) {
+                            if (event.touches.length >= 2) {
+                                window.isPinchZoomActive = true;
+                            }
+                        }, { passive: true });
+                        chartContainer.addEventListener('touchend', function(event) {
+                            if (event.touches.length < 2) {
+                                // Keep the flag through this event loop so a final
+                                // range callback emitted by the gesture is captured.
+                                setTimeout(function() {
+                                    window.isPinchZoomActive = false;
+                                }, 0);
+                            }
+                        }, { passive: true });
+                        chartContainer.addEventListener('touchcancel', function() {
+                            window.isPinchZoomActive = false;
+                        }, { passive: true });
+                        window.pinchTrackingInstalled = true;
+                    }
+                }
+
                 // Subscribe to visible logical range changes
                 window.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
                     if (!range || !window.allCandleData || window.allCandleData.length === 0) {
                         return;
+                    }
+
+                    if (window.isPinchZoomActive) {
+                        // applyZoom frames logical indices as
+                        // [dataLength - N, dataLength - 1 + RIGHT_MARGIN_CANDLES], so the
+                        // inverse must clamp the right edge to the last real bar and count
+                        // inclusively. Measuring the raw span instead would report N - 1 and
+                        // ratchet the persisted zoom down by one candle on every apply.
+                        var lastBarIndex = window.allCandleData.length - 1;
+                        var rightEdge = Math.min(range.to, lastBarIndex);
+                        var candleCount = Math.round(rightEdge - range.from) + 1;
+                        if (candleCount < window.ZOOM_LIMITS.MIN_CANDLES) {
+                            candleCount = window.ZOOM_LIMITS.MIN_CANDLES;
+                        }
+                        if (candleCount > window.ZOOM_LIMITS.MAX_CANDLES) {
+                            candleCount = window.ZOOM_LIMITS.MAX_CANDLES;
+                        }
+                        if (window.lastReportedVisibleCandleCount !== candleCount) {
+                            window.lastReportedVisibleCandleCount = candleCount;
+                            if (window.ReactNativeWebView) {
+                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                    type: 'VISIBLE_CANDLE_COUNT_CHANGED',
+                                    candleCount: candleCount
+                                }));
+                            }
+                        }
                     }
 
                     // Check if we're near the left edge (oldest data)

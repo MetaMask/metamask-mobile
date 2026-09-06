@@ -149,6 +149,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsVisibleCandleCount } from '../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import {
   PERPS_MARKET_DETAIL_SECTION,
@@ -505,9 +506,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
-  const [visibleCandleCount, setVisibleCandleCount] = useState<number>(
-    PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
-  );
+  const { visibleCandleCount, onVisibleCandleCountChange } =
+    usePerpsVisibleCandleCount(market?.symbol);
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
@@ -950,15 +950,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     setRefreshing(true);
 
     try {
-      // Reset chart to default state (like initial navigation)
-      setVisibleCandleCount(45);
-
-      // Reset chart view to default position
+      // Snap the viewport to the latest candles; keep the persisted zoom.
       if (isAdvancedChartEnabled) {
         setEffectiveChartLibrary(configuredChartLibrary);
         setAdvancedChartResetKey((key) => key + 1);
       } else {
-        chartRef.current?.resetToDefault();
+        chartRef.current?.zoomToLatestCandle(visibleCandleCount);
       }
 
       // WebSocket streaming provides real-time data - no manual refresh needed
@@ -971,7 +968,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [configuredChartLibrary, isAdvancedChartEnabled]);
+  }, [configuredChartLibrary, isAdvancedChartEnabled, visibleCandleCount]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -1808,6 +1805,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           setChartDeliveryRevision((revision) => revision + 1)
         }
         onError={handleChartError}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         fallbackCandleData={candleData}
         fallbackDeliveryRevision={priceDeliveryRevision}
         fallbackFetchMoreHistory={fetchMoreHistory}
@@ -1833,6 +1831,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         coloredVolume
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
       />
     );
@@ -2207,6 +2206,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           visibleCandleCount={visibleCandleCount}
           onClose={handleFullscreenChartClose}
           onIntervalChange={handleCandlePeriodChange}
+          onVisibleCandleCountChange={onVisibleCandleCountChange}
           isAdvancedChartEnabled={isAdvancedChartEnabled}
           symbol={market?.symbol}
           positionSize={existingPosition?.size}

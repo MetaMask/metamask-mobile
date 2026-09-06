@@ -103,9 +103,8 @@ const PerpsMarketListView = ({
   const showBalanceActions =
     route.params?.showBalanceActions ?? propShowBalanceActions ?? true;
   const showWatchlistOnly =
-    route.params?.showWatchlistOnly ?? propShowWatchlistOnly ?? false;
-  const defaultMarketTypeFilter =
-    route.params?.defaultMarketTypeFilter ?? 'all';
+    route.params?.showWatchlistOnly ?? propShowWatchlistOnly;
+  const defaultMarketTypeFilter = route.params?.defaultMarketTypeFilter;
   const defaultSortOptionId = route.params?.defaultSortOptionId;
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;

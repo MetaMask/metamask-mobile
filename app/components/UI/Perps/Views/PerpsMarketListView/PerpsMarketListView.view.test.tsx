@@ -156,6 +156,48 @@ describe('PerpsMarketListView', () => {
     });
   });
 
+  describe('Persisted market category', () => {
+    it('persists the selected category to settings', async () => {
+      const { store } = renderPerpsMarketListView({
+        streamOverrides: { marketData: marketDataWithCategories },
+      });
+
+      const cryptoBadge = await screen.findByTestId(
+        `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-categories-crypto`,
+      );
+      fireEvent.press(cryptoBadge);
+
+      await waitFor(() => {
+        expect(
+          store.getState().settings.perpsMarketListPreferences.marketTypeFilter,
+        ).toBe('crypto');
+      });
+    });
+
+    it('restores the last selected category from settings', async () => {
+      renderPerpsMarketListView({
+        streamOverrides: { marketData: marketDataWithCategories },
+        overrides: {
+          settings: {
+            perpsMarketListPreferences: {
+              marketTypeFilter: 'commodity',
+              showFavoritesOnly: false,
+            },
+          },
+        },
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).not.toBeOnTheScreen();
+      });
+    });
+  });
+
   describe('Full asset names feature flag', () => {
     it('shows ticker symbols on the asset label by default (flag off)', async () => {
       renderPerpsMarketListView({
