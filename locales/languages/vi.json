@@ -26,6 +26,10 @@
     "description_line2": "Nếu bạn cho rằng đây là lỗi, hãy liên hệ bộ phận hỗ trợ để yêu cầu xem xét.",
     "contact_support": "Liên hệ bộ phận hỗ trợ"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "Thiết bị của bạn sắp hết dung lượng lưu trữ. Hãy giải phóng dung lượng để MetaMask có thể lưu dữ liệu ví của bạn."
   },
@@ -1600,7 +1604,6 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
         "start": "Bắt đầu",
         "end": "Kết thúc",
         "margin": "Ký quỹ",
@@ -1616,7 +1619,7 @@
           "invalid_range": "Start price must be lower than end price",
           "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
           "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
@@ -1645,6 +1648,8 @@
       "positions_with_count": "Vị thế ({{count}})",
       "orders": "Lệnh",
       "orders_with_count": "Lệnh ({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "Chỉ {{ticker}}",
       "view_market_accessibility": "Chuyển sang thị trường {{symbol}}",
       "positions_empty": "Các vị thế đang mở của bạn sẽ hiển thị tại đây.",
@@ -1655,6 +1660,20 @@
       "orders_empty_filtered": "Không có lệnh {{ticker}} nào đang mở.",
       "orders_empty_long": "Không có lệnh mua khống.",
       "orders_empty_short": "Không có lệnh bán khống.",
+      "twap_empty": "Your active TWAPs will appear here.",
+      "twap_empty_filtered": "No active {{ticker}} TWAPs.",
+      "twap_empty_long": "No long TWAPs.",
+      "twap_empty_short": "No short TWAPs.",
+      "twap_history_empty": "Your completed TWAPs will appear here.",
+      "twap_history_empty_filtered": "No {{ticker}} TWAP history.",
+      "twap_history_empty_long": "No long TWAP history.",
+      "twap_history_empty_short": "No short TWAP history.",
+      "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
+      "twap_fill_history_empty_filtered": "No {{ticker}} TWAP fills.",
+      "twap_fill_history_empty_long": "No long TWAP fills.",
+      "twap_fill_history_empty_short": "No short TWAP fills.",
+      "twap_load_error": "Unable to load the latest TWAP schedules.",
+      "twap_retry": "Try again",
       "side_filter": {
         "all_sides": "Tất cả các hướng",
         "long": "Mua khống",
@@ -1695,6 +1714,36 @@
         "edit": "Chỉnh sửa",
         "edit_price": "Sửa giá giới hạn",
         "edit_size": "Sửa kích thước"
+      },
+      "twap_views": {
+        "active": "Active",
+        "history": "History",
+        "fill_history": "Fill history",
+        "previous": "Previous",
+        "next": "Next",
+        "page_count": "Page {{page}} of {{total}}"
+      },
+      "twap_card": {
+        "total_size": "Total size",
+        "filled_size": "Filled",
+        "average_price": "Avg. fill price",
+        "progress": "Progress",
+        "elapsed": "Elapsed",
+        "reduce_only": "Reduce only",
+        "randomize": "Randomized",
+        "terminate": "Terminate",
+        "status_active": "Active",
+        "status_completed": "Completed",
+        "status_completed_underfilled": "Completed underfilled",
+        "status_canceled": "Terminated",
+        "status_failed": "Failed"
+      },
+      "twap_terminate": {
+        "title": "Terminate {{symbol}} TWAP?",
+        "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "description_reduce_only": "The remaining size will not be executed. Any size already filled has reduced your existing position.",
+        "confirm": "Terminate",
+        "cancel": "Cancel"
       }
     },
     "order": {
@@ -1743,8 +1792,14 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Cần đặt giá giới hạn trước khi thiết lập mức Chốt lời/Cắt lỗ",
         "only_hyperliquid_usdc": "Hiện tại chỉ hỗ trợ USDC trên Hyperliquid khi thực hiện thanh toán",
         "limit_price_far_warning": "Giá giới hạn cách xa giá thị trường hiện tại",
+        "limit_price_far_from_market_bid": "You are using a limit price that is {{percent}}% away from the best bid price.",
+        "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "Giá giới hạn cao hơn giá hiện tại. Lệnh của bạn có thể được thực hiện như một lệnh thị trường.",
         "limit_price_below_warning": "Giá giới hạn thấp hơn giá hiện tại. Lệnh của bạn có thể được thực hiện như một lệnh thị trường.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "Giá kích hoạt phải cao hơn giá trung bình",
         "trigger_must_be_below_mid": "Giá kích hoạt phải thấp hơn giá trung bình",
         "trigger_orders_unavailable": "Các lệnh kích hoạt tạm thời không khả dụng. Hãy chọn lệnh thị trường.",
@@ -2043,6 +2098,8 @@
       "success_title": "Đã đóng vị thế thành công",
       "position_closed": "Đã đóng vị thế",
       "funds_are_available_to_trade": "Tiền đã sẵn sàng để giao dịch",
+      "already_closed": "Position already closed",
+      "already_closed_subtitle": "This position was filled or closed already",
       "failed_to_close_position": "Đóng vị thế thất bại",
       "failed_to_partially_close_position": "Đóng một phần vị thế thất bại",
       "failed_to_place_close_order": "Không thể đặt lệnh đóng vị thế",
@@ -2112,6 +2169,7 @@
       "loss_roe_placeholder": "% Thua lỗ",
       "usd_label": "$",
       "take_profit_invalid_price": "Giá chốt lời phải {{direction}} giá {{priceType}}",
+      "trigger_price_must_be_positive": "Trigger price must be greater than zero",
       "stop_loss_invalid_price": "Giá cắt lỗ phải {{direction}} giá {{priceType}}",
       "stop_loss_beyond_liquidation_error": "Giá cắt lỗ phải {{direction}} giá thanh lý",
       "stop_loss_order_view_warning": "Giá cắt lỗ {{direction}} giá thanh lý",
@@ -3651,7 +3709,7 @@
       "fund_subtitle": "Không ai thích một chiếc ví trống. Dễ dàng nạp tiền để bắt đầu giao dịch.",
       "fund_primary": "Nạp tiền",
       "trade_title": "Thực hiện giao dịch đầu tiên của bạn",
-      "trade_subtitle": "Giao dịch các token đang thịnh hành trên nhiều mạng để tăng trưởng danh mục đầu tư của bạn.",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "Giao dịch",
       "notifications_title": "Bật thông báo",
       "notifications_subtitle": "Luôn cập nhật những biến động của thị trường để đưa ra quyết định tốt nhất cho danh mục đầu tư của bạn.",
@@ -4284,7 +4342,7 @@
       "select_all": "Chọn tất cả",
       "deselect_all": "Bỏ chọn tất cả",
       "select_accounts_title": "Tài khoản",
-      "select_accounts_desc": "Chọn những tài khoản mà bạn muốn nhận thông báo.",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
       "wallet_activity_title": "Hoạt động ví",
       "wallet_activity_desc": "Mua, bán, chuyển tiền, hoán đổi",
       "perps_title": "Hoạt động giao dịch",
@@ -4570,7 +4628,7 @@
     "autodetect_nft_desc": "Cho phép MetaMask thêm các NFT mà bạn sở hữu bằng cách sử dụng dịch vụ của bên thứ ba (như OpenSea). Tính năng Tự động phát hiện NFT sẽ làm lộ địa chỉ IP và tài khoản của bạn với các dịch vụ này. Việc bật tính năng này có thể liên kết địa chỉ IP của bạn với địa chỉ Ethereum của bạn và hiển thị các NFT giả do những kẻ lừa đảo phát tán. Bạn có thể thêm token theo cách thủ công để tránh rủi ro này.",
     "display_nft_media_desc_new": "Việc hiển thị dữ liệu và phương tiện NFT sẽ làm lộ địa chỉ IP của bạn với OpenSea hoặc các bên thứ ba khác. Tính năng Tự động phát hiện NFT hoạt động dựa trên tính năng này và sẽ không khả dụng khi bị tắt. Nếu phương tiện NFT được đặt hoàn toàn trên IPFS, nó vẫn có thể được hiển thị ngay cả khi tính năng này bị tắt.",
     "use_safe_chains_list_validation_desc_1": "MetaMask sử dụng dịch vụ của bên thứ ba có tên ",
-    "use_safe_chains_list_validation_desc_2": "để hiển thị thông tin mạng chính xác và được tiêu chuẩn hóa. Điều này giúp giảm khả năng bạn kết nối với mạng độc hại hoặc mạng không chính xác. Khi sử dụng tính năng này, bạn sẽ làm lộ địa chỉ IP của mình với  ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snap",
       "description": "Tổng quan và quản lý Snap của bạn",
@@ -5051,7 +5109,7 @@
     "bridge_description": "Chuyển token giữa các mạng",
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
     "receive_description": "Nhận tiền mã hóa",
-    "earn_description": "Kiếm phần thưởng trên token của bạn",
+    "earn_description": "Put your crypto to work",
     "perps_description": "Giao dịch hợp đồng vĩnh cửu",
     "predict_description": "Giao dịch theo các sự kiện thực tế",
     "chart_time_period": {
@@ -5614,6 +5672,8 @@
     "activity_market_close_long": "Lệnh thị trường — đóng vị thế mua khống",
     "activity_limit_long": "Mua khống theo lệnh giới hạn",
     "activity_limit_close_long": "Lệnh giới hạn — đóng vị thế mua khống",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "Đã khớp",
     "activity_order_status_canceled": "Đã hủy",
     "activity_order_status_rejected": "Bị từ chối",
@@ -8070,7 +8130,6 @@
       "link_pending_title": "Đang liên kết thẻ của bạn",
       "link_success_title": "Thẻ của bạn đã sẵn sàng để sử dụng",
       "link_error": "Đã xảy ra lỗi khi liên kết thẻ của bạn",
-      "link_error_different_card": "Ví này đã được liên kết với một thẻ MetaMask Card khác",
       "unlink_pending_title": "Đang hủy liên kết thẻ của bạn",
       "unlink_success_title": "Thẻ của bạn đã được hủy liên kết",
       "unlink_error": "Đã xảy ra lỗi khi hủy liên kết thẻ của bạn",
@@ -8837,7 +8896,14 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Est. network fee",
+      "create_order": "Create Order",
+      "paying": "Paying",
+      "receiving": "Receiving",
+      "trigger_condition": "Trigger condition",
+      "expiry_label": "Expiry",
+      "confirm_order": "Confirm order",
+      "edit_slippage": "Edit slippage"
     },
     "recurring": {
       "you_get": "Bạn nhận",
@@ -9067,6 +9133,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Hoàn tất"
     },
+    "off_hours_trading": {
+      "title": "Off-hours trading",
+      "description": "Market closed: Price is issuer-calculated, not live market data. It may differ when markets reopen at the next available trading session."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Đang hoán đổi",
       "swap_success": "Hoán đổi hoàn tất",
@@ -9082,8 +9152,8 @@
     "submit": "Gửi",
     "default_slippage_description": "Giao dịch của bạn sẽ không được thực hiện nếu giá thay đổi vượt quá phần trăm trượt giá.",
     "confirm": "Xác nhận",
-    "exceeding_upper_slippage_warning": "Độ trượt giá cao, điều này có thể dẫn đến giao dịch hoán đổi không thuận lợi",
-    "exceeding_lower_slippage_warning": "Độ trượt giá thấp, điều này có thể dẫn đến giao dịch hoán đổi không thuận lợi",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_error": "Nhập giá trị lớn hơn {{value}}%",
     "exceeding_upper_slippage_error": "Bạn không thể nhập giá trị lớn hơn {{value}}%",
     "custom": "Tùy chỉnh",
@@ -9313,7 +9383,9 @@
       "set_up": "Thiết lập",
       "secret_recovery_phrase": "Cụm từ khôi phục bí mật",
       "back_up": "Sao lưu",
-      "remove_account": "Xóa tài khoản"
+      "remove_account": "Xóa tài khoản",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "Địa chỉ",
@@ -9407,6 +9479,12 @@
       "search_placeholder": "Tìm kiếm mạng",
       "no_networks_found": "Không tìm thấy mạng nào",
       "no_networks_available": "Không có mạng khả dụng"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
@@ -9531,6 +9609,7 @@
     "uk_migration_bottom_sheet": {
       "title": "Update your MetaMask Card",
       "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "description_no_deadline": "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       "steps": {
         "reverify_identity": "Re-verify your identity",
         "get_new_card_number": "Get your new card number",
@@ -9538,6 +9617,17 @@
       },
       "get_started": "Bắt đầu",
       "remind_me_later": "Nhắc tôi sau"
+    },
+    "uk_migration_soft": {
+      "title": "Update your MetaMask Card",
+      "description": "Set up by {{deadline}} to avoid interruptions.",
+      "description_no_deadline": "Set up your card to avoid interruptions.",
+      "confirm_button_label": "Set up card"
+    },
+    "uk_migration_required": {
+      "title": "Update required to continue",
+      "description": "Complete your MetaMask Card update to keep using your card.",
+      "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
       "load_error": "Không thể tải trang thanh toán. Vui lòng thử lại.",
@@ -9575,6 +9665,7 @@
         "clickwrap_prefix": "Bằng cách nhấn \"Tiếp theo\", bạn chấp nhận các điều khoản của Immersve về ",
         "clickwrap_and": " và ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "Không thể tải tài liệu pháp lý."
       },
       "confirm_email": {
@@ -10095,8 +10186,7 @@
         "timeout_error": "Đã hết thời gian chờ yêu cầu. Vui lòng kiểm tra kết nối và thử lại.",
         "server_error": "Lỗi máy chủ. Vui lòng thử lại sau.",
         "configuration_error": "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau.",
-        "forbidden_error": "Hành động này không khả dụng đối với tài khoản của bạn.",
-        "money_account_linked_to_different_card": "Ví này đã được liên kết với một thẻ MetaMask Card khác. Hãy hủy liên kết ví khỏi thẻ đó trước khi liên kết tại đây."
+        "forbidden_error": "Hành động này không khả dụng đối với tài khoản của bạn."
       }
     },
     "card_forgot_password": {

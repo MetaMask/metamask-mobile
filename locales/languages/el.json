@@ -26,6 +26,10 @@
     "description_line2": "Αν θεωρείτε ότι έχει γίνει λάθος, επικοινωνήστε με την υποστήριξη για επανέλεγχο.",
     "contact_support": "Επικοινωνία με την υποστήριξη"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "Ο αποθηκευτικός χώρος της συσκευής σας είναι σχεδόν πλήρης. Απελευθερώστε χώρο, ώστε το MetaMask να μπορεί να αποθηκεύσει τα δεδομένα του πορτοφολιού σας."
   },
@@ -1600,7 +1604,6 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
         "start": "Έναρξη",
         "end": "Τέλος",
         "margin": "Περιθώριο (margin)",
@@ -1616,7 +1619,7 @@
           "invalid_range": "Start price must be lower than end price",
           "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
           "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
@@ -1645,6 +1648,8 @@
       "positions_with_count": "Θέσεις ({{count}})",
       "orders": "Εντολές",
       "orders_with_count": "Εντολές ({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "{{ticker}} μόνο",
       "view_market_accessibility": "Εναλλαγή στην αγορά {{symbol}}",
       "positions_empty": "Εδώ θα εμφανίζονται οι ανοιχτές θέσεις σας.",
@@ -1655,6 +1660,20 @@
       "orders_empty_filtered": "Δεν υπάρχουν ανοιχτές εντολές {{ticker}}.",
       "orders_empty_long": "Δεν υπάρχουν ανοιχτές εντολές αγοράς.",
       "orders_empty_short": "Δεν υπάρχουν ανοιχτές εντολές πώλησης.",
+      "twap_empty": "Your active TWAPs will appear here.",
+      "twap_empty_filtered": "No active {{ticker}} TWAPs.",
+      "twap_empty_long": "No long TWAPs.",
+      "twap_empty_short": "No short TWAPs.",
+      "twap_history_empty": "Your completed TWAPs will appear here.",
+      "twap_history_empty_filtered": "No {{ticker}} TWAP history.",
+      "twap_history_empty_long": "No long TWAP history.",
+      "twap_history_empty_short": "No short TWAP history.",
+      "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
+      "twap_fill_history_empty_filtered": "No {{ticker}} TWAP fills.",
+      "twap_fill_history_empty_long": "No long TWAP fills.",
+      "twap_fill_history_empty_short": "No short TWAP fills.",
+      "twap_load_error": "Unable to load the latest TWAP schedules.",
+      "twap_retry": "Try again",
       "side_filter": {
         "all_sides": "Όλες οι θέσεις",
         "long": "Αγορά (Long)",
@@ -1695,6 +1714,36 @@
         "edit": "Επεξεργασία",
         "edit_price": "Επεξεργασία τιμής ορίου",
         "edit_size": "Επεξεργασία μεγέθους"
+      },
+      "twap_views": {
+        "active": "Active",
+        "history": "History",
+        "fill_history": "Fill history",
+        "previous": "Previous",
+        "next": "Next",
+        "page_count": "Page {{page}} of {{total}}"
+      },
+      "twap_card": {
+        "total_size": "Total size",
+        "filled_size": "Filled",
+        "average_price": "Avg. fill price",
+        "progress": "Progress",
+        "elapsed": "Elapsed",
+        "reduce_only": "Reduce only",
+        "randomize": "Randomized",
+        "terminate": "Terminate",
+        "status_active": "Active",
+        "status_completed": "Completed",
+        "status_completed_underfilled": "Completed underfilled",
+        "status_canceled": "Terminated",
+        "status_failed": "Failed"
+      },
+      "twap_terminate": {
+        "title": "Terminate {{symbol}} TWAP?",
+        "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "description_reduce_only": "The remaining size will not be executed. Any size already filled has reduced your existing position.",
+        "confirm": "Terminate",
+        "cancel": "Cancel"
       }
     },
     "order": {
@@ -1743,8 +1792,14 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Πρέπει να ορίσετε μια τιμή ορίου πριν ρυθμίσετε τις τιμές ΛΚ/ΠΖ",
         "only_hyperliquid_usdc": "Μόνο USDC στο Hyperliquid υποστηρίζονται προς το παρόν για πληρωμές",
         "limit_price_far_warning": "Η τιμή ορίου απέχει πολύ από την τρέχουσα τιμή της αγοράς",
+        "limit_price_far_from_market_bid": "You are using a limit price that is {{percent}}% away from the best bid price.",
+        "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "Η τιμή ορίου είναι υψηλότερη από την τρέχουσα τιμή. Η εντολή σας ενδέχεται να εκτελεστεί ως εντολή αγοράς.",
         "limit_price_below_warning": "Η τιμή ορίου είναι χαμηλότερη από την τρέχουσα τιμή. Η εντολή σας ενδέχεται να εκτελεστεί ως εντολή αγοράς.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "Η τιμή ενεργοποίησης πρέπει να είναι υψηλότερη από τη μέση τιμή",
         "trigger_must_be_below_mid": "Η τιμή ενεργοποίησης πρέπει να είναι χαμηλότερη από τη μέση τιμή",
         "trigger_orders_unavailable": "Οι εντολές ενεργοποίησης είναι προσωρινά μη διαθέσιμες. Επιλέξτε μια εντολή αγοράς.",
@@ -2043,6 +2098,8 @@
       "success_title": "Η θέση έκλεισε με επιτυχία",
       "position_closed": "Η θέση έκλεισε",
       "funds_are_available_to_trade": "Τα κεφάλαια είναι διαθέσιμα για συναλλαγές",
+      "already_closed": "Position already closed",
+      "already_closed_subtitle": "This position was filled or closed already",
       "failed_to_close_position": "Απέτυχε το κλείσιμο της θέσης",
       "failed_to_partially_close_position": "Απέτυχε το μερικό κλείσιμο της θέσης",
       "failed_to_place_close_order": "Δεν ήταν δυνατή η υποβολή εντολής κλεισίματος",
@@ -2112,6 +2169,7 @@
       "loss_roe_placeholder": "% Ζημιά",
       "usd_label": "$",
       "take_profit_invalid_price": "Η τιμή λήψης κέρδους πρέπει να είναι {{direction}} από την τιμή {{priceType}}",
+      "trigger_price_must_be_positive": "Trigger price must be greater than zero",
       "stop_loss_invalid_price": "Η τιμή περιορισμού ζημιάς πρέπει να είναι {{direction}} από την τιμή {{priceType}}",
       "stop_loss_beyond_liquidation_error": "Η τιμή περιορισμού ζημιάς πρέπει να είναι {{direction}} από την τιμή ρευστοποίησης",
       "stop_loss_order_view_warning": "Η τιμή περιορισμού ζημιάς είναι {{direction}} από την τιμή ρευστοποίησης",
@@ -3651,7 +3709,7 @@
       "fund_subtitle": "Σε κανέναν δεν αρέσει ένα άδειο πορτοφόλι. Προσθέστε εύκολα χρήματα για να ξεκινήσετε τις συναλλαγές.",
       "fund_primary": "Προσθήκη κεφαλαίων",
       "trade_title": "Κάντε την πρώτη σας συναλλαγή",
-      "trade_subtitle": "Κάντε συναλλαγές με δημοφιλή tokens σε πολλαπλά δίκτυα για να αναπτύξετε το χαρτοφυλάκιό σας.",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "Συναλλαγές",
       "notifications_title": "Ενεργοποίηση των ειδοποιήσεων",
       "notifications_subtitle": "Μείνετε ενημερωμένοι για τις αλλαγές της αγοράς, ώστε να κάνετε τις καλύτερες κινήσεις για το χαρτοφυλάκιό σας.",
@@ -4284,7 +4342,7 @@
       "select_all": "Επιλογή όλων",
       "deselect_all": "Αποεπιλογή όλων",
       "select_accounts_title": "Λογαριασμοί",
-      "select_accounts_desc": "Επιλέξτε για ποιους λογαριασμούς θέλετε να λαμβάνετε ειδοποιήσεις.",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
       "wallet_activity_title": "Δραστηριότητα πορτοφολιού",
       "wallet_activity_desc": "Αγορές, πωλήσεις, μεταφορές, ανταλλαγές",
       "perps_title": "Δραστηριότητα συναλλαγών",
@@ -4570,7 +4628,7 @@
     "autodetect_nft_desc": "Επιτρέψτε στο MetaMask να προσθέτει NFT που σας ανήκουν χρησιμοποιώντας υπηρεσίες τρίτων (όπως το OpenSea). Ο αυτόματος εντοπισμός των NFT εκθέτει τη διεύθυνση IP και τον λογαριασμό σας σε αυτές τις υπηρεσίες. Η ενεργοποίηση αυτής της λειτουργίας θα μπορούσε να συσχετίσει τη διεύθυνση IP σας με τη διεύθυνση σας στο Ethereum και να εμφανίζει ψεύτικα NFT που διοχετεύουν οι απατεώνες. Μπορείτε να προσθέσετε χειροκίνητα tokens για να αποφύγετε αυτόν τον κίνδυνο.",
     "display_nft_media_desc_new": "Η προβολή μέσων και δεδομένων NFT εκθέτει τη διεύθυνση IP σας στο OpenSea ή σε άλλα τρίτα μέρη. Η αυτόματη ανίχνευση NFT βασίζεται σε αυτή τη λειτουργία και δεν θα είναι διαθέσιμη όταν είναι απενεργοποιημένη. Εάν τα μέσα NFT βρίσκονται πλήρως στο IPFS, μπορούν να εμφανιστούν ακόμα και όταν αυτή η λειτουργία είναι απενεργοποιημένη.",
     "use_safe_chains_list_validation_desc_1": "Το MetaMask χρησιμοποιεί μια υπηρεσία τρίτων που ονομάζεται ",
-    "use_safe_chains_list_validation_desc_2": "για να εμφανίζει ακριβείς και τυποποιημένες λεπτομέρειες του δικτύου. Αυτό μειώνει τις πιθανότητες σύνδεσης σε κακόβουλο ή λανθασμένο δίκτυο. Όταν χρησιμοποιείτε αυτή τη λειτουργία, η διεύθυνση IP σας εκτίθεται σε  ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snaps",
       "description": "Επισκόπηση και διαχείριση των snaps σας",
@@ -5051,7 +5109,7 @@
     "bridge_description": "Μεταφορά token μεταξύ δικτύων",
     "send_description": "Στείλτε κρυπτονομίσματα σε οποιονδήποτε λογαριασμό",
     "receive_description": "Λάβετε κρυπτονομίσματα",
-    "earn_description": "Κερδίστε ανταμοιβές για τα token σας",
+    "earn_description": "Put your crypto to work",
     "perps_description": "Κάντε συναλλαγές σε συμβόλαια αορίστου διάρκειας (perps contracts)",
     "predict_description": "Συναλλαγές σε πραγματικά γεγονότα",
     "chart_time_period": {
@@ -5614,6 +5672,8 @@
     "activity_market_close_long": "Αγορά - κλείσιμο θέσης αγοράς",
     "activity_limit_long": "Εντολή αγοράς με όριο",
     "activity_limit_close_long": "Όριο - κλείσιμο θέσης αγοράς",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "Εκτελέστηκε",
     "activity_order_status_canceled": "Ακυρώθηκε",
     "activity_order_status_rejected": "Απορρίφθηκε",
@@ -8070,7 +8130,6 @@
       "link_pending_title": "Σύνδεση της κάρτας σας",
       "link_success_title": "Η κάρτα σας είναι έτοιμη για χρήση",
       "link_error": "Παρουσιάστηκε πρόβλημα κατά τη σύνδεση της κάρτας σας",
-      "link_error_different_card": "Αυτό το πορτοφόλι είναι ήδη συνδεδεμένο με άλλη MetaMask Card",
       "unlink_pending_title": "Αφαίρεση κάρτας",
       "unlink_success_title": "Η κάρτα σας αφαιρέθηκε",
       "unlink_error": "Παρουσιάστηκε σφάλμα κατά την αφαίρεση της κάρτας σας",
@@ -8837,7 +8896,14 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Est. network fee",
+      "create_order": "Create Order",
+      "paying": "Paying",
+      "receiving": "Receiving",
+      "trigger_condition": "Trigger condition",
+      "expiry_label": "Expiry",
+      "confirm_order": "Confirm order",
+      "edit_slippage": "Edit slippage"
     },
     "recurring": {
       "you_get": "Λαμβάνετε",
@@ -9067,6 +9133,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Τέλος"
     },
+    "off_hours_trading": {
+      "title": "Off-hours trading",
+      "description": "Market closed: Price is issuer-calculated, not live market data. It may differ when markets reopen at the next available trading session."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Ανταλλαγή σε εξέλιξη",
       "swap_success": "Η ανταλλαγή ολοκληρώθηκε",
@@ -9082,8 +9152,8 @@
     "submit": "Υποβολή",
     "default_slippage_description": "Η συναλλαγή σας δεν θα ολοκληρωθεί εάν η τιμή αλλάξει περισσότερο από το ποσοστό απόκλισης.",
     "confirm": "Επιβεβαίωση",
-    "exceeding_upper_slippage_warning": "Υψηλή απόκλιση— αυτό μπορεί να οδηγήσει σε μη ευνοϊκή ανταλλαγή",
-    "exceeding_lower_slippage_warning": "Χαμηλή απόκλιση— αυτό μπορεί να οδηγήσει σε μη ευνοϊκή ανταλλαγή",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_error": "Εισαγάγετε μια τιμή μεγαλύτερη από {{value}}%",
     "exceeding_upper_slippage_error": "Δεν μπορείτε να εισαγάγετε τιμή μεγαλύτερη από {{value}}%",
     "custom": "Προσαρμογή",
@@ -9313,7 +9383,9 @@
       "set_up": "Διαμόρφωση",
       "secret_recovery_phrase": "Μυστική Φράση Ανάκτησης",
       "back_up": "Δημιουργία αντιγράφων ασφαλείας",
-      "remove_account": "Διαγραφή λογαριασμού"
+      "remove_account": "Διαγραφή λογαριασμού",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "Διευθύνσεις",
@@ -9407,6 +9479,12 @@
       "search_placeholder": "Αναζήτηση δικτύων",
       "no_networks_found": "Δεν βρέθηκαν δίκτυα",
       "no_networks_available": "Δεν υπάρχουν διαθέσιμα δίκτυα"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
@@ -9531,6 +9609,7 @@
     "uk_migration_bottom_sheet": {
       "title": "Update your MetaMask Card",
       "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "description_no_deadline": "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       "steps": {
         "reverify_identity": "Re-verify your identity",
         "get_new_card_number": "Get your new card number",
@@ -9538,6 +9617,17 @@
       },
       "get_started": "Ξεκινήστε",
       "remind_me_later": "Υπενθυμίστε μου αργότερα"
+    },
+    "uk_migration_soft": {
+      "title": "Update your MetaMask Card",
+      "description": "Set up by {{deadline}} to avoid interruptions.",
+      "description_no_deadline": "Set up your card to avoid interruptions.",
+      "confirm_button_label": "Set up card"
+    },
+    "uk_migration_required": {
+      "title": "Update required to continue",
+      "description": "Complete your MetaMask Card update to keep using your card.",
+      "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
       "load_error": "Αποτυχία φόρτωσης της σελίδας πληρωμής. Παρακαλούμε δοκιμάστε ξανά.",
@@ -9575,6 +9665,7 @@
         "clickwrap_prefix": "Πατώντας \"Επόμενο\", αποδέχεστε τους όρους της Immersve ",
         "clickwrap_and": " και την ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "Δεν ήταν δυνατή η φόρτωση των νομικών εγγράφων."
       },
       "confirm_email": {
@@ -10095,8 +10186,7 @@
         "timeout_error": "Το αίτημα έληξε λόγω καθυστέρησης. Παρακαλούμε ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.",
         "server_error": "Σφάλμα διακομιστή. Παρακαλούμε δοκιμάστε ξανά αργότερα.",
         "configuration_error": "Η υπηρεσία δεν είναι προσωρινά διαθέσιμη. Παρακαλούμε δοκιμάστε ξανά αργότερα.",
-        "forbidden_error": "Η ενέργεια δεν είναι διαθέσιμη για τον λογαριασμό σας.",
-        "money_account_linked_to_different_card": "Αυτό το πορτοφόλι συνδέεται ήδη με άλλη MetaMask Card. Αποσυνδέστε το από εκείνη την κάρτα πριν το συνδέσετε εδώ."
+        "forbidden_error": "Η ενέργεια δεν είναι διαθέσιμη για τον λογαριασμό σας."
       }
     },
     "card_forgot_password": {

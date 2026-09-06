@@ -26,6 +26,10 @@
     "description_line2": "これが誤りであると思われる場合は、サポートに連絡して再調査を依頼してください。",
     "contact_support": "サポートへのお問い合わせ"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "デバイスの空き容量が少なくなっています。MetaMaskがウォレットのデータを保存できるように、空き容量を増やしてください。"
   },
@@ -1600,7 +1604,6 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
         "start": "開始",
         "end": "終了",
         "margin": "証拠金",
@@ -1616,7 +1619,7 @@
           "invalid_range": "Start price must be lower than end price",
           "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
           "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
@@ -1645,6 +1648,8 @@
       "positions_with_count": "ポジション ({{count}})",
       "orders": "注文",
       "orders_with_count": "注文 ({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "{{ticker}}のみ",
       "view_market_accessibility": "{{symbol}}市場に切り替える",
       "positions_empty": "保有中のポジションがここに表示されます。",
@@ -1655,6 +1660,20 @@
       "orders_empty_filtered": "オープンの{{ticker}}注文はありません。",
       "orders_empty_long": "ロングの注文はありません。",
       "orders_empty_short": "ショートの注文はありません。",
+      "twap_empty": "Your active TWAPs will appear here.",
+      "twap_empty_filtered": "No active {{ticker}} TWAPs.",
+      "twap_empty_long": "No long TWAPs.",
+      "twap_empty_short": "No short TWAPs.",
+      "twap_history_empty": "Your completed TWAPs will appear here.",
+      "twap_history_empty_filtered": "No {{ticker}} TWAP history.",
+      "twap_history_empty_long": "No long TWAP history.",
+      "twap_history_empty_short": "No short TWAP history.",
+      "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
+      "twap_fill_history_empty_filtered": "No {{ticker}} TWAP fills.",
+      "twap_fill_history_empty_long": "No long TWAP fills.",
+      "twap_fill_history_empty_short": "No short TWAP fills.",
+      "twap_load_error": "Unable to load the latest TWAP schedules.",
+      "twap_retry": "Try again",
       "side_filter": {
         "all_sides": "すべての方向",
         "long": "ロング",
@@ -1695,6 +1714,36 @@
         "edit": "編集",
         "edit_price": "リミット価格を編集",
         "edit_size": "サイズを編集"
+      },
+      "twap_views": {
+        "active": "Active",
+        "history": "History",
+        "fill_history": "Fill history",
+        "previous": "Previous",
+        "next": "Next",
+        "page_count": "Page {{page}} of {{total}}"
+      },
+      "twap_card": {
+        "total_size": "Total size",
+        "filled_size": "Filled",
+        "average_price": "Avg. fill price",
+        "progress": "Progress",
+        "elapsed": "Elapsed",
+        "reduce_only": "Reduce only",
+        "randomize": "Randomized",
+        "terminate": "Terminate",
+        "status_active": "Active",
+        "status_completed": "Completed",
+        "status_completed_underfilled": "Completed underfilled",
+        "status_canceled": "Terminated",
+        "status_failed": "Failed"
+      },
+      "twap_terminate": {
+        "title": "Terminate {{symbol}} TWAP?",
+        "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "description_reduce_only": "The remaining size will not be executed. Any size already filled has reduced your existing position.",
+        "confirm": "Terminate",
+        "cancel": "Cancel"
       }
     },
     "order": {
@@ -1743,8 +1792,14 @@
         "limit_price_must_be_set_before_configuring_tpsl": "リミット価格の設定はTP/SLの設定前に行う必要があります",
         "only_hyperliquid_usdc": "現在、HyperliquidのUSDCだけが支払いに使用できます",
         "limit_price_far_warning": "リミット価格が現在の市場価格から離れすぎています",
+        "limit_price_far_from_market_bid": "You are using a limit price that is {{percent}}% away from the best bid price.",
+        "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "リミット価格が現在の価格を上回っています。注文が成行注文として実行される可能性があります。",
         "limit_price_below_warning": "リミット価格が現在の価格を下回っています。注文が成行注文として実行される可能性があります。",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "トリガー価格は中値よりも高くする必要があります",
         "trigger_must_be_below_mid": "トリガー価格は中値よりも低くする必要があります",
         "trigger_orders_unavailable": "トリガー注文が一時的に利用できません。成行注文を選択してください。",
@@ -2043,6 +2098,8 @@
       "success_title": "ポジションがクローズされました",
       "position_closed": "ポジションがクローズされました",
       "funds_are_available_to_trade": "資金を取引に利用できます",
+      "already_closed": "Position already closed",
+      "already_closed_subtitle": "This position was filled or closed already",
       "failed_to_close_position": "ポジションをクローズできませんでした",
       "failed_to_partially_close_position": "ポジションを部分的にクローズできませんでした",
       "failed_to_place_close_order": "クローズ注文に失敗しました",
@@ -2112,6 +2169,7 @@
       "loss_roe_placeholder": "損失率",
       "usd_label": "$",
       "take_profit_invalid_price": "利益確定は{{priceType}}価格よりも{{direction}}に設定する必要があります",
+      "trigger_price_must_be_positive": "Trigger price must be greater than zero",
       "stop_loss_invalid_price": "ストップロスは{{priceType}}価格よりも{{direction}}に設定する必要があります",
       "stop_loss_beyond_liquidation_error": "ストップロスは清算価格よりも{{direction}}に設定する必要があります",
       "stop_loss_order_view_warning": "ストップロスが清算価格よりも{{direction}}に設定されています",
@@ -3651,7 +3709,7 @@
       "fund_subtitle": "空のウォレットが好きな人はいません。簡単に資金を追加して取引を始められます。",
       "fund_primary": "資金を追加",
       "trade_title": "初めての取引を行う",
-      "trade_subtitle": "複数のネットワークで人気のトークンを取引して、ポートフォリオを成長させましょう。",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "取引",
       "notifications_title": "通知をオンにする",
       "notifications_subtitle": "最新のマーケットの動きを把握して、ポートフォリオに合った最善の一手を打ちましょう。",
@@ -4284,7 +4342,7 @@
       "select_all": "すべて選択",
       "deselect_all": "すべて選択解除",
       "select_accounts_title": "アカウント",
-      "select_accounts_desc": "どのアカウントの通知を受け取るか選択できます。",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
       "wallet_activity_title": "ウォレットアクティビティ",
       "wallet_activity_desc": "購入、売却、送金、スワップ",
       "perps_title": "取引アクティビティ",
@@ -4570,7 +4628,7 @@
     "autodetect_nft_desc": "MetaMaskが、サードパーティサービス (例: OpenSea) を使って、ユーザーが所有するNFTを追加することを許可します。NFTの自動検出機能を利用すると、ユーザーのIPとアカウントアドレスがこれらのサービスに公開されます。この機能を有効にした場合、ユーザーのIPアドレスとイーサリアムアドレスが紐付けられ、詐欺師によりエアドロップされた偽のNFTが表示される可能性があります。このリスクを回避するため、手動でトークンを追加することもできます。",
     "display_nft_media_desc_new": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、無効にすると利用できなくなります。NFTメディアがIPFSに完全に保管されている場合は、この機能が無効になっていても表示されます。",
     "use_safe_chains_list_validation_desc_1": "MetaMaskは",
-    "use_safe_chains_list_validation_desc_2": "というサードパーティサービスを利用して、正確かつ標準化されたネットワーク情報を表示しています。これにより、悪質なネットワークや正しくないネットワークに接続してしまう可能性が減ります。この機能を使用すると、ユーザーのIPアドレスが次の相手に公開されます:  ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snap",
       "description": "Snapの概要と管理",
@@ -5051,7 +5109,7 @@
     "bridge_description": "ネットワーク間でトークンを転送します",
     "send_description": "仮想通貨を任意のアカウントに送金します",
     "receive_description": "仮想通貨を受け取ります",
-    "earn_description": "トークンに対してリワードを獲得します",
+    "earn_description": "Put your crypto to work",
     "perps_description": "パーペチュアル契約を取引",
     "predict_description": "現実世界の出来事を対象に取引できます",
     "chart_time_period": {
@@ -5614,6 +5672,8 @@
     "activity_market_close_long": "成行 — ロングをクローズ",
     "activity_limit_long": "リミットロング",
     "activity_limit_close_long": "リミット — ロングをクローズ",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "約定済",
     "activity_order_status_canceled": "取消済",
     "activity_order_status_rejected": "拒否されました",
@@ -8070,7 +8130,6 @@
       "link_pending_title": "カードのリンク",
       "link_success_title": "カードの使用準備ができました",
       "link_error": "カードのリンク中に問題が発生しました",
-      "link_error_different_card": "このウォレットはすでに別のMetaMask Cardとリンクされています",
       "unlink_pending_title": "カードのリンクを解除",
       "unlink_success_title": "カードのリンクが解除されました",
       "unlink_error": "カードのリンク解除中に問題が発生しました",
@@ -8837,7 +8896,14 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Est. network fee",
+      "create_order": "Create Order",
+      "paying": "Paying",
+      "receiving": "Receiving",
+      "trigger_condition": "Trigger condition",
+      "expiry_label": "Expiry",
+      "confirm_order": "Confirm order",
+      "edit_slippage": "Edit slippage"
     },
     "recurring": {
       "you_get": "受け取る額",
@@ -9067,6 +9133,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "完了"
     },
+    "off_hours_trading": {
+      "title": "Off-hours trading",
+      "description": "Market closed: Price is issuer-calculated, not live market data. It may differ when markets reopen at the next available trading session."
+    },
     "post_trade_modal": {
       "swap_in_progress": "スワップ中",
       "swap_success": "スワップ完了",
@@ -9082,8 +9152,8 @@
     "submit": "送信",
     "default_slippage_description": "価格がスリッページの割合を超えて変動した場合、トランザクションは処理されません。",
     "confirm": "確定",
-    "exceeding_upper_slippage_warning": "高スリッページ、これにより不利なスワップになる可能性があります",
-    "exceeding_lower_slippage_warning": "低スリッページ、これにより不利なスワップになる可能性があります",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_error": "{{value}}%より大きい値を入力してください",
     "exceeding_upper_slippage_error": "{{value}}%より大きい値を入力することはできません",
     "custom": "カスタム",
@@ -9313,7 +9383,9 @@
       "set_up": "設定",
       "secret_recovery_phrase": "シークレットリカバリーフレーズ",
       "back_up": "バックアップ",
-      "remove_account": "アカウントを削除"
+      "remove_account": "アカウントを削除",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "アドレス",
@@ -9407,6 +9479,12 @@
       "search_placeholder": "ネットワークを検索",
       "no_networks_found": "ネットワークが見つかりません",
       "no_networks_available": "使用可能なネットワークがありません"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
@@ -9531,6 +9609,7 @@
     "uk_migration_bottom_sheet": {
       "title": "Update your MetaMask Card",
       "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "description_no_deadline": "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       "steps": {
         "reverify_identity": "Re-verify your identity",
         "get_new_card_number": "Get your new card number",
@@ -9538,6 +9617,17 @@
       },
       "get_started": "開始",
       "remind_me_later": "後で通知する"
+    },
+    "uk_migration_soft": {
+      "title": "Update your MetaMask Card",
+      "description": "Set up by {{deadline}} to avoid interruptions.",
+      "description_no_deadline": "Set up your card to avoid interruptions.",
+      "confirm_button_label": "Set up card"
+    },
+    "uk_migration_required": {
+      "title": "Update required to continue",
+      "description": "Complete your MetaMask Card update to keep using your card.",
+      "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
       "load_error": "支払いページを読み込めませんでした。もう一度お試しください。",
@@ -9575,6 +9665,7 @@
         "clickwrap_prefix": "「次へ」を押すことで、Immersveの次の規約に同意したものとみなされます: ",
         "clickwrap_and": "と",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "法的文書を読み込めません。"
       },
       "confirm_email": {
@@ -10095,8 +10186,7 @@
         "timeout_error": "タイムアウトしました。接続を確認して再試行してください。",
         "server_error": "サーバーエラーが発生しました。後ほど再試行してください。",
         "configuration_error": "現在サービスをご利用いただけません。後ほど再試行してください。",
-        "forbidden_error": "この操作はお客様のアカウントでは利用できません。",
-        "money_account_linked_to_different_card": "このウォレットはすでに別のMetaMask Cardにリンクされています。このカードとリンクするには、現在のカードとのリンクを解除してください。"
+        "forbidden_error": "この操作はお客様のアカウントでは利用できません。"
       }
     },
     "card_forgot_password": {
