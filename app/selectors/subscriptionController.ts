@@ -6,6 +6,7 @@ import type {
   SubscriptionControllerState,
 } from '@metamask/subscription-controller';
 import { RootState } from '../reducers';
+import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/screens/Benefits/utils/mapMoneyAccountPlusPricing';
 
 const EMPTY_SUBSCRIPTIONS: Subscription[] = [];
 const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
@@ -37,6 +38,18 @@ export const selectSubscriptionControllerState = (
 export const selectSubscriptionPricing = createSelector(
   selectSubscriptionControllerState,
   (subscriptionControllerState) => subscriptionControllerState?.pricing,
+);
+
+/**
+ * Selects Money Account Plus monthly and annual plans derived from cached
+ * pricing. Matching is by product name and billing interval, not array index.
+ *
+ * @param state - The root Redux state.
+ * @returns Mapped Plus pricing, including unavailable and malformed status.
+ */
+export const selectMoneyAccountPlusPricing = createSelector(
+  selectSubscriptionPricing,
+  mapMoneyAccountPlusPricing,
 );
 
 /**

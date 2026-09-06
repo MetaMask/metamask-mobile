@@ -11519,8 +11519,17 @@
   },
   "pro_subscription": {
     "title": "Earn more with Pro",
-    "description": "$4.99/mo ($49.99 for annual membership)",
+    "description": "{{monthlyPrice}}/mo ({{annualPrice}} for annual membership)",
+    "description_monthly": "{{monthlyPrice}}/mo",
+    "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "pricing": {
+      "loading": "Loading plans...",
+      "error": "We couldn't load plan prices. Try again.",
+      "unavailable": "Pro plans aren't available right now. Try again later.",
+      "malformed": "We couldn't read plan prices. Try again.",
+      "retry": "Retry"
+    },
     "benefits": {
       "apy": {
         "title": "Up to 7% APY on Money account",
@@ -11552,16 +11561,17 @@
     "plans": {
       "annual": {
         "label": "Annual",
-        "price": "$49.99",
-        "sub_price": "($4.15/mo)",
+        "price": "{{price}}",
+        "sub_price": "({{price}}/mo)",
         "badge": "2 months free",
-        "cta": "Join Pro for $4.15/month"
+        "cta": "Join Pro for {{price}}/month"
       },
       "monthly": {
         "label": "Monthly",
-        "price": "$4.99/mo",
-        "cta": "Join Pro for $4.99/month"
-      }
+        "price": "{{price}}/mo",
+        "cta": "Join Pro for {{price}}/month"
+      },
+      "trial": "{{days}}-day free trial"
     },
     "benefits_description": {
       "apy": {
