@@ -62,11 +62,11 @@ const runSync = async (): Promise<void> => {
     }
     writeStoredEffectivePushState(isEffectivelyEnabled);
 
-    if (wasEffectivelyEnabled && pushEnabledInApp) {
-      // Push is still on in-app but the OS permission is gone: the user
-      // revoked it from the system settings. An in-app disable also flips the
-      // snapshot to false but lands in neither branch (pushEnabledInApp is
-      // false by the time the disable helper syncs), so no event fires for it.
+    if (wasEffectivelyEnabled && !osPermissionGranted) {
+      // Snapshot was on and OS permission is now off: this is an OS revocation.
+      // The in-app flag can already be false here because Engine turns push
+      // off when native permission is missing. An in-app disable keeps OS
+      // permission granted, so it does not enter this branch.
       trackPushNotificationsDisabled();
     } else if (isEffectivelyEnabled) {
       // Enabled or re-granted: restore the profile trait, which a previous
@@ -95,8 +95,10 @@ let inFlight: Promise<void> = Promise.resolve();
  * on the transitions:
  *
  * - enabled -> OS permission revoked: fires `Push Notifications Disabled` once
- * per revocation and sets the push profile trait to false. The persisted
- * snapshot flips to false, so repeat checks stay silent until re-granted.
+ * per revocation and sets the push profile trait to false, even if Engine
+ * init already flipped `isPushEnabled` off in response to the same OS
+ * change. The persisted snapshot flips to false, so repeat checks stay
+ * silent until re-granted.
  * - disabled -> enabled (first enable, or permission re-granted): restores the
  * push profile trait to true.
  * - in-app disable: silently clears the snapshot so a later OS-level change is
