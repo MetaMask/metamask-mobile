@@ -1,0 +1,85 @@
+diff --git a/dist/ThemeProvider.cjs b/dist/ThemeProvider.cjs
+index ca62bab0d3c6104a5cfaec7524cd0f9bb91b3830..1f24f6e211d2c1e5e7d17a1e797189218490c8ab 100644
+--- a/dist/ThemeProvider.cjs
++++ b/dist/ThemeProvider.cjs
+@@ -45,9 +45,7 @@ const ThemeProvider = ({ children, theme, }) => {
+             theme,
+         };
+     }, [theme]);
+-    return (<ThemeContext_1.ThemeContext.Provider value={contextValue}>
+-      {children}
+-    </ThemeContext_1.ThemeContext.Provider>);
++    return (0, react_1.createElement)(ThemeContext_1.ThemeContext.Provider, { value: contextValue }, children);
+ };
+ exports.ThemeProvider = ThemeProvider;
+ //# sourceMappingURL=ThemeProvider.cjs.map
+\ No newline at end of file
+diff --git a/dist/colors.cjs b/dist/colors.cjs
+index dc343e29ea9dc84951406fc4a8535a9ccb238787..dbd0fd1c0b117e5aea59ef0760a60f1b2b6cdbdd 100644
+--- a/dist/colors.cjs
++++ b/dist/colors.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getThemeColors = exports.themeColors = void 0;
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const Theme_types_1 = require("./Theme.types.cjs");
+ /**
+  * Helper function to convert a camelCase / PascalCase string to kebab-case.
+diff --git a/dist/colors.mjs b/dist/colors.mjs
+index 0a30c71e07fb0a2ec1db715a11f20d392b33d1a5..2930b830a5c4ee39fadb86338d61e7fdbd0dac04 100644
+--- a/dist/colors.mjs
++++ b/dist/colors.mjs
+@@ -1,4 +1,4 @@
+-import { darkTheme, lightTheme } from "@metamask-previews/design-tokens";
++import { darkTheme, lightTheme } from "@metamask/design-tokens";
+ import { Theme } from "./Theme.types.mjs";
+ /**
+  * Helper function to convert a camelCase / PascalCase string to kebab-case.
+diff --git a/dist/tailwind.config.cjs b/dist/tailwind.config.cjs
+index 42a05d138cf1a64bc78af71a5fe803c7b03cba14..56cf331291e832bfb346ff5a71aceccc877ae74f 100644
+--- a/dist/tailwind.config.cjs
++++ b/dist/tailwind.config.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Theme = exports.generateTailwindConfig = void 0;
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const colors_1 = require("./colors.cjs");
+ const typography_1 = require("./typography.cjs");
+ /**
+diff --git a/dist/tailwind.config.mjs b/dist/tailwind.config.mjs
+index e0098571769f1991f1b775bd4f01a7da1fbe63b2..e3455f2dd6962fa6dbac6bd686e75e9de5d9ffdd 100644
+--- a/dist/tailwind.config.mjs
++++ b/dist/tailwind.config.mjs
+@@ -1,4 +1,4 @@
+-import { brandColor } from "@metamask-previews/design-tokens";
++import { brandColor } from "@metamask/design-tokens";
+ import { getThemeColors } from "./colors.mjs";
+ import { typographyTailwindConfig } from "./typography.mjs";
+ /**
+diff --git a/dist/typography.cjs b/dist/typography.cjs
+index d69d31ab3f4f03f31abd8f3c9f9e31682314b70e..e8220d2eecd63f95c727463a01c2be679e1028df 100644
+--- a/dist/typography.cjs
++++ b/dist/typography.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.typographyTailwindConfig = void 0;
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ exports.typographyTailwindConfig = {
+     fontSize: {
+         'display-lg': [
+diff --git a/dist/typography.mjs b/dist/typography.mjs
+index e8d98520e4b61b733a5a46f44bc74dc114b83958..908003a3a3fcee2f5b50dc496120824260bc9b5e 100644
+--- a/dist/typography.mjs
++++ b/dist/typography.mjs
+@@ -1,4 +1,4 @@
+-import { typography } from "@metamask-previews/design-tokens";
++import { typography } from "@metamask/design-tokens";
+ export const typographyTailwindConfig = {
+     fontSize: {
+         'display-lg': [
