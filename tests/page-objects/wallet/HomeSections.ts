@@ -5,10 +5,8 @@ import {
   type AppiumElement,
   PlatformDetector,
 } from '../../framework';
-import {
-  WalletAssetSelectorsIDs,
-  WalletAssetSelectorsText,
-} from '../../selectors/Wallet/WalletView.selectors';
+import { WalletAssetSelectorsIDs } from '../../../app/components/UI/AssetElement/AssetElement.testIds';
+import { WalletAssetSelectorsText } from '../../selectors/Wallet/WalletView.selectors';
 import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,

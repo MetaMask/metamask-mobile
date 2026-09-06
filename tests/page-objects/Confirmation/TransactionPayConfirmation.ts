@@ -3,7 +3,7 @@ import {
   PayWithBottomSheetIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../../../app/components/UI/AssetElement/AssetElement.testIds';
 import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 import { TEXTFIELDSEARCH_TEST_ID } from '../../../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.constants';
 import enContent from '../../../locales/languages/en.json';

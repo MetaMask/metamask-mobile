@@ -10,7 +10,7 @@ import {
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { SendActionViewSelectorsIDs } from '../../selectors/SendFlow/SendActionView.selectors';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../../../app/components/UI/AssetElement/AssetElement.testIds';
 
 class SendView {
   get ethTokenAssetButton(): Promise<AppiumElement> {
