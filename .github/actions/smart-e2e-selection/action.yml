@@ -1,20 +1,8 @@
 name: 'Smart E2E Selection'
 description: 'Run AI-powered E2E test selection based on code changes'
 inputs:
-  claude-api-key:
-    description: 'Anthropic Claude API key for AI analysis (primary provider)'
-    required: false
-    default: ''
-  openai-api-key:
-    description: 'OpenAI API key for AI analysis (fallback provider)'
-    required: false
-    default: ''
-  google-api-key:
-    description: 'Google Gemini API key for AI analysis (fallback provider)'
-    required: false
-    default: ''
   github-token:
-    description: 'GitHub token for PR comments'
+    description: 'GitHub token for PR comments and gh PR file access'
     required: true
   pr-number:
     description: 'Pull request number for commenting'
@@ -28,6 +16,25 @@ inputs:
     default: 'false'
   base-ref:
     description: 'PR base branch ref passed to the AI analysis script for diff comparison.'
+    required: false
+    default: ''
+  analyzer-ref:
+    description: 'MetaMask/ai-analyzer git ref (branch, tag, or SHA)'
+    required: false
+    # Feature branch until the engine hard-rule work is released.
+    default: 'docs/smart-e2e-engine-migration'
+  analyzer-token:
+    description: 'Token with read access to MetaMask/ai-analyzer'
+    required: true
+  litellm-api-key:
+    description: 'LiteLLM API key for the shared analyzer'
+    required: true
+  langfuse-public-key:
+    description: 'Optional Langfuse public key'
+    required: false
+    default: ''
+  langfuse-secret-key:
+    description: 'Optional Langfuse secret key'
     required: false
     default: ''
 outputs:
@@ -64,7 +71,7 @@ runs:
       if: steps.check-skip-label.outputs.SKIP != 'true'
       uses: actions/checkout@v6
       with:
-        fetch-depth: 1 # Shallow clone for speed; unshallowed below for diff comparison
+        fetch-depth: 1
 
     - name: Disable sparse checkout and restore all files
       if: steps.check-skip-label.outputs.SKIP != 'true'
@@ -77,52 +84,47 @@ runs:
       if: steps.check-skip-label.outputs.SKIP != 'true'
       shell: bash
       run: |
-        # Unshallow the repository first (if it's shallow)
         git fetch --unshallow 2>/dev/null || true
-        # Fetch the base branch for diff comparison (main or release/*)
         git fetch origin "${{ inputs.base-ref || 'main' }}" 2>/dev/null || true
+
+    - name: Checkout AI Analyzer
+      if: steps.check-skip-label.outputs.SKIP != 'true'
+      uses: actions/checkout@v6
+      with:
+        repository: MetaMask/ai-analyzer
+        ref: ${{ inputs.analyzer-ref }}
+        path: .ai-analyzer-action
+        token: ${{ inputs.analyzer-token }}
 
     - name: Setup Node.js
       if: steps.check-skip-label.outputs.SKIP != 'true'
       uses: actions/setup-node@v6
       with:
         node-version-file: '.nvmrc'
+        cache: npm
+        cache-dependency-path: .ai-analyzer-action/package-lock.json
 
-    - name: Install minimal dependencies for AI analysis
+    - name: Install AI Analyzer dependencies
       if: steps.check-skip-label.outputs.SKIP != 'true'
       shell: bash
-      run: |
-        echo "📦 Installing only required packages for AI analysis..."
-        # Install to a separate location that won't be overwritten
-        mkdir -p /tmp/ai-deps
-        cd /tmp/ai-deps
-        npm init -y
-        npm install @anthropic-ai/sdk@0.71.0 openai@4.77.0 @google/generative-ai@0.24.1 esbuild-register@3.6.0 --no-audit --no-fund
-        echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
-
-    - name: Copy AI dependencies to workspace
-      if: steps.check-skip-label.outputs.SKIP != 'true'
-      shell: bash
-      run: |
-        echo "📋 Copying AI dependencies to workspace..."
-        # Create node_modules if it doesn't exist
-        mkdir -p node_modules
-        # Copy our pre-installed dependencies
-        cp -r /tmp/ai-deps/node_modules/* node_modules/
-        echo "✅ AI dependencies available in workspace"
+      working-directory: .ai-analyzer-action
+      run: npm ci
 
     - name: Run E2E AI analysis
       id: ai-analysis
       shell: bash
       env:
-        E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
-        E2E_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
-        E2E_GEMINI_API_KEY: ${{ inputs.google-api-key }}
         PR_NUMBER: ${{ inputs.pr-number }}
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_REPOSITORY: ${{ inputs.repository }}
         GITHUB_RUN_ID: ${{ github.run_id }}
         BASE_REF: ${{ inputs.base-ref }}
+        LITELLM_API_KEY: ${{ inputs.litellm-api-key }}
+        LANGFUSE_PUBLIC_KEY: ${{ inputs.langfuse-public-key }}
+        LANGFUSE_SECRET_KEY: ${{ inputs.langfuse-secret-key }}
+        AI_ANALYZER_METAMASK_SKILLS: 'true'
+        CI: 'true'
+        NODE_PATH: ${{ github.workspace }}/.ai-analyzer-action/node_modules
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
@@ -136,12 +138,9 @@ runs:
           echo "SKIP_REASON=skip-smart-e2e-selection label found" >> "$GITHUB_OUTPUT"
           echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
           # Skip label → run all E2E (ALL) but do NOT launch the PR performance workflow.
-          # Performance tests are expensive and the skip label only opts out of AI selection,
-          # not into a full performance run. Use '[]' so run-performance-tests-pr is skipped.
           echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         else
-          echo "✅ Running AI analysis for PR #$PR_NUMBER"
-          # The script will generate the GH output variables - don't fail if script errors
+          echo "✅ Running shared-engine smart-e2e for PR #$PR_NUMBER (analyzer ref: ${{ inputs.analyzer-ref }})"
           node .github/actions/smart-e2e-selection/e2e-smart-selection.mjs || echo "⚠️ AI analysis script failed, using fallback"
         fi
 
@@ -161,9 +160,7 @@ runs:
           echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
         fi
         printf 'ai_confidence=%s\n' "$AI_CONFIDENCE" >> "$GITHUB_OUTPUT"
-        # Performance test tags: empty string = run all (fallback); '[]' = skip (AI found no changes)
         printf 'ai_performance_test_tags=%s\n' "$AI_PERF_TAGS" >> "$GITHUB_OUTPUT"
-        # Performance test reasoning (multi-line — must use heredoc format)
         {
           echo 'ai_performance_test_reasoning<<GHEOF'
           echo "$AI_PERF_REASONING"
@@ -192,7 +189,6 @@ runs:
       run: |
         echo "🗑️ Deleting all existing Smart E2E selection comments..."
 
-        # Get comment IDs using the HTML marker for precise identification
         ALL_COMMENT_IDS=$(gh api "repos/${{ inputs.repository }}/issues/${{ inputs.pr-number }}/comments" \
           --jq '.[] | select(.body | contains("<!-- smart-e2e-selection -->")) | .id')
 

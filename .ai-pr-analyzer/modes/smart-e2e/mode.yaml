@@ -1,0 +1,29 @@
+id: smart-e2e
+description: Select E2E smoke and performance tags for CI
+finalizeToolName: finalize_smart_e2e
+outputFile: smart-e2e.json
+labels: false
+# Opt in to mms-* skills as product context. Do not treat them as a
+# merge/review checklist — tag selection still comes from the catalog.
+skills:
+  purpose: >
+    mms-* skills describe how MetaMask product areas are built (controllers,
+    UI, testing layers). Use a loaded skill to name the impacted user flow,
+    then map that flow to AVAILABLE E2E TEST TAGS and AVAILABLE PERFORMANCE
+    TEST TAGS. Do not select tags because a skill discusses architecture,
+    coding style, or how to open a PR.
+# Gate stays unset (engine default is off). Do not declare
+# `AI PR Analyzer / Gate` — that check belongs to pr-risk-analysis.
+# Pin both tiers so repo escalationPatterns cannot switch the model.
+# Prefer a tight budget; raise only if continue hard-rules need more room.
+config:
+  maxIterations: 12
+  models:
+    default: claude-sonnet-5
+    escalation: claude-sonnet-5
+summaryFields:
+  - selected_tags
+  - performance_tests.selected_tags
+  - risk_level
+  - confidence
+  - reasoning
