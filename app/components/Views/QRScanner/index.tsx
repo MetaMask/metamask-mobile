@@ -33,6 +33,7 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { isMetaMaskUniversalLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import handleBrowserUrl from '../../../core/DeeplinkManager/handlers/legacy/handleBrowserUrl';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -453,8 +454,10 @@ const QRScanner = ({
             })
             .build(),
         );
-        // Open the URL and end the scanner
-        await Linking.openURL(content);
+        // Open generic HTTP(S) URLs in the in-app browser. Linking.openURL
+        // re-enters DeeplinkManager, which treats non-MetaMask hosts as
+        // INVALID and shows "This page doesn't exist".
+        handleBrowserUrl({ url: content });
         end();
         return;
       }

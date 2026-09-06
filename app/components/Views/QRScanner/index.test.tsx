@@ -74,6 +74,14 @@ jest.mock('../../../core/SDKConnectV2', () => ({
   },
 }));
 
+jest.mock(
+  '../../../core/DeeplinkManager/handlers/legacy/handleBrowserUrl',
+  () => ({
+    __esModule: true,
+    default: jest.fn(),
+  }),
+);
+
 jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => {
   // Default to false (not handled) so QR scanner handles the content directly
   const mockParse = jest.fn().mockResolvedValue(false);
@@ -190,7 +198,11 @@ const initialState = {
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import handleBrowserUrl from '../../../core/DeeplinkManager/handlers/legacy/handleBrowserUrl';
 
+const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
+  typeof handleBrowserUrl
+>;
 const mockUseAnalytics = jest.mocked(useAnalytics);
 
 describe('QrScanner', () => {
@@ -202,6 +214,7 @@ describe('QrScanner', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockLinkingOpenURL.mockClear();
+    mockHandleBrowserUrl.mockClear();
 
     // Reset isMetaMaskUniversalLink to default (false) — individual tests
     // that need it to return true will override this.
@@ -893,7 +906,7 @@ describe('QrScanner', () => {
         });
       });
 
-      it('tracks QR_SCANNED with url type when scanning URL and user confirms', async () => {
+      it('opens confirmed HTTP URLs in the in-app browser and tracks QR_SCANNED', async () => {
         const validatorsModule = jest.requireMock('../../../util/validators');
         (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
         (
@@ -952,9 +965,10 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.SCAN_RESULT]:
               ScanResult.URL_NAVIGATION_CONFIRMED,
           });
-          expect(mockLinkingOpenURL).toHaveBeenCalledWith(
-            'https://example.com',
-          );
+          expect(mockHandleBrowserUrl).toHaveBeenCalledWith({
+            url: 'https://example.com',
+          });
+          expect(mockLinkingOpenURL).not.toHaveBeenCalled();
           expect(mockGoBack).toHaveBeenCalled();
         });
       });
