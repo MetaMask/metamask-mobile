@@ -108,9 +108,42 @@ export function isIosAppiumSmokeEnv(
   return Number.isInteger(iosPoolSize) && iosPoolSize > 1;
 }
 
+/**
+ * Host adb server port for this worker. Falls back to the pool assignment for
+ * the same reason the serial does: `beforeAll` hooks run before the
+ * `deviceProvider` fixture exports `ANDROID_ADB_SERVER_PORT`, and an early
+ * `adb reverse` that lands on the default 5037 server puts this worker back on
+ * worker 0's daemon — the shared failure domain per-worker servers remove.
+ */
+export function resolveWorkerAdbServerPort(
+  env: Record<string, string | undefined> = process.env,
+): number | undefined {
+  if (isIosAppiumSmokeEnv(env)) {
+    return undefined;
+  }
+
+  const explicit = env.ANDROID_ADB_SERVER_PORT?.trim();
+  if (explicit) {
+    const port = Number(explicit);
+    if (!Number.isInteger(port) || port < 1) {
+      throw new Error(
+        `Invalid ANDROID_ADB_SERVER_PORT "${explicit}". Expected a positive integer.`,
+      );
+    }
+    return port;
+  }
+  return deviceForWorker(resolveE2eWorkerIndex(env), env)?.adbServerPort;
+}
+
 export function adbDeviceArgs(
   env: Record<string, string | undefined> = process.env,
 ): string[] {
   const serial = resolveWorkerAndroidSerial(env);
-  return serial ? ['-s', serial] : [];
+  if (!serial) {
+    return [];
+  }
+  const adbServerPort = resolveWorkerAdbServerPort(env);
+  return adbServerPort === undefined
+    ? ['-s', serial]
+    : ['-P', String(adbServerPort), '-s', serial];
 }
