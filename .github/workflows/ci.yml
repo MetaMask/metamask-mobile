@@ -1435,8 +1435,8 @@ jobs:
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}
       pr_number: ${{ github.event.pull_request.number }}
-      # Test-only performance runs prefer main APKs; app-changing PRs use
-      # normal fingerprint reuse.
+      # Test-only performance runs reuse main APKs when available, with a fresh-build
+      # fallback; app-changing PRs use normal fingerprint reuse with JS repacking.
       reuse_main_builds: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
       source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
     secrets: inherit
