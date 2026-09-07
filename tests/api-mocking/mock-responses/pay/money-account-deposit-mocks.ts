@@ -56,6 +56,7 @@ export async function mockMoneyAccountApis(mockServer: Mockttp) {
 export async function MONEY_ACCOUNT_DEPOSIT_MOCKS(
   mockServer: Mockttp,
   sourceToken: 'usdc' | 'eth' = 'usdc',
+  recipient?: string,
 ) {
   await mockMoneyAccountBalance(mockServer);
   await mockTokenApiMetadata(mockServer);
@@ -96,7 +97,7 @@ export async function MONEY_ACCOUNT_DEPOSIT_MOCKS(
     amountOut: '50000000',
     amountUsd: '50.00',
     timeEstimate: 15,
-    recipient: DEFAULT_FIXTURE_ACCOUNT,
+    recipient,
   });
 
   await mockRelayQuoteWith(mockServer, quote);

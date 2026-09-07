@@ -13,7 +13,11 @@ import {
 import { SmokeConfirmations } from '../../../tags.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
+import TransactionDetailsModal from '../../../page-objects/Transactions/TransactionDetailsModal.js';
+import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
+import PayWithModalTokenPicker from '../../../page-objects/Confirmation/PayWithModalTokenPicker.js';
 import PayAccountSelector from '../../../page-objects/Confirmation/PayAccountSelector.js';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import MoneyAddMoneySheet from '../../../page-objects/Money/MoneyAddMoneySheet.js';
@@ -34,6 +38,8 @@ const MONEY_DEPOSIT_HOLDINGS_ACCOUNT_2: TokenHolding[] = [
     amount: '1',
     account: DEFAULT_FIXTURE_ACCOUNT_2,
   },
+  { ...PREDEFINED_TOKENS.MONAD.MON, amount: '20' },
+  { ...PREDEFINED_TOKENS.MONAD.MUSD, amount: '10' },
 ];
 
 appiumTest.describe(
@@ -42,7 +48,7 @@ appiumTest.describe(
     appiumTest.describe.configure({ timeout: 250_000 });
 
     appiumTest(
-      'selects Account 2 as the funding source for a crypto deposit',
+      'deposits $50 with Mainnet USDC from Account 2 to mUSD on Monad, confirms, and sees it in Money activity',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
@@ -76,7 +82,11 @@ appiumTest.describe(
                 mockServer,
                 MONEY_DEPOSIT_HOLDINGS_ACCOUNT_2,
               );
-              await MONEY_ACCOUNT_DEPOSIT_MOCKS(mockServer);
+              await MONEY_ACCOUNT_DEPOSIT_MOCKS(
+                mockServer,
+                'usdc',
+                DEFAULT_FIXTURE_ACCOUNT_2,
+              );
             },
           },
           async () => {
@@ -95,8 +105,23 @@ appiumTest.describe(
             await PayAccountSelector.expectSheetVisible();
             await PayAccountSelector.tapAccountByName('Account 2');
             await PayAccountSelector.verifyAccountSelected('Account 2');
-            // Stop — do not approve: with a multi-account keyring fixture the
-            // relay quote never resolves, so the confirm leg is not covered.
+
+            await TransactionPayConfirmation.tapPayWithRow();
+            await PayWithModal.tapOtherAssets();
+            await PayWithModalTokenPicker.tapAssetOnNetwork('USDC', '0x1');
+
+            await TransactionPayConfirmation.enterAmountAndContinue('50');
+            await TransactionPayConfirmation.verifyTransactionFeeVisible();
+
+            await FooterActions.tapConfirmAndExpectConfirmationUnmount();
+            await MoneyHomeView.expectMoneyHomeVisible();
+
+            await MoneyHomeView.verifyActivityItemLabelAndAmount(
+              'Converted',
+              '+$50',
+            );
+            await MoneyHomeView.tapActivityItemByLabel('Converted');
+            await TransactionDetailsModal.verifyConfirmedStatus();
           },
         );
       },
