@@ -1016,10 +1016,11 @@ describe('BridgeTokenSelector', () => {
         renderWithReduxProvider(<BridgeTokenSelector />);
 
         await waitFor(() => {
-          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-            MOCK_CHAIN_IDS.ethereum,
-            MOCK_CHAIN_IDS.polygon,
-          ]);
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
+            }),
+          );
           expect(mockUseSearchTokens).toHaveBeenCalledWith(
             expect.objectContaining({
               chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
@@ -1036,9 +1037,11 @@ describe('BridgeTokenSelector', () => {
       renderWithReduxProvider(<BridgeTokenSelector />);
 
       await waitFor(() => {
-        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-          MOCK_CHAIN_IDS.polygon,
-        ]);
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
       });
     });
 
@@ -1088,13 +1091,17 @@ describe('BridgeTokenSelector', () => {
 
       try {
         await waitFor(() => {
-          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-            MOCK_CHAIN_IDS.ethereum,
-          ]);
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum],
+            }),
+          );
         });
-        expect(mockUseInitialBridgeTokens).not.toHaveBeenCalledWith([
-          MOCK_CHAIN_IDS.polygon,
-        ]);
+        expect(mockUseInitialBridgeTokens).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
       } finally {
         restoreDefaultAllowedChainRankingMock();
       }
@@ -1472,9 +1479,11 @@ describe('BridgeTokenSelector', () => {
       expect(mockResetSearch).toHaveBeenCalled();
 
       await waitFor(() => {
-        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-          MOCK_CHAIN_IDS.polygon,
-        ]);
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
         expect(mockUseSearchTokens).toHaveBeenCalledWith(
           expect.objectContaining({
             chainIds: [MOCK_CHAIN_IDS.polygon],

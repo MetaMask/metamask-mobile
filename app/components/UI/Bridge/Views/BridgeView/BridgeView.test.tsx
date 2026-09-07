@@ -25,6 +25,7 @@ import {
   MetaMetricsSwapsEventSource,
   QuoteStreamCompleteReason,
   TokenFeatureType,
+  FeatureId,
 } from '@metamask/bridge-controller';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
@@ -547,6 +548,7 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 
@@ -568,6 +570,7 @@ describe('BridgeView', () => {
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 
