@@ -108,6 +108,13 @@ export interface BridgeTokenSelectorRouteParams {
    * picker renders (popular, search, and watchlist results).
    */
   excludeRwaTokens?: boolean;
+  /**
+   * Identifies which surface opened the picker (e.g. Limit order, Recurring
+   * buy, Market order) so the popular/search API requests can carry it for
+   * backend attribution. Required so every entry point must make an
+   * explicit choice instead of silently defaulting to one flow.
+   */
+  featureId: FeatureId;
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -246,6 +253,7 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const enabledChainIds = route.params?.enabledChainIds;
   const excludeRwaTokens = route.params?.excludeRwaTokens ?? false;
+  const featureId = route.params?.featureId;
   const enabledChainRanking = useSelector((state: RootState) =>
     selectAllowedChainRanking(state, enabledChainIds),
   );
@@ -428,7 +436,11 @@ export const BridgeTokenSelector: React.FC = () => {
     fetchPopularTokens,
     balancesByAssetId,
     searchIncludeAssets,
-  } = useInitialBridgeTokens(chainIdsToFetch, searchString);
+  } = useInitialBridgeTokens({
+    chainIds: chainIdsToFetch,
+    searchString,
+    featureId,
+  });
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(
@@ -451,6 +463,7 @@ export const BridgeTokenSelector: React.FC = () => {
   } = useSearchTokens({
     chainIds: chainIdsToFetch,
     includeAssets: searchIncludeAssets,
+    featureId,
   });
 
   // React to network filter changes from any source (pill press or modal).

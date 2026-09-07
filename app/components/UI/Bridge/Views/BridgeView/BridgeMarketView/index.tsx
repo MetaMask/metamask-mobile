@@ -6,6 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { FeatureId } from '@metamask/bridge-controller';
 import ScreenView from '../../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
@@ -497,6 +498,7 @@ const BridgeMarketViewContent = ({
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Source,
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
 
   const handleFlipTokensPress = useCallback(() => {
@@ -509,6 +511,7 @@ const BridgeMarketViewContent = ({
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Dest,
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
 
   const getContentMode = () => {

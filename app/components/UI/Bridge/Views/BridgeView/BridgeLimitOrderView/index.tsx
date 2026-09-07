@@ -321,7 +321,6 @@ const BridgeLimitOrderViewContent = ({
           >
             <SwapsInputs
               inputRef={inputRef}
-              enabledChainIds={enabledChainIds}
               sourceToken={sourceToken}
               sourceAmountInput={sourceAmountInput}
               latestSourceBalance={latestSourceBalance}

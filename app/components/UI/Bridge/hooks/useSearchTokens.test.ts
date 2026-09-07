@@ -1,4 +1,5 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useSearchTokens } from './useSearchTokens';
 import {
   createMockPopularToken,
@@ -178,6 +179,45 @@ describe('useSearchTokens', () => {
           body: expect.stringContaining('includeAssets'),
         }),
       );
+    });
+
+    it('omits featureId from the request body when not provided', async () => {
+      const mockResponse = createMockSearchResponse();
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        json: async () => mockResponse,
+      });
+
+      const { result } = renderHook(() => useSearchTokens(defaultParams));
+
+      await act(async () => {
+        await result.current.searchTokens('test');
+      });
+
+      const [, requestInit] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(JSON.parse(requestInit.body)).not.toHaveProperty('featureId');
+    });
+
+    it('includes featureId in the request body when provided', async () => {
+      const mockResponse = createMockSearchResponse();
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        json: async () => mockResponse,
+      });
+
+      const { result } = renderHook(() =>
+        useSearchTokens({
+          ...defaultParams,
+          featureId: FeatureId.RECURRING_BUY,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.searchTokens('test');
+      });
+
+      const [, requestInit] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(JSON.parse(requestInit.body)).toMatchObject({
+        featureId: FeatureId.RECURRING_BUY,
+      });
     });
 
     it('falls back to an empty array for malformed responses', async () => {

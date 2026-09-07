@@ -1,4 +1,5 @@
 import { waitFor } from '@testing-library/react-native';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useFetchPopularTokens } from './useFetchPopularTokens';
 import { createMockPopularToken, MOCK_CHAIN_IDS } from '../testUtils/fixtures';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
@@ -111,6 +112,54 @@ describe('useFetchPopularTokens', () => {
       timestamp: expect.any(Number),
       data: { result: 'success' },
     });
+  });
+
+  it('omits featureId from the request body when not provided', async () => {
+    globalFetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPopularTokens,
+    });
+
+    const { result } = renderHookWithProvider(() => useFetchPopularTokens(), {
+      state: initialState,
+    });
+
+    await result.current({
+      chainIds: [MOCK_CHAIN_IDS.ethereum],
+      includeAssets: [mockIncludeAsset],
+    });
+
+    const [, requestInit] = globalFetchSpy.mock.calls[0];
+    expect(JSON.parse(requestInit.body)).not.toHaveProperty('featureId');
+  });
+
+  it('includes featureId in the request body when provided', async () => {
+    globalFetchSpy.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockPopularTokens,
+    });
+
+    const { result } = renderHookWithProvider(() => useFetchPopularTokens(), {
+      state: initialState,
+    });
+
+    await result.current({
+      chainIds: [MOCK_CHAIN_IDS.ethereum],
+      includeAssets: [mockIncludeAsset],
+      featureId: FeatureId.LIMIT_ORDER,
+    });
+
+    expect(globalFetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/getTokens/popular'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          chainIds: [MOCK_CHAIN_IDS.ethereum],
+          includeAssets: [mockIncludeAsset],
+          featureId: FeatureId.LIMIT_ORDER,
+        }),
+      }),
+    );
   });
 
   it('defaults includeAssets to an empty array when omitted', async () => {
