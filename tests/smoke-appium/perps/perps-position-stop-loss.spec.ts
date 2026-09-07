@@ -101,7 +101,7 @@ appiumTest.describe(SmokePerps('Perps Pro - Position stop loss'), () => {
             PERPS_SMOKE_MARKET_SYMBOL,
             '2250.00',
             () =>
-              PerpsProMarketView.expectPositionRowNotVisible(
+              PerpsProMarketView.expectPositionRowGone(
                 PERPS_SMOKE_MARKET_SYMBOL,
               ),
             {

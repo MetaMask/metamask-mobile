@@ -88,7 +88,7 @@ appiumTest.describe(SmokePerps('Perps Pro - Position'), () => {
 
           await Utilities.executeWithRetry(
             async () => {
-              await PerpsProMarketView.expectPositionRowNotVisible(
+              await PerpsProMarketView.expectPositionRowGone(
                 PERPS_SMOKE_MARKET_SYMBOL,
               );
             },

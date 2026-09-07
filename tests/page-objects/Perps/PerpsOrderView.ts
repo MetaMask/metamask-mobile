@@ -342,6 +342,12 @@ class PerpsOrderView {
       checkForDisplayed: true,
       checkEnabled: true,
     });
+    // Android Fabric dismisses via goBack before updatePositionTPSL finishes;
+    // wait until Auto close is gone so Pro/market details are interactive again.
+    await Assertions.expectElementToNotExist(this.tpslAutoCloseTitle, {
+      description: 'TPSL Auto close sheet dismissed after Set',
+      timeout: 15000,
+    });
   }
 
   /**

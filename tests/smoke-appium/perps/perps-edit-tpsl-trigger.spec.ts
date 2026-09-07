@@ -86,13 +86,15 @@ appiumTest.describe(SmokePerps('Perps Pro - Edit TP/SL trigger'), () => {
             PERPS_SMOKE_MARKET_SYMBOL,
           );
           await PerpsOrderView.enterCustomStopLossTriggerPrice('2300');
+          // Auto close Set can leave Pro mid-transition; gate before price push.
+          await PerpsProMarketView.waitForProViewReady();
 
           await PerpsE2EModifiers.waitForCloseAfterPricePush(
             commandQueueServer,
             PERPS_SMOKE_MARKET_SYMBOL,
             '2250.00',
             () =>
-              PerpsProMarketView.expectPositionRowNotVisible(
+              PerpsProMarketView.expectPositionRowGone(
                 PERPS_SMOKE_MARKET_SYMBOL,
               ),
             {

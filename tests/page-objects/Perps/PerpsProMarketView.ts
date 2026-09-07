@@ -657,6 +657,24 @@ class PerpsProMarketView {
   }
 
   /**
+   * Cheap position-gone poll for close waits (`waitForCloseAfterPricePush` /
+   * liquidation / TP). Do **not** re-tap Positions or scroll — those use
+   * `scrollUntilVisible` (default 45s) and burn the outer retry budget in one
+   * attempt when the Pro scroll-view is mid-transition after Auto close Set.
+   * Position row testIDs are absent from the hierarchy once the position is
+   * closed, so a short `expectElementToNotExist` is enough.
+   */
+  async expectPositionRowGone(
+    symbol: string,
+    timeout = 1500,
+  ): Promise<void> {
+    await Assertions.expectElementToNotExist(this.positionRow(symbol), {
+      description: `Pro position row for ${symbol} gone from hierarchy`,
+      timeout,
+    });
+  }
+
+  /**
    * Taps the Close (X) button directly on the position row card.
    * Navigates to the Close Position screen.
    */
