@@ -22,6 +22,10 @@ import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
 import { resolveWorkerAndroidSerial } from '../e2eWorkerPorts.ts';
+import {
+  isAdbTransportFault,
+  withAdbHostLock,
+} from '../services/appium/adbHostLock.ts';
 
 const execAsync = promisify(exec);
 
@@ -95,20 +99,35 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
 
   logger.debug('Cleaning up test port forwards before test...');
 
-  for (const port of fallbackPorts) {
-    try {
-      const command = `adb ${deviceFlag} reverse --remove tcp:${port}`;
-      await execAsync(command);
-      logger.debug(`✓ Removed port forwarding for tcp:${port}`);
-    } catch (error) {
-      // Silently ignore "not found" errors - the port might not have been forwarded
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      if (!errorMessage.includes('not found')) {
+  // Serialize reverse --remove across N=2 workers that share one adb server.
+  // Concurrent removes cause protocol faults / daemon restarts that kill the
+  // sibling worker's UiAutomator2 mid-test.
+  await withAdbHostLock(async () => {
+    for (const port of fallbackPorts) {
+      try {
+        const command = `adb ${deviceFlag} reverse --remove tcp:${port}`;
+        await execAsync(command);
+        logger.debug(`✓ Removed port forwarding for tcp:${port}`);
+      } catch (error) {
+        // Silently ignore "not found" errors - the port might not have been forwarded
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('not found')) {
+          continue;
+        }
         logger.debug(`Note: Could not remove tcp:${port}: ${errorMessage}`);
+        if (isAdbTransportFault(errorMessage)) {
+          // Abort remaining removes — continuing amplifies daemon churn.
+          // setupAndroidPortForwarding will recreate needed reverses.
+          logger.warn(
+            'Aborting adb reverse cleanup after transport fault; ' +
+              'will rely on setup to recreate forwards',
+          );
+          return;
+        }
       }
     }
-  }
+  });
 
   logger.debug('✓ Cleaned up test port forwarding');
 }
@@ -191,7 +210,9 @@ async function setupAndroidPortForwarding(
   for (let attempt = 1; attempt <= maxAdbRetries; attempt++) {
     try {
       logger.debug(`Executing port forward (attempt ${attempt}): ${command}`);
-      const { stdout, stderr } = await execAsync(command);
+      const { stdout, stderr } = await withAdbHostLock(() =>
+        execAsync(command),
+      );
 
       if (stderr && !stderr.includes('')) {
         logger.warn(`adb reverse stderr: ${stderr}`);
@@ -211,7 +232,8 @@ async function setupAndroidPortForwarding(
       const isDeviceOffline =
         errorMessage.includes('not found') ||
         errorMessage.includes('device offline') ||
-        errorMessage.includes('unauthorized');
+        errorMessage.includes('unauthorized') ||
+        isAdbTransportFault(errorMessage);
 
       if (isDeviceOffline && attempt < maxAdbRetries) {
         logger.warn(

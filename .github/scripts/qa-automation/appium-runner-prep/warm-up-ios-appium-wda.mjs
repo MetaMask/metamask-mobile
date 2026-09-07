@@ -16,6 +16,7 @@ const APPIUM_STARTUP_TIMEOUT_MS = 60_000;
 const WARMUP_SESSION_TIMEOUT_MS = 5 * 60 * 1000;
 const WARMUP_MAX_ATTEMPTS = 2;
 const WARMUP_RETRY_DELAY_MS = 5_000;
+let appiumStartupPromise;
 
 async function isAppiumRunning() {
   try {
@@ -43,6 +44,24 @@ async function startAppiumServer() {
     return;
   }
 
+  if (appiumStartupPromise) {
+    await appiumStartupPromise;
+    return;
+  }
+
+  appiumStartupPromise = startAppiumServerOnce();
+  try {
+    await appiumStartupPromise;
+  } finally {
+    appiumStartupPromise = undefined;
+  }
+}
+
+async function startAppiumServerOnce() {
+  if (await isAppiumRunning()) {
+    return;
+  }
+
   console.log(`Starting Appium on http://${APPIUM_HOST}:${APPIUM_PORT} for WDA warm-up…`);
 
   // stdio: 'ignore' — piped stdio would keep Node's event loop alive after unref().
@@ -67,9 +86,79 @@ async function startAppiumServer() {
 }
 
 /**
- * @param {{ udid: string; wdaBundleIdBase: string; simulatorName: string }} options
+ * @param {{
+ *   udid: string;
+ *   wdaBundleIdBase: string;
+ *   simulatorName: string;
+ *   wdaLocalPort?: number;
+ *   mjpegServerPort?: number;
+ * }} options
  */
-async function createWarmUpSession({ udid, wdaBundleIdBase, simulatorName }) {
+export function buildWarmUpCapabilities({
+  udid,
+  wdaBundleIdBase,
+  simulatorName,
+  wdaLocalPort,
+  mjpegServerPort,
+}) {
+  return {
+    platformName: 'iOS',
+    'appium:automationName': 'XCUITest',
+    'appium:udid': udid,
+    'appium:deviceName': simulatorName,
+    'appium:usePreinstalledWDA': true,
+    'appium:updatedWDABundleId': wdaBundleIdBase,
+    'appium:useNewWDA': false,
+    'appium:derivedDataPath': `${process.env.HOME}/appium-wda`,
+    'appium:wdaLaunchTimeout': 120_000,
+    'appium:wdaConnectionTimeout': 30_000,
+    'appium:simulatorStartupTimeout': 180_000,
+    'appium:noReset': true,
+    'appium:skipLogCapture': true,
+    ...(wdaLocalPort === undefined ? {} : { 'appium:wdaLocalPort': wdaLocalPort }),
+    ...(mjpegServerPort === undefined
+      ? {}
+      : { 'appium:mjpegServerPort': mjpegServerPort }),
+  };
+}
+
+/**
+ * Warm every simulator in a pool.
+ *
+ * @param {{
+ *   udids: string[];
+ *   wdaBundleIdBase: string;
+ *   simulatorName: string;
+ *   warmUp?: typeof warmUpIosAppiumWda;
+ * }} options
+ */
+export async function warmUpIosAppiumWdaSequentially({
+  udids,
+  wdaBundleIdBase,
+  simulatorName,
+  warmUp = warmUpIosAppiumWda,
+}) {
+  for (const [workerIndex, udid] of udids.entries()) {
+    await warmUp({
+      udid,
+      wdaBundleIdBase,
+      simulatorName,
+      wdaLocalPort: 8100 + workerIndex,
+      mjpegServerPort: 9100 + workerIndex,
+    });
+  }
+}
+
+/**
+ * @param {{
+ *   udid: string;
+ *   wdaBundleIdBase: string;
+ *   simulatorName: string;
+ *   wdaLocalPort?: number;
+ *   mjpegServerPort?: number;
+ * }} options
+ */
+async function createWarmUpSession(options) {
   const { remote } = await import('webdriverio');
   console.log('Creating warm-up Appium session (preinstalled WDA, no app launch)…');
 
@@ -78,21 +167,7 @@ async function createWarmUpSession({ udid, wdaBundleIdBase, simulatorName }) {
     port: APPIUM_PORT,
     connectionRetryTimeout: WARMUP_SESSION_TIMEOUT_MS,
     connectionRetryCount: 0,
-    capabilities: {
-      platformName: 'iOS',
-      'appium:automationName': 'XCUITest',
-      'appium:udid': udid,
-      'appium:deviceName': simulatorName,
-      'appium:usePreinstalledWDA': true,
-      'appium:updatedWDABundleId': wdaBundleIdBase,
-      'appium:useNewWDA': false,
-      'appium:derivedDataPath': `${process.env.HOME}/appium-wda`,
-      'appium:wdaLaunchTimeout': 120_000,
-      'appium:wdaConnectionTimeout': 30_000,
-      'appium:simulatorStartupTimeout': 180_000,
-      'appium:noReset': true,
-      'appium:skipLogCapture': true,
-    },
+    capabilities: buildWarmUpCapabilities(options),
   });
 
   await driver.deleteSession();
@@ -102,10 +177,17 @@ async function createWarmUpSession({ udid, wdaBundleIdBase, simulatorName }) {
 }
 
 /**
- * @param {{ udid: string; wdaBundleIdBase: string; simulatorName: string }} options
+ * @param {{
+ *   udid: string;
+ *   wdaBundleIdBase: string;
+ *   simulatorName: string;
+ *   wdaLocalPort?: number;
+ *   mjpegServerPort?: number;
+ * }} options
  * @returns {Promise<boolean>} true when warm-up succeeded
  */
-export async function warmUpIosAppiumWda({ udid, wdaBundleIdBase, simulatorName }) {
+export async function warmUpIosAppiumWda(options) {
+  const { udid } = options;
   await startAppiumServer();
 
   let lastError;
@@ -116,7 +198,7 @@ export async function warmUpIosAppiumWda({ udid, wdaBundleIdBase, simulatorName 
         `WDA warm-up attempt ${attempt}/${WARMUP_MAX_ATTEMPTS} (simulator ${udid})…`,
       );
       await ensureIosSimulatorBooted(udid);
-      await createWarmUpSession({ udid, wdaBundleIdBase, simulatorName });
+      await createWarmUpSession(options);
       console.log('WDA warm-up complete — Appium left running for Playwright.');
       await sleep(2000);
       return true;

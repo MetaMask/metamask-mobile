@@ -2,6 +2,7 @@ import {
   adbDeviceArgs,
   chromeCdpForwardPort,
   hostListenPortForDevicePort,
+  isIosAppiumSmokeEnv,
   metamaskWebViewCdpForwardPort,
   resolveE2eWorkerIndex,
   resolveWorkerAndroidSerial,
@@ -141,6 +142,37 @@ describe('e2eWorkerPorts', () => {
 
       expect(resolveMissingWorker).toThrow(
         'Android worker 2 has no device in ANDROID_DEVICE_POOL (2 devices).',
+      );
+    });
+
+    it('does not invent Android serials when iOS pool env is present', () => {
+      const serial = resolveWorkerAndroidSerial({
+        ANDROID_DEVICE_POOL_SIZE: '3',
+        IOS_DEVICE_POOL_SIZE: '2',
+        IOS_SIMULATOR_UDID: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        TEST_PARALLEL_INDEX: '1',
+      });
+
+      expect(serial).toBeUndefined();
+    });
+  });
+
+  describe('isIosAppiumSmokeEnv', () => {
+    it('detects iOS from simulator UDID', () => {
+      expect(
+        isIosAppiumSmokeEnv({
+          IOS_SIMULATOR_UDID: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        }),
+      ).toBe(true);
+    });
+
+    it('detects iOS from pool size greater than one', () => {
+      expect(isIosAppiumSmokeEnv({ IOS_DEVICE_POOL_SIZE: '2' })).toBe(true);
+    });
+
+    it('is false on Android-only env', () => {
+      expect(isIosAppiumSmokeEnv({ ANDROID_DEVICE_POOL_SIZE: '3' })).toBe(
+        false,
       );
     });
   });
