@@ -11,10 +11,10 @@ import {
   ButtonSize,
   ButtonsAlignment,
   IconName,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
+  TextButton,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
@@ -56,7 +56,6 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
-  TransactionType.musdConversion,
 ];
 
 export const Footer = () => {
@@ -249,32 +248,34 @@ export const Footer = () => {
       {isStakingConfirmationBool && (
         <View style={styles.bottomTextContainer}>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part1')}
             </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.linkText}
+            <TextButton
+              testID={ConfirmationFooterSelectorIDs.STAKING_TERMS_OF_USE_BUTTON}
+              variant={TextVariant.BodySm}
               onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
             >
               {strings('confirm.staking_footer.terms_of_use')}
-            </Text>
+            </TextButton>
           </View>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part2')}
               {'\n'}
             </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.linkText}
+            <TextButton
+              testID={
+                ConfirmationFooterSelectorIDs.STAKING_RISK_DISCLOSURE_BUTTON
+              }
+              variant={TextVariant.BodySm}
               onPress={() =>
                 Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
               }
             >
               {strings('confirm.staking_footer.risk_disclosure')}
-            </Text>
-            <Text variant={TextVariant.BodySM}>
+            </TextButton>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part3')}
             </Text>
           </View>

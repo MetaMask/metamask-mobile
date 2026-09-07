@@ -7,15 +7,17 @@ import {
 } from './smartTransactionsController';
 import { selectEvmAddress } from './accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
-import { selectIsActivityRedesignEnabled } from './featureFlagController/activityRedesign';
 import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
+import { isMusdOnMoneyAccountChain } from '@metamask/money-account-utils';
 import { areAddressesEqual } from '../util/address';
+import { decodeErc20Transfer } from '../util/transactions/erc20-transfer';
 
 interface MetaMaskPayToken {
   address: Hex;
@@ -23,6 +25,8 @@ interface MetaMaskPayToken {
 }
 
 type LocalTransaction = TransactionMeta | SmartTransaction;
+const MONEY_DEPOSIT_TYPES = [TransactionType.moneyAccountDeposit];
+const MONEY_WITHDRAW_TYPES = [TransactionType.moneyAccountWithdraw];
 
 function isTerminalFailedStatus(status: unknown): boolean {
   return (
@@ -195,15 +199,9 @@ export const selectGasPaymentTransactionHashes = createSelector(
  * fee legs visible — it has no compensating gasToken fee UI).
  */
 export const selectExcludedActivityTransactionHashes = createSelector(
-  [
-    selectRequiredTransactionHashes,
-    selectGasPaymentTransactionHashes,
-    selectIsActivityRedesignEnabled,
-  ],
-  (requiredHashes, gasPaymentHashes, isActivityRedesignEnabled) =>
-    isActivityRedesignEnabled
-      ? new Set([...requiredHashes, ...gasPaymentHashes])
-      : new Set(requiredHashes),
+  [selectRequiredTransactionHashes, selectGasPaymentTransactionHashes],
+  (requiredHashes, gasPaymentHashes) =>
+    new Set([...requiredHashes, ...gasPaymentHashes]),
 );
 
 export const selectRelatedChainIdsByTransactionId = createSelector(
@@ -231,6 +229,76 @@ export const selectRelatedChainIdsByTransactionId = createSelector(
           return [tx.id, [...new Set(chainIds)]] satisfies [string, string[]];
         })
         .filter(([, chainIds]) => chainIds.length > 0),
+    );
+  },
+);
+
+function getMoneyWithdrawRecipients(transaction: TransactionMeta): string[] {
+  return (transaction.nestedTransactions ?? []).flatMap((nestedTransaction) => {
+    if (!isMusdOnMoneyAccountChain(nestedTransaction.to, transaction.chainId)) {
+      return [];
+    }
+    const transfer = decodeErc20Transfer(
+      nestedTransaction.data,
+      nestedTransaction.type,
+    );
+    if (!transfer) {
+      return [];
+    }
+    return [transfer.recipient];
+  });
+}
+
+/**
+ * Addresses related to each local transaction.
+ *
+ * MetaMask Pay parent transactions can be signed by a product account rather
+ * than the EOA shown in Activity. Required child senders identify the EOA that
+ * funded a Money deposit, while the nested ERC-20 recipient identifies the EOA
+ * receiving a Money withdrawal.
+ */
+const selectRelatedAddressesByTransactionId = createSelector(
+  selectTransactionsStrict,
+  (transactions) => {
+    const transactionsById = new Map<string, TransactionMeta>(
+      transactions.map((transaction) => [transaction.id, transaction]),
+    );
+
+    return new Map<string, string[]>(
+      transactions.flatMap((transaction) => {
+        const isMoneyDeposit = hasTransactionType(
+          transaction,
+          MONEY_DEPOSIT_TYPES,
+        );
+        const isMoneyWithdraw = hasTransactionType(
+          transaction,
+          MONEY_WITHDRAW_TYPES,
+        );
+        if (!isMoneyDeposit && !isMoneyWithdraw) {
+          return [];
+        }
+        const requiredTransactionSenders = isMoneyDeposit
+          ? (transaction.requiredTransactionIds ?? []).map(
+              (transactionId) =>
+                transactionsById.get(transactionId)?.txParams?.from,
+            )
+          : [];
+        const addresses = [
+          ...requiredTransactionSenders,
+          ...(isMoneyWithdraw ? getMoneyWithdrawRecipients(transaction) : []),
+        ]
+          .filter((address): address is string => Boolean(address))
+          .map((address) => address.toLowerCase());
+
+        return addresses.length
+          ? [
+              [transaction.id, [...new Set(addresses)]] satisfies [
+                string,
+                string[],
+              ],
+            ]
+          : [];
+      }),
     );
   },
 );
@@ -263,16 +331,22 @@ function isReplacedTransaction(
   return Boolean(replacedBy && replacedById && hash);
 }
 
-/** Whether a transaction was sent from the active account's EVM address. */
+/** Whether a transaction belongs to the active account directly or through a related product flow. */
 function belongsToActiveAccount(
   transaction: LocalTransaction,
   activeEvmAddress: string | undefined,
+  relatedAddresses: string[] = [],
 ): boolean {
-  const fromAddress = transaction.txParams?.from;
-  if (!fromAddress || !activeEvmAddress) {
+  if (!activeEvmAddress) {
     return false;
   }
-  return areAddressesEqual(fromAddress, activeEvmAddress);
+
+  const addresses = [transaction.txParams?.from, ...relatedAddresses].filter(
+    (address): address is string => Boolean(address),
+  );
+  return addresses.some((address) =>
+    areAddressesEqual(address, activeEvmAddress),
+  );
 }
 
 export const selectNonReplacedTransactions = createDeepEqualSelector(
@@ -368,7 +442,7 @@ export const selectLocalTransactions = createDeepEqualSelector(
     selectEvmAddress,
     selectRequiredTransactionIds,
     selectGasPaymentTransactionIds,
-    selectIsActivityRedesignEnabled,
+    selectRelatedAddressesByTransactionId,
   ],
   (
     nonReplacedTransactions,
@@ -377,7 +451,7 @@ export const selectLocalTransactions = createDeepEqualSelector(
     fallbackEvmAddress,
     requiredTransactionIds,
     gasPaymentTransactionIds,
-    isActivityRedesignEnabled,
+    relatedAddressesByTransactionId,
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
@@ -385,13 +459,14 @@ export const selectLocalTransactions = createDeepEqualSelector(
       if (requiredTransactionIds.has(transaction.id)) {
         return false;
       }
-      if (
-        isActivityRedesignEnabled &&
-        gasPaymentTransactionIds.has(transaction.id)
-      ) {
+      if (gasPaymentTransactionIds.has(transaction.id)) {
         return false;
       }
-      return belongsToActiveAccount(transaction, activeEvmAddress);
+      return belongsToActiveAccount(
+        transaction,
+        activeEvmAddress,
+        relatedAddressesByTransactionId.get(transaction.id),
+      );
     });
 
     const pendingSmartTransactionsForActiveAddress =
@@ -421,7 +496,7 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
     selectEvmAddress,
     selectRequiredTransactionIds,
     selectGasPaymentTransactionIds,
-    selectIsActivityRedesignEnabled,
+    selectRelatedAddressesByTransactionId,
   ],
   (
     transactions,
@@ -429,7 +504,7 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
     fallbackEvmAddress,
     requiredTransactionIds,
     gasPaymentTransactionIds,
-    isActivityRedesignEnabled,
+    relatedAddressesByTransactionId,
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
@@ -440,13 +515,14 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
       if (requiredTransactionIds.has(transaction.id)) {
         return false;
       }
-      if (
-        isActivityRedesignEnabled &&
-        gasPaymentTransactionIds.has(transaction.id)
-      ) {
+      if (gasPaymentTransactionIds.has(transaction.id)) {
         return false;
       }
-      return belongsToActiveAccount(transaction, activeEvmAddress);
+      return belongsToActiveAccount(
+        transaction,
+        activeEvmAddress,
+        relatedAddressesByTransactionId.get(transaction.id),
+      );
     });
   },
 );

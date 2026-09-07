@@ -91,6 +91,12 @@ import {
   AddressBookControllerEvents,
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
+import type {
+  NetworkConnectionBannerController,
+  NetworkConnectionBannerControllerState,
+  NetworkConnectionBannerControllerActions,
+  NetworkConnectionBannerControllerEvents,
+} from '@metamask/network-connection-banner-controller';
 import {
   ConnectivityController,
   ConnectivityControllerActions,
@@ -465,7 +471,6 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
-import type { NFTDetectionControllerState } from '@metamask/assets-controllers/dist/NftDetectionController.cjs';
 import {
   ProfileMetricsController,
   ProfileMetricsControllerActions,
@@ -481,12 +486,12 @@ import {
 
 type NftDetectionControllerActions = ControllerGetStateAction<
   'NftDetectionController',
-  NFTDetectionControllerState
+  NftDetectionController['state']
 >;
 
 type NftDetectionControllerEvents = ControllerStateChangeEvent<
   'NftDetectionController',
-  NFTDetectionControllerState
+  NftDetectionController['state']
 >;
 import {
   TransactionPayController,
@@ -614,6 +619,7 @@ export type GlobalActions =
   | KeyringControllerActions
   | NetworkControllerActions
   | NetworkEnablementControllerActions
+  | NetworkConnectionBannerControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
@@ -722,6 +728,7 @@ export type GlobalEvents =
   | KeyringControllerEvents
   | NetworkControllerEvents
   | NetworkEnablementControllerEvents
+  | NetworkConnectionBannerControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
@@ -853,6 +860,7 @@ export type MessengerClients = {
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
   ConnectivityController: ConnectivityController;
+  NetworkConnectionBannerController: NetworkConnectionBannerController;
   ConfigRegistryController: ConfigRegistryController;
   ConfigRegistryApiService: ConfigRegistryApiService;
   SentinelApiService: SentinelApiService;
@@ -973,6 +981,7 @@ export type EngineState = {
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
+  NetworkConnectionBannerController: NetworkConnectionBannerControllerState;
   ConfigRegistryController: ConfigRegistryControllerState;
   NftController: NftControllerState;
   CurrencyRateController: CurrencyRateState;
@@ -1078,8 +1087,7 @@ export type MessengerClientsToInitialize =
   | 'AccountTrackerController'
   | 'AssetsContractController'
   | 'AssetsController'
-  | 'ConfigRegistryController'
-  | 'ConfigRegistryApiService'
+  | 'NetworkConnectionBannerController'
   | 'SentinelApiService'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'

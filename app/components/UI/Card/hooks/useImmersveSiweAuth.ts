@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import {
+  CardProviderError,
   CardProviderIds,
   type CardAuthResult,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Logger from '../../../../util/Logger';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { getCardProviderErrorMessage } from '../util/getCardProviderErrorMessage';
 import { withCardProvider } from '../util/metrics';
@@ -88,15 +90,36 @@ export const useImmersveSiweAuth = () => {
 
         return result;
       } catch (e) {
+        const errorType = getSiweErrorType(e);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_SIWE_AUTH_FAILED)
             .addProperties(
               withCardProvider(CardProviderIds.Immersve, {
-                error_type: getSiweErrorType(e),
+                error_type: errorType,
               }),
             )
             .build(),
         );
+        // Provider already reports API failures (and skips 401/auth-token noise).
+        // Only report UI-local failures here (e.g. unexpected auth step, sign errors).
+        if (
+          errorType !== 'user_cancelled' &&
+          !(e instanceof CardProviderError)
+        ) {
+          Logger.error(e as Error, {
+            tags: { feature: 'card', provider: 'immersve' },
+            context: {
+              name: 'useImmersveSiweAuth',
+              data: {
+                method: 'authenticate',
+                error_type: errorType,
+                country,
+                authStep:
+                  Engine.context?.CardController?.getCurrentAuthStep()?.type,
+              },
+            },
+          });
+        }
         setError(getCardProviderErrorMessage(e));
         throw e;
       } finally {

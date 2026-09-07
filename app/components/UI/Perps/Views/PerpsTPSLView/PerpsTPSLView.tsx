@@ -41,6 +41,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import Keypad from '../../../../../components/Base/Keypad';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -49,7 +50,7 @@ import {
   PERPS_CONSTANTS,
   DECIMAL_PRECISION_CONFIG,
 } from '@metamask/perps-controller';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLivePositions, usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
@@ -84,7 +85,8 @@ const priceValueTextProps = {
 const SectionHelpText: React.FC<{
   errorMessage?: string;
   expectedMessage?: string;
-}> = ({ errorMessage, expectedMessage }) => (
+  errorTestID?: string;
+}> = ({ errorMessage, expectedMessage, errorTestID }) => (
   <Box>
     <HelpText
       severity={HelpTextSeverity.Danger}
@@ -97,7 +99,11 @@ const SectionHelpText: React.FC<{
     </HelpText>
     {errorMessage ? (
       <Box twClassName="absolute inset-x-0 top-0">
-        <HelpText severity={HelpTextSeverity.Danger} showIcon>
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          showIcon
+          testID={errorTestID}
+        >
           {errorMessage}
         </HelpText>
       </Box>
@@ -113,6 +119,7 @@ const PerpsTPSLView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
   const tw = useTailwind();
+  const { playImpact, playSelection } = useHaptics();
 
   // Extract params from navigation route
   const {
@@ -127,6 +134,7 @@ const PerpsTPSLView: React.FC = () => {
     limitPrice,
     amount,
     szDecimals,
+    enableHaptics = false,
     onConfirm,
   } = route.params;
 
@@ -285,6 +293,18 @@ const PerpsTPSLView: React.FC = () => {
 
   // Determine if this is create (new order) or edit (existing position) TP/SL
   const isEditingExistingPosition = !!position;
+
+  // The route snapshot outlives the position. Once the live stream has loaded
+  // without it, submitting would attach TP/SL to nothing and the controller
+  // would record a failed Risk Management request for a benign venue race.
+  const { positions: livePositions, isInitialLoading: isPositionsLoading } =
+    usePerpsLivePositions({
+      throttleMs: TP_SL_VIEW_CONFIG.PositionThrottleMs,
+    });
+  const isPositionGone =
+    isEditingExistingPosition &&
+    !isPositionsLoading &&
+    !livePositions.some((p) => p.symbol === position.symbol);
   const tpslScreenType = isEditingExistingPosition
     ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
     : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
@@ -309,8 +329,11 @@ const PerpsTPSLView: React.FC = () => {
 
   // Handle back button press
   const handleBack = useCallback(() => {
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
     navigation.goBack();
-  }, [navigation]);
+  }, [enableHaptics, navigation, playImpact]);
 
   const scrollFocusedSectionIntoView = useCallback((inputType: string) => {
     const sectionRef =
@@ -484,6 +507,10 @@ const PerpsTPSLView: React.FC = () => {
   }, [focusedInput]);
 
   const handleConfirm = useCallback(async () => {
+    if (!hasChanges || !isValid || isUpdating || isPositionGone) {
+      return;
+    }
+
     if (focusedInput) {
       dismissKeypad();
     }
@@ -497,40 +524,46 @@ const PerpsTPSLView: React.FC = () => {
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
-    setIsUpdating(true);
-    try {
-      // Pass tracking data to avoid duplicate position fetch in controller
-      // Use appropriate source based on context:
-      // - POSITION_SCREEN when editing TP/SL on an existing position
-      // - TRADE_SCREEN when setting TP/SL for a new order
-      const riskSource = isEditingExistingPosition
-        ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
-        : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN;
-      const trackingData = {
-        direction: actualDirection,
-        source: riskSource,
-        ...toPerpsEntryAttribution({ source: riskSource }),
-        positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
-        takeProfitPercentage: formattedTakeProfitPercentage
-          ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
-          : undefined,
-        stopLossPercentage: formattedStopLossPercentage
-          ? parseFloat(formattedStopLossPercentage.replace('%', ''))
-          : undefined,
-        isEditingExistingPosition,
-        entryPrice: effectiveEntryPrice,
-      };
-      // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
-      await onConfirm(
-        position,
-        parseTakeProfitPrice,
-        parseStopLossPrice,
-        trackingData,
-      );
-      navigation.goBack();
-    } finally {
-      setIsUpdating(false);
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
+
+    setIsUpdating(true);
+
+    // Pass tracking data to avoid duplicate position fetch in controller
+    // Use appropriate source based on context:
+    // - POSITION_SCREEN when editing TP/SL on an existing position
+    // - TRADE_SCREEN when setting TP/SL for a new order
+    const riskSource = isEditingExistingPosition
+      ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+      : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN;
+    const trackingData = {
+      direction: actualDirection,
+      source: riskSource,
+      ...toPerpsEntryAttribution({ source: riskSource }),
+      positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
+      takeProfitPercentage: formattedTakeProfitPercentage
+        ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
+        : undefined,
+      stopLossPercentage: formattedStopLossPercentage
+        ? parseFloat(formattedStopLossPercentage.replace('%', ''))
+        : undefined,
+      isEditingExistingPosition,
+      entryPrice: effectiveEntryPrice,
+    };
+
+    // Dismiss first (same as PerpsClosePositionView). Updating while this
+    // screen is still dismissing crashes Android Fabric under nav v7 —
+    // optimistic parent re-render races react-native-screens' transition.
+    navigation.goBack();
+
+    // Pass position from route params so the callback always has the correct position (avoids "No position found" when parent ref is stale)
+    await onConfirm(
+      position,
+      parseTakeProfitPrice,
+      parseStopLossPrice,
+      trackingData,
+    );
   }, [
     focusedInput,
     takeProfitPrice,
@@ -544,25 +577,86 @@ const PerpsTPSLView: React.FC = () => {
     formattedStopLossPercentage,
     isEditingExistingPosition,
     effectiveEntryPrice,
+    enableHaptics,
+    playImpact,
+    hasChanges,
+    isValid,
+    isUpdating,
+    isPositionGone,
   ]);
 
-  const confirmDisabled = !hasChanges || !isValid || isUpdating;
+  const confirmDisabled =
+    !hasChanges || !isValid || isUpdating || isPositionGone;
   const inputsDisabled = isUpdating;
+
+  const handleTakeProfitPresetPress = useCallback(
+    (percentage: number) => {
+      if (inputsDisabled) {
+        return;
+      }
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+      handleTakeProfitPercentageButton(percentage);
+    },
+    [
+      enableHaptics,
+      handleTakeProfitPercentageButton,
+      inputsDisabled,
+      playSelection,
+    ],
+  );
+
+  const handleStopLossPresetPress = useCallback(
+    (percentage: number) => {
+      if (inputsDisabled) {
+        return;
+      }
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+      handleStopLossPercentageButton(percentage);
+    },
+    [
+      enableHaptics,
+      handleStopLossPercentageButton,
+      inputsDisabled,
+      playSelection,
+    ],
+  );
 
   // Wrapper handlers to dismiss keyboard before clearing
   const handleTakeProfitClear = useCallback(() => {
     if (focusedInput) {
       dismissKeypad();
     }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
     handleTakeProfitOff();
-  }, [focusedInput, dismissKeypad, handleTakeProfitOff]);
+  }, [
+    focusedInput,
+    dismissKeypad,
+    enableHaptics,
+    handleTakeProfitOff,
+    playSelection,
+  ]);
 
   const handleStopLossClear = useCallback(() => {
     if (focusedInput) {
       dismissKeypad();
     }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
     handleStopLossOff();
-  }, [focusedInput, dismissKeypad, handleStopLossOff]);
+  }, [
+    focusedInput,
+    dismissKeypad,
+    enableHaptics,
+    handleStopLossOff,
+    playSelection,
+  ]);
 
   const cancelButtonProps = useMemo(
     () => ({
@@ -736,7 +830,7 @@ const PerpsTPSLView: React.FC = () => {
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Md}
                     twClassName="flex-1"
-                    onPress={() => handleTakeProfitPercentageButton(percentage)}
+                    onPress={() => handleTakeProfitPresetPress(percentage)}
                     testID={getPerpsTPSLViewSelector.takeProfitPercentageButton(
                       percentage,
                     )}
@@ -813,6 +907,7 @@ const PerpsTPSLView: React.FC = () => {
               </Box>
 
               <SectionHelpText
+                errorTestID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ERROR}
                 errorMessage={
                   takeProfitHasError ? takeProfitError || undefined : undefined
                 }
@@ -864,7 +959,7 @@ const PerpsTPSLView: React.FC = () => {
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Md}
                     twClassName="flex-1"
-                    onPress={() => handleStopLossPercentageButton(percentage)}
+                    onPress={() => handleStopLossPresetPress(percentage)}
                     testID={getPerpsTPSLViewSelector.stopLossPercentageButton(
                       percentage,
                     )}
@@ -941,6 +1036,7 @@ const PerpsTPSLView: React.FC = () => {
               </Box>
 
               <SectionHelpText
+                errorTestID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_ERROR}
                 errorMessage={stopLossErrorMessage || undefined}
                 expectedMessage={
                   stopLossPrice

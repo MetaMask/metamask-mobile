@@ -1,0 +1,13 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 85f66f6fea23ef02719b81c9e1aceaa4fc1c8e32..1731ca7a396a5334cdc8c29e5a7ac40921709559 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -4,7 +4,7 @@ buildscript {
+     if (project == rootProject) {
+         repositories {
+             google()
+-            jcenter()
++            mavenCentral()
+         }
+         dependencies {
+             classpath 'com.android.tools.build:gradle:7.0.4'

@@ -18,7 +18,6 @@ import { GameCache } from './GameCache';
 import { POLYMARKET_PROVIDER_ID } from './constants';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
-import { trace, endTrace, TraceName } from '../../../../../util/trace';
 import { OrderBook } from './types';
 
 type WebSocketChannel = 'sports' | 'market' | 'rtds';
@@ -1300,8 +1299,6 @@ export class WebSocketManager {
   private handleRtdsMessage = (event: WebSocketMessageEvent): void => {
     this.rtdsLastMessageAt = Date.now();
 
-    let traceStarted = false;
-
     try {
       if (event.data === 'pong' || event.data === '') {
         return;
@@ -1336,9 +1333,9 @@ export class WebSocketManager {
       ) {
         return;
       }
-
-      trace({ name: TraceName.CryptoUpDownWsMessage, op: 'rtds.message' });
-      traceStarted = true;
+      if (!this.hasCryptoPriceSubscription(data.topic, symbol)) {
+        return;
+      }
 
       const bufferKey = `${data.topic}|${symbol}`;
       const latestObservation = twapWindowSeconds
@@ -1371,10 +1368,6 @@ export class WebSocketManager {
         this.toError(error),
         this.getErrorContext('handleRtdsMessage', 'rtds'),
       );
-    } finally {
-      if (traceStarted) {
-        endTrace({ name: TraceName.CryptoUpDownWsMessage });
-      }
     }
   };
 
@@ -1397,12 +1390,7 @@ export class WebSocketManager {
       return;
     }
 
-    let traceStarted = false;
-
     try {
-      trace({ name: TraceName.CryptoUpDownBufferFlush, op: 'rtds.flush' });
-      traceStarted = true;
-
       this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
         const { topic, symbols } = parseCryptoSubscriptionKey(key);
         const subscribedSymbols = new Set(symbols);
@@ -1436,10 +1424,21 @@ export class WebSocketManager {
       });
     } finally {
       this.cryptoPriceBuffer.clear();
-      if (traceStarted) {
-        endTrace({ name: TraceName.CryptoUpDownBufferFlush });
-      }
     }
+  }
+
+  private hasCryptoPriceSubscription(topic: string, symbol: string): boolean {
+    let isSubscribed = false;
+    this.cryptoPriceSubscriptions.forEach((_, key) => {
+      const parsedSubscription = parseCryptoSubscriptionKey(key);
+      if (
+        parsedSubscription.topic === topic &&
+        parsedSubscription.symbols.includes(symbol)
+      ) {
+        isSubscribed = true;
+      }
+    });
+    return isSubscribed;
   }
 
   private getRtdsCryptoSubscriptions(): RtdsSubscription[] {

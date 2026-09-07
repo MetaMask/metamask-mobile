@@ -94,6 +94,7 @@ import {
 } from '../../utils/orderBookGrouping';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import styleSheet from './PerpsOrderBookView.styles';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import type {
   OrderBookRouteParams,
   PerpsOrderBookViewProps,
@@ -821,13 +822,15 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       {selectedTooltip && (
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={handleTooltipClose}
-              contentKey={selectedTooltip}
-              testID={PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-              buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK}
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={handleTooltipClose}
+                contentKey={selectedTooltip}
+                testID={PerpsOrderBookViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+                buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK}
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}

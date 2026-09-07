@@ -1,9 +1,11 @@
+import { Platform } from 'react-native';
 import { AccountType } from '../../constants/onboarding';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { AuthConnection } from './OAuthInterface';
 import { OAuthError, OAuthErrorType } from './error';
 import {
   isPreOAuthSocialLoginFailure,
+  shouldAttemptAndroidGoogleBrowserFallback,
   trackSocialLoginFailed,
 } from './socialLoginAnalytics';
 
@@ -69,6 +71,7 @@ describe('socialLoginAnalytics', () => {
             is_rehydration: 'false',
             failure_type: 'error',
             error_category: 'provider_login',
+            resume_outcome: 'failed',
           }),
         }),
       );
@@ -88,6 +91,7 @@ describe('socialLoginAnalytics', () => {
             account_type: AccountType.ImportedApple,
             is_rehydration: 'true',
             failure_type: 'user_cancelled',
+            resume_outcome: 'dismissed',
           }),
         }),
       );
@@ -108,6 +112,36 @@ describe('socialLoginAnalytics', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('shouldAttemptAndroidGoogleBrowserFallback', () => {
+    const originalPlatform = Platform.OS;
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+    });
+
+    it('returns true for Android Google One Tap no-credential errors', () => {
+      Platform.OS = 'android';
+
+      expect(
+        shouldAttemptAndroidGoogleBrowserFallback(
+          new OAuthError('', OAuthErrorType.GoogleLoginNoCredential),
+          AuthConnection.Google,
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for iOS Google One Tap no-credential errors', () => {
+      Platform.OS = 'ios';
+
+      expect(
+        shouldAttemptAndroidGoogleBrowserFallback(
+          new OAuthError('', OAuthErrorType.GoogleLoginNoCredential),
+          AuthConnection.Google,
+        ),
+      ).toBe(false);
     });
   });
 });

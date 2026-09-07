@@ -47,6 +47,7 @@ import type {
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarketListParams,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   SearchMarketsParams,
 } from '../types';
@@ -87,7 +88,10 @@ import {
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
-import { roundToFiveDecimals } from '../../utils/orders';
+import {
+  getPredictBuyAllInCost,
+  roundToFiveDecimals,
+} from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 import {
   buildOutcomeGroups,
@@ -132,7 +136,8 @@ export const getPolymarketEndpoints = () => ({
   CLOB_ENDPOINT: DEFAULT_CLOB_BASE_URL,
   DATA_API_ENDPOINT: 'https://data-api.polymarket.com',
   CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
-  CHAINLINK_CANDLES_ENDPOINT: 'https://polymarket.com/api/chainlink-candles',
+  CRYPTO_PRICE_HISTORY_ENDPOINT:
+    'https://polymarket.com/api/crypto/price-history',
   GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
   HOMEPAGE_CAROUSEL_ENDPOINT: 'https://polymarket.com/api/homepage/carousel',
   CLOB_RELAYER:
@@ -1873,12 +1878,33 @@ export const mergeChildEventsIntoParent = (
   };
 };
 
+/**
+ * Per-share prices Polymarket's UMA adapter settles a market at: 1 for the
+ * winning outcome, 0 for a loser, 0.5 for each side of a 50/50 push. Any other
+ * `curPrice` on a `redeemable` position is a stale last-traded price.
+ */
+const SETTLED_PAYOUT_PRICES: readonly number[] = [0.5, 1];
+
+/**
+ * Polymarket marks every position in a resolved market `redeemable`, losers
+ * included (they redeem for nothing), and flips that flag before it re-pins
+ * `curPrice` to the payout. For a few minutes a loser can still carry its last
+ * traded price (0.0005 and 0.005 observed in the wild) and a small positive
+ * `currentValue`. P&L decides WON. Below break-even, only a settled payout
+ * price proves there is something to claim: that makes a push bought above
+ * 50c REDEEMABLE rather than LOST without handing a claim CTA to a loser whose
+ * price has not settled yet.
+ */
 export const getPredictPositionStatus = ({
   claimable,
   cashPnl,
+  currentValue,
+  curPrice,
 }: {
   claimable: boolean;
   cashPnl: number;
+  currentValue: number;
+  curPrice: number;
 }) => {
   if (!claimable) {
     return PredictPositionStatus.OPEN;
@@ -1886,7 +1912,7 @@ export const getPredictPositionStatus = ({
   if (cashPnl > 0) {
     return PredictPositionStatus.WON;
   }
-  if (cashPnl === 0) {
+  if (currentValue > 0 && SETTLED_PAYOUT_PRICES.includes(curPrice)) {
     return PredictPositionStatus.REDEEMABLE;
   }
   return PredictPositionStatus.LOST;
@@ -1952,6 +1978,8 @@ export const parsePolymarketPositions = async ({
       status: getPredictPositionStatus({
         claimable: position.redeemable,
         cashPnl: position.cashPnl,
+        currentValue: position.currentValue,
+        curPrice: position.curPrice,
       }),
       realizedPnl: position.realizedPnl,
       percentPnl: position.percentPnl,
@@ -2319,9 +2347,9 @@ const matchBuyOrder = ({
 }: {
   asks: OrderSummary[];
   dollarAmount: number;
-}): { price: number; size: number } => {
+}): { price: number; size: number } | null => {
   if (!asks.length) {
-    throw new Error('no order match');
+    return null;
   }
 
   const sharePrice = parseFloat(asks[asks.length - 1].price);
@@ -2333,9 +2361,12 @@ const matchBuyOrder = ({
     const e = asks[i];
     const entrySize = parseFloat(e.size);
     const entryPrice = parseFloat(e.price);
+    if (!Number.isFinite(entrySize) || !Number.isFinite(entryPrice)) {
+      continue;
+    }
     const entryValue = entrySize * entryPrice;
 
-    if (sum + entryValue <= dollarAmount) {
+    if (sum + entryValue <= dollarAmount + Number.EPSILON) {
       quantity += entrySize;
       sum += entryValue;
     } else {
@@ -2346,15 +2377,25 @@ const matchBuyOrder = ({
     }
   }
 
-  if (sum === dollarAmount) {
+  if (Math.abs(sum - dollarAmount) < 1e-8) {
     return {
       price: sharePrice,
       size: quantity,
     };
   }
 
-  throw new Error('not enough shares to match user bet amount');
+  return null;
 };
+
+const getBuyLiquidity = (asks: OrderSummary[]): number =>
+  asks.reduce((total, ask) => {
+    const size = parseFloat(ask.size);
+    const price = parseFloat(ask.price);
+
+    return Number.isFinite(size) && Number.isFinite(price)
+      ? total + size * price
+      : total;
+  }, 0);
 
 const matchSellOrder = ({
   bids,
@@ -2535,6 +2576,34 @@ export const previewOrder = async (
     isV2,
     clobBaseUrl,
   } = params;
+
+  if (side === Side.BUY) {
+    const context = await getBuyPreviewContext({
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      feeCollection,
+      isV2,
+      clobBaseUrl,
+    });
+    if (!context) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
+    }
+
+    const preview = buildBuyPreviewFromContext({
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      size,
+      context,
+    });
+    if (!preview) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
+    }
+
+    return preview;
+  }
+
   const [book, feeRateBps, marketInfo] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
@@ -2555,54 +2624,6 @@ export const previewOrder = async (
     tickSize: book.tick_size,
   });
 
-  if (side === Side.BUY) {
-    const { asks } = book;
-    if (!asks || asks.length === 0) {
-      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
-    }
-    const { price: bestPrice, size: shareAmount } = matchBuyOrder({
-      asks,
-      dollarAmount: size,
-    });
-    const makerAmount = roundDown(size, roundConfig.size);
-    const takerAmount = roundOrderAmount({
-      amount: shareAmount,
-      decimals: roundConfig.amount,
-    });
-    const preview: OrderPreview = {
-      marketId,
-      outcomeId,
-      outcomeTokenId,
-      timestamp: new Date(book.timestamp).getTime(),
-      side: Side.BUY,
-      sharePrice: bestPrice,
-      maxAmountSpent: makerAmount,
-      minAmountReceived: takerAmount,
-      slippage: SLIPPAGE_BUY,
-      tickSize: parseFloat(tickSize),
-      minOrderSize: parseFloat(book.min_order_size),
-      negRisk: book.neg_risk,
-      feeRateBps,
-    };
-
-    const serviceFees = await calculateFees({
-      feeCollection,
-      marketId,
-      userBetAmount: makerAmount,
-    });
-    const marketFee = calculateConservativeBuyMarketFee({
-      preview,
-      marketInfo,
-    });
-
-    return {
-      ...preview,
-      fees: {
-        ...serviceFees,
-        marketFee,
-      },
-    };
-  }
   const { bids } = book;
   if (!bids || bids.length === 0) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
@@ -2649,4 +2670,161 @@ export const previewOrder = async (
       marketFee,
     },
   };
+};
+
+interface BuyPreviewContext {
+  book: OrderBook;
+  marketInfo?: ClobMarketInfo;
+  serviceFeesPerDollar: PredictFees;
+}
+
+async function getBuyPreviewContext({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  feeCollection,
+  isV2,
+  clobBaseUrl,
+}: Omit<PreviewMaxBuyOrderParams, 'availableBalance'> & {
+  feeCollection?: PredictFeeCollection;
+  isV2?: boolean;
+  clobBaseUrl?: string;
+}): Promise<BuyPreviewContext | null> {
+  const [book, marketInfo] = await Promise.all([
+    getOrderBook({
+      tokenId: outcomeTokenId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
+    getClobMarketInfoSafe({
+      conditionId: outcomeId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
+  ]);
+
+  if (!book) {
+    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+  }
+  if (!book.asks?.length) {
+    return null;
+  }
+
+  const serviceFeesPerDollar = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: 1,
+  });
+
+  return { book, marketInfo, serviceFeesPerDollar };
+}
+
+function buildBuyPreviewFromContext({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  size,
+  context,
+}: Omit<PreviewOrderParams, 'side' | 'positionId'> & {
+  context: BuyPreviewContext;
+}): OrderPreview | null {
+  const { book, marketInfo, serviceFeesPerDollar } = context;
+  const { tickSize, roundConfig } = getTickSizeRoundConfig({
+    tickSize: book.tick_size,
+  });
+  const match = matchBuyOrder({
+    asks: book.asks,
+    dollarAmount: size,
+  });
+  if (!match) {
+    return null;
+  }
+  const { price: bestPrice, size: shareAmount } = match;
+  const makerAmount = roundDown(size, roundConfig.size);
+  const metamaskFee = makerAmount * serviceFeesPerDollar.metamaskFee;
+  const providerFee = makerAmount * serviceFeesPerDollar.providerFee;
+  const preview: OrderPreview = {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    timestamp: new Date(book.timestamp).getTime(),
+    side: Side.BUY,
+    sharePrice: bestPrice,
+    maxAmountSpent: makerAmount,
+    minAmountReceived: roundOrderAmount({
+      amount: shareAmount,
+      decimals: roundConfig.amount,
+    }),
+    slippage: SLIPPAGE_BUY,
+    tickSize: parseFloat(tickSize),
+    minOrderSize: parseFloat(book.min_order_size),
+    negRisk: book.neg_risk,
+    feeRateBps: '0',
+  };
+
+  return {
+    ...preview,
+    fees: {
+      ...serviceFeesPerDollar,
+      metamaskFee,
+      providerFee,
+      totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
+      marketFee: calculateConservativeBuyMarketFee({ preview, marketInfo }),
+    },
+  };
+}
+
+const getBuyAllInCostInCents = (preview: OrderPreview): number =>
+  Math.round(getPredictBuyAllInCost(preview) * 100);
+
+/**
+ * Finds the largest cent-denominated BUY that is fully fillable from one order
+ * book snapshot and whose stake plus fees fits within the available balance.
+ */
+export const previewMaxBuyOrder = async (
+  params: PreviewMaxBuyOrderParams & {
+    feeCollection?: PredictFeeCollection;
+    isV2?: boolean;
+    clobBaseUrl?: string;
+  },
+): Promise<OrderPreview | null> => {
+  const { availableBalance, ...previewParams } = params;
+  if (!Number.isFinite(availableBalance) || availableBalance <= 0) {
+    return null;
+  }
+
+  const context = await getBuyPreviewContext(previewParams);
+  if (!context) {
+    return null;
+  }
+  const balanceInCents = Math.floor(availableBalance * 100 + 1e-8);
+  const liquidityInCents = Math.floor(
+    getBuyLiquidity(context.book.asks) * 100 + 1e-8,
+  );
+  let low = 0;
+  let high = Math.min(balanceInCents, liquidityInCents);
+  let maxPreview: OrderPreview | null = null;
+
+  while (low <= high) {
+    const candidateInCents = Math.floor((low + high) / 2);
+    if (candidateInCents === 0) {
+      low = 1;
+      continue;
+    }
+
+    const preview = buildBuyPreviewFromContext({
+      ...previewParams,
+      size: candidateInCents / 100,
+      context,
+    });
+
+    if (preview && getBuyAllInCostInCents(preview) <= balanceInCents) {
+      maxPreview = preview;
+      low = candidateInCents + 1;
+    } else {
+      high = candidateInCents - 1;
+    }
+  }
+
+  return maxPreview;
 };

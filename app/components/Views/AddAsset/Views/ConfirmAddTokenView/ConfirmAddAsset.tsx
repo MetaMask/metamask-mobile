@@ -26,6 +26,7 @@ import {
 import { ImportAsset } from '../../utils/utils';
 import AddAssetTokenRow from '../../components/AddAssetTokenRow/AddAssetTokenRow';
 import Logger from '../../../../../util/Logger';
+import { useAddNetworkIfMissingMutation } from '../../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 
 interface ConfirmAddAssetRowProps {
   asset: ImportAsset;
@@ -60,12 +61,15 @@ const ConfirmAddAsset = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const [isImporting, setIsImporting] = useState(false);
+  const { mutateAsync: addNetworkIfMissing } = useAddNetworkIfMissingMutation();
 
   /**
    * Return to the View all tokens screen after a successful import.
    */
   const goToTokensFullView = useCallback(() => {
-    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, undefined, {
+      pop: true,
+    });
   }, [navigation]);
 
   const handleImport = useCallback(async () => {
@@ -75,14 +79,31 @@ const ConfirmAddAsset = () => {
 
     setIsImporting(true);
 
+    const addAllMissingNetworks = async () => {
+      const uniqueChainIds = [
+        ...new Set(selectedAsset.map((asset) => asset.chainId)),
+      ];
+
+      for (const chainId of uniqueChainIds) {
+        await addNetworkIfMissing(chainId);
+      }
+    };
+
     try {
+      await addAllMissingNetworks();
       await addTokenList();
       goToTokensFullView();
     } catch (error) {
       Logger.error(error as Error, 'ConfirmAddAsset: failed to import tokens');
       setIsImporting(false);
     }
-  }, [addTokenList, goToTokensFullView, isImporting]);
+  }, [
+    addNetworkIfMissing,
+    addTokenList,
+    goToTokensFullView,
+    isImporting,
+    selectedAsset,
+  ]);
 
   const renderItem = useCallback<ListRenderItem<ImportAsset>>(
     ({ item }) => <ConfirmAddAssetRow asset={item} networkName={networkName} />,
@@ -127,6 +148,7 @@ const ConfirmAddAsset = () => {
             isDisabled: isImporting,
           },
           {
+            // Called here
             onPress: handleImport,
             label: strings('swaps.Import'),
             variant: ButtonVariants.Primary,

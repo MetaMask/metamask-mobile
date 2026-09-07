@@ -5,6 +5,7 @@ import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../locales/i18n';
 import AccountBalance from '../../../../../../component-library/components-temp/Accounts/AccountBalance';
+import { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
 import {
@@ -99,8 +100,9 @@ const ApproveTransactionHeader = ({
         accountTypeLabel={accountTypeLabel}
         accountNetwork={networkName}
         badgeProps={{
+          variant: BadgeVariant.Network,
           name: networkName,
-          src: networkImage,
+          imageSource: networkImage,
         }}
         avatarAccountType={avatarAccountType}
       />

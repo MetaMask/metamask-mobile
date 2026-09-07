@@ -54,10 +54,25 @@ jest.mock('expo-modules-core', () => ({
   NativeModulesProxy: {},
   requireNativeModule: jest.fn(() => ({})),
   requireOptionalNativeModule: jest.fn(() => null),
+  // Native view managers resolve to a host component name so that children
+  // (and their testIDs) still render in tests.
+  requireNativeViewManager: jest.fn((name) => name),
   Platform: { OS: 'ios' },
   CodedError: class CodedError extends Error {},
   UnavailabilityError: class UnavailabilityError extends Error {},
   LegacyEventEmitter: jest.fn(),
+}));
+
+// Mock expo-screen-capture: it reaches for a native module at import time, so
+// importing it unmocked throws in Jest.
+jest.mock('expo-screen-capture', () => ({
+  preventScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  allowScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  addScreenshotListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeScreenshotListener: jest.fn(),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+  usePreventScreenCapture: jest.fn(),
+  useScreenshotListener: jest.fn(),
 }));
 
 // Mock Expo's fetch implementation
@@ -67,13 +82,64 @@ jest.mock('expo/fetch', () => {
   };
 });
 
+let mockQuickCryptoUuidCounter = 0;
+let mockQuickCryptoRandomCounter = 0;
+const fillDeterministicBytes = (array) => {
+  mockQuickCryptoRandomCounter += 1;
+  for (let i = 0; i < array.length; i++) {
+    array[i] = ((i + mockQuickCryptoRandomCounter) % 255) + 1;
+  }
+  return array;
+};
+const createMockUuid = () => {
+  mockQuickCryptoUuidCounter += 1;
+  return `mock-uuid-${String(mockQuickCryptoUuidCounter).padStart(9, '0')}`;
+};
+
 jest.mock('react-native-quick-crypto', () => ({
-  getRandomValues: jest.fn((array) => {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-    return array;
-  }),
+  __esModule: true,
+  default: {
+    randomBytes: jest.fn((size) =>
+      Buffer.from(Array.from({ length: size }, (_, i) => (i % 255) + 1)),
+    ),
+    randomUUID: jest.fn(() => createMockUuid()),
+    getRandomValues: jest.fn((array) => fillDeterministicBytes(array)),
+    subtle: {
+      importKey: jest.fn(
+        (format, keyData, algorithm, extractable, keyUsages) => {
+          return Promise.resolve({
+            format,
+            keyData,
+            algorithm,
+            extractable,
+            keyUsages,
+          });
+        },
+      ),
+      deriveBits: jest.fn((algorithm, baseKey, length) => {
+        const derivedBits = new Uint8Array(length);
+        return Promise.resolve(fillDeterministicBytes(derivedBits));
+      }),
+      exportKey: jest.fn((format, key) => {
+        return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
+      }),
+      encrypt: jest.fn((algorithm, key, data) => {
+        return Promise.resolve(
+          new Uint8Array([
+            123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+          ]),
+        );
+      }),
+      decrypt: jest.fn((algorithm, key, data) => {
+        return Promise.resolve(
+          new Uint8Array([
+            123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+          ]),
+        );
+      }),
+    },
+  },
+  getRandomValues: jest.fn((array) => fillDeterministicBytes(array)),
   subtle: {
     importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) => {
       return Promise.resolve({
@@ -86,10 +152,7 @@ jest.mock('react-native-quick-crypto', () => ({
     }),
     deriveBits: jest.fn((algorithm, baseKey, length) => {
       const derivedBits = new Uint8Array(length);
-      for (let i = 0; i < length; i++) {
-        derivedBits[i] = Math.floor(Math.random() * 256);
-      }
-      return Promise.resolve(derivedBits);
+      return Promise.resolve(fillDeterministicBytes(derivedBits));
     }),
     exportKey: jest.fn((format, key) => {
       return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
@@ -109,9 +172,7 @@ jest.mock('react-native-quick-crypto', () => ({
       );
     }),
   },
-  randomUUID: jest.fn(
-    () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
-  ),
+  randomUUID: jest.fn(() => createMockUuid()),
 }));
 
 // Create a persistent mock function that survives Jest teardown
@@ -390,18 +451,10 @@ jest.mock('react-native-keychain', () => ({
 
   // Storage Type enum
   STORAGE_TYPE: {
-    FB: 'FacebookConceal',
-    AES: 'KeystoreAES',
     AES_CBC: 'KeystoreAESCBC',
     AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
     AES_GCM: 'KeystoreAESGCM',
     RSA: 'KeystoreRSAECB',
-  },
-
-  // Security Rules enum
-  SECURITY_RULES: {
-    NONE: 'none',
-    AUTOMATIC_UPGRADE: 'automaticUpgradeToMoreSecuredStorage',
   },
 
   // Generic password functions
@@ -437,6 +490,7 @@ jest.mock('react-native-keychain', () => ({
   getSecurityLevel: jest
     .fn()
     .mockResolvedValue('MOCK_SECURITY_LEVEL_SECURE_SOFTWARE'),
+  isPasscodeAuthAvailable: jest.fn().mockResolvedValue(true),
 
   // Shared web credentials (iOS only)
   requestSharedWebCredentials: jest.fn().mockResolvedValue({
@@ -1096,6 +1150,13 @@ jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
   startTransaction: jest.fn(),
+  reactNativeTracingIntegration: jest.fn(() => ({
+    name: 'ReactNativeTracing',
+  })),
+  reactNavigationIntegration: jest.fn(() => ({
+    name: 'ReactNavigation',
+    registerNavigationContainer: jest.fn(),
+  })),
 
   // User feedback
   lastEventId: jest.fn(),

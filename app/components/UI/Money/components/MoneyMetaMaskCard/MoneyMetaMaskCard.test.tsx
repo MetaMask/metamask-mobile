@@ -676,7 +676,7 @@ describe('MoneyMetaMaskCard', () => {
       expect(mockTiltAnimationCalls).toEqual([{ isMetalCard: false }]);
     });
 
-    it('renders the tilt animation in link mode, sized for the link layout', () => {
+    it('leaves the link row on the default thumbnail size', () => {
       const { getByTestId } = render(
         <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
       );
@@ -687,8 +687,8 @@ describe('MoneyMetaMaskCard', () => {
       expect(mockTiltAnimationProps).toEqual([
         {
           isMetalCard: false,
-          width: 111,
-          height: 70,
+          width: undefined,
+          height: undefined,
           testID: MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE,
         },
       ]);
@@ -749,6 +749,33 @@ describe('MoneyMetaMaskCard', () => {
           testID: undefined,
         },
       ]);
+    });
+
+    it('renders the same thumbnail size in upsell, link and manage modes', () => {
+      const sizeFor = (element: React.ReactElement) => {
+        mockTiltAnimationProps.length = 0;
+        render(element);
+        const { width, height } = mockTiltAnimationProps[0];
+        return { width, height };
+      };
+
+      const upsellSize = sizeFor(
+        <MoneyMetaMaskCard onGetNowPress={jest.fn()} />,
+      );
+      const linkSize = sizeFor(
+        <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
+      );
+      const manageSize = sizeFor(
+        <MoneyMetaMaskCard
+          mode="manage"
+          onGetNowPress={jest.fn()}
+          onManagePress={jest.fn()}
+          cardBalance="$0.00"
+        />,
+      );
+
+      expect(linkSize).toEqual(upsellSize);
+      expect(manageSize).toEqual(upsellSize);
     });
 
     it('does not render the tilt animation in verifying mode', () => {

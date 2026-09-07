@@ -45,6 +45,7 @@ import { usePredictBuyActions } from './hooks/usePredictBuyActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
+import { usePredictMaxBetAmount } from '../../hooks/usePredictMaxBetAmount';
 
 import {
   selectPredictFakOrdersEnabledFlag,
@@ -59,6 +60,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictTradeStatus } from '../../constants/eventNames';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
+import { buildPredictFeeBreakdownAmounts } from '../../utils/orders';
 import { getDisplayBuyPrice } from '../../utils/prices';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
@@ -156,17 +158,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
 
-  const { availableBalance, isBalanceLoading } =
+  const { availableBalance, isBalanceLoading, isPredictBalanceSelected } =
     usePredictBuyAvailableBalance();
-
-  const availableBalanceDisplay = useMemo(
-    () =>
-      formatPrice(availableBalance, {
-        minimumDecimals: 2,
-        maximumDecimals: 2,
-      }),
-    [availableBalance],
-  );
 
   const {
     currentValue,
@@ -211,10 +204,28 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     autoRefreshTimeout: 1000,
   });
 
+  const { maxBetAmount, isLoading: isMaxBetAmountLoading } =
+    usePredictMaxBetAmount({
+      availableBalance,
+      marketId: market.id,
+      outcomeId: outcome.id,
+      outcomeTokenId: outcomeToken.id,
+      preview,
+      enabled: isPredictBalanceSelected,
+    });
+  const availableBalanceDisplay = useMemo(
+    () =>
+      formatPrice(maxBetAmount, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      }),
+    [maxBetAmount],
+  );
+  const isAvailableBalanceLoading = isBalanceLoading || isMaxBetAmountLoading;
+
   const {
     toWin,
     metamaskFee,
-    exchangeFee,
     total,
     depositFee,
     rewardsFeeAmount,
@@ -226,6 +237,13 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     previewError,
     isConfirming,
     isPlacingOrder,
+  });
+  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+    side: Side.BUY,
+    order: currentValue,
+    metamaskFee,
+    depositFee,
+    total,
   });
 
   const {
@@ -504,7 +522,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             currentValueUSDString={currentValueUSDString}
             keypadRef={keypadRef}
             isKeypadOpen={isKeypadOpen}
-            isBalanceLoading={isBalanceLoading}
+            isBalanceLoading={isAvailableBalanceLoading}
             isBalancePulsing={isBalancePulsing}
             availableBalanceDisplay={availableBalanceDisplay}
             toWin={toWin}
@@ -529,7 +547,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               currentValueUSDString={currentValueUSDString}
               keypadRef={keypadRef}
               isKeypadOpen={isKeypadOpen}
-              isBalanceLoading={isBalanceLoading}
+              isBalanceLoading={isAvailableBalanceLoading}
               isBalancePulsing={isBalancePulsing}
               availableBalanceDisplay={availableBalanceDisplay}
               toWin={toWin}
@@ -574,7 +592,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             <PredictPayWithRow
               disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
               variant="row"
-              availableBalance={availableBalanceDisplay}
+              availableBalance={
+                isAvailableBalanceLoading ? undefined : availableBalanceDisplay
+              }
               onPaymentSelectorOpen={lockPaymentSelectorNavigation}
             />
           )}
@@ -648,15 +668,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={exchangeFee}
-          metamaskFee={metamaskFee}
-          depositFee={depositFee}
+          providerFee={feeBreakdown.exchangeFee}
+          metamaskFee={feeBreakdown.metamaskFee}
+          depositFee={feeBreakdown.depositFee}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
           }
           contractCount={preview?.minAmountReceived ?? 0}
-          betAmount={currentValue}
-          total={total}
+          betAmount={feeBreakdown.order}
+          total={feeBreakdown.total}
           onClose={handleFeeBreakdownClose}
           fakOrdersEnabled={fakOrdersEnabled}
         />

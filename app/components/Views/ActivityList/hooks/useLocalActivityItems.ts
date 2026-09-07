@@ -1,9 +1,10 @@
 /**
  * Builds enriched TransactionGroups from Mobile's local transactions and maps them
- * to ActivityListItem[] using the shared mapLocalTransaction adapter.
+ * to ActivityListItem[] using mapLocalTransaction from @metamask/client-utils.
  */
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
+import { mapLocalTransaction } from '@metamask/client-utils';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -14,6 +15,7 @@ import type { Hex } from '@metamask/utils';
 import {
   selectLocalTransactions,
   selectReplacedLocalTransactions,
+  selectRequiredTransactions,
 } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
@@ -22,14 +24,16 @@ import { selectAllTokens } from '../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
-  mapLocalTransaction,
-  mobileActivityAdapterEnvironment,
+  enrichLocalActivity,
+  prepareLocalTransactionGroup,
   type TransactionGroup,
   type ActivityListItem,
   type Status,
   type TokenAmount,
 } from '../../../../util/activity-adapters';
 import { isHardwareAccount } from '../../../../util/address';
+import { selectTransactionPayTransactionData } from '../../../../selectors/transactionPayController';
+import type { RootState } from '../../../../reducers';
 
 const BRIDGE_FAIL_STATUSES = [
   TransactionStatus.failed,
@@ -43,6 +47,9 @@ const QUEUE_BLOCKING_STATUSES = new Set<string>([
   'approved',
   'unapproved',
 ]);
+const EMPTY_TRANSACTION_PAY_DATA: ReturnType<
+  typeof selectTransactionPayTransactionData
+> = {};
 
 /**
  * Checks whether a transaction is a TransactionMeta (vs SmartTransaction).
@@ -225,15 +232,15 @@ function tokenFromQuoteAsset(
  * Unified swaps store their token metadata in the bridge/swaps quote, not on the
  * legacy TransactionMeta fields, so on-device resolution (`sourceTokenSymbol` /
  * `swapMetaData` / native fallback) can miss a leg — most visibly a native
- * destination — leaving the row as `swapIncomplete` (empty "You received", no
- * fees, no "Swap again") until the indexer backfills a full copy. Prefer the
+ * destination — leaving the row as a `swap` with an empty received amount
+ * until the indexer backfills a full copy. Prefer the
  * quote (symbol always, amount/decimals/assetId when present) so the row resolves
  * to a complete swap immediately and reactively; fall back to the legacy
  * on-device fields for older SwapsController transactions with no bridge quote.
  *
  * Exported for the per-asset activity lists, which would otherwise re-derive
- * this and drift — an asset page that skips it renders every unified swap as
- * `swapIncomplete`.
+ * this and drift — an asset page that skips it would miss destination tokens
+ * on unified swaps.
  */
 export function getSwapTokenEnrichment(
   tx: TransactionMeta,
@@ -283,6 +290,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
   // Outgoing / user-initiated txs only — excludes incoming spam from TransactionController.
   const localTransactions = useSelector(selectLocalTransactions);
   const replacedTransactions = useSelector(selectReplacedLocalTransactions);
+  const requiredTransactions = useSelector(selectRequiredTransactions);
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -300,6 +308,30 @@ export function useLocalActivityItems(): ActivityListItem[] {
   const transactionMetaList = useMemo(
     () => localTransactions.filter(isTransactionMetaLike),
     [localTransactions],
+  );
+  const transactionPayData =
+    useSelector((state: RootState) => {
+      const allTransactionPayData = selectTransactionPayTransactionData(state);
+      return transactionMetaList.reduce(
+        (selected, transaction) => {
+          const data = allTransactionPayData[transaction.id];
+          if (data) {
+            selected[transaction.id] = data;
+          }
+          return selected;
+        },
+        {} as typeof allTransactionPayData,
+      );
+    }, shallowEqual) ?? EMPTY_TRANSACTION_PAY_DATA;
+  const requiredTransactionsById = useMemo(
+    () =>
+      new Map(
+        requiredTransactions.map((transaction) => [
+          transaction.id,
+          transaction,
+        ]),
+      ),
+    [requiredTransactions],
   );
 
   return useMemo(() => {
@@ -365,6 +397,14 @@ export function useLocalActivityItems(): ActivityListItem[] {
 
       const group: TransactionGroup = {
         ...baseGroup,
+        activityAccountAddress: groupEvmAccountAddress,
+        relatedTransactions: (tx.requiredTransactionIds ?? [])
+          .map((id) => requiredTransactionsById.get(id))
+          .filter(
+            (transaction): transaction is TransactionMeta =>
+              transaction !== undefined,
+          ),
+        transactionPayData: transactionPayData[tx.id],
         activityStatus,
         sourceToken,
         destinationToken,
@@ -373,8 +413,18 @@ export function useLocalActivityItems(): ActivityListItem[] {
         isHardwareWalletAccount,
       };
 
-      const item = mapLocalTransaction(group, mobileActivityAdapterEnvironment);
-      items.push({ ...item, isEarliestNonce });
+      const prepared = prepareLocalTransactionGroup(group);
+      const item = enrichLocalActivity(
+        mapLocalTransaction(
+          prepared as Parameters<typeof mapLocalTransaction>[0],
+        ) as ActivityListItem,
+        prepared,
+      );
+      items.push({
+        ...item,
+        raw: { type: 'localTransaction' as const, data: group },
+        isEarliestNonce,
+      });
     }
 
     return items;
@@ -385,5 +435,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
     networkConfigurations,
     allTokens,
     groupEvmAccountAddress,
+    requiredTransactionsById,
+    transactionPayData,
   ]);
 }

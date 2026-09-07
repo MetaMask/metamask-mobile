@@ -1,1 +1,1 @@
-export { CustomAmountBuy } from './custom-amount-buy';
+export * from './custom-amount-buy';

@@ -5,6 +5,12 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import { initialState } from '../_mocks_/initialState';
 import { popularTokensCache } from '../utils/cacheUtils';
 import type { IncludeAsset } from '../types';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 let globalFetchSpy: jest.SpyInstance;
 
@@ -16,6 +22,15 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
+
+const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 const mockPopularTokens = [
   createMockPopularToken({ symbol: 'TEST', name: 'Test Token' }),
@@ -32,7 +47,7 @@ const mockIncludeAsset: IncludeAsset = {
 describe('useFetchPopularTokens', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
-    mockGetBearerToken.mockClear();
+    jest.clearAllMocks();
     mockGetBearerToken.mockResolvedValue('mock-bearer-token');
     globalFetchSpy = jest.spyOn(global, 'fetch');
     popularTokensCache.clear();
@@ -79,6 +94,23 @@ describe('useFetchPopularTokens', () => {
       }),
     );
     expect(popularTokensCache.size).toBe(1);
+    expect(mockTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapPopularTokensFetch,
+      op: TraceOperation.BridgeDataFetch,
+      id: expect.any(String),
+      data: {
+        chain_scope: 'single_chain',
+        chain_ids: MOCK_CHAIN_IDS.ethereum,
+      },
+      startTime: expect.any(Number),
+    });
+    const traceId = mockTrace.mock.calls[0][0].id;
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapPopularTokensFetch,
+      id: traceId,
+      timestamp: expect.any(Number),
+      data: { result: 'success' },
+    });
   });
 
   it('defaults includeAssets to an empty array when omitted', async () => {
@@ -115,12 +147,17 @@ describe('useFetchPopularTokens', () => {
     });
 
     await result.current({ chainIds: [MOCK_CHAIN_IDS.ethereum] });
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
     const cachedTokens = await result.current({
       chainIds: [MOCK_CHAIN_IDS.ethereum],
     });
 
     expect(cachedTokens).toStrictEqual(mockPopularTokens);
     expect(globalFetchSpy).toHaveBeenCalledTimes(1);
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
   });
 
   describe('bearer token retrieval on mount', () => {
@@ -161,6 +198,7 @@ describe('useFetchPopularTokens', () => {
     const noCacheUndefinedResultCases = [
       {
         description: 'does not cache when the API returns an empty array',
+        traceResult: 'success' as const,
         setupFetchMock: () => {
           globalFetchSpy.mockResolvedValueOnce({
             ok: true,
@@ -171,6 +209,7 @@ describe('useFetchPopularTokens', () => {
       {
         description:
           'does not cache when the API returns a malformed top-level payload',
+        traceResult: 'error' as const,
         setupFetchMock: () => {
           globalFetchSpy.mockResolvedValueOnce({
             ok: true,
@@ -179,7 +218,20 @@ describe('useFetchPopularTokens', () => {
         },
       },
       {
+        description: 'returns undefined when JSON parsing fails',
+        traceResult: 'error' as const,
+        setupFetchMock: () => {
+          globalFetchSpy.mockResolvedValueOnce({
+            ok: true,
+            json: async () => {
+              throw new Error('invalid JSON');
+            },
+          });
+        },
+      },
+      {
         description: 'returns undefined when the response is not ok',
+        traceResult: 'error' as const,
         setupFetchMock: () => {
           globalFetchSpy.mockResolvedValueOnce({
             ok: false,
@@ -191,6 +243,7 @@ describe('useFetchPopularTokens', () => {
       {
         description:
           'returns undefined on AbortError without writing to the cache',
+        traceResult: 'cancelled' as const,
         setupFetchMock: () => {
           const abortError = new Error('aborted');
           abortError.name = 'AbortError';
@@ -201,7 +254,7 @@ describe('useFetchPopularTokens', () => {
 
     it.each(noCacheUndefinedResultCases)(
       '$description',
-      async ({ setupFetchMock }) => {
+      async ({ setupFetchMock, traceResult }) => {
         setupFetchMock();
 
         const { result } = renderHookWithProvider(
@@ -217,6 +270,13 @@ describe('useFetchPopularTokens', () => {
 
         expect(tokens).toBeUndefined();
         expect(popularTokensCache.size).toBe(0);
+        expect(mockTrace).toHaveBeenCalledTimes(1);
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.SwapPopularTokensFetch,
+            data: { result: traceResult },
+          }),
+        );
       },
     );
   });

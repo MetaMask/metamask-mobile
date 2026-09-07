@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { AssetType } from '../../../Views/confirmations/types/token';
 import { tokenFiatValue } from '../../Earn/hooks/useMusdConversionTokens';
+import type { MoneyDepositAsset } from '../selectors/depositTokens';
 import { moneySafeTokenFiatCurrency } from '../utils/moneyFormatFiat';
 import {
   calculateProjectedEarnings,
@@ -8,14 +8,14 @@ import {
 } from '../utils/projections';
 
 interface ProjectedEarnings {
-  eligibleTokens: AssetType[];
+  eligibleTokens: MoneyDepositAsset[];
   totalAssetsFiat: number;
   projectedAmount: number;
   currency: string;
 }
 
 export function useProjectedEarnings(
-  tokens: AssetType[] | undefined,
+  tokens: MoneyDepositAsset[] | undefined,
   apyDecimal: number | undefined,
 ): ProjectedEarnings {
   const safeApyDecimal = apyDecimal ?? 0;

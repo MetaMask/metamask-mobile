@@ -1,7 +1,9 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { isTPSLOrder, type Order } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
+import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_ORDERS: Order[] = [];
@@ -20,6 +22,8 @@ export interface UsePerpsLiveOrdersReturn {
   orders: Order[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  /** Deliveries accepted by this selected-account subscription. */
+  deliveryRevision?: number;
 }
 
 /**
@@ -37,6 +41,7 @@ export function usePerpsLiveOrders(
 ): UsePerpsLiveOrdersReturn {
   const { throttleMs = 0, hideTpSl = false, hideReduceOnly = false } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelOrders = stream.orders.getSnapshot();
   const [orders, setOrders] = useState<Order[]>(() => {
     const cached =
@@ -45,6 +50,7 @@ export function usePerpsLiveOrders(
       EMPTY_ORDERS;
     return cached;
   });
+  const [ordersAddress, setOrdersAddress] = useState(selectedAddress);
   const [isInitialLoading, setIsInitialLoading] = useState(() => {
     if (initialChannelOrders !== null && initialChannelOrders !== undefined) {
       return false;
@@ -54,16 +60,20 @@ export function usePerpsLiveOrders(
   });
   const lastOrdersRef = useRef<Order[]>(EMPTY_ORDERS);
   const hasReceivedFirstUpdate = useRef(false);
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
+  const acceptedDeliveryRef = useRef(false);
 
   useEffect(() => {
     const unsubscribe = stream.orders.subscribe({
       callback: (newOrders) => {
+        acceptedDeliveryRef.current = false;
         if (newOrders === null || newOrders === undefined) {
           // Cleared on account switch — show skeleton until first update for new account
           hasReceivedFirstUpdate.current = false;
           setIsInitialLoading(true);
           lastOrdersRef.current = EMPTY_ORDERS;
           setOrders(EMPTY_ORDERS);
+          setOrdersAddress(selectedAddress);
           return;
         }
 
@@ -72,8 +82,10 @@ export function usePerpsLiveOrders(
           hasReceivedFirstUpdate.current = true;
           setIsInitialLoading(false);
         }
+        acceptedDeliveryRef.current = true;
 
         // Only update if orders actually changed
+        setOrdersAddress(selectedAddress);
         // For empty arrays, use stable reference
         if (newOrders.length === 0) {
           if (lastOrdersRef.current.length === 0) {
@@ -87,13 +99,19 @@ export function usePerpsLiveOrders(
           setOrders(newOrders);
         }
       },
+      onDelivery: (source) => {
+        if (source === 'fresh' && acceptedDeliveryRef.current) {
+          setDeliveryRevision((revision) => revision + 1);
+        }
+        acceptedDeliveryRef.current = false;
+      },
       throttleMs,
     });
 
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs]);
+  }, [selectedAddress, stream, throttleMs]);
 
   // Filter orders based on requested display options
   const filteredOrders = useMemo(() => {
@@ -120,7 +138,8 @@ export function usePerpsLiveOrders(
   }, [orders, hideTpSl, hideReduceOnly]);
 
   return {
-    orders: filteredOrders,
-    isInitialLoading,
+    orders: ordersAddress === selectedAddress ? filteredOrders : EMPTY_ORDERS,
+    isInitialLoading: ordersAddress !== selectedAddress || isInitialLoading,
+    deliveryRevision,
   };
 }

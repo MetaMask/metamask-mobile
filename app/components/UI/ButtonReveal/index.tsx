@@ -45,20 +45,20 @@ const createStyles = (colors: any) =>
       marginRight: 12,
     },
     absoluteFillWithCenter: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       alignItems: 'center',
       justifyContent: 'center',
     },
     absoluteFill: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     preCompletedContainerStyle: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       borderRadius: radius,
       backgroundColor: colors.primary.default,
     },
     outerCircle: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       borderRadius: radius,
       backgroundColor: colors.primary.inverse,
     },

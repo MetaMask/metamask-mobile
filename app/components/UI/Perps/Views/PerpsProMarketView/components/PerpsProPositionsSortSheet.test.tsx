@@ -2,12 +2,18 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
 import { DEFAULT_PRO_POSITION_SORT } from '../utils/proPositionSort';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../util/haptics';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'perps.sort.sort_by': 'Sort by',
       'perps.sort.apply': 'Apply',
+      'perps.sort.clear': 'Clear',
       'perps.sort.high_to_low': 'High to low',
       'perps.sort.low_to_high': 'Low to high',
       'perps.pro_positions_panel.sort.position_value': 'Position value',
@@ -17,6 +23,8 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     return translations[key] || key;
   }),
 }));
+
+jest.mock('../../../../../../util/haptics');
 
 describe('PerpsProPositionsSortSheet', () => {
   const mockOnClose = jest.fn();
@@ -76,6 +84,7 @@ describe('PerpsProPositionsSortSheet', () => {
     expect(
       screen.getByTestId('positions-sort-sheet-direction-text-positionValue'),
     ).toHaveTextContent('Low to high');
+    expect(playSelection).toHaveBeenCalledTimes(1);
 
     fireEvent.press(screen.getByTestId('positions-sort-sheet-apply'));
 
@@ -84,6 +93,9 @@ describe('PerpsProPositionsSortSheet', () => {
       direction: 'asc',
     });
     expect(mockOnClose).toHaveBeenCalled();
+    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('selects a new field with high-to-low default when pressing another option', () => {
@@ -106,5 +118,25 @@ describe('PerpsProPositionsSortSheet', () => {
       field: 'unrealizedPnl',
       direction: 'desc',
     });
+    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
+  it('plays selection when Clear resets the sort', () => {
+    render(
+      <PerpsProPositionsSortSheet
+        isVisible
+        sortConfig={{ field: 'unrealizedPnl', direction: 'asc' }}
+        onClose={mockOnClose}
+        onApply={mockOnApply}
+        testID="positions-sort-sheet"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('positions-sort-sheet-clear'));
+
+    expect(mockOnApply).toHaveBeenCalledWith(DEFAULT_PRO_POSITION_SORT);
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 });

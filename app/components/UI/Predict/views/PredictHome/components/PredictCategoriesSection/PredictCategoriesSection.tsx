@@ -3,6 +3,7 @@ import { TouchableOpacity } from 'react-native';
 import {
   Box,
   FontWeight,
+  SectionHeader,
   Text,
   TextColor,
   TextVariant,
@@ -18,7 +19,6 @@ import type { AppNavigationProp } from '../../../../../../../core/NavigationServ
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
-import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import {
   PREDICT_HOME_CATEGORIES,
@@ -77,7 +77,7 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
       <SectionHeader
         testID={PREDICT_CATEGORIES_SECTION_TEST_IDS.HEADER}
         title={strings('predict.home.categories_title')}
-        twClassName="px-0 mb-2"
+        twClassName="px-0 pt-0 mb-1"
       />
 
       <Box twClassName="flex-row gap-3">

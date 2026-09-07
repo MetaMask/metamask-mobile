@@ -2,16 +2,15 @@ import React from 'react';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
-import {
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
-} from '@metamask/design-system-react-native';
-import { View } from 'react-native';
-
 import { strings } from '../../../../../../../locales/i18n';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { useStyles } from '../../../../../../component-library/hooks';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
@@ -20,6 +19,7 @@ import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { useTokenAsset } from '../../../hooks/useTokenAsset';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { styleSheet } from './avatar-token-with-network-badge.styles';
+import { View } from 'react-native';
 
 const AvatarTokenOrNetworkAssetLogo = ({
   asset,
@@ -68,15 +68,15 @@ export const AvatarTokenWithNetworkBadge = ({
   return (
     <View style={styles.base}>
       <BadgeWrapper
-        position={BadgeWrapperPosition.BottomRight}
-        badge={
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
           networkImage ? (
-            <BadgeNetwork
-              src={networkImage}
+            <Badge
+              imageSource={networkImage}
               name={networkName}
-              testID="avatar-token-network-badge"
+              variant={BadgeVariant.Network}
             />
-          ) : null
+          ) : undefined
         }
       >
         <AvatarTokenOrNetworkAssetLogo

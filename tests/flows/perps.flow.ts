@@ -1,23 +1,18 @@
-import {
-  asDetoxElement,
-  asPlaywrightElement,
-  Assertions,
-  encapsulatedAction,
-  PlaywrightGestures,
-} from '../framework';
-import Utilities from '../framework/Utilities';
-import PlaywrightMatchers from '../framework/PlaywrightMatchers';
+import { Assertions, Gestures, Matchers, Utilities } from '../framework';
+import { computeProLimitPriceForPercentPreset } from '../helpers/perps/perps-smoke-helpers';
 import { PerpsOrderViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
 import PerpsHomeView from '../page-objects/Perps/PerpsHomeView';
 import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsMarketListView from '../page-objects/Perps/PerpsMarketListView';
 import PerpsOnboarding from '../page-objects/Perps/PerpsOnboarding';
 import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
+import PerpsProMarketView from '../page-objects/Perps/PerpsProMarketView';
 import TransactionPayConfirmation from '../page-objects/Confirmation/TransactionPayConfirmation';
 import WalletView from '../page-objects/wallet/WalletView';
 
+/** Presence probe for optional Perps UI (tutorial / tooltip). Keep short — smoke fixtures pre-grant notifications and usually skip GTM. */
+const PERPS_OPTIONAL_UI_PROBE_MS = 1_000;
 const PERPS_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
-const PERPS_NOTIFICATION_TOOLTIP_WAIT_MS = 15_000;
 
 /**
  * Resolves whether the Perps GTM onboarding tutorial should be handled.
@@ -40,9 +35,10 @@ export const resolvePerpsGtmOnboardingModalEnabled = async (
 
   // Flags missing or disabled — tutorial may still appear; detect in UI.
   try {
-    await (await asPlaywrightElement(PerpsOnboarding.tutorialTitle))
-      .unwrap()
-      .waitForDisplayed({ timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS });
+    await Assertions.expectElementToBeVisible(PerpsOnboarding.tutorialTitle, {
+      timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS,
+      description: 'Perps GTM onboarding tutorial',
+    });
     return true;
   } catch {
     return false;
@@ -54,103 +50,66 @@ export const resolvePerpsGtmOnboardingModalEnabled = async (
  */
 export const dismissPerpsOnboardingTutorialIfPresent =
   async (): Promise<void> => {
+    if (
+      !(await Utilities.isElementVisible(
+        PerpsOnboarding.skipButton,
+        PERPS_OPTIONAL_UI_PROBE_MS,
+      ))
+    ) {
+      return;
+    }
+
     try {
-      const skipButton = await asPlaywrightElement(PerpsOnboarding.skipButton);
-      await skipButton
-        .unwrap()
-        .waitForDisplayed({ timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS });
-      await PlaywrightGestures.waitAndTap(skipButton, {
+      await Gestures.waitAndTap(PerpsOnboarding.skipButton, {
         checkForDisplayed: true,
-        checkForEnabled: true,
+        checkEnabled: true,
         timeout: 10_000,
       });
-      await skipButton
-        .unwrap()
-        .waitForDisplayed({ reverse: true, timeout: 10_000 });
+      await Assertions.expectElementToNotBeVisible(PerpsOnboarding.skipButton, {
+        timeout: 10_000,
+        description: 'Perps onboarding skip button should close',
+      });
     } catch {
-      // Tutorial not shown or already dismissed.
+      // Tutorial shown but dismiss failed — leave for caller / next attempt.
     }
   };
 
 /**
  * Dismisses the post-order "Turn on notifications" bottom sheet when shown.
  * Blocks navigation until closed (first successful perps order with push disabled).
+ * Smoke specs that set `PERPS_SMOKE_PERMISSIONS` should no-op within the short probe.
  */
 export const dismissPerpsNotificationTooltipIfPresent =
   async (): Promise<void> => {
-    const turnOnTestId = PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON;
+    const turnOnEl = Matchers.getElementByID(
+      PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON,
+    );
+    if (
+      !(await Utilities.isElementVisible(turnOnEl, PERPS_OPTIONAL_UI_PROBE_MS))
+    ) {
+      return;
+    }
 
-    await encapsulatedAction({
-      detox: async () => {
-        try {
-          const turnOn = asDetoxElement(
-            PerpsOrderView.turnNotificationsOnButton,
-          );
-          await Assertions.expectElementToBeVisible(turnOn, {
-            timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS,
-            description: 'Perps notification tooltip',
-          });
-          await device.pressBack();
-        } catch {
-          // Tooltip not shown.
-        }
-      },
-      appium: async () => {
-        try {
-          const turnOnEl = await PlaywrightMatchers.getElementById(
-            turnOnTestId,
-            { exact: true },
-          );
-          await turnOnEl
-            .unwrap()
-            .waitForDisplayed({ timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS });
-          await PlaywrightGestures.waitAndTap(turnOnEl, {
-            checkForDisplayed: true,
-            timeout: 10_000,
-          });
-          await turnOnEl
-            .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 10_000 });
-        } catch {
-          // Tooltip not shown.
-        }
-      },
-    });
+    try {
+      await Gestures.waitAndTap(turnOnEl, {
+        checkForDisplayed: true,
+        timeout: 10_000,
+      });
+      await Assertions.expectElementToNotBeVisible(turnOnEl, {
+        timeout: 10_000,
+        description: 'Perps notification tooltip should close',
+      });
+    } catch {
+      // Tooltip shown but dismiss failed — leave for caller / next attempt.
+    }
   };
 
 /**
  * Checks if the position is open by checking if the close button is visible.
  * @returns {Promise<boolean>} True if the position is open, false otherwise.
  */
-export const isPositionOpen = async (timeout = 5000): Promise<boolean> => {
-  let positionOpen = false;
-  await encapsulatedAction({
-    detox: async () => {
-      try {
-        const el = asDetoxElement(PerpsMarketDetailsView.closeButton);
-        await Assertions.expectElementToBeVisible(el, {
-          timeout,
-          description: 'Close position button',
-        });
-        positionOpen = true;
-      } catch {
-        positionOpen = false;
-      }
-    },
-    appium: async () => {
-      try {
-        const closeEl = await asPlaywrightElement(
-          PerpsMarketDetailsView.closeButton,
-        );
-        positionOpen = await closeEl.isVisible();
-      } catch {
-        // Element lookup timed out — position is not open
-        positionOpen = false;
-      }
-    },
-  });
-  return positionOpen;
-};
+export const isPositionOpen = async (timeout = 5000): Promise<boolean> =>
+  Utilities.isElementVisible(PerpsMarketDetailsView.closeButton, timeout);
 
 export const waitForPositionOpen = async (
   timeout = 20000,
@@ -166,36 +125,10 @@ export const waitForPositionOpen = async (
 
 /**
  * Checks if the place order button is visible.
- * @returns {Promise<boolean>} True if the place order button is visible, false otherwise.
+ * @returns {Promise<boolean>} True if the place order button is visible.
  */
-export const isPlaceOrderButtonVisible = async (): Promise<boolean> => {
-  let visible = false;
-  await encapsulatedAction({
-    detox: async () => {
-      try {
-        const el = asDetoxElement(PerpsOrderView.placeOrderButton);
-        await Assertions.expectElementToBeVisible(el, {
-          timeout: 5000,
-          description: 'Place order button',
-        });
-        visible = true;
-      } catch {
-        visible = false;
-      }
-    },
-    appium: async () => {
-      try {
-        const placeOrderButtonEl = await asPlaywrightElement(
-          PerpsOrderView.placeOrderButton,
-        );
-        visible = await placeOrderButtonEl.isVisible();
-      } catch {
-        visible = false;
-      }
-    },
-  });
-  return visible;
-};
+export const isPlaceOrderButtonVisible = async (): Promise<boolean> =>
+  Utilities.isElementVisible(PerpsOrderView.placeOrderButton, 5000);
 
 /**
  * Waits for the order screen to be visible.
@@ -298,4 +231,71 @@ export const openPosition = async (
   await dismissPerpsNotificationTooltipIfPresent();
   await PerpsMarketDetailsView.waitForScreenReady();
   await PerpsMarketDetailsView.expectClosePositionButtonVisible();
+};
+
+/**
+ * From Perps home (Lite mode), switches to Pro mode and waits for the Pro view.
+ * Handles the optional mode-selection bottom sheet confirmation.
+ */
+export const switchToPerpsProMode = async (): Promise<void> => {
+  await PerpsProMarketView.switchToProMode();
+};
+
+/**
+ * Opens Perps from the wallet home, selects the market in Lite, then switches
+ * to Pro. Selecting first avoids landing on the default Pro market (BTC) and
+ * trying to tap a list row that is not on screen.
+ */
+export const navigateToPerpsProEntry = async (
+  symbol: string,
+): Promise<void> => {
+  await WalletView.scrollAndTapPerpsSection();
+  await dismissPerpsOnboardingTutorialIfPresent();
+  await PerpsMarketListView.selectMarket(symbol);
+  await switchToPerpsProMode();
+  await PerpsProMarketView.waitForProViewReady();
+};
+
+/**
+ * Places a market order in Pro mode and waits for the position to appear in
+ * the Pro positions panel.
+ */
+export const openPositionInPro = async (
+  symbol: string,
+  direction: PerpsPositionDirection,
+): Promise<void> => {
+  await PerpsProMarketView.selectDirection(direction);
+  await PerpsProMarketView.enterSize('500');
+  await PerpsProMarketView.waitForFeesReady();
+  await PerpsProMarketView.tapPlaceOrderButton();
+  await dismissPerpsNotificationTooltipIfPresent();
+  await PerpsProMarketView.waitForPositionRow(symbol);
+};
+
+/**
+ * Places a limit order at Mid price in Pro mode and verifies the order row
+ * appears in the Orders tab of the Pro positions panel.
+ */
+export const placeLimitOrderInPro = async (
+  symbol: string,
+  direction: PerpsPositionDirection,
+  preset: PerpsLimitPricePreset = 'Mid',
+): Promise<void> => {
+  await PerpsProMarketView.selectDirection(direction);
+  await PerpsProMarketView.enterSize('500');
+  await PerpsProMarketView.tapOrderTypeButton();
+  await PerpsProMarketView.selectLimitOrderType();
+
+  if (preset === 'Mid') {
+    await PerpsProMarketView.tapMidPriceButton();
+  } else if (typeof preset === 'number') {
+    await PerpsProMarketView.enterLimitPrice(
+      computeProLimitPriceForPercentPreset(preset),
+    );
+  }
+
+  await PerpsProMarketView.tapPlaceOrderButton();
+  await dismissPerpsNotificationTooltipIfPresent();
+  await PerpsProMarketView.tapOrdersTab();
+  await PerpsProMarketView.waitForOrderRow(symbol, 0);
 };

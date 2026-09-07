@@ -2,21 +2,21 @@ import React, { useCallback } from 'react';
 import InlineAlert from '../../inline-alert';
 import { useAlerts } from '../../../../context/alert-system-context';
 import { Severity } from '../../../../types/alerts';
-import { TextColor } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow, { InfoRowProps, InfoRowVariant } from '../info-row';
 import styleSheet from './alert-row.styles';
 import { IconColor } from '../../../../../../../component-library/components/Icons/Icon';
 import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
+import { TextColor } from '@metamask/design-system-react-native';
 
 function getAlertTextColors(severity?: Severity): TextColor {
   switch (severity) {
     case Severity.Danger:
-      return TextColor.Error;
+      return TextColor.ErrorDefault;
     case Severity.Warning:
-      return TextColor.Warning;
+      return TextColor.WarningDefault;
     default:
-      return TextColor.Alternative;
+      return TextColor.TextAlternative;
   }
 }
 

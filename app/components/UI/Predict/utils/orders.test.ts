@@ -1,10 +1,15 @@
 import { Side, type OrderPreview } from '../types';
 import {
+  buildPredictFeeBreakdownAmounts,
   calculateMaxBetAmount,
+  estimatePredictSellNetValue,
   generateOrderId,
   getPredictBuyAllInCost,
   getPredictExchangeFee,
   getPredictMarketFee,
+  getPredictPositionDisplay,
+  getPredictPositionNetValue,
+  getPredictSellNetProceeds,
   roundToFiveDecimals,
   roundUpToCents,
 } from './orders';
@@ -25,72 +30,92 @@ describe('orders utils', () => {
   });
 
   describe('calculateMaxBetAmount', () => {
-    it('returns the original amount when totalFeePercentage is 0', () => {
-      const result = calculateMaxBetAmount(100, 0);
+    const createPreview = ({
+      stake = 100,
+      serviceFeePercentage = 0,
+      marketFee = 0,
+    }: {
+      stake?: number;
+      serviceFeePercentage?: number;
+      marketFee?: number;
+    } = {}): OrderPreview => ({
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: 'token-1',
+      timestamp: 1,
+      side: Side.BUY,
+      sharePrice: 0.5,
+      maxAmountSpent: stake,
+      minAmountReceived: 200,
+      slippage: 0.03,
+      tickSize: 0.01,
+      minOrderSize: 1,
+      negRisk: false,
+      fees: {
+        metamaskFee: 0,
+        providerFee: 0,
+        marketFee,
+        totalFee: 0,
+        totalFeePercentage: serviceFeePercentage,
+        collector: '0x0',
+      },
+    });
+
+    it('returns the balance when the preview has no fees', () => {
+      const result = calculateMaxBetAmount(100, createPreview());
 
       expect(result).toBe(100);
     });
 
-    it('returns reduced amount when totalFeePercentage is applied', () => {
-      const result = calculateMaxBetAmount(100, 4);
+    it('divides the balance by one plus the service fee rate', () => {
+      const result = calculateMaxBetAmount(
+        100,
+        createPreview({ serviceFeePercentage: 4 }),
+      );
 
-      expect(result).toBe(96);
+      expect(result).toBe(96.15);
     });
 
-    it('rounds result to 4 decimal places', () => {
-      const result = calculateMaxBetAmount(100, 3.333);
+    it('includes the odds-dependent market fee rate', () => {
+      const result = calculateMaxBetAmount(
+        100,
+        createPreview({ serviceFeePercentage: 4, marketFee: 1 }),
+      );
 
-      // 100 * (1 - 3.333/100) = 100 * 0.96667 = 96.667
-      // Rounded to 4 decimals = 96.667
-      expect(result).toBe(96.667);
+      expect(result).toBe(95.23);
     });
 
-    it('handles small amounts correctly', () => {
-      const result = calculateMaxBetAmount(1, 4);
+    it('derives the market fee rate from the preview stake', () => {
+      const result = calculateMaxBetAmount(
+        100,
+        createPreview({ stake: 50, marketFee: 1 }),
+      );
 
-      // 1 * (1 - 4/100) = 1 * 0.96 = 0.96
-      expect(result).toBe(0.96);
+      expect(result).toBe(98.03);
     });
 
-    it('handles very small fee percentages', () => {
-      const result = calculateMaxBetAmount(100, 0.1);
+    it('floors the maximum to cents', () => {
+      const result = calculateMaxBetAmount(
+        10,
+        createPreview({ serviceFeePercentage: 4 }),
+      );
 
-      // 100 * (1 - 0.1/100) = 100 * 0.999 = 99.9
-      expect(result).toBe(99.9);
+      expect(result).toBe(9.61);
     });
 
-    it('handles large fee percentages', () => {
-      const result = calculateMaxBetAmount(100, 50);
+    it('returns the balance when no fee preview is available', () => {
+      const result = calculateMaxBetAmount(50.5);
 
-      // 100 * (1 - 50/100) = 100 * 0.5 = 50
-      expect(result).toBe(50);
+      expect(result).toBe(50.5);
     });
 
-    it('handles decimal amounts', () => {
-      const result = calculateMaxBetAmount(50.5, 4);
-
-      // 50.5 * (1 - 4/100) = 50.5 * 0.96 = 48.48
-      expect(result).toBe(48.48);
-    });
-
-    it('handles edge case with 100% fee', () => {
-      const result = calculateMaxBetAmount(100, 100);
-
-      // 100 * (1 - 100/100) = 100 * 0 = 0
-      expect(result).toBe(0);
-    });
-
-    it('handles zero amount', () => {
-      const result = calculateMaxBetAmount(0, 4);
+    it('returns zero for a non-positive balance', () => {
+      const result = calculateMaxBetAmount(
+        -1,
+        createPreview({ serviceFeePercentage: 4 }),
+      );
 
       expect(result).toBe(0);
-    });
-
-    it('preserves precision for amounts with many decimal places', () => {
-      const result = calculateMaxBetAmount(100.123456, 4);
-
-      // 100.123456 * 0.96 = 96.11851776, rounded to 4 decimals = 96.1185
-      expect(result).toBe(96.1185);
     });
   });
 
@@ -169,6 +194,267 @@ describe('orders utils', () => {
 
     it('returns zero all-in cost when preview is missing', () => {
       expect(getPredictBuyAllInCost(null)).toBe(0);
+    });
+
+    it('returns net proceeds after metamask, provider, and market fees', () => {
+      const result = getPredictSellNetProceeds(preview);
+
+      expect(result).toBe(19.66);
+    });
+
+    it('returns zero proceeds when preview is missing', () => {
+      const result = getPredictSellNetProceeds(null);
+
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('estimatePredictSellNetValue', () => {
+    it('returns floored net value when fee collection is enabled', () => {
+      const result = estimatePredictSellNetValue({
+        grossValue: 100.019,
+        feeCollection: {
+          enabled: true,
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+        },
+      });
+
+      expect(result).toBe(96.01);
+    });
+
+    it('returns floored gross value when fee collection is disabled', () => {
+      const result = estimatePredictSellNetValue({
+        grossValue: 100.019,
+        feeCollection: {
+          enabled: false,
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+        },
+      });
+
+      expect(result).toBe(100.01);
+    });
+  });
+
+  describe('getPredictPositionDisplay', () => {
+    it('returns negative cash PnL when net value is below cost', () => {
+      const result = getPredictPositionDisplay({
+        initialValue: 100,
+        netValue: 80,
+      });
+
+      expect(result).toEqual({
+        value: 80,
+        cashPnl: -20,
+        percentPnl: -20,
+      });
+    });
+
+    it('returns zero percent PnL when initial value is not positive', () => {
+      const result = getPredictPositionDisplay({
+        initialValue: 0,
+        netValue: 50,
+      });
+
+      expect(result).toEqual({
+        value: 50,
+        cashPnl: 50,
+        percentPnl: 0,
+      });
+    });
+  });
+
+  describe('getPredictPositionNetValue', () => {
+    const feeCollection = {
+      enabled: true,
+      metamaskFee: 0.02,
+      providerFee: 0.02,
+    };
+
+    it('returns floored gross value when the position is not sellable', () => {
+      const result = getPredictPositionNetValue({
+        sellable: false,
+        grossValue: 101.019,
+        preview: {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          timestamp: 1,
+          side: Side.SELL,
+          sharePrice: 1,
+          maxAmountSpent: 0,
+          minAmountReceived: 80,
+          slippage: 0,
+          tickSize: 0.01,
+          minOrderSize: 1,
+          negRisk: false,
+        },
+        feeCollection,
+      });
+
+      expect(result).toBe(101.01);
+    });
+
+    it('returns preview proceeds when sellable and a preview exists', () => {
+      const result = getPredictPositionNetValue({
+        sellable: true,
+        grossValue: 100,
+        preview: {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          timestamp: 1,
+          side: Side.SELL,
+          sharePrice: 0.5,
+          maxAmountSpent: 0,
+          minAmountReceived: 20,
+          slippage: 0,
+          tickSize: 0.01,
+          minOrderSize: 1,
+          negRisk: false,
+          fees: {
+            metamaskFee: 0.1,
+            providerFee: 0.1,
+            totalFee: 0.2,
+            totalFeePercentage: 1,
+            collector: '0x0',
+          },
+        },
+        feeCollection,
+      });
+
+      expect(result).toBe(19.8);
+    });
+  });
+
+  describe('buildPredictFeeBreakdownAmounts', () => {
+    it('snaps buy rows so the remainder exchange fee makes the total identity hold', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.BUY,
+        order: 10.001,
+        metamaskFee: 0.004,
+        depositFee: 0.003,
+        total: 10.03,
+      });
+
+      expect(result).toEqual({
+        order: 10.01,
+        metamaskFee: 0.01,
+        exchangeFee: 0,
+        depositFee: 0.01,
+        total: 10.03,
+      });
+      expect(
+        result.order +
+          result.metamaskFee +
+          result.exchangeFee +
+          (result.depositFee ?? 0),
+      ).toBe(result.total);
+    });
+
+    it('snaps sell rows so the remainder exchange fee makes the total identity hold', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.SELL,
+        order: 10.019,
+        metamaskFee: 0.014,
+        total: 9.995,
+      });
+
+      expect(result).toEqual({
+        order: 10.01,
+        metamaskFee: 0.01,
+        exchangeFee: 0.01,
+        total: 9.99,
+      });
+      expect(result.order - result.metamaskFee - result.exchangeFee).toBe(
+        result.total,
+      );
+    });
+
+    it('uses remainder exchange fee when independently rounded sub-cent fees would miss the total', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.BUY,
+        order: 10.001,
+        metamaskFee: 0.001,
+        total: 10.02,
+      });
+
+      expect(result.depositFee).toBeUndefined();
+      expect(result).toEqual({
+        order: 10.01,
+        metamaskFee: 0.01,
+        exchangeFee: 0,
+        total: 10.02,
+      });
+      expect(result.order + result.metamaskFee + result.exchangeFee).toBe(
+        result.total,
+      );
+    });
+
+    it('returns zero buy rows when stake and total are zero', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.BUY,
+        order: 0,
+        metamaskFee: 0.5,
+        total: 0,
+      });
+
+      expect(result).toEqual({
+        order: 0,
+        metamaskFee: 0,
+        exchangeFee: 0,
+        total: 0,
+      });
+    });
+
+    it('omits depositFee when the input is zero', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.BUY,
+        order: 10,
+        metamaskFee: 0.1,
+        depositFee: 0,
+        total: 10.2,
+      });
+
+      expect(result.depositFee).toBeUndefined();
+      expect(result.order + result.metamaskFee + result.exchangeFee).toBe(
+        result.total,
+      );
+    });
+
+    it('keeps buy exchange fee non-negative when rounded rows exceed the total', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.BUY,
+        order: 10.001,
+        metamaskFee: 0.004,
+        total: 10.01,
+      });
+
+      expect(result.exchangeFee).toBeGreaterThanOrEqual(0);
+      expect(result).toEqual({
+        order: 10,
+        metamaskFee: 0.01,
+        exchangeFee: 0,
+        total: 10.01,
+      });
+      expect(result.order + result.metamaskFee + result.exchangeFee).toBe(
+        result.total,
+      );
+    });
+
+    it('keeps sell exchange fee non-negative when rounded fees exceed the spread', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.SELL,
+        order: 10.019,
+        metamaskFee: 0.02,
+        total: 10,
+      });
+
+      expect(result.exchangeFee).toBeGreaterThanOrEqual(0);
+      expect(result.order - result.metamaskFee - result.exchangeFee).toBe(
+        result.total,
+      );
     });
   });
 });

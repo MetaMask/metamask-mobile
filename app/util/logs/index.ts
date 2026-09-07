@@ -91,8 +91,24 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.DeFiPositionsControllerV2;
   delete fullState.engine.backgroundState.PredictController;
 
-  // Strip cardHomeData to avoid leaking user PII (wallet addresses, holder names)
-  delete fullState.engine.backgroundState.CardController?.cardHomeData;
+  const cardControllerState = fullState.engine.backgroundState.CardController;
+  if (cardControllerState) {
+    const { cardHomeData, cardHomeDataAddress } = cardControllerState;
+    cardControllerState.cardHomeData = cardHomeData
+      ? {
+          hasCard: Boolean(cardHomeData.card),
+          hasPrimaryFundingAsset: Boolean(cardHomeData.primaryFundingAsset),
+          fundingAssetCount: cardHomeData.fundingAssets?.length ?? 0,
+          actionTypes: (cardHomeData.actions ?? []).map(
+            (action: { type?: string }) => action.type,
+          ),
+          alertTypes: (cardHomeData.alerts ?? []).map(
+            (alert: { type?: string }) => alert.type,
+          ),
+        }
+      : null;
+    cardControllerState.cardHomeDataAddress = Boolean(cardHomeDataAddress);
+  }
 
   // Remove SeedlessController controller data so that encrypted vault and sensitive data is not included in logs
   delete fullState.engine.backgroundState.SeedlessOnboardingController;

@@ -86,6 +86,20 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
     expect(unmapped).toStrictEqual([]);
   });
 
+  it('maps the v13 provider, strategy, chase, and TP/SL codes', () => {
+    const v13Codes = [
+      PERPS_ERROR_CODES.PROVIDER_NOT_FOUND,
+      PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+      PERPS_ERROR_CODES.ORDER_STRATEGY_ROUTE_UNAVAILABLE,
+      PERPS_ERROR_CODES.ORDER_CHASE_MAX_DISTANCE_INVALID,
+      PERPS_ERROR_CODES.TPSL_PROTECTION_LOST,
+    ];
+
+    const unmapped = v13Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
+
+    expect(unmapped).toStrictEqual([]);
+  });
+
   it('resolves every mapped i18n key to English copy', () => {
     const unresolved = errorCodes
       .map((code) => ERROR_CODE_TO_I18N_KEY[code])

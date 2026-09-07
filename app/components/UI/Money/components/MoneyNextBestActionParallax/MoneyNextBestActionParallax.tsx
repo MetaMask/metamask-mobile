@@ -9,18 +9,17 @@ import {
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Rive, { AutoBind, Fit, RNRiveError, RiveRef } from 'rive-react-native';
+import {
+  Fit,
+  RiveView,
+  useRiveFile,
+  type RiveError,
+} from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
-import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
-import { useRiveTiltWriter } from '../../hooks/useRiveTiltWriter';
-import {
-  pitchToParallaxValue,
-  shapeParallaxTilt,
-  smoothParallaxTilt,
-  tiltToParallaxValue,
-} from '../../utils/parallax';
+import { useRiveParallaxTilt } from '../../hooks/useRiveParallaxTilt';
+import { shapeParallaxTilt, smoothParallaxTilt } from '../../utils/parallax';
 import NextBestActionParallaxAnimation from '../../../../../animations/next_best_action_module_v1.riv';
 import styles from './MoneyNextBestActionParallax.styles';
 import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParallax.testIds';
@@ -30,9 +29,6 @@ const log = createProjectLogger('money-parallax');
 // Artboard names inside next_best_action_module_v1.riv, one per onboarding step.
 export const PARALLAX_ARTBOARD_FUND = 'Parallax Block 1';
 export const PARALLAX_ARTBOARD_CARD = 'Parallax Block 2';
-
-const RIVE_PROPERTY_X = 'xValue';
-const RIVE_PROPERTY_Y = 'yValue';
 
 // The Rive artboard is transparent — the card's gradient background (sampled
 // from the design) is rendered behind it.
@@ -61,14 +57,11 @@ const MoneyNextBestActionParallax = ({
   const reduceMotion = useReduceMotion();
   const [erroredArtboard, setErroredArtboard] = useState<string | null>(null);
   const hasRiveError = erroredArtboard === artboardName;
-  // Written to via a plain ref rather than `useRiveNumber`: that hook echoes
-  // every value back to JS through setState, re-rendering at the accelerometer
-  // sample rate for values this component never reads.
-  const riveRef = useRef<RiveRef>(null);
-  // Last values written to the artboard, in tilt units (0 = at rest). Kept
+  // Last values shaped for the artboard, in tilt units (0 = at rest). Kept
   // here rather than in state so smoothing costs no re-renders.
   const smoothedTilt = useRef({ x: 0, y: 0 });
 
+  const { riveFile } = useRiveFile(NextBestActionParallaxAnimation);
   const animate = flagEnabled && !reduceMotion && !hasRiveError;
 
   // The Rive view is remounted per artboard and whenever animation resumes,
@@ -78,32 +71,22 @@ const MoneyNextBestActionParallax = ({
     smoothedTilt.current = { x: 0, y: 0 };
   }, [artboardName, animate]);
 
-  const writeTilt = useRiveTiltWriter({
-    riveRef,
-    xProperty: RIVE_PROPERTY_X,
-    yProperty: RIVE_PROPERTY_Y,
+  const shapeTilt = useCallback((x: number, y: number, hz: number) => {
+    smoothedTilt.current = {
+      x: smoothParallaxTilt(smoothedTilt.current.x, shapeParallaxTilt(x), hz),
+      y: smoothParallaxTilt(smoothedTilt.current.y, shapeParallaxTilt(y), hz),
+    };
+    return smoothedTilt.current;
+  }, []);
+
+  const instance = useRiveParallaxTilt(riveFile, {
     artboardName,
     enabled: animate,
+    shapeTilt,
   });
 
-  const applyTilt = useCallback(
-    (x: number, y: number, hz: number) => {
-      smoothedTilt.current = {
-        x: smoothParallaxTilt(smoothedTilt.current.x, shapeParallaxTilt(x), hz),
-        y: smoothParallaxTilt(smoothedTilt.current.y, shapeParallaxTilt(y), hz),
-      };
-      writeTilt(
-        tiltToParallaxValue(smoothedTilt.current.x),
-        pitchToParallaxValue(smoothedTilt.current.y),
-      );
-    },
-    [writeTilt],
-  );
-
-  useDeviceOrientation(applyTilt, { enabled: animate });
-
   const handleError = useCallback(
-    (riveError: RNRiveError) => {
+    (riveError: RiveError) => {
       log(`Rive error: ${riveError.message}`);
       setErroredArtboard(artboardName);
     },
@@ -119,19 +102,22 @@ const MoneyNextBestActionParallax = ({
           style={StyleSheet.absoluteFill}
           testID={MoneyNextBestActionParallaxTestIds.BACKGROUND}
         />
-        <Rive
-          // Remount per artboard: swapping `artboardName` in place reloads the
-          // artboard but leaves data binding pointing at the previous one.
-          key={artboardName}
-          ref={riveRef}
-          source={NextBestActionParallaxAnimation}
-          artboardName={artboardName}
-          dataBinding={AutoBind(true)}
-          fit={Fit.Contain}
-          style={styles.media}
-          onError={handleError}
-          testID={MoneyNextBestActionParallaxTestIds.RIVE}
-        />
+        {riveFile && instance && (
+          <RiveView
+            // Remount per artboard: swapping `artboardName` in place reloads
+            // the artboard but leaves data binding pointing at the previous
+            // one.
+            key={artboardName}
+            file={riveFile}
+            artboardName={artboardName}
+            dataBind={instance}
+            autoPlay
+            fit={Fit.Contain}
+            style={styles.media}
+            onError={handleError}
+            testID={MoneyNextBestActionParallaxTestIds.RIVE}
+          />
+        )}
       </>
     );
   } else {

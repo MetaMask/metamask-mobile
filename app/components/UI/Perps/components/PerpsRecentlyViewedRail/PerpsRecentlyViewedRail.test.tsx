@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketData, PriceUpdate } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsRecentlyViewedRailSelectorsIDs } from '../../Perps.testIds';
 import PerpsRecentlyViewedRail, {
@@ -15,6 +15,15 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
     track: mockTrack,
   }),
 }));
+
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
+const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
+const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
+  typeof import('../../hooks/stream').usePerpsLivePrices
+>;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const { Text } = jest.requireActual('react-native');
@@ -33,15 +42,6 @@ jest.mock('../PerpsTokenLogo/PerpsTokenLogo', () => {
   );
 });
 
-jest.mock('../PerpsLeverage', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    PerpsLeverage: ({ maxLeverage }: { maxLeverage: string }) => (
-      <Text>{maxLeverage}</Text>
-    ),
-  };
-});
-
 const createMarket = (
   symbol: string,
   overrides: Partial<PerpsMarketData> = {},
@@ -56,11 +56,22 @@ const createMarket = (
   ...overrides,
 });
 
+const createPriceUpdate = (
+  overrides: Partial<PriceUpdate> = {},
+): PriceUpdate => ({
+  symbol: 'BTC',
+  price: '0',
+  timestamp: 0,
+  isTradable: true,
+  ...overrides,
+});
+
 describe('PerpsRecentlyViewedRail', () => {
   const mockOnMarketPress = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsLivePrices.mockReturnValue({});
   });
 
   it('renders nothing when there are no recently viewed markets', () => {
@@ -76,7 +87,7 @@ describe('PerpsRecentlyViewedRail', () => {
     ).toBeNull();
   });
 
-  it('renders the header and a tile for each recently viewed market', () => {
+  it('renders the header and a pill for each recently viewed market', () => {
     render(
       <PerpsRecentlyViewedRail
         markets={[createMarket('BTC'), createMarket('ETH')]}
@@ -99,15 +110,12 @@ describe('PerpsRecentlyViewedRail', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders each market logo, symbol, leverage, price and change', () => {
+  it('renders each market logo, symbol and percent change', () => {
     render(
       <PerpsRecentlyViewedRail
         markets={[
           createMarket('BTC', {
-            maxLeverage: '40x',
-            price: '$50,000.00',
-            change24h: '+2.5%',
-            change24hPercent: '+2.5%',
+            change24hPercent: '+2.50%',
           }),
         ]}
         onMarketPress={mockOnMarketPress}
@@ -116,12 +124,69 @@ describe('PerpsRecentlyViewedRail', () => {
 
     expect(screen.getByTestId('token-logo-BTC')).toBeOnTheScreen();
     expect(screen.getByText('BTC')).toBeOnTheScreen();
-    expect(screen.getByText('40x')).toBeOnTheScreen();
-    expect(screen.getByText('$50,000.00')).toBeOnTheScreen();
-    expect(screen.getByText('+2.5%')).toBeOnTheScreen();
+    expect(screen.getByText('+2.50%')).toBeOnTheScreen();
   });
 
-  it('strips the dex prefix from the displayed symbol and accessibility label', () => {
+  it('subscribes to live prices with the same throttle as market list rows', () => {
+    render(
+      <PerpsRecentlyViewedRail
+        markets={[createMarket('BTC')]}
+        onMarketPress={mockOnMarketPress}
+      />,
+    );
+
+    expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+      symbols: ['BTC'],
+      throttleMs: 3000,
+    });
+  });
+
+  it('overlays live 24h percent change onto the pill', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: createPriceUpdate({
+        price: '55000.00',
+        percentChange24h: '5.77',
+      }),
+    });
+
+    render(
+      <PerpsRecentlyViewedRail
+        markets={[
+          createMarket('BTC', {
+            change24hPercent: '+1.00%',
+          }),
+        ]}
+        onMarketPress={mockOnMarketPress}
+      />,
+    );
+
+    expect(screen.getByText('+5.77%')).toBeOnTheScreen();
+    expect(screen.queryByText('+1.00%')).toBeNull();
+  });
+
+  it('overlays a live negative 24h percent change onto the pill', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: createPriceUpdate({
+        price: '48000.00',
+        percentChange24h: '-7.84',
+      }),
+    });
+
+    render(
+      <PerpsRecentlyViewedRail
+        markets={[
+          createMarket('BTC', {
+            change24hPercent: '+1.00%',
+          }),
+        ]}
+        onMarketPress={mockOnMarketPress}
+      />,
+    );
+
+    expect(screen.getByText('-7.84%')).toBeOnTheScreen();
+  });
+
+  it('strips the dex prefix from the displayed symbol', () => {
     render(
       <PerpsRecentlyViewedRail
         markets={[createMarket('xyz:TSLA')]}
@@ -131,9 +196,6 @@ describe('PerpsRecentlyViewedRail', () => {
 
     expect(screen.getByText('TSLA')).toBeOnTheScreen();
     expect(screen.queryByText('xyz:TSLA')).toBeNull();
-    expect(
-      screen.getByLabelText('TSLA recently viewed market'),
-    ).toBeOnTheScreen();
   });
 
   it('preserves the newest-first order passed in via props', () => {
@@ -149,7 +211,7 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(tiles[1].props.testID).toBe('perps-recently-viewed-tile-BTC');
   });
 
-  it('caps rendered tiles at 10', () => {
+  it('caps rendered pills at 10', () => {
     const markets = Array.from({ length: 15 }, (_, i) =>
       createMarket(`MKT${i}`),
     );
@@ -165,7 +227,7 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(tiles).toHaveLength(10);
   });
 
-  it('tracks tile tap with market symbol and 1-based position, then invokes onMarketPress', () => {
+  it('tracks pill tap with market symbol and 1-based position, then invokes onMarketPress', () => {
     const target = createMarket('ETH');
 
     render(

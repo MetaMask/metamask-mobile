@@ -299,6 +299,12 @@ const CheckoutWebView = () => {
           enableApplePay
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
+          originWhitelist={[
+            'https://*',
+            'http://*', // NOSONAR - RN WebView default; omitting it sends HTTP redirects to the system browser
+            'about:blank',
+            'about:srcdoc',
+          ]}
           onNavigationStateChange={handleNavigationStateChange}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}

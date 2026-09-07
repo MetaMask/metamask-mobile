@@ -120,12 +120,6 @@ interface BaanxCursorPayload {
   i?: string[];
 }
 
-// The Baanx API has no page-size parameter; the server returns fixed-size
-// pages. A short page is therefore the last one. This is the smallest page
-// size observed, so `length < BAANX_MIN_FULL_PAGE` safely means "no more
-// pages" (worst case: one extra request that returns empty).
-const BAANX_MIN_FULL_PAGE = 20;
-
 interface BaanxFundingSourceRaw {
   id?: string;
   address?: string;
@@ -547,6 +541,18 @@ export class BaanxProvider implements ICardProvider {
     await this.service.post('/v1/auth/logout', {}, tokens);
   }
 
+  /**
+   * Full authenticated Baanx profile (`GET /v1/user`), including contact fields
+   * used for UK migration SignUp prefill.
+   */
+  async getUserDetails(tokens: CardAuthTokens): Promise<UserResponse> {
+    try {
+      return await this.service.get<UserResponse>('/v1/user', tokens);
+    } catch (error) {
+      throw mapApiError(error, 'getUserDetails');
+    }
+  }
+
   // -- Card Home Data --
 
   async getCardHomeData(
@@ -559,7 +565,12 @@ export class BaanxProvider implements ICardProvider {
         if (isCardAuthTokenError(err)) {
           throw mapApiError(err, logContext);
         }
-        if (err instanceof CardApiError && err.statusCode === 429) {
+        // getUserDetails maps CardApiError → CardProviderError before this
+        // catch runs, so check statusCode on both shapes.
+        if (
+          (err instanceof CardApiError || err instanceof CardProviderError) &&
+          err.statusCode === 429
+        ) {
           throw mapApiError(err, logContext);
         }
         Logger.error(err as Error, getErrorContext(logContext));
@@ -580,9 +591,9 @@ export class BaanxProvider implements ICardProvider {
           this.service
             .get<CardDetailsResponse>('/v1/card/status', tokens)
             .catch(swallowUnlessAuthError('getCardHomeData.cardDetails')),
-          this.service
-            .get<UserResponse>('/v1/user', tokens)
-            .catch(swallowUnlessAuthError('getCardHomeData.user')),
+          this.getUserDetails(tokens).catch(
+            swallowUnlessAuthError('getCardHomeData.user'),
+          ),
         ],
       );
 
@@ -705,6 +716,10 @@ export class BaanxProvider implements ICardProvider {
    * distinguishes a wrapped page 0 from a real page shifted by newly-arrived
    * transactions.
    *
+   * The server page size is unknown, so page length says nothing about whether
+   * more pages remain: the end of the list is only reached once a page comes
+   * back empty or wrapped. That costs one extra request per list.
+   *
    * `params.limit` is accepted for interface compatibility but ignored: the
    * page size is fixed server-side.
    */
@@ -730,9 +745,6 @@ export class BaanxProvider implements ICardProvider {
 
       const query = new URLSearchParams();
       query.set('page', String(page));
-      if (params.searchQuery) {
-        query.set('searchKey', params.searchQuery);
-      }
       // The API rejects a lone dateFrom/dateTo; only send them as a pair.
       if (params.fromDate != null && params.toDate != null) {
         query.set('dateFrom', toDateOnly(params.fromDate));
@@ -759,10 +771,6 @@ export class BaanxProvider implements ICardProvider {
       }
 
       const mapped = items.map((tx) => this.mapBaanxTransaction(tx));
-      if (items.length < BAANX_MIN_FULL_PAGE) {
-        return { items: mapped };
-      }
-
       const nextCursor = encodeCardCursor(this.id, {
         pg: page + 1,
         i: page === 0 ? items.map((item) => item.id) : pageZeroIds,
@@ -1037,56 +1045,107 @@ export class BaanxProvider implements ICardProvider {
   async getCashbackWallet(
     tokens: CardAuthTokens,
   ): Promise<CashbackWalletResponse> {
-    return this.service.get<CashbackWalletResponse>(
-      '/v1/wallet/reward',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWalletResponse>(
+        '/v1/wallet/reward',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCashbackWallet'));
+      }
+      throw mapApiError(error, 'getCashbackWallet');
+    }
   }
 
   async getCashbackWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawEstimationResponse> {
-    return this.service.get<CashbackWithdrawEstimationResponse>(
-      '/v1/wallet/reward/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWithdrawEstimationResponse>(
+        '/v1/wallet/reward/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCashbackWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCashbackWithdrawEstimation');
+    }
   }
 
   async withdrawCashback(
     params: CashbackWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawResponse> {
-    return this.service.post<CashbackWithdrawResponse>(
-      '/v1/wallet/reward/withdraw',
-      params,
-      tokens,
-    );
+    try {
+      return await this.service.post<CashbackWithdrawResponse>(
+        '/v1/wallet/reward/withdraw',
+        params,
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCashback'));
+      }
+      throw mapApiError(error, 'withdrawCashback');
+    }
   }
 
   // -- Credit --
 
   async getCreditWallet(tokens: CardAuthTokens): Promise<CreditWalletResponse> {
-    return this.service.get<CreditWalletResponse>('/v1/wallet/credit', tokens);
+    try {
+      return await this.service.get<CreditWalletResponse>(
+        '/v1/wallet/credit',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCreditWallet'));
+      }
+      throw mapApiError(error, 'getCreditWallet');
+    }
   }
 
   async getCreditWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawEstimationResponse> {
-    return this.service.get<CreditWithdrawEstimationResponse>(
-      '/v1/wallet/credit/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CreditWithdrawEstimationResponse>(
+        '/v1/wallet/credit/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCreditWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCreditWithdrawEstimation');
+    }
   }
 
   async withdrawCredit(
     params: CreditWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawResponse> {
-    return this.service.post<CreditWithdrawResponse>(
-      '/v1/wallet/credit/withdraw',
-      params,
-      tokens,
-    );
+    try {
+      return await this.service.post<CreditWithdrawResponse>(
+        '/v1/wallet/credit/withdraw',
+        params,
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCredit'));
+      }
+      throw mapApiError(error, 'withdrawCredit');
+    }
   }
 
   // -- On-Chain (unauthenticated) --
@@ -1853,7 +1912,7 @@ export class BaanxProvider implements ICardProvider {
       raw.fundingSources ?? []
     ).map((fs) => ({
       txHash: fs.txHash,
-      address: fs.address,
+      walletAddress: fs.address,
       network: fs.network,
       chainId: networkToCaipChainId(fs.network),
       amount: fs.amount,
@@ -1959,6 +2018,7 @@ export class BaanxProvider implements ICardProvider {
         ? user.countryOfResidence.toUpperCase()
         : null,
       usState: user.usState ? user.usState.toUpperCase() : null,
+      createdAt: user.createdAt ?? null,
     };
   }
 

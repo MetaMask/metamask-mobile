@@ -1,65 +1,162 @@
 import { MoneyActionButtonRowTestIds } from '../../../app/components/UI/Money/components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
+import { MoneyActivityListTestIds } from '../../../app/components/UI/Money/components/MoneyActivityList/MoneyActivityList.testIds';
 import { MoneyBalanceSummaryTestIds } from '../../../app/components/UI/Money/components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
 import { MoneyEarningsTestIds } from '../../../app/components/UI/Money/components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../../app/components/UI/Money/components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
+import { MoneyHomeViewTestIds } from '../../../app/components/UI/Money/Views/MoneyHomeView/MoneyHomeView.testIds';
 import Assertions from '../../framework/Assertions';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
+import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import type { ScrollContainer } from '../../framework/types';
 import Utilities from '../../framework/Utilities';
 
 const MONEY_HOME_LOAD_TIMEOUT_MS = 60_000;
 
 class MoneyHomeView {
   // Balance summary elements
-  get balance(): EncapsulatedElementType {
+  get balance(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyBalanceSummaryTestIds.BALANCE);
   }
 
-  get apy(): EncapsulatedElementType {
+  get apy(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyBalanceSummaryTestIds.APY);
   }
 
-  get unavailableBalance(): EncapsulatedElementType {
+  get unavailableBalance(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE,
     );
   }
 
-  get noAccountBalance(): EncapsulatedElementType {
+  get noAccountBalance(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT,
     );
   }
 
   // Earnings elements
-  get earnings(): EncapsulatedElementType {
+  get earnings(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.CONTAINER);
   }
 
-  get monthlyEarningsLabel(): EncapsulatedElementType {
+  get monthlyEarningsLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.MONTHLY_LABEL);
   }
 
-  get monthlyEarningsValue(): EncapsulatedElementType {
+  get monthlyEarningsValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.LAST_30_DAYS_VALUE);
   }
 
-  get lifetimeEarningsLabel(): EncapsulatedElementType {
+  get lifetimeEarningsLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.LIFETIME_LABEL);
   }
 
-  get lifetimeEarningsValue(): EncapsulatedElementType {
+  get lifetimeEarningsValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE);
   }
 
   // Onboarding elements
-  get onboardingCardTitle(): EncapsulatedElementType {
+  get onboardingCardTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyOnboardingCardTestIds.TITLE);
   }
 
   // Action elements
-  get sendButton(): EncapsulatedElementType {
+  get addButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(MoneyActionButtonRowTestIds.ADD_BUTTON);
+  }
+
+  get sendButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyActionButtonRowTestIds.TRANSFER_BUTTON);
+  }
+
+  get transferButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(MoneyActionButtonRowTestIds.TRANSFER_BUTTON);
+  }
+
+  async expectMoneyHomeVisible(
+    timeout = MONEY_HOME_LOAD_TIMEOUT_MS,
+  ): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.addButton, {
+      description: 'Money Home Add action should be visible',
+      timeout,
+    });
+    await this.waitForMoneyAccountReady(timeout);
+  }
+
+  // The Money account is created asynchronously on Money screen focus. Either a
+  // resolved balance or the balance-unavailable state proves the account now
+  // exists, which is all the add/transfer sheets require to render.
+  private async waitForMoneyAccountReady(timeout: number): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const [hasBalance, isUnavailable] = await Promise.all([
+          Utilities.isElementVisible(this.balance),
+          Utilities.isElementVisible(this.unavailableBalance),
+        ]);
+        if (!hasBalance && !isUnavailable) {
+          throw new Error('Money account not ready yet');
+        }
+      },
+      {
+        timeout,
+        description: 'Money account should be created (balance resolved)',
+      },
+    );
+  }
+
+  async tapAdd(): Promise<void> {
+    await Gestures.waitAndTap(this.addButton, {
+      elemDescription: 'Money Home Add button',
+    });
+  }
+
+  get scrollView(): ScrollContainer {
+    return Matchers.scrollContainer(MoneyHomeViewTestIds.SCROLL_VIEW);
+  }
+
+  get activityList(): Promise<AppiumElement> {
+    return Matchers.getElementByID(MoneyActivityListTestIds.CONTAINER);
+  }
+
+  async scrollToActivitySection(): Promise<void> {
+    await Gestures.scrollToElement(this.activityList, this.scrollView, {
+      elemDescription: 'Money home activity section',
+      direction: 'down',
+    });
+  }
+
+  async verifyActivityItemLabelAndAmount(
+    label: string,
+    amount: string,
+  ): Promise<void> {
+    const labelElement = Matchers.getElementByText(label);
+    await Assertions.expectElementToBeVisible(labelElement, {
+      description: `Money home activity row "${label}" should be visible`,
+      timeout: MONEY_HOME_LOAD_TIMEOUT_MS,
+    });
+    await Gestures.scrollIntoView(labelElement, { direction: 'down' });
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText(amount),
+      {
+        description: `Money home activity row amount "${amount}" should be visible`,
+        timeout: MONEY_HOME_LOAD_TIMEOUT_MS,
+      },
+    );
+  }
+
+  async tapActivityItemByLabel(label: string): Promise<void> {
+    const labelElement = Matchers.getElementByText(label);
+    await Gestures.scrollIntoView(labelElement, { direction: 'down' });
+    await Gestures.waitAndTap(labelElement, {
+      elemDescription: `Money home activity item "${label}"`,
+    });
+  }
+
+  async tapTransfer(): Promise<void> {
+    await Gestures.waitAndTap(this.transferButton, {
+      elemDescription: 'Money Home Transfer button',
+    });
   }
 
   // Readiness checks used during performance measurement

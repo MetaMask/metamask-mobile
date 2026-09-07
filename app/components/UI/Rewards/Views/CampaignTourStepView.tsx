@@ -75,6 +75,9 @@ const CampaignTourStepView: React.FC = () => {
       if (campaignType === CampaignType.PREDICT_THE_PITCH) {
         return Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW;
       }
+      if (campaignType === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES) {
+        return Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW;
+      }
       return Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW;
     })();
     navigation.dispatch(

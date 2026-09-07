@@ -24,12 +24,20 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
+export interface ChartLimitOrderLine {
+  id: string;
+  price: string;
+  side: 'buy' | 'sell';
+}
+
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
   entryPrice?: string;
   liquidationPrice?: string;
   currentPrice?: string;
+  /** Resting limit orders drawn as additional price lines. */
+  limitOrders?: ChartLimitOrderLine[];
 }
 
 export type { TimeDuration } from '@metamask/perps-controller';
@@ -602,13 +610,13 @@ const TradingViewChart = React.forwardRef<
         // Increment this version number to force WebView remount and HTML reload
         // when making incompatible changes to TradingViewChartTemplate.tsx
         //
-        // Current version: v21 (fixed y-axis spacing and debug borders)
+        // Current version: v26 (autoscale via candlestick provider only)
         //
         // Future improvement: Consider using a content hash of the template
         // for automatic cache busting: key={`chart-webview-${templateHash}`}
         //
         // Note: HTML content is already memoized and regenerates on theme/coloredVolume changes
-        key="chart-webview-v21"
+        key="chart-webview-v26"
         ref={webViewRef}
         source={{ html: htmlContent }}
         style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles

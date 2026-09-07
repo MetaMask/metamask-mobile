@@ -12,6 +12,7 @@ import { walletHomeOnboardingVisibleSteps } from '../../UI/WalletHomeOnboardingS
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 import { strings } from '../../../../locales/i18n';
 import Wallet from './index';
 import React from 'react';
@@ -27,6 +28,10 @@ describeForPlatforms('Wallet', () => {
           backgroundState: {
             MultichainNetworkController: {
               isEvmSelected: true,
+            },
+            EarnController: {
+              pooled_staking: { isEligible: false },
+              lending: { positions: [], markets: [] },
             },
             RewardsController: {
               activeAccount: null,
@@ -77,6 +82,10 @@ describeForPlatforms('Wallet', () => {
             MultichainNetworkController: {
               isEvmSelected: true,
             },
+            EarnController: {
+              pooled_staking: { isEligible: false },
+              lending: { positions: [], markets: [] },
+            },
             RewardsController: {
               activeAccount: null,
             },
@@ -115,6 +124,10 @@ describeForPlatforms('Wallet', () => {
           backgroundState: {
             MultichainNetworkController: {
               isEvmSelected: true,
+            },
+            EarnController: {
+              pooled_staking: { isEligible: false },
+              lending: { positions: [], markets: [] },
             },
             RewardsController: {
               activeAccount: null,
@@ -156,6 +169,10 @@ describeForPlatforms('Wallet', () => {
         backgroundState: {
           MultichainNetworkController: {
             isEvmSelected: true,
+          },
+          EarnController: {
+            pooled_staking: { isEligible: false },
+            lending: { positions: [], markets: [] },
           },
           RewardsController: {
             activeAccount: null,
@@ -199,6 +216,10 @@ describeForPlatforms('Wallet', () => {
         MultichainNetworkController: {
           isEvmSelected: true,
         },
+        EarnController: {
+          pooled_staking: { isEligible: false },
+          lending: { positions: [], markets: [] },
+        },
         RewardsController: {
           activeAccount: null,
         },
@@ -223,7 +244,7 @@ describeForPlatforms('Wallet', () => {
     return renderComponentViewScreen(
       Wallet as unknown as React.ComponentType,
       { name: Routes.WALLET_VIEW },
-      { state },
+      { state, routeMessenger: createMockRouteMessenger() },
     );
   };
 

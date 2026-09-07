@@ -18,7 +18,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       setSelectedProvider: jest.fn(),
-      getProviders: jest.fn().mockResolvedValue({ providers: [] }),
+      getProviders: jest.fn().mockResolvedValue({ providers: [], sorted: [] }),
     },
   },
 }));
@@ -168,6 +168,21 @@ describe('useRampsProviders', () => {
   });
 
   describe('providers state', () => {
+    it('supports providers responses from older controller versions without sorted metadata', () => {
+      mockUseQuery.mockReturnValueOnce({
+        data: { providers: mockProviders },
+        error: null,
+        isLoading: false,
+      } as never);
+      const store = createMockStore();
+
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.providers).toEqual(mockProviders);
+    });
+
     it('returns providers from state', () => {
       const store = createMockStore({ data: mockProviders });
       const { result } = renderHook(() => useRampsProviders(), {
@@ -329,6 +344,34 @@ describe('useRampsProviders', () => {
       expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
         expect.any(Array),
         mockProviders,
+        mockProviders[0].id,
+      );
+    });
+
+    it('passes the backend-ranked provider id from sorted metadata', () => {
+      mockUseQuery.mockReturnValue({
+        data: {
+          providers: mockProviders,
+          sorted: [{ sortBy: '1', ids: [mockProviders[1].id] }],
+        },
+        error: null,
+        isLoading: false,
+      });
+      mockGetOrders.mockReturnValue(emptyOrders);
+      mockDeterminePreferredProvider.mockReturnValue({
+        provider: mockProviders[1],
+        autoSelected: true,
+      });
+      const store = createMockStore({ data: mockProviders });
+
+      renderHook(() => useRampsProviders({ enableSideEffects: true }), {
+        wrapper: wrapper(store),
+      });
+
+      expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
+        expect.any(Array),
+        mockProviders,
+        mockProviders[1].id,
       );
     });
 

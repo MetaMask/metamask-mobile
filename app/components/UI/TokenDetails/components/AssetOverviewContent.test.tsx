@@ -114,13 +114,17 @@ jest.mock(
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  const actualReact = jest.requireActual('react');
   return {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
       addListener: jest.fn(() => jest.fn()),
     }),
-    useFocusEffect: jest.fn((cb: () => void) => cb()),
+    // Defer via useEffect to match real useFocusEffect timing.
+    useFocusEffect: jest.fn((cb: () => void) => {
+      actualReact.useEffect(cb, []);
+    }),
   };
 });
 
@@ -333,11 +337,15 @@ describe('AssetOverviewContent', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+        // Flush the gate().finally() microtask that releases the nav lock,
+        // so the next press below isn't blocked by it.
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(2);
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
@@ -354,11 +362,13 @@ describe('AssetOverviewContent', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(2);
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();

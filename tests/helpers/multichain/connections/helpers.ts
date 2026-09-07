@@ -1,23 +1,21 @@
-import { Matchers } from '../../../framework';
 import { createLogger } from '../../../framework/logger';
-import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
+import WebView from '../../../framework/WebView';
+import { getDriver } from '../../../framework/AppiumUtilities';
 
 const logger = createLogger({
   name: 'multichain-connections-helpers.ts',
 });
 
 export const requestPermissions = async ({
+  pageUrl,
   accounts,
   params,
 }: {
+  pageUrl: string;
   accounts?: string[];
   params?: unknown[];
-} = {}) => {
+}): Promise<void> => {
   logger.debug('Starting requestPermissions');
-  const nativeWebView = Matchers.getWebViewByID(
-    BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-  );
-  const bodyElement = nativeWebView.element(by.web.tag('body'));
 
   const requestPermissionsRequest = JSON.stringify({
     jsonrpc: '2.0',
@@ -31,8 +29,11 @@ export const requestPermissions = async ({
     ],
   });
 
-  await bodyElement.runScript(
-    `(el) => { window.ethereum.request(${requestPermissionsRequest}); }`,
-  );
+  await WebView.withWebViewAction(pageUrl, async () => {
+    const driver = getDriver();
+    await driver.execute(
+      `window.ethereum.request(${requestPermissionsRequest}); return true;`,
+    );
+  });
   logger.debug('Done requestPermissions');
 };

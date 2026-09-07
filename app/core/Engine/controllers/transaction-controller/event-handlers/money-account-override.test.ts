@@ -7,6 +7,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Engine from '../../../../Engine';
 import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
+import { loadAssetsForAddresses } from '../../../../Assets/accountGroupAssetLoader';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from './money-account-override';
 
 jest.mock('../../../../Engine', () => ({
@@ -63,6 +64,10 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../Assets/accountGroupAssetLoader', () => ({
+  loadAssetsForAddresses: jest.fn(),
+}));
+
 const TRANSACTION_ID_MOCK = 'tx-1';
 const EVM_ADDRESS_MOCK = '0xabc0000000000000000000000000000000000001';
 
@@ -95,15 +100,7 @@ const getSelectedAccountMock = jest.mocked(
 const replaceAccountInNestedTransactionsMock = jest.mocked(
   replaceAccountInNestedTransactions,
 );
-const findNetworkClientIdByChainIdMock = jest.mocked(
-  Engine.context.NetworkController.findNetworkClientIdByChainId,
-);
-const accountTrackerRefreshMock = jest.mocked(
-  Engine.context.AccountTrackerController.refresh,
-);
-const tokenBalancesUpdateMock = jest.mocked(
-  Engine.context.TokenBalancesController.updateBalances,
-);
+const loadAssetsForAddressesMock = jest.mocked(loadAssetsForAddresses);
 
 const PRIMARY_MONEY_ACCOUNT_ADDRESS =
   '0xabc1111111111111111111111111111111111111';
@@ -116,6 +113,7 @@ describe('money-account-override', () => {
       networkConfigurationsByChainId: { '0x1': {}, '0x89': {} },
     } as never;
     getSelectedAccountMock.mockReturnValue(evmAccountMock);
+    loadAssetsForAddressesMock.mockResolvedValue(undefined);
     mockPrimaryMoneyAccount = undefined;
   });
 
@@ -281,67 +279,43 @@ describe('money-account-override', () => {
     });
 
     describe('balance refresh on override', () => {
-      it('refreshes native balances across all configured chains', () => {
+      it('loads assets for the override account', () => {
         handleUnapprovedTransactionAddedForMoneyAccount(
           buildTransactionMeta({ chainId: '0x1' as never }),
         );
 
-        expect(findNetworkClientIdByChainIdMock).toHaveBeenCalledWith('0x1');
-        expect(findNetworkClientIdByChainIdMock).toHaveBeenCalledWith('0x89');
-        expect(accountTrackerRefreshMock).toHaveBeenCalledWith([
-          'client-0x1',
-          'client-0x89',
+        // Must target the override account explicitly: the balance controllers
+        // narrow to the *selected* account on their own, which is why calling
+        // them directly here never fetched anything.
+        expect(loadAssetsForAddressesMock).toHaveBeenCalledWith([
+          EVM_ADDRESS_MOCK,
         ]);
       });
 
-      it('refreshes token balances across all configured chains', () => {
-        handleUnapprovedTransactionAddedForMoneyAccount(
-          buildTransactionMeta({ chainId: '0x1' as never }),
-        );
-
-        expect(tokenBalancesUpdateMock).toHaveBeenCalledWith({
-          chainIds: ['0x1', '0x89'],
-        });
-      });
-
-      it('skips chains where findNetworkClientIdByChainId throws', () => {
-        findNetworkClientIdByChainIdMock.mockImplementation((chainId) => {
-          if (chainId === '0x89') throw new Error('not configured');
-          return `client-${chainId}`;
-        });
-
-        handleUnapprovedTransactionAddedForMoneyAccount(
-          buildTransactionMeta({ chainId: '0x1' as never }),
-        );
-
-        expect(accountTrackerRefreshMock).toHaveBeenCalledWith(['client-0x1']);
-      });
-
-      it('does not call refresh when no network clients resolve', () => {
-        findNetworkClientIdByChainIdMock.mockImplementation(() => {
-          throw new Error('not configured');
-        });
-
-        handleUnapprovedTransactionAddedForMoneyAccount(
-          buildTransactionMeta({ chainId: '0x1' as never }),
-        );
-
-        expect(accountTrackerRefreshMock).not.toHaveBeenCalled();
-      });
-
-      it('does not refresh when transaction is skipped', () => {
+      it('does not load assets when transaction is skipped', () => {
         handleUnapprovedTransactionAddedForMoneyAccount(
           buildTransactionMeta({ type: TransactionType.simpleSend }),
         );
 
-        expect(accountTrackerRefreshMock).not.toHaveBeenCalled();
-        expect(tokenBalancesUpdateMock).not.toHaveBeenCalled();
+        expect(loadAssetsForAddressesMock).not.toHaveBeenCalled();
       });
 
-      it('tolerates TokenBalancesController.updateBalances throwing', () => {
-        tokenBalancesUpdateMock.mockImplementation(() => {
-          throw new Error('fail');
-        });
+      it('does not load assets when an override is already set', () => {
+        Engine.context.TransactionPayController.state = {
+          transactionData: {
+            [TRANSACTION_ID_MOCK]: { accountOverride: '0xExistingOverride' },
+          },
+        } as never;
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({ chainId: '0x1' as never }),
+        );
+
+        expect(loadAssetsForAddressesMock).not.toHaveBeenCalled();
+      });
+
+      it('does not throw when the asset load rejects', () => {
+        loadAssetsForAddressesMock.mockRejectedValueOnce(new Error('fail'));
 
         expect(() =>
           handleUnapprovedTransactionAddedForMoneyAccount(

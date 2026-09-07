@@ -17,7 +17,7 @@ import {
   renderFiat,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/bigint';
 import { strings } from '../../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../../Base/RemoteImage';

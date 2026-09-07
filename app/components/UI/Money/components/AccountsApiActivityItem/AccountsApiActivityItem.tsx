@@ -6,6 +6,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
+import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import ActivityRowView from '../MoneyActivityItem/ActivityRowView';
 
 export interface AccountsApiActivityItemProps {
@@ -13,12 +14,14 @@ export interface AccountsApiActivityItemProps {
   showNetworkBadge?: boolean;
   /** Whether the crypto/fiat amounts should be masked. */
   privacyMode?: boolean;
+  enrichment?: CardTransaction;
 }
 
 const AccountsApiActivityItem = ({
   activity,
   showNetworkBadge = false,
   privacyMode = false,
+  enrichment,
 }: AccountsApiActivityItemProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const activityDetailsEnabled = useSelector(
@@ -26,13 +29,16 @@ const AccountsApiActivityItem = ({
   );
 
   const display = useMemo(
-    () => accountsApiActivityDisplayInfo(activity),
-    [activity],
+    () => accountsApiActivityDisplayInfo(activity, enrichment),
+    [activity, enrichment],
   );
 
   const handlePress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, { activity });
-  }, [navigation, activity]);
+    navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, {
+      activity,
+      enrichment,
+    });
+  }, [navigation, activity, enrichment]);
 
   return (
     <ActivityRowView

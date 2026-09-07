@@ -103,14 +103,24 @@ const MoreTokenActionsMenu = () => {
   const goToBrowserUrl = useCallback(
     (url: string, title: string) => {
       closeBottomSheetAndNavigate(async () => {
-        if (await InAppBrowser.isAvailable()) {
-          await InAppBrowser.open(url);
-        } else {
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: { url, title },
-          });
+        navigation.navigate('WalletView');
+
+        try {
+          if (await InAppBrowser.isAvailable()) {
+            await InAppBrowser.open(url);
+            return;
+          }
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'MoreTokenActionsMenu: Failed to open InAppBrowser',
+          );
         }
+
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: { url, title },
+        });
       });
     },
     [closeBottomSheetAndNavigate, navigation],

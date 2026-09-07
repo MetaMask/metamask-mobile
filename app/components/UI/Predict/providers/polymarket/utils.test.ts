@@ -43,6 +43,8 @@ import {
   getTickSizeRoundConfig,
   parsePolymarketEvents,
   parsePolymarketActivity,
+  parsePolymarketPositions,
+  previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
@@ -51,6 +53,7 @@ import type {
   PolymarketApiEvent,
   PolymarketApiMarket,
   PolymarketApiTeam,
+  PolymarketPosition,
 } from './types';
 
 const mockSignTypedMessage = jest.fn();
@@ -155,31 +158,170 @@ describe('polymarket utils', () => {
       {
         claimable: false,
         cashPnl: 10,
+        currentValue: 20,
+        curPrice: 0.6,
         expectedStatus: PredictPositionStatus.OPEN,
       },
       {
+        claimable: false,
+        cashPnl: -10,
+        currentValue: 0,
+        curPrice: 0,
+        expectedStatus: PredictPositionStatus.OPEN,
+      },
+      // Settled winner.
+      {
         claimable: true,
         cashPnl: 10,
+        currentValue: 20,
+        curPrice: 1,
         expectedStatus: PredictPositionStatus.WON,
       },
+      // Winner whose price has not settled yet is already in profit.
+      {
+        claimable: true,
+        cashPnl: 2699.75,
+        currentValue: 2999.75,
+        curPrice: 0.9995,
+        expectedStatus: PredictPositionStatus.WON,
+      },
+      // 50/50 push bought at 50c: pays back exactly what it cost.
       {
         claimable: true,
         cashPnl: 0,
+        currentValue: 10,
+        curPrice: 0.5,
         expectedStatus: PredictPositionStatus.REDEEMABLE,
       },
+      // 50/50 push bought above 50c (PRED-959): pays back less than it cost,
+      // still claimable. Values from a real settled Polymarket position.
+      {
+        claimable: true,
+        cashPnl: -134.4055,
+        currentValue: 2259.5,
+        curPrice: 0.5,
+        expectedStatus: PredictPositionStatus.REDEEMABLE,
+      },
+      // Winner dragged below break-even by fees still redeems for 1/share.
+      {
+        claimable: true,
+        cashPnl: -0.5,
+        currentValue: 100,
+        curPrice: 1,
+        expectedStatus: PredictPositionStatus.REDEEMABLE,
+      },
+      // Settled loser.
       {
         claimable: true,
         cashPnl: -10,
+        currentValue: 0,
+        curPrice: 0,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      // Loser flagged redeemable before its price settled: still carries its
+      // last traded price, so currentValue is positive. Must not be claimable.
+      // Values from real Polymarket positions observed mid-settlement.
+      {
+        claimable: true,
+        cashPnl: -304.1314,
+        currentValue: 1.5283,
+        curPrice: 0.0005,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      {
+        claimable: true,
+        cashPnl: -9.9019,
+        currentValue: 0.098,
+        curPrice: 0.005,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      // Below break-even at an unsettled mid price: not proven redeemable.
+      {
+        claimable: true,
+        cashPnl: -2,
+        currentValue: 53,
+        curPrice: 0.53,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      // Nothing to redeem even though P&L rounds to zero.
+      {
+        claimable: true,
+        cashPnl: 0,
+        currentValue: 0,
+        curPrice: 0,
         expectedStatus: PredictPositionStatus.LOST,
       },
     ])(
-      'returns $expectedStatus when claimable is $claimable and cashPnl is $cashPnl',
-      ({ claimable, cashPnl, expectedStatus }) => {
-        expect(getPredictPositionStatus({ claimable, cashPnl })).toBe(
-          expectedStatus,
-        );
+      'returns $expectedStatus when claimable is $claimable, cashPnl is $cashPnl, currentValue is $currentValue and curPrice is $curPrice',
+      ({ claimable, cashPnl, currentValue, curPrice, expectedStatus }) => {
+        expect(
+          getPredictPositionStatus({
+            claimable,
+            cashPnl,
+            currentValue,
+            curPrice,
+          }),
+        ).toBe(expectedStatus);
       },
     );
+  });
+
+  describe('parsePolymarketPositions', () => {
+    // Shape and values of a real settled 50/50 push bought above 50c.
+    const createRedeemablePosition = (
+      overrides: Partial<PolymarketPosition>,
+    ): PolymarketPosition => ({
+      conditionId: 'condition',
+      eventId: 'event',
+      icon: '',
+      title: 'Nippon Ham Fighters vs. Fukuoka SoftBank Hawks',
+      slug: 'slug',
+      size: 4519,
+      outcome: 'Fukuoka SoftBank Hawks',
+      outcomeIndex: 1,
+      cashPnl: -134.4055,
+      curPrice: 0.5,
+      currentValue: 2259.5,
+      percentPnl: -5.6,
+      initialValue: 2393.9055,
+      avgPrice: 0.5297,
+      redeemable: true,
+      negativeRisk: false,
+      endDate: '2026-09-01',
+      asset: 'asset',
+      realizedPnl: 0,
+      ...overrides,
+    });
+
+    it('marks a settled push bought above 50c as redeemable', async () => {
+      const [position] = await parsePolymarketPositions({
+        positions: [createRedeemablePosition({})],
+      });
+
+      expect(position.status).toBe(PredictPositionStatus.REDEEMABLE);
+      expect(position.claimable).toBe(true);
+      expect(position.currentValue).toBe(2259.5);
+    });
+
+    it('does not mark a loser redeemable while its price is still settling', async () => {
+      const [position] = await parsePolymarketPositions({
+        positions: [
+          createRedeemablePosition({
+            title: 'Bitcoin Up or Down - September 2, 1:55PM-2:00PM ET',
+            outcome: 'Down',
+            size: 19.6078,
+            cashPnl: -9.9019,
+            curPrice: 0.005,
+            currentValue: 0.098,
+            initialValue: 9.9999,
+            avgPrice: 0.5099,
+          }),
+        ],
+      });
+
+      expect(position.status).toBe(PredictPositionStatus.LOST);
+      expect(position.claimable).toBe(true);
+    });
   });
 
   beforeEach(() => {
@@ -232,6 +374,20 @@ describe('polymarket utils', () => {
   const nbaTeamsByAbbreviation: Record<string, PolymarketApiTeam> = {
     bos: createNbaTeam('bos'),
     nyk: createNbaTeam('nyk', { color: 'blue' }),
+  };
+
+  const nflTeamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+    ne: createNbaTeam('ne', {
+      name: 'New England Patriots',
+      alias: 'Patriots',
+      league: 'nfl',
+    }),
+    den: createNbaTeam('den', {
+      name: 'Denver Broncos',
+      alias: 'Broncos',
+      league: 'nfl',
+      color: 'blue',
+    }),
   };
 
   const createSportsMarket = ({
@@ -299,6 +455,29 @@ describe('polymarket utils', () => {
     startTime: '2026-06-12T20:00:00.000Z',
     live: false,
     ended: false,
+  });
+
+  const createNflGameEvent = (
+    markets: PolymarketApiEvent['markets'],
+  ): PolymarketApiEvent => ({
+    ...createNbaGameEvent(markets),
+    id: 'nfl-game-event',
+    slug: 'nfl-ne-den-2026-09-10',
+    title: 'New England Patriots vs Denver Broncos',
+    series: [
+      {
+        id: 'nfl-series',
+        slug: 'nfl-2026',
+        title: 'NFL 2026',
+        recurrence: 'daily',
+      },
+    ],
+    tags: [
+      { id: 'games', label: 'Games', slug: 'games' },
+      { id: 'nfl', label: 'NFL', slug: 'nfl' },
+    ],
+    teams: Object.values(nflTeamsByAbbreviation),
+    gameId: 'nfl-game-1',
   });
 
   const createEsportsTeam = (
@@ -590,6 +769,178 @@ describe('polymarket utils', () => {
     expect(market.outcomeGroups?.[1].outcomes).toEqual([
       expect.objectContaining({ sportsMarketType: 'first_half_moneyline' }),
     ]);
+  });
+
+  it('parses NFL game lines, team totals, and player props into groups', () => {
+    const markets = [
+      createSportsMarket({
+        id: 'moneyline',
+        sportsMarketType: 'moneyline',
+        overrides: {
+          groupItemTitle: 'Patriots',
+          outcomes: '["Patriots","Broncos"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'spread',
+        sportsMarketType: 'spreads',
+        overrides: {
+          groupItemTitle: 'Patriots -3.5',
+          outcomes: '["Patriots","Broncos"]',
+          line: -3.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'total',
+        sportsMarketType: 'totals',
+        overrides: {
+          groupItemTitle: 'O/U 43.5',
+          line: 43.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'first-half-moneyline',
+        sportsMarketType: 'first_half_moneyline',
+        overrides: {
+          groupItemTitle: 'Patriots',
+          outcomes: '["Patriots","Broncos"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'first-half-spread',
+        sportsMarketType: 'first_half_spreads',
+        overrides: {
+          groupItemTitle: 'Patriots -1.5',
+          outcomes: '["Patriots","Broncos"]',
+          line: -1.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'first-half-total',
+        sportsMarketType: 'first_half_totals',
+        overrides: {
+          groupItemTitle: 'O/U 20.5',
+          line: 20.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'home-total',
+        sportsMarketType: 'team_totals',
+        overrides: {
+          groupItemTitle: 'Patriots O/U 23.5',
+          groupItemThreshold: 2,
+          line: 23.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'away-total',
+        sportsMarketType: 'team_totals',
+        overrides: {
+          groupItemTitle: 'Broncos O/U 17.5',
+          line: 17.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'anytime-touchdown',
+        sportsMarketType: 'anytime_touchdowns',
+        overrides: {
+          groupItemTitle: 'Rhamondre Stevenson: Anytime Touchdown',
+        },
+      }),
+      createSportsMarket({
+        id: 'first-touchdown',
+        sportsMarketType: 'first_touchdowns',
+        overrides: {
+          groupItemTitle: 'RJ Harvey: First Touchdown',
+        },
+      }),
+      createSportsMarket({
+        id: 'rushing-yards',
+        sportsMarketType: 'rushing_yards',
+        overrides: {
+          groupItemTitle: 'Rhamondre Stevenson: Rushing Yards O/U 49.5',
+          line: 49.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'receiving-yards',
+        sportsMarketType: 'receiving_yards',
+        overrides: {
+          groupItemTitle: 'Stefon Diggs: Receiving Yards O/U 59.5',
+          line: 59.5,
+        },
+      }),
+    ];
+    const event = createNflGameEvent(markets);
+    const enabledSportsMarketTypes = [
+      'moneyline',
+      'spreads',
+      'totals',
+      'first_half_moneyline',
+      'first_half_spreads',
+      'first_half_totals',
+      'team_totals',
+      'anytime_touchdowns',
+      'first_touchdowns',
+      'rushing_yards',
+      'receiving_yards',
+    ];
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'sports',
+      teamLookup: (_league, abbreviation) =>
+        nflTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nfl'],
+      enabledSportsMarketTypes,
+    });
+
+    expect(market.game).toMatchObject({
+      league: 'nfl',
+      homeTeam: { abbreviation: 'den' },
+      awayTeam: { abbreviation: 'ne' },
+    });
+    expect(market.outcomes).toHaveLength(markets.length);
+    expect(
+      new Set(market.outcomes.map((outcome) => outcome.sportsMarketType)),
+    ).toEqual(new Set(enabledSportsMarketTypes));
+    expect(
+      market.outcomes.find((outcome) => outcome.id === 'home-total'),
+    ).toEqual(
+      expect.objectContaining({
+        groupItemTitle: 'Patriots O/U 23.5',
+        groupItemThreshold: 2,
+        line: 23.5,
+        tokens: expect.arrayContaining([
+          expect.objectContaining({ title: 'Over' }),
+          expect.objectContaining({ title: 'Under' }),
+        ]),
+      }),
+    );
+    expect(market.outcomeGroups?.map((group) => group.key)).toEqual([
+      'game_lines',
+      'team_totals',
+      'halves',
+      'first_half',
+      'touchdowns',
+      'rushing',
+      'receiving',
+    ]);
+    expect(
+      market.outcomeGroups
+        ?.find((group) => group.key === 'team_totals')
+        ?.subgroups?.map((subgroup) => subgroup.title),
+    ).toEqual(['Patriots Totals', 'Broncos Totals']);
+    expect(
+      market.outcomeGroups
+        ?.find((group) => group.key === 'first_half')
+        ?.subgroups?.map((subgroup) => subgroup.key),
+    ).toEqual(['first_half_moneyline', 'first_half_spreads']);
+    expect(
+      market.outcomeGroups?.flatMap((group) => [
+        ...group.outcomes,
+        ...(group.subgroups?.flatMap((subgroup) => subgroup.outcomes) ?? []),
+      ]),
+    ).toHaveLength(markets.length);
   });
 
   it('parses every supported CS2 market into one match with map groups', () => {
@@ -2814,6 +3165,174 @@ describe('polymarket utils', () => {
         signal: expect.any(AbortSignal),
       }),
     );
+  });
+
+  describe('previewMaxBuyOrder', () => {
+    it('finds the largest fully fillable stake whose all-in cost fits the balance', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [
+              { price: '0.75', size: '100' },
+              { price: '0.50', size: '100' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            fd: { r: 0.02, e: 1, to: true },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ tags: [] }),
+        });
+
+      const preview = await previewMaxBuyOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        availableBalance: 100,
+        feeCollection: {
+          enabled: true,
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          waiveList: [],
+          collector: '0x1111111111111111111111111111111111111111',
+          executors: [],
+          permit2Enabled: false,
+        },
+      });
+
+      expect(preview?.maxAmountSpent).toBe(95.4);
+      expect(preview?.minAmountReceived).toBeCloseTo(160.53333);
+      expect(
+        (preview?.maxAmountSpent ?? 0) +
+          (preview?.fees?.metamaskFee ?? 0) +
+          (preview?.fees?.providerFee ?? 0) +
+          (preview?.fees?.marketFee ?? 0),
+      ).toBeLessThanOrEqual(100);
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('caps the maximum stake at the fully fillable order-book liquidity', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [{ price: '0.50', size: '20' }],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      const preview = await previewMaxBuyOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        availableBalance: 100,
+      });
+
+      expect(preview?.maxAmountSpent).toBe(10);
+      expect(preview?.minAmountReceived).toBe(20);
+    });
+
+    it('returns null when fillable liquidity is below one cent', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [{ price: '0.50', size: '0.01' }],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      await expect(
+        previewMaxBuyOrder({
+          marketId: 'market-1',
+          outcomeId:
+            '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          outcomeTokenId: 'token-1',
+          availableBalance: 100,
+        }),
+      ).resolves.toBeNull();
+    });
+
+    it('returns null when the order book has no asks', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ ...orderBook, asks: [] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      await expect(
+        previewMaxBuyOrder({
+          marketId: 'market-1',
+          outcomeId:
+            '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          outcomeTokenId: 'token-1',
+          availableBalance: 100,
+        }),
+      ).resolves.toBeNull();
+    });
+
+    it('narrows the search instead of throwing when a candidate cannot be matched', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [
+              { price: '1', size: '10000000000000000' },
+              { price: '1', size: '-10000000000000000' },
+              { price: '1', size: '1' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      const preview = await previewMaxBuyOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        availableBalance: 100,
+      });
+
+      expect(preview?.maxAmountSpent).toBe(0.99);
+    });
+
+    it('returns null without fetching when the balance is not positive', async () => {
+      await expect(
+        previewMaxBuyOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          availableBalance: 0,
+        }),
+      ).resolves.toBeNull();
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
   });
 
   it('previews buy orders with 0.0025 tick size from ROUNDING_CONFIG', async () => {

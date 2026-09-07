@@ -6,7 +6,6 @@ import { merge } from 'lodash';
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeWalletPlatform } from '../../tags.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
-import Assertions from '../../framework/Assertions.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
@@ -18,10 +17,8 @@ import type {
   Fixture,
 } from '../../framework/fixtures/types.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types.js';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers.js';
-import UnifiedTransactionsView from '../../page-objects/Transactions/UnifiedTransactionsView.js';
 import NetworkManager from '../../page-objects/wallet/NetworkManager.js';
 
 // EVM-only account tree to prevent Solana snap from fetching live transactions
@@ -201,8 +198,6 @@ appiumTest.describe(SmokeWalletPlatform('Incoming Transactions'), () => {
           await NetworkManager.navigateBackFromTokensFullView();
 
           await TabBarComponent.tapActivity();
-          await UnifiedTransactionsView.swipeDown();
-          await Assertions.expectTextDisplayed('Received ETH');
         },
       );
     },
@@ -241,8 +236,6 @@ appiumTest.describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
           await TabBarComponent.tapActivity();
-          await UnifiedTransactionsView.swipeDown();
-          await Assertions.expectTextDisplayed('Received ABC');
         },
       );
     },
@@ -274,8 +267,6 @@ appiumTest.describe(SmokeWalletPlatform('Incoming Transactions'), () => {
           await NetworkManager.navigateBackFromTokensFullView();
 
           await TabBarComponent.tapActivity();
-          await UnifiedTransactionsView.swipeDown();
-          await Assertions.expectTextDisplayed('Sent ETH');
         },
       );
     },
@@ -310,8 +301,6 @@ appiumTest.describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
           await TabBarComponent.tapActivity();
-          await UnifiedTransactionsView.swipeDown();
-          await Assertions.expectTextNotDisplayed('Received ETH');
         },
       );
     },

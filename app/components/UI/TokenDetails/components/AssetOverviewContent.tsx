@@ -46,12 +46,7 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import EarnBalance from '../../Earn/components/EarnBalance';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
-import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
-import { isMusdToken } from '../../Earn/constants/musd';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -94,6 +89,7 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import {
   endTrace,
   trace,
@@ -257,7 +253,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-  const { isTokenTradingOpen } = useRWAToken();
+  const { isTokenTradable } = useRWAToken();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -370,15 +366,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
 
-  const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
-  const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
-  const showMusdConvertSection =
-    isMusdToken(token.address) &&
-    isMusdConversionFlowEnabled &&
-    isMusdGeoEligible;
-
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
 
@@ -436,22 +423,17 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     securityData?.resultType,
   ]);
 
-  // Start the entry card trace synchronously during render so it is registered
-  // in the trace map before any child useEffect (where endTrace fires) runs.
-  // Using a ref guard ensures we only start one trace per unique asset.
-  const entryCardTraceStartedRef = useRef<string | null>(null);
-  if (
-    isMarketInsightsEnabled &&
-    marketInsightsCaip19Id &&
-    entryCardTraceStartedRef.current !== marketInsightsCaip19Id
-  ) {
-    entryCardTraceStartedRef.current = marketInsightsCaip19Id;
-    trace({
-      name: TraceName.MarketInsightsEntryCardLoad,
-      op: TraceOperation.MarketInsightsLoad,
-      id: marketInsightsCaip19Id,
-    });
-  }
+  // Runs during render (not useEffect) so the trace is registered before any
+  // child's endTrace(); useMemo's deps guard against restarting it per render.
+  useMemo(() => {
+    if (isMarketInsightsEnabled && marketInsightsCaip19Id) {
+      trace({
+        name: TraceName.MarketInsightsEntryCardLoad,
+        op: TraceOperation.MarketInsightsLoad,
+        id: marketInsightsCaip19Id,
+      });
+    }
+  }, [isMarketInsightsEnabled, marketInsightsCaip19Id]);
 
   const goToBrowserUrl = (url: string) => {
     navigateWithDetails(navigation, createWebviewNavDetails({ url }));
@@ -618,7 +600,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onPriceDirectionChange={onPriceDirectionChange}
             useAmbientColor={useAmbientColor}
           />
-          {!isTokenTradingOpen(token as BridgeToken) && (
+          {!isTokenTradable(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton
                 iconName={ComponentLibraryIconName.Info}
@@ -688,11 +670,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <EarnBalance asset={token} />
             </>
           )}
-          {showMusdConvertSection && (
-            <MoneyConvertStablecoins
-              location={MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
-            />
-          )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             tronNativeToken && (
@@ -752,12 +729,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 animationType="none"
                 statusBarTranslucent
               >
-                <PerpsBottomSheetTooltip
-                  isVisible
-                  onClose={closeEligibilityModal}
-                  contentKey="geo_block"
-                  testID="token-details-geo-block-tooltip"
-                />
+                <ModalSafeAreaProvider>
+                  <PerpsBottomSheetTooltip
+                    isVisible
+                    onClose={closeEligibilityModal}
+                    contentKey="geo_block"
+                    testID="token-details-geo-block-tooltip"
+                  />
+                </ModalSafeAreaProvider>
               </Modal>
             </View>
           )}

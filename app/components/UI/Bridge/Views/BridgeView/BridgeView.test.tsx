@@ -1,3 +1,8 @@
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from 'react-native-gesture-handler/jest-utils';
+import { merge } from 'lodash';
 import { initialState } from '../../_mocks_/initialState';
 import {
   renderScreen,
@@ -197,7 +202,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
   }),
 }));
 
-// Mock useSubmitBridgeTx hook (needed because SwapsConfirmButton imports it)
+// Mock useSubmitBridgeTx hook (needed because SwapsMarketOrderConfirmButton imports it)
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({
@@ -236,6 +241,7 @@ jest.mock(
 
 const mockNavigate = jest.fn();
 const mockSetParams = jest.fn();
+const mockGoBack = jest.fn();
 const mockFocusEffects: (() => void | (() => void))[] = [];
 const mockRoute = {
   params: {
@@ -254,6 +260,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setParams: mockSetParams,
       setOptions: jest.fn(),
+      goBack: mockGoBack,
     }),
     useRoute: () => mockRoute,
   };
@@ -1747,7 +1754,7 @@ describe('BridgeView', () => {
   });
 
   describe('location forwarding', () => {
-    it('forwards route.params.location to SwapsConfirmButton via price impact modal navigation', async () => {
+    it('forwards route.params.location to SwapsMarketOrderConfirmButton via price impact modal navigation', async () => {
       mockRoute.params = {
         sourcePage: 'test',
         location: MetaMetricsSwapsEventSource.MainView,
@@ -1757,7 +1764,7 @@ describe('BridgeView', () => {
       // navigate to the PriceImpactModal — the location value is embedded in
       // the navigation params, making this the easiest observable side-effect
       // to assert for location forwarding.
-      // The component reads activeQuote.quote.priceData.priceImpact (raw decimal),
+      // The component reads activeQuote.quote.priceData.priceImpact.amount (raw decimal),
       // so we must override it alongside the formatted display string.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
@@ -2511,6 +2518,125 @@ describe('BridgeView', () => {
       expect(
         getByText(strings('swaps.market_price_unavailable')),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Tab swipe navigation', () => {
+    const stateWithTabsEnabled = () =>
+      merge({}, mockState, {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                swapsLimitOrder: { enabled: true },
+                swapsRecurringBuy: { enabled: true },
+              },
+            },
+          },
+        },
+      }) as DeepPartial<RootState>;
+
+    const swipe = async (translationX: number, velocityX = 0) => {
+      await act(async () => {
+        fireGestureHandler(
+          getByGestureTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE),
+          [{ translationX, velocityX }],
+        );
+        await Promise.resolve();
+      });
+    };
+
+    it('navigates to the next tab on a left swipe', async () => {
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeNull();
+
+      await swipe(-80, -600);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('navigates to the previous tab on a right swipe', async () => {
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      await swipe(80, 600);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeNull();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('navigates back when swiping right on the first tab', async () => {
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await swipe(80, 600);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+    });
+
+    it('does not swipe past the last tab', async () => {
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      await swipe(-80, -600);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('navigates back on a right swipe over the tab content when the tabs bar is hidden', async () => {
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: mockState },
+      );
+
+      await swipe(80, 600);
+
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 });

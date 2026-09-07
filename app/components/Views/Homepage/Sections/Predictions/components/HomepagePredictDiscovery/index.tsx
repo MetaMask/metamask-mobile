@@ -17,7 +17,9 @@ import {
 import { usePredictNavigation } from '../../../../../../UI/Predict/hooks/usePredictNavigation';
 import {
   HOMEPAGE_PREDICT_EVENT_SLOTS,
+  HOMEPAGE_PREDICT_MARKET_SLOTS,
   HOMEPAGE_PREDICT_SERIES_SLOT,
+  isHomepagePredictEventSlot,
 } from '../../constants/homepagePredictMarketSlots';
 import type { PredictMarket } from '../../../../../../UI/Predict/types';
 import type { UseHomepagePredictMarketSlotsResult } from '../../hooks/useHomepagePredictMarketSlots';
@@ -50,19 +52,23 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
 }) => {
   const navigation = useNavigation();
   const { navigateToMarketDetails } = usePredictNavigation();
-  const eventSlotRows = useMemo<ChampionshipRowState[]>(
-    () =>
-      HOMEPAGE_PREDICT_EVENT_SLOTS.map(({ id, slug }) => {
-        const market = marketSlots.marketData.find(
-          (candidate) => candidate.id === id && candidate.slug === slug,
+  const eventSlotStateById = useMemo(() => {
+    const states = new Map<string, ChampionshipRowState>();
+    for (const { id, slug } of HOMEPAGE_PREDICT_EVENT_SLOTS) {
+      const market = marketSlots.marketData.find(
+        (candidate) => candidate.id === id && candidate.slug === slug,
+      );
+      if (market) {
+        states.set(id, { kind: 'market', market, detailsTitle: undefined });
+      } else {
+        states.set(
+          id,
+          marketSlots.isFetching ? { kind: 'loading' } : { kind: 'empty' },
         );
-        if (market) {
-          return { kind: 'market', market, detailsTitle: undefined };
-        }
-        return marketSlots.isFetching ? { kind: 'loading' } : { kind: 'empty' };
-      }),
-    [marketSlots.isFetching, marketSlots.marketData],
-  );
+      }
+    }
+    return states;
+  }, [marketSlots.isFetching, marketSlots.marketData]);
 
   const handleBtcRow = useCallback(
     (
@@ -133,16 +139,20 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
         entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
       >
         <Box twClassName="px-4">
-          <BtcLiveRow onPress={handleBtcRow} />
-          {eventSlotRows.map((state, index) => (
-            <ChampionshipRow
-              key={HOMEPAGE_PREDICT_EVENT_SLOTS[index].id}
-              state={state}
-              onPress={handleChampionshipRowPress}
-              transactionActiveAbTests={transactionActiveAbTests}
-              testID={`homepage-predict-discovery-market-slot-${index + 2}`}
-            />
-          ))}
+          {HOMEPAGE_PREDICT_MARKET_SLOTS.map((slot, index) => {
+            if (!isHomepagePredictEventSlot(slot)) {
+              return <BtcLiveRow key={slot.series.id} onPress={handleBtcRow} />;
+            }
+            return (
+              <ChampionshipRow
+                key={slot.id}
+                state={eventSlotStateById.get(slot.id) ?? { kind: 'empty' }}
+                onPress={handleChampionshipRowPress}
+                transactionActiveAbTests={transactionActiveAbTests}
+                testID={`homepage-predict-discovery-market-slot-${index + 1}`}
+              />
+            );
+          })}
         </Box>
       </PredictEntryPointProvider>
     </>

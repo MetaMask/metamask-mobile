@@ -10,6 +10,7 @@ export const predictCryptoTargetPriceKeys = {
     eventStartTime: string,
     variant: string,
     endDate: string,
+    twapWindowSeconds?: GetCryptoTargetPriceParams['twapWindowSeconds'],
   ) =>
     [
       ...predictCryptoTargetPriceKeys.all(),
@@ -18,6 +19,7 @@ export const predictCryptoTargetPriceKeys = {
       eventStartTime,
       variant,
       endDate,
+      twapWindowSeconds,
     ] as const,
 };
 
@@ -32,6 +34,7 @@ export const predictCryptoTargetPriceOptions = ({
   eventStartTime,
   variant,
   endDate,
+  twapWindowSeconds,
 }: CryptoTargetPriceQueryParams) =>
   queryOptions<number, Error>({
     queryKey: predictCryptoTargetPriceKeys.detail(
@@ -40,6 +43,7 @@ export const predictCryptoTargetPriceOptions = ({
       eventStartTime,
       variant,
       endDate,
+      twapWindowSeconds,
     ),
     queryFn: async (): Promise<number> => {
       const price = await Engine.context.PredictController.getCryptoTargetPrice(
@@ -49,6 +53,7 @@ export const predictCryptoTargetPriceOptions = ({
           eventStartTime,
           variant,
           endDate,
+          twapWindowSeconds,
         },
       );
 
@@ -60,5 +65,5 @@ export const predictCryptoTargetPriceOptions = ({
     },
 
     staleTime: Infinity,
-    cacheTime: Infinity,
+    gcTime: Infinity,
   });

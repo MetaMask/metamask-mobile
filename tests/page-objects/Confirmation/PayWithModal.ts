@@ -1,9 +1,5 @@
 import { PayWithBottomSheetIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import {
-  Gestures,
-  Matchers,
-  type EncapsulatedElementType,
-} from '../../framework';
+import { Gestures, Matchers, type AppiumElement } from '../../framework';
 
 /**
  * Page object for the "pay with" bottom sheet opened from the transaction pay
@@ -11,33 +7,33 @@ import {
  * secondary all-assets picker handled by PayWithModalTokenPicker.
  */
 class PayWithModal {
-  get preferredTokenRow(): EncapsulatedElementType {
+  get preferredTokenRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
     );
   }
 
-  get noFeeTokenRow(): EncapsulatedElementType {
+  get noFeeTokenRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PayWithBottomSheetIDs.CRYPTO_NO_FEE_TOKEN_ROW,
     );
   }
 
-  get otherAssetsRow(): EncapsulatedElementType {
+  get otherAssetsRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PayWithBottomSheetIDs.CRYPTO_OTHER_ASSETS_ROW,
     );
   }
 
-  get moneyAccountRow(): EncapsulatedElementType {
+  get moneyAccountRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(PayWithBottomSheetIDs.MONEY_ACCOUNT_ROW);
   }
 
-  get perpsBalanceRow(): EncapsulatedElementType {
+  get perpsBalanceRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(PayWithBottomSheetIDs.PERPS_BALANCE_ROW);
   }
 
-  get predictBalanceRow(): EncapsulatedElementType {
+  get predictBalanceRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(PayWithBottomSheetIDs.PREDICT_BALANCE_ROW);
   }
 

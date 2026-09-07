@@ -7,6 +7,7 @@ import { getMaybeHexChainId } from '../../../../util/bridge';
 const NON_EVM_NETWORK_NAMES: Record<string, string> = {
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'Solana',
   'bip122:000000000019d6689c085ae165831e93': 'Bitcoin',
+  'stellar:pubnet': 'Stellar',
 };
 
 /**

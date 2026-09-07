@@ -12,9 +12,36 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { NotificationChannel } from '../../../../core/Analytics/events/channels';
 import Logger from '../../../../util/Logger';
+import type { WalletActivityPreference } from '@metamask/authenticated-user-storage';
 
 jest.mock('./hooks/useNotificationStoragePreferences');
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mock('./AccountsList', () => {
+  const MockView = jest.requireActual('react-native').View;
+
+  return {
+    AccountsList: ({
+      ListHeaderComponent,
+    }: {
+      ListHeaderComponent?: React.ReactElement;
+    }) => (
+      <>
+        {ListHeaderComponent}
+        <MockView testID="notification-settings-wallet-activity-list" />
+      </>
+    ),
+  };
+});
+jest.mock('./AccountsList.hooks', () => ({
+  useWalletActivityAccountSelection: () => ({
+    accountProps: {},
+    notificationAccountListProps: {},
+    hasEnabledAccount: true,
+    hasNotificationAccounts: true,
+    isUpdatingAllAccounts: false,
+    toggleAllAccounts: jest.fn(),
+  }),
+}));
 
 const PUSH_TOGGLE =
   NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE;
@@ -26,15 +53,19 @@ const mockTrackEvent = jest.fn();
 
 const arrangePreferences = ({
   hasPreferences = true,
-}: { hasPreferences?: boolean } = {}) => {
+  walletActivity = {
+    pushNotificationsEnabled: true,
+    inAppNotificationsEnabled: true,
+    accounts: [],
+  },
+}: {
+  hasPreferences?: boolean;
+  walletActivity?: WalletActivityPreference;
+} = {}) => {
   jest.mocked(useNotificationStoragePreferences).mockReturnValue({
     preferences: hasPreferences
       ? {
-          walletActivity: {
-            pushNotificationsEnabled: true,
-            inAppNotificationsEnabled: true,
-            accounts: [],
-          },
+          walletActivity,
           marketing: {
             pushNotificationsEnabled: false,
             inAppNotificationsEnabled: false,
@@ -119,6 +150,79 @@ describe('NotificationSettingsSectionContent', () => {
 
     expect(screen.getByTestId(PUSH_TOGGLE)).toHaveProp('disabled', undefined);
     expect(screen.getByTestId(IN_APP_TOGGLE)).toHaveProp('disabled', undefined);
+  });
+
+  it('uses the section ScrollView for static sections', () => {
+    renderContent();
+
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.SECTION_SCROLL_VIEW,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        NotificationSettingsViewSelectorsIDs.WALLET_ACTIVITY_LIST,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('uses the wallet activity list as the only section scroller', () => {
+    renderContent({
+      type: 'walletActivity',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
+    });
+
+    expect(
+      screen.queryByTestId(
+        NotificationSettingsViewSelectorsIDs.SECTION_SCROLL_VIEW,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.WALLET_ACTIVITY_LIST,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Wallet activity')).toBeOnTheScreen();
+  });
+
+  it('omits the channel toggles for the wallet activity section', () => {
+    renderContent({
+      type: 'walletActivity',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
+    });
+
+    expect(screen.queryByTestId(PUSH_TOGGLE)).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(IN_APP_TOGGLE)).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.WALLET_ACTIVITY_LIST,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the wallet activity accounts interactive when both stored channel flags are off', () => {
+    arrangePreferences({
+      walletActivity: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+        accounts: [],
+      },
+    });
+
+    renderContent({
+      type: 'walletActivity',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
+    });
+
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL,
+      ),
+    ).not.toBeDisabled();
   });
 
   it('disables both channel toggles when disabled is true', () => {

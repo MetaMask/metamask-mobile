@@ -8,7 +8,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import useBalance from './useBalance';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { hexToBN } from '../../../../../util/number';
+import { hexToBigInt } from '../../../../../util/number/bigint';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
@@ -89,12 +89,10 @@ const initialState = {
         tokenBalances: {
           [MOCK_ADDRESS_1]: {
             '0x1': {
-              '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48':
-                hexToBN('0x14fb180'),
+              '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': '0x14fb180',
             },
             '0x89': {
-              '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48':
-                hexToBN('0x14fb180'),
+              '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': '0x14fb180',
             },
           },
         } as unknown as TokenBalancesControllerState,
@@ -170,6 +168,12 @@ const initialState = {
 };
 
 describe('useBalance', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectSelectedInternalAccountByScope.mockReset();
+    mockSelectMultichainBalances.mockReset();
+  });
+
   it('returns default if not asset is provided', async () => {
     const { result } = renderHookWithProvider(() => useBalance(), {
       state: initialState,
@@ -196,7 +200,7 @@ describe('useBalance', () => {
     expect(result.current.balance).toBe('12.345');
     expect(result.current.balanceFiat).toBe('$24690.00');
     expect(result.current.balanceBN).toStrictEqual(
-      hexToBN(toHex('12345000000000000000')),
+      hexToBigInt(toHex('12345000000000000000')),
     );
   });
 
@@ -215,7 +219,9 @@ describe('useBalance', () => {
 
     expect(result.current.balance).toBe('22');
     expect(result.current.balanceFiat).toBe('$22.00');
-    expect(result.current.balanceBN).toStrictEqual(hexToBN(toHex('22000000')));
+    expect(result.current.balanceBN).toStrictEqual(
+      hexToBigInt(toHex('22000000')),
+    );
   });
 
   it('uses the asset chain native rate, not the globally selected network rate', async () => {
@@ -238,7 +244,7 @@ describe('useBalance', () => {
     expect(result.current.balance).toBe('2');
     expect(result.current.balanceFiat).toBe('$1200.00');
     expect(result.current.balanceBN).toStrictEqual(
-      hexToBN(toHex('2000000000000000000')),
+      hexToBigInt(toHex('2000000000000000000')),
     );
   });
 

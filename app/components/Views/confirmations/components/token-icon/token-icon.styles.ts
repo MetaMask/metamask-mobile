@@ -29,7 +29,10 @@ const styleSheet = (params: {
     borderRadius: 99,
   };
 
+  const badge: ViewStyle = {};
+
   return StyleSheet.create({
+    badge,
     container,
     tokenIcon,
   });

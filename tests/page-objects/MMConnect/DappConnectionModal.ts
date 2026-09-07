@@ -1,11 +1,7 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import {
-  getDriver,
-  sleep,
-  type EncapsulatedElementType,
-} from '../../framework';
+import { getDriver, sleep, type AppiumElement } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import {
@@ -14,19 +10,19 @@ import {
 } from '../../../app/components/Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
 
 class DappConnectionModal {
-  get connectButton(): EncapsulatedElementType {
+  get connectButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
     );
   }
 
-  get updateAccountsButton(): EncapsulatedElementType {
+  get updateAccountsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
 
-  get editAccountsButton(): EncapsulatedElementType {
+  get editAccountsButton(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByNativeXPath(
         '//android.view.ViewGroup[@content-desc="Edit accounts"]',
@@ -37,32 +33,32 @@ class DappConnectionModal {
     );
   }
 
-  get permissionsTabButton(): EncapsulatedElementType {
+  get permissionsTabButton(): Promise<AppiumElement> {
     return this.getExactTextElement(
       ConnectedAccountModalSelectorsText.PERMISSION_LINK,
     );
   }
 
-  get editNetworksButton(): EncapsulatedElementType {
+  get editNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
     );
   }
 
-  get updateNetworksButton(): EncapsulatedElementType {
+  get updateNetworksButton(): Promise<AppiumElement> {
     return this.getExactTextElement('Update');
   }
 
-  getAccountButton(accountName: string): EncapsulatedElementType {
+  getAccountButton(accountName: string): Promise<AppiumElement> {
     return this.getExactTextElement(accountName);
   }
 
-  getNetworkButton(networkName: string): EncapsulatedElementType {
+  getNetworkButton(networkName: string): Promise<AppiumElement> {
     return this.getExactTextElement(networkName);
   }
 
-  /** Exact text match (legacy PlaywrightMatchers.getElementByText(..., true)). */
-  private getExactTextElement(text: string): EncapsulatedElementType {
+  /** Exact text match (legacy AppiumMatchers.getElementByText(..., true)). */
+  private getExactTextElement(text: string): Promise<AppiumElement> {
     const escaped = text.replace(/'/g, "\\'");
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByNativeXPath(

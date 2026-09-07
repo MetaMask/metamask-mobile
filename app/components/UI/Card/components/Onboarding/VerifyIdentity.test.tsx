@@ -566,7 +566,17 @@ describe('VerifyIdentity Component', () => {
       await waitFor(() => {
         expect(Logger.error).toHaveBeenCalledWith(
           expect.any(Error),
-          'Veriff verification failed with error=CAMERA_UNAVAILABLE',
+          expect.objectContaining({
+            tags: { feature: 'card', provider: 'baanx' },
+            context: expect.objectContaining({
+              name: 'VerifyIdentity',
+              data: expect.objectContaining({
+                method: 'veriffSdk',
+                status: 'error',
+                errorCode: 'CAMERA_UNAVAILABLE',
+              }),
+            }),
+          }),
         );
         expect(mockDispatch).not.toHaveBeenCalled();
       });

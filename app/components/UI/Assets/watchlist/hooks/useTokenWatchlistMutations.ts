@@ -169,10 +169,13 @@ const useWatchlistMutation = <TInput>({
         input,
       );
 
-      queryClient.setQueryData<WatchlistBlob>(tokenWatchlistQueryKeys.blob, {
-        assets: nextAssets,
-        version: 1,
-      });
+      queryClient.setQueryData<WatchlistBlob>(
+        tokenWatchlistQueryKeys.blob,
+        () => ({
+          assets: nextAssets,
+          version: 1,
+        }),
+      );
       queryClient.setQueryData<WatchlistTokenMetadata[]>(
         tokenWatchlistQueryKeys.hydrated,
         (old) => applyOptimisticToHydrated(old, nextAssets) ?? old,
