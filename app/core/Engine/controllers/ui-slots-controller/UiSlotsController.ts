@@ -1,4 +1,5 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
+import { trace, TraceName } from '../../../../util/trace';
 import {
   UI_SLOTS_CONTRACT_MAJOR,
   UI_SLOTS_HARD_TTL_MS,
@@ -12,7 +13,6 @@ import {
 import type { UiSlotsContractRegistry } from './contracts/registry';
 import {
   isRetryableUiSlotsError,
-  type FetchUiSlotsScreenRequest,
   type FetchUiSlotsScreenResult,
   UiSlotsHttpError,
   type UiSlotsReadTransport,
@@ -24,6 +24,7 @@ import {
   type UiSlotsScreenId,
   type UiSlotsScreenResponse,
   type StoredScreenConfiguration,
+  type UiSlot,
   type UiSlotsDiagnostics,
 } from './types';
 
@@ -33,7 +34,12 @@ import {
  * backed-off retry; only `ready` means the cached freshness window is current,
  * so callers must not schedule off `getNextRefreshAt` for the other outcomes.
  */
-export type UiSlotsLoadOutcome = 'ready' | 'stale' | 'error' | 'disabled';
+export type UiSlotsLoadOutcome =
+  | 'ready'
+  | 'stale'
+  | 'error'
+  | 'disabled'
+  | 'superseded';
 
 /**
  * The token a screen currently loads under. Only the token still held for a
@@ -42,6 +48,8 @@ export type UiSlotsLoadOutcome = 'ready' | 'stale' | 'error' | 'disabled';
  */
 interface ActiveRequest {
   locale: string;
+  force: boolean;
+  abortController: AbortController;
   promise: Promise<UiSlotsLoadOutcome>;
 }
 
@@ -83,13 +91,43 @@ const countByCode = (
 const buildConfigurationKey = (screenId: UiSlotsScreenId, locale: string) =>
   `${screenId}:${encodeURIComponent(locale)}:${UI_SLOTS_CONTRACT_MAJOR}`;
 
+const reuseUnchangedSlots = (
+  previous: Record<string, UiSlot> | undefined,
+  next: Record<string, UiSlot>,
+): Record<string, UiSlot> => {
+  if (!previous) {
+    return next;
+  }
+
+  const nextIds = Object.keys(next);
+  if (nextIds.length !== Object.keys(previous).length) {
+    return next;
+  }
+
+  const merged: Record<string, UiSlot> = {};
+  let changed = false;
+  for (const id of nextIds) {
+    const incoming = next[id];
+    const existing = previous[id];
+    if (
+      existing &&
+      existing.contentId === incoming.contentId &&
+      existing.revision === incoming.revision
+    ) {
+      merged[id] = existing;
+    } else {
+      merged[id] = incoming;
+      changed = true;
+    }
+  }
+
+  return changed ? merged : previous;
+};
+
 const getUiSlotsLocaleCandidates = (
-  screenId: UiSlotsScreenId,
+  _screenId: UiSlotsScreenId,
   locale: string,
-): string[] =>
-  screenId === 'wallet-home'
-    ? [...new Set([locale, locale.split('-')[0], 'en'])]
-    : [locale];
+): string[] => [...new Set([locale, locale.split('-')[0], 'en'])];
 
 export class UiSlotsController extends BaseController<
   typeof UI_SLOTS_CONTROLLER_NAME,
@@ -103,6 +141,8 @@ export class UiSlotsController extends BaseController<
   readonly #diagnostics: UiSlotsDiagnostics;
   readonly #activeRequestByScreen = new Map<UiSlotsScreenId, ActiveRequest>();
   readonly #missingConfigurationUntil = new Map<string, number>();
+  readonly #refreshedAtByConfiguration = new Map<string, number>();
+  readonly #etagByConfiguration = new Map<string, string>();
   /**
    * Responses already parsed against this build's contracts, so a persisted
    * configuration is validated once per session and its object identity stays
@@ -151,18 +191,47 @@ export class UiSlotsController extends BaseController<
     screenId: UiSlotsScreenId,
     locale: string,
   ): Promise<UiSlotsLoadOutcome> {
+    return this.#startScreenLoad(screenId, locale, false);
+  }
+
+  refreshScreen(
+    screenId: UiSlotsScreenId,
+    locale: string,
+  ): Promise<UiSlotsLoadOutcome> {
+    return this.#startScreenLoad(screenId, locale, true);
+  }
+
+  cancelScreenLoad(screenId: UiSlotsScreenId): void {
+    const active = this.#activeRequestByScreen.get(screenId);
+    if (!active) {
+      return;
+    }
+    this.#activeRequestByScreen.delete(screenId);
+    active.abortController.abort();
+  }
+
+  #startScreenLoad(
+    screenId: UiSlotsScreenId,
+    locale: string,
+    force: boolean,
+  ): Promise<UiSlotsLoadOutcome> {
     if (!this.#enabled) {
       this.#clearActiveConfiguration(screenId);
       return Promise.resolve('disabled');
     }
 
     const active = this.#activeRequestByScreen.get(screenId);
-    if (active?.locale === locale) {
+    if (active?.locale === locale && (!force || active.force)) {
       return active.promise;
     }
+    active?.abortController.abort();
 
     // The token has to be readable by `#loadScreen` before its promise exists.
-    const request = { locale } as ActiveRequest;
+    const request = {
+      locale,
+      force,
+      abortController: new AbortController(),
+    } as ActiveRequest;
     this.#activeRequestByScreen.set(screenId, request);
     request.promise = this.#loadScreen(screenId, locale, request).finally(
       () => {
@@ -188,6 +257,9 @@ export class UiSlotsController extends BaseController<
     });
 
     if (!enabled) {
+      for (const request of this.#activeRequestByScreen.values()) {
+        request.abortController.abort();
+      }
       this.#activeRequestByScreen.clear();
     }
   }
@@ -200,19 +272,32 @@ export class UiSlotsController extends BaseController<
     if (!this.#enabled) {
       return undefined;
     }
-    const refreshTimes = getUiSlotsLocaleCandidates(screenId, locale).flatMap(
-      (candidate) => {
-        const key = buildConfigurationKey(screenId, candidate);
-        const fetchedAt = this.state.screenConfigurations[key]?.fetchedAt;
-        const missingUntil = this.#missingConfigurationUntil.get(key);
-        return [
-          ...(fetchedAt !== undefined && Number.isFinite(fetchedAt)
-            ? [fetchedAt + UI_SLOTS_SOFT_TTL_MS]
-            : []),
-          ...(missingUntil === undefined ? [] : [missingUntil]),
-        ];
-      },
-    );
+    const candidates = getUiSlotsLocaleCandidates(screenId, locale);
+    const activeKey =
+      this.state.activeConfigurations[screenId]?.configurationKey;
+    const activeCandidateIndex = activeKey
+      ? candidates.findIndex(
+          (candidate) =>
+            buildConfigurationKey(screenId, candidate) === activeKey,
+        )
+      : -1;
+    const relevantCandidates =
+      activeCandidateIndex >= 0
+        ? candidates.slice(0, activeCandidateIndex + 1)
+        : candidates;
+    const refreshTimes = relevantCandidates.flatMap((candidate) => {
+      const key = buildConfigurationKey(screenId, candidate);
+      const fetchedAt =
+        this.#refreshedAtByConfiguration.get(key) ??
+        this.state.screenConfigurations[key]?.fetchedAt;
+      const missingUntil = this.#missingConfigurationUntil.get(key);
+      return [
+        ...(fetchedAt !== undefined && Number.isFinite(fetchedAt)
+          ? [fetchedAt + UI_SLOTS_SOFT_TTL_MS]
+          : []),
+        ...(missingUntil === undefined ? [] : [missingUntil]),
+      ];
+    });
     return refreshTimes.length > 0 ? Math.min(...refreshTimes) : undefined;
   }
 
@@ -239,34 +324,45 @@ export class UiSlotsController extends BaseController<
         fallback.cached.response,
       );
     }
+    let lastRetryableError: unknown;
 
     for (const { locale: candidate, key, cached } of candidates) {
       if (this.#activeRequestByScreen.get(screenId) !== request) {
-        return 'ready';
+        return 'superseded';
       }
 
       if (cached) {
         this.#activateConfiguration(key, screenId, cached.response);
-        if (this.#now() - cached.fetchedAt < UI_SLOTS_SOFT_TTL_MS) {
+        if (
+          !request.force &&
+          this.#now() - cached.fetchedAt < UI_SLOTS_SOFT_TTL_MS
+        ) {
           return 'ready';
         }
       } else {
         const missingUntil = this.#missingConfigurationUntil.get(key);
-        if (missingUntil !== undefined && this.#now() < missingUntil) {
+        if (
+          !request.force &&
+          missingUntil !== undefined &&
+          this.#now() < missingUntil
+        ) {
           continue;
         }
         this.#missingConfigurationUntil.delete(key);
       }
 
       try {
-        const result = await this.#fetchScreen({
-          screenId,
-          locale: candidate,
-          etag: cached?.etag,
-        });
+        const result = await trace({ name: TraceName.UiSlotsLoad }, () =>
+          this.#readClient.fetchScreen({
+            screenId,
+            locale: candidate,
+            etag: cached?.etag,
+            signal: request.abortController.signal,
+          }),
+        );
 
         if (this.#activeRequestByScreen.get(screenId) !== request) {
-          return 'ready';
+          return 'superseded';
         }
         this.#missingConfigurationUntil.delete(key);
         return this.#applyScreenResult(
@@ -277,6 +373,9 @@ export class UiSlotsController extends BaseController<
           candidate,
         );
       } catch (error) {
+        if (this.#activeRequestByScreen.get(screenId) !== request) {
+          return 'superseded';
+        }
         if (
           !cached &&
           error instanceof UiSlotsHttpError &&
@@ -288,10 +387,27 @@ export class UiSlotsController extends BaseController<
           );
           continue;
         }
-        return this.#handleLoadError(error, request, screenId, Boolean(cached));
+        if (!cached && isRetryableUiSlotsError(error)) {
+          lastRetryableError = error;
+          continue;
+        }
+        return this.#handleLoadError(
+          error,
+          request,
+          screenId,
+          Boolean(cached || fallback?.cached),
+        );
       }
     }
 
+    if (lastRetryableError) {
+      return this.#handleLoadError(
+        lastRetryableError,
+        request,
+        screenId,
+        Boolean(fallback?.cached),
+      );
+    }
     this.#clearActiveConfiguration(screenId);
     return 'ready';
   }
@@ -307,12 +423,19 @@ export class UiSlotsController extends BaseController<
       if (!cached) {
         throw new Error('UI Slots returned 304 without cached content.');
       }
-      // Keep the response identity stable; only its freshness metadata changed.
+      const fetchedAt = this.#now();
+      this.#refreshedAtByConfiguration.set(key, fetchedAt);
+      if (result.etag) {
+        this.#etagByConfiguration.set(key, result.etag);
+      }
       this.update((state) => {
         const stored = state.screenConfigurations[key];
-        if (stored) {
-          stored.fetchedAt = this.#now();
-          stored.etag = result.etag ?? stored.etag;
+        if (!stored) {
+          return;
+        }
+        stored.fetchedAt = fetchedAt;
+        if (result.etag) {
+          stored.etag = result.etag;
         }
       });
       return 'ready';
@@ -344,7 +467,10 @@ export class UiSlotsController extends BaseController<
     hasCachedConfiguration: boolean,
   ): UiSlotsLoadOutcome {
     if (this.#activeRequestByScreen.get(screenId) !== request) {
-      return 'ready';
+      return 'superseded';
+    }
+    if (error instanceof Error && error.name === 'AbortError') {
+      return 'superseded';
     }
     const validationError =
       error instanceof UiSlotsResponseValidationError ? error : undefined;
@@ -372,20 +498,6 @@ export class UiSlotsController extends BaseController<
     return hasCachedConfiguration ? 'stale' : 'error';
   }
 
-  async #fetchScreen(
-    request: FetchUiSlotsScreenRequest,
-  ): Promise<FetchUiSlotsScreenResult> {
-    for (let retries = 0; ; retries += 1) {
-      try {
-        return await this.#readClient.fetchScreen(request);
-      } catch (error) {
-        if (retries >= 2 || !isRetryableUiSlotsError(error)) {
-          throw error;
-        }
-      }
-    }
-  }
-
   /**
    * Returns cached content that this build can still parse, validating
    * persisted entries once per session. Anything stale or incompatible is
@@ -403,14 +515,17 @@ export class UiSlotsController extends BaseController<
 
     const validatedResponse = this.#validatedResponses.get(configurationKey);
     if (validatedResponse) {
-      if (this.#now() - stored.fetchedAt >= UI_SLOTS_HARD_TTL_MS) {
+      const fetchedAt =
+        this.#refreshedAtByConfiguration.get(configurationKey) ??
+        stored.fetchedAt;
+      if (this.#now() - fetchedAt >= UI_SLOTS_HARD_TTL_MS) {
         this.#forgetConfiguration(configurationKey, screenId);
         return undefined;
       }
       return {
         response: validatedResponse,
-        etag: stored.etag,
-        fetchedAt: stored.fetchedAt,
+        etag: this.#etagByConfiguration.get(configurationKey) ?? stored.etag,
+        fetchedAt,
       };
     }
 
@@ -481,17 +596,32 @@ export class UiSlotsController extends BaseController<
     response: UiSlotsScreenResponse,
     etag: string | undefined,
   ): void {
-    const slotsById = Object.fromEntries(
-      response.slots.map((slot) => [slot.slotId, slot]),
+    const previousActive = this.state.activeConfigurations[screenId];
+    const slotsById = reuseUnchangedSlots(
+      previousActive?.configurationKey === configurationKey
+        ? previousActive.slotsById
+        : undefined,
+      Object.fromEntries(response.slots.map((slot) => [slot.slotId, slot])),
     );
+    const activeSlotsUnchanged =
+      previousActive?.configurationKey === configurationKey &&
+      previousActive.slotsById === slotsById;
     const evictedKeys = Object.entries(this.state.screenConfigurations)
       .filter(([key]) => key !== configurationKey)
       .sort(([, first], [, second]) => second.fetchedAt - first.fetchedAt)
       .slice(UI_SLOTS_MAX_CONFIGURATIONS - 1)
       .map(([key]) => key);
     this.#validatedResponses.set(configurationKey, response);
+    this.#refreshedAtByConfiguration.delete(configurationKey);
+    if (etag) {
+      this.#etagByConfiguration.set(configurationKey, etag);
+    } else {
+      this.#etagByConfiguration.delete(configurationKey);
+    }
     for (const key of evictedKeys) {
       this.#validatedResponses.delete(key);
+      this.#refreshedAtByConfiguration.delete(key);
+      this.#etagByConfiguration.delete(key);
     }
     this.update((state) => {
       state.screenConfigurations[configurationKey] = {
@@ -499,7 +629,9 @@ export class UiSlotsController extends BaseController<
         etag,
         fetchedAt: this.#now(),
       };
-      state.activeConfigurations[screenId] = { configurationKey, slotsById };
+      if (!activeSlotsUnchanged) {
+        state.activeConfigurations[screenId] = { configurationKey, slotsById };
+      }
       for (const key of evictedKeys) {
         delete state.screenConfigurations[key];
         for (const [activeScreenId, active] of Object.entries(
@@ -552,6 +684,8 @@ export class UiSlotsController extends BaseController<
     screenId: UiSlotsScreenId,
   ): void {
     this.#validatedResponses.delete(configurationKey);
+    this.#refreshedAtByConfiguration.delete(configurationKey);
+    this.#etagByConfiguration.delete(configurationKey);
     this.update((state) => {
       delete state.screenConfigurations[configurationKey];
       if (

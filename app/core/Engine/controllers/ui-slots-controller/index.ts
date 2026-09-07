@@ -10,7 +10,7 @@ import {
 } from './UiSlotsController';
 import type { UiSlotsControllerMessenger } from './types';
 import { UI_SLOTS_REMOTE_FLAG_NAME } from './config';
-import { PREDICT_UI_SLOTS_V1_CONTRACTS } from '../../../../components/UI/Predict/uiSlots/contracts/v1';
+import { MOBILE_UI_SLOTS_CONTRACTS } from '../../../../components/UI/UiSlots/contractRegistry';
 import { UiSlotsApiReadClient } from './UiSlotsApiReadClient';
 
 export const uiSlotsControllerInit: MessengerClientInitFunction<
@@ -28,7 +28,7 @@ export const uiSlotsControllerInit: MessengerClientInitFunction<
       log: (message, data) => Logger.log(message, data),
       error: (error, data) => Logger.error(error, data),
     },
-    contractRegistry: PREDICT_UI_SLOTS_V1_CONTRACTS,
+    contractRegistry: MOBILE_UI_SLOTS_CONTRACTS,
     state: {
       ...(persistedState.UiSlotsController ?? defaultUiSlotsControllerState),
     },

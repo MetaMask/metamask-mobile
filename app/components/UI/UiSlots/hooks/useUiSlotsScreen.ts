@@ -1,9 +1,10 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useRef, useSyncExternalStore } from 'react';
 import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
+import type { UiSlotsLoadOutcome } from '../../../../core/Engine/controllers/ui-slots-controller/UiSlotsController';
 import type { UiSlotsScreenId } from '../../../../core/Engine/controllers/ui-slots-controller/types';
 import { selectUiSlotsEnabled } from '../../../../selectors/uiSlotsController';
 import Logger from '../../../../util/Logger';
@@ -24,9 +25,15 @@ export const normalizeUiSlotsLocale = (locale: string): string => {
   const [language, ...subtags] = locale.replaceAll('_', '-').split('-');
   return [
     (language || 'en').toLowerCase(),
-    ...subtags.map((subtag) =>
-      /^[a-z]{2}$/iu.test(subtag) ? subtag.toUpperCase() : subtag,
-    ),
+    ...subtags.map((subtag) => {
+      if (/^[a-z]{4}$/iu.test(subtag)) {
+        return `${subtag[0].toUpperCase()}${subtag.slice(1).toLowerCase()}`;
+      }
+      if (/^[a-z]{2}$/iu.test(subtag) || /^\d{3}$/u.test(subtag)) {
+        return subtag.toUpperCase();
+      }
+      return subtag.toLowerCase();
+    }),
   ].join('-');
 };
 
@@ -37,7 +44,7 @@ export const normalizeUiSlotsLocale = (locale: string): string => {
 export function useUiSlotsScreen(
   screenId: UiSlotsScreenId,
   active = true,
-): void {
+): () => Promise<UiSlotsLoadOutcome> {
   const selectedLocale = useSyncExternalStore(
     subscribeToLocale,
     getLocaleSnapshot,
@@ -45,6 +52,10 @@ export function useUiSlotsScreen(
   );
   const locale = normalizeUiSlotsLocale(selectedLocale);
   const enabled = useSelector(selectUiSlotsEnabled);
+  const refreshRef = useRef<() => Promise<UiSlotsLoadOutcome>>(() =>
+    Promise.resolve('disabled'),
+  );
+  const refresh = useCallback(() => refreshRef.current(), []);
 
   useFocusEffect(
     useCallback(() => {
@@ -63,21 +74,28 @@ export function useUiSlotsScreen(
         }
       };
 
-      async function loadAndSchedule() {
+      async function loadAndSchedule(
+        force = false,
+      ): Promise<UiSlotsLoadOutcome> {
         generation += 1;
         const currentGeneration = generation;
         clearTimer();
         if (!isAppActive()) {
-          return;
+          return 'superseded';
         }
 
-        const outcome = await Engine.context.UiSlotsController.loadScreen(
-          screenId,
-          locale,
-        );
+        const outcome = force
+          ? await Engine.context.UiSlotsController.refreshScreen(
+              screenId,
+              locale,
+            )
+          : await Engine.context.UiSlotsController.loadScreen(screenId, locale);
 
         if (currentGeneration !== generation || !isAppActive()) {
-          return;
+          return 'superseded';
+        }
+        if (outcome === 'disabled' || outcome === 'superseded') {
+          return outcome;
         }
 
         // A stale outcome leaves the soft-TTL boundary in the past, so it must
@@ -89,7 +107,7 @@ export function useUiSlotsScreen(
             retryDelay,
           );
           retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY_MS);
-          return;
+          return outcome;
         }
 
         retryDelay = INITIAL_RETRY_DELAY_MS;
@@ -103,7 +121,15 @@ export function useUiSlotsScreen(
             Math.max(nextRefreshAt - Date.now(), INITIAL_RETRY_DELAY_MS),
           );
         }
+        return outcome;
       }
+      refreshRef.current = () => loadAndSchedule(true);
+
+      const abortLoad = () => {
+        generation += 1;
+        clearTimer();
+        Engine.context.UiSlotsController.cancelScreenLoad(screenId);
+      };
 
       const appStateSubscription = AppState.addEventListener(
         'change',
@@ -111,18 +137,19 @@ export function useUiSlotsScreen(
           if (nextState === 'active') {
             loadAndSchedule().catch(Logger.error);
           } else {
-            generation += 1;
-            clearTimer();
+            abortLoad();
           }
         },
       );
       loadAndSchedule().catch(Logger.error);
 
       return () => {
-        generation += 1;
-        clearTimer();
+        abortLoad();
+        refreshRef.current = () => Promise.resolve('disabled');
         appStateSubscription.remove();
       };
     }, [active, enabled, locale, screenId]),
   );
+
+  return refresh;
 }

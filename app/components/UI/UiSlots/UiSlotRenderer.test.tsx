@@ -174,4 +174,23 @@ describe('UiSlotRenderer', () => {
     expect(mockPredictDiscoveryListWidget).toHaveBeenCalled();
     expect(getByText('Bundled discovery')).toBeOnTheScreen();
   });
+
+  it('isolates bundled fallback failures without rendering it recursively', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    const FailingFallback = () => {
+      throw new Error('Bundled fallback failed');
+    };
+
+    const { toJSON } = renderWithProvider(
+      <UiSlotRenderer
+        screenId="wallet-home"
+        slotId="wallet-home.predict-empty-state"
+        fallback={<FailingFallback />}
+      />,
+      { state: createState({ hasActiveConfiguration: false }) },
+    );
+
+    expect(toJSON()).toBeNull();
+    consoleError.mockRestore();
+  });
 });

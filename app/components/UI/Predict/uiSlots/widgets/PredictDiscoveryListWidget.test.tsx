@@ -6,6 +6,7 @@ import { useHomepagePredictMarketSlots } from '../../../../Views/Homepage/Sectio
 import { PredictDiscoveryListHostContext } from './PredictDiscoveryListContext';
 import { PredictDiscoveryListWidget } from './PredictDiscoveryListWidget';
 import type { PredictHomepageMarketSlotReference } from '../types';
+import { HOMEPAGE_PREDICT_MARKET_SLOTS } from '../../../../Views/Homepage/Sections/Predictions/constants/homepagePredictMarketSlots';
 
 const mockHomepagePredictDiscovery = jest.fn((_props: unknown) => null);
 
@@ -91,6 +92,32 @@ describe('PredictDiscoveryListWidget', () => {
       ],
     });
     expect(mockHomepagePredictDiscovery).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses bundled slots and resets loading during unmount', () => {
+    const reportDiscoveryLoading = jest.fn();
+    const host = {
+      enabled: true,
+      title: 'Predictions',
+      onViewAll: jest.fn(),
+      headerTestIdKey: 'predictions' as const,
+      registerDiscoveryRefetch: jest.fn(),
+      reportDiscoveryLoading,
+    };
+    const { unmount } = render(
+      <PredictDiscoveryListHostContext.Provider value={host}>
+        <PredictDiscoveryListWidget />
+      </PredictDiscoveryListHostContext.Provider>,
+    );
+
+    unmount();
+
+    expect(useHomepagePredictMarketSlots).toHaveBeenCalledWith({
+      enabled: true,
+      slots: HOMEPAGE_PREDICT_MARKET_SLOTS,
+    });
+    expect(reportDiscoveryLoading).toHaveBeenNthCalledWith(1, false);
+    expect(reportDiscoveryLoading).toHaveBeenNthCalledWith(2, true);
   });
 
   it('keeps resolved slot identity stable across host rerenders', () => {

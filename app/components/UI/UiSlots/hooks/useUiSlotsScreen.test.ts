@@ -1,4 +1,5 @@
 import { act } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
@@ -9,13 +10,21 @@ import {
 import { normalizeUiSlotsLocale, useUiSlotsScreen } from './useUiSlotsScreen';
 
 const mockLoadScreen = jest.fn().mockResolvedValue('ready');
+const mockRefreshScreen = jest.fn().mockResolvedValue('ready');
+const mockCancelScreenLoad = jest.fn();
 const mockGetNextRefreshAt = jest.fn((): number | undefined => undefined);
 
 jest.mock('@react-navigation/native', () => {
+  const React = jest.requireActual('react');
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useFocusEffect: (effect: () => void | (() => void)) => effect(),
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      React.useEffect(() => {
+        const cleanup = effect();
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [effect]);
+    },
   };
 });
 
@@ -42,6 +51,8 @@ jest.mock('../../../../core/Engine', () => ({
       UiSlotsController: {
         getNextRefreshAt: () => mockGetNextRefreshAt(),
         loadScreen: (...args: unknown[]) => mockLoadScreen(...args),
+        refreshScreen: (...args: unknown[]) => mockRefreshScreen(...args),
+        cancelScreenLoad: (...args: unknown[]) => mockCancelScreenLoad(...args),
       },
     },
   },
@@ -159,10 +170,15 @@ describe('useUiSlotsScreen', () => {
 
   it('does not load when basic functionality is disabled', async () => {
     jest.mocked(useSelector).mockReset().mockReturnValue(false);
-    renderHookWithProvider(() => useUiSlotsScreen('wallet-home'), { state });
+    const { result } = renderHookWithProvider(
+      () => useUiSlotsScreen('wallet-home'),
+      { state },
+    );
     await act(async () => undefined);
 
     expect(mockLoadScreen).not.toHaveBeenCalled();
+    await expect(result.current()).resolves.toBe('disabled');
+    expect(mockRefreshScreen).not.toHaveBeenCalled();
   });
 
   it('does not load when the host feature is inactive', async () => {
@@ -177,7 +193,8 @@ describe('useUiSlotsScreen', () => {
   it.each([
     ['en_US', 'en-US'],
     ['pt_br', 'pt-BR'],
-    ['ZH_hant_tw', 'zh-hant-TW'],
+    ['ZH_hant_tw', 'zh-Hant-TW'],
+    ['es_419', 'es-419'],
   ])('normalizes %s to %s', (locale, expected) => {
     expect(normalizeUiSlotsLocale(locale)).toBe(expected);
   });
@@ -199,5 +216,43 @@ describe('useUiSlotsScreen', () => {
     });
 
     expect(mockLoadScreen).toHaveBeenLastCalledWith('wallet-home', 'fr-FR');
+  });
+
+  it('forces a screen refresh with the normalized locale', async () => {
+    const { result } = renderHookWithProvider(
+      () => useUiSlotsScreen('wallet-home'),
+      { state },
+    );
+    await act(async () => undefined);
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(mockRefreshScreen).toHaveBeenCalledWith('wallet-home', 'pt-BR');
+  });
+
+  it('cancels an in-flight load when the app backgrounds', async () => {
+    renderHookWithProvider(() => useUiSlotsScreen('wallet-home'), { state });
+    await act(async () => undefined);
+
+    const onChange = jest.mocked(AppState.addEventListener).mock.calls[0][1];
+    await act(() => {
+      onChange('background');
+    });
+
+    expect(mockCancelScreenLoad).toHaveBeenCalledWith('wallet-home');
+  });
+
+  it('cancels an in-flight load when the screen blurs', async () => {
+    const { unmount } = renderHookWithProvider(
+      () => useUiSlotsScreen('wallet-home'),
+      { state },
+    );
+    await act(async () => undefined);
+
+    unmount();
+
+    expect(mockCancelScreenLoad).toHaveBeenCalledWith('wallet-home');
   });
 });

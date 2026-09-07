@@ -1,21 +1,16 @@
-import React, { type ComponentType, type ReactNode } from 'react';
+import React, { type ReactNode, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type {
-  UiSlot,
-  UiSlotsScreenId,
-  UiSlotWidget,
-} from '../../../core/Engine/controllers/ui-slots-controller/types';
+import type { UiSlotsScreenId } from '../../../core/Engine/controllers/ui-slots-controller/types';
 import type { RootState } from '../../../reducers';
 import {
-  selectUiSlotsControllerState,
+  makeSelectHasActiveUiSlotsConfiguration,
+  makeSelectUiSlot,
   selectUiSlotsEnabled,
 } from '../../../selectors/uiSlotsController';
-import { PredictDiscoveryListWidget } from '../Predict/uiSlots/widgets/PredictDiscoveryListWidget';
 import { UiSlotErrorBoundary } from './UiSlotErrorBoundary';
+import { MOBILE_UI_SLOT_WIDGETS } from './registry';
 
-const WIDGETS = {
-  'predict-discovery-list': PredictDiscoveryListWidget,
-} satisfies Record<UiSlotWidget['type'], ComponentType<{ slot: UiSlot }>>;
+const FALLBACK_RESET_KEY = {};
 
 export function UiSlotRenderer({
   screenId,
@@ -28,35 +23,42 @@ export function UiSlotRenderer({
   fallback?: ReactNode;
   fallbackOnEmpty?: boolean;
 }) {
-  const slot = useSelector(
-    (state: RootState) =>
-      selectUiSlotsControllerState(state)?.activeConfigurations[screenId]
-        ?.slotsById[slotId],
+  const selectSlot = useMemo(makeSelectUiSlot, []);
+  const selectHasActiveConfiguration = useMemo(
+    makeSelectHasActiveUiSlotsConfiguration,
+    [],
   );
-  const hasActiveConfiguration = useSelector((state: RootState) =>
-    Boolean(
-      selectUiSlotsControllerState(state)?.activeConfigurations[screenId],
-    ),
+  const selectThisSlot = useMemo(
+    () => (state: RootState) => selectSlot(state, screenId, slotId),
+    [selectSlot, screenId, slotId],
   );
+  const selectThisHasActiveConfiguration = useMemo(
+    () => (state: RootState) => selectHasActiveConfiguration(state, screenId),
+    [selectHasActiveConfiguration, screenId],
+  );
+  const slot = useSelector(selectThisSlot);
+  const hasActiveConfiguration = useSelector(selectThisHasActiveConfiguration);
   const enabled = useSelector(selectUiSlotsEnabled);
-  if (!enabled || !hasActiveConfiguration) {
-    return fallback;
-  }
-  if (!slot) {
-    return fallbackOnEmpty ? fallback : null;
+  const useFallback =
+    !enabled || !hasActiveConfiguration || (!slot && fallbackOnEmpty);
+  if (!slot && !useFallback) {
+    return null;
   }
 
-  const Widget = WIDGETS[slot.widget.type];
-  return Widget ? (
+  const Widget = slot && MOBILE_UI_SLOT_WIDGETS[slot.widget.type];
+  const content = useFallback || !Widget ? fallback : <Widget slot={slot} />;
+  if (content === null || content === undefined || content === false) {
+    return null;
+  }
+
+  return (
     <UiSlotErrorBoundary
-      key={`${slot.contentId}:${slot.revision}`}
-      slotId={slot.slotId}
-      contentId={slot.contentId}
-      fallback={fallback}
+      slotId={slot?.slotId ?? slotId}
+      contentId={slot?.contentId ?? 'bundled-fallback'}
+      resetKey={slot ?? FALLBACK_RESET_KEY}
+      fallback={useFallback || !Widget ? null : fallback}
     >
-      <Widget slot={slot} />
+      {content}
     </UiSlotErrorBoundary>
-  ) : (
-    fallback
   );
 }

@@ -24,6 +24,7 @@ export interface FetchUiSlotsScreenRequest {
   screenId: UiSlotsScreenId;
   locale: string;
   etag?: string;
+  signal?: AbortSignal;
 }
 
 export interface UiSlotsReadTransport {
@@ -56,12 +57,20 @@ export class UiSlotsTimeoutError extends Error {
   }
 }
 
+export class UiSlotsNetworkError extends Error {
+  constructor(cause: TypeError) {
+    super('UI Slots API network request failed.', { cause });
+    this.name = 'UiSlotsNetworkError';
+  }
+}
+
 export const isRetryableUiSlotsError = (error: unknown): boolean =>
   error instanceof UiSlotsInvalidResponseError ||
+  error instanceof UiSlotsNetworkError ||
   error instanceof UiSlotsTimeoutError ||
   (error instanceof UiSlotsHttpError
     ? error.status === 429 || error.status >= 500
-    : error instanceof TypeError);
+    : false);
 
 export class UiSlotsApiReadClient implements UiSlotsReadTransport {
   readonly #baseUrl: URL;
@@ -88,6 +97,7 @@ export class UiSlotsApiReadClient implements UiSlotsReadTransport {
     screenId,
     locale,
     etag,
+    signal,
   }: FetchUiSlotsScreenRequest): Promise<FetchUiSlotsScreenResult> {
     const url = new URL(
       `v1/config/ui-slots/${encodeArtifactPart(
@@ -97,6 +107,11 @@ export class UiSlotsApiReadClient implements UiSlotsReadTransport {
     );
 
     const requestController = new AbortController();
+    const abortRequest = () => requestController.abort();
+    signal?.addEventListener('abort', abortRequest, { once: true });
+    if (signal?.aborted) {
+      abortRequest();
+    }
     let timedOut = false;
     const timeout = setTimeout(() => {
       timedOut = true;
@@ -143,9 +158,13 @@ export class UiSlotsApiReadClient implements UiSlotsReadTransport {
       if (timedOut) {
         throw new UiSlotsTimeoutError();
       }
+      if (error instanceof TypeError) {
+        throw new UiSlotsNetworkError(error);
+      }
       throw error;
     } finally {
       clearTimeout(timeout);
+      signal?.removeEventListener('abort', abortRequest);
     }
   }
 }

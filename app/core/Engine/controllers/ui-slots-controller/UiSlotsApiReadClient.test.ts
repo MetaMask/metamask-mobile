@@ -2,6 +2,7 @@ import {
   UiSlotsApiReadClient,
   UiSlotsHttpError,
   UiSlotsInvalidResponseError,
+  UiSlotsNetworkError,
   UiSlotsTimeoutError,
   isRetryableUiSlotsError,
 } from './UiSlotsApiReadClient';
@@ -151,6 +152,35 @@ describe('UiSlotsApiReadClient', () => {
     await request.catch((error) => {
       expect(isRetryableUiSlotsError(error)).toBe(true);
     });
+  });
+
+  it('wraps fetch TypeErrors as retryable network failures', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockRejectedValue(new TypeError('Network request failed'));
+    const client = new UiSlotsApiReadClient({
+      baseUrl: 'https://ui-slots.api.metamask.io',
+      clientVersion: '1.0.0',
+      fetch: fetchMock,
+    });
+
+    const request = client.fetchScreen({
+      screenId: 'wallet-home',
+      locale: 'en',
+    });
+
+    await expect(request).rejects.toBeInstanceOf(UiSlotsNetworkError);
+    await request.catch((error) => {
+      expect(isRetryableUiSlotsError(error)).toBe(true);
+    });
+  });
+
+  it('does not classify arbitrary TypeErrors as retryable network failures', () => {
+    const error = new TypeError('Programming error');
+
+    const retryable = isRetryableUiSlotsError(error);
+
+    expect(retryable).toBe(false);
   });
 
   it('preserves HTTP status errors', async () => {

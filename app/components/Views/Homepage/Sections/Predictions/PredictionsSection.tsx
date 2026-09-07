@@ -51,7 +51,8 @@ import {
 } from '../../abTestConfig';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { UiSlotRenderer } from '../../../../UI/UiSlots/UiSlotRenderer';
-import { BundledPredictDiscoveryList } from '../../../../UI/Predict/uiSlots/widgets/PredictDiscoveryListWidget';
+import { useUiSlotsScreen } from '../../../../UI/UiSlots/hooks/useUiSlotsScreen';
+import { PredictDiscoveryListWidget } from '../../../../UI/Predict/uiSlots/widgets/PredictDiscoveryListWidget';
 import { PredictDiscoveryListHostContext } from '../../../../UI/Predict/uiSlots/widgets/PredictDiscoveryListContext';
 import { HOMEPAGE_PREDICT_MARKET_SLOTS } from './constants/homepagePredictMarketSlots';
 
@@ -281,6 +282,10 @@ const PredictionsSectionDefault = forwardRef<
       predictEmptyStateVariantName,
       isPredictEmptyStateAssignmentActive,
     } = usePredictHomepageDiscoveryExperiment();
+    const refreshUiSlots = useUiSlotsScreen(
+      'wallet-home',
+      isPredictEnabled && isTreatmentDiscovery,
+    );
 
     const {
       markets,
@@ -364,8 +369,16 @@ const PredictionsSectionDefault = forwardRef<
       if (isTreatmentDiscovery && activeDiscoveryRefetchRef.current) {
         tasks.push(activeDiscoveryRefetchRef.current());
       }
+      if (isTreatmentDiscovery) {
+        tasks.push(refreshUiSlots());
+      }
       await Promise.all(tasks);
-    }, [refreshPositions, refetchMarkets, isTreatmentDiscovery]);
+    }, [
+      refreshPositions,
+      refetchMarkets,
+      isTreatmentDiscovery,
+      refreshUiSlots,
+    ]);
 
     const discoveryHasNothingToShow =
       !isTreatmentDiscovery && !isLoadingMarkets && markets.length === 0;
@@ -403,7 +416,7 @@ const PredictionsSectionDefault = forwardRef<
         <UiSlotRenderer
           screenId="wallet-home"
           slotId="wallet-home.predict-empty-state"
-          fallback={<BundledPredictDiscoveryList />}
+          fallback={<PredictDiscoveryListWidget />}
           fallbackOnEmpty
         />
       </PredictDiscoveryListHostContext.Provider>

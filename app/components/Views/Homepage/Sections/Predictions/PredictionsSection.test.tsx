@@ -17,6 +17,8 @@ import { HOMEPAGE_PREDICT_MARKET_SLOTS } from './constants/homepagePredictMarket
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockIsFocused = jest.fn(() => true);
+const mockRefreshUiSlots = jest.fn().mockResolvedValue('ready');
+const mockUseUiSlotsScreen = jest.fn(() => mockRefreshUiSlots);
 const mockCreateEventBuilder = jest.fn((event: unknown) => ({
   addProperties: (properties: Record<string, unknown>) => ({
     build: () => ({ event, properties }),
@@ -28,6 +30,11 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+jest.mock('../../../../UI/UiSlots/hooks/useUiSlotsScreen', () => ({
+  useUiSlotsScreen: (...args: unknown[]) =>
+    Reflect.apply(mockUseUiSlotsScreen, undefined, args),
 }));
 
 const PREDICT_EMPTY_STATE_AB_KEY = 'coreMCU747AbtestPredictPositionsEmptyState';
@@ -374,6 +381,7 @@ describe('PredictionsSection', () => {
       enabled: true,
       slots: HOMEPAGE_PREDICT_MARKET_SLOTS,
     });
+    expect(mockUseUiSlotsScreen).toHaveBeenCalledWith('wallet-home', true);
   });
 
   it('fetches trending markets for control discovery', () => {
@@ -397,6 +405,7 @@ describe('PredictionsSection', () => {
       enabled: true,
     });
     expect(mockUseHomepagePredictMarketSlots).not.toHaveBeenCalled();
+    expect(mockUseUiSlotsScreen).toHaveBeenCalledWith('wallet-home', false);
   });
 
   it.each([true, false])(
@@ -1063,7 +1072,7 @@ describe('PredictionsSection', () => {
   });
 
   describe('refresh functionality', () => {
-    it('refreshes both positions and markets on pull-to-refresh', async () => {
+    it('refreshes positions, markets, and the treatment UI slots assignment', async () => {
       const mockRefetchPositions = jest.fn().mockResolvedValue(undefined);
       const mockRefetchMarkets = jest.fn().mockResolvedValue(undefined);
 
@@ -1090,6 +1099,7 @@ describe('PredictionsSection', () => {
 
       expect(mockRefetchPositions).toHaveBeenCalled();
       expect(mockRefetchMarkets).toHaveBeenCalled();
+      expect(mockRefreshUiSlots).toHaveBeenCalled();
     });
   });
 });
