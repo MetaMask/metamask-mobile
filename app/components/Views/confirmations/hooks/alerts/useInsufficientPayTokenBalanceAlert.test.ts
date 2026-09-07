@@ -34,7 +34,12 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { BigNumber } from 'bignumber.js';
+import { isHardwareAccount } from '../../../../../util/address';
 
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  isHardwareAccount: jest.fn(),
+}));
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayBalance');
 jest.mock('../transactions/useTransactionMetadataRequest');
@@ -160,6 +165,40 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   });
 
   describe('for input', () => {
+    it('waits for updated transaction data before comparing required amounts', () => {
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { ...REQUIRED_TOKEN_MOCK, amountUsd: '2' },
+      ]);
+
+      const { result, rerender } = runHook();
+
+      expect(result.current).toEqual([]);
+
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+      rerender({});
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.InsufficientPayTokenBalance,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
+    it('validates pending input while quotes load', () => {
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+      const { result } = runHook({ pendingAmountUsd: '2' });
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.InsufficientPayTokenBalance,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
     it('returns no alert if pay token balance is greater than required token amount', () => {
       const { result } = runHook();
       expect(result.current).toStrictEqual([]);
@@ -522,6 +561,72 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       const { result } = runHook();
 
       expect(result.current).toStrictEqual([]);
+    });
+
+    it.each(['0x1', '0xe708', CHAIN_IDS.MONAD] as const)(
+      'blocks an unfunded hardware payer on %s despite parent sponsorship',
+      (chainId) => {
+        jest.mocked(isHardwareAccount).mockReturnValue(true);
+        useTransactionMetadataRequestMock.mockReturnValue({
+          type: TransactionType.moneyAccountDeposit,
+          chainId: CHAIN_IDS.MONAD,
+          isGasFeeSponsored: true,
+          txParams: { from: SIGNER_ADDRESS },
+        } as TransactionMeta);
+        useTransactionPayTokenMock.mockReturnValue({
+          payToken: { ...PAY_TOKEN_MOCK, chainId },
+          setPayToken: jest.fn(),
+        });
+        useTokenWithBalanceMock.mockReturnValue({
+          ...NATIVE_TOKEN_MOCK,
+          balanceRaw: '0',
+        });
+
+        const { result } = runHook();
+
+        expect(result.current).toEqual([
+          expect.objectContaining({
+            key: AlertKeys.InsufficientPayTokenNative,
+            isBlocking: true,
+          }),
+        ]);
+        expect(isHardwareAccount).toHaveBeenCalledWith(PAYER_ADDRESS);
+      },
+    );
+
+    it('clears the hardware payer gas alert after its balance is funded', () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        isGasFeeSponsored: true,
+      } as TransactionMeta);
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '0',
+      });
+      const { result, rerender } = runHook();
+      expect(result.current[0]?.key).toBe(AlertKeys.InsufficientPayTokenNative);
+
+      useTokenWithBalanceMock.mockReturnValue(NATIVE_TOKEN_MOCK);
+      rerender({});
+
+      expect(result.current).toEqual([]);
+    });
+
+    it('keeps sponsored software payments exempt from native gas checks', () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(false);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        isGasFeeSponsored: true,
+      } as TransactionMeta);
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '0',
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([]);
     });
 
     it('uses the standard message (with network switch hint) for non-post-quote flows', () => {
