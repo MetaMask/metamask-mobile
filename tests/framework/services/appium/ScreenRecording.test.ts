@@ -172,6 +172,22 @@ describe('ScreenRecording', () => {
         rmSync(dir, { recursive: true, force: true });
       }
     });
+
+    it('returns false when the PATH entry is chmod +x but not actually runnable', () => {
+      // Simulates a wrong-architecture binary or a truncated download: the
+      // executable bit is set, but invoking it fails.
+      const dir = mkdtempSync(join(tmpdir(), 'mms-ffmpeg-'));
+      const binaryPath = join(dir, 'ffmpeg');
+      writeFileSync(binaryPath, '#!/bin/sh\nexit 1\n');
+      chmodSync(binaryPath, 0o755);
+      process.env[pathKey] = dir;
+
+      try {
+        expect(isFfmpegAvailable()).toBe(false);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
   });
 
   describe('isAndroidPlatform', () => {

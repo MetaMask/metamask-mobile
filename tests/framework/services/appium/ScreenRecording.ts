@@ -1,4 +1,5 @@
 /* eslint-disable import-x/no-nodejs-modules */
+import { execFileSync } from 'node:child_process';
 import { accessSync, constants, mkdirSync, writeFileSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import type { TestInfo } from '@playwright/test';
@@ -159,8 +160,10 @@ function formatRecordingError(error: unknown): string {
 }
 
 /**
- * Returns whether an `ffmpeg` binary is executable on `PATH`.
- * XCUITest screen recording needs ffmpeg; skip recording when it is missing.
+ * Returns whether an `ffmpeg` binary on `PATH` actually runs.
+ * XCUITest screen recording needs ffmpeg; skip recording when it is missing
+ * or not runnable (e.g. wrong-architecture binary, truncated download —
+ * a permission-bit check alone would miss both).
  */
 export function isFfmpegAvailable(): boolean {
   const pathEnv = process.env.PATH;
@@ -172,8 +175,19 @@ export function isFfmpegAvailable(): boolean {
     if (!dir) {
       continue;
     }
+    const candidate = join(dir, 'ffmpeg');
     try {
-      accessSync(join(dir, 'ffmpeg'), constants.X_OK);
+      accessSync(candidate, constants.X_OK);
+    } catch {
+      continue;
+    }
+    // The X_OK check above only confirms the permission bit — a
+    // wrong-architecture binary or a truncated download can still be
+    // "executable" yet fail to actually run. Confirm it runs before
+    // trusting it. Passing an absolute path (not a bare command) avoids
+    // relying on the child process's own PATH search.
+    try {
+      execFileSync(candidate, ['-version'], { stdio: 'ignore', timeout: 5000 });
       return true;
     } catch {
       continue;
@@ -271,9 +285,12 @@ async function stopAndroidRecording(
 
 async function startIosRecording(
   browser: WebdriverIO.Browser,
+  testInfo: TestInfo,
 ): Promise<ScreenRecordingBackend | undefined> {
   if (!isFfmpegAvailable()) {
-    logRecordingIssue('ffmpeg is not on PATH — skipping iOS screen recording');
+    const message = 'ffmpeg is not on PATH — skipping iOS screen recording';
+    logRecordingIssue(message);
+    testInfo.annotations.push({ type: 'ffmpegUnavailable', description: message });
     return undefined;
   }
 
@@ -320,6 +337,7 @@ async function stopIosRecording(
  */
 export async function startFailureRecording(
   browser: WebdriverIO.Browser,
+  testInfo: TestInfo,
   platform?: Platform,
 ): Promise<ScreenRecordingBackend | undefined> {
   try {
@@ -327,7 +345,7 @@ export async function startFailureRecording(
       return await startAndroidScreenRecord(browser);
     }
 
-    return await startIosRecording(browser);
+    return await startIosRecording(browser, testInfo);
   } catch (error) {
     logRecordingIssue(
       `Could not start screen recording: ${formatRecordingError(error)}`,
