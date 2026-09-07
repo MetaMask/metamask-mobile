@@ -102,6 +102,7 @@ const BtcLiveValues = forwardRef<BtcLiveValuesHandle>((_props, ref) => {
     useCurrentCryptoUpDownMarketData({
       series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
       enabled: isPredictEnabled && isFocused,
+      withChartData: false,
     });
 
   useImperativeHandle(ref, () => ({ marketId, market }), [market, marketId]);

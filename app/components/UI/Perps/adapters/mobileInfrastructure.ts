@@ -228,17 +228,6 @@ export function createMobileClientConfig(): PerpsControllerConfig {
         builderAddressMainnet:
           process.env.MM_PERPS_HL_BUILDER_ADDRESS_MAINNET ?? '',
       },
-      myx: {
-        enabled: process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true',
-        appIdTestnet: process.env.MM_PERPS_MYX_APP_ID_TESTNET ?? '',
-        apiSecretTestnet: process.env.MM_PERPS_MYX_API_SECRET_TESTNET ?? '',
-        brokerAddressTestnet:
-          process.env.MM_PERPS_MYX_BROKER_ADDRESS_TESTNET ?? '',
-        appIdMainnet: process.env.MM_PERPS_MYX_APP_ID_MAINNET ?? '',
-        apiSecretMainnet: process.env.MM_PERPS_MYX_API_SECRET_MAINNET ?? '',
-        brokerAddressMainnet:
-          process.env.MM_PERPS_MYX_BROKER_ADDRESS_MAINNET ?? '',
-      },
     },
   };
 }

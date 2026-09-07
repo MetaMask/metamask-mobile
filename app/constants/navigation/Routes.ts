@@ -374,6 +374,7 @@ const Routes = {
         'BatchSellMinimumReceivedInfoModal',
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
       SWAPS_LIMIT_ORDER_EXPIRATION_MODAL: 'SwapsLimitOrderExpirationModal',
+      LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
