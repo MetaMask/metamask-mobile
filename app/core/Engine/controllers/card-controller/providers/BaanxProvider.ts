@@ -1045,56 +1045,107 @@ export class BaanxProvider implements ICardProvider {
   async getCashbackWallet(
     tokens: CardAuthTokens,
   ): Promise<CashbackWalletResponse> {
-    return this.service.get<CashbackWalletResponse>(
-      '/v1/wallet/reward',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWalletResponse>(
+        '/v1/wallet/reward',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCashbackWallet'));
+      }
+      throw mapApiError(error, 'getCashbackWallet');
+    }
   }
 
   async getCashbackWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawEstimationResponse> {
-    return this.service.get<CashbackWithdrawEstimationResponse>(
-      '/v1/wallet/reward/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CashbackWithdrawEstimationResponse>(
+        '/v1/wallet/reward/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCashbackWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCashbackWithdrawEstimation');
+    }
   }
 
   async withdrawCashback(
     params: CashbackWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawResponse> {
-    return this.service.post<CashbackWithdrawResponse>(
-      '/v1/wallet/reward/withdraw',
-      params,
-      tokens,
-    );
+    try {
+      return await this.service.post<CashbackWithdrawResponse>(
+        '/v1/wallet/reward/withdraw',
+        params,
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCashback'));
+      }
+      throw mapApiError(error, 'withdrawCashback');
+    }
   }
 
   // -- Credit --
 
   async getCreditWallet(tokens: CardAuthTokens): Promise<CreditWalletResponse> {
-    return this.service.get<CreditWalletResponse>('/v1/wallet/credit', tokens);
+    try {
+      return await this.service.get<CreditWalletResponse>(
+        '/v1/wallet/credit',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCreditWallet'));
+      }
+      throw mapApiError(error, 'getCreditWallet');
+    }
   }
 
   async getCreditWithdrawEstimation(
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawEstimationResponse> {
-    return this.service.get<CreditWithdrawEstimationResponse>(
-      '/v1/wallet/credit/withdraw-estimation',
-      tokens,
-    );
+    try {
+      return await this.service.get<CreditWithdrawEstimationResponse>(
+        '/v1/wallet/credit/withdraw-estimation',
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(
+          error as Error,
+          getErrorContext('getCreditWithdrawEstimation'),
+        );
+      }
+      throw mapApiError(error, 'getCreditWithdrawEstimation');
+    }
   }
 
   async withdrawCredit(
     params: CreditWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CreditWithdrawResponse> {
-    return this.service.post<CreditWithdrawResponse>(
-      '/v1/wallet/credit/withdraw',
-      params,
-      tokens,
-    );
+    try {
+      return await this.service.post<CreditWithdrawResponse>(
+        '/v1/wallet/credit/withdraw',
+        params,
+        tokens,
+      );
+    } catch (error) {
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('withdrawCredit'));
+      }
+      throw mapApiError(error, 'withdrawCredit');
+    }
   }
 
   // -- On-Chain (unauthenticated) --
