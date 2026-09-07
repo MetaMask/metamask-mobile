@@ -532,6 +532,8 @@ describe('PredictMarketDetails', () => {
         initialParams: { marketId: MOCK_PREDICT_MULTI_OUTCOME_MARKET.id },
       });
 
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
+
       fireEvent.press(
         await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB),
       );
@@ -671,9 +673,7 @@ describe('PredictMarketDetails', () => {
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
 
-      await findByTestId(
-        PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
-      );
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
 
       fireEvent.press(
         await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB),
