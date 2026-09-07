@@ -41,8 +41,6 @@ const areNotificationsEnabled = (): boolean =>
       ?.isNotificationServicesEnabled,
   );
 
-const LOG_PREFIX = '[PushOsPermissionSync]';
-
 const trackPushNotificationsDisabled = (): void => {
   analytics.trackEvent(
     AnalyticsEventBuilder.createEventBuilder(
@@ -56,7 +54,7 @@ const trackPushNotificationsDisabled = (): void => {
   });
 };
 
-const runSync = async (trigger: string): Promise<void> => {
+const runSync = async (): Promise<void> => {
   if (!isNotificationsFeatureEnabled()) {
     return;
   }
@@ -65,13 +63,6 @@ const runSync = async (trigger: string): Promise<void> => {
     const notificationsEnabled = areNotificationsEnabled();
     const osPermissionGranted = await isPushPermissionGranted();
     const wasOsPermissionGranted = readLastOsPermissionGranted();
-
-    Logger.log(LOG_PREFIX, 'sync', {
-      trigger,
-      notificationsEnabled,
-      osPermissionGranted,
-      wasOsPermissionGranted,
-    });
 
     // Always persist, even when notifications are off, so that a permission
     // change made while the user was opted out is not reported later as if it
@@ -83,12 +74,10 @@ const runSync = async (trigger: string): Promise<void> => {
     }
 
     if (osPermissionGranted) {
-      Logger.log(LOG_PREFIX, 'OS permission granted');
       analytics.identify({
         [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: true,
       });
     } else {
-      Logger.log(LOG_PREFIX, 'OS permission revoked, emitting opt-out');
       trackPushNotificationsDisabled();
     }
   } catch (error) {
@@ -125,12 +114,7 @@ let inFlight: Promise<void> = Promise.resolve();
  * useNotificationOsPermissionEffect does so on mount and on every return to
  * the `active` app state.
  */
-export const syncPushNotificationOsPermission = (
-  trigger = 'unspecified',
-): Promise<void> => {
-  inFlight = inFlight.then(
-    () => runSync(trigger),
-    () => runSync(trigger),
-  );
+export const syncPushNotificationOsPermission = (): Promise<void> => {
+  inFlight = inFlight.then(runSync, runSync);
   return inFlight;
 };

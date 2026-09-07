@@ -2,10 +2,7 @@ import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../selectors/notifications';
-import Logger from '../../Logger';
 import { syncPushNotificationOsPermission } from '../utils/push-notification-os-permission-sync';
-
-const LOG_PREFIX = '[PushOsPermissionSync]';
 
 /**
  * Re-checks the OS notification permission (see
@@ -28,21 +25,15 @@ export function useNotificationOsPermissionEffect() {
   const lastAppState = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
-    syncPushNotificationOsPermission(`isPushEnabled=${String(isPushEnabled)}`);
+    syncPushNotificationOsPermission();
   }, [isPushEnabled]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus) => {
-        Logger.log(LOG_PREFIX, 'AppState', {
-          from: lastAppState.current,
-          to: nextAppState,
-        });
         if (nextAppState === 'active' && lastAppState.current !== 'active') {
-          syncPushNotificationOsPermission(
-            `appState ${lastAppState.current}->${nextAppState}`,
-          );
+          syncPushNotificationOsPermission();
         }
         lastAppState.current = nextAppState;
       },
