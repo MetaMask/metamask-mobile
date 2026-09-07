@@ -25,6 +25,7 @@ import {
   snippetMismatchPreview,
   sourceSliceAtLine,
 } from './flaky-sticky-snippet';
+import { findingHasRequiredConstruct } from './flaky-sticky-pattern-gate';
 
 // Stable HTML comment on the first line — used to identify and update this
 // script's own comment across runs. Any change breaks stickiness (a new
@@ -45,9 +46,15 @@ const SKILL_LINK =
 // the script can also be run locally from any directory.
 const WORKSPACE_ROOT = process.env.GITHUB_WORKSPACE ?? process.cwd();
 const HISTORY_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-history.json');
-const AI_ANALYSIS_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-ai-analysis.json');
+const AI_ANALYSIS_PATH = join(
+  WORKSPACE_ROOT,
+  '.ai-pr-analyzer/flaky-ai-analysis.json',
+);
 // Written by Stage 1; contains the per-file state parsed from the prior comment.
-const PRIOR_STATE_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-prior-state.json');
+const PRIOR_STATE_PATH = join(
+  WORKSPACE_ROOT,
+  '.ai-pr-analyzer/flaky-prior-state.json',
+);
 
 // Failure counts bucketed by lookback window (nested: a failure in 7d also
 // counts in 30d). Kept as a permissive Record so a future window edit in
@@ -210,7 +217,11 @@ function buildFixBlock(f: Finding): string {
 
 // file#L<line> anchor pointing at the analyzed SHA so the link stays valid
 // even after later pushes move the head.
-function buildLocationLink(file: string, line: number | undefined, headSha: string): string {
+function buildLocationLink(
+  file: string,
+  line: number | undefined,
+  headSha: string,
+): string {
   const label = line ? `${file}:${line}` : file;
   if (!headSha) return `\`${label}\``;
   const anchor = line ? `#L${line}` : '';
@@ -230,7 +241,9 @@ function buildFindingsSection(findings: Finding[], headSha: string): string {
   for (const [file, fileFindings] of byFile) {
     out += `#### \`${file}\`\n\n`;
     for (const f of fileFindings) {
-      const hint = f.historicalHintUsed ? ' _(matches historical failure signal)_' : '';
+      const hint = f.historicalHintUsed
+        ? ' _(matches historical failure signal)_'
+        : '';
       out += `- **${f.patternId} — ${f.patternName}** (${f.severity})${hint}\n`;
       out += `  - ${f.explanation}\n`;
       const location = buildLocationLink(f.file, f.line, headSha);
@@ -263,7 +276,9 @@ function buildCommentBody({
   // historical failures) would make the table disappear even though the
   // finding itself renders.
   const findingFiles = new Set(findings.map((f) => f.file));
-  const tableFiles = historyFiles.filter((f) => f.flaky || findingFiles.has(f.path));
+  const tableFiles = historyFiles.filter(
+    (f) => f.flaky || findingFiles.has(f.path),
+  );
   const historyTable = buildHistoryTable(tableFiles, windows, runsSampled);
   const findingsSection = buildFindingsSection(findings, headSha);
 
@@ -318,7 +333,9 @@ async function main(): Promise<void> {
   }
 
   if (!existsSync(HISTORY_PATH)) {
-    console.log('⏭️  History artifact missing — Stage 1 did not complete, skipping');
+    console.log(
+      '⏭️  History artifact missing — Stage 1 did not complete, skipping',
+    );
     return;
   }
 
@@ -326,7 +343,9 @@ async function main(): Promise<void> {
   const octokit = getOctokit(env.token);
 
   const history = readJsonOrEmpty<HistoryArtifact>(HISTORY_PATH, { files: [] });
-  const aiAnalysis = readJsonOrEmpty<AiAnalysisArtifact>(AI_ANALYSIS_PATH, { findings: [] });
+  const aiAnalysis = readJsonOrEmpty<AiAnalysisArtifact>(AI_ANALYSIS_PATH, {
+    findings: [],
+  });
   const priorState = readJsonOrEmpty<CommentState>(PRIOR_STATE_PATH, {
     version: 1,
     windows: DEFAULT_WINDOWS,
@@ -334,18 +353,25 @@ async function main(): Promise<void> {
   });
 
   const historyFiles = Array.isArray(history.files) ? history.files : [];
-  const windows = Array.isArray(history.windows) ? history.windows : DEFAULT_WINDOWS;
+  const windows = Array.isArray(history.windows)
+    ? history.windows
+    : DEFAULT_WINDOWS;
   const runsSampled = history.runsSampled ?? {};
-  const rawFindings = Array.isArray(aiAnalysis.findings) ? aiAnalysis.findings : [];
+  const rawFindings = Array.isArray(aiAnalysis.findings)
+    ? aiAnalysis.findings
+    : [];
   // Files the deterministic history stage re-ran on this push.
-  const analyzedFiles = new Set<string>(Array.isArray(history.analyzedFiles) ? history.analyzedFiles : []);
+  const analyzedFiles = new Set<string>(
+    Array.isArray(history.analyzedFiles) ? history.analyzedFiles : [],
+  );
   // Files the AI stage actually reviewed. Empty when Stage 2 failed, was
   // skipped (fork PR / no LLM key), or wrote the conservative fallback — in
   // which case we must NOT treat missing findings as "reviewed, all clear".
   const aiAnalyzedFiles = new Set<string>(
     Array.isArray(aiAnalysis.analyzedFiles) ? aiAnalysis.analyzedFiles : [],
   );
-  const headSha = typeof history.headSha === 'string' ? history.headSha : env.headSha;
+  const headSha =
+    typeof history.headSha === 'string' ? history.headSha : env.headSha;
 
   // Deterministic validation is applied only to fresh AI findings — prior
   // findings were validated when first recorded. The snippet must exist in
@@ -374,7 +400,9 @@ async function main(): Promise<void> {
 
     const sourcePath = join(WORKSPACE_ROOT, finding.file);
     if (!existsSync(sourcePath)) {
-      core.warning(`Dropping AI finding for ${finding.file}: analyzed file is unavailable`);
+      core.warning(
+        `Dropping AI finding for ${finding.file}: analyzed file is unavailable`,
+      );
       return false;
     }
 
@@ -399,6 +427,19 @@ async function main(): Promise<void> {
     // be a nearby line when the model quoted the inner statement.
     finding.line = match.line;
     finding.snippet = match.sourceSnippet;
+
+    const gate = findingHasRequiredConstruct({
+      patternId: finding.patternId,
+      snippet: match.sourceSnippet,
+      source,
+    });
+    if (!gate.ok) {
+      core.warning(
+        `Dropping AI finding for ${finding.file}:${match.line}: ${gate.reason}`,
+      );
+      return false;
+    }
+
     return true;
   });
 
@@ -441,24 +482,35 @@ async function main(): Promise<void> {
   }
 
   // Build the state block to embed in the comment for the next run to read.
-  const newState: CommentState = { version: 1, windows, files: mergedStateFiles };
+  const newState: CommentState = {
+    version: 1,
+    windows,
+    files: mergedStateFiles,
+  };
   const stateBlock = buildStateBlock(newState);
 
   // "Has findings" means either signal fired. History alone is enough because
   // the whole point of Stage 1 is to catch flakiness even when Stage 2 was
   // skipped (fork PR / analyzer error / no LLM key).
-  const hasFindings = historyFiles.some((f) => f.flaky) || mergedFindings.length > 0;
+  const hasFindings =
+    historyFiles.some((f) => f.flaky) || mergedFindings.length > 0;
 
   const runHistoryUrl =
     historyFiles[0]?.runHistoryUrl ??
     `${env.serverUrl}/${env.repo}/actions/workflows/ci.yml?query=branch%3Amain`;
 
   try {
-    const existingComment = await findExistingStickyComment(octokit, owner, repo);
+    const existingComment = await findExistingStickyComment(
+      octokit,
+      owner,
+      repo,
+    );
 
     // 4-state matrix — order matters because each branch returns early.
     if (!hasFindings && !existingComment) {
-      console.log('✅ No findings and no existing sticky comment — nothing to do');
+      console.log(
+        '✅ No findings and no existing sticky comment — nothing to do',
+      );
       return;
     }
 
@@ -467,7 +519,15 @@ async function main(): Promise<void> {
         owner,
         repo,
         issue_number: env.prNumber,
-        body: buildCommentBody({ historyFiles, findings: mergedFindings, runHistoryUrl, windows, runsSampled, stateBlock, headSha }),
+        body: buildCommentBody({
+          historyFiles,
+          findings: mergedFindings,
+          runHistoryUrl,
+          windows,
+          runsSampled,
+          stateBlock,
+          headSha,
+        }),
       });
       console.log('📝 Created sticky flaky-test-detection comment');
       return;
@@ -478,9 +538,19 @@ async function main(): Promise<void> {
         owner,
         repo,
         comment_id: existingComment.id,
-        body: buildCommentBody({ historyFiles, findings: mergedFindings, runHistoryUrl, windows, runsSampled, stateBlock, headSha }),
+        body: buildCommentBody({
+          historyFiles,
+          findings: mergedFindings,
+          runHistoryUrl,
+          windows,
+          runsSampled,
+          stateBlock,
+          headSha,
+        }),
       });
-      console.log('🔄 Updated sticky flaky-test-detection comment with latest findings');
+      console.log(
+        '🔄 Updated sticky flaky-test-detection comment with latest findings',
+      );
       return;
     }
 
@@ -493,9 +563,13 @@ async function main(): Promise<void> {
       comment_id: existingComment!.id,
       body: buildAllClearBody(runHistoryUrl, stateBlock),
     });
-    console.log('🎉 Updated sticky comment — all previously flagged issues are fixed');
+    console.log(
+      '🎉 Updated sticky comment — all previously flagged issues are fixed',
+    );
   } catch (error) {
-    core.warning(`Failed to manage sticky comment: ${(error as Error).message}`);
+    core.warning(
+      `Failed to manage sticky comment: ${(error as Error).message}`,
+    );
   }
 }
 

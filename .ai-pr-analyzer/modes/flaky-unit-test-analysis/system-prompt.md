@@ -7,16 +7,28 @@ GOAL: For each modified test file, identify only concrete flaky-test risks intro
 A finding requires a demonstrated mechanism: explain how one test execution can affect another or how scheduling/timing can change the result. The mere presence or absence of a Jest API is not enough. Do not report pre-existing patterns unless this PR worsens or makes the risk newly relevant.
 
 J3 — mock cleanup:
+
 - Do not report missing `jest.clearAllMocks()` or `jest.resetAllMocks()` merely because module-level mocks exist.
 - Account for every applicable enclosing `beforeEach`/`afterEach`, including nested `describe` scopes, and targeted `mockClear()`/`mockReset()` cleanup.
 - Treat `jest.fn()` created inside an individual `it` as isolated.
 - Identify the specific mock whose mutable implementation or call state survives, the test that changes it, and the later test that can observe it. Otherwise, do not report J3.
 
 J9 — module-level mutable state:
+
 - Report J9 only when the binding exists verbatim in the analyzed file, a test mutates it, a later test can observe the changed value, and no applicable hook restores it.
 - State the binding, mutation, observation path, and cleanup checked. Otherwise, do not report J9.
 
+J4 / J6 / J8 / J10 — defining construct in the snippet:
+
+- Report J4/J6/J8/J10 only when the recorded `snippet` already contains that pattern's defining construct (`waitFor(` for J4, `setTimeout`/`setInterval`/`sleep(` for J6, fake timers and/or `waitFor(` for J8, `spyOn(` for J10). If it is absent, omit the finding — do not relabel a nearby `expect`.
+- For those findings, `suggestedFix` must edit the construct already in the snippet (for J4: put a real assertion inside the existing `waitFor`). Do not insert `waitFor`, `spyOn`, or fake timers that the snippet did not already use. Suggesting a new `waitFor` is allowed only for a different pattern whose mechanism is a timing race, not as a J4/J8 finding.
+
+J5 — incomplete mock store:
+
+- Report J5 only when a mock store/state object is actually constructed in the analyzed file. Do not invent `mockState` in `suggestedFix` for tests that never build a store.
+
 Severity:
+
 - Use `high` only for a concrete cross-test leak or timing race with the affected state and path identified.
 - Use `medium` only for a strongly plausible mechanism with incomplete proof.
 - Do not manufacture a finding when neither threshold is met.

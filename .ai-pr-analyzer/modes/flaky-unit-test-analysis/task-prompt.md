@@ -17,7 +17,7 @@ For each file:
 2. Read the file with read_file.
 3. Check .ai-pr-analyzer/flaky-history.json (read_file) for a historical hint on this file.
 4. Use get_git_diff for this file to determine whether the risky behavior is introduced or worsened by this PR. Do not report a pre-existing pattern unless the PR makes it worse or newly relevant.
-5. Match against the J1-J10 patterns from the loaded skill, but report a match only when you can demonstrate a concrete cross-test state leak or timing/scheduling mechanism. For J3/J9, inspect the relevant enclosing Jest hooks and identify the state that leaks, the mutation, and the later observation.
+5. Match against the J1-J10 patterns from the loaded skill, but report a match only when you can demonstrate a concrete cross-test state leak or timing/scheduling mechanism. For J3/J9, inspect the relevant enclosing Jest hooks and identify the state that leaks, the mutation, and the later observation. For J4/J6/J8/J10, report only when the snippet already contains that pattern's defining construct, and `suggestedFix` must edit that construct rather than insert it; for J5, a mock store/state must exist in the file.
 6. For every match, record: file, line, patternId, patternName, severity, snippet, explanation, suggestedFix, and whether the historical hint was used.
    - `snippet` MUST be the exact current code being replaced, copied verbatim from the file (no paraphrasing or summarizing), covering the same lines/scope as `suggestedFix` so the two can be rendered as a before/after diff.
    - `suggestedFix` MUST be the corrected code snippet ONLY, formatted as real TypeScript with actual line breaks (`\n`) and indentation — never a single-line prose paragraph. Keep all reasoning and instructions in `explanation`.
