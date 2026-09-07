@@ -6,10 +6,8 @@ import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
-  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
@@ -22,20 +20,6 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
-
-function isSameTokenAddressAndChain(
-  left: { address?: string; chainId?: string } | undefined,
-  right: { address?: string; chainId?: string } | undefined,
-): boolean {
-  if (!left?.address || !left.chainId || !right?.address || !right.chainId) {
-    return false;
-  }
-
-  return (
-    left.address.toLowerCase() === right.address.toLowerCase() &&
-    left.chainId.toLowerCase() === right.chainId.toLowerCase()
-  );
-}
 
 /**
  * Row component that owns the bottom line of the totals section.
@@ -108,51 +92,23 @@ function TotalFeesRow() {
 /**
  * Displays "You'll receive" for withdrawal, input-based, and Max flows.
  *
- * Prefers `totals.targetAmount.usd` from executable quotes (after fees). Direct
- * same-token routes only produce a None-strategy no-op quote, which is excluded
- * from totals and leaves targetAmount at 0 — fall back to the required token
- * amount only when the destination payment token matches that required token
- * (same-chain mUSD Money Account withdraw). Cross-token routes must not show
- * the source amount as received when the quote is missing.
+ * The net received amount is the target amount computed by the Transaction Pay
+ * controller (after all provider, network, and MetaMask fees), so this row
+ * simply renders `totals.targetAmount.usd` rather than re-deriving it from the
+ * input amount.
  */
 function ReceiveRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
-  const requiredTokens = useTransactionPayRequiredTokens();
-  const { payToken } = useTransactionPayToken();
 
   const receiveUsd = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount?.usd;
-    const targetBn =
-      targetAmountUsd == null ? null : new BigNumber(targetAmountUsd);
 
-    if (targetBn?.gt(0)) {
-      return formatFiat(targetBn);
-    }
+    if (targetAmountUsd == null) return '';
 
-    const primaryRequiredToken = (requiredTokens ?? []).find(
-      (token) => !token.skipIfBalance,
-    );
-    const isDirectSameTokenRoute = isSameTokenAddressAndChain(
-      primaryRequiredToken,
-      payToken,
-    );
-
-    if (
-      isDirectSameTokenRoute &&
-      primaryRequiredToken?.amountUsd &&
-      new BigNumber(primaryRequiredToken.amountUsd).gt(0)
-    ) {
-      return formatFiat(new BigNumber(primaryRequiredToken.amountUsd));
-    }
-
-    if (targetBn == null) {
-      return '';
-    }
-
-    return formatFiat(targetBn);
-  }, [formatFiat, payToken, requiredTokens, totals?.targetAmount?.usd]);
+    return formatFiat(new BigNumber(targetAmountUsd));
+  }, [totals?.targetAmount?.usd, formatFiat]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;
