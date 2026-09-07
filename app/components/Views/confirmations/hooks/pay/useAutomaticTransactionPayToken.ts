@@ -96,8 +96,6 @@ export function useAutomaticTransactionPayToken({
     () =>
       getPreferredTokensForTransactionType(
         payTokensFlags.preferredTokens,
-        // Batched confirmations report type `batch`, so resolve the nested
-        // pay type (e.g. moneyAccountDeposit) for the preferred-tokens lookup.
         postQuoteTransactionType ??
           getPayTransactionType(transactionMeta) ??
           transactionMeta.type,
