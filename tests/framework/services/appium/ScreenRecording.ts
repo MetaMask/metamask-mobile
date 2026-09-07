@@ -171,24 +171,9 @@ type AppiumScreenRecorder = WebdriverIO.Browser & {
   stopRecordingScreen?: (options?: Record<string, unknown>) => Promise<string>;
 };
 
-async function startAndroidScreenRecord(
+async function startAndroidRecording(
   browser: WebdriverIO.Browser,
 ): Promise<ScreenRecordingBackend | undefined> {
-  const appiumDriver = browser as AppiumScreenRecorder;
-  if (typeof appiumDriver.startRecordingScreen === 'function') {
-    try {
-      await appiumDriver.startRecordingScreen({
-        timeLimit: String(recordingTimeLimitSec()),
-      });
-      logRecordingIssue('Android adb screenrecord started');
-      return 'android-screenrecord';
-    } catch (error) {
-      logRecordingIssue(
-        `adb screenrecord failed, trying media projection: ${formatRecordingError(error)}`,
-      );
-    }
-  }
-
   try {
     const started = await browser.execute(
       'mobile: startMediaProjectionRecording',
@@ -205,10 +190,27 @@ async function startAndroidScreenRecord(
     return 'android-media-projection';
   } catch (error) {
     logRecordingIssue(
-      `Could not start Android recording: ${formatRecordingError(error)}`,
+      `Media projection recording failed, trying adb screenrecord: ${formatRecordingError(error)}`,
     );
-    return undefined;
   }
+
+  const appiumDriver = browser as AppiumScreenRecorder;
+  if (typeof appiumDriver.startRecordingScreen === 'function') {
+    try {
+      await appiumDriver.startRecordingScreen({
+        timeLimit: String(recordingTimeLimitSec()),
+      });
+      logRecordingIssue('Android adb screenrecord started');
+      return 'android-screenrecord';
+    } catch (error) {
+      logRecordingIssue(
+        `Could not start Android recording via adb screenrecord: ${formatRecordingError(error)}`,
+      );
+    }
+  }
+
+  logRecordingIssue('Could not start Android recording');
+  return undefined;
 }
 
 async function stopAndroidRecording(
@@ -286,7 +288,9 @@ async function stopIosRecording(
 
 /**
  * Starts Appium device screen recording for the active session.
- * Android tries adb screenrecord first (reliable on emulators), then media projection.
+ * Android prefers on-device media projection so recording does not keep a
+ * long-lived adb shell connection open while fixture reverse mappings change.
+ * It falls back to adb screenrecord when media projection is unavailable.
  */
 export async function startFailureRecording(
   browser: WebdriverIO.Browser,
@@ -294,7 +298,7 @@ export async function startFailureRecording(
 ): Promise<ScreenRecordingBackend | undefined> {
   try {
     if (resolveIsAndroid(browser, platform)) {
-      return await startAndroidScreenRecord(browser);
+      return await startAndroidRecording(browser);
     }
 
     return await startIosRecording(browser);

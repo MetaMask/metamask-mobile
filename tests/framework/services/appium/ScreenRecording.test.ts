@@ -6,6 +6,7 @@ import {
   isVideoRecordingOnFailureEnabled,
   sanitizeRecordingFileName,
   shouldPersistRecordingAlways,
+  startFailureRecording,
 } from './ScreenRecording.ts';
 import { ProviderName } from '../../types.ts';
 
@@ -151,6 +152,68 @@ describe('ScreenRecording', () => {
       expect(extractRecordingPayload({ media: 'video-data' })).toBe(
         'video-data',
       );
+    });
+  });
+
+  describe('startFailureRecording', () => {
+    beforeEach(() => {
+      jest.spyOn(console, 'warn').mockImplementation();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('prefers media projection over adb screenrecord on Android', async () => {
+      const execute = jest.fn().mockResolvedValue(true);
+      const startRecordingScreen = jest.fn().mockResolvedValue('');
+      const browser = {
+        isAndroid: true,
+        isIOS: false,
+        capabilities: { platformName: 'Android' },
+        execute,
+        startRecordingScreen,
+      } as unknown as WebdriverIO.Browser;
+
+      const backend = await startFailureRecording(browser);
+
+      expect(backend).toBe('android-media-projection');
+      expect(execute).toHaveBeenCalledWith(
+        'mobile: startMediaProjectionRecording',
+        {
+          maxDurationSec: 600,
+          resolution: '1280x720',
+        },
+      );
+      expect(startRecordingScreen).not.toHaveBeenCalled();
+    });
+
+    it('falls back to adb screenrecord when media projection is unavailable', async () => {
+      const execute = jest
+        .fn()
+        .mockRejectedValue(new Error('media projection unavailable'));
+      const startRecordingScreen = jest.fn().mockResolvedValue('');
+      const browser = {
+        isAndroid: true,
+        isIOS: false,
+        capabilities: { platformName: 'Android' },
+        execute,
+        startRecordingScreen,
+      } as unknown as WebdriverIO.Browser;
+
+      const backend = await startFailureRecording(browser);
+
+      expect(backend).toBe('android-screenrecord');
+      expect(execute).toHaveBeenCalledWith(
+        'mobile: startMediaProjectionRecording',
+        {
+          maxDurationSec: 600,
+          resolution: '1280x720',
+        },
+      );
+      expect(startRecordingScreen).toHaveBeenCalledWith({
+        timeLimit: '600',
+      });
     });
   });
 });
