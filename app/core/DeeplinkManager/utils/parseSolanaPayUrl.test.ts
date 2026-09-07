@@ -102,6 +102,19 @@ describe('parseSolanaPayUrl', () => {
     );
   });
 
+  it('parses an optional memo query param', () => {
+    const url = `solana:${TRIPLE_A_RECIPIENT}?amount=1&memo=merchant-order-123`;
+
+    const result = parseSolanaPayUrl(url);
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: 'transfer',
+        memo: 'merchant-order-123',
+      }),
+    );
+  });
+
   it('returns null for a recipient that is not a Solana address', () => {
     const url = 'solana:not-a-solana-address?amount=1';
 

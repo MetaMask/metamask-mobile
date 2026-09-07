@@ -54,7 +54,7 @@ export const Amount = () => {
     predefinedAmount?: string;
   }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
-  const { asset, value } = useSendContext();
+  const { asset, updateValue, value } = useSendContext();
   const { balance } = useBalance();
   const { amountError } = useAmountValidation();
   const [amount, setAmount] = useState('');
@@ -99,7 +99,8 @@ export const Amount = () => {
     hasSeededPredefinedAmountRef.current = true;
     setAmountInputTypeToken();
     setAmount(predefinedAmount);
-  }, [predefinedAmount, setAmountInputTypeToken]);
+    updateValue(predefinedAmount);
+  }, [predefinedAmount, setAmountInputTypeToken, updateValue]);
 
   useEffect(() => {
     if (location && location === InitSendLocation.AssetOverview) {

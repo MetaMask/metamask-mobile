@@ -145,6 +145,10 @@ async function parseDeeplink({
         handleSolanaUrl({ url }).catch((err) => {
           Logger.error(err, 'Error handling solana url');
         });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         break;
       // Specific to the browser screen
       // For ex. navigate to a specific dapp

@@ -330,6 +330,21 @@ describe('parseDeeplink', () => {
       expect(mockCancelProcessed).not.toHaveBeenCalled();
     });
 
+    it('ends the trace at handler_finished for solana protocol', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'solana:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV?amount=1',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+        traceToken: 7,
+      });
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
     it('ends the trace at handler_finished for dapp protocol in execute mode', async () => {
       await parseDeeplink({
         deeplinkManager: instance,

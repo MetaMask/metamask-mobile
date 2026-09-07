@@ -50,7 +50,7 @@ const buildNativeSolAsset = (): AssetType => {
     image: '',
     logo: undefined,
     balance: '0',
-  } as AssetType;
+  };
 };
 
 const buildSplAsset = (mint: string, meta: SolanaPayTokenMeta): AssetType => {
@@ -69,7 +69,7 @@ const buildSplAsset = (mint: string, meta: SolanaPayTokenMeta): AssetType => {
     image: meta.image ?? '',
     logo: meta.image,
     balance: '0',
-  } as AssetType;
+  };
 };
 
 /**
@@ -143,6 +143,14 @@ async function handleSolanaUrl({ url }: { url: string }) {
         Alert.alert(
           strings('deeplink.not_supported'),
           strings('deeplink.solana_pay_reference_not_supported'),
+        );
+        return;
+      }
+
+      if (parsed.memo) {
+        Alert.alert(
+          strings('deeplink.not_supported'),
+          strings('deeplink.solana_pay_memo_not_supported'),
         );
         return;
       }

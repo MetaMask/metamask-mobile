@@ -127,6 +127,7 @@ const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
 const mockUseParams = jest.mocked(useParams);
+const mockUpdateValue = jest.fn();
 const mockAmountSelectionMetrics = {
   captureAmountSelected: jest.fn(),
   setAmountInputMethodManual: jest.fn(),
@@ -157,7 +158,7 @@ describe('Amount', () => {
         symbol: 'ETH',
         decimals: 18,
       },
-      updateValue: jest.fn(),
+      updateValue: mockUpdateValue,
     } as unknown as ReturnType<typeof useSendContext>);
     mockUseCurrencyConversion.mockReturnValue({
       conversionSupportedForAsset: true,
@@ -184,13 +185,20 @@ describe('Amount', () => {
     expect(getByTestId('send_amount').children[0]).toEqual('0.00');
   });
 
-  it('seeds token amount from predefinedAmount and stays in token mode', () => {
+  it('seeds display and send-context value from predefinedAmount', () => {
     mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
 
-    const { getByTestId, getByText } = renderComponent();
+    const { getByTestId } = renderComponent();
 
     expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
-    expect(getByText('ETH')).toBeTruthy();
+    expect(mockUpdateValue).toHaveBeenCalledWith('25.515000');
+  });
+
+  it('switches predefinedAmount entry to token mode', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    renderComponent();
+
     expect(
       mockAmountSelectionMetrics.setAmountInputTypeToken,
     ).toHaveBeenCalled();

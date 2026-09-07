@@ -183,6 +183,18 @@ describe('handleSolanaUrl', () => {
     expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
   });
 
+  it('alerts when the URI includes a Solana Pay memo', async () => {
+    await handleSolanaUrl({
+      url: `solana:${RECIPIENT}?amount=1&memo=merchant-order-123`,
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'deeplink.not_supported',
+      'deeplink.solana_pay_memo_not_supported',
+    );
+    expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
+  });
+
   it('alerts when the URI is a Solana Pay transaction request', async () => {
     await handleSolanaUrl({
       url: 'solana:https://api.triple-a.io/pay?id=abc',

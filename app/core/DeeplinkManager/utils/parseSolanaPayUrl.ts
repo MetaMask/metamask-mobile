@@ -18,6 +18,7 @@ export interface SolanaPayTransferRequest {
   amount?: string;
   splToken?: string;
   reference?: string;
+  memo?: string;
 }
 
 export interface SolanaPayTransactionRequest {
@@ -105,6 +106,7 @@ export function parseSolanaPayUrl(url: string): SolanaPayParseResult | null {
   // surfaced so the handler can reject unsupported reference-bearing URIs.
   const references = searchParams.getAll('reference').filter(Boolean);
   const reference = references[0];
+  const memo = searchParams.get('memo') ?? undefined;
 
   if (splToken && !isSolanaAddress(splToken)) {
     return null;
@@ -125,5 +127,6 @@ export function parseSolanaPayUrl(url: string): SolanaPayParseResult | null {
     amount,
     splToken: splToken || undefined,
     reference: reference || undefined,
+    ...(memo ? { memo } : {}),
   };
 }
