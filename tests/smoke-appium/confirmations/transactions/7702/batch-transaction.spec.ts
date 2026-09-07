@@ -61,14 +61,13 @@ function buildLocalRpcFixture({
   const rpcPort =
     node instanceof AnvilManager ? (node.getPort() ?? AnvilPort()) : undefined;
 
-  let builder = new FixtureBuilder()
-    .withNetworkController({
-      chainId: '0x539',
-      rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-      type: 'custom',
-      nickname: 'Local RPC',
-      ticker: 'ETH',
-    });
+  let builder = new FixtureBuilder().withNetworkController({
+    chainId: '0x539',
+    rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+    type: 'custom',
+    nickname: 'Local RPC',
+    ticker: 'ETH',
+  });
 
   if (withTestDappPermission) {
     builder = builder.withPermissionControllerConnectedToTestDapp(
