@@ -116,7 +116,9 @@ describe('useBrazeIdentity', () => {
     mockCanonicalProfileId = 'canonical-123';
     renderHook(() => useBrazeIdentity());
 
-    await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(1));
+    await waitFor(() => {
+      expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
+    });
     expect(mockSetBrazeUser).toHaveBeenCalledWith('canonical-123');
     expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(1);
     expect(mockClearBrazeUser).not.toHaveBeenCalled();

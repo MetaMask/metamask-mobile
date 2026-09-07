@@ -37,6 +37,13 @@ const MockBrazePlugin = BrazePlugin as jest.MockedClass<typeof BrazePlugin>;
 describe('Braze service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+    MockBrazePlugin.mockImplementation(() => ({
+      type: 'destination',
+      key: 'Appboy',
+      setBrazeProfileId: mockSetBrazeProfileId,
+      setLanguage: mockSetLanguage,
+    }));
     mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
     resetBrazePluginForTesting();
   });

@@ -55,6 +55,8 @@ jest.mock('../../../core/Braze/unregisterPush', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.resetAllMocks();
+  jest.mocked(unregisterBrazePush).mockResolvedValue(true);
   Engine.context.NotificationServicesPushController.state.fcmToken = '';
 });
 

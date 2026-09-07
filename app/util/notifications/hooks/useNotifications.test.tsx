@@ -29,6 +29,7 @@ jest.mock('./usePushNotifications', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.resetAllMocks();
 });
 
 describe('useNotifications - useListNotifications()', () => {

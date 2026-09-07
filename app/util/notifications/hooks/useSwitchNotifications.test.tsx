@@ -20,6 +20,15 @@ jest.mock('../constants', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
 
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+afterEach(() => {
+  jest.resetAllMocks();
+  jest.restoreAllMocks();
+});
+
 describe('useSwitchNotifications - useNotificationsToggle', () => {
   const arrangeMocks = () => {
     const mockEnableNotifications = jest.fn();

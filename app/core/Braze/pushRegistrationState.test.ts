@@ -21,6 +21,7 @@ const mockStorageWrapper = jest.mocked(StorageWrapper);
 describe('Braze push registration state', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     resetBrazePushOperationCoordinatorForTests();
   });
 

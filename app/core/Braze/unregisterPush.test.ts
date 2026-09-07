@@ -37,6 +37,7 @@ describe('unregisterBrazePush', () => {
   beforeEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
+    jest.resetAllMocks();
     pendingValue = null;
     resetBrazePushOperationCoordinatorForTests();
     mockStorageWrapper.getItemSync.mockImplementation(() => pendingValue);

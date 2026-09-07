@@ -31,6 +31,7 @@ const originalPlatform = Platform.OS;
 describe('registerBrazePush', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     NativeModules.BrazePushModule = {
       registerPush: mockRegisterPush,
     };

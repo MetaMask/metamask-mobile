@@ -61,6 +61,7 @@ const setAppState = (state: AppStateStatus) => {
 describe('deleteRegToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     jest.mocked(unregisterBrazePush).mockResolvedValue(true);
     jest.mocked(FCMService.deleteRegToken).mockResolvedValue(true);
   });
@@ -147,6 +148,7 @@ describe('createSubscribeToPushNotifications', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     mockListen.mockResolvedValue(jest.fn());
     mockDisplay.mockResolvedValue(undefined);
     setAppState('active');
