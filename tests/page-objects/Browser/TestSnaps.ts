@@ -477,19 +477,15 @@ class TestSnaps {
     }
   }
 
-  // No quoted substrings — Android Appium often omits/escapes quotes in alert copy.
-  private static readonly ENABLED_ALERT_PATTERN =
-    /.*This is an alert dialog[\s\S]*single button.*/i;
-
   private async expectSnapAlert(
-    pattern: RegExp,
+    text: string | RegExp,
     timeout: number,
     description: string,
   ): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByText(pattern),
-      { timeout, description },
-    );
+    await Assertions.expectElementToBeVisible(Matchers.getElementByText(text), {
+      timeout,
+      description,
+    });
   }
 
   /** Single query — sequential substring asserts race the short-lived alert. */
@@ -501,12 +497,11 @@ class TestSnaps {
     );
   }
 
-  // Lives in the POM (not the spec) because the spec's retry loop needs a
-  // configurable-timeout variant for its short probe — sharing this helper
-  // avoids duplicating the regex across two call sites.
+  // Use one stable text node. Android UiAutomator does not reliably match the
+  // prior multi-clause regex even while the dialog is visibly open.
   async expectEnabledSnapAlert(timeout = 30_000): Promise<void> {
     await this.expectSnapAlert(
-      TestSnaps.ENABLED_ALERT_PATTERN,
+      'This is an alert dialog',
       timeout,
       'enabled Snap alert dialog',
     );
