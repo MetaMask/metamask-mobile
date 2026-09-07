@@ -31,12 +31,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      # TEMPORARY - DO NOT MERGE: pinned to the ai-analyzer branch for
+      # MetaMask/ai-analyzer#54 so this PR integration-tests the mode-driven
+      # comment/label pipeline. Restore the pinned release SHA before merging:
       # https://github.com/MetaMask/ai-analyzer/releases
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
-          ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348
+          ref: feat/mode-driven-post-actions
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
@@ -44,7 +47,10 @@ jobs:
         uses: ./.ai-analyzer-action
         with:
           mode: pr-risk-analysis
-          add-comment: false
+          # TEMPORARY - DO NOT MERGE: production value is false. Enabled
+          # here so the new declarative comment policy is exercised; without
+          # it the comment rendering path in ai-analyzer#54 never runs.
+          add-comment: true
           add-label: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
