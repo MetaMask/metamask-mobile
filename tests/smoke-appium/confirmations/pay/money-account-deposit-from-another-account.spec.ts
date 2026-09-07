@@ -1,0 +1,105 @@
+import { Mockttp } from 'mockttp';
+import { TransactionType } from '@metamask/transaction-controller';
+import { test as appiumTest } from '../../../framework/fixtures/playwright/index.js';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+  DEFAULT_FIXTURE_ACCOUNT_2,
+} from '../../../framework/fixtures/FixtureBuilder.js';
+import {
+  PREDEFINED_TOKENS,
+  type TokenHolding,
+} from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
+import { SmokeConfirmations } from '../../../tags.js';
+import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
+import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
+import PayAccountSelector from '../../../page-objects/Confirmation/PayAccountSelector.js';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
+import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
+import MoneyAddMoneySheet from '../../../page-objects/Money/MoneyAddMoneySheet.js';
+
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
+import { moneyAccountDepositFlags } from '../../../api-mocking/mock-responses/pay/feature-flag-mocks.js';
+import { MONEY_ACCOUNT_DEPOSIT_MOCKS } from '../../../api-mocking/mock-responses/pay/money-account-deposit-mocks.js';
+import { applyTokenHoldingsMocks } from '../../../api-mocking/mock-responses/pay/holdings-mocks.js';
+
+const MONEY_DEPOSIT_HOLDINGS_ACCOUNT_2: TokenHolding[] = [
+  {
+    ...PREDEFINED_TOKENS.ETHEREUM.USDC,
+    amount: '500',
+    account: DEFAULT_FIXTURE_ACCOUNT_2,
+  },
+  {
+    ...PREDEFINED_TOKENS.ETHEREUM.ETH,
+    amount: '1',
+    account: DEFAULT_FIXTURE_ACCOUNT_2,
+  },
+];
+
+appiumTest.describe(
+  SmokeConfirmations('MM Pay - Money Account deposit from another account'),
+  () => {
+    appiumTest.describe.configure({ timeout: 250_000 });
+
+    appiumTest(
+      'selects Account 2 as the funding source for a crypto deposit',
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withFixtures(
+          {
+            fixture: new FixtureBuilder()
+              .withDisabledSmartTransactions()
+              .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
+              .withTokenHoldings(MONEY_DEPOSIT_HOLDINGS_ACCOUNT_2)
+              .withDetectedGeolocation('FR')
+              .withTransactions([
+                {
+                  id: 'prior-money-deposit-tx',
+                  type: TransactionType.moneyAccountDeposit,
+                  status: 'confirmed',
+                  txParams: { from: DEFAULT_FIXTURE_ACCOUNT },
+                },
+              ])
+              .withCompletedOnboardingStepper(
+                'money-home-onboarding-stepper',
+                2,
+              )
+              .build(),
+            currentDeviceDetails,
+            restartDevice: true,
+            disableLocalNodes: true,
+            testSpecificMock: async (mockServer: Mockttp) => {
+              await setupRemoteFeatureFlagsMock(
+                mockServer,
+                moneyAccountDepositFlags(),
+              );
+              await applyTokenHoldingsMocks(
+                mockServer,
+                MONEY_DEPOSIT_HOLDINGS_ACCOUNT_2,
+              );
+              await MONEY_ACCOUNT_DEPOSIT_MOCKS(mockServer);
+            },
+          },
+          async () => {
+            await loginToAppPlaywright({ scenarioType: 'e2e' });
+
+            await TabBarComponent.tapMoney();
+            await MoneyHomeView.expectMoneyHomeVisible();
+            await MoneyHomeView.tapAdd();
+            await MoneyAddMoneySheet.expectVisible();
+            await MoneyAddMoneySheet.tapConvertCrypto();
+
+            await TransactionPayConfirmation.expectKeyboardLoaded();
+            await TransactionPayConfirmation.expectPayWithRowLoaded();
+
+            await PayAccountSelector.tapPill();
+            await PayAccountSelector.expectSheetVisible();
+            await PayAccountSelector.tapAccountByName('Account 2');
+            await PayAccountSelector.verifyAccountSelected('Account 2');
+            // Stop — do not approve: with a multi-account keyring fixture the
+            // relay quote never resolves, so the confirm leg is not covered.
+          },
+        );
+      },
+    );
+  },
+);

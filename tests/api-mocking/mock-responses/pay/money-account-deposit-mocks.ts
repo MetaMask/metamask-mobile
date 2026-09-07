@@ -217,7 +217,22 @@ function resolveMonadRpcResult(body: Record<string, unknown>): unknown {
       cumulativeGasUsed: '0x94670',
       gasUsed: '0x94670',
       contractAddress: null,
-      logs: [],
+      // Non-atomic Max deposits resolve the settled amount from the mUSD
+      // Transfer log in this receipt (getTransferredAmountFromTxHash). The
+      // recipient is the deterministic e2e Money Account address.
+      logs: [
+        {
+          address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+          topics: [
+            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+            '0x0000000000000000000000000000000000000000000000000000000000000000',
+            '0x00000000000000000000000088e4c776e4598b098022c253159d5804d45ceca8',
+          ],
+          data: '0x0000000000000000000000000000000000000000000000000000000002faf080',
+          blockNumber: '0x1234568',
+          transactionHash: requestedHash,
+        },
+      ],
       status: '0x1',
       logsBloom:
         '0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
