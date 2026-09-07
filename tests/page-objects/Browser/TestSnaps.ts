@@ -477,45 +477,73 @@ class TestSnaps {
     }
   }
 
-  /** Single query — sequential substring asserts race the short-lived alert. */
-  async expectDisabledSnapAlert(): Promise<void> {
+  // No quoted substrings — Android Appium often omits/escapes quotes in alert copy.
+  private static readonly ENABLED_ALERT_PATTERN =
+    /.*This is an alert dialog[\s\S]*single button.*/i;
+
+  private async expectSnapAlert(
+    pattern: RegExp,
+    timeout: number,
+    description: string,
+  ): Promise<void> {
     await Assertions.expectElementToBeVisible(
-      Matchers.getElementByText(
-        /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
-      ),
-      { timeout: 30_000 },
+      Matchers.getElementByText(pattern),
+      { timeout, description },
     );
   }
 
   /** Single query — sequential substring asserts race the short-lived alert. */
-  async expectEnabledSnapAlert(): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByText(
-        /.*This is an alert dialog[\s\S]*single button.*/i,
-      ),
-      { timeout: 30_000 },
+  async expectDisabledSnapAlert(): Promise<void> {
+    await this.expectSnapAlert(
+      /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
+      30_000,
+      'disabled Snap alert dialog',
+    );
+  }
+
+  // Lives in the POM rather than the spec because `tapSendAlertAndExpectEnabled`
+  // needs a configurable-timeout variant to use as the short probe inside its
+  // retry loop — sharing the same helper avoids duplicating the regex.
+  async expectEnabledSnapAlert(timeout = 30_000): Promise<void> {
+    await this.expectSnapAlert(
+      TestSnaps.ENABLED_ALERT_PATTERN,
+      timeout,
+      'enabled Snap alert dialog',
     );
   }
 
   /**
    * After re-enabling a Snap, the first Send Alert WebView tap can miss or
-   * land before the Snap is ready to show the dialog. Re-tap with a fresh
-   * atomic visibility probe until the enabled alert is on screen.
+   * land before the Snap is ready to show the dialog. Check-first-then-tap:
+   * if the dialog is already visible from a prior attempt, return immediately
+   * without issuing a second snap_dialog request — which would stack a modal
+   * and cause the next serial test to start with a dangling dialog.
+   *
+   * The probe is skipped on the first attempt — no tap has fired yet so the
+   * dialog cannot be present — saving one unnecessary polling cycle.
    */
   async tapSendAlertAndExpectEnabled(): Promise<void> {
+    let firstAttempt = true;
     await Utilities.executeWithRetry(
       async () => {
+        if (
+          !firstAttempt &&
+          (await Utilities.isElementVisible(
+            Matchers.getElementByText(TestSnaps.ENABLED_ALERT_PATTERN),
+            1_000,
+          ))
+        ) {
+          return; // prior tap succeeded — dialog already on screen
+        }
+        firstAttempt = false;
         await this.tapButton('sendAlertButton');
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText(
-            /.*This is an alert dialog[\s\S]*single button.*/i,
-          ),
-          { timeout: 8_000 },
-        );
+        await this.expectEnabledSnapAlert(8_000);
       },
       {
         timeout: 45_000,
         interval: 500,
+        maxRetries: 5,
+        elemDescription: 'Send Alert button / enabled Snap alert dialog',
         description: 'Send enabled Snap alert until dialog is visible',
       },
     );
