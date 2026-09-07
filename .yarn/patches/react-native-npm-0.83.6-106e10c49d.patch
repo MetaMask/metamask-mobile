@@ -86,3 +86,16 @@ index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..a1d6d1a2d58f41f3a5d3f4f6f2d6e3f7
        makeNativeMethod(
            "dumpSampledTraceToFile",
            HermesSamplingProfiler::dumpSampledTraceToFile),
+diff --git a/ReactAndroid/hermes-engine/build.gradle.kts b/ReactAndroid/hermes-engine/build.gradle.kts
+index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..c2c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f 100644
+--- a/ReactAndroid/hermes-engine/build.gradle.kts
++++ b/ReactAndroid/hermes-engine/build.gradle.kts
+@@ -165,5 +165,8 @@ val configureBuildForHermes by
+               "-B",
+               hermesBuildDir.toString(),
+               "-DJSI_DIR=" + jsiDir.absolutePath,
+               "-DCMAKE_BUILD_TYPE=Release",
++              "-DCMAKE_C_FLAGS=-fno-lto",
++              "-DCMAKE_CXX_FLAGS=-fno-lto",
++              "-DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld",
+           )
