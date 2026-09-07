@@ -5,6 +5,7 @@ import {
   selectIsSignedIn,
 } from '../../../../selectors/identity';
 import {
+  selectIsMetamaskNotificationsEnabled,
   selectIsMetaMaskPushNotificationsEnabled,
   selectMetaMaskPushNotificationToken,
 } from '../../../../selectors/notifications';
@@ -34,6 +35,9 @@ import Logger from '../../../../util/Logger';
 export function useBrazeIdentity(): void {
   const isSignedIn = useSelector(selectIsSignedIn);
   const canonicalProfileId = useSelector(selectCanonicalProfileId);
+  const areNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
   const isPushEnabled = useSelector(selectIsMetaMaskPushNotificationsEnabled);
   const fcmToken = useSelector(selectMetaMaskPushNotificationToken);
   const hasBeenSignedInRef = useRef(false);
@@ -49,12 +53,16 @@ export function useBrazeIdentity(): void {
     let cancelled = false;
 
     const syncIdentity = async () => {
-      startupUnregistrationRetryRef.current ??= isPushEnabled
-        ? Promise.resolve(true)
-        : retryPendingBrazePushUnregistration();
+      startupUnregistrationRetryRef.current ??=
+        areNotificationsEnabled && isPushEnabled
+          ? Promise.resolve(true)
+          : retryPendingBrazePushUnregistration();
       const unregistrationComplete =
         await startupUnregistrationRetryRef.current;
-      if (cancelled || (!unregistrationComplete && !isPushEnabled)) {
+      if (
+        cancelled ||
+        (!unregistrationComplete && !(areNotificationsEnabled && isPushEnabled))
+      ) {
         return;
       }
 
@@ -86,12 +94,19 @@ export function useBrazeIdentity(): void {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn, canonicalProfileId, identifiedProfileId, isPushEnabled]);
+  }, [
+    isSignedIn,
+    canonicalProfileId,
+    identifiedProfileId,
+    areNotificationsEnabled,
+    isPushEnabled,
+  ]);
 
   useEffect(() => {
     if (
       !isSignedIn ||
       identifiedProfileId !== canonicalProfileId ||
+      !areNotificationsEnabled ||
       !isPushEnabled ||
       !fcmToken
     ) {
@@ -108,6 +123,7 @@ export function useBrazeIdentity(): void {
     isSignedIn,
     canonicalProfileId,
     identifiedProfileId,
+    areNotificationsEnabled,
     isPushEnabled,
     fcmToken,
   ]);

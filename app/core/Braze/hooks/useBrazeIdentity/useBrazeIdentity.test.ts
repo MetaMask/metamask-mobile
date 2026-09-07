@@ -47,6 +47,7 @@ const mockUseSelector = jest.mocked(useSelector);
 
 let mockIsSignedIn = false;
 let mockCanonicalProfileId: string | undefined;
+let mockAreNotificationsEnabled = true;
 let mockIsPushEnabled = false;
 let mockFcmToken = '';
 
@@ -77,6 +78,10 @@ const createState = (isSignedIn: boolean, canonicalProfileId?: string) =>
               }
             : {}),
         },
+        NotificationServicesController: {
+          ...backgroundState.NotificationServicesController,
+          isNotificationServicesEnabled: mockAreNotificationsEnabled,
+        },
         NotificationServicesPushController: {
           isPushEnabled: mockIsPushEnabled,
           fcmToken: mockFcmToken,
@@ -90,6 +95,7 @@ describe('useBrazeIdentity', () => {
   beforeEach(() => {
     mockIsSignedIn = false;
     mockCanonicalProfileId = undefined;
+    mockAreNotificationsEnabled = true;
     mockIsPushEnabled = false;
     mockFcmToken = '';
     jest.clearAllMocks();
@@ -158,6 +164,21 @@ describe('useBrazeIdentity', () => {
     renderHook(() => useBrazeIdentity());
 
     await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(1));
+    expect(mockRegisterBrazePush).not.toHaveBeenCalled();
+  });
+
+  it('does not register push when master notifications are disabled', async () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockAreNotificationsEnabled = false;
+    mockIsPushEnabled = true;
+    mockFcmToken = 'fcm-token';
+
+    renderHook(() => useBrazeIdentity());
+
+    await waitFor(() =>
+      expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalledTimes(1),
+    );
     expect(mockRegisterBrazePush).not.toHaveBeenCalled();
   });
 
