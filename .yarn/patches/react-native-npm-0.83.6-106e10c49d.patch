@@ -57,7 +57,7 @@ diff --git a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSS
 index 1a3bce00363ee2dfc2ec2c2d0b8445a91e5c87d2..598c500ef5e03ad59bc57758f266066f03139973 100644
 --- a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
 +++ b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
-@@ -29,6 +29,16 @@ class ReactNativeFeatureFlagsOverridesOSSStable : public ReactNativeFeatureFlags
+@@ -29,7 +29,17 @@ class ReactNativeFeatureFlagsOverridesOSSStable : public ReactNativeFeatureFlags
    {
      return true;
    }
@@ -74,3 +74,15 @@ index 1a3bce00363ee2dfc2ec2c2d0b8445a91e5c87d2..598c500ef5e03ad59bc57758f266066f
    bool useShadowNodeStateOnClone() override
    {
      return true;
+   }
+diff --git a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp b/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
+index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..a1d6d1a2d58f41f3a5d3f4f6f2d6e3f7f8a9b0c1 100644
+--- a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
++++ b/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
+@@ -34,5 +34,5 @@ void HermesSamplingProfiler::registerNatives() {
+       makeNativeMethod("enable", HermesSamplingProfiler::enable),
+-      makeNativeMethod("disable", HermesSamplingProfiler::enable),
++      makeNativeMethod("disable", HermesSamplingProfiler::disable),
+       makeNativeMethod(
+           "dumpSampledTraceToFile",
+           HermesSamplingProfiler::dumpSampledTraceToFile),
