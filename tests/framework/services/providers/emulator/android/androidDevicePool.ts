@@ -30,6 +30,17 @@ export function resolveAndroidDevicePoolSize(
 }
 
 /**
+ * True when two or more emulators share one host `adb` server (CI N=2 / N=3).
+ * Concurrent `adb reverse --remove` from one worker races sibling UiAutomator2
+ * traffic and can restart the daemon, taking down the whole shard.
+ */
+export function isSharedAndroidAdbDaemon(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return resolveAndroidDevicePoolSize(env) >= 2;
+}
+
+/**
  * Pool mode requires one Playwright worker per emulator. Playwright reads its
  * worker count before global setup, so changing E2E_WORKERS during boot cannot
  * repair a mismatch.

@@ -108,6 +108,13 @@ device fails only its assigned Playwright worker; the provider does not kill
 or restart the sibling emulator. Appium retries use `parallelIndex`, so a
 replacement worker keeps the same serial and ports.
 
+Workers share one host `adb` server. `withFixtures` therefore skips
+`adb reverse --remove` when `ANDROID_DEVICE_POOL_SIZE >= 2`. Removing
+reverses from one worker can protocol-fault the daemon and restart it
+(`daemon not running; starting now`), which takes UiAutomator2 down on
+every emulator in the job. New tests overwrite the mappings they need
+via `adb reverse tcp:<fallback> tcp:<actual>`.
+
 ## Measuring impact
 
 Do not reduce shard counts until this data exists for the suites that matter.
