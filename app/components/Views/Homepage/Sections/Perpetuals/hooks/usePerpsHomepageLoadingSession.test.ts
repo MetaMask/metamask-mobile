@@ -284,14 +284,14 @@ describe('usePerpsHomepageLoadingSession', () => {
       network: 'mainnet',
     });
 
-    provider = 'myx';
+    provider = 'lighter';
     rerender(undefined);
     expect(startPerpsLoadingSession).toHaveBeenLastCalledWith({
       lifecycle: 'network_switch',
       restart: false,
       surface: 'homepage',
       identity: expect.any(Object),
-      provider: 'myx',
+      provider: 'lighter',
       network: 'mainnet',
     });
   });

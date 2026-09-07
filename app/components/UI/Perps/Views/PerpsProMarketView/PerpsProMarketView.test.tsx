@@ -746,7 +746,7 @@ describe('PerpsProMarketView', () => {
       },
     };
     mockUsePerpsLivePositions.mockReturnValue({
-      positions: [{ ...ethPosition, symbol: 'BTC', providerId: 'myx' }],
+      positions: [{ ...ethPosition, symbol: 'BTC', providerId: 'lighter' }],
       isInitialLoading: false,
     });
 
@@ -755,7 +755,7 @@ describe('PerpsProMarketView', () => {
     fireEvent.press(getByTestId(getPerpsProPositionRowSelector('BTC')));
 
     expect(mockSetParams).toHaveBeenCalledWith({
-      market: { symbol: 'BTC', providerId: 'myx' },
+      market: { symbol: 'BTC', providerId: 'lighter' },
       source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
       source_section: PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
       direction: undefined,
@@ -990,7 +990,7 @@ describe('PerpsProMarketView', () => {
     };
     mockUsePerpsMarketsImpl.mockReturnValue({
       markets: [
-        { symbol: 'BTC', maxLeverage: '75x', providerId: 'myx' },
+        { symbol: 'BTC', maxLeverage: '75x', providerId: 'lighter' },
         { symbol: 'BTC', maxLeverage: '40x', providerId: 'hyperliquid' },
       ],
       isLoading: false,
@@ -1381,6 +1381,30 @@ describe('PerpsProMarketView', () => {
     );
 
     expect(mockCommitLimitPrice).toHaveBeenCalledWith('0.0682');
+  });
+
+  it('keeps a decimal the BTC ladder never displayed out of the limit price', () => {
+    // Hyperliquid returns BTC levels as "64120.0", and BTC's market price shows
+    // no decimal at all, so the filled limit price must not carry one either —
+    // including while the asset precision is still unknown.
+    mockSzDecimals = undefined;
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: { ...buildLiveBook('64120.0'), midPrice: '64125.0' },
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('64120');
   });
 
   describe('Recently viewed tracking', () => {

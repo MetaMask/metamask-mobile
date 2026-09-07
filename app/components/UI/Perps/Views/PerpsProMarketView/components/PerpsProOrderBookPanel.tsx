@@ -61,6 +61,7 @@ import {
   getDepthRatio,
   getDepthWidth,
   getOrderBookPriceFormat,
+  getOrderBookPriceValue,
   groupOrderBook,
   FAST_ORDER_BOOK_LEVELS,
   ORDER_BOOK_AGGREGATED_LEVELS,
@@ -454,18 +455,6 @@ const PerpsProOrderBookPanel = ({
     setIsConfigOpen(true);
   }, [playSelection]);
 
-  const handleSelectPrice = useCallback(
-    (price: string) => {
-      if (!onSelectPrice) {
-        return;
-      }
-      playSelection().catch(() => undefined);
-      onSelectPrice(price);
-    },
-    [onSelectPrice, playSelection],
-  );
-  const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
-
   const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
   const { orderBookPosition, setOrderBookPosition } =
     usePerpsProOrderBookPosition();
@@ -563,6 +552,22 @@ const PerpsProOrderBookPanel = ({
     () => getOrderBookPriceFormat(currentGrouping, midPriceValue, szDecimals),
     [currentGrouping, midPriceValue, szDecimals],
   );
+
+  const handleSelectPrice = useCallback(
+    (price: string) => {
+      if (!onSelectPrice) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      // Fill the price the tapped row displayed rather than the venue's raw
+      // level: the ladder renders every price at `priceFormat`'s precision, so
+      // a level with more decimals than that would fill a decimal the market
+      // price never shows.
+      onSelectPrice(getOrderBookPriceValue(price, priceFormat));
+    },
+    [onSelectPrice, playSelection, priceFormat],
+  );
+  const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
 
   // Server-aggregated book on its own dedicated socket (does not disturb raw).
   const {

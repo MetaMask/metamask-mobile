@@ -8,26 +8,32 @@ import {
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
 } from './read';
 import type {
   CardFeatureFlag,
   CardProviderChains,
+  CardUkMigrationState,
   GateVersionedFeatureFlag,
   ImmersveProgramConfig,
 } from './types';
 
-export { defaultCardFeatureFlag } from './defaults';
+export { defaultCardFeatureFlag, defaultCardUkMigrationFlag } from './defaults';
 export * from './types';
 export {
   CARD_PROVIDER_FLAGS,
+  CARD_UK_MIGRATION_COUNTRY_CODE,
   FALLBACK_CARD_PROVIDER_ID,
+  isCardUkMigrationEligible,
   readCardFeatureFlag,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  readCardUkMigrationFlag,
   resolveCardProviderForCountry,
+  resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
 } from './read';
 
@@ -162,4 +168,26 @@ export const selectCardTransactionHistoryEnabled = createSelector(
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
+);
+
+/**
+ * Snapshot of UK migration state at the last remote-flag bag change.
+ * Soft vs forced depends on `Date.now()` inside `resolveCardUkMigrationState`,
+ * so this stays frozen across `endDate` until flags change. Card Home should
+ * use `useCardUkMigrationState` to re-evaluate on focus / pull-to-refresh.
+ */
+export const selectCardUkMigrationState = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): CardUkMigrationState =>
+    resolveCardUkMigrationState(remoteFeatureFlags as CardRemoteFeatureFlags),
+);
+
+export const selectCardUkMigrationPhase = createSelector(
+  selectCardUkMigrationState,
+  (state) => state.phase,
+);
+
+export const selectIsCardUkMigrationActive = createSelector(
+  selectCardUkMigrationState,
+  (state) => state.isActive,
 );
