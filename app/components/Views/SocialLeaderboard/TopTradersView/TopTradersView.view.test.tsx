@@ -27,9 +27,7 @@ import {
   renderTopTradersView,
   renderTopTradersViewWithRoutes,
 } from '../../../../../tests/component-view/renderers/socialLeaderboard';
-import {
-  getRouteProbeTestId,
-} from '../../../../../tests/component-view/render';
+import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import {
   getSortFilterOptionTestId,
@@ -91,18 +89,28 @@ describe('TopTradersView', () => {
     expect(alphaName).toBeOnTheScreen();
 
     // Validate all significant fields for alpha.eth (rank 1 – gold medal).
-    const alphaRow = await screen.findByTestId(`trader-row-${alpha1.profileId}`);
+    const alphaRow = await screen.findByTestId(
+      `trader-row-${alpha1.profileId}`,
+    );
     const alphaWithin = within(alphaRow);
-    expect(alphaWithin.getByTestId(`rank-medal-${alpha1.rank}`)).toBeOnTheScreen();
+    expect(
+      alphaWithin.getByTestId(`rank-medal-${alpha1.rank}`),
+    ).toBeOnTheScreen();
     expect(alphaWithin.getByText('+$963,146.80')).toBeOnTheScreen();
-    expect(alphaWithin.getByText(strings('social_leaderboard.follow'))).toBeOnTheScreen();
+    expect(
+      alphaWithin.getByText(strings('social_leaderboard.follow')),
+    ).toBeOnTheScreen();
 
     // Validate all significant fields for beta.eth (rank 2 – silver medal).
     const betaRow = await screen.findByTestId(`trader-row-${alpha2.profileId}`);
     const betaWithin = within(betaRow);
-    expect(betaWithin.getByTestId(`rank-medal-${alpha2.rank}`)).toBeOnTheScreen();
+    expect(
+      betaWithin.getByTestId(`rank-medal-${alpha2.rank}`),
+    ).toBeOnTheScreen();
     expect(betaWithin.getByText('+$474,751.45')).toBeOnTheScreen();
-    expect(betaWithin.getByText(strings('social_leaderboard.follow'))).toBeOnTheScreen();
+    expect(
+      betaWithin.getByText(strings('social_leaderboard.follow')),
+    ).toBeOnTheScreen();
   });
 
   // -------------------------------------------------------------------------
@@ -171,17 +179,20 @@ describe('TopTradersView', () => {
     // Wait for data to load before tapping.
     expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
 
-    const followButtons = screen.getAllByText(strings('social_leaderboard.follow'));
+    const followButtons = screen.getAllByText(
+      strings('social_leaderboard.follow'),
+    );
     await act(async () => {
       fireEvent.press(followButtons[0]);
     });
 
     // The spy includes all messenger calls; check the follow call specifically.
-    expect(
-      getLeaderboardMessengerSpy(),
-    ).toHaveBeenCalledWith('SocialController:followTrader', {
-      targets: [mockLeaderboardTraders[0].profileId],
-    });
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+      'SocialController:followTrader',
+      {
+        targets: [mockLeaderboardTraders[0].profileId],
+      },
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -197,14 +208,17 @@ describe('TopTradersView', () => {
     expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
 
     await act(async () => {
-      fireEvent.press(screen.getByText(strings('social_leaderboard.following')));
+      fireEvent.press(
+        screen.getByText(strings('social_leaderboard.following')),
+      );
     });
 
-    expect(
-      getLeaderboardMessengerSpy(),
-    ).toHaveBeenCalledWith('SocialController:unfollowTrader', {
-      targets: ['trader-1'],
-    });
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+      'SocialController:unfollowTrader',
+      {
+        targets: ['trader-1'],
+      },
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -219,19 +233,16 @@ describe('TopTradersView', () => {
       notificationPrefs: { pushEnabled: false, inAppEnabled: false },
     });
 
-    renderTopTradersViewWithRoutes(
-      [{ name: Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP }],
-      {
-        // Disable notification services at the Redux level as well so the
-        // follow-intercept hook considers both channels inactive.
-        presetOptions: { notificationsEnabled: false },
-      },
-    );
+    renderTopTradersViewWithRoutes([
+      { name: Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP },
+    ]);
 
     expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
 
     await act(async () => {
-      fireEvent.press(screen.getAllByText(strings('social_leaderboard.follow'))[0]);
+      fireEvent.press(
+        screen.getAllByText(strings('social_leaderboard.follow'))[0],
+      );
     });
 
     // The trading signals setup sheet route should have been pushed.
@@ -247,7 +258,9 @@ describe('TopTradersView', () => {
   it('refetches the leaderboard via the Engine when the list is pulled to refresh', async () => {
     renderTopTradersView();
 
-    expect(await screen.findByText(mockLeaderboardTraders[0].name)).toBeOnTheScreen();
+    expect(
+      await screen.findByText(mockLeaderboardTraders[0].name),
+    ).toBeOnTheScreen();
 
     // Clear accumulated calls (initial fetch + any idle prefetches) so only the
     // refresh-triggered call is counted. Without this, idle tab prefetches that
@@ -319,9 +332,7 @@ describe('TopTradersView', () => {
     });
 
     // Muting writes through to the AUS putNotificationPreferences action.
-    expect(
-      getLeaderboardMessengerSpy(),
-    ).toHaveBeenCalledWith(
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
       'AuthenticatedUserStorageService:putNotificationPreferences',
       expect.anything(),
       expect.anything(),

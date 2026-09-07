@@ -180,13 +180,12 @@ export function setupLeaderboardApiMock(
       const [action, fetchOpts] = messengerArgs as [
         string,
         { chains?: string[] } | undefined,
-        ...unknown[]
+        ...unknown[],
       ];
 
       if (action === 'SocialService:fetchLeaderboard') {
         const chains = fetchOpts?.chains ?? [];
-        const isPerpsOnly =
-          chains.length === 1 && chains[0] === PERP_CHAIN;
+        const isPerpsOnly = chains.length === 1 && chains[0] === PERP_CHAIN;
         const isMixedWithPerps =
           chains.includes(PERP_CHAIN) && chains.length > 1;
 
@@ -205,8 +204,7 @@ export function setupLeaderboardApiMock(
       }
 
       if (
-        action ===
-        'AuthenticatedUserStorageService:getNotificationPreferences'
+        action === 'AuthenticatedUserStorageService:getNotificationPreferences'
       ) {
         return Promise.resolve(prefsResponse) as ReturnType<
           typeof Engine.controllerMessenger.call
