@@ -1,5 +1,27 @@
 import type { NavigationState, PartialState } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { CancelReason } from './CancelMembership.constants';
+
+const OTHER_REASON_ID = 'other';
+
+/**
+ * Shuffles cancel reasons for display so option order does not bias answers.
+ * Pins "Other" last. Does not mutate the input array.
+ */
+export const shuffleCancelReasons = (
+  reasons: CancelReason[],
+): CancelReason[] => {
+  const rest = reasons.filter((reason) => reason.id !== OTHER_REASON_ID);
+  const other = reasons.filter((reason) => reason.id === OTHER_REASON_ID);
+  const shuffled = [...rest];
+
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return [...shuffled, ...other];
+};
 
 export const POST_CANCELLATION_PRO_HUB_SOURCE =
   'pro_subscription_cancellation_success' as const;

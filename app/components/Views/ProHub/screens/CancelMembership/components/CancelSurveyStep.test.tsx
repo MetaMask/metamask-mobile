@@ -187,6 +187,32 @@ describe('CancelSurveyStep', () => {
 
       expect(props.onReasonSelect).toHaveBeenCalledWith(firstReason.id);
     });
+
+    it('renders other as the last reason', () => {
+      const { getAllByRole } = renderStep();
+
+      const radios = getAllByRole('radio');
+
+      expect(radios[radios.length - 1]).toHaveProp(
+        'testID',
+        getCancelReasonTestId('other'),
+      );
+    });
+
+    it('keeps the same reason order after a reason is selected', () => {
+      const { getAllByRole, rerender, props } = renderStep();
+      const orderBeforeSelect = getAllByRole('radio').map(
+        (item) => item.props.testID,
+      );
+
+      rerender(
+        <CancelSurveyStep {...props} selectedReasonId={CANCEL_REASONS[0].id} />,
+      );
+
+      expect(getAllByRole('radio').map((item) => item.props.testID)).toEqual(
+        orderBeforeSelect,
+      );
+    });
   });
 
   // ── Bottom actions ─────────────────────────────────────────────────────────

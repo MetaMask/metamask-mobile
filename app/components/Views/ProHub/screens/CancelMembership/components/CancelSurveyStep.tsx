@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import {
   type LayoutChangeEvent,
   ScrollView,
@@ -36,6 +36,7 @@ import {
   MAX_STAY_FEEDBACK_LENGTH,
   MOCK_CANCEL_STATS,
 } from '../CancelMembership.constants';
+import { shuffleCancelReasons } from '../CancelMembership.utils';
 
 /**
  * Leaves the selected reason partially visible above the stay question so the
@@ -106,6 +107,10 @@ const CancelSurveyStep = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToStayQuestionRef = useRef(false);
   const showStayQuestion = selectedReasonId !== null;
+  const orderedReasons = useMemo(
+    () => shuffleCancelReasons(CANCEL_REASONS),
+    [],
+  );
 
   // The stay question mounts below the stats card and six reason rows, so on
   // shorter devices it appears off-screen. Scroll to it once: onLayout also
@@ -215,7 +220,7 @@ const CancelSurveyStep = ({
           twClassName="gap-y-3"
           testID={CancelMembershipTestIds.REASONS_LIST}
         >
-          {CANCEL_REASONS.map((reason) => (
+          {orderedReasons.map((reason) => (
             <ReasonItem
               key={reason.id}
               id={reason.id}
