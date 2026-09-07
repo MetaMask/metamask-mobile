@@ -104,8 +104,8 @@ describe('CustomAmount', () => {
     expect(queryByTestId('custom-amount-cursor')).toBeNull();
   });
 
-  describe('display-only decimal rounding', () => {
-    it('rounds full-precision amounts down to two decimals', () => {
+  describe('cents truncation', () => {
+    it('truncates full-precision amounts to two decimals', () => {
       const { getByText } = renderWithProvider(
         <CustomAmount amountFiat="500.123456" />,
       );
@@ -113,27 +113,29 @@ describe('CustomAmount', () => {
       expect(getByText('500.12')).toBeOnTheScreen();
     });
 
-    it('rounds half up', () => {
+    it('truncates rather than rounding up', () => {
+      // The rendered value is re-typable through the keypad, so rounding up
+      // would let the user enter an amount above their balance.
       const { getByText } = renderWithProvider(
-        <CustomAmount amountFiat="10.375107" />,
+        <CustomAmount amountFiat="10.379" />,
       );
 
-      expect(getByText('10.38')).toBeOnTheScreen();
+      expect(getByText('10.37')).toBeOnTheScreen();
     });
 
-    it('rounds up and carries into the whole part', () => {
+    it('never carries into the whole part', () => {
       const { getByText } = renderWithProvider(
         <CustomAmount amountFiat="1.999" />,
       );
 
-      expect(getByText('2.00')).toBeOnTheScreen();
+      expect(getByText('1.99')).toBeOnTheScreen();
     });
 
-    it('rounds before applying locale separators', () => {
+    it('truncates before applying locale separators', () => {
       renderWithProvider(<CustomAmount amountFiat="1234.987654" />);
 
       expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
-        '1234.99',
+        '1234.98',
       );
     });
 
@@ -144,7 +146,7 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="500,987654" />,
       );
 
-      expect(getByText('500.99')).toBeOnTheScreen();
+      expect(getByText('500.98')).toBeOnTheScreen();
     });
 
     it('renders malformed input unchanged rather than NaN', () => {
