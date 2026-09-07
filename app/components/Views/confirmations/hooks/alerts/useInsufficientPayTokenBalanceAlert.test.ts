@@ -572,7 +572,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           chainId: CHAIN_IDS.MONAD,
           isGasFeeSponsored: true,
           txParams: { from: SIGNER_ADDRESS },
-        } as TransactionMeta);
+        } as unknown as TransactionMeta);
         useTransactionPayTokenMock.mockReturnValue({
           payToken: { ...PAY_TOKEN_MOCK, chainId },
           setPayToken: jest.fn(),
@@ -599,7 +599,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         isGasFeeSponsored: true,
-      } as TransactionMeta);
+      } as unknown as TransactionMeta);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
         balanceRaw: '0',
@@ -618,7 +618,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         isGasFeeSponsored: true,
-      } as TransactionMeta);
+      } as unknown as TransactionMeta);
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
         balanceRaw: '0',
