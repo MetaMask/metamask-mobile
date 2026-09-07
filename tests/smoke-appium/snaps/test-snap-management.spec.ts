@@ -61,10 +61,10 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
           await SnapSettingsView.setEnabled(true);
           await navigateFromSnapSettingsToBrowser();
 
-          await TestSnaps.tapButton('sendAlertButton');
-          // Android Appium often omits/escapes quotes in alert copy; assert stable substrings.
-          await Assertions.expectTextDisplayed('This is an alert dialog');
-          await Assertions.expectTextDisplayed('single button');
+          // Re-tap until the enabled dialog is visible, then assert atomically —
+          // sequential substring polls race the short-lived alert (see
+          // expectDisabledSnapAlert / #34822).
+          await TestSnaps.tapSendAlertAndExpectEnabled();
           await TestSnaps.tapOkButton();
         },
       );

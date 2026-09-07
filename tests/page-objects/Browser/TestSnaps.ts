@@ -487,6 +487,40 @@ class TestSnaps {
     );
   }
 
+  /** Single query — sequential substring asserts race the short-lived alert. */
+  async expectEnabledSnapAlert(): Promise<void> {
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText(
+        /.*This is an alert dialog[\s\S]*single button.*/i,
+      ),
+      { timeout: 30_000 },
+    );
+  }
+
+  /**
+   * After re-enabling a Snap, the first Send Alert WebView tap can miss or
+   * land before the Snap is ready to show the dialog. Re-tap with a fresh
+   * atomic visibility probe until the enabled alert is on screen.
+   */
+  async tapSendAlertAndExpectEnabled(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await this.tapButton('sendAlertButton');
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByText(
+            /.*This is an alert dialog[\s\S]*single button.*/i,
+          ),
+          { timeout: 8_000 },
+        );
+      },
+      {
+        timeout: 45_000,
+        interval: 500,
+        description: 'Send enabled Snap alert until dialog is visible',
+      },
+    );
+  }
+
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
