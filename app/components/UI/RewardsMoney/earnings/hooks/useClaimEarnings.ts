@@ -7,6 +7,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { isMonadMainnetChainId } from '../../../../../util/networks';
@@ -110,14 +111,23 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
 
   const chainIdHex = vaultConfig?.chainId as Hex | undefined;
 
-  // Gas sponsorship for a 3-call batch through Sentinel is expected but
-  // unconfirmed. Requiring it up front is what stops an unsponsored account
-  // burning a 60-second voucher on a batch it cannot pay for.
+  // The batch is submitted with `isGasFeeSponsored: true`, so the money account
+  // never pays MON — Sentinel sponsors the relayer. Server-side sponsorship is
+  // per-chain and remote-flagged, and when it is off for this chain
+  // `Delegation7702PublishHook` throws rather than falling back to self-paid
+  // gas. Requiring it up front is what stops an unsponsored account burning a
+  // 60-second voucher on a batch that can never be submitted. Mirrors
+  // CardController's pre-flight for the same reason.
+  const isGasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
+
   const isSubmittable = Boolean(
     vaultConfig &&
       primaryMoneyAccount?.address &&
       chainIdHex &&
-      isMonadMainnetChainId(chainIdHex),
+      isMonadMainnetChainId(chainIdHex) &&
+      isGasFeesSponsoredNetworkEnabled(chainIdHex),
   );
 
   const reset = useCallback(() => {

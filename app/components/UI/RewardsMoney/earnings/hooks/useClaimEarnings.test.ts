@@ -5,6 +5,7 @@ import { getProviderByChainId } from '../../../../../util/notifications/methods/
 import { isMonadMainnetChainId } from '../../../../../util/networks';
 import { selectMoneyAccountVaultConfig } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { buildClaimDepositBatch } from '../utils/buildClaimDepositBatch';
 import { ClaimAlreadyOpenError } from '../../../../../core/Engine/controllers/rewards-money-controller/services';
 import awaitBatchConfirmed, {
@@ -57,6 +58,13 @@ jest.mock('../../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/gasFeesSponsored',
+  () => ({
+    getGasFeesSponsoredNetworkEnabled: jest.fn(),
+  }),
+);
+
 jest.mock('../utils/buildClaimDepositBatch', () => ({
   buildClaimDepositBatch: jest.fn(),
 }));
@@ -71,6 +79,7 @@ const mockCall = jest.mocked(Engine.controllerMessenger.call);
 const mockVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
 const mockPrimaryAccount = jest.mocked(selectPrimaryMoneyAccount);
 const mockIsMonad = jest.mocked(isMonadMainnetChainId);
+const mockSponsorshipEnabled = jest.mocked(getGasFeesSponsoredNetworkEnabled);
 const mockProvider = jest.mocked(getProviderByChainId);
 const mockBuildBatch = jest.mocked(buildClaimDepositBatch);
 const mockAwaitBatch = jest.mocked(awaitBatchConfirmed);
@@ -113,6 +122,7 @@ const setUpHappyPath = () => {
     address: '0xmoneyaccount',
   } as unknown as ReturnType<typeof selectPrimaryMoneyAccount>);
   mockIsMonad.mockReturnValue(true);
+  mockSponsorshipEnabled.mockReturnValue(() => true);
   mockProvider.mockReturnValue({} as never);
   mockBuildBatch.mockResolvedValue([
     { params: { to: '0xmusd' }, type: 'contractInteraction' },
@@ -364,7 +374,7 @@ describe('useClaimEarnings', () => {
       );
     });
 
-    it('reports NOT_SUBMITTABLE without opening a claim when sponsorship is off', async () => {
+    it('reports NOT_SUBMITTABLE without opening a claim on a non-Monad chain', async () => {
       mockIsMonad.mockReturnValue(false);
       const { result } = renderHook(() => useClaimEarnings());
 
@@ -377,6 +387,36 @@ describe('useClaimEarnings', () => {
         'RewardsMoneyController:initiateClaim',
         expect.anything(),
       );
+    });
+
+    /**
+     * The batch goes out with `isGasFeeSponsored: true`, and when server-side
+     * sponsorship is off for the chain `Delegation7702PublishHook` throws
+     * instead of falling back to self-paid gas. Opening the claim anyway burns
+     * a 60-second voucher on a batch that can never be submitted, and the sheet
+     * waits out the voucher window before it can say anything true.
+     */
+    it('reports NOT_SUBMITTABLE without opening a claim when gas sponsorship is unavailable', async () => {
+      mockSponsorshipEnabled.mockReturnValue(() => false);
+      const { result } = renderHook(() => useClaimEarnings());
+
+      await act(async () => {
+        await result.current.claim(['CASHBACK']);
+      });
+
+      expect(result.current.error?.reason).toBe('NOT_SUBMITTABLE');
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'RewardsMoneyController:initiateClaim',
+        expect.anything(),
+      );
+    });
+
+    it('checks sponsorship for the vault config chain, not a hardcoded one', async () => {
+      const isEnabled = jest.fn().mockReturnValue(true);
+      mockSponsorshipEnabled.mockReturnValue(isEnabled);
+      renderHook(() => useClaimEarnings());
+
+      expect(isEnabled).toHaveBeenCalledWith(VAULT_CONFIG.chainId);
     });
 
     it('reports VOUCHER_EXPIRED rather than letting the batch revert opaquely', async () => {
