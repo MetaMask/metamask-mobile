@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
-  Keyboard,
+  type LayoutChangeEvent,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -36,6 +36,12 @@ import {
   MAX_STAY_FEEDBACK_LENGTH,
   MOCK_CANCEL_STATS,
 } from '../CancelMembership.constants';
+
+/**
+ * Leaves the selected reason partially visible above the stay question so the
+ * auto-scroll reads as continuous rather than a jump.
+ */
+const STAY_QUESTION_SCROLL_INSET = 16;
 
 interface ReasonItemProps {
   id: string;
@@ -80,10 +86,8 @@ const ReasonItem = ({ id, label, isSelected, onPress }: ReasonItemProps) => (
 export interface CancelSurveyStepProps {
   selectedReasonId: string | null;
   stayFeedback: string;
-  stayFeedbackSkipped: boolean;
   onReasonSelect: (id: string) => void;
   onStayFeedbackChange: (value: string) => void;
-  onStayFeedbackSkip: () => void;
   onBack: () => void;
   onKeepMembership: () => void;
   onCancelConfirm: () => void;
@@ -92,21 +96,31 @@ export interface CancelSurveyStepProps {
 const CancelSurveyStep = ({
   selectedReasonId,
   stayFeedback,
-  stayFeedbackSkipped,
   onReasonSelect,
   onStayFeedbackChange,
-  onStayFeedbackSkip,
   onBack,
   onKeepMembership,
   onCancelConfirm,
 }: CancelSurveyStepProps) => {
   const tw = useTailwind();
-  const showStayQuestion = selectedReasonId !== null && !stayFeedbackSkipped;
+  const scrollViewRef = useRef<ScrollView>(null);
+  const hasScrolledToStayQuestionRef = useRef(false);
+  const showStayQuestion = selectedReasonId !== null;
 
-  const handleStayFeedbackSkip = () => {
-    Keyboard.dismiss();
-    onStayFeedbackSkip();
-  };
+  // The stay question mounts below the stats card and six reason rows, so on
+  // shorter devices it appears off-screen. Scroll to it once: onLayout also
+  // fires as the multiline input grows, and re-scrolling mid-typing would
+  // yank the field out from under the user.
+  const handleStayQuestionLayout = useCallback((event: LayoutChangeEvent) => {
+    if (hasScrolledToStayQuestionRef.current) {
+      return;
+    }
+    hasScrolledToStayQuestionRef.current = true;
+    scrollViewRef.current?.scrollTo({
+      y: Math.max(0, event.nativeEvent.layout.y - STAY_QUESTION_SCROLL_INSET),
+      animated: true,
+    });
+  }, []);
 
   return (
     <>
@@ -123,6 +137,7 @@ const CancelSurveyStep = ({
       />
 
       <ScrollView
+        ref={scrollViewRef}
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('px-4 pt-2 pb-6')}
         showsVerticalScrollIndicator={false}
@@ -214,6 +229,7 @@ const CancelSurveyStep = ({
         {showStayQuestion && (
           <Box
             twClassName="mt-6 gap-y-3"
+            onLayout={handleStayQuestionLayout}
             testID={CancelMembershipTestIds.STAY_QUESTION}
           >
             <Text
@@ -244,18 +260,6 @@ const CancelSurveyStep = ({
               )}
               testID={CancelMembershipTestIds.STAY_QUESTION_INPUT}
             />
-            <TouchableOpacity
-              onPress={handleStayFeedbackSkip}
-              testID={CancelMembershipTestIds.STAY_QUESTION_SKIP}
-              accessibilityRole="button"
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryDefault}
-              >
-                {strings('pro_hub.cancel_membership.stay_question_skip')}
-              </Text>
-            </TouchableOpacity>
           </Box>
         )}
       </ScrollView>

@@ -118,17 +118,10 @@ describe('CancelMembership', () => {
     ).toBeOnTheScreen();
   });
 
-  it('hides the stay question after skip and still switches to success when cancel is pressed', () => {
-    const { getByTestId, queryByTestId } = renderScreen();
+  it('switches to the success step when cancel is pressed after a reason is selected', () => {
+    const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
-    fireEvent.press(getByTestId(CancelMembershipTestIds.STAY_QUESTION_SKIP));
-
-    expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
-    expect(
-      getByTestId(CancelMembershipTestIds.CANCEL_BUTTON),
-    ).toBeOnTheScreen();
-
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
     expect(
