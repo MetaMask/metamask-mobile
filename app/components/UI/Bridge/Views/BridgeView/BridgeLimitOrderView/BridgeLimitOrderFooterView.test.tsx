@@ -177,9 +177,9 @@ describe('BridgeLimitOrderFooterView', () => {
     });
     fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
 
-    expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toHaveTextContent(
-      strings('bridge.insufficient_funds'),
-    );
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent(strings('bridge.insufficient_funds'));
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
@@ -192,9 +192,9 @@ describe('BridgeLimitOrderFooterView', () => {
 
     const { getByTestId } = renderFooter(buildActiveQuoteState());
 
-    expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toHaveTextContent(
-      strings('bridge.insufficient_gas'),
-    );
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent(strings('bridge.insufficient_gas'));
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,

@@ -11,7 +11,6 @@ import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailab
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { SwapsLimitOrderConfirmButton } from './index';
 
-
 const TEST_ID = BridgeViewSelectorsIDs.CONFIRM_BUTTON;
 const DEFAULT_LABEL = 'Create Order';
 
@@ -46,7 +45,9 @@ function mockSettledQuote(
 }
 
 function renderButton(
-  props: Partial<React.ComponentProps<typeof SwapsLimitOrderConfirmButton>> = {},
+  props: Partial<
+    React.ComponentProps<typeof SwapsLimitOrderConfirmButton>
+  > = {},
 ) {
   const onPress = props.onPress ?? jest.fn();
 
