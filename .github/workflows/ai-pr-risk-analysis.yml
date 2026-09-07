@@ -62,3 +62,5 @@ jobs:
           gate-override-base-pattern: '^release/'
           gate-override-author: 'runway-github[bot]'
           gate-override-title-pattern: 'cherry.?pick'
+
+# Integration-test re-run: verifies in-place comment update and risk:* label reconciliation.
