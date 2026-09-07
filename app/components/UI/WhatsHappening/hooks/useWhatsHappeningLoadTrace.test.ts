@@ -13,7 +13,7 @@ jest.mock('../../../../util/trace', () => ({
 }));
 
 const defaultParams = {
-  name: TraceName.WhatsHappeningCarouselLoad,
+  name: TraceName.WhatsHappeningCarouselLoad as const,
   enabled: true,
   source: WhatsHappeningSource.Explore,
   stage: 'carousel' as const,
