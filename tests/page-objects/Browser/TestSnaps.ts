@@ -501,9 +501,9 @@ class TestSnaps {
     );
   }
 
-  // Lives in the POM rather than the spec because `tapSendAlertAndExpectEnabled`
-  // needs a configurable-timeout variant to use as the short probe inside its
-  // retry loop — sharing the same helper avoids duplicating the regex.
+  // Lives in the POM (not the spec) because the spec's retry loop needs a
+  // configurable-timeout variant for its short probe — sharing this helper
+  // avoids duplicating the regex across two call sites.
   async expectEnabledSnapAlert(timeout = 30_000): Promise<void> {
     await this.expectSnapAlert(
       TestSnaps.ENABLED_ALERT_PATTERN,
