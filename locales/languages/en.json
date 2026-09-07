@@ -9739,6 +9739,7 @@
       },
       "immersve_kyc_modal": {
         "load_error": "Something went wrong loading identity verification. Please try again.",
+        "permission_error": "Camera and microphone access is required for identity verification. Please allow access and try again.",
         "try_again": "Try again"
       },
       "immersve_funding_approval": {
