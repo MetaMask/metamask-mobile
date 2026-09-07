@@ -3,6 +3,7 @@
  */
 import {
   __resetVisibleRangeForTests,
+  __setPinchZoomActiveForTests,
   attachVisibleRangeListeners,
 } from '../visibleRange';
 import {
@@ -87,6 +88,7 @@ describe('attachVisibleRangeListeners', () => {
     const bridge = installRNBridge();
     const { chart, emitZoom } = makeChart();
     attachVisibleRangeListeners(chart);
+    __setPinchZoomActiveForTests(true);
     emitZoom();
     emitZoom();
     emitZoom();
@@ -114,10 +116,20 @@ describe('attachVisibleRangeListeners', () => {
     );
   });
 
+  it('ignores barSpacingChanged when no pinch is active', () => {
+    const bridge = installRNBridge();
+    const { chart, emitZoom } = makeChart();
+    attachVisibleRangeListeners(chart);
+    emitZoom();
+    jest.advanceTimersByTime(450);
+    expect(bridge.postMessage).not.toHaveBeenCalled();
+  });
+
   it('reports zoom candle count immediately before analytics debounce', () => {
     const bridge = installRNBridge();
     const { chart, emitZoom } = makeChart();
     attachVisibleRangeListeners(chart);
+    __setPinchZoomActiveForTests(true);
     emitZoom();
     expect(bridge.postMessage).toHaveBeenCalledTimes(1);
     expect(bridge.postMessage.mock.calls[0][0]).toContain(
@@ -143,6 +155,7 @@ describe('attachVisibleRangeListeners', () => {
     setWidget(null);
     const { chart, emitZoom } = makeChart();
     attachVisibleRangeListeners(chart);
+    __setPinchZoomActiveForTests(true);
     emitZoom();
     jest.advanceTimersByTime(450);
     expect(bridge.postMessage).not.toHaveBeenCalled();
@@ -231,6 +244,7 @@ describe('attachVisibleRangeListeners', () => {
       const bridge = installRNBridge();
       const { chart, emitZoom } = makeChart(range);
       attachVisibleRangeListeners(chart);
+      __setPinchZoomActiveForTests(true);
       emitZoom();
       const countMessage = bridge.postMessage.mock.calls.find((call) =>
         call[0].includes('VISIBLE_CANDLE_COUNT_CHANGED'),
@@ -278,6 +292,7 @@ describe('attachVisibleRangeListeners', () => {
     const bridge = installRNBridge();
     const { chart, emitZoom, emitPan } = makeChart();
     attachVisibleRangeListeners(chart);
+    __setPinchZoomActiveForTests(true);
     emitZoom();
     jest.advanceTimersByTime(450); // zoom fires
     bridge.postMessage.mockClear();

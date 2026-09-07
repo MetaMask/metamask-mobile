@@ -6,27 +6,9 @@
 // prettier-ignore
 const chartLogicString = `/******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
-/******/ 	// The require scope
-/******/ 	var __webpack_require__ = {};
-/******/ 	
-/************************************************************************/
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/************************************************************************/
-var __webpack_exports__ = {};
-// ESM COMPAT FLAG
-__webpack_require__.r(__webpack_exports__);
+let __webpack_exports__ = {};
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/bridge.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/core/bridge.ts
 // Typed bridge between the WebView IIFE and React Native.
 //
 // Wraps the same window.ReactNativeWebView.postMessage(...) call shape that
@@ -127,7 +109,7 @@ function onFromRN(handler) {
     };
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/state.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/core/state.ts
 // Module-local state container for the AdvancedChart WebView.
 //
 // Replaces the legacy \`window.chartWidget\`, \`window.isChartReady\`,
@@ -246,7 +228,7 @@ function prependOhlcvBars(bars) {
 function getOhlcvGeneration() {
     return state.ohlcvGeneration;
 }
-function state_bumpOhlcvGeneration() {
+function bumpOhlcvGeneration() {
     state.ohlcvGeneration += 1;
     return state.ohlcvGeneration;
 }
@@ -411,7 +393,7 @@ function __resetStateForTests() {
     state.legendOwnsLayoutSettle = false;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/loadLibrary.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/core/loadLibrary.ts
 // Loads the TradingView Advanced Charts library from window.CONFIG.libraryUrl
 // by injecting a <script> tag into the document head.
 //
@@ -426,7 +408,7 @@ let inflightPromise = null;
  * if the library is already loaded; rejected if a previous load failed.
  * Concurrent calls while the script is still loading share the same promise.
  */
-function loadLibrary_loadTradingViewLibrary(libraryUrl) {
+function loadTradingViewLibrary(libraryUrl) {
     if (isLibraryLoaded()) {
         return Promise.resolve();
     }
@@ -463,7 +445,7 @@ function __resetLoadLibraryForTests() {
     inflightPromise = null;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/messages/handler.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/messages/handler.ts
 // Inbound message dispatcher. Modules register typed handlers for the message
 // types they own; the dispatcher routes incoming messages by \`type\`.
 //
@@ -506,7 +488,7 @@ function __resetHandlersForTests() {
     handlers.clear();
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/theme.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/theme.ts
 // Theme application + SET_THEME_COLORS hot-swap handler.
 //
 // Ported from chartLogic.js: getThemeLineColor (line ~1034),
@@ -737,7 +719,7 @@ function __resetThemeForTests() {
     listeners.clear();
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/dataLifecycle.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/core/dataLifecycle.ts
 // Lightweight event bus for data lifecycle events overlays need to react to.
 //
 // The widget modules (ohlcvIngestion, pagination, visibleRange) publish
@@ -783,7 +765,8 @@ function __resetDataLifecycleForTests() {
     dataLifecycle_listeners.visibleRangeChanged = [];
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/pagination/priceApi.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/pagination/priceApi.ts
+/* unused harmony import specifier */ var priceApi_bumpOhlcvGeneration;
 // Default OHLCV paginator — fetches older bars from the MetaMask Price API.
 //
 // Used by widget/datafeed.ts when state.ohlcvPagination has a cursor. Phase 6
@@ -875,10 +858,10 @@ async function fetchOlderBarsFromPriceApi(request) {
  * Test-only helper: invalidates any in-flight fetches by bumping the generation.
  */
 function invalidateInFlightFetches() {
-    bumpOhlcvGeneration();
+    priceApi_bumpOhlcvGeneration();
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/pagination/rnBacked.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/pagination/rnBacked.ts
 // RN-backed pagination: sends FETCH_OLDER_BARS_REQUEST to React Native and
 // resolves the pending getBars callback when FETCH_OLDER_BARS_RESPONSE arrives.
 //
@@ -975,7 +958,7 @@ function __resetRnBackedPaginationForTests() {
     requestSeq = 0;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/timeUtils.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/core/timeUtils.ts
 // Time normalization helpers used across modules.
 //
 // Ported from chartLogic.js: normalizeChartUnixSec (line ~3564),
@@ -1030,7 +1013,7 @@ function getApproxBarDurationSec(bars) {
     return Math.max(MIN_BAR_DURATION_SEC, Math.round(lastMs / 1000));
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/socialLeaderboard/index.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/socialLeaderboard/index.ts
 // Social Leaderboard (SLB) viewport centering and back-fill pagination.
 //
 // Implements **Strategy C — SLB bulk back-fill**, the third pagination
@@ -1232,7 +1215,7 @@ function slbHandleGetBars(onResult) {
     return true;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/priceFormatter.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/priceFormatter.ts
 // Price formatting for TradingView's \`custom_formatters.priceFormatterFactory\`.
 //
 // Ported from chartLogic.js: SUBSCRIPT_DIGITS_CROSSHAIR / toSubscriptDigitsCrosshair
@@ -1353,7 +1336,7 @@ function advancedChartPriceFormatterFactory(symbolInfo, _minTick) {
     };
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/datafeed.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/datafeed.ts
 // TradingView UDF datafeed object passed into the widget constructor.
 //
 // Ported from chartLogic.js \`customDatafeed\` (lines ~5074-5203) and its
@@ -1563,7 +1546,7 @@ function forwardRealtimeTick(tick) {
     }
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/resolution.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/core/resolution.ts
 // Maps OHLCV bar intervals (milliseconds) to TradingView resolution strings.
 //
 // Ported verbatim from chartLogic.js INTERVAL_MS_TO_TV + detectResolution
@@ -1627,7 +1610,7 @@ function resolutionToIntervalMs(resolution) {
     return undefined;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/ohlcvIngestion.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/ohlcvIngestion.ts
 // SET_OHLCV_DATA and REALTIME_UPDATE inbound handlers.
 //
 // Ported from chartLogic.js: handleSetOHLCVData (~line 507) and
@@ -1676,7 +1659,7 @@ function handleSetOHLCVData(payload) {
     }
     resolveAllPendingOlderBarsNoData();
     setOhlcvData(payload.data);
-    state_bumpOhlcvGeneration();
+    bumpOhlcvGeneration();
     if (payload.rnBackedPagination) {
         setRnBackedPagination(payload.rnBackedPagination);
     }
@@ -1857,7 +1840,7 @@ function __resetOhlcvIngestionForTests() {
     firstDataDelivered = false;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/scaleLayout.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/scaleLayout.ts
 // Centralised price-scale + pane-layout overrides.
 //
 // Ported from chartLogic.js \`applyChartScaleLayout\` (~line 1270). Applied on
@@ -1939,7 +1922,7 @@ function syncMainSeriesToRightScale(widget) {
     }
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/types.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/core/types.ts
 // Shared types for the AdvancedChart WebView modules.
 //
 // These types are local to the WebView bundle. Cross-bridge payload shapes that
@@ -1952,7 +1935,7 @@ var ChartType;
     ChartType[ChartType["Line"] = 2] = "Line";
 })(ChartType || (ChartType = {}));
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/chartType.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/chartType.ts
 // SET_CHART_TYPE handler — switches between candle (1) and line (2) types.
 //
 // Ported from chartLogic.js handleSetChartType (~line 2457). After
@@ -1987,7 +1970,7 @@ function handleSetChartType(payload) {
 }
 
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/visualOverrides.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/visualOverrides.ts
 // Visual override application — grid colour, pane separator, current-price
 // line colour. Driven from CONFIG.visualOverrides (set by the consumer's
 // \`visualOverrides\` prop on the RN side).
@@ -2038,7 +2021,7 @@ function applyVisualOverrides(config) {
     }
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/timezone.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/core/timezone.ts
 // User-timezone resolution for TradingView's \`timezone\` widget option.
 //
 // Ported from chartLogic.js (~line 5299-5417). TradingView only accepts a
@@ -2168,7 +2151,7 @@ function resolveUserTimezone() {
     }
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/tvDomHelpers.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/tvDomHelpers.ts
 // Pure DOM traversal helpers for TradingView's same-origin iframe layout.
 //
 // Ported from chartLogic.js: findOuterChartMarkupTable (~line 1977) and
@@ -2221,7 +2204,7 @@ function eachChartDocument(fn) {
     }
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/externalLinkBridge.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/externalLinkBridge.ts
 // Intercepts in-iframe TradingView link clicks and forwards them to React
 // Native via CHART_TRADINGVIEW_CLICKED, so the user opens links in the
 // system browser instead of letting the iframe navigate.
@@ -2341,7 +2324,8 @@ function __resetExternalLinkBridgeForTests() {
     lastBridgeAt = 0;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/initChart.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/widget/initChart.ts
+/* unused harmony import specifier */ var initChart_loadTradingViewLibrary;
 // TradingView widget creation and onChartReady orchestration.
 //
 // Ported from chartLogic.js initChart() / onChartReady (lines ~5242-5601),
@@ -2563,10 +2547,10 @@ function scheduleChartLayoutSettledNotify() {
  * Phase 2's ohlcvIngestion calls this once SET_OHLCV_DATA arrives.
  */
 async function ensureLibraryLoaded(libraryUrl) {
-    await loadTradingViewLibrary(libraryUrl);
+    await initChart_loadTradingViewLibrary(libraryUrl);
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/crosshair.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/crosshair.ts
 // Crosshair → CROSSHAIR_MOVE message bridge + short-tap dismiss.
 //
 // Subscribes to TradingView's crossHairMoved() and posts the nearest OHLCV
@@ -2699,19 +2683,25 @@ function __resetCrosshairForTests() {
     session.mouseDownAt = 0;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/visibleRange.ts
-// Visible-range / bar-spacing → CHART_INTERACTED analytics.
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/visibleRange.ts
+// Visible-range / bar-spacing → CHART_INTERACTED analytics + zoom persistence.
 //
 // Subscribes to TradingView's barSpacingChanged (zoom) and
 // onVisibleRangeChanged (pan), debouncing each by 450ms and skipping pan
 // events that fire within 500ms of a zoom (the same finger gesture often
 // triggers both).
 //
+// Candle-count persistence is gated on an active two-finger pinch, matching
+// the lightweight chart. TradingView also fires barSpacingChanged for
+// initial layout, data load, refresh, interval change, and programmatic
+// applyVisibleRange — those must not overwrite PerpsController.visibleCandleCount.
+//
 // Ported from chartLogic.js zoom/pan debounce code in onChartReady
 // (~lines 5587-5661), trimmed of the legacy \`__mmSuppressChartInteractUntil\`
 // suppression (which gated analytics during OHLCV reloads — we emit
 // CHART_LAYOUT_SETTLED on each reload directly, so analytics can ignore
 // that gate).
+
 
 
 
@@ -2726,6 +2716,52 @@ const debounce = {
     zoomLastFiredAt: 0,
 };
 let attachedChart = null;
+let isPinchZoomActive = false;
+let pinchTrackingInstalled = false;
+/**
+ * Track two-finger touches on the TradingView host + iframe documents so
+ * barSpacingChanged handlers can tell user pinch zoom apart from
+ * programmatic spacing changes.
+ */
+function installPinchTracking() {
+    if (pinchTrackingInstalled) {
+        return;
+    }
+    pinchTrackingInstalled = true;
+    eachChartDocument((doc) => {
+        const target = doc.getElementById('tv_chart_container') ??
+            doc.body ??
+            doc.documentElement;
+        if (!target) {
+            return;
+        }
+        const tracked = target;
+        if (tracked.__mmPinchTracking) {
+            return;
+        }
+        tracked.__mmPinchTracking = true;
+        target.addEventListener('touchstart', (event) => {
+            isPinchZoomActive = event.touches.length >= 2;
+        }, { passive: true });
+        target.addEventListener('touchmove', (event) => {
+            if (event.touches.length >= 2) {
+                isPinchZoomActive = true;
+            }
+        }, { passive: true });
+        target.addEventListener('touchend', (event) => {
+            if (event.touches.length < 2) {
+                // Keep the flag through this event loop so a final spacing callback
+                // emitted by the gesture is still treated as a pinch.
+                setTimeout(() => {
+                    isPinchZoomActive = false;
+                }, 0);
+            }
+        }, { passive: true });
+        target.addEventListener('touchcancel', () => {
+            isPinchZoomActive = false;
+        }, { passive: true });
+    });
+}
 /**
  * Visible candle count from TradingView's unix-second visible range and the
  * current resolution. Returns undefined when the range or resolution is unusable.
@@ -2790,6 +2826,14 @@ function firePan() {
     postToRN('CHART_INTERACTED', { interaction_type: 'pan' });
 }
 function scheduleZoom() {
+    // Ignore programmatic spacing changes (layout, data load, refresh, interval
+    // change, applyVisibleRange). Only a real pinch should persist zoom or
+    // count as a user zoom analytics event.
+    if (!isPinchZoomActive) {
+        return;
+    }
+    // Report the zoom count immediately so a symbol/interval remount cannot
+    // drop the pending value before the analytics debounce fires.
     postZoomCandleCount();
     if (debounce.zoomTimer)
         clearTimeout(debounce.zoomTimer);
@@ -2814,6 +2858,7 @@ function schedulePan() {
  */
 function attachVisibleRangeListeners(chart) {
     attachedChart = chart;
+    installPinchTracking();
     try {
         chart.getTimeScale().barSpacingChanged().subscribe(null, scheduleZoom);
     }
@@ -2835,6 +2880,8 @@ function attachVisibleRangeListeners(chart) {
 /** Test-only: reset the debounce state between cases. */
 function __resetVisibleRangeForTests() {
     attachedChart = null;
+    isPinchZoomActive = false;
+    pinchTrackingInstalled = false;
     if (debounce.zoomTimer)
         clearTimeout(debounce.zoomTimer);
     if (debounce.panTimer)
@@ -2843,8 +2890,12 @@ function __resetVisibleRangeForTests() {
     debounce.panTimer = null;
     debounce.zoomLastFiredAt = 0;
 }
+/** Test-only: simulate an active pinch gesture. */
+function __setPinchZoomActiveForTests(active) {
+    isPinchZoomActive = active;
+}
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/legend.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/legend.ts
 // DOM legend overlay for active indicator studies.
 //
 // Ported from chartLogic.js: createStudyLegendOverlay (~4365),
@@ -3352,7 +3403,7 @@ function __resetLegendForTests() {
     removeAllSubPaneOverlays();
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/resize.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/resize.ts
 // Re-runs the widget's own resize after study operations so overlay lines
 // re-align with the price scale. Ported from chartLogic.js
 // \`scheduleChartWidgetResize\` (~line 162). Two rAFs + a 120ms timeout mirror
@@ -3382,7 +3433,7 @@ function scheduleChartWidgetResize() {
     setTimeout(run, 120);
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/subPane.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/subPane.ts
 // Sub-pane height ratio handler.
 //
 // Ported from chartLogic.js handleSetSubPaneLayout (~line 783) +
@@ -3451,7 +3502,7 @@ function handleSetSubPaneLayout(payload) {
     }
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/studies.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/studies.ts
 // Study presets — the createStudy() shape for each indicator we support.
 //
 // Ported from chartLogic.js: handleAddIndicator's switch (~line 818),
@@ -3582,7 +3633,7 @@ function createIndicatorStudy(chart, preset) {
     return chart.createStudy(preset.studyName, false, false, preset.inputs, preset.overrides);
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/index.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/index.ts
 // ADD_INDICATOR / REMOVE_INDICATOR / SET_MA_VISIBILITY handlers.
 //
 // Ported from chartLogic.js handleAddIndicator (~line 803),
@@ -3739,7 +3790,7 @@ function addMAVariants(chart, visible, config) {
     }
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/volume/index.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/features/volume/index.ts
 // Volume study handler. Supports overlay-on-main-pane and sub-pane modes.
 //
 // Ported from chartLogic.js handleToggleVolume (~line 4877) +
@@ -3872,7 +3923,7 @@ function registerVolumeThemeSync() {
     subscribeTheme(recolorVolumeStudy);
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/state.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/state.ts
 // Module-local state for the Social trade-marker overlay.
 //
 // Replaces legacy globals \`window.tradeMarkerShapeIds\`,
@@ -3933,7 +3984,7 @@ function __resetTradeMarkerStateForTests() {
     state_state.pulseGeneration = 0;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/index.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/index.ts
 // Social trade-marker overlay: places colored circles (with black rings)
 // on the chart for each of the user's trades, at the price of the candle
 // their trade timestamp falls in.
@@ -4228,7 +4279,7 @@ function __resetTradeMarkerRefreshForTests() {
     refreshDebounce = null;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/animation.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/animation.ts
 // Pulse animation for a specific trade marker.
 //
 // Ported from chartLogic.js \`handlePulseTradeMarker\` (~lines 2915-3001).
@@ -4295,7 +4346,7 @@ function handlePulseTradeMarker(payload) {
     const gen = bumpPulseGeneration();
     const startTs = Date.now();
     // Ring grows proportionally so the rim stays even.
-    const ringRatio = TRADE_MARKER_RING_SIZE / TRADE_MARKER_SIZE;
+    const ringRatio = (/* inlined export .TRADE_MARKER_RING_SIZE */14) / (/* inlined export .TRADE_MARKER_SIZE */10);
     const applySize = (fillSize) => {
         setSize(fillShape, fillSize);
         setSize(ringShape, fillSize * ringRatio);
@@ -4311,11 +4362,11 @@ function handlePulseTradeMarker(payload) {
             return;
         const t = (Date.now() - startTs) / PULSE_MS;
         if (t >= 1) {
-            applySize(TRADE_MARKER_SIZE);
+            applySize((/* inlined export .TRADE_MARKER_SIZE */10));
             return;
         }
         const envelope = Math.abs(Math.sin(Math.PI * PULSE_CYCLES * t)) * (1 - t);
-        applySize(TRADE_MARKER_SIZE + (PULSE_PEAK - TRADE_MARKER_SIZE) * envelope);
+        applySize((/* inlined export .TRADE_MARKER_SIZE */10) + (PULSE_PEAK - (/* inlined export .TRADE_MARKER_SIZE */10)) * envelope);
         try {
             requestAnimationFrame(step);
         }
@@ -4327,7 +4378,7 @@ function handlePulseTradeMarker(payload) {
         requestAnimationFrame(step);
     }
     catch {
-        applySize(TRADE_MARKER_SIZE);
+        applySize((/* inlined export .TRADE_MARKER_SIZE */10));
     }
 }
 /** Registers the PULSE_TRADE_MARKER message handler. Called from bootstrap. */
@@ -4337,7 +4388,7 @@ function registerTradeMarkerPulseHandler() {
     });
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/markerHitTest.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/markerHitTest.ts
 // Marker tap detection — turns a chart press into a TRADE_MARKER_PRESSED
 // message so the RN side can scroll the trades list to the pressed trade.
 //
@@ -4598,7 +4649,7 @@ function __resetMarkerHitTestForTests() {
     lastTapPoint = null;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/focusTime/index.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/focusTime/index.ts
 // Slide-to-center-on-a-time overlay used by Social's "tap a trade row →
 // center the chart on that trade" interaction.
 //
@@ -4744,7 +4795,7 @@ function __resetFocusTimeForTests() {
     animGeneration = 0;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/positionLines/state.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/positionLines/state.ts
 // Module-local state for position line shape IDs.
 // Kept separate from core/state.ts per convention: overlay-specific state
 // lives in the overlay's own state module.
@@ -4771,7 +4822,7 @@ function __resetPositionLineStateForTests() {
     generation = 0;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/positionLines/index.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/positionLines/index.ts
 // Position lines overlay (Perps). Renders horizontal dashed lines for entry,
 // take-profit, stop-loss, liquidation, and optionally a current-price line.
 //
@@ -4969,7 +5020,7 @@ function registerPositionLinesOverlay() {
     });
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/bootstrap.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/core/bootstrap.ts
 // Entry orchestration. Called once from src/index.ts when the IIFE evaluates
 // inside the WebView.
 //
@@ -5087,11 +5138,11 @@ function bootstrap() {
     });
     // Library load is fire-and-forget; the first-data handler awaits readiness
     // again before constructing the widget, so this is purely a head-start.
-    loadLibrary_loadTradingViewLibrary(config.libraryUrl).catch((error) => {
+    loadTradingViewLibrary(config.libraryUrl).catch((error) => {
         reportErrorToRN(error);
     });
     onFirstOhlcvData(() => {
-        loadLibrary_loadTradingViewLibrary(config.libraryUrl)
+        loadTradingViewLibrary(config.libraryUrl)
             .then(() => {
             createChartWidget(config, {
                 datafeed: customDatafeed,
@@ -5145,7 +5196,7 @@ function bootstrap() {
     return config;
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/index.ts
+;// ./app/components/UI/Charts/AdvancedChart/webview/src/index.ts
 // AdvancedChart WebView IIFE entry point.
 //
 // Evaluated at runtime inside the WebView after AdvancedChartTemplate has
@@ -5164,8 +5215,8 @@ catch (error) {
     reportErrorToRN(error);
 }
 
-var __webpack_export_target__ = self;
-for(var i in __webpack_exports__) __webpack_export_target__[i] = __webpack_exports__[i];
+const __webpack_export_target__ = self;
+for(var __webpack_i__ in __webpack_exports__) __webpack_export_target__[__webpack_i__] = __webpack_exports__[__webpack_i__];
 if(__webpack_exports__.__esModule) Object.defineProperty(__webpack_export_target__, "__esModule", { value: true });
 /******/ })()
 ;`;
