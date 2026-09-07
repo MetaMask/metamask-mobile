@@ -122,6 +122,12 @@ Two mechanisms carry the port:
 - `applyAndroidDevicePoolToWorker` exports `ANDROID_ADB_SERVER_PORT`. `adb`
   reads it natively, so every adb client the worker spawns inherits it and no
   call site needs a `-P` flag.
+- `resolveWorkerAdbServerPort` covers the window before that export exists.
+  The `deviceProvider` fixture is lazy, so a `beforeAll` doing `adb reverse`
+  runs first; without the fallback it would carry the right `-s` serial to the
+  default 5037 server and put the worker straight back on worker 0's daemon.
+  `adbDeviceArgs()` therefore emits `-P <port> -s <serial>`, matching the
+  `TEST_PARALLEL_INDEX` fallback the serial and host ports already use.
 - `EmulatorConfigBuilder` sets `appium:adbPort`. Appium is a separate process
   serving all sessions, so only a per-session capability can point its internal
   adb calls at the right server.
