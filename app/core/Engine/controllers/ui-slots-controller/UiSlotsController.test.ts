@@ -674,12 +674,13 @@ describe('UiSlotsController', () => {
 
   it('aborts an in-flight load without publishing after cancelScreenLoad', async () => {
     let resolveRequest: ((value: unknown) => void) | undefined;
-    const fetchScreen = jest.fn(
-      () =>
-        new Promise((resolve) => {
-          resolveRequest = resolve;
-        }),
-    );
+    let requestSignal: AbortSignal | undefined;
+    const fetchScreen = jest.fn(({ signal }: { signal?: AbortSignal }) => {
+      requestSignal = signal;
+      return new Promise((resolve) => {
+        resolveRequest = resolve;
+      });
+    });
     const controller = new UiSlotsController({
       readClient: buildReadClient(fetchScreen),
       ...controllerOptions,
@@ -695,7 +696,7 @@ describe('UiSlotsController', () => {
 
     expect(outcome).toBe('superseded');
     expect(controller.state.activeConfigurations).toEqual({});
-    expect(fetchScreen.mock.calls[0][0].signal.aborted).toBe(true);
+    expect(requestSignal?.aborted).toBe(true);
   });
 
   it('forces revalidation for a fresh cached configuration', async () => {
