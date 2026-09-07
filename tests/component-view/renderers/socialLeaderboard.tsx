@@ -2,10 +2,9 @@
  * Component-view renderers for Top Traders / Social Leaderboard screens.
  *
  * Provides:
- *   renderTopTradersView          – standalone leaderboard page
- *   renderTopTradersViewWithRoutes – leaderboard + extra registered routes
- *                                   (use for navigation assertions)
- *   renderSettingsTopTradersSection – privacy toggle in SecuritySettings
+ * - renderTopTradersView – standalone leaderboard page
+ * - renderTopTradersViewWithRoutes – leaderboard + extra registered routes (use for navigation assertions)
+ * - renderSettingsTopTradersSection – privacy toggle in SecuritySettings
  */
 
 import '../mocks';
@@ -59,8 +58,8 @@ export function renderTopTradersView(
  * assert navigation by checking for route probe elements.
  *
  * @param extraRoutes - Routes that the component may navigate to during the
- *   test (e.g. PROFILE, TRADING_SIGNALS_SETUP). Each becomes a probe screen
- *   with `testID = route-${name}` unless a custom Component is given.
+ * test (e.g. PROFILE, TRADING_SIGNALS_SETUP). Each becomes a probe screen
+ * with `testID = route-${name}` unless a custom Component is given.
  */
 export function renderTopTradersViewWithRoutes(
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[],

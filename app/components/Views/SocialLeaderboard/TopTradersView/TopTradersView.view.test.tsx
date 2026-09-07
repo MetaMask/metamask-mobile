@@ -7,9 +7,7 @@
  * layer (see tests/component-view/api-mocking/socialLeaderboard.ts).
  *
  * Run with:
- *   yarn jest -c jest.config.view.js \
- *     app/components/Views/SocialLeaderboard/TopTradersView/TopTradersView.view.test.tsx \
- *     --runInBand --silent --coverage=false
+ * yarn jest -c jest.config.view.js app/components/Views/SocialLeaderboard/TopTradersView/TopTradersView.view.test.tsx --runInBand --silent --coverage=false
  */
 
 import '../../../../../tests/component-view/mocks';

@@ -7,9 +7,7 @@
  * is the only external boundary.
  *
  * Run with:
- *   yarn jest -c jest.config.view.js \
- *     app/components/Views/Settings/SecuritySettings/Sections/TopTradersSection.view.test.tsx \
- *     --runInBand --silent --coverage=false
+ * yarn jest -c jest.config.view.js app/components/Views/Settings/SecuritySettings/Sections/TopTradersSection.view.test.tsx --runInBand --silent --coverage=false
  */
 
 import '../../../../../../tests/component-view/mocks';

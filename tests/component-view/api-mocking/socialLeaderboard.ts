@@ -2,8 +2,8 @@
  * Social Leaderboard API mock for component view tests.
  *
  * Intercepts Engine.controllerMessenger.call for:
- *   - SocialService:fetchLeaderboard (the useTopTraders React Query source)
- *   - AuthenticatedUserStorageService:getNotificationPreferences (useNotificationPreferences)
+ * - SocialService:fetchLeaderboard (the useTopTraders React Query source)
+ * - AuthenticatedUserStorageService:getNotificationPreferences (useNotificationPreferences)
  *
  * Uses the same spy/restore pattern as api-mocking/watchlist.ts.
  */
@@ -36,14 +36,14 @@ export interface MockLeaderboardEntry {
 
 /**
  * Three fixture traders that exercise all rendering paths:
- *   - trader-1 / alpha.eth: spot chains (base, ethereum) – gold podium medal
- *   - trader-2 / beta.eth: spot chain (base)             – silver podium medal
- *   - trader-3 / gamma.eth: hyperliquid (perps-only)     – bronze podium medal
+ * - trader-1 / alpha.eth: spot chains (base, ethereum) – gold podium medal
+ * - trader-2 / beta.eth: spot chain (base) – silver podium medal
+ * - trader-3 / gamma.eth: hyperliquid (perps-only) – bronze podium medal
  *
  * Metric ordering:
- *   PnL 7d:     alpha > beta > gamma   (default sort)
- *   ROI 7d:     gamma > beta > alpha   (ROI sort flips order)
- *   Win rate 7d: alpha > beta > gamma
+ * PnL 7d: alpha > beta > gamma (default sort)
+ * ROI 7d: gamma > beta > alpha (ROI sort flips order)
+ * Win rate 7d: alpha > beta > gamma
  */
 export const mockLeaderboardTraders: MockLeaderboardEntry[] = [
   {
