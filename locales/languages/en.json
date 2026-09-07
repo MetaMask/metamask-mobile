@@ -4343,6 +4343,7 @@
       "deselect_all": "Deselect all",
       "select_accounts_title": "Accounts",
       "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
+      "accounts_load_error": "We couldn't load your account notification settings. Try again later.",
       "wallet_activity_title": "Wallet activity",
       "wallet_activity_desc": "Buy, sells, transfers, swaps",
       "perps_title": "Trading activity",
@@ -9173,7 +9174,6 @@
     "dest_asset_require_activate_warning_message": "This swap may fail. On {{network}} your account can't receive {{token}} until the token is activated in your wallet.",
     "dest_asset_require_activate_warning_message_different_account": "This swap may fail. On {{network}} {{account}} can't receive {{token}} until you switch to that account and activate the token.",
     "dest_asset_require_activate_warning_title": "Activate {{token}} on {{network}} first",
-
     "token_warning_suspicious_banner": "{{token}} is a suspicious token.",
     "token_warning_malicious_banner": "{{token}} is a malicious token. Be cautious interacting with this token.",
     "token_warning_modal_suspicious_title": "Suspicious token",
