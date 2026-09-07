@@ -32348,7 +32348,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-dev-client@npm:~56.0.24":
+"expo-dev-client@npm:56.0.25":
   version: 56.0.25
   resolution: "expo-dev-client@npm:56.0.25"
   dependencies:
@@ -32520,7 +32520,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-modules-core@npm:~56.0.24":
+"expo-modules-core@npm:56.0.24":
   version: 56.0.24
   resolution: "expo-modules-core@npm:56.0.24"
   dependencies:
@@ -32596,7 +32596,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-splash-screen@npm:~56.0.14":
+"expo-splash-screen@npm:56.0.14":
   version: 56.0.14
   resolution: "expo-splash-screen@npm:56.0.14"
   dependencies:
@@ -32625,7 +32625,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-updates@npm:~56.0.23":
+"expo-updates@npm:56.0.25":
   version: 56.0.25
   resolution: "expo-updates@npm:56.0.25"
   dependencies:
@@ -32668,7 +32668,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo@npm:^56.0.0":
+"expo@npm:56.0.20":
   version: 56.0.20
   resolution: "expo@npm:56.0.20"
   dependencies:
@@ -40237,7 +40237,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"metro@npm:0.84.4, metro@npm:^0.84.3":
+"metro@npm:0.84.4":
   version: 0.84.4
   resolution: "metro@npm:0.84.4"
   dependencies:

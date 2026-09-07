@@ -259,7 +259,14 @@
     "react-native-blob-util@npm:^0.18.0": "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch",
     "@ledgerhq/device-signer-kit-ethereum@npm:^1.16.0": "patch:@ledgerhq/device-signer-kit-ethereum@npm%3A1.16.0#~/.yarn/patches/@ledgerhq-device-signer-kit-ethereum-npm-1.16.0-df4b883905.patch",
     "@metamask/assets-controller@npm:^14.0.2": "patch:@metamask/assets-controller@npm%3A14.0.2#~/.yarn/patches/@metamask-assets-controller-npm-14.0.2-3eec54a369.patch",
-    "@metamask/eth-sig-util": "^9.0.0"
+    "@metamask/eth-sig-util": "^9.0.0",
+    "expo@npm:^56.0.0": "56.0.20",
+    "expo-modules-core@npm:~56.0.24": "56.0.24",
+    "expo-updates@npm:~56.0.23": "56.0.25",
+    "expo-splash-screen@npm:~56.0.14": "56.0.14",
+    "expo-dev-client@npm:~56.0.24": "56.0.25",
+    "metro@npm:^0.84.3": "0.84.4",
+    "metro@npm:0.84.4": "0.84.4"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
