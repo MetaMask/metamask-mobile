@@ -1,7 +1,12 @@
+/* eslint-disable import-x/no-nodejs-modules */
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   buildRecordingFileBaseName,
   extractRecordingPayload,
   isAndroidPlatform,
+  isFfmpegAvailable,
   isLocalEmulatorProvider,
   isVideoRecordingOnFailureEnabled,
   sanitizeRecordingFileName,
@@ -124,6 +129,65 @@ describe('ScreenRecording', () => {
     it('returns true when APPIUM_RECORD_VIDEO_ALWAYS is true', () => {
       process.env[recordVideoAlwaysKey] = 'true';
       expect(shouldPersistRecordingAlways()).toBe(true);
+    });
+  });
+
+  describe('isFfmpegAvailable', () => {
+    const pathKey = 'PATH';
+    let previousPath: string | undefined;
+
+    beforeEach(() => {
+      previousPath = process.env[pathKey];
+    });
+
+    afterEach(() => {
+      if (previousPath === undefined) {
+        delete process.env[pathKey];
+      } else {
+        process.env[pathKey] = previousPath;
+      }
+    });
+
+    it('returns false when PATH has no ffmpeg binary', () => {
+      process.env[pathKey] = '/tmp/mms-no-ffmpeg-on-path';
+
+      expect(isFfmpegAvailable()).toBe(false);
+    });
+
+    it('returns false when PATH is empty', () => {
+      process.env[pathKey] = '';
+
+      expect(isFfmpegAvailable()).toBe(false);
+    });
+
+    it('returns true when PATH contains an executable ffmpeg', () => {
+      const dir = mkdtempSync(join(tmpdir(), 'mms-ffmpeg-'));
+      const binaryPath = join(dir, 'ffmpeg');
+      writeFileSync(binaryPath, '#!/bin/sh\n');
+      chmodSync(binaryPath, 0o755);
+      process.env[pathKey] = dir;
+
+      try {
+        expect(isFfmpegAvailable()).toBe(true);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    });
+
+    it('returns false when the PATH entry is chmod +x but not actually runnable', () => {
+      // Simulates a wrong-architecture binary or a truncated download: the
+      // executable bit is set, but invoking it fails.
+      const dir = mkdtempSync(join(tmpdir(), 'mms-ffmpeg-'));
+      const binaryPath = join(dir, 'ffmpeg');
+      writeFileSync(binaryPath, '#!/bin/sh\nexit 1\n');
+      chmodSync(binaryPath, 0o755);
+      process.env[pathKey] = dir;
+
+      try {
+        expect(isFfmpegAvailable()).toBe(false);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
     });
   });
 

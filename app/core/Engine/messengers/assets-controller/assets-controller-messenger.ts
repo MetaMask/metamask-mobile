@@ -17,9 +17,6 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:initialized',
   // Stop asset tracking when the account tree is cleared
   'AccountTreeController:uninitialized',
-  // core#9478: use exported :stateChange (not local :stateChanged aliases)
-  // Still required for post-init account-set changes (e.g. snap accounts)
-  'AccountTreeController:stateChange',
   // core#9388: RPC balance refresh when enabling custom RPC networks (e.g. DXC)
   // StakedBalanceDataSource also listens to this
   'NetworkEnablementController:stateChange',
@@ -79,6 +76,9 @@ export function getAssetsControllerMessenger(
       'PermissionController:getPermissions',
       'PhishingController:bulkScanTokens',
       'RemoteFeatureFlagController:getState',
+      'AccountTreeController:isInitialized',
+      'ClientController:getState',
+      'KeyringController:isUnlocked',
     ],
     events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
     messenger,
