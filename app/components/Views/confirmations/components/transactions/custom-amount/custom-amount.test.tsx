@@ -103,4 +103,67 @@ describe('CustomAmount', () => {
 
     expect(queryByTestId('custom-amount-cursor')).toBeNull();
   });
+
+  describe('display-only decimal rounding', () => {
+    it('rounds full-precision amounts down to two decimals', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="500.123456" />,
+      );
+
+      expect(getByText('500.12')).toBeOnTheScreen();
+    });
+
+    it('rounds half up', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="10.375107" />,
+      );
+
+      expect(getByText('10.38')).toBeOnTheScreen();
+    });
+
+    it('rounds up and carries into the whole part', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="1.999" />,
+      );
+
+      expect(getByText('2.00')).toBeOnTheScreen();
+    });
+
+    it('rounds before applying locale separators', () => {
+      renderWithProvider(<CustomAmount amountFiat="1234.987654" />);
+
+      expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
+        '1234.99',
+      );
+    });
+
+    it('normalises a comma decimal separator to a period', () => {
+      // formatAmountWithLocaleSeparators splits on `.` and applies the locale
+      // separator itself, so handing it a comma would drop the decimals.
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="500,987654" />,
+      );
+
+      expect(getByText('500.99')).toBeOnTheScreen();
+    });
+
+    it('renders malformed input unchanged rather than NaN', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="1.2.3456" />,
+      );
+
+      expect(getByText('1.2.3456')).toBeOnTheScreen();
+    });
+
+    it.each(['500', '1000000', '123.45', '123.4', '0.10', '12.'])(
+      'leaves keypad input %s exactly as typed',
+      (amountFiat) => {
+        const { getByText } = renderWithProvider(
+          <CustomAmount amountFiat={amountFiat} />,
+        );
+
+        expect(getByText(amountFiat)).toBeOnTheScreen();
+      },
+    );
+  });
 });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Animated, View } from 'react-native';
+import { BigNumber } from 'bignumber.js';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
@@ -37,7 +38,11 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
-  const formattedAmount = formatAmountWithLocaleSeparators(amountFiat);
+
+  const formattedAmount = formatAmountWithLocaleSeparators(
+    roundFiatForDisplay(amountFiat),
+  );
+
   const amountLength = formattedAmount.length;
 
   const { styles } = useStyles(styleSheet, {
@@ -91,4 +96,31 @@ export function CustomAmountSkeleton() {
       <Skeleton height={70} width={80} />
     </View>
   );
+}
+
+/**
+ * Rounds the fiat amount to two decimals for display only, since `amountFiat`
+ * carries full precision so that Max spends the entire balance.
+ *
+ * Amounts already within two decimals are returned as-is, so keypad input
+ * renders exactly as typed and a mid-edit `12.` is never rewritten to `12.00`.
+ */
+function roundFiatForDisplay(amountFiat: string): string {
+  const separatorIndex = amountFiat.search(/[.,]/u);
+
+  if (separatorIndex === -1) {
+    return amountFiat;
+  }
+
+  const decimalCount = amountFiat.length - separatorIndex - 1;
+
+  if (decimalCount <= 2) {
+    return amountFiat;
+  }
+
+  const value = new BigNumber(amountFiat.replace(',', '.'));
+
+  return value.isFinite()
+    ? value.toFixed(2, BigNumber.ROUND_HALF_UP)
+    : amountFiat;
 }
