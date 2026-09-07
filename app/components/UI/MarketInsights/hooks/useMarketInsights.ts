@@ -25,8 +25,8 @@ export interface UseMarketInsightsResult {
   /** The assetIdentifier the current report was fetched for, or null while loading/cleared */
   reportAssetId: string | null;
   /** Whether this observer still lacks a settled report. A remount of a
-   * cached `null` miss stays loading until that observer fetches; a later
-   * focus refetch of an already-settled miss does not. */
+   * cached `null` miss or error stays loading until that observer fetches;
+   * a later focus refetch of an already-settled result does not. */
   isLoading: boolean;
   /** Error message if the data fetch failed */
   error: string | null;
@@ -154,16 +154,12 @@ export const useMarketInsights = (
         ? query.error.message
         : 'Failed to fetch insights'
       : null;
-  // `query.isLoading` is false when React Query already has cached data,
-  // including a `null` miss. Those misses use staleTime 0, so remount
-  // refetches immediately. Keep this observer loading until that first
-  // fetch settles so TTC does not close as empty at ~0ms. Do not treat a
-  // later `isFetching` (app resume / focus) as loading or the entry card
-  // skeleton returns after a settled miss.
-  const isLoading =
-    isQueryEnabled &&
-    !report &&
-    (query.isLoading || (query.data === null && !query.isFetchedAfterMount));
+  // A remount of a cached `null` miss or error has no report and has not
+  // fetched on this observer (`isFetchedAfterMount` is false). Keep loading
+  // until that first fetch settles so TTC does not close at ~0ms. After
+  // this observer has fetched, a later focus refetch must not flip loading
+  // or the entry-card skeleton returns.
+  const isLoading = isQueryEnabled && !report && !query.isFetchedAfterMount;
 
   const timeAgo = useMemo(
     () => (report ? formatRelativeTime(report.generatedAt) : ''),

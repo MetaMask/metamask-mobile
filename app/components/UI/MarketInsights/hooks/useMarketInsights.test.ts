@@ -587,6 +587,86 @@ describe('useMarketInsights', () => {
     expect(result.current.isLoading).toBe(false);
   });
 
+  it('stays loading on remount while a cached error refetches', async () => {
+    mockFetchMarketInsights.mockRejectedValueOnce(new Error('fetch failed'));
+
+    const first = renderHook(() => useMarketInsights('ETH', true), {
+      wrapper,
+    });
+    await waitFor(() =>
+      expect(first.result.current.error).toBe('fetch failed'),
+    );
+    expect(first.result.current.isLoading).toBe(false);
+    first.unmount();
+
+    let resolveRequest: (report: MarketInsightsReport) => void = () =>
+      undefined;
+    const request = new Promise<MarketInsightsReport>((resolve) => {
+      resolveRequest = resolve;
+    });
+    mockFetchMarketInsights.mockReturnValueOnce(request);
+
+    const second = renderHook(() => useMarketInsights('ETH', true), {
+      wrapper,
+    });
+
+    expect(second.result.current.report).toBeNull();
+    expect(second.result.current.isLoading).toBe(true);
+
+    const report = {
+      digestId: 'remount-error-digest',
+      version: '1.0',
+      asset: 'eth',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'ETH advances',
+      summary: 'ETF headlines support demand',
+      trends: [],
+      sources: [],
+    } as MarketInsightsReport;
+    await act(async () => {
+      resolveRequest(report);
+      await request;
+    });
+    await waitFor(() => expect(second.result.current.report).toEqual(report));
+
+    expect(second.result.current.isLoading).toBe(false);
+    expect(second.result.current.error).toBeNull();
+  });
+
+  it('does not mark a settled error as loading during a background refetch', async () => {
+    mockFetchMarketInsights.mockRejectedValueOnce(new Error('fetch failed'));
+
+    const { result } = renderHook(() => useMarketInsights('ETH', true), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.error).toBe('fetch failed'));
+    expect(result.current.isLoading).toBe(false);
+
+    let resolveRequest: (report: MarketInsightsReport | null) => void = () =>
+      undefined;
+    const request = new Promise<MarketInsightsReport | null>((resolve) => {
+      resolveRequest = resolve;
+    });
+    mockFetchMarketInsights.mockReturnValueOnce(request);
+
+    let refetchPromise: Promise<unknown> = Promise.resolve();
+    await act(async () => {
+      refetchPromise = queryClient.refetchQueries({
+        queryKey: ['market-insights', 'ETH'],
+      });
+    });
+
+    expect(result.current.isLoading).toBe(false);
+
+    await act(async () => {
+      resolveRequest(null);
+      await refetchPromise;
+    });
+
+    expect(result.current.report).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('refetches after a null miss on remount', async () => {
     const report = {
       version: '1.0',

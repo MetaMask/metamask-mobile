@@ -22,9 +22,9 @@ percentiles. The populations differ because cache hits do not emit fetch spans.
 
 Entry-card and full-view spans also terminate for valid empty responses, errors,
 and owner cancellation. Empty and error closes wait until the current observer
-settles: a cached `null` miss is immediately stale and refetches on remount, so
-that remount must not close as `empty` before the refetch completes. A later
-focus refetch of an already-settled miss must not flip loading or reopen the
+settles: a cached `null` miss or error is immediately stale and refetches on
+remount, so that remount must not close before the refetch completes. A later
+focus refetch of an already-settled result must not flip loading or reopen the
 entry-card skeleton. Latency widgets must use `result:success`; reliability
 widgets count every result.
 
