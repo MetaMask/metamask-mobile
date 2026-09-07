@@ -534,6 +534,7 @@ describe('useMarketInsights', () => {
     expect(second.result.current.error).toBeNull();
 
     const report = {
+      digestId: 'remount-null-miss-digest',
       version: '1.0',
       asset: 'eth',
       generatedAt: '2026-02-17T11:55:00.000Z',
