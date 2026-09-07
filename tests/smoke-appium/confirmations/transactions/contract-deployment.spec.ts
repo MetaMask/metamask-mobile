@@ -23,6 +23,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remote
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { LocalNode, LocalNodeType } from '../../../framework/types.js';
 import { AnvilManager } from '../../../seeder/anvil-manager.js';
+import { ANVIL_LOCAL_ETH_HOLDING } from '../helpers/anvil-local-eth-holding.js';
 
 const CONTRACT_DEPLOYMENT_ACTIVITY = 'Contract deployment';
 
@@ -43,6 +44,7 @@ function buildContractDeploymentFixture({
       nickname: 'Local RPC',
       ticker: 'ETH',
     })
+    .withTokenHoldings([ANVIL_LOCAL_ETH_HOLDING])
     .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
     .build();
 
