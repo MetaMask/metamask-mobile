@@ -1,5 +1,10 @@
 import React from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import {
+  Keyboard,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -28,6 +33,7 @@ import {
 } from '../CancelMembership.testIds';
 import {
   CANCEL_REASONS,
+  MAX_STAY_FEEDBACK_LENGTH,
   MOCK_CANCEL_STATS,
 } from '../CancelMembership.constants';
 
@@ -73,7 +79,11 @@ const ReasonItem = ({ id, label, isSelected, onPress }: ReasonItemProps) => (
 
 export interface CancelSurveyStepProps {
   selectedReasonId: string | null;
+  stayFeedback: string;
+  stayFeedbackSkipped: boolean;
   onReasonSelect: (id: string) => void;
+  onStayFeedbackChange: (value: string) => void;
+  onStayFeedbackSkip: () => void;
   onBack: () => void;
   onKeepMembership: () => void;
   onCancelConfirm: () => void;
@@ -81,12 +91,22 @@ export interface CancelSurveyStepProps {
 
 const CancelSurveyStep = ({
   selectedReasonId,
+  stayFeedback,
+  stayFeedbackSkipped,
   onReasonSelect,
+  onStayFeedbackChange,
+  onStayFeedbackSkip,
   onBack,
   onKeepMembership,
   onCancelConfirm,
 }: CancelSurveyStepProps) => {
   const tw = useTailwind();
+  const showStayQuestion = selectedReasonId !== null && !stayFeedbackSkipped;
+
+  const handleStayFeedbackSkip = () => {
+    Keyboard.dismiss();
+    onStayFeedbackSkip();
+  };
 
   return (
     <>
@@ -106,6 +126,7 @@ const CancelSurveyStep = ({
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('px-4 pt-2 pb-6')}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Title + subtitle */}
         <Text
@@ -189,6 +210,54 @@ const CancelSurveyStep = ({
             />
           ))}
         </Box>
+
+        {showStayQuestion && (
+          <Box
+            twClassName="mt-6 gap-y-3"
+            testID={CancelMembershipTestIds.STAY_QUESTION}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+            >
+              {strings('pro_hub.cancel_membership.stay_question')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('pro_hub.cancel_membership.stay_question_optional')}
+            </Text>
+            <TextInput
+              value={stayFeedback}
+              onChangeText={onStayFeedbackChange}
+              maxLength={MAX_STAY_FEEDBACK_LENGTH}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              placeholder={strings(
+                'pro_hub.cancel_membership.stay_question_placeholder',
+              )}
+              style={tw.style(
+                'min-h-[96px] rounded-xl border border-muted bg-muted px-3 py-3 text-body-md text-default',
+              )}
+              testID={CancelMembershipTestIds.STAY_QUESTION_INPUT}
+            />
+            <TouchableOpacity
+              onPress={handleStayFeedbackSkip}
+              testID={CancelMembershipTestIds.STAY_QUESTION_SKIP}
+              accessibilityRole="button"
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.PrimaryDefault}
+              >
+                {strings('pro_hub.cancel_membership.stay_question_skip')}
+              </Text>
+            </TouchableOpacity>
+          </Box>
+        )}
       </ScrollView>
 
       {/* ── Bottom actions ─────────────────────────────────────────────────── */}

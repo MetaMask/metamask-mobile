@@ -34,7 +34,11 @@ const renderStep = (
 ) => {
   const props: React.ComponentProps<typeof CancelSurveyStep> = {
     selectedReasonId: null,
+    stayFeedback: '',
+    stayFeedbackSkipped: false,
     onReasonSelect: jest.fn(),
+    onStayFeedbackChange: jest.fn(),
+    onStayFeedbackSkip: jest.fn(),
     onBack: jest.fn(),
     onKeepMembership: jest.fn(),
     onCancelConfirm: jest.fn(),
@@ -133,7 +137,7 @@ describe('CancelSurveyStep', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders all 5 reason items', () => {
+    it('renders all 6 reason items', () => {
       const { getByTestId } = renderStep();
 
       CANCEL_REASONS.forEach((reason) => {
@@ -217,6 +221,29 @@ describe('CancelSurveyStep', () => {
       expect(props.onCancelConfirm).toHaveBeenCalledTimes(1);
     });
 
+    it('calls onCancelConfirm when cancel is pressed after a reason is selected', () => {
+      const firstReason = CANCEL_REASONS[0];
+      const { getByTestId, props } = renderStep({
+        selectedReasonId: firstReason.id,
+      });
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(props.onCancelConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onCancelConfirm when cancel is pressed after the stay question is skipped', () => {
+      const firstReason = CANCEL_REASONS[0];
+      const { getByTestId, props } = renderStep({
+        selectedReasonId: firstReason.id,
+        stayFeedbackSkipped: true,
+      });
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(props.onCancelConfirm).toHaveBeenCalledTimes(1);
+    });
+
     it('does not call onKeepMembership before any button is pressed', () => {
       const { props } = renderStep();
 
@@ -239,6 +266,80 @@ describe('CancelSurveyStep', () => {
       const { props } = renderStep();
 
       expect(props.onBack).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Stay question ─────────────────────────────────────────────────────────
+
+  describe('stay question', () => {
+    it('hides the stay question when no reason is selected', () => {
+      const { queryByTestId } = renderStep();
+
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+    });
+
+    it('shows the stay question and skip control after a reason is selected', () => {
+      const firstReason = CANCEL_REASONS[0];
+      const { getByTestId } = renderStep({
+        selectedReasonId: firstReason.id,
+      });
+
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION_SKIP),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the stay question after skip', () => {
+      const firstReason = CANCEL_REASONS[0];
+      const { queryByTestId } = renderStep({
+        selectedReasonId: firstReason.id,
+        stayFeedbackSkipped: true,
+      });
+
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+    });
+
+    it('keeps the cancel button visible after skip', () => {
+      const firstReason = CANCEL_REASONS[0];
+      const { getByTestId } = renderStep({
+        selectedReasonId: firstReason.id,
+        stayFeedbackSkipped: true,
+      });
+
+      expect(
+        getByTestId(CancelMembershipTestIds.CANCEL_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onStayFeedbackSkip when skip is pressed', () => {
+      const firstReason = CANCEL_REASONS[0];
+      const { getByTestId, props } = renderStep({
+        selectedReasonId: firstReason.id,
+      });
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.STAY_QUESTION_SKIP));
+
+      expect(props.onStayFeedbackSkip).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onStayFeedbackChange when the stay input text changes', () => {
+      const firstReason = CANCEL_REASONS[0];
+      const { getByTestId, props } = renderStep({
+        selectedReasonId: firstReason.id,
+      });
+
+      fireEvent.changeText(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+        'Lower price',
+      );
+
+      expect(props.onStayFeedbackChange).toHaveBeenCalledWith('Lower price');
     });
   });
 });

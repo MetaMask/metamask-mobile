@@ -2,7 +2,10 @@ import React from 'react';
 import { BackHandler } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import CancelMembership from './CancelMembership';
-import { CancelMembershipTestIds } from './CancelMembership.testIds';
+import {
+  CancelMembershipTestIds,
+  getCancelReasonTestId,
+} from './CancelMembership.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { POST_CANCELLATION_PRO_HUB_SOURCE } from './CancelMembership.utils';
 
@@ -101,6 +104,36 @@ describe('CancelMembership', () => {
     expect(
       queryByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
     ).not.toBeOnTheScreen();
+  });
+
+  it('shows the stay question after a reason is selected', () => {
+    const { getByTestId, queryByTestId } = renderScreen();
+
+    expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+
+    fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
+
+    expect(
+      getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the stay question after skip and still switches to success when cancel is pressed', () => {
+    const { getByTestId, queryByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
+    fireEvent.press(getByTestId(CancelMembershipTestIds.STAY_QUESTION_SKIP));
+
+    expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+    expect(
+      getByTestId(CancelMembershipTestIds.CANCEL_BUTTON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    expect(
+      getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+    ).toBeOnTheScreen();
   });
 
   it('calls goBack when the back button on the survey step is pressed', () => {
