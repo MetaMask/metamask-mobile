@@ -135,6 +135,7 @@ export class UiSlotsController extends BaseController<
   UiSlotsControllerMessenger
 > {
   #enabled: boolean;
+  readonly #isExternalServicesEnabled: () => boolean;
   readonly #contractRegistry: UiSlotsContractRegistry;
   readonly #readClient: UiSlotsReadTransport;
   readonly #now: () => number;
@@ -159,6 +160,7 @@ export class UiSlotsController extends BaseController<
     readClient,
     diagnostics,
     now = Date.now,
+    isExternalServicesEnabled = () => true,
     state,
   }: {
     messenger: UiSlotsControllerMessenger;
@@ -167,6 +169,7 @@ export class UiSlotsController extends BaseController<
     readClient: UiSlotsReadTransport;
     diagnostics: UiSlotsDiagnostics;
     now?: () => number;
+    isExternalServicesEnabled?: () => boolean;
     state?: Partial<UiSlotsControllerState>;
   }) {
     super({
@@ -181,6 +184,7 @@ export class UiSlotsController extends BaseController<
       },
     });
     this.#enabled = enabled;
+    this.#isExternalServicesEnabled = isExternalServicesEnabled;
     this.#contractRegistry = contractRegistry;
     this.#readClient = readClient;
     this.#diagnostics = diagnostics;
@@ -210,12 +214,16 @@ export class UiSlotsController extends BaseController<
     active.abortController.abort();
   }
 
+  #canLoad(): boolean {
+    return this.#enabled && this.#isExternalServicesEnabled();
+  }
+
   #startScreenLoad(
     screenId: UiSlotsScreenId,
     locale: string,
     force: boolean,
   ): Promise<UiSlotsLoadOutcome> {
-    if (!this.#enabled) {
+    if (!this.#canLoad()) {
       this.#clearActiveConfiguration(screenId);
       return Promise.resolve('disabled');
     }
@@ -269,7 +277,7 @@ export class UiSlotsController extends BaseController<
     screenId: UiSlotsScreenId,
     locale: string,
   ): number | undefined {
-    if (!this.#enabled) {
+    if (!this.#canLoad()) {
       return undefined;
     }
     const candidates = getUiSlotsLocaleCandidates(screenId, locale);

@@ -4,6 +4,8 @@ import type { MessengerClientInitFunction } from '../../types';
 import AppConstants from '../../../AppConstants';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import Logger from '../../../../util/Logger';
+import { store } from '../../../../store';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import {
   UiSlotsController,
   defaultUiSlotsControllerState,
@@ -16,10 +18,14 @@ import { UiSlotsApiReadClient } from './UiSlotsApiReadClient';
 export const uiSlotsControllerInit: MessengerClientInitFunction<
   UiSlotsController,
   UiSlotsControllerMessenger
-> = ({ controllerMessenger, persistedState }) => {
+> = ({ controllerMessenger, persistedState, getState }) => {
+  const isExternalServicesEnabled = () =>
+    selectBasicFunctionalityEnabled(getState());
+
   const controller = new UiSlotsController({
     messenger: controllerMessenger,
     enabled: false,
+    isExternalServicesEnabled,
     readClient: new UiSlotsApiReadClient({
       baseUrl: AppConstants.FEATURE_FLAGS_API.BASE_URL,
       clientVersion: packageJSON.version,
@@ -34,20 +40,35 @@ export const uiSlotsControllerInit: MessengerClientInitFunction<
     },
   });
 
-  const updateEnabledState = (flagState: RemoteFeatureFlagControllerState) => {
+  const updateEnabledState = (
+    flagState: RemoteFeatureFlagControllerState = controllerMessenger.call(
+      'RemoteFeatureFlagController:getState',
+    ),
+  ) => {
     const remotelyEnabled =
       validatedVersionGatedFeatureFlag(
         flagState.remoteFeatureFlags[UI_SLOTS_REMOTE_FLAG_NAME],
       ) ?? false;
-    controller.setEnabled(remotelyEnabled);
+    controller.setEnabled(remotelyEnabled && isExternalServicesEnabled());
   };
   controllerMessenger.subscribe(
     'RemoteFeatureFlagController:stateChange',
     updateEnabledState,
   );
-  updateEnabledState(
-    controllerMessenger.call('RemoteFeatureFlagController:getState'),
-  );
+
+  let previousBasicFunctionalityEnabled = isExternalServicesEnabled();
+  store.subscribe(() => {
+    const currentBasicFunctionalityEnabled = isExternalServicesEnabled();
+    if (
+      currentBasicFunctionalityEnabled === previousBasicFunctionalityEnabled
+    ) {
+      return;
+    }
+    previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
+    updateEnabledState();
+  });
+
+  updateEnabledState();
 
   return { controller };
 };

@@ -389,6 +389,22 @@ describe('UiSlotsController', () => {
     expect(controller.state.activeConfigurations).toEqual({});
   });
 
+  it('does not fetch when basic functionality is disabled', async () => {
+    const call = jest.fn();
+    const controller = new UiSlotsController({
+      ...controllerOptions,
+      enabled: true,
+      isExternalServicesEnabled: () => false,
+      readClient: buildReadClient(call),
+    });
+
+    const outcome = await controller.loadScreen('wallet-home', 'en');
+
+    expect(outcome).toBe('disabled');
+    expect(call).not.toHaveBeenCalled();
+    expect(controller.state.activeConfigurations).toEqual({});
+  });
+
   it('immediately removes active content when dynamically disabled', async () => {
     const controller = new UiSlotsController({
       ...controllerOptions,

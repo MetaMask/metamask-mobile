@@ -5,7 +5,7 @@ import type {
   UiSlot,
   UiSlotsScreenId,
 } from '../core/Engine/controllers/ui-slots-controller/types';
-import { selectBasicFunctionalityEnabledForRemoteFlags } from './featureFlagController';
+import { selectBasicFunctionalityEnabled } from './settings';
 
 export const selectUiSlotsControllerState = (
   state: RootState,
@@ -14,9 +14,9 @@ export const selectUiSlotsControllerState = (
 
 export const selectUiSlotsEnabled = createSelector(
   selectUiSlotsControllerState,
-  selectBasicFunctionalityEnabledForRemoteFlags,
+  selectBasicFunctionalityEnabled,
   (state, basicFunctionalityEnabled) =>
-    basicFunctionalityEnabled && (state?.enabled ?? false),
+    Boolean(basicFunctionalityEnabled) && (state?.enabled ?? false),
 );
 
 export const makeSelectUiSlot = () =>
