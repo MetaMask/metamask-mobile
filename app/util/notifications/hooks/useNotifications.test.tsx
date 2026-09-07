@@ -229,10 +229,9 @@ describe('useNotifications - useDisableNotifications()', () => {
         loading: false,
         togglePushNotification: mockTogglePushNotification,
       });
-    const mockDisableNotifications = jest.spyOn(
-      Actions,
-      'disableNotifications',
-    ).mockResolvedValue(undefined);
+    const mockDisableNotifications = jest
+      .spyOn(Actions, 'disableNotifications')
+      .mockResolvedValue(undefined);
     const mockSelectLoading = jest.spyOn(
       Selectors,
       'selectIsUpdatingMetamaskNotifications',
