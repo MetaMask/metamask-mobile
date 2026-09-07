@@ -1423,8 +1423,19 @@ const AppFlow = () => {
         options={{
           headerShown: false,
           gestureEnabled: true,
-          presentation: 'modal',
-          animation: 'slide_from_bottom',
+          /*
+           * IA EXPERIMENT: pushed rather than presented modally, so the view
+           * gets a back affordance and sits in the navigation stack.
+           *
+           * Both of these must be set explicitly. This navigator's
+           * `screenOptions` default to `animation: 'none'` and
+           * `presentation: 'transparentModal'`, so simply omitting them yields
+           * a static transparent overlay with no card and no working back —
+           * not a push. `slide_from_right` matches the other pushed screens in
+           * this navigator (e.g. EDIT_ACCOUNT_NAME, ADD_NETWORK).
+           */
+          presentation: 'card',
+          animation: 'slide_from_right',
         }}
       />
       <NativeStack.Screen

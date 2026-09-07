@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -22,6 +23,7 @@ import {
   Linking,
   RefreshControl,
   ScrollView,
+  PixelRatio,
   StyleSheet as RNStyleSheet,
   unstable_batchedUpdates,
   View,
@@ -46,15 +48,20 @@ import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
+import { selectNativeHeaderEnabled } from '../../../reducers/experimentalSettings/selectors';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   Text as CustomText,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { captureRef } from 'react-native-view-shot';
+import { getAvatarAccountVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 
 import {
   NavigationProp,
@@ -187,10 +194,51 @@ import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
+/*
+ * EXPERIMENTAL (native header): point size of the account avatar inside the
+ * leading bar button item. A captured PNG carries no scale metadata, so iOS
+ * reads its pixel dimensions as points and stretches it to fill the item —
+ * the capture is therefore pinned to a square and the intended point size is
+ * declared on the image source.
+ */
+const ACCOUNT_AVATAR_ITEM_SIZE = 32;
+
+/*
+ * EXPERIMENTAL (native header): extra breathing room between the bottom of
+ * the chrome group and the top of the first card, added on top of the inset
+ * UIKit already applies for the nav bar + safe area. This is the only number
+ * to change if the resting gap needs adjusting.
+ */
+const NATIVE_HEADER_CONTENT_GAP = 4;
+
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
     base: {
       paddingHorizontal: 16,
+    },
+    /*
+     * EXPERIMENTAL (native header): host for the avatar that gets captured
+     * into an image for the leading bar button item. Parked off-viewport
+     * rather than hidden — view-shot captures blank from a view with zero
+     * opacity or `display: none`.
+     */
+    offscreenAvatarCapture: {
+      position: 'absolute',
+      left: -1000,
+      top: -1000,
+      width: ACCOUNT_AVATAR_ITEM_SIZE,
+      height: ACCOUNT_AVATAR_ITEM_SIZE,
+      alignItems: 'center',
+      justifyContent: 'center',
+      /*
+       * The circle is masked here rather than relying on AvatarAccount's own
+       * rounding: some variants (e.g. Maskicon) draw a square graphic, and a
+       * `UIBarButtonItem` will not clip an image for you. Snapshotting
+       * respects `cornerRadius` + `masksToBounds`, so the captured PNG comes
+       * out round with transparent corners.
+       */
+      borderRadius: ACCOUNT_AVATAR_ITEM_SIZE / 2,
+      overflow: 'hidden',
     },
     wrapper: {
       flex: 1,
@@ -389,6 +437,7 @@ const Wallet = ({
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+  const isNativeHeaderEnabled = useSelector(selectNativeHeaderEnabled);
   const showMoneyBalanceCard =
     isMoneyAccountVisible && !inWalletHomePostOnboardingFlow;
 
@@ -881,6 +930,185 @@ const Wallet = ({
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
+  /*
+   * EXPERIMENTAL (native header): the account avatar as a real image for the
+   * leading `UIBarButtonItem`.
+   *
+   * `AvatarAccount` generates the identicon from the address at render time
+   * (Maskicon / Jazzicon / Blockies) — it is a React component, not an image
+   * file, and a bar button item needs an `ImageSourcePropType`. So the same
+   * `AvatarAccount` the Account Hub renders is mounted offscreen and captured
+   * to a PNG, then handed over as a full-colour `imageSource` (not
+   * `templateSource`, which iOS would flatten to a tinted silhouette).
+   */
+  const accountAvatarShotRef = useRef<View>(null);
+  const [accountAvatarUri, setAccountAvatarUri] = useState<string | null>(null);
+  const accountAvatarAddress = selectedInternalAccount?.address;
+
+  useEffect(() => {
+    if (!isNativeHeaderEnabled || !accountAvatarAddress) {
+      return;
+    }
+
+    let cancelled = false;
+
+    // One frame for the offscreen avatar to lay out before capturing it.
+    const timer = setTimeout(() => {
+      const node = accountAvatarShotRef.current;
+      if (!node) {
+        return;
+      }
+      /*
+       * No width/height here on purpose: those make view-shot rasterise at
+       * exactly that many *pixels* (32x32), which is a third of the needed
+       * resolution on a 3x screen. Omitting them captures the 32pt host at
+       * full device density, and `scale` on the image source below tells iOS
+       * how to interpret the result.
+       */
+      captureRef(node, { format: 'png', quality: 1 })
+        .then((uri) => {
+          if (!cancelled) {
+            setAccountAvatarUri(uri);
+          }
+        })
+        .catch((error) => {
+          // Non-fatal: the leading item just falls back to the name alone.
+          Logger.error(
+            error instanceof Error ? error : new Error(String(error)),
+            'Wallet.captureAccountAvatar',
+          );
+        });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [isNativeHeaderEnabled, accountAvatarAddress, avatarAccountType]);
+
+  /*
+   * EXPERIMENTAL — Developer Options > Navigation > "Native header (Home)".
+   *
+   * Puts Home's actions into the native `UINavigationBar` as real
+   * `UIBarButtonItem`s via react-navigation's `unstable_headerLeftItems` /
+   * `unstable_headerRightItems`. The glass material, the shared background,
+   * the badge and the scroll-edge behaviour all come from UIKit rather than
+   * being reimplemented in JS.
+   *
+   * `variant` selects the UIKit style: `plain` is the standard glass action
+   * (used here), `prominent` maps to iOS 26's `UIBarButtonItemStyleProminent`
+   * — a filled accent capsule, which reads as a CTA rather than as chrome.
+   *
+   * PARTIALLY ported: the account picker renders its avatar + name, but not
+   * the chevron. A `UIBarButtonItem` takes a title and an icon, never an
+   * arbitrary view, so the chevron needs a design change or a JS
+   * `headerTitle` (which would only be partly native).
+   */
+  useLayoutEffect(() => {
+    if (!isNativeHeaderEnabled) {
+      return;
+    }
+
+    navigation.setOptions({
+      headerShown: true,
+      /*
+       * Transparent is what makes it glass: the native bar draws the iOS 26
+       * material and the ScrollView passes underneath it. With an opaque
+       * background the bar gets `colors.card` and content is pushed below.
+       */
+      headerTransparent: true,
+      /*
+       * NavigationProvider hands react-navigation `DefaultTheme` (light) with
+       * only `background` overridden, so react-navigation believes the app is
+       * in light mode: the bar would render white and the actions would take
+       * `colors.primary` (iOS blue). Everything else in the app sets
+       * `headerShown: false`, so this never surfaced before. Override per
+       * screen here rather than changing the global theme, which would touch
+       * every other native header in the app.
+       */
+      headerTintColor: colors.icon.default,
+      headerTitleStyle: { color: colors.text.default },
+      // The account name lives in the leading item below, so keep the native
+      // title empty rather than rendering the name twice.
+      title: '',
+      /*
+       * IA EXPERIMENT — account and hamburger merged into one entry point.
+       *
+       * The leading item keeps the account's visual treatment (avatar + name)
+       * but now opens the account/hamburger menu rather than the account
+       * switcher. Switching account moved *into* that menu as its own row, so
+       * there is one door instead of two overlapping ones — and the hamburger
+       * is gone from the trailing group entirely.
+       *
+       * The unread badge moved here with it: it previously sat on the
+       * hamburger, and this item is now what opens the menu that contains
+       * Notifications.
+       */
+      unstable_headerLeftItems: () => [
+        {
+          type: 'button',
+          identifier: 'home-account',
+          title: displayName ?? '',
+          ...(accountAvatarUri
+            ? {
+                icon: {
+                  type: 'imageSource' as const,
+                  // width/height are what stop iOS scaling the bitmap to the
+                  // full item frame; without them the image stretches and
+                  // pushes the title out.
+                  imageSource: {
+                    uri: accountAvatarUri,
+                    width: ACCOUNT_AVATAR_ITEM_SIZE,
+                    height: ACCOUNT_AVATAR_ITEM_SIZE,
+                    scale: PixelRatio.get(),
+                  },
+                },
+              }
+            : {}),
+          variant: 'plain',
+          accessibilityLabel: displayName ?? undefined,
+          ...(unreadNotificationCount > 0
+            ? { badge: { value: unreadNotificationCount } }
+            : {}),
+          onPress: handleHamburgerPress,
+        },
+      ],
+      unstable_headerRightItems: () => [
+        {
+          type: 'button',
+          identifier: 'home-search',
+          icon: { type: 'sfSymbol', name: 'magnifyingglass' },
+          variant: 'plain',
+          accessibilityLabel: strings('wallet.search_accessibility_label'),
+          onPress: handleSearchPress,
+        },
+        // Mirrors WalletHeader: the Activity clock only appears alongside Money.
+        ...(isMoneyAccountVisible
+          ? [
+              {
+                type: 'button' as const,
+                identifier: 'home-activity',
+                icon: { type: 'sfSymbol' as const, name: 'clock' },
+                variant: 'plain' as const,
+                onPress: handleActivityPress,
+              },
+            ]
+          : []),
+      ],
+    });
+  }, [
+    isNativeHeaderEnabled,
+    navigation,
+    colors,
+    displayName,
+    accountAvatarUri,
+    isMoneyAccountVisible,
+    unreadNotificationCount,
+    handleSearchPress,
+    handleActivityPress,
+    handleHamburgerPress,
+  ]);
+
   const turnOnBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -891,8 +1119,11 @@ const Wallet = ({
     () => [
       styles.wrapper,
       { flex: undefined, flexGrow: 0, overflow: 'visible' as const },
+      isNativeHeaderEnabled
+        ? { paddingTop: NATIVE_HEADER_CONTENT_GAP }
+        : null,
     ],
-    [styles.wrapper],
+    [styles.wrapper, isNativeHeaderEnabled],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1166,12 +1397,52 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          edges={{ top: 'additive' }}
+          /*
+           * EXPERIMENTAL (native header): the top safe-area inset is switched
+           * off here because it is now applied twice. UIKit already offsets
+           * the scroll content for the status bar + nav bar (see
+           * `contentInsetAdjustmentBehavior` below), so padding the whole
+           * screen down again both double-counts the inset and stops content
+           * ever reaching behind the status bar — which is what made the card
+           * cut off with a hard edge instead of passing under the glass.
+           */
+          edges={
+            isNativeHeaderEnabled ? { top: 'off' } : { top: 'additive' }
+          }
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
             <>
-              {isCompactHeader ? (
+              {/*
+               * EXPERIMENTAL (native header): offscreen avatar, mounted only
+               * to be captured into an image for the leading bar button item.
+               * `collapsable={false}` keeps it as a real native view so
+               * view-shot can read it; it is positioned outside the viewport
+               * rather than hidden, because a zero-opacity or display:none
+               * view captures blank.
+               */}
+              {isNativeHeaderEnabled && accountAvatarAddress ? (
+                <View
+                  ref={accountAvatarShotRef}
+                  collapsable={false}
+                  pointerEvents="none"
+                  accessible={false}
+                  style={styles.offscreenAvatarCapture}
+                >
+                  <AvatarAccount
+                    address={accountAvatarAddress}
+                    variant={getAvatarAccountVariant(avatarAccountType)}
+                    size={AvatarAccountSize.Md}
+                  />
+                </View>
+              ) : null}
+              {/*
+               * EXPERIMENTAL: the native header owns the actions when
+               * "Native header (Home)" is on, so the JS header is suppressed
+               * to avoid two rows of controls. The account picker goes with
+               * it for now — see the useLayoutEffect above.
+               */}
+              {isNativeHeaderEnabled ? null : isCompactHeader ? (
                 <WalletHeaderCompact
                   accountAddress={selectedInternalAccount.address}
                   avatarAccountType={avatarAccountType}
@@ -1222,6 +1493,18 @@ const Wallet = ({
                       testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
                       contentContainerStyle: scrollViewContentStyle,
                       showsVerticalScrollIndicator: false,
+                      /*
+                       * EXPERIMENTAL (native header): with
+                       * `headerTransparent: true` react-navigation reserves no
+                       * space, so content would start beneath the bar. Letting
+                       * UIKit adjust the content inset means the resting
+                       * offset comes from the real nav bar + safe area rather
+                       * than a hardcoded height — and content still scrolls
+                       * under the glass, which is the point.
+                       */
+                      contentInsetAdjustmentBehavior: isNativeHeaderEnabled
+                        ? 'automatic'
+                        : 'never',
                       onScroll: handleHomepageScroll,
                       scrollEventThrottle: 16,
                       refreshControl: (

@@ -2,6 +2,7 @@ const Routes = {
   MAIN_FLOW: 'Main',
   HOME_TABS: 'Home',
   WALLET_VIEW: 'WalletView',
+  SOCIAL_TAB_VIEW: 'SocialTabView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_VIEW: 'BrowserView',
   ACCOUNTS_MENU_VIEW: 'AccountsMenuView',

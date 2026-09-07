@@ -8,6 +8,8 @@ import {
 const initialState = {
   securityAlertsEnabled: true,
   mmPayDebugEnabled: false,
+  nativeTabBarEnabled: false,
+  nativeHeaderEnabled: false,
 };
 
 const experimentalSettingsReducer = (
@@ -15,6 +17,8 @@ const experimentalSettingsReducer = (
   action: {
     securityAlertsEnabled: SetSecurityAlertsEnabled;
     mmPayDebugEnabled: boolean;
+    nativeTabBarEnabled: boolean;
+    nativeHeaderEnabled: boolean;
     type: string;
   },
 ) => {
@@ -28,6 +32,16 @@ const experimentalSettingsReducer = (
       return {
         ...state,
         mmPayDebugEnabled: action.mmPayDebugEnabled,
+      };
+    case ActionType.SET_NATIVE_TAB_BAR_ENABLED:
+      return {
+        ...state,
+        nativeTabBarEnabled: action.nativeTabBarEnabled,
+      };
+    case ActionType.SET_NATIVE_HEADER_ENABLED:
+      return {
+        ...state,
+        nativeHeaderEnabled: action.nativeHeaderEnabled,
       };
     default:
       return state;

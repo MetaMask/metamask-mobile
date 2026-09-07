@@ -104,15 +104,6 @@ const AccountHub = () => {
     createEventBuilder,
   ]);
 
-  const handleMenuPress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS)
-        .addProperties({ action: 'Navigation Drawer', name: 'Settings' })
-        .build(),
-    );
-    navigation.navigate(Routes.SETTINGS_VIEW);
-  }, [navigation, trackEvent, createEventBuilder]);
-
   const handleInfoPress = useCallback(() => {
     if (!selectedAccountGroup) {
       return;
@@ -247,12 +238,11 @@ const AccountHub = () => {
                 />
               </BadgeWrapper>
             )}
-            <ButtonIcon
-              iconName={IconName.Menu}
-              size={ButtonIconSize.Md}
-              onPress={handleMenuPress}
-              testID={AccountHubSelectorsIDs.MENU_BUTTON}
-            />
+            {/*
+              IA EXPERIMENT: the hamburger is removed here. This view is now
+              reached *from* the account/hamburger menu, so offering a route
+              back into that menu was circular.
+            */}
           </Box>
         }
         includesTopInset

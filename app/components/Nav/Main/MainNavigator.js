@@ -10,6 +10,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeBottomTabNavigator } from '../NativeBottomTabs/createNativeBottomTabNavigator';
+import { strings } from '../../../../locales/i18n';
 import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
@@ -134,8 +136,10 @@ import {
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
+import SocialTab from '../../Views/SocialTab';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
+import { selectNativeTabBarEnabled } from '../../../reducers/experimentalSettings/selectors';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -201,6 +205,8 @@ import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/Mon
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+// EXPERIMENTAL: native UITabBarController-backed tab navigator.
+const NativeTab = createNativeBottomTabNavigator();
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
@@ -615,6 +621,15 @@ const HomeTabs = () => {
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+  const isNativeTabBarEnabled = useSelector(selectNativeTabBarEnabled);
+  /*
+   * EXPERIMENTAL — Developer Options > Navigation > "Native tab bar".
+   * Both navigators consume the same `options` objects and the same screen
+   * tree, so this swaps only the tab container: `NativeTab` renders the
+   * platform tab bar (UITabBarController / Liquid Glass on iOS 26), `Tab`
+   * renders the custom JS `TabBar`. `tabBar` is ignored by NativeTab.
+   */
+  const TabNav = isNativeTabBarEnabled ? NativeTab : Tab;
 
   const trackMoneyTabPressRef = useRef(null);
 
@@ -688,6 +703,10 @@ const HomeTabs = () => {
         trackMoneyTabPressRef.current?.();
       },
       rootScreenName: Routes.MONEY.HOME,
+    },
+    social: {
+      tabBarIconKey: TabBarIconKey.Social,
+      rootScreenName: Routes.SOCIAL_TAB_VIEW,
     },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
@@ -817,13 +836,13 @@ const HomeTabs = () => {
         {isMoneyAccountEnabled ? (
           <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
         ) : null}
-        <Tab.Navigator
+        <TabNav.Navigator
           initialRouteName={Routes.WALLET.HOME}
           tabBar={renderTabBar}
           screenOptions={{ headerShown: false }}
         >
           {/* Home Tab */}
-          <Tab.Screen
+          <TabNav.Screen
             name={Routes.WALLET.HOME}
             options={options.home}
             component={WalletTabStackFlow}
@@ -831,7 +850,7 @@ const HomeTabs = () => {
 
           {/* Explore Tab (w/ hidden browser) */}
           <>
-            <Tab.Screen
+            <TabNav.Screen
               name={Routes.TRENDING_VIEW}
               options={{
                 ...options.trending,
@@ -842,7 +861,7 @@ const HomeTabs = () => {
               }}
               component={ExploreHome}
             />
-            <Tab.Screen
+            <TabNav.Screen
               name={Routes.BROWSER.HOME}
               options={{
                 ...options.browser,
@@ -853,34 +872,56 @@ const HomeTabs = () => {
           </>
 
           {/* Trade Tab */}
-          <Tab.Screen
+          <TabNav.Screen
             name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-            options={options.trade}
+            options={{
+              ...options.trade,
+              isHidden: true,
+            }}
             component={WalletTabStackFlow}
           />
 
-          {/* Activity Tab (replaced by Money when feature flag is on and user is geo-eligible) */}
+          {/*
+           * Activity Tab (replaced by Money when feature flag is on and user is geo-eligible).
+           *
+           * IA EXPERIMENT: the Money tab is hidden from the bar and its slot
+           * given to Social (below). The route stays *registered* rather than
+           * removed, because `selectIsMoneyAccountVisible` also drives the
+           * Activity clock in WalletHeader — so deeplinks and
+           * `navigation.navigate(Routes.MONEY.ROOT)` keep working and
+           * Activity's placement is unchanged.
+           */}
           {isMoneyAccountVisible ? (
-            <Tab.Screen
+            <TabNav.Screen
               name={Routes.MONEY.ROOT}
-              options={options.money}
+              options={{
+                ...options.money,
+                isHidden: true,
+              }}
               component={MoneyTabScreenStack}
             />
           ) : (
-            <Tab.Screen
+            <TabNav.Screen
               name={Routes.TRANSACTIONS_VIEW}
               options={options.activity}
               component={TransactionsHomeUnmountOnTabBlur}
             />
           )}
 
+          {/* Social Tab — IA EXPERIMENT, blank slate in the old Money slot */}
+          <TabNav.Screen
+            name={Routes.SOCIAL_TAB_VIEW}
+            options={options.social}
+            component={SocialTab}
+          />
+
           {/* Rewards Tab */}
-          <Tab.Screen
+          <TabNav.Screen
             name={Routes.REWARDS_VIEW}
             options={options.rewards}
             component={RewardsHomeUnmountOnTabBlur}
           />
-        </Tab.Navigator>
+        </TabNav.Navigator>
       </TrendingQuickBuySheetProvider>
     </PredictPreviewSheetProvider>
   );

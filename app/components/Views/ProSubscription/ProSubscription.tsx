@@ -6,6 +6,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import LinearGradient from 'react-native-linear-gradient';
 import {
   Box,
   ButtonIcon,
@@ -19,6 +20,22 @@ import Routes from '../../../constants/navigation/Routes';
 import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
+
+/*
+ * Brand gradient for the Orange flow: deep plum at the top fading to black.
+ * Applied at the container so it sits behind the toolbar too — gradienting
+ * only the Benefits screen would leave a seam under the back button.
+ *
+ * Raw hex for the same reason as the CTA colour: these are new brand values
+ * that are not in @metamask/design-tokens yet. Precedent for a brand gradient
+ * declared this way: app/components/UI/Card/Views/CardWelcome.
+ */
+const ORANGE_GRADIENT_COLORS = [
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- spike only
+  '#28001A',
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- spike only
+  '#000000',
+];
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
@@ -44,7 +61,7 @@ const ProSubscription = () => {
     }
   }, [isProSubscriptionEnabled, navigation]);
 
-  const handleClose = useCallback(() => {
+  const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
@@ -59,29 +76,55 @@ const ProSubscription = () => {
   }, [navigation]);
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+    <LinearGradient
+      colors={ORANGE_GRADIENT_COLORS}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={tw.style('flex-1')}
     >
-      {/* Shared close button — sits above both Benefits and Success screens */}
-      <Box twClassName="px-4 pt-4 pb-8 flex-row items-center justify-end">
-        <ButtonIcon
-          iconName={IconName.Close}
-          size={ButtonIconSize.Md}
-          onPress={handleClose}
-          testID={ProSubscriptionTestIds.CLOSE_BUTTON}
-        />
-      </Box>
+      <SafeAreaView
+        style={tw.style('flex-1')}
+        /*
+         * `top` added with the push presentation: the modal presentation used to
+         * inset the content itself, so a bottom-only edge left the back button
+         * sitting in the status bar once this became a pushed card.
+         */
+        edges={['top', 'bottom']}
+      >
+        {/*
+        Shared back button — sits above both Benefits and Success screens.
 
-      {currentScreen === 'benefits' ? (
-        <Benefits
-          onSuccess={handleSuccess}
-          initialPlan={route.params?.initialPlan as PlanId | undefined}
-        />
-      ) : (
-        <Success onSuccess={handleSubscriptionOnSuccess} />
-      )}
-    </SafeAreaView>
+        IA EXPERIMENT: this was a trailing close button, matching the modal
+        presentation. The view now pushes, so the affordance is a leading back
+        arrow instead. Longer term this should follow the presentation rather
+        than being hardcoded — close when presented modally, back when pushed —
+        which means reading the presentation (e.g. a route param set by the
+        caller) rather than assuming one.
+      */}
+        {/*
+        Compact toolbar. `pb-8` here was breathing room beneath the old
+        trailing close button on a modal; as a pushed back-button row it
+        just made the chrome ~80pt tall and pushed the scroll down.
+      */}
+        <Box twClassName="px-4 pt-2 pb-2 flex-row items-center justify-start">
+          <ButtonIcon
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Md}
+            onPress={handleBack}
+            testID={ProSubscriptionTestIds.BACK_BUTTON}
+          />
+        </Box>
+
+        {currentScreen === 'benefits' ? (
+          <Benefits
+            onSuccess={handleSuccess}
+            initialPlan={route.params?.initialPlan as PlanId | undefined}
+          />
+        ) : (
+          <Success onSuccess={handleSubscriptionOnSuccess} />
+        )}
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 

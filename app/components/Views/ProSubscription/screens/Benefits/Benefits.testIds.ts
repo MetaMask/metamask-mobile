@@ -3,6 +3,7 @@ import { BenefitRowTestIds } from '../../../shared/pro';
 export const BenefitsTestIds = {
   CONTAINER: 'benefits-container',
   TITLE: 'benefits-title',
+  HEADER_ANIMATION: 'benefits-header-animation',
   PRICE_LINE: 'benefits-price-line',
   BENEFIT_ROW: BenefitRowTestIds.ROW,
   PLAN_CARD: (planId: string) => `benefits-plan-card-${planId}`,

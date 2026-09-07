@@ -709,7 +709,8 @@
     "settings": "Settings",
     "rewards": "Rewards",
     "trending": "Explore",
-    "money": "Money"
+    "money": "Money",
+    "social": "Social"
   },
   "drawer": {
     "send_button": "Send",
@@ -4231,6 +4232,8 @@
     "settings": "Settings",
     "networks": "Networks",
     "log_out": "Log out",
+    "metamask_orange": "MetaMask Orange",
+    "metamask_orange_badge": "Upgrade",
     "notifications": "Notifications",
     "buy": "Buy",
     "scan": "Scan"
@@ -11415,12 +11418,12 @@
     "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
   },
   "pro_hub": {
-    "title": "MetaMask Pro",
-    "subtitle": "Your Pro membership",
+    "title": "MetaMask Orange",
+    "subtitle": "Your Orange membership",
     "manage": "Manage subscription",
     "manage_plan": "Manage plan",
-    "earned_with_pro": "Earned with Pro",
-    "saved_with_pro": "Saved with Pro",
+    "earned_with_pro": "Earned with Orange",
+    "saved_with_pro": "Saved with Orange",
     "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
     "member_pricing": {
       "title": "Member pricing on trades",
@@ -11446,12 +11449,12 @@
       "cta": "Get card"
     },
     "earned": {
-      "total_label": "Earned since joining Pro",
+      "total_label": "Earned since joining Orange",
       "interest_title": "Interest",
       "interest_subtitle": "Up to 7% APY on Money balance",
       "card_cashback_title": "Card cashback",
       "card_cashback_subtitle": "3% in mUSD on {{amount}}",
-      "paid_for_itself_title": "Pro has paid for itself",
+      "paid_for_itself_title": "Orange has paid for itself",
       "paid_for_itself_description": "Earned back since joining — {{multiplier}}x your {{fee}} membership fee.",
       "grow_title": "Grow your balance",
       "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
@@ -11472,11 +11475,11 @@
       "cancel_membership": "Cancel membership",
       "earned_info": {
         "title": "Earned this month",
-        "description": "The amount you earned in APY and mUSD back as a Pro member."
+        "description": "The amount you earned in APY and mUSD back as an Orange member."
       },
       "saved_info": {
         "title": "Saved this month",
-        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+        "description": "The amount you saved as an Orange member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
       }
     },
     "cancel_membership": {
@@ -11493,42 +11496,46 @@
       "cancel": "Cancel",
       "success": {
         "title": "Plan canceled",
-        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_prefix": "Your Orange plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
         "description_suffix": ".",
         "done": "Done"
       }
     }
   },
   "pro_subscription": {
-    "title": "Earn more with Pro",
-    "description": "$4.99/mo ($49.99 for annual membership)",
-    "join_pro": "Join Pro",
+    "title": "Trade anything and earn more",
+    "description": "For people who want their money working harder. Everything you unlock:",
+    "join_pro": "Join Orange",
     "benefits": {
       "apy": {
-        "title": "Up to 7% APY on Money account",
-        "subtitle": "Paid in mUSD, no lockups"
+        "title": "Your cash earns while it sits",
+        "subtitle": "Up to ~7% APY on your Money account, paid in mUSD. No lockups. Non-members earn up to ~4%."
       },
       "cashback": {
-        "title": "3% mUSD back on card purchases",
-        "subtitle": "Up to $12,000/yr, worldwide",
-        "subtitle_monthly": "Up to $1,000/mo, worldwide"
+        "title": "Get paid to spend",
+        "subtitle": "3% back on card purchases, paid to your Money balance where it keeps earning. Up to $12,000/yr.",
+        "subtitle_monthly": "3% back on card purchases, paid to your Money balance where it keeps earning. Up to $1,000/mo."
       },
       "member_pricing": {
-        "title": "Member pricing on trades",
-        "subtitle": "Including swaps, perps, and predictions"
+        "title": "Keep more of every trade",
+        "subtitle": "$500/mo in swaps, $1,000/mo in perps, and one prediction a month \u2014 fee-free"
       },
       "atm_fees": {
         "title": "No added ATM or FX fees",
-        "subtitle": "Physical card included",
-        "subtitle_monthly": "Physical card available separately"
+        "subtitle": "Spend and withdraw anywhere Mastercard is accepted",
+        "subtitle_monthly": "Spend and withdraw anywhere Mastercard is accepted. Card available separately."
       },
       "protection": {
-        "title": "Up to $10,000 in protection",
-        "subtitle": "On eligible extension transactions"
+        "title": "Trade with a safety net",
+        "subtitle": "Up to $10,000 across 100 eligible extension transactions a month"
+      },
+      "app_icon": {
+        "title": "An app icon only members get",
+        "subtitle": "Set your home screen to the exclusive Orange icon"
       },
       "support": {
-        "title": "Real human support, around the clock",
-        "subtitle": "Response in minutes"
+        "title": "Talk to a human, fast",
+        "subtitle": "Priority queue, day or night. Responses in minutes."
       }
     },
     "plans": {
@@ -11537,17 +11544,17 @@
         "price": "$49.99",
         "sub_price": "($4.15/mo)",
         "badge": "2 months free",
-        "cta": "Join Pro for $4.15/month"
+        "cta": "Join Orange for $4.15/month"
       },
       "monthly": {
         "label": "Monthly",
         "price": "$4.99/mo",
-        "cta": "Join Pro for $4.99/month"
+        "cta": "Join Orange for $4.99/month"
       }
     },
     "benefits_description": {
       "apy": {
-        "description": "As a Pro member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
+        "description": "As an Orange member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
         "description2": "APY is variable and not guaranteed."
       },
       "cashback": {

@@ -107,6 +107,9 @@
 		<string>Geist-Medium.otf</string>
 		<string>Geist-RegularItalic.otf</string>
 		<string>Geist-Regular.otf</string>
+		<string>Oswald-Bold.ttf</string>
+		<string>Oswald-Medium.ttf</string>
+		<string>Oswald-Regular.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

@@ -6,6 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   HeaderStandard,
+  ButtonIcon,
+  ButtonIconSize,
   Icon,
   IconName,
   IconSize,
@@ -14,11 +16,14 @@ import {
   TextVariant,
   Text,
   Box,
+  BoxJustifyContent,
   ActionListItem,
+  AvatarAccount,
+  AvatarAccountSize,
+  Tag,
+  TagSeverity,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import MainActionButton from '../../../component-library/components-temp/MainActionButton';
-import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
@@ -28,12 +33,14 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { useQRScanner } from '../../hooks/useQRScanner';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
-import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
-import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectAvatarAccountType } from '../../../selectors/settings';
+import { getAvatarAccountVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
+import { useAccountName } from '../../hooks/useAccountName';
+import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
+import { selectBalanceBySelectedAccountGroup } from '../../../selectors/assets/balances';
+import { useFormatters } from '../../hooks/useFormatters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
-import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
-import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import {
   getMetamaskNotificationsReadCount,
@@ -43,16 +50,20 @@ import {
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { getBetaSupportUrl } from './AccountsMenu.utils';
 
+/*
+ * Height of the account platter's leading avatar. The label is boxed to the
+ * same height so the two align: ActionListItem top-aligns its start accessory
+ * and text (correct when a description is present), which would otherwise
+ * leave a label-only row sitting high against the centred trailing content.
+ */
+const ACCOUNT_PLATTER_AVATAR_SIZE = 40; // AvatarAccountSize.Lg (h-10)
+
 const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { openSupportWithConsent } = useSupportConsent();
-  const { openQRScanner } = useQRScanner();
-  const { goToBuy } = useRampNavigation();
-  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const rampsButtonClickData = useRampsButtonClickData();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -61,29 +72,46 @@ const AccountsMenu = () => {
   );
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
 
-  const onPressDeposit = useCallback(() => {
-    trackEvent(
-      createEventBuilder(EVENT_NAME.RAMPS_BUTTON_CLICKED)
-        .addProperties({
-          button_text: 'Buy',
-          location: 'AccountsMenu',
-          ramp_type: 'UNIFIED_BUY_2',
-          chain_id_destination: null,
-          region: rampGeodetectedRegion ?? null,
-          is_authenticated: rampsButtonClickData.is_authenticated ?? null,
-          preferred_provider: rampsButtonClickData.preferred_provider ?? null,
-          order_count: rampsButtonClickData.order_count,
-        })
-        .build(),
-    );
-    goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACCOUNTS_MENU });
-  }, [
-    goToBuy,
-    createEventBuilder,
-    trackEvent,
-    rampGeodetectedRegion,
-    rampsButtonClickData,
-  ]);
+  /*
+   * IA EXPERIMENT: the account switcher is now a row *inside* this menu rather
+   * than a separate entry point in Home's toolbar. Home's leading chrome opens
+   * this menu; this row is what changes account.
+   */
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
+  /*
+   * Mirrors Home's toolbar: the *group* name is what reads "Account 1".
+   * `useAccountName()` alone returns the internal account name, which is
+   * often empty — which is why the label was missing.
+   */
+  const { openQRScanner } = useQRScanner();
+
+  const accountGroupName = useAccountGroupName();
+  const accountName = useAccountName();
+  const accountDisplayName = accountGroupName || accountName;
+
+  // Fiat total for the selected account group, shown trailing the label.
+  const groupBalance = useSelector(selectBalanceBySelectedAccountGroup()) as {
+    totalBalanceInUserCurrency: number;
+    userCurrency: string;
+  } | null;
+  const { formatCurrency } = useFormatters();
+  const accountBalanceLabel = groupBalance
+    ? formatCurrency(
+        groupBalance.totalBalanceInUserCurrency ?? 0,
+        groupBalance.userCurrency || 'USD',
+      )
+    : undefined;
+
+  const onPressMetamaskOrange = useCallback(() => {
+    navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
+      source: 'accounts_menu',
+    });
+  }, [navigation]);
+
+  const onPressAccountSwitcher = useCallback(() => {
+    navigation.navigate(Routes.ACCOUNT_HUB_VIEW);
+  }, [navigation]);
 
   const onPressNotifications = useCallback(() => {
     navigation.navigate(Routes.NOTIFICATIONS.VIEW);
@@ -260,6 +288,20 @@ const AccountsMenu = () => {
     return unreadNotificationCount.toString();
   }, [unreadNotificationCount]);
 
+  // Trailing "Upgrade" tag, laid out like the notifications count badge so
+  // both rows align. `Tag` is the design system's badge component.
+  const renderMetamaskOrangeEndAccessory = useMemo(
+    () => (
+      <Box style={tw.style('flex-row items-center gap-2')}>
+        <Tag severity={TagSeverity.Info}>
+          {strings('accounts_menu.metamask_orange_badge')}
+        </Tag>
+        {arrowRightIcon}
+      </Box>
+    ),
+    [tw, arrowRightIcon],
+  );
+
   const renderNotificationsEndAccessory = useMemo(() => {
     if (isNotificationsEnabled && unreadNotificationCount > 0) {
       return (
@@ -302,6 +344,19 @@ const AccountsMenu = () => {
       <HeaderStandard
         onBack={handleBack}
         backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
+        endAccessory={
+          /*
+            IA EXPERIMENT: QR scan moved out of the Quick Actions block and up
+            into this view's own toolbar, so it is chrome rather than a row.
+          */
+          <ButtonIcon
+            iconName={IconName.QrCode}
+            size={ButtonIconSize.Md}
+            onPress={openQRScanner}
+            accessibilityLabel={strings('accounts_menu.scan')}
+            testID={AccountsMenuSelectorsIDs.SCAN_BUTTON}
+          />
+        }
         includesTopInset
       />
       <ScrollView
@@ -310,25 +365,83 @@ const AccountsMenu = () => {
         })}
         testID={AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID}
       >
-        {/* Quick Actions Section */}
-        <Box style={tw.style('px-4 py-3 flex-row gap-4 justify-between')}>
-          <Box style={tw.style('mb-2 flex-1')}>
-            <MainActionButton
-              iconName={LocalIconName.AttachMoney}
-              label={strings('accounts_menu.buy')}
-              onPress={onPressDeposit}
-              testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
+        {/*
+          IA EXPERIMENT: Quick Actions removed. "Buy" had no purpose here, and
+          the QR scanner moved up to Home's toolbar trailing group.
+        */}
+
+        {/*
+          Account Switcher — its own inset platter so it reads as a distinct
+          group. Being inset, it needs no separators around it.
+        */}
+        {selectedInternalAccount && (
+          <Box
+            style={tw.style('mx-4 my-2 rounded-2xl overflow-hidden', {
+              backgroundColor: colors.background.section,
+            })}
+          >
+            <ActionListItem
+              startAccessory={
+                <AvatarAccount
+                  address={selectedInternalAccount.address}
+                  variant={getAvatarAccountVariant(avatarAccountType)}
+                  size={AvatarAccountSize.Lg}
+                />
+              }
+              label={
+                <Box
+                  justifyContent={BoxJustifyContent.Center}
+                  style={tw.style({ height: ACCOUNT_PLATTER_AVATAR_SIZE })}
+                >
+                  <Text variant={TextVariant.BodyMd}>{accountDisplayName}</Text>
+                </Box>
+              }
+              /*
+                No chevron here by design — the row is still actionable via
+                `onPress`; the balance carries the trailing side alone.
+              */
+              endAccessory={
+                accountBalanceLabel ? (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {accountBalanceLabel}
+                  </Text>
+                ) : undefined
+              }
+              onPress={onPressAccountSwitcher}
+              testID={AccountsMenuSelectorsIDs.ACCOUNT_SWITCHER}
             />
           </Box>
-          <Box style={tw.style('mb-2 flex-1')}>
-            <MainActionButton
-              iconName={LocalIconName.QrCode}
-              label={strings('accounts_menu.scan')}
-              onPress={openQRScanner}
-              testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-            />
-          </Box>
-        </Box>
+        )}
+
+        {separator}
+
+        {/*
+          IA EXPERIMENT: opens the Pro subscription benefits flow (PR #35480).
+          That view self-dismisses unless the Pro flag is on — see
+          MM_PRO_SUBSCRIPTION_FLOW_ENABLED in .js.env.
+          Notifications was also moved below MetaMask Card.
+        */}
+        <ActionListItem
+          startAccessory={
+            <Icon name={IconName.MetamaskFoxOutline} size={IconSize.Lg} />
+          }
+          label={strings('accounts_menu.metamask_orange')}
+          endAccessory={renderMetamaskOrangeEndAccessory}
+          onPress={onPressMetamaskOrange}
+          testID={AccountsMenuSelectorsIDs.METAMASK_ORANGE}
+        />
+
+        {/* MetaMask Card Row */}
+        <ActionListItem
+          startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
+          label={strings('accounts_menu.card_title')}
+          onPress={onPressManageWallet}
+          endAccessory={arrowRightIcon}
+          testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
+        />
 
         {/* Notifications Row */}
         {isNotificationsFeatureEnabled() && (
@@ -342,15 +455,6 @@ const AccountsMenu = () => {
             testID={AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON}
           />
         )}
-
-        {/* MetaMask Card Row */}
-        <ActionListItem
-          startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
-          label={strings('accounts_menu.card_title')}
-          onPress={onPressManageWallet}
-          endAccessory={arrowRightIcon}
-          testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
-        />
 
         {separator}
 

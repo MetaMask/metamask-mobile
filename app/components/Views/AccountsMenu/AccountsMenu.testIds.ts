@@ -10,6 +10,9 @@ export const AccountsMenuSelectorsIDs = {
   // Quick Actions
   BUY_BUTTON: 'buy-button',
   EARN_BUTTON: 'earn-button',
+  ACCOUNT_SWITCHER: 'account-switcher-button',
+  SCAN_BUTTON: 'accounts-menu-scan-button',
+  METAMASK_ORANGE: 'metamask-orange-button',
   NOTIFICATIONS_BUTTON: 'notifications-button',
 
   // Manage Card

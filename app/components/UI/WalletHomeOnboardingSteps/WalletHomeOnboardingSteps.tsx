@@ -38,7 +38,6 @@ import {
 } from '../../../actions/onboarding';
 import { selectWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
-import WalletHomeOnboardingProgressBar from './WalletHomeOnboardingProgressBar';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
 import Logger from '../../../util/Logger';
 import onboardChecklistV07Animation from '../../../animations/onboard_checklist_v07.riv';
@@ -710,15 +709,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     onTradePrimaryPress,
   ]);
 
-  const progressLabel = useMemo(
-    () =>
-      strings('wallet.home_onboarding_steps.progress_a11y', {
-        current: visualStepIndexForProgress + 1,
-        total: totalSteps,
-      }),
-    [totalSteps, visualStepIndexForProgress],
-  );
-
   if (!currentStep || isStepIndexBeyondVisibleSteps) {
     return null;
   }
@@ -868,36 +858,10 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         testID={testID}
         twClassName="rounded-2xl"
       >
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          gap={4}
-          twClassName="w-full"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            gap={2}
-          >
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-              {strings('wallet.home_onboarding_steps.get_started_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-            >
-              {visualStepIndexForProgress + 1}/{totalSteps}
-            </Text>
-          </Box>
-
-          <WalletHomeOnboardingProgressBar
-            progressRatio={progressRatio}
-            accessibilityLabel={progressLabel}
-            testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
-          />
-        </Box>
-
+        {/*
+          IA EXPERIMENT: the "Get started on MetaMask" title, step counter and
+          progress bar are removed; the checklist body below stands alone.
+        */}
         {/*
           Always use the same Animated.View wrapper for the step body. Switching between
           View vs Animated.View when `isStepTransitioning` flips on the last step remounted

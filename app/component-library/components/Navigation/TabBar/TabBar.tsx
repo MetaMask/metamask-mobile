@@ -122,6 +122,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigateToMoneyHome();
             break;
           }
+          case Routes.SOCIAL_TAB_VIEW:
+            navigation.navigate(Routes.SOCIAL_TAB_VIEW);
+            break;
         }
       };
 

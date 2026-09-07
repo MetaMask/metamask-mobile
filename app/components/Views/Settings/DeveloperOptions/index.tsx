@@ -15,6 +15,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
+import NativeTabBarDeveloperOptionsSection from './NativeTabBarDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
@@ -100,6 +101,7 @@ const DeveloperOptions = () => {
           <SocialLeaderboardDeveloperOptionsSection />
         )}
         <HapticsDeveloperOptionsSection />
+        <NativeTabBarDeveloperOptionsSection />
       </ScrollView>
     </SafeAreaView>
   );
