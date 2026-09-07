@@ -26,11 +26,9 @@ const WDIO_LOG_LEVELS = [
 type WdioLogLevel = (typeof WDIO_LOG_LEVELS)[number];
 
 /**
- * WebdriverIO defaults to `info`, which echoes every command result. It only
- * truncates large payloads when the command name matches `/screenshot|recording/i`,
- * so Android media projection (an `executeScript` call) dumps the whole base64
- * MP4 into the log. Default to `warn` — matching BrowserStack — and keep the
- * framework's own logs, which carry the per-step detail worth reading.
+ * `info` keeps WebdriverIO's per-command `COMMAND` / `RESULT` lines, which are
+ * the primary signal when debugging a failed Appium step. Set
+ * `APPIUM_WDIO_LOG_LEVEL=warn` to silence that protocol chatter.
  *
  * @internal exported for unit tests
  */
@@ -39,7 +37,7 @@ export function resolveWdioLogLevel(
 ): WdioLogLevel {
   const raw = env.APPIUM_WDIO_LOG_LEVEL?.trim().toLowerCase();
   if (!raw) {
-    return 'warn';
+    return 'info';
   }
   if (!WDIO_LOG_LEVELS.includes(raw as WdioLogLevel)) {
     throw new Error(

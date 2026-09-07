@@ -66,13 +66,13 @@ describe('EmulatorConfigBuilder', () => {
   });
 
   describe('resolveWdioLogLevel', () => {
-    it('defaults to warn so base64 recordings stay out of the log', () => {
-      expect(resolveWdioLogLevel({})).toBe('warn');
+    it('defaults to info so command results stay in the log', () => {
+      expect(resolveWdioLogLevel({})).toBe('info');
     });
 
-    it('honours an explicit level for debugging', () => {
-      expect(resolveWdioLogLevel({ APPIUM_WDIO_LOG_LEVEL: 'INFO' })).toBe(
-        'info',
+    it('honours an explicit level for quieter runs', () => {
+      expect(resolveWdioLogLevel({ APPIUM_WDIO_LOG_LEVEL: 'WARN' })).toBe(
+        'warn',
       );
     });
 
@@ -86,7 +86,7 @@ describe('EmulatorConfigBuilder', () => {
   it('sets the session log level', () => {
     const config = new EmulatorConfigBuilder(createAndroidProject()).build();
 
-    expect(config.logLevel).toBe('warn');
+    expect(config.logLevel).toBe('info');
   });
 
   it('omits explicit Android server ports outside pool mode', () => {
