@@ -38,12 +38,15 @@ describe('Braze service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
-    MockBrazePlugin.mockImplementation(() => ({
-      type: 'destination',
-      key: 'Appboy',
-      setBrazeProfileId: mockSetBrazeProfileId,
-      setLanguage: mockSetLanguage,
-    }));
+    MockBrazePlugin.mockImplementation(
+      () =>
+        ({
+          type: 'destination',
+          key: 'Appboy',
+          setBrazeProfileId: mockSetBrazeProfileId,
+          setLanguage: mockSetLanguage,
+        }) as unknown as BrazePlugin,
+    );
     mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
     resetBrazePluginForTesting();
   });
