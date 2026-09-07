@@ -14,6 +14,41 @@ function readOptionalPort(envKey: string): number | undefined {
   return port;
 }
 
+const WDIO_LOG_LEVELS = [
+  'trace',
+  'debug',
+  'info',
+  'warn',
+  'error',
+  'silent',
+] as const;
+
+type WdioLogLevel = (typeof WDIO_LOG_LEVELS)[number];
+
+/**
+ * WebdriverIO defaults to `info`, which echoes every command result. It only
+ * truncates large payloads when the command name matches `/screenshot|recording/i`,
+ * so Android media projection (an `executeScript` call) dumps the whole base64
+ * MP4 into the log. Default to `warn` — matching BrowserStack — and keep the
+ * framework's own logs, which carry the per-step detail worth reading.
+ *
+ * @internal exported for unit tests
+ */
+export function resolveWdioLogLevel(
+  env: Record<string, string | undefined> = process.env,
+): WdioLogLevel {
+  const raw = env.APPIUM_WDIO_LOG_LEVEL?.trim().toLowerCase();
+  if (!raw) {
+    return 'warn';
+  }
+  if (!WDIO_LOG_LEVELS.includes(raw as WdioLogLevel)) {
+    throw new Error(
+      `Invalid APPIUM_WDIO_LOG_LEVEL "${raw}". Expected one of ${WDIO_LOG_LEVELS.join(', ')}.`,
+    );
+  }
+  return raw as WdioLogLevel;
+}
+
 /**
  * Builder for Emulator WebDriver configuration (local Android/iOS).
  *
@@ -104,6 +139,7 @@ export class EmulatorConfigBuilder {
     return {
       hostname: getAppiumHost(),
       port: getAppiumPort(),
+      logLevel: resolveWdioLogLevel(),
       connectionRetryTimeout,
       connectionRetryCount: 0,
       capabilities: {

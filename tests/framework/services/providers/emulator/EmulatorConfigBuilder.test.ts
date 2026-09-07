@@ -1,6 +1,9 @@
 import { Platform, ProviderName } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
-import { EmulatorConfigBuilder } from './EmulatorConfigBuilder.ts';
+import {
+  EmulatorConfigBuilder,
+  resolveWdioLogLevel,
+} from './EmulatorConfigBuilder.ts';
 
 function createAndroidProject(): ProjectConfig {
   return {
@@ -34,27 +37,56 @@ function createIosProject(): ProjectConfig {
 }
 
 describe('EmulatorConfigBuilder', () => {
-  const portKeys = [
+  const envKeys = [
     'ANDROID_UIAUTOMATOR2_SYSTEM_PORT',
     'ANDROID_CHROMEDRIVER_PORT',
     'ANDROID_MJPEG_SERVER_PORT',
     'ANDROID_ADB_SERVER_PORT',
     'IOS_WDA_LOCAL_PORT',
     'IOS_MJPEG_SERVER_PORT',
+    'APPIUM_WDIO_LOG_LEVEL',
   ] as const;
-  const originalPortEnv = Object.fromEntries(
-    portKeys.map((key) => [key, process.env[key]]),
-  ) as Record<(typeof portKeys)[number], string | undefined>;
+  const originalEnv = Object.fromEntries(
+    envKeys.map((key) => [key, process.env[key]]),
+  ) as Record<(typeof envKeys)[number], string | undefined>;
+
+  beforeEach(() => {
+    delete process.env.APPIUM_WDIO_LOG_LEVEL;
+  });
 
   afterEach(() => {
-    for (const key of portKeys) {
-      const originalValue = originalPortEnv[key];
+    for (const key of envKeys) {
+      const originalValue = originalEnv[key];
       if (originalValue === undefined) {
         delete process.env[key];
       } else {
         process.env[key] = originalValue;
       }
     }
+  });
+
+  describe('resolveWdioLogLevel', () => {
+    it('defaults to warn so base64 recordings stay out of the log', () => {
+      expect(resolveWdioLogLevel({})).toBe('warn');
+    });
+
+    it('honours an explicit level for debugging', () => {
+      expect(resolveWdioLogLevel({ APPIUM_WDIO_LOG_LEVEL: 'INFO' })).toBe(
+        'info',
+      );
+    });
+
+    it('rejects a level WebdriverIO does not accept', () => {
+      expect(() =>
+        resolveWdioLogLevel({ APPIUM_WDIO_LOG_LEVEL: 'verbose' }),
+      ).toThrow('Invalid APPIUM_WDIO_LOG_LEVEL "verbose"');
+    });
+  });
+
+  it('sets the session log level', () => {
+    const config = new EmulatorConfigBuilder(createAndroidProject()).build();
+
+    expect(config.logLevel).toBe('warn');
   });
 
   it('omits explicit Android server ports outside pool mode', () => {

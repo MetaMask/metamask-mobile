@@ -106,6 +106,13 @@ does not fall back to a long-lived `adb shell screenrecord`. Prime also bakes
 the helper into `e2e_golden`; existing snapshots still get the install on
 resume until the next prime.
 
+Sessions run WebdriverIO at `logLevel: 'warn'`. WebdriverIO only truncates
+large command results when the command name matches `/screenshot|recording/i`,
+and media projection stops through `executeScript`, so at `info` it prints the
+entire base64 MP4 for every recorded test. Set `APPIUM_WDIO_LOG_LEVEL=info`
+(or `debug`/`trace`) to get the raw protocol chatter back while debugging; the
+framework's own `[E2E Framework]` logs are unaffected by this setting.
+
 Each Android smoke job also writes a **Android device pool** block to the
 GitHub job summary with pool size, boot mode, Playwright outcome, and
 `stats.duration` from the Playwright JSON report.
