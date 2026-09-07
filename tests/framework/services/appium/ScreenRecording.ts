@@ -291,6 +291,8 @@ async function stopIosRecording(
  * Android prefers on-device media projection so recording does not keep a
  * long-lived adb shell connection open while fixture reverse mappings change.
  * It falls back to adb screenrecord when media projection is unavailable.
+ * Media projection requires `io.appium.settings`, which global setup installs
+ * because sessions skip Appium device initialization.
  */
 export async function startFailureRecording(
   browser: WebdriverIO.Browser,
