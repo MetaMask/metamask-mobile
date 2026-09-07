@@ -10,6 +10,9 @@ import type { KnownCaipNamespace } from '@metamask/utils';
 
 import type { AnyChainAdapter } from './types';
 
+///: BEGIN:ONLY_INCLUDE_IF(solana)
+import { solanaAdapter } from './solana';
+///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { tronAdapter } from './tron';
 ///: END:ONLY_INCLUDE_IF
@@ -46,6 +49,9 @@ export function getAllRegisteredNamespaces(): KnownCaipNamespace[] {
   return Array.from(adapters.keys()) as KnownCaipNamespace[];
 }
 
+///: BEGIN:ONLY_INCLUDE_IF(solana)
+registerAdapter(solanaAdapter);
+///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 registerAdapter(tronAdapter);
 ///: END:ONLY_INCLUDE_IF
