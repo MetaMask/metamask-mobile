@@ -7,11 +7,29 @@ import {
   isWhatsHappeningSectionVisible,
   useWhatsHappening,
   WHATS_HAPPENING_FETCH_FAILED,
+  WHATS_HAPPENING_QUERY_KEY,
   type UseWhatsHappeningOptions,
 } from './useWhatsHappening';
+import { WhatsHappeningSource } from '../constants';
 
 const mockFetchMarketOverview = jest.fn();
 const mockFetchFrontPageItem = jest.fn();
+const mockSetAttribute = jest.fn();
+const mockTrace = jest.fn((...args: unknown[]) => {
+  const callback = args[1] as
+    | ((context: { setAttribute: typeof mockSetAttribute }) => unknown)
+    | undefined;
+  if (typeof callback === 'function') {
+    return callback({ setAttribute: mockSetAttribute });
+  }
+});
+const mockEndTrace = jest.fn();
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: (...args: unknown[]) => mockTrace(...args),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -126,6 +144,34 @@ describe('useWhatsHappening', () => {
       mockTrend.relatedAssets,
     );
     expect(result.current.error).toBeNull();
+    expect(result.current.cacheState).toBe('cold');
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "What's Happening Fetch",
+        op: 'whats_happening.fetch',
+        tags: {
+          feature: 'whats_happening',
+          source: 'unknown',
+          stage: 'carousel',
+          cache_state: 'cold',
+          fetch_kind: 'overview',
+        },
+      }),
+      expect.any(Function),
+    );
+    expect(mockSetAttribute).toHaveBeenCalledWith('result', 'success');
+    expect(mockSetAttribute).toHaveBeenCalledWith('success', true);
+    expect(mockTrace).toHaveBeenCalledWith({
+      name: "What's Happening Carousel Load",
+      op: 'whats_happening.load',
+      id: 'unknown:carousel',
+      tags: {
+        feature: 'whats_happening',
+        source: 'unknown',
+        stage: 'carousel',
+        cache_state: 'cold',
+      },
+    });
   });
 
   it('uses overview generatedAt as item date', async () => {
@@ -144,6 +190,17 @@ describe('useWhatsHappening', () => {
 
     expect(result.current.items).toHaveLength(0);
     expect(result.current.error).toBeNull();
+    expect(mockSetAttribute).toHaveBeenCalledWith('result', 'empty');
+    expect(mockSetAttribute).toHaveBeenCalledWith('success', true);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening Carousel Load",
+      id: 'unknown:carousel',
+      data: {
+        result: 'empty',
+        success: true,
+        content_state: 'empty',
+      },
+    });
   });
 
   it('sets empty items when trends array is empty', async () => {
@@ -178,6 +235,17 @@ describe('useWhatsHappening', () => {
     expect(result.current.items).toHaveLength(0);
     expect(result.current.error).toBe('Network error');
     expect(mockLoggerError).toHaveBeenCalled();
+    expect(mockSetAttribute).toHaveBeenCalledWith('result', 'error');
+    expect(mockSetAttribute).toHaveBeenCalledWith('success', false);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening Carousel Load",
+      id: 'unknown:carousel',
+      data: {
+        result: 'error',
+        success: false,
+        content_state: 'error',
+      },
+    });
   });
 
   it('sets fallback error flag for non-Error rejections', async () => {
@@ -683,6 +751,259 @@ describe('useWhatsHappening', () => {
       ),
     ).toBe(false);
     expect(result.current.items[0]?.isOutdated).toBeUndefined();
+  });
+
+  it('tags overview fetch with the observer source', async () => {
+    const { result } = renderWhatsHappeningHook({
+      telemetryContext: {
+        source: WhatsHappeningSource.Explore,
+        stage: 'carousel',
+      },
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.carouselTraceId).toBe('explore:carousel');
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "What's Happening Fetch",
+        tags: expect.objectContaining({
+          source: 'explore',
+          stage: 'carousel',
+          fetch_kind: 'overview',
+        }),
+      }),
+      expect.any(Function),
+    );
+  });
+
+  it('starts a front-page fetch span for a deep-linked item', async () => {
+    mockFetchFrontPageItem.mockResolvedValue({
+      id: 'front-page-1',
+      item: {
+        title: 'Older headline',
+        description: 'Older item',
+        category: 'macro',
+        impact: 'neutral',
+        relatedAssets: [],
+        articles: [],
+      },
+      ctaTitle: 'CTA',
+      ctaDescription: 'CTA description',
+      createdAt: '2026-02-01T00:00:00.000Z',
+    });
+
+    const { result } = renderWhatsHappeningHook({
+      outdatedItemId: 'front-page-1',
+      telemetryContext: {
+        source: WhatsHappeningSource.Deeplink,
+        stage: 'expanded',
+      },
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "What's Happening Front Page Fetch",
+        op: 'whats_happening.fetch',
+        tags: {
+          feature: 'whats_happening',
+          source: 'deeplink',
+          stage: 'expanded',
+          cache_state: 'cold',
+          fetch_kind: 'front_page',
+        },
+      }),
+      expect.any(Function),
+    );
+    expect(mockTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "What's Happening Carousel Load",
+      }),
+    );
+    expect(mockTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "What's Happening View Load",
+      }),
+    );
+  });
+
+  it('ends expanded time to content as empty without starting a new span', async () => {
+    mockFetchMarketOverview.mockResolvedValue(null);
+
+    const { result } = renderWhatsHappeningHook({
+      telemetryContext: {
+        source: WhatsHappeningSource.Deeplink,
+        stage: 'expanded',
+      },
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening View Load",
+      id: 'deeplink:expanded',
+      data: {
+        result: 'empty',
+        success: true,
+        content_state: 'empty',
+      },
+    });
+    expect(mockTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "What's Happening View Load",
+      }),
+    );
+  });
+
+  it('returns warm cache state without starting a fetch span', async () => {
+    queryClient.setQueryData([WHATS_HAPPENING_QUERY_KEY], mockOverview);
+
+    const { result } = renderWhatsHappeningHook({
+      telemetryContext: {
+        source: WhatsHappeningSource.Perps,
+        stage: 'carousel',
+      },
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+    expect(result.current.cacheState).toBe('warm');
+    expect(result.current.isLoading).toBe(false);
+    expect(mockFetchMarketOverview).not.toHaveBeenCalled();
+    expect(mockTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: "What's Happening Fetch" }),
+      expect.any(Function),
+    );
+  });
+
+  it('marks the fetch as cancelled when its last observer unmounts', async () => {
+    let resolveOverview: (overview: typeof mockOverview) => void = () =>
+      undefined;
+    const request = new Promise<typeof mockOverview>((resolve) => {
+      resolveOverview = resolve;
+    });
+    mockFetchMarketOverview.mockReturnValue(request);
+
+    const { unmount } = renderWhatsHappeningHook();
+    await waitFor(() => expect(mockFetchMarketOverview).toHaveBeenCalled());
+
+    unmount();
+
+    expect(mockSetAttribute).toHaveBeenCalledWith('result', 'cancelled');
+    expect(mockSetAttribute).toHaveBeenCalledWith('success', false);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening Carousel Load",
+      id: 'unknown:carousel',
+      data: {
+        result: 'cancelled',
+        success: false,
+        reason: 'owner_cancelled',
+      },
+    });
+
+    await act(async () => {
+      resolveOverview(mockOverview);
+      await request;
+    });
+  });
+
+  it('keeps generation pending on remount while a cached null miss refetches', async () => {
+    mockFetchMarketOverview.mockResolvedValueOnce(null);
+
+    const first = renderWhatsHappeningHook();
+    await waitFor(() => expect(first.result.current.isLoading).toBe(false));
+    expect(first.result.current.items).toHaveLength(0);
+    first.unmount();
+
+    let resolveOverview: (overview: typeof mockOverview) => void = () =>
+      undefined;
+    const request = new Promise<typeof mockOverview>((resolve) => {
+      resolveOverview = resolve;
+    });
+    mockFetchMarketOverview.mockReturnValueOnce(request);
+
+    const second = renderWhatsHappeningHook();
+
+    expect(second.result.current.items).toHaveLength(0);
+    expect(second.result.current.isLoading).toBe(false);
+    expect(second.result.current.isGenerationPending).toBe(true);
+
+    await act(async () => {
+      resolveOverview(mockOverview);
+      await request;
+    });
+    await waitFor(() => expect(second.result.current.items).toHaveLength(1));
+
+    expect(second.result.current.isGenerationPending).toBe(false);
+    expect(second.result.current.isLoading).toBe(false);
+  });
+
+  it('does not flip loading during a background refetch of a settled empty feed', async () => {
+    mockFetchMarketOverview.mockResolvedValueOnce(null);
+
+    const { result } = renderWhatsHappeningHook();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.isGenerationPending).toBe(false);
+
+    let resolveOverview: (overview: typeof mockOverview | null) => void = () =>
+      undefined;
+    const request = new Promise<typeof mockOverview | null>((resolve) => {
+      resolveOverview = resolve;
+    });
+    mockFetchMarketOverview.mockReturnValueOnce(request);
+
+    let refetchPromise: Promise<unknown> = Promise.resolve();
+    await act(async () => {
+      refetchPromise = queryClient.refetchQueries({
+        queryKey: [WHATS_HAPPENING_QUERY_KEY],
+        exact: true,
+      });
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isGenerationPending).toBe(false);
+
+    await act(async () => {
+      resolveOverview(null);
+      await refetchPromise;
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isGenerationPending).toBe(false);
+  });
+
+  it('keeps generation pending on remount while a cached error refetches', async () => {
+    mockFetchMarketOverview.mockRejectedValueOnce(new Error('Network error'));
+
+    const first = renderWhatsHappeningHook();
+    await waitFor(() =>
+      expect(first.result.current.error).toBe('Network error'),
+    );
+    expect(first.result.current.isLoading).toBe(false);
+    first.unmount();
+
+    let resolveOverview: (overview: typeof mockOverview) => void = () =>
+      undefined;
+    const request = new Promise<typeof mockOverview>((resolve) => {
+      resolveOverview = resolve;
+    });
+    mockFetchMarketOverview.mockReturnValueOnce(request);
+
+    const second = renderWhatsHappeningHook();
+
+    expect(second.result.current.items).toHaveLength(0);
+    expect(second.result.current.isGenerationPending).toBe(true);
+
+    await act(async () => {
+      resolveOverview(mockOverview);
+      await request;
+    });
+    await waitFor(() => expect(second.result.current.items).toHaveLength(1));
+
+    expect(second.result.current.isGenerationPending).toBe(false);
+    expect(second.result.current.error).toBeNull();
   });
 });
 

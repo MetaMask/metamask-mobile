@@ -2,6 +2,11 @@ import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { WhatsHappeningSource } from '../../../../components/UI/WhatsHappening/constants';
+import {
+  getWhatsHappeningTraceId,
+  getWhatsHappeningTraceTags,
+} from '../../../../components/UI/WhatsHappening/utils/whatsHappeningPerformance';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 
 interface HandleWhatsHappeningUrlParams {
   /**
@@ -34,6 +39,15 @@ export const handleWhatsHappeningUrl = ({
   DevLogger.log('[handleWhatsHappeningUrl] Starting deeplink handling', { id });
 
   try {
+    trace({
+      name: TraceName.WhatsHappeningViewLoad,
+      op: TraceOperation.WhatsHappeningLoad,
+      id: getWhatsHappeningTraceId(WhatsHappeningSource.Deeplink, 'expanded'),
+      tags: getWhatsHappeningTraceTags(
+        { source: WhatsHappeningSource.Deeplink, stage: 'expanded' },
+        'cold',
+      ),
+    });
     NavigationService.navigation.navigate(Routes.WHATS_HAPPENING_DETAIL, {
       source: WhatsHappeningSource.Deeplink,
       initialIndex: 0,

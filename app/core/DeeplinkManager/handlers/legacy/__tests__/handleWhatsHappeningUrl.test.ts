@@ -4,6 +4,13 @@ import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { WhatsHappeningSource } from '../../../../../components/UI/WhatsHappening/constants';
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 
+const mockTrace = jest.fn();
+
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: (...args: unknown[]) => mockTrace(...args),
+}));
+
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
@@ -28,6 +35,17 @@ describe('handleWhatsHappeningUrl', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WHATS_HAPPENING_DETAIL, {
         source: WhatsHappeningSource.Deeplink,
         initialIndex: 0,
+      });
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: "What's Happening View Load",
+        op: 'whats_happening.load',
+        id: 'deeplink:expanded',
+        tags: {
+          feature: 'whats_happening',
+          source: 'deeplink',
+          stage: 'expanded',
+          cache_state: 'cold',
+        },
       });
     });
 

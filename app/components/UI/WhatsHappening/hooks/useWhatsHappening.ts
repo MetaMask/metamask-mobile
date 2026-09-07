@@ -13,7 +13,19 @@ import Engine from '../../../../core/Engine';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import {
+  getDigestCacheState,
+  isDigestObserverPending,
+  withDigestFetchSpan,
+} from '../../../../util/digestPerformance';
+import { TraceName, TraceOperation } from '../../../../util/trace';
+import { WhatsHappeningSource } from '../constants';
 import type { WhatsHappeningItem } from '../types';
+import {
+  getWhatsHappeningTraceTags,
+  type WhatsHappeningTelemetryContext,
+} from '../utils/whatsHappeningPerformance';
+import { useWhatsHappeningLoadTrace } from './useWhatsHappeningLoadTrace';
 
 /** Internal error flag when fetch rejects with a non-Error value (not shown in UI). */
 export const WHATS_HAPPENING_FETCH_FAILED = 'WHATS_HAPPENING_FETCH_FAILED';
@@ -30,6 +42,12 @@ export interface UseWhatsHappeningResult {
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  /** Cache state when this overview observer generation began. */
+  cacheState: 'warm' | 'cold';
+  /** True until this observer has fetched and still lacks items or an error. */
+  isGenerationPending: boolean;
+  /** Carousel time-to-content trace id, when this observer owns the entry span. */
+  carouselTraceId?: string;
 }
 
 export interface UseWhatsHappeningOptions {
@@ -41,6 +59,8 @@ export interface UseWhatsHappeningOptions {
    * detail view passes it, so the Explore/Perps carousels are unaffected.
    */
   outdatedItemId?: string | null;
+  /** Bounded Sentry context for fetch and carousel time-to-content spans. */
+  telemetryContext?: WhatsHappeningTelemetryContext;
 }
 
 export const isWhatsHappeningSectionVisible = ({
@@ -179,10 +199,44 @@ export const useWhatsHappening = (
   const queryClient = useQueryClient();
   const pendingRefreshRef = useRef<(() => void) | null>(null);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const resolvedTelemetryContext: WhatsHappeningTelemetryContext =
+    options?.telemetryContext ?? {
+      source: WhatsHappeningSource.Unknown,
+      stage: 'carousel',
+    };
+  const cacheStateRef = useRef<{
+    active: boolean;
+    state: 'warm' | 'cold';
+  } | null>(null);
+
+  if (!cacheStateRef.current || cacheStateRef.current.active !== isActive) {
+    const cachedOverview = queryClient.getQueryData<MarketOverview | null>([
+      WHATS_HAPPENING_QUERY_KEY,
+    ]);
+    cacheStateRef.current = {
+      active: isActive,
+      state: getDigestCacheState(cachedOverview),
+    };
+  }
+
+  const cacheState = cacheStateRef.current.state;
 
   const overviewQuery = useQuery<MarketOverview | null, Error>({
     queryKey: [WHATS_HAPPENING_QUERY_KEY],
-    queryFn: fetchMarketOverview,
+    queryFn: ({ signal }) =>
+      withDigestFetchSpan(
+        {
+          name: TraceName.WhatsHappeningFetch,
+          op: TraceOperation.WhatsHappeningFetch,
+          tags: getWhatsHappeningTraceTags(
+            resolvedTelemetryContext,
+            cacheState,
+            { fetch_kind: 'overview' },
+          ),
+        },
+        signal,
+        fetchMarketOverview,
+      ),
     enabled: isActive,
     retry: false,
     networkMode: 'always',
@@ -192,7 +246,18 @@ export const useWhatsHappening = (
 
   const frontPageQuery = useQuery<WhatsHappeningItem | null, Error>({
     queryKey: [WHATS_HAPPENING_FRONT_PAGE_QUERY_KEY, outdatedItemId],
-    queryFn: () => fetchOutdatedItem(outdatedItemId ?? ''),
+    queryFn: ({ signal }) =>
+      withDigestFetchSpan(
+        {
+          name: TraceName.WhatsHappeningFrontPageFetch,
+          op: TraceOperation.WhatsHappeningFetch,
+          tags: getWhatsHappeningTraceTags(resolvedTelemetryContext, 'cold', {
+            fetch_kind: 'front_page',
+          }),
+        },
+        signal,
+        () => fetchOutdatedItem(outdatedItemId ?? ''),
+      ),
     enabled: isActive && Boolean(outdatedItemId),
     retry: false,
     networkMode: 'always',
@@ -268,9 +333,36 @@ export const useWhatsHappening = (
 
   const isFrontPageLoading =
     Boolean(outdatedItemId) && frontPageQuery.isLoading;
+  const visibleItems = isActive && !error ? items : [];
+  const isGenerationPending = isDigestObserverPending({
+    enabled: isActive,
+    hasContent: visibleItems.length > 0,
+    isFetchedAfterMount: overviewQuery.isFetchedAfterMount,
+  });
+  const carouselTraceId = useWhatsHappeningLoadTrace({
+    name: TraceName.WhatsHappeningCarouselLoad,
+    enabled: isActive && resolvedTelemetryContext.stage === 'carousel',
+    source: resolvedTelemetryContext.source,
+    stage: 'carousel',
+    cacheState,
+    isGenerationPending,
+    hasContent: visibleItems.length > 0,
+    error,
+  });
+  useWhatsHappeningLoadTrace({
+    name: TraceName.WhatsHappeningViewLoad,
+    enabled: isActive && resolvedTelemetryContext.stage === 'expanded',
+    start: false,
+    source: resolvedTelemetryContext.source,
+    stage: 'expanded',
+    cacheState,
+    isGenerationPending,
+    hasContent: visibleItems.length > 0,
+    error,
+  });
 
   return {
-    items: isActive && !error ? items : [],
+    items: visibleItems,
     // isFetching is true for background refetches (new observer, stale mount).
     // Only the initial load and an explicit refresh should show skeletons.
     isLoading:
@@ -278,6 +370,9 @@ export const useWhatsHappening = (
       (overviewQuery.isLoading || isFrontPageLoading || isManualRefreshing),
     error,
     refresh,
+    cacheState,
+    isGenerationPending,
+    carouselTraceId,
   };
 };
 
