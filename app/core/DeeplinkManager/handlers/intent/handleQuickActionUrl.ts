@@ -1,6 +1,5 @@
 import type { Hex } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
-import { handleQRScanSuccess } from '../../../../components/hooks/useQRScanner/handleQRScanSuccess';
 import {
   ChainType,
   type PredefinedRecipient,
@@ -81,12 +80,19 @@ const createScanIntent = (): DeeplinkIntent => ({
       onScanSuccess: (
         data: { private_key?: string; seed?: string },
         content?: string,
-      ) =>
+      ) => {
+        // Lazy-load: handleQRScanSuccess imports Authentication and
+        // DeeplinkManager. A static import here cycles those modules
+        // (Authentication → DeeplinkManager → this file).
+        const { handleQRScanSuccess } =
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          require('../../../../components/hooks/useQRScanner/handleQRScanSuccess') as typeof import('../../../../components/hooks/useQRScanner/handleQRScanSuccess');
         handleQRScanSuccess({
           data,
           content,
           navigation: NavigationService.navigation as AppNavigationProp,
-        }),
+        });
+      },
     },
   },
 });
