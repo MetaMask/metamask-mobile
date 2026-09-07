@@ -2,6 +2,7 @@
 import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { TestInfo } from '@playwright/test';
 import {
   buildRecordingFileBaseName,
   extractRecordingPayload,
@@ -220,6 +221,9 @@ describe('ScreenRecording', () => {
   });
 
   describe('startFailureRecording', () => {
+    // Only the iOS path reads testInfo (ffmpeg annotation); Android ignores it.
+    const androidTestInfo = { annotations: [] } as unknown as TestInfo;
+
     beforeEach(() => {
       jest.spyOn(console, 'warn').mockImplementation();
     });
@@ -239,7 +243,7 @@ describe('ScreenRecording', () => {
         startRecordingScreen,
       } as unknown as WebdriverIO.Browser;
 
-      const backend = await startFailureRecording(browser);
+      const backend = await startFailureRecording(browser, androidTestInfo);
 
       expect(backend).toBe('android-media-projection');
       expect(execute).toHaveBeenCalledWith(
@@ -265,7 +269,7 @@ describe('ScreenRecording', () => {
         startRecordingScreen,
       } as unknown as WebdriverIO.Browser;
 
-      const backend = await startFailureRecording(browser);
+      const backend = await startFailureRecording(browser, androidTestInfo);
 
       expect(backend).toBe('android-screenrecord');
       expect(execute).toHaveBeenCalledWith(
