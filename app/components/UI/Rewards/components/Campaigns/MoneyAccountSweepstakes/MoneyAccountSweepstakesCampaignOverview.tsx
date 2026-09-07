@@ -203,86 +203,90 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
           <Text variant={TextVariant.DisplayLg} fontWeight={FontWeight.Bold}>
             {balanceDisplay}
           </Text>
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
-            <Text
-              variant={TextVariant.BodyLg}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {entriesDisplay}
-            </Text>
-            <Text
-              variant={TextVariant.BodyLg}
-              color={TextColor.TextAlternative}
-            >
-              · {localizedText.thisWeekLabel}
-            </Text>
-          </Box>
-          {qualificationMessage && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={
-                isQualified
-                  ? TextColor.SuccessDefault
-                  : isPaused
-                    ? TextColor.WarningDefault
-                    : TextColor.TextAlternative
-              }
-            >
-              {qualificationMessage}
-            </Text>
-          )}
-          <Box twClassName="border-t border-border-muted" />
-          <Box
-            alignItems={BoxAlignItems.Center}
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            testID={
-              MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW
-            }
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.balanceTitle}
-            </Text>
-            {showMoneyAccountBalanceSkeleton ? (
-              <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
-            ) : (
+          <Box twClassName="gap-1">
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyLg}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >
-                {moneyAccountBalanceDisplay}
+                {entriesDisplay}
+              </Text>
+              <Text
+                variant={TextVariant.BodyLg}
+                color={TextColor.TextAlternative}
+              >
+                · {localizedText.thisWeekLabel}
+              </Text>
+            </Box>
+            {qualificationMessage && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={
+                  isQualified
+                    ? TextColor.SuccessDefault
+                    : isPaused
+                      ? TextColor.WarningDefault
+                      : TextColor.TextAlternative
+                }
+              >
+                {qualificationMessage}
               </Text>
             )}
           </Box>
-          {lastCheckedAt !== null && (
+          <Box twClassName="my-1 border-t border-border-muted" />
+          <Box twClassName="gap-1">
             <Box
               alignItems={BoxAlignItems.Center}
               flexDirection={BoxFlexDirection.Row}
               justifyContent={BoxJustifyContent.Between}
               testID={
-                MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.LAST_CHECKED_ROW
+                MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW
               }
             >
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {strings('rewards.campaign_details.last_checked_at')}
+                {localizedText.balanceTitle}
               </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {lastCheckedAt}
-              </Text>
+              {showMoneyAccountBalanceSkeleton ? (
+                <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
+              ) : (
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {moneyAccountBalanceDisplay}
+                </Text>
+              )}
             </Box>
-          )}
+            {lastCheckedAt !== null && (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                flexDirection={BoxFlexDirection.Row}
+                justifyContent={BoxJustifyContent.Between}
+                testID={
+                  MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.LAST_CHECKED_ROW
+                }
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('rewards.campaign_details.last_checked_at')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {lastCheckedAt}
+                </Text>
+              </Box>
+            )}
+          </Box>
           {children}
         </Box>
       </Box>

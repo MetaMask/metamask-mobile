@@ -191,6 +191,7 @@ class FixtureBuilder {
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
+      '@MetaMask:PUSH_PRE_PROMPT_SHOWN': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };

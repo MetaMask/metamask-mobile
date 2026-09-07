@@ -514,6 +514,87 @@ describe('Predict API canonical response parsers', () => {
     );
   });
 
+  it('keeps a market-selector group and strips unknown group fields', () => {
+    const input = createEvent({
+      markets: [
+        createMarket({
+          group: {
+            key: 'KXNFLTOTAL-1:total',
+            groupType: 'marketSelector',
+            marketType: 'total',
+            option: { type: 'number', value: 44.5 },
+            displayOrder: 0,
+            extra: 'discard',
+          },
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.markets[0].group).toEqual({
+      key: 'KXNFLTOTAL-1:total',
+      groupType: 'marketSelector',
+      marketType: 'total',
+      option: { type: 'number', value: 44.5 },
+      displayOrder: 0,
+    });
+  });
+
+  it('keeps an unsupported group type so winner quotes can ignore grouped Markets', () => {
+    const input = createEvent({
+      markets: [
+        createMarket({
+          group: {
+            key: 'future-group',
+            groupType: 'future-group-type',
+          },
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.markets[0].group).toEqual({
+      key: 'future-group',
+      groupType: 'future-group-type',
+    });
+  });
+
+  it.each([
+    {
+      name: 'a marketSelector group without marketType',
+      group: {
+        key: 'group-1',
+        groupType: 'marketSelector',
+        option: { type: 'number', value: 1 },
+      },
+    },
+    {
+      name: 'a marketSelector group without option',
+      group: {
+        key: 'group-1',
+        groupType: 'marketSelector',
+        marketType: 'total',
+      },
+    },
+    {
+      name: 'a whitespace group key',
+      group: {
+        key: ' ',
+        groupType: 'future-group-type',
+      },
+    },
+  ])('rejects $name', ({ group }) => {
+    const input = createEvent({
+      markets: [createMarket({ group })],
+    });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('parses a paginated event response', () => {
     const input = {
       venueId: 'kalshi',

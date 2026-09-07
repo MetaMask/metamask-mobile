@@ -227,6 +227,10 @@ four; reliability widgets count them by reason.
 | `PerpsWebSocketFirstOrderBook`        | Top-of-book connect → first order-book delivery                                 | direct `trace()` in `PerpsStreamManager`        |
 | `PerpsWebSocketReconnectToFreshData`  | Reconnect → first fresh positions delivery                                      | `perpsCufTrace` (`watchPerpsCufAnyPositions`)   |
 
+Chase termination skips `PerpsCancelOrderToConfirmation`. Chase rotates child
+order IDs while repricing, so there is no stable child-absence boundary for
+that confirmation trace.
+
 ### UI Screen Measurements (16 events)
 
 **Purpose:** Track screen load times and user-perceived performance.

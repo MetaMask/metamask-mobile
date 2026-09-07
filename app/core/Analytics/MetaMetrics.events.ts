@@ -29,6 +29,7 @@ enum EVENT_NAME {
   // App
   APP_OPENED = 'App Opened',
   APP_INSTALLED = 'App Installed',
+  APP_UNLOCKED_FAILED = 'App Unlocked Failed',
 
   // Error
   ERROR = 'Error occurred',
@@ -393,6 +394,9 @@ enum EVENT_NAME {
   RAMPS_CHECKOUT_CALLBACK_DETECTED = 'Ramps Checkout Callback Detected',
   RAMPS_CHECKOUT_CLOSED = 'Ramps Checkout Closed',
 
+  ARC_USAGE_NOTICE_TOAST_VIEWED = 'Arc Usage Notice Toast Viewed',
+  ARC_USAGE_NOTICE_TOAST_DISMISSED = 'Arc Usage Notice Toast Dismissed',
+
   ACCOUNTS = 'Accounts',
   DAPP_VIEW = 'Dapp View',
   NAVIGATION_DRAWER = 'Navigation Drawer',
@@ -648,6 +652,7 @@ enum EVENT_NAME {
   CARD_BUTTON_VIEWED = 'Card Button Viewed',
   CARD_HOME_CLICKED = 'Card Home Clicked',
   CARD_HOME_VIEWED = 'Card Home Viewed',
+  CARD_HOME_ERROR = 'Card Home Error',
   CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
   CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
@@ -897,6 +902,7 @@ export enum PERMISSION_TYPE {
 const events = {
   APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   APP_INSTALLED: generateOpt(EVENT_NAME.APP_INSTALLED),
+  APP_UNLOCKED_FAILED: generateOpt(EVENT_NAME.APP_UNLOCKED_FAILED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
 
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1412,6 +1418,13 @@ const events = {
   ),
   RAMPS_CHECKOUT_CLOSED: generateOpt(EVENT_NAME.RAMPS_CHECKOUT_CLOSED),
 
+  ARC_USAGE_NOTICE_TOAST_VIEWED: generateOpt(
+    EVENT_NAME.ARC_USAGE_NOTICE_TOAST_VIEWED,
+  ),
+  ARC_USAGE_NOTICE_TOAST_DISMISSED: generateOpt(
+    EVENT_NAME.ARC_USAGE_NOTICE_TOAST_DISMISSED,
+  ),
+
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED: generateOpt(
     EVENT_NAME.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED,
   ),
@@ -1874,6 +1887,7 @@ const events = {
   CARD_BUTTON_VIEWED: generateOpt(EVENT_NAME.CARD_BUTTON_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
   CARD_HOME_VIEWED: generateOpt(EVENT_NAME.CARD_HOME_VIEWED),
+  CARD_HOME_ERROR: generateOpt(EVENT_NAME.CARD_HOME_ERROR),
   CARD_ADD_FUNDS_CLICKED: generateOpt(EVENT_NAME.CARD_ADD_FUNDS_CLICKED),
   CARD_ADD_FUNDS_SWAPS_CLICKED: generateOpt(
     EVENT_NAME.CARD_ADD_FUNDS_SWAPS_CLICKED,

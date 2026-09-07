@@ -102,6 +102,8 @@ jest.mock('../../app/core/Engine', () => {
       CardController: {
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
         logout: jest.fn().mockResolvedValue(undefined),
+        clearRedeemWithdrawal: jest.fn(),
+        withdrawRedeemable: jest.fn().mockResolvedValue({ txHash: '0xmock' }),
         getCapabilities: jest.fn().mockReturnValue({
           authMethod: 'otp',
           supportsOTP: true,
@@ -445,7 +447,7 @@ jest.mock('../../app/core/Engine', () => {
         getOrderCapabilities: jest.fn().mockResolvedValue({
           status: 'ready',
           providerId: 'hyperliquid',
-          supportedStrategies: ['twap'],
+          supportedStrategies: ['twap', 'scale', 'chase'],
         }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
@@ -459,6 +461,10 @@ jest.mock('../../app/core/Engine', () => {
           success: true,
           orderId: 'component-view-edit-order',
         }),
+        getChaseOrders: jest.fn().mockResolvedValue([]),
+        suspendChaseOrders: jest.fn().mockResolvedValue([]),
+        getTwapOrders: jest.fn().mockResolvedValue([]),
+        subscribeToTwapOrders: jest.fn(() => () => undefined),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([
           {

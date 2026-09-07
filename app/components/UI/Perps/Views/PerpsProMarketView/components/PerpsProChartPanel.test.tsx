@@ -15,7 +15,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import type { PerpsAdvancedChartProps } from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
-import PerpsCandlePeriodSelector from '../../../components/PerpsCandlePeriodSelector/PerpsCandlePeriodSelector';
+import { CandlePeriodSelector as PerpsCandlePeriodSelector } from '../../../../Charts/CandlePeriodSelector';
 import type { PerpsChartFullscreenModalProps } from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import type { OhlcData } from '../../../components/TradingViewChart';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';

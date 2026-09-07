@@ -147,8 +147,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           >
             {inputPrefix ? (
               <Text
-                variant={TextVariant.HeadingLg}
-                fontWeight={FontWeight.Bold}
+                variant={TextVariant.BodyMd}
                 color={TextColor.TextDefault}
                 style={amountTextStyle}
                 twClassName="p-0 leading-none"
@@ -165,7 +164,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
               caretHidden={false}
               autoFocus={false}
               placeholder="0"
-              textVariant={TextVariant.HeadingLg}
+              textVariant={TextVariant.BodyMd}
               selection={selection}
               onSelectionChange={onSelectionChange}
               onPressIn={onInputPress}
@@ -192,9 +191,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                   onAmountTypeTogglePress?.();
                 }}
                 disabled={!onAmountTypeTogglePress}
-                style={tw.style(
-                  'flex-row items-center self-start gap-2 px-1 py-1',
-                )}
+                style={tw.style('flex-row items-center self-start px-1 py-1')}
               >
                 {secondaryValue ? (
                   <Text
@@ -221,7 +218,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 testID={
                   LimitOrderPriceAdjustInputSectionSelectorsIDs.MARKET_COMPARISON
                 }
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={marketComparisonColor}
                 fontWeight={FontWeight.Medium}
               >

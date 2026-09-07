@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, fireEvent, within } from '@testing-library/react-native';
-import { Icon, IconName } from '@metamask/design-system-react-native';
+import { Icon } from '@metamask/design-system-react-native';
 import PerpsOrderTypeBottomSheet from './PerpsOrderTypeBottomSheet';
 import {
   PERPS_EVENT_PROPERTY,
@@ -12,6 +12,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockTrack = jest.fn();
 
@@ -38,13 +39,20 @@ function render(
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const resolveStyle = (...args: unknown[]) => {
     const classNames = JSON.stringify(args);
+    const style: Record<string, string | number> = {};
     if (classNames.includes('bg-transparent')) {
-      return { backgroundColor: 'transparent' };
+      style.backgroundColor = 'transparent';
     }
     if (classNames.includes('bg-background-muted')) {
-      return { backgroundColor: 'muted' };
+      style.backgroundColor = 'muted';
     }
-    return {};
+    if (classNames.includes('min-h-[78px]')) {
+      style.minHeight = 78;
+    }
+    if (classNames.includes('py-4')) {
+      style.paddingVertical = 16;
+    }
+    return style;
   };
   const tw = (...args: unknown[]) => resolveStyle(...args);
   tw.style = jest.fn(resolveStyle);
@@ -67,21 +75,26 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.limit.title': 'Limit Order',
       'perps.order.type.limit.description':
         'Execute at your specified price or better',
+      'perps.order.type.chase.title': 'Chase',
+      'perps.order.type.chase.description':
+        'Post-only limit order that follows the best bid or ask',
+      'perps.order.type.scale.title': 'Scale',
+      'perps.order.type.scale.description':
+        'Multiple limit orders spread across a price range',
       'perps.order.type.basic': 'Basic',
       'perps.order.type.triggered': 'Triggered',
       'perps.order.type.advanced': 'Advanced',
       'perps.order.type.stop_limit.title': 'Stop limit',
-      'perps.order.type.stop_limit.description':
-        'Place a limit order if trigger price hits',
+      'perps.order.type.stop_limit.description': 'Limit fills at trigger price',
       'perps.order.type.stop_market.title': 'Stop market',
       'perps.order.type.stop_market.description':
-        'Place a market order if trigger price hits',
+        'Market fills at trigger price',
       'perps.order.type.take_profit_limit.title': 'Take limit',
       'perps.order.type.take_profit_limit.description':
-        'Place a limit order if trigger price is reached',
+        'Limit take-profit at trigger price',
       'perps.order.type.take_profit_market.title': 'Take market',
       'perps.order.type.take_profit_market.description':
-        'Place a market order if trigger price is reached',
+        'Market take-profit at trigger price',
       'perps.order.type.twap.title': 'TWAP',
       'perps.order.type.twap.description':
         'Split orders to execute at regular time interval',
@@ -127,6 +140,15 @@ describe('PerpsOrderTypeBottomSheet', () => {
     ...proOrderTypes,
     'twap',
   ];
+  const proOrderTypesWithScale: readonly OrderType[] = [
+    ...proOrderTypes,
+    'scale',
+  ];
+  const proOrderTypesWithStrategies: readonly OrderType[] = [
+    ...proOrderTypes,
+    'scale',
+    'chase',
+  ];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -163,6 +185,12 @@ describe('PerpsOrderTypeBottomSheet', () => {
       ).toBeOnTheScreen();
     });
 
+    it('keeps the exact shared Chase description', () => {
+      expect(strings('perps.order.type.chase.description')).toBe(
+        'Post-only limit order that follows the best bid or ask',
+      );
+    });
+
     it('renders triggered order type descriptions when enabled', () => {
       render(
         <PerpsOrderTypeBottomSheet
@@ -175,18 +203,61 @@ describe('PerpsOrderTypeBottomSheet', () => {
       );
 
       expect(
-        screen.getByText('Place a limit order if trigger price hits'),
+        screen.getByText('Limit fills at trigger price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Place a market order if trigger price hits'),
+        screen.getByText('Market fills at trigger price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Place a limit order if trigger price is reached'),
+        screen.getByText('Limit take-profit at trigger price'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText('Place a market order if trigger price is reached'),
+        screen.getByText('Market take-profit at trigger price'),
       ).toBeOnTheScreen();
     });
+
+    it.each([
+      {
+        category: 'Basic',
+        currentOrderType: 'market' as const,
+        availableOrderTypes: proOrderTypesWithTwap,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+      },
+      {
+        category: 'Triggered',
+        currentOrderType: 'stop_limit' as const,
+        availableOrderTypes: proOrderTypesWithTwap,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+      },
+      {
+        category: 'Advanced TWAP',
+        currentOrderType: 'twap' as const,
+        availableOrderTypes: proOrderTypesWithTwap,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
+      },
+      {
+        category: 'Advanced Scale',
+        currentOrderType: 'scale' as const,
+        availableOrderTypes: proOrderTypesWithScale,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+      },
+    ])(
+      'renders $category rows at the Figma 78px minimum with 16px vertical inset',
+      ({ currentOrderType, availableOrderTypes, testID }) => {
+        render(
+          <PerpsOrderTypeBottomSheet
+            {...defaultProps}
+            currentOrderType={currentOrderType}
+            availableOrderTypes={availableOrderTypes}
+          />,
+        );
+
+        expect(screen.getByTestId(testID)).toHaveStyle({
+          minHeight: 78,
+          paddingVertical: 16,
+        });
+      },
+    );
 
     it('renders both market and limit options', () => {
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
@@ -378,7 +449,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(screen.queryByTestId(marketIconTestID)).not.toBeOnTheScreen();
 
       rerender(
-        <PerpsOrderTypeBottomSheet {...defaultProps} showSelectedIcon />,
+        <PerpsOrderTypeBottomSheet {...defaultProps} showOrderTypeIcons />,
       );
 
       expect(screen.getByTestId(marketIconTestID)).toBeOnTheScreen();
@@ -388,7 +459,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
-          showSelectedIcon
+          showOrderTypeIcons
           availableOrderTypes={proOrderTypes}
           currentOrderType="stop_limit"
         />,
@@ -403,7 +474,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
-          showSelectedIcon
+          showOrderTypeIcons
           availableOrderTypes={proOrderTypes}
           currentOrderType="stop_limit"
         />,
@@ -485,12 +556,61 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(within(iconContainer).UNSAFE_queryByType(Icon)).toBeNull();
     });
 
-    it('forwards the Pro title and selected-icon presentation', () => {
+    it.each([AppThemeKey.dark, AppThemeKey.light])(
+      'renders the 32px Scale graph asset in %s theme',
+      (appTheme) => {
+        render(
+          <PerpsOrderTypeBottomSheet
+            {...defaultProps}
+            availableOrderTypes={proOrderTypesWithScale}
+            currentOrderType="scale"
+          />,
+          appTheme,
+        );
+
+        const iconContainer = screen.getByTestId(
+          `${PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION}-icon`,
+        );
+        const graphIcon = within(iconContainer).UNSAFE_getByProps({
+          name: 'perps-order-type-scale',
+        });
+
+        expect(iconContainer).toHaveProp(
+          'accessibilityLabel',
+          `${PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION}-icon-${appTheme}`,
+        );
+        expect(graphIcon).toHaveProp('width', 32);
+        expect(graphIcon).toHaveProp('height', 32);
+        expect(within(iconContainer).UNSAFE_queryByType(Icon)).toBeNull();
+      },
+    );
+
+    it.each([AppThemeKey.dark, AppThemeKey.light])(
+      'renders the Chase strategy icon in the %s theme',
+      (appTheme) => {
+        render(
+          <PerpsOrderTypeBottomSheet
+            {...defaultProps}
+            availableOrderTypes={[...proOrderTypes, 'chase']}
+            currentOrderType="chase"
+          />,
+          appTheme,
+        );
+
+        expect(
+          screen.getByLabelText(
+            `${PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION}-icon-${appTheme}`,
+          ),
+        ).toBeOnTheScreen();
+      },
+    );
+
+    it('forwards the Pro title without a selected-row end accessory', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
           title="Choose order type"
-          showSelectedIcon
+          showOrderTypeIcons
         />,
       );
 
@@ -500,8 +620,8 @@ describe('PerpsOrderTypeBottomSheet', () => {
           screen.getByTestId(
             PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
           ),
-        ).UNSAFE_getByType(Icon).props.name,
-      ).toBe(IconName.Check);
+        ).UNSAFE_queryByType(Icon),
+      ).toBeNull();
     });
   });
 
@@ -548,6 +668,27 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(onClose).toHaveBeenCalled();
     });
 
+    it('emits Scale when its enabled option is pressed', () => {
+      const onSelect = jest.fn();
+      const onClose = jest.fn();
+
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          onSelect={onSelect}
+          onClose={onClose}
+          currentOrderType="scale"
+          availableOrderTypes={proOrderTypesWithScale}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION),
+      );
+
+      expect(onSelect).toHaveBeenCalledWith('scale');
+    });
+
     it('handles selecting the same order type', () => {
       const onSelect = jest.fn();
       const onClose = jest.fn();
@@ -580,7 +721,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
             currentOrderType="market"
             onSelect={onSelect}
             onClose={onClose}
-            availableOrderTypes={proOrderTypes}
+            availableOrderTypes={proOrderTypesWithStrategies}
           />,
         );
         fireEvent.press(
@@ -596,12 +737,12 @@ describe('PerpsOrderTypeBottomSheet', () => {
       },
     );
 
-    it('marks only the current triggered order type as selected', () => {
+    it('marks only the current triggered order type with a filled row', () => {
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
           currentOrderType="stop_limit"
-          availableOrderTypes={proOrderTypes}
+          availableOrderTypes={proOrderTypesWithStrategies}
         />,
       );
 
@@ -612,13 +753,12 @@ describe('PerpsOrderTypeBottomSheet', () => {
         PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
       );
 
-      expect(within(selectedOption).UNSAFE_getByType(Icon).props.name).toBe(
-        IconName.Check,
-      );
+      expect(selectedOption).toHaveStyle({ backgroundColor: 'muted' });
+      expect(within(selectedOption).UNSAFE_queryByType(Icon)).toBeNull();
       expect(within(unselectedOption).UNSAFE_queryByType(Icon)).toBeNull();
     });
 
-    it('preserves the selected background when selected icons are hidden', () => {
+    it('uses the selected background without a checkmark in every presentation', () => {
       const { rerender } = render(
         <PerpsOrderTypeBottomSheet {...defaultProps} />,
       );
@@ -639,7 +779,14 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
       expect(
         screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
-      ).toHaveStyle({ backgroundColor: 'transparent' });
+      ).toHaveStyle({ backgroundColor: 'muted' });
+      expect(
+        within(
+          screen.getByTestId(
+            PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+          ),
+        ).UNSAFE_queryByType(Icon),
+      ).toBeNull();
     });
   });
 
@@ -681,6 +828,18 @@ describe('PerpsOrderTypeBottomSheet', () => {
         testID: PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
         eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.TAKE_PROFIT_MARKET,
       },
+      {
+        type: 'scale',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+        eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.SCALE,
+      },
+      {
+        type: 'chase',
+        tabTestID: PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+        testID: PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
+        eventValue: PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
+      },
     ] as const;
 
     it.each(analyticsCases)(
@@ -690,7 +849,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
           <PerpsOrderTypeBottomSheet
             {...defaultProps}
             currentOrderType={undefined}
-            availableOrderTypes={proOrderTypes}
+            availableOrderTypes={proOrderTypesWithStrategies}
           />,
         );
         fireEvent.press(screen.getByTestId(tabTestID));
@@ -728,6 +887,30 @@ describe('PerpsOrderTypeBottomSheet', () => {
           [PERPS_EVENT_PROPERTY.ORDER_TYPE]: PERPS_EVENT_VALUE.ORDER_TYPE.TWAP,
         }),
       );
+    });
+
+    it('selects Chase and closes the sheet', () => {
+      const onSelect = jest.fn();
+      const onClose = jest.fn();
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          currentOrderType={undefined}
+          availableOrderTypes={proOrderTypesWithStrategies}
+          onSelect={onSelect}
+          onClose={onClose}
+        />,
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB),
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION),
+      );
+
+      expect(onSelect).toHaveBeenCalledWith('chase');
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
 

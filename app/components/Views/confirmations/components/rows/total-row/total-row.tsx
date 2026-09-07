@@ -6,8 +6,10 @@ import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
@@ -21,22 +23,39 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 
+function isSameTokenAddressAndChain(
+  left: { address?: string; chainId?: string } | undefined,
+  right: { address?: string; chainId?: string } | undefined,
+): boolean {
+  if (!left?.address || !left.chainId || !right?.address || !right.chainId) {
+    return false;
+  }
+
+  return (
+    left.address.toLowerCase() === right.address.toLowerCase() &&
+    left.chainId.toLowerCase() === right.chainId.toLowerCase()
+  );
+}
+
 /**
  * Row component that owns the bottom line of the totals section.
  *
  * For withdrawal flows (when the feature flag allows selecting a withdraw
- * token) and for exact-output flows when Max is selected, the "You receive" row
- * is shown so the user can see they receive less than they put in. Otherwise the
- * total cost row is shown.
+ * token), input-based quotes, and non-withdraw flows when Max is selected, the
+ * "You receive" row is shown so the user can see the authoritative destination
+ * amount. Otherwise the total cost row is shown.
  */
 export function TotalRow() {
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
   const isMaxAmount = useTransactionPayIsMaxAmount();
+  const totals = useTransactionPayTotals();
   const transactionMetadata = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMetadata);
 
   const showReceiveRow =
-    canSelectWithdrawToken || (Boolean(isMaxAmount) && !isWithdraw);
+    canSelectWithdrawToken ||
+    totals?.isInputBased === true ||
+    (Boolean(isMaxAmount) && !isWithdraw);
 
   if (showReceiveRow) {
     return <ReceiveRow />;
@@ -87,25 +106,53 @@ function TotalFeesRow() {
 }
 
 /**
- * Displays "You'll receive" for withdrawal and Max exact-output flows.
+ * Displays "You'll receive" for withdrawal, input-based, and Max flows.
  *
- * The net received amount is the target amount computed by the Transaction Pay
- * controller (after all provider, network, and MetaMask fees), so this row
- * simply renders `totals.targetAmount.usd` rather than re-deriving it from the
- * input amount.
+ * Prefers `totals.targetAmount.usd` from executable quotes (after fees). Direct
+ * same-token routes only produce a None-strategy no-op quote, which is excluded
+ * from totals and leaves targetAmount at 0 — fall back to the required token
+ * amount only when the destination payment token matches that required token
+ * (same-chain mUSD Money Account withdraw). Cross-token routes must not show
+ * the source amount as received when the quote is missing.
  */
 function ReceiveRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
+  const requiredTokens = useTransactionPayRequiredTokens();
+  const { payToken } = useTransactionPayToken();
 
   const receiveUsd = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount?.usd;
+    const targetBn =
+      targetAmountUsd == null ? null : new BigNumber(targetAmountUsd);
 
-    if (targetAmountUsd == null) return '';
+    if (targetBn?.gt(0)) {
+      return formatFiat(targetBn);
+    }
 
-    return formatFiat(new BigNumber(targetAmountUsd));
-  }, [totals?.targetAmount?.usd, formatFiat]);
+    const primaryRequiredToken = (requiredTokens ?? []).find(
+      (token) => !token.skipIfBalance,
+    );
+    const isDirectSameTokenRoute = isSameTokenAddressAndChain(
+      primaryRequiredToken,
+      payToken,
+    );
+
+    if (
+      isDirectSameTokenRoute &&
+      primaryRequiredToken?.amountUsd &&
+      new BigNumber(primaryRequiredToken.amountUsd).gt(0)
+    ) {
+      return formatFiat(new BigNumber(primaryRequiredToken.amountUsd));
+    }
+
+    if (targetBn == null) {
+      return '';
+    }
+
+    return formatFiat(targetBn);
+  }, [formatFiat, payToken, requiredTokens, totals?.targetAmount?.usd]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;

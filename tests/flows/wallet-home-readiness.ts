@@ -2,6 +2,7 @@ import Matchers from '../framework/Matchers';
 import { withImplicitWait } from '../framework/AppiumUtilities';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import { sleep } from '../framework/Utilities';
+import { isDeviceHealthError } from '../framework/services/appium/sessionRecovery';
 import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 
@@ -27,7 +28,13 @@ export const isTestIdDisplayed = async (testId: string): Promise<boolean> => {
       const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
-  } catch {
+  } catch (error) {
+    // UiAutomator2 / shared-adb transport deaths cannot recover via polling —
+    // surface immediately so waitForAppReady / login can fail fast and request
+    // session recreate.
+    if (isDeviceHealthError(error)) {
+      throw error;
+    }
     return false;
   }
 };

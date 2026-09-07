@@ -7,6 +7,16 @@ import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../select
 import type { MoneyOnboardingParams } from '../types/navigation';
 import type { NavigationAnalyticsContext } from '../../../../util/analytics/navigationAnalyticsAttribution';
 
+export interface NavigateToMoneyHomeOptions {
+  analyticsContext?: NavigationAnalyticsContext;
+  /**
+   * Controls whether navigation pops to an existing route, which can show the
+   * backward animation. Explore passes `pop: false` to use normal forward
+   * navigation into Money Home. Defaults to true.
+   */
+  pop?: boolean;
+}
+
 /**
  * Why NavigationService instead of useNavigation():
  *
@@ -57,7 +67,9 @@ export const useMoneyNavigation = () => {
     useMoneyOnboardingNavigation();
 
   const navigateToMoneyHome = useCallback(
-    (analyticsContext?: NavigationAnalyticsContext) => {
+    (options?: NavigateToMoneyHomeOptions) => {
+      const { analyticsContext, pop = true } = options ?? {};
+
       if (
         redirectToOnboardingIfNeeded(
           analyticsContext ? { analyticsContext } : undefined,
@@ -75,7 +87,7 @@ export const useMoneyNavigation = () => {
             ...(analyticsContext ? { params: { analyticsContext } } : {}),
           },
         },
-        { pop: true },
+        { pop },
       );
     },
     [redirectToOnboardingIfNeeded],

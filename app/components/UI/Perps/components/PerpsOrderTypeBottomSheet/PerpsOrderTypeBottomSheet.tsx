@@ -30,7 +30,7 @@ interface PerpsOrderTypeBottomSheetProps {
   asset?: string;
   direction?: 'long' | 'short';
   title?: string;
-  showSelectedIcon?: boolean;
+  showOrderTypeIcons?: boolean;
   availableOrderTypes?: readonly OrderType[];
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
@@ -43,7 +43,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   asset = 'BTC',
   direction = 'long',
   title,
-  showSelectedIcon = false,
+  showOrderTypeIcons = false,
   availableOrderTypes,
   sheetRef: externalSheetRef,
 }) => {
@@ -76,7 +76,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       onSelect={handleSelect}
       currentOrderType={currentOrderType}
       title={title}
-      showSelectedIcon={showSelectedIcon}
+      showOrderTypeIcons={showOrderTypeIcons}
       availableOrderTypes={availableOrderTypes}
       sheetRef={externalSheetRef}
     />

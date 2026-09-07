@@ -1,5 +1,14 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
-import { TextInput } from 'react-native';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+} from 'react';
+import {
+  Platform,
+  TextInput,
+  type TextInputSelectionChangeEvent,
+} from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -8,8 +17,6 @@ import {
   ButtonBaseSize,
   ButtonVariant,
   Input,
-  Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -25,7 +32,11 @@ import {
   LimitOrderPriceAdjustPresetsSelectorsIDs,
 } from './testIds';
 
-const PRESET_ITEM_TW_CLASS_NAME = 'min-w-0 flex-1 shrink';
+const PRESET_SLOT_TW_CLASS_NAME = 'min-w-0 flex-1 shrink basis-0';
+const PRESET_CONTROL_TW_CLASS_NAME = 'w-full px-0';
+const VALUE_FONT_SIZE = 14;
+const VALUE_LINE_HEIGHT = VALUE_FONT_SIZE * 1.25;
+const PERCENT_POSTFIX = '%';
 
 export const ButtonPricePresetsSection = forwardRef<
   ButtonPricePresetsSectionRef,
@@ -49,12 +60,79 @@ export const ButtonPricePresetsSection = forwardRef<
   ) => {
     const tw = useTailwind();
     const inputRef = useRef<TextInput>(null);
+    const valueTextStyle = tw.style({
+      fontSize: VALUE_FONT_SIZE,
+      lineHeight: VALUE_LINE_HEIGHT,
+      height: VALUE_LINE_HEIGHT,
+      paddingVertical: 0,
+      includeFontPadding: false,
+      textAlignVertical: 'center',
+      ...(Platform.OS === 'android' && { paddingTop: 1 }),
+    });
     const percentSign =
       executionType === LimitOrderExecutionType.SELL ? '+' : '-';
+    const formatSignedPercent = (value: string | number) =>
+      `${percentSign}${value}${PERCENT_POSTFIX}`;
     const displayValue =
       customValue && customValue !== '0'
         ? formatAmountWithLocaleSeparators(customValue)
         : customValue;
+    const numericDisplayValue = displayValue ?? '';
+    const hasNumericDisplayValue = numericDisplayValue.length > 0;
+    const signPrefixLength = percentSign.length;
+    const minSelectionIndex = signPrefixLength;
+    const maxSelectionIndex = signPrefixLength + numericDisplayValue.length;
+    const inputValue = hasNumericDisplayValue
+      ? formatSignedPercent(numericDisplayValue)
+      : '';
+    const clampedSelection =
+      customSelection === undefined
+        ? undefined
+        : {
+            start:
+              signPrefixLength +
+              Math.min(
+                Math.max(customSelection.start, 0),
+                numericDisplayValue.length,
+              ),
+            end:
+              signPrefixLength +
+              Math.min(
+                Math.max(customSelection.end, 0),
+                numericDisplayValue.length,
+              ),
+          };
+
+    const handleSelectionChange = useCallback(
+      (event: TextInputSelectionChangeEvent) => {
+        const { start, end } = event.nativeEvent.selection;
+        const nextStart = Math.min(
+          Math.max(start, minSelectionIndex),
+          maxSelectionIndex,
+        );
+        const nextEnd = Math.min(
+          Math.max(end, minSelectionIndex),
+          maxSelectionIndex,
+        );
+
+        onCustomSelectionChange?.({
+          ...event,
+          nativeEvent: {
+            ...event.nativeEvent,
+            selection: {
+              start: nextStart - signPrefixLength,
+              end: nextEnd - signPrefixLength,
+            },
+          },
+        });
+      },
+      [
+        maxSelectionIndex,
+        minSelectionIndex,
+        onCustomSelectionChange,
+        signPrefixLength,
+      ],
+    );
 
     useImperativeHandle(ref, () => ({
       blur: () => inputRef.current?.blur(),
@@ -74,7 +152,7 @@ export const ButtonPricePresetsSection = forwardRef<
           size={ButtonBaseSize.Sm}
           onPress={onMarketPress}
           testID={LimitOrderPriceAdjustPresetsSelectorsIDs.MARKET}
-          twClassName={`${PRESET_ITEM_TW_CLASS_NAME} px-0`}
+          twClassName={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
         >
           {strings('bridge.limit.market')}
         </Button>
@@ -85,50 +163,52 @@ export const ButtonPricePresetsSection = forwardRef<
             size={ButtonBaseSize.Sm}
             onPress={() => onPercentPress(percent)}
             testID={getLimitOrderPercentPresetTestId(percent)}
-            twClassName={`${PRESET_ITEM_TW_CLASS_NAME} px-0`}
+            twClassName={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
           >
-            {`${percentSign}${percent}%`}
+            {formatSignedPercent(percent)}
           </Button>
         ))}
-        {isCustomActive ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName={`h-8 overflow-hidden rounded-lg bg-muted px-1 ${PRESET_ITEM_TW_CLASS_NAME}`}
-          >
-            <Input
-              ref={inputRef}
-              testID={LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT}
-              value={displayValue}
-              isStateStylesDisabled
-              showSoftInputOnFocus={false}
-              caretHidden={false}
-              autoFocus={false}
-              placeholder="0"
-              textAlign="center"
-              textVariant={TextVariant.BodySm}
-              selection={customSelection}
-              onSelectionChange={onCustomSelectionChange}
-              onPressIn={onCustomInputPress}
-              onFocus={onCustomInputPress}
-              style={tw.style({ includeFontPadding: false })}
-              twClassName="h-full min-w-0 flex-1 border-0 bg-transparent p-0"
-            />
-            <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-              %
-            </Text>
-          </Box>
-        ) : (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonBaseSize.Sm}
-            onPress={onCustomPress}
-            testID={LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM}
-            twClassName={`${PRESET_ITEM_TW_CLASS_NAME} px-0`}
-          >
-            {strings('bridge.limit.custom')}
-          </Button>
-        )}
+        <Box
+          testID={LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_SLOT}
+          twClassName={PRESET_SLOT_TW_CLASS_NAME}
+        >
+          {isCustomActive ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="h-8 w-full overflow-hidden rounded-lg bg-muted px-1"
+            >
+              <Input
+                ref={inputRef}
+                testID={LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT}
+                value={inputValue}
+                isStateStylesDisabled
+                showSoftInputOnFocus={false}
+                caretHidden={false}
+                autoFocus={false}
+                placeholder={formatSignedPercent(0)}
+                textAlign="center"
+                textVariant={TextVariant.BodySm}
+                selection={clampedSelection}
+                onSelectionChange={handleSelectionChange}
+                onPressIn={onCustomInputPress}
+                onFocus={onCustomInputPress}
+                style={valueTextStyle}
+                twClassName="h-full min-w-0 flex-1 border-0 bg-transparent p-0"
+              />
+            </Box>
+          ) : (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonBaseSize.Sm}
+              onPress={onCustomPress}
+              testID={LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM}
+              twClassName={PRESET_CONTROL_TW_CLASS_NAME}
+            >
+              {strings('bridge.limit.custom')}
+            </Button>
+          )}
+        </Box>
       </Box>
     );
   },

@@ -275,6 +275,8 @@ interface PredictFeed {
   signed value or define a second ordering rule.
 - A missing or unsupported group falls back to the standard Market
   presentation. Malformed known group fields fail runtime validation.
+- Winner UI uses unique ungrouped `gameSelection` quotes. Markets that carry
+  `group` are not winner Markets.
 
 ## Series and rolling Events
 

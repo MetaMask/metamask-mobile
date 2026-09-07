@@ -52,6 +52,9 @@ describe('ButtonPricePresetsSection', () => {
     expect(
       getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM),
     ).toHaveTextContent(strings('bridge.limit.custom'));
+    expect(
+      getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_SLOT),
+    ).toBeOnTheScreen();
   });
 
   it('renders positive percent presets for sell orders', () => {
@@ -110,6 +113,9 @@ describe('ButtonPricePresetsSection', () => {
       queryByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM),
     ).not.toBeOnTheScreen();
     expect(
+      getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_SLOT),
+    ).toBeOnTheScreen();
+    expect(
       getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT),
     ).toBeOnTheScreen();
 
@@ -119,5 +125,122 @@ describe('ButtonPricePresetsSection', () => {
     );
 
     expect(onCustomInputPress).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    {
+      executionType: LimitOrderExecutionType.BUY,
+      expected: '-7%',
+    },
+    {
+      executionType: LimitOrderExecutionType.SELL,
+      expected: '+7%',
+    },
+  ])(
+    'renders $expected in the custom input for $executionType orders',
+    ({ executionType, expected }) => {
+      const { getByTestId } = renderPresetsSection({
+        executionType,
+        isCustomActive: true,
+        customValue: '7',
+      });
+
+      expect(
+        getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT),
+      ).toHaveProp('value', expected);
+    },
+  );
+
+  it.each([
+    {
+      executionType: LimitOrderExecutionType.BUY,
+      expected: '-0%',
+    },
+    {
+      executionType: LimitOrderExecutionType.SELL,
+      expected: '+0%',
+    },
+  ])(
+    'renders $expected as the custom input placeholder when empty for $executionType orders',
+    ({ executionType, expected }) => {
+      const { getByTestId } = renderPresetsSection({
+        executionType,
+        isCustomActive: true,
+        customValue: '',
+      });
+
+      expect(
+        getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT),
+      ).toHaveProp('value', '');
+      expect(
+        getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT),
+      ).toHaveProp('placeholder', expected);
+    },
+  );
+
+  it('offsets custom selection past the sign prefix', () => {
+    const { getByTestId } = renderPresetsSection({
+      isCustomActive: true,
+      customValue: '7',
+      customSelection: { start: 1, end: 1 },
+    });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT),
+    ).toHaveProp('selection', { start: 2, end: 2 });
+  });
+
+  it('keeps the caret before the percent postfix when selection moves past it', () => {
+    const onCustomSelectionChange = jest.fn();
+    const { getByTestId } = renderPresetsSection({
+      isCustomActive: true,
+      customValue: '7',
+      onCustomSelectionChange,
+    });
+
+    fireEvent(
+      getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT),
+      'selectionChange',
+      {
+        nativeEvent: {
+          selection: { start: 3, end: 3 },
+        },
+      },
+    );
+
+    expect(onCustomSelectionChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: {
+          selection: { start: 1, end: 1 },
+        },
+      }),
+    );
+  });
+
+  it('keeps the caret after the sign prefix when selection moves onto it', () => {
+    const onCustomSelectionChange = jest.fn();
+    const { getByTestId } = renderPresetsSection({
+      isCustomActive: true,
+      customValue: '7',
+      onCustomSelectionChange,
+    });
+
+    fireEvent(
+      getByTestId(LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM_INPUT),
+      'selectionChange',
+      {
+        nativeEvent: {
+          selection: { start: 0, end: 0 },
+        },
+      },
+    );
+
+    expect(onCustomSelectionChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: {
+          selection: { start: 0, end: 0 },
+        },
+      }),
+    );
   });
 });
