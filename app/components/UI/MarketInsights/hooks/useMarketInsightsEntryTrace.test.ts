@@ -48,6 +48,12 @@ describe('useMarketInsightsEntryTrace', () => {
     });
   });
 
+  it('does not end entry-card time to content while the query is loading', () => {
+    renderHook(() => useMarketInsightsEntryTrace(defaultParams));
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
   it('ends entry-card time to content with an empty result', () => {
     renderHook(() =>
       useMarketInsightsEntryTrace({

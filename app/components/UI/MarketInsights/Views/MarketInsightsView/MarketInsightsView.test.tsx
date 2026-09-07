@@ -453,6 +453,25 @@ describe('MarketInsightsView', () => {
     });
   });
 
+  it('does not end full-view time to content as empty while loading', () => {
+    mockRouteParams.source = 'token_details';
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      reportAssetId: null,
+      isLoading: true,
+      error: null,
+      timeAgo: '',
+    });
+
+    renderWithProvider(<MarketInsightsView />);
+
+    expect(mockEndTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ result: 'empty' }),
+      }),
+    );
+  });
+
   it('ends full-view time to content with an error result', () => {
     mockRouteParams.source = 'perps';
     mockRouteParams.assetIdentifier = 'ETH';

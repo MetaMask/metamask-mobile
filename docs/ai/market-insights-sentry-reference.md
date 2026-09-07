@@ -21,8 +21,10 @@ percentiles. The populations differ because cache hits do not emit fetch spans.
 | `Market Insights Viewport Tracking` | `market_insights.viewport_tracking` | Entry card lays out                                           | At least 50% of the card is visible |
 
 Entry-card and full-view spans also terminate for valid empty responses, errors,
-and owner cancellation. Latency widgets must use `result:success`; reliability
-widgets count every result.
+and owner cancellation. Empty and error closes wait until the query generation
+settles: a cached `null` miss is immediately stale and refetches on remount, so
+that remount must not close as `empty` before the refetch completes. Latency
+widgets must use `result:success`; reliability widgets count every result.
 
 ## Attributes
 
@@ -134,10 +136,10 @@ stage
 cache_state
 ```
 
-The dashboard API available to the coding agent currently supports finding and
-reading dashboards but not creating or updating them. Use this build sheet for
-one-time UI creation. Before the new release is available, the existing spans
-can be inspected through the
+The dashboard described above is live at
+[Mobile — Social & AI — Market Insights](https://metamask.sentry.io/dashboard/9977958/).
+Keep this build sheet in sync when widgets change. Before the new release is
+available, the existing spans can be inspected through the
 [validated 30-day baseline query](https://metamask.sentry.io/explore/traces/?query=span.description%3A%5B%22Market+Insights+Entry+Card+Load%22%2C%22Market+Insights+View+Load%22%2C%22Market+Insights+Viewport+Tracking%22%5D&project=2299799&aggregateField=%7B%22groupBy%22%3A%22span.description%22%7D&aggregateField=%7B%22yAxes%22%3A%5B%22p50%28span.duration%29%22%2C%22p75%28span.duration%29%22%2C%22p95%28span.duration%29%22%2C%22count%28%29%22%5D%7D&mode=aggregate&sort=-count%28%29&statsPeriod=30d&table=span).
 
 Current baseline values (30 days, captured 2026-09-07):

@@ -24,7 +24,8 @@ export interface UseMarketInsightsResult {
   report: MarketInsightsReport | null;
   /** The assetIdentifier the current report was fetched for, or null while loading/cleared */
   reportAssetId: string | null;
-  /** Whether the data is currently loading */
+  /** Whether this generation still lacks a settled report, including a
+   * cached `null` miss that is immediately stale and refetching. */
   isLoading: boolean;
   /** Error message if the data fetch failed */
   error: string | null;
@@ -152,6 +153,14 @@ export const useMarketInsights = (
         ? query.error.message
         : 'Failed to fetch insights'
       : null;
+  // `query.isLoading` is false when React Query already has cached data,
+  // including a `null` miss. Those misses use staleTime 0, so remount
+  // refetches immediately. Keep TTC and UI in the loading state until this
+  // observer settles; otherwise empty/error spans close at ~0ms.
+  const isLoading =
+    isQueryEnabled &&
+    !report &&
+    (query.isFetching || (query.data === null && !query.isFetchedAfterMount));
 
   const timeAgo = useMemo(
     () => (report ? formatRelativeTime(report.generatedAt) : ''),
@@ -161,7 +170,7 @@ export const useMarketInsights = (
   return {
     report,
     reportAssetId,
-    isLoading: isQueryEnabled && query.isLoading,
+    isLoading,
     error,
     timeAgo,
     cacheState,
