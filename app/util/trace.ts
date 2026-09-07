@@ -282,6 +282,7 @@ export enum TraceName {
   MusdConversionQuote = 'mUSD Conversion Quote',
   MusdConversionConfirm = 'mUSD Conversion Confirm',
   // Market Insights
+  MarketInsightsFetch = 'Market Insights Fetch',
   MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
   MarketInsightsViewLoad = 'Market Insights View Load',
   MarketInsightsViewportTracking = 'Market Insights Viewport Tracking',
@@ -369,6 +370,7 @@ export enum TraceOperation {
   MusdConversionOperation = 'musd.conversion.operation',
   MusdConversionDataFetch = 'musd.conversion.data_fetch',
   // Market Insights
+  MarketInsightsFetch = 'market_insights.fetch',
   MarketInsightsLoad = 'market_insights.load',
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
   // Homepage Section Performance
