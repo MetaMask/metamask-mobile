@@ -1,7 +1,8 @@
 /**
  * Performance-test helpers that start/stop in-app Hermes profiling by tapping
  * invisible Pressables (`performance-profiler-start|stop`), wait for result
- * hooks, then pull the `.cpuprofile` off the device into CI artifacts.
+ * hooks, then pull the `.cpuprofile` from app-scoped external storage into CI
+ * artifacts.
  *
  * Does not use deeplinks — MetaMask's router shows the unsupported-link UI for
  * unknown `metamask://e2e/profiler/*` paths.
@@ -142,17 +143,15 @@ function sanitizeFilePart(value: string): string {
 }
 
 function toAndroidPullPath(profilePath: string): string {
-  if (profilePath.startsWith('/sdcard/')) {
+  if (profilePath.startsWith('/sdcard/Android/data/')) {
     return profilePath;
   }
-  if (profilePath.startsWith('/storage/emulated/0/')) {
+  if (profilePath.startsWith('/storage/emulated/0/Android/data/')) {
     return profilePath.replace('/storage/emulated/0/', '/sdcard/');
   }
-  const fileName = profilePath.split('/').pop();
-  if (!fileName) {
-    throw new Error(`Invalid profile path from app: ${profilePath}`);
-  }
-  return `/sdcard/Download/${fileName}`;
+  throw new Error(
+    `Profiler returned a non-pullable app-scoped path: ${profilePath}`,
+  );
 }
 
 async function waitForProfilerResultPath(
@@ -208,6 +207,18 @@ export async function pullAndAttachAppProfiling(
   const buffer = Buffer.from(base64Profile, 'base64');
   if (buffer.length === 0) {
     throw new Error(`Pulled cpuprofile was empty: ${remotePath}`);
+  }
+  try {
+    const parsedProfile: unknown = JSON.parse(buffer.toString('utf8'));
+    if (
+      !parsedProfile ||
+      typeof parsedProfile !== 'object' ||
+      Array.isArray(parsedProfile)
+    ) {
+      throw new Error('profile JSON root is not an object');
+    }
+  } catch (error) {
+    throw new Error(`Pulled cpuprofile is not valid JSON: ${String(error)}`);
   }
 
   await fs.mkdir(PROFILE_OUTPUT_DIRECTORY, { recursive: true });
