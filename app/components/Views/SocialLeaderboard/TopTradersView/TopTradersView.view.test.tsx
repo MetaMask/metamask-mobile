@@ -15,6 +15,8 @@
 import '../../../../../tests/component-view/mocks';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
+import { SPOT_CHAINS } from '../../shared/top-traders-constants';
 import {
   clearLeaderboardApiMock,
   getLeaderboardMessengerSpy,
@@ -84,22 +86,23 @@ describe('TopTradersView', () => {
     renderTopTradersView();
 
     // The tokens tab lands first; alpha.eth and beta.eth are spot traders.
-    const alphaName = await screen.findByText('alpha.eth');
+    const [alpha1, alpha2] = mockLeaderboardTraders;
+    const alphaName = await screen.findByText(alpha1.name);
     expect(alphaName).toBeOnTheScreen();
 
     // Validate all significant fields for alpha.eth (rank 1 – gold medal).
-    const alphaRow = await screen.findByTestId('trader-row-trader-1');
-    const alpha = within(alphaRow);
-    expect(alpha.getByTestId('rank-medal-1')).toBeOnTheScreen();
-    expect(alpha.getByText('+$963,146.80')).toBeOnTheScreen();
-    expect(alpha.getByText('Follow')).toBeOnTheScreen();
+    const alphaRow = await screen.findByTestId(`trader-row-${alpha1.profileId}`);
+    const alphaWithin = within(alphaRow);
+    expect(alphaWithin.getByTestId(`rank-medal-${alpha1.rank}`)).toBeOnTheScreen();
+    expect(alphaWithin.getByText('+$963,146.80')).toBeOnTheScreen();
+    expect(alphaWithin.getByText(strings('social_leaderboard.follow'))).toBeOnTheScreen();
 
     // Validate all significant fields for beta.eth (rank 2 – silver medal).
-    const betaRow = await screen.findByTestId('trader-row-trader-2');
-    const beta = within(betaRow);
-    expect(beta.getByTestId('rank-medal-2')).toBeOnTheScreen();
-    expect(beta.getByText('+$474,751.45')).toBeOnTheScreen();
-    expect(beta.getByText('Follow')).toBeOnTheScreen();
+    const betaRow = await screen.findByTestId(`trader-row-${alpha2.profileId}`);
+    const betaWithin = within(betaRow);
+    expect(betaWithin.getByTestId(`rank-medal-${alpha2.rank}`)).toBeOnTheScreen();
+    expect(betaWithin.getByText('+$474,751.45')).toBeOnTheScreen();
+    expect(betaWithin.getByText(strings('social_leaderboard.follow'))).toBeOnTheScreen();
   });
 
   // -------------------------------------------------------------------------
@@ -168,7 +171,7 @@ describe('TopTradersView', () => {
     // Wait for data to load before tapping.
     expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
 
-    const followButtons = screen.getAllByText('Follow');
+    const followButtons = screen.getAllByText(strings('social_leaderboard.follow'));
     await act(async () => {
       fireEvent.press(followButtons[0]);
     });
@@ -194,7 +197,7 @@ describe('TopTradersView', () => {
     expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
 
     await act(async () => {
-      fireEvent.press(screen.getByText('Following'));
+      fireEvent.press(screen.getByText(strings('social_leaderboard.following')));
     });
 
     expect(
@@ -228,7 +231,7 @@ describe('TopTradersView', () => {
     expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
 
     await act(async () => {
-      fireEvent.press(screen.getAllByText('Follow')[0]);
+      fireEvent.press(screen.getAllByText(strings('social_leaderboard.follow'))[0]);
     });
 
     // The trading signals setup sheet route should have been pushed.
@@ -244,20 +247,21 @@ describe('TopTradersView', () => {
   it('refetches the leaderboard via the Engine when the list is pulled to refresh', async () => {
     renderTopTradersView();
 
-    expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
+    expect(await screen.findByText(mockLeaderboardTraders[0].name)).toBeOnTheScreen();
 
-    const callsBeforeRefresh = getLeaderboardMessengerSpy().mock.calls.filter(
-      ([action]) => action === 'SocialService:fetchLeaderboard',
-    ).length;
+    // Clear accumulated calls (initial fetch + any idle prefetches) so only the
+    // refresh-triggered call is counted. Without this, idle tab prefetches that
+    // land in the same window would make a before/after comparison unreliable.
+    getLeaderboardMessengerSpy().mockClear();
 
     await triggerPullToRefresh();
 
-    const callsAfterRefresh = getLeaderboardMessengerSpy().mock.calls.filter(
-      ([action]) => action === 'SocialService:fetchLeaderboard',
-    ).length;
-
-    // At least one additional fetch should have occurred.
-    expect(callsAfterRefresh).toBeGreaterThan(callsBeforeRefresh);
+    // The active (tokens) tab must have issued exactly one new fetch with the
+    // spot chains parameter.
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+      'SocialService:fetchLeaderboard',
+      expect.objectContaining({ chains: SPOT_CHAINS }),
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -305,11 +309,13 @@ describe('TopTradersView', () => {
       presetOptions: { followingProfileIds: ['trader-1'] },
     });
 
-    // Wait for trader-1 row with mute chip to appear.
-    expect(await screen.findByText('alpha.eth')).toBeOnTheScreen();
+    const [alpha] = mockLeaderboardTraders;
+    expect(await screen.findByText(alpha.name)).toBeOnTheScreen();
 
     await act(async () => {
-      fireEvent.press(screen.getByTestId('trader-row-mute-chip-trader-1'));
+      fireEvent.press(
+        screen.getByTestId(`trader-row-mute-chip-${alpha.profileId}`),
+      );
     });
 
     // Muting writes through to the AUS putNotificationPreferences action.

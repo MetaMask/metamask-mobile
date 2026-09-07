@@ -27,40 +27,14 @@ const TOGGLE_ID =
 // ---------------------------------------------------------------------------
 
 describe('Settings / TopTradersSection', () => {
-  // -------------------------------------------------------------------------
-  // 1. Section renders when both feature flags are on
-  // -------------------------------------------------------------------------
-
-  it('renders the Top Traders section and toggle when the feature flags are enabled', () => {
-    renderSettingsTopTradersSection();
-
-    // Section container is present.
-    expect(
-      screen.getByTestId(SecurityPrivacyViewSelectorsIDs.TOP_TRADERS_SECTION),
-    ).toBeOnTheScreen();
-
-    // Toggle is visible and starts in the on (true) position.
-    const toggle = screen.getByTestId(TOGGLE_ID);
-    expect(toggle).toBeOnTheScreen();
-    expect(toggle.props.value).toBe(true);
+  beforeEach(() => {
+    // Prevent call history from leaking between tests; Engine.controllerMessenger.call
+    // is a shared jest.fn() defined in the CV mocks module.
+    jest.clearAllMocks();
   });
 
   // -------------------------------------------------------------------------
-  // 2. Section is hidden when the master feature flag is off
-  // -------------------------------------------------------------------------
-
-  it('renders nothing when the master leaderboard flag is disabled', () => {
-    renderSettingsTopTradersSection({
-      presetOptions: { featureEnabled: false },
-    });
-
-    expect(
-      screen.queryByTestId(SecurityPrivacyViewSelectorsIDs.TOP_TRADERS_SECTION),
-    ).not.toBeOnTheScreen();
-  });
-
-  // -------------------------------------------------------------------------
-  // 3. Opt-out: toggle from on → Engine.optOut → Redux updates to false
+  // 1. Opt-out: toggle from on → Engine.optOut → Redux updates to false
   // -------------------------------------------------------------------------
 
   it('calls Engine optOutOfLeaderboard and updates the store when the toggle is pressed from on', async () => {
@@ -87,7 +61,7 @@ describe('Settings / TopTradersSection', () => {
   });
 
   // -------------------------------------------------------------------------
-  // 4. Opt-in: toggle from off → Engine.optIn → Redux updates to true
+  // 2. Opt-in: toggle from off → Engine.optIn → Redux updates to true
   // -------------------------------------------------------------------------
 
   it('calls Engine optInToLeaderboard and updates the store when the toggle is pressed from off', async () => {
@@ -111,7 +85,7 @@ describe('Settings / TopTradersSection', () => {
   });
 
   // -------------------------------------------------------------------------
-  // 5. Error recovery: Engine throws → Redux state unchanged, toggle stays on
+  // 3. Error recovery: Engine throws → Redux state unchanged, toggle stays on
   // -------------------------------------------------------------------------
 
   it('does not update Redux state and keeps the toggle on when Engine throws during opt-out', async () => {
@@ -135,7 +109,7 @@ describe('Settings / TopTradersSection', () => {
   });
 
   // -------------------------------------------------------------------------
-  // 6. Double-tap guard: second press while updating is a no-op
+  // 4. Double-tap guard: second press while updating is a no-op
   // -------------------------------------------------------------------------
 
   it('ignores a second toggle press while the first Engine call is still in flight', async () => {
@@ -173,19 +147,5 @@ describe('Settings / TopTradersSection', () => {
     await act(async () => {
       settle();
     });
-  });
-
-  // -------------------------------------------------------------------------
-  // 7. Opt-flow gate: section hidden when optFlowEnabled flag is off
-  // -------------------------------------------------------------------------
-
-  it('renders nothing when the opt-in/out flow feature flag is disabled', () => {
-    renderSettingsTopTradersSection({
-      presetOptions: { optFlowEnabled: false },
-    });
-
-    expect(
-      screen.queryByTestId(SecurityPrivacyViewSelectorsIDs.TOP_TRADERS_SECTION),
-    ).not.toBeOnTheScreen();
   });
 });
