@@ -13,9 +13,6 @@ function computeE2EPlatformFlags(input) {
     isFork,
     shouldSkipE2E,
     allChangesCount,
-    ignorableCount,
-    e2eTestFilesCount,
-    e2eTestOrIgnorableCount,
     e2eWorkflowsCount,
     androidCount,
     iosCount,
@@ -28,18 +25,9 @@ function computeE2EPlatformFlags(input) {
   let ios = false;
   let changed = '';
   let message = '';
-  let nativeBuildNeeded = true;
+  let useMainBuildsForTestOnlyPrs = false;
 
-  const ignorableOnly =
-    allChangesCount > 0 &&
-    ignorableCount === allChangesCount &&
-    e2eWorkflowsCount === 0;
-
-  const testOnlyChanges =
-    allChangesCount > 0 &&
-    e2eTestOrIgnorableCount >= allChangesCount &&
-    e2eTestFilesCount > 0 &&
-    e2eWorkflowsCount === 0;
+  const { ignorableOnly, testOnlyChanges } = classifyE2EChanges(input);
 
   const isStableTarget =
     githubEventName === 'pull_request' && prBaseRef === 'stable';
@@ -71,7 +59,7 @@ function computeE2EPlatformFlags(input) {
       'E2E for both platforms (test-only changes — reuse main native builds)';
     android = true;
     ios = true;
-    nativeBuildNeeded = false;
+    useMainBuildsForTestOnlyPrs = true;
     changed = changedSpecFiles;
   } else if (
     androidCount > 0 &&
@@ -121,7 +109,7 @@ function computeE2EPlatformFlags(input) {
     ios,
     iosByPathFilters,
     e2eNeeded,
-    nativeBuildNeeded: e2eNeeded ? nativeBuildNeeded : false,
+    useMainBuildsForTestOnlyPrs: e2eNeeded ? useMainBuildsForTestOnlyPrs : false,
     runSmartE2ESelection,
     message,
     changedSpecFiles: changed,
@@ -178,7 +166,7 @@ function applyE2ELabelOverrides(flags, input) {
     ...flags,
     ios,
     e2eNeeded,
-    nativeBuildNeeded: e2eNeeded && !testOnlyChanges,
+    useMainBuildsForTestOnlyPrs: e2eNeeded && testOnlyChanges,
     // An iOS-only PR into main is suppressed down to no platforms at all, which
     // turns Smart E2E Selection off. Restoring iOS has to restore it too — and
     // isEligiblePullRequest already guarantees every other conjunct here.
@@ -266,9 +254,36 @@ function resolveE2EPlatformRequirements(input) {
   };
 }
 
+/**
+ * @param {object} input
+ * @returns {{ ignorableOnly: boolean, testOnlyChanges: boolean }}
+ */
+function classifyE2EChanges(input) {
+  const {
+    allChangesCount,
+    ignorableCount,
+    e2eTestFilesCount,
+    e2eTestOrIgnorableCount,
+    e2eWorkflowsCount,
+  } = input;
+
+  return {
+    ignorableOnly:
+      allChangesCount > 0 &&
+      ignorableCount === allChangesCount &&
+      e2eWorkflowsCount === 0,
+    testOnlyChanges:
+      allChangesCount > 0 &&
+      e2eTestOrIgnorableCount >= allChangesCount &&
+      e2eTestFilesCount > 0 &&
+      e2eWorkflowsCount === 0,
+  };
+}
+
 export {
   computeE2EPlatformFlags,
   applyE2ELabelOverrides,
   resolveRunAppiumIos,
   resolveE2EPlatformRequirements,
+  classifyE2EChanges,
 };

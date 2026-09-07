@@ -32,9 +32,9 @@ on:
       run_appium_ios:
         description: 'Whether Appium iOS smoke tests should also run on an eligible PR via the run-appium-ios-tests label (also opts into the iOS native build on Android-only PRs), skip-smart-e2e-selection when path filters require iOS, or e2e smoke infra / smoke-appium file changes. Always false when no iOS app is built. The smoke-infra trigger applies to release/* PRs only; on PRs targeting main this equals ios_e2e_needed.'
         value: ${{ jobs.detect-changes.outputs.run_appium_ios }}
-      native_build_needed:
-        description: 'Whether fresh iOS/Android native E2E builds are required. False when only E2E/performance test files changed — CI reuses main branch builds instead.'
-        value: ${{ jobs.detect-changes.outputs.native_build_needed }}
+      use_main_builds_for_test_only_prs:
+        description: 'Whether test-only E2E runs should reuse Android/iOS builds from main and fall back to fresh native builds when unavailable; false for normal E2E runs.'
+        value: ${{ jobs.detect-changes.outputs.use_main_builds_for_test_only_prs }}
 
 jobs:
   detect-changes:
@@ -51,7 +51,7 @@ jobs:
       run_smart_e2e_selection: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
       run_performance: ${{ steps.set-outputs.outputs.run_performance }}
       run_appium_ios: ${{ steps.set-outputs.outputs.run_appium_ios }}
-      native_build_needed: ${{ steps.set-outputs.outputs.native_build_needed }}
+      use_main_builds_for_test_only_prs: ${{ steps.set-outputs.outputs.use_main_builds_for_test_only_prs }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.

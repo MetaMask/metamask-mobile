@@ -149,7 +149,14 @@ jobs:
   native-build-fingerprint:
     name: Compute native build fingerprint
     runs-on: ubuntu-latest
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: >-
+      ${{
+        needs.get_requirements.outputs.skip_everything != 'true' &&
+        (
+          needs.get_requirements.outputs.android_e2e_needed == 'true' ||
+          needs.get_requirements.outputs.ios_e2e_needed == 'true'
+        )
+      }}
     permissions:
       contents: read
       statuses: write
@@ -160,13 +167,13 @@ jobs:
     steps:
       # Default: fingerprint the PR merge tree (or push/schedule commit).
       - name: Checkout repository
-        if: ${{ needs.get_requirements.outputs.native_build_needed != 'false' || github.event_name != 'pull_request' }}
+        if: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs != 'true' || github.event_name != 'pull_request' }}
         uses: actions/checkout@v6
 
       # Test-only PRs reuse main native builds — fingerprint main HEAD so the lookup
       # key matches completed ci.yml runs on the main branch.
       - name: Checkout main for test-only fingerprint
-        if: ${{ needs.get_requirements.outputs.native_build_needed == 'false' && github.event_name == 'pull_request' }}
+        if: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' && github.event_name == 'pull_request' }}
         uses: actions/checkout@v6
         with:
           ref: main
@@ -187,7 +194,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ needs.get_requirements.outputs.native_build_needed == 'true' }}
+          post-status: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs != 'true' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -1456,9 +1463,9 @@ jobs:
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}
       pr_number: ${{ github.event.pull_request.number }}
-      # Test-only PRs use the latest main APKs directly. PRs with app changes
-      # leave this false so the build workflow can use fingerprint reuse.
-      reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      # Test-only performance runs prefer main APKs; app-changing PRs use
+      # normal fingerprint reuse.
+      reuse_main_builds: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
       source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
     secrets: inherit
     permissions:
@@ -1493,7 +1500,7 @@ jobs:
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      use-main-builds-for-test-only-prs: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
     secrets: inherit
 
   prepare-e2e-timings:
@@ -1580,7 +1587,7 @@ jobs:
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      use-main-builds-for-test-only-prs: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
     secrets: inherit
 
   appium-smoke-tests-android:
@@ -1631,7 +1638,8 @@ jobs:
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
-        !cancelled() &&        
+        !cancelled() &&
+        needs.build-ios-apps.result == 'success' &&
         (needs.prepare-e2e-timings.result == 'success' ||
           needs.prepare-e2e-timings.result == 'skipped' ||
           needs.prepare-e2e-timings.result == 'failure') &&
@@ -1661,7 +1669,7 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [get_requirements, smart-e2e-selection, prepare-e2e-timings]
+    needs: [get_requirements, build-ios-apps, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'

@@ -21,20 +21,20 @@ describe('computeE2EPlatformFlags', () => {
     changedSpecFiles: 'tests/smoke-appium/wallet/foo.spec.ts',
   };
 
-  it('skips native builds for test-only PR changes', () => {
+  it('uses main builds for test-only PR changes', () => {
     const result = computeE2EPlatformFlags(baseInput);
 
     expect(result).toMatchObject({
       android: true,
       ios: true,
       e2eNeeded: true,
-      nativeBuildNeeded: false,
+      useMainBuildsForTestOnlyPrs: true,
       runSmartE2ESelection: true,
       message: expect.stringContaining('test-only'),
     });
   });
 
-  it('keeps native builds when app code changes', () => {
+  it('uses the current source for app code changes', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       allChangesCount: 2,
@@ -44,7 +44,7 @@ describe('computeE2EPlatformFlags', () => {
       changedSpecFiles: 'tests/smoke-appium/wallet/foo.spec.ts',
     });
 
-    expect(result.nativeBuildNeeded).toBe(true);
+    expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
     expect(result.android).toBe(true);
     expect(result.ios).toBe(true);
     expect(result.changedSpecFiles).toBe(
@@ -62,17 +62,17 @@ describe('computeE2EPlatformFlags', () => {
     });
 
     expect(result.e2eNeeded).toBe(false);
-    expect(result.nativeBuildNeeded).toBe(false);
+    expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
     expect(result.runSmartE2ESelection).toBe(false);
   });
 
-  it('requires native builds when E2E workflow files change', () => {
+  it('uses the current source when E2E workflow files change', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       e2eWorkflowsCount: 1,
     });
 
-    expect(result.nativeBuildNeeded).toBe(true);
+    expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
   });
 
   it('runs Smart E2E selection for cherry-pick PRs targeting release/*', () => {
@@ -109,7 +109,7 @@ describe('computeE2EPlatformFlags', () => {
       android: false,
       ios: false,
       e2eNeeded: false,
-      nativeBuildNeeded: false,
+      useMainBuildsForTestOnlyPrs: false,
       runSmartE2ESelection: false,
       message: 'Skipping E2E (stable branch synchronization PR)',
     });
@@ -126,7 +126,7 @@ describe('computeE2EPlatformFlags', () => {
 
     expect(result.android).toBe(true);
     expect(result.ios).toBe(false);
-    expect(result.nativeBuildNeeded).toBe(true);
+    expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
   });
 
   it('runs both platforms on pushes to main and release/*', () => {
@@ -158,7 +158,7 @@ describe('computeE2EPlatformFlags', () => {
       android: true,
       ios: false,
       e2eNeeded: true,
-      nativeBuildNeeded: true,
+      useMainBuildsForTestOnlyPrs: false,
     });
     expect(result.message).toContain('iOS not requested for a PR into main');
     // Path filters selected iOS; only the main-PR rule removed it. The opt-ins
@@ -176,7 +176,7 @@ describe('computeE2EPlatformFlags', () => {
       android: true,
       ios: false,
       e2eNeeded: true,
-      nativeBuildNeeded: false,
+      useMainBuildsForTestOnlyPrs: true,
     });
   });
 
@@ -194,7 +194,7 @@ describe('computeE2EPlatformFlags', () => {
       android: false,
       ios: false,
       e2eNeeded: false,
-      nativeBuildNeeded: false,
+      useMainBuildsForTestOnlyPrs: false,
       runSmartE2ESelection: false,
     });
   });
@@ -268,7 +268,7 @@ describe('applyE2ELabelOverrides', () => {
       android: true,
       ios: true,
       e2eNeeded: true,
-      nativeBuildNeeded: true,
+      useMainBuildsForTestOnlyPrs: false,
       message: expect.stringContaining('run-appium-ios-tests'),
     });
   });
@@ -332,7 +332,7 @@ describe('applyE2ELabelOverrides', () => {
       android: false,
       ios: true,
       e2eNeeded: true,
-      nativeBuildNeeded: true,
+      useMainBuildsForTestOnlyPrs: false,
       runSmartE2ESelection: true,
     });
   });
@@ -351,7 +351,7 @@ describe('applyE2ELabelOverrides', () => {
       android: true,
       ios: true,
       e2eNeeded: true,
-      nativeBuildNeeded: true,
+      useMainBuildsForTestOnlyPrs: false,
       message: expect.stringContaining('run-appium-ios-tests'),
     });
   });
@@ -425,7 +425,7 @@ describe('resolveE2EPlatformRequirements', () => {
       android: true,
       ios: false,
       e2eNeeded: true,
-      nativeBuildNeeded: true,
+      useMainBuildsForTestOnlyPrs: false,
       runAppiumIos: false,
     });
   });

@@ -103,7 +103,7 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         android_final: 'true',
         ios_final: 'false',
         e2e_needed: 'true',
-        native_build_needed: 'true',
+        use_main_builds_for_test_only_prs: 'false',
         run_appium_ios: 'false',
       });
       expect(stdout).toContain('iOS not requested for a PR into main');
@@ -127,7 +127,7 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         android_final: 'true',
         ios_final: 'true',
         run_appium_ios: 'true',
-        native_build_needed: 'true',
+        use_main_builds_for_test_only_prs: 'false',
       });
       expect(stdout).toContain(
         "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR",
@@ -194,7 +194,7 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         android_final: 'false',
         ios_final: 'false',
         e2e_needed: 'false',
-        native_build_needed: 'false',
+        use_main_builds_for_test_only_prs: 'false',
         run_smart_e2e_selection: 'false',
         run_appium_ios: 'false',
       });

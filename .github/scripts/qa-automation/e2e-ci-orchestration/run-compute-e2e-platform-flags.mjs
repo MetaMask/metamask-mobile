@@ -5,6 +5,7 @@
 
 import { appendFileSync } from 'node:fs';
 import {
+  classifyE2EChanges,
   resolveE2EPlatformRequirements,
 } from './compute-e2e-platform-flags.mjs';
 
@@ -25,18 +26,19 @@ if (!githubOutputPath) {
 
 const allChangesCount = readInt(process.env.ALL_CHANGES_COUNT);
 const ignorableCount = readInt(process.env.IGNORABLE_COUNT);
+const e2eTestFilesCount = readInt(process.env.E2E_TEST_FILES_COUNT);
+const e2eTestOrIgnorableCount = readInt(
+  process.env.E2E_TEST_OR_IGNORABLE_COUNT,
+);
 const e2eWorkflowsCount = readInt(process.env.E2E_WORKFLOWS_COUNT);
 
-const ignorableOnly =
-  allChangesCount > 0 &&
-  ignorableCount === allChangesCount &&
-  e2eWorkflowsCount === 0;
-
-const testOnlyChanges =
-  allChangesCount > 0 &&
-  readInt(process.env.E2E_TEST_OR_IGNORABLE_COUNT) >= allChangesCount &&
-  readInt(process.env.E2E_TEST_FILES_COUNT) > 0 &&
-  e2eWorkflowsCount === 0;
+const { ignorableOnly, testOnlyChanges } = classifyE2EChanges({
+  allChangesCount,
+  ignorableCount,
+  e2eTestFilesCount,
+  e2eTestOrIgnorableCount,
+  e2eWorkflowsCount,
+});
 
 const skipSmartSelection = readBool(process.env.SKIP_SMART_SELECTION);
 
@@ -58,8 +60,8 @@ const flags = resolveE2EPlatformRequirements({
     shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),
     allChangesCount,
     ignorableCount,
-    e2eTestFilesCount: readInt(process.env.E2E_TEST_FILES_COUNT),
-    e2eTestOrIgnorableCount: readInt(process.env.E2E_TEST_OR_IGNORABLE_COUNT),
+    e2eTestFilesCount,
+    e2eTestOrIgnorableCount,
     e2eWorkflowsCount,
     androidCount: readInt(process.env.ANDROID_COUNT),
     iosCount: readInt(process.env.IOS_COUNT),
@@ -124,7 +126,7 @@ const outputLines = [
   `android_final=${flags.android}`,
   `ios_final=${flags.ios}`,
   `e2e_needed=${flags.e2eNeeded}`,
-  `native_build_needed=${flags.nativeBuildNeeded}`,
+  `use_main_builds_for_test_only_prs=${flags.useMainBuildsForTestOnlyPrs}`,
   `run_smart_e2e_selection=${flags.runSmartE2ESelection}`,
   `block_merge=${blockMerge}`,
   `run_performance=${runPerformance}`,
