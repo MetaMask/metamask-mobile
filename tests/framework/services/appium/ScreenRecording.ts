@@ -1,6 +1,6 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { accessSync, constants, mkdirSync, writeFileSync } from 'node:fs';
+import { delimiter, join } from 'node:path';
 import type { TestInfo } from '@playwright/test';
 import { Platform, type ProviderName } from '../../types.ts';
 import { createLogger } from '../../logger.ts';
@@ -158,6 +158,31 @@ function formatRecordingError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * Returns whether an `ffmpeg` binary is executable on `PATH`.
+ * XCUITest screen recording needs ffmpeg; skip recording when it is missing.
+ */
+export function isFfmpegAvailable(): boolean {
+  const pathEnv = process.env.PATH;
+  if (!pathEnv) {
+    return false;
+  }
+
+  for (const dir of pathEnv.split(delimiter)) {
+    if (!dir) {
+      continue;
+    }
+    try {
+      accessSync(join(dir, 'ffmpeg'), constants.X_OK);
+      return true;
+    } catch {
+      continue;
+    }
+  }
+
+  return false;
+}
+
 function logRecordingIssue(message: string): void {
   logger.warn(message);
   // Visible in CI step logs without logger level tuning.
@@ -247,6 +272,11 @@ async function stopAndroidRecording(
 async function startIosRecording(
   browser: WebdriverIO.Browser,
 ): Promise<ScreenRecordingBackend | undefined> {
+  if (!isFfmpegAvailable()) {
+    logRecordingIssue('ffmpeg is not on PATH — skipping iOS screen recording');
+    return undefined;
+  }
+
   const appiumDriver = browser as AppiumScreenRecorder;
   if (typeof appiumDriver.startRecordingScreen !== 'function') {
     logRecordingIssue(
