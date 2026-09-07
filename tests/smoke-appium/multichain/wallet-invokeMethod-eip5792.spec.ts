@@ -18,6 +18,14 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { remoteFeatureEip7702 } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { isHexString } from '@metamask/utils';
+import { ANVIL_LOCAL_ETH_HOLDING } from '../confirmations/helpers/anvil-local-eth-holding.js';
+
+function buildAnvilLocalEthFixture() {
+  return new FixtureBuilder()
+    .withDefaultFixture()
+    .withTokenHoldings([ANVIL_LOCAL_ETH_HOLDING])
+    .build();
+}
 
 const ANVIL_NODE_OPTIONS_WITH_GATOR: AnvilNodeOptions = {
   hardfork: 'prague' as Hardfork,
@@ -168,7 +176,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod_eip5792'), () => {
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
-            fixture: new FixtureBuilder().withDefaultFixture().build(),
+            fixture: buildAnvilLocalEthFixture(),
             restartDevice: true,
             currentDeviceDetails,
             localNodeOptions: [
@@ -213,7 +221,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod_eip5792'), () => {
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
-            fixture: new FixtureBuilder().withDefaultFixture().build(),
+            fixture: buildAnvilLocalEthFixture(),
             restartDevice: true,
             currentDeviceDetails,
             localNodeOptions: [
