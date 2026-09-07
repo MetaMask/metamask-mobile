@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import type { RootState } from '../reducers';
-import type { UiSlotsControllerState ,
+import type {
+  UiSlotsControllerState,
   UiSlot,
   UiSlotsScreenId,
 } from '../core/Engine/controllers/ui-slots-controller/types';
