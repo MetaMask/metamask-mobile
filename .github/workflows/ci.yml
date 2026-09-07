@@ -523,14 +523,10 @@ jobs:
         run: |
           set -euo pipefail
           BASE_REF='${{ github.event.pull_request.base.ref }}'
-          git fetch origin "${BASE_REF}" --depth=1
-          if ! MERGE_BASE_SHA="$(git merge-base "origin/${BASE_REF}" HEAD)"; then
-            echo "::warning::Could not resolve merge-base between HEAD and origin/${BASE_REF}; bundle size delta check will be skipped."
-            echo "MERGE_BASE_SHA=" >> "$GITHUB_ENV"
-          else
-            echo "Merge-base pinned (origin/${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"
-            echo "MERGE_BASE_SHA=${MERGE_BASE_SHA}" >> "$GITHUB_ENV"
-          fi
+          # PR checkout is the merge ref (fetch-depth: 2); first parent is the base tip.
+          MERGE_BASE_SHA="$(git rev-parse HEAD^1)"
+          echo "Merge-base pinned (${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"
+          echo "MERGE_BASE_SHA=${MERGE_BASE_SHA}" >> "$GITHUB_ENV"
           echo "BUNDLE_SIZE_BASE_REF=${BASE_REF}" >> "$GITHUB_ENV"
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
