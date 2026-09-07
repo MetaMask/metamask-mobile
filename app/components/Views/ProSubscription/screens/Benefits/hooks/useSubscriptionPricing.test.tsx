@@ -186,6 +186,7 @@ describe('useSubscriptionPricing', () => {
               currency: 'usd' as const,
               trialPeriodDays: 0,
               minBillingCycles: 1,
+              minBillingCyclesForBalance: 1,
             },
           ],
         },

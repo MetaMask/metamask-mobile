@@ -77,6 +77,19 @@ const ProSubscription = () => {
     });
   }, [navigation]);
 
+  let screenContent: React.ReactNode = null;
+  if (currentScreen === 'benefits') {
+    screenContent = (
+      <Benefits
+        onSuccess={handleSuccess}
+        onPlanChange={handlePlanChange}
+        initialPlan={selectedPlan}
+      />
+    );
+  } else if (checkoutPlan) {
+    screenContent = <Success onSuccess={handleSubscriptionOnSuccess} />;
+  }
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
@@ -92,15 +105,7 @@ const ProSubscription = () => {
         />
       </Box>
 
-      {currentScreen === 'benefits' ? (
-        <Benefits
-          onSuccess={handleSuccess}
-          onPlanChange={handlePlanChange}
-          initialPlan={selectedPlan}
-        />
-      ) : checkoutPlan ? (
-        <Success onSuccess={handleSubscriptionOnSuccess} />
-      ) : null}
+      {screenContent}
     </SafeAreaView>
   );
 };
