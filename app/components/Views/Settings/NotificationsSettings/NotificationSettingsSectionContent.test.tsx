@@ -12,6 +12,7 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { NotificationChannel } from '../../../../core/Analytics/events/channels';
 import Logger from '../../../../util/Logger';
+import type { WalletActivityPreference } from '@metamask/authenticated-user-storage';
 
 jest.mock('./hooks/useNotificationStoragePreferences');
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
@@ -52,15 +53,19 @@ const mockTrackEvent = jest.fn();
 
 const arrangePreferences = ({
   hasPreferences = true,
-}: { hasPreferences?: boolean } = {}) => {
+  walletActivity = {
+    pushNotificationsEnabled: true,
+    inAppNotificationsEnabled: true,
+    accounts: [],
+  },
+}: {
+  hasPreferences?: boolean;
+  walletActivity?: WalletActivityPreference;
+} = {}) => {
   jest.mocked(useNotificationStoragePreferences).mockReturnValue({
     preferences: hasPreferences
       ? {
-          walletActivity: {
-            pushNotificationsEnabled: true,
-            inAppNotificationsEnabled: true,
-            accounts: [],
-          },
+          walletActivity,
           marketing: {
             pushNotificationsEnabled: false,
             inAppNotificationsEnabled: false,
@@ -180,6 +185,44 @@ describe('NotificationSettingsSectionContent', () => {
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText('Wallet activity')).toBeOnTheScreen();
+  });
+
+  it('omits the channel toggles for the wallet activity section', () => {
+    renderContent({
+      type: 'walletActivity',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
+    });
+
+    expect(screen.queryByTestId(PUSH_TOGGLE)).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(IN_APP_TOGGLE)).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.WALLET_ACTIVITY_LIST,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the wallet activity accounts interactive when both stored channel flags are off', () => {
+    arrangePreferences({
+      walletActivity: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+        accounts: [],
+      },
+    });
+
+    renderContent({
+      type: 'walletActivity',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
+    });
+
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL,
+      ),
+    ).not.toBeDisabled();
   });
 
   it('disables both channel toggles when disabled is true', () => {
