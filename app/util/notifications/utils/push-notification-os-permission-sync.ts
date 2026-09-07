@@ -69,7 +69,10 @@ const runSync = async (): Promise<void> => {
     // had just happened.
     writeLastOsPermissionGranted(osPermissionGranted);
 
-    if (wasOsPermissionGranted === osPermissionGranted || !notificationsEnabled) {
+    if (
+      wasOsPermissionGranted === osPermissionGranted ||
+      !notificationsEnabled
+    ) {
       return;
     }
 
