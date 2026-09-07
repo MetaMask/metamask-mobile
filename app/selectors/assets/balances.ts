@@ -71,9 +71,10 @@ import { filterExcludedTokenBalances } from '../../enablement/assets/networks-cu
 /**
  * State transforms applied before unified fiat aggregation.
  *
- * The "no assetsInfo" balance exclusion previously done here is now handled
- * by AssetsController itself (bumped to 15.0.0); only the Arc/Stable
- * duplicate-token exclusion remains.
+ * Balances without matching `assetsInfo` are excluded by AssetsController
+ * 15+ itself (see `balances.missing-assets-info.test.ts` + anonymised
+ * `__fixtures__/assets-controller-state-log` for regression coverage).
+ * Only the Arc/Stable duplicate-token exclusion remains here.
  */
 export const augmentAssetsControllerStateForBalances = augmentArcExcludedAssets;
 
