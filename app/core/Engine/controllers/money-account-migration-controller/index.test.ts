@@ -62,8 +62,9 @@ describe('moneyAccountMigrationControllerInit', () => {
   it('uses persisted state when provided', () => {
     const persistedState: MoneyAccountMigrationControllerState = {
       ...defaultMoneyAccountMigrationControllerState,
-      status: 'INVENTORIED',
-      destination: '0x2222222222222222222222222222222222222222',
+      phase: 'CONSENTED',
+      oldAddress: '0x1111111111111111111111111111111111111111',
+      newAddress: '0x2222222222222222222222222222222222222222',
     };
 
     initRequestMock.persistedState = {

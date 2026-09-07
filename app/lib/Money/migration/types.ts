@@ -1,47 +1,45 @@
 import type { Hex } from '@metamask/utils';
 
-export type MigrationStatus =
-  | 'IDLE'
-  | 'INVENTORIED'
+/** Local resume cursor phases (ADR 0007). Empty cursor = no `phase`. */
+export type MigrationPhase =
+  | 'CONSENTED'
   | 'TORN_DOWN'
+  | 'BATCH_SUBMITTED'
   | 'BATCH_EXECUTED'
-  | 'RE_PROVISIONED'
-  | 'VERIFIED_INERT';
+  | 'RESIDUAL_SIGNED'
+  | 'REPROVISIONING';
 
-/** Auto-restore TORN_DOWN with no batch after this timeout. */
+/** Auto-restore TORN_DOWN with no exitBatchId after this timeout. */
 export const AUTO_RESTORE_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 
-export type FormerMoneyAccount = {
-  newAddress: Hex;
-  residualDelegation: unknown | null;
-  residualDelegationHash: Hex | null;
-};
-
-export type MigrationSnapshot = {
-  status: MigrationStatus;
-  inventory: MigrationInventory | null;
-  destination: Hex | null;
+/** Device-local resume cursor. Do not persist inventory, residual blob, or lock id. */
+export interface MigrationCursor {
+  phase: MigrationPhase | null;
+  oldAddress: Hex | null;
+  newAddress: Hex | null;
+  chainId: Hex | null;
+  planHash: string | null;
+  cardWasLinked: boolean;
+  /** ADR 0007 `txHash`: on mobile the durable handle is the TransactionController batch id. */
   exitBatchId: Hex | null;
-  residualDelegation: unknown | null;
-  residualDelegationHash: Hex | null;
-  tornDownAt: number | null;
-  formerMoneyAccounts: Record<string, FormerMoneyAccount>;
-};
+  updatedAt: number | null;
+}
 
-export const EMPTY_SNAPSHOT: MigrationSnapshot = {
-  status: 'IDLE',
-  inventory: null,
-  destination: null,
+/** Survives cursor clear. Marks `oldAddress` migrated and points Money at `newAddress`. */
+export interface MigratedMoneyAccount {
+  newAddress: Hex;
+  migratedAt: number;
+}
+
+export const EMPTY_CURSOR: MigrationCursor = {
+  phase: null,
+  oldAddress: null,
+  newAddress: null,
+  chainId: null,
+  planHash: null,
+  cardWasLinked: false,
   exitBatchId: null,
-  residualDelegation: null,
-  residualDelegationHash: null,
-  tornDownAt: null,
-  formerMoneyAccounts: {},
-};
-
-export type MigrationStore = {
-  load: () => MigrationSnapshot;
-  save: (next: MigrationSnapshot) => void;
+  updatedAt: null,
 };
 
 export type MigrationBlockerKind =
@@ -53,12 +51,12 @@ export type MigrationBlockerKind =
   | 'atomic-batch-unsupported'
   | 'unsupported-delegator-impl';
 
-export type MigrationBlocker = {
+export interface MigrationBlocker {
   kind: MigrationBlockerKind;
-};
+}
 
-/** Amounts are decimal wei strings so Engine persistence (JSON.stringify) can save the snapshot. */
-export type MigrationInventory = {
+/** Live inventory. Recheck after consent; do not persist. Amounts are wei strings. */
+export interface MigrationInventory {
   source: Hex;
   destination: Hex;
   chainId: Hex;
@@ -70,9 +68,9 @@ export type MigrationInventory = {
   chompIntentHashes: Hex[];
   chompDelegationHashes: Hex[];
   cardLinked: boolean;
-};
+}
 
-export type MigrateParams = {
+export interface MigrateParams {
   source: Hex;
   destination: Hex;
-};
+}

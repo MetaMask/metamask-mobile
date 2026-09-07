@@ -972,14 +972,15 @@
     "moneyAccounts": {}
   },
   "MoneyAccountMigrationController": {
-    "status": "IDLE",
-    "inventory": null,
-    "destination": null,
+    "phase": null,
+    "oldAddress": null,
+    "newAddress": null,
+    "chainId": null,
+    "planHash": null,
+    "cardWasLinked": false,
     "exitBatchId": null,
-    "residualDelegation": null,
-    "residualDelegationHash": null,
-    "tornDownAt": null,
-    "formerMoneyAccounts": {}
+    "updatedAt": null,
+    "migrated": {}
   },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}

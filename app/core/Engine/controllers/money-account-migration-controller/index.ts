@@ -4,6 +4,7 @@ import {
   defaultMoneyAccountMigrationControllerState,
 } from './MoneyAccountMigrationController';
 import type { MoneyAccountMigrationControllerMessenger } from './types';
+import { MoneyAccountMigrationPocService } from '../../../../lib/Money/migration/MoneyAccountMigrationPocService';
 
 /**
  * Initialize the MoneyAccountMigrationController.
@@ -21,6 +22,7 @@ export const moneyAccountMigrationControllerInit: MessengerClientInitFunction<
       ...(persistedState.MoneyAccountMigrationController ??
         defaultMoneyAccountMigrationControllerState),
     },
+    steps: new MoneyAccountMigrationPocService(),
   });
 
   return { controller };

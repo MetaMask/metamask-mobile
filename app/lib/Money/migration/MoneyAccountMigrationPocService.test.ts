@@ -1,8 +1,6 @@
 import { Interface } from '@ethersproject/abi';
 import { Hex, bytesToHex } from '@metamask/utils';
-import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
-import type { MoneyAccount } from '@metamask/money-account-controller';
-import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
+import { EthAccountType } from '@metamask/keyring-api';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { MUSD_TOKEN_ADDRESS } from '@metamask/money-account-utils';
 import {
@@ -44,6 +42,12 @@ jest.mock('../../../core/Engine', () => ({
         getCardHomeData: jest.fn(),
         linkMoneyAccountCard: jest.fn(),
       },
+      MultichainAccountService: {
+        createNextMultichainAccountGroup: jest.fn(),
+      },
+      MoneyAccountMigrationController: {
+        markMigrated: jest.fn(),
+      },
     },
   },
 }));
@@ -74,27 +78,12 @@ const BATCH_ID =
   '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' as Hex;
 const ERC20 = new Interface(abiERC20);
 
-const destinationAccount = (address: Hex = DEST): MoneyAccount => ({
-  id: 'money-account-stub',
-  type: EthAccountType.Eoa,
-  address,
-  scopes: [EthScope.Eoa],
-  options: {
-    entropy: {
-      type: 'mnemonic',
-      id: 'entropy-stub',
-      groupIndex: 0,
-      derivationPath: MONEY_DERIVATION_PATH,
-    },
-    exportable: false,
-  },
-  methods: [
-    EthMethod.PersonalSign,
-    EthMethod.SignTypedDataV1,
-    EthMethod.SignTypedDataV3,
-    EthMethod.SignTypedDataV4,
-  ],
-});
+const ENTROPY_ID = 'entropy-1';
+
+const mockCreateNextGroup = Engine.context.MultichainAccountService
+  .createNextMultichainAccountGroup as jest.Mock;
+const mockMarkMigrated = Engine.context.MoneyAccountMigrationController
+  .markMigrated as jest.Mock;
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call
@@ -167,6 +156,19 @@ const stubMessenger = () => {
         return '0xsig';
       case 'AuthenticatedUserStorageService:createDelegation':
         return undefined;
+      case 'MoneyAccountController:getState':
+        return {
+          moneyAccounts: {
+            'money-1': {
+              address: SOURCE,
+              options: { entropy: { id: ENTROPY_ID } },
+            },
+          },
+        };
+      case 'TransactionController:isAtomicBatchSupported':
+        return [
+          { chainId: '0x8f', isSupported: true, delegationAddress: '0xdele' },
+        ];
       default:
         throw new Error(`unexpected action ${action}`);
     }
@@ -196,9 +198,11 @@ describe('MoneyAccountMigrationPocService', () => {
 
   const openGates = (service: MoneyAccountMigrationPocService) => {
     jest.spyOn(service, 'assertBatchFromSelf').mockResolvedValue(true);
-    jest.spyOn(service, 'submitExitBatch').mockResolvedValue(
-      '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Hex,
-    );
+    jest
+      .spyOn(service, 'submitExitBatch')
+      .mockResolvedValue(
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Hex,
+      );
     jest.spyOn(service, 'awaitExitBatch').mockResolvedValue();
   };
 
@@ -268,9 +272,10 @@ describe('MoneyAccountMigrationPocService', () => {
   it('unlinks Card only when inventory says the old address is linked', async () => {
     const service = new MoneyAccountMigrationPocService();
     openGates(service);
-    jest.spyOn(service, 'collectInventory').mockResolvedValue(
-      plan({ cardLinked: true }),
-    );
+    jest
+      .spyOn(service, 'collectInventory')
+      .mockResolvedValueOnce(plan({ cardLinked: true }))
+      .mockResolvedValue(plan());
     const unlink = jest.spyOn(service, 'unlinkCard').mockResolvedValue();
 
     await service.migrate({ source: SOURCE, destination: DEST });
@@ -281,9 +286,10 @@ describe('MoneyAccountMigrationPocService', () => {
   it('re-links Card from the inventory taken before teardown', async () => {
     const service = new MoneyAccountMigrationPocService();
     openGates(service);
-    jest.spyOn(service, 'collectInventory').mockResolvedValue(
-      plan({ cardLinked: true }),
-    );
+    jest
+      .spyOn(service, 'collectInventory')
+      .mockResolvedValueOnce(plan({ cardLinked: true }))
+      .mockResolvedValue(plan());
     jest.spyOn(service, 'unlinkCard').mockResolvedValue();
     const relink = jest.spyOn(service, 'relinkCard').mockResolvedValue();
 
@@ -292,13 +298,85 @@ describe('MoneyAccountMigrationPocService', () => {
     expect(relink).toHaveBeenCalledWith(DEST);
   });
 
-  it('returns a MoneyAccount with address, id, and non-exportable options', async () => {
+  it('creates the next multichain group under the source SRP and returns its EVM address', async () => {
+    const service = new MoneyAccountMigrationPocService();
+    mockCreateNextGroup.mockResolvedValue({
+      getAccounts: () => [
+        { type: 'solana:data-account', address: 'sol' },
+        { type: EthAccountType.Eoa, address: DEST },
+      ],
+    });
+
+    const created = await service.createDestination(SOURCE);
+
+    expect(mockCreateNextGroup).toHaveBeenCalledWith({
+      entropySource: ENTROPY_ID,
+    });
+    expect(created).toBe(DEST);
+  });
+
+  it('throws when the source is not a known Money account', async () => {
     const service = new MoneyAccountMigrationPocService();
 
-    const created = await service.createDestination();
+    await expect(
+      service.createDestination(
+        '0x9999999999999999999999999999999999999999' as Hex,
+      ),
+    ).rejects.toThrow('source-not-money-account');
+  });
 
-    expect(created).toEqual(destinationAccount());
-    expect(created).not.toHaveProperty('privateKey');
+  it('passes Gate 1 only when the source is upgraded to a supported delegator', async () => {
+    const service = new MoneyAccountMigrationPocService();
+
+    expect(await service.assertBatchFromSelf(plan())).toBe(true);
+
+    mockCall.mockImplementation(async (action: string) =>
+      action === 'TransactionController:isAtomicBatchSupported'
+        ? [{ chainId: '0x8f', isSupported: true }]
+        : undefined,
+    );
+    expect(await service.assertBatchFromSelf(plan())).toBe(false);
+  });
+
+  it('marks the source migrated to the destination after re-provision', async () => {
+    const service = new MoneyAccountMigrationPocService();
+
+    await service.reprovision(DEST, plan());
+
+    expect(mockMarkMigrated).toHaveBeenCalledWith(SOURCE, DEST);
+  });
+
+  it('throws old-not-inert when the source still holds mUSD', async () => {
+    const service = new MoneyAccountMigrationPocService();
+    jest
+      .spyOn(service, 'collectInventory')
+      .mockResolvedValue(plan({ musd: '1' }));
+
+    await expect(service.verifyOldInert(SOURCE, DEST)).rejects.toThrow(
+      'old-not-inert',
+    );
+  });
+
+  it('skips signing when AUS already holds the residual delegation', async () => {
+    const service = new MoneyAccountMigrationPocService();
+    mockCall.mockImplementation(async (action: string) => {
+      if (action === 'AuthenticatedUserStorageService:listDelegations') {
+        return [
+          {
+            signedDelegation: { delegator: SOURCE, delegate: DEST },
+            metadata: { type: 'money-account-migration-residual' },
+          },
+        ];
+      }
+      throw new Error(`unexpected action ${action}`);
+    });
+
+    await service.persistResidualDelegation(SOURCE, DEST, '0x8f');
+
+    expect(mockCall).not.toHaveBeenCalledWith(
+      'DelegationController:signDelegation',
+      expect.anything(),
+    );
   });
 
   it('uses createDestination when migrate is called without a destination', async () => {
@@ -306,7 +384,7 @@ describe('MoneyAccountMigrationPocService', () => {
     openGates(service);
     const created = jest
       .spyOn(service, 'createDestination')
-      .mockResolvedValue(destinationAccount());
+      .mockResolvedValue(DEST);
     const collectInventory = jest
       .spyOn(service, 'collectInventory')
       .mockResolvedValue(plan());
@@ -321,7 +399,11 @@ describe('MoneyAccountMigrationPocService', () => {
     mockCall.mockImplementation(async (action: string) => {
       switch (action) {
         case 'RemoteFeatureFlagController:getState':
-          return { remoteFeatureFlags: { moneyAccountVaultConfig: { chainId: '0x8f' } } };
+          return {
+            remoteFeatureFlags: {
+              moneyAccountVaultConfig: { chainId: '0x8f' },
+            },
+          };
         case 'MoneyAccountBalanceService:getVmusdBalance':
           return { balance: '5' };
         case 'MoneyAccountBalanceService:getMusdBalance':
@@ -409,12 +491,9 @@ describe('MoneyAccountMigrationPocService', () => {
         ],
       },
     );
-    expect(mockCall).toHaveBeenCalledWith(
-      'ChompApiService:invalidateQueries',
-      {
-        queryKey: ['ChompApiService:getIntentsByAddress', SOURCE],
-      },
-    );
+    expect(mockCall).toHaveBeenCalledWith('ChompApiService:invalidateQueries', {
+      queryKey: ['ChompApiService:getIntentsByAddress', SOURCE],
+    });
     expect(mockCall).toHaveBeenCalledWith(
       'AuthenticatedUserStorageService:invalidateQueries',
       {
@@ -492,15 +571,17 @@ describe('MoneyAccountMigrationPocService', () => {
       },
     });
     mockGetBalance.mockResolvedValue({ toString: () => '10000000000000000' });
-    mockAllowance.mockImplementation(async (_owner: string, spender: string) => {
-      if (spender.toLowerCase() === BORING_VAULT) {
-        return { toString: () => '7' };
-      }
-      if (spender.toLowerCase() === CARD_DELEGATION) {
-        return { toString: () => '9' };
-      }
-      return { toString: () => '0' };
-    });
+    mockAllowance.mockImplementation(
+      async (_owner: string, spender: string) => {
+        if (spender.toLowerCase() === BORING_VAULT) {
+          return { toString: () => '7' };
+        }
+        if (spender.toLowerCase() === CARD_DELEGATION) {
+          return { toString: () => '9' };
+        }
+        return { toString: () => '0' };
+      },
+    );
     const service = new MoneyAccountMigrationPocService();
 
     const inventory = await service.collectInventory(SOURCE, DEST);
@@ -513,16 +594,12 @@ describe('MoneyAccountMigrationPocService', () => {
       '0x8f',
     );
     expect(mockGetBalance).toHaveBeenCalledWith(SOURCE, 'pending');
-    expect(mockAllowance).toHaveBeenCalledWith(
-      SOURCE,
-      BORING_VAULT,
-      { blockTag: 'pending' },
-    );
-    expect(mockAllowance).toHaveBeenCalledWith(
-      SOURCE,
-      CARD_DELEGATION,
-      { blockTag: 'pending' },
-    );
+    expect(mockAllowance).toHaveBeenCalledWith(SOURCE, BORING_VAULT, {
+      blockTag: 'pending',
+    });
+    expect(mockAllowance).toHaveBeenCalledWith(SOURCE, CARD_DELEGATION, {
+      blockTag: 'pending',
+    });
   });
 
   it('leaves cardAllowance at 0 when Card has no delegation contract', async () => {
@@ -565,11 +642,9 @@ describe('MoneyAccountMigrationPocService', () => {
     expect(inventory.vaultAllowance).toBe('7');
     expect(inventory.cardAllowance).toBe('0');
     expect(mockAllowance).toHaveBeenCalledTimes(1);
-    expect(mockAllowance).toHaveBeenCalledWith(
-      SOURCE,
-      BORING_VAULT,
-      { blockTag: 'pending' },
-    );
+    expect(mockAllowance).toHaveBeenCalledWith(SOURCE, BORING_VAULT, {
+      blockTag: 'pending',
+    });
   });
 
   it('returns in-flight-card-spend when Card link is in progress', async () => {
@@ -768,9 +843,7 @@ describe('MoneyAccountMigrationPocService', () => {
     });
     const service = new MoneyAccountMigrationPocService();
 
-    await service.submitExitBatch(
-      plan({ musd: '10', nativeWei: '5' }),
-    );
+    await service.submitExitBatch(plan({ musd: '10', nativeWei: '5' }));
 
     const request = mockCall.mock.calls.find(
       ([action]) => action === 'TransactionController:addTransactionBatch',
@@ -803,17 +876,19 @@ describe('MoneyAccountMigrationPocService', () => {
 
   it('signs and stores a root residual Delegation from source to destination', async () => {
     const saltBytes = new Uint8Array(32).fill(1);
-    jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(
-      (buffer) => {
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((buffer) => {
         const bytes = buffer as Uint8Array;
         bytes.set(saltBytes);
         return bytes;
-      },
-    );
+      });
     const salt = bytesToHex(saltBytes);
     const signature = '0xsig' as Hex;
     mockCall.mockImplementation(async (action: string) => {
       switch (action) {
+        case 'AuthenticatedUserStorageService:listDelegations':
+          return [];
         case 'DelegationController:signDelegation':
           return signature;
         case 'AuthenticatedUserStorageService:createDelegation':

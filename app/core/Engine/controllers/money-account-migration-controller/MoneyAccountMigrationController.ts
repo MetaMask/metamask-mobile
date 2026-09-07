@@ -1,116 +1,62 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import type { Hex } from '@metamask/utils';
-import type {
-  MigrateParams,
-  MigrationBlocker,
-  MigrationInventory,
-  MigrationSnapshot,
-  MigrationStatus,
-} from '../../../../lib/Money/migration/types';
 import {
   AUTO_RESTORE_AFTER_MS,
-  EMPTY_SNAPSHOT,
+  EMPTY_CURSOR,
+  type MigrateParams,
+  type MigrationBlocker,
+  type MigrationCursor,
+  type MigrationInventory,
+  type MigrationPhase,
 } from '../../../../lib/Money/migration/types';
+import type { MoneyAccountMigrationPocService } from '../../../../lib/Money/migration/MoneyAccountMigrationPocService';
 import {
   MONEY_ACCOUNT_MIGRATION_CONTROLLER_NAME,
   type MoneyAccountMigrationControllerMessenger,
   type MoneyAccountMigrationControllerState,
 } from './types';
 
-export { AUTO_RESTORE_AFTER_MS, EMPTY_SNAPSHOT };
+export { AUTO_RESTORE_AFTER_MS, EMPTY_CURSOR };
+
+const persist = {
+  persist: true,
+  includeInDebugSnapshot: true,
+  includeInStateLogs: true,
+  usedInUi: true,
+} as const;
 
 const metadata: StateMetadata<MoneyAccountMigrationControllerState> = {
-  status: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: true,
-  },
-  inventory: {
-    persist: true,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: true,
-    usedInUi: false,
-  },
-  destination: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: true,
-  },
-  exitBatchId: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: false,
-  },
-  residualDelegation: {
-    persist: true,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: false,
-    usedInUi: false,
-  },
-  residualDelegationHash: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: false,
-  },
-  tornDownAt: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: false,
-  },
-  formerMoneyAccounts: {
-    persist: true,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: true,
-    usedInUi: true,
-  },
+  phase: persist,
+  oldAddress: persist,
+  newAddress: persist,
+  chainId: persist,
+  planHash: persist,
+  cardWasLinked: persist,
+  exitBatchId: persist,
+  updatedAt: persist,
+  migrated: persist,
 };
 
 export const defaultMoneyAccountMigrationControllerState: MoneyAccountMigrationControllerState =
-  EMPTY_SNAPSHOT;
-
-const isZeroWei = (amount: string) => BigInt(amount) === 0n;
-
-export function fundsMoved(
-  plan: MigrationInventory,
-  live: MigrationInventory,
-): boolean {
-  if (isZeroWei(plan.vmUsd) && isZeroWei(plan.musd)) {
-    // Empty plan cannot prove a batch ran — allowance=0 is also the
-    // pre-migrate state, and treating it as moved would skip teardown.
-    return false;
-  }
-  return (
-    (isZeroWei(plan.vmUsd) || isZeroWei(live.vmUsd)) &&
-    (isZeroWei(plan.musd) || isZeroWei(live.musd))
-  );
-}
-
-export function reconcile(params: {
-  status: MigrationStatus;
-  plan: MigrationInventory;
-  live: MigrationInventory;
-}): MigrationStatus {
-  const { status, plan, live } = params;
-  if (status === 'IDLE' || status === 'VERIFIED_INERT') {
-    return status;
-  }
-  if (status === 'TORN_DOWN' && fundsMoved(plan, live)) {
-    return 'BATCH_EXECUTED';
-  }
-  return status;
-}
+  { ...EMPTY_CURSOR, migrated: {} };
 
 const sameAddress = (a: Hex, b: Hex) => a.toLowerCase() === b.toLowerCase();
 
+export function planHash(inventory: MigrationInventory): string {
+  return [
+    inventory.source.toLowerCase(),
+    inventory.destination.toLowerCase(),
+    inventory.chainId,
+    inventory.vmUsd,
+    inventory.musd,
+    inventory.nativeWei,
+  ].join(':');
+}
+
 /**
- * Option B Money Account footprint migration (ADR 0006).
- * Destination must already exist (`createMoneyAccount`). No UI.
- * Crash/kill: persist snapshot; `resume()` continues. Never double-submit.
+ * Option B Money Account footprint migration (ADR 0006 + 0007 resume).
+ * Local cursor only; re-read chain/backend/AUS on resume. Never double-submit.
+ * On-chain/backend steps live in `MoneyAccountMigrationPocService`.
  */
 export class MoneyAccountMigrationController extends BaseController<
   typeof MONEY_ACCOUNT_MIGRATION_CONTROLLER_NAME,
@@ -119,12 +65,16 @@ export class MoneyAccountMigrationController extends BaseController<
 > {
   #running = false;
 
+  readonly #steps: MoneyAccountMigrationPocService;
+
   constructor({
     messenger,
     state,
+    steps,
   }: {
     messenger: MoneyAccountMigrationControllerMessenger;
     state?: Partial<MoneyAccountMigrationControllerState>;
+    steps: MoneyAccountMigrationPocService;
   }) {
     super({
       name: MONEY_ACCOUNT_MIGRATION_CONTROLLER_NAME,
@@ -135,26 +85,26 @@ export class MoneyAccountMigrationController extends BaseController<
         ...state,
       },
     });
-  }
-
-  get snapshot(): MigrationSnapshot {
-    return this.state;
+    this.#steps = steps;
   }
 
   async migrate({ source, destination }: MigrateParams): Promise<void> {
     await this.#withLock(async () => {
-      const snap = this.state;
-      if (snap.status !== 'IDLE' && snap.status !== 'VERIFIED_INERT') {
+      const cursor = this.state;
+      if (cursor.phase) {
         if (
-          snap.inventory &&
-          snap.destination &&
-          sameAddress(snap.inventory.source, source) &&
-          sameAddress(snap.destination, destination)
+          cursor.oldAddress &&
+          cursor.newAddress &&
+          sameAddress(cursor.oldAddress, source) &&
+          sameAddress(cursor.newAddress, destination)
         ) {
           await this.#continue();
           return;
         }
         throw new Error('migration-in-progress');
+      }
+      if (cursor.migrated[source.toLowerCase()]) {
+        throw new Error('already-migrated');
       }
 
       const inventory = await this.collectInventory(source, destination);
@@ -166,16 +116,16 @@ export class MoneyAccountMigrationController extends BaseController<
         return;
       }
 
-      this.update(() => ({
-        ...snap,
-        status: 'INVENTORIED',
-        inventory,
-        destination,
+      this.#patch({
+        phase: 'CONSENTED',
+        oldAddress: source,
+        newAddress: destination,
+        chainId: inventory.chainId,
+        planHash: planHash(inventory),
+        cardWasLinked: inventory.cardLinked,
         exitBatchId: null,
-        residualDelegation: null,
-        residualDelegationHash: null,
-        tornDownAt: null,
-      }));
+        updatedAt: Date.now(),
+      });
       await this.#continue();
     });
   }
@@ -186,179 +136,136 @@ export class MoneyAccountMigrationController extends BaseController<
 
   async abort(): Promise<void> {
     await this.#withLock(async () => {
-      const snap = this.state;
-      if (snap.status === 'IDLE' || snap.status === 'VERIFIED_INERT') {
+      const { phase, exitBatchId, cardWasLinked } = this.state;
+      if (!phase) {
         return;
       }
-      if (snap.status === 'INVENTORIED') {
-        this.#clearInFlight(snap);
+      if (phase === 'CONSENTED') {
+        this.#clear();
         return;
       }
-      if (snap.status === 'TORN_DOWN') {
-        if (snap.exitBatchId) {
-          throw new Error('batch-in-flight');
+      if (phase === 'TORN_DOWN' && !exitBatchId) {
+        if (cardWasLinked) {
+          await this.restore();
         }
-        if (snap.inventory) {
-          await this.restore(snap.inventory);
-        }
-        this.#clearInFlight(snap);
+        this.#clear();
         return;
       }
       throw new Error('point-of-no-return');
     });
   }
 
-  async sweepFormerAccount(_oldAddress: Hex): Promise<void> {
-    // redeemDelegations as the new key — encodeRedeemDelegations exists;
-    // no high-level sweep helper in mobile yet.
+  collectInventory(source: Hex, destination: Hex): Promise<MigrationInventory> {
+    return this.#steps.collectInventory(source, destination);
   }
 
-  async collectInventory(
-    source: Hex,
-    destination: Hex,
-  ): Promise<MigrationInventory> {
-    return {
-      source,
-      destination,
-      chainId: '0x8f',
-      vmUsd: '0',
-      musd: '0',
-      nativeWei: '0',
-      vaultAllowance: '0',
-      cardAllowance: '0',
-      chompIntentHashes: [],
-      chompDelegationHashes: [],
-      cardLinked: false,
-    };
+  collectBlockers(inventory: MigrationInventory): Promise<MigrationBlocker[]> {
+    return this.#steps.collectBlockers(inventory);
   }
 
-  async collectBlockers(
-    _inventory: MigrationInventory,
-  ): Promise<MigrationBlocker[]> {
-    return [];
+  assertBatchFromSelf(inventory: MigrationInventory): Promise<boolean> {
+    return this.#steps.assertBatchFromSelf(inventory);
   }
 
-  async assertBatchFromSelf(_inventory: MigrationInventory): Promise<boolean> {
-    return false;
-  }
-
-  async teardown(inventory: MigrationInventory): Promise<void> {
-    await this.revokeChompIntents(inventory.chompIntentHashes);
-    await this.revokeStorageDelegations(inventory.chompDelegationHashes);
-    if (inventory.cardLinked) {
-      await this.unlinkCard(inventory.source);
+  async teardown(): Promise<void> {
+    const { cardWasLinked, oldAddress } = this.state;
+    if (cardWasLinked && oldAddress) {
+      await this.unlinkCard(oldAddress);
     }
   }
 
-  async restore(_inventory: MigrationInventory): Promise<void> {
-    // upgradeAccount(source) + Card re-link. Crash during restore stays TORN_DOWN.
+  /** Re-link Card on old. Crash during restore stays TORN_DOWN. */
+  async restore(): Promise<void> {
+    const { oldAddress } = this.state;
+    if (oldAddress) {
+      // ponytail: cap not in cursor (ADR 0007); after a cold resume re-link uses the service default
+      await this.relinkCard(oldAddress);
+    }
   }
 
-  async revokeChompIntents(_hashes: Hex[]): Promise<void> {
-    // not in mobile yet: ChompApiService.revokeIntents (POST /v1/intent/revoke)
-  }
-
-  async revokeStorageDelegations(_hashes: Hex[]): Promise<void> {
-    // AuthenticatedUserStorageService.revokeDelegation — skip residual hash.
-  }
-
-  async unlinkCard(_address: Hex): Promise<void> {
-    // CardController.linkMoneyAccountCard({ moneyAccountAddress, delegationAmountHuman: '0' })
+  unlinkCard(address: Hex): Promise<void> {
+    return this.#steps.unlinkCard(address);
   }
 
   async executeExitBatch(inventory: MigrationInventory): Promise<void> {
-    let { exitBatchId } = this.state;
-    if (exitBatchId) {
-      await this.awaitExitBatch(exitBatchId);
+    const existing = this.state.exitBatchId;
+    if (existing) {
+      await this.awaitExitBatch(existing);
+      this.#setPhase('BATCH_EXECUTED');
       return;
     }
 
-    const blockers = await this.collectBlockers(inventory);
-    if (blockers.length > 0) {
-      throw new Error(blockers[0].kind);
-    }
-
-    exitBatchId = await this.submitExitBatch(inventory);
+    const exitBatchId = await this.submitExitBatch(inventory);
     if (!exitBatchId) {
+      // Nothing to move: old already holds no footprint.
+      this.#setPhase('BATCH_EXECUTED');
       return;
     }
-    this.update((state) => {
-      state.exitBatchId = exitBatchId;
+    this.#patch({
+      phase: 'BATCH_SUBMITTED',
+      exitBatchId,
+      updatedAt: Date.now(),
     });
     await this.awaitExitBatch(exitBatchId);
+    this.#setPhase('BATCH_EXECUTED');
   }
 
-  async submitExitBatch(_inventory: MigrationInventory): Promise<Hex | null> {
-    // addTransactionBatch({ atomic: true, disableSequential: true })
-    return null;
+  submitExitBatch(inventory: MigrationInventory): Promise<Hex | null> {
+    return this.#steps.submitExitBatch(inventory);
   }
 
-  async awaitExitBatch(_batchId: Hex): Promise<void> {
-    // Await existing batch. Failed/dropped: caller clears exitBatchId.
+  awaitExitBatch(exitBatchId: Hex): Promise<void> {
+    return this.#steps.awaitExitBatch(exitBatchId);
   }
 
-  async persistResidualDelegation(
-    _source: Hex,
-    _destination: Hex,
-  ): Promise<void> {
-    const { residualDelegation } = this.state;
-    if (residualDelegation) {
+  /** Sign once into AUS if the blob is missing. Never copied locally. */
+  async persistResidualDelegation(): Promise<void> {
+    const { oldAddress, newAddress, chainId } = this.state;
+    if (!oldAddress || !newAddress || !chainId) {
       return;
     }
-    // Sign once: delegator=old, delegate=new, empty caveats. Persist blob.
+    await this.#steps.persistResidualDelegation(
+      oldAddress,
+      newAddress,
+      chainId,
+    );
   }
 
-  async reprovision(
-    destination: Hex,
-    inventory: MigrationInventory,
-  ): Promise<void> {
-    await this.upgradeDestination(destination);
-    if (inventory.cardLinked) {
-      await this.relinkCard(destination);
+  async reprovision(): Promise<void> {
+    const { oldAddress, newAddress } = this.state;
+    if (!oldAddress || !newAddress) {
+      return;
     }
-    await this.setActiveMoneyAccountId(destination);
+    await this.upgradeDestination(newAddress);
+    if (this.state.cardWasLinked) {
+      await this.relinkCard(newAddress);
+    }
+    this.markMigrated(oldAddress, newAddress);
   }
 
-  async upgradeDestination(_destination: Hex): Promise<void> {
-    // MoneyAccountUpgradeController.upgradeAccount(destination)
+  upgradeDestination(destination: Hex): Promise<void> {
+    return this.#steps.upgradeDestination(destination);
   }
 
-  async relinkCard(_destination: Hex): Promise<void> {
-    // CardController.linkMoneyAccountCard({ moneyAccountAddress: dest, cap })
+  relinkCard(destination: Hex): Promise<void> {
+    return this.#steps.relinkCard(destination);
   }
 
-  async setActiveMoneyAccountId(_destination: Hex): Promise<void> {
-    // not in mobile yet: persist pointer vs primary-HD selector
+  /** `selectPrimaryMoneyAccount` follows this pointer; the old MoneyAccount record stays. */
+  markMigrated(oldAddress: Hex, newAddress: Hex): void {
+    this.update((state) => {
+      state.migrated[oldAddress.toLowerCase()] = {
+        newAddress,
+        migratedAt: Date.now(),
+      };
+    });
   }
 
-  async verifyOldInert(_inventory: MigrationInventory): Promise<void> {
-    // vmUSD/mUSD/allowances 0, 7702 kept, no active CHOMP intents, Card unlinked.
-  }
-
-  async persistFormerLink(source: Hex, destination: Hex): Promise<void> {
-    const snap = this.state;
-    this.update(() => ({
-      ...snap,
-      formerMoneyAccounts: {
-        ...snap.formerMoneyAccounts,
-        [source.toLowerCase()]: {
-          newAddress: destination,
-          residualDelegation: snap.residualDelegation,
-          residualDelegationHash: snap.residualDelegationHash,
-        },
-      },
-    }));
-  }
-
-  async persistAccountsApiAlias(
-    _source: Hex,
-    _destination: Hex,
-  ): Promise<void> {
-    // not in mobile yet: CHOMP/Accounts API old→new alias
-  }
-
-  async acquireMigrationLock(_source: Hex): Promise<void> {
-    // not in mobile yet: backend cross-device migration lock
+  async verifyOldInert(): Promise<void> {
+    const { oldAddress, newAddress } = this.state;
+    if (oldAddress && newAddress) {
+      await this.#steps.verifyOldInert(oldAddress, newAddress);
+    }
   }
 
   async #withLock(fn: () => Promise<void>): Promise<void> {
@@ -374,93 +281,112 @@ export class MoneyAccountMigrationController extends BaseController<
   }
 
   async #continue(): Promise<void> {
-    const snap = this.state;
-    if (
-      snap.status === 'IDLE' ||
-      snap.status === 'VERIFIED_INERT' ||
-      !snap.inventory ||
-      !snap.destination
-    ) {
+    let { phase } = this.state;
+    if (!phase || !this.state.oldAddress || !this.state.newAddress) {
       return;
     }
 
-    const live = await this.collectInventory(
-      snap.inventory.source,
-      snap.destination,
-    );
-    let status = reconcile({
-      status: snap.status,
-      plan: snap.inventory,
-      live,
-    });
-    if (status !== snap.status) {
-      this.update((state) => {
-        state.status = status;
-      });
+    if (
+      this.state.exitBatchId &&
+      (phase === 'TORN_DOWN' || phase === 'BATCH_SUBMITTED')
+    ) {
+      await this.awaitExitBatch(this.state.exitBatchId);
+      this.#setPhase('BATCH_EXECUTED');
+      phase = 'BATCH_EXECUTED';
     }
 
-    if (
-      status === 'TORN_DOWN' &&
-      !this.state.exitBatchId &&
-      this.state.tornDownAt !== null &&
-      Date.now() - (this.state.tornDownAt as number) >= AUTO_RESTORE_AFTER_MS
-    ) {
-      await this.restore(snap.inventory);
-      this.#clearInFlight(this.state);
+    if (phase === 'CONSENTED') {
+      const inventory = await this.#recheck();
+      if (!inventory) {
+        return;
+      }
+      await this.teardown();
+      this.#patch({ phase: 'TORN_DOWN', updatedAt: Date.now() });
+      phase = 'TORN_DOWN';
+      await this.#runFromTornDown(inventory);
       return;
     }
 
-    const inventory: MigrationInventory = {
-      ...snap.inventory,
-      destination: snap.destination,
-    };
-
-    if (status === 'INVENTORIED') {
-      await this.teardown(inventory);
-      this.update((state) => {
-        state.status = 'TORN_DOWN';
-        state.tornDownAt = Date.now();
-      });
-      status = reconcile({
-        status: 'TORN_DOWN',
-        plan: snap.inventory,
-        live,
-      });
-    }
-
-    if (status === 'TORN_DOWN') {
-      await this.executeExitBatch(inventory);
-      this.update((state) => {
-        state.status = 'BATCH_EXECUTED';
-      });
-      status = 'BATCH_EXECUTED';
-    }
-
-    if (status === 'BATCH_EXECUTED') {
-      await this.persistResidualDelegation(
-        inventory.source,
-        inventory.destination,
+    if (phase === 'TORN_DOWN' || phase === 'BATCH_SUBMITTED') {
+      const inventory = await this.collectInventory(
+        this.state.oldAddress,
+        this.state.newAddress,
       );
-      await this.reprovision(inventory.destination, inventory);
-      this.update((state) => {
-        state.status = 'RE_PROVISIONED';
-      });
-      status = 'RE_PROVISIONED';
+      await this.#runFromTornDown(inventory);
+      return;
     }
 
-    if (status === 'RE_PROVISIONED') {
-      await this.verifyOldInert(inventory);
-      await this.persistFormerLink(inventory.source, inventory.destination);
-      this.update((state) => {
-        state.status = 'VERIFIED_INERT';
-      });
-    }
+    await this.#finishAfterBatch();
   }
 
-  #clearInFlight(snap: MigrationSnapshot): void {
-    this.update(() => ({
-      ...EMPTY_SNAPSHOT,
-      formerMoneyAccounts: snap.formerMoneyAccounts,
-    }));
+  async #recheck(): Promise<MigrationInventory | null> {
+    const { oldAddress, newAddress } = this.state;
+    if (!oldAddress || !newAddress) {
+      return null;
+    }
+    const live = await this.collectInventory(oldAddress, newAddress);
+    const blockers = await this.collectBlockers(live);
+    if (blockers.length > 0) {
+      return null;
+    }
+    // ponytail: spend-drift re-consent when consent UI exists
+    return live;
+  }
+
+  async #runFromTornDown(inventory: MigrationInventory): Promise<void> {
+    if (
+      this.state.phase === 'TORN_DOWN' &&
+      !this.state.exitBatchId &&
+      this.state.updatedAt !== null &&
+      Date.now() - this.state.updatedAt >= AUTO_RESTORE_AFTER_MS
+    ) {
+      await this.restore();
+      this.#clear();
+      return;
+    }
+
+    if (
+      this.state.phase === 'TORN_DOWN' ||
+      this.state.phase === 'BATCH_SUBMITTED'
+    ) {
+      await this.executeExitBatch(inventory);
+    }
+    await this.#finishAfterBatch();
+  }
+
+  async #finishAfterBatch(): Promise<void> {
+    const { phase } = this.state;
+    if (
+      phase !== 'BATCH_EXECUTED' &&
+      phase !== 'RESIDUAL_SIGNED' &&
+      phase !== 'REPROVISIONING'
+    ) {
+      return;
+    }
+
+    if (phase === 'BATCH_EXECUTED') {
+      await this.persistResidualDelegation();
+      this.#setPhase('RESIDUAL_SIGNED');
+    }
+    if (this.state.phase === 'RESIDUAL_SIGNED') {
+      this.#setPhase('REPROVISIONING');
+    }
+    await this.reprovision();
+    await this.verifyOldInert();
+    this.#clear();
+  }
+
+  #setPhase(phase: MigrationPhase): void {
+    this.#patch({ phase, updatedAt: Date.now() });
+  }
+
+  #patch(partial: Partial<MigrationCursor>): void {
+    this.update((state) => {
+      Object.assign(state, partial);
+    });
+  }
+
+  #clear(): void {
+    this.update((state) => ({ ...EMPTY_CURSOR, migrated: state.migrated }));
   }
 }
