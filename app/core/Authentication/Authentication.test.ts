@@ -220,7 +220,7 @@ jest.mock('../Engine', () => ({
     },
 
     QrSyncController: {
-      finalizeVaultCreation: jest.fn(),
+      importRemainingSecrets: jest.fn(),
     },
   },
 }));
@@ -1456,7 +1456,7 @@ describe('Authentication', () => {
         expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
       });
 
-      it('calls finalizeVaultCreation after primary vault restore when isQrSync is true', async () => {
+      it('calls importRemainingSecrets after primary vault restore when isQrSync is true', async () => {
         const Engine = jest.requireMock('../Engine');
 
         await Authentication.newWalletAndRestore(
@@ -1468,11 +1468,11 @@ describe('Authentication', () => {
         );
 
         expect(
-          Engine.context.QrSyncController.finalizeVaultCreation,
+          Engine.context.QrSyncController.importRemainingSecrets,
         ).toHaveBeenCalledWith();
       });
 
-      it('does not call finalizeVaultCreation when isQrSync is false', async () => {
+      it('does not call importRemainingSecrets when isQrSync is false', async () => {
         const Engine = jest.requireMock('../Engine');
 
         await Authentication.newWalletAndRestore(
@@ -1484,7 +1484,7 @@ describe('Authentication', () => {
         );
 
         expect(
-          Engine.context.QrSyncController.finalizeVaultCreation,
+          Engine.context.QrSyncController.importRemainingSecrets,
         ).not.toHaveBeenCalled();
       });
 

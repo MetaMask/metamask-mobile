@@ -39,7 +39,7 @@ const buildState = (
 // Minimal EncodedBytes value — actual word indices don't matter for selector tests.
 const TEST_MNEMONIC_BYTES = [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6];
 
-const pendingPayload = {
+const pendingSecretImports = {
   version: 1 as const,
   wallets: [
     {
@@ -58,53 +58,71 @@ const pendingPayload = {
   ],
 };
 
+const provisioningMetadata = {
+  version: 1 as const,
+  wallets: [
+    {
+      id: 'wallet:test' as `wallet:${string}`,
+      type: 'mnemonic' as const,
+      metadata: { name: 'Wallet 1' },
+      groups: [
+        {
+          id: 'wallet:test/0' as `wallet:${string}/${string}`,
+          groupIndex: 0,
+          metadata: { name: 'Account 1', pinned: false, hidden: false },
+        },
+      ],
+    },
+  ],
+};
+
 describe('qrSyncController selectors', () => {
   describe('selectQrSyncPrimaryMnemonic', () => {
     it('decodes EncodedBytes value to a mnemonic phrase string', () => {
       const result = selectQrSyncPrimaryMnemonic(
-        buildState({ pendingPayload }),
+        buildState({ pendingSecretImports }),
       );
       expect(result).toBe(`decoded:${TEST_MNEMONIC_BYTES.join(',')}`);
     });
 
-    it('returns null when pendingPayload is null', () => {
+    it('returns null when pendingSecretImports is null', () => {
       expect(
-        selectQrSyncPrimaryMnemonic(buildState({ pendingPayload: null })),
+        selectQrSyncPrimaryMnemonic(buildState({ pendingSecretImports: null })),
       ).toBeNull();
     });
 
     it('returns null when value is absent', () => {
       const payloadWithoutValue = {
-        ...pendingPayload,
-        wallets: [{ ...pendingPayload.wallets[0], value: undefined }],
+        ...pendingSecretImports,
+        wallets: [{ ...pendingSecretImports.wallets[0], value: undefined }],
       };
       expect(
         selectQrSyncPrimaryMnemonic(
-          buildState({ pendingPayload: payloadWithoutValue }),
+          buildState({ pendingSecretImports: payloadWithoutValue }),
         ),
       ).toBeNull();
     });
   });
 
   describe('selectQrSyncShouldNavigateToImport', () => {
-    it('returns true when awaiting password with pending payload', () => {
+    it('returns true when awaiting password with pending secret imports', () => {
       expect(
         selectQrSyncShouldNavigateToImport(
           buildState({
             provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-            pendingPayload,
+            pendingSecretImports,
           }),
         ),
       ).toBe(true);
     });
 
-    it('returns true after sync completes while payload is still pending', () => {
+    it('returns true after sync completes while secrets are still pending', () => {
       expect(
         selectQrSyncShouldNavigateToImport(
           buildState({
             phase: QrSyncPhases.COMPLETED,
             provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-            pendingPayload,
+            pendingSecretImports,
           }),
         ),
       ).toBe(true);
@@ -115,7 +133,7 @@ describe('qrSyncController selectors', () => {
         selectQrSyncShouldNavigateToImport(
           buildState({
             provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
-            pendingPayload,
+            pendingSecretImports,
           }),
         ),
       ).toBe(false);
@@ -123,12 +141,12 @@ describe('qrSyncController selectors', () => {
   });
 
   describe('selectQrSyncNeedsProvisioning', () => {
-    it('returns true when secrets are imported and payload is present', () => {
+    it('returns true when secrets are imported and provisioningMetadata is present', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
             provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
-            pendingPayload,
+            provisioningMetadata,
           }),
         ),
       ).toBe(true);
@@ -139,18 +157,18 @@ describe('qrSyncController selectors', () => {
         selectQrSyncNeedsProvisioning(
           buildState({
             provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-            pendingPayload,
+            provisioningMetadata,
           }),
         ),
       ).toBe(false);
     });
 
-    it('returns false when pending payload is null', () => {
+    it('returns false when provisioningMetadata is null', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
             provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
-            pendingPayload: null,
+            provisioningMetadata: null,
           }),
         ),
       ).toBe(false);
@@ -161,7 +179,7 @@ describe('qrSyncController selectors', () => {
         selectQrSyncNeedsProvisioning(
           buildState({
             provisioningStatus: QrSyncProvisioningStatuses.COMPLETED,
-            pendingPayload: null,
+            provisioningMetadata: null,
           }),
         ),
       ).toBe(false);
@@ -169,19 +187,19 @@ describe('qrSyncController selectors', () => {
   });
 
   describe('selectQrSyncPresentation', () => {
-    it('keeps device-linked presentation after sync completes with pending payload', () => {
+    it('keeps device-linked presentation after sync completes with pending secrets', () => {
       const state = buildState({
         phase: QrSyncPhases.COMPLETED,
-        pendingPayload,
+        pendingSecretImports,
       });
 
       expect(selectQrSyncPresentation(state)).toBe('device-linked');
     });
 
-    it('returns instructions when sync completes without pending payload', () => {
+    it('returns instructions when sync completes without pending secrets', () => {
       const state = buildState({
         phase: QrSyncPhases.COMPLETED,
-        pendingPayload: null,
+        pendingSecretImports: null,
       });
 
       expect(selectQrSyncPresentation(state)).toBe('instructions');

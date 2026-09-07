@@ -84,15 +84,15 @@ export class QrSyncProvisioningService {
    * by entropy source ID and have metadata applied without re-import.
    */
   async importFromPayload(): Promise<void> {
-    const { pendingPayload } = this.#getQrSyncControllerState();
+    const { pendingSecretImports } = this.#getQrSyncControllerState();
 
-    if (!pendingPayload) {
+    if (!pendingSecretImports) {
       return;
     }
 
     await this.#messenger.call(
       'AccountTreeController:importState',
-      await AccountTreeSnapshot.deserialize(pendingPayload),
+      await AccountTreeSnapshot.deserialize(pendingSecretImports),
     );
   }
 
@@ -104,15 +104,24 @@ export class QrSyncProvisioningService {
    * marker was set) and `secrets_imported` (new-user path after vault creation).
    */
   async provisionFromMetadata(): Promise<void> {
-    const { pendingPayload, provisioningStatus } =
+    const { pendingSecretImports, provisioningMetadata, provisioningStatus } =
       this.#getQrSyncControllerState();
 
-    this.#assertProvisioningPreconditions(provisioningStatus, pendingPayload);
+    // On the new-user path (SECRETS_IMPORTED) use the persisted secrets-stripped
+    // provisioningMetadata — all secrets were already imported in Phase B.
+    // On the existing-user path (AWAITING_PASSWORD) use pendingSecretImports (full
+    // snapshot) so importState can import any missing wallets/keys in one call.
+    const source =
+      provisioningStatus === QrSyncProvisioningStatuses.SECRETS_IMPORTED
+        ? provisioningMetadata
+        : pendingSecretImports;
+
+    this.#assertProvisioningPreconditions(provisioningStatus, source);
 
     try {
       await this.#messenger.call(
         'AccountTreeController:importState',
-        await AccountTreeSnapshot.deserialize(pendingPayload),
+        await AccountTreeSnapshot.deserialize(source),
       );
 
       await this.#reconcileWithUserStorage();

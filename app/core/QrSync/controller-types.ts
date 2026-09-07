@@ -26,16 +26,18 @@ export type QrSyncControllerState = {
   phase: QrSyncPhase;
   connectionStatus: QrSyncConnectionStatus;
   syncFlow: QrSyncSyncFlow | null;
-  /** Ephemeral account tree payload (secrets + metadata). Never persisted. */
-  pendingPayload: AccountTreePayload | null;
+  /** Ephemeral full account tree payload (secrets + metadata). Never persisted. */
+  pendingSecretImports: AccountTreePayload | null;
+  /** Persisted secrets-stripped payload for Phase C metadata provisioning. */
+  provisioningMetadata: AccountTreePayload | null;
   provisioningStatus: QrSyncProvisioningStatus | null;
   otp: QrSyncOtpDisplay | null;
   error: QrSyncError | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncControllerFinalizeVaultCreationAction = {
-  type: `${typeof QR_SYNC_CONTROLLER_NAME}:finalizeVaultCreation`;
+export type QrSyncControllerImportRemainingSecretsAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:importRemainingSecrets`;
   handler: () => Promise<void>;
 };
 
@@ -77,7 +79,7 @@ export type QrSyncControllerGetStateAction = ControllerGetStateAction<
 /** Controller-local actions exposed by the QR sync controller namespace. */
 export type QrSyncControllerActions =
   | QrSyncControllerGetStateAction
-  | QrSyncControllerFinalizeVaultCreationAction
+  | QrSyncControllerImportRemainingSecretsAction
   | QrSyncControllerMarkProvisioningFailedAction
   | QrSyncControllerCompleteProvisioningAction
   | QrSyncControllerResetStateAction

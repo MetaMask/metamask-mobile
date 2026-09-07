@@ -31,7 +31,21 @@ jest.mock('@metamask/account-tree-controller', () => {
     ...actual,
     AccountTreeSnapshot: {
       ...actual.AccountTreeSnapshot,
-      deserialize: jest.fn((payload: unknown) => Promise.resolve(payload)),
+      deserialize: jest.fn((payload: unknown) => {
+        const strippedWallets = (
+          payload as { wallets?: { value?: unknown }[] }
+        ).wallets?.map(({ value: _v, ...rest }) => rest);
+        const stripped = { ...(payload as object), wallets: strippedWallets };
+        const snapshot = {
+          ...(payload as object),
+          stripSecrets: jest.fn().mockReturnValue({
+            ...stripped,
+            serialize: jest.fn().mockReturnValue(stripped),
+          }),
+          stripMetadata: jest.fn().mockReturnThis(),
+        };
+        return Promise.resolve(snapshot);
+      }),
     },
   };
 });
@@ -468,7 +482,7 @@ describe('QrSyncController', () => {
       await flushPromises();
 
       expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
-      expect(controller.state.pendingPayload).toMatchObject({
+      expect(controller.state.pendingSecretImports).toMatchObject({
         version: 1,
         wallets: [
           {
@@ -479,6 +493,13 @@ describe('QrSyncController', () => {
           },
         ],
       });
+      expect(controller.state.provisioningMetadata).toMatchObject({
+        version: 1,
+        wallets: [{ type: 'mnemonic' }],
+      });
+      expect(
+        controller.state.provisioningMetadata?.wallets[0],
+      ).not.toHaveProperty('value');
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
       );
@@ -509,7 +530,7 @@ describe('QrSyncController', () => {
         message:
           'QR sync payload must include a primary mnemonic for new-user onboarding.',
       });
-      expect(controller.state.pendingPayload).toBeNull();
+      expect(controller.state.pendingSecretImports).toBeNull();
       expect(controller.state.provisioningStatus).toBeNull();
       expect(walletClient.client.sendResponse).toHaveBeenCalledWith({
         type: QrSyncActionTypes.SYNC_ERROR,
@@ -537,7 +558,7 @@ describe('QrSyncController', () => {
       await flushPromises();
 
       expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
-      expect(controller.state.pendingPayload).toMatchObject({
+      expect(controller.state.pendingSecretImports).toMatchObject({
         version: 1,
         wallets: [{ type: 'private-key' }],
       });
@@ -656,7 +677,7 @@ describe('QrSyncController', () => {
       walletClient.emit('message', createSyncReadyWireMessage());
       await flushPromises();
 
-      expect(controller.state.pendingPayload).not.toBeNull();
+      expect(controller.state.pendingSecretImports).not.toBeNull();
 
       controller.resetState();
       await flushPromises();
@@ -713,17 +734,17 @@ describe('QrSyncController', () => {
       walletClient.emit('message', createSyncReadyWireMessage());
       await flushPromises();
 
-      expect(controller.state.pendingPayload).not.toBeNull();
+      expect(controller.state.pendingSecretImports).not.toBeNull();
 
       controller.markProvisioningFailed();
 
-      expect(controller.state.pendingPayload).toBeNull();
+      expect(controller.state.pendingSecretImports).toBeNull();
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.FAILED,
       );
     });
 
-    it('finalizeVaultCreation sets SECRETS_IMPORTED and calls importState when in AWAITING_PASSWORD', async () => {
+    it('importRemainingSecrets sets SECRETS_IMPORTED, calls importState with stripMetadata result, and clears pendingSecretImports', async () => {
       const mockImportState = jest.fn().mockResolvedValue(undefined);
       const messenger = buildMessengerWithImportState(mockImportState);
       const controller = new QrSyncController({
@@ -741,22 +762,25 @@ describe('QrSyncController', () => {
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
       );
+      expect(controller.state.pendingSecretImports).not.toBeNull();
 
-      await controller.finalizeVaultCreation();
+      await controller.importRemainingSecrets();
 
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.SECRETS_IMPORTED,
       );
+      expect(controller.state.pendingSecretImports).toBeNull();
       expect(mockImportState).toHaveBeenCalledTimes(1);
+      // snapshot.stripMetadata() is called; the mock returns `this` (the snapshot itself)
       expect(mockImportState).toHaveBeenCalledWith(
-        controller.state.pendingPayload,
+        expect.objectContaining({ stripMetadata: expect.any(Function) }),
       );
     });
 
-    it('finalizeVaultCreation is a no-op when not in AWAITING_PASSWORD', async () => {
+    it('importRemainingSecrets is a no-op when not in AWAITING_PASSWORD', async () => {
       const controller = buildController();
 
-      await controller.finalizeVaultCreation();
+      await controller.importRemainingSecrets();
 
       expect(controller.state.provisioningStatus).toBeNull();
     });

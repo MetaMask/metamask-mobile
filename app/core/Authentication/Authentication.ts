@@ -634,7 +634,7 @@ class AuthenticationService {
       await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
-        await Engine.context.QrSyncController.finalizeVaultCreation();
+        await Engine.context.QrSyncController.importRemainingSecrets();
       }
 
       await this.storePassword(password, authData.currentAuthType, true);

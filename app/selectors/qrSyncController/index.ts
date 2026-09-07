@@ -29,7 +29,7 @@ export const selectQrSyncError = createSelector(
 export const selectQrSyncPrimaryMnemonic = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) => {
-    const primaryWallet = qrSyncState.pendingPayload?.wallets.find(
+    const primaryWallet = qrSyncState.pendingSecretImports?.wallets.find(
       (w): w is AccountWalletMnemonicPayload => w.type === 'mnemonic',
     );
     if (!primaryWallet?.value) {
@@ -48,8 +48,8 @@ export const selectQrSyncImportMnemonic = selectQrSyncPrimaryMnemonic;
 export const selectQrSyncHasPendingSecrets = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
-    qrSyncState.pendingPayload !== null &&
-    qrSyncState.pendingPayload?.wallets.length > 0,
+    qrSyncState.pendingSecretImports !== null &&
+    qrSyncState.pendingSecretImports?.wallets.length > 0,
 );
 
 export const selectQrSyncIsBusy = createSelector(
@@ -98,7 +98,7 @@ export const selectQrSyncShouldNavigateToImport = createSelector(
   (qrSyncState) =>
     qrSyncState.provisioningStatus ===
       QrSyncProvisioningStatuses.AWAITING_PASSWORD &&
-    qrSyncState.pendingPayload !== null,
+    qrSyncState.pendingSecretImports !== null,
 );
 
 export const selectQrSyncNeedsProvisioning = createSelector(
@@ -106,5 +106,5 @@ export const selectQrSyncNeedsProvisioning = createSelector(
   (qrSyncState) =>
     qrSyncState.provisioningStatus ===
       QrSyncProvisioningStatuses.SECRETS_IMPORTED &&
-    qrSyncState.pendingPayload !== null,
+    qrSyncState.provisioningMetadata !== null,
 );

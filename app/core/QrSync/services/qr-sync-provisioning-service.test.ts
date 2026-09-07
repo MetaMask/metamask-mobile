@@ -56,11 +56,30 @@ const createPendingPayload = (): AccountTreePayload => ({
   ],
 });
 
+const createProvisioningMetadata = (): AccountTreePayload => ({
+  version: 1,
+  wallets: [
+    {
+      id: 'wallet:test' as AccountWalletPayloadId,
+      type: 'mnemonic',
+      metadata: { name: 'Test Wallet' },
+      groups: [
+        {
+          id: 'wallet:test/0' as AccountGroupPayloadId,
+          groupIndex: 0,
+          metadata: { name: 'Account 1', pinned: false, hidden: false },
+        },
+      ],
+    },
+  ],
+});
+
 const createSecretsImportedState = (
   overrides: Partial<QrSyncControllerState> = {},
 ): QrSyncControllerState => ({
   ...defaultQrSyncControllerState,
-  pendingPayload: createPendingPayload(),
+  pendingSecretImports: createPendingPayload(),
+  provisioningMetadata: createProvisioningMetadata(),
   provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
   ...overrides,
 });
@@ -115,11 +134,11 @@ describe('QrSyncProvisioningService', () => {
   });
 
   describe('importFromPayload', () => {
-    it('calls AccountTreeController:importState with the pending payload', async () => {
-      const pendingPayload = createPendingPayload();
+    it('calls AccountTreeController:importState with the pending secret imports', async () => {
+      const pendingSecretImports = createPendingPayload();
       mockMessenger.call = jest.fn((action: string) => {
         if (action === 'QrSyncController:getState') {
-          return createSecretsImportedState({ pendingPayload });
+          return createSecretsImportedState({ pendingSecretImports });
         }
         return undefined;
       });
@@ -131,14 +150,17 @@ describe('QrSyncProvisioningService', () => {
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:importState',
-        pendingPayload,
+        expect.objectContaining({
+          version: 1,
+          wallets: pendingSecretImports.wallets,
+        }),
       );
     });
 
-    it('no-ops when pending payload is null', async () => {
+    it('no-ops when pendingSecretImports is null', async () => {
       mockMessenger.call = jest.fn((action: string) => {
         if (action === 'QrSyncController:getState') {
-          return createSecretsImportedState({ pendingPayload: null });
+          return createSecretsImportedState({ pendingSecretImports: null });
         }
         return undefined;
       });
@@ -156,11 +178,11 @@ describe('QrSyncProvisioningService', () => {
   });
 
   describe('provisionFromMetadata', () => {
-    it('calls importState, syncWithUserStorage, and completes provisioning', async () => {
-      const pendingPayload = createPendingPayload();
+    it('on SECRETS_IMPORTED path: uses provisioningMetadata (no secrets) and completes provisioning', async () => {
+      const metadata = createProvisioningMetadata();
       const mockCall = jest.fn((action: string) => {
         if (action === 'QrSyncController:getState') {
-          return createSecretsImportedState({ pendingPayload });
+          return createSecretsImportedState({ provisioningMetadata: metadata });
         }
         return undefined;
       });
@@ -173,7 +195,7 @@ describe('QrSyncProvisioningService', () => {
 
       expect(mockCall).toHaveBeenCalledWith(
         'AccountTreeController:importState',
-        pendingPayload,
+        expect.objectContaining({ version: 1, wallets: metadata.wallets }),
       );
       expect(mockCall).toHaveBeenCalledWith(
         'AccountTreeController:syncWithUserStorage',
@@ -186,11 +208,13 @@ describe('QrSyncProvisioningService', () => {
       );
     });
 
-    it('also accepts awaiting_password status (existing-user path)', async () => {
+    it('on AWAITING_PASSWORD path: uses pendingSecretImports (full snapshot with secrets)', async () => {
+      const pendingSecretImports = createPendingPayload();
       const mockCall = jest.fn((action: string) => {
         if (action === 'QrSyncController:getState') {
           return createSecretsImportedState({
             provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+            pendingSecretImports,
           });
         }
         return undefined;
@@ -204,7 +228,10 @@ describe('QrSyncProvisioningService', () => {
 
       expect(mockCall).toHaveBeenCalledWith(
         'AccountTreeController:importState',
-        expect.anything(),
+        expect.objectContaining({
+          version: 1,
+          wallets: pendingSecretImports.wallets,
+        }),
       );
       expect(mockCall).toHaveBeenCalledWith(
         'QrSyncController:completeProvisioning',
@@ -239,7 +266,7 @@ describe('QrSyncProvisioningService', () => {
     });
 
     it('completes provisioning when user storage reconciliation fails', async () => {
-      const mockCall = jest.fn((action: string, ...args: unknown[]) => {
+      const mockCall = jest.fn((action: string) => {
         if (action === 'QrSyncController:getState') {
           return createSecretsImportedState({
             syncFlow: QrSyncSyncFlows.NEW_USER,
@@ -292,9 +319,10 @@ describe('QrSyncProvisioningService', () => {
       );
     });
 
-    it('throws when pending payload is null', async () => {
+    it('throws when the resolved source payload is null', async () => {
+      // SECRETS_IMPORTED but provisioningMetadata is null
       mockMessenger.call = createMessengerCallMock({
-        pendingPayload: null,
+        provisioningMetadata: null,
       });
       const provisionService = new QrSyncProvisioningService({
         messenger: asProvisioningMessenger(mockMessenger),

@@ -49,12 +49,12 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
 
     await controller.applyTestSyncReadyPayload({ mnemonic: TEST_MNEMONIC });
 
-    expect(controller.state.pendingPayload?.wallets[0].id).toBe(
+    expect(controller.state.pendingSecretImports?.wallets[0].id).toBe(
       'wallet:entropy:mnemonic:94cc3e86-bcfe-43b6-8be2-d8a66fc55070',
     );
   });
 
-  it('sets awaiting_password state and stores AccountTreePayload for new-user', async () => {
+  it('sets awaiting_password state, stores full payload in pendingSecretImports and secrets-stripped in provisioningMetadata', async () => {
     const controller = buildController(() => false);
 
     await controller.applyTestSyncReadyPayload({
@@ -68,7 +68,8 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     expect(controller.state.provisioningStatus).toBe(
       QrSyncProvisioningStatuses.AWAITING_PASSWORD,
     );
-    expect(controller.state.pendingPayload).toMatchObject({
+    // pendingSecretImports: full payload with secret value
+    expect(controller.state.pendingSecretImports).toMatchObject({
       version: 1,
       wallets: [
         {
@@ -79,6 +80,19 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
         },
       ],
     });
+    // provisioningMetadata: secrets stripped, no value
+    expect(controller.state.provisioningMetadata).toMatchObject({
+      version: 1,
+      wallets: [
+        {
+          type: 'mnemonic',
+          metadata: { name: 'Extension Wallet' },
+        },
+      ],
+    });
+    expect(
+      controller.state.provisioningMetadata?.wallets[0],
+    ).not.toHaveProperty('value');
   });
 
   it('uses default wallet and account names when omitted', async () => {
@@ -89,7 +103,7 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     });
 
     expect(controller.state.syncFlow).toBe(QrSyncSyncFlows.EXISTING_USER);
-    expect(controller.state.pendingPayload?.wallets[0]).toMatchObject({
+    expect(controller.state.pendingSecretImports?.wallets[0]).toMatchObject({
       type: 'mnemonic',
       value: expect.any(Array),
       metadata: { name: 'Extension Wallet' },

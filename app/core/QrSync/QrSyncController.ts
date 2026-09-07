@@ -108,11 +108,17 @@ const metadata: StateMetadata<QrSyncControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
-  pendingPayload: {
+  pendingSecretImports: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
     usedInUi: true,
+  },
+  provisioningMetadata: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
   },
   provisioningStatus: {
     persist: true,
@@ -126,7 +132,8 @@ export const defaultQrSyncControllerState: QrSyncControllerState = {
   phase: QrSyncPhases.IDLE,
   connectionStatus: 'disconnected',
   syncFlow: null,
-  pendingPayload: null,
+  pendingSecretImports: null,
+  provisioningMetadata: null,
   provisioningStatus: null,
   otp: null,
   error: null,
@@ -136,7 +143,7 @@ export const defaultQrSyncControllerState: QrSyncControllerState = {
  * Controller that owns serialized QR sync state and coordinates runtime helpers.
  *
  * Runtime-only objects such as `WalletClient` are intentionally kept out of
- * controller state. `pendingPayload` holds secret material and is excluded
+ * controller state. `pendingSecretImports` holds secret material and is excluded
  * from debug snapshots, state logs, and persistence.
  */
 export class QrSyncController extends BaseController<
@@ -224,7 +231,7 @@ export class QrSyncController extends BaseController<
 
   /**
    * Resets serialized controller state and tears down any active session.
-   * Clears secret material such as `pendingPayload` from memory.
+   * Clears secret material such as `pendingSecretImports` from memory.
    */
   public resetState(): void {
     this.destroySession().catch(() => undefined);
@@ -233,17 +240,17 @@ export class QrSyncController extends BaseController<
 
   /**
    * Whether ephemeral secrets are waiting for vault import.
-   * UI callers should use this instead of reading `pendingPayload` directly.
+   * UI callers should use this instead of reading `pendingSecretImports` directly.
    */
   public hasPendingSecretImports(): boolean {
-    return this.state.pendingPayload !== null;
+    return this.state.pendingSecretImports !== null;
   }
 
   /**
    * E2E-only: apply an SRP sync-ready payload without MWP pairing.
    *
    * Constructs a minimal `AccountTreePayload` from the test parameters and
-   * stores it as `pendingPayload` so `useQrSyncImportNavigation` can continue
+   * stores it as `pendingSecretImports` so `useQrSyncImportNavigation` can continue
    * the new-user or existing-user import path.
    *
    * @throws If `HAS_TEST_OVERRIDES` is not enabled, or onboarding requires a
@@ -297,11 +304,15 @@ export class QrSyncController extends BaseController<
       }
     }
 
+    const snapshot = await AccountTreeSnapshot.deserialize(pendingPayload);
     this.update((state) => {
       state.syncFlow = this.getIsOnboardingCompleted()
         ? QrSyncSyncFlows.EXISTING_USER
         : QrSyncSyncFlows.NEW_USER;
-      state.pendingPayload = pendingPayload;
+      state.pendingSecretImports = pendingPayload;
+      state.provisioningMetadata = snapshot
+        .stripSecrets()
+        .serialize() as AccountTreePayload;
       state.provisioningStatus = QrSyncProvisioningStatuses.AWAITING_PASSWORD;
       state.phase = QrSyncPhases.REVIEWING_IMPORT;
       state.otp = null;
@@ -325,31 +336,42 @@ export class QrSyncController extends BaseController<
   }
 
   /**
-   * Phase B (new-user): imports the pending account tree and marks vault
-   * creation complete so Phase C can proceed.
+   * Phase B (new-user): imports secondary secrets right after vault creation.
    *
    * Called from `Authentication.newWalletAndRestore` after the primary vault
-   * is created. Calls `AccountTreeController:importState` to import secondary
-   * wallets and apply metadata while the vault is unlocked, then sets
-   * `provisioningStatus = 'secrets_imported'`.
+   * is created. Calls `AccountTreeController:importState` with the full
+   * snapshot minus metadata — `importState` skips the primary wallet (already
+   * in the vault by entropy source ID) and imports any secondary wallets or
+   * private keys. Errors are non-fatal: secrets are cleared and the status
+   * advances regardless so Phase C can still apply metadata.
    */
-  public async finalizeVaultCreation(): Promise<void> {
+  public async importRemainingSecrets(): Promise<void> {
+    const { pendingSecretImports, provisioningStatus } = this.state;
     if (
-      this.state.provisioningStatus !==
-      QrSyncProvisioningStatuses.AWAITING_PASSWORD
+      provisioningStatus !== QrSyncProvisioningStatuses.AWAITING_PASSWORD ||
+      !pendingSecretImports
     ) {
       return;
     }
 
-    const { pendingPayload } = this.state;
-    if (pendingPayload) {
+    try {
+      const snapshot =
+        await AccountTreeSnapshot.deserialize(pendingSecretImports);
       await this.messenger.call(
         'AccountTreeController:importState',
-        await AccountTreeSnapshot.deserialize(pendingPayload),
+        snapshot.stripMetadata(),
       );
+    } catch (error) {
+      reportQrSyncFailure(error, {
+        surface: QrSyncSurfaces.IMPORT,
+        operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
+        source: QrSyncTelemetrySources.CONTROLLER,
+        ...(this.state.syncFlow ? { syncFlow: this.state.syncFlow } : {}),
+      });
     }
 
     this.update((state) => {
+      state.pendingSecretImports = null;
       state.provisioningStatus = QrSyncProvisioningStatuses.SECRETS_IMPORTED;
     });
   }
@@ -361,7 +383,7 @@ export class QrSyncController extends BaseController<
   public markProvisioningFailed(): void {
     this.update((state) => {
       state.provisioningStatus = QrSyncProvisioningStatuses.FAILED;
-      state.pendingPayload = null;
+      state.pendingSecretImports = null;
     });
   }
 
@@ -419,51 +441,57 @@ export class QrSyncController extends BaseController<
   };
 
   private readonly handleClientMessage = (message: unknown): void => {
-    try {
-      const routedMessage = routeIncomingQrSyncMessage(message);
-
-      if (!routedMessage) {
-        return;
-      }
-
-      if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-        const isOnboardingCompleted = this.getIsOnboardingCompleted();
-        if (!isOnboardingCompleted) {
-          // If onboarding is not completed, we need to validate that the payload
-          // includes a primary mnemonic with a value for vault creation.
-          const payloadValidation = validateQrSyncPayloadForOnboarding(
-            routedMessage.pendingPayload,
-          );
-
-          if (!payloadValidation.valid && payloadValidation.error) {
-            this.terminateWithError(payloadValidation.error);
-            return;
-          }
-        }
-
-        if (!this.client) {
-          throw this.toQrSyncError(new Error('Wallet client not found'));
-        }
-      }
-
-      this.handleSessionServiceEvent(routedMessage.event);
-
-      if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-        const { pendingPayload } = routedMessage;
-        if (pendingPayload) {
-          this.update((state) => {
-            state.pendingPayload = pendingPayload;
-            state.provisioningStatus =
-              QrSyncProvisioningStatuses.AWAITING_PASSWORD;
-          });
-        }
-
-        this.sendSyncCompleted().catch(() => undefined);
-      }
-    } catch (error) {
+    this.processClientMessage(message).catch((error) => {
       this.terminateWithError(this.toQrSyncError(error, 'SYNC_FAILED'));
-    }
+    });
   };
+
+  private async processClientMessage(message: unknown): Promise<void> {
+    const routedMessage = routeIncomingQrSyncMessage(message);
+
+    if (!routedMessage) {
+      return;
+    }
+
+    if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
+      const isOnboardingCompleted = this.getIsOnboardingCompleted();
+      if (!isOnboardingCompleted) {
+        // If onboarding is not completed, we need to validate that the payload
+        // includes a primary mnemonic with a value for vault creation.
+        const payloadValidation = validateQrSyncPayloadForOnboarding(
+          routedMessage.pendingPayload,
+        );
+
+        if (!payloadValidation.valid && payloadValidation.error) {
+          this.terminateWithError(payloadValidation.error);
+          return;
+        }
+      }
+
+      if (!this.client) {
+        throw this.toQrSyncError(new Error('Wallet client not found'));
+      }
+    }
+
+    this.handleSessionServiceEvent(routedMessage.event);
+
+    if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
+      const { pendingPayload: wirePayload } = routedMessage;
+      if (wirePayload) {
+        const snapshot = await AccountTreeSnapshot.deserialize(wirePayload);
+        this.update((state) => {
+          state.pendingSecretImports = wirePayload;
+          state.provisioningMetadata = snapshot
+            .stripSecrets()
+            .serialize() as AccountTreePayload;
+          state.provisioningStatus =
+            QrSyncProvisioningStatuses.AWAITING_PASSWORD;
+        });
+      }
+
+      this.sendSyncCompleted().catch(() => undefined);
+    }
+  }
 
   private readonly handleClientError = (error: Error): void => {
     this.setConnectionStatus('errored');
