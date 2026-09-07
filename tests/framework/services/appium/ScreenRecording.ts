@@ -290,7 +290,10 @@ async function startIosRecording(
   if (!isFfmpegAvailable()) {
     const message = 'ffmpeg is not on PATH — skipping iOS screen recording';
     logRecordingIssue(message);
-    testInfo.annotations.push({ type: 'ffmpegUnavailable', description: message });
+    testInfo.annotations.push({
+      type: 'ffmpegUnavailable',
+      description: message,
+    });
     return undefined;
   }
 
