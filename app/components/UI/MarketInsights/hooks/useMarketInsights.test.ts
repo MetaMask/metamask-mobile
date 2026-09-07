@@ -552,6 +552,41 @@ describe('useMarketInsights', () => {
     expect(second.result.current.isLoading).toBe(false);
   });
 
+  it('does not mark a settled null miss as loading during a background refetch', async () => {
+    mockFetchMarketInsights.mockResolvedValueOnce(null);
+
+    const { result } = renderHook(() => useMarketInsights('ETH', true), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.report).toBeNull();
+
+    let resolveRequest: (report: MarketInsightsReport | null) => void = () =>
+      undefined;
+    const request = new Promise<MarketInsightsReport | null>((resolve) => {
+      resolveRequest = resolve;
+    });
+    mockFetchMarketInsights.mockReturnValueOnce(request);
+
+    let refetchPromise: Promise<unknown> = Promise.resolve();
+    await act(async () => {
+      refetchPromise = queryClient.refetchQueries({
+        queryKey: ['market-insights', 'ETH'],
+      });
+    });
+
+    expect(result.current.report).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+
+    await act(async () => {
+      resolveRequest(null);
+      await refetchPromise;
+    });
+
+    expect(result.current.report).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('refetches after a null miss on remount', async () => {
     const report = {
       version: '1.0',
