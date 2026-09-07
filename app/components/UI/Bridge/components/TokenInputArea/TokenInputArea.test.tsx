@@ -1,22 +1,18 @@
 import React, { createRef } from 'react';
-import { CaipChainId } from '@metamask/utils';
+import {
+  FeatureId,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import { ethToken1Address, initialState } from '../../_mocks_/initialState';
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { TokenInputArea, TokenInputAreaRef, TokenInputAreaType } from '.';
-import { BridgeToken, TokenSelectorType } from '../../types';
+import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
-import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
-}));
-
-const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 const mockTrackUnifiedSwapBridgeEvent = jest.fn();
@@ -134,16 +130,15 @@ describe('TokenInputArea', () => {
     mockUseIsInsufficientBalance.mockReturnValue(false);
   });
 
-  describe('empty state token selector navigation', () => {
-    it('navigates to the source token selector with enabledChainIds when the source "Select token" button is pressed', () => {
-      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+  describe('empty state token selector press', () => {
+    it('tracks source asset picker opened and calls onTokenPress when the source token button is pressed', () => {
       const { getByTestId } = renderScreen(
         () => (
           <TokenInputArea
             testID="token-input"
             tokenType={TokenInputAreaType.Source}
             isSourceToken
-            enabledChainIds={enabledChainIds}
+            onTokenPress={mockOnTokenPress}
           />
         ),
         { name: 'TokenInputArea' },
@@ -152,20 +147,23 @@ describe('TokenInputArea', () => {
 
       fireEvent.press(getByTestId('token-input'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Source,
-        enabledChainIds,
-      });
+      expect(mockTrackUnifiedSwapBridgeEvent).toHaveBeenCalledWith(
+        UnifiedSwapBridgeEventName.AssetPickerOpened,
+        {
+          asset_location: 'source',
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+        },
+      );
+      expect(mockOnTokenPress).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to the destination token selector with enabledChainIds when the dest "Select token" button is pressed', () => {
-      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+    it('tracks destination asset picker opened and calls onTokenPress when the dest token button is pressed', () => {
       const { getByTestId } = renderScreen(
         () => (
           <TokenInputArea
             testID="token-input"
             tokenType={TokenInputAreaType.Destination}
-            enabledChainIds={enabledChainIds}
+            onTokenPress={mockOnTokenPress}
           />
         ),
         { name: 'TokenInputArea' },
@@ -174,30 +172,14 @@ describe('TokenInputArea', () => {
 
       fireEvent.press(getByTestId('token-input'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Dest,
-        enabledChainIds,
-      });
-    });
-
-    it('navigates with enabledChainIds undefined when the prop is not provided', () => {
-      const { getByTestId } = renderScreen(
-        () => (
-          <TokenInputArea
-            testID="token-input"
-            tokenType={TokenInputAreaType.Destination}
-          />
-        ),
-        { name: 'TokenInputArea' },
-        { state: initialState },
+      expect(mockTrackUnifiedSwapBridgeEvent).toHaveBeenCalledWith(
+        UnifiedSwapBridgeEventName.AssetPickerOpened,
+        {
+          asset_location: 'destination',
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+        },
       );
-
-      fireEvent.press(getByTestId('token-input'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Dest,
-        enabledChainIds: undefined,
-      });
+      expect(mockOnTokenPress).toHaveBeenCalledTimes(1);
     });
   });
 

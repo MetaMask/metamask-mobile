@@ -45,6 +45,11 @@ const mockIncludeAsset: IncludeAsset = {
   name: 'Hello',
 };
 
+const defaultFetchParams = {
+  chainIds: [MOCK_CHAIN_IDS.ethereum],
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+};
+
 describe('useFetchPopularTokens', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
@@ -78,7 +83,7 @@ describe('useFetchPopularTokens', () => {
     });
 
     const tokens = await result.current({
-      chainIds: [MOCK_CHAIN_IDS.ethereum],
+      ...defaultFetchParams,
       includeAssets: [mockIncludeAsset],
     });
 
@@ -91,6 +96,7 @@ describe('useFetchPopularTokens', () => {
         body: JSON.stringify({
           chainIds: [MOCK_CHAIN_IDS.ethereum],
           includeAssets: [mockIncludeAsset],
+          featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
         }),
       }),
     );
@@ -112,25 +118,6 @@ describe('useFetchPopularTokens', () => {
       timestamp: expect.any(Number),
       data: { result: 'success' },
     });
-  });
-
-  it('omits featureId from the request body when not provided', async () => {
-    globalFetchSpy.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockPopularTokens,
-    });
-
-    const { result } = renderHookWithProvider(() => useFetchPopularTokens(), {
-      state: initialState,
-    });
-
-    await result.current({
-      chainIds: [MOCK_CHAIN_IDS.ethereum],
-      includeAssets: [mockIncludeAsset],
-    });
-
-    const [, requestInit] = globalFetchSpy.mock.calls[0];
-    expect(JSON.parse(requestInit.body)).not.toHaveProperty('featureId');
   });
 
   it('includes featureId in the request body when provided', async () => {
@@ -172,7 +159,7 @@ describe('useFetchPopularTokens', () => {
       state: initialState,
     });
 
-    await result.current({ chainIds: [MOCK_CHAIN_IDS.ethereum] });
+    await result.current(defaultFetchParams);
 
     expect(globalFetchSpy).toHaveBeenCalledWith(
       expect.any(String),
@@ -180,6 +167,7 @@ describe('useFetchPopularTokens', () => {
         body: JSON.stringify({
           chainIds: [MOCK_CHAIN_IDS.ethereum],
           includeAssets: [],
+          featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
         }),
       }),
     );
@@ -195,13 +183,11 @@ describe('useFetchPopularTokens', () => {
       state: initialState,
     });
 
-    await result.current({ chainIds: [MOCK_CHAIN_IDS.ethereum] });
+    await result.current(defaultFetchParams);
     expect(mockTrace).toHaveBeenCalledTimes(1);
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
 
-    const cachedTokens = await result.current({
-      chainIds: [MOCK_CHAIN_IDS.ethereum],
-    });
+    const cachedTokens = await result.current(defaultFetchParams);
 
     expect(cachedTokens).toStrictEqual(mockPopularTokens);
     expect(globalFetchSpy).toHaveBeenCalledTimes(1);
@@ -313,9 +299,7 @@ describe('useFetchPopularTokens', () => {
           },
         );
 
-        const tokens = await result.current({
-          chainIds: [MOCK_CHAIN_IDS.ethereum],
-        });
+        const tokens = await result.current(defaultFetchParams);
 
         expect(tokens).toBeUndefined();
         expect(popularTokensCache.size).toBe(0);
@@ -343,11 +327,11 @@ describe('useFetchPopularTokens', () => {
     });
 
     await result.current({
-      chainIds: [MOCK_CHAIN_IDS.ethereum],
+      ...defaultFetchParams,
       includeAssets: [],
     });
     await result.current({
-      chainIds: [MOCK_CHAIN_IDS.ethereum],
+      ...defaultFetchParams,
       includeAssets: [mockIncludeAsset],
     });
 

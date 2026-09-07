@@ -53,7 +53,11 @@ describe('useInitialBridgeTokens', () => {
   describe('fetching', () => {
     it('does not fetch popular tokens on initial render', async () => {
       const { result } = renderHookWithProvider(
-        () => useInitialBridgeTokens([MOCK_CHAIN_IDS.ethereum]),
+        () =>
+          useInitialBridgeTokens({
+            chainIds: [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
@@ -96,7 +100,11 @@ describe('useInitialBridgeTokens', () => {
       });
 
       const { result } = renderHookWithProvider(
-        () => useInitialBridgeTokens([MOCK_CHAIN_IDS.ethereum]),
+        () =>
+          useInitialBridgeTokens({
+            chainIds: [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
@@ -115,10 +123,18 @@ describe('useInitialBridgeTokens', () => {
             'Client-Version': expect.any(String),
             'X-Client-Id': 'mobile',
           },
-          body: '{"chainIds":["eip155:1"],"includeAssets":[{"address":"0x0000000000000000000000000000000000000002","name":"Hello Token","decimals":18,"symbol":"HELLO","chainId":"0x1","image":"https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000002.png","tokenFiatAmount":200000,"balance":"2.0","balanceFiat":"$200,000.00","aggregators":["uniswap"],"assetId":"eip155:1/erc20:0x0000000000000000000000000000000000000002"},{"address":"0x0000000000000000000000000000000000000001","name":"Token One","decimals":18,"symbol":"TOKEN1","chainId":"0x1","image":"https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x0000000000000000000000000000000000000001.png","tokenFiatAmount":20000,"balance":"1.0","balanceFiat":"$20,000.00","aggregators":["1inch"],"assetId":"eip155:1/erc20:0x0000000000000000000000000000000000000001"},{"address":"0x0000000000000000000000000000000000000000","name":"Ethereum","decimals":18,"symbol":"ETH","chainId":"0x1","image":"https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png","tokenFiatAmount":6000,"balance":"3.0","balanceFiat":"$6,000.00","aggregators":[],"assetId":"eip155:1/slip44:60"}]}',
           signal: abortSignal,
         }),
       );
+      const [, requestInit] = globalFetchSpy.mock.calls[0] as [
+        unknown,
+        { body: string },
+      ];
+      expect(JSON.parse(requestInit.body)).toMatchObject({
+        chainIds: [MOCK_CHAIN_IDS.ethereum],
+        featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+      });
+      expect(JSON.parse(requestInit.body).includeAssets).toHaveLength(3);
       expect(popularTokensCache).toStrictEqual(
         new Map([
           [
@@ -139,11 +155,10 @@ describe('useInitialBridgeTokens', () => {
 
       const { result } = renderHookWithProvider(
         () =>
-          useInitialBridgeTokens(
-            [MOCK_CHAIN_IDS.ethereum],
-            undefined,
-            FeatureId.LIMIT_ORDER,
-          ),
+          useInitialBridgeTokens({
+            chainIds: [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.LIMIT_ORDER,
+          }),
         { state: initialState },
       );
 
@@ -177,7 +192,11 @@ describe('useInitialBridgeTokens', () => {
       });
 
       const { result } = renderHookWithProvider(
-        () => useInitialBridgeTokens([MOCK_CHAIN_IDS.ethereum]),
+        () =>
+          useInitialBridgeTokens({
+            chainIds: [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
@@ -197,7 +216,11 @@ describe('useInitialBridgeTokens', () => {
       });
 
       const { result } = renderHookWithProvider(
-        () => useInitialBridgeTokens([MOCK_CHAIN_IDS.ethereum]),
+        () =>
+          useInitialBridgeTokens({
+            chainIds: [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
@@ -222,7 +245,10 @@ describe('useInitialBridgeTokens', () => {
 
       const { result, unmount, rerender } = renderHookWithProvider(
         (chainIds?: CaipChainId[]) =>
-          useInitialBridgeTokens(chainIds ?? [MOCK_CHAIN_IDS.ethereum]),
+          useInitialBridgeTokens({
+            chainIds: chainIds ?? [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
@@ -266,7 +292,10 @@ describe('useInitialBridgeTokens', () => {
 
       const { result, unmount, rerender } = renderHookWithProvider(
         (chainIds?: CaipChainId[]) =>
-          useInitialBridgeTokens(chainIds ?? [MOCK_CHAIN_IDS.ethereum]),
+          useInitialBridgeTokens({
+            chainIds: chainIds ?? [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
@@ -297,7 +326,11 @@ describe('useInitialBridgeTokens', () => {
         .mockResolvedValueOnce({ json: async () => newMockTokens });
 
       const { result, unmount, rerender } = renderHookWithProvider(
-        () => useInitialBridgeTokens([MOCK_CHAIN_IDS.ethereum]),
+        () =>
+          useInitialBridgeTokens({
+            chainIds: [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
@@ -333,7 +366,10 @@ describe('useInitialBridgeTokens', () => {
 
       const { result, rerender } = renderHookWithProvider(
         (chainIds?: CaipChainId[]) =>
-          useInitialBridgeTokens(chainIds ?? [MOCK_CHAIN_IDS.ethereum]),
+          useInitialBridgeTokens({
+            chainIds: chainIds ?? [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
@@ -385,9 +421,13 @@ describe('useInitialBridgeTokens', () => {
 
       const { result, unmount, rerender } = renderHookWithProvider(
         (chainIds?: CaipChainId[]) =>
-          useInitialBridgeTokens(
-            chainIds ?? [MOCK_CHAIN_IDS.polygon, MOCK_CHAIN_IDS.ethereum],
-          ),
+          useInitialBridgeTokens({
+            chainIds: chainIds ?? [
+              MOCK_CHAIN_IDS.polygon,
+              MOCK_CHAIN_IDS.ethereum,
+            ],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
@@ -415,7 +455,10 @@ describe('useInitialBridgeTokens', () => {
 
       const { result, unmount, rerender } = renderHookWithProvider(
         (chainIds?: CaipChainId[]) =>
-          useInitialBridgeTokens(chainIds ?? [MOCK_CHAIN_IDS.ethereum]),
+          useInitialBridgeTokens({
+            chainIds: chainIds ?? [MOCK_CHAIN_IDS.ethereum],
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          }),
         { state: initialState },
       );
 
