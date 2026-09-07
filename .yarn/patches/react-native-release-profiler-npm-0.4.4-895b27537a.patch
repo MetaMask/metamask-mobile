@@ -1,5 +1,5 @@
 diff --git a/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt b/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
-index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..56cc11ff2a2be95e6eba0c5fc23504200a7ec346 100644
+index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..b206bc0b64dfc9b00417f43adb54bf6c58e8c06d 100644
 --- a/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
 +++ b/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
 @@ -31,6 +31,34 @@ class ReleaseProfilerModule(reactContext: ReactApplicationContext) :
@@ -12,8 +12,8 @@ index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..56cc11ff2a2be95e6eba0c5fc2350420
 +      try {
 +        val cacheFile = File.createTempFile(
 +          "sampling-profiler-trace", ".cpuprofile", reactContext.getCacheDir())
-+        HermesSamplingProfiler.dumpSampledTraceToFile(cacheFile.getPath())
 +        HermesSamplingProfiler.disable()
++        HermesSamplingProfiler.dumpSampledTraceToFile(cacheFile.getPath())
 +
 +        val externalDirectory =
 +          reactContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
