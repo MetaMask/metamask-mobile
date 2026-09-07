@@ -512,43 +512,6 @@ class TestSnaps {
     );
   }
 
-  /**
-   * After re-enabling a Snap, the first Send Alert WebView tap can miss or
-   * land before the Snap is ready to show the dialog. Check-first-then-tap:
-   * if the dialog is already visible from a prior attempt, return immediately
-   * without issuing a second snap_dialog request — which would stack a modal
-   * and cause the next serial test to start with a dangling dialog.
-   *
-   * The probe is skipped on the first attempt — no tap has fired yet so the
-   * dialog cannot be present — saving one unnecessary polling cycle.
-   */
-  async tapSendAlertAndExpectEnabled(): Promise<void> {
-    let firstAttempt = true;
-    await Utilities.executeWithRetry(
-      async () => {
-        if (
-          !firstAttempt &&
-          (await Utilities.isElementVisible(
-            Matchers.getElementByText(TestSnaps.ENABLED_ALERT_PATTERN),
-            1_000,
-          ))
-        ) {
-          return; // prior tap succeeded — dialog already on screen
-        }
-        firstAttempt = false;
-        await this.tapButton('sendAlertButton');
-        await this.expectEnabledSnapAlert(8_000);
-      },
-      {
-        timeout: 45_000,
-        interval: 500,
-        maxRetries: 5,
-        elemDescription: 'Send Alert button / enabled Snap alert dialog',
-        description: 'Send enabled Snap alert until dialog is visible',
-      },
-    );
-  }
-
   async selectInDropdown(
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
