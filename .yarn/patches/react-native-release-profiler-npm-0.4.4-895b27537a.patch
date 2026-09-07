@@ -1,28 +1,14 @@
 diff --git a/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt b/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
-index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..6a647718b5806cbc64219c71eec048a0de64fce0 100644
+index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..56cc11ff2a2be95e6eba0c5fc23504200a7ec346 100644
 --- a/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
 +++ b/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
-@@ -13,11 +13,13 @@ import com.facebook.react.bridge.Promise
- import java.io.File
- import java.io.FileOutputStream
- import java.net.URL
-+import java.util.concurrent.Executors
- 
- class ReleaseProfilerModule(reactContext: ReactApplicationContext) :
-   ReactContextBaseJavaModule(reactContext) {
- 
-   val reactContext = reactContext
-+  private val profilerExecutor = Executors.newSingleThreadExecutor()
- 
-   override fun getName(): String {
-     return NAME
-@@ -31,6 +33,34 @@ class ReleaseProfilerModule(reactContext: ReactApplicationContext) :
+@@ -31,6 +31,34 @@ class ReleaseProfilerModule(reactContext: ReactApplicationContext) :
      return true
    }
  
 +  @ReactMethod
 +  fun stopProfilingToExternalFiles(promise: Promise) {
-+    profilerExecutor.execute {
++    reactContext.runOnJSQueueThread {
 +      try {
 +        val cacheFile = File.createTempFile(
 +          "sampling-profiler-trace", ".cpuprofile", reactContext.getCacheDir())
