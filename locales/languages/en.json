@@ -3509,7 +3509,7 @@
       "unavailable_description": "For urgent assistance, please contact Customer Service.",
       "unavailable_got_it": "Got it",
       "error_title": "Something went wrong",
-      "error_description": "Failed to proceed with withdraw",
+      "error_description": "Failed to proceed with withdrawal",
       "try_again": "Try again"
     },
     "fee_summary": {
