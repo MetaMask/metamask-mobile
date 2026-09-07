@@ -1,53 +1,17 @@
 import { scrypt } from './user-storage-controller-init';
+import { bytesToHex } from '../../../../util/test/nodeQuickCryptoMock';
 
 // Override the global testSetup mock so QuickCrypto.scrypt delegates to
 // Node's built-in crypto.scrypt.  This gives us RFC 7914 byte-for-byte
 // correctness without any native module.
-jest.mock('react-native-quick-crypto', () => {
-  const nodeCrypto = jest.requireActual<typeof import('crypto')>('crypto');
-  return {
-    scrypt: (
-      passwd: Buffer,
-      salt: Buffer,
-      keylen: number,
-      options: { N: number; r: number; p: number; maxmem: number },
-      callback: (err: Error | null, derivedKey: Buffer) => void,
-    ) => {
-      nodeCrypto.scrypt(
-        passwd,
-        salt,
-        keylen,
-        { N: options.N, r: options.r, p: options.p, maxmem: options.maxmem },
-        (err, derivedKey) => callback(err, derivedKey as Buffer),
-      );
-    },
-  };
-});
+jest.mock('react-native-quick-crypto', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('../../../../util/test/nodeQuickCryptoMock'),
+);
 
 jest.mock('@craftzdog/react-native-buffer', () => ({
   Buffer,
 }));
-
-/**
- * Decode a hex string (with optional whitespace) to a Uint8Array.
- */
-function hexToBytes(hex: string): Uint8Array {
-  const clean = hex.replace(/\s+/g, '');
-  const bytes = new Uint8Array(clean.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(clean.slice(i * 2, i * 2 + 2), 16);
-  }
-  return bytes;
-}
-
-/**
- * Encode a Uint8Array to a lowercase hex string.
- */
-function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
 
 /**
  * Scrypt known-vector test cases.
@@ -107,6 +71,22 @@ const RFC_7914_VECTORS = [
   },
 ] as const;
 
+/**
+ * Scrypt parameters actually used by `@metamask/profile-sync-controller`'s
+ * `nativeScryptCrypto` call (N=2^17, r=8, p=1), the reason the adapter's
+ * `maxmem` is set to 256 MiB. Expected value precomputed with Node's
+ * `crypto.scrypt` (same OpenSSL backend as react-native-quick-crypto 1.x).
+ */
+const PROFILE_SYNC_VECTOR = {
+  passwd: 'correct horse battery staple',
+  salt: 'profile-sync-parity-test-salt',
+  N: 2 ** 17,
+  r: 8,
+  p: 1,
+  dkLen: 32,
+  expected: 'e6a33905cc27e52fe730de8b5b9e13a5ca45a905257fd28486540a20baae91e5',
+} as const;
+
 describe('scrypt adapter', () => {
   describe('RFC 7914 §12 known-vector correctness', () => {
     it.each(RFC_7914_VECTORS)(
@@ -120,13 +100,23 @@ describe('scrypt adapter', () => {
         expect(bytesToHex(result)).toBe(expected);
       },
     );
+
+    it('produces the correct derived key for profile-sync parameters (N=2^17, r=8, p=1)', async () => {
+      const { passwd, salt, N, r, p, dkLen, expected } = PROFILE_SYNC_VECTOR;
+      const passwdBytes = new TextEncoder().encode(passwd);
+      const saltBytes = new TextEncoder().encode(salt);
+
+      const result = await scrypt(passwdBytes, saltBytes, N, r, p, dkLen);
+
+      expect(bytesToHex(result)).toBe(expected);
+    }, 30_000);
   });
 
   describe('parameter passing', () => {
     it('passes N, r, p, size, and maxmem=256MiB to QuickCrypto.scrypt', async () => {
-      const QuickCrypto = jest.requireMock<{ scrypt: jest.Mock }>(
+      const QuickCrypto = jest.requireMock<{ default: { scrypt: jest.Mock } }>(
         'react-native-quick-crypto',
-      );
+      ).default;
       const scryptSpy = jest.spyOn(QuickCrypto, 'scrypt');
 
       const passwd = new TextEncoder().encode('pw');
@@ -146,9 +136,9 @@ describe('scrypt adapter', () => {
     });
 
     it('rejects when QuickCrypto.scrypt returns an error', async () => {
-      const QuickCrypto = jest.requireMock<{ scrypt: jest.Mock }>(
+      const QuickCrypto = jest.requireMock<{ default: { scrypt: jest.Mock } }>(
         'react-native-quick-crypto',
-      );
+      ).default;
       jest
         .spyOn(QuickCrypto, 'scrypt')
         .mockImplementationOnce((_p, _s, _k, _o, callback) => {
