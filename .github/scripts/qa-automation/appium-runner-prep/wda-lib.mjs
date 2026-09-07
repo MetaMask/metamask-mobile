@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const execFileAsync = promisify(execFile);
 
-export const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../..');
+export const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 export function getDerivedDataPath() {
   return process.env.WDA_DERIVED_DATA_PATH ?? join(homedir(), 'appium-wda');

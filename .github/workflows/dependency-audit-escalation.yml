@@ -6,14 +6,22 @@ name: Dependency Audit Escalation
 #      and drops anything already tracked by an open PR/issue. (Permanently
 #      accepted risks never even get this far — see
 #      npmAuditIgnoreAdvisories in .yarnrc.yml.)
-#   2. Whatever's left gets filed/updated as a single tracking issue so a
-#      human decides the fix. The audit owner (and their manager, if
-#      configured) gets pinged in Slack twice: once right after advisories
-#      are found (so they know before waiting on the tracking-issue step),
-#      and once at the end with a link to whatever issue actually got
-#      created, threaded off the first message. See .github/audit-owners.yml
-#      (owner) and npmAuditIgnoreAdvisories in .yarnrc.yml (accepting a risk
-#      instead of fixing it).
+#   2. scripts/attempt-audit-fix.ts hands what's left to MetaMask/ai-analyzer's
+#      dependency-audit-fix mode (routed through the org's LiteLLM proxy),
+#      which proposes a fix per advisory (a version bump, a `resolutions`
+#      pin, or "no safe fix"). The AI never edits a file itself — this script
+#      applies each proposal and independently re-verifies it against the
+#      actual resulting lockfile before trusting it and opening a PR — see
+#      the trust-model comment at the top of that script.
+# The PR is titled with a cp-<next-release> token so the existing
+# add-release-label automation tags it for release. Whatever it can't fix
+# gets filed/updated as a tracking issue. The audit owner (and their
+# manager, if configured) gets pinged in Slack twice: once right after
+# advisories are found (so they know before waiting on the AI step/PR
+# creation, which can take a few minutes), and once at the end with links to
+# whatever PR/issue actually got created, threaded off the first message.
+# See .github/audit-owners.yml (owner) and npmAuditIgnoreAdvisories in
+# .yarnrc.yml (accepting a risk instead of fixing it).
 #
 # No schedule: ci.yml's `dependency-audit` job already runs `yarn audit:ci`
 # on every push/PR/hourly-schedule run ci.yml itself has, so re-running the
@@ -26,8 +34,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
   issues: write
+  id-token: write # required by MetaMask/github-tools/.github/actions/get-token
 
 jobs:
   dependency-audit-escalation:
@@ -52,6 +62,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: main
+          fetch-depth: 0 # needed so get-next-semver-version.sh can see all release/* branches
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -133,7 +144,7 @@ jobs:
           "
           echo "Skip list: $(cat skip-ids.json)"
 
-      - name: Collect advisories for review
+      - name: Collect advisories for AI-assisted review
         id: collect
         if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
@@ -144,9 +155,9 @@ jobs:
 
       - name: Notify Slack (detected)
         id: notify-detected
-        # Fires right away, before the tracking-issue step runs, so the
-        # owner doesn't have to wait for that (or notice a run at all) just
-        # to learn something was found.
+        # Fires right away, before the AI step runs (which can take a few
+        # minutes), so the owner doesn't wait until a PR/issue already
+        # exists just to learn something was found.
         if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         # This notification is explicitly best-effort (see this script's own
         # docblock): the tracking issue below is what actually matters. Every
@@ -181,12 +192,100 @@ jobs:
           OWNER_GH=$(node -e "console.log(require('js-yaml').load(require('fs').readFileSync('.github/audit-owners.yml','utf8')).owner.github)")
           echo "github=$OWNER_GH" >> "$GITHUB_OUTPUT"
 
-      - name: File or update tracking issue for advisories needing manual review
-        id: manual-issue
+      - name: Get the next semver version
+        id: next-semver
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        env:
+          FORCE_NEXT_SEMVER_VERSION: ${{ vars.FORCE_NEXT_SEMVER_VERSION }}
+        run: ./.github/scripts/get-next-semver-version.sh "$FORCE_NEXT_SEMVER_VERSION"
+
+      - name: Get token
+        id: get-token
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+            pull_requests: write
+            issues: write
+
+      # https://github.com/MetaMask/ai-analyzer/releases — same private repo
+      # and secrets ai-pr-risk-analysis.yml / flaky-unit-test-detection.yml
+      # already use. Only checked out when there's something to look at, so a
+      # clean audit never pays for it.
+      #
+      # Pinned to a commit SHA, not a movable tag/branch (same reasoning as
+      # pinning third-party Actions). Not the `v1` tag flaky-unit-test-
+      # detection.yml uses: v1 still has a validateProvidedFiles() check in
+      # src/index.ts requiring every --changed-files entry to already be a
+      # committed git diff against the base branch, which the advisory
+      # context file this script writes (untracked, no diff yet) can never
+      # satisfy.
+      #
+      # v2.3.0 (MetaMask/ai-analyzer#47) is required: it's what lets
+      # mode.yaml's `config.maxIterations`/`config.models` below actually
+      # take effect — on the previously-pinned commit those fields were
+      # silently ignored and every mode got the hardcoded 15-iteration,
+      # tier-heuristic default.
+      - name: Checkout AI Analyzer
+        id: checkout-ai-analyzer
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        uses: actions/checkout@v6
+        with:
+          repository: MetaMask/ai-analyzer
+          ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348 # v2.3.0
+          path: .ai-analyzer-action
+          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+
+      - name: Install AI Analyzer dependencies
+        id: install-ai-analyzer-deps
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        working-directory: .ai-analyzer-action
+        run: npm ci
+
+      - name: Attempt AI-assisted fix
+        id: fix
         if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LITELLM_API_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
+          NODE_PATH: ${{ github.workspace }}/.ai-analyzer-action/node_modules
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          OWNER_GH: ${{ steps.owner.outputs.github }}
+          # This mode's job is narrow (pick one of 4 enum actions per
+          # advisory against a fixed schema) and its "auto" heuristic fires
+          # for every MetaMask/* repo — a live test showed it loading
+          # generic repo skills (PR-review/PR-creation/changelog) that have
+          # nothing to do with dependency triage, burning an iteration and
+          # apparently confusing the model into calling the finalize tool
+          # with a shape that didn't match finalize-schema.json at all.
+          AI_ANALYZER_METAMASK_SKILLS: 'off'
+        run: |
+          yarn ts-node --transpile-only scripts/attempt-audit-fix.ts audit-fix-result.json
+          MANUAL_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.length)")
+          FIXED_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).fixed.length)")
+          PR_URL=$(cat audit-ai-pr-url.txt 2>/dev/null || echo '')
+          {
+            echo "manual-count=$MANUAL_COUNT"
+            echo "fixed-count=$FIXED_COUNT"
+            echo "pr-url=$PR_URL"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: File or update tracking issue for advisories needing manual review
+        id: manual-issue
+        # Checks BOTH manual-count outputs, not just the fix step's: once
+        # every advisory in a batch is AI-fixed, "Attempt AI-assisted fix"
+        # sets manual-count=0 and every step this depends on for a real
+        # GH_TOKEN was skipped too (see get-token above) — without the
+        # collect guard here as well, '' != '0' is true, this step runs
+        # anyway with an empty token, gh fails, and "Notify Slack (failure)"
+        # fires a spurious alert on what is otherwise the fully-successful,
+        # steady-state outcome.
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' && steps.fix.outputs.manual-count != '0' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
           OWNER_GH: ${{ steps.owner.outputs.github }}
         run: |
           set -euo pipefail
@@ -234,7 +333,7 @@ jobs:
           else
             BODY_FILE="$(mktemp)"
             {
-              echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically. See .github/audit-owners.yml for the owner, or add the ID to npmAuditIgnoreAdvisories in .yarnrc.yml (with a comment explaining why) to accept this as a risk instead of fixing it."
+              echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically (no safe version bump or resolutions pin, or the fix broke \`yarn dedupe\`/\`yarn constraints\`). See .github/audit-owners.yml for the owner, or add the ID to npmAuditIgnoreAdvisories in .yarnrc.yml (with a comment explaining why) to accept this as a risk instead of fixing it."
               echo
               cat "$NEW_SECTION"
               echo
@@ -253,15 +352,18 @@ jobs:
         # `success()` (not always()) is deliberate: a bare `if:` on a custom
         # expression drops GitHub Actions' implicit success-only gate
         # entirely, so without spelling it out here this step would still
-        # fire even after e.g. "Read audit owner" failed, misleadingly
-        # implying the run finished when the tracking issue never ran at
-        # all. "Notify Slack (failure)" below covers every one of those
-        # failure cases with its own dedicated alert instead.
+        # fire even after e.g. "Read audit owner" or "Checkout AI Analyzer"
+        # failed — not just a fix/Get token failure — misleadingly implying
+        # the run finished when it actually means the fix attempt and/or
+        # tracking issue never ran at all. "Notify Slack (failure)" below
+        # covers every one of those failure cases with its own dedicated
+        # alert instead.
         if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         shell: bash
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           AUDIT_RESULT_PATH: audit-fix-result.json
+          PR_URL: ${{ steps.fix.outputs.pr-url }}
           ISSUE_URL: ${{ steps.manual-issue.outputs.issue-url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           # Threads off the "detected" message when it fired, so both land
@@ -271,19 +373,20 @@ jobs:
         run: yarn ts-node --transpile-only scripts/slack-audit-notification.ts
 
       # "Notify Slack (result)" above uses success(), so it skips itself on
-      # ANY upstream failure (see its own comment). This step exists purely
-      # to close the resulting gap: `failure()` mirrors that same "any
-      # previous step failed" check, so the owner still gets a dedicated
-      # alert instead of just the "detected" message with no follow-up.
+      # ANY upstream failure, not just fix/Get token (see its own comment).
+      # This step exists purely to close the resulting gap: `failure()`
+      # mirrors that same "any previous step failed" check, so the owner
+      # still gets a dedicated alert instead of just the "detected" message
+      # with no follow-up.
       #
-      # Deliberately does NOT also check steps.collect.outputs.manual-count:
-      # if "Collect advisories" itself is what failed, that output was never
-      # set, and GitHub Actions silently evaluates the *whole* `if:` to false
-      # when a later step's condition references an output from a step that
-      # failed before setting it — even with failure() also present. That
-      # would skip this exact alert in exactly the case it exists for.
-      # has-advisories == 'true' is enough: nothing past "Run dependency
-      # audit" can fail without it.
+      # Deliberately does NOT also check steps.collect.outputs.manual-count
+      # (unlike every step above): if "Collect advisories" itself is what
+      # failed, that output was never set, and GitHub Actions silently
+      # evaluates the *whole* `if:` to false when a later step's condition
+      # references an output from a step that failed before setting it —
+      # even with failure() also present. That would skip this exact alert
+      # in exactly the case it exists for. has-advisories == 'true' is
+      # enough: nothing past "Run dependency audit" can fail without it.
       - name: Notify Slack (failure)
         if: ${{ failure() && steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
@@ -296,16 +399,29 @@ jobs:
           STEP_SKIP_LIST: ${{ steps.skip-list.outcome }}
           STEP_COLLECT: ${{ steps.collect.outcome }}
           STEP_OWNER: ${{ steps.owner.outcome }}
+          STEP_NEXT_SEMVER: ${{ steps['next-semver'].outcome }}
+          STEP_GET_TOKEN: ${{ steps.get-token.outcome }}
+          STEP_CHECKOUT_AI_ANALYZER: ${{ steps['checkout-ai-analyzer'].outcome }}
+          STEP_INSTALL_AI_ANALYZER_DEPS: ${{ steps['install-ai-analyzer-deps'].outcome }}
+          STEP_FIX: ${{ steps.fix.outcome }}
           STEP_MANUAL_ISSUE: ${{ steps['manual-issue'].outcome }}
         run: |
           # Picks the first step (in job order) whose outcome is "failure" so
-          # the alert names something more useful than "an unknown step".
+          # the alert names something more useful than "an unknown step" —
+          # failure() firing this step at all no longer tells us which one on
+          # its own, now that it covers every step above instead of just fix/
+          # Get token.
           FAILED_STEP=$(node -e "
             const steps = [
               ['STEP_LABELS', 'Ensure dependency-audit labels exist'],
               ['STEP_SKIP_LIST', 'Build skip-list from open PRs/issues'],
-              ['STEP_COLLECT', 'Collect advisories for review'],
+              ['STEP_COLLECT', 'Collect advisories for AI-assisted review'],
               ['STEP_OWNER', 'Read audit owner'],
+              ['STEP_NEXT_SEMVER', 'Get the next semver version'],
+              ['STEP_GET_TOKEN', 'Get token'],
+              ['STEP_CHECKOUT_AI_ANALYZER', 'Checkout AI Analyzer'],
+              ['STEP_INSTALL_AI_ANALYZER_DEPS', 'Install AI Analyzer dependencies'],
+              ['STEP_FIX', 'Attempt AI-assisted fix'],
               ['STEP_MANUAL_ISSUE', 'File or update tracking issue for advisories needing manual review'],
             ];
             const failed = steps.find(([key]) => process.env[key] === 'failure');
