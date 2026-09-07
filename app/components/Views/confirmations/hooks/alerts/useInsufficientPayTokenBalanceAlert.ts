@@ -20,7 +20,11 @@ import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
+import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
@@ -146,6 +150,13 @@ export function useInsufficientPayTokenBalanceAlert({
     isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
     (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount);
 
+  // A plain ERC-20 send also yields a required token, but it is not funded
+  // through MetaMask Pay, so the pay balance check does not apply.
+  const isMMPayTransaction = hasTransactionType(
+    transactionMeta,
+    MM_PAY_TRANSACTION_TYPES,
+  );
+
   // For non-gasless source chains we still need to check the user has enough
   // native token to pay for gas on the source network (e.g., POL for Polygon).
   const isInsufficientForSourceNetwork = useMemo(
@@ -172,7 +183,7 @@ export function useInsufficientPayTokenBalanceAlert({
       isBlocking: true,
     };
 
-    if (selectedFiatPaymentMethod) {
+    if (selectedFiatPaymentMethod || !isMMPayTransaction) {
       return [];
     }
 
@@ -219,6 +230,7 @@ export function useInsufficientPayTokenBalanceAlert({
 
     return [];
   }, [
+    isMMPayTransaction,
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,

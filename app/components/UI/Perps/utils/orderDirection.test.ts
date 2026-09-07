@@ -3,7 +3,12 @@ import { resolveOrderDirection, isClosingOrder } from './orderDirection';
 describe('isClosingOrder', () => {
   it.each([
     ['reduce-only', { reduceOnly: true }, true],
-    ['trigger (TP/SL)', { isTrigger: true }, true],
+    ['legacy trigger without reduce-only', { isTrigger: true }, true],
+    [
+      'trigger with reduce-only disabled',
+      { reduceOnly: false, isTrigger: true },
+      false,
+    ],
     ['reduce-only trigger', { reduceOnly: true, isTrigger: true }, true],
     ['plain (flags absent)', {}, false],
     ['plain (flags false)', { reduceOnly: false, isTrigger: false }, false],

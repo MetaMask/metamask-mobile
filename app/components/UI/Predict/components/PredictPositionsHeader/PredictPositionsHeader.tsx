@@ -43,7 +43,7 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { PredictPosition, PredictPositionStatus } from '../../types';
+import { PredictPosition } from '../../types';
 import {
   formatPercentage,
   formatPredictUnrealizedPnLStringParts,
@@ -53,6 +53,7 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 import { PredictEventValues } from '../../constants/eventNames';
 import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accounts';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import { PREDICT_POSITIONS_HEADER_TEST_IDS } from './PredictPositionsHeader.testIds';
 
 export interface PredictPositionsHeaderHandle {
@@ -97,12 +98,7 @@ const PredictPositionsHeader = forwardRef<
   });
   const hasPositions = (activePositions?.length ?? 0) > 0;
   const wonPositions = useMemo(
-    () =>
-      claimablePositions.filter(
-        (position) =>
-          position.status === PredictPositionStatus.WON ||
-          position.status === PredictPositionStatus.REDEEMABLE,
-      ),
+    () => claimablePositions.filter(isActionableClaimablePosition),
     [claimablePositions],
   );
 

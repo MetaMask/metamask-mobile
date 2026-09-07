@@ -53,6 +53,12 @@ export function initializeWallet({
   const transactionControllerInitMessenger =
     getTransactionControllerInitMessenger(messenger);
 
+  // TC event listeners must be set up before the wallet is initialized.
+  // So that the TC can emit events to the wallet's messenger during initialization.
+  setupTransactionControllerListeners({
+    messenger: transactionControllerInitMessenger,
+  });
+
   const wallet: Wallet = new Wallet({
     // Mobile's root messenger carries a superset action/event union (all app
     // controllers) vs. the wallet's narrower DefaultActions/DefaultEvents.
@@ -83,10 +89,6 @@ export function initializeWallet({
         initMessenger: transactionControllerInitMessenger,
       }),
     },
-  });
-
-  setupTransactionControllerListeners({
-    messenger: transactionControllerInitMessenger,
   });
 
   wallet.init().catch((error: unknown) => console.error(error));
