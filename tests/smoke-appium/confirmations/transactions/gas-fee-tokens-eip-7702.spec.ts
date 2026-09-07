@@ -13,7 +13,6 @@ import { startRedesignedNativeSendFiveEthToReview } from '../../../flows/confirm
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents.js';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager.js';
-import { ANVIL_LOCAL_ETH_HOLDING } from '../helpers/anvil-local-eth-holding.js';
 import {
   setupMockPostRequest,
   setupMockRequest,
@@ -213,7 +212,6 @@ appiumTest.describe.skip(
           nickname: 'Local RPC',
           ticker: 'ETH',
         })
-        .withTokenHoldings([ANVIL_LOCAL_ETH_HOLDING])
         .withDisabledSmartTransactions()
         .build();
     };

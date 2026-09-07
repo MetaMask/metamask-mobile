@@ -24,7 +24,6 @@ import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/fe
 import { Mockttp } from 'mockttp';
 import { LocalNode } from '../../../framework/types.js';
 import { AnvilManager } from '../../../seeder/anvil-manager.js';
-import { ANVIL_LOCAL_ETH_HOLDING } from '../helpers/anvil-local-eth-holding.js';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -65,7 +64,6 @@ appiumTest.describe.skip(SmokeConfirmations('Dapp Network Switching'), () => {
                 nickname: LOCAL_CHAIN_NAME,
                 ticker: 'ETH',
               })
-              .withTokenHoldings([ANVIL_LOCAL_ETH_HOLDING])
               .withPermissionControllerConnectedToTestDapp(
                 buildPermissions([LOCAL_CHAIN_ID]),
               )

@@ -25,7 +25,6 @@ import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/rem
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { LocalNode, LocalNodeType } from '../../../../framework/types.js';
 import { AnvilManager } from '../../../../seeder/anvil-manager.js';
-import { ANVIL_LOCAL_ETH_HOLDING } from '../../helpers/anvil-local-eth-holding.js';
 
 const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
 const INCREASE_ALLOWANCE_ACTIVITY = 'Increase allowance';
@@ -47,7 +46,6 @@ function buildIncreaseAllowanceFixture({
       nickname: 'Local RPC',
       ticker: 'ETH',
     })
-    .withTokenHoldings([ANVIL_LOCAL_ETH_HOLDING])
     .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
     .build();
 

@@ -35,7 +35,6 @@ import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/fe
 import { LocalNode, LocalNodeType } from '../../../framework/types.js';
 import { AnvilManager } from '../../../seeder/anvil-manager.js';
 import { dappInitiatedTransferAnalyticsExpectations } from '../../../helpers/analytics/expectations/dapp-initiated-transfer.analytics.js';
-import { ANVIL_LOCAL_ETH_HOLDING } from '../helpers/anvil-local-eth-holding.js';
 
 function buildDappInitiatedTransferFixture({
   localNodes,
@@ -57,7 +56,6 @@ function buildDappInitiatedTransferFixture({
     .withNetworkEnabledMap({
       eip155: { '0x539': true },
     })
-    .withTokenHoldings([ANVIL_LOCAL_ETH_HOLDING])
     .withMetaMetricsOptIn()
     .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
     .build();

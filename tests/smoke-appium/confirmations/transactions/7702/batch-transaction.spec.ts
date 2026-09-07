@@ -43,7 +43,6 @@ import {
   LocalNodeType,
 } from '../../../../framework/types.js';
 import { AnvilManager, Hardfork } from '../../../../seeder/anvil-manager.js';
-import { ANVIL_LOCAL_ETH_HOLDING } from '../../helpers/anvil-local-eth-holding.js';
 
 const ANVIL_NODE_OPTIONS_WITH_7702: AnvilNodeOptions = {
   hardfork: 'prague' as Hardfork,
@@ -69,8 +68,7 @@ function buildLocalRpcFixture({
       type: 'custom',
       nickname: 'Local RPC',
       ticker: 'ETH',
-    })
-    .withTokenHoldings([ANVIL_LOCAL_ETH_HOLDING]);
+    });
 
   if (withTestDappPermission) {
     builder = builder.withPermissionControllerConnectedToTestDapp(
