@@ -2,6 +2,7 @@ import {
   applyAndroidDevicePoolToWorker,
   assertAndroidDevicePoolMatchesWorkers,
   deviceForWorker,
+  isSharedAndroidAdbDaemon,
   parseAndroidDevicePool,
   resolveAndroidDevicePoolSize,
 } from './androidDevicePool.ts';
@@ -54,6 +55,38 @@ describe('androidDevicePool', () => {
       expect(resolveZero).toThrow(
         'Invalid ANDROID_DEVICE_POOL_SIZE "0". Expected a positive integer.',
       );
+    });
+  });
+
+  describe('isSharedAndroidAdbDaemon', () => {
+    it('returns false for the single-emulator default', () => {
+      const result = isSharedAndroidAdbDaemon({});
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the pool size is one', () => {
+      const result = isSharedAndroidAdbDaemon({
+        ANDROID_DEVICE_POOL_SIZE: '1',
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true for an N=2 Android Appium pool', () => {
+      const result = isSharedAndroidAdbDaemon({
+        ANDROID_DEVICE_POOL_SIZE: '2',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for an N=3 Android Appium pool', () => {
+      const result = isSharedAndroidAdbDaemon({
+        ANDROID_DEVICE_POOL_SIZE: '3',
+      });
+
+      expect(result).toBe(true);
     });
   });
 

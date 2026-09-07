@@ -241,7 +241,17 @@ export const LIMIT_PRICE_CONFIG = {
   // at least (1 - 0.95) = 5% of the larger one. We block submission up front
   // instead of letting the order fail at the exchange.
   MaxDeviationFromMarket: 0.95,
+
+  // Warn when a limit/scale price is more than 5% from the near-touch
+  // (best bid long, best ask short). Equal to 5% does not warn.
+  FarFromMarketThreshold: 0.05,
 } as const;
+
+// Local warning-type literal. PERPS_EVENT_VALUE.WARNING_TYPE has no
+// far-from-market member.
+export const FAR_FROM_MARKET_WARNING_INTERACTION =
+  'far_from_market_warning_shown';
+export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 
@@ -379,18 +389,12 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 /**
  * Provider configuration
  * Controls which perpetual DEX providers are available
- *
- * Note: MYX provider enablement is now controlled via LaunchDarkly feature flag
- * (perpsMyxProviderEnabled) and MM_PERPS_MYX_PROVIDER_ENABLED environment variable.
- * See selectPerpsMYXProviderEnabledFlag selector for details.
  */
 export const PROVIDER_CONFIG = {
   /** Default perpetual DEX provider when no explicit selection exists */
   DefaultProvider: 'hyperliquid' as const,
   /** Controller mode that aggregates reads across active providers. */
   AggregatedProvider: 'aggregated' as const,
-  /** Force MYX to testnet only (mainnet credentials not yet available) */
-  MYX_TESTNET_ONLY: false,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */
@@ -400,7 +404,7 @@ export type PerpsNetwork = 'mainnet' | 'testnet';
  * Chain IDs for each perps provider by network.
  * Identifies the provider's native chain (where "Perps balance" lives) so callers
  * can exclude it from pay-with-any-token allowlist or filter tokens.
- * Add entries when integrating new providers (e.g. MYX).
+ * Add entries when integrating new providers.
  */
 export const PERPS_PROVIDER_CHAIN_IDS: Record<
   string,
@@ -410,7 +414,6 @@ export const PERPS_PROVIDER_CHAIN_IDS: Record<
     mainnet: HYPERLIQUID_MAINNET_CHAIN_ID,
     testnet: HYPERLIQUID_TESTNET_CHAIN_ID,
   },
-  // myx: add mainnet/testnet chain IDs when MYX integration provides them
 };
 
 /**
