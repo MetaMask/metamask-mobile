@@ -8,10 +8,19 @@ import { createTradingSignalsSetupNavigationDetails } from '../components/Tradin
 
 const mockNavigate = jest.fn();
 let focusEffectCleanup: (() => void) | undefined;
+let mockIsMasterEnabled = true;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
   useFocusEffect: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
+jest.mock('../../../../selectors/notifications', () => ({
+  selectIsMetamaskNotificationsEnabled: () => mockIsMasterEnabled,
 }));
 
 jest.mock('../NotificationPreferences/hooks');
@@ -43,6 +52,10 @@ const mockCreateSetupNavigationDetails =
   >;
 
 const SETUP_ROUTE = 'TradingSignalsSetupBottomSheet';
+const GATE_NAVIGATION = {
+  screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
+  params: { feature: 'socialAI', autoDismiss: true },
+};
 
 const runFocusEffect = () => {
   const focusCallback = mockUseFocusEffect.mock.calls.at(-1)?.[0];
@@ -77,6 +90,7 @@ describe('useOpenTradingSignalsSetup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     focusEffectCleanup = undefined;
+    mockIsMasterEnabled = true;
     mockUseFocusEffect.mockImplementation((callback) => {
       const cleanup = callback();
       focusEffectCleanup = typeof cleanup === 'function' ? cleanup : undefined;
@@ -233,6 +247,123 @@ describe('useOpenTradingSignalsSetup', () => {
     expect(handled).toBe(false);
     expect(mockCreateSetupNavigationDetails).not.toHaveBeenCalled();
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the feature notifications gate when the master toggle is off', () => {
+    mockIsMasterEnabled = false;
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({
+        preferences: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+          txAmountLimit: 100,
+          mutedTraderProfileIds: [],
+        },
+      }),
+    );
+    const pendingAction = jest.fn();
+    const { result } = renderHook(() => useOpenTradingSignalsSetup());
+
+    const handled = result.current.openSetupIfNeeded(pendingAction);
+
+    expect(handled).toBe(true);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      GATE_NAVIGATION,
+    );
+    expect(mockCreateSetupNavigationDetails).not.toHaveBeenCalled();
+    expect(pendingAction).not.toHaveBeenCalled();
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+  });
+
+  it('forwards the pending action after returning from the gate with master and a channel enabled', () => {
+    mockIsMasterEnabled = false;
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({
+        preferences: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: false,
+          txAmountLimit: 100,
+          mutedTraderProfileIds: [],
+        },
+      }),
+    );
+    const pendingAction = jest.fn();
+    const { result, rerender } = renderHook(() => useOpenTradingSignalsSetup());
+
+    result.current.openSetupIfNeeded(pendingAction);
+    runFocusEffectCleanup();
+    mockIsMasterEnabled = true;
+    rerender({});
+    runFocusEffect();
+
+    expect(pendingAction).toHaveBeenCalledTimes(1);
+    expect(mockCreateSetupNavigationDetails).not.toHaveBeenCalled();
+  });
+
+  it('drops the pending action when returning from the gate with the master toggle still off', () => {
+    mockIsMasterEnabled = false;
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({
+        preferences: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+          txAmountLimit: 100,
+          mutedTraderProfileIds: [],
+        },
+      }),
+    );
+    const pendingAction = jest.fn();
+    const { result } = renderHook(() => useOpenTradingSignalsSetup());
+
+    result.current.openSetupIfNeeded(pendingAction);
+    runFocusEffectCleanup();
+    runFocusEffect();
+
+    expect(pendingAction).not.toHaveBeenCalled();
+    expect(mockCreateSetupNavigationDetails).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the setup sheet when returning from the gate with channels still disabled', () => {
+    mockIsMasterEnabled = false;
+    const pendingAction = jest.fn();
+    const { result, rerender } = renderHook(() => useOpenTradingSignalsSetup());
+
+    result.current.openSetupIfNeeded(pendingAction);
+    runFocusEffectCleanup();
+    mockIsMasterEnabled = true;
+    rerender({});
+    runFocusEffect();
+
+    expect(pendingAction).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenLastCalledWith(SETUP_ROUTE, {
+      onSetupComplete: pendingAction,
+    });
+    expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not resume the deferred gate action on a background master-toggle update while unfocused', () => {
+    mockUseFocusEffect.mockImplementation(() => undefined);
+    mockIsMasterEnabled = false;
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({
+        preferences: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: false,
+          txAmountLimit: 100,
+          mutedTraderProfileIds: [],
+        },
+      }),
+    );
+    const pendingAction = jest.fn();
+    const { result, rerender } = renderHook(() => useOpenTradingSignalsSetup());
+
+    result.current.openSetupIfNeeded(pendingAction);
+    mockIsMasterEnabled = true;
+    rerender({});
+
+    expect(pendingAction).not.toHaveBeenCalled();
+    expect(mockCreateSetupNavigationDetails).not.toHaveBeenCalled();
   });
 
   it('does not resume the deferred action on a background cache update while unfocused', () => {

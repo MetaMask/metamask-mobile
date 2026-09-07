@@ -196,7 +196,7 @@ class TabBarComponent {
         // neither entry point is on screen — skip / swallow taps and wait for
         // the title so executeWithRetry can succeed once Activity is visible.
         const alreadyOnActivity = await Utilities.isElementVisible(
-          ActivitiesView.title,
+          ActivitiesView.redesignedScreen,
           500,
         );
         if (!alreadyOnActivity) {
@@ -217,8 +217,15 @@ class TabBarComponent {
             }
           }
         }
-        await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          description: 'Activity View Title',
+        await Assertions.expectElementToBeVisible(
+          ActivitiesView.redesignedScreen,
+          {
+            description: 'Activity View Screen',
+            timeout: 500,
+          },
+        );
+        await Assertions.expectElementToBeVisible(ActivitiesView.container, {
+          description: 'Activity List',
           timeout: 500,
         });
       },

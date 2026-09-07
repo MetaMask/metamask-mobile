@@ -14,9 +14,7 @@ const logger = createAppiumLogger('AppiumMatchers');
  * These matchers use WebdriverIO's robust element finding under the hood,
  * but return elements with Playwright-style API (fill, click, textContent, etc.).
  *
- * All these functions can later take use of the original Detox framework with
- * the executeWithRetry approach, for the time being we're relying on the
- * WebdriverIO framework only.
+ * Selectors return `AppiumElement` wrappers around WebdriverIO elements.
  *
  * @example
  * const element = await AppiumMatchers.getByAccessibilityId('login-button');

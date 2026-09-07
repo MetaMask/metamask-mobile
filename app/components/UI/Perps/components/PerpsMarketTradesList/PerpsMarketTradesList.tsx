@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
@@ -38,7 +37,6 @@ import {
   HOME_SCREEN_CONFIG,
 } from '../../constants/perpsConfig';
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
-import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
 import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 
 interface PerpsMarketTradesListProps {
@@ -52,9 +50,6 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
-  const isTransactionsRedesignEnabled = useSelector(
-    selectIsTransactionsRedesignEnabled,
-  );
   const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -96,20 +91,9 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
           .build(),
       );
 
-      navigateToPerpsTransactionDetails(
-        navigation,
-        transaction,
-        isTransactionsRedesignEnabled,
-        isTestnet,
-      );
+      navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
     },
-    [
-      navigation,
-      isTransactionsRedesignEnabled,
-      isTestnet,
-      trackEvent,
-      createEventBuilder,
-    ],
+    [navigation, isTestnet, trackEvent, createEventBuilder],
   );
 
   // Render right content for trades

@@ -24,7 +24,7 @@ const EMPTY_STATE: EarnSectionTokenMetadataState = {
  * Loads metadata for unheld lending assets while preserving an explicit error
  * state so EarnSection never silently substitutes incomplete token data.
  */
-const useEarnSectionTokenMetadata = (assetIds: string[]) => {
+const useEarnSectionTokenMetadata = (assetIds: string[], enabled = true) => {
   const assetIdsKey = useMemo(
     () =>
       [...new Set(assetIds.map((assetId) => assetId.toLowerCase()))].join(','),
@@ -39,6 +39,8 @@ const useEarnSectionTokenMetadata = (assetIds: string[]) => {
   const requestIdRef = useRef(0);
 
   const loadMetadata = useCallback(async (): Promise<Error | null> => {
+    if (!enabled) return null;
+
     const requestId = ++requestIdRef.current;
     if (!assetIdsKey) {
       setState(EMPTY_STATE);
@@ -85,15 +87,17 @@ const useEarnSectionTokenMetadata = (assetIds: string[]) => {
       });
       return normalizedError;
     }
-  }, [assetIdsKey]);
+  }, [assetIdsKey, enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
+
     loadMetadata();
 
     return () => {
       requestIdRef.current += 1;
     };
-  }, [loadMetadata]);
+  }, [enabled, loadMetadata]);
 
   const refresh = useCallback(async () => {
     const error = await loadMetadata();
@@ -103,10 +107,20 @@ const useEarnSectionTokenMetadata = (assetIds: string[]) => {
   }, [loadMetadata]);
 
   const isCurrentRequest = state.assetIdsKey === assetIdsKey;
+  const hasMetadataForCurrentAssetIds =
+    isCurrentRequest &&
+    Boolean(assetIdsKey) &&
+    assetIdsKey
+      .split(',')
+      .every((assetId) => state.tokensByAssetId[assetId] !== undefined);
 
   return {
     tokensByAssetId: isCurrentRequest ? state.tokensByAssetId : {},
-    isLoading: Boolean(assetIdsKey) && (!isCurrentRequest || state.isLoading),
+    isLoading:
+      enabled &&
+      Boolean(assetIdsKey) &&
+      (!isCurrentRequest ||
+        (state.isLoading && !hasMetadataForCurrentAssetIds)),
     isSettled: isCurrentRequest && state.isSettled,
     error: isCurrentRequest ? state.error : null,
     refresh,

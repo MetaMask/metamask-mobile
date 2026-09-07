@@ -13,17 +13,24 @@ PredictNext/
       EventCardStandard.tsx    # Public composition
       internal/                # Card primitives and private composition
     game/
-      index.ts                 # Game presentation for cards and Event Screen
+      index.ts                 # Game presentation and Game Selection quotes
       createGamePresentation.ts
+      findGameSelectionQuote.ts
+      findWinnerMarketQuotes.ts
     markets/
       index.ts                 # Supported Market-card and list API
       MarketList.tsx           # Card-agnostic detail-list composition
+      MarketFooterCard.tsx     # Public Game winner footer composition
       MarketStandardCard.tsx   # Public standard Market composition
-      internal/                # Private standard Market-card parts
+      SpreadMarketGroupCard.tsx # Public spread Market-group composition
+      TotalMarketGroupCard.tsx  # Public total Market-group composition
+      internal/                # Private Market-card parts
     shared/
       formatting/              # Price and Volume formatting shared by Event UI
 
-  views/                       # Existing screens awaiting proven feature ownership
+  views/                       # Screen compositions and private view helpers
+    PredictEvent/
+      internal/                # Screen-owned detail helpers
   hooks/                       # Existing cross-screen React query integration
   navigation/
 

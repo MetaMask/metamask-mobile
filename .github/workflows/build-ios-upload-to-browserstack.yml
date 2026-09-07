@@ -127,7 +127,7 @@ jobs:
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
     needs: [check-builds-needed, trigger-ios-with-srp-build, trigger-ios-without-srp-build]
     if: (needs.trigger-ios-with-srp-build.result == 'success' || needs.trigger-ios-with-srp-build.result == 'partial_success') && (needs.trigger-ios-without-srp-build.result == 'success' || needs.trigger-ios-without-srp-build.result == 'partial_success')

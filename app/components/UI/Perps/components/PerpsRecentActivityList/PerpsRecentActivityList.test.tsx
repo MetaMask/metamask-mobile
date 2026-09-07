@@ -346,21 +346,6 @@ describe('PerpsRecentActivityList', () => {
       );
     });
 
-    it('navigates to the legacy position screen when redesign is disabled', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation(() => false);
-
-      render(<PerpsRecentActivityList transactions={mockTransactions} />);
-
-      const transactionItem = screen.getByText('Opened long');
-      fireEvent.press(transactionItem.parent?.parent || transactionItem);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
-        { transaction: mockTransactions[0] },
-      );
-    });
-
     it('handles multiple presses on header', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 

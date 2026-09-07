@@ -43,6 +43,8 @@ import {
   ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 const ManualBackupStep2 = ({
   navigation,
@@ -63,6 +65,13 @@ const ManualBackupStep2 = ({
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [usedWordIndices, setUsedWordIndices] = useState(new Set());
   const [wordPositionMap, setWordPositionMap] = useState({});
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.MANUAL_BACKUP_STEP2,
+    contentReady: true,
+    isEmpty: false,
+    fullyDisplayed: gridWords.length > 0,
+  });
 
   const validateWords = useCallback(() => {
     const validWords = route.params?.words ?? [];

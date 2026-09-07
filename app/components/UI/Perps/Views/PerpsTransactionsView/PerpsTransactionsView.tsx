@@ -28,7 +28,6 @@ import { TabEmptyState } from '../../../../../component-library/components-temp/
 import ButtonFilter from '../../../../../component-library/components-temp/ButtonFilter';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
 import {
   formatAccountToCaipAccountId,
   PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
@@ -80,9 +79,6 @@ const PerpsTransactionsView: React.FC = () => {
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
-  const isTransactionsRedesignEnabled = useSelector(
-    selectIsTransactionsRedesignEnabled,
-  );
   const isTestnet = usePerpsNetwork() === 'testnet';
   const accountId = useMemo(() => {
     if (!selectedAddress || !currentChainId) {
@@ -335,12 +331,7 @@ const PerpsTransactionsView: React.FC = () => {
         .build(),
     );
 
-    navigateToPerpsTransactionDetails(
-      navigation,
-      transaction,
-      isTransactionsRedesignEnabled,
-      isTestnet,
-    );
+    navigateToPerpsTransactionDetails(navigation, transaction, isTestnet);
   };
 
   // Render right content based on transaction type

@@ -28,6 +28,7 @@ import {
   type PerpsMarketData,
   type Position,
   type Order,
+  type SortField,
 } from '@metamask/perps-controller';
 import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
@@ -83,6 +84,11 @@ interface PerpsWatchlistMarketsProps {
   showLeadingDivider?: boolean;
   /** Whether to render the collapsible "Show more"/"Show less" toggle. Defaults to true. */
   enableShowMore?: boolean;
+  /**
+   * Metric shown on each market row. Matches the active markets-list sort
+   * so watchlist rows display the same field the user sorted by.
+   */
+  displayMetric?: SortField;
 }
 
 // ─── Legacy (flag OFF) ──────────────────────────────────────────────────────
@@ -103,6 +109,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   contentContainerStyle,
   onMarketPress,
   showLeadingDivider = true,
+  displayMetric,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -153,10 +160,11 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
       <PerpsMarketRowItem
         market={item}
         showBadge={false}
+        displayMetric={displayMetric}
         onPress={() => handleMarketPress(item)}
       />
     ),
-    [handleMarketPress],
+    [handleMarketPress, displayMetric],
   );
 
   if (!isLoading && markets.length === 0) {
@@ -205,6 +213,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   showHeader = true,
   enableShowMore = true,
   showLeadingDivider = true,
+  displayMetric,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -319,6 +328,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
       <PerpsMarketRowItem
         market={item}
         showBadge={false}
+        displayMetric={displayMetric}
         onPress={() => handleMarketPress(item)}
       />
     </Animated.View>
@@ -395,6 +405,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
                   <PerpsMarketRowItem
                     market={market}
                     showBadge={false}
+                    displayMetric={displayMetric}
                     onPress={() => handleMarketPress(market)}
                     onAddPress={() => addToWatchlist(market.symbol)}
                   />

@@ -42,6 +42,8 @@ import {
 } from '../../../actions/user';
 import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
+import { RouteMessengerInstance } from './messenger';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
@@ -184,6 +186,7 @@ const ChoosePassword = () => {
 
   const dispatch = useDispatch();
   const metrics = useAnalytics();
+  const messenger = useMessenger<RouteMessengerInstance>();
 
   const isSocialLoginUser = route.params?.oauthLoginSuccess === true;
   const geoLocation = useSelector(selectGeolocationLocation);
@@ -209,6 +212,7 @@ const ChoosePassword = () => {
     contentReady: true,
     isEmpty: false,
     isLoading: isSocialLoginUser && !isGeolocationResolved,
+    fullyDisplayed: !isSocialLoginUser || isGeolocationResolved,
   });
 
   useNavigationPerformance({
@@ -257,9 +261,7 @@ const ChoosePassword = () => {
     let cancelled = false;
     setIsGeolocationResolved(false);
 
-    Promise.resolve(
-      Engine.context.GeolocationController?.refreshGeolocation?.(),
-    )
+    Promise.resolve(messenger.call('GeolocationController:refreshGeolocation'))
       .then((location) => {
         if (!cancelled) {
           setResolvedGeolocationLocation(location);
@@ -276,7 +278,7 @@ const ChoosePassword = () => {
     return () => {
       cancelled = true;
     };
-  }, [isSocialLoginUser, geoLocation]);
+  }, [isSocialLoginUser, geoLocation, messenger]);
 
   const marketingOptInChecked = useMemo(() => {
     if (isSocialLoginUser) {

@@ -26,6 +26,29 @@ describe('activity adapter fiat helpers', () => {
     ).toBe('1');
   });
 
+  it('does not apply metadata decimals when the amount is already human-readable', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1',
+        decimals: 9,
+        direction: 'out',
+        symbol: 'SOL',
+        amountIsHumanReadable: true,
+      }),
+    ).toBe('1');
+  });
+
+  it('treats an integer amount as atomic units when decimals are set and the amount is not marked human-readable', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1',
+        decimals: 9,
+        direction: 'out',
+        symbol: 'SOL',
+      }),
+    ).toBe('0.000000001');
+  });
+
   it('treats a missing amount with symbol/assetId as zero for client-utils natives', () => {
     expect(
       getHumanReadableTokenAmount({

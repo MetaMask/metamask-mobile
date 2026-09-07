@@ -30,11 +30,23 @@ import {
   formatTransactionDate,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import {
+  getOrderPriceRowVisibility,
+  getValidPerpsPrice,
+  resolvePerpsTransactionOrderType,
+} from '../../utils/orderUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
+
+interface PerpsOrderDetailRow {
+  key: string;
+  label: string;
+  value: string | number | undefined;
+  testID?: string;
+}
 
 const PerpsOrderTransactionViewContent: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -97,24 +109,55 @@ const PerpsOrderTransactionViewContent: React.FC = () => {
     });
   };
 
+  const order = transaction.order;
+  const orderType = order ? resolvePerpsTransactionOrderType(order) : undefined;
+  const { showTriggerPrice, showLimitPrice } =
+    getOrderPriceRowVisibility(orderType);
+
+  const priceRows: PerpsOrderDetailRow[] = [];
+  if (order && showTriggerPrice) {
+    const triggerPrice = getValidPerpsPrice(order.triggerPrice);
+    if (triggerPrice !== null) {
+      priceRows.push({
+        key: 'trigger-price',
+        label: strings('perps.order.trigger_price'),
+        value: formatPerpsFiat(triggerPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        }),
+        testID: PerpsTransactionSelectorsIDs.TRIGGER_PRICE_ROW,
+      });
+    }
+  }
+
+  if (order && showLimitPrice) {
+    const limitPrice = getValidPerpsPrice(order.limitPrice);
+    if (limitPrice !== null) {
+      priceRows.push({
+        key: 'limit-price',
+        label: strings('perps.transactions.order.limit_price'),
+        value: formatPerpsFiat(limitPrice, {
+          ranges: PRICE_RANGES_UNIVERSAL,
+        }),
+        testID: PerpsTransactionSelectorsIDs.LIMIT_PRICE_ROW,
+      });
+    }
+  }
+
   // Main detail rows based on design
-  const mainDetailRows = [
+  const mainDetailRows: PerpsOrderDetailRow[] = [
     {
+      key: 'date',
       label: strings('perps.transactions.order.date'),
       value: formatTransactionDate(transaction.timestamp),
     },
-    // Add order-specific fields when available from transaction data
     {
+      key: 'size',
       label: strings('perps.transactions.order.size'),
       value: formatPerpsFiat(transaction.order?.size ?? 0),
     },
+    ...priceRows,
     {
-      label: strings('perps.transactions.order.limit_price'),
-      value: formatPerpsFiat(transaction.order?.limitPrice ?? 0, {
-        ranges: PRICE_RANGES_UNIVERSAL,
-      }),
-    },
-    {
+      key: 'filled',
       label: strings('perps.transactions.order.filled'),
       value: transaction.order?.filled,
     },
@@ -157,7 +200,8 @@ const PerpsOrderTransactionViewContent: React.FC = () => {
           <View style={styles.detailsContainer}>
             {mainDetailRows.map((detail, index) => (
               <View
-                key={index}
+                key={detail.key}
+                testID={detail.testID}
                 style={[
                   styles.detailRow,
                   index === mainDetailRows.length - 1 && styles.detailRowLast,

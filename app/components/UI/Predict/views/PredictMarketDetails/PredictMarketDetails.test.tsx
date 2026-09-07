@@ -603,7 +603,7 @@ function setupPredictMarketDetailsTest(
 
   usePredictMarket.mockReturnValue({
     data: mockMarket,
-    isLoading: false,
+    isPending: false,
     isFetching: false,
     error: null,
     refetch: jest.fn(),
@@ -820,7 +820,7 @@ describe('PredictMarketDetails', () => {
         {},
         {},
         {
-          market: { data: null, isLoading: true, isFetching: true },
+          market: { data: null, isPending: true, isFetching: true },
         },
       );
 
@@ -904,7 +904,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isLoading: true, isFetching: true, data: null } },
+        { market: { isPending: true, isFetching: true, data: null } },
       );
 
       expect(

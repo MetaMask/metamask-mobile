@@ -39,6 +39,7 @@ jest.mock('react-native-gesture-handler', () => {
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
@@ -190,8 +191,105 @@ jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
   }),
 }));
 
+// Default return values for hooks that individual tests override.
+// jest.clearAllMocks() keeps implementations, so beforeEach must re-apply these.
+// mock* prefix is required so jest.mock factories can call them after hoist.
+const mockDefaultUsePerpsOrderForm = () => ({
+  orderForm: {
+    asset: 'ETH',
+    amount: '11',
+    leverage: 3,
+    direction: 'long',
+    type: 'market',
+    limitPrice: undefined,
+    takeProfitPrice: undefined,
+    stopLossPrice: undefined,
+  },
+  setAmount: jest.fn(),
+  setLeverage: jest.fn(),
+  setTakeProfitPrice: jest.fn(),
+  setStopLossPrice: jest.fn(),
+  setLimitPrice: jest.fn(),
+  setOrderType: jest.fn(),
+  updateOrderForm: jest.fn(),
+  handlePercentageAmount: jest.fn(),
+  handleMaxAmount: jest.fn(),
+  optimizeOrderAmount: jest.fn(),
+  maxPossibleAmount: 1000,
+  balanceForValidation: 1000,
+  calculations: {
+    marginRequired: 11,
+    positionSize: 0.0037,
+  },
+});
+
+const mockDefaultUsePerpsOrderExecution = () => ({
+  placeOrder: jest.fn().mockResolvedValue({ success: true }),
+  isPlacing: false,
+});
+
+const mockDefaultUsePerpsRewards = () => ({
+  shouldShowRewardsRow: false,
+  isLoading: false,
+  estimatedPoints: undefined,
+  bonusBips: undefined,
+  feeDiscountPercentage: undefined,
+  hasError: false,
+  isRefresh: false,
+  accountOptedIn: null,
+  account: undefined,
+});
+
+const mockDefaultUsePerpsToasts = () => ({
+  showToast: jest.fn(),
+  PerpsToastOptions: {
+    formValidation: {
+      orderForm: {
+        limitPriceRequired: {},
+        validationError: jest.fn(),
+      },
+    },
+    orderManagement: {
+      market: {
+        submitted: jest.fn(),
+        confirmed: jest.fn(),
+        creationFailed: jest.fn(),
+      },
+      limit: {
+        submitted: jest.fn(),
+        confirmed: jest.fn(),
+        creationFailed: jest.fn(),
+      },
+    },
+    positionManagement: {
+      tpsl: {
+        updateTPSLError: jest.fn(),
+      },
+    },
+    dataFetching: {
+      market: {
+        error: {
+          marketDataUnavailable: jest.fn(),
+        },
+      },
+    },
+  },
+});
+
+const mockDefaultUsePerpsEstimatedSlippage = () => ({
+  estimatedSlippageBps: null,
+  isReady: false,
+});
+
+const mockDefaultUsePerpsMaxSlippage = () => ({
+  maxSlippageBps: 300,
+  maxSlippageSource: 'default',
+  setMaxSlippage: jest.fn(),
+});
+
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
+  useBottomSafeAreaInset: jest.fn(() => 0),
   usePerpsLiveAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsNetwork: jest.fn(),
@@ -239,42 +337,17 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   formatFeeRate: jest.fn((rate) => `${(rate * 100).toFixed(3)}%`),
-  usePerpsOrderForm: jest.fn(() => ({
-    orderForm: {
-      asset: 'ETH',
-      amount: '11',
-      leverage: 3,
-      direction: 'long',
-      type: 'market',
-      limitPrice: undefined,
-      takeProfitPrice: undefined,
-      stopLossPrice: undefined,
-    },
-    setAmount: jest.fn(),
-    setLeverage: jest.fn(),
-    setTakeProfitPrice: jest.fn(),
-    setStopLossPrice: jest.fn(),
-    setLimitPrice: jest.fn(),
-    setOrderType: jest.fn(),
-    handlePercentageAmount: jest.fn(),
-    handleMaxAmount: jest.fn(),
-    optimizeOrderAmount: jest.fn(),
-    maxPossibleAmount: 1000,
-    balanceForValidation: 1000,
-    calculations: {
-      marginRequired: 11,
-      positionSize: 0.0037,
-    },
-  })),
+  usePerpsOrderForm: jest.fn(() => mockDefaultUsePerpsOrderForm()),
   usePerpsOrderValidation: jest.fn(() => ({
     isValid: true,
     errors: [],
+    warnings: [],
+    fieldIssues: [],
     isValidating: false,
+    insufficientBalanceErrors: [],
+    validateNow: jest.fn(),
   })),
-  usePerpsOrderExecution: jest.fn(() => ({
-    placeOrder: jest.fn().mockResolvedValue({ success: true }),
-    isPlacing: false,
-  })),
+  usePerpsOrderExecution: jest.fn(() => mockDefaultUsePerpsOrderExecution()),
   usePerpsOrderDepositTracking: jest.fn(() => ({
     handleDepositConfirm: jest.fn(),
   })),
@@ -315,52 +388,8 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
-  usePerpsRewards: jest.fn(() => ({
-    shouldShowRewardsRow: false,
-    isLoading: false,
-    estimatedPoints: undefined,
-    bonusBips: undefined,
-    feeDiscountPercentage: undefined,
-    hasError: false,
-    isRefresh: false,
-    accountOptedIn: null,
-    account: undefined,
-  })),
-  usePerpsToasts: jest.fn(() => ({
-    showToast: jest.fn(),
-    PerpsToastOptions: {
-      formValidation: {
-        orderForm: {
-          limitPriceRequired: {},
-          validationError: jest.fn(),
-        },
-      },
-      orderManagement: {
-        market: {
-          submitted: jest.fn(),
-          confirmed: jest.fn(),
-          creationFailed: jest.fn(),
-        },
-        limit: {
-          submitted: jest.fn(),
-          confirmed: jest.fn(),
-          creationFailed: jest.fn(),
-        },
-      },
-      positionManagement: {
-        tpsl: {
-          updateTPSLError: jest.fn(),
-        },
-      },
-      dataFetching: {
-        market: {
-          error: {
-            marketDataUnavailable: jest.fn(),
-          },
-        },
-      },
-    },
-  })),
+  usePerpsRewards: jest.fn(() => mockDefaultUsePerpsRewards()),
+  usePerpsToasts: jest.fn(() => mockDefaultUsePerpsToasts()),
 }));
 
 // Mock direct hook imports (when imported from specific file paths)
@@ -812,18 +841,13 @@ jest.mock(
 );
 
 jest.mock('../../hooks/usePerpsEstimatedSlippage', () => ({
-  usePerpsEstimatedSlippage: jest.fn(() => ({
-    estimatedSlippageBps: null,
-    isReady: false,
-  })),
+  usePerpsEstimatedSlippage: jest.fn(() =>
+    mockDefaultUsePerpsEstimatedSlippage(),
+  ),
 }));
 
 jest.mock('../../hooks/usePerpsMaxSlippage', () => ({
-  usePerpsMaxSlippage: jest.fn(() => ({
-    maxSlippageBps: 300,
-    maxSlippageSource: 'default',
-    setMaxSlippage: jest.fn(),
-  })),
+  usePerpsMaxSlippage: jest.fn(() => mockDefaultUsePerpsMaxSlippage()),
 }));
 
 // Test setup
@@ -908,6 +932,7 @@ const defaultMockHooks = {
     setStopLossPrice: jest.fn(),
     setLimitPrice: jest.fn(),
     setOrderType: jest.fn(),
+    updateOrderForm: jest.fn(),
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
@@ -1023,15 +1048,72 @@ global.requestAnimationFrame = jest.fn((cb) => {
   return 1;
 });
 
+function applyDefaultHookMocks() {
+  (usePerpsOrderForm as jest.Mock).mockImplementation(
+    mockDefaultUsePerpsOrderForm,
+  );
+  (usePerpsOrderExecution as jest.Mock).mockImplementation(
+    mockDefaultUsePerpsOrderExecution,
+  );
+  (usePerpsRewards as jest.Mock).mockImplementation(mockDefaultUsePerpsRewards);
+  (usePerpsToasts as jest.Mock).mockImplementation(mockDefaultUsePerpsToasts);
+  (usePerpsEstimatedSlippage as jest.Mock).mockImplementation(
+    mockDefaultUsePerpsEstimatedSlippage,
+  );
+  (usePerpsMaxSlippage as jest.Mock).mockImplementation(
+    mockDefaultUsePerpsMaxSlippage,
+  );
+
+  mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+  mockUseTransactionPayToken.mockReturnValue({
+    payToken: undefined,
+    setPayToken: jest.fn(),
+    isNative: undefined,
+  });
+  mockUseABTest.mockReturnValue({
+    variantName: 'control',
+    variant: { long: 'white', short: 'white' },
+    isActive: false,
+  });
+  mockCreateEventBuilder.mockImplementation(() => ({
+    addProperties: jest.fn().mockReturnThis(),
+    build: jest.fn().mockReturnValue({}),
+  }));
+
+  const { useInsufficientPayTokenBalanceAlert } = jest.requireMock(
+    '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+  ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+  useInsufficientPayTokenBalanceAlert.mockReturnValue([]);
+
+  const { useNoPayTokenQuotesAlert } = jest.requireMock(
+    '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+  ) as { useNoPayTokenQuotesAlert: jest.Mock };
+  useNoPayTokenQuotesAlert.mockReturnValue([]);
+}
+
 describe('PerpsOrderView', () => {
   beforeEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
+    applyDefaultHookMocks();
+    (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+      isValid: true,
+      errors: [],
+      warnings: [],
+      fieldIssues: [],
+      isValidating: false,
+      insufficientBalanceErrors: [],
+      validateNow: jest.fn(),
+    });
     mockPerpsAdvancedChartEnabled = false;
     mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
     mockIsPaySubmitReady = true;
     mockPayTokenAccountBalanceUsd = '0';
     mockProviderEffectiveAvailableBalance = undefined;
+    mockIsPayQuoteLoading = false;
+    mockPayTotals = undefined;
+    mockPayRequiredTokens = [];
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1117,6 +1199,7 @@ describe('PerpsOrderView', () => {
       setStopLossPrice: jest.fn(),
       setLimitPrice: jest.fn(),
       setOrderType: jest.fn(),
+      updateOrderForm: jest.fn(),
       handlePercentageAmount: jest.fn(),
       handleMaxAmount: jest.fn(),
       handleMinAmount: jest.fn(),
@@ -1215,6 +1298,7 @@ describe('PerpsOrderView', () => {
       setStopLossPrice: jest.fn(),
       setLimitPrice: jest.fn(),
       setOrderType: jest.fn(),
+      updateOrderForm: jest.fn(),
       handlePercentageAmount: jest.fn(),
       handleMaxAmount: jest.fn(),
       handleMinAmount: jest.fn(),
@@ -1367,6 +1451,39 @@ describe('PerpsOrderView', () => {
         }),
       }),
     );
+  });
+
+  // The market page the trader came from is still below this screen, so the
+  // post-order navigation has to pop back to it. Pushing a duplicate leaves the
+  // order screen underneath and Back returns here instead of to Perps home.
+  it('pops back to the market page instead of stacking a duplicate over the order screen', async () => {
+    // Arrange
+    (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+      placeOrder: jest.fn().mockResolvedValue({ success: true }),
+      isPlacing: false,
+    }));
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+
+    // Act
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+          pop: true,
+        }),
+      );
+    });
   });
 
   it('shows standard submitted toast when using perps balance', async () => {
@@ -1568,6 +1685,7 @@ describe('PerpsOrderView', () => {
     setStopLossPrice: jest.fn(),
     setLimitPrice: jest.fn(),
     setOrderType: jest.fn(),
+    updateOrderForm: jest.fn(),
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
@@ -1836,6 +1954,7 @@ describe('PerpsOrderView', () => {
       setStopLossPrice: jest.fn(),
       setLimitPrice: jest.fn(),
       setOrderType: jest.fn(),
+      updateOrderForm: jest.fn(),
       handlePercentageAmount: jest.fn(),
       handleMaxAmount: jest.fn(),
       handleMinAmount: jest.fn(),
@@ -1883,6 +2002,7 @@ describe('PerpsOrderView', () => {
       setStopLossPrice: jest.fn(),
       setLimitPrice: jest.fn(),
       setOrderType: jest.fn(),
+      updateOrderForm: jest.fn(),
       handlePercentageAmount: jest.fn(),
       handleMaxAmount: jest.fn(),
       handleMinAmount: jest.fn(),
@@ -2080,7 +2200,10 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: false,
         errors: ['Insufficient balance'],
+        fieldIssues: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
 
       // Ensure order execution is not placing
@@ -2095,7 +2218,7 @@ describe('PerpsOrderView', () => {
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
-      expect(placeOrderButton).toBeDefined();
+      expect(placeOrderButton).toBeDisabled();
 
       // Verify validation errors are shown (indicating disabled state)
       // Wait for error to appear after isDataReady becomes true
@@ -2114,7 +2237,11 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        warnings: [],
+        fieldIssues: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -2123,20 +2250,39 @@ describe('PerpsOrderView', () => {
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
-      expect(placeOrderButton).toBeDefined();
-
-      // The button component exists when placing (it shows loading state)
+      expect(placeOrderButton).toBeDisabled();
+      expect(placeOrderButton.props.accessibilityState?.busy).toBe(true);
     });
 
-    it('shows loading state while order validation is pending', async () => {
+    it('validates a pending order on tap without changing CTA presentation', async () => {
       // Arrange
+      let resolveValidation:
+        | ((attempt: {
+            isValid: boolean;
+            errors: string[];
+            warnings: string[];
+            fieldIssues: never[];
+          }) => void)
+        | undefined;
+      const pendingValidation = new Promise<{
+        isValid: boolean;
+        errors: string[];
+        warnings: string[];
+        fieldIssues: never[];
+      }>((resolve) => {
+        resolveValidation = resolve;
+      });
+      const validateNow = jest.fn().mockReturnValue(pendingValidation);
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        fieldIssues: [],
         isValidating: true,
+        insufficientBalanceErrors: [],
+        validateNow,
       });
 
-      const mockPlaceOrder = jest.fn();
+      const mockPlaceOrder = jest.fn().mockResolvedValue({ success: true });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: mockPlaceOrder,
         isPlacing: false,
@@ -2152,20 +2298,51 @@ describe('PerpsOrderView', () => {
       );
       // Assert
       expect(placeOrderButton).toBeOnTheScreen();
-      expect(placeOrderButton).toBeDisabled();
-      expect(placeOrderButton.props.accessibilityState).toEqual(
-        expect.objectContaining({ busy: true, disabled: true }),
-      );
-      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(placeOrderButton).toBeEnabled();
+      expect(placeOrderButton.props.accessibilityState?.busy).not.toBe(true);
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+        fireEvent.press(placeOrderButton);
+        resolveValidation?.({
+          isValid: true,
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+        });
+        await pendingValidation;
+      });
+      expect(validateNow).toHaveBeenCalledTimes(1);
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
 
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        fieldIssues: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
       rerender(<PerpsOrderView />);
 
       expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('disables when synchronous field validation reports an issue', async () => {
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: false,
+        errors: [],
+        fieldIssues: [{ field: 'limitPrice', issue: { code: 'required' } }],
+        isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
     });
 
     it('enables button when validation passes and not placing order', async () => {
@@ -2173,7 +2350,10 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        fieldIssues: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
 
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
@@ -2202,6 +2382,8 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2317,6 +2499,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -2370,6 +2553,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -2423,6 +2607,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -2479,6 +2664,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -2535,6 +2721,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -2590,6 +2777,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -2614,6 +2802,8 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
 
       // Mock order execution not placing
@@ -2664,6 +2854,7 @@ describe('PerpsOrderView', () => {
       setStopLossPrice: jest.fn(),
       setLimitPrice: jest.fn(),
       setOrderType: jest.fn(),
+      updateOrderForm: jest.fn(),
       handlePercentageAmount: jest.fn(),
       handleMaxAmount: jest.fn(),
       handleMinAmount: jest.fn(),
@@ -2685,6 +2876,8 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2719,6 +2912,8 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2818,6 +3013,8 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2854,6 +3051,8 @@ describe('PerpsOrderView', () => {
         isValid: true,
         errors: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
         placeOrder: jest.fn(),
@@ -2899,6 +3098,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -2925,6 +3125,8 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
+          validateNow: jest.fn(),
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -2955,6 +3157,8 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
+          validateNow: jest.fn(),
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -2985,6 +3189,8 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
+          validateNow: jest.fn(),
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -3014,6 +3220,8 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
+          validateNow: jest.fn(),
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -3044,6 +3252,8 @@ describe('PerpsOrderView', () => {
           isValid: true,
           errors: [],
           isValidating: false,
+          insufficientBalanceErrors: [],
+          validateNow: jest.fn(),
         });
         (usePerpsOrderExecution as jest.Mock).mockReturnValue({
           placeOrder: jest.fn(),
@@ -3091,6 +3301,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3122,6 +3333,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3232,6 +3444,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3263,6 +3476,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3611,6 +3825,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3652,6 +3867,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3773,6 +3989,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3813,6 +4030,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3853,6 +4071,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3896,6 +4115,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -3949,6 +4169,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -4081,6 +4302,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -4191,6 +4413,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -4929,6 +5152,7 @@ describe('PerpsOrderView', () => {
         setStopLossPrice: jest.fn(),
         setLimitPrice: jest.fn(),
         setOrderType: jest.fn(),
+        updateOrderForm: jest.fn(),
         handlePercentageAmount: jest.fn(),
         handleMaxAmount: jest.fn(),
         handleMinAmount: jest.fn(),
@@ -4943,7 +5167,11 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
+        warnings: [],
+        fieldIssues: [],
         isValidating: false,
+        insufficientBalanceErrors: [],
+        validateNow: jest.fn(),
       });
     });
 

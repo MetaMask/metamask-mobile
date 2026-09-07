@@ -42,7 +42,7 @@ jobs:
         github.event.issue.pull_request &&
         startsWith(github.event.comment.body, '@metamaskbot update-mobile-fixture')
       }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     permissions:
       actions: write
@@ -84,7 +84,7 @@ jobs:
   is-fork-pull-request:
     name: Validate PR
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     outputs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
@@ -101,7 +101,7 @@ jobs:
 
   prepare:
     name: Prepare build artifacts
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 10
     needs: is-fork-pull-request
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
@@ -164,12 +164,12 @@ jobs:
           fi
 
           if [ "${RUN_STATUS}" != "completed" ]; then
-            echo "::error title=CI still running::The CI workflow is still in progress (status: ${RUN_STATUS}). Wait for the 'Build iOS Apps' job to complete, then run @metamaskbot update-mobile-fixture again. View CI: ${RUN_URL}"
+            echo "::error title=CI still running::The CI workflow is still in progress (status: ${RUN_STATUS}). Wait for the 'Build Android APKs' job to complete, then run @metamaskbot update-mobile-fixture again. View CI: ${RUN_URL}"
             exit 1
           fi
 
           if [ "${RUN_CONCLUSION}" != "success" ]; then
-            echo "::warning title=CI did not succeed::The CI workflow concluded with '${RUN_CONCLUSION}'. The iOS build artifact may not be available. View CI: ${RUN_URL}"
+            echo "::warning title=CI did not succeed::The CI workflow concluded with '${RUN_CONCLUSION}'. The Android build artifact may not be available. View CI: ${RUN_URL}"
           fi
 
           echo "✅ CI run validated. RUN_ID=${RUN_ID}"
@@ -178,230 +178,138 @@ jobs:
 
   update-fixtures:
     name: Export & update fixtures
-    needs: [is-fork-pull-request, prepare]
-    if: ${{ needs.prepare.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]')) }}
-    timeout-minutes: 60
-
-    env:
-      METAMASK_ENVIRONMENT: e2e
-      METAMASK_BUILD_TYPE: main
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      PLATFORM: ios
-      GITHUB_CI: 'true'
-      CI: 'true'
-      MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
-      RAMP_INTERNAL_BUILD: 'true'
-      MM_SECURITY_ALERTS_API_ENABLED: 'true'
-      MM_NOTIFICATIONS_UI_ENABLED: 'true'
-      FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
-      FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
-      SEEDLESS_ONBOARDING_ENABLED: 'true'
-      SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
-      SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
-      SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
-      SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
-      MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
-      MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-      GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
-      GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
-      YARN_ENABLE_GLOBAL_CACHE: 'true'
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-e2e' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]')) }}
+    timeout-minutes: 45
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+    needs:
+      - prepare
+      - is-fork-pull-request
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
 
     steps:
       - name: Checkout (Namespace)
-        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         with:
           ref: ${{ needs.prepare.outputs.BRANCH }}
 
       - name: Checkout
-        uses: actions/checkout@v4
         if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.prepare.outputs.BRANCH }}
 
-      - name: Restore .metamask folder (Foundry download cache for install:foundryup)
-        uses: actions/cache@v4
+      - name: Setup Node for shard selection
+        uses: actions/setup-node@v6
         with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          node-version-file: '.nvmrc'
 
-      - name: Set up E2E environment
-        timeout-minutes: 15
-        uses: ./.github/actions/setup-e2e-env
-        with:
-          platform: ios
-          setup-simulator: 'false'
-          configure-keystores: 'false'
-          install-foundry: 'true'
-          skip-pod-install: 'true'
-          install-applesimutils: 'false'
-          runner_provider: ${{ inputs.runner_provider }}
-
-      - name: Download iOS app artifact from CI (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
-        id: download-ios-app-namespace
+      - name: Download frozen qa-stats timings
+        id: download-timings
+        uses: ./.github/actions/download-e2e-artifact
         continue-on-error: true
-        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
-          name: main-e2e-MetaMask.app
-          path: artifacts/main-e2e-MetaMask.app
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ needs.prepare.outputs.RUN_ID }}
+          name: e2e-timings-${{ github.run_id }}
+          path: ./
+          runner-provider: ${{ inputs.runner_provider }}
 
-      - name: Clear any partial iOS app before the fallback download
-        if: >-
-          ${{
-            inputs.runner_provider == 'namespace' &&
-            steps.download-ios-app-namespace.outcome != 'success'
-          }}
-        shell: bash
-        run: rm -rf artifacts/main-e2e-MetaMask.app
-
-      - name: Download iOS app artifact from CI (GitHub — build may be on Cirrus)
-        if: >-
-          ${{
-            inputs.runner_provider != 'namespace' ||
-            steps.download-ios-app-namespace.outcome != 'success'
-          }}
-        run: |
-          RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
-          ARTIFACT_NAME="main-e2e-MetaMask.app"
-          APP_PATH="artifacts/${ARTIFACT_NAME}"
-          echo "Downloading iOS artifact from CI run ${RUN_ID}..."
-
-          # gh run download uses the ListArtifacts API, which includes artifacts from all
-          # attempts of a run — including earlier attempts when only failed jobs were re-run.
-          if ! gh run download "${RUN_ID}" -n "${ARTIFACT_NAME}" -D "${APP_PATH}"; then
-            echo "::error title=iOS artifact not found::The iOS build was skipped in CI run ${RUN_ID} — no iOS-impacting changes were detected, so no artifact was produced.%0A%0AIf you need to force fixture regeneration, add the 'skip-smart-e2e-selection' label to your PR and re-run CI, then retry this command.%0A%0ACI run: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
-            exit 1
-          fi
-          echo "✅ Downloaded iOS artifact from PR CI run ${RUN_ID}."
+      - name: Fetch qa-stats timings fallback
+        if: steps.download-timings.outcome != 'success'
+        run: node .github/scripts/e2e-freeze-timings.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
+          OUTPUT_PATH: ./e2e-timings.json
 
-      - name: Restore iOS bundle executable permissions
-        env:
-          APP_PATH: artifacts/main-e2e-MetaMask.app
+      - name: Select specs for fixture validation
+        id: select-specs
         run: |
-          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
-          if [ -z "$BUNDLE_EXEC" ]; then
-            echo "Could not read CFBundleExecutable from Info.plist"
-            exit 1
-          fi
+          # Single fixture validation spec — no sharding/selection needed.
+          SPEC_FILES="tests/smoke-appium/fixtures/fixture-validation.spec.ts"
+          {
+            echo "spec_count=1"
+            echo "spec_files=${SPEC_FILES}"
+            echo "changed_spec_files=${SPEC_FILES}"
+          } >> "$GITHUB_OUTPUT"
 
-          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
-          if [ -z "$ACTUAL_PATH" ]; then
-            echo "Bundle executable not found: $BUNDLE_EXEC"
-            exit 1
-          fi
-
-          if [ "$(basename "$ACTUAL_PATH")" != "$BUNDLE_EXEC" ]; then
-            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
-            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
-          fi
-
-          chmod +x "$APP_PATH/$BUNDLE_EXEC"
-
-          if [ -d "$APP_PATH/Frameworks" ]; then
-            find "$APP_PATH/Frameworks" -type d -name "*.framework" | while IFS= read -r fw; do
-              binary="$fw/$(basename "$fw" .framework)"
-              if [ -f "$binary" ]; then
-                chmod +x "$binary"
-              fi
-            done
-            find "$APP_PATH/Frameworks" -type f -name "*.dylib" -exec chmod +x {} \;
-          fi
-          echo "Restored execute permissions on main binary and all framework binaries"
-        shell: bash
-
-      - name: Resolve XCUITest driver version for WDA cache key
-        id: xcuitest-version
-        run: echo "version=$(node scripts/e2e/resolve-xcuitest-driver-version.mjs)" >> "$GITHUB_OUTPUT"
-
-      - name: Get Xcode version for WDA cache key
-        id: xcode-version
-        run: echo "version=$(xcodebuild -version 2>/dev/null | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
-
-      - name: Restore WDA DerivedData cache
-        uses: actions/cache@v4
+      - name: Setup Android AVD & Appium
+        uses: ./.github/actions/setup-e2e-env
         with:
-          path: ~/appium-wda
-          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
-          restore-keys: |
-            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
+          platform: android
+          setup-simulator: 'true'
+          android-avd-name: appium_smoke_avd
+          android-tag: default
+          android-api-level: '36'
+          android-abi: x86_64
+          android-device: pixel_5
+          configure-keystores: 'false'
+          install-foundry: 'true'
+          runner_provider: ${{ inputs.runner_provider }}
 
-      - name: Check if WDA is prebuilt
-        id: wda-prebuilt
+      - name: Determine Android artifact paths
+        id: android-artifacts
         run: |
-          WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
-          XCTESTRUN=$(find ~/appium-wda/Build/Products -name '*.xctestrun' 2>/dev/null | head -1 || true)
-          if [ -n "$WDA_APP" ] && [ -n "$XCTESTRUN" ]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-            echo "WDA prebuilt artifacts found"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "WDA cache miss — prepare-ios-appium-runner will prebuild after sim boot"
-          fi
-        shell: bash
+          {
+            echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+            echo "apk-file-name=app-prod-release.apk"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Prepare iOS Appium runner
-        id: prepare-ios-appium
-        timeout-minutes: 30
-        run: node scripts/e2e/prepare-ios-appium-runner.mjs
-        env:
-          IOS_SIMULATOR_NAME: iPhone 16 Pro
-          IOS_APP_PATH: artifacts/main-e2e-MetaMask.app
-          IOS_BUNDLE_ID: io.metamask.MetaMask
-          SKIP_WDA_PREBUILD: ${{ steps.wda-prebuilt.outputs.ready == 'true' && 'true' || 'false' }}
-          IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
-          IOS_APP_WARM_LAUNCH_SETTLE_MS: '15000'
+      - name: Download Android build artifacts
+        if: ${{ steps.select-specs.outputs.spec_count != '0' }}
+        uses: ./.github/actions/download-e2e-artifact
+        with:
+          name: main-e2e-release.apk
+          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
+          runner-provider: ${{ inputs.runner_provider }}
+          run-id: ${{ needs.prepare.outputs.RUN_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run fixture validation spec (Appium)
-        id: run-fixture-validation
-        # Spec throws after writing an updated fixture when structural changes exist.
-        # Continue so we can cache/commit the written file.
-        continue-on-error: true
+      - name: Run fixture validation tests
+        id: run-tests-android
         timeout-minutes: 25
-        run: >-
-          yarn playwright test
-          --config tests/playwright.smoke-appium.config.ts
-          --project ios-smoke
-          --grep FixtureValidation
-          tests/smoke-appium/fixtures/fixture-validation.spec.ts
+        continue-on-error: true
         env:
-          HAS_TEST_OVERRIDES: 'true'
-          GITHUB_CI: 'true'
-          CI: 'true'
-          IOS_APP_PATH: artifacts/main-e2e-MetaMask.app
-          IOS_SIMULATOR_NAME: iPhone 16 Pro
-          IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
-          IOS_WDA_PREINSTALLED: ${{ steps.prepare-ios-appium.outputs.ios-wda-preinstalled }}
-          IOS_WDA_BUNDLE_ID: ${{ steps.prepare-ios-appium.outputs.ios-wda-bundle-id }}
-          SKIP_DEVICE_BOOT: 'true'
-          SKIP_APP_REINSTALL: 'true'
-          USE_PREBUILT_WDA: 'true'
-
-      # Validate before caching so a transient Appium failure cannot poison the
-      # immutable fixture-${COMMIT_SHA} cache with an unchanged file.
-      - name: Fail if validation errored without fixture updates
-        if: steps.run-fixture-validation.outcome == 'failure'
+          SPEC_FILES: ${{ steps.select-specs.outputs.spec_files }}
+          APPIUM_SMOKE_SUITE_NAME: update-e2e-fixtures
+          APPIUM_SMOKE_JOB_TITLE: Appium update-e2e-fixtures (android)
+          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-update-e2e-fixtures
+          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-update-e2e-fixtures
+          PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
+          APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
+          SKIP_APPIUM_STOP: 'true'
+          APPIUM_RETRIES_OVERRIDE: 0
+          ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
+          ANDROID_AVD_NAME: appium_smoke_avd
+          ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
+          ANDROID_BOOT_TIMEOUT_MS: '300000'
+          ANDROID_EMULATOR_CI_CORES: '8'
+          ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
+          ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
         run: |
-          if git diff --quiet tests/framework/fixtures/json/default-fixture.json; then
-            echo "::error::Fixture validation failed and no updated fixture was produced."
-            exit 1
-          fi
-          echo "Fixture validation failed as expected after writing structural updates; continuing to commit."
-
-      - name: Cache updated fixture
-        uses: actions/cache/save@v4
+          set -euo pipefail
+          read -r -a specs <<< "${SPEC_FILES}"
+          yarn playwright test "${specs[@]}" \
+            --config tests/playwright.smoke-appium.config.ts \
+            --project android-smoke \
+            --grep FixtureValidation
+      - name: Upload updated fixture
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
+          name: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
           path: tests/framework/fixtures/json/default-fixture.json
-          key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
+          if-no-files-found: error
+          retention-days: 1
+          runner-provider: ${{ inputs.runner_provider }}
 
   commit-updated-fixtures:
     name: Commit the updated fixtures
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 10
     permissions:
       contents: write
@@ -421,12 +329,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
 
-      - name: Restore updated fixture
-        uses: actions/cache/restore@v4
+      - name: Download updated fixture
+        uses: ./.github/actions/download-e2e-artifact
         with:
-          path: tests/framework/fixtures/json/default-fixture.json
-          key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
-          fail-on-cache-miss: true
+          name: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
+          path: tests/framework/fixtures/json
+          runner-provider: ${{ inputs.runner_provider }}
 
       - name: Check for fixture changes
         id: fixture-changes
@@ -479,7 +387,7 @@ jobs:
 
   check-status:
     name: Check whether the fixture update succeeded
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     needs:
@@ -500,7 +408,7 @@ jobs:
   failure-comment:
     name: Comment about the fixture update failure
     if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
     timeout-minutes: 5
     permissions:
       contents: read
@@ -515,7 +423,7 @@ jobs:
         run: |
           passed="${{ needs.check-status.outputs.PASSED }}"
           if [[ $passed != "true" ]]; then
-            body="❌ **E2E fixture update failed.**\n\n**Common causes:**\n- CI workflow is still running — wait for 'Build iOS Apps' to complete\n- CI workflow was skipped — ensure your PR has iOS-impacting changes or use \`skip-smart-e2e-selection\` label\n- iOS build failed — check the CI workflow for errors\n\n[View logs and retry](${ACTION_RUN_URL})"
+            body="❌ **E2E fixture update failed.**\n\n**Common causes:**\n- CI workflow is still running — wait for 'Build Android APKs' to complete and re-run CI; ignorable-only PRs need Android-impacting app changes\n- Android build failed — check the CI workflow for errors\n\n[View logs and retry](${ACTION_RUN_URL})"
             gh pr comment "${PR_NUMBER}" --body "$body"
           fi
         env:

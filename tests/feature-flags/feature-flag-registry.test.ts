@@ -12,6 +12,16 @@ import {
 
 describe('Feature Flag Registry', () => {
   describe('FEATURE_FLAG_REGISTRY', () => {
+    it('registers Chase as version-gated and default-off', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsMobileChase).toMatchObject({
+        name: 'perpsMobileChase',
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.10.0',
+        },
+      });
+    });
     it('contains entries for all registered flags', () => {
       const entries = Object.values(FEATURE_FLAG_REGISTRY);
       expect(entries.length).toBeGreaterThan(0);
@@ -42,6 +52,19 @@ describe('Feature Flag Registry', () => {
       for (const entry of Object.values(FEATURE_FLAG_REGISTRY)) {
         expect(entry.productionDefault).toBeDefined();
       }
+    });
+
+    it('uses the version-gated default shape for Perps Scale', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsMobileScale).toMatchObject({
+        name: 'perpsMobileScale',
+        type: FeatureFlagType.Remote,
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.10.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
     });
 
     it('enables curated event pages for the extended sports leagues', () => {
@@ -91,6 +114,13 @@ describe('Feature Flag Registry', () => {
             '8.6.0': expect.objectContaining({
               enabledSportsMarketTypes: expect.arrayContaining([
                 'first_half_moneyline',
+                'first_half_spreads',
+                'team_totals_home',
+                'team_totals_away',
+                'anytime_touchdowns',
+                'first_touchdowns',
+                'rushing_yards',
+                'receiving_yards',
               ]),
               leagues: expect.arrayContaining(extendedSportsLeagues),
             }),
@@ -103,6 +133,13 @@ describe('Feature Flag Registry', () => {
       expect(getRegistryEntry('predictSportsFeed')?.productionDefault).toEqual(
         expect.objectContaining({ enabled: true }),
       );
+    });
+
+    it('keeps Perps Mobile TWAP default-off and version-gated', () => {
+      expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.10.0',
+      });
     });
   });
 

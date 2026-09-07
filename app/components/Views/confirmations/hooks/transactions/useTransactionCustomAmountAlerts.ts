@@ -6,9 +6,6 @@ import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
 const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
-  AlertKeys.InsufficientPredictBalance,
-  AlertKeys.InsufficientPerpsBalance,
-  AlertKeys.InsufficientMoneyAccountBalance,
   AlertKeys.FiatBuyAmountLimit,
 ];
 
@@ -17,30 +14,22 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.SignedOrSubmitted,
   AlertKeys.MMPayHardwareAccount,
-  AlertKeys.InsufficientPredictBalance,
-  AlertKeys.InsufficientPerpsBalance,
-  AlertKeys.InsufficientMoneyAccountBalance,
   AlertKeys.FiatBuyAmountLimit,
 ];
 
 const ON_CHANGE_ALERTS = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
-  AlertKeys.InsufficientPredictBalance,
-  AlertKeys.InsufficientPerpsBalance,
-  AlertKeys.InsufficientMoneyAccountBalance,
   AlertKeys.FiatBuyAmountLimit,
 ];
 
 export function useTransactionCustomAmountAlerts({
   isInputChanged,
   isKeyboardVisible,
-  pendingTokenAmount,
   pendingFiatAmount,
 }: {
   isInputChanged: boolean;
   isKeyboardVisible: boolean;
-  pendingTokenAmount: string;
   pendingFiatAmount?: string;
 }): {
   alertContent?: ReactElement;
@@ -48,7 +37,6 @@ export function useTransactionCustomAmountAlerts({
 } {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({
-    pendingTokenAmount,
     pendingFiatAmount,
   });
 

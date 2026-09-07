@@ -15,7 +15,11 @@ import { isCrossChain } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
-import { type ActivityListItem } from '../../../../util/activity-adapters';
+import {
+  type ActivityListItem,
+  classifyKeyringStakingActivity,
+  classifyPooledStakingActivity,
+} from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
 import { applyBridgeQuote } from './apply-bridge-quote';
@@ -153,10 +157,11 @@ function transformApiTransactions(
     if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
       continue;
     }
-    items.push({
+    const activity = {
       ...mapApiTransaction({ subjectAddress, transaction: tx }),
       raw: { type: 'apiEvmTransaction' as const, data: tx },
-    } as ActivityListItem);
+    } as ActivityListItem;
+    items.push(classifyPooledStakingActivity(tx, activity));
   }
 
   return items;
@@ -185,7 +190,7 @@ export function mapNonEvmTransactions(
 ): ActivityListItem[] {
   return transactions.map((transaction) => {
     const subjectAddress = getSubjectAddress?.(transaction);
-    const activity = {
+    const activity = classifyKeyringStakingActivity(transaction, {
       ...mapKeyringTransaction({
         transaction: {
           ...transaction,
@@ -194,7 +199,7 @@ export function mapNonEvmTransactions(
         subjectAddress,
       }),
       raw: { type: 'keyringTransaction' as const, data: transaction },
-    } as ActivityListItem;
+    } as ActivityListItem);
     const bridgeHistoryItem = getBridgeHistoryItem?.(transaction.id);
     const quote = bridgeHistoryItem?.quote;
 

@@ -14,6 +14,9 @@ export const TERMINAL_API_URLS = {
   PRD: 'https://terminal.api.cx.metamask.io/v1/perpetuals',
 } as const;
 
+export const TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE =
+  'terminal-global-snapshot-mark';
+
 /** Resolves the existing Terminal market-data URL for a Mobile build. */
 export function resolveTerminalApiUrl(
   environment: string | undefined,

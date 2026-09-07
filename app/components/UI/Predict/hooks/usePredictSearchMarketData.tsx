@@ -46,10 +46,11 @@ export const usePredictSearchMarketData = ({
     hasNextPage,
     fetchNextPage,
     refetch: queryRefetch,
-  } = useInfiniteQuery<SearchPage, Error>({
+  } = useInfiniteQuery({
     queryKey: ['predict', 'markets', 'search', trimmedQuery, pageSize],
     enabled,
-    queryFn: async ({ pageParam = 1 }) => {
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) => {
       if (!Engine?.context) {
         throw new Error('Engine not initialized');
       }

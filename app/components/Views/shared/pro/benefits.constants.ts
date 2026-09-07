@@ -9,6 +9,8 @@ export interface BenefitItem {
   title: string;
   /** i18n key passed to `strings()` for the row subtitle. */
   subtitle: string;
+  /** i18n key for monthly-plan variant of the subtitle (used when plan = monthly). */
+  subtitleMonthly?: string;
 }
 
 export const BENEFITS: BenefitItem[] = [
@@ -21,6 +23,7 @@ export const BENEFITS: BenefitItem[] = [
     id: 'cashback',
     title: 'pro_subscription.benefits.cashback.title',
     subtitle: 'pro_subscription.benefits.cashback.subtitle',
+    subtitleMonthly: 'pro_subscription.benefits.cashback.subtitle_monthly',
   },
   {
     id: 'member_pricing',
@@ -28,14 +31,15 @@ export const BENEFITS: BenefitItem[] = [
     subtitle: 'pro_subscription.benefits.member_pricing.subtitle',
   },
   {
-    id: 'atm_fees',
-    title: 'pro_subscription.benefits.atm_fees.title',
-    subtitle: 'pro_subscription.benefits.atm_fees.subtitle',
-  },
-  {
     id: 'protection',
     title: 'pro_subscription.benefits.protection.title',
     subtitle: 'pro_subscription.benefits.protection.subtitle',
+  },
+  {
+    id: 'atm_fees',
+    title: 'pro_subscription.benefits.atm_fees.title',
+    subtitle: 'pro_subscription.benefits.atm_fees.subtitle',
+    subtitleMonthly: 'pro_subscription.benefits.atm_fees.subtitle_monthly',
   },
   {
     id: 'support',

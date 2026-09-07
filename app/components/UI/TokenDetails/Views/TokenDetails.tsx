@@ -21,7 +21,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -84,12 +84,6 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-    },
-    loader: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
     },
   });
 };
@@ -296,10 +290,6 @@ const TokenDetails: React.FC<{
     prefetchedData: token.securityData,
   });
 
-  useEffect(() => {
-    endTrace({ name: TraceName.AssetDetails });
-  }, []);
-
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token.chainId),
   );
@@ -321,7 +311,47 @@ const TokenDetails: React.FC<{
     setTimePeriod,
     chartNavigationButtons,
     hasInsufficientCoverage,
+    historicalPricesApiMs,
+    exchangeRateApiMs,
   } = useTokenPrice({ token });
+
+  const hasEndedAssetDetailsTraceRef = useRef(false);
+
+  useEffect(() => {
+    if (hasEndedAssetDetailsTraceRef.current || isLoading) {
+      return;
+    }
+    hasEndedAssetDetailsTraceRef.current = true;
+    endTrace({
+      name: TraceName.AssetDetails,
+      data: {
+        ...(caip19AssetId ? { asset_id: caip19AssetId } : {}),
+        ...(historicalPricesApiMs !== undefined
+          ? { historical_prices_api_ms: historicalPricesApiMs }
+          : {}),
+        ...(exchangeRateApiMs !== undefined
+          ? { exchange_rate_api_ms: exchangeRateApiMs }
+          : {}),
+      },
+    });
+  }, [isLoading, caip19AssetId, historicalPricesApiMs, exchangeRateApiMs]);
+
+  // If the screen unmounts before price data finishes loading, close the
+  // pending span here instead of leaving it open. Otherwise it stays pending
+  // until the next `AssetDetails` trace is started (e.g. opening another
+  // asset), which silently finishes it as a normal completion with a
+  // duration measuring time-until-next-open and no API timing data,
+  // skewing Asset Details performance metrics.
+  useEffect(
+    () => () => {
+      if (hasEndedAssetDetailsTraceRef.current) {
+        return;
+      }
+      hasEndedAssetDetailsTraceRef.current = true;
+      endTrace({ name: TraceName.AssetDetails });
+    },
+    [],
+  );
 
   const currentPriceUsd = useMemo(() => {
     if (!Number.isFinite(currentPrice)) {
@@ -572,11 +602,6 @@ const TokenDetails: React.FC<{
     </>
   );
 
-  const renderLoader = () => (
-    <View style={styles.loader}>
-      <ActivityIndicator style={styles.loader} size="small" />
-    </View>
-  );
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
@@ -595,9 +620,7 @@ const TokenDetails: React.FC<{
         onCopyAddress={handleCopyAddress}
       />
 
-      {txLoading ? (
-        renderLoader()
-      ) : txIsNonEvmAsset ? (
+      {txIsNonEvmAsset ? (
         <MultichainTransactionsView
           header={renderHeader()}
           transactions={transactions}
@@ -629,24 +652,23 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && (
-        <TokenDetailsStickyFooter
-          token={token}
-          securityData={securityData}
-          balanceFiatUsd={balanceFiatUsd}
-          networkName={networkName}
-          currentTokenBalance={balance}
-          hasTokenBalance={hasBalanceValue}
-          moneyEarnCta={moneyEarnCta}
-          onStickyButtonsResolved={onStickyButtonsResolved}
-          sourcePage="TokenDetailsView"
-          useAmbientColor={useAmbientColor}
-          onSwapPress={onCtaClicked}
-          onBuyPress={onCtaClicked}
-          onQuickBuyPress={onQuickBuyPress}
-          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
-        />
-      )}
+      <TokenDetailsStickyFooter
+        token={token}
+        securityData={securityData}
+        balanceFiatUsd={balanceFiatUsd}
+        networkName={networkName}
+        currentTokenBalance={balance}
+        hasTokenBalance={hasBalanceValue}
+        moneyEarnCta={moneyEarnCta}
+        onStickyButtonsResolved={onStickyButtonsResolved}
+        sourcePage="TokenDetailsView"
+        useAmbientColor={useAmbientColor}
+        onSwapPress={onCtaClicked}
+        onBuyPress={onCtaClicked}
+        onQuickBuyPress={onQuickBuyPress}
+        quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+      />
+
       {isInsightsDisclaimerVisible && (
         <MarketInsightsDisclaimerBottomSheet
           onClose={() => setIsInsightsDisclaimerVisible(false)}

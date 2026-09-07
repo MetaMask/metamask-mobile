@@ -58,13 +58,19 @@ import {
 } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
+import {
+  isTokenInOffHoursAt,
+  isTokenTradableAt,
+} from '../../../../components/UI/Bridge/hooks/useRWAToken';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
 import {
   DEFAULT_RECURRING_EVERY_VALUE,
   initialRecurringState,
   validateRecurringSchedule,
   type RecurringIntervalUnit,
+  type RecurringPriceRange,
   type RecurringState,
 } from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
@@ -239,6 +245,12 @@ const slice = createSlice({
       state.recurring.everyUnit = action.payload;
       state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
     },
+    setRecurringPriceRange: (
+      state,
+      action: PayloadAction<RecurringPriceRange | undefined>,
+    ) => {
+      state.recurring.priceRange = action.payload;
+    },
     setSelectedSourceChainIds: (
       state,
       action: PayloadAction<(Hex | CaipChainId)[]>,
@@ -273,6 +285,7 @@ const slice = createSlice({
       const sourceToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.sourceToken, sourceToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       state.sourceToken = sourceToken;
     },
@@ -280,6 +293,7 @@ const slice = createSlice({
       const destToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.destToken, destToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       // Update selectedDestChainId to match the destination token's chain ID
       state.destToken = destToken;
@@ -485,6 +499,11 @@ export const selectRecurringEveryUnit = createSelector(
 export const selectRecurringRepeatCount = createSelector(
   selectRecurring,
   (recurring) => recurring.repeatCount,
+);
+
+export const selectRecurringPriceRange = createSelector(
+  selectRecurring,
+  (recurring) => recurring.priceRange,
 );
 
 export const selectRecurringScheduleValidation = createSelector(
@@ -883,6 +902,7 @@ export const selectBridgeQuotes = createSelector(
     const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
 
     // If no selectedQuoteRequestId, return the default result
@@ -900,6 +920,7 @@ export const selectBridgeQuotes = createSelector(
       return selectBridgeQuotesBase(requiredControllerFields, {
         sortOrder: SortOrder.COST_ASC,
         selectedQuote,
+        migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
       });
     }
 
@@ -915,6 +936,7 @@ export const selectBatchSellQuotes = createSelector(
       sortOrder: SortOrder.COST_ASC,
       requestCount: requiredControllerFields.quoteRequest.length,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     }),
 );
 
@@ -1029,6 +1051,59 @@ export const selectIsRwaSwap = createSelector(
     (isStockRwaBridgeToken(sourceToken, isRwaEnabled) ||
       isStockRwaBridgeToken(destToken, isRwaEnabled)),
 );
+
+/**
+ * True when at least one stock-RWA leg is fully closed — i.e. neither in regular market
+ * hours nor in an off-hours window — at the given timestamp.
+ *
+ * Accepts an optional `nowMs` parameter so callers can inject the current time
+ * (useful for testing without mocking `Date`). Defaults to `Date.now()`.
+ *
+ * NOTE: Because this selector calls `nowMs` at evaluation time it is NOT memoised
+ * via `createSelector` — market status changes continuously and must be re-checked
+ * on each render cycle that cares about it.
+ */
+export const selectIsStockMarketClosed = (
+  state: RootState,
+  nowMs: number = Date.now(),
+): boolean => {
+  const sourceToken = selectSourceToken(state);
+  const destToken = selectDestToken(state);
+  const isRwaEnabled = selectRWAEnabledFlag(state);
+
+  const isFullyClosed = (token: ReturnType<typeof selectSourceToken>) =>
+    isStockRwaBridgeToken(token, isRwaEnabled) &&
+    !isTokenTradableAt(token, isRwaEnabled, nowMs);
+
+  return isFullyClosed(sourceToken) || isFullyClosed(destToken);
+};
+
+/**
+ * True when the current swap is tradable only via an off-hours window — meaning at least
+ * one leg is a stock RWA token that is in off-hours but NOT in regular market hours, AND
+ * no leg is fully closed.
+ *
+ * Off-hours and market-closed are mutually exclusive: if any leg is fully closed this
+ * returns `false`.
+ *
+ * Accepts an optional `nowMs` parameter (same rationale as `selectIsStockMarketClosed`).
+ */
+export const selectIsInOffHoursTrading = (
+  state: RootState,
+  nowMs: number = Date.now(),
+): boolean => {
+  if (selectIsStockMarketClosed(state, nowMs)) return false;
+
+  const sourceToken = selectSourceToken(state);
+  const destToken = selectDestToken(state);
+  const isRwaEnabled = selectRWAEnabledFlag(state);
+
+  const inOffHours = (token: ReturnType<typeof selectSourceToken>) =>
+    isStockRwaBridgeToken(token, isRwaEnabled) &&
+    isTokenInOffHoursAt(token, isRwaEnabled, nowMs);
+
+  return inOffHours(sourceToken) || inOffHours(destToken);
+};
 
 export const selectIsSubmittingTx = createSelector(
   selectBridgeState,
@@ -1146,6 +1221,7 @@ export const {
   setRecurringEveryValue,
   setRecurringRepeatCount,
   setRecurringEveryUnit,
+  setRecurringPriceRange,
   resetBridgeState,
   resetBridgeTokenInputs,
   resetBridgeDestToken,

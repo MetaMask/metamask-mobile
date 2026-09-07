@@ -378,6 +378,78 @@ describe('TradingViewChart — incremental update routing', () => {
     );
   });
 
+  it('drops Limit prices from autoscale after add then clear', () => {
+    const template = createTradingViewChartTemplate(mockTheme, '', true);
+    const clearFnStart = template.indexOf(
+      'window.clearLimitOrderLines = function()',
+    );
+    const updateFnStart = template.indexOf(
+      'window.updateLimitOrderLines = function',
+    );
+    const collectFnStart = template.indexOf(
+      'window.collectLimitOverlayPrices = function()',
+    );
+    const collectFnEnd = template.indexOf(
+      'window.candlestickSeries = window.chart.addSeries',
+    );
+    const clearTpslStart = template.indexOf("case 'CLEAR_TPSL_LINES':");
+    const clearTpslEnd = template.indexOf("case 'UPDATE_INTERVAL':");
+
+    expect(clearFnStart).toBeGreaterThan(-1);
+    expect(updateFnStart).toBeGreaterThan(clearFnStart);
+    expect(collectFnStart).toBeGreaterThan(-1);
+    expect(clearTpslStart).toBeGreaterThan(-1);
+
+    const clearFn = template.slice(clearFnStart, updateFnStart);
+    const collectFn = template.slice(collectFnStart, collectFnEnd);
+    const clearTpslCase = template.slice(clearTpslStart, clearTpslEnd);
+    const updateFn = template.slice(
+      updateFnStart,
+      template.indexOf('window.hideAllPriceLines = function()'),
+    );
+
+    expect(collectFn).toContain(
+      '(window.lastLimitOrderPrices || []).forEach(pushPrice)',
+    );
+    const clearLimitOrderLinesCall = 'window.clearLimitOrderLines();';
+    const lastLimitOrderPricesAssign =
+      'window.lastLimitOrderPrices = (limitOrders || []).map(function(order) {';
+    const clearLimitOrderLinesIndex = updateFn.indexOf(
+      clearLimitOrderLinesCall,
+    );
+    const lastLimitOrderPricesAssignIndex = updateFn.indexOf(
+      lastLimitOrderPricesAssign,
+    );
+    expect(clearLimitOrderLinesIndex).toBeGreaterThan(-1);
+    expect(lastLimitOrderPricesAssignIndex).toBeGreaterThan(
+      clearLimitOrderLinesIndex,
+    );
+    expect(clearFn.match(/window\.lastLimitOrderPrices = \[\];/g)).toEqual([
+      'window.lastLimitOrderPrices = [];',
+      'window.lastLimitOrderPrices = [];',
+    ]);
+    expect(clearTpslCase).toContain('window.clearLimitOrderLines();');
+  });
+
+  it('reports Limit line remove and create failures without forcing autoscale', () => {
+    const template = createTradingViewChartTemplate(mockTheme, '', true);
+    const updateFn = template.slice(
+      template.indexOf('window.updateLimitOrderLines = function'),
+      template.indexOf('window.hideAllPriceLines = function()'),
+    );
+
+    expect(template).toContain(
+      "console.error('TradingView: Error removing limit order line:', error)",
+    );
+    expect(template).toContain(
+      "console.error('TradingView: Error creating limit order line:', error)",
+    );
+    expect(updateFn).not.toContain('applyOptions({ autoScale: true })');
+    expect(template).not.toContain(
+      "console.error('TradingView: Error applying limit order autoscale:', scaleError)",
+    );
+  });
+
   // -----------------------------------------------------------------------
   // True reload: interval change
   // -----------------------------------------------------------------------

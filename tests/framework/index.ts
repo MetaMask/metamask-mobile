@@ -49,21 +49,6 @@ export { default as AppiumMatchers } from './AppiumMatchers.ts';
 export { default as AppiumGestures } from './AppiumGestures.ts';
 export { default as AppiumAssertions } from './AppiumAssertions.ts';
 
-export {
-  EncapsulatedElement,
-  LocatorStrategy,
-  type LocatorConfig,
-  type PlatformLocator,
-  type EncapsulatedElementType,
-  asPlaywrightElement,
-} from './EncapsulatedElement.ts';
-
-// Temporary compatibility re-exports for unmigrated call sites (remove after PO stacks land)
-export { default as PlaywrightMatchers } from './PlaywrightMatchers.ts';
-export { default as PlaywrightGestures } from './PlaywrightGestures.ts';
-export { default as PlaywrightAssertions } from './PlaywrightAssertions.ts';
-export { AppiumElement as PlaywrightElement } from './AppiumElement.ts';
-
 export { resolve, isSelector, type Selector } from './Selector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';
 export {
@@ -79,10 +64,3 @@ export {
   type ReinstallAppOptions,
   type UninstallAppOptions,
 } from './services/device-commands';
-export {
-  AppiumGestureStrategy,
-  type GestureStrategy,
-  type UnifiedGestureOptions,
-  type TapAtIndexElement,
-  type ScrollContainer,
-} from './GestureStrategy.ts';

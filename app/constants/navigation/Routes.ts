@@ -5,6 +5,7 @@ const Routes = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_VIEW: 'BrowserView',
   ACCOUNTS_MENU_VIEW: 'AccountsMenuView',
+  ACCOUNT_HUB_VIEW: 'AccountHubView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -38,6 +39,9 @@ const Routes = {
     ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
     KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
+    // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
+    GET_PIX_KEY: 'RampGetPixKey',
+    VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -369,6 +373,8 @@ const Routes = {
       BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
         'BatchSellMinimumReceivedInfoModal',
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
+      SWAPS_LIMIT_ORDER_EXPIRATION_MODAL: 'SwapsLimitOrderExpirationModal',
+      LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -463,6 +469,7 @@ const Routes = {
   },
   EARN: {
     ROOT: 'EarnScreens',
+    SEARCH_LIST: 'EarnSearchList',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
@@ -472,6 +479,7 @@ const Routes = {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
       LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
+      STRATEGY_SELECTION: 'EarnStrategySelectionModal',
     },
   },
   MONEY: {
@@ -549,6 +557,9 @@ const Routes = {
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
     CREDIT_REDEEM: 'CardCreditRedeem',
+    TRANSACTION_HISTORY: 'CardTransactionHistory',
+    TRANSACTION_DETAILS: 'CardTransactionDetails',
+    REPORT_TRANSACTION: 'CardReportTransaction',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
     ONBOARDING: {
@@ -584,6 +595,7 @@ const Routes = {
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
+      UK_MIGRATION: 'CardUkMigrationModal',
     },
   },
   SEND: {

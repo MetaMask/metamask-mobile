@@ -14,6 +14,7 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
 
 import {
+  MM_PAY_TRANSACTION_TYPES,
   REDESIGNED_TRANSACTION_TYPES,
   RELAY_DEPOSIT_TYPES,
 } from '../../../../components/Views/confirmations/constants/confirmations';
@@ -76,9 +77,8 @@ export function getTransactionControllerInstanceOptions({
     }),
     isFirstTimeInteractionEnabled: () =>
       isFirstTimeInteractionEnabled(initMessenger),
-    isSimulationEnabled: () =>
-      initMessenger.call('PreferencesController:getState')
-        .useTransactionSimulations,
+    isSimulationEnabled: (transactionMeta) =>
+      isSimulationEnabled(transactionMeta, initMessenger),
     getSavedGasFees: (chainIdOrTransactionMeta) =>
       getSavedGasFees(chainIdOrTransactionMeta, initMessenger),
     publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
@@ -193,6 +193,28 @@ function isFirstTimeInteractionEnabled(
     initMessenger.call('PreferencesController:getState')
       ?.securityAlertsEnabled === true
   );
+}
+
+/**
+ * Determine whether simulation is enabled for a transaction.
+ *
+ * Simulation is always disabled for MetaMask Pay transactions, otherwise it
+ * follows the user preference.
+ *
+ * @param transactionMeta - The transaction being simulated, if any.
+ * @param initMessenger - The TransactionController init messenger.
+ * @returns True if simulation is enabled.
+ */
+function isSimulationEnabled(
+  transactionMeta: TransactionMeta | undefined,
+  initMessenger: TransactionControllerInitMessenger,
+): boolean {
+  if (hasTransactionType(transactionMeta, MM_PAY_TRANSACTION_TYPES)) {
+    return false;
+  }
+
+  return initMessenger.call('PreferencesController:getState')
+    .useTransactionSimulations;
 }
 
 function getKeyringController(messenger: TransactionControllerInitMessenger) {

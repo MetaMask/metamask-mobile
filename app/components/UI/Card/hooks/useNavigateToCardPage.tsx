@@ -39,12 +39,14 @@ export const useNavigateToInternalBrowserPage = (
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const navigateToInternalBrowserPage = useCallback(
-    (page: CardInternalBrowserPage) => {
-      const { urlCheck, getUrl, action } = PAGE_CONFIG[page];
-
-      const existingTab = browserTabs?.find(({ url }: BrowserTab) =>
-        urlCheck(url),
+  const openBrowserUrl = useCallback(
+    (
+      url: string,
+      action: CardActions,
+      urlCheck?: (tabUrl: string) => boolean,
+    ) => {
+      const existingTab = browserTabs?.find(({ url: tabUrl }: BrowserTab) =>
+        urlCheck ? urlCheck(tabUrl) : tabUrl === url,
       );
 
       let existingTabId;
@@ -53,7 +55,7 @@ export const useNavigateToInternalBrowserPage = (
       if (existingTab) {
         existingTabId = existingTab.id;
       } else {
-        newTabUrl = getUrl();
+        newTabUrl = url;
       }
 
       const params = {
@@ -80,8 +82,24 @@ export const useNavigateToInternalBrowserPage = (
     [browserTabs, navigation, trackEvent, createEventBuilder, activeProviderId],
   );
 
+  const navigateToInternalBrowserPage = useCallback(
+    (page: CardInternalBrowserPage) => {
+      const { urlCheck, getUrl, action } = PAGE_CONFIG[page];
+      openBrowserUrl(getUrl(), action, urlCheck);
+    },
+    [openBrowserUrl],
+  );
+
+  const navigateToInternalBrowserUrl = useCallback(
+    (url: string, action: CardActions) => {
+      openBrowserUrl(url, action);
+    },
+    [openBrowserUrl],
+  );
+
   return {
     navigateToInternalBrowserPage,
+    navigateToInternalBrowserUrl,
   };
 };
 
