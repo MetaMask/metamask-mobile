@@ -23,6 +23,8 @@ describe('PerpsPillItem', () => {
     ({
       market: {
         symbol: 'ETH',
+        maxLeverage: '40x',
+        price: '$3,000',
         change24hPercent,
       },
       isWatchlisted: false,
@@ -131,5 +133,14 @@ describe('PerpsPillItem', () => {
 
     rerender(<PerpsPillItem item={buildItem('-0.5')} />);
     expect(getByText('-0.50%')).toBeTruthy();
+  });
+
+  it('renders leverage, price, and the 24h change interval', () => {
+    const { getByText } = render(<PerpsPillItem item={buildItem('1.5')} />);
+
+    expect(getByText('40x')).toBeTruthy();
+    expect(getByText('$3,000')).toBeTruthy();
+    expect(getByText('+1.50%')).toBeTruthy();
+    expect(getByText('24h')).toBeTruthy();
   });
 });

@@ -17,9 +17,14 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
 import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
+import { PerpsLeverage } from '../PerpsLeverage';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLivePrices } from '../../hooks/stream';
-import { formatPercentage } from '../../utils/formatUtils';
+import {
+  formatPercentage,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../utils/formatUtils';
 import { PerpsRecentlyViewedRailSelectorsIDs } from '../../Perps.testIds';
 
 /** `source_section` value for market-details navigation and analytics originating from this rail. */
@@ -65,6 +70,16 @@ const PerpsRecentlyViewedPill: React.FC<{
     return formatPercentage(Number.parseFloat(livePercentChange));
   }, [livePrices, market.change24hPercent, market.symbol]);
 
+  const displayPrice = useMemo(() => {
+    const livePrice = Number.parseFloat(livePrices[market.symbol]?.price ?? '');
+    if (!Number.isFinite(livePrice)) {
+      return market.price;
+    }
+    return formatPerpsFiat(livePrice, {
+      ranges: PRICE_RANGES_UNIVERSAL,
+    });
+  }, [livePrices, market.price, market.symbol]);
+
   const { changeTextColor } = useMemo(
     () => formatPercentChange(change24hPercent),
     [change24hPercent],
@@ -82,8 +97,15 @@ const PerpsRecentlyViewedPill: React.FC<{
         />
       }
       title={getPerpsDisplaySymbol(market.symbol)}
+      titleEndAccessory={
+        market.maxLeverage ? (
+          <PerpsLeverage maxLeverage={market.maxLeverage} />
+        ) : undefined
+      }
+      valueLabel={displayPrice}
       changeLabel={change24hPercent}
       changeTextColor={changeTextColor}
+      changeIntervalLabel={strings('trending.24h')}
     />
   );
 };

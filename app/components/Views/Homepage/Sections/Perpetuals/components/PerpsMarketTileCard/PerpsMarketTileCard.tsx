@@ -15,6 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { strings } from '../../../../../../../../locales/i18n';
 import PerpsLeverage from '../../../../../../UI/Perps/components/PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../../../../../../UI/Perps/components/PerpsTokenLogo';
 import SparklineChart from '../SparklineChart';
@@ -110,19 +111,35 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
           gap={2}
         >
           <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-            >
-              {getPerpsDisplaySymbol(market.symbol)}
-            </Text>
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               gap={1}
             >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {getPerpsDisplaySymbol(market.symbol)}
+              </Text>
+              <PerpsLeverage maxLeverage={market.maxLeverage} />
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {market.price}
+              </Text>
               <Text
                 variant={TextVariant.BodySm}
                 color={
@@ -133,7 +150,13 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
               >
                 {changePercent}
               </Text>
-              <PerpsLeverage maxLeverage={market.maxLeverage} />
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+              >
+                {strings('trending.24h')}
+              </Text>
             </Box>
           </Box>
 

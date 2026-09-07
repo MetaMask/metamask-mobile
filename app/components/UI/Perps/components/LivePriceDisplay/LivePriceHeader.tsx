@@ -14,6 +14,7 @@ import {
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { strings } from '../../../../../../locales/i18n';
 
 interface LivePriceHeaderProps {
   symbol: string;
@@ -58,6 +59,11 @@ const styleSheet = () =>
     },
     price: {
       flexShrink: 1,
+    },
+    changeRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 4,
     },
   });
 
@@ -209,15 +215,24 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
       >
         {formattedPrice}
       </Text>
-      <Text
-        variant={changeVariant}
-        fontWeight={changeFontWeight}
-        color={changeColor}
-        numberOfLines={1}
-        testID={testIDChange}
-      >
-        {formattedChange}
-      </Text>
+      <View style={styles.changeRow}>
+        <Text
+          variant={changeVariant}
+          fontWeight={changeFontWeight}
+          color={changeColor}
+          numberOfLines={1}
+          testID={testIDChange}
+        >
+          {formattedChange}
+        </Text>
+        <Text
+          variant={changeVariant}
+          color={TextColor.TextAlternative}
+          numberOfLines={1}
+        >
+          {strings('trending.24h')}
+        </Text>
+      </View>
     </View>
   );
 };

@@ -214,7 +214,7 @@ const PerpsMarketRowItem = ({
         ) : undefined
       }
       value={displayMarket.price}
-      subvalue={displayMarket.change24hPercent}
+      subvalue={`${displayMarket.change24hPercent} ${strings('trending.24h')}`}
       subvalueProps={{
         color: isPositiveChange
           ? TextColor.SuccessDefault

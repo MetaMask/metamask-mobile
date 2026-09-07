@@ -93,6 +93,7 @@ describe('LivePriceHeader', () => {
     );
     expect(getByText('$3,000')).toBeTruthy(); // 4 sig figs, no trailing zeros
     expect(getByText('+5.50%')).toBeTruthy();
+    expect(getByText('24h')).toBeTruthy();
   });
 
   it('should render valid price and negative change', () => {

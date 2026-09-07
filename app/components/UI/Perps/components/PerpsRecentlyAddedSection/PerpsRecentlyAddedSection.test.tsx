@@ -60,7 +60,7 @@ jest.mock('../PerpsTokenLogo/PerpsTokenLogo', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) => (key === 'trending.24h' ? '24h' : key),
 }));
 
 // Fix Date.now so formatTimeSinceListing is deterministic
@@ -195,6 +195,7 @@ describe('PerpsRecentlyAddedSection', () => {
         />,
       );
       expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+      expect(screen.getByText('40x')).toBeOnTheScreen();
       expect(screen.queryByText('BTC')).toBeNull();
     });
 
@@ -229,14 +230,14 @@ describe('PerpsRecentlyAddedSection', () => {
       expect(screen.getByText('$50,000.00')).toBeOnTheScreen();
     });
 
-    it('displays the 24h percent change', () => {
+    it('displays the percent change with its 24h interval', () => {
       render(
         <PerpsRecentlyAddedSection
           markets={[createMarket({ change24hPercent: '+2.5%' })]}
           onMarketPress={jest.fn()}
         />,
       );
-      expect(screen.getByText('+2.5%')).toBeOnTheScreen();
+      expect(screen.getByText('+2.5% 24h')).toBeOnTheScreen();
     });
 
     it('displays "3h ago" for a market listed 3 hours ago', () => {

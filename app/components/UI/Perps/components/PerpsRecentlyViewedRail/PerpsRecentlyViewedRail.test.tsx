@@ -110,7 +110,7 @@ describe('PerpsRecentlyViewedRail', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders each market logo, symbol and percent change', () => {
+  it('renders each market logo, symbol, leverage, price, and 24h change', () => {
     render(
       <PerpsRecentlyViewedRail
         markets={[
@@ -124,7 +124,10 @@ describe('PerpsRecentlyViewedRail', () => {
 
     expect(screen.getByTestId('token-logo-BTC')).toBeOnTheScreen();
     expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.getByText('10x')).toBeOnTheScreen();
+    expect(screen.getByText('$1.00')).toBeOnTheScreen();
     expect(screen.getByText('+2.50%')).toBeOnTheScreen();
+    expect(screen.getByText('24h')).toBeOnTheScreen();
   });
 
   it('subscribes to live prices with the same throttle as market list rows', () => {
@@ -161,6 +164,7 @@ describe('PerpsRecentlyViewedRail', () => {
     );
 
     expect(screen.getByText('+5.77%')).toBeOnTheScreen();
+    expect(screen.getByText('$55,000')).toBeOnTheScreen();
     expect(screen.queryByText('+1.00%')).toBeNull();
   });
 

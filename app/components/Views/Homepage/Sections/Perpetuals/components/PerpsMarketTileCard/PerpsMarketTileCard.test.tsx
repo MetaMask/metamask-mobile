@@ -116,11 +116,13 @@ describe('PerpsMarketTileCard', () => {
     mockUsePerpsLivePrices.mockReturnValue({});
   });
 
-  it('renders market symbol and leverage', () => {
+  it('renders market symbol, leverage, price, and 24h change interval', () => {
     render(<PerpsMarketTileCard market={mockMarketData} />);
 
     expect(screen.getByText('BTC')).toBeOnTheScreen();
     expect(screen.getByText('50x')).toBeOnTheScreen();
+    expect(screen.getByText('$52,000')).toBeOnTheScreen();
+    expect(screen.getByText('24h')).toBeOnTheScreen();
   });
 
   it('renders positive percentage change', () => {
