@@ -4,43 +4,43 @@ describe('formatMusd', () => {
   it('renders whole mUSD with two decimals', () => {
     const result = formatMusd('12000000');
 
-    expect(result).toBe('12.00');
+    expect(result).toBe('$12.00');
   });
 
   it('renders a fractional amount at the requested precision', () => {
     const result = formatMusd('1250000');
 
-    expect(result).toBe('1.25');
+    expect(result).toBe('$1.25');
   });
 
   it('renders zero for a null amount', () => {
     const result = formatMusd(null);
 
-    expect(result).toBe('0.00');
+    expect(result).toBe('$0.00');
   });
 
   it('renders zero for a malformed amount rather than throwing', () => {
     const result = formatMusd('not-a-number');
 
-    expect(result).toBe('0.00');
+    expect(result).toBe('$0.00');
   });
 
   it('prefixes a negative amount with a minus sign', () => {
     const result = formatMusd('-2500000');
 
-    expect(result).toBe('-2.50');
+    expect(result).toBe('-$2.50');
   });
 
   it('renders an amount above Number.MAX_SAFE_INTEGER without dropping the whole part', () => {
     const result = formatMusd('12345678901234500000');
 
-    expect(result).toBe('12,345,678,901,234.50');
+    expect(result).toBe('$12,345,678,901,234.50');
   });
 
   it('renders no decimals when asked for zero fraction digits', () => {
     const result = formatMusd('12500000', 0);
 
-    expect(result).toBe('13');
+    expect(result).toBe('$13');
   });
 });
 

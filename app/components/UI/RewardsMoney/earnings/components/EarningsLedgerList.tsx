@@ -31,7 +31,7 @@ const LedgerRowSkeleton: React.FC = () => {
   const tw = useTailwind();
 
   return (
-    <Box twClassName="w-full py-3 gap-2">
+    <Box twClassName="w-full py-4 gap-2">
       <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
       <Skeleton style={tw.style('h-3 w-40 rounded-lg')} />
     </Box>

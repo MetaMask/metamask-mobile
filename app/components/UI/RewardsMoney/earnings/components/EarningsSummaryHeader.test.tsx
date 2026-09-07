@@ -25,13 +25,13 @@ describe('EarningsSummaryHeader', () => {
 
     expect(
       screen.getByTestId(REWARDS_MONEY_TEST_IDS.EARNINGS_CLAIMABLE),
-    ).toHaveTextContent('12.50');
+    ).toHaveTextContent('$12.50');
     expect(
       screen.getByTestId(REWARDS_MONEY_TEST_IDS.EARNINGS_PENDING),
-    ).toHaveTextContent('5.10');
+    ).toHaveTextContent('$5.10');
     expect(
       screen.getByTestId(REWARDS_MONEY_TEST_IDS.EARNINGS_CLAIMED),
-    ).toHaveTextContent('2.00');
+    ).toHaveTextContent('$2.00');
   });
 
   it('renders the skeleton while the first read is in flight', () => {
@@ -50,7 +50,7 @@ describe('EarningsSummaryHeader', () => {
 
     expect(
       screen.getByTestId(REWARDS_MONEY_TEST_IDS.EARNINGS_CLAIMABLE),
-    ).toHaveTextContent('12.50');
+    ).toHaveTextContent('$12.50');
   });
 
   it('renders nothing when there is no summary and nothing is loading', () => {

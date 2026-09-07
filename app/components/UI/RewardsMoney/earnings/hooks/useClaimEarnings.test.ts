@@ -4,8 +4,8 @@ import { addTransactionBatch } from '../../../../../util/transaction-controller'
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { isMonadMainnetChainId } from '../../../../../util/networks';
 import { selectMoneyAccountVaultConfig } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { buildClaimDepositBatch } from '../utils/buildClaimDepositBatch';
 import { ClaimAlreadyOpenError } from '../../../../../core/Engine/controllers/rewards-money-controller/services';
 import awaitBatchConfirmed, {
@@ -188,8 +188,16 @@ describe('useClaimEarnings', () => {
       expect(result.current.isSubmittable).toBe(true);
     });
 
-    it('reports not submittable when gas sponsorship is unavailable', () => {
+    it('reports not submittable when the chain is not Monad mainnet', () => {
       mockIsMonad.mockReturnValue(false);
+
+      const { result } = renderHook(() => useClaimEarnings());
+
+      expect(result.current.isSubmittable).toBe(false);
+    });
+
+    it('reports not submittable when gas sponsorship is unavailable for the chain', () => {
+      mockSponsorshipEnabled.mockReturnValue(() => false);
 
       const { result } = renderHook(() => useClaimEarnings());
 
@@ -257,6 +265,18 @@ describe('useClaimEarnings', () => {
         'tokenMethodApprove',
         'moneyAccountDeposit',
       ]);
+    });
+
+    it('skips the approval request, since the claim sheet never opens a Confirmations screen to resolve one', async () => {
+      const { result } = renderHook(() => useClaimEarnings());
+
+      await act(async () => {
+        await result.current.claim(['CASHBACK']);
+      });
+
+      expect(mockAddBatch.mock.calls[0][0]).toMatchObject({
+        requireApproval: false,
+      });
     });
 
     it('declares no requiredAssets, because the authorization already delivers the mUSD', async () => {

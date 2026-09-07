@@ -24,8 +24,11 @@ import BottomSheet, {
   type BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import useRewardsToast from '../../../Rewards/hooks/useRewardsToast';
+import RewardsErrorBanner from '../../../Rewards/components/RewardsErrorBanner';
 import type { EarningOriginType } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { CLAIM_WATCHDOG_MS, REWARDS_MONEY_TEST_IDS } from '../../constants';
 import { formatMusd } from '../../utils/format';
@@ -90,7 +93,6 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
     hasConfirmed,
     error,
     isSubmittable,
-    reset,
   } = useClaimEarnings();
 
   // Locking the sheet is separate from `isClaiming` so the watchdog can release
@@ -117,24 +119,24 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
   useEffect(() => clearWatchdog, [clearWatchdog]);
 
   // Any failure re-enables dismissal immediately rather than waiting out the
-  // watchdog — the user is not mid-flight any more.
+  // watchdog — the user is not mid-flight any more. The error itself stays on
+  // screen (rather than a toast that can be missed) until the user retries or
+  // closes the sheet.
   useEffect(() => {
     if (error) {
       clearWatchdog();
       setIsLocked(false);
-      showToast(
-        RewardsToastOptions.error(
-          strings('rewards_money.claim.error_title'),
-          strings(FAILURE_MESSAGE_KEY[error.reason]),
-        ),
-      );
-      reset();
     }
-  }, [error, clearWatchdog, showToast, RewardsToastOptions, reset]);
+  }, [error, clearWatchdog]);
 
   // Success is reported on confirmation, never on submission. A submitted
   // batch can still revert — which is what happens against a stub signer — so
   // closing on submission told the user it worked when it had not.
+  //
+  // The claimed mUSD lands in the Money Account, so navigating there on
+  // confirmation mirrors every other `moneyAccountDeposit` transaction in the
+  // app (see `useTransactionConfirm`'s `navigateOnConfirm`), rather than just
+  // closing the sheet back onto the Earnings screen.
   useEffect(() => {
     if (hasConfirmed) {
       clearWatchdog();
@@ -142,7 +144,14 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
       showToast(
         RewardsToastOptions.success(strings('rewards_money.claim.success')),
       );
-      navigation.goBack();
+      navigation.navigate(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     }
   }, [hasConfirmed, clearWatchdog, showToast, RewardsToastOptions, navigation]);
 
@@ -158,7 +167,16 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
       setIsLocked(false);
     }, CLAIM_WATCHDOG_MS);
 
-    claim(claimability.claimableTypes);
+    // `claim` catches everything internally and is not expected to reject —
+    // this is a last-line-of-defense so a rejection that somehow escapes that
+    // guard still releases the lock instead of leaving the sheet stuck.
+    claim(claimability.claimableTypes).catch((err) => {
+      Logger.log(
+        '[Rewards Money Claim] unexpected rejection from claim()',
+        err instanceof Error ? err.message : String(err),
+      );
+      setIsLocked(false);
+    });
   }, [claim, claimability.claimableTypes]);
 
   const canConfirm =
@@ -220,6 +238,14 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
           {strings('rewards_money.claim.description')}
         </Text>
 
+        {error ? (
+          <RewardsErrorBanner
+            title={strings('rewards_money.claim.error_title')}
+            description={strings(FAILURE_MESSAGE_KEY[error.reason])}
+            testID={REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_ERROR}
+          />
+        ) : null}
+
         {claimability.coverage === 'partial' ? (
           <Text
             variant={TextVariant.BodySm}
@@ -249,7 +275,11 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
           twClassName="w-full"
           testID={REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_CONFIRM}
         >
-          {strings('rewards_money.claim.confirm')}
+          {strings(
+            error
+              ? 'rewards_money.ledger.retry'
+              : 'rewards_money.claim.confirm',
+          )}
         </Button>
       </Box>
     </BottomSheet>

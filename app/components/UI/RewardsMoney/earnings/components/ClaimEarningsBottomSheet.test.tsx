@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import type {
   EarningOriginType,
   EarningsSummaryDto,
@@ -15,9 +16,10 @@ import useEarningsSummary from '../hooks/useEarningsSummary';
 import ClaimEarningsBottomSheet from './ClaimEarningsBottomSheet';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
 }));
 
 jest.mock('../hooks/useEarningsSummary', () => ({
@@ -82,7 +84,7 @@ const BOTH_TYPES: EarningOriginType[] = ['CASHBACK', 'REFERRAL_REV_SHARE'];
 const createClaimState = (
   overrides: Partial<UseClaimEarningsResult> = {},
 ): UseClaimEarningsResult => ({
-  claim: jest.fn(),
+  claim: jest.fn().mockResolvedValue(undefined),
   isClaiming: false,
   hasSubmitted: false,
   hasConfirmed: false,
@@ -124,11 +126,11 @@ describe('ClaimEarningsBottomSheet', () => {
 
     expect(
       screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_AMOUNT),
-    ).toHaveTextContent('12.50');
+    ).toHaveTextContent('$12.50');
   });
 
   it('starts the claim for only the types that pay', () => {
-    const claim = jest.fn();
+    const claim = jest.fn().mockResolvedValue(undefined);
     mockedUseClaimEarnings.mockReturnValue(createClaimState({ claim }));
     const summary = createSummary({
       by_earning_origin_type: {
@@ -205,7 +207,7 @@ describe('ClaimEarningsBottomSheet', () => {
     ).toBeDisabled();
   });
 
-  it('surfaces an error toast without closing the sheet when the claim fails', () => {
+  it('shows an inline error without closing the sheet when the claim fails', () => {
     mockedUseClaimEarnings.mockReturnValue(
       createClaimState({
         error: new ClaimError('VOUCHER_EXPIRED', 'expired'),
@@ -214,15 +216,36 @@ describe('ClaimEarningsBottomSheet', () => {
 
     renderSheet();
 
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        description: strings('rewards_money.claim.error_voucher_expired'),
-      }),
-    );
+    expect(
+      screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_ERROR),
+    ).toHaveTextContent(strings('rewards_money.claim.error_voucher_expired'), {
+      exact: false,
+    });
+    expect(mockShowToast).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('shows a success toast and closes the sheet once the batch is confirmed', () => {
+  it('retries the claim from the same CTA, now enabled and relabelled, after a failure', () => {
+    const claim = jest.fn().mockResolvedValue(undefined);
+    mockedUseClaimEarnings.mockReturnValue(
+      createClaimState({
+        claim,
+        error: new ClaimError('SUBMIT_FAILED', 'reverted on chain'),
+      }),
+    );
+
+    renderSheet();
+    const cta = screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_CONFIRM);
+
+    expect(cta).toHaveTextContent(strings('rewards_money.ledger.retry'));
+    expect(cta).not.toBeDisabled();
+
+    fireEvent.press(cta);
+
+    expect(claim).toHaveBeenCalledWith(BOTH_TYPES);
+  });
+
+  it('shows a success toast and navigates to the Money Account home once the batch is confirmed', () => {
     mockedUseClaimEarnings.mockReturnValue(
       createClaimState({ hasSubmitted: true, hasConfirmed: true }),
     );
@@ -234,7 +257,12 @@ describe('ClaimEarningsBottomSheet', () => {
         title: strings('rewards_money.claim.success'),
       }),
     );
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.MONEY.ROOT, params: { screen: Routes.MONEY.HOME } },
+      { pop: true },
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('keeps the sheet open and reports an error when the batch fails after submission', () => {
@@ -251,11 +279,11 @@ describe('ClaimEarningsBottomSheet', () => {
     expect(
       screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIM_SHEET),
     ).toBeOnTheScreen();
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: strings('rewards_money.claim.error_title'),
-      }),
-    );
+    expect(
+      screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_ERROR),
+    ).toHaveTextContent(strings('rewards_money.claim.error_title'), {
+      exact: false,
+    });
   });
 
   it('stays open showing a confirming notice while the batch is on chain', () => {
@@ -281,10 +309,11 @@ describe('ClaimEarningsBottomSheet', () => {
 
     renderSheet();
 
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        description: strings('rewards_money.claim.error_confirmation_timeout'),
-      }),
+    expect(
+      screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_ERROR),
+    ).toHaveTextContent(
+      strings('rewards_money.claim.error_confirmation_timeout'),
+      { exact: false },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
   });

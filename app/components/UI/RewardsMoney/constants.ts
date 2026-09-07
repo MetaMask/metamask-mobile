@@ -60,6 +60,7 @@ export const REWARDS_MONEY_TEST_IDS = {
   CLAIM_SHEET_IN_PROGRESS: 'rewards-money-claim-sheet-in-progress',
   CLAIM_SHEET_CONFIRMING: 'rewards-money-claim-sheet-confirming',
   CLAIM_SHEET_CONFIRM: 'rewards-money-claim-sheet-confirm',
+  CLAIM_SHEET_ERROR: 'rewards-money-claim-sheet-error',
 } as const;
 
 /**

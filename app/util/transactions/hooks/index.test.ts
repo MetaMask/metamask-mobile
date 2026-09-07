@@ -66,6 +66,15 @@ const FEATURE_FLAGS = {
   mobileReturnTxHashAsap: false,
 } as never;
 
+// A regular Money Account deposit always declares `requiredAssets`, even a
+// placeholder `0x0` amount before the user picks one (see
+// `useMoneyAccount.ts`). Present here so "no quote" tests model a real
+// deposit rather than accidentally matching the Rewards Money claim's
+// self-funded, no-`requiredAssets` exemption.
+const REQUIRED_ASSETS = [
+  { address: '0xmusd', amount: '0x0', standard: 'erc20' },
+] as never;
+
 function buildRequest(
   overrides: Partial<TransactionControllerHookRequest> = {},
 ): TransactionControllerHookRequest {
@@ -377,12 +386,47 @@ describe('getTransactionControllerHooks', () => {
       const hooks = getTransactionControllerHooks(request);
       const moneyAccountTx = {
         ...MOCK_TRANSACTION_META,
+        requiredAssets: REQUIRED_ASSETS,
         type: TransactionType.moneyAccountDeposit,
       };
 
       await expect(hooks.publish?.(moneyAccountTx)).rejects.toThrow(
         'MetaMask Pay: Cannot submit without quote',
       );
+    });
+
+    it('does not throw for a self-funded moneyAccountDeposit batch with no requiredAssets (Rewards Money claim)', async () => {
+      const request = buildRequest({
+        initMessenger: {
+          call: jest.fn((action: string) => {
+            if (action === 'PredictController:publish') {
+              return { transactionHash: undefined };
+            }
+
+            if (action === 'TransactionPayController:getState') {
+              return {
+                transactionData: {
+                  '123': {
+                    quotes: [],
+                  },
+                },
+              };
+            }
+
+            return undefined;
+          }),
+        } as unknown as TransactionControllerHookRequest['initMessenger'],
+      });
+
+      const hooks = getTransactionControllerHooks(request);
+      const moneyAccountTx = {
+        ...MOCK_TRANSACTION_META,
+        type: TransactionType.moneyAccountDeposit,
+      };
+
+      const result = await hooks.publish?.(moneyAccountTx);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
     });
 
     it('does not throw for moneyAccountDeposit when quotes are present', async () => {
@@ -426,6 +470,7 @@ describe('getTransactionControllerHooks', () => {
       );
       const moneyAccountTx = {
         ...MOCK_TRANSACTION_META,
+        requiredAssets: REQUIRED_ASSETS,
         type: TransactionType.moneyAccountDeposit,
       };
 

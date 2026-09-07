@@ -15,6 +15,27 @@ const SERVICE_NAME = 'RewardsMoneyDataService';
 /** Default timeout for all Rewards Money API requests. */
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
+/** Set once the profile id has been logged for this app session (dev only). */
+let hasLoggedProfileId = false;
+
+/**
+ * The Rewards Money bearer token's `sub` claim is the profile id. Decoded
+ * locally (no verification) purely so a local test session can read it off
+ * the Metro log without a separate debugger.
+ */
+function decodeJwtSub(token: string): string | null {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = Buffer.from(normalized, 'base64').toString('utf8');
+    const sub = (JSON.parse(json) as { sub?: string }).sub;
+    return typeof sub === 'string' ? sub : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The ledger page size the client asks for. */
 export const EARNINGS_LEDGER_PAGE_SIZE = 20;
 
@@ -291,6 +312,14 @@ export class RewardsMoneyDataService {
       );
     }
     headers.Authorization = `Bearer ${token}`;
+
+    if (__DEV__ && !hasLoggedProfileId) {
+      const profileId = decodeJwtSub(token);
+      if (profileId) {
+        hasLoggedProfileId = true;
+        Logger.log('RewardsMoneyDataService: profile_id (JWT sub)', profileId);
+      }
+    }
 
     if (this.#locale) {
       headers['Accept-Language'] = this.#locale;

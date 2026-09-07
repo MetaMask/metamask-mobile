@@ -246,6 +246,12 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
               // No `requiredAssets`: the authorization leg delivers the mUSD.
               // Declaring it here would have MM Pay fund the account a second
               // time for money the batch already brings with it.
+              // `requireApproval: false`, same as `CardController.linkMoneyAccountCard`
+              // — the only other silent, no-Confirmations-screen submission in the
+              // app. Without it, `TransactionController` waits on an approval
+              // request that nothing is ever listening for, so the batch sits in
+              // `unapproved` until the client's own watchdog gives up.
+              requireApproval: false,
               skipInitialGasEstimate: true,
               transactions,
             });

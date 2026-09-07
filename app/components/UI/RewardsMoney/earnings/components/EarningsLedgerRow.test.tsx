@@ -99,7 +99,7 @@ describe('EarningsLedgerRow', () => {
     expect(
       screen.getByText(strings('rewards_money.origin_type.cashback')),
     ).toBeOnTheScreen();
-    expect(screen.getByText('1.25')).toBeOnTheScreen();
+    expect(screen.getByText('$1.25')).toBeOnTheScreen();
   });
 
   it('labels a rev-share entry as referral earnings', () => {

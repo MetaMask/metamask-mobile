@@ -18,7 +18,7 @@ const BASE_UNITS_PER_MUSD = 10n ** BigInt(MUSD_DECIMALS);
  *
  * @param baseUnits - mUSD amount in base units, as a decimal string.
  * @param fractionDigits - Decimal places to show. Defaults to 2.
- * @returns A locale-formatted amount, without a currency symbol.
+ * @returns A locale-formatted USD amount, e.g. "$12.00".
  */
 export function formatMusd(
   baseUnits: string | null | undefined,
@@ -40,6 +40,9 @@ export function formatMusd(
   const fraction = Number(remainder) / Number(BASE_UNITS_PER_MUSD);
 
   const formatted = new Intl.NumberFormat(I18n.locale, {
+    style: 'currency',
+    currency: 'USD',
+    currencyDisplay: 'narrowSymbol',
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   }).format(Number(whole) + fraction);

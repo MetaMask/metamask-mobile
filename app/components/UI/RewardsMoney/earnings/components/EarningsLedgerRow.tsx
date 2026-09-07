@@ -67,7 +67,7 @@ const EarningsLedgerRow: React.FC<EarningsLedgerRowProps> = ({
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="w-full py-3 gap-3"
+    twClassName="w-full py-4 gap-3"
     testID={testID}
   >
     <Box twClassName="flex-1 gap-1">
