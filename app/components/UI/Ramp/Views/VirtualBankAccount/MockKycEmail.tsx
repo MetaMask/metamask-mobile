@@ -50,7 +50,15 @@ const MockKycEmail = () => {
     const startedAt = Date.now();
     vbaTrace('kyc.verification.start', { hasEmail: Boolean(trimmedEmail) });
     try {
-      await startIronKycVerification(trimmedEmail);
+      const outcome = await startIronKycVerification(trimmedEmail);
+      // Backing out is a choice, not a failure: stay on this step so the
+      // applicant can press Continue again, with no alert.
+      if (outcome === 'abandoned') {
+        vbaTrace('kyc.verification.abandoned', {
+          durationMs: Date.now() - startedAt,
+        });
+        return;
+      }
       vbaTrace('kyc.verification.success', {
         durationMs: Date.now() - startedAt,
       });
