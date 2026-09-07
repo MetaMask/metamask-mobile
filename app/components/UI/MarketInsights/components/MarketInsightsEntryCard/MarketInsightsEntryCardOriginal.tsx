@@ -18,6 +18,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 import { endTrace, TraceName } from '../../../../../util/trace';
+import { getMarketInsightsTraceEndData } from '../../utils/marketInsightsPerformance';
 
 const SparkleIcon: React.FC = () => (
   <Icon name={IconName.Ai} size={IconSize.Lg} color={IconColor.IconDefault} />
@@ -29,17 +30,19 @@ const SparkleIcon: React.FC = () => (
  */
 const MarketInsightsEntryCardOriginal: React.FC<
   MarketInsightsEntryCardProps
-> = ({ report, timeAgo, onPress, caip19Id, testID }) => {
+> = ({ report, timeAgo, onPress, caip19Id, traceId, testID }) => {
   const tw = useTailwind();
 
   useEffect(() => {
-    if (caip19Id) {
+    const entryTraceId = traceId ?? caip19Id;
+    if (entryTraceId) {
       endTrace({
         name: TraceName.MarketInsightsEntryCardLoad,
-        id: caip19Id,
+        id: entryTraceId,
+        data: getMarketInsightsTraceEndData('success'),
       });
     }
-  }, [caip19Id]);
+  }, [caip19Id, traceId]);
 
   return (
     <Pressable
