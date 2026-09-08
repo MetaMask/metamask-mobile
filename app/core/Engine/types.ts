@@ -364,6 +364,13 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
+import type {
+  UiSlotsControllerActions,
+  UiSlotsControllerEvents,
+  UiSlotsControllerState,
+} from './controllers/ui-slots-controller/types';
+import { PredictNextController } from '../../components/UI/PredictNext/controller/PredictNextController';
 import type {
   PredictLiveDataService,
   PredictLiveDataServiceActions,
@@ -679,6 +686,7 @@ export type GlobalActions =
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | CardControllerActions
+  | UiSlotsControllerActions
   | QrSyncControllerActions
   | QrSyncProvisioningServiceActions
   | ClientControllerActions
@@ -794,6 +802,7 @@ export type GlobalEvents =
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | CardControllerEvents
+  | UiSlotsControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
   | RewardsControllerEvents
@@ -949,6 +958,7 @@ export type MessengerClients = {
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   CardController: CardController;
+  UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
   QrSyncProvisioningService: QrSyncProvisioningService;
   ClientController: ClientController;
@@ -1047,6 +1057,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
@@ -1152,6 +1163,7 @@ export type MessengerClientsToInitialize =
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'CardController'
+  | 'UiSlotsController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'
   | 'ClientController'

@@ -1,7 +1,7 @@
 # Appium Smoke Tests — iOS
 #
 # Fans out one reusable job per Appium smoke tag. Add a matching job below.
-# Invoked from ci.yml on main push/schedule when ios-tests-ready succeeds.
+# Invoked by ci.yml when iOS E2E is enabled.
 # iOS build artifacts come from build-ios-apps in the parent ci.yml workflow.
 
 name: Appium Smoke Tests (iOS)
@@ -30,7 +30,7 @@ on:
         type: string
         default: '["ALL"]'
       changed_spec_files:
-        description: 'Space-separated changed E2E specs for PR flakiness detection'
+        description: 'Space-separated changed E2E specs for main-target PR flakiness detection'
         required: false
         type: string
         default: ''
