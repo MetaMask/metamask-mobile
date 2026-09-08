@@ -130,13 +130,11 @@ const BridgeRecurringBuyViewContent = ({
   const priceRangeToken =
     effectiveRange?.tokenSide === 'source' ? sourceToken : destToken;
   const { minLabel: priceRangeMinLabel, maxLabel: priceRangeMaxLabel } =
-    effectiveRange
-      ? formatPriceRangeBounds(
-          effectiveRange.min,
-          effectiveRange.max,
-          effectiveRange.currency,
-        )
-      : {};
+    formatPriceRangeBounds(
+      effectiveRange?.min ?? '',
+      effectiveRange?.max ?? '',
+      effectiveRange?.currency ?? currentCurrency,
+    );
 
   const handlePriceRangePress = useCallback(() => {
     dismissInputAndKeypad();
