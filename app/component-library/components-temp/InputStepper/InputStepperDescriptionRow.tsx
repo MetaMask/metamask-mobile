@@ -51,7 +51,7 @@ export const InputStepperDescriptionRow = ({
           color={description.color}
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          testID={INPUTSTEPPER_DESCRIPTION_MESSAGE_TESTID}
+          testID={description.testID ?? INPUTSTEPPER_DESCRIPTION_MESSAGE_TESTID}
         >
           {description.message}
         </Text>

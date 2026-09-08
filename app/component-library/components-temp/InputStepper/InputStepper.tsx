@@ -46,6 +46,9 @@ const InputStepper: React.FC<InputStepperProps> = ({
   selection,
   onSelectionChange,
   testID = INPUTSTEPPER_TESTID,
+  decreaseButtonProps,
+  increaseButtonProps,
+  inputProps,
 }) => {
   const tw = useTailwind();
   const fontSize = calculateInputFontSize(value.length);
@@ -96,6 +99,7 @@ const InputStepper: React.FC<InputStepperProps> = ({
           onPress={onDecrease}
           isDisabled={parseFloat(value) <= minAmount}
           testID={INPUTSTEPPER_MINUS_BUTTON_TESTID}
+          {...decreaseButtonProps}
         />
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -112,6 +116,7 @@ const InputStepper: React.FC<InputStepperProps> = ({
             testID={INPUTSTEPPER_INPUT_TESTID}
             selection={selection}
             onSelectionChange={onSelectionChange}
+            {...inputProps}
           />
           {postValue ? (
             <Text
@@ -133,6 +138,7 @@ const InputStepper: React.FC<InputStepperProps> = ({
           onPress={onIncrease}
           isDisabled={parseFloat(value) >= maxAmount}
           testID={INPUTSTEPPER_PLUS_BUTTON_TESTID}
+          {...increaseButtonProps}
         />
       </Box>
       <InputStepperDescriptionRow description={description} />
