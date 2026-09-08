@@ -15,6 +15,8 @@ jest.mock('../../util/test/utils', () => ({
 describe('ScreenTtcProbeHost', () => {
   beforeEach(() => {
     _resetScreenTtcRegistryForTesting();
+    // Explicit restore even though reset clears the override — keeps suite order-safe.
+    _setScreenTtcProbeEnabledForTesting(undefined);
   });
 
   it('renders nothing when the probe is disabled', () => {

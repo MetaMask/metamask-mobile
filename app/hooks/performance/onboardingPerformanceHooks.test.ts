@@ -61,6 +61,7 @@ describe('onboarding performance hooks', () => {
     mockGetPerformanceTimestamp.mockReturnValue(mockPerformanceMountTs);
     _resetOnboardingNavigationPerformanceForTesting();
     jest.useFakeTimers();
+    jest.setSystemTime(mockPerformanceMountTs);
   });
 
   afterEach(() => {

@@ -81,11 +81,34 @@ describe('screenTtcRegistry', () => {
 
   it('bumps generation on each record for the same screen', () => {
     recordScreenTtc(OnboardingScreenIds.ONBOARDING_SHEET, 10, 'filled');
-    recordScreenTtc(OnboardingScreenIds.ONBOARDING_SHEET, 20, 'filled');
+    const first = getScreenTtc(OnboardingScreenIds.ONBOARDING_SHEET);
+    expect(first).toEqual({
+      screenId: OnboardingScreenIds.ONBOARDING_SHEET,
+      durationMs: 10,
+      contentState: 'filled',
+      generation: 1,
+    });
+    if (!first) {
+      throw new Error('expected first TTC record');
+    }
+    expect(formatScreenTtcAccessibilityLabel(first)).toBe(
+      'ttc:onboarding_sheet:10:1',
+    );
 
+    recordScreenTtc(OnboardingScreenIds.ONBOARDING_SHEET, 20, 'filled');
     const second = getScreenTtc(OnboardingScreenIds.ONBOARDING_SHEET);
-    expect(second?.generation).toBe(2);
-    expect(second?.durationMs).toBe(20);
+    expect(second).toEqual({
+      screenId: OnboardingScreenIds.ONBOARDING_SHEET,
+      durationMs: 20,
+      contentState: 'filled',
+      generation: 2,
+    });
+    if (!second) {
+      throw new Error('expected second TTC record');
+    }
+    const label = formatScreenTtcAccessibilityLabel(second);
+    expect(label).toBe('ttc:onboarding_sheet:20:2');
+    expect(parseScreenTtcAccessibilityLabel(label)?.generation).toBe(2);
   });
 
   it('notifies subscribers and supports unsubscribe', () => {
