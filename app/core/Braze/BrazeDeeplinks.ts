@@ -49,11 +49,15 @@ export function getBrazeInitialPush(): Promise<{
  * `null` when it does not.
  *
  * On iOS, the native `BrazeDelegate.shouldOpenURL` routes universal links
- * (Branch domains) through Branch for proper resolution, and suppresses all
- * other URLs. Non-universal-link URLs are handled exclusively through this JS
- * listener, tagged with ORIGIN_BRAZE. Universal links are resolved by Branch
- * and delivered through the Branch flow with ORIGIN_DEEPLINK (unless further
- * tagged).
+ * (Branch domains) through Branch for proper resolution, and suppresses push
+ * notification URLs so they are not opened twice. Push URLs are handled
+ * exclusively through this JS listener, tagged with ORIGIN_BRAZE. Universal
+ * links are resolved by Branch and delivered through the Branch flow with
+ * ORIGIN_DEEPLINK (unless further tagged).
+ *
+ * In-app messages, Content Cards, and Banners are not delivered here. Their
+ * CTAs are opened by BrazeKit when `shouldOpenURL` returns true (Safari for
+ * https:// URLs, the app URL handler for custom schemes).
  *
  * @returns An EmitterSubscription, or null on error.
  */
