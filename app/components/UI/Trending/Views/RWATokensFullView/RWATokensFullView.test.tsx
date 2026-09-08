@@ -202,7 +202,7 @@ describe('RWATokensFullView', () => {
   });
 
   it('opens network bottom sheet when button is pressed', async () => {
-    const { getByTestId } = renderRWAFullView();
+    const { getByTestId, getByText } = renderRWAFullView();
 
     const networkButton = getByTestId('all-networks-button');
     await userEvent.press(networkButton);
@@ -210,6 +210,7 @@ describe('RWATokensFullView', () => {
     expect(
       getByTestId('trending-token-network-bottom-sheet'),
     ).toBeOnTheScreen();
+    expect(getByText('Robinhood Chain')).toBeOnTheScreen();
   });
 
   it('opens price change bottom sheet when button is pressed', async () => {
