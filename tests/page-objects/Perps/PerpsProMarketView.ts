@@ -324,15 +324,15 @@ class PerpsProMarketView {
   }
 
   /**
-   * After Auto close Set from the position card, the root layout can survive
-   * while the positions list subtree is temporarily unmounted. Wait for the
-   * position row itself before asserting on a subsequent close transition.
+   * After Auto close Set from the position card, Pro can keep the root layout
+   * mounted while order-form and positions-list children remount. Wait for a
+   * Pro child anchor and the concrete position row before close polling.
    */
   async waitForPositionRowRemounted(
     symbol: string,
     timeout = 20000,
   ): Promise<void> {
-    await this.waitForProContainer(timeout);
+    await this.waitForProViewReady(timeout);
     await this.waitForPositionRow(symbol, timeout);
   }
 
@@ -664,13 +664,12 @@ class PerpsProMarketView {
    * Cheap position-gone poll for close waits (`waitForCloseAfterPricePush` /
    * liquidation / TP). Do **not** re-tap Positions or scroll — those use
    * `scrollUntilVisible` (default 45s) and burn the outer retry budget in one
-   * attempt when the Pro scroll-view is mid-transition after Auto close Set.
-   * Call this only after a stronger readiness step has already observed the row
-   * (for example `waitForPositionRow` / `waitForPositionRowRemounted`).
-   * Position row testIDs are absent from the hierarchy once the position is
-   * closed, so a short `expectElementToNotExist` is enough.
+   * attempt when the Pro scroll-view is mid-transition after Auto close Set. We
+   * first require a Pro child anchor to exist so transient post-Set unmounts do
+   * not produce a false "row gone" pass before the view remounts.
    */
   async expectPositionRowGone(symbol: string, timeout = 1500): Promise<void> {
+    await this.waitForProViewReady(timeout);
     await Assertions.expectElementToNotExist(this.positionRow(symbol), {
       description: `Pro position row for ${symbol} gone from hierarchy`,
       timeout,
