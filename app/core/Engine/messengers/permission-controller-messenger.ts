@@ -102,7 +102,6 @@ export function getPermissionControllerInitMessenger(
     actions: [
       'ApprovalController:addRequest',
       'AccountsController:listAccounts',
-      'CurrencyRateController:getState',
       'KeyringController:getState',
       'KeyringController:withKeyring',
       'KeyringController:withKeyringV2Unsafe',
