@@ -294,7 +294,9 @@ Tests for new users:
 - `seedless-apple-onboarding.spec.ts` - Apple social sign-in onboarding
 - `seedless-google-onboarding.spec.ts` - Google social sign-in onboarding
 - `seedless-telegram-onboarding.spec.ts` - Telegram social sign-in onboarding (requires `MM_TELEGRAM_LOGIN_ENABLED=true` on without-srp e2e builds)
-- `launch-times/` - Onboarding launch metrics
+- `helpers/seedlessOnboardingTimers.ts` — Seedless **nav** / **flow** timers, plus helpers to wait for contentReady UI.
+- `utils/readScreenTtc.ts` — Reads **in-app TTC** (`TTC [<screen_id>]: in-app mount→contentReady`) from `ScreenTtcProbeHost` (same duration as Sentry `useScreenPerformance`).
+- `launch-times/` — Cold start nav + in-app `onboarding_landing` TTC
 
 ### Predict Tests (`tests/performance/login/predict/`)
 

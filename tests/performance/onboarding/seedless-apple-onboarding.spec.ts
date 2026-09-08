@@ -1,5 +1,4 @@
 import { test } from '../../framework/fixtures/playwright';
-import TimerHelper from '../../framework/TimerHelper';
 import { AppiumAssertions, AppiumGestures } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
@@ -18,99 +17,80 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
-import { measureCreatePasswordToOnboardingSuccess } from './helpers/seedlessOnboardingTimers';
+import { addAppScreenTtcTimer } from '../utils/readScreenTtc';
+import {
+  createSeedlessOnboardingTimers,
+  measureCreatePasswordToOnboardingSuccess,
+  measurePostOauthToScreenContent,
+  SEEDLESS_APP_TTC_THRESHOLDS,
+  waitForChoosePasswordContent,
+  waitForOnboardingSheetContent,
+  waitForSocialRehydrateContent,
+} from './helpers/seedlessOnboardingTimers';
 
-const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
-  await new Promise<T>((resolve, reject) => {
-    let rejectedCount = 0;
-
-    promises.forEach((promise) => {
-      promise.then(resolve).catch(() => {
-        rejectedCount += 1;
-        if (rejectedCount === promises.length) {
-          reject(new Error('All screen detection promises failed'));
-        }
-      });
-    });
-  });
-
-/* Seedless Onboarding: Apple Login */
+/*
+ * Seedless Apple — in-app TTC (Sentry-equivalent) + nav/flow timers.
+ *
+ * After each screen's UI is visible, `addAppScreenTtcTimer` reads the
+ * mount→contentReady duration recorded by useScreenPerformance.
+ */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
   test.setTimeout(360000);
 
   test(
     'Seedless Onboarding: Apple Login New User',
     { tag: '@metamask-onboarding-team' },
-    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      const timer1 = new TimerHelper(
-        'Apple: Tap "Create new wallet" → OnboardingSheet visible',
-        { ios: 1500, android: 2000 },
-        currentDeviceDetails.platform,
-      );
-      const timer2 = new TimerHelper(
-        'Apple: Tap Apple login → post-OAuth screen visible',
-        { ios: 15000, android: 6000 },
-        currentDeviceDetails.platform,
-      );
-      const timer3 = new TimerHelper(
-        'Apple: Post-OAuth action → Password fields visible',
-        { ios: 5000, android: 4000 },
-        currentDeviceDetails.platform,
-      );
-      const timer4 = new TimerHelper(
-        'Apple: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 4000 },
-        currentDeviceDetails.platform,
-      );
-      const timer5 = new TimerHelper(
-        'Apple: Tap "Done" → wallet main screen visible',
-        { ios: 30000, android: 5000 },
-        currentDeviceDetails.platform,
-      );
+    async ({ currentDeviceDetails, driver, performanceTracker }) => {
+      const platform = currentDeviceDetails.platform;
+      const timers = createSeedlessOnboardingTimers('Apple', platform, {
+        sheet: { ios: 1500, android: 2000 },
+        postOauth: { ios: 15000, android: 6000 },
+        choosePassword: { ios: 5000, android: 4000 },
+        createWallet: { ios: 5000, android: 4000 },
+        walletChrome: { ios: 30000, android: 5000 },
+        rehydrate: { ios: 5000, android: 4000 },
+        existingWallet: { ios: 5000, android: 4000 },
+      });
 
       const password = getPasswordForScenario('onboarding') ?? '';
 
       await OnboardingView.tapCreateNewWalletButton();
-      await timer1.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          OnboardingSheet.appleLoginButton,
-          {
-            description: 'Apple login button should be visible',
-          },
-        );
+      await timers.sheetNav.measure(async () => {
+        await waitForOnboardingSheetContent('apple');
+      });
+      await addAppScreenTtcTimer({
+        performanceTracker,
+        screenId: 'onboarding_sheet',
+        platform,
+        threshold: SEEDLESS_APP_TTC_THRESHOLDS.onboarding_sheet,
       });
 
       await OnboardingSheet.tapAppleLoginButton();
       await SocialLoginView.dismissUpdateModalIfPresent();
 
-      let isNewUser = true;
+      const postOauthContent = await measurePostOauthToScreenContent(
+        timers.postOauthFlow,
+        'Apple',
+        platform,
+      );
+      await addAppScreenTtcTimer({
+        performanceTracker,
+        screenId: postOauthContent,
+        platform,
+        threshold: SEEDLESS_APP_TTC_THRESHOLDS[postOauthContent],
+      });
+      const isNewUser = postOauthContent !== 'account_already_exists';
 
-      if (currentDeviceDetails.platform === 'ios') {
-        await timer2.measure(async () => {
-          const result = await waitForFirstSuccessful([
-            SocialLoginView.isIosNewUserScreenVisible().then(() => 'new_user'),
-            SocialLoginView.isAccountFoundScreenVisible().then(
-              () => 'existing_user',
-            ),
-          ]);
-          isNewUser = result === 'new_user';
+      if (isNewUser && platform === 'ios') {
+        await SocialLoginView.tapIosNewUserSetPinButton();
+        await timers.choosePasswordNav.measure(async () => {
+          await waitForChoosePasswordContent();
         });
-
-        if (isNewUser) {
-          await SocialLoginView.tapIosNewUserSetPinButton();
-          await timer3.measure(async () => {
-            await CreatePasswordView.isVisible();
-          });
-        }
-      } else {
-        await timer2.measure(async () => {
-          const result = await waitForFirstSuccessful([
-            CreatePasswordView.isVisible().then(() => 'new_user'),
-            SocialLoginView.isAccountFoundScreenVisible().then(
-              () => 'existing_user',
-            ),
-          ]);
-          isNewUser = result === 'new_user';
+        await addAppScreenTtcTimer({
+          performanceTracker,
+          screenId: 'choose_pw',
+          platform,
+          threshold: SEEDLESS_APP_TTC_THRESHOLDS.choose_pw,
         });
       }
 
@@ -118,7 +98,6 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
         await AppiumGestures.hideKeyboard();
-
         try {
           await CreatePasswordView.ensureMarketingOptInChecked();
         } catch (error) {
@@ -126,35 +105,52 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         }
         await AppiumGestures.hideKeyboard();
         await CreatePasswordView.tapCreatePasswordButton();
-        await measureCreatePasswordToOnboardingSuccess(timer4);
+        await measureCreatePasswordToOnboardingSuccess(timers.createWalletFlow);
+        await addAppScreenTtcTimer({
+          performanceTracker,
+          screenId: 'onboarding_success',
+          platform,
+          threshold: SEEDLESS_APP_TTC_THRESHOLDS.onboarding_success,
+        });
 
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
         await closePredictModal();
-        await timer5.measure(async () => {
+        await timers.walletChromeFlow.measure(async () => {
           await AppiumAssertions.expectElementToBeVisible(
-            WalletView.accountIcon, // Workaround until iOS nested component gets fixed
+            WalletView.accountIcon,
             {
               description: 'Wallet main screen should be visible',
             },
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5];
-        if (currentDeviceDetails.platform === 'ios') {
-          timers.splice(2, 0, timer3);
+        const registered = [
+          timers.sheetNav,
+          timers.postOauthFlow,
+          timers.createWalletFlow,
+          timers.walletChromeFlow,
+        ];
+        if (platform === 'ios') {
+          registered.splice(2, 0, timers.choosePasswordNav);
         }
-        performanceTracker.addTimers(...timers);
+        performanceTracker.addTimers(...registered);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();
-        await timer3.measure(async () => {
-          await LoginView.waitForScreenToDisplay();
+        await timers.rehydrateNav.measure(async () => {
+          await waitForSocialRehydrateContent();
+        });
+        await addAppScreenTtcTimer({
+          performanceTracker,
+          screenId: 'social_rehydrate',
+          platform,
+          threshold: SEEDLESS_APP_TTC_THRESHOLDS.social_rehydrate,
         });
 
         await LoginView.enterPassword(password);
         await LoginView.tapLoginButton();
 
-        await timer4.measure(async () => {
+        await timers.existingWalletFlow.measure(async () => {
           await AppiumAssertions.expectElementToBeVisible(
             WalletView.container,
             {
@@ -163,7 +159,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        performanceTracker.addTimers(timer1, timer2, timer3, timer4);
+        performanceTracker.addTimers(
+          timers.sheetNav,
+          timers.postOauthFlow,
+          timers.rehydrateNav,
+          timers.existingWalletFlow,
+        );
       }
     },
   );

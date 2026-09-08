@@ -1,5 +1,4 @@
 import { test as perfTest } from '../../framework/fixtures/playwright';
-import TimerHelper from '../../framework/TimerHelper';
 import { AppiumAssertions, AppiumGestures } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
@@ -18,33 +17,22 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
-import { measureCreatePasswordToOnboardingSuccess } from './helpers/seedlessOnboardingTimers';
-
-const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
-  await new Promise<T>((resolve, reject) => {
-    let rejectedCount = 0;
-
-    promises.forEach((promise) => {
-      promise.then(resolve).catch(() => {
-        rejectedCount += 1;
-        if (rejectedCount === promises.length) {
-          reject(new Error('All screen detection promises failed'));
-        }
-      });
-    });
-  });
+import { addAppScreenTtcTimer } from '../utils/readScreenTtc';
+import {
+  createSeedlessOnboardingTimers,
+  measureCreatePasswordToOnboardingSuccess,
+  measurePostOauthToScreenContent,
+  SEEDLESS_APP_TTC_THRESHOLDS,
+  waitForChoosePasswordContent,
+  waitForOnboardingSheetContent,
+  waitForSocialRehydrateContent,
+} from './helpers/seedlessOnboardingTimers';
 
 const assertTelegramLoginReady = async (): Promise<void> => {
   try {
-    await AppiumAssertions.expectElementToBeVisible(
-      OnboardingSheet.telegramLoginButton,
-      {
-        description: 'Telegram login button should be visible',
-      },
-    );
+    await waitForOnboardingSheetContent('telegram');
   } catch (error) {
     const details = error instanceof Error ? error.message : String(error);
-    // Missing button is a build/flag setup failure, not a timer regression.
     throw new Error(
       [
         'TO-916 setup failure: Telegram login button was not visible on the onboarding sheet.',
@@ -58,44 +46,26 @@ const assertTelegramLoginReady = async (): Promise<void> => {
   }
 };
 
-/* TO-916: Seedless Onboarding — Telegram Login */
+/*
+ * TO-916 Seedless Telegram — in-app TTC (Sentry-equivalent) + nav/flow timers.
+ */
 perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
   perfTest.setTimeout(300000);
 
   perfTest(
     'Seedless Onboarding: Telegram Login New User',
     { tag: '@metamask-onboarding-team' },
-    // Request `driver` so the Playwright/Appium fixture boots before page-object
-    // actions run.
     async ({ currentDeviceDetails, driver, performanceTracker }) => {
-      // Conservative initial guardrails — calibrate against BrowserStack
-      // baselines once this coverage has 10+ clean RC/release-profile runs
-      // (see TO-916 acceptance criteria for p50/p95 documentation).
-      const timer1 = new TimerHelper(
-        'Telegram: Tap "Create new wallet" → OnboardingSheet visible',
-        { ios: 1500, android: 2000 },
-        currentDeviceDetails.platform,
-      );
-      const timer2 = new TimerHelper(
-        'Telegram: Tap Telegram login → post-OAuth screen visible',
-        { ios: 15000, android: 15000 },
-        currentDeviceDetails.platform,
-      );
-      const timer3 = new TimerHelper(
-        'Telegram: Post-OAuth action → Password fields visible',
-        { ios: 4000, android: 4000 },
-        currentDeviceDetails.platform,
-      );
-      const timer4 = new TimerHelper(
-        'Telegram: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 4000 },
-        currentDeviceDetails.platform,
-      );
-      const timer5 = new TimerHelper(
-        'Telegram: Tap "Done" → wallet main screen visible',
-        { ios: 30000, android: 5000 },
-        currentDeviceDetails.platform,
-      );
+      const platform = currentDeviceDetails.platform;
+      const timers = createSeedlessOnboardingTimers('Telegram', platform, {
+        sheet: { ios: 1500, android: 2000 },
+        postOauth: { ios: 15000, android: 15000 },
+        choosePassword: { ios: 4000, android: 4000 },
+        createWallet: { ios: 5000, android: 4000 },
+        walletChrome: { ios: 30000, android: 5000 },
+        rehydrate: { ios: 4000, android: 4000 },
+        existingWallet: { ios: 5000, android: 4000 },
+      });
 
       const password = getPasswordForScenario('onboarding') ?? '';
       if (!password) {
@@ -105,46 +75,46 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       }
 
       await OnboardingView.tapCreateNewWalletButton();
-      await timer1.measure(async () => {
+      await timers.sheetNav.measure(async () => {
         await assertTelegramLoginReady();
+      });
+      await addAppScreenTtcTimer({
+        performanceTracker,
+        screenId: 'onboarding_sheet',
+        platform,
+        threshold: SEEDLESS_APP_TTC_THRESHOLDS.onboarding_sheet,
       });
 
       await OnboardingSheet.tapTelegramLoginButton();
       await SocialLoginView.dismissUpdateModalIfPresent();
 
-      let isNewUser = true;
+      const postOauthContent = await measurePostOauthToScreenContent(
+        timers.postOauthFlow,
+        'Telegram',
+        platform,
+      );
+      await addAppScreenTtcTimer({
+        performanceTracker,
+        screenId: postOauthContent,
+        platform,
+        threshold: SEEDLESS_APP_TTC_THRESHOLDS[postOauthContent],
+      });
+      const isNewUser = postOauthContent !== 'account_already_exists';
 
-      if (currentDeviceDetails.platform === 'ios') {
-        await timer2.measure(async () => {
-          const result = await waitForFirstSuccessful([
-            SocialLoginView.isIosNewUserScreenVisible().then(() => 'new_user'),
-            SocialLoginView.isAccountFoundScreenVisible().then(
-              () => 'existing_user',
-            ),
-          ]);
-          isNewUser = result === 'new_user';
+      if (isNewUser && platform === 'ios') {
+        await SocialLoginView.tapIosNewUserSetPinButton();
+        await timers.choosePasswordNav.measure(async () => {
+          await waitForChoosePasswordContent();
         });
-
-        if (isNewUser) {
-          await SocialLoginView.tapIosNewUserSetPinButton();
-          await timer3.measure(async () => {
-            await CreatePasswordView.isVisible();
-          });
-        }
-      } else {
-        await timer2.measure(async () => {
-          const result = await waitForFirstSuccessful([
-            CreatePasswordView.isVisible().then(() => 'new_user'),
-            SocialLoginView.isAccountFoundScreenVisible().then(
-              () => 'existing_user',
-            ),
-          ]);
-          isNewUser = result === 'new_user';
+        await addAppScreenTtcTimer({
+          performanceTracker,
+          screenId: 'choose_pw',
+          platform,
+          threshold: SEEDLESS_APP_TTC_THRESHOLDS.choose_pw,
         });
       }
 
       if (isNewUser) {
-        // Password entry is excluded from measured steps (manual auth/typing).
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
         await AppiumGestures.hideKeyboard();
@@ -154,42 +124,52 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           console.error('Error ensuring marketing opt-in checked:', error);
         }
         await CreatePasswordView.tapCreatePasswordButton();
-        //await measureCreatePasswordToOnboardingSuccess(timer4);
-        await timer4.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(
-            OnboardingSuccessView.doneButton,
-          );
+        await measureCreatePasswordToOnboardingSuccess(timers.createWalletFlow);
+        await addAppScreenTtcTimer({
+          performanceTracker,
+          screenId: 'onboarding_success',
+          platform,
+          threshold: SEEDLESS_APP_TTC_THRESHOLDS.onboarding_success,
         });
+
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
         await closePredictModal();
-        await timer5.measure(async () => {
+        await timers.walletChromeFlow.measure(async () => {
           await AppiumAssertions.expectElementToBeVisible(
-            WalletView.accountIcon, // Workaround until iOS nested component gets fixed
+            WalletView.accountIcon,
             {
               description: 'Wallet main screen should be visible',
             },
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5];
-        if (currentDeviceDetails.platform === 'ios') {
-          timers.splice(2, 0, timer3);
+        const registered = [
+          timers.sheetNav,
+          timers.postOauthFlow,
+          timers.createWalletFlow,
+          timers.walletChromeFlow,
+        ];
+        if (platform === 'ios') {
+          registered.splice(2, 0, timers.choosePasswordNav);
         }
-        performanceTracker.addTimers(...timers);
+        performanceTracker.addTimers(...registered);
       } else {
-        // Existing-user rehydration when the QA mock / account returns Account Found.
-        // E2E_MOCK_OAUTH QA mock currently forces new-user results; keep this path
-        // so existing-user coverage activates when test account/setup permits.
         await SocialLoginView.tapAccountFoundLoginButton();
-        await timer3.measure(async () => {
-          await LoginView.waitForScreenToDisplay();
+        await timers.rehydrateNav.measure(async () => {
+          await waitForSocialRehydrateContent();
+        });
+        await addAppScreenTtcTimer({
+          performanceTracker,
+          screenId: 'social_rehydrate',
+          platform,
+          threshold: SEEDLESS_APP_TTC_THRESHOLDS.social_rehydrate,
         });
 
         await LoginView.enterPassword(password);
         await LoginView.tapLoginButton();
 
-        await timer4.measure(async () => {
+        await timers.existingWalletFlow.measure(async () => {
           await AppiumAssertions.expectElementToBeVisible(
             WalletView.container,
             {
@@ -198,7 +178,12 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        performanceTracker.addTimers(timer1, timer2, timer3, timer4);
+        performanceTracker.addTimers(
+          timers.sheetNav,
+          timers.postOauthFlow,
+          timers.rehydrateNav,
+          timers.existingWalletFlow,
+        );
       }
     },
   );

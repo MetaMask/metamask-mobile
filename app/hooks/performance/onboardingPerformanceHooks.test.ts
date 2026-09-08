@@ -41,6 +41,10 @@ jest.mock('./useRenderStormMonitor', () => ({
   useRenderStormMonitor: jest.fn(),
 }));
 
+jest.mock('./screenTtcRegistry', () => ({
+  recordScreenTtc: jest.fn(),
+}));
+
 const {
   trace: mockTrace,
   endTrace: mockEndTrace,

@@ -5,27 +5,38 @@ import {
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
-import AppiumAssertions from '../../../framework/AppiumAssertions';
-import OnboardingView from '../../../page-objects/Onboarding/OnboardingView';
+import { addAppScreenTtcTimer } from '../../utils/readScreenTtc';
+import {
+  SEEDLESS_APP_TTC_THRESHOLDS,
+  waitForOnboardingLandingContent,
+} from '../helpers/seedlessOnboardingTimers';
 
+/*
+ * Cold start launch (process→CTA) plus in-app TTC [onboarding_landing]
+ * (mount→contentReady, Sentry-equivalent).
+ */
 test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Measure Cold Start To Onboarding Screen',
     { tag: '@metamask-mobile-platform' },
-    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      const timer1 = new TimerHelper(
-        'Time since the the app is installed, until onboarding screen appears',
+    async ({ currentDeviceDetails, driver, performanceTracker }) => {
+      const platform = currentDeviceDetails.platform;
+      const launchToCta = new TimerHelper(
+        'nav: cold start → Create new wallet CTA visible',
         { ios: 3000, android: 4000 },
-        currentDeviceDetails.platform,
+        platform,
       );
-      await timer1.measure(
-        async () =>
-          await AppiumAssertions.expectElementToBeVisible(
-            OnboardingView.newWalletButton,
-          ),
-      );
+      await launchToCta.measure(async () => {
+        await waitForOnboardingLandingContent();
+      });
+      performanceTracker.addTimer(launchToCta);
 
-      performanceTracker.addTimer(timer1);
+      await addAppScreenTtcTimer({
+        performanceTracker,
+        screenId: 'onboarding_landing',
+        platform,
+        threshold: SEEDLESS_APP_TTC_THRESHOLDS.onboarding_landing,
+      });
     },
   );
 });
