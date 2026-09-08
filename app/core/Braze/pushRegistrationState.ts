@@ -1,6 +1,11 @@
-import { BRAZE_PUSH_UNREGISTRATION_PENDING } from '../../constants/storage';
+import {
+  BRAZE_PUSH_DESIRED_STATE,
+  BRAZE_PUSH_UNREGISTRATION_PENDING,
+} from '../../constants/storage';
 import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
+
+export type BrazePushDesiredState = 'registered' | 'unregistered';
 
 export interface BrazePushOperationContext {
   isCurrent: () => boolean;
@@ -22,6 +27,19 @@ interface ActiveOperation {
 let latestOperationKey: string | undefined;
 let activeOperation: ActiveOperation | undefined;
 let pendingOperation: PendingOperation<unknown> | undefined;
+let desiredStateOverride: BrazePushDesiredState | undefined;
+
+const isBrazePushDesiredState = (
+  value: string | null,
+): value is BrazePushDesiredState =>
+  value === 'registered' || value === 'unregistered';
+
+async function persistBrazePushDesiredState(
+  desiredState: BrazePushDesiredState,
+): Promise<void> {
+  desiredStateOverride = desiredState;
+  await StorageWrapper.setItem(BRAZE_PUSH_DESIRED_STATE, desiredState);
+}
 
 function runPendingOperation(): void {
   if (activeOperation || !pendingOperation) {
@@ -109,9 +127,36 @@ export function hasPendingBrazePushUnregistrationSync(): boolean {
   return isPending;
 }
 
+export function getBrazePushDesiredState(): BrazePushDesiredState | undefined {
+  if (desiredStateOverride) {
+    return desiredStateOverride;
+  }
+
+  const storedState = StorageWrapper.getItemSync(BRAZE_PUSH_DESIRED_STATE);
+  return isBrazePushDesiredState(storedState) ? storedState : undefined;
+}
+
+/**
+ * Record a newer explicit registration intent before enabling NaaP push.
+ * Persisting the desired state before clearing stale unregistration work lets
+ * startup reconciliation recover if the app closes between these writes.
+ */
+export async function markBrazePushRegistrationDesired(): Promise<void> {
+  await persistBrazePushDesiredState('registered');
+  await clearPendingBrazePushUnregistration();
+}
+
+export async function ensureBrazePushUnregistrationDesired(): Promise<void> {
+  if (getBrazePushDesiredState() === undefined) {
+    await persistBrazePushDesiredState('unregistered');
+  }
+}
+
 export async function markBrazePushUnregistrationPending(): Promise<void> {
   Logger.log('[Braze] Marking push unregistration pending');
+  desiredStateOverride = 'unregistered';
   await StorageWrapper.setItem(BRAZE_PUSH_UNREGISTRATION_PENDING, 'true');
+  await persistBrazePushDesiredState('unregistered');
 }
 
 export async function clearPendingBrazePushUnregistration(): Promise<void> {
@@ -124,4 +169,5 @@ export function resetBrazePushOperationCoordinatorForTests(): void {
   latestOperationKey = undefined;
   activeOperation = undefined;
   pendingOperation = undefined;
+  desiredStateOverride = undefined;
 }

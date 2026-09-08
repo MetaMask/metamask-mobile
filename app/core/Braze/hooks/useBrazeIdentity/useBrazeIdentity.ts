@@ -54,23 +54,13 @@ export function useBrazeIdentity(): void {
 
     const syncIdentity = async () => {
       startupUnregistrationRetryRef.current ??=
-        areNotificationsEnabled && isPushEnabled
-          ? Promise.resolve(true)
-          : retryPendingBrazePushUnregistration();
-      const unregistrationComplete =
-        await startupUnregistrationRetryRef.current;
+        hadPendingUnregistrationAtLaunchRef.current
+          ? retryPendingBrazePushUnregistration()
+          : Promise.resolve(true);
+      await startupUnregistrationRetryRef.current;
       if (cancelled) {
         Logger.log(
           '[Braze] Identity effect cancelled before unregistration retry resolved',
-        );
-        return;
-      }
-      if (
-        !unregistrationComplete &&
-        !(areNotificationsEnabled && isPushEnabled)
-      ) {
-        Logger.log(
-          '[Braze] Launch retry incomplete; deferring identity sync until unregistration succeeds',
         );
         return;
       }
@@ -103,13 +93,7 @@ export function useBrazeIdentity(): void {
     return () => {
       cancelled = true;
     };
-  }, [
-    isSignedIn,
-    canonicalProfileId,
-    identifiedProfileId,
-    areNotificationsEnabled,
-    isPushEnabled,
-  ]);
+  }, [isSignedIn, canonicalProfileId, identifiedProfileId]);
 
   useEffect(() => {
     if (
@@ -117,7 +101,8 @@ export function useBrazeIdentity(): void {
       identifiedProfileId !== canonicalProfileId ||
       !areNotificationsEnabled ||
       !isPushEnabled ||
-      !fcmToken
+      !fcmToken ||
+      hasPendingBrazePushUnregistrationSync()
     ) {
       Logger.log(
         '[Braze] Push registration skipped',

@@ -32,6 +32,7 @@ class AppDelegate: ExpoAppDelegate {
 
   @objc static var braze: Braze?
   @objc static var apnsDeviceToken: Data?
+  @objc static var brazePushRegistrationRequested = false
 
   // Detox's `+[ReactNativeSupport reloadApp]` does
   // `[appDelegate valueForKey:@"rootViewFactory"]` to grab RN's RootViewFactory
@@ -174,6 +175,9 @@ class AppDelegate: ExpoAppDelegate {
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
     AppDelegate.apnsDeviceToken = deviceToken
+    if AppDelegate.brazePushRegistrationRequested {
+      AppDelegate.braze?.notifications.register(deviceToken: deviceToken)
+    }
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 

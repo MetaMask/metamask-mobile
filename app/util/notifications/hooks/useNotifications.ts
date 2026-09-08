@@ -173,21 +173,12 @@ export function useEnableNotifications(props?: UseEnableNotificationsProps) {
  * @returns An object containing the `disableNotifications` function, loading state, and error state.
  */
 export function useDisableNotifications() {
-  const { togglePushNotification, loading: pushLoading } =
-    usePushNotificationsToggle();
-
   const data = useSelector(selectIsMetamaskNotificationsEnabled);
   const loading = useSelector(selectIsUpdatingMetamaskNotifications);
   const [error, setError] = useState<string | undefined>(undefined);
   const disableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(undefined);
-    const pushDisabled = await togglePushNotification(false);
-    if (!pushDisabled) {
-      const errorMessage = 'Failed to disable push notifications';
-      setError(errorMessage);
-      return false;
-    }
 
     try {
       await disableNotificationsHelper();
@@ -199,11 +190,11 @@ export function useDisableNotifications() {
 
     await setUserHasTurnedOffNotificationsOnce();
     return true;
-  }, [togglePushNotification]);
+  }, []);
 
   return {
     disableNotifications,
-    loading: loading && pushLoading,
+    loading,
     // This will be fixed in a separate PR to converge the types correctly
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error: error as any,

@@ -1,11 +1,17 @@
 import StorageWrapper from '../../store/storage-wrapper';
 import {
   clearPendingBrazePushUnregistration,
+  getBrazePushDesiredState,
   hasPendingBrazePushUnregistrationSync,
+  markBrazePushRegistrationDesired,
   markBrazePushUnregistrationPending,
   resetBrazePushOperationCoordinatorForTests,
   runLatestBrazePushOperation,
 } from './pushRegistrationState';
+import {
+  BRAZE_PUSH_DESIRED_STATE,
+  BRAZE_PUSH_UNREGISTRATION_PENDING,
+} from '../../constants/storage';
 
 jest.mock('../../store/storage-wrapper', () => ({
   __esModule: true,
@@ -30,12 +36,37 @@ describe('Braze push registration state', () => {
     await clearPendingBrazePushUnregistration();
 
     expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-      expect.any(String),
+      BRAZE_PUSH_UNREGISTRATION_PENDING,
       'true',
     );
-    expect(mockStorageWrapper.removeItem).toHaveBeenCalledWith(
-      expect.any(String),
+    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
+      BRAZE_PUSH_DESIRED_STATE,
+      'unregistered',
     );
+    expect(mockStorageWrapper.removeItem).toHaveBeenCalledWith(
+      BRAZE_PUSH_UNREGISTRATION_PENDING,
+    );
+  });
+
+  it('persists registration as the latest explicit desired state', async () => {
+    await markBrazePushRegistrationDesired();
+
+    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
+      BRAZE_PUSH_DESIRED_STATE,
+      'registered',
+    );
+    expect(mockStorageWrapper.removeItem).toHaveBeenCalledWith(
+      BRAZE_PUSH_UNREGISTRATION_PENDING,
+    );
+    expect(getBrazePushDesiredState()).toBe('registered');
+  });
+
+  it('reads the persisted desired state after a process restart', () => {
+    mockStorageWrapper.getItemSync.mockImplementation((key) =>
+      key === BRAZE_PUSH_DESIRED_STATE ? 'unregistered' : null,
+    );
+
+    expect(getBrazePushDesiredState()).toBe('unregistered');
   });
 
   it('reads pending state synchronously', () => {

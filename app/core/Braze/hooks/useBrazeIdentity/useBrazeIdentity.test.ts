@@ -176,9 +176,8 @@ describe('useBrazeIdentity', () => {
 
     renderHook(() => useBrazeIdentity());
 
-    await waitFor(() =>
-      expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalledTimes(1),
-    );
+    await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(1));
+    expect(mockRetryPendingBrazePushUnregistration).not.toHaveBeenCalled();
     expect(mockRegisterBrazePush).not.toHaveBeenCalled();
   });
 
@@ -228,9 +227,13 @@ describe('useBrazeIdentity', () => {
     expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
   });
 
-  it('defers identity changes while push unregistration remains pending', async () => {
+  it('identifies the user without registering while launch unregistration remains pending', async () => {
     mockIsSignedIn = true;
     mockCanonicalProfileId = 'canonical-123';
+    mockAreNotificationsEnabled = true;
+    mockIsPushEnabled = true;
+    mockFcmToken = 'fcm-token';
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
     mockRetryPendingBrazePushUnregistration.mockResolvedValue(false);
 
     renderHook(() => useBrazeIdentity());
@@ -238,13 +241,14 @@ describe('useBrazeIdentity', () => {
     await waitFor(() =>
       expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalled(),
     );
-    expect(mockSetBrazeUser).not.toHaveBeenCalled();
+    expect(mockSetBrazeUser).toHaveBeenCalledWith('canonical-123');
     expect(mockRegisterBrazePush).not.toHaveBeenCalled();
   });
 
   it('checks pending unregistration only once per app session', async () => {
     mockIsSignedIn = true;
     mockCanonicalProfileId = 'canonical-123';
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
     mockRetryPendingBrazePushUnregistration.mockResolvedValue(false);
     const { rerender } = renderHook(() => useBrazeIdentity());
 
@@ -256,13 +260,14 @@ describe('useBrazeIdentity', () => {
     rerender({});
 
     expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalledTimes(1);
-    expect(mockSetBrazeUser).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockSetBrazeUser).toHaveBeenCalledTimes(2));
   });
 
-  it('supersedes a failed launch retry when push is re-enabled', async () => {
+  it('registers after an explicit enable clears a failed launch intent', async () => {
     mockIsSignedIn = true;
     mockCanonicalProfileId = 'canonical-123';
     mockFcmToken = 'fcm-token';
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
     mockRetryPendingBrazePushUnregistration.mockResolvedValue(false);
     const { rerender } = renderHook(() => useBrazeIdentity());
 
@@ -270,6 +275,7 @@ describe('useBrazeIdentity', () => {
       expect(mockRetryPendingBrazePushUnregistration).toHaveBeenCalledTimes(1),
     );
 
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
     mockIsPushEnabled = true;
     rerender({});
 
@@ -281,6 +287,10 @@ describe('useBrazeIdentity', () => {
 
   it('clears deferred Braze data after a launch retry succeeds', async () => {
     mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+    mockRetryPendingBrazePushUnregistration.mockImplementation(async () => {
+      mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
+      return true;
+    });
 
     renderHook(() => useBrazeIdentity());
 
@@ -288,5 +298,26 @@ describe('useBrazeIdentity', () => {
     expect(
       mockRetryPendingBrazePushUnregistration.mock.invocationCallOrder[0],
     ).toBeLessThan(mockClearBrazeUser.mock.invocationCallOrder[0]);
+  });
+
+  it('retries a persisted unregistration before registering enabled push', async () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockIsPushEnabled = true;
+    mockFcmToken = 'fcm-token';
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+    mockRetryPendingBrazePushUnregistration.mockImplementation(async () => {
+      mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
+      return true;
+    });
+
+    renderHook(() => useBrazeIdentity());
+
+    await waitFor(() =>
+      expect(mockRegisterBrazePush).toHaveBeenCalledWith('fcm-token'),
+    );
+    expect(
+      mockRetryPendingBrazePushUnregistration.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockRegisterBrazePush.mock.invocationCallOrder[0]);
   });
 });

@@ -26,9 +26,12 @@ RCT_REMAP_METHOD(
     return;
   }
 
+  AppDelegate.brazePushRegistrationRequested = YES;
   NSData *deviceToken = AppDelegate.apnsDeviceToken;
   if (deviceToken == nil) {
-    reject(@"NO_APNS_TOKEN", @"APNs device token is not available", nil);
+    // APNs token delivery is asynchronous. AppDelegate completes registration
+    // when didRegisterForRemoteNotifications receives the token.
+    resolve(nil);
     return;
   }
 
@@ -41,6 +44,7 @@ RCT_REMAP_METHOD(
   unregisterPushWithResolver:(RCTPromiseResolveBlock)resolve
   rejecter:(RCTPromiseRejectBlock)reject
 ) {
+  AppDelegate.brazePushRegistrationRequested = NO;
   Braze *braze = AppDelegate.braze;
   if (braze == nil) {
     reject(@"SDK_UNAVAILABLE", @"Braze is not initialized", nil);

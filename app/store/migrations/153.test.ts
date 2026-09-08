@@ -1,5 +1,6 @@
 import { captureException } from '@sentry/react-native';
 import {
+  BRAZE_PUSH_DESIRED_STATE,
   BRAZE_PUSH_UNREGISTRATION_PENDING,
   LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
 } from '../../constants/storage';
@@ -82,6 +83,10 @@ describe(`Migration ${migrationVersion}: mark legacy notification backfills`, ()
       LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
       'true',
     );
+    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
+      BRAZE_PUSH_DESIRED_STATE,
+      'registered',
+    );
     expect(mockStorageWrapper.setItem).not.toHaveBeenCalledWith(
       BRAZE_PUSH_UNREGISTRATION_PENDING,
       expect.anything(),
@@ -100,6 +105,10 @@ describe(`Migration ${migrationVersion}: mark legacy notification backfills`, ()
       BRAZE_PUSH_UNREGISTRATION_PENDING,
       'true',
     );
+    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
+      BRAZE_PUSH_DESIRED_STATE,
+      'unregistered',
+    );
   });
 
   it('marks devices with master notifications disabled for Braze unregistration', async () => {
@@ -110,10 +119,13 @@ describe(`Migration ${migrationVersion}: mark legacy notification backfills`, ()
 
     await migrate(state);
 
-    expect(mockStorageWrapper.setItem).toHaveBeenCalledTimes(1);
     expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
       BRAZE_PUSH_UNREGISTRATION_PENDING,
       'true',
+    );
+    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
+      BRAZE_PUSH_DESIRED_STATE,
+      'unregistered',
     );
   });
 
@@ -163,7 +175,7 @@ describe(`Migration ${migrationVersion}: mark legacy notification backfills`, ()
     });
 
     await expect(migrate(state)).rejects.toThrow(
-      'Failed to persist pending marker(s): legacy notification AUS backfill',
+      'Failed to persist backfill value(s): legacy notification AUS backfill',
     );
 
     expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
@@ -174,6 +186,27 @@ describe(`Migration ${migrationVersion}: mark legacy notification backfills`, ()
       expect.objectContaining({
         message: expect.stringContaining('AUS marker write failed'),
       }),
+    );
+  });
+
+  it('keeps the unregister marker when desired-state persistence fails', async () => {
+    const state = createState({
+      notificationsEnabled: false,
+      pushEnabled: false,
+    });
+    mockStorageWrapper.setItem.mockImplementation(async (key) => {
+      if (key === BRAZE_PUSH_DESIRED_STATE) {
+        throw new Error('Desired state write failed');
+      }
+    });
+
+    await expect(migrate(state)).rejects.toThrow(
+      'Failed to persist backfill value(s): Braze push desired state',
+    );
+
+    expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
+      BRAZE_PUSH_UNREGISTRATION_PENDING,
+      'true',
     );
   });
 });

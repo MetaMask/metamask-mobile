@@ -2,7 +2,8 @@ import { NativeModules, Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import { hasTestOverrides } from '../../util/test/utils';
 import {
-  clearPendingBrazePushUnregistration,
+  getBrazePushDesiredState,
+  hasPendingBrazePushUnregistrationSync,
   runLatestBrazePushOperation,
 } from './pushRegistrationState';
 
@@ -35,6 +36,16 @@ export async function registerBrazePush(fcmToken: string): Promise<void> {
     return;
   }
 
+  if (
+    hasPendingBrazePushUnregistrationSync() ||
+    getBrazePushDesiredState() === 'unregistered'
+  ) {
+    Logger.log(
+      '[Braze] Push registration skipped because unregistration is desired',
+    );
+    return;
+  }
+
   const brazePushModule = nativeModules.BrazePushModule;
   if (!brazePushModule) {
     const error = new Error('BrazePushModule is not available');
@@ -47,10 +58,15 @@ export async function registerBrazePush(fcmToken: string): Promise<void> {
       key: `register:${Platform.OS}:${Platform.OS === 'android' ? fcmToken : ''}`,
       supersededResult: undefined,
       operation: async () => {
-        Logger.log(
-          '[Braze] Register operation clearing any pending unregistration marker',
-        );
-        await clearPendingBrazePushUnregistration();
+        if (
+          hasPendingBrazePushUnregistrationSync() ||
+          getBrazePushDesiredState() === 'unregistered'
+        ) {
+          Logger.log(
+            '[Braze] Superseded push registration skipped before native call',
+          );
+          return;
+        }
         if (Platform.OS === 'ios') {
           await brazePushModule.registerPush();
         } else if (Platform.OS === 'android') {

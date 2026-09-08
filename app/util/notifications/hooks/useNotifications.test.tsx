@@ -274,8 +274,8 @@ describe('useNotifications - useDisableNotifications()', () => {
     const { mocks, result } = await arrangeAct();
 
     expect(result).toBe(true);
-    expect(mocks.mockUsePushNotificationsToggle).toHaveBeenCalled();
-    expect(mocks.mockTogglePushNotification).toHaveBeenCalled();
+    expect(mocks.mockUsePushNotificationsToggle).not.toHaveBeenCalled();
+    expect(mocks.mockTogglePushNotification).not.toHaveBeenCalled();
     expect(mocks.mockSelectLoading).toHaveBeenCalled();
     expect(mocks.mockSelectData).toHaveBeenCalled();
   });
@@ -289,21 +289,11 @@ describe('useNotifications - useDisableNotifications()', () => {
     expect(hook.result.current.error).toBeDefined();
   });
 
-  it('does not disable global notifications when push disable fails', async () => {
-    const mocks = arrangeMocks();
-    mocks.mockTogglePushNotification.mockResolvedValue(false);
-    const hook = renderHookWithProvider(() => useDisableNotifications());
+  it('delegates push and global disablement to one helper call', async () => {
+    const { mocks } = await arrangeAct();
 
-    let result: boolean | undefined;
-    await act(async () => {
-      result = await hook.result.current.disableNotifications();
-    });
-
-    expect(result).toBe(false);
-    expect(mocks.mockDisableNotifications).not.toHaveBeenCalled();
-    expect(hook.result.current.error).toBe(
-      'Failed to disable push notifications',
-    );
+    expect(mocks.mockDisableNotifications).toHaveBeenCalledTimes(1);
+    expect(mocks.mockTogglePushNotification).not.toHaveBeenCalled();
   });
 });
 

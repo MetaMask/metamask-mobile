@@ -47,6 +47,7 @@ export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
 
 export const PUSH_NOTIFICATIONS_PROMPT_COUNT = `${prefix}pushNotificationsPromptCount`;
 export const PUSH_NOTIFICATIONS_PROMPT_TIME = `${prefix}pushNotificationsPromptTime`;
+export const BRAZE_PUSH_DESIRED_STATE = `${prefix}brazePushDesiredState`;
 export const BRAZE_PUSH_UNREGISTRATION_PENDING = `${prefix}brazePushUnregistrationPending`;
 export const LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING = `${prefix}legacyNotificationAusBackfillPending`;
 

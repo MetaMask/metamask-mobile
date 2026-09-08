@@ -1,6 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import {
+  BRAZE_PUSH_DESIRED_STATE,
   BRAZE_PUSH_UNREGISTRATION_PENDING,
   LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
 } from '../../constants/storage';
@@ -10,10 +11,14 @@ import Logger from '../../util/Logger';
 
 export const migrationVersion = 153;
 
-async function setBackfillMarker(key: string, name: string): Promise<boolean> {
+async function setBackfillValue(
+  key: string,
+  value: string,
+  name: string,
+): Promise<boolean> {
   try {
-    await StorageWrapper.setItem(key, 'true');
-    Logger.log(`[Braze] Migration 153 marked ${name} as pending`);
+    await StorageWrapper.setItem(key, value);
+    Logger.log(`[Braze] Migration 153 persisted ${name}`);
     return true;
   } catch (error) {
     captureException(
@@ -60,33 +65,47 @@ const migration = async (state: unknown): Promise<unknown> => {
   const pushEnabled = pushServicesState?.isPushEnabled === true;
   const hasMarketingConsent =
     securityState?.dataCollectionForMarketing === true;
-  const failedMarkers: string[] = [];
+  const failedValues: string[] = [];
 
   if (notificationsEnabled || hasMarketingConsent) {
     if (
-      !(await setBackfillMarker(
+      !(await setBackfillValue(
         LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
+        'true',
         'legacy notification AUS backfill',
       ))
     ) {
-      failedMarkers.push('legacy notification AUS backfill');
+      failedValues.push('legacy notification AUS backfill');
     }
   }
 
   if (!notificationsEnabled || !pushEnabled) {
     if (
-      !(await setBackfillMarker(
+      !(await setBackfillValue(
         BRAZE_PUSH_UNREGISTRATION_PENDING,
+        'true',
         'Braze push unregistration',
       ))
     ) {
-      failedMarkers.push('Braze push unregistration');
+      failedValues.push('Braze push unregistration');
     }
   }
 
-  if (failedMarkers.length > 0) {
+  const desiredBrazePushState =
+    notificationsEnabled && pushEnabled ? 'registered' : 'unregistered';
+  if (
+    !(await setBackfillValue(
+      BRAZE_PUSH_DESIRED_STATE,
+      desiredBrazePushState,
+      'Braze push desired state',
+    ))
+  ) {
+    failedValues.push('Braze push desired state');
+  }
+
+  if (failedValues.length > 0) {
     throw new Error(
-      `Migration ${migrationVersion}: Failed to persist pending marker(s): ${failedMarkers.join(
+      `Migration ${migrationVersion}: Failed to persist backfill value(s): ${failedValues.join(
         ', ',
       )}`,
     );

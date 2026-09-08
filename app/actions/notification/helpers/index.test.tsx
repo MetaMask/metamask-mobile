@@ -18,6 +18,7 @@ import {
 } from '.';
 import Engine from '../../../core/Engine';
 import { unregisterBrazePush } from '../../../core/Braze/unregisterPush';
+import { markBrazePushRegistrationDesired } from '../../../core/Braze/pushRegistrationState';
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
@@ -53,6 +54,10 @@ jest.mock('../../../core/Braze/unregisterPush', () => ({
   unregisterBrazePush: jest.fn().mockResolvedValue(true),
 }));
 
+jest.mock('../../../core/Braze/pushRegistrationState', () => ({
+  markBrazePushRegistrationDesired: jest.fn().mockResolvedValue(undefined),
+}));
+
 beforeEach(() => {
   jest.clearAllMocks();
   jest.resetAllMocks();
@@ -63,6 +68,8 @@ beforeEach(() => {
 describe('helpers - enableNotificationServices()', () => {
   it('invoke notification services method', async () => {
     await enableNotifications();
+
+    expect(markBrazePushRegistrationDesired).toHaveBeenCalledTimes(1);
     expect(
       Engine.context.NotificationServicesController.enableMetamaskNotifications,
     ).toHaveBeenCalled();
@@ -80,6 +87,8 @@ describe('helpers - enableNotificationServices()', () => {
 
   it('forwards enable notification options', async () => {
     await enableNotifications({ registerPushNotifications: false });
+
+    expect(markBrazePushRegistrationDesired).not.toHaveBeenCalled();
     expect(
       Engine.context.NotificationServicesController.enableMetamaskNotifications,
     ).toHaveBeenCalledWith({ registerPushNotifications: false });
@@ -165,11 +174,25 @@ describe('helpers - setMarketingNotificationPreferencesEnabled()', () => {
 });
 
 describe('helpers - disableNotificationServices()', () => {
-  it('invoke notification services method', async () => {
+  it('unregisters Braze directly before global disable without an FCM token', async () => {
     await disableNotifications();
+
+    expect(unregisterBrazePush).toHaveBeenCalledTimes(1);
     expect(
       Engine.context.NotificationServicesController.disableNotificationServices,
-    ).toHaveBeenCalled();
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('delegates Braze unregistration to global disable with an FCM token', async () => {
+    Engine.context.NotificationServicesPushController.state.fcmToken =
+      'fcm-token';
+
+    await disableNotifications();
+
+    expect(unregisterBrazePush).not.toHaveBeenCalled();
+    expect(
+      Engine.context.NotificationServicesController.disableNotificationServices,
+    ).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -239,6 +262,8 @@ describe('helpers - markMetamaskNotificationsAsRead()', () => {
 describe('helpers - enablePushNotifications()', () => {
   it('invoke notification services method', async () => {
     await enablePushNotifications();
+
+    expect(markBrazePushRegistrationDesired).toHaveBeenCalledTimes(1);
     expect(
       Engine.context.NotificationServicesController.enablePushNotifications,
     ).toHaveBeenCalled();
@@ -274,18 +299,14 @@ describe('helpers - disablePushNotifications()', () => {
     ).toHaveBeenCalled();
   });
 
-  it('does not disable NaaP push when direct Braze unregister fails', async () => {
-    jest
-      .mocked(unregisterBrazePush)
-      .mockRejectedValueOnce(new Error('Failed to unregister Braze push'));
+  it('continues disabling NaaP when Braze unregistration remains pending', async () => {
+    jest.mocked(unregisterBrazePush).mockResolvedValueOnce(false);
 
-    await expect(disablePushNotifications()).rejects.toThrow(
-      'Failed to unregister Braze push',
-    );
+    await disablePushNotifications();
 
     expect(
       Engine.context.NotificationServicesController.disablePushNotifications,
-    ).not.toHaveBeenCalled();
+    ).toHaveBeenCalledTimes(1);
   });
 });
 

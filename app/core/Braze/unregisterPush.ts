@@ -4,6 +4,7 @@ import { hasTestOverrides } from '../../util/test/utils';
 import {
   type BrazePushOperationContext,
   clearPendingBrazePushUnregistration,
+  ensureBrazePushUnregistrationDesired,
   hasPendingBrazePushUnregistrationSync,
   markBrazePushUnregistrationPending,
   runLatestBrazePushOperation,
@@ -76,10 +77,8 @@ async function unregisterOnce(): Promise<void> {
 
 async function attemptPendingUnregistration({
   context,
-  throwOnPermanentFailure,
 }: {
   context: BrazePushOperationContext;
-  throwOnPermanentFailure: boolean;
 }): Promise<boolean> {
   if (!hasPendingBrazePushUnregistrationSync()) {
     Logger.log(
@@ -124,14 +123,15 @@ async function attemptPendingUnregistration({
       return false;
     }
     if (!isRetriable) {
-      Logger.error(error, '[Braze] Push unregistration cannot be retried');
-      if (throwOnPermanentFailure) {
-        throw error;
-      }
-      return false;
+      Logger.error(
+        error,
+        '[Braze] Push unregistration reported a non-retriable failure',
+      );
     }
 
-    Logger.log('[Braze] Push unregistration remains pending until next launch');
+    Logger.log(
+      '[Braze] Push unregistration remains pending until the next session',
+    );
     return false;
   }
 }
@@ -139,9 +139,9 @@ async function attemptPendingUnregistration({
 /**
  * Unregister this device from Braze push before disabling NaaP push.
  *
- * Retriable failures remain persisted for the next app launch, allowing the
- * local notification preference to turn off without waiting.
- * Permanent failures reject so the UI can roll the preference back on.
+ * Failures remain persisted for the next app session, allowing the local
+ * notification preference to turn off without losing the device-scoped
+ * consent intent.
  *
  * @returns Whether Braze confirmed unregistration during this call.
  */
@@ -156,20 +156,16 @@ export async function unregisterBrazePush(): Promise<boolean> {
       supersededResult: false,
       operation: async (context) => {
         await markBrazePushUnregistrationPending();
-        return attemptPendingUnregistration({
-          context,
-          throwOnPermanentFailure: true,
-        });
+        return attemptPendingUnregistration({ context });
       },
     });
   } catch (nativeError) {
-    await clearPendingBrazePushUnregistration();
     const error = toError(nativeError);
     Logger.error(error, '[Braze] Failed to unregister push');
     Logger.log(
-      '[Braze] Permanent unregistration failure cleared the pending marker',
+      '[Braze] Push unregistration intent remains pending after failure',
     );
-    throw error;
+    return false;
   }
 }
 
@@ -194,11 +190,10 @@ export async function retryPendingBrazePushUnregistration(): Promise<boolean> {
     return await runLatestBrazePushOperation({
       key: UNREGISTER_OPERATION_KEY,
       supersededResult: false,
-      operation: (context) =>
-        attemptPendingUnregistration({
-          context,
-          throwOnPermanentFailure: false,
-        }),
+      operation: async (context) => {
+        await ensureBrazePushUnregistrationDesired();
+        return attemptPendingUnregistration({ context });
+      },
     });
   } catch (nativeError) {
     const error = toError(nativeError);

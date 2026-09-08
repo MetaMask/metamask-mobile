@@ -14,10 +14,12 @@ jest.mock('../../util/Logger', () => ({
   },
 }));
 
-const mockClearPendingBrazePushUnregistration = jest.fn();
+const mockGetBrazePushDesiredState = jest.fn();
+const mockHasPendingBrazePushUnregistrationSync = jest.fn();
 jest.mock('./pushRegistrationState', () => ({
-  clearPendingBrazePushUnregistration: () =>
-    mockClearPendingBrazePushUnregistration(),
+  getBrazePushDesiredState: () => mockGetBrazePushDesiredState(),
+  hasPendingBrazePushUnregistrationSync: () =>
+    mockHasPendingBrazePushUnregistrationSync(),
   runLatestBrazePushOperation: ({
     operation,
   }: {
@@ -35,7 +37,8 @@ describe('registerBrazePush', () => {
     NativeModules.BrazePushModule = {
       registerPush: mockRegisterPush,
     };
-    mockClearPendingBrazePushUnregistration.mockResolvedValue(undefined);
+    mockGetBrazePushDesiredState.mockReturnValue('registered');
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
     mockRegisterPush.mockResolvedValue(undefined);
   });
 
@@ -55,7 +58,6 @@ describe('registerBrazePush', () => {
     await registerBrazePush('fcm-token');
 
     expect(mockRegisterPush).toHaveBeenCalledWith('fcm-token');
-    expect(mockClearPendingBrazePushUnregistration).toHaveBeenCalledTimes(1);
     expect(Logger.log).toHaveBeenCalledWith(
       '[Braze] Registered this device for Braze push',
     );
@@ -95,5 +97,21 @@ describe('registerBrazePush', () => {
       nativeError,
       '[Braze] Failed to register push',
     );
+  });
+
+  it('does not register while unregistration remains pending', async () => {
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+
+    await registerBrazePush('fcm-token');
+
+    expect(mockRegisterPush).not.toHaveBeenCalled();
+  });
+
+  it('does not register when unregistration is the latest desired state', async () => {
+    mockGetBrazePushDesiredState.mockReturnValue('unregistered');
+
+    await registerBrazePush('fcm-token');
+
+    expect(mockRegisterPush).not.toHaveBeenCalled();
   });
 });
