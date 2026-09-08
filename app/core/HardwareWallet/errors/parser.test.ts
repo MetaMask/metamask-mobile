@@ -434,6 +434,22 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.PermissionNearbyDevicesDenied);
     });
 
+    it('parses "Permissions not granted" message as permission denied', () => {
+      const error = new Error('Permissions not granted');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.PermissionNearbyDevicesDenied);
+    });
+
+    it('parses "Location Permission missing (code 3)" message as permission denied', () => {
+      const error = new Error('Location Permission missing (code 3)');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.PermissionNearbyDevicesDenied);
+    });
+
     it('parses "contract data" message as blind signing error', () => {
       const error = new Error('Please enable contract data');
 

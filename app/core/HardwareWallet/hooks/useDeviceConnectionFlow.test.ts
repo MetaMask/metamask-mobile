@@ -1,10 +1,17 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { AppState } from 'react-native';
+import type { AppStateStatus } from 'react-native';
+import {
+  ConnectionStatus,
+  ErrorCode,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 import { useDeviceConnectionFlow } from './useDeviceConnectionFlow';
 import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
 } from './useHardwareWalletStateManager';
+import type { HardwareWalletAdapter } from '../types';
 
 jest.mock('../../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
@@ -48,21 +55,49 @@ const createMockSetters = (): HardwareWalletStateSetters => ({
   setPendingOperationWalletType: jest.fn(),
 });
 
-const createDefaultOptions = (overrides = {}) => ({
-  refs: createMockRefs(),
-  setters: createMockSetters(),
-  walletType: HardwareWalletType.Ledger as HardwareWalletType | null,
-  deviceId: null as string | null,
-  handleError: jest.fn(),
-  updateConnectionState: jest.fn(),
-  createAdapterWithCallbacks: jest.fn(),
-  initializeAdapter: jest.fn(),
-  checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
-  ...overrides,
-});
+const createDefaultOptions = (overrides = {}) => {
+  const options = {
+    refs: createMockRefs(),
+    setters: createMockSetters(),
+    walletType: HardwareWalletType.Ledger as HardwareWalletType | null,
+    deviceId: null as string | null,
+    handleError: jest.fn(),
+    updateConnectionState: jest.fn(),
+    createAdapterWithCallbacks: jest.fn(),
+    initializeAdapter: jest.fn(),
+    checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
+    ...overrides,
+  };
+
+  // Mirror production wiring (useAdapterLifecycle.initializeAdapter):
+  // created adapters are registered on the shared ref. Without this, the
+  // fresh-pair preflight's stale-adapter guard would bail in tests that
+  // create (rather than preset) an adapter.
+  (options.initializeAdapter as jest.Mock).mockImplementation(
+    (adapter: HardwareWalletAdapter) => {
+      options.refs.adapterRef.current = adapter;
+    },
+  );
+
+  return options;
+};
 
 const flushPromises = async () => {
   await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+};
+
+/**
+ * Drains enough microtasks for the fresh-pair permission preflight
+ * (waitForAppActive → adapter ref check → ensurePermissions → state update)
+ * to complete when AppState is already 'active'.
+ */
+const flushPreflight = async () => {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
   });
@@ -99,8 +134,37 @@ async function capturePendingReadiness(
 }
 
 describe('useDeviceConnectionFlow', () => {
+  let mockCurrentAppState: AppStateStatus;
+  let appStateListener: ((state: AppStateStatus) => void) | undefined;
+
+  const setMockAppState = (state: AppStateStatus) => {
+    mockCurrentAppState = state;
+  };
+
+  const dispatchAppStateChange = (state: AppStateStatus) => {
+    appStateListener?.(state);
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCurrentAppState = 'active';
+    appStateListener = undefined;
+
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_event, handler) => {
+        appStateListener = handler as (state: AppStateStatus) => void;
+        return { remove: jest.fn() };
+      });
+
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      get: () => mockCurrentAppState,
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('ensureDeviceReady', () => {
@@ -351,6 +415,9 @@ describe('useDeviceConnectionFlow', () => {
         result.current.ensureDeviceReady(),
       );
 
+      // Scanning is entered only after the async permission preflight.
+      await flushPreflight();
+
       expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Scanning,
       });
@@ -478,6 +545,7 @@ describe('useDeviceConnectionFlow', () => {
         connect: jest.fn().mockResolvedValue(undefined),
         disconnect: jest.fn(),
         getConnectedDeviceId: jest.fn().mockReturnValue(null),
+        ensurePermissions: jest.fn().mockResolvedValue(true),
       };
       const checkTransportEnabledOrShowError = jest.fn();
       const options = createDefaultOptions({
@@ -492,8 +560,158 @@ describe('useDeviceConnectionFlow', () => {
         { flushMicrotaskInAct: false },
       );
 
+      // Scanning is entered only after the async permission preflight.
+      await flushPreflight();
+
       expect(checkTransportEnabledOrShowError).not.toHaveBeenCalled();
       expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Scanning,
+      });
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+  });
+
+  describe('fresh pair permission preflight', () => {
+    it('requests permissions before entering scanning on fresh pair', async () => {
+      const mockAdapter = createMockAdapter();
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady(),
+      );
+
+      await flushPreflight();
+
+      expect(mockAdapter.ensurePermissions).toHaveBeenCalledTimes(1);
+
+      const updateCalls = (options.updateConnectionState as jest.Mock).mock
+        .calls;
+      const scanningIndex = updateCalls.findIndex(
+        (c: [Record<string, unknown>]) =>
+          c[0]?.status === ConnectionStatus.Scanning,
+      );
+      expect(scanningIndex).toBeGreaterThanOrEqual(0);
+
+      const permissionsOrder =
+        mockAdapter.ensurePermissions.mock.invocationCallOrder[0];
+      const scanningOrder = (options.updateConnectionState as jest.Mock).mock
+        .invocationCallOrder[scanningIndex];
+      expect(permissionsOrder).toBeLessThan(scanningOrder);
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+
+    it('shows permission error and skips scanning when ensurePermissions resolves false', async () => {
+      const mockAdapter = createMockAdapter({
+        ensurePermissions: jest.fn().mockResolvedValue(false),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady(),
+      );
+
+      await flushPreflight();
+
+      expect(mockAdapter.ensurePermissions).toHaveBeenCalledTimes(1);
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.ErrorState,
+        error: expect.objectContaining({
+          code: ErrorCode.PermissionNearbyDevicesDenied,
+        }),
+      });
+      expect(options.updateConnectionState).not.toHaveBeenCalledWith({
+        status: ConnectionStatus.Scanning,
+      });
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+
+    it('waits for app foreground before requesting permissions on fresh pair', async () => {
+      setMockAppState('background');
+      const mockAdapter = createMockAdapter();
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady(),
+      );
+
+      await flushPreflight();
+
+      // Still backgrounded: preflight must be waiting, not scanning.
+      expect(mockAdapter.ensurePermissions).not.toHaveBeenCalled();
+      expect(options.updateConnectionState).not.toHaveBeenCalledWith({
+        status: ConnectionStatus.Scanning,
+      });
+
+      // App returns to foreground.
+      setMockAppState('active');
+      await act(async () => {
+        dispatchAppStateChange('active');
+      });
+      await flushPreflight();
+
+      expect(mockAdapter.ensurePermissions).toHaveBeenCalledTimes(1);
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Scanning,
+      });
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+
+    it('does not update state when adapter is swapped while waiting for foreground', async () => {
+      setMockAppState('background');
+      const mockAdapter = createMockAdapter();
+      const swappedAdapter = createMockAdapter();
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady(),
+      );
+
+      await flushPreflight();
+
+      // Swap the adapter while the preflight waits for the foreground.
+      refs.adapterRef.current = swappedAdapter;
+
+      setMockAppState('active');
+      await act(async () => {
+        dispatchAppStateChange('active');
+      });
+      await flushPreflight();
+
+      expect(mockAdapter.ensurePermissions).not.toHaveBeenCalled();
+      expect(swappedAdapter.ensurePermissions).not.toHaveBeenCalled();
+      expect(options.updateConnectionState).not.toHaveBeenCalledWith({
         status: ConnectionStatus.Scanning,
       });
 

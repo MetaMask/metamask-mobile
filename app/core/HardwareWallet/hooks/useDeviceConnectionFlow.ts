@@ -1,17 +1,34 @@
 import { useCallback, useRef } from 'react';
+import { AppState } from 'react-native';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import {
-  HardwareWalletType,
-  HardwareWalletConnectionState,
   ConnectionStatus,
+  ErrorCode,
+  HardwareWalletConnectionState,
+  HardwareWalletType,
 } from '@metamask/hw-wallet-sdk';
 
 import { HardwareWalletAdapter } from '../types';
+import { createHardwareWalletError } from '../errors';
 import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
 } from './useHardwareWalletStateManager';
 import Logger from '../../../util/Logger';
+
+const waitForAppActive = (): Promise<void> => {
+  if (AppState.currentState === 'active') {
+    return Promise.resolve();
+  }
+  return new Promise<void>((resolve) => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        subscription.remove();
+        resolve();
+      }
+    });
+  });
+};
 
 interface UseDeviceConnectionFlowOptions {
   refs: HardwareWalletRefs;
@@ -337,7 +354,45 @@ export const useDeviceConnectionFlow = ({
           DevLogger.log(
             '[HardwareWallet] No device ID - starting device selection',
           );
-          updateConnectionState({ status: ConnectionStatus.Scanning });
+
+          // Preflight BLE runtime permissions BEFORE entering Scanning. The
+          // DMK transport requests permissions internally at scan time; when
+          // the flow starts while the device is locked (keyguard up), that
+          // request hangs or auto-denies and the raw "Permissions not
+          // granted" / "Location Permission missing" failure was previously
+          // unmapped — surfacing as a generic "something went wrong" modal
+          // instead of the permission-specific UI. Wait for the app to be
+          // foregrounded, then request permissions ourselves so the OS
+          // dialog can actually be shown.
+          (async () => {
+            try {
+              await waitForAppActive();
+              if (refs.adapterRef.current !== adapter) {
+                return;
+              }
+              const granted = await adapter.ensurePermissions();
+              if (refs.adapterRef.current !== adapter) {
+                return;
+              }
+              if (!granted) {
+                updateConnectionState({
+                  status: ConnectionStatus.ErrorState,
+                  error: createHardwareWalletError(
+                    ErrorCode.PermissionNearbyDevicesDenied,
+                    adapter.walletType,
+                  ),
+                });
+                return;
+              }
+              updateConnectionState({ status: ConnectionStatus.Scanning });
+            } catch (error) {
+              DevLogger.log(
+                '[HardwareWallet] Permission preflight failed:',
+                error,
+              );
+              handleError(error);
+            }
+          })();
           return;
         }
 

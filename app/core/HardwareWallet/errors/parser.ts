@@ -310,6 +310,13 @@ export const LOCAL_MESSAGE_PATTERNS: {
     code: ErrorCode.UserRejected,
   },
   {
+    // Native/DMK permission failures: DMK's BlePermissionsNotGranted throws
+    // "Permissions not granted"; react-native-ble-plx emits BleErrorCode 101
+    // "Location Permission missing (code N)" when scan permissions are missing.
+    patterns: ['permissions not granted', 'permission missing'],
+    code: ErrorCode.PermissionNearbyDevicesDenied,
+  },
+  {
     patterns: ['not authorized', 'unauthorized'],
     code: ErrorCode.PermissionNearbyDevicesDenied,
     condition: (msg) => msg.includes('bluetooth'),
