@@ -1196,7 +1196,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
   });
 
   describe('price range', () => {
-    it('shows Not set without an avatar and opens the sheet after dismissing the keypad', async () => {
+    it('opens the unset price range sheet with market price placeholders', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
@@ -1224,6 +1224,12 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           quoteRate: ETH_FIAT_RATE / MUSD_FIAT_RATE,
         }),
       );
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
+      ).toHaveProp('placeholder', 'Market price');
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
+      ).toHaveProp('placeholder', 'Market price');
     });
 
     it('discards pending min and max when the sheet is closed', async () => {
