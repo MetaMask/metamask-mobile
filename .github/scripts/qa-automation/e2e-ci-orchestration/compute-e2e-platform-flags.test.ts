@@ -197,6 +197,7 @@ describe('computeE2EPlatformFlags', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
+      githubRef: 'refs/heads/main',
     });
 
     expect(result.android).toBe(true);
@@ -207,10 +208,11 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.runSmartE2ESelection).toBe(false);
   });
 
-  it('runs both platforms for shared app changes pushed to main or release/*', () => {
+  it('runs both platforms for shared app changes pushed to main', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
+      githubRef: 'refs/heads/main',
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 0,
     });
@@ -226,6 +228,7 @@ describe('computeE2EPlatformFlags', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
+      githubRef: 'refs/heads/main',
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 0,
       androidCount: 1,
@@ -239,10 +242,11 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('skips ignorable-only pushes to main or release/*', () => {
+  it('skips ignorable-only pushes to main', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
+      githubRef: 'refs/heads/main',
       ignorableCount: 1,
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 1,
@@ -253,6 +257,25 @@ describe('computeE2EPlatformFlags', () => {
       ios: false,
       e2eNeeded: false,
       message: 'Skipping E2E (ignorable-only changes)',
+    });
+  });
+
+  it('runs both platforms for every push to release/*', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      githubRef: 'refs/heads/release/1.0.0',
+      ignorableCount: 1,
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 1,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+      useMainBuildsForTestOnlyPrs: false,
+      message: 'E2E for both platforms (push to release/*)',
     });
   });
 
@@ -350,6 +373,7 @@ describe('computeE2EPlatformFlags', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
+      githubRef: 'refs/heads/main',
       prBaseRef: 'main',
     });
 

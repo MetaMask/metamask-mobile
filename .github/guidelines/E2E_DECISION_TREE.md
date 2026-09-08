@@ -47,9 +47,11 @@ The same path-filter and label policy applies to PRs targeting `main` and
 
 - shared smoke/Appium test infra paths ensure both Android and iOS platforms are selected to run.
 
-Pushes to `main` and `release/*` use the same path classification as PRs:
-ignorable-only changes skip E2E, while other changes run the full `ALL` tag set
-on the required platforms. Smart E2E Selection remains PR-only.
+Pushes to `main` use the same path classification as PRs: ignorable-only
+changes skip E2E, while other changes run the full `ALL` tag set on the
+required platforms. Every push to `release/*` runs full Android and iOS E2E,
+including pushes containing only ignorable changes. Smart E2E Selection remains
+PR-only.
 
 ## E2E tests skipped by default on new PRs during peak hours
 
@@ -94,7 +96,8 @@ Flakiness detection is applied to modified E2E test files in PRs targeting
 
 - Pull requests targeting `main` and `release/*` follow the same
   platform-selection, platform-request, and Smart E2E policy.
-- Pushes to `main` and `release/*` use path filtering and run `ALL` tags on the
-  required platforms; ignorable-only pushes skip E2E.
+- Pushes to `main` use path filtering and run `ALL` tags on the required
+  platforms; ignorable-only pushes skip E2E.
+- Every push to `release/*` runs Android and iOS Appium E2E with `ALL` tags.
 - Pull requests from `release/*` to `stable` are synchronization PRs and run no E2E.
 - The final release decision is based on the latest tested `release/*` SHA.
