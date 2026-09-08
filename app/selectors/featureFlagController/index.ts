@@ -6,7 +6,7 @@ export const selectRemoteFeatureFlagControllerState = (
   state: StateWithPartialEngine,
 ) => state.engine.backgroundState.RemoteFeatureFlagController;
 
-export const selectBasicFunctionalityEnabledForRemoteFlags = (
+const selectBasicFunctionalityEnabledForRemoteFlags = (
   state: StateWithPartialEngine,
 ): boolean => {
   if ('settings' in state && state.settings != null) {
