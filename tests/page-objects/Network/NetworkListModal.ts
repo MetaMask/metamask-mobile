@@ -8,7 +8,7 @@ import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
-import { type AppiumElement } from '../../framework';
+import { type AppiumElement, getDriver } from '../../framework';
 
 class NetworkListModal {
   get networkScroll(): Promise<AppiumElement> {
@@ -123,9 +123,19 @@ class NetworkListModal {
   }
 
   async swipeToDismissModal(): Promise<void> {
-    await Gestures.swipe(this.selectNetwork, 'down', {
-      speed: 'slow',
-      percentage: 0.9,
+    // Android: a title swipe often scrolls the list instead of closing
+    // ReusableModal. System back dismisses the sheet. iOS still uses swipe.
+    if (PlatformDetector.isAndroid()) {
+      await getDriver().back();
+    } else {
+      await Gestures.swipe(this.selectNetwork, 'down', {
+        speed: 'fast',
+        percentage: 0.6,
+      });
+    }
+    await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
+      timeout: 15000,
+      description: 'Network selector dismissed',
     });
   }
 
