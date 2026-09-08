@@ -5,7 +5,7 @@ import Engine from '../../../../../../core/Engine';
 export type { KycDisclaimer };
 
 interface UseKycDisclaimersResult {
-  disclaimers: KycDisclaimer[];
+  disclaimers: KycDisclaimer[] | null;
   isLoading: boolean;
   error: string | null;
   retry: () => void;
@@ -22,16 +22,17 @@ const FETCH_TIMEOUT_MS = 10_000;
  * (`fetchDisclaimersCatalog` / session disclaimers). Those are a separate controller
  * path and must not be fetched here.
  *
- * Callers should treat a non-empty `error`, or an empty `disclaimers` list once
- * `isLoading` is `false`, as "the user hasn't seen the terms" and keep the flow's
- * continue action disabled until a `retry()` succeeds. There's intentionally no
- * static fallback copy.
+ * `disclaimers` is `null` until a load returns a non-empty list. Callers should
+ * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
+ * flow's continue action disabled until a `retry()` succeeds. An empty vendor
+ * response is reported as an `error` (with `disclaimers` left `null`) so the
+ * retry affordance is reachable. There's intentionally no static fallback copy.
  *
  * @param country - ISO 3166-1 alpha-3 country code (e.g. `'BRA'`).
  * @returns The disclaimers, loading state, error, and a `retry` function.
  */
 export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
-  const [disclaimers, setDisclaimers] = useState<KycDisclaimer[]>([]);
+  const [disclaimers, setDisclaimers] = useState<KycDisclaimer[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -71,19 +72,19 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
           return;
         }
 
-        const { disclaimers: loadedDisclaimers, disclaimersError } =
+        const { vendorDisclaimers: loadedDisclaimers, vendorError } =
           Engine.context.KycController.state;
 
-        if (disclaimersError) {
-          setDisclaimers([]);
-          setError(disclaimersError);
+        if (vendorError) {
+          setDisclaimers(null);
+          setError(vendorError);
           return;
         }
 
-        if (loadedDisclaimers.length === 0) {
-          // An empty success would render no disclaimers and no retry while the
-          // CTA stays disabled, so treat it as an error.
-          setDisclaimers([]);
+        // An empty list is not a usable success: the CTA stays disabled, so it has
+        // to surface as an error to give the user the retry affordance.
+        if (!loadedDisclaimers?.length) {
+          setDisclaimers(null);
           setError('No KYC disclaimers returned');
           return;
         }
@@ -95,7 +96,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
           err instanceof Error &&
           (err.name === 'AbortError' || err.name === 'TimeoutError');
         if (isMounted) {
-          setDisclaimers([]);
+          setDisclaimers(null);
           setError(
             isTimeout
               ? 'Request timed out'

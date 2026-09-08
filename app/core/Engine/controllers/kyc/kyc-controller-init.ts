@@ -22,7 +22,10 @@ export const kycControllerInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, persistedState }) => {
   const controller = new KycController({
     messenger: controllerMessenger,
-    state: persistedState.KycController,
+    state: {
+      ...persistedState.KycController,
+      activeVendor: 'iron',
+    },
     // Required by the controller constructor; not used for disclaimer loading.
     sumsubLauncher: kycSumSubLauncherStub,
   });

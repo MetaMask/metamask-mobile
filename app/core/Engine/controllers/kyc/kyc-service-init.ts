@@ -1,6 +1,5 @@
 import { KycService, type KycServiceMessenger } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
-import { isProduction } from '../../../../util/environment';
 
 /**
  * Initialize the KycService.
@@ -18,11 +17,8 @@ export const kycServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger }) => {
   const controller = new KycService({
     fetch,
-    env: isProduction() ? 'production' : 'development',
     messenger: controllerMessenger,
-    baseUrl: process.env.KYC_API_URL,
-    // UKYC / JWKS paths are out of scope for disclaimer-only wiring (TRAM-3978).
-    fractalEncryptionBaseUrl: '',
+    baseUrl: process.env.KYC_API_URL ?? '',
   });
 
   return { controller };

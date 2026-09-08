@@ -74,7 +74,7 @@ describe('GetPixKey', () => {
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [],
+      disclaimers: null,
       isLoading: true,
       error: null,
       retry: mockRetry,
@@ -92,7 +92,7 @@ describe('GetPixKey', () => {
 
   it('renders no disclaimer links and disables the CTA when the fetch comes back empty and is not loading', () => {
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [],
+      disclaimers: null,
       isLoading: false,
       error: null,
       retry: mockRetry,
@@ -124,7 +124,7 @@ describe('GetPixKey', () => {
 
   it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
     mockUseKycDisclaimers.mockReturnValue({
-      disclaimers: [],
+      disclaimers: null,
       isLoading: false,
       error: 'Request timed out',
       retry: mockRetry,

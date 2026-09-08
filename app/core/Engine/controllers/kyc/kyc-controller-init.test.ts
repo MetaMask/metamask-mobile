@@ -40,6 +40,7 @@ function getInitRequestMock(
 describe('kycControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('instantiates the KycController', () => {

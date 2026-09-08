@@ -6,9 +6,6 @@ import { KycService, type KycServiceMessenger } from '@metamask/kyc-controller';
 import { MessengerClientInitRequest } from '../../types';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('../../../../util/environment', () => ({
-  isProduction: jest.fn(),
-}));
 jest.mock('@metamask/kyc-controller', () => ({
   KycService: class KycService {
     constructor(args: Record<string, unknown>) {
@@ -16,12 +13,6 @@ jest.mock('@metamask/kyc-controller', () => ({
     }
   },
 }));
-
-import { isProduction } from '../../../../util/environment';
-
-const mockIsProduction = isProduction as jest.MockedFunction<
-  typeof isProduction
->;
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<KycServiceMessenger>
@@ -42,13 +33,11 @@ describe('kycServiceInit', () => {
   });
 
   it('instantiates the KycService', () => {
-    mockIsProduction.mockReturnValue(false);
     const { controller } = kycServiceInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(KycService);
   });
 
-  it('passes production env when isProduction() returns true', () => {
-    mockIsProduction.mockReturnValue(true);
+  it('passes the messenger, fetch, and the KYC API base URL', () => {
     const requestMock = getInitRequestMock();
 
     const { controller } = kycServiceInit(requestMock);
@@ -56,20 +45,20 @@ describe('kycServiceInit', () => {
     expect(controller).toMatchObject({
       messenger: requestMock.controllerMessenger,
       fetch,
-      env: 'production',
+      baseUrl: process.env.KYC_API_URL,
     });
   });
 
-  it('passes development env when isProduction() returns false', () => {
-    mockIsProduction.mockReturnValue(false);
-    const requestMock = getInitRequestMock();
+  it('falls back to an empty base URL when KYC_API_URL is unset', () => {
+    const originalBaseUrl = process.env.KYC_API_URL;
+    delete process.env.KYC_API_URL;
 
-    const { controller } = kycServiceInit(requestMock);
+    try {
+      const { controller } = kycServiceInit(getInitRequestMock());
 
-    expect(controller).toMatchObject({
-      messenger: requestMock.controllerMessenger,
-      fetch,
-      env: 'development',
-    });
+      expect(controller).toMatchObject({ baseUrl: '' });
+    } finally {
+      process.env.KYC_API_URL = originalBaseUrl;
+    }
   });
 });
