@@ -1133,10 +1133,8 @@
       "how_to_delete_description": "You can delete your data anytime by going to Settings > Manage data.",
       "metamask_privacy_policy": "MetaMask Privacy Policy",
       "metamask_terms": "MetaMask T&C",
-      "idos_privacy_policy": "idOS Privacy Policy",
-      "idos_terms": "idOS T&C",
-      "sumsub_privacy_policy": "Sumsub Privacy Policy",
-      "sumsub_terms": "Sumsub T&C",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
       "button": "Continue"
     }
   },

@@ -1,37 +1,55 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { KycDisclaimer } from '@metamask/kyc-controller';
+import type { KycCatalogDocument } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 
-export type { KycDisclaimer };
+export type KycCatalogDisclaimerLink = KycCatalogDocument & {
+  /** Stable list key; documents are unique per catalog group + `key`. */
+  id: string;
+};
 
-interface UseKycDisclaimersResult {
-  disclaimers: KycDisclaimer[] | null;
+interface UseKycDisclaimersCatalogResult {
+  disclaimers: KycCatalogDisclaimerLink[] | null;
   isLoading: boolean;
   error: string | null;
   retry: () => void;
 }
 
-// Bounds the KYC controller wait so a hung request can't leave the CTA disabled forever.
+// Bounds the KYC service wait so a hung request can't leave the CTA disabled forever.
 const FETCH_TIMEOUT_MS = 10_000;
 
+const toLinks = (
+  group: 'idOS' | 'kycProvider',
+  documents: KycCatalogDocument[] | undefined,
+): KycCatalogDisclaimerLink[] =>
+  (documents ?? []).map((document) => ({
+    ...document,
+    id: `${group}:${document.key}`,
+  }));
+
 /**
- * Loads Iron / MoonPay Enterprise legal disclaimers (Privacy Policy / T&Cs) for the
- * VBA KYC flow via {@link Engine.context.KycController.loadDisclaimers}.
+ * Loads idOS + SumSub (KYC-provider) legal documents for the VBA Verify Identity
+ * screen via {@link Engine.context.KycService.fetchDisclaimersCatalog}.
  *
- * This is vendor T&Cs only — not the idOS / SumSub catalog used on Verify
- * Identity (`useKycDisclaimersCatalog` → `KycService.fetchDisclaimersCatalog`).
+ * This is the pre-session global catalog (`GET /disclaimers?country=`). Do not
+ * use {@link Engine.context.KycService.fetchSessionDisclaimers} here — that
+ * endpoint requires a UKYC `sessionId`. Vendor T&Cs stay on
+ * {@link Engine.context.KycController.loadDisclaimers} (Get Pix Key).
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
- * flow's continue action disabled until a `retry()` succeeds. An empty vendor
- * response is reported as an `error` (with `disclaimers` left `null`) so the
- * retry affordance is reachable. There's intentionally no static fallback copy.
+ * flow's continue action disabled until a `retry()` succeeds. An empty catalog
+ * is reported as an `error` so the retry affordance is reachable. There's
+ * intentionally no static fallback copy.
  *
  * @param country - ISO 3166-1 alpha-3 country code (e.g. `'BRA'`).
- * @returns The disclaimers, loading state, error, and a `retry` function.
+ * @returns The flattened catalog links, loading state, error, and a `retry` function.
  */
-export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
-  const [disclaimers, setDisclaimers] = useState<KycDisclaimer[] | null>(null);
+export const useKycDisclaimersCatalog = (
+  country: string,
+): UseKycDisclaimersCatalogResult => {
+  const [disclaimers, setDisclaimers] = useState<
+    KycCatalogDisclaimerLink[] | null
+  >(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -49,9 +67,6 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       FETCH_TIMEOUT_MS,
     );
 
-    // `loadDisclaimers` does not take an AbortSignal, so race it against the same
-    // timeout used for the old direct fetch to keep the CTA from being stuck on a
-    // hung controller / network call.
     const abortedPromise = new Promise<never>((_, reject) => {
       abortController.signal.addEventListener('abort', () => {
         const abortError = new Error('Aborted');
@@ -60,10 +75,10 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       });
     });
 
-    const loadDisclaimers = async () => {
+    const loadCatalog = async () => {
       try {
-        await Promise.race([
-          Engine.context.KycController.loadDisclaimers({ country }),
+        const catalog = await Promise.race([
+          Engine.context.KycService.fetchDisclaimersCatalog({ country }),
           abortedPromise,
         ]);
 
@@ -71,24 +86,18 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
           return;
         }
 
-        const { vendorDisclaimers: loadedDisclaimers, vendorError } =
-          Engine.context.KycController.state;
+        const links = [
+          ...toLinks('idOS', catalog.idOS),
+          ...toLinks('kycProvider', catalog.kycProvider),
+        ];
 
-        if (vendorError) {
-          setDisclaimers(null);
-          setError(vendorError);
-          return;
-        }
-
-        // An empty list is not a usable success: the CTA stays disabled, so it has
-        // to surface as an error to give the user the retry affordance.
-        if (!loadedDisclaimers?.length) {
+        if (!links.length) {
           setDisclaimers(null);
           setError('No KYC disclaimers returned');
           return;
         }
 
-        setDisclaimers(loadedDisclaimers);
+        setDisclaimers(links);
         setError(null);
       } catch (err) {
         const isTimeout =
@@ -112,7 +121,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       }
     };
 
-    loadDisclaimers();
+    loadCatalog();
 
     return () => {
       isMounted = false;

@@ -28,19 +28,18 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  IDOS_PRIVACY_POLICY_URL,
-  IDOS_TERMS_URL,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
   MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-  SUMSUB_PRIVACY_POLICY_URL,
-  SUMSUB_TERMS_URL,
+  VBA_KYC_COUNTRY_CODE,
 } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
+import { useKycDisclaimersCatalog } from './hooks/useKycDisclaimersCatalog';
 import { launchSumSubSdk } from './launchSumSubSdk';
 
 const CHEVRON_ANIMATION_DURATION = 200;
@@ -130,10 +129,16 @@ const AccordionRow = ({
 const VbaVerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const { disclaimers, isLoading, error, retry } =
+    useKycDisclaimersCatalog(VBA_KYC_COUNTRY_CODE);
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
   const [isLaunchingSumSub, setIsLaunchingSumSub] = useState(false);
   const chevronRotation = useSharedValue(0);
+
+  // The user can't continue without seeing idOS / SumSub terms.
+  const canContinue =
+    !isLoading && !error && Boolean(disclaimers?.length) && !isLaunchingSumSub;
 
   const animatedChevronStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${chevronRotation.value}deg` }],
@@ -174,19 +179,6 @@ const VbaVerifyIdentity = () => {
   );
   const openMetaMaskTerms = useCallback(
     () => Linking.openURL(METAMASK_TERMS_URL),
-    [],
-  );
-  const openIdosPrivacyPolicy = useCallback(
-    () => Linking.openURL(IDOS_PRIVACY_POLICY_URL),
-    [],
-  );
-  const openIdosTerms = useCallback(() => Linking.openURL(IDOS_TERMS_URL), []);
-  const openSumsubPrivacyPolicy = useCallback(
-    () => Linking.openURL(SUMSUB_PRIVACY_POLICY_URL),
-    [],
-  );
-  const openSumsubTerms = useCallback(
-    () => Linking.openURL(SUMSUB_TERMS_URL),
     [],
   );
 
@@ -304,34 +296,63 @@ const VbaVerifyIdentity = () => {
           >
             {strings('virtual_bank_account.verify_identity.metamask_terms')}
           </LegalLink>
-          <LegalLink
-            onPress={openIdosPrivacyPolicy}
-            testID={VbaVerifyIdentitySelectorsIDs.IDOS_PRIVACY_POLICY_LINK}
-          >
-            {strings(
-              'virtual_bank_account.verify_identity.idos_privacy_policy',
-            )}
-          </LegalLink>
-          <LegalLink
-            onPress={openIdosTerms}
-            testID={VbaVerifyIdentitySelectorsIDs.IDOS_TERMS_LINK}
-          >
-            {strings('virtual_bank_account.verify_identity.idos_terms')}
-          </LegalLink>
-          <LegalLink
-            onPress={openSumsubPrivacyPolicy}
-            testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_PRIVACY_POLICY_LINK}
-          >
-            {strings(
-              'virtual_bank_account.verify_identity.sumsub_privacy_policy',
-            )}
-          </LegalLink>
-          <LegalLink
-            onPress={openSumsubTerms}
-            testID={VbaVerifyIdentitySelectorsIDs.SUMSUB_TERMS_LINK}
-          >
-            {strings('virtual_bank_account.verify_identity.sumsub_terms')}
-          </LegalLink>
+          {isLoading ? (
+            <Box
+              testID={VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_LOADING}
+              twClassName="gap-1 py-1"
+            >
+              <Skeleton height={16} width="70%" />
+              <Skeleton height={16} width="55%" />
+              <Skeleton height={16} width="65%" />
+              <Skeleton height={16} width="50%" />
+            </Box>
+          ) : error ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Start}
+              twClassName="gap-2 py-1"
+              testID={VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_ERROR}
+            >
+              <Box twClassName="shrink-0 pt-0.5">
+                <Icon
+                  name={IconName.Danger}
+                  size={IconSize.Sm}
+                  color={IconColor.ErrorDefault}
+                />
+              </Box>
+              <Box twClassName="flex-1 gap-1">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
+                  {strings(
+                    'virtual_bank_account.verify_identity.disclaimers_error',
+                  )}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.PrimaryDefault}
+                  twClassName="underline"
+                  onPress={retry}
+                  testID={VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY}
+                >
+                  {strings(
+                    'virtual_bank_account.verify_identity.disclaimers_retry',
+                  )}
+                </Text>
+              </Box>
+            </Box>
+          ) : (
+            disclaimers?.map((disclaimer) => (
+              <LegalLink
+                key={disclaimer.id}
+                onPress={() => Linking.openURL(disclaimer.url)}
+                testID={`${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+              >
+                {disclaimer.title}
+              </LegalLink>
+            ))
+          )}
         </Box>
       </ScrollView>
 
@@ -340,7 +361,7 @@ const VbaVerifyIdentity = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isDisabled={isLaunchingSumSub}
+          isDisabled={!canContinue}
           isLoading={isLaunchingSumSub}
           onPress={handleContinue}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
