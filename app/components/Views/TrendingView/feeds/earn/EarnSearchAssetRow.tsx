@@ -10,7 +10,6 @@ import {
 import EarnAssetIcon from '../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon';
 import { deriveEarnAssetDisplayData } from '../../../../UI/Earn/utils/earnAssets';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
-import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
 import { EarnSearchAssetRowTestIds } from './EarnSearchAssetRow.testIds';
 
 interface EarnSearchAssetRowProps {
