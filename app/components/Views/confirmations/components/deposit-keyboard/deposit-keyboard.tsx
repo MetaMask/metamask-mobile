@@ -10,6 +10,7 @@ import { View } from 'react-native';
 import { PERPS_CURRENCY } from '../../constants/perps';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Keypad from '../../../../Base/Keypad/components';
+import { formatAmountForDisplay } from '../../utils/transaction-pay';
 
 const PERCENTAGE_BUTTONS = [
   {
@@ -61,7 +62,7 @@ export const DepositKeyboard = memo(
   }: DepositKeyboardProps) => {
     const currentCurrency = PERPS_CURRENCY;
     const { styles } = useStyles(styleSheet, {});
-    const valueString = value.toString();
+    const valueString = formatAmountForDisplay(value.toString());
 
     const handleChange = useCallback(
       (data: KeypadChangeData) => {
