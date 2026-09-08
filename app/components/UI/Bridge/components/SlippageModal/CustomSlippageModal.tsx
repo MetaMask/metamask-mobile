@@ -1,23 +1,11 @@
-import React, { useCallback, useRef, useState } from 'react';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import React, { useCallback, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import { View } from 'react-native';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  HeaderStandard,
-} from '@metamask/design-system-react-native';
 import { CaipChainId, Hex } from '@metamask/utils';
-import Keypad from '../../../../Base/Keypad';
-import { InputStepper } from '../InputStepper';
-import { customSlippageModalStyles } from './styles';
+import CustomSlippageBottomSheet from '../../../CustomSlippageBottomSheet';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
 import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisableCustomSlippageConfirm';
-import { useCustomSlippageCursor } from './useCustomSlippageCursor';
 
 interface CustomSlippageModalContentProps {
   initialSlippage?: string;
@@ -32,7 +20,7 @@ export const CustomSlippageModalContent = ({
   destChainId,
   onConfirmSlippage,
 }: CustomSlippageModalContentProps) => {
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation();
   const slippageConfig = useSlippageConfig({ sourceChainId, destChainId });
   const [inputAmount, setInputAmount] = useState(initialSlippage ?? '0');
   const [hasAttemptedToExceedMax, setHasAttemptedToExceedMax] = useState(false);
@@ -45,110 +33,28 @@ export const CustomSlippageModalContent = ({
     slippageConfig,
     hasAttemptedToExceedMax,
   });
-  const { selection, handleSelectionChange, handleKeypadChange, resetCursor } =
-    useCustomSlippageCursor({
-      value: inputAmount,
-      inputMaxDecimals: slippageConfig.input_max_decimals,
-      maxAmount: slippageConfig.max_amount,
-      onValueChange: setInputAmount,
-      onAttemptExceedMaxChange: setHasAttemptedToExceedMax,
-    });
 
   const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
-
-  const handleConfirm = useCallback(() => {
-    const sanitizedInputAmount = inputAmount.endsWith('.')
-      ? inputAmount.slice(0, -1)
-      : inputAmount;
-
-    onConfirmSlippage(sanitizedInputAmount);
-    sheetRef.current?.onCloseBottomSheet();
-  }, [inputAmount, onConfirmSlippage]);
-
-  const handleOnIncreasePress = useCallback(() => {
-    resetCursor();
-    setHasAttemptedToExceedMax(false);
-
-    setInputAmount((value) => {
-      const newValue = parseFloat(value) + slippageConfig.input_step;
-      // Cap the value to max_amount and to input_max_decimals due to JS rounding issues
-      return newValue >= slippageConfig.max_amount
-        ? String(slippageConfig.max_amount)
-        : String(
-            parseFloat(newValue.toFixed(slippageConfig.input_max_decimals)),
-          );
-    });
-  }, [resetCursor, slippageConfig]);
-
-  const handleOnDecreasePress = useCallback(() => {
-    resetCursor();
-    setHasAttemptedToExceedMax(false);
-
-    setInputAmount((value) => {
-      const newValue = parseFloat(value) - slippageConfig.input_step;
-      // Cap the value to min_amount and to input_max_decimals due to JS rounding issues
-      return newValue <= slippageConfig.min_amount
-        ? String(slippageConfig.min_amount)
-        : String(
-            parseFloat(newValue.toFixed(slippageConfig.input_max_decimals)),
-          );
-    });
-  }, [resetCursor, slippageConfig]);
+    navigation.goBack();
+  }, [navigation]);
 
   return (
-    <BottomSheet ref={sheetRef}>
-      <HeaderStandard
-        title={strings('bridge.slippage')}
-        onClose={handleClose}
-        closeButtonProps={{
-          accessibilityLabel: strings('bridge.close'),
-        }}
-      />
-      <View style={customSlippageModalStyles.stepperContainer}>
-        <InputStepper
-          value={inputAmount}
-          onDecrease={handleOnDecreasePress}
-          onIncrease={handleOnIncreasePress}
-          description={description}
-          minAmount={slippageConfig.min_amount}
-          maxAmount={slippageConfig.max_amount}
-          postValue="%"
-          selection={selection}
-          onSelectionChange={handleSelectionChange}
-        />
-      </View>
-      <View style={customSlippageModalStyles.keypadContainer}>
-        <Keypad
-          value={inputAmount}
-          onChange={handleKeypadChange}
-          currency="native"
-        />
-      </View>
-      <View style={customSlippageModalStyles.footerContainer}>
-        <View style={customSlippageModalStyles.footerContainerSection}>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            onPress={handleClose}
-            isFullWidth
-          >
-            {strings('bridge.cancel')}
-          </Button>
-        </View>
-        <View style={customSlippageModalStyles.footerContainerSection}>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            onPress={handleConfirm}
-            isFullWidth
-            isDisabled={shouldDisableConfirm}
-          >
-            {strings('bridge.confirm')}
-          </Button>
-        </View>
-      </View>
-    </BottomSheet>
+    <CustomSlippageBottomSheet
+      title={strings('bridge.slippage')}
+      primaryButtonLabel={strings('bridge.confirm')}
+      secondaryButtonLabel={strings('bridge.cancel')}
+      value={inputAmount}
+      onValueChange={setInputAmount}
+      minAmount={slippageConfig.min_amount}
+      maxAmount={slippageConfig.max_amount}
+      step={slippageConfig.input_step}
+      inputMaxDecimals={slippageConfig.input_max_decimals}
+      description={description}
+      isConfirmDisabled={shouldDisableConfirm}
+      onAttemptExceedMaxChange={setHasAttemptedToExceedMax}
+      goBack={handleClose}
+      onClose={handleClose}
+      onConfirm={onConfirmSlippage}
+    />
   );
 };

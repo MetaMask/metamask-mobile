@@ -15,23 +15,71 @@ const batchSellAssetId =
   'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType;
 const mockDispatch = jest.fn();
 const mockSelector = jest.fn();
+const mockGoBack = jest.fn();
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
+}));
 
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        (props: { children: unknown }, _ref: unknown) => (
-          <View testID="bottom-sheet">{props.children as React.ReactNode}</View>
-        ),
-      ),
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactModule = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = ReactModule.forwardRef(
+    (
+      props: { children: React.ReactNode; onClose?: () => void },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      ReactModule.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: () => undefined,
+        onCloseBottomSheet: (callback?: () => void) => {
+          props.onClose?.();
+          callback?.();
+        },
+      }));
+      return <View>{props.children}</View>;
+    },
+  );
+
+  const BottomSheetHeader = ({ children }: { children: React.ReactNode }) => (
+    <View>
+      <Text>{children}</Text>
+    </View>
+  );
+
+  const BottomSheetFooter = ({
+    primaryButtonProps,
+    secondaryButtonProps,
+  }: {
+    primaryButtonProps: {
+      children: React.ReactNode;
+      onPress: () => void;
     };
-  },
-);
+    secondaryButtonProps: {
+      children: React.ReactNode;
+      onPress: () => void;
+    };
+  }) => (
+    <View>
+      <TouchableOpacity onPress={secondaryButtonProps.onPress}>
+        <Text>{secondaryButtonProps.children}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={primaryButtonProps.onPress}>
+        <Text>{primaryButtonProps.children}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return {
+    ...actual,
+    BottomSheet,
+    BottomSheetHeader,
+    BottomSheetFooter,
+  };
+});
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,

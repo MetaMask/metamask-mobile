@@ -22,21 +22,3 @@ export const defaultSlippageModalStyles = StyleSheet.create({
     padding: 16,
   },
 });
-
-export const customSlippageModalStyles = StyleSheet.create({
-  stepperContainer: {
-    padding: 16,
-  },
-  keypadContainer: {
-    padding: 16,
-  },
-  footerContainer: {
-    justifyContent: 'space-around',
-    flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-  },
-  footerContainerSection: {
-    flex: 1 / 2,
-  },
-});
