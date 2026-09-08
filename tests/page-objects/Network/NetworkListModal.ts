@@ -123,19 +123,21 @@ class NetworkListModal {
   }
 
   async swipeToDismissModal(): Promise<void> {
-    // Android: a title swipe often scrolls the list instead of closing
-    // ReusableModal. System back dismisses the sheet. iOS still uses swipe.
+    // Android: a title swipe scrolls the list instead of closing ReusableModal,
+    // and the open sheet hides the wallet chrome Android readiness looks for.
+    // System back closes it — verify before callers wait for wallet home.
     if (PlatformDetector.isAndroid()) {
       await getDriver().back();
-    } else {
-      await Gestures.swipe(this.selectNetwork, 'down', {
-        speed: 'fast',
-        percentage: 0.6,
+      await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
+        timeout: 15000,
+        description: 'Network selector dismissed',
       });
+      return;
     }
-    await Assertions.expectElementToNotBeVisible(this.selectNetwork, {
-      timeout: 15000,
-      description: 'Network selector dismissed',
+
+    await Gestures.swipe(this.selectNetwork, 'down', {
+      speed: 'slow',
+      percentage: 0.9,
     });
   }
 
