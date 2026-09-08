@@ -49,7 +49,7 @@ describe('StyledButton', () => {
 
       const flattenedContainerStyle = StyleSheet.flatten(containerStyle);
 
-      expect(flattenedContainerStyle.borderRadius).toBe(9999);
+      expect(flattenedContainerStyle).toMatchObject({ borderRadius: 9999 });
     },
   );
 });
