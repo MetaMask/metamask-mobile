@@ -14,11 +14,9 @@ import { Text, TextVariant } from '@metamask/design-system-react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../component-library/hooks';
+import { useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import styleSheet, { DEFAULT_CHART_HEIGHT } from './AdvancedChart.styles';
-import {
-  createAdvancedChartTemplate,
-  CHARTING_LIBRARY_BASE_URL,
-} from './AdvancedChartTemplate';
 import {
   ChartType,
   DEFAULT_DISABLED_FEATURES,
@@ -33,7 +31,15 @@ import {
   type RNToWebViewMessage,
 } from './AdvancedChart.types';
 
+// Threat-3 guard: only ever hand http(s) URLs to the OS opener. Drops custom
+// schemes (ethereum:/metamask:/…) that would otherwise re-enter MetaMask's
+// deeplink router from a compromised remote chart page.
+const isSafeExternalUrl = (url: string) => /^https?:\/\//i.test(url);
+
 const openInAppBrowser = (url: string) => {
+  if (!isSafeExternalUrl(url)) {
+    return;
+  }
   const fallback = () => {
     try {
       Linking.openURL(url);
@@ -128,6 +134,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const { styles, theme } = useStyles(styleSheet, {
       height,
     });
+    const { themeAppearance } = useTheme();
     const webViewRef = useRef<WebView>(null);
     const [chartReadyCount, setChartReadyCount] = useState(0);
     const isChartReady = chartReadyCount > 0;
@@ -165,81 +172,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const skeletonHiddenReportedRef = useRef(false);
     const resolvedWebViewKey = webViewInstanceKey ?? ohlcvSeriesKey ?? '';
 
-    // Track the color overrides baked into the current HTML template so the
-    // SET_THEME_COLORS effect can skip sending when colors haven't diverged.
-    // Refs are updated synchronously inside the useMemo below (not in a post-render
-    // effect) so the snapshot is always in sync with what was actually baked, even
-    // when multiple deps change in the same render cycle.
-    const initialLineColorRef = useRef(lineColorOverride);
-    const initialSuccessColorRef = useRef(successColorOverride);
-    const initialErrorColorRef = useRef(errorColorOverride);
-    const initialCurrentPriceColorRef = useRef(
-      resolveCurrentPriceColor({
-        lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
-        currentPriceLineColorOverride,
-        lineColorOverride,
-        successColorOverride,
-        themeSuccessDefault: theme.colors.success.default,
-      }),
-    );
-    const initialVolumeSuccessColorRef = useRef(volumeSuccessColorOverride);
-    const initialVolumeErrorColorRef = useRef(volumeErrorColorOverride);
-    const themeColorsSentRef = useRef(false);
-
-    const htmlContent = useMemo(() => {
-      // Snapshot current color-override prop values at the moment the template
-      // is created so the SET_THEME_COLORS effect can skip a redundant send on
-      // mount. Must happen inside useMemo (not a post-render effect) to avoid
-      // a stale-color race when multiple deps change in the same render cycle.
-      initialLineColorRef.current = lineColorOverride;
-      initialSuccessColorRef.current = successColorOverride;
-      initialErrorColorRef.current = errorColorOverride;
-      initialCurrentPriceColorRef.current = resolveCurrentPriceColor({
-        lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
-        currentPriceLineColorOverride,
-        lineColorOverride,
-        successColorOverride,
-        themeSuccessDefault: theme.colors.success.default,
-      });
-      initialVolumeSuccessColorRef.current = volumeSuccessColorOverride;
-      initialVolumeErrorColorRef.current = volumeErrorColorOverride;
-      return createAdvancedChartTemplate(theme, {
-        enableDrawingTools,
-        disabledFeatures,
-        useSubscriptPriceFormat,
-        priceDecimals,
-        hidePaneSeparator,
-        gridLineColorOverride,
-        lineColorOverride,
-        successColorOverride,
-        errorColorOverride,
-        currentPriceLineColorOverride,
-        labelStyleOverrides,
-        legendOverlay,
-        showBuiltInLegend,
-        volumeSuccessColorOverride,
-        volumeErrorColorOverride,
-      });
-      // lineColorOverride/successColorOverride/errorColorOverride/currentPriceLineColorOverride
-      // intentionally excluded — color changes hot-swap via SET_THEME_COLORS without
-      // rebuilding the WebView.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-      theme,
-      enableDrawingTools,
-      disabledFeatures,
-      useSubscriptPriceFormat,
-      priceDecimals,
-      labelStyleOverrides,
-      hidePaneSeparator,
-      gridLineColorOverride,
-      legendOverlay,
-      showBuiltInLegend,
-    ]);
-
-    // Reset all chart state when the WebView reloads due to htmlContent changes.
-    // Color refs are intentionally omitted here — they are snapshotted synchronously
-    // inside the useMemo above.
+    // Reset all chart state when the WebView remounts (key change).
     useEffect(() => {
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
@@ -256,8 +189,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
       ohlcvSeriesStaleSnapshotRef.current = null;
-      themeColorsSentRef.current = false;
-    }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [resolvedWebViewKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
 
@@ -721,30 +653,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // SET_THEME_COLORS inside onChartReady before applySeriesColors().
     useEffect(() => {
       if (!webViewLoaded) return;
-      if (!themeColorsSentRef.current) {
-        const effectiveCurrentPriceColor = resolveCurrentPriceColor({
-          lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
-          currentPriceLineColorOverride,
-          lineColorOverride,
-          successColorOverride,
-          themeSuccessDefault: theme.colors.success.default,
-        });
-        const colorsMatch =
-          lineColorOverride === initialLineColorRef.current &&
-          successColorOverride === initialSuccessColorRef.current &&
-          errorColorOverride === initialErrorColorRef.current &&
-          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current &&
-          volumeSuccessColorOverride === initialVolumeSuccessColorRef.current &&
-          volumeErrorColorOverride === initialVolumeErrorColorRef.current;
-        themeColorsSentRef.current = true;
-        if (
-          colorsMatch &&
-          currentPriceLineColorOverride === undefined &&
-          volumeSuccessColorOverride === undefined &&
-          volumeErrorColorOverride === undefined
-        )
-          return;
-      }
       const effectiveSuccessColor =
         successColorOverride ?? theme.colors.success.default;
       const effectiveLineColor = lineColorOverride ?? effectiveSuccessColor;
@@ -1096,12 +1004,31 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           <WebView
             key={`advanced-chart-${resolvedWebViewKey}`}
             ref={webViewRef}
-            source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}
+            source={{
+              uri: `http://localhost:8001/index.html?theme=${
+                themeAppearance === AppThemeKey.dark ? 'dark' : 'light'
+              }`,
+            }}
             style={styles.webview}
             onMessage={handleMessage}
             onOpenWindow={handleOpenWindow}
             onError={handleWebViewError}
             onLoadEnd={handleLoadEnd}
+            // Threat-3 navigation guard: allow only web/inert schemes; block
+            // custom schemes (ethereum:/metamask:/…) so a remote page can't
+            // force MetaMask's deeplink router.
+            onShouldStartLoadWithRequest={(request) => {
+              const url = request.url || '';
+              const lower = url.toLowerCase();
+              const allowed =
+                lower.startsWith('http:') ||
+                lower.startsWith('https:') ||
+                lower.startsWith('about:') ||
+                lower.startsWith('data:') ||
+                lower.startsWith('blob:') ||
+                !/^[a-z0-9.+-]+:/i.test(url); // relative paths
+              return allowed;
+            }}
             originWhitelist={['*']}
             javaScriptEnabled
             domStorageEnabled
