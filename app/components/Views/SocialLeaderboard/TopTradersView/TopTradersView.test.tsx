@@ -21,6 +21,7 @@ import {
   type LeaderboardSort,
   type SocialTimeframe,
 } from '../components/Filters';
+import { getSubnavPillTestId } from '../shell/SubnavPills';
 
 /**
  * Opens the type-filter dropdown and picks an option, mirroring the real user
@@ -348,6 +349,38 @@ describe('TopTradersView', () => {
     fixtureTraders.forEach((trader) => {
       expect(screen.getByText(trader.username)).toBeOnTheScreen();
     });
+  });
+
+  it('starts the Social Bundle leaderboard on the combined top traders query', () => {
+    renderWithProvider(<TopTradersView isSocialBundleV1Enabled />);
+
+    expectLatestQueryEnabledStates({
+      all: true,
+      tokens: false,
+      perps: false,
+    });
+    expect(
+      screen.getByTestId(getSubnavPillTestId('topTraders')),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows an empty placeholder list for the KOL sub-navigation', () => {
+    renderWithProvider(<TopTradersView isSocialBundleV1Enabled />);
+
+    fireEvent.press(screen.getByTestId(getSubnavPillTestId('kols')));
+
+    fixtureTraders.forEach((trader) => {
+      expect(screen.queryByText(trader.username)).not.toBeOnTheScreen();
+    });
+  });
+
+  it('restores trader rows when switching from KOLs to Top traders', () => {
+    renderWithProvider(<TopTradersView isSocialBundleV1Enabled />);
+    fireEvent.press(screen.getByTestId(getSubnavPillTestId('kols')));
+
+    fireEvent.press(screen.getByTestId(getSubnavPillTestId('topTraders')));
+
+    expect(screen.getByText(fixtureTraders[0].username)).toBeOnTheScreen();
   });
 
   it('renders a podium medal for the top trader', () => {

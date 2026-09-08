@@ -76,6 +76,9 @@ import type {
 } from './types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { FeedViewSelectorsIDs } from './FeedView.testIds';
+import SubnavPills from '../shell/SubnavPills';
+import { SOCIAL_SHELL_TAB_CONFIG } from '../shell/tabConfig';
+import type { FeedSubnavId } from '../shell/types';
 
 const SKELETON_ROW_COUNT = 6;
 const SKELETON_KEYS = Array.from(
@@ -92,6 +95,8 @@ type AnimatedScrollHandler = React.ComponentProps<
 >['onScroll'];
 
 export interface FeedViewProps {
+  /** Renders Social Bundle V1 audience pills instead of the legacy toggle. */
+  isSocialBundleV1Enabled?: boolean;
   /**
    * Whether the Feed tab is the active page. The visible feed query only
    * subscribes when active so the off-screen page doesn't keep a live
@@ -142,6 +147,7 @@ export interface FeedViewProps {
  * rows navigate to the Perps market detail page.
  */
 const FeedView: React.FC<FeedViewProps> = ({
+  isSocialBundleV1Enabled = false,
   isActive = true,
   initialAudience = 'following',
   onQuickBuy,
@@ -182,6 +188,13 @@ const FeedView: React.FC<FeedViewProps> = ({
   // Fires when the Feed tab first becomes active (pager mounts both pages).
   const hasFiredScreenViewedRef = useRef(false);
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (isSocialBundleV1Enabled && audienceRef.current !== 'all') {
+      audienceRef.current = 'all';
+      setAudience('all');
+    }
+  }, [isSocialBundleV1Enabled]);
 
   // Only one of these is mounted at a time (skeletons vs. loaded sections), so
   // the handle forwards the offset to both and lets the unmounted one no-op.
@@ -288,6 +301,13 @@ const FeedView: React.FC<FeedViewProps> = ({
       setAudience(next);
     },
     [track],
+  );
+
+  const handleSubnavChange = useCallback(
+    (next: FeedSubnavId) => {
+      handleAudienceChange(next === 'trending' ? 'all' : 'following');
+    },
+    [handleAudienceChange],
   );
 
   const handleTypeFilterChange = useCallback(
@@ -514,8 +534,24 @@ const FeedView: React.FC<FeedViewProps> = ({
 
   // The filter row rides inside the scroll (as the list header) so it scrolls
   // away with the feed rows instead of staying pinned.
-  const filterRow = useMemo(
-    () => (
+  const filterRow = useMemo(() => {
+    if (isSocialBundleV1Enabled) {
+      return (
+        <SubnavPills
+          items={SOCIAL_SHELL_TAB_CONFIG.feed.subnav}
+          value={audience === 'all' ? 'trending' : 'following'}
+          onChange={handleSubnavChange}
+          endAccessory={
+            <TypeFilterSelector
+              value={typeFilter}
+              onPress={() => setIsTypeSheetOpen(true)}
+            />
+          }
+        />
+      );
+    }
+
+    return (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -533,9 +569,15 @@ const FeedView: React.FC<FeedViewProps> = ({
           onChange={handleAudienceChange}
         />
       </Box>
-    ),
-    [typeFilter, audience, audienceOrder, handleAudienceChange],
-  );
+    );
+  }, [
+    typeFilter,
+    audience,
+    audienceOrder,
+    handleAudienceChange,
+    handleSubnavChange,
+    isSocialBundleV1Enabled,
+  ]);
 
   const content = useMemo(() => {
     if (isLoading && items.length === 0) {

@@ -15,6 +15,16 @@ export const selectSocialLeaderboardEnabled = createSelector(
   },
 );
 
+export const selectSocialBundleV1Enabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialBundleV1Enabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 export const selectSocialLeaderboardOptFlowEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
