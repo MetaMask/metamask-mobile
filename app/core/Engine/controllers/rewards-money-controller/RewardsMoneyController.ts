@@ -8,6 +8,7 @@ import {
 } from './defaultState';
 import {
   REWARDS_MONEY_CONTROLLER_NAME,
+  type ClaimHistoryPageDto,
   type ClaimInitiateResultDto,
   type EarningOriginType,
   type EarningsLedgerPageDto,
@@ -174,6 +175,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getReferralMe',
   'getEarningsSummary',
   'getEarningsLedger',
+  'getClaimHistory',
   'initiateClaim',
   'invalidateRewardsMoneyCache',
   'recordOptimisticClaim',
@@ -422,6 +424,30 @@ export class RewardsMoneyController extends BaseController<
    * Opens a claim. Never cached: the voucher it returns is single-use and
    * expires in 60 seconds.
    */
+  /**
+   * The caller's claim history, newest first.
+   *
+   * Deliberately uncached, unlike the summary and the ledger's first page. This
+   * is a history list the user opens on purpose and pull-to-refreshes, not a
+   * read on the hot path — and caching it would mean a new controller state key
+   * for no benefit.
+   *
+   * @param params.cursor - Cursor from a previous page, or omitted for the first.
+   * @returns One page of claims, or an empty page when the surface is disabled.
+   */
+  async getClaimHistory(
+    params: { cursor?: string | null } = {},
+  ): Promise<ClaimHistoryPageDto> {
+    if (this.#isDisabled()) {
+      return { results: [], has_more: false, cursor: null };
+    }
+
+    return this.messenger.call(
+      'RewardsMoneyDataService:getClaimHistory',
+      params.cursor ?? null,
+    );
+  }
+
   async initiateClaim(
     params: InitiateClaimDto,
   ): Promise<ClaimInitiateResultDto> {

@@ -10,6 +10,7 @@ import type {
   RewardsMoneyControllerEvents,
 } from '../../controllers/rewards-money-controller/types';
 import type {
+  RewardsMoneyDataServiceGetClaimHistoryAction,
   RewardsMoneyDataServiceGetEarningsLedgerAction,
   RewardsMoneyDataServiceGetEarningsSummaryAction,
   RewardsMoneyDataServiceGetReferralMeAction,
@@ -24,6 +25,7 @@ type AllowedActions =
   | RewardsMoneyDataServiceGetReferralMeAction
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
+  | RewardsMoneyDataServiceGetClaimHistoryAction
   | RewardsMoneyDataServiceInitiateClaimAction;
 
 export type RewardsMoneyControllerMessenger = Messenger<
@@ -63,6 +65,7 @@ export function getRewardsMoneyControllerMessenger(
       'RewardsMoneyDataService:getReferralMe',
       'RewardsMoneyDataService:getEarningsSummary',
       'RewardsMoneyDataService:getEarningsLedger',
+      'RewardsMoneyDataService:getClaimHistory',
       'RewardsMoneyDataService:initiateClaim',
     ],
     events: [],

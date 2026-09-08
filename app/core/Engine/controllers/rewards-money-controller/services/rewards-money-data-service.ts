@@ -4,6 +4,7 @@ import { getVersion } from 'react-native-device-info';
 import type {
   ClaimInitiateResultDto,
   EarningOriginType,
+  ClaimHistoryPageDto,
   EarningsLedgerPageDto,
   EarningsSummaryDto,
   ReferralMeDto,
@@ -38,6 +39,9 @@ function decodeJwtSub(token: string): string | null {
 
 /** The ledger page size the client asks for. */
 export const EARNINGS_LEDGER_PAGE_SIZE = 20;
+
+/** The server clamps `limit` to 1..100; 20 matches the ledger's page size. */
+export const CLAIM_HISTORY_PAGE_SIZE = 20;
 
 /**
  * The Rewards Money API rejected the Hydra bearer token, or none was
@@ -79,6 +83,11 @@ export interface RewardsMoneyDataServiceGetEarningsLedgerAction {
   handler: RewardsMoneyDataService['getEarningsLedger'];
 }
 
+export interface RewardsMoneyDataServiceGetClaimHistoryAction {
+  type: `${typeof SERVICE_NAME}:getClaimHistory`;
+  handler: RewardsMoneyDataService['getClaimHistory'];
+}
+
 export interface RewardsMoneyDataServiceInitiateClaimAction {
   type: `${typeof SERVICE_NAME}:initiateClaim`;
   handler: RewardsMoneyDataService['initiateClaim'];
@@ -88,6 +97,7 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceGetReferralMeAction
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
+  | RewardsMoneyDataServiceGetClaimHistoryAction
   | RewardsMoneyDataServiceInitiateClaimAction;
 
 /**
@@ -180,6 +190,10 @@ export class RewardsMoneyDataService {
       this.getEarningsLedger.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getClaimHistory`,
+      this.getClaimHistory.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:initiateClaim`,
       this.initiateClaim.bind(this),
     );
@@ -260,6 +274,39 @@ export class RewardsMoneyDataService {
    * Opens a claim and returns the signed EIP-3009 voucher. The voucher is
    * valid for 60 seconds, so the caller must be ready to submit immediately.
    */
+  /**
+   * The caller's claim history, newest first.
+   *
+   * Read-only and unfiltered: unlike the ledger there are no origin-type facets
+   * to carry, so a cursor page needs nothing but the cursor.
+   *
+   * @param cursor - Opaque cursor from a previous page, or null for the first.
+   * @param limit - Page size; the server clamps to 1..100.
+   * @returns One page of claims.
+   */
+  async getClaimHistory(
+    cursor?: string | null,
+    limit: number = CLAIM_HISTORY_PAGE_SIZE,
+  ): Promise<ClaimHistoryPageDto> {
+    const params = new URLSearchParams();
+    params.append('limit', String(limit));
+
+    if (cursor) {
+      params.append('cursor', cursor);
+    }
+
+    const response = await this.#makeRequest(
+      `/earnings/claim/me?${params.toString()}`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get claim history failed: ${response.status}`);
+    }
+
+    return (await response.json()) as ClaimHistoryPageDto;
+  }
+
   async initiateClaim(
     moneyAccountAddress: string,
     originTypes: EarningOriginType[],

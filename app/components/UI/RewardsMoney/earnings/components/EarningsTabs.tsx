@@ -15,7 +15,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_MONEY_TEST_IDS } from '../../constants';
 
 export const EARNINGS_TAB_LEDGER = 0;
-export const EARNINGS_TAB_CODE_PERFORMANCE = 1;
+export const EARNINGS_TAB_CLAIMS = 1;
+export const EARNINGS_TAB_CODE_PERFORMANCE = 2;
 
 interface EarningsTabsProps {
   activeIndex: number;
@@ -30,6 +31,10 @@ interface EarningsTabsProps {
  * `TabsBar` rather than `TabsList`: `TabsList` owns its own swipeable scroll
  * container, which would nest inside — and break — the ledger's `FlatList`
  * infinite scroll. The bar is controlled and the parent swaps content.
+ *
+ * Activity and Claims are always shown; code performance is referrer-only and
+ * still a placeholder, so the bar no longer needs its old
+ * hide-when-only-one-tab guard.
  */
 const EarningsTabs: React.FC<EarningsTabsProps> = ({
   activeIndex,
@@ -44,6 +49,14 @@ const EarningsTabs: React.FC<EarningsTabsProps> = ({
         content: null,
         testID: `${REWARDS_MONEY_TEST_IDS.EARNINGS_TABS}-ledger`,
       },
+      // Always present: a claim history exists for referrer and referee alike,
+      // and unlike code performance it has a real endpoint behind it.
+      {
+        key: 'claims',
+        label: strings('rewards_money.earnings.tab_claims'),
+        content: null,
+        testID: `${REWARDS_MONEY_TEST_IDS.EARNINGS_TABS}-claims`,
+      },
     ];
 
     if (showCodePerformance) {
@@ -57,10 +70,6 @@ const EarningsTabs: React.FC<EarningsTabsProps> = ({
 
     return items;
   }, [showCodePerformance]);
-
-  if (tabs.length < 2) {
-    return null;
-  }
 
   return (
     <TabsBar

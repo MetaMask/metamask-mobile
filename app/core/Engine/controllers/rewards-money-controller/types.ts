@@ -195,6 +195,21 @@ export type ClaimExcludedDto = {
   reason: ClaimBlockingReason;
 };
 
+/**
+ * The claim lifecycle the server reports on a claim row. Distinct from
+ * `ClaimStatusDto`, which is the *outcome* of an initiate call.
+ *
+ * `PENDING_SIGNATURE` is transient — swept to `FAILED` within a couple of
+ * minutes — so the UI folds it in with pending rather than naming it.
+ */
+export type ClaimLifecycleStatus =
+  | 'PENDING_SIGNATURE'
+  | 'AUTHORIZED'
+  | 'SETTLED'
+  | 'EXPIRED'
+  | 'FAILED';
+
+/** The outcome of `POST /wr/earnings/claim`, not a claim's lifecycle state. */
 export type ClaimStatusDto = 'LIVE_VOUCHER' | 'AWAITING_RELEASE' | 'OPENED';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -208,8 +223,24 @@ export type ClaimDto = {
   net_amount: string;
   withholding_rate_bps: number;
   valid_before: string | null;
-  status: string;
+  status: ClaimLifecycleStatus;
   created_at: string;
+  /**
+   * Settlement provenance, written only once the reconciler observes the
+   * consumed nonce on chain. Null while `AUTHORIZED`, and null for anything
+   * settled by `dev:settle-claim`, which records no block or hash — so a
+   * `SETTLED` row can still have no transaction to open.
+   */
+  settled_tx_hash?: string | null;
+  settled_at?: string | null;
+};
+
+/** Matches the repo-wide cursor page contract consumed by `useCursorPaginatedList`. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ClaimHistoryPageDto = {
+  results: ClaimDto[];
+  has_more: boolean;
+  cursor: string | null;
 };
 
 /** `POST /wr/earnings/claim` */

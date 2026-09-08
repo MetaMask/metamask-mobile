@@ -11,6 +11,7 @@ export type {
   RewardsMoneyDataServiceActions,
   RewardsMoneyDataServiceGetReferralMeAction,
   RewardsMoneyDataServiceGetEarningsSummaryAction,
+  RewardsMoneyDataServiceGetClaimHistoryAction,
   RewardsMoneyDataServiceGetEarningsLedgerAction,
   RewardsMoneyDataServiceInitiateClaimAction,
 } from './rewards-money-data-service';
