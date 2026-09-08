@@ -1,5 +1,5 @@
 import React, { type PropsWithChildren } from 'react';
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 
 import { ToastContext } from '../../component-library/components/Toast';
 import Routes from '../../constants/navigation/Routes';
@@ -116,13 +116,16 @@ describe('useBasicFunctionalityConsolidation', () => {
     });
   });
 
-  it('shows the migration toast and links to Privacy settings', () => {
+  it('shows the migration toast and links to Privacy settings', async () => {
     setSelectorValues({ shouldShowToast: true });
 
     renderHook(() => useBasicFunctionalityConsolidation(), { wrapper });
 
     const toastOptions = mockShowToast.mock.calls[0][0];
-    toastOptions.linkButtonOptions.onPress();
+
+    await act(async () => {
+      toastOptions.linkButtonOptions.onPress();
+    });
 
     expect(dismissBasicFunctionalityMigrationNotification).toHaveBeenCalled();
     expect(mockCloseToast).toHaveBeenCalled();

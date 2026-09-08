@@ -89,12 +89,17 @@ describe('finalizeOnboardingCompletion', () => {
     jest.clearAllMocks();
     mockProvisionFromMetadata.mockResolvedValue(undefined);
     mockSetBasicFunctionality.mockResolvedValue(undefined);
+    mockDiscoverAccounts.mockResolvedValue(0);
     jest
       .mocked(store.getState)
       .mockReturnValue({} as ReturnType<typeof store.getState>);
     jest
       .mocked(selectMobileUxBftcConsolidationFlagEnabled)
       .mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('tracks ONBOARDING_COMPLETED via analytics.trackEvent for eligible flows', () => {
@@ -234,9 +239,6 @@ describe('finalizeOnboardingCompletion', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
-
-    loggerSpy.mockRestore();
-    mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
   it('logs discoverAccounts failures with the provided context', async () => {
@@ -260,9 +262,6 @@ describe('finalizeOnboardingCompletion', () => {
       expect.any(Error),
       'OnboardingSuccess: discoverAccounts failed',
     );
-
-    loggerSpy.mockRestore();
-    mockDiscoverAccounts.mockResolvedValue(0);
   });
 
   it('marks consolidated Basic Functionality cohort when remote flag is enabled', () => {
