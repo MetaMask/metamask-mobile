@@ -217,7 +217,7 @@ jobs:
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -402,10 +402,10 @@ jobs:
     if: always() && needs.prepare.outputs.run_tests == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download All Test Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: '*-test-results-*'
           path: ./test-results
@@ -422,7 +422,7 @@ jobs:
           echo "Aggregation completed"
 
       - name: Upload Final Combined Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aggregated-reports
           path: |
@@ -438,10 +438,10 @@ jobs:
     if: always() && !cancelled() && needs.aggregate-results.result != 'skipped' && inputs.pr_number != ''
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download Aggregated Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: aggregated-reports
           path: ./aggregated-reports
@@ -499,10 +499,10 @@ jobs:
     if: always() && needs.aggregate-results.result != 'skipped'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download Aggregated Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: aggregated-reports
           path: ./aggregated-reports

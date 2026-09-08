@@ -103,14 +103,14 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -120,7 +120,7 @@ jobs:
       # ("Couldn't find the node_modules state file"). build.yml gets this from its
       # setup-dependencies job; this workflow has no such job, so it installs inline.
       - name: Install dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -129,7 +129,7 @@ jobs:
 
       # JS-only setup: no pods, no Gradle. Same flags the BrowserStack repack path uses.
       - name: Setup project with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 20
           max_attempts: 3
@@ -138,7 +138,7 @@ jobs:
 
       - name: Setup Java (Android)
         if: inputs.platform == 'android'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -179,7 +179,7 @@ jobs:
         run: fastlane --version
 
       - name: Download donor artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: donor
@@ -451,20 +451,20 @@ jobs:
             --dist "$SENTRY_DIST" \
             "$UPLOAD_DIR"
 
-      # Suffixed, unlike the IPA/APK below. actions/upload-artifact@v4 rejects a duplicate
+      # Suffixed, unlike the IPA/APK below. actions/upload-artifact@v7 rejects a duplicate
       # name within a run, and a repack that fails here falls back to a native build in the
       # same run — which uploads build.yml's own copies of these two. The suffix keeps them
       # from colliding. `build-env-main-rc-*` still matches the pattern post-rc-build-comment
       # downloads, and build-announce reads the platform off the directory name.
       - name: Upload sourcemaps
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.platform }}-sourcemaps-${{ inputs.build_name }}-repack
           path: sourcemaps/${{ inputs.platform }}
           if-no-files-found: warn
 
       - name: Upload build environment JSON
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-env-${{ inputs.build_name }}-${{ inputs.platform }}-repack
           path: build-env.json
@@ -475,7 +475,7 @@ jobs:
       # nothing for the native fallback to collide with; if it does get published and the
       # job fails later, purge-partial-repack-artifacts in the caller clears it.
       - name: Upload repacked artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ steps.donor.outputs.output }}

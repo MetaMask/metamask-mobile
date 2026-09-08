@@ -87,7 +87,7 @@ jobs:
     if: success()
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 2
@@ -97,7 +97,7 @@ jobs:
       - name: Install sentry-cli
         run: curl -sL https://sentry.io/get-cli/ | bash
       - name: Download iOS xcarchive
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ios-xcarchive-main-rc
           path: ./build-artifacts/
@@ -126,7 +126,7 @@ jobs:
     if: success()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.sha }}
           fetch-depth: 2
@@ -136,7 +136,7 @@ jobs:
       - name: Install sentry-cli
         run: curl -sL https://sentry.io/get-cli/ | bash
       - name: Download Android APK
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-main-rc
           path: ./build-artifacts/

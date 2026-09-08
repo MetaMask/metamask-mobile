@@ -74,7 +74,7 @@ jobs:
             pull_requests: write
             workflows: write
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           ref: ${{ matrix.branch }}
           # Use installation token to ensure that the commit later can trigger status check workflows

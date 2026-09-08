@@ -107,7 +107,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -116,21 +116,21 @@ jobs:
       - name: Restore .metamask folder
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.restore-metamask.outputs.cache-hit != 'true' }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install:foundryup
       - name: Clean state and following up dependencies installation with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 20
           max_attempts: 3
@@ -183,7 +183,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -238,7 +238,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -247,7 +247,7 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - name: Deduplicate dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -297,7 +297,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -306,7 +306,7 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - name: Run @lavamoat/git-safe-dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -376,7 +376,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -437,7 +437,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -542,7 +542,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -783,7 +783,7 @@ jobs:
           path: ios
       - name: Download iOS bundle (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ios-bundle
           path: ios
@@ -889,7 +889,7 @@ jobs:
         run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
       - name: Upload CI JS deps artifact
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ci-js-deps
           path: ci-js-deps.tar.gz
@@ -929,7 +929,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1009,7 +1009,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1027,7 +1027,7 @@ jobs:
           path: tests/coverage/
       - name: Download coverage shards (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: coverage-*
           path: tests/coverage/
@@ -1224,7 +1224,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1310,7 +1310,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1516,7 +1516,7 @@ jobs:
         # uploaded by the earliest attempt is always the one shards will use.
         if: ${{ steps.fetch.outputs.available == 'true' }}
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-timings-${{ github.run_id }}
           path: ./e2e-timings.json
@@ -1711,7 +1711,7 @@ jobs:
       # GitHub Actions artifact store — download via actions/* regardless of provider.
       - name: Download fixture validation results
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: fixture-validation-results-validate-e2e-fixtures
           path: fixture-results/
@@ -1772,7 +1772,7 @@ jobs:
           path: coverage/
       - name: Download lcov.info (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: lcov.info
           path: coverage/
@@ -1921,7 +1921,7 @@ jobs:
       actions: write
     steps:
       - name: Delete CI JS deps artifact
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
