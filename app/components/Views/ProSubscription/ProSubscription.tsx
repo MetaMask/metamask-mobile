@@ -20,22 +20,11 @@ import Routes from '../../../constants/navigation/Routes';
 import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
 import type { PlanId } from './screens/Benefits/Benefits.constants';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
-
-/*
- * Brand gradient for the Orange flow: deep plum at the top fading to black.
- * Applied at the container so it sits behind the toolbar too — gradienting
- * only the Benefits screen would leave a seam under the back button.
- *
- * Raw hex for the same reason as the CTA colour: these are new brand values
- * that are not in @metamask/design-tokens yet. Precedent for a brand gradient
- * declared this way: app/components/UI/Card/Views/CardWelcome.
- */
-const ORANGE_GRADIENT_COLORS = [
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- spike only
-  '#28001A',
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- spike only
-  '#000000',
-];
+import {
+  ORANGE_GRADIENT_COLORS,
+  ORANGE_GRADIENT_END,
+  ORANGE_GRADIENT_START,
+} from '../shared/pro/brand.constants';
 
 type ProSubscriptionScreen = 'benefits' | 'success';
 
@@ -78,8 +67,8 @@ const ProSubscription = () => {
   return (
     <LinearGradient
       colors={ORANGE_GRADIENT_COLORS}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
+      start={ORANGE_GRADIENT_START}
+      end={ORANGE_GRADIENT_END}
       style={tw.style('flex-1')}
     >
       <SafeAreaView

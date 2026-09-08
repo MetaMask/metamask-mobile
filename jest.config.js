@@ -88,6 +88,10 @@ const config = {
     '\\.(svg)$': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.(png)$': '<rootDir>/app/__mocks__/pngMock.js',
     '\\.(mp4)$': '<rootDir>/app/__mocks__/mp4Mock.js',
+    // Fonts and Rive animations are binaries required through Metro's asset
+    // pipeline, which resolves them to a number. Jest has no such pipeline, so
+    // it tries to parse them as JavaScript.
+    '\\.(ttf|otf|riv)$': '<rootDir>/app/__mocks__/pngMock.js',
     '^react-native-video$': '<rootDir>/app/__mocks__/react-native-video.tsx',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
     '^@expo/vector-icons@expo/vector-icons$': 'react-native-vector-icons',

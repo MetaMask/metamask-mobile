@@ -4,9 +4,27 @@
  */
 import { IconName } from '@metamask/design-system-react-native';
 
+/**
+ * The canonical set of membership benefits.
+ *
+ * Typed as a union rather than `string` so that anything keyed by benefit —
+ * notably the Pro Hub's entitlement state — cannot compile while a benefit is
+ * missing. Adding a benefit here surfaces as a type error everywhere it needs
+ * representing, which is what stops the hub silently showing a subset of what
+ * the upsell sold.
+ */
+export type BenefitId =
+  | 'member_pricing'
+  | 'apy'
+  | 'cashback'
+  | 'atm_fees'
+  | 'protection'
+  | 'support'
+  | 'app_icon';
+
 export interface BenefitItem {
   /** Unique key — matches the `membership_benefits` i18n namespace segment. */
-  id: string;
+  id: BenefitId;
   /** i18n key passed to `strings()` for the row title. */
   title: string;
   /** i18n key passed to `strings()` for the row subtitle. */

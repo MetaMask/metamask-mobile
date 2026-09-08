@@ -75,6 +75,16 @@ jest.mock('expo-screen-capture', () => ({
   useScreenshotListener: jest.fn(),
 }));
 
+// Mock expo-font: importing it pulls in expo-asset, whose side-effect module
+// calls a native `setTransformer` at import time and throws in Jest. Only
+// `useFonts` is used in the app, and only to register a bundled font with the
+// OS at runtime — a no-op is the correct test behaviour.
+jest.mock('expo-font', () => ({
+  useFonts: jest.fn(() => [true, null]),
+  loadAsync: jest.fn().mockResolvedValue(undefined),
+  isLoaded: jest.fn(() => true),
+}));
+
 // Mock Expo's fetch implementation
 jest.mock('expo/fetch', () => {
   return {

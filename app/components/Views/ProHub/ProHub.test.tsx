@@ -2,7 +2,10 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
+import { EntitlementsTestIds } from './components/Entitlements';
+import { BENEFITS } from '../shared/pro/benefits.constants';
+import { HUB_BENEFIT_ROWS } from '../shared/pro/entitlements.constants';
+import { MOCK_MEMBER_SINCE } from './ProHub.constants';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -63,12 +66,16 @@ describe('ProHub', () => {
       expect(container).toBeOnTheScreen();
     });
 
-    it('renders the title from i18n', () => {
+    /*
+     * The header carries no title: "Orange" is stated once, large, by the
+     * identity block below it. A header title would repeat it.
+     */
+    it('renders no title in the header', () => {
       const { getByTestId } = renderProHub();
 
-      const header = getByTestId(ProHubTestIds.HEADER_ROOT);
-
-      expect(header).toHaveTextContent(strings('pro_hub.title'));
+      expect(getByTestId(ProHubTestIds.HEADER_ROOT)).not.toHaveTextContent(
+        toRegex(strings('pro_hub.title')),
+      );
     });
 
     it('renders the header bar', () => {
@@ -87,74 +94,129 @@ describe('ProHub', () => {
       expect(backButton).toBeOnTheScreen();
     });
 
-    it('renders the manage plans icon button', () => {
-      const { getByTestId } = renderProHub();
+    it('does not render a settings affordance in the header', () => {
+      const { queryByTestId } = renderProHub();
 
-      const managePlansButton = getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON);
-
-      expect(managePlansButton).toBeOnTheScreen();
+      expect(
+        queryByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
-    it('renders membership card, lifetime earnings, and stat rows', () => {
+    it('renders the member identity with the date they joined', () => {
       const { getByTestId } = renderProHub();
 
-      const membershipBanner = getByTestId(ProHubTestIds.MEMBERSHIP_BANNER);
-      const lifetimeEarningsSection = getByTestId(
-        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
-      );
-      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
-      const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
+      const identity = getByTestId(ProHubTestIds.MEMBERSHIP_BANNER);
 
-      expect(membershipBanner).toHaveTextContent(
-        toRegex(strings('pro_hub.membership_brand')),
-      );
-      expect(membershipBanner).toHaveTextContent(
+      expect(identity).toHaveTextContent(
         toRegex(strings('pro_hub.membership_label')),
       );
-      expect(lifetimeEarningsSection).toHaveTextContent(
-        toRegex(strings('pro_hub.lifetime_earnings')),
-      );
-      expect(moneyBalanceRow).toHaveTextContent(
-        toRegex(strings('pro_hub.money_balance')),
-      );
-      expect(musdBackRow).toHaveTextContent(
-        toRegex(strings('pro_hub.musd_back')),
+      expect(identity).toHaveTextContent(
+        toRegex(strings('pro_hub.member_since', { date: MOCK_MEMBER_SINCE })),
       );
     });
 
-    it('renders the physical card banner with title and description', () => {
+    /*
+     * The earnings figures now live on the benefit rows that produce them, so
+     * the identity block leads straight into the benefits.
+     */
+    it('states the Money balance earnings on the Boosted APY row', () => {
       const { getByTestId } = renderProHub();
 
-      const banner = getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER);
-      const title = getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE);
-      const description = getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION);
-
-      expect(banner).toBeOnTheScreen();
-      expect(title).toHaveTextContent(strings('pro_hub.physical_card.title'));
-      expect(description).toHaveTextContent(
-        strings('pro_hub.physical_card.description'),
-      );
+      expect(
+        getByTestId(EntitlementsTestIds.SUBLABEL('apy')),
+      ).toHaveTextContent(toRegex('+$48.92'));
     });
 
-    it('renders member pricing section title and all trade rows', () => {
+    it('shows each rate as a badge beside its label', () => {
       const { getByTestId } = renderProHub();
 
-      const section = getByTestId(MemberPricingOnTradesTestIds.SECTION);
-      const title = getByTestId(MemberPricingOnTradesTestIds.TITLE);
+      expect(getByTestId(EntitlementsTestIds.BADGE('apy'))).toHaveTextContent(
+        strings('pro_hub.entitlements.apy.badge'),
+      );
+      expect(
+        getByTestId(EntitlementsTestIds.BADGE('cashback')),
+      ).toHaveTextContent(strings('pro_hub.entitlements.cashback.badge'));
+    });
 
-      expect(section).toBeOnTheScreen();
-      expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
+    /*
+     * The regression that matters most on this screen: the hub used to render
+     * only the benefits carrying a currency figure, so protection, ATM/FX,
+     * support and the app icon appeared nowhere. Asserting that every
+     * `BenefitId` is covered means adding a benefit to the upsell fails here
+     * until the members' area acknowledges it.
+     */
+    it('covers every benefit sold on the upsell', () => {
+      const { getByTestId } = renderProHub();
 
-      TRADE_ALLOWANCE_IDS.forEach((id) => {
-        const row = getByTestId(MemberPricingOnTradesTestIds.ROW(id));
-        const progress = getByTestId(MemberPricingOnTradesTestIds.PROGRESS(id));
+      expect(getByTestId(EntitlementsTestIds.SECTION)).toBeOnTheScreen();
+      expect(getByTestId(EntitlementsTestIds.TITLE)).toHaveTextContent(
+        strings('pro_hub.entitlements.title'),
+      );
 
-        expect(row).toBeOnTheScreen();
-        expect(progress).toBeOnTheScreen();
-        expect(row).toHaveTextContent(
-          toRegex(strings(`pro_hub.member_pricing.${id}.label`)),
-        );
+      const coveredBenefits = new Set(
+        HUB_BENEFIT_ROWS.map((row) => row.benefitId),
+      );
+      BENEFITS.forEach(({ id }) => {
+        expect(coveredBenefits.has(id)).toBe(true);
       });
+    });
+
+    it('renders every row with its label and sublabel', () => {
+      const { getByTestId } = renderProHub();
+
+      HUB_BENEFIT_ROWS.forEach((row) => {
+        expect(getByTestId(EntitlementsTestIds.ROW(row.id))).toHaveTextContent(
+          toRegex(strings(row.labelKey)),
+        );
+        expect(
+          getByTestId(EntitlementsTestIds.SUBLABEL(row.id)),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    /*
+     * Member pricing fans out into its three markets, and only consumable
+     * benefits get a bar — a standing right has nothing to draw down.
+     */
+    it('renders a bar for the consumable benefits only', () => {
+      const { getByTestId, queryByTestId } = renderProHub();
+
+      const withBars = HUB_BENEFIT_ROWS.filter((row) => row.allowance).map(
+        (row) => row.id,
+      );
+      expect(withBars).toEqual([...TRADE_ALLOWANCE_IDS, 'protection']);
+
+      HUB_BENEFIT_ROWS.forEach((row) => {
+        const meter = queryByTestId(EntitlementsTestIds.METER(row.id));
+        if (row.allowance) {
+          expect(meter).toBeOnTheScreen();
+          expect(
+            getByTestId(EntitlementsTestIds.METER_FILL(row.id)),
+          ).toBeOnTheScreen();
+        } else {
+          expect(meter).toBeNull();
+        }
+      });
+    });
+
+    it('states what is left of an allowance, not what is spent', () => {
+      const { getByTestId } = renderProHub();
+
+      // $310 of $500 used, so $190 remains.
+      expect(
+        getByTestId(EntitlementsTestIds.SUBLABEL('swaps')),
+      ).toHaveTextContent(toRegex('$190 of $500'));
+    });
+
+    it('offers a trailing action on the rows that need one', () => {
+      const { getByTestId } = renderProHub();
+
+      expect(
+        getByTestId(EntitlementsTestIds.ACTION('get_card')),
+      ).toHaveTextContent(strings('pro_hub.entitlements.get_card.action'));
+      expect(
+        getByTestId(EntitlementsTestIds.ACTION('app_icon')),
+      ).toHaveTextContent(strings('pro_hub.entitlements.app_icon.action'));
     });
 
     it('renders next payment text and manage plan button', () => {
@@ -197,18 +259,10 @@ describe('ProHub', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
     });
 
-    it('navigates to Membership when manage plans icon is pressed', () => {
+    it('navigates to Card from the order-your-card action', () => {
       const { getByTestId } = renderProHub();
 
-      fireEvent.press(getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
-    });
-
-    it('navigates to Card when physical card banner is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
+      fireEvent.press(getByTestId(EntitlementsTestIds.ACTION('get_card')));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
     });

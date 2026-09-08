@@ -9176,7 +9176,6 @@
     "dest_asset_require_activate_warning_message": "This swap may fail. On {{network}} your account can't receive {{token}} until the token is activated in your wallet.",
     "dest_asset_require_activate_warning_message_different_account": "This swap may fail. On {{network}} {{account}} can't receive {{token}} until you switch to that account and activate the token.",
     "dest_asset_require_activate_warning_title": "Activate {{token}} on {{network}} first",
-
     "token_warning_suspicious_banner": "{{token}} is a suspicious token.",
     "token_warning_malicious_banner": "{{token}} is a malicious token. Be cautious interacting with this token.",
     "token_warning_modal_suspicious_title": "Suspicious token",
@@ -11423,10 +11422,56 @@
     "manage_plan": "Manage plan",
     "membership_brand": "METAMASK",
     "membership_label": "Orange",
-    "lifetime_earnings": "Lifetime earnings",
-    "money_balance": "Money balance",
-    "musd_back": "3% mUSD back",
+    "member_since": "Member since {{date}}",
     "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
+    "entitlements": {
+      "title": "Your benefits",
+      "swaps": {
+        "label": "Swaps",
+        "sublabel": "{{remaining}} of {{limit}} fee-free left this month"
+      },
+      "perps": {
+        "label": "Perps",
+        "sublabel": "{{remaining}} of {{limit}} fee-free left this month"
+      },
+      "predict": {
+        "label": "Predict",
+        "sublabel": "{{remaining}} of {{limit}} fee-free prediction left"
+      },
+      "apy": {
+        "label": "Boosted APY",
+        "badge": "7% APY",
+        "sublabel": "earned so far"
+      },
+      "cashback": {
+        "label": "Card cashback",
+        "badge": "3% back",
+        "sublabel": "earned so far"
+      },
+      "get_card": {
+        "label": "Get your free card",
+        "sublabel": "Not ordered yet",
+        "action": "Order"
+      },
+      "atm_fees": {
+        "label": "No ATM or FX fees",
+        "sublabel": "Anywhere Mastercard is accepted"
+      },
+      "protection": {
+        "label": "Transaction protection",
+        "sublabel": "{{remaining}} of {{limit}} covered transactions left"
+      },
+      "support": {
+        "label": "Priority support",
+        "sublabel": "Usually replies in minutes"
+      },
+      "app_icon": {
+        "label": "Orange app icon",
+        "sublabel_pending": "Not applied yet",
+        "sublabel_applied": "Applied to your home screen",
+        "action": "Apply"
+      }
+    },
     "member_pricing": {
       "title": "Member pricing on trades",
       "allowance_currency": "${{amount}}",
@@ -11518,7 +11563,7 @@
       },
       "member_pricing": {
         "title": "Keep more of every trade",
-        "subtitle": "$500/mo in swaps, $1,000/mo in perps, and one prediction a month \u2014 fee-free"
+        "subtitle": "$500/mo in swaps, $1,000/mo in perps, and one prediction a month — fee-free"
       },
       "atm_fees": {
         "title": "No added ATM or FX fees",
