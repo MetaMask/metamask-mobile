@@ -82,24 +82,15 @@ const createDefaultOptions = (overrides = {}) => {
   return options;
 };
 
+/**
+ * Drains the microtask queue fully: `setImmediate` (a macrotask) runs only
+ * after every pending microtask has settled, so one call covers any await
+ * depth — including the fresh-pair permission preflight chain
+ * (waitForAppActive → adapter ref check → ensurePermissions → state update).
+ */
 const flushPromises = async () => {
   await act(async () => {
-    await Promise.resolve();
-    await Promise.resolve();
-  });
-};
-
-/**
- * Drains enough microtasks for the fresh-pair permission preflight
- * (waitForAppActive → adapter ref check → ensurePermissions → state update)
- * to complete when AppState is already 'active'.
- */
-const flushPreflight = async () => {
-  await act(async () => {
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
+    await new Promise((resolve) => setImmediate(resolve));
   });
 };
 
@@ -416,7 +407,7 @@ describe('useDeviceConnectionFlow', () => {
       );
 
       // Scanning is entered only after the async permission preflight.
-      await flushPreflight();
+      await flushPromises();
 
       expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Scanning,
@@ -561,7 +552,7 @@ describe('useDeviceConnectionFlow', () => {
       );
 
       // Scanning is entered only after the async permission preflight.
-      await flushPreflight();
+      await flushPromises();
 
       expect(checkTransportEnabledOrShowError).not.toHaveBeenCalled();
       expect(options.updateConnectionState).toHaveBeenCalledWith({
@@ -588,7 +579,7 @@ describe('useDeviceConnectionFlow', () => {
         result.current.ensureDeviceReady(),
       );
 
-      await flushPreflight();
+      await flushPromises();
 
       expect(mockAdapter.ensurePermissions).toHaveBeenCalledTimes(1);
 
@@ -626,7 +617,7 @@ describe('useDeviceConnectionFlow', () => {
         result.current.ensureDeviceReady(),
       );
 
-      await flushPreflight();
+      await flushPromises();
 
       expect(mockAdapter.ensurePermissions).toHaveBeenCalledTimes(1);
       expect(options.updateConnectionState).toHaveBeenCalledWith({
@@ -658,7 +649,7 @@ describe('useDeviceConnectionFlow', () => {
         result.current.ensureDeviceReady(),
       );
 
-      await flushPreflight();
+      await flushPromises();
 
       // Still backgrounded: preflight must be waiting, not scanning.
       expect(mockAdapter.ensurePermissions).not.toHaveBeenCalled();
@@ -671,7 +662,7 @@ describe('useDeviceConnectionFlow', () => {
       await act(async () => {
         dispatchAppStateChange('active');
       });
-      await flushPreflight();
+      await flushPromises();
 
       expect(mockAdapter.ensurePermissions).toHaveBeenCalledTimes(1);
       expect(options.updateConnectionState).toHaveBeenCalledWith({
@@ -698,7 +689,7 @@ describe('useDeviceConnectionFlow', () => {
         result.current.ensureDeviceReady(),
       );
 
-      await flushPreflight();
+      await flushPromises();
 
       // Swap the adapter while the preflight waits for the foreground.
       refs.adapterRef.current = swappedAdapter;
@@ -707,7 +698,7 @@ describe('useDeviceConnectionFlow', () => {
       await act(async () => {
         dispatchAppStateChange('active');
       });
-      await flushPreflight();
+      await flushPromises();
 
       expect(mockAdapter.ensurePermissions).not.toHaveBeenCalled();
       expect(swappedAdapter.ensurePermissions).not.toHaveBeenCalled();
