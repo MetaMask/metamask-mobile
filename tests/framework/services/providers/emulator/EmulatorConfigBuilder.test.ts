@@ -38,6 +38,7 @@ describe('EmulatorConfigBuilder', () => {
     'ANDROID_UIAUTOMATOR2_SYSTEM_PORT',
     'ANDROID_CHROMEDRIVER_PORT',
     'ANDROID_MJPEG_SERVER_PORT',
+    'ANDROID_ADB_SERVER_PORT',
     'IOS_WDA_LOCAL_PORT',
     'IOS_MJPEG_SERVER_PORT',
   ] as const;
@@ -62,12 +63,14 @@ describe('EmulatorConfigBuilder', () => {
     expect(config.capabilities).not.toHaveProperty('appium:systemPort');
     expect(config.capabilities).not.toHaveProperty('appium:chromedriverPort');
     expect(config.capabilities).not.toHaveProperty('appium:mjpegServerPort');
+    expect(config.capabilities).not.toHaveProperty('appium:adbPort');
   });
 
   it('pins Android server ports exported for the worker', () => {
     process.env.ANDROID_UIAUTOMATOR2_SYSTEM_PORT = '8201';
     process.env.ANDROID_CHROMEDRIVER_PORT = '9101';
     process.env.ANDROID_MJPEG_SERVER_PORT = '7811';
+    process.env.ANDROID_ADB_SERVER_PORT = '5038';
 
     const config = new EmulatorConfigBuilder(createAndroidProject()).build();
 
@@ -75,6 +78,7 @@ describe('EmulatorConfigBuilder', () => {
       'appium:systemPort': 8201,
       'appium:chromedriverPort': 9101,
       'appium:mjpegServerPort': 7811,
+      'appium:adbPort': 5038,
     });
   });
 

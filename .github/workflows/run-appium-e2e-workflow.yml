@@ -31,7 +31,7 @@ on:
         type: number
         default: 1
       changed_spec_files:
-        description: 'Space-separated changed E2E specs for PR flakiness detection (run twice)'
+        description: 'Space-separated changed E2E specs for main-target PR flakiness detection (run twice)'
         required: false
         type: string
         default: ''
@@ -193,6 +193,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
           CHANGED_SPEC_FILES: ${{ inputs.changed_spec_files }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           PREVIOUS_RESULTS_PATH: ${{ steps.download-previous-results.outcome == 'success' && './previous-playwright-json' || '' }}
@@ -228,6 +229,7 @@ jobs:
         with:
           path: |
             ~/.cache/yarn
+            ~/.cache/mms-ffmpeg
             .metamask
             .yarn/cache
 
@@ -292,17 +294,17 @@ jobs:
           install-applesimutils: 'false'
           runner_provider: ${{ inputs.runner_provider }}
 
-      - name: Cache ffmpeg (Homebrew)
+      - name: Cache static ffmpeg
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/cache@v4
         with:
           path: ~/.cache/mms-ffmpeg
-          key: brew-ffmpeg-${{ runner.os }}-v1
-          restore-keys: |
-            brew-ffmpeg-${{ runner.os }}-
+          key: static-ffmpeg-b6.1.1-${{ runner.os }}-${{ runner.arch }}
 
       - name: Install ffmpeg for XCUITest screen recording
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
+        timeout-minutes: 2
+        continue-on-error: true
         run: bash .github/scripts/qa-automation/appium-runner-prep/ensure-ffmpeg-ci.sh
         shell: bash
 
