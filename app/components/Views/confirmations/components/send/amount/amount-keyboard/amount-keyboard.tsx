@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -9,6 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../../../../util/navigation/navUtils.ts';
 import { useStyles } from '../../../../../../hooks/useStyles';
+import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { AssetType, TokenStandard } from '../../../../types/token';
 import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
@@ -54,12 +55,16 @@ export const AmountKeyboard = ({
   const { isNonEvmSendType } = useSendType();
   const { alert: unreliableNetworkAlert } = useUnreliableNetworkAlert();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
-  const { styles } = useStyles(styleSheet, {
-    amountError: Boolean(amountError),
-    submitDisabled: isNFT && !amount,
-  });
+  const hasAmountError = Boolean(amountError);
+  const submitDisabled = isNFT && !amount;
+  const styleVars = useMemo(
+    () => ({ amountError: hasAmountError, submitDisabled }),
+    [hasAmountError, submitDisabled],
+  );
+  const { styles } = useStyles(styleSheet, styleVars);
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
+  const { playImpact, playSelection } = useHaptics();
 
   const { predefinedRecipient } = useParams<{
     predefinedRecipient: PredefinedRecipient;
@@ -67,6 +72,7 @@ export const AmountKeyboard = ({
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
+      playImpact(ImpactMoment.QuickAmountSelection);
       const percentageAmount = getPercentageAmount(percentage) ?? '0';
       updateAmount(
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
@@ -80,6 +86,7 @@ export const AmountKeyboard = ({
       fiatMode,
       getFiatValue,
       getPercentageAmount,
+      playImpact,
       setAmountInputMethodPressedMax,
       updateAmount,
       updateValue,
@@ -95,10 +102,11 @@ export const AmountKeyboard = ({
       ) {
         return;
       }
+      playSelection();
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
     },
-    [asset, fiatMode, getNativeValue, updateAmount, updateValue],
+    [asset, fiatMode, getNativeValue, playSelection, updateAmount, updateValue],
   );
 
   const goToNextPage = useCallback(async () => {
