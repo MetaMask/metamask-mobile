@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import BigNumber from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
@@ -88,6 +89,7 @@ describe('usePayWithMoneyAccountSection', () => {
 
     useMoneyAccountBalanceMock.mockReturnValue({
       withdrawableFiatFormatted: '$100.00',
+      withdrawableMusd: new BigNumber(100),
     } as never);
   });
 
@@ -206,6 +208,91 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBeNull();
   });
 
+  describe('when the money account funds the transaction', () => {
+    it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+      'returns null for %s when the withdrawable balance is zero',
+      (txType) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type: txType,
+          txParams: {},
+        } as never);
+
+        useMoneyAccountBalanceMock.mockReturnValue({
+          withdrawableFiatFormatted: '$0.00',
+          withdrawableMusd: new BigNumber(0),
+        } as never);
+
+        const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+        expect(result.current).toBeNull();
+      },
+    );
+
+    it('returns null when the balance is still loading', () => {
+      useMoneyAccountBalanceMock.mockReturnValue({
+        isBalanceLoading: true,
+        withdrawableFiatFormatted: undefined,
+        withdrawableMusd: undefined,
+      } as never);
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      expect(result.current).toBeNull();
+    });
+
+    it('returns null when the balance could not be fetched', () => {
+      useMoneyAccountBalanceMock.mockReturnValue({
+        isBalanceFetchError: true,
+        withdrawableFiatFormatted: undefined,
+        withdrawableMusd: undefined,
+      } as never);
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      expect(result.current).toBeNull();
+    });
+  });
+
+  describe('when the money account receives the transaction', () => {
+    it.each([
+      TransactionType.perpsWithdraw,
+      TransactionType.predictWithdraw,
+      TransactionType.moneyAccountWithdraw,
+    ])('renders the section for %s despite a zero balance', (txType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: txType,
+        txParams: {},
+      } as never);
+
+      useSelectorMock.mockImplementation((selector) => {
+        if (selector === selectPrimaryMoneyAccount) {
+          return moneyAccountMock;
+        }
+        if (selector === selectMetaMaskPayFlags) {
+          return {
+            enableMoneyAccountTransactions: {
+              moneyAccountWithdraw: true,
+              perpsWithdraw: true,
+              predictWithdraw: true,
+            },
+          };
+        }
+        return undefined;
+      });
+
+      useMoneyAccountBalanceMock.mockReturnValue({
+        withdrawableFiatFormatted: '$0.00',
+        withdrawableMusd: new BigNumber(0),
+      } as never);
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      expect(result.current?.rows).toHaveLength(1);
+    });
+  });
+
   it.each([
     TransactionType.perpsDeposit,
     TransactionType.predictDeposit,
@@ -246,6 +333,7 @@ describe('usePayWithMoneyAccountSection', () => {
   it('renders subtitle with formatted balance', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
       withdrawableFiatFormatted: '$250.50',
+      withdrawableMusd: new BigNumber(250.5),
     } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
@@ -256,6 +344,7 @@ describe('usePayWithMoneyAccountSection', () => {
   it('renders undefined subtitle when withdrawableFiatFormatted is falsy', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
       withdrawableFiatFormatted: '',
+      withdrawableMusd: new BigNumber(100),
     } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());

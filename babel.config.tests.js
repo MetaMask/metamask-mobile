@@ -64,6 +64,8 @@ const newOverrides = [
       'app/hooks/useProSubscriptionEnabled.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
+      'app/core/OAuthService/OAuthLoginHandlers/oauthBuildType.ts',
+      'app/core/OAuthService/OAuthLoginHandlers/oauthBuildType.test.ts',
       'app/util/sentry/utils.ts',
       'app/util/sentry/utils.test.ts',
       'app/constants/bridge.ts',

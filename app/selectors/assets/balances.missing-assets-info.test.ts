@@ -2,10 +2,11 @@
  * Aggregation behaviour for `assetsBalance` rows that have no matching
  * `assetsInfo` entry.
  *
- * Unlike `balances.test.ts`, nothing here is mocked: the real selectors run
- * against a trimmed slice of a real device state log
+ * Mobile no longer strips these in `balances.ts` — AssetsController 15+
+ * excludes balances without metadata itself. This file still runs the real
+ * selectors against a trimmed anonymised device state log
  * (`__fixtures__/assets-controller-state-log`, MetaMask Mobile 8.9.0/6689)
- * and the real `@metamask/assets-controller` aggregation does the maths.
+ * so a core / selector regression that starts counting orphan fiat is caught.
  */
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import { backgroundState } from '../../util/test/initial-root-state';

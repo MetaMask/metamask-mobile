@@ -4,9 +4,11 @@ import {
   CardType,
   CardWalletExternalPriorityResponse,
   DelegationSettingsResponse,
+  type UserResponse,
 } from '../../../../components/UI/Card/types';
 
 export { CardStatus, CardType };
+export type { UserResponse };
 
 // -- Provider Errors --
 
@@ -55,6 +57,39 @@ export class CardLinkageInProgressError extends Error {
     super(message);
     this.name = 'CardLinkageInProgressError';
   }
+}
+
+export class CardRedeemWithdrawalInProgressError extends Error {
+  constructor(message = 'A Card redeem withdrawal is already in progress') {
+    super(message);
+    this.name = 'CardRedeemWithdrawalInProgressError';
+  }
+}
+
+/** Shared redeemable wallet response (credit refund balance / mUSD Back). */
+export type RedeemWalletMode = 'credit' | 'cashback';
+
+export interface RedeemWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export interface RedeemWithdrawEstimationResponse {
+  wei: string;
+  eth: string;
+  price: string;
+  network: string;
+}
+
+export interface RedeemWithdrawParams {
+  amount: string;
+}
+
+export interface RedeemWithdrawResponse {
+  txHash: string;
 }
 
 // -- Provider Identity --
@@ -296,45 +331,24 @@ export interface DelegationChallengeResponse {
 
 // -- Cashback --
 
-export interface CashbackWalletResponse {
-  id: string;
-  balance: string;
-  currency: string;
-  isWithdrawable: boolean;
-  type: string;
-}
+export type CashbackWalletResponse = RedeemWalletResponse;
 
-export interface CashbackWithdrawEstimationResponse {
-  wei: string;
-  eth: string;
-  price: string;
-  network: string;
-}
+export type CashbackWithdrawEstimationResponse =
+  RedeemWithdrawEstimationResponse;
 
-export interface CashbackWithdrawParams {
-  amount: string;
-}
+export type CashbackWithdrawParams = RedeemWithdrawParams;
 
-export interface CashbackWithdrawResponse {
-  txHash: string;
-}
+export type CashbackWithdrawResponse = RedeemWithdrawResponse;
 
 // -- Credit --
 
-export interface CreditWalletResponse {
-  id: string;
-  balance: string;
-  currency: string;
-  isWithdrawable: boolean;
-  type: string;
-}
+export type CreditWalletResponse = RedeemWalletResponse;
 
-export type CreditWithdrawEstimationResponse =
-  CashbackWithdrawEstimationResponse;
+export type CreditWithdrawEstimationResponse = RedeemWithdrawEstimationResponse;
 
-export type CreditWithdrawParams = CashbackWithdrawParams;
+export type CreditWithdrawParams = RedeemWithdrawParams;
 
-export type CreditWithdrawResponse = CashbackWithdrawResponse;
+export type CreditWithdrawResponse = RedeemWithdrawResponse;
 
 // -- Push Provisioning --
 
@@ -655,6 +669,11 @@ export interface ICardProvider {
     details: CardContactDetails,
     tokens: CardAuthTokens,
   ): Promise<void>;
+  /**
+   * Authenticated Baanx profile (`GET /v1/user`). Used for contact prefill
+   * (e.g. UK migration SignUp) while a Baanx session is still active.
+   */
+  getUserDetails?(tokens: CardAuthTokens): Promise<UserResponse>;
   getSpendingPrerequisites?(
     fundingSourceId: string,
     params: CardSpendingPrerequisitesParams,

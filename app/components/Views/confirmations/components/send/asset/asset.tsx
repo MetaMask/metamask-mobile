@@ -28,10 +28,12 @@ import {
 import { NetworkFilter } from '../../network-filter';
 import { useEVMNfts } from '../../../hooks/send/useNfts';
 import { useSendTokens } from '../../../hooks/send/useSendTokens';
+import { useAccountTokensLoading } from '../../../hooks/send/useAccountTokensLoading';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import { HighlightedItem } from '../../UI/highlighted-item';
 import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 
 export interface AssetProps {
   hideNfts?: boolean;
@@ -52,6 +54,33 @@ const AssetSendHeader = () => {
   return renderHeader();
 };
 
+const SKELETON_ROW_COUNT = 4;
+
+/**
+ * Placeholder rows shown while a first-time asset load is in flight for a pay
+ * account override. Prevents the picker from claiming the account has no assets
+ * before its balances have ever been fetched.
+ */
+const TokenListSkeleton = () => (
+  <Box
+    twClassName="px-4"
+    testID={TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST_SKELETON}
+  >
+    {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
+      <Box
+        key={`token-skeleton-${index}`}
+        twClassName="flex-row items-center gap-4 py-2"
+      >
+        <Skeleton width={40} height={40} twClassName="rounded-full" />
+        <Box twClassName="flex-1 gap-1">
+          <Skeleton width={120} height={16} />
+          <Skeleton width={80} height={12} />
+        </Box>
+      </Box>
+    ))}
+  </Box>
+);
+
 export const Asset: React.FC<AssetProps> = (props = {}) => {
   const {
     hideNfts = false,
@@ -64,6 +93,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   } = props;
 
   const originalTokens = useSendTokens({ includeNoBalance });
+  const isLoadingTokens = useAccountTokensLoading();
 
   const tokenItems = useMemo(
     () => (tokenFilter ? tokenFilter(originalTokens) : originalTokens),
@@ -248,7 +278,9 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           paddingBottom: bottomOffset,
         }}
       >
-        {hasNoResults && hasActiveFilters ? (
+        {hasNoResults && isLoadingTokens ? (
+          <TokenListSkeleton />
+        ) : hasNoResults && hasActiveFilters ? (
           <Box twClassName="items-center py-8 px-4">
             <Text variant={TextVariant.BodyMd} twClassName="text-center mb-4">
               {strings('send.no_tokens_match_filters')}

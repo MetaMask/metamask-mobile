@@ -18,10 +18,15 @@ import {
 import { speedUpTransaction } from '../../../util/transaction-controller';
 import {
   selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectNetworkClientId,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { selectAllTokens } from '../../../selectors/tokensController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 
 const mockGroupActivityListItems = jest.fn();
 const mockMapTransactionToActivityItem = jest.fn();
@@ -277,6 +282,7 @@ jest.mock('../../../component-library/hooks', () => {
 });
 jest.mock('../../../actions/alert', () => ({ showAlert: jest.fn() }));
 jest.mock('../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
 jest.mock('../../../selectors/accountTrackerController', () => ({
@@ -293,11 +299,24 @@ jest.mock('../../../selectors/gasFeeController', () => ({
 }));
 jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(),
   selectNetworkClientId: jest.fn(),
   selectNetworkConfigurations: jest.fn(),
   selectProviderConfig: jest.fn(),
   selectProviderType: jest.fn(),
 }));
+jest.mock('../../../selectors/bridgeStatusController', () => ({
+  selectBridgeHistoryForAccount: jest.fn(),
+}));
+jest.mock('../../../selectors/tokensController', () => ({
+  selectAllTokens: jest.fn(),
+}));
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
+  }),
+);
 jest.mock('../../../selectors/settings', () => ({
   selectPrimaryCurrency: jest.fn(),
 }));
@@ -875,6 +894,7 @@ describe('mapStateToProps', () => {
   const mockState = {} as never;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     jest.mocked(selectChainId).mockReturnValue('0x1');
     jest.mocked(selectProviderConfig).mockReturnValue({
       type: 'mainnet',
@@ -913,6 +933,39 @@ describe('mapStateToProps', () => {
       expect(first.providerConfig).toBe(second.providerConfig);
       expect(selectProviderConfig).not.toHaveBeenCalled();
     });
+
+    it('selects asset enrichment data once in the parent', () => {
+      const internalAccount = { metadata: { importTime: 123 } };
+      const groupAccount = { address: '0x123' };
+      const networkConfigurations = { '0x89': { nativeCurrency: 'POL' } };
+      const allTokens = { '0x89': { '0x123': [] } };
+      const bridgeHistory = { bridge: {} };
+      jest
+        .mocked(selectSelectedInternalAccount)
+        .mockReturnValue(internalAccount as never);
+      jest
+        .mocked(selectSelectedAccountGroupEvmInternalAccount)
+        .mockReturnValue(groupAccount as never);
+      jest
+        .mocked(selectEvmNetworkConfigurationsByChainId)
+        .mockReturnValue(networkConfigurations as never);
+      jest.mocked(selectAllTokens).mockReturnValue(allTokens as never);
+      jest
+        .mocked(selectBridgeHistoryForAccount)
+        .mockReturnValue(bridgeHistory as never);
+
+      const result = mapStateToProps(mockState, ownProps);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          accountImportTime: 123,
+          groupEvmAccountAddress: '0x123',
+          networkConfigurationsByChainId: networkConfigurations,
+          allTokens,
+          bridgeHistory,
+        }),
+      );
+    });
   });
 
   describe('when used for the Activity tab (no tokenChainId)', () => {
@@ -932,6 +985,18 @@ describe('mapStateToProps', () => {
 
       expect(result.networkClientId).toBe('mainnet-client');
       expect(result.networkType).toBe('mainnet');
+    });
+
+    it('does not select asset enrichment data', () => {
+      mapStateToProps(mockState, ownProps);
+
+      expect(selectSelectedInternalAccount).not.toHaveBeenCalled();
+      expect(
+        selectSelectedAccountGroupEvmInternalAccount,
+      ).not.toHaveBeenCalled();
+      expect(selectEvmNetworkConfigurationsByChainId).not.toHaveBeenCalled();
+      expect(selectAllTokens).not.toHaveBeenCalled();
+      expect(selectBridgeHistoryForAccount).not.toHaveBeenCalled();
     });
   });
 });

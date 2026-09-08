@@ -5,12 +5,24 @@ import { MarketList } from './MarketList';
 import { MarketListTestIds } from './MarketList.testIds';
 
 describe('MarketList', () => {
-  it('composes mixed card children in the supplied order', () => {
+  it('renders mixed card variants in the supplied item order', () => {
+    const items = [
+      { id: 'standard', label: 'Standard' },
+      { id: 'future', label: 'Future variant' },
+    ];
+
     render(
-      <MarketList>
-        <Text testID="standard-card">Standard</Text>
-        <Text testID="future-card">Future variant</Text>
-      </MarketList>,
+      <MarketList
+        data={items}
+        keyExtractor={(item) => item.id}
+        renderItem={(item) => (
+          <Text
+            testID={item.id === 'standard' ? 'standard-card' : 'future-card'}
+          >
+            {item.label}
+          </Text>
+        )}
+      />,
     );
 
     const list = within(screen.getByTestId(MarketListTestIds.ROOT));
@@ -22,11 +34,31 @@ describe('MarketList', () => {
 
   it('uses a caller-supplied test ID', () => {
     render(
-      <MarketList testID="custom-market-list">
-        <Text>Market</Text>
-      </MarketList>,
+      <MarketList
+        testID="custom-market-list"
+        data={[{ id: 'market-1', label: 'Market' }]}
+        keyExtractor={(item) => item.id}
+        renderItem={(item) => <Text>{item.label}</Text>}
+      />,
     );
 
     expect(screen.getByTestId('custom-market-list')).toBeOnTheScreen();
+  });
+
+  it('renders the list header above Market rows', () => {
+    render(
+      <MarketList
+        data={[{ id: 'market-1', label: 'Market' }]}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={<Text testID="list-header">Predict</Text>}
+        renderItem={(item) => <Text>{item.label}</Text>}
+      />,
+    );
+
+    const list = within(screen.getByTestId(MarketListTestIds.ROOT));
+    const items = list.getAllByText(/Predict|Market/);
+
+    expect(items[0]).toHaveTextContent('Predict');
+    expect(items[1]).toHaveTextContent('Market');
   });
 });

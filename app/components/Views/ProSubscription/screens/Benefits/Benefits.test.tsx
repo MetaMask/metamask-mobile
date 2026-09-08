@@ -178,7 +178,9 @@ describe('Benefits', () => {
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
 
-      expect(getByText(strings(apyDetail.description))).toBeOnTheScreen();
+      apyDetail.description.forEach((descriptionKey) => {
+        expect(getByText(strings(descriptionKey))).toBeOnTheScreen();
+      });
     });
 
     it('shows bullet points for a benefit that has points (cashback)', () => {
@@ -211,7 +213,7 @@ describe('Benefits', () => {
       });
     });
 
-    it('shows subDescription, learnMore, and notes for the protection benefit', () => {
+    it('shows description paragraphs, link, and notes for the protection benefit', () => {
       const protectionDetail = BENEFIT_DETAILS.find(
         (d) => d.id === 'protection',
       );
@@ -221,15 +223,12 @@ describe('Benefits', () => {
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('protection')));
 
-      if (!protectionDetail.subDescription)
-        throw new Error('protection.subDescription missing');
-      if (!protectionDetail.learnMore)
-        throw new Error('protection.learnMore missing');
+      if (!protectionDetail.link) throw new Error('protection.link missing');
       if (!protectionDetail.notes) throw new Error('protection.notes missing');
-      expect(
-        getByText(strings(protectionDetail.subDescription)),
-      ).toBeOnTheScreen();
-      expect(getByText(strings(protectionDetail.learnMore))).toBeOnTheScreen();
+      protectionDetail.description.forEach((descriptionKey) => {
+        expect(getByText(strings(descriptionKey))).toBeOnTheScreen();
+      });
+      expect(getByText(strings(protectionDetail.link.label))).toBeOnTheScreen();
       expect(getByText(strings(protectionDetail.notes))).toBeOnTheScreen();
     });
 
@@ -239,16 +238,13 @@ describe('Benefits', () => {
       );
       if (!protectionDetail)
         throw new Error('protection detail not found in BENEFIT_DETAILS');
-      if (!protectionDetail.learnMore || !protectionDetail.learnMoreUrl)
-        throw new Error('protection.learnMore or learnMoreUrl missing');
+      if (!protectionDetail.link) throw new Error('protection.link missing');
       const { getByTestId, getByText } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('protection')));
-      fireEvent.press(getByText(strings(protectionDetail.learnMore)));
+      fireEvent.press(getByText(strings(protectionDetail.link.label)));
 
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        protectionDetail.learnMoreUrl,
-      );
+      expect(Linking.openURL).toHaveBeenCalledWith(protectionDetail.link.url);
     });
 
     it('does not show points for benefits that have none (apy)', () => {
@@ -289,7 +285,9 @@ describe('Benefits', () => {
       const { getByTestId, getByText, queryByText } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
-      expect(getByText(strings(apyDetail.description))).toBeOnTheScreen();
+      apyDetail.description.forEach((descriptionKey) => {
+        expect(getByText(strings(descriptionKey))).toBeOnTheScreen();
+      });
 
       fireEvent(
         getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
@@ -297,8 +295,12 @@ describe('Benefits', () => {
       );
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('support')));
-      expect(getByText(strings(supportDetail.description))).toBeOnTheScreen();
-      expect(queryByText(strings(apyDetail.description))).not.toBeOnTheScreen();
+      expect(
+        getByText(strings(supportDetail.description[0])),
+      ).toBeOnTheScreen();
+      apyDetail.description.forEach((descriptionKey) => {
+        expect(queryByText(strings(descriptionKey))).not.toBeOnTheScreen();
+      });
     });
   });
 

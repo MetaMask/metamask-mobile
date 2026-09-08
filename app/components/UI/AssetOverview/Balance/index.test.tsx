@@ -54,26 +54,6 @@ jest.mock('../../Stake/hooks/useBalance', () => ({
   }),
 }));
 
-jest.mock('../../Earn/hooks/useMusdConversionTokens', () => ({
-  __esModule: true,
-  useMusdConversionTokens: () => ({
-    isConversionToken: jest.fn().mockReturnValue(false),
-    tokenFilter: jest.fn().mockReturnValue([]),
-    isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
-    getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
-    tokens: [],
-  }),
-}));
-
-jest.mock('../../Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => ({
-    isEligible: true,
-    isLoading: false,
-    geolocation: 'US',
-    blockedCountries: [],
-  }),
-}));
-
 const mockDAI = {
   address: '0x6b175474e89094c44da98b954eedeac495271d0f',
   aggregators: ['Metamask', 'Coinmarketcap'],

@@ -408,6 +408,43 @@ describe('persistConfig', () => {
       expect(userTransform.whitelist).toEqual(['user']);
     });
 
+    it('does not persist userLoggedIn', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        in: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      // Session-only: omitted on write so rehydrate falls back to
+      // userInitialState (`userLoggedIn: false`) via autoMergeLevel2.
+      expect(
+        userTransform.in({ userLoggedIn: true, passwordSet: true }),
+      ).toEqual({ passwordSet: true });
+    });
+
+    it('resets a stale persisted userLoggedIn on rehydrate', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        out: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      // Older builds persisted userLoggedIn: true. Resetting it on read keeps
+      // the first rehydrate after upgrade from claiming the wallet is
+      // unlocked while it is still locked.
+      expect(
+        userTransform.out({ userLoggedIn: true, passwordSet: true }),
+      ).toEqual({
+        passwordSet: true,
+        userLoggedIn: false,
+        initialScreen: '',
+        isAuthChecked: false,
+        appServicesReady: false,
+      });
+    });
+
     it('has onboarding transform configured', () => {
       const onboardingTransform = persistConfig.transforms[1] as Transform<
         unknown,

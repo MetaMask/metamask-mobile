@@ -1386,6 +1386,13 @@ describe('BridgeTokenSelector', () => {
       );
       const initialMountCount = mockFlashListMount.mock.calls.length;
       const { FlatList } = jest.requireActual('react-native');
+      const flushAnimationFrame = async () => {
+        await act(async () => {
+          await new Promise<void>((resolve) => {
+            requestAnimationFrame(() => resolve());
+          });
+        });
+      };
 
       await act(async () => {
         UNSAFE_getByType(FlatList).props.onScroll({
@@ -1397,19 +1404,21 @@ describe('BridgeTokenSelector', () => {
         });
       });
 
+      // Flush rAF after each chain change so the scroll reset effect does not
+      // race (cleanup can cancel a pending frame when presses are back-to-back).
       await act(async () => {
         fireEvent.press(getByTestId('select-eth-network'));
       });
+      await flushAnimationFrame();
       await act(async () => {
         fireEvent.press(getByTestId('select-all-networks'));
       });
+      await flushAnimationFrame();
 
-      await waitFor(() => {
-        expect(mockFlashListScrollToIndex).toHaveBeenCalledTimes(1);
-        expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
-          index: 0,
-          animated: false,
-        });
+      expect(mockFlashListScrollToIndex).toHaveBeenCalledTimes(2);
+      expect(mockFlashListScrollToIndex).toHaveBeenLastCalledWith({
+        index: 0,
+        animated: false,
       });
       expect(mockFlashListMount).toHaveBeenCalledTimes(initialMountCount);
       expect(mockFlashListUnmount).not.toHaveBeenCalled();

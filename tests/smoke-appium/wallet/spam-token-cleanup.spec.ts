@@ -1,11 +1,14 @@
 import type { Mockttp } from 'mockttp';
 import type { AssetsControllerState } from '@metamask/assets-controller';
+import { parseCaipAssetType } from '@metamask/utils';
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeWalletPlatform } from '../../tags.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
+import type { TokenHolding } from '../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
+import { applyTokenHoldingsMocks } from '../../api-mocking/mock-responses/pay/holdings-mocks.js';
 import {
   CUSTOM_ASSET,
   LEGITIMATE_ASSET,
@@ -124,6 +127,36 @@ function buildFixture() {
   return fixture;
 }
 
+/**
+ * Convert CAIP tracked assets into TokenHolding rows for applyTokenHoldingsMocks.
+ * AssetsController 15 unlock refresh re-reads balances via RPC/Accounts API with
+ * replaceCoveredChainBalances; without these mocks, non-custom fixture balances
+ * are wiped and the Tokens list goes empty.
+ */
+function trackedAssetsToHoldings(assets: TrackedAsset[]): TokenHolding[] {
+  return assets.map(({ assetId, symbol, decimals, amount }) => {
+    const { chain, assetReference } = parseCaipAssetType(assetId);
+    return {
+      symbol,
+      address: assetReference,
+      decimals,
+      chainId: `0x${Number(chain.reference).toString(16)}`,
+      isNative: false,
+      usdValue: 1,
+      amount,
+    };
+  });
+}
+
+/** Survivors after successful unlock cleanup (spam removed). */
+const SURVIVOR_HOLDINGS = trackedAssetsToHoldings([
+  LEGITIMATE_ASSET,
+  CUSTOM_ASSET,
+]);
+
+/** Full tracked set when cleanup does not remove spam. */
+const ALL_HOLDINGS = trackedAssetsToHoldings(TRACKED_ASSETS);
+
 appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
   appiumTest(
     'removes below-floor spam tokens from persisted state on unlock when the cleanup flag is on',
@@ -137,6 +170,8 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
             // Default mocks already enable useUnlockCleanup.
             await setupRemoteFeatureFlagsMock(mockServer, {});
             await mockOccurrenceApis(mockServer);
+            // Survivors only — refresh must not reintroduce cleaned spam.
+            await applyTokenHoldingsMocks(mockServer, SURVIVOR_HOLDINGS);
           },
         },
         async () => {
@@ -174,6 +209,7 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
             await mockOccurrenceApis(mockServer, {
               failOccurrenceFloors: true,
             });
+            await applyTokenHoldingsMocks(mockServer, ALL_HOLDINGS);
           },
         },
         async () => {
@@ -207,6 +243,7 @@ appiumTest.describe(SmokeWalletPlatform('Spam token cleanup'), () => {
               CLEANUP_DISABLED_OVERRIDE,
             );
             await mockOccurrenceApis(mockServer);
+            await applyTokenHoldingsMocks(mockServer, ALL_HOLDINGS);
           },
         },
         async () => {

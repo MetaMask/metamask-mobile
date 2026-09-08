@@ -3,9 +3,8 @@ import { SmokeMultiChainAPI } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { DappServer, DappVariants, TestDapps } from '../../framework/index.js';
 import {
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from '../mm-connect/utils.js';
 import MultichainTestDApp, {
   MULTICHAIN_DAPP_PORT,
@@ -19,6 +18,13 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { remoteFeatureEip7702 } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { isHexString } from '@metamask/utils';
+
+function buildAnvilLocalEthFixture() {
+  return new FixtureBuilder()
+    .withDefaultFixture()
+    .withAnvilLocalEthBalance()
+    .build();
+}
 
 const ANVIL_NODE_OPTIONS_WITH_GATOR: AnvilNodeOptions = {
   hardfork: 'prague' as Hardfork,
@@ -42,15 +48,17 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod_eip5792'), () => {
   appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest.beforeAll(async () => {
-    multichainDappServer.setServerPort(MULTICHAIN_DAPP_PORT);
-    await multichainDappServer.start();
-    await waitForDappServerReady(MULTICHAIN_DAPP_PORT);
-    setupAdbReverse(MULTICHAIN_DAPP_PORT);
+    await startLocalDappServerOnWorker(
+      multichainDappServer,
+      MULTICHAIN_DAPP_PORT,
+    );
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(MULTICHAIN_DAPP_PORT);
-    await multichainDappServer.stop();
+    await stopLocalDappServerOnWorker(
+      multichainDappServer,
+      MULTICHAIN_DAPP_PORT,
+    );
   });
 
   appiumTest.describe('Multiple method invocations', () => {
@@ -167,7 +175,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod_eip5792'), () => {
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
-            fixture: new FixtureBuilder().withDefaultFixture().build(),
+            fixture: buildAnvilLocalEthFixture(),
             restartDevice: true,
             currentDeviceDetails,
             localNodeOptions: [
@@ -212,7 +220,7 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod_eip5792'), () => {
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
-            fixture: new FixtureBuilder().withDefaultFixture().build(),
+            fixture: buildAnvilLocalEthFixture(),
             restartDevice: true,
             currentDeviceDetails,
             localNodeOptions: [

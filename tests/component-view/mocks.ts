@@ -102,6 +102,8 @@ jest.mock('../../app/core/Engine', () => {
       CardController: {
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
         logout: jest.fn().mockResolvedValue(undefined),
+        clearRedeemWithdrawal: jest.fn(),
+        withdrawRedeemable: jest.fn().mockResolvedValue({ txHash: '0xmock' }),
         getCapabilities: jest.fn().mockReturnValue({
           authMethod: 'otp',
           supportsOTP: true,
@@ -356,6 +358,10 @@ jest.mock('../../app/core/Engine', () => {
         setLocation: jest.fn(),
         setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
+        fetchQuotes: jest.fn().mockResolvedValue([]),
+      },
+      BridgeStatusController: {
+        submitTx: jest.fn().mockResolvedValue({ success: true }),
       },
       PredictNextController: {},
       PredictController: {
@@ -441,7 +447,7 @@ jest.mock('../../app/core/Engine', () => {
         getOrderCapabilities: jest.fn().mockResolvedValue({
           status: 'ready',
           providerId: 'hyperliquid',
-          supportedStrategies: ['twap'],
+          supportedStrategies: ['twap', 'scale', 'chase'],
         }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
@@ -455,6 +461,10 @@ jest.mock('../../app/core/Engine', () => {
           success: true,
           orderId: 'component-view-edit-order',
         }),
+        getChaseOrders: jest.fn().mockResolvedValue([]),
+        suspendChaseOrders: jest.fn().mockResolvedValue([]),
+        getTwapOrders: jest.fn().mockResolvedValue([]),
+        subscribeToTwapOrders: jest.fn(() => () => undefined),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([
           {
@@ -522,6 +532,9 @@ jest.mock('../../app/core/Engine', () => {
         setSelectedPaymentToken: jest.fn(),
         setPerpsMode: jest.fn(),
         setProLayoutPreferences: jest.fn(),
+        setSelectedOrderType: jest.fn(),
+        setOrderBookPreferences: jest.fn(),
+        saveTradeConfiguration: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),

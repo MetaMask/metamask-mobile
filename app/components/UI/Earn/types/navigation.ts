@@ -2,7 +2,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { ConfirmationParams } from '../../../Views/confirmations/components/confirm/confirm-component';
 import type { AssetType } from '../../../Views/confirmations/types/token';
 import type { EarnMusdConversionEducationViewRouteParams } from '../Views/EarnMusdConversionEducationView';
-import type { EarnStrategySelectionViewRouteParams } from '../Views/EarnStrategySelectionView';
+import type { EarnStrategySelectionModalRouteParams } from '../modals/EarnStrategySelectionModal';
 import type { EarnTokenDetails } from './lending.types';
 import type {
   LendingDepositConfirmationParams,
@@ -16,6 +16,7 @@ import type {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarnScreensStackParamList = {
+  EarnSearchList: undefined;
   EarnLendingDepositConfirmation: LendingDepositConfirmationParams | undefined;
   EarnLendingWithdrawalConfirmation:
     | LendingWithdrawalConfirmationParams
@@ -23,7 +24,6 @@ export type EarnScreensStackParamList = {
   EarnMusdConversionEducation:
     | EarnMusdConversionEducationViewRouteParams
     | undefined;
-  EarnStrategySelection: EarnStrategySelectionViewRouteParams;
   RedesignedConfirmations: ConfirmationParams | undefined;
 };
 
@@ -33,6 +33,7 @@ export type EarnScreensStackParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarnModalsNavigationParamList = {
+  EarnStrategySelectionModal: EarnStrategySelectionModalRouteParams;
   EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
   EarnLendingLearnMoreModal: { asset?: EarnTokenDetails } | undefined;
   RedesignedConfirmations:

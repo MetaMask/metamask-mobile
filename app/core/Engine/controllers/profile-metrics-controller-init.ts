@@ -3,6 +3,7 @@ import {
   ProfileMetricsControllerMessenger,
 } from '@metamask/profile-metrics-controller';
 import { analyticsControllerSelectors } from '@metamask/analytics-controller';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { MessengerClientInitFunction } from '../types';
 import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
@@ -29,10 +30,13 @@ export const profileMetricsControllerInit: MessengerClientInitFunction<
 }) => {
   const assertUserOptedIn = () => {
     const analyticsState = initMessenger.call('AnalyticsController:getState');
+    const state = getState();
     const isEnabled =
       analyticsControllerSelectors.selectEnabled(analyticsState);
     return (
-      isEnabled === true && getState().legalNotices.isPna25Acknowledged === true
+      isEnabled === true &&
+      state.legalNotices.isPna25Acknowledged === true &&
+      selectBasicFunctionalityEnabled(state) === true
     );
   };
 

@@ -135,6 +135,21 @@ describe('AccountCell', () => {
     expect(getByText(expected)).toBeTruthy();
   });
 
+  it.each([
+    { currency: 'usd', expected: '$0.00' },
+    { currency: 'eur', expected: '€0.00' },
+  ])(
+    'displays an explicit zero for an empty account',
+    ({ currency, expected }) => {
+      mockBalance.value = 0;
+      mockBalance.currency = currency;
+
+      const { getByText } = renderAccountCell();
+
+      expect(getByText(expected)).toBeTruthy();
+    },
+  );
+
   it('renders menu button by default', () => {
     const { getByTestId } = renderAccountCell();
     expect(getByTestId(AccountCellIds.MENU)).toBeTruthy();

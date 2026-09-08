@@ -4,12 +4,11 @@ import { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { Hex } from '@metamask/utils';
 import { EthAccountType } from '@metamask/keyring-api';
+import type { AccountGroupId } from '@metamask/account-api';
 import {
   selectAssetsBySelectedAccountGroup,
   selectAssetsByAccountGroupId,
 } from '../../../../../selectors/assets/assets-list';
-import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isTestNet } from '../../../../../util/networks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { getNetworkBadgeSource } from '../../utils/network';
@@ -25,6 +24,8 @@ import {
 } from '../tokens/useTokenFiatRates';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { isNetworkTestnet } from './useNetworkFilter';
+import { useAccountOverrideGroupId } from './useAccountOverrideGroupId';
+import { useEnsureAccountGroupAssets } from './useEnsureAccountGroupAssets';
 
 export interface EnrichTokenRequest {
   chainId: Hex;
@@ -44,7 +45,14 @@ export function useAccountTokens({
 } = {}): AssetType[] {
   const accountOverride = useTransactionAccountOverride();
   const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
-  const accountAssets = useAccountGroupAssets(accountOverride);
+  const overrideGroupId = useAccountOverrideGroupId();
+  const accountAssets = useAccountGroupAssets(overrideGroupId);
+
+  // Assets are only fetched automatically for the selected account group, so an
+  // override account the user has never activated has no entry in assets state.
+  // Request it on demand, otherwise the token list stays permanently empty.
+  useEnsureAccountGroupAssets(overrideGroupId);
+
   // When an account override is active, always use its assets (even if empty)
   // to avoid showing stale tokens from the globally selected account.
   const assets = useMemo(
@@ -205,21 +213,7 @@ export function useAccountTokens({
   ]) as unknown as AssetType[];
 }
 
-function useAccountGroupAssets(accountAddress?: string | null) {
-  const internalAccountsById = useSelector(selectInternalAccountsById);
-  const accountToGroupMap = useSelector(selectAccountToGroupMap);
-
-  const accountGroupId = useMemo(() => {
-    if (!accountAddress) return undefined;
-    const internalAccountId = Object.keys(internalAccountsById).find(
-      (id) =>
-        internalAccountsById[id].address.toLowerCase() ===
-        accountAddress.toLowerCase(),
-    );
-    if (!internalAccountId) return undefined;
-    return accountToGroupMap[internalAccountId]?.id;
-  }, [accountAddress, internalAccountsById, accountToGroupMap]);
-
+function useAccountGroupAssets(accountGroupId?: AccountGroupId) {
   const selectOverrideAssets = useCallback(
     (state: RootState) => selectAssetsByAccountGroupId(state, accountGroupId),
     [accountGroupId],
