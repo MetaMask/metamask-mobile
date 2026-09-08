@@ -3,7 +3,6 @@ import { ScrollView } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { FeatureId } from '@metamask/bridge-controller';
 import {
   selectBridgeBalanceRefreshKey,
   selectRecurringEveryUnit,
@@ -193,7 +192,6 @@ const BridgeRecurringBuyViewContent = ({
           onScrollBeginDrag={dismissInputAndKeypad}
         >
           <SwapsInputs
-            featureId={FeatureId.RECURRING_BUY}
             inputRef={inputRef}
             sourceToken={sourceToken}
             sourceAmountInput={sourceAmountInput}
@@ -281,7 +279,6 @@ const BridgeRecurringBuyViewContent = ({
             />
           ) : (
             <GaslessQuickPickOptions
-              featureId={FeatureId.RECURRING_BUY}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               onMaxPress={handleSourceMaxPress}

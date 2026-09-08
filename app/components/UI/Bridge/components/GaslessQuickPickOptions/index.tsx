@@ -1,10 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import {
-  FeatureId,
-  UnifiedSwapBridgeEventName,
-} from '@metamask/bridge-controller';
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { QuickPickButtonOption } from '../SwapsKeypad/types';
 import { QuickPickButtons } from '../SwapsKeypad/QuickPickButtons';
+import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
@@ -14,11 +12,6 @@ const QUICK_PICK_ACTIONS = [25, 50, 75, 'MAX'] as const;
 const QUICK_PICK_ACTIONS_WITHOUT_MAX = [25, 50, 75, 90] as const;
 
 interface GaslessQuickPickOptionsProps {
-  /**
-   * Identifies the flow rendering these presets so analytics events are
-   * attributed to it rather than to plain swaps.
-   */
-  featureId: FeatureId;
   token?: BridgeToken;
   tokenBalance?: string;
   onMaxPress: () => void;
@@ -27,13 +20,14 @@ interface GaslessQuickPickOptionsProps {
 }
 
 export const GaslessQuickPickOptions = ({
-  featureId,
   onAmountSelect,
   onMaxPress,
   token,
   tokenBalance,
   isQuoteSponsored,
 }: GaslessQuickPickOptionsProps) => {
+  const featureId = useSwapsFeatureId();
+
   const trackInputAmountChange = useCallback(
     ({ inputValue, preset }: { inputValue: string; preset?: string }) => {
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(

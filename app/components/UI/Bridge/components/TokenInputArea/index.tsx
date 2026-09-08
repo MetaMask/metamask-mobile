@@ -50,12 +50,12 @@ import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import {
-  FeatureId,
   formatAddressToAssetId,
   isNativeAddress,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
+import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
@@ -159,11 +159,6 @@ export interface TokenInputAreaRef {
 }
 
 interface TokenInputAreaProps {
-  /**
-   * Identifies the flow rendering this input so analytics events are
-   * attributed to it rather than to plain swaps.
-   */
-  featureId: FeatureId;
   amount?: string;
   token?: BridgeToken;
   tokenBalance?: string;
@@ -218,7 +213,6 @@ export const TokenInputArea = forwardRef<
 >(
   (
     {
-      featureId,
       amount,
       token,
       tokenBalance,
@@ -251,6 +245,7 @@ export const TokenInputArea = forwardRef<
     },
     ref,
   ) => {
+    const featureId = useSwapsFeatureId();
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     // Need to fetch the exchange rate for the token if we don't have it already

@@ -577,7 +577,6 @@ const BridgeMarketViewContent = ({
               <Box style={styles.tokenCard}>
                 <TokenInputArea
                   ref={inputRef}
-                  featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
                   amount={sourceAmountInput.amount}
                   selection={sourceAmountInput.selection}
                   token={sourceToken}
@@ -623,7 +622,6 @@ const BridgeMarketViewContent = ({
               />
               <Box style={styles.tokenCard}>
                 <TokenInputArea
-                  featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
                   amount={destTokenAmount}
                   token={destToken}
                   networkImageSource={
@@ -714,7 +712,6 @@ const BridgeMarketViewContent = ({
             />
           ) : (
             <GaslessQuickPickOptions
-              featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               onMaxPress={handleSourceMaxPress}
