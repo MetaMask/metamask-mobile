@@ -40,7 +40,12 @@
 # The refresh + install runs automatically during yarn install/setup. Opt out to
 # manage skills by hand with `yarn skills`:
 #   SKILLS_AUTO_UPDATE=0              # skip the refresh + install
-#   SKILLS_SKIP_POSTINSTALL=1         # skip the postinstall hook entirely
+#
+# Use SKILLS_AUTO_UPDATE=0 for a persistent opt-out — it is the only one this file
+# can express. SKILLS_SKIP_POSTINSTALL=1 skips the hook one level earlier, but the
+# CLI reads it from the environment only, so writing it here has no effect. Export
+# it from your shell profile instead:
+#   export SKILLS_SKIP_POSTINSTALL=1
 #
 # Override per-run with `SKILLS_DOMAINS=... yarn skills` or `--domain <list>`.
 # Pick interactively with `yarn skills --select`.

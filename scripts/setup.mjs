@@ -309,8 +309,11 @@ const reportAgentSkillsTask = {
       // follow it — over a skill count. That would also break the promise in
       // README: "Skipping `yarn skills` is fine — it only affects agent tooling,
       // not the app build."
-      if (error.code !== 'ENOENT') {
-        task.title = `Report agent skills — could not read ${skillsDir} (${error.code}); skills may be installed but unreadable.`;
+      // Optional chaining because a non-object rejection would otherwise throw a
+      // TypeError from inside the catch — the exact abort the comment above rules
+      // out. The upstream CLI's safeReadDir guards the same way.
+      if (error?.code !== 'ENOENT') {
+        task.title = `Report agent skills — could not read ${skillsDir} (${error?.code ?? 'unknown error'}); skills may be installed but unreadable.`;
         return undefined;
       }
     }
@@ -329,13 +332,22 @@ const reportAgentSkillsTask = {
     // .agents/skills, so Claude Code and Cursor see this set. Codex only ever
     // receives `scope: user` skills, which install to $HOME and are deliberately
     // not counted here.
+    // A count off disk, not a report of what this run did. `metamask-skills
+    // postinstall` returns 0 on every internal failure, so a sync that errored
+    // leaves the previous install in place and it would be counted here as if it
+    // were current. Hence "found", not "installed" — the number is honest about
+    // being a directory listing.
+    //
+    // It also counts skills from an earlier all-domains `yarn skills`: postinstall
+    // does not pass --prune-stale, so those directories persist and keep loading
+    // even though nothing refreshes them. --prune-stale is the way out.
     console.log(`
-     You have ${installed.length} agent skill(s) installed for Claude Code and Cursor.
+     Found ${installed.length} agent skill(s) for Claude Code and Cursor.
 
      The base set installs automatically; yarn skills adds every domain:
       🔎 Pick specific domains:       yarn skills --select
       📖 Inspect one:                 yarn metamask-skills describe <domain>/<skill>
-      🔄 Refresh after pulling main:  yarn skills
+      🧹 Drop ones no longer managed: yarn skills --prune-stale
 ${TRAILING_BLANK_LINE}`);
     return undefined;
   },
