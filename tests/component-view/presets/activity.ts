@@ -2389,17 +2389,17 @@ export const activityPerpsDetailsStateOverrides = {
           },
         },
       },
-      TokensController: {
-        allTokens: {
-          '0x1': {
-            [ACTIVITY_CV_ACCOUNT]: [
-              {
-                address: ACTIVITY_CV_USDC,
-                symbol: 'USDC',
-                decimals: 6,
-              },
-            ],
+      AssetsController: {
+        assetsInfo: {
+          [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`]: {
+            type: 'erc20' as const,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
           },
+        },
+        customAssets: {
+          'acc-1': [`eip155:1/erc20:${ACTIVITY_CV_USDC.toLowerCase()}`],
         },
       },
     },

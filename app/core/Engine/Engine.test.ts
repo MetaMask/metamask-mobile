@@ -7,6 +7,7 @@ import {
   MOCK_ADDRESS_1,
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
+import type { AssetsControllerState } from '@metamask/assets-controller';
 import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
@@ -828,7 +829,7 @@ describe('Engine', () => {
         },
         customAssets: {},
         assetPreferences: {},
-      };
+      } as AssetsControllerState;
     };
 
     const state: Partial<EngineState> = {

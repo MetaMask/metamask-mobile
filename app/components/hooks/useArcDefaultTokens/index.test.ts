@@ -4,6 +4,7 @@ import {
 } from '../../../util/test/renderWithProvider';
 import type { RootState } from '../../../reducers';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
+import type { CaipAssetType } from '@metamask/utils';
 import Engine from '../../../core/Engine';
 import { useArcDefaultTokens } from './index';
 
@@ -103,7 +104,7 @@ const buildState = ({
       },
       AssetsController: {
         customAssets: existingArcAssetIds
-          ? { [accounts[0].id]: existingArcAssetIds }
+          ? { [accounts[0].id]: existingArcAssetIds as CaipAssetType[] }
           : {},
         assetsBalance: existingArcAssetIds
           ? {
@@ -118,7 +119,7 @@ const buildState = ({
       },
       MultichainAssetsController: {
         accountsAssets: existingArcAssetIds
-          ? { [accounts[0].id]: existingArcAssetIds }
+          ? { [accounts[0].id]: existingArcAssetIds as CaipAssetType[] }
           : {},
       },
     },
