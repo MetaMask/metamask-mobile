@@ -44,6 +44,19 @@ export function hasTransientBleMessage(message: string): boolean {
 }
 
 /**
+ * Whether an error is the timeout error thrown by `withLedgerTimeout`
+ * (name is set to `LedgerTimeoutError`).
+ */
+export function isLedgerTimeoutError(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'name' in error &&
+    (error as { name?: string }).name === 'LedgerTimeoutError'
+  );
+}
+
+/**
  * Normalize an unknown value to an `Error` for event/callback payloads.
  *
  * @param value - The value thrown or passed in.
