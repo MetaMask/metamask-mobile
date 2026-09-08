@@ -120,6 +120,11 @@ appiumTest.describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
             description:
               'Invalid entropy alert should mention entropy source ID',
           });
+          await Assertions.expectTextDisplayed('invalid', {
+            timeout: 30_000,
+            description:
+              'Invalid entropy alert should name the invalid source ID',
+          });
           await Assertions.expectTextDisplayed('not found', {
             timeout: 30_000,
             description: 'Invalid entropy alert should report source not found',
