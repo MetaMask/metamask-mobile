@@ -2,49 +2,51 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import { EarnLendingViewSelectorsText } from '../../selectors/Earn/EarnLendingView.selectors';
+import { EARN_LENDING_BALANCE_TEST_IDS } from '../../../app/components/UI/Earn/components/EarnLendingBalance/EarnLendingBalance.testIds';
 import {
-  EarnLendingViewSelectorsIDs,
-  EarnLendingViewSelectorsText,
-} from '../../selectors/Earn/EarnLendingView.selectors';
+  CONFIRMATION_FOOTER_TEST_ID,
+  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
+} from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/ConfirmationFooter/ConfirmationFooter.testIds';
+import { DEPOSIT_DETAILS_SECTION_TEST_ID } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/DepositInfoSection/DepositInfoSection.testIds';
+import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/DepositReceiveSection/DepositReceiveSection.testIds';
+import { PROGRESS_STEPPER_TEST_IDS } from '../../../app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/ProgressStepper/ProgressStepper.testIds';
+import { EarnWithdrawInputViewTestIds } from '../../../app/components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.testIds';
 import { type AppiumElement } from '../../framework';
 
 class EarnLendingView {
   get withdrawButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.WITHDRAW_BUTTON);
-  }
-
-  get depositButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.DEPOSIT_BUTTON);
+    return Matchers.getElementByID(
+      EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON,
+    );
   }
 
   get confirmationFooter(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      EarnLendingViewSelectorsIDs.CONFIRMATION_FOOTER,
-    );
+    return Matchers.getElementByID(CONFIRMATION_FOOTER_TEST_ID);
   }
 
   get confirmButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CONFIRM_BUTTON);
+    return Matchers.getElementByID(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
   }
 
   get cancelButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CANCEL_BUTTON);
+    return Matchers.getElementByID(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
+    );
   }
 
   get depositInfoSection(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      EarnLendingViewSelectorsIDs.DEPOSIT_INFO_SECTION,
-    );
+    return Matchers.getElementByID(DEPOSIT_DETAILS_SECTION_TEST_ID);
   }
 
   get depositReceiveSection(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      EarnLendingViewSelectorsIDs.DEPOSIT_RECEIVE_SECTION,
-    );
+    return Matchers.getElementByID(DEPOSIT_RECEIVE_SECTION_TEST_ID);
   }
 
   get progressBar(): Promise<AppiumElement> {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.PROGRESS_BAR);
+    return Matchers.getElementByID(PROGRESS_STEPPER_TEST_IDS.PROGRESS_BAR);
   }
 
   get supplyTitle(): Promise<AppiumElement> {
@@ -52,7 +54,7 @@ class EarnLendingView {
   }
 
   get reviewButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.REVIEW_BUTTON);
+    return Matchers.getElementByID(EarnWithdrawInputViewTestIds.REVIEW_BUTTON);
   }
 
   get withdrawalTimeLabel(): Promise<AppiumElement> {
@@ -97,13 +99,6 @@ class EarnLendingView {
         elemDescription: 'Scroll to Withdraw button',
       },
     );
-  }
-
-  async tapDeposit(timeout?: number): Promise<void> {
-    await Gestures.waitAndTap(this.depositButton, {
-      timeout,
-      elemDescription: 'Deposit button on lending balance',
-    });
   }
 
   async tapConfirm(timeout?: number): Promise<void> {

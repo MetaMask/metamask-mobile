@@ -25,8 +25,10 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { formatPrice } from '../../../../../../UI/Predict/utils/format';
 import { useCurrentCryptoUpDownMarketData } from '../../../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData';
 import { selectPredictEnabledFlag } from '../../../../../../UI/Predict/selectors/featureFlags';
-import type { PredictMarket } from '../../../../../../UI/Predict/types';
-import { HOMEPAGE_PREDICT_SERIES_SLOT } from '../../constants/homepagePredictMarketSlots';
+import type {
+  PredictMarket,
+  PredictSeries,
+} from '../../../../../../UI/Predict/types';
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
 import HomepagePredictDiscoveryLivePill from './HomepagePredictDiscoveryLivePill';
 
@@ -36,7 +38,9 @@ const formatBtc = (value: number | undefined) =>
     : formatPrice(value, { maximumDecimals: 0 });
 
 interface BtcLiveRowProps {
+  series: PredictSeries;
   onPress: (
+    series: PredictSeries,
     marketId: string | undefined,
     market: PredictMarket | undefined,
   ) => void;
@@ -95,12 +99,15 @@ const BtcMarketValues = memo(
   ),
 );
 
-const BtcLiveValues = forwardRef<BtcLiveValuesHandle>((_props, ref) => {
+const BtcLiveValues = forwardRef<
+  BtcLiveValuesHandle,
+  { series: PredictSeries }
+>(({ series }, ref) => {
   const isFocused = useIsFocused();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const { marketId, market, currentPrice, priceToBeat, countdown } =
     useCurrentCryptoUpDownMarketData({
-      series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
+      series,
       enabled: isPredictEnabled && isFocused,
       withChartData: false,
     });
@@ -122,12 +129,16 @@ const BtcLiveValues = forwardRef<BtcLiveValuesHandle>((_props, ref) => {
  * stable on countdown ticks, while memoized labels update only when their
  * respective values change.
  */
-const BtcLiveRow = memo(({ onPress }: BtcLiveRowProps) => {
+const BtcLiveRow = memo(({ series, onPress }: BtcLiveRowProps) => {
   const tw = useTailwind();
   const liveValuesRef = useRef<BtcLiveValuesHandle>(null);
   const handlePress = useCallback(() => {
-    onPress(liveValuesRef.current?.marketId, liveValuesRef.current?.market);
-  }, [onPress]);
+    onPress(
+      series,
+      liveValuesRef.current?.marketId,
+      liveValuesRef.current?.market,
+    );
+  }, [onPress, series]);
 
   return (
     <Pressable
@@ -141,7 +152,7 @@ const BtcLiveRow = memo(({ onPress }: BtcLiveRowProps) => {
       <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
         <HomepagePredictDiscoveryMaterialGlyph name="currencyBitcoin" />
       </Box>
-      <BtcLiveValues ref={liveValuesRef} />
+      <BtcLiveValues ref={liveValuesRef} series={series} />
       <Icon
         name={IconName.ArrowRight}
         size={IconSize.Sm}

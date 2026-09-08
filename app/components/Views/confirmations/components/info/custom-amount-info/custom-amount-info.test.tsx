@@ -39,6 +39,7 @@ import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controlle
 import { useRoute } from '@react-navigation/native';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { fireEvent } from '@testing-library/react-native';
+import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
 import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
@@ -465,6 +466,26 @@ describe('CustomAmountInfo', () => {
   it('renders payment token', () => {
     const { getByText } = render();
     expect(getByText('0 TST')).toBeDefined();
+  });
+
+  it('edits the keypad from the truncated amount rather than the full-precision one', () => {
+    // Regression: Max stores the exact balance, so feeding the raw value to
+    // the keypad left hidden decimals that had to be backspaced away one at a
+    // time before the displayed amount changed.
+    const updatePendingAmount = jest.fn();
+    useTransactionCustomAmountMock.mockReturnValue({
+      ...useTransactionCustomAmountMock(),
+      amountFiat: '50.389',
+      updatePendingAmount,
+    });
+
+    const { getByText, getByTestId } = render();
+
+    expect(getByText('50.38')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(KeypadTestIds.DELETE_BUTTON));
+
+    expect(updatePendingAmount).toHaveBeenCalledWith('50.3');
   });
 
   it('sets up back swipe rejection', () => {

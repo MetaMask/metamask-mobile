@@ -15,6 +15,9 @@ import {
 import { useStyles } from '../../../../../../hooks/useStyles';
 import Loader from '../../../../../../../component-library/components-temp/Loader';
 import styleSheet from './ProgressStepper.styles';
+import { PROGRESS_STEPPER_TEST_IDS } from './ProgressStepper.testIds';
+
+export { PROGRESS_STEPPER_TEST_IDS } from './ProgressStepper.testIds';
 
 export interface ProgressStep {
   label: string;
@@ -28,18 +31,6 @@ export interface ProgressStepperProps {
   steps: ProgressStep[];
   activeStep: number;
 }
-
-const prefix = 'progress-stepper';
-
-export const PROGRESS_STEPPER_TEST_IDS = {
-  STEP: `${prefix}-step`,
-  STEP_ICON: {
-    COMPLETED: `${prefix}-step-icon-completed`,
-    LOADING: `${prefix}-step-icon-loading`,
-    PENDING: `${prefix}-step-icon-pending`,
-  },
-  PROGRESS_BAR: `${prefix}-progress-bar`,
-};
 
 const ProgressStepper = ({
   height = 10,
