@@ -1334,7 +1334,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         backgroundState: {
           QrSyncController: {
             ...defaultQrSyncControllerState,
-            pendingPayload: {
+            pendingSecretImports: {
               version: 1 as const,
               wallets: [
                 {
