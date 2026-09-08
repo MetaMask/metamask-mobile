@@ -45,14 +45,13 @@ export const CustomSlippageModalContent = ({
     slippageConfig,
     hasAttemptedToExceedMax,
   });
-  const { selection, handleSelectionChange, handleKeypadChange, resetCursor } =
-    useCustomSlippageCursor({
-      value: inputAmount,
-      inputMaxDecimals: slippageConfig.input_max_decimals,
-      maxAmount: slippageConfig.max_amount,
-      onValueChange: setInputAmount,
-      onAttemptExceedMaxChange: setHasAttemptedToExceedMax,
-    });
+  const { handleKeypadChange, resetCursor } = useCustomSlippageCursor({
+    value: inputAmount,
+    inputMaxDecimals: slippageConfig.input_max_decimals,
+    maxAmount: slippageConfig.max_amount,
+    onValueChange: setInputAmount,
+    onAttemptExceedMaxChange: setHasAttemptedToExceedMax,
+  });
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -115,8 +114,6 @@ export const CustomSlippageModalContent = ({
           minAmount={slippageConfig.min_amount}
           maxAmount={slippageConfig.max_amount}
           postValue="%"
-          selection={selection}
-          onSelectionChange={handleSelectionChange}
         />
       </View>
       <View style={customSlippageModalStyles.keypadContainer}>

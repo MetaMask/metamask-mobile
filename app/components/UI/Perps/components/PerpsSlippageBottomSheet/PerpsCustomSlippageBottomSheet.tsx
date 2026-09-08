@@ -1,7 +1,7 @@
 import {
   Box,
+  HelpTextSeverity,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
@@ -153,7 +153,7 @@ const PerpsCustomSlippageBottomSheet: React.FC<
                       min: `${MIN_PCT}`,
                       max: `${MAX_PCT}`,
                     }),
-                    color: TextColor.ErrorDefault,
+                    severity: HelpTextSeverity.Danger,
                     testID: PerpsCustomSlippageBottomSheetSelectorsIDs.ERROR,
                   }
                 : undefined

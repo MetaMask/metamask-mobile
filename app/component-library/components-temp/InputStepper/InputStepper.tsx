@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, TextStyle } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -8,31 +8,34 @@ import {
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
+  FontWeight,
+  HelpText,
   IconColor,
   IconName,
   Text,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Input from '../../components/Form/TextField/foundation/Input';
 import { formatAmountWithLocaleSeparators } from '../../../util/formatAmountWithLocaleSeparators';
 import { calculateInputFontSize } from './calculateInputFontSize';
 import {
+  INPUTSTEPPER_DESCRIPTION_TESTID,
   INPUTSTEPPER_INPUT_TESTID,
   INPUTSTEPPER_MINUS_BUTTON_TESTID,
   INPUTSTEPPER_PLUS_BUTTON_TESTID,
   INPUTSTEPPER_POST_VALUE_TESTID,
   INPUTSTEPPER_TESTID,
 } from './InputStepper.constants';
-import { InputStepperDescriptionRow } from './InputStepperDescriptionRow';
+import { InputStepperCursor } from './InputStepperCursor';
 import { InputStepperProps } from './InputStepper.types';
 
 /**
- * Numeric stepper with optional suffix, keypad-driven caret, and description row.
+ * Numeric stepper with optional suffix and description row.
  *
- * Uses component-library `Input` instead of MMDS `Input` because this package
- * version of `@metamask/design-system-react-native` does not export `Input`,
- * and the keypad flow requires `selection`, `showSoftInputOnFocus={false}`,
- * and `caretHidden={false}`.
+ * The amount is rendered as text with a blinking cursor rather than a
+ * `TextInput`, matching the Send amount field. The keypad owns the value, so
+ * the suffix stays flush with the digits and the amount cannot clip or scroll
+ * mid-edit the way a focused `TextInput` does.
  */
 const InputStepper: React.FC<InputStepperProps> = ({
   value,
@@ -43,42 +46,31 @@ const InputStepper: React.FC<InputStepperProps> = ({
   maxAmount,
   postValue,
   placeholder = '0',
-  selection,
-  onSelectionChange,
   testID = INPUTSTEPPER_TESTID,
   decreaseButtonProps,
   increaseButtonProps,
-  inputProps,
 }) => {
   const tw = useTailwind();
-  const fontSize = calculateInputFontSize(value.length);
   const [minusPressed, setMinusPressed] = useState(false);
   const [plusPressed, setPlusPressed] = useState(false);
+
   const displayedAmount = useMemo(
-    () => formatAmountWithLocaleSeparators(value),
-    [value],
+    () => (value ? formatAmountWithLocaleSeparators(value) : placeholder),
+    [placeholder, value],
+  );
+  const fontSize = calculateInputFontSize(
+    displayedAmount.length + (postValue?.length ?? 0),
   );
 
-  const inputTextStyle = useMemo(() => {
-    const sizeStyle = {
-      backgroundColor: 'transparent',
-      borderWidth: 0,
+  const amountTextStyle = useMemo<TextStyle>(() => {
+    const sizeStyle: TextStyle = {
       fontSize,
       lineHeight: fontSize * 1.25,
-      height: fontSize * 1.25,
     };
 
-    if (Platform.OS !== 'android') {
-      return sizeStyle;
-    }
-
-    return {
-      ...sizeStyle,
-      includeFontPadding: false,
-      textAlignVertical: 'center' as const,
-      paddingVertical: 0,
-      paddingTop: 1,
-    };
+    return Platform.OS === 'android'
+      ? { ...sizeStyle, includeFontPadding: false }
+      : sizeStyle;
   }, [fontSize]);
 
   return (
@@ -103,24 +95,27 @@ const InputStepper: React.FC<InputStepperProps> = ({
         />
         <Box
           flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="w-[100px]"
+          twClassName="min-w-[100px] shrink px-2"
         >
-          <Input
-            showSoftInputOnFocus={false}
-            caretHidden={false}
-            autoFocus
-            placeholder={placeholder}
-            value={displayedAmount}
-            style={inputTextStyle}
+          <Text
+            style={amountTextStyle}
+            color={value ? TextColor.TextDefault : TextColor.TextMuted}
+            fontWeight={FontWeight.Bold}
+            numberOfLines={1}
+            adjustsFontSizeToFit
             testID={INPUTSTEPPER_INPUT_TESTID}
-            selection={selection}
-            onSelectionChange={onSelectionChange}
-            {...inputProps}
-          />
+          >
+            {displayedAmount}
+          </Text>
+          <InputStepperCursor height={fontSize} />
           {postValue ? (
             <Text
-              style={inputTextStyle}
+              style={amountTextStyle}
+              fontWeight={FontWeight.Bold}
+              numberOfLines={1}
+              adjustsFontSizeToFit
               testID={INPUTSTEPPER_POST_VALUE_TESTID}
             >
               {postValue}
@@ -141,7 +136,17 @@ const InputStepper: React.FC<InputStepperProps> = ({
           {...increaseButtonProps}
         />
       </Box>
-      <InputStepperDescriptionRow description={description} />
+      {description ? (
+        <Box alignItems={BoxAlignItems.Center}>
+          <HelpText
+            severity={description.severity}
+            showIcon={description.showIcon}
+            testID={description.testID ?? INPUTSTEPPER_DESCRIPTION_TESTID}
+          >
+            {description.message}
+          </HelpText>
+        </Box>
+      ) : null}
     </Box>
   );
 };

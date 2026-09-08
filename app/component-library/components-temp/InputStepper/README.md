@@ -2,15 +2,15 @@
 
 Numeric stepper with increment/decrement controls, an optional suffix, and an optional warning/error description. Intended for keypad-driven amount entry (for example custom slippage).
 
-## Exception: component-library `Input`
+## Display, not a text input
 
-This component uses `app/component-library/components/Form/TextField/foundation/Input` instead of MMDS `Input` because the installed `@metamask/design-system-react-native` version does not export `Input`, and the keypad flow requires:
+The amount is rendered as MMDS `Text` with a blinking `InputStepperCursor` beside it, the same pattern as the Send amount field (`app/components/Views/confirmations/components/send/amount`). The keypad owns the value, so:
 
-- `selection` / `onSelectionChange` for caret-aware edits
-- `showSoftInputOnFocus={false}` to hide the system keyboard
-- `caretHidden={false}` so the caret remains visible
+- the suffix stays flush with the digits instead of being pushed away by a caret inside a text field
+- the amount cannot clip or scroll horizontally while digits are added or removed
+- the font shrinks to fit (`adjustsFontSizeToFit`) based on the amount plus the suffix
 
-All other chrome uses MMDS `Box`, `ButtonIcon`, `Text`, and `Icon` with `twClassName` / `useTailwind()`.
+Because there is no `TextInput`, the caret always sits at the end of the amount and cannot be repositioned by tapping. Consumers drive the value entirely through their keypad handler.
 
 ## Props
 
@@ -34,13 +34,17 @@ Numeric bounds used only to disable the stepper buttons.
 
 Optional suffix rendered after the value (for example `%`).
 
+### `placeholder`
+
+Rendered in muted text when `value` is empty. Defaults to `0`.
+
 ### `description`
 
-Optional message row with `message`, `color`, and optional `icon`.
+Optional message rendered with MMDS `HelpText`. Pass `message` plus the `HelpText` props that control appearance — `severity` (`HelpTextSeverity`) and `showIcon` — instead of colors or icon config, so the design system owns the styling. An optional `testID` is forwarded to the `HelpText`.
 
-### `selection` / `onSelectionChange`
+### `decreaseButtonProps` / `increaseButtonProps`
 
-Optional caret control for keypad editing of the displayed value.
+Optional MMDS `ButtonIcon` overrides, for example consumer-specific `testID` and `accessibilityLabel`.
 
 ## Test IDs
 
@@ -48,10 +52,10 @@ Optional caret control for keypad editing of the displayed value.
 - `input-stepper-minus-button`
 - `input-stepper-plus-button`
 - `input-stepper-input`
+- `input-stepper-cursor`
 - `input-stepper-post-value`
-- `input-stepper-description-row`
-- `input-stepper-description-icon`
-- `input-text-description-message`
+- `input-stepper-description` (default when `description.testID` is not set)
+- `help-text-icon` (owned by MMDS `HelpText` when `showIcon` is set)
 
 ## Usage
 
