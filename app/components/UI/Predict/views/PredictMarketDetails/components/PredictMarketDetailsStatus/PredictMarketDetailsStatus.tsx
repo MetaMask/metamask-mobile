@@ -31,6 +31,18 @@ const PredictMarketDetailsStatus = memo(
   }: PredictMarketDetailsStatusProps) => {
     const { colors } = useTheme();
 
+    const showResult =
+      Boolean(winningOutcomeToken) && !multipleOpenOutcomesPartiallyResolved;
+    const showAwaitingResolution =
+      marketStatus === PredictMarketStatus.CLOSED &&
+      resolutionStatus !== 'resolved';
+
+    // Rendering an empty Box would still consume the parent's gap, leaving dead
+    // space above the chart on markets that have no status to report.
+    if (!showResult && !showAwaitingResolution) {
+      return null;
+    }
+
     return (
       <Box twClassName="gap-2">
         {winningOutcomeToken && !multipleOpenOutcomesPartiallyResolved && (

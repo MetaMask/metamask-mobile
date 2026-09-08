@@ -6,10 +6,11 @@ import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
+  useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { isNoOpQuote } from '../../../../../../selectors/transactionPayController';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
@@ -22,20 +23,6 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
-
-function isSameTokenAddressAndChain(
-  left: { address?: string; chainId?: string } | undefined,
-  right: { address?: string; chainId?: string } | undefined,
-): boolean {
-  if (!left?.address || !left.chainId || !right?.address || !right.chainId) {
-    return false;
-  }
-
-  return (
-    left.address.toLowerCase() === right.address.toLowerCase() &&
-    left.chainId.toLowerCase() === right.chainId.toLowerCase()
-  );
-}
 
 /**
  * Row component that owns the bottom line of the totals section.
@@ -108,19 +95,17 @@ function TotalFeesRow() {
 /**
  * Displays "You'll receive" for withdrawal, input-based, and Max flows.
  *
- * Prefers `totals.targetAmount.usd` from executable quotes (after fees). Direct
- * same-token routes only produce a None-strategy no-op quote, which is excluded
- * from totals and leaves targetAmount at 0 — fall back to the required token
- * amount only when the destination payment token matches that required token
- * (same-chain mUSD Money Account withdraw). Cross-token routes must not show
- * the source amount as received when the quote is missing.
+ * Prefers `totals.targetAmount.usd` from executable quotes (after fees). A
+ * route needing no conversion only produces a no-op quote, which is excluded
+ * from totals and leaves `targetAmount` at 0 — nothing is converted, so the
+ * required token amount is what gets received.
  */
 function ReceiveRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const { payToken } = useTransactionPayToken();
+  const rawQuotes = useTransactionPayQuotesRaw();
 
   const receiveUsd = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount?.usd;
@@ -131,28 +116,24 @@ function ReceiveRow() {
       return formatFiat(targetBn);
     }
 
-    const primaryRequiredToken = (requiredTokens ?? []).find(
+    const isNoOpRoute = (rawQuotes ?? []).some(isNoOpQuote);
+
+    const requiredAmountUsd = (requiredTokens ?? []).find(
       (token) => !token.skipIfBalance,
-    );
-    const isDirectSameTokenRoute = isSameTokenAddressAndChain(
-      primaryRequiredToken,
-      payToken,
-    );
+    )?.amountUsd;
 
     if (
-      isDirectSameTokenRoute &&
-      primaryRequiredToken?.amountUsd &&
-      new BigNumber(primaryRequiredToken.amountUsd).gt(0)
+      isNoOpRoute &&
+      requiredAmountUsd &&
+      new BigNumber(requiredAmountUsd).gt(0)
     ) {
-      return formatFiat(new BigNumber(primaryRequiredToken.amountUsd));
+      return formatFiat(new BigNumber(requiredAmountUsd));
     }
 
-    if (targetBn == null) {
-      return '';
-    }
+    if (targetBn == null) return '';
 
     return formatFiat(targetBn);
-  }, [formatFiat, payToken, requiredTokens, totals?.targetAmount?.usd]);
+  }, [formatFiat, rawQuotes, requiredTokens, totals?.targetAmount?.usd]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;

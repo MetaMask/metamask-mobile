@@ -31,7 +31,8 @@
  * SLACK_THREAD_TS (reply in this thread instead of posting top-level),
  * SLACK_MESSAGE_TS_PATH (default slack-message-ts.txt; where this run's
  * message timestamp is written, so a later "result" call can thread off of
- * it), ISSUE_URL, RUN_URL, FAILED_STEP, SLACK_AUDIT_NOTIFICATION_DRY_RUN
+ * it), PR_URL, ISSUE_URL, RUN_URL, FAILED_STEP,
+ * SLACK_AUDIT_NOTIFICATION_DRY_RUN
  */
 
 import fs from 'fs';
@@ -153,7 +154,7 @@ export function buildDetectedMessage({
   if (runUrl) {
     blocks.push({
       type: 'section',
-      text: { type: 'mrkdwn', text: `<${runUrl}|Watch the run> — I'll reply in this thread once a tracking issue is filed.` },
+      text: { type: 'mrkdwn', text: `<${runUrl}|Watch the run> — I'll reply in this thread with an AI-assisted fix PR, or a tracking issue for whatever it couldn't fix.` },
     });
   }
 
@@ -180,6 +181,7 @@ export function buildDetectedMessage({
 export function buildResultMessage({
   fixed,
   manual,
+  prUrl,
   issueUrl,
   runUrl,
   ownerSlackId,
@@ -187,6 +189,7 @@ export function buildResultMessage({
 }: {
   fixed: AdvisoryEntry[];
   manual: AdvisoryEntry[];
+  prUrl: string;
   issueUrl: string;
   runUrl: string;
   ownerSlackId: string;
@@ -215,6 +218,7 @@ export function buildResultMessage({
   }
 
   const links: string[] = [];
+  if (prUrl) links.push(`<${prUrl}|View fix PR>`);
   if (issueUrl) links.push(`<${issueUrl}|View tracking issue>`);
   if (runUrl) links.push(`<${runUrl}|View workflow run>`);
   if (links.length > 0) {
@@ -392,6 +396,7 @@ export async function main(): Promise<void> {
         : buildResultMessage({
             fixed,
             manual,
+            prUrl: process.env.PR_URL || '',
             issueUrl: process.env.ISSUE_URL || '',
             runUrl: process.env.RUN_URL || '',
             ownerSlackId: owners.owner.slack_id,

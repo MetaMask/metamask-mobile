@@ -127,49 +127,45 @@ describe('buildDetectedMessage', () => {
 
 describe('buildResultMessage', () => {
   const advisory = (pkg: string) => ({ pkg, id: `GHSA-${pkg}`, severity: 'moderate', title: `${pkg} issue`, url: undefined });
+  const base = { prUrl: '', issueUrl: '', runUrl: '', ownerSlackId: 'U0123' };
 
   it('uses singular wording for exactly 1 total advisory', () => {
-    const { text } = buildResultMessage({ fixed: [], manual: [advisory('lodash')], issueUrl: '', runUrl: '', ownerSlackId: 'U0123' });
+    const { text } = buildResultMessage({ ...base, fixed: [], manual: [advisory('lodash')] });
 
     expect(text).toBe('🔒 Dependency audit: 1 new advisory found');
   });
 
   it('uses plural wording and sums fixed + manual for the total', () => {
-    const { text } = buildResultMessage({
-      fixed: [advisory('a')],
-      manual: [advisory('b'), advisory('c')],
-      issueUrl: '',
-      runUrl: '',
-      ownerSlackId: 'U0123',
-    });
+    const { text } = buildResultMessage({ ...base, fixed: [advisory('a')], manual: [advisory('b'), advisory('c')] });
 
     expect(text).toBe('🔒 Dependency audit: 3 new advisories found');
   });
 
   it('omits the "Fixed" section when nothing was fixed', () => {
-    const payload = buildResultMessage({ fixed: [], manual: [advisory('lodash')], issueUrl: '', runUrl: '', ownerSlackId: 'U0123' });
+    const payload = buildResultMessage({ ...base, fixed: [], manual: [advisory('lodash')] });
 
     expect(blocksText(payload)).not.toContain('Fixed');
   });
 
   it('omits the "Needs manual review" section when nothing is manual', () => {
-    const payload = buildResultMessage({ fixed: [advisory('lodash')], manual: [], issueUrl: '', runUrl: '', ownerSlackId: 'U0123' });
+    const payload = buildResultMessage({ ...base, fixed: [advisory('lodash')], manual: [] });
 
     expect(blocksText(payload)).not.toContain('Needs manual review');
   });
 
-  it('includes a links block only with at least one of issueUrl/runUrl', () => {
-    const withLinks = buildResultMessage({
-      fixed: [],
-      manual: [advisory('lodash')],
-      issueUrl: 'https://example.com/issues/1',
-      runUrl: '',
-      ownerSlackId: 'U0123',
-    });
-    const withoutLinks = buildResultMessage({ fixed: [], manual: [advisory('lodash')], issueUrl: '', runUrl: '', ownerSlackId: 'U0123' });
+  it('includes a links block only with at least one of prUrl/issueUrl/runUrl', () => {
+    const withLinks = buildResultMessage({ ...base, fixed: [], manual: [advisory('lodash')], issueUrl: 'https://example.com/issues/1' });
+    const withoutLinks = buildResultMessage({ ...base, fixed: [], manual: [advisory('lodash')] });
 
     expect(blocksText(withLinks)).toContain('https://example.com/issues/1');
     expect(withoutLinks.blocks.length).toBeLessThan(withLinks.blocks.length);
+  });
+
+  it('includes a "View fix PR" link when prUrl is set', () => {
+    const payload = buildResultMessage({ ...base, fixed: [advisory('lodash')], manual: [], prUrl: 'https://example.com/pull/1' });
+
+    expect(blocksText(payload)).toContain('https://example.com/pull/1');
+    expect(blocksText(payload)).toContain('View fix PR');
   });
 
   it('splits a long advisory list across multiple section blocks instead of exceeding Slack’s 3000-char limit', () => {
@@ -182,7 +178,7 @@ describe('buildResultMessage', () => {
       advisory(`package-with-a-fairly-long-name-${i}`),
     );
 
-    const payload = buildResultMessage({ fixed: [], manual, issueUrl: '', runUrl: '', ownerSlackId: 'U0123' });
+    const payload = buildResultMessage({ ...base, fixed: [], manual });
 
     const sectionTexts = payload.blocks
       .filter((block): block is { type: string; text: { text: string } } => (block as { type: string }).type === 'section')
@@ -200,11 +196,9 @@ describe('buildResultMessage', () => {
   it('clamps a single unusually long advisory line so it alone cannot exceed the limit', () => {
     const longTitle = 'x'.repeat(4000);
     const payload = buildResultMessage({
+      ...base,
       fixed: [],
       manual: [{ pkg: 'lodash', id: 'GHSA-lodash', severity: 'moderate', title: longTitle, url: undefined }],
-      issueUrl: '',
-      runUrl: '',
-      ownerSlackId: 'U0123',
     });
 
     const sectionTexts = payload.blocks

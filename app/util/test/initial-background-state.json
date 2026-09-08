@@ -598,7 +598,8 @@
   },
   "AuthenticationController": {
     "isSignedIn": false,
-    "needsProfilePairing": true
+    "needsProfilePairing": true,
+    "needsSocialPairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -772,6 +773,11 @@
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null,
     "redeemWithdrawal": null
+  },
+  "UiSlotsController": {
+    "enabled": false,
+    "screenConfigurations": {},
+    "activeConfigurations": {}
   },
   "ConfigRegistryController": {
     "configs": {

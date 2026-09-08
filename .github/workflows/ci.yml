@@ -149,7 +149,14 @@ jobs:
   native-build-fingerprint:
     name: Compute native build fingerprint
     runs-on: ubuntu-latest
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: >-
+      ${{
+        needs.get_requirements.outputs.skip_everything != 'true' &&
+        (
+          needs.get_requirements.outputs.android_e2e_needed == 'true' ||
+          needs.get_requirements.outputs.ios_e2e_needed == 'true'
+        )
+      }}
     permissions:
       contents: read
       statuses: write
@@ -160,13 +167,13 @@ jobs:
     steps:
       # Default: fingerprint the PR merge tree (or push/schedule commit).
       - name: Checkout repository
-        if: ${{ needs.get_requirements.outputs.native_build_needed != 'false' || github.event_name != 'pull_request' }}
+        if: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs != 'true' || github.event_name != 'pull_request' }}
         uses: actions/checkout@v6
 
       # Test-only PRs reuse main native builds — fingerprint main HEAD so the lookup
       # key matches completed ci.yml runs on the main branch.
       - name: Checkout main for test-only fingerprint
-        if: ${{ needs.get_requirements.outputs.native_build_needed == 'false' && github.event_name == 'pull_request' }}
+        if: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' && github.event_name == 'pull_request' }}
         uses: actions/checkout@v6
         with:
           ref: main
@@ -187,7 +194,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ needs.get_requirements.outputs.native_build_needed == 'true' }}
+          post-status: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs != 'true' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -465,9 +472,15 @@ jobs:
     needs:
       - dependency-audit
     if: ${{ needs.dependency-audit.outputs.has-advisories == 'true' }}
+    # A reusable workflow's own `permissions:` block can only narrow what its
+    # caller grants here, never widen it — this must be a superset of
+    # dependency-audit-escalation.yml's own permissions block, or the call
+    # fails at startup (zero jobs run) rather than at any individual step.
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       issues: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     uses: ./.github/workflows/dependency-audit-escalation.yml
     secrets: inherit
 
@@ -510,14 +523,10 @@ jobs:
         run: |
           set -euo pipefail
           BASE_REF='${{ github.event.pull_request.base.ref }}'
-          git fetch origin "${BASE_REF}" --depth=1
-          if ! MERGE_BASE_SHA="$(git merge-base "origin/${BASE_REF}" HEAD)"; then
-            echo "::warning::Could not resolve merge-base between HEAD and origin/${BASE_REF}; bundle size delta check will be skipped."
-            echo "MERGE_BASE_SHA=" >> "$GITHUB_ENV"
-          else
-            echo "Merge-base pinned (origin/${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"
-            echo "MERGE_BASE_SHA=${MERGE_BASE_SHA}" >> "$GITHUB_ENV"
-          fi
+          # PR checkout is the merge ref (fetch-depth: 2); first parent is the base tip.
+          MERGE_BASE_SHA="$(git rev-parse HEAD^1)"
+          echo "Merge-base pinned (${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"
+          echo "MERGE_BASE_SHA=${MERGE_BASE_SHA}" >> "$GITHUB_ENV"
           echo "BUNDLE_SIZE_BASE_REF=${BASE_REF}" >> "$GITHUB_ENV"
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1426,9 +1435,9 @@ jobs:
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}
       pr_number: ${{ github.event.pull_request.number }}
-      # Test-only PRs use the latest main APKs directly. PRs with app changes
-      # leave this false so the build workflow can use fingerprint reuse.
-      reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      # Test-only performance runs reuse main APKs when available, with a fresh-build
+      # fallback; app-changing PRs use normal fingerprint reuse with JS repacking.
+      reuse_main_builds: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
       source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
     secrets: inherit
     permissions:
@@ -1463,7 +1472,7 @@ jobs:
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      use-main-builds-for-test-only-prs: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
     secrets: inherit
 
   prepare-e2e-timings:
@@ -1522,13 +1531,7 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
-    # PRs into main do not build iOS from path filters alone — it has to be
-    # requested with run-appium-ios-tests, or with skip-smart-e2e-selection when
-    # path filters already require iOS. Both opt-ins are resolved into
-    # ios_e2e_needed by .github/scripts/qa-automation/e2e-ci-orchestration/compute-e2e-platform-flags.cjs, which also
-    # keeps ios_e2e_needed and run_appium_ios equal on those PRs so the app is
-    # only built when iOS E2E will actually run. Pushes to main/release/*, the
-    # nightly schedule, and PRs into release/* are unaffected.
+    # Build when the final iOS E2E platform flag is enabled.
     if: >-
       ${{
         !cancelled() &&
@@ -1550,19 +1553,8 @@ jobs:
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      use-main-builds-for-test-only-prs: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
     secrets: inherit
-
-  ios-tests-ready:
-    name: 'iOS Tests Ready'
-    runs-on: ubuntu-latest
-    if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
-    needs: [build-ios-apps]
-    steps:
-      - name: iOS build complete
-        run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
-
-
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
@@ -1606,34 +1598,15 @@ jobs:
 
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
-    # Main/release push and main schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests, or change
-    # page-objects/selectors/locators/framework/smoke-appium
-    # (same smart-selected tags as other E2E jobs).
+    # Runs when the final iOS E2E platform flag is enabled.
     if: >-
       ${{
         !cancelled() &&
-        needs.ios-tests-ready.result == 'success' &&
+        needs.build-ios-apps.result == 'success' &&
         (needs.prepare-e2e-timings.result == 'success' ||
           needs.prepare-e2e-timings.result == 'skipped' ||
           needs.prepare-e2e-timings.result == 'failure') &&
-        (
-          (
-            github.event_name == 'push' &&
-            (
-              github.ref == 'refs/heads/main' ||
-              startsWith(github.ref, 'refs/heads/release/')
-            )
-          ) ||
-          (
-            github.ref == 'refs/heads/main' &&
-            github.event_name == 'schedule'
-          ) ||
-          (
-            github.event_name == 'pull_request' &&
-            needs.get_requirements.outputs.run_appium_ios == 'true'
-          )
-        )
+        needs.get_requirements.outputs.ios_e2e_needed == 'true'
       }}
     permissions:
       contents: read
@@ -1643,7 +1616,7 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
+    needs: [get_requirements, build-ios-apps, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'

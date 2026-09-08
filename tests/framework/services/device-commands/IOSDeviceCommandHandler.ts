@@ -139,7 +139,19 @@ export class IOSDeviceCommandHandler implements PlatformDeviceCommandHandler {
     const appDataPath = stdout.trim();
     this.validateAppDataPath(appDataPath, resolvedAppId);
 
-    const entries = await fs.readdir(appDataPath);
+    let entries: string[];
+    try {
+      entries = await fs.readdir(appDataPath);
+    } catch (error) {
+      if (this.isEnoent(error)) {
+        this.options.logger?.debug(
+          `iOS app data container already missing at ${appDataPath}; treating as cleared`,
+        );
+        return;
+      }
+      throw error;
+    }
+
     await Promise.all(
       entries.map((entry) =>
         fs.rm(path.join(appDataPath, entry), {
@@ -262,5 +274,14 @@ export class IOSDeviceCommandHandler implements PlatformDeviceCommandHandler {
    */
   private formatError(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
+  }
+
+  private isEnoent(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as NodeJS.ErrnoException).code === 'ENOENT'
+    );
   }
 }
