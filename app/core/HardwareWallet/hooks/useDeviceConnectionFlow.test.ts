@@ -1,5 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import {
+  HardwareWalletType,
+  ConnectionStatus,
+  ErrorCode,
+  HardwareWalletError,
+} from '@metamask/hw-wallet-sdk';
 import { useDeviceConnectionFlow } from './useDeviceConnectionFlow';
 import {
   HardwareWalletRefs,
@@ -109,9 +114,15 @@ describe('useDeviceConnectionFlow', () => {
       const options = createDefaultOptions({ walletType: null });
       const { result } = renderHook(() => useDeviceConnectionFlow(options));
 
-      await expect(
-        act(() => result.current.ensureDeviceReady()),
-      ).rejects.toThrow('ensureDeviceReady called without a wallet type');
+      const rejection = await act(() =>
+        result.current.ensureDeviceReady().catch((error: unknown) => error),
+      );
+
+      expect(rejection).toBeInstanceOf(HardwareWalletError);
+      expect(rejection).toMatchObject({
+        code: ErrorCode.Unknown,
+        message: 'ensureDeviceReady called without a wallet type',
+      });
     });
 
     it('uses targetWalletTypeRef when walletType is null', async () => {
@@ -729,6 +740,7 @@ describe('useDeviceConnectionFlow', () => {
 
       expect(options.handleError).toHaveBeenCalledWith(
         expect.objectContaining({
+          code: ErrorCode.DeviceNotReady,
           message: 'No adapter available',
         }),
       );

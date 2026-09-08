@@ -4,9 +4,11 @@ import {
   HardwareWalletType,
   HardwareWalletConnectionState,
   ConnectionStatus,
+  ErrorCode,
 } from '@metamask/hw-wallet-sdk';
 
 import { HardwareWalletAdapter } from '../types';
+import { createHardwareWalletError } from '../errors';
 import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
@@ -178,7 +180,11 @@ export const useDeviceConnectionFlow = ({
       try {
         const adapter = refs.adapterRef.current;
         if (!adapter) {
-          throw new Error('No adapter available');
+          throw createHardwareWalletError(
+            ErrorCode.DeviceNotReady,
+            walletType,
+            'No adapter available',
+          );
         }
 
         await adapter.connect(targetDeviceId);
@@ -217,6 +223,7 @@ export const useDeviceConnectionFlow = ({
       refs,
       setters,
       handleError,
+      walletType,
       updateConnectionState,
       tryEnsureReady,
       flowActiveRef,
@@ -252,7 +259,11 @@ export const useDeviceConnectionFlow = ({
         walletType;
 
       if (!targetType) {
-        throw new Error('ensureDeviceReady called without a wallet type');
+        throw createHardwareWalletError(
+          ErrorCode.Unknown,
+          walletType,
+          'ensureDeviceReady called without a wallet type',
+        );
       }
 
       if (!targetDeviceId) {
