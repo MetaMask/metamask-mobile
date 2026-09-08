@@ -54,7 +54,7 @@ describe('useKycDisclaimers', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.disclaimers).toStrictEqual([]);
+    expect(result.current.disclaimers).toBeNull();
     expect(result.current.error).toBe(
       'Failed to load disclaimers: Error: boom',
     );
@@ -70,7 +70,7 @@ describe('useKycDisclaimers', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.disclaimers).toStrictEqual([]);
+    expect(result.current.disclaimers).toBeNull();
     expect(result.current.error).toBe('No KYC disclaimers returned');
   });
 
@@ -81,12 +81,12 @@ describe('useKycDisclaimers', () => {
 
       const { result } = renderHook(() => useKycDisclaimers('BRA'));
 
-      act(() => {
+      await act(async () => {
         jest.advanceTimersByTime(10_000);
       });
 
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.disclaimers).toBeNull();
       expect(result.current.error).toBe('Request timed out');
     } finally {
       jest.useRealTimers();
@@ -100,7 +100,7 @@ describe('useKycDisclaimers', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.disclaimers).toStrictEqual([]);
+    expect(result.current.disclaimers).toBeNull();
     expect(result.current.error).toBe('not signed in');
   });
 
