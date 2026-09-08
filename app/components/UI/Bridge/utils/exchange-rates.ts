@@ -149,7 +149,10 @@ export const calcTokenFiatRate = ({
 
   const evmChainId = token.chainId as Hex;
   const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+  const checksumTokenAddress = (toChecksumHexAddress(token.address) ??
+    token.address) as Hex;
+  const evmTokenMarketData =
+    evmMultiChainExchangeRates?.[checksumTokenAddress];
 
   const nativeCurrency =
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
@@ -201,7 +204,10 @@ export const calcTokenFiatValue = ({
   // EVM
   const evmChainId = token.chainId as Hex;
   const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+  const checksumTokenAddress = (toChecksumHexAddress(token.address) ??
+    token.address) as Hex;
+  const evmTokenMarketData =
+    evmMultiChainExchangeRates?.[checksumTokenAddress];
 
   const nativeCurrency =
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
