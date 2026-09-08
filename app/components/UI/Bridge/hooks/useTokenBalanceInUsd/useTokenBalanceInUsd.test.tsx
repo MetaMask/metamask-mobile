@@ -74,21 +74,6 @@ describe('useTokenBalanceInUsd', () => {
             },
             conversionRate: 2000,
           },
-          TokenBalancesController: {
-            tokenBalances: {
-              ...initialState.engine.backgroundState.TokenBalancesController
-                .tokenBalances,
-              [evmAccountAddress]: {
-                ...initialState.engine.backgroundState.TokenBalancesController
-                  .tokenBalances[evmAccountAddress],
-                [ethChainId]: {
-                  ...initialState.engine.backgroundState.TokenBalancesController
-                    .tokenBalances[evmAccountAddress][ethChainId],
-                  [nativeAddress]: '0x0de0b6b3a7640000' as Hex, // 1 ETH
-                },
-              },
-            },
-          },
           AssetsController: withNativeEthBalance('1'),
         },
       },

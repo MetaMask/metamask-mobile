@@ -470,12 +470,13 @@ describe('Edge cases', () => {
 
   it('calculates USD value when usdConversionRateFromCurrencyRates is not available', async () => {
     const stateWithoutUsdRate = merge({}, transferConfirmationState);
-    const ethPrice =
-      stateWithoutUsdRate.engine.backgroundState.AssetsController.assetsPrice[
-        ethAssetId
-      ];
+    const { assetsPrice } =
+      stateWithoutUsdRate.engine.backgroundState.AssetsController;
+    const ethPrice = assetsPrice[ethAssetId];
     if (ethPrice.assetPriceType === 'fungible') {
-      delete ethPrice.usdPrice;
+      const { usdPrice: _usdPrice, ...ethPriceWithoutUsd } = ethPrice;
+      assetsPrice[ethAssetId] =
+        ethPriceWithoutUsd as unknown as typeof ethPrice;
     }
 
     const { result } = renderHookWithProvider(() => useTokenAmount(), {

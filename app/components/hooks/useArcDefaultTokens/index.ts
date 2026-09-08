@@ -6,7 +6,6 @@ import type { CaipAssetType } from '@metamask/utils';
 import { NETWORK_CHAIN_ID } from '../../../util/networks/customNetworks';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import { createDeepEqualSelector } from '../../../selectors/util';
 import type { RootState } from '../../../reducers';
 import Engine from '../../../core/Engine';
 
@@ -19,31 +18,6 @@ export const ARC_NATIVE_ASSET_ID: CaipAssetType = 'eip155:5042/slip44:5042';
 // it out alongside ARC_NATIVE_ASSET_ID so upgraded users don't see a duplicate.
 export const ARC_NATIVE_ASSET_ID_LEGACY: CaipAssetType =
   'eip155:5042/erc20:0x0000000000000000000000000000000000000000';
-
-const selectHasArcUsdcByAccount = createDeepEqualSelector(
-  [
-    selectInternalAccounts,
-    (state: RootState) => state.engine?.backgroundState?.AssetsController,
-    (state: RootState) =>
-      state.engine?.backgroundState?.MultichainAssetsController?.accountsAssets,
-  ],
-  (accounts, assetsController, legacyAccountsAssets) => {
-    const presence: Record<string, boolean> = {};
-
-    for (const account of accounts) {
-      const existingAssetIds = [
-        ...Object.keys(assetsController?.assetsBalance?.[account.id] ?? {}),
-        ...(assetsController?.customAssets?.[account.id] ?? []),
-        ...(legacyAccountsAssets?.[account.id] ?? []),
-      ];
-      presence[account.id] = existingAssetIds.some(
-        (id) => id.toLowerCase() === ARC_USDC_ASSET_ID.toLowerCase(),
-      );
-    }
-
-    return presence;
-  },
-);
 
 /**
  * Adds ERC-20 USDC on Arc for all EVM accounts that don't already have it,
@@ -58,7 +32,14 @@ export function useArcDefaultTokens() {
     selectEvmNetworkConfigurationsByChainId,
   );
   const allAccounts = useSelector(selectInternalAccounts);
-  const hasArcUsdcByAccount = useSelector(selectHasArcUsdcByAccount);
+  const assetsBalance = useSelector(
+    (state: RootState) =>
+      state.engine?.backgroundState?.AssetsController?.assetsBalance ?? {},
+  );
+  const customAssets = useSelector(
+    (state: RootState) =>
+      state.engine?.backgroundState?.AssetsController?.customAssets ?? {},
+  );
 
   // Track account IDs we've already dispatched for so we don't re-call on
   // every render while the controller state is catching up.
@@ -77,7 +58,15 @@ export function useArcDefaultTokens() {
         continue;
       }
 
-      if (hasArcUsdcByAccount[account.id]) {
+      const existingAssets: string[] = [
+        ...Object.keys(assetsBalance[account.id] ?? {}),
+        ...(customAssets[account.id] ?? []),
+      ];
+      const alreadyPresent = existingAssets.some(
+        (id) => id.toLowerCase() === ARC_USDC_ASSET_ID.toLowerCase(),
+      );
+
+      if (alreadyPresent) {
         dispatchedRef.current.add(account.id);
         continue;
       }
@@ -92,5 +81,5 @@ export function useArcDefaultTokens() {
         dispatchedRef.current.delete(account.id);
       });
     }
-  }, [networkConfigurations, allAccounts, hasArcUsdcByAccount]);
+  }, [networkConfigurations, allAccounts, assetsBalance, customAssets]);
 }
