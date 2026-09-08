@@ -29,7 +29,7 @@ export const accountsControllerMock = {
             [accountMock]: {
               id: accountMock,
               address: accountMock,
-              type: 'eip155:eoa',
+              type: 'eip155:eoa' as const,
               metadata: {
                 name: 'Account 1',
                 keyring: {

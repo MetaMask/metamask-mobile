@@ -4,7 +4,6 @@ import {
 } from '../../../util/test/renderWithProvider';
 import type { RootState } from '../../../reducers';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
-import type { MultichainAssetsControllerState } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 import { useArcDefaultTokens } from './index';
 
@@ -73,11 +72,11 @@ const solanaAccount = {
 const buildState = ({
   arcPresent = true,
   accounts = [evmAccount1],
-  accountsAssets = {},
+  existingArcAssetIds,
 }: {
   arcPresent?: boolean;
   accounts?: (typeof evmAccount1 | typeof solanaAccount)[];
-  accountsAssets?: Record<string, string[]>;
+  existingArcAssetIds?: string[];
 } = {}): DeepPartial<RootState> => ({
   engine: {
     backgroundState: {
@@ -102,9 +101,25 @@ const buildState = ({
           },
         ],
       },
+      AssetsController: {
+        customAssets: existingArcAssetIds
+          ? { [accounts[0].id]: existingArcAssetIds }
+          : {},
+        assetsBalance: existingArcAssetIds
+          ? {
+              [accounts[0].id]: Object.fromEntries(
+                existingArcAssetIds.map((assetId) => [
+                  assetId,
+                  { amount: '1' },
+                ]),
+              ),
+            }
+          : {},
+      },
       MultichainAssetsController: {
-        accountsAssets:
-          accountsAssets as unknown as MultichainAssetsControllerState['accountsAssets'],
+        accountsAssets: existingArcAssetIds
+          ? { [accounts[0].id]: existingArcAssetIds }
+          : {},
       },
     },
   },
@@ -182,7 +197,7 @@ describe('useArcDefaultTokens', () => {
   it('does not call addAssets when the account already has the Arc USDC asset', () => {
     renderHookWithProvider(() => useArcDefaultTokens(), {
       state: buildState({
-        accountsAssets: { [evmAccount1.id]: [ARC_USDC_ASSET_ID] },
+        existingArcAssetIds: [ARC_USDC_ASSET_ID],
       }),
     });
 
@@ -192,7 +207,7 @@ describe('useArcDefaultTokens', () => {
   it('treats the existing asset ID case-insensitively', () => {
     renderHookWithProvider(() => useArcDefaultTokens(), {
       state: buildState({
-        accountsAssets: { [evmAccount1.id]: [ARC_USDC_ASSET_ID.toUpperCase()] },
+        existingArcAssetIds: [ARC_USDC_ASSET_ID.toUpperCase()],
       }),
     });
 
