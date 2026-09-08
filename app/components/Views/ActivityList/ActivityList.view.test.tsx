@@ -52,7 +52,7 @@ describeForPlatforms('ActivityList', () => {
 
     const { findByTestId } = renderActivityListViewWithRoutes({
       state,
-      extraRoutes: [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
+      extraRoutes: [{ name: Routes.ACTIVITY_DETAILS }],
     });
 
     const pendingRow = await findByTestId(
@@ -84,7 +84,7 @@ describeForPlatforms('ActivityList', () => {
     fireEvent.press(confirmedRow);
 
     expect(
-      await findByTestId(getRouteProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW)),
+      await findByTestId(getRouteProbeTestId(Routes.ACTIVITY_DETAILS)),
     ).toBeOnTheScreen();
   });
 

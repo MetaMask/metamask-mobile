@@ -14,7 +14,6 @@ import {
   IconName,
   IconColor,
 } from '../../../../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../../../../component-library/components/Texts/Text';
 
 import AssetPill from '../../../../../../../../UI/SimulationDetails/AssetPill/AssetPill';
 import { IndividualFiatDisplay } from '../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
@@ -33,6 +32,7 @@ import BottomModal from '../../../../../UI/bottom-modal';
  * @see {@link https://github.com/MetaMask/metamask-mobile/issues/12974}
  */
 import styleSheet from '../value-display/value-display.styles';
+import { Text } from '@metamask/design-system-react-native';
 
 const NATIVE_DECIMALS = 18;
 

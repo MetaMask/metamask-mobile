@@ -12,6 +12,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxFlexDirection,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -49,6 +50,7 @@ interface BtcLiveValuesHandle {
 const BtcCurrentPrice = memo(({ value }: { value: number | undefined }) => (
   <Text
     variant={TextVariant.BodyMd}
+    fontWeight={FontWeight.Medium}
     color={TextColor.TextDefault}
     numberOfLines={1}
   >
@@ -100,6 +102,7 @@ const BtcLiveValues = forwardRef<BtcLiveValuesHandle>((_props, ref) => {
     useCurrentCryptoUpDownMarketData({
       series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
       enabled: isPredictEnabled && isFocused,
+      withChartData: false,
     });
 
   useImperativeHandle(ref, () => ({ marketId, market }), [market, marketId]);

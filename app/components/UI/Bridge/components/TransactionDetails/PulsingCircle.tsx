@@ -32,7 +32,7 @@ const styleSheet = (params: { theme: Theme }) =>
       borderRadius: 8,
     },
     hollowCircleContainer: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: 'center',
       alignItems: 'center',
     },

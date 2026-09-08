@@ -77,7 +77,6 @@ const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
 const mockMoneyFormatUsd = moneyFormatUsd as jest.MockedFunction<
   typeof moneyFormatUsd
 >;
-let mockRouteParams: { entryPoint?: string } | undefined;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -89,7 +88,7 @@ jest.mock('@react-navigation/native', () => {
       setParams: jest.fn(),
     }),
     useFocusEffect: (callback: () => void) => callback(),
-    useRoute: () => ({ params: mockRouteParams }),
+    useRoute: () => ({ params: undefined }),
   };
 });
 
@@ -195,8 +194,8 @@ jest.mock('../../hooks/useMoneyHomePerformance', () => ({
   useMoneyHomePerformance: jest.fn(),
 }));
 
-jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: jest.fn(),
+jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -478,7 +477,6 @@ describe('MoneyHomeView', () => {
   let defaultMoneyVaultApy: ReturnType<typeof useMoneyVaultApy>;
 
   beforeEach(() => {
-    mockRouteParams = undefined;
     jest.clearAllMocks();
     global.alert = jest.fn();
 
@@ -603,16 +601,6 @@ describe('MoneyHomeView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyHomeViewTestIds.CONTAINER)).toBeOnTheScreen();
-  });
-
-  it('tracks the Money home entry point from route params', () => {
-    mockRouteParams = { entryPoint: 'homescreen_balance_breakdown' };
-
-    renderWithProvider(<MoneyHomeView />);
-
-    expect(mockTrackScreenViewed).toHaveBeenCalledWith({
-      entry_point: 'homescreen_balance_breakdown',
-    });
   });
 
   it('renders the scroll view', () => {
@@ -1569,7 +1557,9 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS, {
+      overrideToUsd: true,
+    });
   });
 
   it('opens the Money landing URL in the in-app browser when learn more is pressed in unfunded state', () => {
@@ -2437,6 +2427,7 @@ describe('MoneyHomeView', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MONEY.POTENTIAL_EARNINGS,
+        { overrideToUsd: true },
       );
     });
 

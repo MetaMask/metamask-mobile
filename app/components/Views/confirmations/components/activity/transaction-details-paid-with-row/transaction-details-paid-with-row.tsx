@@ -1,6 +1,5 @@
 import React from 'react';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
@@ -18,6 +17,7 @@ import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/Paym
 import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import { useTheme } from '../../../../../../util/theme';
+import { Text } from '@metamask/design-system-react-native';
 
 const MONEY_HERO_TYPES = [
   TransactionType.moneyAccountDeposit,

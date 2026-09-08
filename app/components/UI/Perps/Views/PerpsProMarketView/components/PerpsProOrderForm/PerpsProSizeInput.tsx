@@ -17,6 +17,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useRef } from 'react';
 import { Platform, type TextInput, type View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsSlider from '../../../../components/PerpsSlider';
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
@@ -46,8 +47,11 @@ export interface PerpsProSizeInputProps {
    * below it and must stay clear of the keyboard too.
    */
   containerRef?: React.Ref<View>;
+  /** Optional shared-form ref used by keyboard field traversal. */
+  inputRef?: React.RefObject<TextInput | null>;
   /** Fires on every field tap, including while already focused. Idempotent. */
   onFieldPress?: () => void;
+  isDisabled?: boolean;
 }
 
 const PerpsProSizeInput = ({
@@ -62,45 +66,113 @@ const PerpsProSizeInput = ({
   availableBalance,
   onAddFundsPress,
   containerRef,
+  inputRef: externalInputRef,
   onFieldPress,
+  isDisabled = false,
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
-  const inputRef = useRef<TextInput>(null);
+  const { playImpact, playSelection } = useHaptics();
+  const internalInputRef = useRef<TextInput>(null);
+  const inputRef = externalInputRef ?? internalInputRef;
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
   const label = strings('perps.pro_order_form.size_unit', {
     unit: unitLabel,
   });
   const canPressDenominationToggle =
-    canToggleDenomination && Boolean(onToggleDenomination);
+    !isDisabled && canToggleDenomination && Boolean(onToggleDenomination);
   const inputAccessoryViewID =
     Platform.OS === 'ios'
       ? getPerpsProInputAccessoryID(ids.SIZE_INPUT)
       : undefined;
 
   const focusInput = useCallback(() => {
+    if (isDisabled) {
+      return;
+    }
     inputRef.current?.focus();
     onFieldPress?.();
-  }, [onFieldPress]);
+  }, [inputRef, isDisabled, onFieldPress]);
 
   const handleToggleDenomination = useCallback(() => {
     if (!canPressDenominationToggle) {
       return;
     }
 
+    playSelection().catch(() => undefined);
     onToggleDenomination?.();
-    focusInput();
-  }, [canPressDenominationToggle, focusInput, onToggleDenomination]);
+  }, [canPressDenominationToggle, onToggleDenomination, playSelection]);
+
+  const handleChangeText = useCallback(
+    (nextValue: string) => {
+      if (!isDisabled) {
+        onChangeText(nextValue);
+      }
+    },
+    [isDisabled, onChangeText],
+  );
+
+  const handleFocus = useCallback(() => {
+    if (!isDisabled) {
+      onFocus?.();
+    }
+  }, [isDisabled, onFocus]);
+
+  const handleBlur = useCallback(() => {
+    if (!isDisabled) {
+      onBlur?.();
+    }
+  }, [isDisabled, onBlur]);
+
+  const handleFieldPress = useCallback(() => {
+    if (!isDisabled) {
+      onFieldPress?.();
+    }
+  }, [isDisabled, onFieldPress]);
+
+  const handleSliderValueChange = useCallback(
+    (nextValue: number) => {
+      if (!isDisabled) {
+        sizeSlider.onValueChange(nextValue);
+      }
+    },
+    [isDisabled, sizeSlider],
+  );
+
+  const handleSliderDragEnd = useCallback(
+    (nextValue: number) => {
+      if (!isDisabled) {
+        sizeSlider.onDragEnd(nextValue);
+      }
+    },
+    [isDisabled, sizeSlider],
+  );
+
+  const handleSliderDragCancel = useCallback(() => {
+    if (!isDisabled) {
+      sizeSlider.onDragCancel();
+    }
+  }, [isDisabled, sizeSlider]);
+
+  const handleAddFundsPress = useCallback(() => {
+    if (isDisabled || !onAddFundsPress) {
+      return;
+    }
+
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    onAddFundsPress();
+  }, [isDisabled, onAddFundsPress, playImpact]);
 
   return (
     <Box
       ref={containerRef}
-      twClassName="overflow-visible rounded-2xl border border-muted bg-muted"
+      twClassName="overflow-visible rounded-xl bg-muted"
       testID={ids.SIZE_CARD}
     >
       <Box twClassName="relative">
         <ButtonBase
           onPress={focusInput}
+          isDisabled={isDisabled}
           twClassName="h-[78px] w-full bg-transparent p-0"
           contentWrapperProps={{
             twClassName: 'w-full flex-col items-start',
@@ -127,18 +199,19 @@ const PerpsProSizeInput = ({
                 twClassName="font-semibold"
                 testID={ids.SIZE_PREFIX}
               >
-                $
+                {strings('perps.tpsl.usd_label')}
               </Text>
             ) : null}
             <Input
               ref={inputRef}
               value={value}
-              onChangeText={onChangeText}
-              onFocus={onFocus}
-              onBlur={onBlur}
+              onChangeText={handleChangeText}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              isDisabled={isDisabled}
               // A tap landing here is consumed by the input, so the wrapping
               // ButtonBase never fires.
-              onPressIn={onFieldPress}
+              onPressIn={handleFieldPress}
               keyboardType="decimal-pad"
               inputAccessoryViewID={inputAccessoryViewID}
               placeholder="0.00"
@@ -178,19 +251,20 @@ const PerpsProSizeInput = ({
       </Box>
       <Box
         twClassName="overflow-visible px-3 pb-4 pt-6"
-        onTouchCancel={sizeSlider.onDragCancel}
+        onTouchCancel={handleSliderDragCancel}
         testID={ids.SIZE_SLIDER_SECTION}
       >
         <PerpsSlider
           value={sizeSlider.value}
-          onValueChange={sizeSlider.onValueChange}
-          onDragEnd={sizeSlider.onDragEnd}
+          onValueChange={handleSliderValueChange}
+          onDragEnd={handleSliderDragEnd}
           minimumValue={0}
           maximumValue={sizeSlider.maximumValue}
           step={1}
           showPercentageLabels={false}
           showPercentageMarkers
           variant="compact"
+          disabled={isDisabled}
           testID={ids.SIZE_SLIDER}
           accessibilityLabel={strings(
             'perps.pro_order_form.size_percentage_unit',
@@ -200,8 +274,8 @@ const PerpsProSizeInput = ({
       </Box>
       <Box twClassName="w-full border-t border-muted" />
       <ButtonBase
-        onPress={onAddFundsPress}
-        isDisabled={!onAddFundsPress}
+        onPress={handleAddFundsPress}
+        isDisabled={isDisabled || !onAddFundsPress}
         twClassName="h-[46px] w-full rounded-b-2xl bg-transparent px-3"
         contentWrapperProps={{
           twClassName: 'w-full flex-row items-center justify-start gap-1',

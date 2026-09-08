@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
 import { Linking } from 'react-native';
-import { TextButton } from '@metamask/design-system-react-native';
+import { Text, TextButton } from '@metamask/design-system-react-native';
 
 import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { use7702TransactionType } from '../7702/use7702TransactionType';

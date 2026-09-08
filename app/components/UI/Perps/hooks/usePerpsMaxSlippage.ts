@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
-import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../constants/slippageConfig';
-
-type MaxSlippageSource =
-  (typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE)[keyof typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE];
+import {
+  PERPS_SLIPPAGE_DEFAULT_BPS,
+  type MaxSlippageSource,
+} from '../constants/slippageConfig';
+import { usePerpsSelector } from './usePerpsSelector';
 
 export interface UsePerpsMaxSlippageReturn {
   /** Resolved max slippage in basis points (falls back to the documented default). */
@@ -20,19 +21,17 @@ export interface UsePerpsMaxSlippageReturn {
  * order screen never reaches across the controller boundary directly. Returns
  * both the resolved bps value and the source (default vs user-configured) so
  * callers can pass `max_slippage_source` to MetaMetrics without re-running the
- * lookup. Exposes a `setMaxSlippage` helper that bumps an internal revision
- * counter, which forces the memoised reads to refresh after a save.
+ * lookup. Exposes a `setMaxSlippage` helper that writes through to the
+ * controller; all hook instances subscribe to the same controller state.
  */
 export function usePerpsMaxSlippage(): UsePerpsMaxSlippageReturn {
-  const [revision, setRevision] = useState(0);
+  const stored = usePerpsSelector((state) => state?.maxSlippageBps);
 
   const setMaxSlippage = useCallback((bps: number) => {
     Engine.context.PerpsController?.setMaxSlippage(bps);
-    setRevision((current) => current + 1);
   }, []);
 
   return useMemo(() => {
-    const stored = Engine.context.PerpsController?.getMaxSlippage?.();
     const maxSlippageBps = stored ?? PERPS_SLIPPAGE_DEFAULT_BPS;
     const maxSlippageSource: MaxSlippageSource =
       stored === undefined
@@ -43,8 +42,5 @@ export function usePerpsMaxSlippage(): UsePerpsMaxSlippageReturn {
       maxSlippageSource,
       setMaxSlippage,
     };
-    // Engine.context read is intentionally not a hook dep; the revision
-    // counter forces the memo to re-run after `setMaxSlippage` writes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [revision, setMaxSlippage]);
+  }, [setMaxSlippage, stored]);
 }

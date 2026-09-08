@@ -6,15 +6,17 @@ import Icon, {
   IconColor,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useIsInternalConfirmation } from '../../hooks/transactions/useIsInternalConfirmation';
 import { useTransactionBatchesMetadata } from '../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import styleSheet from './batched-transactions-tag.styles';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export const BatchedTransactionTag = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -40,7 +42,11 @@ export const BatchedTransactionTag = () => {
         <Icon name={IconName.Info} color={IconColor.Alternative} />
       }
     >
-      <Text color={TextColor.Alternative} variant={TextVariant.BodySMMedium}>
+      <Text
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+      >
         {strings('confirm.7702_functionality.includes_transaction', {
           transactionCount: nestedTransactionCount || batchedTransactionCount,
         })}

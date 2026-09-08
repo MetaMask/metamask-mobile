@@ -10,7 +10,9 @@ import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
   type CardControllerState,
+  type CardHomeDataError,
   type CardHomeDataStatus,
+  type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
   FundingAssetStatus,
@@ -133,6 +135,12 @@ export const selectIsMoneyAccountCardLinkInProgress = createSelector(
     cardState?.moneyAccountCardLinkInProgress ?? false,
 );
 
+export const selectCardRedeemWithdrawal = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    (cardState?.redeemWithdrawal as CardRedeemWithdrawal | null) ?? null,
+);
+
 export const selectCardholderAccounts = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
@@ -195,6 +203,12 @@ export const selectCardHomeDataStatus = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardHomeDataStatus =>
     cardState?.cardHomeDataStatus ?? 'idle',
+);
+
+export const selectCardHomeDataError = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardHomeDataError | null =>
+    (cardState?.cardHomeDataError as CardHomeDataError | null) ?? null,
 );
 
 export const selectCardHomeDataFetchedThisSession = createSelector(

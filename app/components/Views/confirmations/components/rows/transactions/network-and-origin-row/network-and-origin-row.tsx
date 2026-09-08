@@ -5,9 +5,6 @@ import { Hex } from '@metamask/utils';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
-import Text, {
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
@@ -21,6 +18,7 @@ import NetworkRow from '../network-row';
 import styleSheet from './network-and-origin-row.styles';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import AlertRow from '../../../UI/info-row/alert-row';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 export const NetworkAndOriginRow = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -59,7 +57,7 @@ export const NetworkAndOriginRow = () => {
           label={strings('transactions.request_from')}
           style={styles.infoRowOverride}
         >
-          <Text variant={TextVariant.BodyMD}>{displayedOrigin}</Text>
+          <Text variant={TextVariant.BodyMd}>{displayedOrigin}</Text>
         </AlertRow>
       )}
       {signatureRequest && isSIWEMessage && (

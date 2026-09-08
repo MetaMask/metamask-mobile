@@ -5,6 +5,7 @@ import { selectIsCardAuthenticated } from '../../../../selectors/cardController'
 import { selectCardFiatCreditFeatureEnabled } from '../../../../selectors/featureFlagController/card';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { getUsdToFiatConversionRate } from '../../Money/utils/moneyActivityFiat';
+import { getStablecoinFiatAmount } from '../util/getStablecoinFiatAmount';
 import { cardQueries } from '../queries';
 import { useCardCapabilities } from './useCardCapabilities';
 import type { CreditWalletResponse } from '../../../../core/Engine/controllers/card-controller/provider-types';
@@ -17,6 +18,7 @@ interface UseCreditBalanceResult {
   creditFiatNumber: number | undefined;
   hasCredit: boolean;
   isLoading: boolean;
+  error: Error | null;
 }
 
 const useCreditBalance = (): UseCreditBalanceResult => {
@@ -39,11 +41,11 @@ const useCreditBalance = (): UseCreditBalanceResult => {
     const parsed = parseFloat(creditBalance);
     const creditBalanceNumber = Number.isFinite(parsed) ? parsed : 0;
     const hasCredit = enabled && creditBalanceNumber > 0;
-    // ponytail: prices credit as 1 stablecoin ≈ 1 USD (ceiling: assumes
-    // USDC/USDT ≈ $1; upgrade path is a market-data lookup by token address).
     const usdToFiat = getUsdToFiatConversionRate(currencyRates);
-    const creditFiatNumber =
-      usdToFiat !== undefined ? creditBalanceNumber * usdToFiat : undefined;
+    const creditFiatNumber = getStablecoinFiatAmount(
+      creditBalanceNumber,
+      usdToFiat,
+    );
 
     return {
       wallet,
@@ -52,12 +54,13 @@ const useCreditBalance = (): UseCreditBalanceResult => {
       creditCurrency: wallet?.currency,
       creditFiatNumber,
       hasCredit,
-      isLoading: walletQuery.isLoading && walletQuery.isFetching,
+      isLoading: walletQuery.isLoading,
+      error: (walletQuery.error as Error | null) ?? null,
     };
   }, [
     walletQuery.data,
     walletQuery.isLoading,
-    walletQuery.isFetching,
+    walletQuery.error,
     enabled,
     currencyRates,
   ]);

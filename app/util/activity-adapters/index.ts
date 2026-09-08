@@ -16,11 +16,14 @@ export {
   isNftTransferType,
   isUnlimitedApprovalAmount,
 } from './adapters/helpers';
-export { mapKeyringTransaction } from './adapters/keyring-transaction';
 export {
   enrichLocalActivity,
   prepareLocalTransactionGroup,
 } from './adapters/enrich-local-activity';
+export {
+  classifyKeyringStakingActivity,
+  classifyPooledStakingActivity,
+} from './adapters/staking-activity';
 export { mapPredictActivity } from './adapters/predict-activity';
 export { mapPerpsTransaction } from './adapters/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';
@@ -29,15 +32,10 @@ export {
   isRampFiatOrder,
   isRampRampsOrder,
 } from './adapters/ramp-order-guards';
-export {
-  mobileActivityAdapterEnvironment,
-  type ActivityAdapterEnvironment,
-} from './adapters/environment';
+export { mobileActivityAdapterEnvironment } from './adapters/environment';
 export type { TransactionGroup } from './adapters/transaction-group';
 export { GAS_FEE_SPONSORED } from './fees';
-export { getLabelKeys } from './label-keys';
 export {
-  calculateFiatFromMarketRates,
   getHumanReadableTokenAmount,
   getDisplaySignPrefix,
   applyDisplaySign,
@@ -45,7 +43,6 @@ export {
 } from './fiat';
 export { formatTokenDisplayAmount } from './token-display';
 export {
-  activityMatchesAssetId,
   enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
@@ -53,10 +50,7 @@ export {
   getGroupedActivityListItemKey,
   groupActivityListItems,
   isFailedOrCancelledTransfer,
-  isGasTokenFeeWithAmount,
-  isSpendingCapWithAmount,
   preferLocalOrApiActivityItem,
-  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';

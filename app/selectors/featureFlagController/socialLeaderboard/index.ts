@@ -45,16 +45,6 @@ export const selectAiSocialLeaderboardOnboardingEnabled = createSelector(
   },
 );
 
-export const selectSocialAIQuickBuyStreamQuotesEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.socialAIQuickBuyStreamQuotes as unknown as VersionGatedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
 export const selectAiSocialAusCacheRefreshEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {

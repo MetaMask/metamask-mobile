@@ -7,6 +7,13 @@ import renderWithProvider, {
   type DeepPartial,
 } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import { selectHip3ConfigVersion } from '../../../app/components/UI/Perps/selectors/featureFlags';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../../../app/components/UI/Perps/selectors/perpsController';
+import { PerpsConnectionManager } from '../../../app/components/UI/Perps/services/PerpsConnectionManager';
+import { buildPerpsMarketContextKey } from '../../../app/components/UI/Perps/utils/perpsMarketContext';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
@@ -41,11 +48,16 @@ import PerpsTPSLView from '../../../app/components/UI/Perps/Views/PerpsTPSLView/
 import PerpsOrderDetailsView from '../../../app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView';
 import PerpsOrderView from '../../../app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView';
 import PerpsProMarketView from '../../../app/components/UI/Perps/Views/PerpsProMarketView/PerpsProMarketView';
+import { usePerpsChaseOrders } from '../../../app/components/UI/Perps/hooks/usePerpsChaseOrders';
 import PerpsCancelAllOrdersView from '../../../app/components/UI/Perps/Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
 import PerpsTooltipView from '../../../app/components/UI/Perps/Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsCrossMarginWarningBottomSheet from '../../../app/components/UI/Perps/components/PerpsCrossMarginWarningBottomSheet/PerpsCrossMarginWarningBottomSheet';
+import {
+  handlePerpsCufOrdersDelivered,
+  handlePerpsCufPositionsDelivered,
+} from '../../../app/components/UI/Perps/utils/perpsCufTrace';
 import {
   type AccountState,
   type PerpsMarketData,
@@ -77,6 +89,28 @@ const testConnectionValue: PerpsConnectionContextValue = {
   reconnectWithNewContext: async (): Promise<void> => undefined,
 };
 
+function setTestMarketContext(
+  state: DeepPartial<RootState>,
+  isInitialized: boolean,
+): void {
+  const manager = PerpsConnectionManager as unknown as {
+    initializedMarketContextKey: string | null;
+    initializedConnectionGeneration: number | null;
+    connectionGeneration: number;
+  };
+  const rootState = state as RootState;
+  manager.initializedMarketContextKey = isInitialized
+    ? buildPerpsMarketContextKey(
+        selectPerpsNetwork(rootState),
+        selectPerpsProvider(rootState),
+        selectHip3ConfigVersion(rootState),
+      )
+    : null;
+  manager.initializedConnectionGeneration = isInitialized
+    ? manager.connectionGeneration
+    : null;
+}
+
 const testHardwareWalletValue: HardwareWalletContextValue = {
   walletType: null,
   deviceId: null,
@@ -102,6 +136,11 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   },
 };
 
+const PerpsChaseDiscoveryConsumer = () => {
+  usePerpsChaseOrders({ isEnabled: false, enableDiscovery: true });
+  return null;
+};
+
 const PerpsTestProviders = ({
   children,
   connectionValue = testConnectionValue,
@@ -118,6 +157,7 @@ const PerpsTestProviders = ({
       <AccessRestrictedProvider>
         <PerpsConnectionContext.Provider value={connectionValue}>
           <PerpsStreamProvider testStreamManager={streamManager}>
+            <PerpsChaseDiscoveryConsumer />
             {children}
           </PerpsStreamProvider>
         </PerpsConnectionContext.Provider>
@@ -155,6 +195,7 @@ type StreamCallback<T> = (data: T | null) => void;
 interface MutableStreamChannel<T> {
   subscribe: (params: { callback: StreamCallback<T> }) => () => void;
   getSnapshot: () => T | null;
+  getLastDeliveredAt: () => number | null;
   emit: (data: T | null) => void;
   refresh: () => Promise<void>;
   clearCache: () => void;
@@ -173,10 +214,12 @@ function mutableChannelWithInitialValue<T>(
   initialValue: T,
 ): MutableStreamChannel<T> {
   let snapshot: T | null = initialValue;
+  let lastDeliveredAt: number | null = null;
   const subscribers = new Set<StreamCallback<T>>();
 
   const emit = (data: T | null) => {
     snapshot = data;
+    lastDeliveredAt = Date.now();
     subscribers.forEach((callback) => callback(snapshot));
   };
 
@@ -184,6 +227,7 @@ function mutableChannelWithInitialValue<T>(
     subscribe: (params: { callback: StreamCallback<T> }): (() => void) => {
       if (params?.callback) {
         subscribers.add(params.callback);
+        lastDeliveredAt = Date.now();
         params.callback(snapshot);
       }
       return () => {
@@ -191,6 +235,7 @@ function mutableChannelWithInitialValue<T>(
       };
     },
     getSnapshot: () => snapshot,
+    getLastDeliveredAt: () => lastDeliveredAt,
     emit,
     refresh: async (): Promise<void> => undefined,
     clearCache: (): void => {
@@ -294,8 +339,22 @@ const createAccountChannel = (account: unknown) =>
 const createPositionsChannel = (positions: unknown[]) =>
   mutableChannelWithInitialValue(typedPositions(positions));
 
-const createOrdersChannel = (orders: unknown[]) =>
-  mutableChannelWithInitialValue(typedOrders(orders));
+const createOrdersChannel = (orders: unknown[]) => {
+  const channel = mutableChannelWithInitialValue(typedOrders(orders));
+
+  return {
+    ...channel,
+    /** Optimistic patch used by Pro open-order edit (price/size). */
+    updateOrderOptimistic: (orderId: string, patch: Partial<Order>): void => {
+      const snapshot = channel.getSnapshot() ?? [];
+      channel.emit(
+        snapshot.map((order) =>
+          order.orderId === orderId ? ({ ...order, ...patch } as Order) : order,
+        ),
+      );
+    },
+  };
+};
 
 const createMarketDataChannel = (marketData: unknown[]) =>
   mutableChannelWithInitialValue(typedMarkets(marketData));
@@ -347,8 +406,16 @@ function createTestStreamManager(
     stream: {
       emitAccount: account.emit,
       emitMarketData: marketData.emit,
-      emitOrders: orders.emit,
-      emitPositions: positions.emit,
+      // Mirror production stream channels: notify CUF matchers when test
+      // doubles deliver positions/orders so place/cancel waits resolve.
+      emitOrders: (nextOrders) => {
+        orders.emit(nextOrders);
+        handlePerpsCufOrdersDelivered(nextOrders ?? []);
+      },
+      emitPositions: (nextPositions) => {
+        positions.emit(nextPositions);
+        handlePerpsCufPositionsDelivered(nextPositions ?? []);
+      },
       emitPrices: prices.emit,
     },
   };
@@ -396,6 +463,7 @@ export function renderPerpsView(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
+  setTestMarketContext(state, true);
   const { streamManager: testStreamManager, stream } =
     createTestStreamManager(streamOverrides);
   const queryClient = createPerpsQueryClient();
@@ -591,6 +659,7 @@ export function renderPerpsMarketDetailsView(
 
 const defaultProMarket = {
   ...defaultMarketDetailsMarket,
+  providerId: 'hyperliquid' as const,
   szDecimals: 2,
 };
 
@@ -983,6 +1052,7 @@ export function renderPerpsComponent(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
+  setTestMarketContext(state, true);
   const { streamManager: testStreamManager, stream } =
     createTestStreamManager(streamOverrides);
   const queryClient = createPerpsQueryClient();
@@ -1020,6 +1090,7 @@ export function renderPerpsComponentDisconnected(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
+  setTestMarketContext(state, false);
   const { streamManager: testStreamManager, stream } =
     createTestStreamManager(streamOverrides);
   const queryClient = createPerpsQueryClient();

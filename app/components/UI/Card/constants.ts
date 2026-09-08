@@ -53,6 +53,10 @@ export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
 export const IMMERSVE_SUPPORT_EMAIL = 'support@metamask.io';
 export const IMMERSVE_TERMS_URL =
   'https://immersve.com/terms-and-conditions/uk/general-terms-of-use';
+/** Pending Immersve support-form contract — swap the param name in one place. */
+export const IMMERSVE_REPORT_TRANSACTION_ID_PARAM = 'transaction_id';
+export const DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL =
+  'https://help.immersve.com/hc/en-us/requests/new?ticket_form_id=22905679582745';
 export const HUBSPOT_WAITLIST_URL =
   'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
 // Fixed sentinel Immersve redirects the user to when they exit the hosted KYC

@@ -1,5 +1,11 @@
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
-import { deriveOrderSizing, getReduceOnlyMaxUsdAmount } from './orderSizing';
+import {
+  deriveOrderSizing,
+  getMaxAllowedAmountAtExecutionPrice,
+  getProspectiveExecutionPrice,
+  getReduceOnlyMaxUsdAmount,
+  getTriggerMarketSlippageCapPrice,
+} from './orderSizing';
 
 describe('deriveOrderSizing', () => {
   const base = {
@@ -97,6 +103,139 @@ describe('deriveOrderSizing', () => {
 
     // Assert
     expect(result.positionSize).not.toBe(PERPS_CONSTANTS.FallbackDataDisplay);
+  });
+
+  it('uses the limit price as the effective price for trigger-limit orders', () => {
+    const result = deriveOrderSizing({
+      ...base,
+      orderType: 'stop_limit',
+      limitPrice: '88000',
+      triggerPrice: '91000',
+    });
+
+    expect(result.effectivePrice).toBe(88000);
+  });
+
+  it('uses the trigger price as the effective price for trigger-market orders', () => {
+    const result = deriveOrderSizing({
+      ...base,
+      orderType: 'take_profit_market',
+      triggerPrice: '87000',
+      limitPrice: '80000',
+    });
+
+    expect(result.effectivePrice).toBe(87000);
+  });
+
+  it('uses the slippage cap when calculating trigger-market margin', () => {
+    const result = deriveOrderSizing({
+      ...base,
+      amount: '1000',
+      orderType: 'stop_market',
+      triggerPrice: '90000',
+      isBuy: true,
+      maxSlippageBps: 1000,
+    });
+    const unbuffered = deriveOrderSizing({
+      ...base,
+      amount: '1000',
+      orderType: 'stop_market',
+      triggerPrice: '90000',
+      isBuy: true,
+    });
+
+    expect(result.effectivePrice).toBe(90000);
+    expect(result.marginRequired).toBeDefined();
+    expect(unbuffered.marginRequired).toBeDefined();
+    expect(Number(result.marginRequired)).toBeGreaterThan(
+      Number(unbuffered.marginRequired),
+    );
+  });
+
+  it('falls back to the market price when a trigger-market order has no trigger', () => {
+    const result = deriveOrderSizing({
+      ...base,
+      orderType: 'stop_market',
+      triggerPrice: '0',
+      maxSlippageBps: 1000,
+    });
+
+    expect(result.effectivePrice).toBe(90000);
+    expect(result.marginRequired).toBeDefined();
+  });
+});
+
+describe('getTriggerMarketSlippageCapPrice', () => {
+  it('calculates a buy-side cap and applies venue precision', () => {
+    expect(
+      getTriggerMarketSlippageCapPrice({
+        triggerPrice: '90000',
+        isBuy: true,
+        maxSlippageBps: 1000,
+        szDecimals: 3,
+      }),
+    ).toBe(99000);
+  });
+
+  it('calculates a sell-side cap', () => {
+    expect(
+      getTriggerMarketSlippageCapPrice({
+        triggerPrice: '90000',
+        isBuy: false,
+        maxSlippageBps: 1000,
+        szDecimals: 3,
+      }),
+    ).toBe(81000);
+  });
+});
+
+describe('getMaxAllowedAmountAtExecutionPrice', () => {
+  it('reduces a buy maximum when the capped execution price is higher', () => {
+    const uncapped = getMaxAllowedAmountAtExecutionPrice({
+      spendableBalance: 1000,
+      sizePrice: 90000,
+      executionPrice: 90000,
+      assetSzDecimals: 3,
+      leverage: 5,
+    });
+    const capped = getMaxAllowedAmountAtExecutionPrice({
+      spendableBalance: 1000,
+      sizePrice: 90000,
+      executionPrice: 99000,
+      assetSzDecimals: 3,
+      leverage: 5,
+    });
+
+    expect(capped).toBeLessThan(uncapped);
+  });
+});
+
+describe('getProspectiveExecutionPrice', () => {
+  it('prefers limit price for limit-execution types and trigger price for trigger-market', () => {
+    expect(
+      getProspectiveExecutionPrice({
+        orderType: 'limit',
+        limitPrice: '80000',
+        triggerPrice: '91000',
+        marketPrice: 90000,
+      }),
+    ).toBe(80000);
+    expect(
+      getProspectiveExecutionPrice({
+        orderType: 'stop_market',
+        limitPrice: '80000',
+        triggerPrice: '91000',
+        marketPrice: 90000,
+      }),
+    ).toBe(91000);
+    expect(
+      getProspectiveExecutionPrice({
+        orderType: 'market',
+        limitPrice: '80000',
+        triggerPrice: '91000',
+        marketPrice: 90000,
+      }),
+    ).toBe(90000);
   });
 });
 

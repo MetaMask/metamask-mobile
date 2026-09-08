@@ -261,9 +261,8 @@ exports[`SnapUIAssetSelector should render 1`] = `
                               }
                             }
                           >
-                            <Image
-                              onError={[Function]}
-                              resizeMode="contain"
+                            <View
+                              contentFit="contain"
                               source={1}
                               style={[Object]}
                               testID="network-avatar-image"

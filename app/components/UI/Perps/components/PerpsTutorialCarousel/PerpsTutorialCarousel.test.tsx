@@ -21,9 +21,11 @@ jest.mock(
   () => 'mocked-riv-file',
 );
 
-// Mock Rive component
-jest.mock('rive-react-native', () => {
-  const MockRive = ({
+// Mock Rive (Nitro) — extend the global mock so the rendered artboard name is
+// observable via the 'mock-rive-artboard' testID.
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual('@rive-app/react-native');
+  const MockRiveView = ({
     artboardName,
     testID,
   }: {
@@ -42,16 +44,8 @@ jest.mock('rive-react-native', () => {
 
   return {
     __esModule: true,
-    default: MockRive,
-    Fit: {
-      Cover: 'cover',
-      Contain: 'contain',
-    },
-    Alignment: {
-      Center: 'center',
-      TopCenter: 'topCenter',
-      BottomCenter: 'bottomCenter',
-    },
+    ...actual,
+    RiveView: MockRiveView,
   };
 });
 

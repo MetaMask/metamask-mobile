@@ -1,6 +1,6 @@
 import type { Asset } from '@metamask/assets-controllers';
 import { TransactionType } from '@metamask/transaction-controller';
-import type { AssetType } from '../../../Views/confirmations/types/token';
+import type { Hex } from '@metamask/utils';
 import {
   getBlockedTokensForTransactionType,
   isTokenBlocked,
@@ -10,13 +10,17 @@ import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagC
 import { createDeepEqualSelector } from '../../../../selectors/util';
 import { selectMoneyDepositMinBalance } from './featureFlags';
 
-const hasBalance = (asset: AssetType) =>
+/** EVM wallet asset eligible to fund a Money account deposit. */
+export type MoneyDepositAsset = Asset & {
+  address: Hex;
+  chainId: Hex;
+};
+
+const hasBalance = (asset: MoneyDepositAsset) =>
   Number(asset.fiat?.balance ?? 0) > 0 ||
   (asset.rawBalance !== undefined && asset.rawBalance !== '0x0');
 
-const isEvmAsset = (
-  asset: Asset,
-): asset is Asset & { address: string; chainId: string } =>
+const isEvmAsset = (asset: Asset): asset is MoneyDepositAsset =>
   'address' in asset &&
   typeof asset.address === 'string' &&
   asset.address.length > 0 &&
@@ -24,7 +28,10 @@ const isEvmAsset = (
   asset.chainId.length > 0 &&
   asset.accountType?.startsWith('eip155:') === true;
 
-const meetsMinimumBalance = (asset: AssetType, minimumBalance: number) => {
+const meetsMinimumBalance = (
+  asset: MoneyDepositAsset,
+  minimumBalance: number,
+) => {
   const fiatBalance = asset.fiat?.balance;
   return (
     fiatBalance !== undefined &&
@@ -38,10 +45,9 @@ export const filterMoneyDepositEligibleAssets = (
   assets: readonly Asset[],
   blockedTokens: ReturnType<typeof getBlockedTokensForTransactionType>,
   minimumBalance: number,
-): AssetType[] =>
+): MoneyDepositAsset[] =>
   assets
     .filter(isEvmAsset)
-    .map((asset) => asset as unknown as AssetType)
     .filter(
       (asset) =>
         hasBalance(asset) &&

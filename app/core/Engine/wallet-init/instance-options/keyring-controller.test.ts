@@ -21,12 +21,12 @@ describe('getKeyringControllerInstanceOptions', () => {
   });
 
   it('builds options with the encryptor and V1/V2 keyring builders', () => {
-    const options = getKeyringControllerInstanceOptions(messenger);
+    const options = getKeyringControllerInstanceOptions(messenger, false);
 
     expect(Encryptor).toHaveBeenCalledWith({
       keyDerivationOptions: { algorithm: 'legacy' },
     });
-    expect(getKeyringBuilders).toHaveBeenCalledWith(messenger);
+    expect(getKeyringBuilders).toHaveBeenCalledWith(messenger, false);
     expect(getKeyringV2Builders).toHaveBeenCalled();
     expect(options).toEqual({
       encryptor: { name: 'mock-encryptor' },

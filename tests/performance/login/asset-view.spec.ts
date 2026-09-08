@@ -1,7 +1,7 @@
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { AppiumAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
@@ -33,11 +33,11 @@ perfTest.describe(
         await WalletView.tapOnToken('ETH');
 
         await assetViewScreen.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.priceChartContainer),
+          await AppiumAssertions.expectElementToBeVisible(
+            TokenOverview.priceChartContainer,
           );
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.container),
+          await AppiumAssertions.expectElementToBeVisible(
+            TokenOverview.container,
           );
         });
 

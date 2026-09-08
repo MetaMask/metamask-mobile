@@ -11,9 +11,12 @@ import { AppThemeKey } from '../../../../util/theme/models';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import {
-  __mockRiveFireState,
-  __resetAllMocks as resetRiveMocks,
-} from '../../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks as resetRiveMocks,
+  Alignment,
+  Fit,
+  RiveView,
+} from '../../../../__mocks__/rive-app-react-native';
 
 jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
@@ -57,18 +60,17 @@ describe('SearchingForDevice', () => {
     ).toBeOnTheScreen();
   });
 
-  it('fires the Ledger reset trigger when Rive starts playing', () => {
+  it('fires the Ledger reset trigger when the Rive view is ready', () => {
     renderWithProvider(<SearchingForDevice />, { state: initialState });
 
-    expect(__mockRiveFireState).toHaveBeenCalledWith(
-      LEDGER_STATE_MACHINE_NAME,
+    expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
       LEDGER_RIVE_STATE_TRIGGER.Reset,
     );
   });
 
   it('logs animation trigger errors without throwing', () => {
     const error = new Error('Rive trigger failed');
-    __mockRiveFireState.mockImplementationOnce(() => {
+    __mockRiveTriggerInput.mockImplementationOnce(() => {
       throw error;
     });
 
@@ -83,11 +85,11 @@ describe('SearchingForDevice', () => {
   it('renders the Rive animation with correct props', () => {
     renderWithProvider(<SearchingForDevice />, { state: initialState });
 
-    const rive = screen.getByTestId('ledger-searching-animation');
-    expect(rive).toBeOnTheScreen();
-    expect(rive.props.autoplay).toBe(true);
-    expect(rive.props.fit).toBe('contain');
-    expect(rive.props.alignment).toBe('center');
+    expect(screen.getByTestId('ledger-searching-animation')).toBeOnTheScreen();
+    const rive = screen.UNSAFE_getByType(RiveView);
+    expect(rive.props.autoPlay).toBe(true);
+    expect(rive.props.fit).toBe(Fit.Contain);
+    expect(rive.props.alignment).toBe(Alignment.Center);
     expect(rive.props.artboardName).toBe(LEDGER_ARTBOARD_NAME);
     expect(rive.props.stateMachineName).toBe(LEDGER_STATE_MACHINE_NAME);
   });

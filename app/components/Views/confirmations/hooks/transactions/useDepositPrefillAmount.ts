@@ -167,8 +167,10 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
       return;
     }
 
+    // Token/account changed. Commit the new key immediately when the amount is
+    // already computed so we skip an extra empty-loading frame; otherwise wait.
     if (committedKey !== null && committedKey !== tokenKey) {
-      setCommittedKey(null);
+      setCommittedKey(prefillAmount !== undefined ? tokenKey : null);
       return;
     }
 
@@ -178,6 +180,8 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
   }, [enabled, tokenKey, prefillAmount, committedKey]);
 
   const hasPrefilled = committedKey === tokenKey;
+  // Keep the skeleton up until this token's amount is committed. Dropping it
+  // when `prefillAmount` is merely computed (before apply) flashes $0.00.
   const isLoading = enabled && !hasPrefilled;
 
   return {

@@ -34,7 +34,7 @@ const styleSheet = ({ theme: { colors }, vars: { isPlaying } }) =>
       alignItems: 'center',
     },
     videoControlsStyle: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: 'center',
       alignItems: 'center',
     },

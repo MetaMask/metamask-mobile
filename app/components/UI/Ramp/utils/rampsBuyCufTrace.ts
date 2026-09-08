@@ -41,17 +41,31 @@ function clearStaleParentState(): void {
   parentSpan = undefined;
 }
 
-function resolveParentContext(): TraceContext {
+/** True if Buy E2E parent is still open (incl. consent-buffered starts). */
+function hasLiveParent(): boolean {
+  if (!parentOpId) {
+    return false;
+  }
+
+  if (parentSpan === undefined) {
+    return true;
+  }
+
   if (
-    !parentOpId ||
     getTraceContext({
       name: TraceName.RampBuyToOrderDetails,
       id: parentOpId,
     }) === undefined
   ) {
-    if (parentOpId) {
-      clearStaleParentState();
-    }
+    clearStaleParentState();
+    return false;
+  }
+
+  return true;
+}
+
+function resolveParentContext(): TraceContext {
+  if (!hasLiveParent()) {
     return undefined;
   }
   return parentSpan;
@@ -102,7 +116,7 @@ export function startRampsBuyCufTrace({
   startTime,
   data,
 }: StartRampsBuyCufTraceOptions = {}): string {
-  if (resolveParentContext() && parentOpId) {
+  if (hasLiveParent() && parentOpId) {
     return parentOpId;
   }
 
@@ -217,6 +231,55 @@ export function startRampsBuyCufChildTrace({
     tags: startTags,
   });
   return opId;
+}
+
+export interface StartRampsBuyQuoteFetchTraceOptions {
+  tags?: Record<string, TraceValue>;
+  startTime?: number;
+  data?: Record<string, TraceValue>;
+}
+
+/** Start Buy Quote Fetch CUF. Nests under E2E parent when active. */
+export function startRampsBuyQuoteFetchTrace({
+  tags,
+  startTime,
+  data,
+}: StartRampsBuyQuoteFetchTraceOptions = {}): string {
+  endOpenRampsBuyCufChildrenByName(TraceName.RampBuyQuoteFetch, {
+    [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+    [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
+  });
+
+  const opId = nextCufOpId(TraceName.RampBuyQuoteFetch);
+  const startTags = buildRampsBuyCufStartTags(tags);
+  const parentContext = resolveParentContext();
+  pendingChildMeta.set(opId, { [CUF_META.NAME]: TraceName.RampBuyQuoteFetch });
+  trace({
+    name: TraceName.RampBuyQuoteFetch,
+    id: opId,
+    op: TraceOperation.RampOperation,
+    parentContext,
+    forceTransaction: !parentContext,
+    startTime,
+    data: withStartSpanAttributes(startTags, data),
+    tags: startTags,
+  });
+  return opId;
+}
+
+export interface EndRampsBuyQuoteFetchTraceOptions {
+  id: string;
+  data?: Record<string, TraceValue>;
+  timestamp?: number;
+}
+
+/** End Buy Quote Fetch CUF by op id. */
+export function endRampsBuyQuoteFetchTrace({
+  id,
+  data,
+  timestamp,
+}: EndRampsBuyQuoteFetchTraceOptions): void {
+  endRampsBuyCufChildTrace({ id, data, timestamp });
 }
 
 export interface EndRampsBuyCufChildTraceOptions {

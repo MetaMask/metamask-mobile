@@ -1,7 +1,7 @@
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { AppiumAssertions } from '../../framework';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import RewardsView from '../../page-objects/Rewards/RewardsView';
@@ -21,7 +21,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
         if (rejectedCount === promises.length) {
           reject(
             new Error(
-              'Rewards content was not visible: neither onboarding nor dashboard shell appeared',
+              'Rewards content was not visible: onboarding step, dashboard title, and modal were all absent',
             ),
           );
         }
@@ -60,18 +60,30 @@ perfTest.describe(
 
         await rewardsContentTimer.measure(async () => {
           await waitForFirstSuccessful([
-            PlaywrightAssertions.expectElementToBeVisible(
-              asPlaywrightElement(RewardsView.onboardingStepContainer),
+            // Non-opted-in path: onboarding surface
+            AppiumAssertions.expectElementToBeVisible(
+              RewardsView.onboardingStepContainer,
               {
                 description: 'Rewards onboarding step should be visible',
               },
             ).then(() => 'onboarding' as const),
-            PlaywrightAssertions.expectElementToBeVisible(
-              asPlaywrightElement(RewardsView.title),
+
+            // Opted-in path: dashboard shell title
+            AppiumAssertions.expectElementToBeVisible(RewardsView.title, {
+              description: 'Rewards dashboard title should be visible',
+            }).then(() => 'dashboard' as const),
+
+            // Opted-in with unlinked accounts: "Don't miss out" bottom-sheet modal.
+            // This modal appears on the first visit and blocks iOS accessibility to
+            // the underlying content. Detecting it here ensures the timer stops as
+            // soon as any rewards UI is interactive.
+            AppiumAssertions.expectElementToBeVisible(
+              RewardsView.dontMissOutModalButton,
               {
-                description: 'Rewards dashboard title should be visible',
+                description:
+                  'Rewards modal confirm button should be visible (Add accounts)',
               },
-            ).then(() => 'dashboard' as const),
+            ).then(() => 'modal' as const),
           ]);
         });
 

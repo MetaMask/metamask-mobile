@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { areTradingSignalsChannelsDisabled } from '../NotificationPreferences/hooks/tradingSignalsChannels';
@@ -13,16 +15,16 @@ export interface UseTraderMuteActionsResult {
    */
   showMuteChip: boolean;
   /**
-   * Visual mute state for a trader's bell: muted when that trader's alerts are
-   * paused, OR when both trading-signal channels are disabled globally (in
-   * which case no trader can be heard).
+   * Visual state for a trader's bell: barred when the trader is muted, the
+   * global notification toggle is off, or both trading-signal channels are
+   * disabled (in which case no trader can be heard).
    */
   isChipMuted: (traderId: string) => boolean;
   /**
-   * Bell tap handler. When both channels are off the bell only *looks* disabled,
-   * so a tap means "enable": setup is opened and an idempotent unmute is
-   * deferred to it rather than a blind toggle, so completing setup can never
-   * leave the trader muted. Otherwise it toggles directly.
+   * Bell tap handler. When delivery is unavailable the bell only *looks*
+   * disabled, so a tap means "enable": setup is opened and an idempotent
+   * unmute is deferred to it rather than a blind toggle. Otherwise it toggles
+   * directly.
    */
   onMutePress: (traderId: string) => void;
 }
@@ -40,6 +42,7 @@ export interface UseTraderMuteActionsResult {
  * single id.
  */
 export const useTraderMuteActions = (): UseTraderMuteActionsResult => {
+  const isMasterEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
   const {
     preferences,
     hasNotificationPreferences,
@@ -50,7 +53,7 @@ export const useTraderMuteActions = (): UseTraderMuteActionsResult => {
 
   const needsNotificationSetup =
     hasNotificationPreferences &&
-    areTradingSignalsChannelsDisabled(preferences);
+    (!isMasterEnabled || areTradingSignalsChannelsDisabled(preferences));
 
   const isChipMuted = useCallback(
     (traderId: string) =>

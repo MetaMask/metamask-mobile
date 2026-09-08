@@ -43,6 +43,7 @@ const config = {
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
+    '^.+\\.mjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
@@ -110,7 +111,6 @@ const config = {
     // @metamask/perps-controller without crashing, until upstream publishes a fix.
     '^file:///home/runner/work/hyperliquid/hyperliquid/src/mod\\.ts$':
       '<rootDir>/app/__mocks__/hyperliquidMock.js',
-    '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
       '<rootDir>/app/__mocks__/expo-apple-authentication.js',
@@ -126,7 +126,8 @@ const config = {
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
-    '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',
+    '^@rive-app/react-native$':
+      '<rootDir>/app/__mocks__/rive-app-react-native.tsx',
     '^react-native-qrcode-svg$':
       '<rootDir>/app/__mocks__/react-native-qrcode-svg.js',
   },

@@ -20,8 +20,8 @@ import { useTransactionMetadataRequest } from '../../transactions/useTransaction
  *
  * `atomic` is re-derived rather than blindly cleared: a max-amount Money
  * Account deposit sets `atomic: false` independently of the pay-with
- * selection (via `setMoneyAccountDepositMaxAtomic`), so it must survive a
- * payment-method switch while `isMaxAmount` remains on.
+ * selection (via `useTransactionCustomAmount`'s `setIsMax`), so it must survive
+ * a payment-method switch while `isMaxAmount` remains on.
  */
 export function useClearPaymentOverride() {
   const transactionMeta = useTransactionMetadataRequest();

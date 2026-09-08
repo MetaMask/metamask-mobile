@@ -41,7 +41,6 @@ export function TemplateLoader({
     case 'bridge':
       return <BridgeDetails item={item} />;
     case 'swap':
-    case 'swapIncomplete':
     case 'convert':
     case 'lendingDeposit':
     case 'lendingWithdrawal':

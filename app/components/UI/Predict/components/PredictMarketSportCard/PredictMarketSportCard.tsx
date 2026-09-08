@@ -286,7 +286,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={tw.style(isCarousel ? 'h-full' : 'my-[8px]')}
+      style={tw.style(isCarousel ? 'h-full' : 'mb-3')}
       testID={testID}
       onPress={handleCardPress}
       activeOpacity={0.9}

@@ -22,7 +22,6 @@ import { selectTransactions } from '../../../../selectors/transactionController'
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
 import { getMaybeHexChainId } from '../../../../util/bridge';
-import { selectIsActivityRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
 import { TransactionType } from '@metamask/transaction-controller';
 import { TOKEN_CATEGORY_HASH } from '../../../UI/TransactionElement/utils';
 import { isMusdClaimForCurrentView } from '../../Earn/utils/musd';
@@ -128,11 +127,12 @@ export const getSwapLegTokenIdentifiers = (
   };
 };
 
-// Cache for non-EVM transactions
-// eslint-disable-next-line import-x/no-mutable-exports
-let cachedFilteredTransactions: Transaction[] | null = null;
-// eslint-disable-next-line import-x/no-mutable-exports
-let cacheKey: string | null = null;
+/**
+ * Identity of a non-EVM list so we re-render when the same tx confirms
+ * (count and id stay the same; status/type change).
+ */
+const getNonEvmTransactionFingerprint = (transactions: Transaction[]) =>
+  transactions.map((tx) => `${tx.id}:${tx.status}:${tx.type ?? ''}`).join('|');
 
 /**
  * Hook that handles transaction fetching, filtering, and normalization for a token.
@@ -169,9 +169,6 @@ export const useTokenTransactions = (
   // Selectors
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const evmTransactions = useSelector(selectTransactions);
-  const isActivityRedesignEnabled = useSelector(
-    selectIsActivityRedesignEnabled,
-  );
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const tokens = useSelector(selectTokens);
   const conversionRate = useSelector(selectConversionRate);
@@ -208,11 +205,9 @@ export const useTokenTransactions = (
   const allTransactions = useMemo(() => {
     // Redesign Activity hides gas_payment siblings and shows the fee on the
     // primary row; keep token-details lists in sync when that flag is on.
-    let transactions = isActivityRedesignEnabled
-      ? evmTransactions.filter(
-          (tx: Transaction) => tx.type !== TransactionType.gasPayment,
-        )
-      : evmTransactions;
+    let transactions = evmTransactions.filter(
+      (tx: Transaction) => tx.type !== TransactionType.gasPayment,
+    );
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (asset.chainId && isNonEvmChainId(asset.chainId)) {
@@ -225,72 +220,51 @@ export const useTokenTransactions = (
       const assetSymbol = asset.symbol?.toLowerCase();
       const isNativeAsset = asset.isNative || asset.isETH;
 
-      const newCacheKey = JSON.stringify({
-        txCount: txs.length,
-        assetAddress,
-        assetSymbol,
-        isNativeAsset,
-        lastTxId: txs[0]?.id,
-      });
+      let filteredTransactions: Transaction[] = txs;
 
-      let filteredTransactions: Transaction[];
-      if (cacheKey === newCacheKey && cachedFilteredTransactions) {
-        filteredTransactions = cachedFilteredTransactions;
-      } else {
-        filteredTransactions = txs;
+      if (isNativeAsset) {
+        const nativeAssetId =
+          AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+            asset.chainId as SupportedCaipChainId
+          ]?.nativeCurrency;
 
-        if (isNativeAsset) {
-          const nativeAssetId =
-            AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
-              asset.chainId as SupportedCaipChainId
-            ]?.nativeCurrency;
+        filteredTransactions = txs.filter((tx: Transaction) => {
+          const txData = (tx.from || []).concat(tx.to || []);
 
-          filteredTransactions = txs.filter((tx: Transaction) => {
-            const txData = (tx.from || []).concat(tx.to || []);
+          return txData.some(
+            (participant: { asset?: { type?: string } }) =>
+              participant.asset &&
+              typeof participant.asset === 'object' &&
+              participant.asset.type === nativeAssetId,
+          );
+        });
+      } else if (assetAddress || assetSymbol) {
+        filteredTransactions = txs.filter((tx: Transaction) => {
+          const txData = (tx.from || []).concat(tx.to || []);
 
-            return txData.some(
-              (participant: { asset?: { type?: string } }) =>
-                participant.asset &&
-                typeof participant.asset === 'object' &&
-                participant.asset.type === nativeAssetId,
-            );
-          });
-        } else if (assetAddress || assetSymbol) {
-          filteredTransactions = txs.filter((tx: Transaction) => {
-            const txData = (tx.from || []).concat(tx.to || []);
+          const involvesToken = txData.some(
+            (participant: { asset?: { type?: string; unit?: string } }) => {
+              if (participant.asset && typeof participant.asset === 'object') {
+                const assetType = participant.asset.type || '';
+                const assetUnit = participant.asset.unit || '';
 
-            const involvesToken = txData.some(
-              (participant: { asset?: { type?: string; unit?: string } }) => {
                 if (
-                  participant.asset &&
-                  typeof participant.asset === 'object'
+                  assetAddress &&
+                  assetType.toLowerCase().includes(assetAddress)
                 ) {
-                  const assetType = participant.asset.type || '';
-                  const assetUnit = participant.asset.unit || '';
-
-                  if (
-                    assetAddress &&
-                    assetType.toLowerCase().includes(assetAddress)
-                  ) {
-                    return true;
-                  }
-
-                  if (assetSymbol && assetUnit.toLowerCase() === assetSymbol) {
-                    return true;
-                  }
+                  return true;
                 }
-                return false;
-              },
-            );
 
-            return involvesToken;
-          });
-        }
+                if (assetSymbol && assetUnit.toLowerCase() === assetSymbol) {
+                  return true;
+                }
+              }
+              return false;
+            },
+          );
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        cachedFilteredTransactions = filteredTransactions;
-        // eslint-disable-next-line react-compiler/react-compiler
-        cacheKey = newCacheKey;
+          return involvesToken;
+        });
       }
 
       transactions = [...filteredTransactions].sort(
@@ -302,7 +276,6 @@ export const useTokenTransactions = (
     return transactions;
   }, [
     evmTransactions,
-    isActivityRedesignEnabled,
     asset.chainId,
     asset.address,
     asset.symbol,
@@ -615,10 +588,15 @@ export const useTokenTransactions = (
           },
         );
 
+        const didNonEvmTransactionsChange =
+          getNonEvmTransactionFingerprint(txsRef.current) !==
+          getNonEvmTransactionFingerprint(filteredTransactions);
+
         if (
           (txsRef.current.length === 0 && !txState.transactionsUpdated) ||
           txsRef.current.length !== filteredTransactions.length ||
           chainIdRef.current !== chainId ||
+          didNonEvmTransactionsChange ||
           txState.loading
         ) {
           txsRef.current = filteredTransactions;

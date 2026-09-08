@@ -1,5 +1,6 @@
 import {
   isSupportedPooledStakingChain,
+  selectLendingMarkets,
   selectLendingMarketsByChainIdAndOutputTokenAddress,
   selectLendingMarketsByChainIdAndTokenAddress,
 } from '@metamask/earn-controller';
@@ -36,6 +37,8 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
+import { selectMoneyDepositEligibleAssets } from '../../../components/UI/Money/selectors/depositTokens';
+import { selectAssetsBySelectedAccountGroup } from '../../assets/assets-list';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
 import { EVM_SCOPE } from '../../../components/UI/Earn/constants/networks';
@@ -74,6 +77,11 @@ const selectEarnControllerState = (state: RootState) =>
 
 const selectSelectedEvmAddress = (state: RootState) =>
   selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address;
+
+const selectAllLendingMarkets = createSelector(
+  selectEarnControllerState,
+  (earnControllerState) => selectLendingMarkets(earnControllerState),
+);
 
 const selectEarnTokenBaseData = createSelector(
   [
@@ -522,6 +530,39 @@ const selectEarnTokens = createDeepEqualSelector(
   },
 );
 
+export const selectEarnAssetCatalogueInputs = createSelector(
+  [
+    selectEarnTokens,
+    selectAllLendingMarkets,
+    selectMoneyDepositEligibleAssets,
+    selectAssetsBySelectedAccountGroup,
+    pooledStakingSelectors.selectEligibility,
+    selectPooledStakingEnabledFlag,
+    selectStablecoinLendingEnabledFlag,
+    selectTrxStakingEnabled,
+  ],
+  (
+    earnTokensData,
+    lendingMarkets,
+    moneyDepositAssets,
+    assetsByChain,
+    isEarnEligible,
+    isPooledStakingEnabled,
+    isStablecoinLendingEnabled,
+    isTrxStakingEnabled,
+  ) => ({
+    earnTokens: earnTokensData.earnTokens,
+    earnOutputTokens: earnTokensData.earnOutputTokens,
+    lendingMarkets,
+    moneyDepositAssets,
+    assets: Object.values(assetsByChain).flat(),
+    isEarnEligible,
+    isPooledStakingEnabled,
+    isStablecoinLendingEnabled,
+    isTrxStakingEnabled,
+  }),
+);
+
 const selectEarnToken = createSelector(
   [selectEarnTokens, (_state: RootState, asset: TokenI) => asset],
   (earnTokens, asset) => {
@@ -647,7 +688,9 @@ const selectPrimaryEarnExperienceTypeForAsset = createSelector(
 
 export const earnSelectors = {
   selectEarnControllerState,
+  selectAllLendingMarkets,
   selectEarnTokens,
+  selectEarnAssetCatalogueInputs,
   selectEarnToken,
   selectEarnOutputToken,
   selectEarnTokenPair,

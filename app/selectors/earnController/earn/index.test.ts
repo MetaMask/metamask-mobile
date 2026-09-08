@@ -1093,4 +1093,38 @@ describe('Earn Controller Selectors', () => {
       expect(result).toBeUndefined();
     });
   });
+
+  describe('selectEarnAssetCatalogueInputs', () => {
+    it('exposes held Earn assets and discovery markets without reshaping tokens', () => {
+      const earnToken = {
+        ...MOCK_ETH_MAINNET_ASSET,
+        experiences: [],
+      } as unknown as EarnTokenDetails;
+      const earnTokensData = {
+        earnTokens: [earnToken],
+        earnOutputTokens: [],
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        earnableTotalFiatNumber: 0,
+        earnableTotalFiatFormatted: '$0',
+      };
+
+      const result = earnSelectors.selectEarnAssetCatalogueInputs.resultFunc(
+        earnTokensData,
+        [MOCK_LENDING_MARKET_USDC],
+        [],
+        {},
+        true,
+        true,
+        true,
+        false,
+      );
+
+      expect(result.earnTokens[0]).toBe(earnToken);
+      expect(result.lendingMarkets).toEqual([MOCK_LENDING_MARKET_USDC]);
+      expect(result.isStablecoinLendingEnabled).toBe(true);
+    });
+  });
 });

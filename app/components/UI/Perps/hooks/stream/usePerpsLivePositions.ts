@@ -22,6 +22,8 @@ export interface UsePerpsLivePositionsReturn {
   positions: Position[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  /** Deliveries accepted by this selected-account subscription. */
+  deliveryRevision?: number;
 }
 
 /**
@@ -119,6 +121,8 @@ export function usePerpsLivePositions(
     return !hasCached;
   });
   const hasReceivedFirstUpdate = useRef(false);
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
+  const acceptedDeliveryRef = useRef(false);
 
   // Store raw positions and price data in state
   const [rawPositions, setRawPositions] = useState<Position[]>(() => {
@@ -148,6 +152,7 @@ export function usePerpsLivePositions(
   useEffect(() => {
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
+        acceptedDeliveryRef.current = false;
         if (newPositions === null) {
           // Cleared on account switch — show skeleton until first update for new account
           hasReceivedFirstUpdate.current = false;
@@ -168,6 +173,13 @@ export function usePerpsLivePositions(
 
         setRawPositions(newPositions);
         setRawPositionsAddress(selectedAddress);
+        acceptedDeliveryRef.current = true;
+      },
+      onDelivery: (source) => {
+        if (source === 'fresh' && acceptedDeliveryRef.current) {
+          setDeliveryRevision((revision) => revision + 1);
+        }
+        acceptedDeliveryRef.current = false;
       },
       throttleMs,
     });
@@ -230,5 +242,6 @@ export function usePerpsLivePositions(
     positions,
     isInitialLoading:
       rawPositionsAddress !== selectedAddress || isInitialLoading,
+    deliveryRevision,
   };
 }

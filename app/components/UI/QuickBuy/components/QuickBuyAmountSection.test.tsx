@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import QuickBuyAmountSection, {
   formatAmountDigitsForDisplay,
 } from './QuickBuyAmountSection';
@@ -41,6 +42,18 @@ describe('QuickBuyAmountSection', () => {
     estimatedReceiveAmount: '56.52037',
     isQuoteLoading: false,
   };
+
+  it('renders the primary amount with DisplayLg', () => {
+    const { UNSAFE_getAllByType } = render(
+      <QuickBuyAmountSection {...baseProps} />,
+    );
+
+    const primaryAmount = UNSAFE_getAllByType(Text).find(
+      (el) => el.props.children === '$2.55',
+    );
+
+    expect(primaryAmount?.props.variant).toBe(TextVariant.DisplayLg);
+  });
 
   it('renders the secondary amount label when not loading', () => {
     render(<QuickBuyAmountSection {...baseProps} />);

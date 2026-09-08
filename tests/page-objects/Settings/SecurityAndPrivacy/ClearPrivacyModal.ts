@@ -4,19 +4,19 @@ import {
 } from '../../../../app/components/Views/Settings/SecuritySettings/Sections/ClearPrivacy/ClearPrivacyModal.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
+import { type AppiumElement } from '../../../framework';
 
 class ClearPrivacyModal {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ClearPrivacyModalSelectorsIDs.CONTAINER);
   }
 
-  get clearButton(): EncapsulatedElementType {
+  get clearButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ClearPrivacyModalSelectorsText.CLEAR_BUTTON,
     );
   }
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ClearPrivacyModalSelectorsText.CANCEL_BUTTON,
     );

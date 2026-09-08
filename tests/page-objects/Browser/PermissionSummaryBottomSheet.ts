@@ -4,39 +4,39 @@ import {
 } from '../../../app/components/Views/MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class PermissionSummaryBottomSheet {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PermissionSummaryBottomSheetSelectorsIDs.CONTAINER,
     );
   }
-  get addNetworkPermissionContainer(): EncapsulatedElementType {
+  get addNetworkPermissionContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
     );
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  get connectedAccountsText(): EncapsulatedElementType {
+  get connectedAccountsText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       PermissionSummaryBottomSheetSelectorsText.CONNECTED_ACCOUNTS_TEXT,
     );
   }
 
-  get ethereumMainnetText(): EncapsulatedElementType {
+  get ethereumMainnetText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       PermissionSummaryBottomSheetSelectorsText.ETHEREUM_MAINNET_LABEL,
     );
   }
 
-  get accountPermissionLabelContainer(): EncapsulatedElementType {
+  get accountPermissionLabelContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER,
     );

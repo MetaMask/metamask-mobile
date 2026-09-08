@@ -1,10 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { Position } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
-import {
-  fetchHyperliquidHistoricalPrices,
-  type HyperliquidCandleInterval,
-} from '../utils/hyperliquidPrices';
+import { fetchHyperliquidHistoricalPrices } from '../utils/hyperliquidPrices';
 import {
   getRecommendedTradeSpanPeriod,
   useTraderPositionData,
@@ -55,7 +52,7 @@ const mockFetchHyperliquid =
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const tradeAt = (timestamp: number) => ({ timestamp });
+const tradeAt = (timestamp: number) => ({ timestamp, action: 'opened' });
 
 const baseSpotPosition = {
   chain: 'base',
@@ -68,7 +65,7 @@ const baseSpotPosition = {
   currentValueUSD: 1500,
   pnlValueUsd: 500,
   pnlPercent: 50,
-  trades: [{ timestamp: Date.now() - 60_000 }],
+  trades: [{ timestamp: Date.now() - 60_000, action: 'opened' }],
 } as unknown as Position;
 
 const spotPosition = {
@@ -87,7 +84,7 @@ const perpPosition = {
   realizedPnl: 200,
   pnlValueUsd: 300,
   pnlPercent: 30,
-  trades: [{ timestamp: Date.now() - 60_000 }],
+  trades: [{ timestamp: Date.now() - 60_000, action: 'opened' }],
 } as unknown as Position;
 
 describe('getRecommendedTradeSpanPeriod', () => {
@@ -205,22 +202,15 @@ describe('useTraderPositionData — facade', () => {
     expect(result.current.chartTrades).toHaveLength(1);
   });
 
-  it('delegates perp candle pre-fetch to the perp prices hook end-to-end', async () => {
-    renderHook(() => useTraderPositionData(perpPosition));
+  it('does not fetch perp prices from the legacy hyperliquid hook', async () => {
+    const { result } = renderHook(() => useTraderPositionData(perpPosition));
 
-    await waitFor(() => expect(mockFetchHyperliquid).toHaveBeenCalledTimes(5));
+    await waitFor(() => expect(result.current.isPerp).toBe(true));
 
-    const intervals = mockFetchHyperliquid.mock.calls.map(
-      ([opts]) => opts.interval,
-    );
-    const expected: HyperliquidCandleInterval[] = [
-      '1m',
-      '15m',
-      '1h',
-      '4h',
-      '1d',
-    ];
-    expect(new Set(intervals)).toEqual(new Set(expected));
+    expect(mockFetchHyperliquid).not.toHaveBeenCalled();
+    expect(result.current.historicalPrices).toEqual([]);
+    expect(result.current.pricePercentChange).toBeUndefined();
+    expect(result.current.currentPrice).toBeUndefined();
   });
 
   it('exposes time period controls from the facade', () => {
@@ -273,31 +263,22 @@ describe('useTraderPositionData — default chart period', () => {
     expect(result.current.activeTimePeriod).toBe('1W');
   });
 
-  it('widens to the first cached period whose prices cover the trade date', async () => {
+  it('does not auto-widen perp social periods (chart uses candle periods instead)', async () => {
     const tradeTime = 1_700_000_000_000;
-    const recentPrices: TokenPrice[] = [
-      [String(tradeTime + 30 * DAY_MS), 100],
-      [String(tradeTime + 30 * DAY_MS + 60_000), 101],
-    ];
-    const coveringPrices: TokenPrice[] = [
-      [String(tradeTime - DAY_MS), 100],
-      [String(tradeTime + DAY_MS), 101],
-    ];
     const position = {
       ...perpPosition,
       trades: [tradeAt(tradeTime)],
     } as unknown as Position;
-
-    mockFetchHyperliquid.mockImplementation(({ interval }) =>
-      Promise.resolve(interval === '1h' ? coveringPrices : recentPrices),
-    );
 
     const { result } = renderHook(
       (initialPosition: Position) => useTraderPositionData(initialPosition),
       { initialProps: position },
     );
 
-    await waitFor(() => expect(result.current.activeTimePeriod).toBe('1W'));
+    await waitFor(() => expect(result.current.isPerp).toBe(true));
+
+    expect(result.current.activeTimePeriod).toBe('1H');
+    expect(mockFetchHyperliquid).not.toHaveBeenCalled();
   });
 
   it('updates the automatic default when fuller trade data arrives before manual selection', () => {

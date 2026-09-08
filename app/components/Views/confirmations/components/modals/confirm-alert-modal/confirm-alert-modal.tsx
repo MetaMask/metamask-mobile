@@ -3,6 +3,9 @@ import { TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../../../../../util/theme';
 import BottomModal from '../../../components/UI/bottom-modal';
 import {
+  Text,
+  TextVariant,
+  FontWeight,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -13,9 +16,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAlerts } from '../../../context/alert-system-context';
@@ -84,10 +84,12 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
           />
         </View>
         <View style={styles.headerContainer}>
-          <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
-            {onlyBlockaidAlert
-              ? strings('alert_system.confirm_modal.title_blockaid')
-              : strings('alert_system.confirm_modal.title')}
+          <Text
+            style={styles.headerText}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+          >
+            {strings('alert_system.confirm_modal.title')}
           </Text>
         </View>
         <Text style={styles.message}>

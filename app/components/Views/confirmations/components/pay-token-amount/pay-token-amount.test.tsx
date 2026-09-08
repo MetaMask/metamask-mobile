@@ -8,10 +8,6 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
-import {
-  useTransactionPayIsMaxAmount,
-  useIsTransactionPayLoading,
-} from '../../hooks/pay/useTransactionPayData';
 
 jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
@@ -53,12 +49,6 @@ function render({
 describe('PayTokenAmount', () => {
   const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useTransactionPayIsMaxAmountMock = jest.mocked(
-    useTransactionPayIsMaxAmount,
-  );
-  const useIsTransactionPayLoadingMock = jest.mocked(
-    useIsTransactionPayLoading,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -75,9 +65,6 @@ describe('PayTokenAmount', () => {
         symbol: PAY_TOKEN_SYMBOL_MOCK,
       },
     } as unknown as ReturnType<typeof useTransactionPayToken>);
-
-    useTransactionPayIsMaxAmountMock.mockReturnValue(false);
-    useIsTransactionPayLoadingMock.mockReturnValue(false);
   });
 
   it('renders equivalent pay token value', () => {
@@ -103,13 +90,11 @@ describe('PayTokenAmount', () => {
     expect(getByText('0 ETH')).toBeDefined();
   });
 
-  it('renders skeleton if isMaxAmount and quotes loading', () => {
-    useTransactionPayIsMaxAmountMock.mockReturnValue(true);
-    useIsTransactionPayLoadingMock.mockReturnValue(true);
+  it('renders the pay token value even on Max — it derives from the full amount being paid and does not wait on quotes', () => {
+    const { getByText, queryByTestId } = render();
 
-    const { getByTestId } = render();
-
-    expect(getByTestId('pay-token-amount-skeleton')).toBeDefined();
+    expect(getByText('500', { exact: false })).toBeDefined();
+    expect(queryByTestId('pay-token-amount-skeleton')).toBeNull();
   });
 
   it('returns null for withdrawal transactions', () => {

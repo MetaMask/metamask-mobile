@@ -9,6 +9,7 @@ import {
 import { Box, TabEmptyState } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { selectAddressHasTokenBalances } from '../../../../../selectors/tokenBalancesController';
 import ActivityEmptyDarkIcon from '../../../../../images/activity-empty-dark.svg';
 import ActivityEmptyLightIcon from '../../../../../images/activity-empty-light.svg';
@@ -22,6 +23,8 @@ import {
   ActivityEmptyStateAction,
   getActivityEmptyState,
 } from './empty-states';
+import { BridgeViewMode } from '../../../../UI/Bridge/types';
+import { startSwapBridgePageLoadTrace } from '../../../../UI/Bridge/utils/swapBridgePageLoadTrace';
 
 export interface ActivityEmptyStateProps {
   /** Currently selected type filter — drives copy + CTA. */
@@ -57,9 +60,18 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   const handleAction = useCallback(() => {
     switch (emptyState.action) {
       case ActivityEmptyStateAction.Swap:
-        navigation.navigate(Routes.BRIDGE.ROOT, {
-          screen: Routes.BRIDGE.BRIDGE_VIEW,
-        });
+        {
+          const params = startSwapBridgePageLoadTrace({
+            sourcePage: 'ActivityEmptyState',
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: MetaMetricsSwapsEventSource.MainView,
+          });
+
+          navigation.navigate(Routes.BRIDGE.ROOT, {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
+            params,
+          });
+        }
         return;
       case ActivityEmptyStateAction.AddFunds:
         goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE });

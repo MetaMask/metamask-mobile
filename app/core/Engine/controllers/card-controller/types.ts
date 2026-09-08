@@ -5,7 +5,7 @@ import type {
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import type {
-  AccountTreeControllerGetStateAction,
+  AccountTreeControllerGetAccountFromSelectedAccountGroupAction,
   AccountTreeControllerStateChangeEvent,
 } from '@metamask/account-tree-controller';
 import type { AccountsControllerGetStateAction } from '@metamask/accounts-controller';
@@ -40,6 +40,61 @@ export const MONEY_ACCOUNT_LAUNCH_MS = Date.UTC(2026, 4, 1);
 export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
 export type CardUnauthenticatedReason = 'onboarding_token_revoked';
 
+/** PII-free: state logs ship this field verbatim. */
+export type CardHomeDataErrorReason =
+  | 'no_evm_address'
+  | 'no_active_provider'
+  | 'auth_expired'
+  | 'rate_limited'
+  | 'network'
+  | 'server_error'
+  | 'unknown';
+
+export interface CardHomeDataError {
+  reason: CardHomeDataErrorReason;
+  /** CardProviderError.code or CardApiError.errorCode. */
+  code: string | null;
+  statusCode: number | null;
+  at: number;
+}
+
+export type CardRedeemWithdrawalStatus =
+  | 'submitting'
+  | 'monitoring'
+  | 'success'
+  | 'failed';
+
+export type CardRedeemWithdrawalErrorReason =
+  | 'no_polling_chain'
+  | 'submit_failed'
+  | 'tx_reverted'
+  | 'tx_timeout'
+  | 'in_progress'
+  | 'network'
+  | 'server_error'
+  | 'unknown';
+
+/** PII-free: state logs ship this field verbatim. */
+export interface CardRedeemWithdrawalError {
+  reason: CardRedeemWithdrawalErrorReason;
+  code: string | null;
+  statusCode: number | null;
+}
+
+/**
+ * In-flight / terminal redeem withdrawal. Not persisted — survives UI unmount
+ * via controller state so monitoring continues after navigating away.
+ * Typed as Record fields where needed for StateConstraint.
+ */
+export interface CardRedeemWithdrawal {
+  mode: 'credit' | 'cashback';
+  status: CardRedeemWithdrawalStatus;
+  txHash: string | null;
+  chainId: string | null;
+  submittedAt: number;
+  error: CardRedeemWithdrawalError | null;
+}
+
 export interface FetchCardHomeDataOptions {
   force?: boolean;
 }
@@ -73,10 +128,21 @@ export type CardControllerState = {
   cardHomeDataAddress: string | null;
   /** Persisted with the data: without it the card restores stuck in 'loading'. */
   cardHomeDataStatus: CardHomeDataStatus;
+  /**
+   * Last card-home fetch failure. PII-free (no message/body) because state logs
+   * ship controller state verbatim. Typed as Record<string, Json> to satisfy
+   * StateConstraint; cast to CardHomeDataError at read sites.
+   */
+  cardHomeDataError: Record<string, Json> | null;
   /** Never persisted, so `false` after a cold start signals data off disk. */
   cardHomeDataFetchedThisSession: boolean;
   /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
   moneyAccountCardLinkInProgress: boolean;
+  /**
+   * Active / last redeem withdrawal (credit / mUSD Back). Not persisted.
+   * Typed as Record<string, Json> for StateConstraint; cast at read sites.
+   */
+  redeemWithdrawal: Record<string, Json> | null;
 };
 
 export type CardControllerActions = ControllerGetStateAction<
@@ -91,7 +157,7 @@ export type CardControllerEvents = ControllerStateChangeEvent<
 
 type CardControllerAllowedActions =
   | AccountsControllerGetStateAction
-  | AccountTreeControllerGetStateAction
+  | AccountTreeControllerGetAccountFromSelectedAccountGroupAction
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
