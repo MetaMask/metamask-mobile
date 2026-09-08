@@ -1,6 +1,7 @@
 import { KycService, type KycServiceMessenger } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
 
+// Dev, not prod: the Universal KYC API isn't deployed to production yet.
 const DEFAULT_KYC_API_BASE_URL = 'https://kyc-api.dev-api.cx.metamask.io';
 
 /**
