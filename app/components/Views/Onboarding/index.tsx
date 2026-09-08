@@ -1656,9 +1656,13 @@ const Onboarding = () => {
           {handleSimpleNotification()}
         </SafeAreaView>
 
-        {/* Fox sits on the root canvas and extends into the bottom inset. */}
+        {/* Fox on the full-bleed root canvas */}
         {!hasTestOverrides && (
-          <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
+          <FoxAnimation
+            hasFooter={false}
+            trigger={startFoxAnimation}
+            fullBleedBottom
+          />
         )}
       </View>
     </ErrorBoundary>

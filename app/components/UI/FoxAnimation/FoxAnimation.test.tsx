@@ -89,16 +89,26 @@ describe('getSafeBottomPosition', () => {
     expect(getSafeBottomPosition(false, insets(0))).toBe(-20);
   });
 
-  it('returns Android bottom inset so fox sits above system nav', () => {
+  it('tucks Android full-bleed fox into the gesture inset like iOS', () => {
     setPlatformOS('android');
 
-    expect(getSafeBottomPosition(false, insets(48))).toBe(48);
+    expect(
+      getSafeBottomPosition(false, insets(48), { fullBleedBottom: true }),
+    ).toBe(-38);
   });
 
-  it('returns 0 for Android when bottom inset is missing', () => {
+  it('uses a small negative Android full-bleed offset when inset is missing', () => {
     setPlatformOS('android');
 
-    expect(getSafeBottomPosition(false)).toBe(0);
+    expect(
+      getSafeBottomPosition(false, undefined, { fullBleedBottom: true }),
+    ).toBe(-20);
+  });
+
+  it('returns 0 for Android when parent already applied bottom safe area', () => {
+    setPlatformOS('android');
+
+    expect(getSafeBottomPosition(false, insets(48))).toBe(0);
   });
 
   it('returns -20 for no-footer on non-iOS non-Android platforms', () => {
