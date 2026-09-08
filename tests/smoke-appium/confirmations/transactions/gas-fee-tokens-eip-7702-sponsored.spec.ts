@@ -13,6 +13,7 @@ import {
 } from '../../../flows/confirmations.flow.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager.js';
+import { ANVIL_LOCAL_ETH_HOLDING } from '../helpers/anvil-local-eth-holding.js';
 import {
   setupMockRequest,
   setupMockPostRequest,
@@ -181,6 +182,7 @@ const createFixture = ({ localNodes }: { localNodes?: LocalNode[] }) => {
       nickname: 'Local RPC',
       ticker: 'ETH',
     })
+    .withTokenHoldings([ANVIL_LOCAL_ETH_HOLDING])
     .withDisabledSmartTransactions()
     .build();
 };

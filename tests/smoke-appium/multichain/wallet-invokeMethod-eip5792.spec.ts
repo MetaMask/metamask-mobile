@@ -18,6 +18,14 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { remoteFeatureEip7702 } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
 import { isHexString } from '@metamask/utils';
+import { ANVIL_LOCAL_ETH_HOLDING } from '../confirmations/helpers/anvil-local-eth-holding.js';
+
+function buildAnvilLocalEthFixture() {
+  return new FixtureBuilder()
+    .withDefaultFixture()
+    .withTokenHoldings([ANVIL_LOCAL_ETH_HOLDING])
+    .build();
+}
 
 function buildAnvilLocalEthFixture() {
   return new FixtureBuilder()
