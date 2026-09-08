@@ -28,11 +28,7 @@ export function getKycControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [
-      'KycService:getGeoCountry',
-      'KycService:fetchDisclaimers',
-      'KycService:fetchIronDisclaimers',
-    ],
+    actions: ['KycService:getGeoCountry', 'KycService:fetchVendorDisclaimers'],
     messenger,
   });
   return messenger;

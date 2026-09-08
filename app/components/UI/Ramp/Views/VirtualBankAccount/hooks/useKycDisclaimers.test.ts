@@ -3,8 +3,8 @@ import { useKycDisclaimers } from './useKycDisclaimers';
 
 const mockLoadDisclaimers = jest.fn();
 const mockKycControllerState = {
-  disclaimers: [] as { id: string; url: string; display_name: string }[],
-  disclaimersError: null as string | null,
+  vendorDisclaimers: [] as { id: string; url: string; display_name: string }[],
+  vendorError: null as string | null,
 };
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -21,13 +21,13 @@ jest.mock('../../../../../../core/Engine', () => ({
 describe('useKycDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockKycControllerState.disclaimers = [];
-    mockKycControllerState.disclaimersError = null;
+    mockKycControllerState.vendorDisclaimers = [];
+    mockKycControllerState.vendorError = null;
     mockLoadDisclaimers.mockImplementation(async () => {
-      mockKycControllerState.disclaimers = [
+      mockKycControllerState.vendorDisclaimers = [
         { id: '1', url: 'https://t.c', display_name: 'T&C' },
       ];
-      mockKycControllerState.disclaimersError = null;
+      mockKycControllerState.vendorError = null;
     });
   });
 
@@ -43,10 +43,10 @@ describe('useKycDisclaimers', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('surfaces disclaimersError from KycController state when the load fails', async () => {
+  it('surfaces vendorError from KycController state when the load fails', async () => {
     mockLoadDisclaimers.mockImplementation(async () => {
-      mockKycControllerState.disclaimers = [];
-      mockKycControllerState.disclaimersError =
+      mockKycControllerState.vendorDisclaimers = [];
+      mockKycControllerState.vendorError =
         'Failed to load disclaimers: Error: boom';
     });
 
@@ -62,8 +62,8 @@ describe('useKycDisclaimers', () => {
 
   it('treats an empty successful response as an error so the CTA is not soft-locked', async () => {
     mockLoadDisclaimers.mockImplementation(async () => {
-      mockKycControllerState.disclaimers = [];
-      mockKycControllerState.disclaimersError = null;
+      mockKycControllerState.vendorDisclaimers = [];
+      mockKycControllerState.vendorError = null;
     });
 
     const { result } = renderHook(() => useKycDisclaimers('BRA'));
@@ -107,14 +107,14 @@ describe('useKycDisclaimers', () => {
   it('re-loads and clears the previous error when retry is called', async () => {
     mockLoadDisclaimers
       .mockImplementationOnce(async () => {
-        mockKycControllerState.disclaimers = [];
-        mockKycControllerState.disclaimersError = 'server error';
+        mockKycControllerState.vendorDisclaimers = [];
+        mockKycControllerState.vendorError = 'server error';
       })
       .mockImplementationOnce(async () => {
-        mockKycControllerState.disclaimers = [
+        mockKycControllerState.vendorDisclaimers = [
           { id: '1', url: 'https://t.c', display_name: 'T&C' },
         ];
-        mockKycControllerState.disclaimersError = null;
+        mockKycControllerState.vendorError = null;
       });
 
     const { result } = renderHook(() => useKycDisclaimers('BRA'));

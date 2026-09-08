@@ -71,20 +71,12 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
           return;
         }
 
-        const { disclaimers: loadedDisclaimers, disclaimersError } =
+        const { vendorDisclaimers: loadedDisclaimers, vendorError } =
           Engine.context.KycController.state;
 
-        if (disclaimersError) {
+        if (vendorError) {
           setDisclaimers([]);
-          setError(disclaimersError);
-          return;
-        }
-
-        if (loadedDisclaimers.length === 0) {
-          // An empty success would render no disclaimers and no retry while the
-          // CTA stays disabled, so treat it as an error.
-          setDisclaimers([]);
-          setError('No KYC disclaimers returned');
+          setError(vendorError);
           return;
         }
 
