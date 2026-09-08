@@ -924,6 +924,7 @@
   },
   "AiDigestController": {},
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],
