@@ -2115,8 +2115,10 @@ describe('PolymarketProvider', () => {
         selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
         isGasFeeTokenIgnoredIfBalance: true,
         gasFeeTokens: [
-          { tokenAddress: '0x1111111111111111111111111111111111111111' },
-        ] as GasFeeToken[],
+          {
+            tokenAddress: '0x1111111111111111111111111111111111111111',
+          },
+        ] as unknown as GasFeeToken[],
       } as TransactionMeta,
       signer,
       positions: [createClaimPosition()],
