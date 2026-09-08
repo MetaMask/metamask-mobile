@@ -257,4 +257,28 @@ describe('RewardsMoneyEarningsView', () => {
     expect(refreshSummary).toHaveBeenCalledTimes(1);
     expect(refreshLedger).toHaveBeenCalledTimes(1);
   });
+
+  /**
+   * The summary rides in the shared header on both tabs, and settlement emits
+   * no `earningsUpdated` event — so refreshing claims alone left the visible
+   * totals stale until the screen remounted.
+   */
+  it('refreshes the summary as well as the claims on the Claims tab', () => {
+    const refreshSummary = jest.fn();
+    const refreshClaims = jest.fn();
+    mockSummaryState({ refresh: refreshSummary });
+    mockClaimHistoryState({ refresh: refreshClaims });
+    render(<RewardsMoneyEarningsView originTypes={['CASHBACK']} />);
+
+    fireEvent.press(
+      screen.getByTestId(`${REWARDS_MONEY_TEST_IDS.EARNINGS_TABS}-claims`),
+    );
+    fireEvent(
+      screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIMS_LIST),
+      'refresh',
+    );
+
+    expect(refreshSummary).toHaveBeenCalledTimes(1);
+    expect(refreshClaims).toHaveBeenCalledTimes(1);
+  });
 });

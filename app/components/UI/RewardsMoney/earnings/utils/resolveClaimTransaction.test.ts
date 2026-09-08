@@ -129,16 +129,78 @@ describe('resolveClaimTransaction', () => {
 
   /**
    * `dev:settle-claim` moves a claim to SETTLED without a block or hash, which
-   * is exactly the local testing state — so settled must not imply openable.
+   * is exactly the local testing state. Settled is not in flight, so there is
+   * no pending transaction to guess at — the row stays inert rather than
+   * opening whatever the account did next.
    */
-  it('falls back to inference when a settled claim carries no hash', () => {
+  it('does not guess for a settled claim carrying no hash', () => {
     const result = resolveClaimTransaction({
       claim: createClaim({ status: 'SETTLED', settled_tx_hash: null }),
       transactions: [createTx('tx-guess', OPENED_MS + 3_000)],
       chainId: CHAIN_ID,
     });
 
-    expect(result).toEqual({ kind: 'inferred', transactionId: 'tx-guess' });
+    expect(result).toEqual({ kind: 'none' });
+  });
+
+  /**
+   * A settled claim's hash is authoritative. Not finding it locally is a known
+   * miss — pruned history, or settled on another install — not licence to open
+   * a different transaction.
+   */
+  it('does not guess when a settled hash is absent from local history', () => {
+    const result = resolveClaimTransaction({
+      claim: createClaim({ status: 'SETTLED', settled_tx_hash: '0xmissing' }),
+      transactions: [createTx('tx-unrelated', OPENED_MS + 1_000)],
+      chainId: CHAIN_ID,
+    });
+
+    expect(result).toEqual({ kind: 'none' });
+  });
+
+  /**
+   * These never reached the chain, so any match is definitionally wrong. The
+   * dangerous case is a retry: expired rows sit right beside the successful
+   * claim's transaction, which is exactly what a time window would grab.
+   */
+  it.each<['EXPIRED' | 'FAILED']>([['EXPIRED'], ['FAILED']])(
+    'never guesses for a %s claim',
+    (status) => {
+      const result = resolveClaimTransaction({
+        claim: createClaim({ status }),
+        transactions: [createTx('tx-someone-elses', OPENED_MS + 1_000)],
+        chainId: CHAIN_ID,
+      });
+
+      expect(result).toEqual({ kind: 'none' });
+    },
+  );
+
+  /** A pending claim is the one case a guess is legitimate. */
+  it.each<['AUTHORIZED' | 'PENDING_SIGNATURE']>([
+    ['AUTHORIZED'],
+    ['PENDING_SIGNATURE'],
+  ])('still guesses for a %s claim', (status) => {
+    const result = resolveClaimTransaction({
+      claim: createClaim({ status }),
+      transactions: [createTx('tx-inflight', OPENED_MS + 1_000)],
+      chainId: CHAIN_ID,
+    });
+
+    expect(result).toEqual({ kind: 'inferred', transactionId: 'tx-inflight' });
+  });
+
+  /** An exact hash match still wins for a settled claim. */
+  it('still opens a settled claim whose hash is in local history', () => {
+    const result = resolveClaimTransaction({
+      claim: createClaim({ status: 'SETTLED', settled_tx_hash: '0xabc' }),
+      transactions: [
+        createTx('tx-real', OPENED_MS + 10_000, { hash: '0xABC' }),
+      ],
+      chainId: CHAIN_ID,
+    });
+
+    expect(result).toEqual({ kind: 'exact', transactionId: 'tx-real' });
   });
 
   it('reports none when the claim has an unparseable timestamp', () => {

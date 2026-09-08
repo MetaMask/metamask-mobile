@@ -123,6 +123,14 @@ const RewardsMoneyEarningsView: React.FC<RewardsMoneyEarningsViewProps> = ({
     refreshLedger();
   }, [refreshSummary, refreshLedger]);
 
+  // The summary rides in the shared header on both tabs, and settlement emits
+  // no earningsUpdated event — so refreshing claims alone would leave the
+  // visible totals stale until the screen remounts.
+  const handleClaimsRefresh = useCallback(() => {
+    refreshSummary();
+    refreshClaims();
+  }, [refreshSummary, refreshClaims]);
+
   // Only the scope is passed. The sheet re-reads the summary itself so it can
   // never render a payload frozen at navigation time.
   const handleClaim = useCallback(() => {
@@ -188,7 +196,7 @@ const RewardsMoneyEarningsView: React.FC<RewardsMoneyEarningsViewProps> = ({
         hasMore={hasMoreClaims}
         error={claimsError}
         loadMore={loadMoreClaims}
-        refresh={refreshClaims}
+        refresh={handleClaimsRefresh}
         retry={retryClaims}
         resolveRowPress={resolveClaimRowPress}
         ListHeaderComponent={listHeader}
