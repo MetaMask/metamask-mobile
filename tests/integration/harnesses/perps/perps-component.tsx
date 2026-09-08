@@ -217,6 +217,7 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   setTargetWalletType: (): void => undefined,
   setPendingOperationAddress: (): void => undefined,
   showHardwareWalletError: (): void => undefined,
+  cancelConnectionFlow: (): void => undefined,
   showAwaitingConfirmation: (): void => undefined,
   hideAwaitingConfirmation: (): void => undefined,
   qr: {

@@ -29,6 +29,14 @@ interface UseDeviceConnectionFlowOptions {
   ) => Promise<boolean>;
   /** Called at the start of each new ensureDeviceReady flow. */
   onFlowStart?: () => void;
+  /**
+   * Provider-owned flag tracking whether a connection flow is active.
+   * Set while a readiness flow is armed/pending; cleared whenever the
+   * pending promise is resolved (success, cancel, or closeFlow). Used to
+   * gate internal error surfacing: late errors after the flow closed must
+   * not re-open the error bottom sheet over the app.
+   */
+  flowActiveRef: React.MutableRefObject<boolean>;
 }
 
 interface UseDeviceConnectionFlowResult {
@@ -56,6 +64,7 @@ export const useDeviceConnectionFlow = ({
   initializeAdapter,
   checkTransportEnabledOrShowError,
   onFlowStart,
+  flowActiveRef,
 }: UseDeviceConnectionFlowOptions): UseDeviceConnectionFlowResult => {
   const pendingReadyResolveRef = useRef<((ready: boolean) => void) | null>(
     null,
@@ -102,6 +111,7 @@ export const useDeviceConnectionFlow = ({
     (afterSetup?: () => void): Promise<boolean> =>
       new Promise<boolean>((resolve) => {
         pendingReadyResolveRef.current = resolve;
+        flowActiveRef.current = true;
 
         connectionSuccessCallbackRef.current = () => {
           DevLogger.log(
@@ -109,13 +119,14 @@ export const useDeviceConnectionFlow = ({
           );
           if (pendingReadyResolveRef.current === resolve) {
             pendingReadyResolveRef.current = null;
+            flowActiveRef.current = false;
             resolve(true);
           }
         };
 
         afterSetup?.();
       }),
-    [],
+    [flowActiveRef],
   );
 
   const tryEnsureReady = useCallback(
@@ -149,6 +160,7 @@ export const useDeviceConnectionFlow = ({
         if (resolvePending) {
           pendingReadyResolveRef.current = null;
           connectionSuccessCallbackRef.current = null;
+          flowActiveRef.current = false;
           resolvePending(true);
         }
       } else {
@@ -158,7 +170,7 @@ export const useDeviceConnectionFlow = ({
       }
       return isReady;
     },
-    [updateConnectionState],
+    [updateConnectionState, flowActiveRef],
   );
 
   const connect = useCallback(
@@ -196,15 +208,26 @@ export const useDeviceConnectionFlow = ({
           await tryEnsureReady(adapter, targetDeviceId);
         } catch (error) {
           DevLogger.log('[HardwareWallet] Readiness check failed:', error);
-          handleError(error);
+          if (flowActiveRef.current) {
+            handleError(error);
+          }
         }
       } catch (error) {
-        handleError(error);
+        if (flowActiveRef.current) {
+          handleError(error);
+        }
       } finally {
         refs.isConnectingRef.current = false;
       }
     },
-    [refs, setters, handleError, updateConnectionState, tryEnsureReady],
+    [
+      refs,
+      setters,
+      handleError,
+      updateConnectionState,
+      tryEnsureReady,
+      flowActiveRef,
+    ],
   );
 
   const ensureDeviceReady = useCallback(
@@ -215,6 +238,7 @@ export const useDeviceConnectionFlow = ({
       );
 
       onFlowStart?.();
+      flowActiveRef.current = true;
 
       if (pendingReadyResolveRef.current) {
         DevLogger.log(
@@ -224,6 +248,7 @@ export const useDeviceConnectionFlow = ({
         if (resolvePending) {
           pendingReadyResolveRef.current = null;
           connectionSuccessCallbackRef.current = null;
+          flowActiveRef.current = false;
           resolvePending(false);
         }
       }
@@ -326,7 +351,9 @@ export const useDeviceConnectionFlow = ({
                   '[HardwareWallet] ensureDeviceReady error:',
                   error,
                 );
-                handleError(error);
+                if (flowActiveRef.current) {
+                  handleError(error);
+                }
               } finally {
                 refs.abortControllerRef.current = null;
               }
@@ -351,7 +378,9 @@ export const useDeviceConnectionFlow = ({
             await tryEnsureReady(adapter, targetDeviceId);
           } catch (error) {
             DevLogger.log('[HardwareWallet] ensureDeviceReady error:', error);
-            handleError(error);
+            if (flowActiveRef.current) {
+              handleError(error);
+            }
           } finally {
             refs.abortControllerRef.current = null;
           }
@@ -369,6 +398,7 @@ export const useDeviceConnectionFlow = ({
       checkTransportEnabledOrShowError,
       createBlockingPromise,
       onFlowStart,
+      flowActiveRef,
     ],
   );
 
@@ -393,7 +423,9 @@ export const useDeviceConnectionFlow = ({
       try {
         await tryEnsureReady(adapter, effectiveDeviceId);
       } catch (error) {
-        handleError(error);
+        if (flowActiveRef.current) {
+          handleError(error);
+        }
       }
     } else {
       updateConnectionState({ status: ConnectionStatus.Scanning });
@@ -404,6 +436,7 @@ export const useDeviceConnectionFlow = ({
     refs,
     checkTransportEnabledOrShowError,
     tryEnsureReady,
+    flowActiveRef,
   ]);
 
   const closeFlow = useCallback(() => {
@@ -411,11 +444,12 @@ export const useDeviceConnectionFlow = ({
     if (resolvePending) {
       pendingReadyResolveRef.current = null;
       connectionSuccessCallbackRef.current = null;
+      flowActiveRef.current = false;
       resolvePending(false);
     }
     setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [setters, updateConnectionState]);
+  }, [setters, updateConnectionState, flowActiveRef]);
 
   const handleConnectionSuccess = useCallback(() => {
     const callback = connectionSuccessCallbackRef.current;

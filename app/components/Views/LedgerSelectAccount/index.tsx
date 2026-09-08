@@ -73,8 +73,13 @@ const LedgerSelectAccount = () => {
     ledgerDeviceDarkImage,
   );
 
-  const { deviceId, deviceSelection, ensureDeviceReady, setTargetWalletType } =
-    useHardwareWallet();
+  const {
+    deviceId,
+    deviceSelection,
+    ensureDeviceReady,
+    setTargetWalletType,
+    cancelConnectionFlow,
+  } = useHardwareWallet();
 
   const ledgerModelName = useMemo(() => {
     if (deviceSelection?.selectedDevice) {
@@ -185,6 +190,19 @@ const LedgerSelectAccount = () => {
     },
 
     // This is ran once on mount, so we don't need to add any dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  // Unmount-only cleanup: when the flow screen exits (Android back/gesture or
+  // sheet dismissal), settle any pending readiness promise and reset the
+  // provider flow state, so late adapter errors cannot re-open a stranded
+  // error bottom sheet over Home.
+  useEffect(
+    () => () => {
+      cancelConnectionFlow();
+    },
+    // Intentionally mount/unmount only — cancelConnectionFlow is stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
