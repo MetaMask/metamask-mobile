@@ -83,12 +83,14 @@ describe('useDeviceEventHandlers', () => {
 
   const createHook = (
     walletType: HardwareWalletType | null = HardwareWalletType.Ledger,
+    isFlowActive?: () => boolean,
   ) =>
     renderHook(() =>
       useDeviceEventHandlers({
         refs: mockRefs,
         setters: mockSetters,
         walletType,
+        isFlowActive,
       }),
     );
 
@@ -559,6 +561,132 @@ describe('useDeviceEventHandlers', () => {
       });
 
       expect(lastConnectionState.status).toBe(ConnectionStatus.Disconnected);
+      expect(mockRefs.isConnectingRef.current).toBe(false);
+    });
+  });
+
+  describe('with inactive connection flow (isFlowActive returns false)', () => {
+    const isFlowActive = () => false;
+
+    beforeEach(() => {
+      mockRefs.isConnectingRef.current = true;
+      lastConnectionState = { status: ConnectionStatus.Connecting };
+    });
+
+    it('handleError is not gated and still transitions to ErrorState (ungated for signing flows)', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleError(new Error('Direct error'));
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
+      expect(mockRefs.isConnectingRef.current).toBe(false);
+    });
+
+    it('DeviceLocked with error does not transition to ErrorState', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.DeviceLocked,
+          error: new Error('Device locked'),
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Connecting);
+      expect(mockRefs.isConnectingRef.current).toBe(false);
+    });
+
+    it('DeviceLocked without error does not transition to ErrorState', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.DeviceLocked,
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Connecting);
+      expect(mockRefs.isConnectingRef.current).toBe(false);
+    });
+
+    it('ConnectionFailed with error does not transition to ErrorState', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.ConnectionFailed,
+          error: new Error('Connection failed'),
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Connecting);
+      expect(mockRefs.isConnectingRef.current).toBe(false);
+    });
+
+    it('OperationTimeout with error does not transition to ErrorState', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.OperationTimeout,
+          error: new Error('Operation timed out'),
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Connecting);
+      expect(mockRefs.isConnectingRef.current).toBe(false);
+    });
+
+    it('Disconnected events still transition when the flow is inactive', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.Disconnected,
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Disconnected);
+      expect(mockRefs.isConnectingRef.current).toBe(false);
+    });
+
+    it('ConnectionFailed without error still transitions to Disconnected', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.ConnectionFailed,
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Disconnected);
+      expect(mockRefs.isConnectingRef.current).toBe(false);
+    });
+  });
+
+  describe('without isFlowActive option (back-compat)', () => {
+    it('handleError still transitions to ErrorState when isFlowActive is undefined', () => {
+      const { result } = createHook();
+
+      act(() => {
+        result.current.handleError(new Error('Test'));
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
+    });
+
+    it('DeviceLocked still transitions to ErrorState when isFlowActive is undefined', () => {
+      const { result } = createHook();
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.DeviceLocked,
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
       expect(mockRefs.isConnectingRef.current).toBe(false);
     });
   });
