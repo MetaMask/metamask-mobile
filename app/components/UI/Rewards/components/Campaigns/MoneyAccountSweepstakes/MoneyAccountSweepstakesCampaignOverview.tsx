@@ -240,19 +240,21 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
                 flexDirection={BoxFlexDirection.Row}
                 twClassName="gap-1"
               >
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                  testID={
-                    MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.PENDING_INGEST_LABEL
-                  }
-                >
-                  {localizedText.eligibleBalancePendingTitle}
-                </Text>
+                <Box twClassName="rounded-md bg-info-muted px-2 py-1">
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={TextColor.InfoDefault}
+                    testID={
+                      MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.PENDING_INGEST_LABEL
+                    }
+                  >
+                    {localizedText.eligibleBalancePendingTitle}
+                  </Text>
+                </Box>
                 <ButtonIcon
                   iconName={IconName.Info}
                   iconProps={{ color: IconColor.IconAlternative }}
-                  size={ButtonIconSize.Sm}
+                  size={ButtonIconSize.Xs}
                   onPress={handlePendingIngestInfoPress}
                   accessibilityLabel={localizedText.eligibleBalancePendingTitle}
                   testID={
