@@ -1,9 +1,15 @@
 import React, { createRef } from 'react';
+import { CaipChainId } from '@metamask/utils';
 import {
   FeatureId,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
-import { ethToken1Address, initialState } from '../../_mocks_/initialState';
+import {
+  asRootState,
+  bridgeTestState,
+  ethToken1Address,
+  initialState,
+} from '../../_mocks_/initialState';
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { TokenInputArea, TokenInputAreaRef, TokenInputAreaType } from '.';
@@ -393,26 +399,26 @@ describe('TokenInputArea', () => {
     const tokenBalance = '1.5';
 
     // Create state without gasless swap enabled
-    const stateWithoutGasless = {
-      ...initialState,
+    const stateWithoutGasless = asRootState({
+      ...bridgeTestState,
       engine: {
-        ...initialState.engine,
+        ...bridgeTestState.engine,
         backgroundState: {
-          ...initialState.engine.backgroundState,
+          ...bridgeTestState.engine.backgroundState,
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              ...initialState.engine.backgroundState.RemoteFeatureFlagController
-                .remoteFeatureFlags,
+              ...bridgeTestState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
               bridgeConfigV2: {
-                ...initialState.engine.backgroundState
+                ...bridgeTestState.engine.backgroundState
                   .RemoteFeatureFlagController.remoteFeatureFlags
                   .bridgeConfigV2,
                 chains: {
-                  ...initialState.engine.backgroundState
+                  ...bridgeTestState.engine.backgroundState
                     .RemoteFeatureFlagController.remoteFeatureFlags
                     .bridgeConfigV2.chains,
                   'eip155:1': {
-                    ...initialState.engine.backgroundState
+                    ...bridgeTestState.engine.backgroundState
                       .RemoteFeatureFlagController.remoteFeatureFlags
                       .bridgeConfigV2.chains['eip155:1'],
                     isGaslessSwapEnabled: false,
@@ -423,7 +429,7 @@ describe('TokenInputArea', () => {
           },
         },
       },
-    };
+    });
 
     // Mock hook to return false since gasless is disabled for native token
     mockUseShouldRenderMaxOption.mockReturnValue(false);
@@ -507,22 +513,22 @@ describe('TokenInputArea', () => {
     };
     const tokenBalance = '10';
 
-    const stateWithoutGasless = {
-      ...initialState,
+    const stateWithoutGasless = asRootState({
+      ...bridgeTestState,
       engine: {
-        ...initialState.engine,
+        ...bridgeTestState.engine,
         backgroundState: {
-          ...initialState.engine.backgroundState,
+          ...bridgeTestState.engine.backgroundState,
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              ...initialState.engine.backgroundState.RemoteFeatureFlagController
-                .remoteFeatureFlags,
+              ...bridgeTestState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
               bridgeConfigV2: {
-                ...initialState.engine.backgroundState
+                ...bridgeTestState.engine.backgroundState
                   .RemoteFeatureFlagController.remoteFeatureFlags
                   .bridgeConfigV2,
                 chains: {
-                  ...initialState.engine.backgroundState
+                  ...bridgeTestState.engine.backgroundState
                     .RemoteFeatureFlagController.remoteFeatureFlags
                     .bridgeConfigV2.chains,
                   'eip155:137': {
@@ -536,7 +542,7 @@ describe('TokenInputArea', () => {
           },
         },
       },
-    };
+    });
 
     // Mock hook to return false since gasless is disabled for native Polygon token
     mockUseShouldRenderMaxOption.mockReturnValue(false);
@@ -579,22 +585,22 @@ describe('TokenInputArea', () => {
     };
     const tokenBalance = '10';
 
-    const stateWithGaslessSwap = {
-      ...initialState,
+    const stateWithGaslessSwap = asRootState({
+      ...bridgeTestState,
       engine: {
-        ...initialState.engine,
+        ...bridgeTestState.engine,
         backgroundState: {
-          ...initialState.engine.backgroundState,
+          ...bridgeTestState.engine.backgroundState,
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              ...initialState.engine.backgroundState.RemoteFeatureFlagController
-                .remoteFeatureFlags,
+              ...bridgeTestState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
               bridgeConfigV2: {
-                ...initialState.engine.backgroundState
+                ...bridgeTestState.engine.backgroundState
                   .RemoteFeatureFlagController.remoteFeatureFlags
                   .bridgeConfigV2,
                 chains: {
-                  ...initialState.engine.backgroundState
+                  ...bridgeTestState.engine.backgroundState
                     .RemoteFeatureFlagController.remoteFeatureFlags
                     .bridgeConfigV2.chains,
                   'eip155:137': {
@@ -609,11 +615,11 @@ describe('TokenInputArea', () => {
         },
       },
       bridge: {
-        ...initialState.bridge,
+        ...bridgeTestState.bridge,
         sourceToken: polygonNativeToken,
         destToken,
       },
-    };
+    });
 
     const { getByText } = renderScreen(
       () => (

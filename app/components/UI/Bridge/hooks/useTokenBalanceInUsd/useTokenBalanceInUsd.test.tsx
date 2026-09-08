@@ -203,11 +203,33 @@ describe('useTokenBalanceInUsd', () => {
       symbol: 'ETH',
       chainId: ethChainId,
     };
+    const evmBalances =
+      stateWithUsdConversionRate.engine.backgroundState.AssetsController
+        .assetsBalance[evmAccountId];
+    const { [NATIVE_ETH_ASSET_ID]: _nativeEth, ...evmBalancesWithoutNative } =
+      evmBalances;
     const testState = createBridgeTestState(
       {
         bridgeReducerOverrides: { sourceToken },
       },
-      stateWithUsdConversionRate,
+      {
+        ...stateWithUsdConversionRate,
+        engine: {
+          ...stateWithUsdConversionRate.engine,
+          backgroundState: {
+            ...stateWithUsdConversionRate.engine.backgroundState,
+            AssetsController: {
+              ...stateWithUsdConversionRate.engine.backgroundState
+                .AssetsController,
+              assetsBalance: {
+                ...stateWithUsdConversionRate.engine.backgroundState
+                  .AssetsController.assetsBalance,
+                [evmAccountId]: evmBalancesWithoutNative,
+              },
+            },
+          },
+        },
+      } as Parameters<typeof createBridgeTestState>[1],
     );
 
     const { result } = renderHookWithProvider(

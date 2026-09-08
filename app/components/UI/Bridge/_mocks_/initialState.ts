@@ -17,7 +17,6 @@ import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
-import type { AssetsControllerState } from '@metamask/assets-controller';
 import type { RootState } from '../../../../reducers';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
@@ -67,7 +66,11 @@ export const xlmAccountAddress =
   'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI';
 export const xlmNativeTokenAddress = 'stellar:pubnet/slip44:148' as CaipAssetId;
 
-export const initialState = {
+/**
+ * Concrete fixture shape. Use this when tests spread or mutate
+ * `bridgeConfigV2`; `initialState` is asserted as RootState for render helpers.
+ */
+export const bridgeTestState = {
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {
@@ -181,58 +184,67 @@ export const initialState = {
         customAssets: {},
         assetsInfo: {
           'eip155:1/slip44:60': {
-            type: 'native',
+            type: 'native' as const,
             symbol: 'ETH',
             name: 'Ether',
             decimals: 18,
           },
           [`eip155:1/erc20:${ethToken1Address}`]: {
-            type: 'erc20',
+            type: 'erc20' as const,
             symbol: 'TOKEN1',
             name: 'Token One',
             decimals: 18,
             image: 'https://token1.com/logo.png',
+            aggregators: ['1inch'],
           },
           [`eip155:1/erc20:${ethToken2Address}`]: {
-            type: 'erc20',
+            type: 'erc20' as const,
             symbol: 'HELLO',
             name: 'Hello Token',
             decimals: 18,
             image: 'https://token2.com/logo.png',
+            aggregators: ['uniswap'],
+          },
+          'eip155:10/slip44:60': {
+            type: 'native' as const,
+            symbol: 'ETH',
+            name: 'Ether',
+            decimals: 18,
           },
           [`eip155:10/erc20:${optimismToken1Address}`]: {
-            type: 'erc20',
+            type: 'erc20' as const,
             symbol: 'FOO',
             name: 'Foo Token',
             decimals: 18,
             image: 'https://token3.com/logo.png',
+            aggregators: ['1inch'],
           },
           [solanaNativeTokenAddress]: {
-            type: 'native',
+            type: 'native' as const,
             symbol: 'SOL',
             name: 'Solana',
             decimals: 9,
           },
           [solanaToken2Address]: {
-            type: 'spl',
+            type: 'spl' as const,
             symbol: 'USDC',
             name: 'USD Coin',
             decimals: 6,
           },
           [btcNativeTokenAddress]: {
-            type: 'native',
+            type: 'native' as const,
             symbol: 'BTC',
             name: 'Bitcoin',
             decimals: 8,
           },
           [trxNativeTokenAddress]: {
-            type: 'native',
+            type: 'native' as const,
             symbol: 'TRX',
             name: 'Tron',
             decimals: 6,
           },
           [xlmNativeTokenAddress]: {
-            type: 'native',
+            type: 'native' as const,
             symbol: 'XLM',
             name: 'Stellar',
             decimals: 7,
@@ -240,6 +252,8 @@ export const initialState = {
         },
         assetsBalance: {
           [evmAccountId]: {
+            'eip155:1/slip44:60': { amount: '3' },
+            'eip155:10/slip44:60': { amount: '20' },
             [`eip155:1/erc20:${ethToken1Address}`]: { amount: '1' },
             [`eip155:1/erc20:${ethToken2Address}`]: { amount: '2' },
             [`eip155:10/erc20:${optimismToken1Address}`]: { amount: '5' },
@@ -260,6 +274,13 @@ export const initialState = {
         },
         assetsPrice: {
           'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2000,
+            usdPrice: 2000,
+            lastUpdated: 1700000000000,
+          },
+          'eip155:10/slip44:60': {
             assetPriceType: 'fungible',
             id: 'eth',
             price: 2000,
@@ -325,7 +346,7 @@ export const initialState = {
             lastUpdated: 1700000000000,
           },
         },
-      } as AssetsControllerState,
+      },
       TokensController: {
         allTokens: {
           [ethChainId]: {
@@ -988,4 +1009,9 @@ export const initialState = {
     recurring: initialRecurringState,
     ordersNetworkFilter: undefined,
   },
-} as unknown as RootState;
+};
+
+export const initialState = bridgeTestState as unknown as RootState;
+
+export const asRootState = <T>(state: T): RootState =>
+  state as unknown as RootState;
