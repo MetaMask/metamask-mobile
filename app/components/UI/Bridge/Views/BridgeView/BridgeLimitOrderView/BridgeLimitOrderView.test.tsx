@@ -12,6 +12,8 @@ import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrder
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
 import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
+import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
+import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas';
 import {
   LimitOrderExecutionType,
   getSwapsLimitOrderExpirationLabel,
@@ -56,6 +58,15 @@ jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
 
 jest.mock('../../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => false),
+}));
+
+jest.mock('../../../hooks/useHasSufficientGas', () => ({
+  useHasSufficientGas: jest.fn(() => true),
 }));
 
 jest.mock('../../../hooks/useLimitOrderSwapsInput', () => ({
@@ -300,6 +311,7 @@ function buildPriceAdjustMock() {
     onAmountTypeTogglePress: undefined,
     onQuoteUnitPress: jest.fn(),
     quotedSymbol: 'USDC',
+    quotedToken: mockSourceToken,
     secondaryValue: undefined,
     value: '1',
   };
@@ -366,6 +378,8 @@ describe('BridgeLimitOrderView', () => {
       .mocked(useSwapsLimitOrderKeypad)
       .mockImplementation(() => buildKeypadMock());
     jest.mocked(useHasMissingQuoteAndAssetsPriceData).mockReturnValue(false);
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
+    jest.mocked(useHasSufficientGas).mockReturnValue(true);
   });
 
   it('renders the limit order container and source token input', () => {
@@ -425,6 +439,38 @@ describe('BridgeLimitOrderView', () => {
 
     const { getByTestId } = renderLimitOrderView();
 
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('disables the keypad confirm button and shows insufficient funds when source balance is too low', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toHaveTextContent(strings('bridge.insufficient_funds'));
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('disables the keypad confirm button and shows insufficient gas when gas token balance is too low', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toHaveTextContent(strings('bridge.insufficient_gas'));
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
         .accessibilityState?.disabled,

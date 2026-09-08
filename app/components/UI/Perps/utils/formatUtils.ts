@@ -347,6 +347,19 @@ export const formatVolume = (
 };
 
 /**
+ * Formats coin (base-asset) volume with the same magnitude suffixes as
+ * {@link formatVolume}, without a fiat `$` prefix.
+ * Candle volume from Hyperliquid is denominated in coins, not USD.
+ *
+ * @example formatCoinVolume(0.33) => "0.33"
+ * @example formatCoinVolume(123456) => "123K"
+ */
+export const formatCoinVolume = (
+  volume: string | number,
+  decimals?: number,
+): string => formatVolume(volume, decimals).replace('$', '');
+
+/**
  * Formats leverage value with 'x' suffix
  * @param leverage - Raw leverage multiplier value
  * @returns Format: "X.Xx" (1 decimal place with 'x' suffix)

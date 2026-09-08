@@ -770,7 +770,8 @@
     "cardholderAccounts": [],
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
-    "lastUnauthenticatedReason": null
+    "lastUnauthenticatedReason": null,
+    "redeemWithdrawal": null
   },
   "ConfigRegistryController": {
     "configs": {
@@ -916,10 +917,7 @@
     "otp": null,
     "error": null
   },
-  "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
-  },
+  "AiDigestController": {},
   "RampsController": {
     "userRegion": null,
     "countries": {

@@ -3685,7 +3685,7 @@ describe('Onboarding', () => {
       });
     });
 
-    it('does not start a CTA navigation span while OAuth is still in the browser', async () => {
+    it('does not start a social CTA navigation span while OAuth is still in the browser', async () => {
       mockOAuthService.handleOAuthLogin.mockReturnValue(
         new Promise(() => {
           // Never settles: the user is still on the provider's login page.
@@ -3693,6 +3693,10 @@ describe('Onboarding', () => {
       );
 
       const { googleLogin } = await openSheetAndGetGoogleLogin();
+      // Opening Create wallet already starts a sheet CTA span; this case is
+      // about the social CTA that must wait until OAuth resolves.
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
 
       await act(async () => {
         void googleLogin(true);
@@ -3714,6 +3718,8 @@ describe('Onboarding', () => {
       });
 
       const { googleLogin } = await openSheetAndGetGoogleLogin();
+      mockTrace.mockClear();
+      mockEndTrace.mockClear();
 
       await act(async () => {
         await googleLogin(false);
@@ -3729,10 +3735,15 @@ describe('Onboarding', () => {
           }),
         );
       });
-      // The destination screen ends it, so it is still open here.
+      // Sheet create_wallet CTA is superseded when the social CTA starts; the
+      // social span stays open until the destination ends it.
       expect(mockEndTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingCtaNavigation,
+          data: expect.objectContaining({
+            success: true,
+            cta_id: OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE,
+          }),
         }),
       );
     });

@@ -117,8 +117,8 @@ const createScaleOrder = (): PerpsProOrderFormProps['scaleOrder'] => ({
     { index: 0, price: '100', size: '1' },
     { index: 1, price: '200', size: '1' },
   ],
-  marginRange: '$50 → $100',
-  liquidationRange: '$80 → $160',
+  margin: '$100',
+  liquidationPrice: '$80',
   fees: '$1',
 });
 
@@ -284,25 +284,26 @@ describe('PerpsProOrderForm', () => {
           ),
         },
       );
-      expect(
-        screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT),
-      ).toBeOnTheScreen();
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toBeOnTheScreen();
       expect(
         within(screen.getByTestId(ids.ORDER_TYPE_CARD)).getByTestId(
           ids.CHASE_MAX_DISTANCE_INPUT,
+          { includeHiddenElements: true },
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'accessibilityLabel',
         `${strings('perps.order.chase.max_distance')} (USD)`,
       );
-      expect(
-        screen.getByTestId(ids.CHASE_MAX_DISTANCE_PREFIX),
-      ).toHaveTextContent('$');
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
-        '0.00',
+        '',
       );
+      expect(
+        screen.getByRole('button', {
+          name: `${strings('perps.order.chase.max_distance')} (USD)`,
+        }),
+      ).toHaveProp('testID', `${ids.CHASE_MAX_DISTANCE_INPUT}-field`);
       expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT)).toHaveProp(
         'hitSlop',
         12,
@@ -332,6 +333,15 @@ describe('PerpsProOrderForm', () => {
       expect(
         screen.queryByTestId(ids.CHASE_MAX_DISTANCE_PREFIX),
       ).not.toBeOnTheScreen();
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'placeholder',
+        '',
+      );
+
+      fireEvent.press(
+        screen.getByTestId(`${ids.CHASE_MAX_DISTANCE_INPUT}-field`),
+      );
+
       expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
         '0%',
@@ -507,8 +517,12 @@ describe('PerpsProOrderForm', () => {
         ids.SCALE_END_PRICE,
         ids.SCALE_TOTAL_ORDERS,
       ]) {
-        expect(screen.getByTestId(inputTestID)).toHaveProp('value', '');
-        expect(screen.getByTestId(inputTestID)).toHaveProp('placeholder', '');
+        expect(getMountedInput(inputTestID)).toHaveProp('value', '');
+        expect(getMountedInput(inputTestID)).toHaveProp('placeholder', '');
+        expect(screen.getByTestId(`${inputTestID}-field`)).toHaveProp(
+          'accessibilityRole',
+          'button',
+        );
       }
       expect(
         within(
@@ -578,7 +592,7 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.MARGIN_MODE_BUTTON)).toBeDisabled();
       expect(screen.getByTestId(ids.LEVERAGE_BUTTON)).toBeDisabled();
       expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toBeDisabled();
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'isDisabled',
         true,
       );
@@ -624,8 +638,8 @@ describe('PerpsProOrderForm', () => {
     it('always renders the five-row incomplete Scale summary', () => {
       const scaleOrder = createScaleOrder();
       scaleOrder.rungs = [];
-      scaleOrder.marginRange = PERPS_CONSTANTS.FallbackPriceDisplay;
-      scaleOrder.liquidationRange = PERPS_CONSTANTS.FallbackPriceDisplay;
+      scaleOrder.margin = PERPS_CONSTANTS.FallbackPriceDisplay;
+      scaleOrder.liquidationPrice = PERPS_CONSTANTS.FallbackPriceDisplay;
       scaleOrder.fees = PERPS_CONSTANTS.FallbackPriceDisplay;
       renderForm({
         orderType: 'scale',
@@ -649,7 +663,7 @@ describe('PerpsProOrderForm', () => {
       ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
     });
 
-    it('renders completed Scale prices and ranges with dedicated selectors', () => {
+    it('renders completed Scale prices and single-value Margin and Est Liquidation rows', () => {
       renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
 
       expect(
@@ -660,26 +674,25 @@ describe('PerpsProOrderForm', () => {
       );
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE),
-      ).toHaveTextContent('$50 → $100');
+      ).toHaveTextContent('$100');
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
-      ).toHaveTextContent('$80 → $160');
+      ).toHaveTextContent('$80');
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_FEES_VALUE),
       ).toHaveTextContent('$1');
     });
 
-    it('allows the complete Scale liquidation range to wrap', () => {
-      const scaleOrder = createScaleOrder();
-      scaleOrder.liquidationRange = '$1,360.5 → $1,722.4';
-      renderForm({ orderType: 'scale', scaleOrder });
+    it('limits Scale Margin and Est Liquidation values to one line', () => {
+      renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
 
-      expect(
-        screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
-      ).toHaveTextContent('$1,360.5 → $1,722.4');
-      expect(
-        screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
-      ).toHaveProp('numberOfLines', 0);
+      const margin = screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE);
+      const liquidation = screen.getByTestId(
+        ids.SCALE_PREVIEW_LIQUIDATION_VALUE,
+      );
+
+      expect(margin).toHaveProp('numberOfLines', 1);
+      expect(liquidation).toHaveProp('numberOfLines', 1);
     });
 
     it('omits ordinary price and TP/SL rows for Scale', () => {
@@ -1062,7 +1075,7 @@ describe('PerpsProOrderForm', () => {
     it('routes Chase keyboard navigation between max distance and size', () => {
       renderForm({ orderType: 'chase' });
 
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
         chaseMaxDistanceAccessoryID,
       );
@@ -1158,7 +1171,7 @@ describe('PerpsProOrderForm', () => {
     it('mounts the Chase max-distance keyboard accessory with the Chase form', () => {
       renderForm({ orderType: 'chase' });
 
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
         chaseMaxDistanceAccessoryID,
       );
@@ -1678,6 +1691,29 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.CONTAINER)).toHaveStyle({ gap: 16 });
     });
 
+    it('renders margin and liquidation as before → after values', () => {
+      renderForm({
+        summary: {
+          margin: '$1,000 → $1,020',
+          liquidationPrice: '$48,000 → $45,000',
+        },
+      });
+
+      expect(screen.getByText('$1,000 → $1,020')).toBeOnTheScreen();
+      expect(screen.getByText('$48,000 → $45,000')).toBeOnTheScreen();
+      // numberOfLines lives on the value Text, not the KeyValueRow testID.
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_MARGIN)).getByText(
+          '$1,000 → $1,020',
+        ),
+      ).toHaveProp('numberOfLines', 2);
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).getByText(
+          '$48,000 → $45,000',
+        ),
+      ).toHaveProp('numberOfLines', 2);
+    });
+
     // The order type card was the only bordered surface in the form (TAT-3780).
     it('draws the order type card borderless, like the other muted surfaces', () => {
       renderForm();
@@ -1709,9 +1745,32 @@ describe('PerpsProOrderForm', () => {
     it('uses 20-point summary row height', () => {
       renderForm();
 
-      expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
+      expect(screen.getByTestId(ids.SUMMARY_SLIPPAGE)).toHaveStyle({
         height: 20,
       });
+    });
+
+    it('treats 20 points as a minimum on the rows that carry a before → after pair', () => {
+      renderForm();
+
+      expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
+        minHeight: 20,
+      });
+      expect(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).toHaveStyle({
+        minHeight: 20,
+      });
+    });
+
+    it('wraps a long before → after pair instead of clipping it', () => {
+      const pair = '$1,234,567.89 → $1,250,000.00';
+      renderForm({ summary: { margin: pair, liquidationPrice: pair } });
+
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_MARGIN)).getByText(pair),
+      ).toHaveProp('numberOfLines', 2);
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).getByText(pair),
+      ).toHaveProp('numberOfLines', 2);
     });
 
     it('uses no horizontal padding on summary rows so they align with the form', () => {

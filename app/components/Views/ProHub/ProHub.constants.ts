@@ -2,9 +2,11 @@ import { IconName } from '@metamask/design-system-react-native';
 
 export interface ProHubStats {
   /** Formatted currency string for lifetime Pro earnings. */
-  earned: string;
-  /** Formatted currency string for lifetime Pro savings. */
-  saved: string;
+  lifetimeEarnings: string;
+  /** Formatted currency string for Money balance earnings. */
+  moneyBalance: string;
+  /** Formatted currency string for mUSD back earnings. */
+  musdBack: string;
 }
 
 export interface AlsoIncludedItem {
@@ -17,8 +19,9 @@ export interface AlsoIncludedItem {
 
 // TODO: replace with real API data once the membership endpoint is available.
 export const MOCK_PRO_HUB_STATS: ProHubStats = {
-  earned: '$500.30',
-  saved: '$266.61',
+  lifetimeEarnings: '$86.42',
+  moneyBalance: '+$48.92',
+  musdBack: '$0.00',
 };
 
 export const ALSO_INCLUDED_ITEMS: AlsoIncludedItem[] = [

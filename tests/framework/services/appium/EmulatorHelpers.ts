@@ -6,6 +6,7 @@ import { createLogger } from '../../logger.ts';
 import {
   ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
   buildAndroidEmulatorArgs,
+  buildAndroidEmulatorPoolArgs,
   getGoldenSnapshotDir,
   hasGoldenSnapshot,
   isGoldenSnapshotUsable,
@@ -13,10 +14,12 @@ import {
   resolveAndroidBootMode,
   writeGoldenSnapshotFingerprint,
 } from './AndroidGoldenSnapshot.ts';
+import { androidAdbServerPorts } from '../providers/emulator/android/androidDevicePool.ts';
 
 export {
   ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
   buildAndroidEmulatorArgs,
+  buildAndroidEmulatorPoolArgs,
   computeAndroidSystemImageFingerprint,
   getAndroidAvdHome,
   getGoldenSnapshotDir,
@@ -45,6 +48,8 @@ const DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS = 90_000;
 const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
 const ANDROID_NETWORK_PING_HOST = '8.8.8.8';
+const ADB_SERVER_DISCOVERY_TIMEOUT_MS = 60_000;
+const ADB_SERVER_DISCOVERY_POLL_MS = 1_000;
 
 /** Play Store / GMS packages disabled after cold boot — not needed for Appium E2E. */
 export const ANDROID_E2E_PACKAGES_TO_DISABLE = [
@@ -129,6 +134,7 @@ async function spawnEmulatorAndAwaitSerial(options: {
   args: string[];
   avdName: string;
   timeoutMs: number;
+  expectedSerial?: string;
 }): Promise<string | undefined> {
   const emulatorProcess = spawn(options.emulatorBin, options.args, {
     stdio: 'ignore',
@@ -146,11 +152,17 @@ async function spawnEmulatorAndAwaitSerial(options: {
     if (processExited) {
       return undefined;
     }
-    const serial = await findEmulatorSerialForAvd(options.avdName, [
-      'offline',
-      'authorizing',
-      'device',
-    ]);
+    const serial = options.expectedSerial
+      ? (await listAdbDevices()).find(
+          (adbDevice) =>
+            adbDevice.serial === options.expectedSerial &&
+            ['offline', 'authorizing', 'device'].includes(adbDevice.state),
+        )?.serial
+      : await findEmulatorSerialForAvd(options.avdName, [
+          'offline',
+          'authorizing',
+          'device',
+        ]);
     if (serial) {
       return serial;
     }
@@ -194,9 +206,83 @@ function parseAdbDevices(stdout: string): AdbDevice[] {
     .filter((device): device is AdbDevice => device !== null);
 }
 
+/**
+ * Serialize adb client calls. Concurrent `adb devices` races on starting the
+ * daemon (`failed to start daemon` / cannot connect) when two pool boots run
+ * in Promise.all.
+ */
+let adbCommandQueue: Promise<unknown> = Promise.resolve();
+
+function enqueueAdb<T>(fn: () => Promise<T>): Promise<T> {
+  const run = adbCommandQueue.then(fn, fn);
+  adbCommandQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
+async function ensureAdbServer(): Promise<void> {
+  await enqueueAdb(async () => {
+    await execAsync('adb start-server');
+  });
+}
+
+/**
+ * Give every pool worker its own host adb server so a `protocol fault` on one
+ * server cannot restart the daemon shared by the rest of the shard. Every adb
+ * server still discovers every emulator (adb always scans upward from 5555),
+ * so isolation comes from which server a worker talks to, not from what each
+ * server can see. Workers always select their device with `-s`.
+ */
+async function ensureAndroidPoolAdbServers(serials: string[]): Promise<void> {
+  const ports = androidAdbServerPorts({
+    ANDROID_DEVICE_POOL: serials.join(','),
+  });
+  await Promise.all(
+    ports.map(async (port, index) => {
+      const serial = serials[index];
+      await enqueueAdb(async () => {
+        await execAsync(`adb -P ${port} start-server`);
+      });
+      await waitForAdbServerToSeeSerial(port, serial);
+      logger.info(`adb server on port ${port} is serving ${serial}.`);
+    }),
+  );
+}
+
+async function waitForAdbServerToSeeSerial(
+  port: number,
+  serial: string,
+): Promise<void> {
+  const deadline = Date.now() + ADB_SERVER_DISCOVERY_TIMEOUT_MS;
+  let lastSeen = '';
+  while (Date.now() < deadline) {
+    const devices = await enqueueAdb(async () => {
+      const { stdout } = await execAsync(`adb -P ${port} devices`);
+      return parseAdbDevices(stdout);
+    });
+    lastSeen = devices.map((adbDevice) => adbDevice.serial).join(',') || 'none';
+    if (
+      devices.some(
+        (adbDevice) =>
+          adbDevice.serial === serial && adbDevice.state === 'device',
+      )
+    ) {
+      return;
+    }
+    await sleep(ADB_SERVER_DISCOVERY_POLL_MS);
+  }
+  throw new Error(
+    `adb server on port ${port} never saw ${serial} within ${ADB_SERVER_DISCOVERY_TIMEOUT_MS / 1000}s (saw: ${lastSeen}).`,
+  );
+}
+
 async function listAdbDevices(): Promise<AdbDevice[]> {
-  const { stdout } = await execAsync('adb devices');
-  return parseAdbDevices(stdout);
+  return enqueueAdb(async () => {
+    const { stdout } = await execAsync('adb devices');
+    return parseAdbDevices(stdout);
+  });
 }
 
 async function getEmulatorAvdName(serial: string): Promise<string | undefined> {
@@ -629,6 +715,7 @@ async function killAndroidEmulatorsForAvd(avdName: string): Promise<void> {
 export async function ensureAndroidEmulatorReady(
   avdName: string,
   preferredSerial?: string,
+  options?: { preserveSiblingEmulators?: boolean },
 ): Promise<string> {
   const serial =
     preferredSerial?.trim() || process.env.ANDROID_DEVICE_UDID?.trim();
@@ -663,12 +750,179 @@ export async function ensureAndroidEmulatorReady(
       await waitForEmulatorBoot(serial);
       return serial;
     }
+    if (options?.preserveSiblingEmulators) {
+      throw new Error(
+        `Configured pooled Android emulator ${serial} is missing from adb; leaving sibling emulators running.`,
+      );
+    }
     logger.warn(
       `Configured Android serial ${serial} not found in adb devices — restarting emulator for AVD "${avdName}".`,
     );
     await killAndroidEmulatorsForAvd(avdName);
   }
   return startAndroidEmulator(avdName);
+}
+
+/**
+ * Boot a fixed emulator pool on deterministic console ports. Pool mode waits
+ * for each expected adb serial, avoiding AVD-name matching when multiple
+ * read-only instances share the same AVD.
+ */
+export async function runAndroidPoolTasks<T, R>(
+  bootMode: 'cold' | 'snapshot-resume',
+  tasks: T[],
+  run: (task: T) => Promise<R>,
+): Promise<R[]> {
+  if (bootMode === 'snapshot-resume') {
+    return Promise.all(tasks.map(run));
+  }
+
+  const results: R[] = [];
+  for (const task of tasks) {
+    results.push(await run(task));
+  }
+  return results;
+}
+
+export function isReusableAndroidPoolDevice(
+  state: string,
+  expectedAvdName: string,
+  actualAvdName: string | undefined,
+): boolean {
+  return state === 'device' && actualAvdName === expectedAvdName;
+}
+
+export function shouldWaitForAndroidPoolDevice(
+  state: string,
+  expectedAvdName: string,
+  actualAvdName: string | undefined,
+): boolean {
+  return (
+    (state === 'offline' || state === 'authorizing') &&
+    (actualAvdName === undefined || actualAvdName === expectedAvdName)
+  );
+}
+
+export async function startAndroidEmulatorPool(
+  avdName: string,
+  poolSize: number,
+): Promise<string[]> {
+  const androidHome = process.env.ANDROID_HOME;
+  if (!androidHome) {
+    throw new Error(
+      'ANDROID_HOME is not set. Please set the ANDROID_HOME environment variable.',
+    );
+  }
+
+  const bootMode = resolveAndroidBootMode();
+  const useGoldenSnapshot =
+    bootMode !== 'cold' && isGoldenSnapshotUsable(avdName);
+  if (bootMode === 'snapshot' && !useGoldenSnapshot) {
+    throw new Error(
+      `ANDROID_EMULATOR_BOOT_MODE=snapshot but no usable golden snapshot for AVD "${avdName}".`,
+    );
+  }
+
+  const emulatorBin = path.join(androidHome, 'emulator', 'emulator');
+  const isCI = process.env.CI === 'true';
+  const boots = buildAndroidEmulatorPoolArgs({
+    avdName,
+    isCI,
+    poolSize,
+    cores: process.env.ANDROID_EMULATOR_CI_CORES,
+    skin: process.env.ANDROID_EMULATOR_CI_SKIN,
+    bootMode: useGoldenSnapshot ? 'snapshot-resume' : 'cold',
+  });
+  const timeoutMs = useGoldenSnapshot
+    ? resolveSnapshotBootTimeoutMs()
+    : resolveAndroidBootTimeoutMs();
+
+  logger.info(
+    `Booting Android emulator pool size=${poolSize} mode=${useGoldenSnapshot ? 'golden-snapshot' : 'cold'}.`,
+  );
+
+  await ensureAdbServer();
+  const existingDevices = await listAdbDevices();
+
+  const bootStartedAt = Date.now();
+  const serials = await runAndroidPoolTasks(
+    useGoldenSnapshot ? 'snapshot-resume' : 'cold',
+    boots,
+    async ({ serial: expectedSerial, args }) => {
+      const existing = existingDevices.find(
+        (adbDevice) => adbDevice.serial === expectedSerial,
+      );
+      let serial = expectedSerial;
+      let spawned = false;
+      let bootWaitCompleted = false;
+      if (existing) {
+        const existingAvdName = await getEmulatorAvdName(existing.serial);
+        if (
+          !isReusableAndroidPoolDevice(existing.state, avdName, existingAvdName)
+        ) {
+          if (
+            shouldWaitForAndroidPoolDevice(
+              existing.state,
+              avdName,
+              existingAvdName,
+            )
+          ) {
+            await waitForEmulatorBoot(existing.serial, {
+              postBoot: useGoldenSnapshot ? 'light' : 'full',
+              bootTimeoutMs: timeoutMs,
+            });
+            bootWaitCompleted = true;
+            const bootedAvdName = await getEmulatorAvdName(existing.serial);
+            if (bootedAvdName !== avdName) {
+              throw new Error(
+                `Android pool serial ${existing.serial} booted AVD "${bootedAvdName ?? 'unknown'}"; expected "${avdName}".`,
+              );
+            }
+          } else {
+            throw new Error(
+              `Android pool serial ${existing.serial} is already ${existing.state} for AVD "${existingAvdName ?? 'unknown'}"; expected a ready "${avdName}" device.`,
+            );
+          }
+        }
+      }
+      if (!existing) {
+        const spawnedSerial = await spawnEmulatorAndAwaitSerial({
+          emulatorBin,
+          args,
+          avdName,
+          timeoutMs,
+          expectedSerial,
+        });
+        if (!spawnedSerial) {
+          throw new Error(
+            `Android emulator ${expectedSerial} did not appear in adb within ${timeoutMs / 1000}s.`,
+          );
+        }
+        serial = spawnedSerial;
+        spawned = true;
+      }
+
+      if (!bootWaitCompleted) {
+        await waitForEmulatorBoot(serial, {
+          postBoot: useGoldenSnapshot ? 'light' : 'full',
+          bootTimeoutMs: timeoutMs,
+        });
+      }
+      logger.info(
+        spawned
+          ? useGoldenSnapshot
+            ? `Android emulator "${avdName}" resumed from golden snapshot (${serial}).`
+            : `Android emulator "${avdName}" cold-booted for pool (${serial}).`
+          : `Using existing Android pool emulator "${avdName}" (${serial}).`,
+      );
+      return serial;
+    },
+  );
+  await ensureAndroidPoolAdbServers(serials);
+  logger.info(
+    `Android emulator pool ready in ${Date.now() - bootStartedAt}ms: ${serials.join(',')}.`,
+  );
+  return serials;
 }
 
 /**

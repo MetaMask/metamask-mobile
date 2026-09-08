@@ -43,11 +43,14 @@ const mockRequestBiometricsAccessControlForIOS = jest.fn();
 const mockUpdateAuthPreference = jest.fn();
 const mockAnalyticsIdentify = jest.fn();
 const mockAnalyticsTrackEvent = jest.fn();
-const HOMEPAGE_READY_TRACE_TOKEN = 1;
-const mockStartHomepageReadyTrace = jest.fn(
-  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
+const UNLOCK_TRACE_TOKENS = {
+  homepageReadyTraceToken: 1,
+  deeplinkNavigatedTraceToken: 2,
+};
+const mockStartUnlockTraces = jest.fn(
+  (..._args: unknown[]) => UNLOCK_TRACE_TOKENS,
 );
-const mockCancelHomepageReadyTrace = jest.fn();
+const mockCancelUnlockTraces = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -65,11 +68,9 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   }),
 }));
 
-jest.mock('../../../core/Performance/HomepageReady', () => ({
-  startHomepageReadyTrace: (...args: unknown[]) =>
-    mockStartHomepageReadyTrace(...args),
-  cancelHomepageReadyTrace: (...args: unknown[]) =>
-    mockCancelHomepageReadyTrace(...args),
+jest.mock('../../../core/Performance/unlockTraces', () => ({
+  startUnlockTraces: (...args: unknown[]) => mockStartUnlockTraces(...args),
+  cancelUnlockTraces: (...args: unknown[]) => mockCancelUnlockTraces(...args),
 }));
 
 jest.mock('../../../util/Logger');
@@ -95,28 +96,17 @@ jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
 jest.mock('../../../images/branding/metamask-name.png', () => 'metamask-name');
 
 jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
   trace: jest.fn((_config, fn) => (fn ? fn() : Promise.resolve())),
   endTrace: jest.fn(),
   getTraceContext: jest.fn(),
-  TraceName: {
-    LoginUserInteraction: 'LoginUserInteraction',
-    AuthenticateUser: 'AuthenticateUser',
-    OnboardingPasswordLoginAttempt: 'OnboardingPasswordLoginAttempt',
-    OnboardingPasswordLoginError: 'OnboardingPasswordLoginError',
-    OnboardingExistingSocialLogin: 'OnboardingExistingSocialLogin',
-    OnboardingJourneyOverall: 'OnboardingJourneyOverall',
-  },
-  TraceOperation: {
-    Login: 'Login',
-    OnboardingUserJourney: 'OnboardingUserJourney',
-    OnboardingError: 'OnboardingError',
-  },
 }));
 
 import {
   trace as traceMock,
   endTrace as endTraceMock,
   getTraceContext as getTraceContextMock,
+  TraceName,
 } from '../../../util/trace';
 
 jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
@@ -389,10 +379,7 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
       });
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
+      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
     });
 
     it('does not prompt biometrics when password unlock fails', async () => {
@@ -1199,7 +1186,8 @@ describe('OAuthRehydration', () => {
       });
       (getTraceContextMock as jest.Mock).mockImplementation(
         (req: { name: string }) => {
-          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          if (req.name === TraceName.OnboardingJourneyOverall)
+            return journeyCtx;
           return undefined;
         },
       );
@@ -1208,7 +1196,7 @@ describe('OAuthRehydration', () => {
 
       expect(traceMock).not.toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'OnboardingPasswordLoginAttempt',
+          name: TraceName.OnboardingPasswordLoginAttempt,
         }),
       );
     });
@@ -1225,8 +1213,9 @@ describe('OAuthRehydration', () => {
       });
       (getTraceContextMock as jest.Mock).mockImplementation(
         (req: { name: string }) => {
-          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
-          if (req.name === 'OnboardingExistingSocialLogin')
+          if (req.name === TraceName.OnboardingJourneyOverall)
+            return journeyCtx;
+          if (req.name === TraceName.OnboardingExistingSocialLogin)
             return existingSocialCtx;
           return undefined;
         },
@@ -1236,7 +1225,7 @@ describe('OAuthRehydration', () => {
           if (fn) {
             return fn();
           }
-          if (config?.name === 'OnboardingPasswordLoginAttempt') {
+          if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
             return passwordAttemptCtx;
           }
           return undefined;
@@ -1248,11 +1237,11 @@ describe('OAuthRehydration', () => {
 
       await waitFor(() => {
         expect(getTraceContextMock).toHaveBeenCalledWith({
-          name: 'OnboardingExistingSocialLogin',
+          name: TraceName.OnboardingExistingSocialLogin,
         });
         expect(traceMock).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'OnboardingPasswordLoginAttempt',
+            name: TraceName.OnboardingPasswordLoginAttempt,
             parentContext: existingSocialCtx,
           }),
         );
@@ -1274,7 +1263,8 @@ describe('OAuthRehydration', () => {
       });
       (getTraceContextMock as jest.Mock).mockImplementation(
         (req: { name: string }) => {
-          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          if (req.name === TraceName.OnboardingJourneyOverall)
+            return journeyCtx;
           return undefined;
         },
       );
@@ -1285,7 +1275,7 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(traceMock).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'OnboardingPasswordLoginAttempt',
+            name: TraceName.OnboardingPasswordLoginAttempt,
             parentContext: journeyCtx,
           }),
         );
@@ -1303,7 +1293,8 @@ describe('OAuthRehydration', () => {
       });
       (getTraceContextMock as jest.Mock).mockImplementation(
         (req: { name: string }) => {
-          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          if (req.name === TraceName.OnboardingJourneyOverall)
+            return journeyCtx;
           return undefined;
         },
       );
@@ -1312,7 +1303,7 @@ describe('OAuthRehydration', () => {
           if (fn) {
             return fn();
           }
-          if (config?.name === 'OnboardingPasswordLoginAttempt') {
+          if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
             return passwordAttemptCtx;
           }
           return undefined;
@@ -1325,7 +1316,7 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(traceMock).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'OnboardingPasswordLoginError',
+            name: TraceName.OnboardingPasswordLoginError,
             tags: expect.objectContaining({
               errorMessage: 'Some login error',
             }),
@@ -1334,7 +1325,7 @@ describe('OAuthRehydration', () => {
         );
         expect(endTraceMock).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'OnboardingPasswordLoginAttempt',
+            name: TraceName.OnboardingPasswordLoginAttempt,
             data: { success: false },
           }),
         );
@@ -1351,7 +1342,8 @@ describe('OAuthRehydration', () => {
       });
       (getTraceContextMock as jest.Mock).mockImplementation(
         (req: { name: string }) => {
-          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          if (req.name === TraceName.OnboardingJourneyOverall)
+            return journeyCtx;
           return undefined;
         },
       );
@@ -1361,17 +1353,17 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(endTraceMock).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'OnboardingPasswordLoginAttempt',
+            name: TraceName.OnboardingPasswordLoginAttempt,
           }),
         );
         expect(endTraceMock).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'OnboardingExistingSocialLogin',
+            name: TraceName.OnboardingExistingSocialLogin,
           }),
         );
         expect(endTraceMock).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'OnboardingJourneyOverall',
+            name: TraceName.OnboardingJourneyOverall,
           }),
         );
       });
@@ -1387,7 +1379,8 @@ describe('OAuthRehydration', () => {
       });
       (getTraceContextMock as jest.Mock).mockImplementation(
         (req: { name: string }) => {
-          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          if (req.name === TraceName.OnboardingJourneyOverall)
+            return journeyCtx;
           return undefined;
         },
       );
@@ -1413,7 +1406,7 @@ describe('OAuthRehydration', () => {
       const endTraceJestMock = endTraceMock as jest.Mock;
       const journeyEndCall = endTraceJestMock.mock.calls.find(
         ([request]: [{ name?: string; data?: { success?: boolean } }]) =>
-          request?.name === 'OnboardingJourneyOverall',
+          request?.name === TraceName.OnboardingJourneyOverall,
       );
       // Journey span must be ended, and never with a failure/abandoned marker.
       expect(journeyEndCall).toBeDefined();
@@ -1442,7 +1435,8 @@ describe('OAuthRehydration', () => {
       });
       (getTraceContextMock as jest.Mock).mockImplementation(
         (req: { name: string }) => {
-          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          if (req.name === TraceName.OnboardingJourneyOverall)
+            return journeyCtx;
           return undefined;
         },
       );
@@ -1451,7 +1445,7 @@ describe('OAuthRehydration', () => {
           if (fn) {
             return fn();
           }
-          if (config?.name === 'OnboardingPasswordLoginAttempt') {
+          if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
             return passwordAttemptCtx;
           }
           return undefined;
@@ -1464,7 +1458,7 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(endTraceMock).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'OnboardingPasswordLoginAttempt',
+            name: TraceName.OnboardingPasswordLoginAttempt,
           }),
         );
         expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalled();
@@ -1473,7 +1467,7 @@ describe('OAuthRehydration', () => {
       const endTraceJestMock = endTraceMock as jest.Mock;
       const passwordEndIndex = endTraceJestMock.mock.calls.findIndex(
         ([request]: [{ name?: string }]) =>
-          request?.name === 'OnboardingPasswordLoginAttempt',
+          request?.name === TraceName.OnboardingPasswordLoginAttempt,
       );
       expect(passwordEndIndex).toBeGreaterThanOrEqual(0);
       expect(

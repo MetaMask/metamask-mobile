@@ -3,7 +3,6 @@ import { BackHandler } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
   DeepPartial,
@@ -14,19 +13,13 @@ import { PerpsMode } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { RootState } from '../../../reducers';
-import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../UI/Earn/selectors/featureFlags';
-import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
-import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
+import { selectIsEarnSectionEligible } from '../../UI/Earn/selectors/eligibility';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import {
@@ -38,6 +31,7 @@ import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isHardwareAccount } from '../../../util/address';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
+import useEarnHighestRate from '../../UI/Earn/hooks/useEarnHighestRate';
 import TradeWalletActions from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
@@ -136,17 +130,8 @@ jest.mock('../../UI/Predict', () => ({
   selectPredictEnabledFlag: jest.fn(),
 }));
 
-jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
-  selectStablecoinLendingEnabledFlag: jest.fn(),
-  selectPooledStakingEnabledFlag: jest.fn(),
-}));
-
-jest.mock('../../../selectors/earnController/earn', () => ({
-  earnSelectors: {
-    selectEarnTokens: jest.fn().mockReturnValue({
-      earnTokens: [],
-    }),
-  },
+jest.mock('../../UI/Earn/selectors/eligibility', () => ({
+  selectIsEarnSectionEligible: jest.fn(),
 }));
 
 jest.mock('@metamask/bridge-controller', () => {
@@ -231,7 +216,7 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+jest.mock('../../UI/Earn/hooks/useEarnHighestRate', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -369,8 +354,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
-  typeof useStakingEligibility
+const mockSelectIsEarnSectionEligible = jest.mocked(
+  selectIsEarnSectionEligible,
+);
+const mockUseEarnHighestRate = useEarnHighestRate as jest.MockedFunction<
+  typeof useEarnHighestRate
 >;
 
 const pressActionButton = async (
@@ -421,11 +409,13 @@ describe('TradeWalletActions', () => {
     });
     jest.mocked(isHardwareAccount).mockReturnValue(false);
 
-    mockUseStakingEligibility.mockReturnValue({
-      isEligible: true,
-      isLoadingEligibility: false,
-      error: null,
-      refreshPooledStakingEligibility: jest.fn(),
+    mockSelectIsEarnSectionEligible.mockReturnValue(false);
+    mockUseEarnHighestRate.mockReturnValue({
+      highestRate: {
+        type: 'APY',
+        percentage: 6.2,
+        status: 'ready',
+      },
     });
 
     mockUseParams.mockReturnValue({
@@ -481,13 +471,8 @@ describe('TradeWalletActions', () => {
     ).toBeNull();
   });
 
-  it('should render earn button if the stablecoin lending feature is enabled', () => {
-    (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
-    ).mockReturnValue(true);
-
+  it('renders Earn button when Earn section is eligible', () => {
+    mockSelectIsEarnSectionEligible.mockReturnValue(true);
     const { getByTestId } = renderScreen(
       TradeWalletActions,
       {
@@ -500,6 +485,45 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
+  });
+
+  it.each([
+    [
+      { type: 'APY' as const, percentage: 6.2, status: 'ready' as const },
+      '6.2% APY',
+    ],
+    [
+      { type: 'APR' as const, percentage: 4.2, status: 'ready' as const },
+      '4.2% APR',
+    ],
+  ])('renders a ready APR or APY rate in the Earn tag', (highestRate, copy) => {
+    mockSelectIsEarnSectionEligible.mockReturnValue(true);
+    mockUseEarnHighestRate.mockReturnValue({ highestRate });
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG),
+    ).toHaveTextContent(copy);
+  });
+
+  it('omits the Earn rate tag when no ready rate is available', () => {
+    mockSelectIsEarnSectionEligible.mockReturnValue(true);
+    mockUseEarnHighestRate.mockReturnValue({ highestRate: undefined });
+
+    const { queryByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG),
+    ).toBeNull();
   });
 
   it('does not render Batch Sell for hardware wallets', () => {
@@ -541,76 +565,12 @@ describe('TradeWalletActions', () => {
     ).toBeNull();
   });
 
-  it('does not render earn button when user is not eligible', () => {
-    (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
-    ).mockReturnValue(true);
-
-    mockUseStakingEligibility.mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      error: null,
-      refreshPooledStakingEligibility: jest.fn(),
-    });
-
+  it('does not render Earn button when Earn section is ineligible', () => {
+    mockSelectIsEarnSectionEligible.mockReturnValue(false);
     const { queryByTestId } = renderScreen(
       TradeWalletActions,
       { name: 'TradeWalletActions' },
       { state: mockInitialState },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
-    ).toBeNull();
-  });
-
-  it('should hide the earn button if there are no elements to show and pooled staking is disabled', () => {
-    (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPooledStakingEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingEnabledFlag
-      >
-    ).mockReturnValue(false);
-
-    (
-      earnSelectors.selectEarnTokens as jest.MockedFunction<
-        typeof earnSelectors.selectEarnTokens
-      >
-    ).mockReturnValue({
-      earnTokens: [
-        {
-          address: '0x0',
-          chainId: '0x1',
-          decimals: 18,
-          image: '',
-          name: 'ETH',
-          isETH: true,
-          isStaked: false,
-        },
-      ] as unknown as EarnTokenDetails[],
-      earnOutputTokens: [],
-      earnTokensByChainIdAndAddress: {},
-      earnOutputTokensByChainIdAndAddress: {},
-      earnTokenPairsByChainIdAndAddress: {},
-      earnOutputTokenPairsByChainIdAndAddress: {},
-      earnableTotalFiatNumber: 0,
-      earnableTotalFiatFormatted: '$0',
-    });
-
-    const { queryByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
     );
 
     expect(
@@ -833,16 +793,7 @@ describe('TradeWalletActions', () => {
   });
 
   it('registers a hardware back handler that dismisses the sheet', () => {
-    (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPooledStakingEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingEnabledFlag
-      >
-    ).mockReturnValue(true);
+    mockSelectIsEarnSectionEligible.mockReturnValue(true);
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
         typeof selectPerpsEnabledFlag
@@ -1194,13 +1145,8 @@ describe('TradeWalletActions', () => {
       });
     });
 
-    it('navigates to Earn token list after dismissing RootModalFlow', async () => {
-      (
-        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-          typeof selectStablecoinLendingEnabledFlag
-        >
-      ).mockReturnValue(true);
-
+    it('navigates to EarnSectionListView after dismissing RootModalFlow', async () => {
+      mockSelectIsEarnSectionEligible.mockReturnValue(true);
       const { getByTestId } = renderScreen(
         TradeWalletActions,
         { name: 'TradeWalletActions' },
@@ -1212,17 +1158,8 @@ describe('TradeWalletActions', () => {
         WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
-        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
-        params: {
-          tokenFilter: {
-            includeNativeTokens: true,
-            includeStakingTokens: false,
-            includeLendingTokens: true,
-            includeReceiptTokens: false,
-          },
-          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
-        },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.SEARCH_LIST,
       });
     });
 

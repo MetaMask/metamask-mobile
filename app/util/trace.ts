@@ -39,6 +39,10 @@ export enum TraceName {
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
   HomepageReady = 'Homepage Ready',
+  DeeplinkProcessed = 'Deeplink Processed',
+  DeeplinkNavigated = 'Deeplink Navigated',
+  DeeplinkSignatureVerify = 'Deeplink Signature Verify',
+  DeeplinkIntentPrepare = 'Deeplink Intent Prepare',
   NavInit = 'Navigation Initialization',
   Login = 'Login',
   NetworkSwitch = 'Network Switch',
@@ -220,6 +224,8 @@ export enum TraceName {
   PerpsClosePositionToConfirmation = 'Perps Close Position To Confirmation',
   /** Cancel tap -> order absent from the live stream. */
   PerpsCancelOrderToConfirmation = 'Perps Cancel Order To Confirmation',
+  /** Terminate tap -> TWAP schedule absent or terminal in reconciled data. */
+  PerpsTerminateTwapToConfirmation = 'Perps Terminate TWAP To Confirmation',
   /** TP/SL submit -> updated values visible in the live stream. */
   PerpsUpdateTPSLToConfirmation = 'Perps Update TPSL To Confirmation',
   /** WebSocket price subscription -> first price delivered. */
@@ -276,6 +282,7 @@ export enum TraceName {
   MusdConversionQuote = 'mUSD Conversion Quote',
   MusdConversionConfirm = 'mUSD Conversion Confirm',
   // Market Insights
+  MarketInsightsFetch = 'Market Insights Fetch',
   MarketInsightsEntryCardLoad = 'Market Insights Entry Card Load',
   MarketInsightsViewLoad = 'Market Insights View Load',
   MarketInsightsViewportTracking = 'Market Insights Viewport Tracking',
@@ -291,9 +298,13 @@ export enum TraceName {
   // Money Home Data Fetches
   MoneyActivityFetch = 'Money Activity Fetch',
   CardHomeDataFetch = 'Card Home Data Fetch',
+  CardRedeemWithdraw = 'Card Redeem Withdraw',
   // Rewards
   /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
   RewardsTabTimeToContent = 'Rewards Tab Time To Content',
+  // Notifications & Braze Performance
+  NotificationListTimeToContent = 'Notification List Time To Content',
+  BrazeBannerTimeToContent = 'Braze Banner Time To Content',
 }
 
 export enum TraceOperation {
@@ -304,6 +315,7 @@ export enum TraceOperation {
   StorageRehydration = 'storage.rehydration',
   UIStartup = 'ui.startup',
   HomepagePerformance = 'homepage.performance',
+  DeeplinkPerformance = 'deeplink.performance',
   NavInit = 'navigation.initialization',
   NetworkSwitch = 'network.switch',
   SwitchBuiltInNetwork = 'switch.to.built.in.network',
@@ -358,6 +370,7 @@ export enum TraceOperation {
   MusdConversionOperation = 'musd.conversion.operation',
   MusdConversionDataFetch = 'musd.conversion.data_fetch',
   // Market Insights
+  MarketInsightsFetch = 'market_insights.fetch',
   MarketInsightsLoad = 'market_insights.load',
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
   // Homepage Section Performance
@@ -367,6 +380,9 @@ export enum TraceOperation {
   MoneyAccountDataFetch = 'money.account.data_fetch',
   // Rewards
   RewardsPerformance = 'rewards.performance',
+  // Notifications & Braze Performance
+  NotificationPerformance = 'notification.performance',
+  BrazeBannerPerformance = 'braze_banner.performance',
   RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',

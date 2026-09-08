@@ -39,6 +39,8 @@ const renderProHub = () => render(<ProHub />);
 const toRegex = (s: string) =>
   new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
+const TRADE_ALLOWANCE_IDS = ['swaps', 'perps', 'predict'] as const;
+
 // CV cannot cover this screen yet: it is still mock-data UI with no Redux /
 // Engine state, so focused unit tests remain the coverage layer.
 
@@ -65,9 +67,9 @@ describe('ProHub', () => {
     it('renders the title from i18n', () => {
       const { getByTestId } = renderProHub();
 
-      const title = getByTestId(ProHubTestIds.TITLE);
+      const header = getByTestId(ProHubTestIds.HEADER_ROOT);
 
-      expect(title).toHaveTextContent(strings('pro_hub.title'));
+      expect(header).toHaveTextContent(strings('pro_hub.title'));
     });
 
     it('renders the header bar', () => {
@@ -94,34 +96,44 @@ describe('ProHub', () => {
       expect(managePlansButton).toBeOnTheScreen();
     });
 
-    it('renders earned and saved stat cards', () => {
+    it('renders membership card, lifetime earnings, and stat rows', () => {
       const { getByTestId } = renderProHub();
 
-      expect(getByTestId(ProHubTestIds.EARNED_CARD)).toBeOnTheScreen();
-      expect(getByTestId(ProHubTestIds.SAVED_CARD)).toBeOnTheScreen();
-    });
+      const membershipBanner = getByTestId(ProHubTestIds.MEMBERSHIP_BANNER);
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+      const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
 
-    it('renders the physical card placeholder, title, and description', () => {
-      const { getByTestId } = renderProHub();
-
-      const placeholder = getByTestId(ProHubTestIds.CARD_PLACEHOLDER);
-      const title = getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE);
-      const description = getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION);
-
-      expect(placeholder).toBeOnTheScreen();
-      expect(title).toHaveTextContent(strings('pro_hub.physical_card.title'));
-      expect(description).toHaveTextContent(
-        strings('pro_hub.physical_card.description'),
+      expect(membershipBanner).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_brand')),
+      );
+      expect(membershipBanner).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_label')),
+      );
+      expect(lifetimeEarningsSection).toHaveTextContent(
+        toRegex(strings('pro_hub.lifetime_earnings')),
+      );
+      expect(moneyBalanceRow).toHaveTextContent(
+        toRegex(strings('pro_hub.money_balance')),
+      );
+      expect(musdBackRow).toHaveTextContent(
+        toRegex(strings('pro_hub.musd_back')),
       );
     });
 
-    it('renders the get card button with the i18n label', () => {
+    it('renders the physical card banner with title and description', () => {
       const { getByTestId } = renderProHub();
 
-      const getCardButton = getByTestId(ProHubTestIds.GET_CARD_BUTTON);
+      const banner = getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER);
+      const title = getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE);
+      const description = getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION);
 
-      expect(getCardButton).toHaveTextContent(
-        strings('pro_hub.physical_card.cta'),
+      expect(banner).toBeOnTheScreen();
+      expect(title).toHaveTextContent(strings('pro_hub.physical_card.title'));
+      expect(description).toHaveTextContent(
+        strings('pro_hub.physical_card.description'),
       );
     });
 
@@ -133,9 +145,20 @@ describe('ProHub', () => {
 
       expect(section).toBeOnTheScreen();
       expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
+
+      TRADE_ALLOWANCE_IDS.forEach((id) => {
+        const row = getByTestId(MemberPricingOnTradesTestIds.ROW(id));
+        const progress = getByTestId(MemberPricingOnTradesTestIds.PROGRESS(id));
+
+        expect(row).toBeOnTheScreen();
+        expect(progress).toBeOnTheScreen();
+        expect(row).toHaveTextContent(
+          toRegex(strings(`pro_hub.member_pricing.${id}.label`)),
+        );
+      });
     });
 
-    it('renders also included section, rows, disclaimer, and manage membership button', () => {
+    it('renders next payment text and manage plan button', () => {
       const { getByTestId } = renderProHub();
 
       expect(
@@ -200,38 +223,12 @@ describe('ProHub', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
     });
 
-    it('navigates to Card when get card is pressed', () => {
+    it('navigates to Card when physical card banner is pressed', () => {
       const { getByTestId } = renderProHub();
 
-      fireEvent.press(getByTestId(ProHubTestIds.GET_CARD_BUTTON));
+      fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
-    });
-
-    it('navigates to Earned when the earned card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.EARNED_CARD));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.EARNED);
-    });
-
-    it('does not navigate when the physical card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent(getByTestId(ProHubTestIds.CARD_PLACEHOLDER), 'pressIn', {
-        nativeEvent: { locationX: 40, locationY: 40 },
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate when the saved card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.SAVED_CARD));
-
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not navigate on initial render', () => {

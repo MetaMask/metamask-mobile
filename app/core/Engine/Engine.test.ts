@@ -1312,6 +1312,7 @@ describe('Engine', () => {
             'state' in controller &&
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
+              controllerName === 'AiDigestController' ||
               controllerName === 'ComplianceController' ||
               controllerName === 'DelegationController'),
         )

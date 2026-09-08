@@ -35,7 +35,13 @@ export const buildGenericQuoteRequest = (input: {
     slippage,
   } = quoteParams;
 
-  if (!walletAddress || !srcToken || !destToken || srcAmount === undefined) {
+  if (
+    !walletAddress ||
+    !srcToken ||
+    !destToken ||
+    srcAmount === undefined ||
+    !destToken?.chainId
+  ) {
     return;
   }
   const normalizedSourceAmount = normalizeSrcAmount(

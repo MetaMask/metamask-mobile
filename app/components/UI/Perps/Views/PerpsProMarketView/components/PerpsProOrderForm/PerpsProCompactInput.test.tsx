@@ -42,6 +42,7 @@ const defaultProps = {
   onChangeText: jest.fn(),
   testID: 'size-input',
 };
+const floatingLabelVariants = ['inline', 'inline-labeled'] as const;
 const ids = PerpsProOrderFormSelectorsIDs;
 
 describe('PerpsProCompactInput', () => {
@@ -123,7 +124,7 @@ describe('PerpsProCompactInput', () => {
   });
 
   describe('inline field press target', () => {
-    it.each(['inline', 'inline-labeled'] as const)(
+    it.each(floatingLabelVariants)(
       'uses the shared 54px compact-row height and 4px vertical padding for %s fields',
       (variant) => {
         render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
@@ -134,84 +135,96 @@ describe('PerpsProCompactInput', () => {
       },
     );
 
-    it('hides the inline-labeled decorative label from assistive technology', () => {
-      render(
-        <PerpsProCompactInput {...defaultProps} variant="inline-labeled" />,
-      );
+    it.each(floatingLabelVariants)(
+      'hides the %s decorative label from assistive technology',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
 
-      const label = screen.getByText(defaultProps.label);
-      const input = screen.getByTestId(defaultProps.testID);
-
-      expect(label).toHaveProp('accessible', false);
-      expect(label).toHaveProp('importantForAccessibility', 'no');
-      expect(input).toHaveProp('accessibilityLabel', defaultProps.label);
-    });
-
-    it('shrinks the label and reveals the input when the row is pressed', () => {
-      render(
-        <PerpsProCompactInput
-          {...defaultProps}
-          variant="inline"
-          placeholder="0.00"
-          startAccessory={<Text>$</Text>}
-        />,
-      );
-
-      const label = screen.getByTestId(`${defaultProps.testID}-label`);
-      const input = screen.getByTestId(defaultProps.testID, {
-        includeHiddenElements: true,
-      });
-      const inactiveLabelStyle = label.props.style;
-
-      expect(input).toHaveProp('placeholder', '');
-
-      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
-
-      expect(label.props.style).not.toEqual(inactiveLabelStyle);
-      expect(input).toHaveProp('placeholder', '0.00');
-      expect(mockInputFocus).toHaveBeenCalledTimes(1);
-      expect(mockInputFocus).toHaveBeenCalledWith(
-        expect.objectContaining({
-          placeholder: '0.00',
-          twClassName: 'flex-1 border-0 bg-transparent p-0',
-        }),
-      );
-      expect(mockInputUnmount).not.toHaveBeenCalled();
-    });
-
-    it('restores the full label after an empty inline field blurs', () => {
-      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
-
-      const label = screen.getByTestId(`${defaultProps.testID}-label`);
-      const inactiveLabelStyle = label.props.style;
-
-      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
-      fireEvent(screen.getByTestId(defaultProps.testID), 'blur');
-
-      expect(label.props.style).toEqual(inactiveLabelStyle);
-      expect(
-        screen.getByTestId(defaultProps.testID, {
+        const label = screen.getByTestId(`${defaultProps.testID}-label`);
+        const input = screen.getByTestId(defaultProps.testID, {
           includeHiddenElements: true,
-        }),
-      ).toHaveProp('placeholder', '');
-    });
+        });
 
-    it('keeps the compact label after a populated inline field blurs', () => {
-      render(
-        <PerpsProCompactInput
-          {...defaultProps}
-          value="123.45"
-          variant="inline"
-        />,
-      );
+        expect(label).toHaveProp('accessible', false);
+        expect(label).toHaveProp('importantForAccessibility', 'no');
+        expect(input).toHaveProp('accessibilityLabel', defaultProps.label);
+      },
+    );
 
-      const label = screen.getByTestId(`${defaultProps.testID}-label`);
-      const compactLabelStyle = label.props.style;
+    it.each(floatingLabelVariants)(
+      'shrinks the %s label and reveals the input when the row is pressed',
+      (variant) => {
+        render(
+          <PerpsProCompactInput
+            {...defaultProps}
+            variant={variant}
+            placeholder="0.00"
+            startAccessory={<Text>$</Text>}
+          />,
+        );
 
-      fireEvent(screen.getByTestId(defaultProps.testID), 'blur');
+        const label = screen.getByTestId(`${defaultProps.testID}-label`);
+        const input = screen.getByTestId(defaultProps.testID, {
+          includeHiddenElements: true,
+        });
+        const inactiveLabelStyle = label.props.style;
 
-      expect(label.props.style).toEqual(compactLabelStyle);
-    });
+        expect(input).toHaveProp('placeholder', '');
+
+        fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+
+        expect(label.props.style).not.toEqual(inactiveLabelStyle);
+        expect(input).toHaveProp('placeholder', '0.00');
+        expect(mockInputFocus).toHaveBeenCalledTimes(1);
+        expect(mockInputFocus).toHaveBeenCalledWith(
+          expect.objectContaining({
+            placeholder: '0.00',
+            twClassName: 'flex-1 border-0 bg-transparent p-0',
+          }),
+        );
+        expect(mockInputUnmount).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(floatingLabelVariants)(
+      'restores the full label after an empty %s field blurs',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
+
+        const label = screen.getByTestId(`${defaultProps.testID}-label`);
+        const inactiveLabelStyle = label.props.style;
+
+        fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+        fireEvent(screen.getByTestId(defaultProps.testID), 'blur');
+
+        expect(label.props.style).toEqual(inactiveLabelStyle);
+        expect(
+          screen.getByTestId(defaultProps.testID, {
+            includeHiddenElements: true,
+          }),
+        ).toHaveProp('placeholder', '');
+      },
+    );
+
+    it.each(floatingLabelVariants)(
+      'keeps the compact label after a populated %s field blurs',
+      (variant) => {
+        render(
+          <PerpsProCompactInput
+            {...defaultProps}
+            value="123.45"
+            variant={variant}
+          />,
+        );
+
+        const label = screen.getByTestId(`${defaultProps.testID}-label`);
+        const compactLabelStyle = label.props.style;
+
+        fireEvent(screen.getByTestId(defaultProps.testID), 'blur');
+
+        expect(label.props.style).toEqual(compactLabelStyle);
+      },
+    );
 
     it('focuses from a tap anywhere in the row, not just the ~20px of text', () => {
       const onFieldPress = jest.fn();
@@ -231,45 +244,56 @@ describe('PerpsProCompactInput', () => {
       expect(onFieldPress).toHaveBeenCalledTimes(1);
     });
 
-    it('exposes an empty inline field as an activatable control instead of a static label', () => {
-      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+    it.each(floatingLabelVariants)(
+      'exposes an empty %s field as an activatable control instead of a static label',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
 
-      const field = screen.getByRole('button', { name: defaultProps.label });
+        const field = screen.getByRole('button', { name: defaultProps.label });
 
-      expect(field).toHaveProp('testID', `${defaultProps.testID}-field`);
-      expect(
-        screen.getByTestId(defaultProps.testID, {
-          includeHiddenElements: true,
-        }),
-      ).toHaveProp('accessibilityElementsHidden', true);
-    });
+        expect(field).toHaveProp('testID', `${defaultProps.testID}-field`);
+        expect(
+          screen.getByTestId(defaultProps.testID, {
+            includeHiddenElements: true,
+          }),
+        ).toHaveProp('accessibilityElementsHidden', true);
+      },
+    );
 
-    it('focuses the hidden inline input when assistive tech activates the label', () => {
-      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+    it.each(floatingLabelVariants)(
+      'focuses the hidden %s input when assistive tech activates the label',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
 
-      fireEvent.press(screen.getByRole('button', { name: defaultProps.label }));
+        fireEvent.press(
+          screen.getByRole('button', { name: defaultProps.label }),
+        );
 
-      expect(mockInputFocus).toHaveBeenCalledTimes(1);
-    });
+        expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      },
+    );
 
-    it('hands accessibility to the input after the empty inline field activates', () => {
-      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+    it.each(floatingLabelVariants)(
+      'hands accessibility to the input after the empty %s field activates',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
 
-      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+        fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
 
-      expect(screen.getByTestId(`${defaultProps.testID}-field`)).toHaveProp(
-        'accessible',
-        false,
-      );
-      expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
-        'accessibilityElementsHidden',
-        false,
-      );
-      expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
-        'accessibilityLabel',
-        defaultProps.label,
-      );
-    });
+        expect(screen.getByTestId(`${defaultProps.testID}-field`)).toHaveProp(
+          'accessible',
+          false,
+        );
+        expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+          'accessibilityElementsHidden',
+          false,
+        );
+        expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+          'accessibilityLabel',
+          defaultProps.label,
+        );
+      },
+    );
 
     it('keeps the end accessory outside the press target so its own press wins', () => {
       const onAccessoryPress = jest.fn();

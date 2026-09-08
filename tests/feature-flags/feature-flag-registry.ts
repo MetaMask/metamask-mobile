@@ -3519,6 +3519,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
+  earnMoneyCardEducationAnimationEnabled: {
+    name: 'earnMoneyCardEducationAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
 
   earnMoneyVaultApyControl: {
     name: 'earnMoneyVaultApyControl',
@@ -3813,6 +3820,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'metalCardCheckoutEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardUkMigration: {
+    name: 'cardUkMigration',
+    type: FeatureFlagType.Remote,
+    inProd: false,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',

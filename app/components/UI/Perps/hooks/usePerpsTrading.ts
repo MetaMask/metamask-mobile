@@ -28,6 +28,8 @@ import {
   type OrderParams,
   type OrderResult,
   type Position,
+  type PositionModifyPreviewParams,
+  type PositionModifyPreviewResult,
   type SubscribeOrderFillsParams,
   type SubscribePricesParams,
   type SubscribePositionsParams,
@@ -303,6 +305,16 @@ export function usePerpsTrading() {
     [],
   );
 
+  const previewPositionModify = useCallback(
+    async (
+      params: PositionModifyPreviewParams,
+    ): Promise<PositionModifyPreviewResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.previewPositionModify(params);
+    },
+    [],
+  );
+
   const calculateMaintenanceMargin = useCallback(
     async (params: MaintenanceMarginParams): Promise<number> => {
       const controller = Engine.context.PerpsController;
@@ -418,6 +430,7 @@ export function usePerpsTrading() {
     clearDepositResult,
     withdraw,
     calculateLiquidationPrice,
+    previewPositionModify,
     calculateMaintenanceMargin,
     getMaxLeverage,
     updatePositionTPSL,

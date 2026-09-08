@@ -125,7 +125,6 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
   const debouncedUpdateQuoteParams = useUpdateQuoteParams({
     featureId: params.featureId,
     debounceWait: params.debounceWait,
-    traceName: params.traceName,
     quoteRequestIndex: params.quoteRequestIndex,
     quoteRequestCount: params.quoteRequestCount,
     quoteParams: params.quoteParams,
