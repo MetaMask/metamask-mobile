@@ -422,6 +422,9 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
+    // BiometricPrompt + CryptoObject for HardwareVaultKey (hardware-bound AES-GCM
+    // decrypt gated on biometric/device passcode).
+    implementation 'androidx.biometric:biometric:1.1.0'
     // Minimal androidTest deps so assemble*AndroidTest still produces the CI
     // androidTest APK artifact. Detox instrumentation was removed (MMQA-2230);
     // Appium drives the app APK.
