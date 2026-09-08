@@ -24,22 +24,16 @@ import {
   extractSignedTransaction,
   mapGetAccountsResponse,
   mapSignAndSendTransactionRequest,
-  mapSignAndSendTransactionResponse,
+  mapSignatureResponse,
   mapSignMessageRequest,
-  mapSignMessageResponse,
   mapSignTransactionRequest,
   mapSignTransactionResponse,
 } from './mapper';
 import type { SolanaSnapSpec, SolanaWalletConnectSpec } from './types';
 
-/**
- * Snap caller bound to the Solana Snap spec.
- */
 const callSolanaSnap = createSnapCaller<SolanaSnapSpec>();
 
-/**
- * WalletConnect methods the wallet exposes for the Solana namespace.
- */
+/** WalletConnect methods the wallet exposes for the Solana namespace. */
 const SOLANA_METHODS: readonly RpcMethod<SolanaWalletConnectSpec>[] = [
   'solana_getAccounts',
   'solana_requestAccounts',
@@ -49,9 +43,7 @@ const SOLANA_METHODS: readonly RpcMethod<SolanaWalletConnectSpec>[] = [
   'solana_signAndSendTransaction',
 ];
 
-/**
- * Signing methods that should return the user to the dapp after handling.
- */
+/** Signing methods that return the user to the dapp after handling. */
 const SOLANA_REDIRECT_METHODS: readonly RpcMethod<SolanaWalletConnectSpec>[] = [
   'solana_signMessage',
   'solana_signTransaction',
@@ -59,32 +51,20 @@ const SOLANA_REDIRECT_METHODS: readonly RpcMethod<SolanaWalletConnectSpec>[] = [
   'solana_signAndSendTransaction',
 ];
 
-/**
- * WalletConnect events the wallet may emit for the Solana namespace.
- */
 const SOLANA_EVENTS: readonly string[] = ['accountsChanged'];
 
-/**
- * Historical WalletConnect mainnet genesis hash. Normalize inbound to
- * `SolScope.Mainnet` so permissions and the snap use the current CAIP-2 id.
- */
+/** Historical WalletConnect mainnet genesis hash, normalized on the way in. */
 export const SOLANA_MAINNET_LEGACY_CAIP_CHAIN_ID =
   'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ' as CaipChainId;
 
 /**
- * CAIP-2 chain IDs we seed into the CAIP-25 caveat.
- *
- * Devnet/testnet are gated in the permission UI
- * (`NON_EVM_CAIP_CHAIN_IDS`). Injecting them here would be stripped on
- * approve and leave an empty Solana namespace. Unsupported requested
- * chains fall back to Mainnet via `enrichCaveatValue`.
+ * Devnet/testnet are gated in the permission UI (`NON_EVM_CAIP_CHAIN_IDS`).
+ * Injecting them here would be stripped on approve and leave an empty Solana
+ * namespace. Unsupported requested chains fall back to Mainnet instead.
  */
 const SUPPORTED_SOLANA_SCOPES = new Set<CaipChainId>([SolScope.Mainnet]);
 
-/**
- * Convert an inbound CAIP-2 chain id to the Snap form. Maps the legacy
- * WalletConnect mainnet genesis hash onto `SolScope.Mainnet`.
- */
+/** Map the legacy mainnet genesis hash onto `SolScope.Mainnet`. */
 export function normalizeCaipChainIdInbound(
   caipChainId: CaipChainId,
 ): CaipChainId {
@@ -98,19 +78,14 @@ export function normalizeCaipChainIdInbound(
   return caipChainId;
 }
 
-/**
- * Convert an outbound CAIP-2 chain id to the WC form. Solana genesis hashes
- * are already the CAIP-2 reference, so this is identity.
- */
+/** Solana genesis hashes are already the CAIP-2 reference, so identity. */
 export function normalizeCaipChainIdOutbound(
   caipChainId: CaipChainId,
 ): CaipChainId {
   return caipChainId;
 }
 
-/**
- * Build the Solana namespace slice from the wallet's current state.
- */
+/** Build the Solana namespace slice from the wallet's current state. */
 export async function getScopedPermissions({
   channelId,
 }: {
@@ -126,9 +101,8 @@ export async function getScopedPermissions({
 }
 
 /**
- * Solana sessionProperties advertised to the dapp at handshake. Requests
- * `solana_accountChanged` notifications so Wallet Standard-style clients can
- * stay in sync with the selected account.
+ * Request `solana_accountChanged` notifications at handshake so Wallet
+ * Standard-style clients stay in sync with the selected account.
  */
 export function getSessionProperties({
   proposal,
@@ -146,10 +120,7 @@ export function getSessionProperties({
   return { solana_accountChanged_notifications: 'true' };
 }
 
-/**
- * Seed Solana scopes into the CAIP-25 caveat. Unsupported requested chains
- * fall back to Mainnet.
- */
+/** Seed Solana scopes into the CAIP-25 caveat, falling back to Mainnet. */
 export function enrichCaveatValue({
   proposal,
   caveatValue,
@@ -168,9 +139,8 @@ export function enrichCaveatValue({
 }
 
 /**
- * Handle a WalletConnect request for the Solana namespace by mapping it to the
- * multichain routing service, then mapping the result back to the expected
- * WalletConnect format for the dapp.
+ * Handle a WalletConnect Solana request by mapping it onto the multichain
+ * routing service, then mapping the result back into the WalletConnect shape.
  */
 export async function handleRequest({
   origin,
@@ -183,30 +153,30 @@ export async function handleRequest({
 }: AdapterHandleRequestArgs<SolanaWalletConnectSpec>): Promise<
   RpcResponse<SolanaWalletConnectSpec>
 > {
+  const envelope = {
+    origin,
+    originMetadata,
+    connectedAddresses,
+    scope,
+    requestId,
+  };
+
   if (method === 'solana_getAccounts' || method === 'solana_requestAccounts') {
     return mapGetAccountsResponse(connectedAddresses);
   }
 
   if (method === 'solana_signMessage') {
     const result = await callSolanaSnap({
-      origin,
-      originMetadata,
-      connectedAddresses,
-      scope,
-      requestId,
+      ...envelope,
       request: mapSignMessageRequest({ params, connectedAddresses }),
     });
 
-    return mapSignMessageResponse(result);
+    return mapSignatureResponse(result);
   }
 
   if (method === 'solana_signTransaction') {
     const result = await callSolanaSnap({
-      origin,
-      originMetadata,
-      connectedAddresses,
-      scope,
-      requestId,
+      ...envelope,
       request: mapSignTransactionRequest({ params, connectedAddresses }),
     });
 
@@ -215,18 +185,11 @@ export async function handleRequest({
 
   if (method === 'solana_signAndSendTransaction') {
     const result = await callSolanaSnap({
-      origin,
-      originMetadata,
-      connectedAddresses,
-      scope,
-      requestId,
-      request: mapSignAndSendTransactionRequest({
-        params,
-        connectedAddresses,
-      }),
+      ...envelope,
+      request: mapSignAndSendTransactionRequest({ params, connectedAddresses }),
     });
 
-    return mapSignAndSendTransactionResponse(result);
+    return mapSignatureResponse(result);
   }
 
   if (method === 'solana_signAllTransactions') {
@@ -234,10 +197,7 @@ export async function handleRequest({
 
     for (const [index, transaction] of params.transactions.entries()) {
       const result = await callSolanaSnap({
-        origin,
-        originMetadata,
-        connectedAddresses,
-        scope,
+        ...envelope,
         requestId: requestId + index,
         request: mapSignTransactionRequest({
           params: { transaction },

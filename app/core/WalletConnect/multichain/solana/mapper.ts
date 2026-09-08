@@ -3,9 +3,7 @@ import { base58 } from 'ethers/lib/utils';
 import type { RpcRequest } from '../types';
 import type { SolanaSnapSpec, SolanaWalletConnectSpec } from './types';
 
-/**
- * Resolve the signer address from WalletConnect params or the session accounts.
- */
+/** Signer from the request pubkey, else the first session account. */
 export function resolveSignerAddress({
   pubkey,
   connectedAddresses,
@@ -25,18 +23,12 @@ export function resolveSignerAddress({
   return parseCaipAccountId(firstAccount).address;
 }
 
-/**
- * WalletConnect `solana_signMessage` encodes the payload as base58. The Solana
- * snap / CAIP-25 `signMessage` method expects base64.
- */
+/** WalletConnect encodes message payloads as base58; the snap wants base64. */
 export function walletConnectMessageToSnapBase64(message: string): string {
   return Buffer.from(base58.decode(message)).toString('base64');
 }
 
-/**
- * Convert WalletConnect message signing params into the canonical Solana Snap
- * request.
- */
+/** Map `solana_signMessage` onto the snap `signMessage` method. */
 export function mapSignMessageRequest({
   params,
   connectedAddresses,
@@ -44,34 +36,21 @@ export function mapSignMessageRequest({
   params: SolanaWalletConnectSpec['solana_signMessage']['params'];
   connectedAddresses: CaipAccountId[];
 }): RpcRequest<SolanaSnapSpec, 'signMessage'> {
+  const { pubkey, message } = params;
+  const address = resolveSignerAddress({ pubkey, connectedAddresses });
+
   return {
     method: 'signMessage',
     params: {
-      account: {
-        address: resolveSignerAddress({
-          pubkey: params.pubkey,
-          connectedAddresses,
-        }),
-      },
-      message: walletConnectMessageToSnapBase64(params.message),
+      account: { address },
+      message: walletConnectMessageToSnapBase64(message),
     },
   };
 }
 
 /**
- * Forward the Solana Snap message signature in the WalletConnect
- * `solana_signMessage` response shape.
- */
-export function mapSignMessageResponse(
-  result: SolanaSnapSpec['signMessage']['response'],
-): SolanaWalletConnectSpec['solana_signMessage']['response'] {
-  return { signature: result.signature };
-}
-
-/**
- * Convert WalletConnect transaction signing params into the canonical Solana
- * Snap request. WalletConnect and the snap both use a base64-serialized
- * transaction.
+ * Map `solana_signTransaction` onto the snap `signTransaction` method. Both
+ * sides use a base64-serialized transaction.
  */
 export function mapSignTransactionRequest({
   params,
@@ -80,24 +59,18 @@ export function mapSignTransactionRequest({
   params: SolanaWalletConnectSpec['solana_signTransaction']['params'];
   connectedAddresses: CaipAccountId[];
 }): RpcRequest<SolanaSnapSpec, 'signTransaction'> {
+  const { pubkey, transaction } = params;
+  const address = resolveSignerAddress({ pubkey, connectedAddresses });
+
   return {
     method: 'signTransaction',
-    params: {
-      account: {
-        address: resolveSignerAddress({
-          pubkey: params.pubkey,
-          connectedAddresses,
-        }),
-      },
-      transaction: params.transaction,
-    },
+    params: { account: { address }, transaction },
   };
 }
 
 /**
- * Convert the Solana Snap transaction result into the WalletConnect
- * `solana_signTransaction` response. Prefer the signed transaction when the
- * snap returns it so versioned transactions stay intact.
+ * Prefer the signed transaction when the snap returns it so versioned
+ * transactions reach the dapp intact.
  */
 export function mapSignTransactionResponse(
   result: SolanaSnapSpec['signTransaction']['response'],
@@ -115,12 +88,7 @@ export function mapSignTransactionResponse(
   return response;
 }
 
-/**
- * Convert WalletConnect sign-and-send params into the canonical Solana Snap
- * request. `sendOptions` (including `preflightCommitment`) is forwarded so
- * dapps can avoid the Solana RPC default of `finalized`, which commonly
- * delays confirmation past 10 seconds.
- */
+/** Map `solana_signAndSendTransaction` onto the snap method of the same name. */
 export function mapSignAndSendTransactionRequest({
   params,
   connectedAddresses,
@@ -128,43 +96,33 @@ export function mapSignAndSendTransactionRequest({
   params: SolanaWalletConnectSpec['solana_signAndSendTransaction']['params'];
   connectedAddresses: CaipAccountId[];
 }): RpcRequest<SolanaSnapSpec, 'signAndSendTransaction'> {
-  const request: RpcRequest<SolanaSnapSpec, 'signAndSendTransaction'> = {
+  const { pubkey, transaction, sendOptions } = params;
+  const address = resolveSignerAddress({ pubkey, connectedAddresses });
+
+  return {
     method: 'signAndSendTransaction',
     params: {
-      account: {
-        address: resolveSignerAddress({
-          pubkey: params.pubkey,
-          connectedAddresses,
-        }),
-      },
-      transaction: params.transaction,
+      account: { address },
+      transaction,
       // Solana JSON-RPC sendTransaction defaults preflight to `finalized`,
-      // which commonly stalls dapps (e.g. Jupiter) past 10s. Prefer `confirmed`
-      // unless the dapp set sendOptions.
-      options: {
-        preflightCommitment: 'confirmed',
-        ...params.sendOptions,
-      },
+      // which commonly stalls dapps (e.g. Jupiter) past 10s. Prefer
+      // `confirmed` unless the dapp set sendOptions.
+      options: { preflightCommitment: 'confirmed', ...sendOptions },
     },
   };
-
-  return request;
 }
 
 /**
- * Forward the Solana Snap send result as a WalletConnect signature (base58 tx
- * id).
+ * `signMessage` and `signAndSendTransaction` share the `{ signature }` shape on
+ * both sides. Rebuild it so snap-internal fields never reach the dapp.
  */
-export function mapSignAndSendTransactionResponse(
-  result: SolanaSnapSpec['signAndSendTransaction']['response'],
-): SolanaWalletConnectSpec['solana_signAndSendTransaction']['response'] {
+export function mapSignatureResponse(result: { signature: string }): {
+  signature: string;
+} {
   return { signature: result.signature };
 }
 
-/**
- * Map session accounts to WalletConnect `solana_getAccounts` /
- * `solana_requestAccounts` results.
- */
+/** Map session accounts onto `solana_getAccounts` / `solana_requestAccounts`. */
 export function mapGetAccountsResponse(
   connectedAddresses: CaipAccountId[],
 ): SolanaWalletConnectSpec['solana_getAccounts']['response'] {
@@ -173,9 +131,7 @@ export function mapGetAccountsResponse(
   }));
 }
 
-/**
- * Extract the signed base64 transaction from a snap `signTransaction` result.
- */
+/** Pull the signed base64 transaction out of a snap `signTransaction` result. */
 export function extractSignedTransaction(
   result: SolanaSnapSpec['signTransaction']['response'],
 ): string {

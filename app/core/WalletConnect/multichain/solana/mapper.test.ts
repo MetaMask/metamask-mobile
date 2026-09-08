@@ -4,9 +4,8 @@ import {
   extractSignedTransaction,
   mapGetAccountsResponse,
   mapSignAndSendTransactionRequest,
-  mapSignAndSendTransactionResponse,
+  mapSignatureResponse,
   mapSignMessageRequest,
-  mapSignMessageResponse,
   mapSignTransactionRequest,
   mapSignTransactionResponse,
   resolveSignerAddress,
@@ -16,6 +15,9 @@ import {
 const CONNECTED_ADDRESSES = [
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:AddrA',
 ] as CaipAccountId[];
+
+const HELLO_BASE58 = base58.encode(Buffer.from('hello', 'utf8'));
+const HELLO_BASE64 = Buffer.from('hello', 'utf8').toString('base64');
 
 describe('multichain/solana - mapper', () => {
   describe('resolveSignerAddress', () => {
@@ -30,9 +32,7 @@ describe('multichain/solana - mapper', () => {
 
     it('falls back to the first connected account', () => {
       expect(
-        resolveSignerAddress({
-          connectedAddresses: CONNECTED_ADDRESSES,
-        }),
+        resolveSignerAddress({ connectedAddresses: CONNECTED_ADDRESSES }),
       ).toBe('AddrA');
     });
 
@@ -43,31 +43,20 @@ describe('multichain/solana - mapper', () => {
     });
   });
 
-  describe('walletConnectMessageToSnapBase64', () => {
-    it('converts a base58 WalletConnect message to base64', () => {
-      const encoded = base58.encode(Buffer.from('hello', 'utf8'));
-
-      expect(walletConnectMessageToSnapBase64(encoded)).toBe(
-        Buffer.from('hello', 'utf8').toString('base64'),
-      );
-    });
+  it('converts a base58 WalletConnect message to base64', () => {
+    expect(walletConnectMessageToSnapBase64(HELLO_BASE58)).toBe(HELLO_BASE64);
   });
 
   describe('inbound request mappers', () => {
-    it('maps solana_signMessage to snap signMessage with a base64 payload', () => {
-      const encoded = base58.encode(Buffer.from('hello', 'utf8'));
-
+    it('maps solana_signMessage to a base64 snap payload', () => {
       expect(
         mapSignMessageRequest({
-          params: { message: encoded, pubkey: 'AddrA' },
+          params: { message: HELLO_BASE58, pubkey: 'AddrA' },
           connectedAddresses: CONNECTED_ADDRESSES,
         }),
       ).toStrictEqual({
         method: 'signMessage',
-        params: {
-          account: { address: 'AddrA' },
-          message: Buffer.from('hello', 'utf8').toString('base64'),
-        },
+        params: { account: { address: 'AddrA' }, message: HELLO_BASE64 },
       });
     });
 
@@ -79,14 +68,11 @@ describe('multichain/solana - mapper', () => {
         }),
       ).toStrictEqual({
         method: 'signTransaction',
-        params: {
-          account: { address: 'AddrA' },
-          transaction: 'base64tx',
-        },
+        params: { account: { address: 'AddrA' }, transaction: 'base64tx' },
       });
     });
 
-    it('defaults signAndSendTransaction preflightCommitment to confirmed', () => {
+    it('defaults signAndSendTransaction preflight to confirmed', () => {
       expect(
         mapSignAndSendTransactionRequest({
           params: { transaction: 'base64tx', pubkey: 'AddrA' },
@@ -102,7 +88,7 @@ describe('multichain/solana - mapper', () => {
       });
     });
 
-    it('forwards WalletConnect sendOptions over the confirmed default', () => {
+    it('lets dapp sendOptions override the confirmed default', () => {
       expect(
         mapSignAndSendTransactionRequest({
           params: {
@@ -120,18 +106,17 @@ describe('multichain/solana - mapper', () => {
         params: {
           account: { address: 'AddrA' },
           transaction: 'base64tx',
-          options: {
-            preflightCommitment: 'processed',
-            skipPreflight: true,
-          },
+          options: { preflightCommitment: 'processed', skipPreflight: true },
         },
       });
     });
   });
 
   describe('outbound response mappers', () => {
-    it('forwards the snap message signature', () => {
-      expect(mapSignMessageResponse({ signature: 'sig' })).toStrictEqual({
+    it('rebuilds the signature response without snap-internal fields', () => {
+      const snapResult = { signature: 'sig', internalId: 'x' };
+
+      expect(mapSignatureResponse(snapResult)).toStrictEqual({
         signature: 'sig',
       });
     });
@@ -142,16 +127,7 @@ describe('multichain/solana - mapper', () => {
           transaction: 'signedTx',
           signature: 'sig',
         }),
-      ).toStrictEqual({
-        transaction: 'signedTx',
-        signature: 'sig',
-      });
-    });
-
-    it('forwards the send signature', () => {
-      expect(
-        mapSignAndSendTransactionResponse({ signature: 'txid' }),
-      ).toStrictEqual({ signature: 'txid' });
+      ).toStrictEqual({ transaction: 'signedTx', signature: 'sig' });
     });
 
     it('maps connected accounts to WalletConnect pubkey objects', () => {

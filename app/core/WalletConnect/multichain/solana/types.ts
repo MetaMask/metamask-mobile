@@ -1,5 +1,3 @@
-import type { RpcMethod } from '../types';
-
 /**
  * WalletConnect Solana RPC contract.
  *
@@ -20,41 +18,23 @@ export interface SolanaWalletConnectSendOptions {
   minContextSlot?: number;
 }
 
+type SolanaAccounts = { pubkey: string }[];
+type NoParams = Record<string, never> | undefined;
+
 export interface SolanaWalletConnectSpec {
-  solana_getAccounts: {
-    params: Record<string, never> | undefined;
-    response: { pubkey: string }[];
-  };
-  solana_requestAccounts: {
-    params: Record<string, never> | undefined;
-    response: { pubkey: string }[];
-  };
+  solana_getAccounts: { params: NoParams; response: SolanaAccounts };
+  solana_requestAccounts: { params: NoParams; response: SolanaAccounts };
   solana_signMessage: {
-    params: {
-      message: string;
-      pubkey: string;
-    };
-    response: {
-      signature: string;
-    };
+    params: { message: string; pubkey: string };
+    response: { signature: string };
   };
   solana_signTransaction: {
-    params: {
-      transaction: string;
-      pubkey?: string;
-    };
-    response: {
-      signature?: string;
-      transaction?: string;
-    };
+    params: { transaction: string; pubkey?: string };
+    response: { signature?: string; transaction?: string };
   };
   solana_signAllTransactions: {
-    params: {
-      transactions: string[];
-    };
-    response: {
-      transactions: string[];
-    };
+    params: { transactions: string[] };
+    response: { transactions: string[] };
   };
   solana_signAndSendTransaction: {
     params: {
@@ -62,9 +42,7 @@ export interface SolanaWalletConnectSpec {
       pubkey?: string;
       sendOptions?: SolanaWalletConnectSendOptions;
     };
-    response: {
-      signature: string;
-    };
+    response: { signature: string };
   };
 }
 
@@ -75,23 +53,12 @@ export interface SolanaWalletConnectSpec {
  */
 export interface SolanaSnapSpec {
   signMessage: {
-    params: {
-      account: { address: string };
-      message: string;
-    };
-    response: {
-      signature: string;
-    };
+    params: { account: { address: string }; message: string };
+    response: { signature: string };
   };
   signTransaction: {
-    params: {
-      account: { address: string };
-      transaction: string;
-    };
-    response: {
-      signature?: string;
-      transaction?: string;
-    };
+    params: { account: { address: string }; transaction: string };
+    response: { signature?: string; transaction?: string };
   };
   signAndSendTransaction: {
     params: {
@@ -99,10 +66,6 @@ export interface SolanaSnapSpec {
       transaction: string;
       options?: SolanaWalletConnectSendOptions;
     };
-    response: {
-      signature: string;
-    };
+    response: { signature: string };
   };
 }
-
-export type SolanaWalletConnectMethod = RpcMethod<SolanaWalletConnectSpec>;

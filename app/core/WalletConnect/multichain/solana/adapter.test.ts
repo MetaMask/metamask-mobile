@@ -32,9 +32,7 @@ jest.mock('../../../Engine', () => ({
       AccountTreeController: {
         getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
       },
-      PermissionController: {
-        getCaveat: jest.fn(),
-      },
+      PermissionController: { getCaveat: jest.fn() },
     },
   },
 }));
@@ -45,14 +43,10 @@ jest.mock('../../../Permissions', () => ({
 
 jest.mock('../router', () => {
   const snapCallerMock = jest.fn();
-  return {
-    createSnapCaller: () => snapCallerMock,
-  };
+  return { createSnapCaller: () => snapCallerMock };
 });
 
-jest.mock('../../../SDKConnect/utils/DevLogger', () => ({
-  log: jest.fn(),
-}));
+jest.mock('../../../SDKConnect/utils/DevLogger', () => ({ log: jest.fn() }));
 
 const mockedGetAccountsFromSelectedAccountGroup = Engine.context
   .AccountTreeController.getAccountsFromSelectedAccountGroup as jest.Mock;
@@ -71,6 +65,37 @@ const MOCK_ORIGIN_METADATA = {
 const SOLANA_MAINNET = SolScope.Mainnet as CaipChainId;
 const SOLANA_ACCOUNT = `${SOLANA_MAINNET}:AddrA` as CaipAccountId;
 
+const REDIRECT_METHODS = [
+  'solana_signMessage',
+  'solana_signTransaction',
+  'solana_signAllTransactions',
+  'solana_signAndSendTransaction',
+];
+const APPROVED_METHODS = [
+  'solana_getAccounts',
+  'solana_requestAccounts',
+  ...REDIRECT_METHODS,
+];
+
+const EMPTY_CAVEAT_VALUE = {
+  requiredScopes: {},
+  optionalScopes: {},
+  isMultichainOrigin: true,
+  sessionProperties: {},
+} as Caip25CaveatValue;
+
+const solanaNamespace = (chains: CaipChainId[]) => ({
+  solana: { chains, methods: [], events: [] },
+});
+
+const BASE_REQUEST = {
+  origin: 'channelId',
+  originMetadata: MOCK_ORIGIN_METADATA,
+  connectedAddresses: [SOLANA_ACCOUNT],
+  scope: SOLANA_MAINNET,
+  requestId: 1,
+};
+
 describe('multichain/solana', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -81,103 +106,59 @@ describe('multichain/solana', () => {
     mockedGetCaipAccountIdsFromCaip25CaveatValue.mockReturnValue([]);
   });
 
-  describe('normalizeCaipChainIdInbound', () => {
-    it('maps the legacy WalletConnect mainnet genesis hash to SolScope.Mainnet', () => {
-      expect(
-        normalizeCaipChainIdInbound(SOLANA_MAINNET_LEGACY_CAIP_CHAIN_ID),
-      ).toBe(SOLANA_MAINNET);
+  describe('chain id normalization', () => {
+    it.each([
+      [
+        'the legacy mainnet genesis hash',
+        SOLANA_MAINNET_LEGACY_CAIP_CHAIN_ID,
+        SOLANA_MAINNET,
+      ],
+      ['a current Solana chain id', SOLANA_MAINNET, SOLANA_MAINNET],
+      ['a non-Solana chain id', 'eip155:1' as CaipChainId, 'eip155:1'],
+    ])('maps %s inbound', (_label, input, expected) => {
+      expect(normalizeCaipChainIdInbound(input)).toBe(expected);
     });
 
-    it('passes current Solana CAIP chain ids through unchanged', () => {
-      expect(normalizeCaipChainIdInbound(SOLANA_MAINNET)).toBe(SOLANA_MAINNET);
-    });
-
-    it('passes non-Solana CAIP chain ids through unchanged', () => {
-      expect(normalizeCaipChainIdInbound('eip155:1')).toBe('eip155:1');
-    });
-  });
-
-  describe('normalizeCaipChainIdOutbound', () => {
-    it('leaves Solana genesis-hash chain ids unchanged', () => {
+    it('leaves Solana genesis-hash chain ids unchanged outbound', () => {
       expect(normalizeCaipChainIdOutbound(SOLANA_MAINNET)).toBe(SOLANA_MAINNET);
     });
   });
 
   describe('enrichCaveatValue', () => {
-    it('adds the Solana optional scope when a proposal references Solana', () => {
-      const caveatValue = {
-        requiredScopes: {},
-        optionalScopes: {},
-        isMultichainOrigin: true,
-        sessionProperties: {},
-      } as Caip25CaveatValue;
-
-      expect(
-        enrichCaveatValue({
-          proposal: {
-            requiredNamespaces: {},
-            optionalNamespaces: {
-              solana: {
-                chains: [SOLANA_MAINNET],
-                methods: [],
-                events: [],
-              },
-            },
-          },
-          caveatValue,
-        }),
-      ).toStrictEqual({
-        ...caveatValue,
-        optionalScopes: {
-          [SOLANA_MAINNET]: { accounts: [] },
+    it.each([
+      [
+        'an optional Solana namespace',
+        {
+          requiredNamespaces: {},
+          optionalNamespaces: solanaNamespace([SOLANA_MAINNET]),
         },
-      });
-    });
-
-    it('falls back to Mainnet for the legacy WalletConnect genesis hash', () => {
-      const caveatValue = {
-        requiredScopes: {},
-        optionalScopes: {},
-        isMultichainOrigin: true,
-        sessionProperties: {},
-      } as Caip25CaveatValue;
-
-      expect(
-        enrichCaveatValue({
-          proposal: {
-            requiredNamespaces: {
-              solana: {
-                chains: [SOLANA_MAINNET_LEGACY_CAIP_CHAIN_ID],
-                methods: [],
-                events: [],
-              },
-            },
-            optionalNamespaces: {},
-          },
-          caveatValue,
-        }),
-      ).toStrictEqual({
-        ...caveatValue,
-        optionalScopes: {
-          [SOLANA_MAINNET]: { accounts: [] },
+      ],
+      [
+        'the legacy genesis hash in required namespaces',
+        {
+          requiredNamespaces: solanaNamespace([
+            SOLANA_MAINNET_LEGACY_CAIP_CHAIN_ID,
+          ]),
+          optionalNamespaces: {},
         },
+      ],
+    ])('seeds the Mainnet optional scope from %s', (_label, proposal) => {
+      expect(
+        enrichCaveatValue({ proposal, caveatValue: EMPTY_CAVEAT_VALUE }),
+      ).toStrictEqual({
+        ...EMPTY_CAVEAT_VALUE,
+        optionalScopes: { [SOLANA_MAINNET]: { accounts: [] } },
       });
     });
   });
 
   describe('getSessionProperties', () => {
-    it('advertises solana account-changed notifications when the proposal references Solana', () => {
+    it('advertises account-changed notifications for Solana proposals', () => {
       expect(
         getSessionProperties({
           proposal: {
             requiredNamespaces: {},
-            optionalNamespaces: {
-              solana: {
-                chains: [SOLANA_MAINNET],
-                methods: [],
-                events: [],
-              },
-            },
+            optionalNamespaces: solanaNamespace([SOLANA_MAINNET]),
           },
         }),
       ).toStrictEqual({ solana_accountChanged_notifications: 'true' });
@@ -213,14 +194,7 @@ describe('multichain/solana', () => {
         getScopedPermissions({ channelId: 'wc-topic' }),
       ).resolves.toStrictEqual({
         chains: [SOLANA_MAINNET],
-        methods: [
-          'solana_getAccounts',
-          'solana_requestAccounts',
-          'solana_signMessage',
-          'solana_signTransaction',
-          'solana_signAllTransactions',
-          'solana_signAndSendTransaction',
-        ],
+        methods: APPROVED_METHODS,
         events: ['accountsChanged'],
         accounts: [SOLANA_ACCOUNT],
       });
@@ -256,48 +230,25 @@ describe('multichain/solana', () => {
   describe('solanaAdapter', () => {
     it('declares the Solana CAIP namespace and approved methods', () => {
       expect(solanaAdapter.namespace).toBe('solana');
-      expect(solanaAdapter.redirectMethods).toStrictEqual([
-        'solana_signMessage',
-        'solana_signTransaction',
-        'solana_signAllTransactions',
-        'solana_signAndSendTransaction',
-      ]);
-      expect(solanaAdapter.approvedMethods).toStrictEqual([
-        'solana_getAccounts',
-        'solana_requestAccounts',
-        'solana_signMessage',
-        'solana_signTransaction',
-        'solana_signAllTransactions',
-        'solana_signAndSendTransaction',
-      ]);
+      expect(solanaAdapter.approvedMethods).toStrictEqual(APPROVED_METHODS);
+      expect(solanaAdapter.redirectMethods).toStrictEqual(REDIRECT_METHODS);
       expect(solanaAdapter.getSessionProperties).toBe(getSessionProperties);
     });
 
-    it('handles solana_signMessage by mapping, routing, and normalizing the result', async () => {
-      mockedCallSolanaSnap.mockResolvedValue({
-        signature: 'sig',
-      });
-      const encoded = base58.encode(Buffer.from('hello', 'utf8'));
+    it('handles solana_signMessage by mapping, routing, and normalizing', async () => {
+      mockedCallSolanaSnap.mockResolvedValue({ signature: 'sig' });
 
       const result = await solanaAdapter.handleRequest({
-        origin: 'channelId',
-        originMetadata: MOCK_ORIGIN_METADATA,
-        connectedAddresses: [SOLANA_ACCOUNT],
-        scope: SOLANA_MAINNET,
-        requestId: 1,
+        ...BASE_REQUEST,
         method: 'solana_signMessage',
         params: {
           pubkey: 'AddrA',
-          message: encoded,
+          message: base58.encode(Buffer.from('hello', 'utf8')),
         },
       });
 
       expect(mockedCallSolanaSnap).toHaveBeenCalledWith({
-        origin: 'channelId',
-        originMetadata: MOCK_ORIGIN_METADATA,
-        connectedAddresses: [SOLANA_ACCOUNT],
-        scope: SOLANA_MAINNET,
-        requestId: 1,
+        ...BASE_REQUEST,
         request: {
           method: 'signMessage',
           params: {
@@ -309,22 +260,13 @@ describe('multichain/solana', () => {
       expect(result).toStrictEqual({ signature: 'sig' });
     });
 
-    it('handles solana_signAndSendTransaction with confirmed preflight by default', async () => {
-      mockedCallSolanaSnap.mockResolvedValue({
-        signature: 'txid',
-      });
+    it('handles solana_signAndSendTransaction with confirmed preflight', async () => {
+      mockedCallSolanaSnap.mockResolvedValue({ signature: 'txid' });
 
       const result = await solanaAdapter.handleRequest({
-        origin: 'channelId',
-        originMetadata: MOCK_ORIGIN_METADATA,
-        connectedAddresses: [SOLANA_ACCOUNT],
-        scope: SOLANA_MAINNET,
-        requestId: 1,
+        ...BASE_REQUEST,
         method: 'solana_signAndSendTransaction',
-        params: {
-          pubkey: 'AddrA',
-          transaction: 'base64tx',
-        },
+        params: { pubkey: 'AddrA', transaction: 'base64tx' },
       });
 
       expect(mockedCallSolanaSnap).toHaveBeenCalledWith(
@@ -348,30 +290,22 @@ describe('multichain/solana', () => {
         .mockResolvedValueOnce({ transaction: 'signed-b' });
 
       const result = await solanaAdapter.handleRequest({
-        origin: 'channelId',
-        originMetadata: MOCK_ORIGIN_METADATA,
-        connectedAddresses: [SOLANA_ACCOUNT],
-        scope: SOLANA_MAINNET,
+        ...BASE_REQUEST,
         requestId: 10,
         method: 'solana_signAllTransactions',
-        params: {
-          transactions: ['tx-a', 'tx-b'],
-        },
+        params: { transactions: ['tx-a', 'tx-b'] },
       });
 
       expect(mockedCallSolanaSnap).toHaveBeenCalledTimes(2);
-      expect(result).toStrictEqual({
-        transactions: ['signed-a', 'signed-b'],
-      });
+      expect(mockedCallSolanaSnap).toHaveBeenLastCalledWith(
+        expect.objectContaining({ requestId: 11 }),
+      );
+      expect(result).toStrictEqual({ transactions: ['signed-a', 'signed-b'] });
     });
 
     it('returns session accounts for solana_getAccounts without calling the snap', async () => {
       const result = await solanaAdapter.handleRequest({
-        origin: 'channelId',
-        originMetadata: MOCK_ORIGIN_METADATA,
-        connectedAddresses: [SOLANA_ACCOUNT],
-        scope: SOLANA_MAINNET,
-        requestId: 1,
+        ...BASE_REQUEST,
         method: 'solana_getAccounts',
         params: {},
       });
@@ -381,19 +315,13 @@ describe('multichain/solana', () => {
     });
 
     it('rejects unsupported WalletConnect methods', async () => {
-      const args = {
-        origin: 'channelId',
-        originMetadata: MOCK_ORIGIN_METADATA,
-        connectedAddresses: [] as CaipAccountId[],
-        scope: SOLANA_MAINNET,
-        requestId: 1,
-        method: 'solana_unknownMethod',
-        params: {},
-      };
-
       await expect(
-        // @ts-expect-error - misbehaving client sending an unapproved method
-        solanaAdapter.handleRequest(args),
+        solanaAdapter.handleRequest({
+          ...BASE_REQUEST,
+          // @ts-expect-error - misbehaving client sending an unapproved method
+          method: 'solana_unknownMethod',
+          params: {},
+        }),
       ).rejects.toThrow(
         'WalletConnect Solana method solana_unknownMethod is not supported',
       );
