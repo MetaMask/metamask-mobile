@@ -598,7 +598,8 @@
   },
   "AuthenticationController": {
     "isSignedIn": false,
-    "needsProfilePairing": true
+    "needsProfilePairing": true,
+    "needsSocialPairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
