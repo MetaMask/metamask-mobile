@@ -129,7 +129,7 @@
     },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
-      "message": "Something went wrong with your fiat purchase. Please try again."
+      "message": "Something went wrong with your local currency purchase. Please try again."
     },
     "mmpay_hardware_account": {
       "title": "Wallet not supported",
@@ -4313,7 +4313,7 @@
     "nft_autodetect_mode": "Autodetect NFTs",
     "nft_autodetect_desc": "Displaying NFT media and data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
     "show_fiat_on_testnets": "Show conversion on test networks",
-    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks.",
+    "show_fiat_on_testnets_desc": "Select this to show local currency conversion on test networks.",
     "show_fiat_on_testnets_modal_title": "Be careful",
     "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
     "show_fiat_on_testnets_modal_learn_more": "Learn more",
@@ -4435,11 +4435,11 @@
     "experimental_desc": "WalletConnect and more...",
     "legal_title": "Legal",
     "conversion_title": "Currency conversion",
-    "conversion_desc": "Display fiat values in using a specific currency throughout the application.",
+    "conversion_desc": "Display local currency values in using a specific currency throughout the application.",
     "primary_currency_title": "Primary currency",
-    "primary_currency_desc": "Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.",
+    "primary_currency_desc": "Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select local currency to prioritize displaying values in your selected local currency currency.",
     "primary_currency_text_first": "Native",
-    "primary_currency_text_second": "Fiat",
+    "primary_currency_text_second": "local currency",
     "language_desc": "Translate the application to a different supported language.",
     "engine_desc": "Change the default search engine used when entering search terms in the URL bar.",
     "reset_desc": "This action will clear your transaction activity. This data might not be retrievable.",
@@ -4567,7 +4567,7 @@
         "summary": "Summary",
         "summary_token": "Token",
         "summary_provider": "Provider",
-        "amount_label": "Amount (fiat)",
+        "amount_label": "Amount (local currency)",
         "amount_placeholder": "e.g. 25",
         "get_quotes": "Get quotes",
         "get_quotes_disabled_hint": "Enter a positive amount",
@@ -4698,7 +4698,7 @@
           "snap_manageAccounts": "Add and control Ethereum accounts",
           "endowment:signature-insight": "Display signature insights modal",
           "endowment:protocol": "Provide protocol data for one or more chains",
-          "snap_getPreferences": "See information like your preferred language and fiat currency",
+          "snap_getPreferences": "See information like your preferred language and local currency currency",
           "endowment:lifecycle-hooks": "Use lifecycle hooks",
           "endowment:name-lookup": "Provide domain and address lookups",
           "endowment:page-home": "Display a custom screen"
@@ -5474,7 +5474,7 @@
     "invalid_qr_code_sign": "Invalid QR code. Please check your hardware and retry.",
     "no_camera_permission_android": "You need to grant MetaMask access to your camera to proceed. You may also need to change your system settings.",
     "mismatched_qr_request_id": "Incongruent transaction data. Please use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
-    "fiat_conversion_not_available": "Fiat conversions are not available at this moment",
+    "fiat_conversion_not_available": "local currency conversions are not available at this moment",
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
     "invalid_recipient_description": "Check the address and make sure it's valid",
@@ -8380,7 +8380,7 @@
       "total_rewards": "Total rewards",
       "total_claimable_rewards": "Total claimable rewards",
       "estimated_rewards_api_unavailable": "We couldn’t load estimated annual rewards. Try again later.",
-      "fiat_unavailable": "Fiat values are temporarily unavailable.",
+      "fiat_unavailable": "local currency values are temporarily unavailable.",
       "estimated_annual_reward": "Est. annual reward",
       "trx_locked_for": "TRX locked for",
       "trx_locked_for_minimum_time": "~14 days",
@@ -11023,7 +11023,7 @@
       "swap_approval": "Approve tokens",
       "fiat_purchase": "Buy {{token}} with {{paymentMethod}}"
     },
-    "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
+    "perps_deposit_solution": "You now have {{local currency}} of USDC on Arbitrum. Try your deposit again."
   },
   "activity_details": {
     "status": "Status",
