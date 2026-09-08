@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { IconName } from '../../../../Icons/Icon';
@@ -32,6 +33,23 @@ describe('ButtonBase', () => {
       />,
     );
     expect(toJSON()).toBeDefined();
+  });
+
+  it('renders fixed-size buttons with fully rounded corners', () => {
+    const { getByTestId } = render(
+      <ButtonBase
+        label="Click me!"
+        onPress={() => null}
+        size={ButtonSize.Md}
+        testID="rounded-button"
+      />,
+    );
+
+    const buttonStyle = StyleSheet.flatten(
+      getByTestId('rounded-button').props.style,
+    );
+
+    expect(buttonStyle.borderRadius).toBe(9999);
   });
 
   it('calls onPress when button is pressed', () => {
