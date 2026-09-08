@@ -6,13 +6,13 @@ import {
   ReduceMotion,
 } from 'react-native-reanimated';
 
-const DURATION = 220;
+const DURATION = 320;
 /**
  * Entry and exit are quicker than the reflow so an appended character reads as
  * an immediate response to the keypress rather than something fading in.
  */
-const ENTER_DURATION = 130;
-const EXIT_DURATION = 110;
+const ENTER_DURATION = 190;
+const EXIT_DURATION = 160;
 const EASING = Easing.out(Easing.cubic);
 
 /** Slide distance for a slot entering or leaving, in points. */

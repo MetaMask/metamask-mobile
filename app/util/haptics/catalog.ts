@@ -56,9 +56,9 @@ export const ImpactMoment = {
   QuickAmountSelection: 'quickAmountSelection',
 
   /**
-   * Single key press on an in-app numeric keypad — Rigid impact, chosen to match
-   * the crisp click of the iOS system keyboard. `playSelection` is the picker
-   * tick and reads as too soft for typing.
+   * Single key press on an in-app numeric keypad — Light impact. Distinct from
+   * `QuickAmountSelection` so per-key typing feedback can be tuned without
+   * changing the percentage/Max buttons that sit on the same keypad.
    */
   KeypadKey: 'keypadKey',
 

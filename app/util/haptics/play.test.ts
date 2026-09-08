@@ -94,9 +94,9 @@ describe('play.ts', () => {
       expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
-    it('playImpact(KeypadKey) calls impactAsync with Rigid', async () => {
+    it('playImpact(KeypadKey) calls impactAsync with Light', async () => {
       await playImpact(ImpactMoment.KeypadKey);
-      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Rigid);
+      expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
     });
 
     it('playImpact(SliderGrip) calls impactAsync with Medium', async () => {
