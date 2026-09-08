@@ -9,7 +9,7 @@ import {
 import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../../locales/i18n';
 import {
-  renderBridgeView,
+  renderBridgeViewWithModals as renderBridgeView,
   renderBridgeViewWithRecurringJobDetails,
 } from '../../../../../../../tests/component-view/renderers/bridge';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';

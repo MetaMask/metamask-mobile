@@ -8,6 +8,7 @@ import React, {
 import { Pressable } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
+  BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
@@ -45,7 +46,6 @@ import {
   FIAT_INPUT_DECIMALS,
   FIAT_KEYPAD_CURRENCY,
 } from '../../utils/sourceAmountInputMode';
-import RecurringBottomSheet from '../RecurringBottomSheet';
 import { SwapsKeypad } from '../SwapsKeypad';
 import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import { PriceRangeSheetSelectorsIDs } from './PriceRangeSheet.testIds';
@@ -143,7 +143,6 @@ function PriceRangeAmountField({
 }
 
 const PriceRangeSheet = ({
-  isVisible,
   sourceToken,
   destToken,
   sourceFiatRate,
@@ -152,8 +151,8 @@ const PriceRangeSheet = ({
   initialTokenSide,
   initialMin,
   initialMax,
-  onClose,
   onConfirm,
+  goBack,
 }: PriceRangeSheetProps) => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -167,15 +166,6 @@ const PriceRangeSheet = ({
   const [focusedField, setFocusedField] = useState<PriceRangeField | null>(
     null,
   );
-
-  useEffect(() => {
-    if (isVisible) {
-      setPendingTokenSide(initialTokenSide ?? DEFAULT_PRICE_RANGE_TOKEN_SIDE);
-      setPendingMin(initialMin ?? '');
-      setPendingMax(initialMax ?? '');
-      setFocusedField(null);
-    }
-  }, [initialMax, initialMin, initialTokenSide, isVisible]);
 
   useEffect(() => {
     if (focusedField !== 'max') {
@@ -235,11 +225,6 @@ const PriceRangeSheet = ({
     closeKeypad();
     sheetRef.current?.onCloseBottomSheet();
   }, [closeKeypad]);
-
-  const handleSheetClosed = useCallback(() => {
-    closeKeypad();
-    onClose();
-  }, [closeKeypad, onClose]);
 
   const focusField = useCallback((field: PriceRangeField) => {
     setFocusedField(field);
@@ -324,15 +309,12 @@ const PriceRangeSheet = ({
     pendingTokenSide,
   ]);
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
-    <RecurringBottomSheet
+    <BottomSheet
       ref={sheetRef}
       testID={PriceRangeSheetSelectorsIDs.SHEET}
-      onClose={handleSheetClosed}
+      goBack={goBack}
+      onClose={closeKeypad}
     >
       <BottomSheetHeader
         onClose={closeSheet}
@@ -513,7 +495,7 @@ const PriceRangeSheet = ({
         onChange={handleKeypadChange}
         onClose={() => setFocusedField(null)}
       />
-    </RecurringBottomSheet>
+    </BottomSheet>
   );
 };
 
