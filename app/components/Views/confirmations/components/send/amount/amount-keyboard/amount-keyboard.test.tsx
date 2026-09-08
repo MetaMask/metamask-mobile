@@ -20,8 +20,11 @@ import { useSendActions } from '../../../../hooks/send/useSendActions';
 // eslint-disable-next-line import-x/no-namespace
 import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
 import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
+import { ImpactMoment } from '../../../../../../../util/haptics';
 import { getBackgroundColor } from './amount-keyboard.styles';
 import { AmountKeyboard } from './amount-keyboard';
+
+jest.mock('../../../../../../../util/haptics');
 
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
@@ -105,6 +108,12 @@ const mockUseParams = jest.mocked(useParams);
 const mockUseSendActions = jest.mocked(useSendActions);
 const mockUseUnreliableNetworkAlert = jest.mocked(useUnreliableNetworkAlert);
 
+const { playImpact: mockPlayImpact, playSelection: mockPlaySelection } =
+  jest.requireMock('../../../../../../../util/haptics') as {
+    playImpact: jest.Mock;
+    playSelection: jest.Mock;
+  };
+
 const renderComponent = (
   mockState?: ProviderValues['state'],
   amount = '100',
@@ -183,6 +192,47 @@ describe('Amount', () => {
     const { getByRole } = renderComponent(undefined, '');
     fireEvent.press(getByRole('button', { name: 'Max' }));
     expect(mockUpdateValue).toHaveBeenCalledWith(10, true);
+  });
+
+  it('plays a selection haptic when a digit key is pressed', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_EVM_ASSET,
+      updateValue: jest.fn(),
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+    const { getByRole } = renderComponent();
+
+    fireEvent.press(getByRole('button', { name: '1' }));
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays no haptic when a digit key exceeds the asset decimals', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: { ...MOCK_EVM_ASSET, decimals: 0 },
+      updateValue: jest.fn(),
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+    const { getByRole } = renderComponent(undefined, '1.');
+
+    fireEvent.press(getByRole('button', { name: '1' }));
+
+    expect(mockPlaySelection).not.toHaveBeenCalled();
+  });
+
+  it('plays a quick amount haptic when a percentage button is pressed', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_EVM_ASSET,
+      updateValue: jest.fn(),
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+    const { getByRole } = renderComponent(undefined, '');
+
+    fireEvent.press(getByRole('button', { name: 'Max' }));
+
+    expect(mockPlayImpact).toHaveBeenCalledWith(
+      ImpactMoment.QuickAmountSelection,
+    );
   });
 
   it('call validateNonEvmAmountAsync when continue button is pressed', () => {
