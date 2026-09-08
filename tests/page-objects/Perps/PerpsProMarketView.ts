@@ -334,12 +334,16 @@ class PerpsProMarketView {
    * After Auto close Set from the position card, Pro can keep the root layout
    * mounted while order-form and positions-list children remount. Wait for a
    * Pro child anchor and the concrete position row before close polling.
+   *
+   * Anchors on the positions panel, not `waitForProViewReady`: Set is reached
+   * from the position card, which leaves the order form (and its Long control)
+   * unmounted, so a readiness gate would never pass on this path.
    */
   async waitForPositionRowRemounted(
     symbol: string,
     timeout = 20000,
   ): Promise<void> {
-    await this.waitForProViewReady(timeout);
+    await this.waitForProContainer(timeout);
     await this.waitForPositionRow(symbol, timeout);
   }
 
@@ -671,12 +675,19 @@ class PerpsProMarketView {
    * Cheap position-gone poll for close waits (`waitForCloseAfterPricePush` /
    * liquidation / TP). Do **not** re-tap Positions or scroll — those use
    * `scrollUntilVisible` (default 45s) and burn the outer retry budget in one
-   * attempt when the Pro scroll-view is mid-transition after Auto close Set. We
-   * first require a Pro child anchor to exist so transient post-Set unmounts do
-   * not produce a false "row gone" pass before the view remounts.
+   * attempt when the Pro scroll-view is mid-transition after Auto close Set.
+   *
+   * The positions panel is the rows' own parent and stays mounted even with
+   * zero positions, so requiring it rules out a false "row gone" pass during a
+   * transient unmount while keeping this to two short waits per poll. Do not
+   * gate on order-form controls here — close and liquidation both leave the
+   * order form unmounted, so the poll would never reach the row check.
    */
   async expectPositionRowGone(symbol: string, timeout = 1500): Promise<void> {
-    await this.waitForProViewReady(timeout);
+    await Assertions.expectElementToExist(this.positionsPanel, {
+      description: 'Pro positions panel anchor for position-gone poll',
+      timeout,
+    });
     await Assertions.expectElementToNotExist(this.positionRow(symbol), {
       description: `Pro position row for ${symbol} gone from hierarchy`,
       timeout,
