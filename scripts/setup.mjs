@@ -323,15 +323,23 @@ const reportAgentSkillsTask = {
       // message is swallowed and the user sees only "[SKIPPED]". Retitling is the
       // only way this guidance actually reaches them — and on a fresh clone this
       // is the path most likely to be taken.
+      // `yarn install`, not `yarn skills`: the base set is what the automatic path
+      // delivers, and `yarn skills` with no flags resolves to every domain
+      // (tools/sync falls back to DOMAINS=all unless postinstall exports
+      // SKILLS_DEFAULT_SCOPE). Pointing an empty state at it would hand someone ~39
+      // skills when the default they are missing is 10.
       task.title =
-        'Report agent skills — none installed. Run `yarn skills` to install them.';
+        'Report agent skills — none installed. Run `yarn install` for the base set, or `yarn skills` for every domain.';
       return undefined;
     }
 
-    // Project-scope skills are written to .claude/skills, .cursor/rules and
-    // .agents/skills, so Claude Code and Cursor see this set. Codex only ever
-    // receives `scope: user` skills, which install to $HOME and are deliberately
-    // not counted here.
+    // Counts .claude/skills only, so it says Claude Code only. The installer also
+    // writes .cursor/rules and .agents/skills, but it writes them independently and
+    // they drift — a base-only postinstall refreshes one while an earlier
+    // all-domains `yarn skills` is still sitting in the others. Naming harnesses
+    // this number was not read from is how it came to report 10 on a checkout where
+    // Cursor was loading 39.
+    //
     // A count off disk, not a report of what this run did. `metamask-skills
     // postinstall` returns 0 on every internal failure, so a sync that errored
     // leaves the previous install in place and it would be counted here as if it
@@ -340,14 +348,14 @@ const reportAgentSkillsTask = {
     //
     // It also counts skills from an earlier all-domains `yarn skills`: postinstall
     // does not pass --prune-stale, so those directories persist and keep loading
-    // even though nothing refreshes them. --prune-stale is the way out.
+    // even though nothing refreshes them.
     console.log(`
-     Found ${installed.length} agent skill(s) for Claude Code and Cursor.
+     Found ${installed.length} agent skill(s) in .claude/skills.
 
      The base set installs automatically; yarn skills adds every domain:
       🔎 Pick specific domains:       yarn skills --select
       📖 Inspect one:                 yarn metamask-skills describe <domain>/<skill>
-      🧹 Drop ones no longer managed: yarn skills --prune-stale
+      🧹 Drop ones no longer managed: yarn skills --domain none --prune-stale
 ${TRAILING_BLANK_LINE}`);
     return undefined;
   },

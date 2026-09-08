@@ -273,7 +273,9 @@ SKILLS_DOMAINS=perps,testing yarn skills      # one-off domain override
 
 Use `.skills.local` for persistent skills configuration. Shell environment variables with the same names are supported for one-off or CI overrides and take precedence.
 
-Skipping `yarn skills` is fine — it only affects agent tooling, not the app build. The repo uses the shared `@metamask/skills` package so sync/cache behavior stays uniform across MetaMask packages. Best-effort regeneration runs during install/setup by default; set `SKILLS_AUTO_UPDATE=0` in your shell or `.skills.local` to opt out.
+Skipping `yarn skills` is fine — it only affects agent tooling, not the app build. The repo uses the shared `@metamask/skills` package so sync/cache behavior stays uniform across MetaMask packages. Set `SKILLS_AUTO_UPDATE=0` in your shell or `.skills.local` to opt out.
+
+Regeneration is best-effort, and quieter than it sounds. Yarn runs `postinstall` only when the dependency tree changes or the previous build failed, so a `yarn install` on an unchanged lockfile will not refresh skills — `git pull` on a branch that touched no dependencies usually leaves them as they were. Yarn also discards the output of a build it considers successful, and the hook deliberately exits 0 so a skills problem cannot fail `yarn install`, so nothing is printed either way. Run `yarn skills` when you want a refresh you can watch.
 
 ### Git Hooks (Husky)
 

@@ -34,11 +34,18 @@
 # the old picker wrote for the "all" choice, so it is read as `all` to avoid
 # silently shrinking the skill set of engineers who chose that before.
 #
+# That empty-means-all rule applies to this file only. An exported `SKILLS_DOMAINS=`
+# is not treated as an override at all — sync tests for a non-empty value — so it
+# falls through to whatever is saved here, or to the default. Use an explicit
+# `SKILLS_DOMAINS=all` in the environment if that is what you mean.
+#
 # Leaving it unset (as below) is the recommended default: automatic installs stay
 # base-only, and `yarn skills` still gives you everything on demand.
 #
-# The refresh + install runs automatically during yarn install/setup. Opt out to
-# manage skills by hand with `yarn skills`:
+# The refresh + install runs during yarn install/setup — but only when Yarn
+# actually re-runs postinstall, which is when the dependency tree changes or the
+# last build failed. An install on an unchanged lockfile refreshes nothing. Run
+# `yarn skills` when you want a refresh on demand. Opt out of the automatic one:
 #   SKILLS_AUTO_UPDATE=0              # skip the refresh + install
 #
 # Use SKILLS_AUTO_UPDATE=0 for a persistent opt-out — it is the only one this file
