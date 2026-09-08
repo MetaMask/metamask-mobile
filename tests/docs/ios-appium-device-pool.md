@@ -135,6 +135,7 @@ Logs: `iOS device pool size=2 workers=2`, `iOS pool worker 0/1` with UDID and
 pool** records pool size/workers, Playwright outcome, and `duration_ms` from
 `playwright-report.json` (`stats.duration`).
 
+
 | Failure                                      | Behavior                                                           |
 | -------------------------------------------- | ------------------------------------------------------------------ |
 | Pool / workers mismatch                      | Throw in global setup                                              |
