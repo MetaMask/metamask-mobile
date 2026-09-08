@@ -32,7 +32,6 @@ import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
-import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import {
   renderFromTokenMinimalUnit,
@@ -63,7 +62,7 @@ import {
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
-import { CaipAssetType, Hex, Json, parseCaipAssetType } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 import { captureException } from '@sentry/react-native';
 
@@ -80,9 +79,6 @@ import {
 } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { removeAccountsFromPermissions } from '../Permissions';
-import { multichainBalancesControllerInit } from './controllers/multichain-balances-controller/multichain-balances-controller-init';
-import { multichainAssetsControllerInit } from './controllers/multichain-assets-controller/multichain-assets-controller-init';
-import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
@@ -115,12 +111,12 @@ import {
 } from '../../selectors/assets/assets-migration';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
+import { registerLegacyAssetControllerStateCompat } from './legacy-asset-state-compat';
 import { initMessengerClients } from './utils';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
-import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { defiPositionsControllerV2Init } from './controllers/defi-positions-controller-v2/defi-positions-controller-v2-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
@@ -147,11 +143,6 @@ import { preferencesControllerInit } from './controllers/preferences-controller-
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
-import { tokensControllerInit } from './controllers/tokens-controller-init';
-import { tokenDetectionControllerInit } from './controllers/token-detection-controller-init';
-import { tokenBalancesControllerInit } from './controllers/token-balances-controller-init';
-import { tokenRatesControllerInit } from './controllers/token-rates-controller-init';
-import { accountTrackerControllerInit } from './controllers/account-tracker-controller-init';
 import { nftControllerInit } from './controllers/nft-controller-init';
 import { nftDetectionControllerInit } from './controllers/nft-detection-controller-init';
 import { smartTransactionsControllerInit } from './controllers/smart-transactions-controller-init';
@@ -281,6 +272,7 @@ export class Engine {
     logEngineCreation(initialState, initialKeyringState);
 
     this.controllerMessenger = getRootExtendedMessenger();
+    registerLegacyAssetControllerStateCompat(this.controllerMessenger);
 
     const mergedInitialState = {
       ...initialState,
@@ -318,13 +310,11 @@ export class Engine {
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         AssetsContractController: assetsContractControllerInit,
-        AccountTrackerController: accountTrackerControllerInit,
         SelectedNetworkController: selectedNetworkControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionPayController: TransactionPayControllerInit,
         SignatureController: SignatureControllerInit,
-        CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
         MoneyAccountController: moneyAccountControllerInit,
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
@@ -332,14 +322,8 @@ export class Engine {
         GeolocationApiService: geolocationApiServiceInit,
         SentinelApiService: sentinelApiServiceInit,
         GeolocationController: geolocationControllerInit,
-        TokensController: tokensControllerInit,
-        TokenBalancesController: tokenBalancesControllerInit,
-        // MultichainNetworkController and NetworkEnablementController must be initialized before TokenRatesController
-        // because TokenRatesController depends on NetworkEnablementController:getState during construction.
         MultichainNetworkController: multichainNetworkControllerInit,
         NetworkEnablementController: networkEnablementControllerInit,
-        TokenRatesController: tokenRatesControllerInit,
-        TokenDetectionController: tokenDetectionControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
@@ -366,9 +350,6 @@ export class Engine {
         OHLCVService: ohlcvServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         SnapAccountService: snapAccountServiceInit,
-        MultichainAssetsController: multichainAssetsControllerInit,
-        MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
-        MultichainBalancesController: multichainBalancesControllerInit,
         MultichainRoutingService: multichainRoutingServiceInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
@@ -426,8 +407,6 @@ export class Engine {
     const approvalController = this.#wallet.getInstance('ApprovalController');
     const assetsContractController =
       messengerClientsByName.AssetsContractController;
-    const accountTrackerController =
-      messengerClientsByName.AccountTrackerController;
     const gasFeeController = this.#wallet.getInstance('GasFeeController');
     const signatureController = messengerClientsByName.SignatureController;
     const smartTransactionsController =
@@ -505,17 +484,9 @@ export class Engine {
 
     const multichainNetworkController =
       messengerClientsByName.MultichainNetworkController;
-    const currencyRateController =
-      messengerClientsByName.CurrencyRateController;
     const earnController = messengerClientsByName.EarnController;
     const moneyAccountController =
       messengerClientsByName.MoneyAccountController;
-    const tokensController = messengerClientsByName.TokensController;
-    const tokenBalancesController =
-      messengerClientsByName.TokenBalancesController;
-    const tokenRatesController = messengerClientsByName.TokenRatesController;
-    const tokenDetectionController =
-      messengerClientsByName.TokenDetectionController;
     const tokenSearchDiscoveryDataController =
       messengerClientsByName.TokenSearchDiscoveryDataController;
     const bridgeController = messengerClientsByName.BridgeController;
@@ -555,12 +526,6 @@ export class Engine {
     const ohlcvService = messengerClientsByName.OHLCVService;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainAssetsController =
-      messengerClientsByName.MultichainAssetsController;
-    const multichainAssetsRatesController =
-      messengerClientsByName.MultichainAssetsRatesController;
-    const multichainBalancesController =
-      messengerClientsByName.MultichainBalancesController;
     const multichainTransactionsController =
       messengerClientsByName.MultichainTransactionsController;
     const multichainAccountService =
@@ -599,7 +564,6 @@ export class Engine {
       AnalyticsController: analyticsController,
       KeyringController: this.keyringController,
       AccountTreeController: accountTreeController,
-      AccountTrackerController: accountTrackerController,
       AddressBookController: addressBookController,
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
@@ -610,15 +574,10 @@ export class Engine {
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,
-      TokensController: tokensController,
-      TokenDetectionController: tokenDetectionController,
       NftDetectionController: nftDetectionController,
-      CurrencyRateController: currencyRateController,
       NetworkController: networkController,
       PhishingController: phishingController,
       PreferencesController: preferencesController,
-      TokenBalancesController: tokenBalancesController,
-      TokenRatesController: tokenRatesController,
       TransactionController: this.transactionController,
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
@@ -652,9 +611,6 @@ export class Engine {
       OHLCVService: ohlcvService,
       AccountsController: accountsController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      MultichainBalancesController: multichainBalancesController,
-      MultichainAssetsController: multichainAssetsController,
-      MultichainAssetsRatesController: multichainAssetsRatesController,
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
       SnapAccountService: snapAccountService,
@@ -777,58 +733,19 @@ export class Engine {
       },
     );
 
-    // Subscribe to destinationTransactionCompleted event from BridgeStatusController and refresh assets.
-    this.controllerMessenger.subscribe(
-      'BridgeStatusController:destinationTransactionCompleted',
-      (caipAsset: CaipAssetType) => {
-        try {
-          const { chain } = parseCaipAssetType(caipAsset);
-
-          const { namespace: caipNamespace, reference } = chain;
-          if (caipNamespace === 'eip155') {
-            const hexChainId = toHex(reference);
-            this.context.TokenDetectionController.detectTokens({
-              chainIds: [hexChainId],
-            });
-            this.context.TokenBalancesController.updateBalances({
-              chainIds: [hexChainId],
-            });
-
-            const { AccountTrackerController, NetworkController } =
-              this.context;
-            try {
-              const networkClientId =
-                NetworkController.findNetworkClientIdByChainId(hexChainId);
-              AccountTrackerController.refresh([networkClientId]);
-            } catch {
-              // Chain may not be configured locally — skip balance refresh
-            }
-          }
-        } catch (error) {
-          console.error(
-            'Error handling BridgeStatusController:destinationTransactionCompleted event:',
-            error,
-          );
-        }
-      },
-    );
-
     // Forward real-time websocket balance pushes into the AssetsController.
-    // When `assetsUnifyState` is enabled the UI reads balances from
-    // `AssetsController.assetsBalance`. Both `AccountActivityService` and the
-    // controller's internal `BackendWebsocketDataSource` open a separate
-    // websocket subscription to the same account-activity channel, but the
-    // backend routes each notification to a single subscriptionId, so the data
-    // source's subscription is starved and `assetsBalance` is not refreshed
-    // until the 30s poll. `AccountActivityService` reliably receives the push,
-    // so we bridge it into the controller's own public merge entrypoint.
+    // The UI reads balances from `AssetsController.assetsBalance`. Both
+    // `AccountActivityService` and the controller's internal
+    // `BackendWebsocketDataSource` open a separate websocket subscription to
+    // the same account-activity channel, but the backend routes each
+    // notification to a single subscriptionId, so the data source's
+    // subscription is starved and `assetsBalance` is not refreshed until the
+    // 30s poll. `AccountActivityService` reliably receives the push, so we
+    // bridge it into the controller's own public merge entrypoint.
     this.controllerMessenger.subscribe(
       'AccountActivityService:balanceUpdated',
       (payload: BalanceUpdatedPushPayload) => {
         try {
-          if (!selectIsAssetsUnifyStateEnabled(store.getState())) {
-            return;
-          }
           const account = this.context.AccountsController.getAccountByAddress(
             payload.address,
           );
@@ -1031,7 +948,7 @@ export class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const { AccountTrackerController, NetworkController } = this.context;
+    const { NetworkController } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
@@ -1039,16 +956,6 @@ export class Engine {
       return;
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
-
-    AccountTrackerController.refresh([
-      NetworkController.state.networkConfigurationsByChainId[
-        getGlobalChainId(NetworkController)
-      ]?.rpcEndpoints?.[
-        NetworkController.state.networkConfigurationsByChainId[
-          getGlobalChainId(NetworkController)
-        ]?.defaultRpcEndpointIndex
-      ]?.networkClientId,
-    ]);
   }
 
   getTotalEvmFiatAccountBalance = (
@@ -1313,14 +1220,15 @@ export class Engine {
    */
   hasFunds = () => {
     try {
+      const state = store.getState();
       const {
         engine: { backgroundState },
-      } = store.getState();
+      } = state;
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
 
-      const { tokenBalances } = backgroundState.TokenBalancesController;
+      const tokenBalances = getTokenBalancesControllerTokenBalances(state);
 
       const hasNonZeroTokenBalance = (): boolean => {
         for (const chains of Object.values(tokenBalances)) {
@@ -1352,10 +1260,7 @@ export class Engine {
     // get rid of the old data from state
     const {
       TransactionController,
-      TokensController,
       NftController,
-      TokenBalancesController,
-      TokenRatesController,
       PermissionController,
       // SelectedNetworkController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1379,11 +1284,7 @@ export class Engine {
     // SelectedNetworkController.unsetAllDomains()
 
     //Clear assets info
-    TokensController.resetState();
     NftController.resetState();
-
-    TokenBalancesController.resetState();
-    TokenRatesController.resetState();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (TransactionController as any).update(() => ({
@@ -1549,7 +1450,6 @@ export default {
       SamplePetnamesController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController,
-      AccountTrackerController,
       AccountTreeController,
       AddressBookController,
       AppMetadataController,
@@ -1562,7 +1462,6 @@ export default {
       ConfigRegistryController,
       ConnectivityController,
       NetworkConnectionBannerController,
-      CurrencyRateController,
       DeFiPositionsController,
       DeFiPositionsControllerV2,
       DelegationController,
@@ -1590,9 +1489,6 @@ export default {
       SubscriptionController,
       ShieldController,
       ClaimsController,
-      TokenBalancesController,
-      TokenRatesController,
-      TokensController,
       TokenSearchDiscoveryDataController,
       TransactionController,
       TransactionPayController,
@@ -1614,9 +1510,6 @@ export default {
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      MultichainAssetsController,
-      MultichainAssetsRatesController,
-      MultichainBalancesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
@@ -1630,7 +1523,6 @@ export default {
       SamplePetnamesController: SamplePetnamesController.state,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: AccountsController.state,
-      AccountTrackerController: AccountTrackerController.state,
       AccountTreeController: AccountTreeController.state,
       AddressBookController: AddressBookController.state,
       AppMetadataController: AppMetadataController.state,
@@ -1643,7 +1535,6 @@ export default {
       ConnectivityController: ConnectivityController.state,
       NetworkConnectionBannerController:
         NetworkConnectionBannerController.state,
-      CurrencyRateController: CurrencyRateController.state,
       DeFiPositionsController: DeFiPositionsController.state,
       DeFiPositionsControllerV2: DeFiPositionsControllerV2.state,
       DelegationController: DelegationController.state,
@@ -1671,9 +1562,6 @@ export default {
       SubscriptionController: SubscriptionController.state,
       ShieldController: ShieldController.state,
       ClaimsController: ClaimsController.state,
-      TokenBalancesController: TokenBalancesController.state,
-      TokenRatesController: TokenRatesController.state,
-      TokensController: TokensController.state,
       TokenSearchDiscoveryDataController:
         TokenSearchDiscoveryDataController.state,
       TransactionController: TransactionController.state,
@@ -1699,9 +1587,6 @@ export default {
       UserStorageController: UserStorageController.state,
       ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      MultichainAssetsController: MultichainAssetsController.state,
-      MultichainAssetsRatesController: MultichainAssetsRatesController.state,
-      MultichainBalancesController: MultichainBalancesController.state,
       MultichainTransactionsController: MultichainTransactionsController.state,
       ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,

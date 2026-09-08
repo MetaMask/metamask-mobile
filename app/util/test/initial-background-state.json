@@ -6,9 +6,6 @@
   "LoggingController": {
     "logs": {}
   },
-  "AccountTrackerController": {
-    "accountsByChainId": {}
-  },
   "AccountsController": {
     "internalAccounts": {
       "accounts": {},
@@ -44,21 +41,6 @@
     "allNftContracts": {},
     "allNfts": {},
     "ignoredNfts": []
-  },
-  "TokensController": {
-    "allTokens": {},
-    "allIgnoredTokens": {},
-    "allDetectedTokens": {}
-  },
-  "CurrencyRateController": {
-    "currentCurrency": "usd",
-    "currencyRates": {
-      "ETH": {
-        "conversionDate": 0,
-        "conversionRate": 0,
-        "usdConversionRate": null
-      }
-    }
   },
   "DelegationController": {},
   "NetworkController": {
@@ -360,12 +342,6 @@
     "tokenNetworkFilter": {},
     "privacyMode": false
   },
-  "TokenBalancesController": {
-    "tokenBalances": {}
-  },
-  "TokenRatesController": {
-    "marketData": {}
-  },
   "TokenSearchDiscoveryDataController": {
     "tokenDisplayData": []
   },
@@ -633,9 +609,6 @@
     "isContactSyncingEnabled": true,
     "isContactSyncingInProgress": false
   },
-  "MultichainBalancesController": {
-    "balances": {}
-  },
   "MultichainNetworkController": {
     "isEvmSelected": true,
     "networksWithTransactionActivity": {},
@@ -727,11 +700,6 @@
   "NetworkConnectionBannerController": {
     "networkConnectionBannerStatus": "available",
     "networkConnectionBannerNetwork": null
-  },
-  "MultichainAssetsController": {
-    "accountsAssets": {},
-    "assetsMetadata": {},
-    "allIgnoredAssets": {}
   },
   "BridgeController": {
     "assetExchangeRates": {},
@@ -829,10 +797,6 @@
   },
   "ConnectivityController": {
     "connectivityStatus": "online"
-  },
-  "MultichainAssetsRatesController": {
-    "conversionRates": {},
-    "historicalPrices": {}
   },
   "CronjobController": {
     "events": {}
