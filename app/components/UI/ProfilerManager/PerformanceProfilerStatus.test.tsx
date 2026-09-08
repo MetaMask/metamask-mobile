@@ -56,8 +56,10 @@ describe('PerformanceProfilerStatus', () => {
 
     expect(
       getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.start),
-    ).toBeTruthy();
-    expect(getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.stop)).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.stop),
+    ).toBeOnTheScreen();
     expect(
       queryByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.startAck),
     ).toBeNull();
@@ -70,14 +72,14 @@ describe('PerformanceProfilerStatus', () => {
     expect(mockStartAppProfiling).toHaveBeenCalledTimes(1);
     expect(
       getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.startAck),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.stop));
 
     expect(mockStopAppProfiling).toHaveBeenCalledTimes(1);
     expect(
       getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.stopAck),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('exposes recording and result hooks from profiling status', () => {
@@ -99,18 +101,19 @@ describe('PerformanceProfilerStatus', () => {
 
     expect(
       getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.recordingReady),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
 
     act(() => {
       statusListener?.({
         isRecording: false,
-        lastProfilePath: '/sdcard/Download/profile.cpuprofile',
+        lastProfilePath:
+          '/sdcard/Android/data/io.metamask/files/Documents/profile.cpuprofile',
         lastError: null,
       });
     });
 
     expect(
       getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.resultReady),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 });
