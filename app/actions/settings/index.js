@@ -55,11 +55,42 @@ export function setBasicFunctionality(basicFunctionalityEnabled) {
   };
 }
 
+export function setBasicFunctionalityConsolidatedEnabled(
+  isBasicFunctionalityConsolidatedEnabled,
+) {
+  return {
+    type: 'SET_BASIC_FUNCTIONALITY_CONSOLIDATED_ENABLED',
+    isBasicFunctionalityConsolidatedEnabled,
+  };
+}
+
 // Thunk action creator for user-initiated toggles (includes MultichainAccountService integration)
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
-  return async (dispatch) => {
-    // First dispatch the Redux state update
+  return async (dispatch, getState) => {
+    const {
+      selectIsBasicFunctionalityConsolidationEnabled,
+    } = require('../../selectors/featureFlagController/basicFunctionalityConsolidation');
+    const {
+      syncConsolidatedBasicFunctionalityPreferences,
+    } = require('../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences');
+
+    // Evaluate consolidation eligibility before flipping BF. Silent-migration
+    // users are eligible via consistent all-on/all-off state; flipping BF first
+    // would make children look mixed and skip sync.
+    const shouldSyncConsolidatedPreferences =
+      selectIsBasicFunctionalityConsolidationEnabled(getState());
+
+    // Persist cohort membership before flipping BF so the UI does not briefly
+    // re-show granular toggles while children are still mixed.
+    if (shouldSyncConsolidatedPreferences) {
+      dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+    }
+
     dispatch(setBasicFunctionality(basicFunctionalityEnabled));
+
+    if (shouldSyncConsolidatedPreferences) {
+      syncConsolidatedBasicFunctionalityPreferences(basicFunctionalityEnabled);
+    }
 
     const Engine = require('../../core/Engine').default;
     Engine.context.MultichainAccountService.setBasicFunctionality(

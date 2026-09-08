@@ -12,6 +12,16 @@ import {
 
 describe('Feature Flag Registry', () => {
   describe('FEATURE_FLAG_REGISTRY', () => {
+    it('registers Chase as version-gated and default-off', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsMobileChase).toMatchObject({
+        name: 'perpsMobileChase',
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.10.0',
+        },
+      });
+    });
     it('contains entries for all registered flags', () => {
       const entries = Object.values(FEATURE_FLAG_REGISTRY);
       expect(entries.length).toBeGreaterThan(0);
@@ -52,6 +62,21 @@ describe('Feature Flag Registry', () => {
         productionDefault: {
           enabled: false,
           minimumVersion: '8.10.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
+    it('registers the Pro position-modify margin preview as version-gated and default-off', () => {
+      expect(
+        FEATURE_FLAG_REGISTRY.perpsPositionModifyPreviewEnabled,
+      ).toMatchObject({
+        name: 'perpsPositionModifyPreviewEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.11.0',
         },
         status: FeatureFlagStatus.Active,
       });

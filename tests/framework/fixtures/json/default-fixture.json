@@ -1,6 +1,7 @@
 {
   "asyncState": {
     "@MetaMask:OptinMetaMetricsUISeen": "true",
+    "@MetaMask:PUSH_PRE_PROMPT_SHOWN": "true",
     "@MetaMask:UserTermsAcceptedv1.0": "true",
     "@MetaMask:existingUser": "true",
     "@MetaMask:predictGTMModalShown": "true",
@@ -160,6 +161,7 @@
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
           "providerUserId": null,
+          "redeemWithdrawal": null,
           "selectedCountry": null
         },
         "ClaimsController": {
@@ -674,7 +676,6 @@
             "stxMigrationCancel": "sentinel on",
             "stxMigrationGetFees": "sentinel on",
             "stxMigrationSubmitTransactions": "sentinel on",
-            "swapsSWAPS4784AbtestCTAButtonColor": "control",
             "swapsSWAPS4825AbtestChainValueOrder": "control",
             "tokenDetailsV2AbTest": "Control is OFF",
             "trendingTokens": "feature is ON"
@@ -732,6 +733,11 @@
           "methodData": {},
           "swapsTransactions": {},
           "transactions": []
+        },
+        "UiSlotsController": {
+          "activeConfigurations": {},
+          "enabled": false,
+          "screenConfigurations": {}
         },
         "UserStorageController": {}
       }
@@ -796,6 +802,7 @@
       "networkId": "1"
     },
     "legalNotices": {
+      "arcUsageNoticeShown": true,
       "isPna25Acknowledged": true,
       "newPrivacyPolicyToastClickedOrClosed": true,
       "newPrivacyPolicyToastShownDate": 1684232000000
@@ -993,6 +1000,7 @@
     "settings": {
       "avatarAccountType": "Maskicon",
       "basicFunctionalityEnabled": true,
+      "isBasicFunctionalityConsolidatedEnabled": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,

@@ -717,6 +717,62 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.isAtMaxAmount).toBe(false);
   });
 
+  it('preserves maximum-slider intent when an external clamp reaches the new maximum', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ preserveMaxIntent: true }) },
+    );
+    act(() => {
+      result.current.sizeSlider.onDragEnd(
+        result.current.sizeSlider.maximumValue,
+      );
+    });
+
+    rerender(
+      createParams({
+        usdAmount: '900',
+        maxPossibleAmount: 900,
+        preserveMaxIntent: true,
+      }),
+    );
+
+    expect(result.current.isAtMaxAmount).toBe(true);
+    expect(result.current.effectiveUsdAmount).toBe('900');
+  });
+
+  it('clears maximum intent for non-Chase external clamps', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams() },
+    );
+    act(() => {
+      result.current.sizeSlider.onDragEnd(
+        result.current.sizeSlider.maximumValue,
+      );
+    });
+
+    rerender(createParams({ usdAmount: '900', maxPossibleAmount: 900 }));
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+  });
+
+  it('clears maximum-slider intent when the available maximum reaches zero', () => {
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams() },
+    );
+    act(() => {
+      result.current.sizeSlider.onDragEnd(
+        result.current.sizeSlider.maximumValue,
+      );
+    });
+
+    rerender(createParams({ usdAmount: '0', maxPossibleAmount: 0 }));
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(result.current.effectiveUsdAmount).toBe('0');
+  });
+
   it('clears maximum-slider intent when an interrupted drag previews a smaller amount', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
 

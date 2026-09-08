@@ -40,6 +40,7 @@ import { useDepositPrefillAmount } from './useDepositPrefillAmount';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
+const MIN_FIAT_AMOUNT = 0.01;
 
 interface DepositPrefetchQuoteRequest {
   amountHuman: string;
@@ -47,10 +48,6 @@ interface DepositPrefetchQuoteRequest {
   isAmountPrepared: boolean;
   quoteBaseline: number | undefined;
   sawQuoteLoading: boolean;
-}
-
-function formatFiatAmount(value: BigNumber): string {
-  return value.isInteger() ? value.toString(10) : value.toFixed(2);
 }
 
 export function useTransactionCustomAmount({
@@ -353,16 +350,22 @@ export function useTransactionCustomAmount({
         return false;
       }
 
-      const newAmount = formatFiatAmount(
-        new BigNumber(percentage)
-          .dividedBy(100)
-          .multipliedBy(balanceUsd)
-          .decimalPlaces(2, BigNumber.ROUND_DOWN),
-      );
+      const rawAmount = new BigNumber(percentage)
+        .dividedBy(100)
+        .multipliedBy(balanceUsd);
 
-      // Sub-cent / dust balances ROUND_DOWN to $0. Treat that like no balance
-      // so Max does not arm auto-submit and strand the page on Loading.
-      if (new BigNumber(newAmount).lte(0)) {
+      // Pad a lone decimal to cents (`500.1` -> `500.10`).
+      // Anything more precise keeps every digit.
+      const newAmount =
+        rawAmount.decimalPlaces() === 1
+          ? rawAmount.toFixed(2)
+          : rawAmount.toFixed();
+
+      // Sub-cent dust renders as $0.00 and cannot produce a usable quote, so
+      // treat it like no balance rather than arming auto-submit and stranding
+      // the page on Loading. Checked against the raw amount because the
+      // applied amount deliberately keeps full precision.
+      if (rawAmount.lt(MIN_FIAT_AMOUNT)) {
         return false;
       }
 
@@ -375,11 +378,6 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Always arm isMaxAmount on a full (100%) selection. TPC resolves the
-      // correct source balance for every flow — including money-account deposit
-      // max — via the getBalance callback (perps HyperLiquid, predict
-      // Polymarket, money-account mUSD + vmUSD), so no per-transaction-type
-      // exclusion or client-side full-precision override is needed here.
       if (percentage === 100) {
         setIsMax(true);
       } else if (isMaxAmount) {

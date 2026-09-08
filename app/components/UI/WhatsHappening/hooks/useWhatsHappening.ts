@@ -5,6 +5,10 @@ import type {
   MarketOverview,
   MarketOverviewFrontPage,
 } from '@metamask/ai-controllers';
+import {
+  DIGEST_QUERY_GC_TIME_MS,
+  digestQueryStaleTime,
+} from '../../../../constants/digestQuery';
 import Engine from '../../../../core/Engine';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import Logger from '../../../../util/Logger';
@@ -14,7 +18,9 @@ import type { WhatsHappeningItem } from '../types';
 /** Internal error flag when fetch rejects with a non-Error value (not shown in UI). */
 export const WHATS_HAPPENING_FETCH_FAILED = 'WHATS_HAPPENING_FETCH_FAILED';
 
-const WHATS_HAPPENING_QUERY_KEY = 'whats-happening';
+export const WHATS_HAPPENING_QUERY_KEY = 'whats-happening';
+export const WHATS_HAPPENING_FRONT_PAGE_QUERY_KEY =
+  'whats-happening-front-page';
 
 /**
  * Result interface for useWhatsHappening hook
@@ -73,16 +79,12 @@ const mapFrontPageToItem = (
 /**
  * Fetches the deep-linked "outdated" front-page item, if any.
  *
- * @param outdatedItemId - The front-page item id from the deep link, or `null`.
+ * @param outdatedItemId - The front-page item id from the deep link.
  * @returns The mapped outdated item, or `null` when there is none / on failure.
  */
 const fetchOutdatedItem = async (
-  outdatedItemId: string | null,
+  outdatedItemId: string,
 ): Promise<WhatsHappeningItem | null> => {
-  if (!outdatedItemId) {
-    return null;
-  }
-
   try {
     const frontPage =
       await Engine.context.AiDigestController.fetchFrontPageItem(
@@ -92,6 +94,18 @@ const fetchOutdatedItem = async (
   } catch {
     // Non-fatal: fall back to rendering just the latest market overview items.
     return null;
+  }
+};
+
+const fetchMarketOverview = async (): Promise<MarketOverview | null> => {
+  try {
+    return await Engine.context.AiDigestController.fetchMarketOverview();
+  } catch (err) {
+    Logger.error(ensureError(err, 'useWhatsHappening.fetchMarketOverview'), {
+      tags: { feature: 'WhatsHappening' },
+      extra: { hook: 'useWhatsHappening' },
+    });
+    throw err instanceof Error ? err : new Error(WHATS_HAPPENING_FETCH_FAILED);
   }
 };
 
@@ -145,39 +159,12 @@ const prependOutdatedItem = (
   return [item, ...rest];
 };
 
-const fetchWhatsHappeningItems = async (
-  outdatedItemId: string | null,
-): Promise<WhatsHappeningItem[]> => {
-  try {
-    const data = await Engine.context.AiDigestController.fetchMarketOverview();
-    const baseItems =
-      data === null || data === undefined ? [] : mapTrendsToItems(data);
-
-    // When a deep link supplied an id, prepend that front-page item as the
-    // first card, deduped against the latest feed. It is flagged "Outdated"
-    // only when it is not already in the feed (see prependOutdatedItem).
-    const outdatedItem = await fetchOutdatedItem(outdatedItemId);
-
-    return prependOutdatedItem(outdatedItem, baseItems);
-  } catch (err) {
-    Logger.error(ensureError(err, 'useWhatsHappening.fetchItems'), {
-      tags: { feature: 'WhatsHappening' },
-      extra: { hook: 'useWhatsHappening' },
-    });
-    throw err instanceof Error ? err : new Error(WHATS_HAPPENING_FETCH_FAILED);
-  }
-};
-
 /**
  * Hook to fetch trending "What's Happening" items for the carousel.
  *
- * Calls `AiDigestController.fetchMarketOverview()` (which handles caching
- * internally) and maps the returned `MarketOverviewTrend` entries to
- * `WhatsHappeningItem` shape for the carousel cards. Item count is owned by
- * the Digest API — the client does not slice the response.
- *
- * React Query only coordinates in-flight work. The controller remains the
- * 10-minute cache.
+ * Calls `AiDigestController.fetchMarketOverview()` and maps trends to
+ * `WhatsHappeningItem`. React Query owns the 10-minute overview cache.
+ * A deep-linked front-page item is a separate uncached query.
  *
  * @param options - Hook options (`enabled`, `outdatedItemId`).
  * @returns Object with items, isLoading, error, refresh
@@ -193,22 +180,24 @@ export const useWhatsHappening = (
   const pendingRefreshRef = useRef<(() => void) | null>(null);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
-  const query = useQuery<WhatsHappeningItem[], Error>({
-    queryKey: [WHATS_HAPPENING_QUERY_KEY, outdatedItemId],
-    queryFn: () => fetchWhatsHappeningItems(outdatedItemId),
+  const overviewQuery = useQuery<MarketOverview | null, Error>({
+    queryKey: [WHATS_HAPPENING_QUERY_KEY],
+    queryFn: fetchMarketOverview,
     enabled: isActive,
     retry: false,
-    // The controller can satisfy this request from its persisted cache while
-    // offline. Let it decide whether a network request is necessary.
     networkMode: 'always',
-    // AiDigestController owns the cache. React Query only coordinates
-    // in-flight requests here.
+    staleTime: digestQueryStaleTime,
+    gcTime: DIGEST_QUERY_GC_TIME_MS,
+  });
+
+  const frontPageQuery = useQuery<WhatsHappeningItem | null, Error>({
+    queryKey: [WHATS_HAPPENING_FRONT_PAGE_QUERY_KEY, outdatedItemId],
+    queryFn: () => fetchOutdatedItem(outdatedItemId ?? ''),
+    enabled: isActive && Boolean(outdatedItemId),
+    retry: false,
+    networkMode: 'always',
     staleTime: 0,
     gcTime: 0,
-    // Match the previous hook: fetch on mount / refresh / key change, not on
-    // app resume or reconnect (those would mark every subscriber as fetching).
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
   });
 
   useEffect(() => {
@@ -216,11 +205,14 @@ export const useWhatsHappening = (
     // used by WhatsHappeningSection when a parent already owns the feed.
     if (!isFeatureEnabled) {
       queryClient.removeQueries({
-        queryKey: [WHATS_HAPPENING_QUERY_KEY, outdatedItemId],
+        queryKey: [WHATS_HAPPENING_QUERY_KEY],
         exact: true,
       });
+      queryClient.removeQueries({
+        queryKey: [WHATS_HAPPENING_FRONT_PAGE_QUERY_KEY],
+      });
     }
-  }, [isFeatureEnabled, outdatedItemId, queryClient]);
+  }, [isFeatureEnabled, queryClient]);
 
   useEffect(
     () => () => {
@@ -237,31 +229,53 @@ export const useWhatsHappening = (
 
     return new Promise<void>((resolve) => {
       pendingRefreshRef.current = resolve;
-      queryClient
-        .refetchQueries({
-          queryKey: [WHATS_HAPPENING_QUERY_KEY, outdatedItemId],
+      const refreshes = [
+        queryClient.refetchQueries({
+          queryKey: [WHATS_HAPPENING_QUERY_KEY],
           exact: true,
-        })
-        .finally(() => {
-          if (pendingRefreshRef.current === resolve) {
-            pendingRefreshRef.current();
-            pendingRefreshRef.current = null;
-            setIsManualRefreshing(false);
-          }
-        });
+        }),
+      ];
+      if (outdatedItemId) {
+        refreshes.push(
+          queryClient.refetchQueries({
+            queryKey: [WHATS_HAPPENING_FRONT_PAGE_QUERY_KEY, outdatedItemId],
+            exact: true,
+          }),
+        );
+      }
+      Promise.all(refreshes).finally(() => {
+        if (pendingRefreshRef.current === resolve) {
+          pendingRefreshRef.current();
+          pendingRefreshRef.current = null;
+          setIsManualRefreshing(false);
+        }
+      });
     });
   }, [outdatedItemId, queryClient]);
 
   const error =
-    isActive && query.error
-      ? query.error.message || WHATS_HAPPENING_FETCH_FAILED
+    isActive && overviewQuery.error
+      ? overviewQuery.error.message || WHATS_HAPPENING_FETCH_FAILED
       : null;
 
+  const baseItems =
+    isActive && !error && overviewQuery.data
+      ? mapTrendsToItems(overviewQuery.data)
+      : [];
+  const outdatedItem =
+    outdatedItemId && frontPageQuery.data ? frontPageQuery.data : null;
+  const items = prependOutdatedItem(outdatedItem, baseItems);
+
+  const isFrontPageLoading =
+    Boolean(outdatedItemId) && frontPageQuery.isLoading;
+
   return {
-    items: isActive && !error ? (query.data ?? []) : [],
+    items: isActive && !error ? items : [],
     // isFetching is true for background refetches (new observer, stale mount).
     // Only the initial load and an explicit refresh should show skeletons.
-    isLoading: isActive && (query.isLoading || isManualRefreshing),
+    isLoading:
+      isActive &&
+      (overviewQuery.isLoading || isFrontPageLoading || isManualRefreshing),
     error,
     refresh,
   };

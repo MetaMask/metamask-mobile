@@ -11,10 +11,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CLAIM_BUTTON_TEST_IDS } from '../../../../UI/Predict/components/PredictActionButtons/PredictClaimButton.testIds';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MAX_POSITIONS_DISPLAYED } from './predictionsSectionConstants';
+import { HOMEPAGE_PREDICT_MARKET_SLOTS } from './constants/homepagePredictMarketSlots';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockIsFocused = jest.fn(() => true);
+const mockRefreshUiSlots = jest.fn().mockResolvedValue('ready');
+const mockUseUiSlotsScreen = jest.fn(() => mockRefreshUiSlots);
 const mockCreateEventBuilder = jest.fn((event: unknown) => ({
   addProperties: (properties: Record<string, unknown>) => ({
     build: () => ({ event, properties }),
@@ -26,6 +30,11 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+jest.mock('../../../../UI/UiSlots/hooks/useUiSlotsScreen', () => ({
+  useUiSlotsScreen: (...args: unknown[]) =>
+    Reflect.apply(mockUseUiSlotsScreen, undefined, args),
 }));
 
 const PREDICT_EMPTY_STATE_AB_KEY = 'coreMCU747AbtestPredictPositionsEmptyState';
@@ -127,6 +136,11 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
   selectPredictUpDownEnabledFlag: jest.fn(() => true),
+  selectPredictFeeCollectionFlag: jest.fn(() => ({
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  })),
 }));
 
 jest.mock('../../../../UI/Predict/hooks/useLiveCryptoPrices', () => ({
@@ -328,6 +342,33 @@ describe('PredictionsSection', () => {
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
+  it('limits active homepage positions', () => {
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUsePredictPositionsForHomepage).toHaveBeenCalledWith({
+      maxPositions: MAX_POSITIONS_DISPLAYED,
+      enabled: true,
+    });
+  });
+
+  it('keeps sports mode on the bundled sports-only discovery path', () => {
+    renderWithProvider(
+      <PredictionsSection
+        mode="sports"
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+      />,
+    );
+
+    expect(mockUsePredictMarketsForHomepage).not.toHaveBeenCalled();
+    expect(mockUseHomepagePredictMarketSlots).toHaveBeenCalledWith({
+      enabled: true,
+      slots: HOMEPAGE_PREDICT_MARKET_SLOTS,
+    });
+  });
+
   it('skips trending market fetches for treatment discovery', () => {
     renderWithProvider(
       <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
@@ -338,7 +379,9 @@ describe('PredictionsSection', () => {
     });
     expect(mockUseHomepagePredictMarketSlots).toHaveBeenCalledWith({
       enabled: true,
+      slots: HOMEPAGE_PREDICT_MARKET_SLOTS,
     });
+    expect(mockUseUiSlotsScreen).toHaveBeenCalledWith('wallet-home', true);
   });
 
   it('fetches trending markets for control discovery', () => {
@@ -361,9 +404,8 @@ describe('PredictionsSection', () => {
     expect(mockUsePredictMarketsForHomepage).toHaveBeenCalledWith(5, {
       enabled: true,
     });
-    expect(mockUseHomepagePredictMarketSlots).toHaveBeenCalledWith({
-      enabled: false,
-    });
+    expect(mockUseHomepagePredictMarketSlots).not.toHaveBeenCalled();
+    expect(mockUseUiSlotsScreen).toHaveBeenCalledWith('wallet-home', false);
   });
 
   it.each([true, false])(
@@ -451,6 +493,17 @@ describe('PredictionsSection', () => {
       });
     });
 
+    it('does not wait for unmounted empty-state discovery data', () => {
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(mockUseHomepagePredictMarketSlots).not.toHaveBeenCalled();
+      expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ isLoading: false }),
+      );
+    });
+
     it('renders the current active position values from the hook data', async () => {
       mockUsePredictPositionsForHomepage.mockReturnValue(
         mockPositionsHookResult({
@@ -473,8 +526,8 @@ describe('PredictionsSection', () => {
         expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
       });
 
-      expect(screen.getByText('$99')).toBeOnTheScreen();
-      expect(screen.getByText('890%')).toBeOnTheScreen();
+      expect(screen.getByText('$95.04')).toBeOnTheScreen();
+      expect(screen.getByText('850.4%')).toBeOnTheScreen();
       expect(screen.queryByText('$12')).not.toBeOnTheScreen();
     });
 
@@ -943,6 +996,7 @@ describe('PredictionsSection', () => {
       );
 
       expect(mockUsePredictPositionsForHomepage).toHaveBeenCalledWith({
+        maxPositions: MAX_POSITIONS_DISPLAYED,
         enabled: true,
       });
       expect(mockUsePredictPositionsForHomepage).not.toHaveBeenCalledWith(
@@ -1018,7 +1072,7 @@ describe('PredictionsSection', () => {
   });
 
   describe('refresh functionality', () => {
-    it('refreshes both positions and markets on pull-to-refresh', async () => {
+    it('refreshes positions, markets, and the treatment UI slots assignment', async () => {
       const mockRefetchPositions = jest.fn().mockResolvedValue(undefined);
       const mockRefetchMarkets = jest.fn().mockResolvedValue(undefined);
 
@@ -1045,6 +1099,7 @@ describe('PredictionsSection', () => {
 
       expect(mockRefetchPositions).toHaveBeenCalled();
       expect(mockRefetchMarkets).toHaveBeenCalled();
+      expect(mockRefreshUiSlots).toHaveBeenCalled();
     });
   });
 });

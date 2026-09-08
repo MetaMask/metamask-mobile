@@ -8,6 +8,7 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 # Platform Team
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
+.ai-pr-analyzer/modes/dependency-audit-fix/                 @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
 .github/actions/configure-signing/action.yml                @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
@@ -22,6 +23,7 @@ ios/Podfile.lock                                            @MetaMask/mobile-pla
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
 app/components/Nav/ControllersGate                          @MetaMask/mobile-platform
+app/components/Nav/Main/index.js                            @MetaMask/mobile-platform
 app/components/Views/Root                                   @MetaMask/mobile-platform
 app/core/NavigationService                                  @MetaMask/mobile-platform
 app/core/Engine/messengers/                                 @MetaMask/mobile-platform
@@ -49,10 +51,6 @@ app/util/number/index.js                                    @MetaMask/mobile-pla
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
-.github/workflows/generate-build-version.yml                @MetaMask/mobile-platform
-.github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
-.github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
-.github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
 certs/certificate.pem                                       @MetaMask/mobile-admins
 ios/fastlane/                                               @MetaMask/mobile-admins
@@ -60,6 +58,13 @@ scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-adm
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
 scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
 
+# DevOps Team
+.github/workflows/                                          @MetaMask/devops @MetaMask/mobile-platform
+
+# Mobile Admins overrides (more specific than DevOps Team default above)
+.github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
+.github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
+.github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
 
 # Platform & Snaps Code Fencing File
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
@@ -257,7 +262,7 @@ app/components/UI/Predict/                                    @MetaMask/predict
 app/components/UI/PredictNext/                                @MetaMask/predict
 app/core/Engine/controllers/predict-controller                @MetaMask/predict
 app/core/Engine/messengers/predict-controller-messenger       @MetaMask/predict
-app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts @MetaMask/predict
+app/core/DeeplinkManager/handlers/intent/handlePredictUrl.ts   @MetaMask/predict
 **/Predict/**                                                 @MetaMask/predict
 **/predict/**                                                 @MetaMask/predict
 app/components/Views/Homepage/Sections/Predictions/           @MetaMask/predict
@@ -327,6 +332,11 @@ app/components/Views/Homepage/index.ts           @MetaMask/mobile-core-ux
 app/components/Views/Homepage/context/           @MetaMask/mobile-core-ux
 app/components/Views/Homepage/hooks/             @MetaMask/mobile-core-ux
 app/components/Views/Homepage/components/        @MetaMask/mobile-core-ux
+app/components/UI/Predict/uiSlots/                @MetaMask/mobile-core-ux
+app/components/UI/UiSlots/                        @MetaMask/mobile-core-ux
+app/core/Engine/controllers/ui-slots-controller/  @MetaMask/mobile-core-ux
+app/core/Engine/messengers/ui-slots-controller-messenger/ @MetaMask/mobile-core-ux
+app/selectors/uiSlotsController.ts                 @MetaMask/mobile-core-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions

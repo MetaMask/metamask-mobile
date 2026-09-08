@@ -11,6 +11,7 @@ import { getStorageServiceInstanceOptions } from './instance-options/storage-ser
 import { getSubscriptionServiceInstanceOptions } from './instance-options/subscription-service';
 import { getShieldApiServiceInstanceOptions } from './instance-options/shield-api-service';
 import { getClaimsServiceInstanceOptions } from './instance-options/claims-service';
+import { getConfigRegistryApiServiceInstanceOptions } from './instance-options/config-registry-api-service';
 import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
   getTransactionControllerInstanceOptions,
@@ -52,6 +53,12 @@ export function initializeWallet({
   const transactionControllerInitMessenger =
     getTransactionControllerInitMessenger(messenger);
 
+  // TC event listeners must be set up before the wallet is initialized.
+  // So that the TC can emit events to the wallet's messenger during initialization.
+  setupTransactionControllerListeners({
+    messenger: transactionControllerInitMessenger,
+  });
+
   const wallet: Wallet = new Wallet({
     // Mobile's root messenger carries a superset action/event union (all app
     // controllers) vs. the wallet's narrower DefaultActions/DefaultEvents.
@@ -77,14 +84,11 @@ export function initializeWallet({
       subscriptionService: getSubscriptionServiceInstanceOptions(),
       shieldApiService: getShieldApiServiceInstanceOptions(),
       claimsService: getClaimsServiceInstanceOptions(),
+      configRegistryApiService: getConfigRegistryApiServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
         initMessenger: transactionControllerInitMessenger,
       }),
     },
-  });
-
-  setupTransactionControllerListeners({
-    messenger: transactionControllerInitMessenger,
   });
 
   wallet.init().catch((error: unknown) => console.error(error));

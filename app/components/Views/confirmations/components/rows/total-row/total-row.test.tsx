@@ -7,10 +7,15 @@ import { transactionApprovalControllerMock } from '../../../__mocks__/controller
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
+  useTransactionPayQuotesRaw,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
+import {
+  TransactionPayStrategy,
+  TransactionPayTotals,
+} from '@metamask/transaction-pay-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
@@ -49,6 +54,12 @@ describe('TotalRow', () => {
     useTransactionPayIsMaxAmount,
   );
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
+  const useTransactionPayQuotesRawMock = jest.mocked(
+    useTransactionPayQuotesRaw,
+  );
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -179,6 +190,107 @@ describe('TotalRow', () => {
       const { getByText } = render();
 
       expect(getByText('$0')).toBeOnTheScreen();
+    });
+  });
+
+  describe('no-op quote routes', () => {
+    beforeEach(() => {
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: true,
+      });
+      // A no-op quote is excluded from totals, so targetAmount stays at 0.
+      useTransactionPayTotalsMock.mockReturnValue({
+        total: { usd: '123.456' },
+        targetAmount: { usd: '0', fiat: '0' },
+      } as unknown as TransactionPayTotals);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { amountUsd: '27.51', skipIfBalance: false },
+      ] as unknown as ReturnType<typeof useTransactionPayRequiredTokens>);
+    });
+
+    it('falls back to the required token amount when the route needs no conversion', () => {
+      useTransactionPayQuotesRawMock.mockReturnValue([
+        { strategy: TransactionPayStrategy.None },
+      ] as unknown as ReturnType<typeof useTransactionPayQuotesRaw>);
+
+      const { getByText } = render();
+
+      expect(getByText('$27.51')).toBeOnTheScreen();
+    });
+
+    it('falls back regardless of the required token address and chain', () => {
+      // The no-op quote itself is the signal that nothing is converted, so the
+      // row must not re-derive routing by comparing token address and chain.
+      useTransactionPayQuotesRawMock.mockReturnValue([
+        { strategy: TransactionPayStrategy.None },
+      ] as unknown as ReturnType<typeof useTransactionPayQuotesRaw>);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          amountUsd: '27.51',
+          chainId: '0x1',
+          skipIfBalance: false,
+        },
+      ] as unknown as ReturnType<typeof useTransactionPayRequiredTokens>);
+
+      const { getByText } = render();
+
+      expect(getByText('$27.51')).toBeOnTheScreen();
+    });
+
+    it('skips required tokens that are covered by balance', () => {
+      useTransactionPayQuotesRawMock.mockReturnValue([
+        { strategy: TransactionPayStrategy.None },
+      ] as unknown as ReturnType<typeof useTransactionPayQuotesRaw>);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { amountUsd: '99.99', skipIfBalance: true },
+        { amountUsd: '27.51', skipIfBalance: false },
+      ] as unknown as ReturnType<typeof useTransactionPayRequiredTokens>);
+
+      const { getByText } = render();
+
+      expect(getByText('$27.51')).toBeOnTheScreen();
+    });
+
+    it('does not show the required amount when the route needs a conversion', () => {
+      // A conversion route with no usable quote must not present the source
+      // amount as the amount received.
+      useTransactionPayQuotesRawMock.mockReturnValue([
+        { strategy: TransactionPayStrategy.Relay },
+      ] as unknown as ReturnType<typeof useTransactionPayQuotesRaw>);
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('$0')).toBeOnTheScreen();
+      expect(queryByText('$27.51')).toBeNull();
+    });
+
+    it('does not show the required amount when there are no quotes at all', () => {
+      useTransactionPayQuotesRawMock.mockReturnValue(
+        undefined as unknown as ReturnType<typeof useTransactionPayQuotesRaw>,
+      );
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('$0')).toBeOnTheScreen();
+      expect(queryByText('$27.51')).toBeNull();
+    });
+
+    it('prefers the quote-derived target amount when one is available', () => {
+      useTransactionPayTotalsMock.mockReturnValue({
+        total: { usd: '123.456' },
+        targetAmount: { usd: '99.38', fiat: '99.38' },
+      } as unknown as TransactionPayTotals);
+      useTransactionPayQuotesRawMock.mockReturnValue([
+        { strategy: TransactionPayStrategy.None },
+        { strategy: TransactionPayStrategy.Relay },
+      ] as unknown as ReturnType<typeof useTransactionPayQuotesRaw>);
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText(RECEIVE_FIAT_MOCK)).toBeOnTheScreen();
+      expect(queryByText('$27.51')).toBeNull();
     });
   });
 });

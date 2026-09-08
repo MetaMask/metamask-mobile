@@ -23,6 +23,8 @@ import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance'
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
+import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
+import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
@@ -32,11 +34,22 @@ import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import type { EarnAssetId } from '../../types/earnAssets';
 import type { EarnSectionRankedAsset } from '../../utils/earnSection';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_SCREEN_NAMES,
+} from '../../constants/earnModuleEvents';
 import EarnSection, { resetEarnSectionRefreshForTests } from './EarnSection';
 import { EarnSectionTestIds } from './EarnSection.testIds';
 import HomepageEarnSection from '../../../../Views/Homepage/Sections/EarnSection/HomepageEarnSection';
 import { homepageSectionTitleTestId } from '../../../../Views/Homepage/Homepage.testIds';
 import Logger from '../../../../../util/Logger';
+
+const mockEarnTrackButtonClicked = jest.fn();
+const mockEarnTrackComponentViewed = jest.fn();
+const mockEarnTrackSurfaceClicked = jest.fn();
+const mockMoneyTrackSurfaceClicked = jest.fn();
+const mockNavigateToMoneyHome = jest.fn();
 
 jest.mock('@react-navigation/native');
 jest.mock('react-redux', () => ({
@@ -45,11 +58,28 @@ jest.mock('react-redux', () => ({
 }));
 jest.mock('@metamask/design-system-twrnc-preset');
 jest.mock('../../../../UI/Earn/hooks/useEarnSectionAssets');
+jest.mock('../../../../UI/Earn/hooks/useEarnOpportunityNavigation', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  getEarnOpportunityRedirectTarget: jest.fn(() => 'stablecoin_lending_deposit'),
+}));
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../../../../UI/Money/selectors/visibility');
+jest.mock('../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(() => ({
+    trackSurfaceClicked: mockMoneyTrackSurfaceClicked,
+  })),
+}));
 jest.mock('../../../../UI/Money/hooks/useMoneyNavigation');
 jest.mock('../../../../Views/Homepage/hooks/useHomeViewedEvent');
 jest.mock('../../../../Views/Homepage/hooks/useSectionPerformance');
+jest.mock('../../../../UI/Earn/hooks/useEarnAnalytics', () => ({
+  useEarnAnalytics: jest.fn(() => ({
+    trackButtonClicked: mockEarnTrackButtonClicked,
+    trackComponentViewed: mockEarnTrackComponentViewed,
+    trackSurfaceClicked: mockEarnTrackSurfaceClicked,
+  })),
+}));
 jest.mock('../../../../../util/Logger');
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -64,6 +94,10 @@ const mockUseIsFocused = useIsFocused as jest.MockedFunction<
 >;
 const mockUseTailwind = useTailwind as jest.MockedFunction<typeof useTailwind>;
 const mockUseEarnSectionAssets = jest.mocked(useEarnSectionAssets);
+const mockUseEarnOpportunityNavigation = jest.mocked(
+  useEarnOpportunityNavigation,
+);
+const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockUseSelector = jest.mocked(useSelector);
@@ -148,6 +182,7 @@ const zeroBalanceAssetSlot: typeof assetSlot = {
   },
 };
 const navigate = jest.fn();
+const mockNavigateFromEarnAsset = jest.fn();
 const mockRefetchBalance = jest.fn();
 let mockMoneyAccountVisible = false;
 let mockPrivacyMode = false;
@@ -172,6 +207,13 @@ const mockSectionResult = (
   mockUseEarnSectionAssets.mockReturnValue(createSectionResult(overrides));
 };
 
+const mockEarnOpportunityNavigation = () => {
+  mockUseEarnOpportunityNavigation.mockReturnValue({
+    navigateFromEarnAsset: mockNavigateFromEarnAsset,
+    navigateToDepositForExperience: jest.fn(),
+  });
+};
+
 const getSuccessArrowIcons = () =>
   screen
     .UNSAFE_queryAllByType(Icon)
@@ -181,15 +223,23 @@ const getSuccessArrowIcons = () =>
         props.color === IconColor.SuccessDefault,
     );
 
+const getEarnSection = (
+  props: Partial<React.ComponentProps<typeof EarnSection>> = {},
+) => (
+  <EarnSection
+    tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+    analyticsContext={{
+      component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+    }}
+    {...props}
+  />
+);
+
 const renderEarnSection = (
   props: Partial<React.ComponentProps<typeof EarnSection>> = {},
-) =>
-  render(
-    <EarnSection
-      tokenDetailsSource={TokenDetailsSource.ExploreEarn}
-      {...props}
-    />,
-  );
+) => render(getEarnSection(props));
 
 describe('EarnSection', () => {
   beforeEach(() => {
@@ -217,8 +267,9 @@ describe('EarnSection', () => {
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
     mockUseMoneyNavigation.mockReturnValue({
       isOnboardingRedirectNeeded: false,
-      navigateToMoneyHome: jest.fn(),
+      navigateToMoneyHome: mockNavigateToMoneyHome,
     } as ReturnType<typeof useMoneyNavigation>);
+    mockEarnOpportunityNavigation();
     mockUseHomeViewedEvent.mockReturnValue({
       onLayout: jest.fn(),
     } as ReturnType<typeof useHomeViewedEvent>);
@@ -232,6 +283,14 @@ describe('EarnSection', () => {
     expect(
       screen.getByText(strings('homepage.sections.earn')),
     ).toBeOnTheScreen();
+    expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+    });
+    expect(mockEarnTrackComponentViewed).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+    });
   });
 
   it('navigates both Earn section view-all actions to the market list', () => {
@@ -247,10 +306,28 @@ describe('EarnSection', () => {
     expect(navigate).toHaveBeenCalledTimes(2);
     expect(navigate).toHaveBeenNthCalledWith(1, Routes.EARN.ROOT, {
       screen: Routes.EARN.SEARCH_LIST,
+      params: {
+        analyticsContext: {
+          entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+          screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
+        },
+      },
     });
     expect(navigate).toHaveBeenNthCalledWith(2, Routes.EARN.ROOT, {
       screen: Routes.EARN.SEARCH_LIST,
+      params: {
+        analyticsContext: {
+          entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+          screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
+        },
+      },
     });
+    expect(mockEarnTrackSurfaceClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_VIEW_MORE_CARD,
+        redirect_target: 'earn_section_list_view',
+      }),
+    );
   });
 
   it('disables Homepage telemetry for shared Explore rendering', () => {
@@ -277,11 +354,41 @@ describe('EarnSection', () => {
         sectionIndex: 2,
         totalSectionsLoaded: 5,
         fireImmediateWhenNoView: true,
+        onSectionViewed: expect.any(Function),
       }),
     );
     expect(mockUseSectionPerformance).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: true }),
     );
+    expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.HOMEPAGE_EARN_SECTION,
+      entry_point: EARN_MODULE_ENTRY_POINTS.HOMEPAGE,
+      screen_name: 'wallet_home',
+    });
+  });
+
+  it('tracks Homepage Earn when Homepage telemetry records the section view', () => {
+    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
+
+    const { onSectionViewed } = mockUseHomeViewedEvent.mock.calls[0][0];
+    onSectionViewed?.();
+
+    expect(mockEarnTrackComponentViewed).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.HOMEPAGE_EARN_SECTION,
+    });
+  });
+
+  it('retracks Explore Earn after the section is disabled and re-enabled', () => {
+    const { rerender } = renderEarnSection();
+    mockEarnTrackComponentViewed.mockClear();
+
+    rerender(getEarnSection({ enabled: false }));
+    rerender(getEarnSection());
+
+    expect(mockEarnTrackComponentViewed).toHaveBeenCalledTimes(1);
+    expect(mockEarnTrackComponentViewed).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+    });
   });
 
   it('disables Homepage telemetry while Home is unfocused', () => {
@@ -347,47 +454,6 @@ describe('EarnSection', () => {
         }),
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('renders No fee when a Money deposit experience is subsidized', () => {
-    mockSectionResult({
-      assetSlots: [
-        {
-          ...assetSlot,
-          asset: {
-            ...assetSlot.asset,
-            experiences: [
-              ...assetSlot.asset.experiences,
-              {
-                id: 'money:usdc',
-                type: 'MONEY_ACCOUNT_DEPOSIT',
-                role: 'funding',
-                rate: {
-                  type: 'APY',
-                  percentage: 3.5,
-                  status: 'ready',
-                },
-                isFeeSubsidized: true,
-              },
-            ],
-          },
-        },
-      ],
-    });
-
-    renderEarnSection();
-
-    expect(
-      screen.getByTestId(EarnSectionTestIds.ASSET_NO_FEE_TAG(0)),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides No fee when asset experiences are not subsidized', () => {
-    renderEarnSection();
-
-    expect(
-      screen.queryByTestId(EarnSectionTestIds.ASSET_NO_FEE_TAG(0)),
-    ).not.toBeOnTheScreen();
   });
 
   it('renders New on the Money card with a zero balance', () => {
@@ -546,54 +612,83 @@ describe('EarnSection', () => {
     expect(getSuccessArrowIcons()).toHaveLength(0);
   });
 
-  it('navigates with the selected CAIP-19 asset ID', () => {
+  it('passes selected asset and source to Earn opportunity navigation', () => {
     renderEarnSection();
 
     fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
 
-    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
-      params: { assetId },
+    expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
+      assetSlot.asset,
+      TokenDetailsSource.ExploreEarn,
+      {
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
+        asset_position: 1,
+        assets_in_list: 1,
+      },
+    );
+    expect(mockEarnTrackSurfaceClicked).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ASSET_CARD,
+      asset_symbol: 'USDC',
+      chain_id: '0x1',
+      asset_position: 1,
+      assets_in_list: 1,
+      eligible_strategy_count: 1,
+      eligible_strategy_types: ['stablecoin_lending'],
+      asset_has_balance: true,
+      rate_percentage: 4.2,
+      is_fee_subsidized: false,
+      redirect_target: 'stablecoin_lending_deposit',
     });
   });
 
-  it('navigates zero-balance assets to Asset Overview', () => {
+  it.each([
+    {
+      isOnboardingRedirectNeeded: true,
+      redirectTarget: 'money_onboarding',
+    },
+    {
+      isOnboardingRedirectNeeded: false,
+      redirectTarget: 'money_home',
+    },
+  ] as const)(
+    'tracks Money account card presses with the $redirectTarget destination',
+    ({ isOnboardingRedirectNeeded, redirectTarget }) => {
+      mockMoneyAccountVisible = true;
+      mockUseMoneyNavigation.mockReturnValue({
+        isOnboardingRedirectNeeded,
+        navigateToMoneyHome: mockNavigateToMoneyHome,
+      } as ReturnType<typeof useMoneyNavigation>);
+      mockSectionResult({ assetSlots: [] });
+
+      renderEarnSection();
+
+      fireEvent.press(
+        screen.getByTestId(EarnSectionTestIds.MONEY_ACCOUNT_CARD),
+      );
+
+      expect(mockMoneyTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: 'earn_section_money_card',
+        redirect_target: redirectTarget,
+      });
+      expect(mockNavigateToMoneyHome).toHaveBeenCalledWith();
+    },
+  );
+
+  it('passes zero-balance asset and Home source to Earn opportunity navigation', () => {
     mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
 
     render(<HomepageEarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
     fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
 
-    expect(navigate).toHaveBeenCalledWith(
-      'Asset',
+    expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
+      zeroBalanceAssetSlot.asset,
+      TokenDetailsSource.HomeSection,
       expect.objectContaining({
-        address: zeroBalanceAssetSlot.asset.asset.assetId,
-        chainId: zeroBalanceAssetSlot.asset.asset.chainId,
-        symbol: zeroBalanceAssetSlot.asset.asset.symbol,
-        name: zeroBalanceAssetSlot.asset.asset.name,
-        decimals: zeroBalanceAssetSlot.asset.asset.decimals,
-        image: zeroBalanceAssetSlot.asset.asset.image,
-        balance: '0',
-        isNative: zeroBalanceAssetSlot.asset.asset.isNative,
-        isETH: false,
-        source: TokenDetailsSource.HomeSection,
+        entry_point: 'homepage',
       }),
     );
-    expect(navigate).not.toHaveBeenCalledWith(
-      Routes.EARN.ROOT,
-      expect.anything(),
-    );
-  });
-
-  it('navigates funded assets to Earn strategy selection', () => {
-    renderEarnSection();
-
-    fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
-
-    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
-      params: { assetId },
-    });
   });
 
   it('displays a retryable error without hiding healthy asset cards', () => {
@@ -690,10 +785,20 @@ describe('EarnSection', () => {
       <>
         <EarnSection
           tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+          analyticsContext={{
+            component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+            screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
+            entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+          }}
           refresh={{ trigger: 1, silentRefresh: true }}
         />
         <EarnSection
           tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+          analyticsContext={{
+            component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+            screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
+            entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+          }}
           refresh={{ trigger: 1, silentRefresh: true }}
         />
       </>,

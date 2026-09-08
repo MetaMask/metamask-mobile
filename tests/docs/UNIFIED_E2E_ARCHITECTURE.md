@@ -57,4 +57,4 @@ Prefer the same `Matchers` / `Gestures` / `Assertions` call for iOS and Android.
 - Structurally different action flow → `PlatformDetector` + `Gestures` / `Assertions` in the page object
 
 Guide: [docs/testing/e2e-testing.md](../../docs/testing/e2e-testing.md).  
-Runbook: [docs/testing/appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md).
+Runbook: [tests/docs/appium-smoke-testing.md](./appium-smoke-testing.md).

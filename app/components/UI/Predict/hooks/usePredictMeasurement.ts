@@ -39,11 +39,11 @@ interface MeasurementOptions {
  * - Resets measurement when ANY resetCondition is true
  *
  * @example
- * // SIMPLE: Immediate single measurement (most common case)
+ * // CONDITIONAL: wait for the visible tab's data, not mount.
+ * // Ending on `!isSearchVisible` alone closes the span on first paint.
  * usePredictMeasurement({
  *   traceName: TraceName.PredictFeedView,
- *   // No conditions = immediate measurement
- *   // op defaults to PredictOperation
+ *   conditions: [!isSearchVisible, hasActiveTabData],
  * });
  *
  * @example

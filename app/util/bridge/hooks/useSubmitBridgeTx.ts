@@ -17,11 +17,6 @@ import {
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
-  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-  SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
-  SWAPS_CTA_BUTTON_COLOR_VARIANTS,
-} from '../../../components/UI/Bridge/components/SwapsMarketOrderConfirmButton/abTestConfig';
-import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
@@ -70,14 +65,6 @@ export default function useSubmitBridgeTx() {
     isActive: isAmbientColorAbActive,
   } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
   const {
-    variantName: ctaButtonColorVariantName,
-    isActive: isCtaButtonColorAbActive,
-  } = useABTest(
-    SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-    SWAPS_CTA_BUTTON_COLOR_VARIANTS,
-    SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
-  );
-  const {
     variantName: chainValueOrderVariantName,
     isActive: isChainValueOrderAbActive,
   } = useABTest(CHAIN_VALUE_ORDER_AB_KEY, CHAIN_VALUE_ORDER_VARIANTS);
@@ -100,15 +87,6 @@ export default function useSubmitBridgeTx() {
       );
     }
 
-    if (isCtaButtonColorAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-          ctaButtonColorVariantName,
-        ),
-      );
-    }
-
     if (isChainValueOrderAbActive) {
       tests.push(
         createActiveABTestAssignment(
@@ -122,8 +100,6 @@ export default function useSubmitBridgeTx() {
   }, [
     isAmbientColorAbActive,
     ambientColorVariantName,
-    isCtaButtonColorAbActive,
-    ctaButtonColorVariantName,
     isChainValueOrderAbActive,
     chainValueOrderVariantName,
   ]);
