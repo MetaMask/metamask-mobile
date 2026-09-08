@@ -4437,7 +4437,7 @@
     "conversion_title": "Currency conversion",
     "conversion_desc": "Display fiat values in using a specific currency throughout the application.",
     "primary_currency_title": "Primary currency",
-    "primary_currency_desc": "Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.",
+    "primary_currency_desc": "Select Native to prioritize displaying values in the network currency of the chain (e.g. ETH). Select Fiat to prioritize displaying values in your selected fiat currency.",
     "primary_currency_text_first": "Native",
     "primary_currency_text_second": "Fiat",
     "language_desc": "Translate the application to a different supported language.",
