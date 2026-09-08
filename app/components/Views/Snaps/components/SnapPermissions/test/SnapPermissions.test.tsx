@@ -22,7 +22,7 @@ describe('SnapPermissions', () => {
   const cronjobTitle = 'Schedule and run periodic actions';
   const rpcSnapsTitle =
     'Allow other snaps to communicate directly with this snap';
-  const rpcDappsTitle = 'Allow dapps to communicate directly with this snap';
+  const rpcDappsTitle = 'Allow sites to communicate directly with this snap';
   const snapConfirmTitle = 'Display custom dialogs';
   const snapManageStateTitle = 'Store and manage data on your device';
   const snapNotifyTitle = 'Show notifications';
