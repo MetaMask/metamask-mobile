@@ -43,6 +43,13 @@ export interface AnimatedNumericTextProps {
    * @default true
    */
   rollDigits?: boolean;
+  /**
+   * Render plain text until the JS thread is idle before mounting Number Flow.
+   * Useful for secondary values on screens opened during app startup.
+   *
+   * @default false
+   */
+  deferRolling?: boolean;
   variant?: TextVariant;
   color?: TextColor;
   fontWeight?: FontWeight;
@@ -52,8 +59,6 @@ export interface AnimatedNumericTextProps {
   testID?: string;
   animated?: boolean;
 }
-
-const DIGIT_PATTERN = /\d/u;
 
 const styles = StyleSheet.create({
   container: {
@@ -70,11 +75,8 @@ type AnimatedViewProps = ComponentProps<typeof Animated.View>;
 interface NumericSlotProps {
   character: string;
   textStyle: TextStyle;
-  animated: boolean;
-  roll: boolean;
   entering: AnimatedViewProps['entering'];
   exiting: AnimatedViewProps['exiting'];
-  layout: AnimatedViewProps['layout'];
 }
 
 /**
@@ -83,35 +85,55 @@ interface NumericSlotProps {
  * mounting it needlessly is what makes a keypress feel delayed.
  */
 const NumericSlot = memo(
-  ({
-    character,
-    textStyle,
-    animated,
-    roll,
-    entering,
-    exiting,
-    layout,
-  }: NumericSlotProps) => (
-    <Animated.View entering={entering} exiting={exiting} layout={layout}>
-      {roll && DIGIT_PATTERN.test(character) ? (
-        <NumberFlow
-          value={Number(character)}
-          locales="en-US"
-          style={textStyle}
-          animated={animated}
-          respectMotionPreference
-          spinTiming={NUMERIC_SLOT_TIMING}
-          transformTiming={NUMERIC_SLOT_TIMING}
-          opacityTiming={NUMERIC_SLOT_TIMING}
-        />
-      ) : (
-        <Text style={textStyle}>{character}</Text>
-      )}
+  ({ character, textStyle, entering, exiting }: NumericSlotProps) => (
+    <Animated.View entering={entering} exiting={exiting}>
+      <Text style={textStyle}>{character}</Text>
     </Animated.View>
   ),
 );
 
 NumericSlot.displayName = 'NumericSlot';
+
+interface NumberFlowConfig {
+  value: number;
+  format: Intl.NumberFormatOptions;
+}
+
+/**
+ * Number Flow accepts only `number`, so use it only when Intl can reproduce the
+ * source string exactly. Large token balances and partially typed values fall
+ * back to lossless text instead of being rounded through IEEE-754.
+ */
+export const getNumberFlowConfig = (
+  numeric: string,
+): NumberFlowConfig | undefined => {
+  const match = /^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?$/u.exec(numeric);
+  if (!match) {
+    return undefined;
+  }
+
+  const fractionDigits = match[1]?.length ?? 0;
+  const format: Intl.NumberFormatOptions = {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+    useGrouping: numeric.includes(','),
+  };
+  const value = Number(numeric.replaceAll(',', ''));
+
+  if (
+    !Number.isFinite(value) ||
+    new Intl.NumberFormat('en-US', format).format(value) !== numeric
+  ) {
+    return undefined;
+  }
+
+  return { value, format };
+};
+
+interface IdleCallbackGlobals {
+  requestIdleCallback?: (callback: () => void) => number;
+  cancelIdleCallback?: (handle: number) => void;
+}
 
 const FONT_WEIGHT_SUFFIX: Record<FontWeight, string> = {
   [FontWeight.Regular]: 'regular',
@@ -152,6 +174,7 @@ const VARIANT_FONT_WEIGHT: Record<TextVariant, FontWeight> = {
 const AnimatedNumericText = ({
   value,
   rollDigits = true,
+  deferRolling = false,
   variant = TextVariant.BodyMd,
   color = TextColor.TextDefault,
   fontWeight,
@@ -163,10 +186,29 @@ const AnimatedNumericText = ({
 }: AnimatedNumericTextProps) => {
   const tw = useTailwind();
   const hasMountedRef = useRef(false);
+  const [rollingReady, setRollingReady] = React.useState(!deferRolling);
 
   useEffect(() => {
     hasMountedRef.current = true;
   }, []);
+
+  useEffect(() => {
+    if (!deferRolling) {
+      setRollingReady(true);
+      return;
+    }
+
+    const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
+    if (idleGlobals.requestIdleCallback) {
+      const handle = idleGlobals.requestIdleCallback(() =>
+        setRollingReady(true),
+      );
+      return () => idleGlobals.cancelIdleCallback?.(handle);
+    }
+
+    const timeout = setTimeout(() => setRollingReady(true), 100);
+    return () => clearTimeout(timeout);
+  }, [deferRolling]);
 
   const textStyle = useMemo(() => {
     const weight = fontWeight ?? VARIANT_FONT_WEIGHT[variant];
@@ -194,6 +236,10 @@ const AnimatedNumericText = ({
   );
 
   const characters = useMemo(() => numeric.split(''), [numeric]);
+  const numberFlowConfig = useMemo(
+    () => getNumberFlowConfig(numeric),
+    [numeric],
+  );
 
   // Slots present on the first render are already on screen, so only later
   // appends animate in.
@@ -204,7 +250,8 @@ const AnimatedNumericText = ({
   // An append-only row never reflows internally, so per-slot transitions would
   // only fire when the caller restyles (a font size step) and animate every
   // character sliding to its new size at once.
-  const slotLayout = rollDigits ? layout : undefined;
+  const shouldRenderNumberFlow =
+    rollDigits && rollingReady && numberFlowConfig !== undefined;
 
   return (
     <Animated.View
@@ -215,29 +262,48 @@ const AnimatedNumericText = ({
       layout={layout}
       style={rowStyle}
     >
-      {prefix ? (
-        <Animated.Text layout={layout} style={textStyle}>
-          {prefix}
-        </Animated.Text>
-      ) : null}
-      {characters.map((character, index) => (
-        <NumericSlot
-          // eslint-disable-next-line react/no-array-index-key
-          key={index}
-          character={character}
-          textStyle={textStyle}
+      {shouldRenderNumberFlow ? (
+        <NumberFlow
+          value={numberFlowConfig.value}
+          format={numberFlowConfig.format}
+          locales="en-US"
+          prefix={prefix}
+          suffix={suffix}
+          style={textStyle}
           animated={animated}
-          roll={rollDigits}
-          entering={entering}
-          exiting={exiting}
-          layout={slotLayout}
+          respectMotionPreference
+          spinTiming={NUMERIC_SLOT_TIMING}
+          transformTiming={NUMERIC_SLOT_TIMING}
+          opacityTiming={NUMERIC_SLOT_TIMING}
         />
-      ))}
-      {suffix ? (
+      ) : rollDigits ? (
         <Animated.Text layout={layout} style={textStyle}>
-          {suffix}
+          {value}
         </Animated.Text>
-      ) : null}
+      ) : (
+        <>
+          {prefix ? (
+            <Animated.Text layout={layout} style={textStyle}>
+              {prefix}
+            </Animated.Text>
+          ) : null}
+          {characters.map((character, index) => (
+            <NumericSlot
+              // eslint-disable-next-line react/no-array-index-key
+              key={index}
+              character={character}
+              textStyle={textStyle}
+              entering={entering}
+              exiting={exiting}
+            />
+          ))}
+          {suffix ? (
+            <Animated.Text layout={layout} style={textStyle}>
+              {suffix}
+            </Animated.Text>
+          ) : null}
+        </>
+      )}
     </Animated.View>
   );
 };

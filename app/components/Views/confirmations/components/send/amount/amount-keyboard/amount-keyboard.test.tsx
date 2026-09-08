@@ -106,11 +106,11 @@ const mockUseParams = jest.mocked(useParams);
 const mockUseSendActions = jest.mocked(useSendActions);
 const mockUseUnreliableNetworkAlert = jest.mocked(useUnreliableNetworkAlert);
 
-const { playImpact: mockPlayImpact, playSelection: mockPlaySelection } =
-  jest.requireMock('../../../../../../../util/haptics') as {
-    playImpact: jest.Mock;
-    playSelection: jest.Mock;
-  };
+const { playImpact: mockPlayImpact } = jest.requireMock(
+  '../../../../../../../util/haptics',
+) as {
+  playImpact: jest.Mock;
+};
 
 const renderComponent = (
   mockState?: ProviderValues['state'],
@@ -127,6 +127,8 @@ const renderComponent = (
       <AmountKeyboard
         amount={amount}
         fiatMode={false}
+        getFiatValue={(value) => value}
+        getNativeValue={(value) => value}
         updateAmount={() => undefined}
         validateNonEvmAmountAsync={validateNonEvmAmountAsync}
       />
@@ -194,7 +196,7 @@ describe('Amount', () => {
     expect(mockUpdateValue).toHaveBeenCalledWith(10, true);
   });
 
-  it('plays a selection haptic when a digit key is pressed', () => {
+  it('plays a keypad key haptic when a digit key is pressed', () => {
     mockUseSendContext.mockReturnValue({
       asset: MOCK_EVM_ASSET,
       updateValue: jest.fn(),
@@ -204,7 +206,7 @@ describe('Amount', () => {
 
     fireEvent.press(getByRole('button', { name: '1' }));
 
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.KeypadKey);
   });
 
   it('plays no haptic when a digit key exceeds the asset decimals', () => {
@@ -217,7 +219,7 @@ describe('Amount', () => {
 
     fireEvent.press(getByRole('button', { name: '1' }));
 
-    expect(mockPlaySelection).not.toHaveBeenCalled();
+    expect(mockPlayImpact).not.toHaveBeenCalled();
   });
 
   it('plays a quick amount haptic when a percentage button is pressed', () => {
