@@ -46,6 +46,18 @@ const stakedVaultAddress = '0x4fef9d741011476750a243ac70b9789a63dd47df';
 const stakedVaultAddressChecksummed = toChecksumHexAddress(stakedVaultAddress);
 const stakedVaultAssetId = `eip155:1/erc20:${stakedVaultAddress}`;
 
+const tempoChainId = '0x1079';
+const tempoPathUsdAddressLowercase: Hex =
+  '0x20c0000000000000000000000000000000000000';
+const tempoPathUsdAssetId = `eip155:4217/erc20:${tempoPathUsdAddressLowercase}`;
+const tempoNetworkControllerState = {
+  NetworkController: {
+    networkConfigurationsByChainId: {
+      [tempoChainId]: { nativeCurrency: 'USD' },
+    },
+  },
+};
+
 function makeMockPrice(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     assetPriceType: 'fungible',
@@ -1663,11 +1675,9 @@ describe('getCurrencyRateControllerCurrencyRates', () => {
         engine: {
           backgroundState: {
             CurrencyRateController: {
-              currentCurrency: 'eur',
               currencyRates: {},
             },
             AssetsController: {
-              selectedCurrency: 'eur',
               assetsInfo: {
                 [nativeEthAssetId]: {
                   type: 'native',
@@ -1827,6 +1837,47 @@ describe('getTokenRatesControllerMarketData', () => {
       expect(marketData.price).toBe(usdcPriceInUsd / ethPriceInUsd);
       expect(marketData.currency).toBe('ETH');
       expect(marketData.tokenAddress).toBe(erc20AssetAddressChecksummed);
+    });
+
+    it('prices tokens on a USD-native chain with no native asset in USD', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TokenRatesController: { marketData: {} },
+            CurrencyRateController: {
+              currentCurrency: 'eur',
+              currencyRates: {},
+            },
+            AssetsController: {
+              selectedCurrency: 'eur',
+              assetsInfo: {
+                [tempoPathUsdAssetId]: {
+                  type: 'erc20',
+                  symbol: 'pathUSD',
+                  decimals: 6,
+                },
+              },
+              assetsPrice: {
+                [tempoPathUsdAssetId]: makeMockPrice({
+                  id: 'pathusd',
+                  price: 0.92,
+                  usdPrice: 1,
+                }),
+              },
+            },
+            ...tempoNetworkControllerState,
+          },
+        },
+      };
+
+      const result = getTokenRatesControllerMarketData(state);
+
+      const marketData =
+        result[tempoChainId][
+          toChecksumHexAddress(tempoPathUsdAddressLowercase) as Hex
+        ];
+      expect(marketData.price).toBeCloseTo(1);
+      expect(marketData.currency).toBe('USD');
     });
   });
 
