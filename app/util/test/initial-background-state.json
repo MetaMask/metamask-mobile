@@ -982,6 +982,17 @@
   "MoneyAccountController": {
     "moneyAccounts": {}
   },
+  "MoneyAccountMigrationController": {
+    "phase": null,
+    "oldAddress": null,
+    "newAddress": null,
+    "chainId": null,
+    "planHash": null,
+    "cardWasLinked": false,
+    "exitBatchId": null,
+    "updatedAt": null,
+    "migrated": {}
+  },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}
   }

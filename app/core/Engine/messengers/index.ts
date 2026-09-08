@@ -154,6 +154,7 @@ import {
   getMoneyAccountUpgradeControllerMessenger,
   getMoneyAccountUpgradeControllerInitMessenger,
 } from './money-account-upgrade-controller-messenger';
+import { getMoneyAccountMigrationControllerMessenger } from './money-account-migration-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -496,5 +497,9 @@ export const MESSENGER_FACTORIES = {
   MoneyAccountUpgradeController: {
     getMessenger: getMoneyAccountUpgradeControllerMessenger,
     getInitMessenger: getMoneyAccountUpgradeControllerInitMessenger,
+  },
+  MoneyAccountMigrationController: {
+    getMessenger: getMoneyAccountMigrationControllerMessenger,
+    getInitMessenger: noop,
   },
 } as const;
