@@ -4276,7 +4276,7 @@
     "reset_account_cancel_button": "Cancel",
     "reset_account_modal_title": "Reset account?",
     "clear_approvals_modal_title": "Clear approval data?",
-    "clear_approvals_modal_message": "All dapps will need to request access to view account information again.",
+    "clear_approvals_modal_message": "All sites will need to request access to view account information again.",
     "clear_browser_history_modal_title": "Clear browser history?",
     "clear_browser_history_modal_message": "We are about to remove all your browser history. Are you sure?",
     "clear_cookies_modal_title": "Clear browser cookies",
@@ -4287,9 +4287,9 @@
     "invalid_rpc_url": "Invalid RPC URL",
     "invalid_block_explorer_url": "Invalid Block Explorer URL",
     "sync": "Sync",
-    "clear_approved_dapps": "Clear approved dapps",
+    "clear_approved_dapps": "Clear approved sites",
     "clear_browser_history": "Clear browser history",
-    "clear_approve_dapps_desc": "Clear approved dapps",
+    "clear_approve_dapps_desc": "Clear approved sites",
     "clear_browser_history_desc": "Clear browser history",
     "clear_browser_cookies_desc": "Clear browser cookies",
     "clear": "Clear",
@@ -4523,7 +4523,7 @@
     "delete_metrics_error_description": "This request can't be completed right now due to an analytics system server issue, please try again later.",
     "ok": "OK",
     "clear_sdk_connections_title": "Clear all MetaMask SDK connections",
-    "clear_sdk_connections_text": "All connections will be cleared and dapps will need to request connection again",
+    "clear_sdk_connections_text": "All connections will be cleared and sites will need to request connection again",
     "sdk_connections": "MetaMask SDK connections",
     "manage_sdk_connections_title": "Manage connections",
     "manage_sdk_connections_text": "Remove connections to sites and/or MetaMask SDK.",
@@ -4677,7 +4677,7 @@
           "endowment:cronjob": "Schedule and run periodic actions",
           "endowment:rpc": {
             "snaps": "Allow other snaps to communicate directly with this snap",
-            "dapps": "Allow dapps to communicate directly with this snap"
+            "dapps": "Allow sites to communicate directly with this snap"
           },
           "snap_confirm": "Display custom dialogs",
           "snap_manageState": "Store and manage data on your device",
@@ -4715,8 +4715,8 @@
     "blockaid_desc": "This feature alerts you to malicious activity by actively reviewing transaction and signature requests.",
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
-    "smart_account_dapp_requests_heading": "Smart account requests from dapps",
-    "smart_account_dapp_requests_desc_v2": "Let dapps request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
+    "smart_account_dapp_requests_heading": "Smart account requests from sites",
+    "smart_account_dapp_requests_desc_v2": "Let sites request smart account features for standard accounts. MetaMask will only upgrade to our audited smart account.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
     "smart_transactions_opt_in_desc_supported_networks": "Turn on Smart Transactions for more reliable and secure transactions on supported networks.",
     "smart_transactions_learn_more": "Learn more",
@@ -4885,8 +4885,8 @@
     "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
     "disconnect_account": "Disconnect account?",
     "disconnect_all_accounts": "Disconnect all accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{site}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{site}}, you will need to give permissions to reconnect it.",
     "disconnect_confirm": "Disconnect",
     "cancel": "Cancel"
   },
@@ -5561,7 +5561,7 @@
     "switch_network": "Switch network",
     "dapp_browser": "Dapp browser",
     "dapp_browser_message": "MetaMask is your wallet and browser for the decentralized web. Have a look around!",
-    "featured_dapps": "Featured dapps",
+    "featured_dapps": "Featured sites",
     "my_favorites": "Favorites",
     "search": "Search or type a URL",
     "welcome": "Welcome!",
@@ -11058,7 +11058,7 @@
   },
   "sdk_connect_v2": {
     "show_loading": {
-      "title": "Connecting to dApp",
+      "title": "Connecting to site",
       "description": "Establishing connection with {{dappName}}..."
     },
     "show_error": {
@@ -11142,7 +11142,7 @@
     "5_minutes": "5 minutes",
     "networks": "Networks",
     "ecosystems": "Ecosystems",
-    "ecosystems_subtitle": "Explore dApps, tokens, and NFTs across chains on MetaMask Portfolio",
+    "ecosystems_subtitle": "Explore sites, tokens, and NFTs across chains on MetaMask Portfolio",
     "all_sports": "Popular sports",
     "basketball": "Basketball",
     "football": "Football",
