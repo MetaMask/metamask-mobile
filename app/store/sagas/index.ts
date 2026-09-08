@@ -51,6 +51,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
+import { backfillLegacyNotificationPreferencesSaga } from './backfillLegacyNotificationPreferences';
 import { promptIosGoogleWarningSheetSaga } from './onboarding/legacyIosGoogleReminder';
 import {
   watchMarketingAttributionOnClearOnboarding,
@@ -536,6 +537,9 @@ export function* rootSaga() {
   // Send one-time analytics backfill for migrated social login users after
   // persisted state has been rehydrated and app services are available.
   yield fork(backfillSocialLoginMarketingConsentSaga);
+
+  // Initialize missing AUS notification preferences for migrated legacy users.
+  yield fork(backfillLegacyNotificationPreferencesSaga);
 
   yield fork(watchMarketingAttributionOnConsentChange);
   yield fork(watchMarketingAttributionOnClearOnboarding);
