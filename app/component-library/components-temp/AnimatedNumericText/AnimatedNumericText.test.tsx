@@ -1,7 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
+import { NumberFlow } from 'number-flow-react-native/native';
 
-import AnimatedNumericText from './AnimatedNumericText';
+import AnimatedNumericText, {
+  getNumberFlowConfig,
+} from './AnimatedNumericText';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: () => ({}) }),
@@ -38,7 +41,7 @@ describe('AnimatedNumericText', () => {
   });
 
   it('renders a currency symbol and trailing label around the number', () => {
-    const { getByTestId } = render(
+    const { getByTestId, UNSAFE_getAllByType } = render(
       <AnimatedNumericText
         value="$ 250.00 available"
         testID="animated-numeric-text"
@@ -48,6 +51,7 @@ describe('AnimatedNumericText', () => {
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
       '$ 250.00 available',
     );
+    expect(UNSAFE_getAllByType(NumberFlow)).toHaveLength(1);
   });
 
   it('keeps a ticker containing digits as static text', () => {
@@ -78,5 +82,30 @@ describe('AnimatedNumericText', () => {
     );
 
     expect(getByLabelText('12.')).toBeOnTheScreen();
+  });
+
+  it('falls back to lossless text when Number Flow would round the value', () => {
+    const value = '9007199254740993.000001';
+
+    expect(getNumberFlowConfig(value)).toBeUndefined();
+  });
+
+  it('defers mounting Number Flow until the JS thread is idle', () => {
+    const mockRequestIdleCallback = jest.fn();
+    const originalRequestIdleCallback = globalThis.requestIdleCallback;
+    globalThis.requestIdleCallback = mockRequestIdleCallback;
+
+    const { UNSAFE_queryAllByType } = render(
+      <AnimatedNumericText value="250.00" deferRolling />,
+    );
+
+    expect(UNSAFE_queryAllByType(NumberFlow)).toHaveLength(0);
+
+    act(() => {
+      mockRequestIdleCallback.mock.calls[0][0]();
+    });
+
+    expect(UNSAFE_queryAllByType(NumberFlow)).toHaveLength(1);
+    globalThis.requestIdleCallback = originalRequestIdleCallback;
   });
 });

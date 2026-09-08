@@ -21,6 +21,7 @@ Centralized haptic feedback module for MetaMask Mobile.
 | Error notification   | `playErrorNotification()`           | `notificationAsync(Error)`   | —      | Error toast / failure banner      | Non-negotiable #2. System failures only.        |
 | Warning notification | `playWarningNotification()`         | `notificationAsync(Warning)` | —      | Compliance / restriction modal    |                                                 |
 | Slider tick          | `playImpact('sliderTick')`          | `impactAsync(Light)`         | Light  | Slider step animation             |                                                 |
+| Keypad key           | `playImpact('keypadKey')`           | `impactAsync(Rigid)`         | Rigid  | Numeric keypad digit / backspace  | Matches iOS system keyboard click               |
 | Edge gesture engage  | `playImpact('edgeGestureEngage')`   | `impactAsync(Light)`         | Light  | Browser back/forward edge swipe   | Touch-down in edge zone; not slider ticks       |
 | Page navigation      | `playImpact('pageNavigation')`      | `impactAsync(Medium)`        | Medium | Browser swipe back/forward commit | Distinct from tab bar `tabChange`               |
 | Slider grip          | `playImpact('sliderGrip')`          | `impactAsync(Medium)`        | Medium | Slider thumb press / release      | Distinct from tick / threshold crossings        |

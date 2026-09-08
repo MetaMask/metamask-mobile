@@ -13,7 +13,6 @@ import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { AssetType, TokenStandard } from '../../../../types/token';
 import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
-import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
@@ -40,18 +39,23 @@ export const AmountKeyboard = ({
   amount,
   amountError,
   fiatMode,
+  getFiatValue,
+  getNativeValue,
   updateAmount,
   validateNonEvmAmountAsync,
 }: {
   amount: string;
   amountError?: string;
   fiatMode: boolean;
+  getFiatValue: (amount: string) => string;
+  getNativeValue: (amount: string) => string;
   updateAmount: (value: string) => void;
   validateNonEvmAmountAsync: () => Promise<string | undefined>;
 }) => {
-  const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
-  const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
+  const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount({
+    deferGasPolling: true,
+  });
   const { asset, updateValue, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const { isNonEvmSendType } = useSendType();
@@ -66,7 +70,7 @@ export const AmountKeyboard = ({
   const { styles } = useStyles(styleSheet, styleVars);
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
-  const { playImpact, playSelection } = useHaptics();
+  const { playImpact } = useHaptics();
 
   const { predefinedRecipient } = useParams<{
     predefinedRecipient: PredefinedRecipient;
@@ -104,11 +108,11 @@ export const AmountKeyboard = ({
       ) {
         return;
       }
-      playSelection();
+      playImpact(ImpactMoment.KeypadKey);
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
     },
-    [asset, fiatMode, getNativeValue, playSelection, updateAmount, updateValue],
+    [asset, fiatMode, getNativeValue, playImpact, updateAmount, updateValue],
   );
 
   const goToNextPage = useCallback(async () => {
