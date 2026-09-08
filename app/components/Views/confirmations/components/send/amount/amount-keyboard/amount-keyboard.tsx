@@ -13,7 +13,6 @@ import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { AssetType, TokenStandard } from '../../../../types/token';
 import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
-import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendType } from '../../../../hooks/send/useSendType';
@@ -39,17 +38,20 @@ const ADDITIONAL_KAYBOARD_BUTTONS_INCLUDING_MAX = [
 
 export const AmountKeyboard = ({
   amount,
+  amountError,
   fiatMode,
   updateAmount,
+  validateNonEvmAmountAsync,
 }: {
   amount: string;
+  amountError?: string;
   fiatMode: boolean;
   updateAmount: (value: string) => void;
+  validateNonEvmAmountAsync: () => Promise<string | undefined>;
 }) => {
   const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
-  const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
   const { asset, updateValue, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const { isNonEvmSendType } = useSendType();

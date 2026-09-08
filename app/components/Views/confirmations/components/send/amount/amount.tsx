@@ -61,7 +61,7 @@ export const Amount = () => {
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, updateValue, value } = useSendContext();
   const { balance } = useBalance();
-  const { amountError } = useAmountValidation();
+  const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
   const [amount, setAmount] = useState('');
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
   const {
@@ -264,8 +264,10 @@ export const Amount = () => {
       </View>
       <AmountKeyboard
         amount={amount}
+        amountError={amountError}
         fiatMode={fiatMode}
         updateAmount={setAmount}
+        validateNonEvmAmountAsync={validateNonEvmAmountAsync}
       />
     </SafeAreaView>
   );
