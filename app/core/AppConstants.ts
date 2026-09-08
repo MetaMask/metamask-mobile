@@ -277,19 +277,30 @@ export default {
     DEV: 'https://test-sec.immersve.com',
     PRD: 'https://api-sec.immersve.com',
   },
-  // Fractal encryption service (publishes the JWKS used to verify the UKYC
-  // wrapping-key `jwtChain`). Values per build target; wire real endpoints when
-  // available.
-  FRACTAL_ENCRYPTION_URL: {
+  // idOS enclave JWKS (verifies the UKYC `encryptionDataKey` jwtChain).
+  // Values per build target; wire real endpoints when available.
+  IDOS_ENCLAVE_URL: {
     DEV:
-      process.env.FRACTAL_ENCRYPTION_URL_DEV ??
+      process.env.IDOS_ENCLAVE_URL_DEV ??
       'https://enclave.staging.sandbox.fractal.id/',
     UAT:
-      process.env.FRACTAL_ENCRYPTION_URL_UAT ??
+      process.env.IDOS_ENCLAVE_URL_UAT ??
       'https://enclave.staging.sandbox.fractal.id/',
     PRD:
-      process.env.FRACTAL_ENCRYPTION_URL_PRD ??
-      'https://encryption.idos.network/',
+      process.env.IDOS_ENCLAVE_URL_PRD ??
+      'https://enclave.idos.network/',
+  },
+  // idOS relay JWKS (verifies the UKYC `ukycCapabilityToken` jwtChain).
+  IDOS_RELAY_URL: {
+    DEV:
+      process.env.IDOS_RELAY_URL_DEV ??
+      'https://relay.playground.idos.network/',
+    UAT:
+      process.env.IDOS_RELAY_URL_UAT ??
+      'https://relay.staging.idos.network/',
+    PRD:
+      process.env.IDOS_RELAY_URL_PRD ??
+      'https://relay.idos.network/',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:

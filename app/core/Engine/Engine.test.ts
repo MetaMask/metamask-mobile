@@ -1309,5 +1309,16 @@ describe('Engine', () => {
 
       expect(clearStateSpy).toHaveBeenCalled();
     });
+
+    it('calls KycController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.KycController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
   });
 });

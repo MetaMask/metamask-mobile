@@ -5,10 +5,8 @@ import { kycServiceInit } from './kyc-service-init';
 import { KycService, type KycServiceMessenger } from '@metamask/kyc-controller';
 import { MessengerClientInitRequest } from '../../types';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import AppConstants from '../../../AppConstants';
 
-jest.mock('../../../../util/environment', () => ({
-  isProduction: jest.fn(),
-}));
 jest.mock('@metamask/kyc-controller', () => ({
   KycService: class KycService {
     constructor(args: Record<string, unknown>) {
@@ -16,12 +14,6 @@ jest.mock('@metamask/kyc-controller', () => ({
     }
   },
 }));
-
-import { isProduction } from '../../../../util/environment';
-
-const mockIsProduction = isProduction as jest.MockedFunction<
-  typeof isProduction
->;
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<KycServiceMessenger>
@@ -42,13 +34,11 @@ describe('kycServiceInit', () => {
   });
 
   it('instantiates the KycService', () => {
-    mockIsProduction.mockReturnValue(false);
     const { controller } = kycServiceInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(KycService);
   });
 
-  it('passes production env when isProduction() returns true', () => {
-    mockIsProduction.mockReturnValue(true);
+  it('passes messenger, fetch, localhost KYC URL, and environment-derived idOS JWKS URLs', () => {
     const requestMock = getInitRequestMock();
 
     const { controller } = kycServiceInit(requestMock);
@@ -56,47 +46,9 @@ describe('kycServiceInit', () => {
     expect(controller).toMatchObject({
       messenger: requestMock.controllerMessenger,
       fetch,
-      env: 'production',
+      baseUrl: 'http://localhost:3000',
+      idosEnclaveBaseUrl: AppConstants.IDOS_ENCLAVE_URL.DEV,
+      idosRelayBaseUrl: AppConstants.IDOS_RELAY_URL.DEV,
     });
-  });
-
-  it('passes development env when isProduction() returns false', () => {
-    mockIsProduction.mockReturnValue(false);
-    const requestMock = getInitRequestMock();
-
-    const { controller } = kycServiceInit(requestMock);
-
-    expect(controller).toMatchObject({
-      messenger: requestMock.controllerMessenger,
-      fetch,
-      env: 'development',
-    });
-  });
-
-  it('passes neobankBaseUrl for on-ramp wallet registration', () => {
-    mockIsProduction.mockReturnValue(false);
-    const previousEnv = process.env.METAMASK_ENVIRONMENT;
-    const previousNeobank = process.env.NEOBANK_API_URL;
-    process.env.METAMASK_ENVIRONMENT = 'dev';
-    delete process.env.NEOBANK_API_URL;
-
-    try {
-      const { controller } = kycServiceInit(getInitRequestMock());
-
-      expect(controller).toMatchObject({
-        neobankBaseUrl: 'https://on-ramp.dev-api.cx.metamask.io',
-      });
-    } finally {
-      if (previousEnv === undefined) {
-        delete process.env.METAMASK_ENVIRONMENT;
-      } else {
-        process.env.METAMASK_ENVIRONMENT = previousEnv;
-      }
-      if (previousNeobank === undefined) {
-        delete process.env.NEOBANK_API_URL;
-      } else {
-        process.env.NEOBANK_API_URL = previousNeobank;
-      }
-    }
   });
 });

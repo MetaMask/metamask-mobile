@@ -4,38 +4,101 @@ import { startIronKycFlow, startIronKycVerification } from './ironKycFlow';
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KycController: {
-      state: { error: null, disclaimers: [] },
+      state: {
+        error: null,
+        vendorDisclaimers: [],
+        sumsub: { status: 'idle' },
+      },
       initialize: jest.fn(),
-      createIronCustomer: jest.fn(),
+      createVendorCustomer: jest.fn(),
       acceptTermsAndStartSession: jest.fn(),
+    },
+    KycService: {
+      getGeoCountry: jest.fn(),
+      fetchDisclaimersCatalog: jest.fn(),
     },
   },
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
-  state: { error: string | null; disclaimers: { id: string }[] };
+  state: {
+    error: string | null;
+    vendorDisclaimers: { id: string }[];
+    sumsub: { status: string };
+  };
   initialize: jest.Mock<Promise<void>, [unknown?]>;
-  createIronCustomer: jest.Mock<Promise<void>, [unknown?]>;
+  createVendorCustomer: jest.Mock<Promise<void>, [unknown?]>;
   acceptTermsAndStartSession: jest.Mock<Promise<void>, [unknown?]>;
+};
+
+const mockKycService = Engine.context.KycService as unknown as {
+  getGeoCountry: jest.Mock<Promise<string>, []>;
+  fetchDisclaimersCatalog: jest.Mock<
+    Promise<{
+      idOS: {
+        key: string;
+        version: string;
+        title: string;
+        url: string;
+        consented: boolean;
+      }[];
+      kycProvider: {
+        key: string;
+        version: string;
+        title: string;
+        url: string;
+        consented: boolean;
+      }[];
+    }>,
+    [{ country: string }]
+  >;
+};
+
+const MOCK_SESSION_CATALOG = {
+  idOS: [
+    {
+      key: 'idos-tos',
+      version: '1',
+      title: 'idOS ToS',
+      url: 'https://idos.example/tos',
+      consented: false,
+    },
+  ],
+  kycProvider: [
+    {
+      key: 'sumsub-tos',
+      version: '2',
+      title: 'SumSub ToS',
+      url: 'https://sumsub.example/tos',
+      consented: false,
+    },
+  ],
 };
 
 const resetControllerState = ({
   error = null,
-  disclaimers = [{ id: 'disclaimer-1' }],
+  vendorDisclaimers = [{ id: 'disclaimer-1' }],
+  sumsubStatus = 'complete',
 }: {
   error?: string | null;
-  disclaimers?: { id: string }[];
+  vendorDisclaimers?: { id: string }[];
+  sumsubStatus?: string;
 } = {}) => {
   mockKycController.state.error = error;
-  mockKycController.state.disclaimers = disclaimers;
+  mockKycController.state.vendorDisclaimers = vendorDisclaimers;
+  mockKycController.state.sumsub.status = sumsubStatus;
 };
 
 describe('startIronKycFlow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockKycController.initialize.mockResolvedValue(undefined);
-    mockKycController.createIronCustomer.mockResolvedValue(undefined);
+    mockKycController.createVendorCustomer.mockResolvedValue(undefined);
     mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
+    mockKycService.getGeoCountry.mockResolvedValue('BRA');
+    mockKycService.fetchDisclaimersCatalog.mockResolvedValue(
+      MOCK_SESSION_CATALOG,
+    );
     resetControllerState();
   });
 
@@ -81,41 +144,76 @@ describe('startIronKycVerification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockKycController.initialize.mockResolvedValue(undefined);
-    mockKycController.createIronCustomer.mockResolvedValue(undefined);
+    mockKycController.createVendorCustomer.mockResolvedValue(undefined);
     mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
+    mockKycService.getGeoCountry.mockResolvedValue('BRA');
+    mockKycService.fetchDisclaimersCatalog.mockResolvedValue(
+      MOCK_SESSION_CATALOG,
+    );
     resetControllerState();
   });
 
-  it('creates the Iron customer then accepts terms to start the session', async () => {
-    await startIronKycVerification('user@example.com');
+  it('creates the Iron customer then accepts terms from the fetched catalog', async () => {
+    await expect(startIronKycVerification('user@example.com')).resolves.toBe(
+      'submitted',
+    );
 
-    expect(mockKycController.createIronCustomer).toHaveBeenCalledWith({
+    expect(mockKycController.createVendorCustomer).toHaveBeenCalledWith({
+      vendor: 'iron',
       email: 'user@example.com',
+    });
+    expect(mockKycService.getGeoCountry).toHaveBeenCalledTimes(1);
+    expect(mockKycService.fetchDisclaimersCatalog).toHaveBeenCalledWith({
+      country: 'BRA',
     });
     expect(mockKycController.acceptTermsAndStartSession).toHaveBeenCalledWith({
       email: 'user@example.com',
       product: 'money',
-      sumsubTncSigned: true,
-      idosTncSigned: true,
+      providerDisclaimersAccepted: [{ key: 'sumsub-tos', version: '2' }],
+      idosDisclaimersAccepted: [{ key: 'idos-tos', version: '1' }],
+    });
+  });
+
+  it('fetches the catalog for the country returned by getGeoCountry', async () => {
+    mockKycService.getGeoCountry.mockResolvedValue('USA');
+
+    await startIronKycVerification('user@example.com');
+
+    expect(mockKycService.fetchDisclaimersCatalog).toHaveBeenCalledWith({
+      country: 'USA',
     });
   });
 
   it('throws the error the controller recorded while creating the customer', async () => {
-    mockKycController.createIronCustomer.mockImplementation(async () => {
+    mockKycController.createVendorCustomer.mockImplementation(async () => {
       mockKycController.state.error = 'Iron customer creation failed.';
     });
 
     await expect(startIronKycVerification('user@example.com')).rejects.toThrow(
       'Iron customer creation failed.',
     );
+    expect(mockKycService.getGeoCountry).not.toHaveBeenCalled();
+    expect(mockKycService.fetchDisclaimersCatalog).not.toHaveBeenCalled();
     expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
   });
 
   it('throws without starting a session when no disclaimers are loaded', async () => {
-    resetControllerState({ disclaimers: [] });
+    resetControllerState({ vendorDisclaimers: [] });
 
     await expect(startIronKycVerification('user@example.com')).rejects.toThrow(
       'Terms are not loaded yet.',
+    );
+    expect(mockKycService.fetchDisclaimersCatalog).not.toHaveBeenCalled();
+    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
+  });
+
+  it('throws when the session disclaimer catalog fetch fails', async () => {
+    mockKycService.fetchDisclaimersCatalog.mockRejectedValue(
+      new Error('Catalog unavailable'),
+    );
+
+    await expect(startIronKycVerification('user@example.com')).rejects.toThrow(
+      'Catalog unavailable',
     );
     expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
   });
@@ -129,6 +227,19 @@ describe('startIronKycVerification', () => {
 
     await expect(startIronKycVerification('user@example.com')).rejects.toThrow(
       'Iron session failed: consents.',
+    );
+  });
+
+  it('reports abandonment instead of throwing when the applicant backs out of SumSub', async () => {
+    // The controller records no error, so the status is the only signal.
+    mockKycController.acceptTermsAndStartSession.mockImplementation(
+      async () => {
+        mockKycController.state.sumsub.status = 'abandoned';
+      },
+    );
+
+    await expect(startIronKycVerification('user@example.com')).resolves.toBe(
+      'abandoned',
     );
   });
 });
