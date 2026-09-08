@@ -95,13 +95,21 @@ export const getEarnOpportunityDestination = (
 export const getEarnOpportunityRedirectTarget = (
   earnAsset: EarnAsset,
   isMoneyOnboardingRedirectNeeded: boolean,
-): EarnOpportunityRedirectTarget => {
-  const destination = getEarnOpportunityDestination(earnAsset);
+): EarnOpportunityRedirectTarget | undefined => {
+  try {
+    const destination = getEarnOpportunityDestination(earnAsset);
 
-  return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
-    isMoneyOnboardingRedirectNeeded
-    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
-    : destination;
+    return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
+      isMoneyOnboardingRedirectNeeded
+      ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+      : destination;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      `${LOG_PREFIX} Failed to resolve Earn opportunity redirect target`,
+    );
+    return undefined;
+  }
 };
 
 export const getEarnExperienceRedirectTarget = (
@@ -112,13 +120,22 @@ export const getEarnExperienceRedirectTarget = (
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
   | EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT
   | EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT
-  | EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT => {
-  const destination = getEarnExperienceDestination(experience.type);
+  | EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT
+  | undefined => {
+  try {
+    const destination = getEarnExperienceDestination(experience.type);
 
-  return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
-    isMoneyOnboardingRedirectNeeded
-    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
-    : destination;
+    return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
+      isMoneyOnboardingRedirectNeeded
+      ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+      : destination;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      `${LOG_PREFIX} Failed to resolve Earn experience redirect target`,
+    );
+    return undefined;
+  }
 };
 
 /**
@@ -278,7 +295,17 @@ const useEarnOpportunityNavigation = () => {
         return;
       }
 
-      const destination = getEarnOpportunityDestination(asset);
+      let destination: EarnOpportunityDestination;
+      try {
+        destination = getEarnOpportunityDestination(asset);
+      } catch (error) {
+        showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
+        Logger.error(
+          error as Error,
+          `${LOG_PREFIX} Failed to resolve Earn opportunity destination`,
+        );
+        return;
+      }
 
       if (destination === EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS) {
         const token = earnAssetToToken(asset);
