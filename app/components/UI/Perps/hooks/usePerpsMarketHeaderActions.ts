@@ -14,7 +14,6 @@ import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
 import { useDropPerpsHomeFromStackHistory } from '../utils/perpsModeSwitch';
 import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 export interface UsePerpsMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
@@ -76,16 +75,6 @@ export const usePerpsMarketHeaderActions = ({
   const isWatchlist = useSelector(selectIsWatchlist);
 
   const handleBackPress = useCallback(() => {
-    DevLogger.log(
-      '[TAT-3786] BUG_MARKER: back pressed on market detail',
-      JSON.stringify({
-        canGoBack,
-        backFallback,
-        perpsRoutes: (navigation.getState()?.routes ?? []).map(
-          (route) => route.name,
-        ),
-      }),
-    );
     if (canGoBack) {
       navigateBack();
       return;
@@ -100,14 +89,7 @@ export const usePerpsMarketHeaderActions = ({
     // Pro mode is active is itself a market screen, so falling back to it
     // here would often be a no-op. Leave Perps entirely instead.
     navigateToWallet();
-  }, [
-    backFallback,
-    canGoBack,
-    navigateBack,
-    navigateToHome,
-    navigateToWallet,
-    navigation,
-  ]);
+  }, [backFallback, canGoBack, navigateBack, navigateToHome, navigateToWallet]);
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {
