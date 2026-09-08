@@ -128,41 +128,38 @@ const PerpsCustomSlippageBottomSheet: React.FC<
         </Text>
       </BottomSheetHeader>
 
-      <Box paddingHorizontal={4} paddingBottom={4}>
-        <Box paddingVertical={6}>
-          <InputStepper
-            value={draftValue}
-            onDecrease={handleDecrement}
-            onIncrease={handleIncrement}
-            minAmount={MIN_PCT}
-            maxAmount={MAX_PCT}
-            postValue="%"
-            testID={PerpsCustomSlippageBottomSheetSelectorsIDs.DISPLAY}
-            decreaseButtonProps={{
-              testID: PerpsCustomSlippageBottomSheetSelectorsIDs.DECREMENT,
-              accessibilityLabel: strings('perps.slippage.decrement_label'),
-            }}
-            increaseButtonProps={{
-              testID: PerpsCustomSlippageBottomSheetSelectorsIDs.INCREMENT,
-              accessibilityLabel: strings('perps.slippage.increment_label'),
-            }}
-            description={
-              showError
-                ? {
-                    message: strings('perps.slippage.out_of_range', {
-                      min: `${MIN_PCT}`,
-                      max: `${MAX_PCT}`,
-                    }),
-                    severity: HelpTextSeverity.Danger,
-                    testID: PerpsCustomSlippageBottomSheetSelectorsIDs.ERROR,
-                  }
-                : undefined
-            }
-          />
-        </Box>
-
+      <Box paddingHorizontal={4} paddingTop={6} paddingBottom={4}>
+        <InputStepper
+          value={draftValue}
+          onDecrease={handleDecrement}
+          onIncrease={handleIncrement}
+          minAmount={MIN_PCT}
+          maxAmount={MAX_PCT}
+          postValue="%"
+          testID={PerpsCustomSlippageBottomSheetSelectorsIDs.DISPLAY}
+          decreaseButtonProps={{
+            testID: PerpsCustomSlippageBottomSheetSelectorsIDs.DECREMENT,
+            accessibilityLabel: strings('perps.slippage.decrement_label'),
+          }}
+          increaseButtonProps={{
+            testID: PerpsCustomSlippageBottomSheetSelectorsIDs.INCREMENT,
+            accessibilityLabel: strings('perps.slippage.increment_label'),
+          }}
+          description={
+            showError
+              ? {
+                  message: strings('perps.slippage.out_of_range', {
+                    min: `${MIN_PCT}`,
+                    max: `${MAX_PCT}`,
+                  }),
+                  severity: HelpTextSeverity.Danger,
+                  testID: PerpsCustomSlippageBottomSheetSelectorsIDs.ERROR,
+                }
+              : undefined
+          }
+        />
         <Box
-          marginTop={2}
+          marginTop={8}
           testID={PerpsCustomSlippageBottomSheetSelectorsIDs.KEYPAD}
         >
           <Keypad

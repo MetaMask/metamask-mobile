@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Platform, StyleSheet, type TextStyle } from 'react-native';
 import InputStepper from './InputStepper';
 import {
+  INPUTSTEPPER_AMOUNT_FONT_SIZE,
   INPUTSTEPPER_CURSOR_TESTID,
   INPUTSTEPPER_DESCRIPTION_TESTID,
   INPUTSTEPPER_INPUT_TESTID,
@@ -112,63 +113,23 @@ describe('InputStepper', () => {
   });
 
   describe('font size', () => {
-    it('renders 40px font when visible length is 10 or less', () => {
-      const { getByTestId } = render(
-        <InputStepper {...defaultProps} value="0.12345678" />,
-      );
-
-      expect(getAmountFontSize(getByTestId(INPUTSTEPPER_INPUT_TESTID))).toBe(
-        40,
-      );
-    });
-
-    it('counts the suffix towards the visible length', () => {
+    it('renders the amount at the default 40px font size', () => {
       const { getByTestId } = render(
         <InputStepper {...defaultProps} value="0.12345678" postValue="%" />,
       );
 
       expect(getAmountFontSize(getByTestId(INPUTSTEPPER_INPUT_TESTID))).toBe(
-        35,
+        INPUTSTEPPER_AMOUNT_FONT_SIZE,
       );
     });
 
-    it('renders 35px font when visible length is 15 or less', () => {
-      const { getByTestId } = render(
-        <InputStepper {...defaultProps} value="0.123456789012" />,
-      );
-
-      expect(getAmountFontSize(getByTestId(INPUTSTEPPER_INPUT_TESTID))).toBe(
-        35,
-      );
-    });
-
-    it('renders 30px font when visible length is 20 or less', () => {
-      const { getByTestId } = render(
-        <InputStepper {...defaultProps} value="0.1234567890123456" />,
-      );
-
-      expect(getAmountFontSize(getByTestId(INPUTSTEPPER_INPUT_TESTID))).toBe(
-        30,
-      );
-    });
-
-    it('renders 25px font when visible length is 25 or less', () => {
-      const { getByTestId } = render(
-        <InputStepper {...defaultProps} value="0.12345678901234567890123" />,
-      );
-
-      expect(getAmountFontSize(getByTestId(INPUTSTEPPER_INPUT_TESTID))).toBe(
-        25,
-      );
-    });
-
-    it('renders 20px font when visible length is more than 25', () => {
+    it('keeps the default font size for long values', () => {
       const { getByTestId } = render(
         <InputStepper {...defaultProps} value="0.123456789012345678901234" />,
       );
 
       expect(getAmountFontSize(getByTestId(INPUTSTEPPER_INPUT_TESTID))).toBe(
-        20,
+        INPUTSTEPPER_AMOUNT_FONT_SIZE,
       );
     });
 

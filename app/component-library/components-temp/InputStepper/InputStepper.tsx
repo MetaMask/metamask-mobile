@@ -17,8 +17,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { formatAmountWithLocaleSeparators } from '../../../util/formatAmountWithLocaleSeparators';
-import { calculateInputFontSize } from './calculateInputFontSize';
 import {
+  INPUTSTEPPER_AMOUNT_FONT_SIZE,
   INPUTSTEPPER_DESCRIPTION_TESTID,
   INPUTSTEPPER_INPUT_TESTID,
   INPUTSTEPPER_MINUS_BUTTON_TESTID,
@@ -58,20 +58,12 @@ const InputStepper: React.FC<InputStepperProps> = ({
     () => (value ? formatAmountWithLocaleSeparators(value) : placeholder),
     [placeholder, value],
   );
-  const fontSize = calculateInputFontSize(
-    displayedAmount.length + (postValue?.length ?? 0),
-  );
 
-  const amountTextStyle = useMemo<TextStyle>(() => {
-    const sizeStyle: TextStyle = {
-      fontSize,
-      lineHeight: fontSize * 1.25,
-    };
-
-    return Platform.OS === 'android'
-      ? { ...sizeStyle, includeFontPadding: false }
-      : sizeStyle;
-  }, [fontSize]);
+  const amountTextStyle: TextStyle = {
+    fontSize: INPUTSTEPPER_AMOUNT_FONT_SIZE,
+    lineHeight: INPUTSTEPPER_AMOUNT_FONT_SIZE * 1.25,
+    ...(Platform.OS === 'android' && { includeFontPadding: false }),
+  };
 
   return (
     <Box twClassName="gap-4" testID={testID}>
@@ -109,7 +101,7 @@ const InputStepper: React.FC<InputStepperProps> = ({
           >
             {displayedAmount}
           </Text>
-          <InputStepperCursor height={fontSize} />
+          <InputStepperCursor height={INPUTSTEPPER_AMOUNT_FONT_SIZE} />
           {postValue ? (
             <Text
               style={amountTextStyle}
@@ -137,15 +129,14 @@ const InputStepper: React.FC<InputStepperProps> = ({
         />
       </Box>
       {description ? (
-        <Box alignItems={BoxAlignItems.Center}>
-          <HelpText
-            severity={description.severity}
-            showIcon={description.showIcon}
-            testID={description.testID ?? INPUTSTEPPER_DESCRIPTION_TESTID}
-          >
-            {description.message}
-          </HelpText>
-        </Box>
+        <HelpText
+          severity={description.severity}
+          showIcon={description.showIcon}
+          twClassName="self-center"
+          testID={description.testID ?? INPUTSTEPPER_DESCRIPTION_TESTID}
+        >
+          {description.message}
+        </HelpText>
       ) : null}
     </Box>
   );

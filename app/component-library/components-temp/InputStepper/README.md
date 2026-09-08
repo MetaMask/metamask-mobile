@@ -8,7 +8,7 @@ The amount is rendered as MMDS `Text` with a blinking `InputStepperCursor` besid
 
 - the suffix stays flush with the digits instead of being pushed away by a caret inside a text field
 - the amount cannot clip or scroll horizontally while digits are added or removed
-- the font shrinks to fit (`adjustsFontSizeToFit`) based on the amount plus the suffix
+- the font shrinks to fit (`adjustsFontSizeToFit`) if the amount overflows the row
 
 Because there is no `TextInput`, the caret always sits at the end of the amount and cannot be repositioned by tapping. Consumers drive the value entirely through their keypad handler.
 
