@@ -9,6 +9,11 @@ import { createProjectLogger } from '@metamask/utils';
 
 const log = createProjectLogger('confirmation-load-metrics');
 
+const meansByTransactionType = new Map<
+  string,
+  { sampleCount: number; totalDurationMs: number }
+>();
+
 /**
  * Records how long a transaction confirmation took to become visible, spanning
  * transaction creation to the confirmation body's first paint.
@@ -24,6 +29,12 @@ const log = createProjectLogger('confirmation-load-metrics');
  *
  * Non-transaction confirmations (for example signature requests) have no
  * creation timestamp to anchor against and are skipped.
+ *
+ * Additionally logs a session-scoped running mean (`averageMs`) grouped by
+ * transaction type, alongside the sample count it is drawn from, so a slow
+ * type is not masked by a fast one. This is diagnostic output only — the mean
+ * is never dispatched as a metric property nor attached to the Sentry trace,
+ * both of which stay per-confirmation.
  *
  * @returns An object with an `onFirstPaint` callback, to be passed to the root
  * confirmation container's `onLayout`.
@@ -85,7 +96,18 @@ export function useConfirmationLoadMetrics() {
       timestamp: paintedAtMs,
     });
 
+    const stats = meansByTransactionType.get(transactionType) ?? {
+      sampleCount: 0,
+      totalDurationMs: 0,
+    };
+
+    stats.sampleCount += 1;
+    stats.totalDurationMs += durationMs;
+    meansByTransactionType.set(transactionType, stats);
+
     log('First paint', durationMs, {
+      averageMs: Math.round(stats.totalDurationMs / stats.sampleCount),
+      sampleCount: stats.sampleCount,
       transactionId,
       transactionType,
     });
