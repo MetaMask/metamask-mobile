@@ -189,8 +189,9 @@ let mockExistingPosition: {
 
 let mockPositionModifyPreview: PositionModifyPreviewResult = { status: 'none' };
 let mockIsAwaitingPositionModifyPreview = false;
+let mockIsPositionModifyPreviewEnabled = true;
 let mockPositionModifyPreviewParams:
-  | { providerId?: PerpsProviderType }
+  | { providerId?: PerpsProviderType; enabled?: boolean }
   | undefined;
 
 let mockIsAtCap = false;
@@ -316,8 +317,17 @@ jest.mock('../../../../hooks', () => ({
   }),
   usePerpsPositionModifyPreview: (params: {
     providerId?: PerpsProviderType;
+    enabled?: boolean;
   }) => {
     mockPositionModifyPreviewParams = params;
+    if (params.enabled === false) {
+      return {
+        preview: { status: 'none' as const },
+        isCalculating: false,
+        isAwaitingFirstPreview: false,
+        error: null,
+      };
+    }
     return {
       preview: mockPositionModifyPreview,
       isCalculating: mockIsAwaitingPositionModifyPreview,
@@ -417,8 +427,17 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: (selector: { isSelectedAccountSelector?: boolean }) =>
-    selector.isSelectedAccountSelector ? mockSelectedAddress : false,
+  useSelector: (selector: { isSelectedAccountSelector?: boolean }) => {
+    if (selector.isSelectedAccountSelector) {
+      return mockSelectedAddress;
+    }
+    const { selectPerpsPositionModifyPreviewEnabledFlag: mockPreviewFlag } =
+      jest.requireActual('../../../../selectors/featureFlags');
+    if (selector === mockPreviewFlag) {
+      return mockIsPositionModifyPreviewEnabled;
+    }
+    return false;
+  },
 }));
 
 jest.mock('../../../../../../../selectors/accountsController', () => ({
@@ -561,6 +580,7 @@ describe('usePerpsProOrderForm', () => {
     mockPositionModifyPreview = { status: 'none' };
     mockPositionModifyPreviewParams = undefined;
     mockIsAwaitingPositionModifyPreview = false;
+    mockIsPositionModifyPreviewEnabled = true;
     mockLiquidationPrice = '80000';
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
@@ -678,6 +698,39 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.liquidationPrice).toMatch(/\$48/);
     });
 
+    it('keeps single-value summary when the position-modify preview flag is off', () => {
+      mockIsPositionModifyPreviewEnabled = false;
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'increase',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 48000 },
+        },
+        resulting: {
+          direction: 'long',
+          size: 1.002,
+          entryPrice: 50010,
+          leverage: 5,
+          margin: { available: true, value: 1015 },
+          liquidationPrice: { available: true, value: 47000 },
+        },
+      };
+
+      const { result } = renderProForm();
+
+      expect(mockPositionModifyPreviewParams?.enabled).toBe(false);
+      expect(result.current.summary.margin).not.toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
+    });
+
     it('keeps single-value summary when the controller returns no preview', () => {
       mockPositionModifyPreview = { status: 'none' };
 
@@ -729,15 +782,15 @@ describe('usePerpsProOrderForm', () => {
       mockOrderForm.type = 'scale';
 
       renderProForm(true, true, 'hyperliquid', false, {
-        providerId: 'myx',
+        providerId: 'lighter',
       });
 
       expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'myx',
+          providerId: 'lighter',
         }),
       );
-      expect(mockOrderValidationParams?.providerId).toBe('myx');
+      expect(mockOrderValidationParams?.providerId).toBe('lighter');
     });
 
     it('routes Chase fees through its placement provider', () => {
@@ -1450,7 +1503,7 @@ describe('usePerpsProOrderForm', () => {
         await Promise.resolve();
       });
 
-      rerender({ providerId: 'myx' });
+      rerender({ providerId: 'lighter' });
       await act(async () => {
         resolveValidation?.({
           errors: [],
@@ -1617,7 +1670,10 @@ describe('usePerpsProOrderForm', () => {
         if (orderType === 'stop_market') {
           mockContextValue.triggerPrice = '91000';
         }
-        const myxMarket = { ...market, providerId: 'myx' } as PerpsMarketData;
+        const lighterMarket = {
+          ...market,
+          providerId: 'lighter',
+        } as PerpsMarketData;
         const { result } = renderProForm(
           true,
           true,
@@ -1625,14 +1681,14 @@ describe('usePerpsProOrderForm', () => {
           false,
           {},
           {},
-          myxMarket,
+          lighterMarket,
         );
 
         expect(mockUsePerpsOrderFees).toHaveBeenLastCalledWith(
-          expect.objectContaining({ providerId: 'myx' }),
+          expect.objectContaining({ providerId: 'lighter' }),
         );
-        expect(mockOrderValidationParams?.providerId).toBe('myx');
-        expect(mockPositionModifyPreviewParams?.providerId).toBe('myx');
+        expect(mockOrderValidationParams?.providerId).toBe('lighter');
+        expect(mockPositionModifyPreviewParams?.providerId).toBe('lighter');
 
         await act(async () => {
           await result.current.onPlaceOrderPress();
@@ -1641,7 +1697,7 @@ describe('usePerpsProOrderForm', () => {
         expect(mockExecuteOrder).toHaveBeenCalledWith(
           expect.objectContaining({
             orderType,
-            providerId: 'myx',
+            providerId: 'lighter',
           }),
         );
       },
@@ -3614,11 +3670,11 @@ describe('usePerpsProOrderForm', () => {
       });
     };
 
-    it('keeps Scale placement disabled for a MYX route', () => {
+    it('keeps Scale placement disabled for a Lighter route', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm(true, true, 'hyperliquid', false, {
-        providerId: 'myx',
+        providerId: 'lighter',
       });
 
       configureScaleOrder(result);
@@ -3798,16 +3854,16 @@ describe('usePerpsProOrderForm', () => {
       expect(hyperliquid.result.current.scaleOrder.rungs).toEqual([]);
       hyperliquid.unmount();
 
-      const myx = renderProForm(true, true, 'hyperliquid', false, {
-        providerId: 'myx',
+      const lighter = renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'lighter',
       });
       act(() => {
-        myx.result.current.scaleOrder.onStartPriceChange('100.123456');
-        myx.result.current.scaleOrder.onEndPriceChange('100.123457');
-        myx.result.current.scaleOrder.onTotalOrdersChange('3');
+        lighter.result.current.scaleOrder.onStartPriceChange('100.123456');
+        lighter.result.current.scaleOrder.onEndPriceChange('100.123457');
+        lighter.result.current.scaleOrder.onTotalOrdersChange('3');
       });
 
-      expect(myx.result.current.scaleOrder.rungs).toEqual([]);
+      expect(lighter.result.current.scaleOrder.rungs).toEqual([]);
     });
 
     it('clears limit and trigger drafts when Scale is selected', () => {
@@ -3874,7 +3930,7 @@ describe('usePerpsProOrderForm', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm(true, true, 'hyperliquid', false, {
-        providerId: 'myx',
+        providerId: 'lighter',
       });
       configureScaleOrder(result);
 
@@ -5207,7 +5263,7 @@ describe('usePerpsProOrderForm', () => {
       rerender({
         isScaleOrdersEnabled: true,
         isScaleOrderSupportPending: false,
-        scaleProviderId: 'myx',
+        scaleProviderId: 'lighter',
         checkScaleOrderSupport,
       });
       await act(async () => {

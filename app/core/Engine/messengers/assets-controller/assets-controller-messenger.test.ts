@@ -17,13 +17,15 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'PermissionController:getPermissions',
   'PhishingController:bulkScanTokens',
   'RemoteFeatureFlagController:getState',
+  'AccountTreeController:isInitialized',
+  'ClientController:getState',
+  'KeyringController:isUnlocked',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:selectedAccountGroupChange',
   'AccountTreeController:initialized',
   'AccountTreeController:uninitialized',
-  'AccountTreeController:stateChange',
   'NetworkEnablementController:stateChange',
   'ClientController:stateChange',
   'KeyringController:lock',
@@ -117,9 +119,40 @@ describe('getAssetsControllerMessenger', () => {
       expect.objectContaining({
         events: expect.arrayContaining([
           'AccountTreeController:selectedAccountGroupChange',
-          'AccountTreeController:stateChange',
           'NetworkEnablementController:stateChange',
           'ClientController:stateChange',
+        ]),
+      }),
+    );
+  });
+
+  it('does not delegate the retired AccountTreeController stateChange event (assets-controller@15.0.0)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.not.arrayContaining([
+          'AccountTreeController:stateChange',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates lifecycle actions required by assets-controller@15.0.0', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:isInitialized',
+          'ClientController:getState',
+          'KeyringController:isUnlocked',
         ]),
       }),
     );

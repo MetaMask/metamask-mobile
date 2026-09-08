@@ -307,16 +307,27 @@ const OnboardingSuccessFlow = () => {
  * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => {
-  const { colors } = useTheme();
+  const { themeAppearance } = useTheme();
+  const onboardingCanvasColor =
+    themeAppearance === 'dark'
+      ? importedColors.gettingStartedTextColor
+      : importedColors.gettingStartedPageBackgroundColorLightMode;
 
   return (
     <NativeStack.Navigator
       initialRouteName={'Onboarding'}
       screenOptions={{
-        contentStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: onboardingCanvasColor },
       }}
     >
-      <NativeStack.Screen name="Onboarding" component={Onboarding} />
+      <NativeStack.Screen
+        name="Onboarding"
+        component={Onboarding}
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: onboardingCanvasColor },
+        }}
+      />
       <NativeStack.Screen
         name={Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER}
         component={SocialLoginSuccessNewUser}
@@ -454,29 +465,42 @@ const SimpleWebviewScreen = () => (
   </NativeStack.Navigator>
 );
 
-const OnboardingRootNav = () => (
-  <NativeStack.Navigator
-    initialRouteName={Routes.ONBOARDING.NAV}
-    screenOptions={{ headerShown: false }}
-  >
-    <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
-    <NativeStack.Screen
-      name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcherWithMessenger}
-      options={{ presentation: 'modal' }}
-    />
-    <NativeStack.Screen
-      name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
-      component={VerificationCodeBottomSheet}
-      options={addDeviceVerificationCodeScreenOptions}
-    />
-    <NativeStack.Screen
-      name={Routes.WEBVIEW.MAIN}
-      component={SimpleWebviewScreen}
-      options={{ presentation: 'modal' }}
-    />
-  </NativeStack.Navigator>
-);
+const OnboardingRootNav = () => {
+  const { themeAppearance } = useTheme();
+  const onboardingCanvasColor =
+    themeAppearance === 'dark'
+      ? importedColors.gettingStartedTextColor
+      : importedColors.gettingStartedPageBackgroundColorLightMode;
+
+  return (
+    <NativeStack.Navigator
+      initialRouteName={Routes.ONBOARDING.NAV}
+      screenOptions={{
+        headerShown: false,
+        // Keep stack chrome cream/purple so Android gesture inset never flashes
+        // the default white window background behind Onboarding.
+        contentStyle: { backgroundColor: onboardingCanvasColor },
+      }}
+    >
+      <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
+      <NativeStack.Screen
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcherWithMessenger}
+        options={{ presentation: 'modal' }}
+      />
+      <NativeStack.Screen
+        name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+        component={VerificationCodeBottomSheet}
+        options={addDeviceVerificationCodeScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.WEBVIEW.MAIN}
+        component={SimpleWebviewScreen}
+        options={{ presentation: 'modal' }}
+      />
+    </NativeStack.Navigator>
+  );
+};
 
 const VaultRecoveryFlow = () => {
   const { colors } = useTheme();
@@ -1141,7 +1165,11 @@ const ModalSwitchAccountType = () => (
 );
 
 const AppFlow = () => {
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
+  const onboardingCanvasColor =
+    themeAppearance === 'dark'
+      ? importedColors.gettingStartedTextColor
+      : importedColors.gettingStartedPageBackgroundColorLightMode;
 
   return (
     <NativeStack.Navigator
@@ -1181,6 +1209,13 @@ const AppFlow = () => {
       <NativeStack.Screen
         name="OnboardingRootNav"
         component={OnboardingRootNav}
+        options={{
+          // Opaque card: AppFlow defaults to transparentModal, which lets the
+          // activity window's white theme color show in the Android gesture
+          // inset under the fox ("paper cut").
+          presentation: 'card',
+          contentStyle: { backgroundColor: onboardingCanvasColor },
+        }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.SUCCESS_FLOW}

@@ -125,6 +125,13 @@ if (isTestEnvironment) {
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+
+  if (hasTestOverrides) {
+    testConfig.transactionPayFiatTestFundingSource =
+      raw?.transactionPayFiatTestFundingSource;
+    testConfig.transactionPayFiatTestAmountOverride =
+      raw?.transactionPayFiatTestAmountOverride;
+  }
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667

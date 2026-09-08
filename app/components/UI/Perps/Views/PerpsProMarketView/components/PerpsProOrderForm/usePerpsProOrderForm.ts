@@ -134,7 +134,10 @@ import {
   finalizeNumericTextInput,
   normalizeNumericTextInput,
 } from '../../../../../../Base/Keypad/normalizeNumericTextInput';
-import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsPositionModifyPreviewEnabledFlag,
+} from '../../../../selectors/featureFlags';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
@@ -583,6 +586,9 @@ export const usePerpsProOrderForm = ({
 
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
+  );
+  const isPositionModifyPreviewEnabled = useSelector(
+    selectPerpsPositionModifyPreviewEnabledFlag,
   );
   const chartLibrary = getPerpsChartLibrary(isAdvancedChartEnabled);
 
@@ -1564,7 +1570,7 @@ export const usePerpsProOrderForm = ({
         : undefined,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
-    enabled: !isScaleOrder && !isTwapOrder,
+    enabled: isPositionModifyPreviewEnabled && !isScaleOrder && !isTwapOrder,
   });
 
   const existingPositionLeverageForValidation =
@@ -3200,7 +3206,10 @@ export const usePerpsProOrderForm = ({
 
     let margin = orderMarginDisplay;
     let liquidationPriceDisplay = orderLiquidationDisplay;
-    if (positionModifySummaryDisplay.showBeforeAfter) {
+    if (
+      isPositionModifyPreviewEnabled &&
+      positionModifySummaryDisplay.showBeforeAfter
+    ) {
       margin = formatBeforeAfter(
         positionModifySummaryDisplay.currentMarginDisplay,
         positionModifySummaryDisplay.resultingMarginDisplay,
@@ -3236,6 +3245,7 @@ export const usePerpsProOrderForm = ({
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
     onSlippagePress,
+    isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,
   ]);
 
