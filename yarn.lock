@@ -10084,16 +10084,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.43.0":
-  version: 0.43.0
-  resolution: "@metamask/design-system-react-native@npm:0.43.0"
+"@metamask/design-system-react-native@npm:^0.44.0":
+  version: 0.44.0
+  resolution: "@metamask/design-system-react-native@npm:0.44.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.35.0"
+    "@metamask/design-system-shared": "npm:^0.36.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.10.0
     "@metamask/design-tokens": ^10.0.0
-    "@metamask/utils": ^11.12.0
+    "@metamask/utils": ^11.12.1
     expo-image: ">=3.0.0"
     lodash: ^4.17.21
     react: ">=18.2.0"
@@ -10102,18 +10102,18 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/620f8424b684f11f86a7c137d4b84f998f108c3ca4dfcdf67201b9cfc1592176407cb6476572954703b5780c7e0ef6772ff7c1d672130dfd156f10f71dde830e
+  checksum: 10/4ea74f47e08de6fb7185ce6b897e660e79c9392897d5b9b8f6a1cb2e1907169b1da47d6bfcb842b28455b9834bb003de6b3bbbf75b9a0d46659a845e693c807f
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.35.0":
-  version: 0.35.0
-  resolution: "@metamask/design-system-shared@npm:0.35.0"
+"@metamask/design-system-shared@npm:^0.36.0":
+  version: 0.36.0
+  resolution: "@metamask/design-system-shared@npm:0.36.0"
   dependencies:
-    "@metamask/utils": "npm:^11.12.0"
+    "@metamask/utils": "npm:^11.12.1"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/7fc70d8f175b4b9b1fe5b2b59661200137a818332603b67c37140bedc000009cab7dac9a9d000bb813790bc7de94c4f825c999c8d5e05244b4e75d97a5f49eb4
+  checksum: 10/916281b242f1cd729ce330f2acdae655077e2c15bc34f2072aaa89dec4e2ba31560a8e134636bf461ec4b8d8f5971f2c7052eebf463288b948ead7748dee2198
   languageName: node
   linkType: hard
 
@@ -12388,7 +12388,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.10.0, @metamask/utils@npm:^11.11.0, @metamask/utils@npm:^11.12.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
+"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.10.0, @metamask/utils@npm:^11.11.0, @metamask/utils@npm:^11.12.0, @metamask/utils@npm:^11.12.1, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
   version: 11.12.1
   resolution: "@metamask/utils@npm:11.12.1"
   dependencies:
@@ -39700,7 +39700,7 @@ __metadata:
     "@metamask/core-backend": "npm:^9.0.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^2.0.0"
-    "@metamask/design-system-react-native": "npm:^0.43.0"
+    "@metamask/design-system-react-native": "npm:^0.44.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.10.0"
     "@metamask/design-tokens": "npm:^10.0.0"
     "@metamask/device-mcp": "npm:^0.3.3"
