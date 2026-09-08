@@ -31,7 +31,7 @@ on:
         type: number
         default: 1
       changed_spec_files:
-        description: 'Space-separated changed E2E specs for PR flakiness detection (run twice)'
+        description: 'Space-separated changed E2E specs for main-target PR flakiness detection (run twice)'
         required: false
         type: string
         default: ''
@@ -193,6 +193,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
           CHANGED_SPEC_FILES: ${{ inputs.changed_spec_files }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           PREVIOUS_RESULTS_PATH: ${{ steps.download-previous-results.outcome == 'success' && './previous-playwright-json' || '' }}

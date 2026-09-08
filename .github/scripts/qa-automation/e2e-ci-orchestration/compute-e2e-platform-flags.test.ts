@@ -160,10 +160,7 @@ describe('computeE2EPlatformFlags', () => {
       e2eNeeded: true,
       useMainBuildsForTestOnlyPrs: false,
     });
-    expect(result.message).toContain('iOS not requested for a PR into main');
-    // Path filters selected iOS; only the main-PR rule removed it. The opt-ins
-    // rely on this being preserved.
-    expect(result.iosByPathFilters).toBe(true);
+    expect(result.message).toContain('iOS not requested for this PR');
   });
 
   it('drops iOS from test-only selection for PRs targeting main', () => {
@@ -199,7 +196,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('still builds iOS for cherry-pick PRs targeting release/*', () => {
+  it('suppresses iOS for cherry-pick PRs targeting release/* without a request', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'release/1.0.0',
@@ -213,10 +210,10 @@ describe('computeE2EPlatformFlags', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
       e2eNeeded: true,
     });
-    expect(result.message).not.toContain('iOS build disabled');
+    expect(result.message).toContain('iOS not requested for this PR');
   });
 
   it('keys the main-PR iOS suppression off the event, not the ref', () => {
@@ -273,6 +270,31 @@ describe('applyE2ELabelOverrides', () => {
     });
   });
 
+  it('opts into both platforms for smoke-infrastructure changes on main', () => {
+    const result = applyE2ELabelOverrides(
+      {
+        android: false,
+        ios: false,
+        e2eNeeded: false,
+        useMainBuildsForTestOnlyPrs: false,
+        runSmartE2ESelection: false,
+        message: 'E2E platform selection',
+      },
+      {
+        ...overrideInput,
+        runAppiumIosLabel: false,
+        e2eSmokeInfraCount: 1,
+      },
+    );
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+      message: expect.stringContaining('e2e smoke infrastructure changes'),
+    });
+  });
+
   it('opts into iOS build via skip-smart-e2e-selection when path filters selected iOS', () => {
     const baseFlags = computeE2EPlatformFlags({
       ...androidOnlyPathFiltersFor('main'),
@@ -294,7 +316,30 @@ describe('applyE2ELabelOverrides', () => {
     });
   });
 
-  it('keeps skip-smart-e2e-selection non-widening on an Android-only PR into main', () => {
+  it('widens skip-smart-e2e-selection to both platforms on an iOS-only PR', () => {
+    const baseFlags = computeE2EPlatformFlags({
+      ...androidOnlyPathFiltersFor('feature/1'),
+      androidCount: 0,
+      androidOrIgnorableCount: 0,
+      iosCount: 1,
+      iosOrIgnorableCount: 1,
+    });
+
+    const result = applyE2ELabelOverrides(baseFlags, {
+      ...overrideInput,
+      prBaseRef: 'feature/1',
+      runAppiumIosLabel: false,
+      skipSmartSelection: true,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+    });
+  });
+
+  it('widens skip-smart-e2e-selection to both platforms on an Android-only PR', () => {
     const baseFlags = computeE2EPlatformFlags(androidOnlyPathFiltersFor('main'));
 
     const result = applyE2ELabelOverrides(baseFlags, {
@@ -303,10 +348,8 @@ describe('applyE2ELabelOverrides', () => {
       skipSmartSelection: true,
     });
 
-    // Path filters deliberately skipped iOS, so the ALL-tags label must not add
-    // the platform back.
-    expect(result).toMatchObject({ android: true, ios: false, e2eNeeded: true });
-    expect(result.message).not.toContain('skip-smart-e2e-selection');
+    expect(result).toMatchObject({ android: true, ios: true, e2eNeeded: true });
+    expect(result.message).toContain('skip-smart-e2e-selection');
   });
 
   it('restores Smart E2E selection when a label revives an iOS-only PR into main', () => {
@@ -414,7 +457,7 @@ describe('resolveE2EPlatformRequirements', () => {
     iosOrIgnorableCount: 0,
   };
 
-  it('does not widen platforms when skip-smart-e2e-selection is applied to an Android-only PR', () => {
+  it('widens skip-smart-e2e-selection to both platforms on an Android-only PR', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: androidOnlyPathFilters,
       labelOverrideInput: eligibleLabelInput,
@@ -423,14 +466,13 @@ describe('resolveE2EPlatformRequirements', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: false,
+      ios: true,
       e2eNeeded: true,
       useMainBuildsForTestOnlyPrs: false,
-      runAppiumIos: false,
     });
   });
 
-  it('enables the iOS build and Appium iOS smoke on a main PR via skip-smart-e2e-selection', () => {
+  it('enables the iOS platform on a main PR via skip-smart-e2e-selection', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {
         ...androidOnlyPathFilters,
@@ -446,7 +488,6 @@ describe('resolveE2EPlatformRequirements', () => {
     expect(result).toMatchObject({
       android: true,
       ios: true,
-      runAppiumIos: true,
     });
   });
 
@@ -465,39 +506,10 @@ describe('resolveE2EPlatformRequirements', () => {
     expect(result).toMatchObject({
       android: true,
       ios: false,
-      runAppiumIos: false,
     });
   });
 
-  // Stakeholder constraint: never build the iOS app unless iOS E2E will run.
-  // On PRs into main both are driven by the same two opt-ins, so they must be
-  // equal in every combination.
-  it.each([
-    ['nothing requested', { runAppiumIosLabel: false, skipSmartSelection: false, iosCount: 1 }],
-    ['run-appium-ios-tests', { runAppiumIosLabel: true, skipSmartSelection: false, iosCount: 1 }],
-    ['skip-smart-e2e-selection with iOS paths', { runAppiumIosLabel: false, skipSmartSelection: true, iosCount: 1 }],
-    ['skip-smart-e2e-selection without iOS paths', { runAppiumIosLabel: false, skipSmartSelection: true, iosCount: 0 }],
-    ['label on an Android-only PR', { runAppiumIosLabel: true, skipSmartSelection: false, iosCount: 0 }],
-    ['smoke-infra changes only', { runAppiumIosLabel: false, skipSmartSelection: false, iosCount: 1, e2eSmokeInfraCount: 4 }],
-  ])(
-    'keeps the iOS build and Appium iOS run in lockstep on a main PR (%s)',
-    (_label, { runAppiumIosLabel, skipSmartSelection, iosCount, e2eSmokeInfraCount = 0 }) => {
-      const result = resolveE2EPlatformRequirements({
-        pathFilterInput: {
-          ...androidOnlyPathFilters,
-          iosCount,
-          iosOrIgnorableCount: iosCount,
-        },
-        labelOverrideInput: { ...eligibleLabelInput, runAppiumIosLabel },
-        skipSmartSelection,
-        e2eSmokeInfraCount,
-      });
-
-      expect(result.ios).toBe(result.runAppiumIos);
-    },
-  );
-
-  it('enables Appium iOS smoke on release/* PRs when skip-smart-e2e-selection is applied and path filters require iOS', () => {
+  it('enables the iOS platform on release/* PRs when skip-smart-e2e-selection is applied', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {
         ...androidOnlyPathFilters,
@@ -517,11 +529,10 @@ describe('resolveE2EPlatformRequirements', () => {
     expect(result).toMatchObject({
       android: true,
       ios: true,
-      runAppiumIos: true,
     });
   });
 
-  it('suppresses Appium iOS smoke from smoke-infra changes on PRs targeting main', () => {
+  it('enables iOS on main PRs when smoke-infrastructure paths change', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: androidOnlyPathFilters,
       labelOverrideInput: eligibleLabelInput,
@@ -530,8 +541,26 @@ describe('resolveE2EPlatformRequirements', () => {
 
     expect(result).toMatchObject({
       android: true,
+      ios: true,
+    });
+  });
+
+  it('does not enable iOS from smoke-infrastructure paths on release/* PRs', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        ...androidOnlyPathFilters,
+        prBaseRef: 'release/1.0.0',
+      },
+      labelOverrideInput: {
+        ...eligibleLabelInput,
+        prBaseRef: 'release/1.0.0',
+      },
+      e2eSmokeInfraCount: 3,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
       ios: false,
-      runAppiumIos: false,
     });
   });
 
@@ -555,7 +584,6 @@ describe('resolveE2EPlatformRequirements', () => {
       android: false,
       ios: false,
       e2eNeeded: false,
-      runAppiumIos: false,
     });
   });
 });

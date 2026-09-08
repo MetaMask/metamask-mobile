@@ -129,8 +129,7 @@ ios_or_ignorable:
   - *config_files
   - *ci_files
 
-# Shared smoke / Appium paths whose changes should also run Appium iOS on PRs
-# (Appium Android already runs whenever Android E2E builds succeed).
+# Shared smoke / Appium paths that request both platforms on PRs targeting main.
 e2e_smoke_infra:
   - 'tests/page-objects/**'
   - 'tests/selectors/**'
@@ -142,7 +141,7 @@ e2e_smoke_infra:
 all_changes:
   - '**'
 
-# Spec files used for flakiness detection (run changed specs twice).
+# Spec files used for flakiness detection on PRs targeting main (run changed specs twice).
 # Kept separate from all_changes so only this short list is passed through
 # workflow outputs/env vars — the full list overflows ARG_MAX on large PRs.
 e2e_spec_files:
