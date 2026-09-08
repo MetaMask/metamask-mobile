@@ -1367,6 +1367,26 @@ export const initialStateActivity = () =>
               },
             },
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2500,
+                usdPrice: 2500,
+                lastUpdated: 1700000000000,
+              },
+            },
+          },
           GasFeeController: {
             gasFeeEstimates: {},
           },
