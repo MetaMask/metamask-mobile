@@ -284,39 +284,22 @@ class NotificationManager {
             assetType: originalTransaction.assetType,
           },
         });
-        const {
-          TokenBalancesController,
-          TokenDetectionController,
-          AccountTrackerController,
-          NetworkController,
-        } = Engine.context;
+        const { AssetsController, AccountsController } = Engine.context;
 
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          transactionMeta.chainId,
+        // Force-refresh balances and detected tokens for the affected chain
+        // right after a transaction was confirmed. AssetsController is the
+        // sole source of truth for asset balances and detection.
+        const senderAccount = AccountsController.getAccountByAddress(
+          transactionMeta.txParams.from,
         );
-        // account balances for ETH txs
-        // Detect assets and tokens for ERC20 txs
-        // Detect assets for ERC721 txs
-        // right after a transaction was confirmed
-        const pollPromises = [
-          AccountTrackerController.refresh([networkClientId]),
-          TokenBalancesController.updateBalances({
+        if (senderAccount) {
+          AssetsController.getAssets([senderAccount], {
+            forceUpdate: true,
             chainIds: [transactionMeta.chainId],
-          }),
-        ];
-        switch (originalTransaction.assetType) {
-          case 'ERC20': {
-            pollPromises.push(
-              ...[
-                TokenDetectionController.detectTokens({
-                  chainIds: [transactionMeta.chainId],
-                }),
-              ],
-            );
-            break;
-          }
+          }).catch((error) => {
+            Logger.error(error, 'Failed to refresh assets after transaction');
+          });
         }
-        Promise.all(pollPromises);
         endTrace({
           name: TraceName.TransactionConfirmed,
           data: {

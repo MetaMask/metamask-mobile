@@ -1,4 +1,5 @@
 import { RpcEndpointType } from '@metamask/network-controller';
+import { ApprovalType } from '@metamask/controller-utils';
 import Engine from '../Engine';
 import { wallet_watchAsset } from './wallet_watchAsset';
 // eslint-disable-next-line import-x/no-namespace
@@ -27,8 +28,11 @@ jest.mock('../Engine', () => {
         getERC20TokenDecimals: jest.fn(),
         getERC721AssetSymbol: jest.fn().mockResolvedValue('WBTC'),
       },
-      TokensController: {
-        watchAsset: jest.fn(),
+      AssetsController: {
+        addCustomAsset: jest.fn().mockResolvedValue(undefined),
+      },
+      ApprovalController: {
+        addAndShowApprovalRequest: jest.fn().mockResolvedValue(undefined),
       },
       TokenListController: {
         state: {
@@ -45,6 +49,7 @@ jest.mock('../Engine', () => {
       },
       AccountsController: {
         getSelectedAccount: jest.fn().mockReturnValue(MOCK_INTERNAL_ACCOUNT),
+        getAccountByAddress: jest.fn().mockReturnValue(MOCK_INTERNAL_ACCOUNT),
       },
     },
   };
@@ -84,6 +89,24 @@ describe('wallet_watchAsset', () => {
     decimals: '8',
     image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
   };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    MockEngine.context.AccountsController.getSelectedAccount.mockReturnValue(
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      require('../../util/test/accountsControllerTestUtils').createMockInternalAccount(
+        '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+        'Account 1',
+      ),
+    );
+    MockEngine.context.AccountsController.getAccountByAddress.mockReturnValue(
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      require('../../util/test/accountsControllerTestUtils').createMockInternalAccount(
+        '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+        'Account 1',
+      ),
+    );
+  });
 
   it('should throw an error if the token address is not valid', async () => {
     await expect(
@@ -144,7 +167,7 @@ describe('wallet_watchAsset', () => {
     ).rejects.toThrow(TOKEN_NOT_SUPPORTED_FOR_NETWORK);
   });
 
-  it('should call watchAsset with legit WBTC decimals and symbol', async () => {
+  it('requests user approval and adds the custom asset with legit WBTC decimals and symbol', async () => {
     jest
       .spyOn(transactionsUtils, 'isSmartContractAddress')
       .mockResolvedValue(true);
@@ -154,10 +177,7 @@ describe('wallet_watchAsset', () => {
     MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
       correctWBTC.symbol,
     );
-    const spyOnWatchAsset = jest.spyOn(
-      Engine.context.TokensController,
-      'watchAsset',
-    );
+
     await wallet_watchAsset({
       req: {
         params: {
@@ -176,28 +196,24 @@ describe('wallet_watchAsset', () => {
       checkTabActive: () => null as any,
       hostname: '',
     });
-    expect(spyOnWatchAsset).toHaveBeenCalledWith({
-      asset: correctWBTC,
-      type: ERC20,
-      interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
-      networkClientId: '0x1',
-      origin: '',
-      pageMeta: undefined,
-      requestMetadata: {
+
+    expect(
+      MockEngine.context.ApprovalController.addAndShowApprovalRequest,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: ApprovalType.WatchAsset,
         origin: '',
-        pageMeta: undefined,
-      },
-    });
+        requestData: expect.objectContaining({
+          asset: correctWBTC,
+          interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+        }),
+      }),
+    );
+
+    expect(MockEngine.context.AssetsController.addCustomAsset).toHaveBeenCalled();
   });
 
-  it('should call watchAsset with fake WBTC decimals and symbol', async () => {
-    const fakeWBTC = {
-      address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-      symbol: 'WBTCFake',
-      decimals: '16',
-      image: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
-    };
-
+  it('does not add the custom asset when the approval request is rejected', async () => {
     jest
       .spyOn(transactionsUtils, 'isSmartContractAddress')
       .mockResolvedValue(true);
@@ -207,43 +223,33 @@ describe('wallet_watchAsset', () => {
     MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
       correctWBTC.symbol,
     );
-    const spyOnWatchAsset = jest.spyOn(
-      Engine.context.TokensController,
-      'watchAsset',
+    MockEngine.context.ApprovalController.addAndShowApprovalRequest.mockRejectedValueOnce(
+      new Error('User rejected the request'),
     );
-    await wallet_watchAsset({
-      req: {
-        params: {
-          options: fakeWBTC,
-          type: ERC20,
+
+    await expect(
+      wallet_watchAsset({
+        req: {
+          params: {
+            options: correctWBTC,
+            type: ERC20,
+          },
+          jsonrpc: '2.0',
+          method: '',
+          id: '',
         },
-        jsonrpc: '2.0',
-        method: '',
-        id: '',
-      },
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      res: {} as any,
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      checkTabActive: () => null as any,
-      hostname: '',
-    });
-    expect(spyOnWatchAsset).toHaveBeenCalledWith({
-      asset: correctWBTC,
-      type: ERC20,
-      interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
-      networkClientId: '0x1',
-      origin: '',
-      pageMeta: undefined,
-      requestMetadata: {
-        origin: '',
-        pageMeta: undefined,
-      },
-    });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        res: {} as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        checkTabActive: () => null as any,
+        hostname: '',
+      }),
+    ).rejects.toThrow('User rejected the request');
+
+    expect(MockEngine.context.AssetsController.addCustomAsset).not.toHaveBeenCalled();
   });
 
-  it('sanitizes pageMeta properties with undefined values before passing to watchAsset', async () => {
+  it('sanitizes pageMeta properties with undefined values before requesting approval', async () => {
     jest
       .spyOn(transactionsUtils, 'isSmartContractAddress')
       .mockResolvedValue(true);
@@ -252,10 +258,6 @@ describe('wallet_watchAsset', () => {
     );
     MockEngine.context.AssetsContractController.getERC721AssetSymbol.mockResolvedValue(
       correctWBTC.symbol,
-    );
-    const spyOnWatchAsset = jest.spyOn(
-      Engine.context.TokensController,
-      'watchAsset',
     );
 
     const pageMetaWithUndefined = {
@@ -296,17 +298,15 @@ describe('wallet_watchAsset', () => {
       },
     };
 
-    expect(spyOnWatchAsset).toHaveBeenCalledWith({
-      asset: correctWBTC,
-      type: ERC20,
-      interactingAddress: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
-      networkClientId: '0x1',
-      origin: 'https://example.com',
-      pageMeta: expectedSanitizedPageMeta,
-      requestMetadata: {
+    expect(
+      MockEngine.context.ApprovalController.addAndShowApprovalRequest,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
         origin: 'https://example.com',
-        pageMeta: expectedSanitizedPageMeta,
-      },
-    });
+        requestData: expect.objectContaining({
+          pageMeta: expectedSanitizedPageMeta,
+        }),
+      }),
+    );
   });
 });

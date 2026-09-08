@@ -12,6 +12,8 @@ import {
   selectNetworkClientId,
 } from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
+import { ApprovalType } from '@metamask/controller-utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import {
   getSafeJson,
   Json,
@@ -19,6 +21,7 @@ import {
   PendingJsonRpcResponse,
 } from '@metamask/utils';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
+import { toAssetId } from '../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 
 /**
  * Strips `undefined` properties (and any other non-JSON-serializable values
@@ -75,7 +78,8 @@ export const wallet_watchAsset = async ({
     };
   };
 }) => {
-  const { AssetsContractController } = Engine.context;
+  const { AssetsContractController, ApprovalController, AssetsController } =
+    Engine.context;
   if (!req.params) {
     throw new Error('wallet_watchAsset params is undefined');
   }
@@ -86,7 +90,6 @@ export const wallet_watchAsset = async ({
     },
   } = req;
 
-  const { TokensController } = Engine.context;
   const state = store.getState();
   const chainId = selectEvmChainId(state);
   const networkClientId = selectNetworkClientId(state);
@@ -119,7 +122,6 @@ export const wallet_watchAsset = async ({
     permittedAccounts?.[0] || selectedInternalAccountAddress;
   // This variables are to override the value of decimals and symbol from the dapp
   // if they are wrong accordingly to the token address
-  // *This is an hotfix this logic should live on whatchAsset method on TokensController*
   let fetchedDecimals, fetchedSymbol;
   try {
     [fetchedDecimals, fetchedSymbol] = await Promise.all([
@@ -136,26 +138,48 @@ export const wallet_watchAsset = async ({
   const safePageMeta =
     _pageMeta !== undefined
       ? getSafeJson<Record<string, Json>>(stripNonJsonValues(_pageMeta))
-      : undefined;
+      : {};
 
-  await TokensController.watchAsset({
-    asset: {
-      address,
-      symbol: finalTokenSymbol,
-      // @ts-expect-error TODO: Fix decimal type
-      decimals: finalTokenDecimals,
-      image,
-    },
-    type,
-    interactingAddress,
-    networkClientId,
+  const asset = {
+    address,
+    symbol: finalTokenSymbol,
+    decimals: finalTokenDecimals,
+    image,
+  };
+
+  // Ask the user to confirm adding the suggested token before persisting it.
+  // *This is an hotfix, this logic previously lived inside TokensController.watchAsset*
+  await ApprovalController.addAndShowApprovalRequest({
     origin: requestOrigin,
-    pageMeta: safePageMeta,
-    requestMetadata: {
-      origin: requestOrigin,
+    type: ApprovalType.WatchAsset,
+    requestData: {
+      asset,
+      interactingAddress,
       pageMeta: safePageMeta,
     },
   });
+
+  const interactingAccount =
+    Engine.context.AccountsController.getAccountByAddress(interactingAddress);
+
+  if (interactingAccount) {
+    const caipChainId = toEvmCaipChainId(chainId);
+    const caipAssetType = toAssetId(address, caipChainId);
+
+    if (caipAssetType) {
+      await AssetsController.addCustomAsset(
+        interactingAccount.id,
+        caipAssetType,
+        {
+          address,
+          symbol: finalTokenSymbol,
+          decimals: Number(finalTokenDecimals),
+          name: finalTokenSymbol,
+          chainId,
+        },
+      );
+    }
+  }
 
   res.result = true;
 };
