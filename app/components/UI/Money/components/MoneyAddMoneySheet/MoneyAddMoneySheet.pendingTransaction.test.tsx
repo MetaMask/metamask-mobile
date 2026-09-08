@@ -51,6 +51,10 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+    // The harness renders the sheet outside a navigator, so the real
+    // `useRoute` throws. No params models the Money home entry point, which
+    // passes no launch source.
+    useRoute: () => ({ params: undefined }),
   };
 });
 
