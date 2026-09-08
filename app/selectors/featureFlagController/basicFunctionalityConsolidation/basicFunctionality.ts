@@ -9,6 +9,12 @@ import {
   validatedVersionGatedFeatureFlag,
   type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
+import { selectOnboardingAccountType } from '../../onboarding';
+import {
+  BFT_CHILD_PREFERENCES,
+  isBasicFunctionalitySocialLoginUser,
+  type BftChildPreference,
+} from '../../../util/basicFunctionality/getBasicFunctionalityConsolidationPlan';
 
 export const MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME =
   'mobileUxBftcConsolidation';
@@ -20,17 +26,11 @@ export const MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME =
  * 4byte, proposed nicknames, ENS address-bar resolution, and currency-rate
  * check — those keys do not exist on mobile's PreferencesController.
  */
-export const BFT_CHILD_PREFERENCES = [
-  'useTransactionSimulations',
-  'securityAlertsEnabled',
-  'isMultiAccountBalancesEnabled',
-  'useSafeChainsListValidation',
-  'useTokenDetection',
-  'displayNftMedia',
-  'useNftDetection',
-] as const;
-
-export type BftChildPreference = (typeof BFT_CHILD_PREFERENCES)[number];
+export { BFT_CHILD_PREFERENCES };
+export type BasicFunctionalityMigrationNotification =
+  | 'bottom-sheet'
+  | 'toast'
+  | null;
 
 type BftChildPreferenceValues = Record<BftChildPreference, boolean>;
 
@@ -53,6 +53,12 @@ const selectPreferencesControllerState = (state: RootState) =>
   state.engine?.backgroundState?.PreferencesController as
     | Partial<Record<BftChildPreference, boolean>>
     | undefined;
+
+const selectSeedlessAuthConnection = (state: RootState) =>
+  state.engine?.backgroundState?.SeedlessOnboardingController?.authConnection;
+
+const selectHasSeedlessVault = (state: RootState) =>
+  state.engine?.backgroundState?.SeedlessOnboardingController?.vault != null;
 
 /**
  * Reads BFT child prefs directly so partial test stores without
@@ -113,4 +119,43 @@ export const selectIsBasicFunctionalityConsolidationEnabled = createSelector(
   (isRemoteFlagEnabled, isPersistedConsolidatedUser, isConsistentLegacyUser) =>
     isRemoteFlagEnabled &&
     (isPersistedConsolidatedUser || isConsistentLegacyUser),
+);
+
+const selectBasicFunctionalityMigrationNotification = (state: RootState) =>
+  (state.settings?.basicFunctionalityMigrationNotification ??
+    null) as BasicFunctionalityMigrationNotification;
+
+const selectIsBasicFunctionalityMigrationNotificationDismissed = (
+  state: RootState,
+) => Boolean(state.settings?.basicFunctionalityMigrationNotificationDismissed);
+
+export const selectShouldShowBasicFunctionalityMigrationBottomSheet =
+  createSelector(
+    selectMobileUxBftcConsolidationFlagEnabled,
+    selectBasicFunctionalityMigrationNotification,
+    selectIsBasicFunctionalityMigrationNotificationDismissed,
+    (isFlagEnabled, notification, isDismissed) =>
+      isFlagEnabled && notification === 'bottom-sheet' && !isDismissed,
+  );
+
+export const selectShouldShowBasicFunctionalityMigrationToast = createSelector(
+  selectMobileUxBftcConsolidationFlagEnabled,
+  selectBasicFunctionalityMigrationNotification,
+  selectIsBasicFunctionalityMigrationNotificationDismissed,
+  (isFlagEnabled, notification, isDismissed) =>
+    isFlagEnabled && notification === 'toast' && !isDismissed,
+);
+
+export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
+  selectMobileUxBftcConsolidationFlagEnabled,
+  selectOnboardingAccountType,
+  selectSeedlessAuthConnection,
+  selectHasSeedlessVault,
+  (isFlagEnabled, accountType, authConnection, hasSeedlessVault) =>
+    isFlagEnabled &&
+    isBasicFunctionalitySocialLoginUser({
+      accountType,
+      authConnection,
+      hasSeedlessVault,
+    }),
 );
