@@ -95,7 +95,6 @@ appiumTest.describe(SmokePerps('Perps Pro - Take profit trigger'), () => {
           await PerpsProMarketView.enterSize('500');
           await PerpsProMarketView.tapTpslSection();
           await PerpsOrderView.enterCustomTakeProfitTriggerPrice('2800');
-          await PerpsProMarketView.waitForFeesReady();
           await PerpsProMarketView.tapPlaceOrderButton();
 
           await PerpsProMarketView.waitForPositionRow(

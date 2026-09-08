@@ -116,12 +116,6 @@ class PerpsProMarketView {
     );
   }
 
-  get feesValue(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      PerpsProOrderFormSelectorsIDs.SUMMARY_FEES_VALUE,
-    );
-  }
-
   // ── Positions panel ────────────────────────────────────────────────────────
 
   get positionsPanel(): Promise<AppiumElement> {
@@ -312,12 +306,16 @@ class PerpsProMarketView {
 
   // ── Readiness ──────────────────────────────────────────────────────────────
 
-  async waitForProViewReady(timeout = 20000): Promise<void> {
-    // Container is a layout View: XCUITest frequently keeps isDisplayed=false.
+  async waitForProContainer(timeout = 20000): Promise<void> {
+    // Layout View: XCUITest/UiAutomator often keep isDisplayed=false.
     await Assertions.expectElementToExist(this.container, {
       description: 'Perps Pro Market View container',
       timeout,
     });
+  }
+
+  async waitForProViewReady(timeout = 20000): Promise<void> {
+    await this.waitForProContainer(timeout);
     // Order-form control is a stronger "Pro entry ready" signal than the root.
     await Assertions.expectElementToExist(this.directionLong, {
       description: 'Pro order form Long direction',
@@ -328,13 +326,6 @@ class PerpsProMarketView {
   async waitForPositionsPanel(timeout = 20000): Promise<void> {
     await Assertions.expectElementToBeVisible(this.positionsPanel, {
       description: 'Pro positions panel',
-      timeout,
-    });
-  }
-
-  async waitForFeesReady(timeout = 30000): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.feesValue, {
-      description: 'Pro order form fees value',
       timeout,
     });
   }
@@ -664,10 +655,7 @@ class PerpsProMarketView {
    * Position row testIDs are absent from the hierarchy once the position is
    * closed, so a short `expectElementToNotExist` is enough.
    */
-  async expectPositionRowGone(
-    symbol: string,
-    timeout = 1500,
-  ): Promise<void> {
+  async expectPositionRowGone(symbol: string, timeout = 1500): Promise<void> {
     await Assertions.expectElementToNotExist(this.positionRow(symbol), {
       description: `Pro position row for ${symbol} gone from hierarchy`,
       timeout,

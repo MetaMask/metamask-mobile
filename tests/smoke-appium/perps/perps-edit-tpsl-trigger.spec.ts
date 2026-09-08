@@ -86,8 +86,9 @@ appiumTest.describe(SmokePerps('Perps Pro - Edit TP/SL trigger'), () => {
             PERPS_SMOKE_MARKET_SYMBOL,
           );
           await PerpsOrderView.enterCustomStopLossTriggerPrice('2300');
-          // Auto close Set can leave Pro mid-transition; gate before price push.
-          await PerpsProMarketView.waitForProViewReady();
+          // After Set from the position card the order-form Long control may
+          // be unmounted; the Pro container is enough before the price push.
+          await PerpsProMarketView.waitForProContainer();
 
           await PerpsE2EModifiers.waitForCloseAfterPricePush(
             commandQueueServer,
