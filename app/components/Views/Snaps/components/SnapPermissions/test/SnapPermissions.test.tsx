@@ -47,7 +47,7 @@ describe('SnapPermissions', () => {
   const endowmentSignatureInsightTitle = 'Display signature insights modal';
   const endowmentprotocolTitle = 'Provide protocol data for one or more chains';
   const snapGetPreferencesTitle =
-    'See information like your preferred language and fiat currency';
+    'See information like your preferred language and local currency';
   const endowmentLifecycleHooksTitle = 'Use lifecycle hooks';
   const endowmentNameLookupTitle = 'Provide domain and address lookups';
   const endowmentPageHomeTitle = 'Display a custom screen';
