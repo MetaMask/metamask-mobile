@@ -54,6 +54,19 @@ async function tapProfilerControl(testId: string): Promise<void> {
   if (!appiumDriver) {
     throw new Error('Appium driver is not available');
   }
+  const capabilities = (appiumDriver.capabilities ?? {}) as Record<
+    string,
+    unknown
+  >;
+  const packageCandidate =
+    capabilities['appium:appPackage'] ?? capabilities.appPackage;
+  if (typeof packageCandidate === 'string') {
+    await appiumDriver.activateApp(packageCandidate).catch((error) => {
+      logger.warn(
+        `Could not activate profiler app before ${testId}: ${String(error)}`,
+      );
+    });
+  }
   const control = await appiumDriver.$(`~${testId}`);
   await appiumDriver.waitUntil(
     async () => control.isExisting().catch(() => false),
