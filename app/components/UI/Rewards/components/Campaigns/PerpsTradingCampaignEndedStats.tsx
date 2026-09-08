@@ -1,6 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { TextColor } from '@metamask/design-system-react-native';
-import type { PerpsTradingCampaignLeaderboardDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type {
+  PerpsTradingCampaignLeaderboardDto,
+  PerpsTradingCampaignPrizePoolDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import { formatCompactUsd, formatSignedUsd } from '../../utils/formatUtils';
 import { PERPS_TRADING_MAX_WINNERS } from '../../utils/perpsCampaignConstants';
@@ -8,26 +11,26 @@ import CampaignEndedStats from './CampaignEndedStats';
 
 interface PerpsTradingCampaignEndedStatsProps {
   leaderboard: PerpsTradingCampaignLeaderboardDto | null;
-  totalNotionalVolume: string | null;
+  prizePool: PerpsTradingCampaignPrizePoolDto | null;
   isLeaderboardLoading: boolean;
-  isVolumeLoading: boolean;
+  isPrizePoolLoading: boolean;
   hasLeaderboardError?: boolean;
-  hasVolumeError?: boolean;
+  hasPrizePoolError?: boolean;
   onRetryLeaderboard?: () => void;
-  onRetryVolume?: () => void;
+  onRetryPrizePool?: () => void;
 }
 
 const PerpsTradingCampaignEndedStats: React.FC<
   PerpsTradingCampaignEndedStatsProps
 > = ({
   leaderboard,
-  totalNotionalVolume,
+  prizePool,
   isLeaderboardLoading,
-  isVolumeLoading,
+  isPrizePoolLoading,
   hasLeaderboardError,
-  hasVolumeError,
+  hasPrizePoolError,
   onRetryLeaderboard,
-  onRetryVolume,
+  onRetryPrizePool,
 }) => {
   const stats = useMemo(() => {
     if (!leaderboard) return null;
@@ -43,16 +46,17 @@ const PerpsTradingCampaignEndedStats: React.FC<
   }, [leaderboard]);
 
   const hasStats = stats != null;
-  const hasTotalVolume = totalNotionalVolume != null;
+  const hasPrizePool = prizePool != null;
+  const hasTotalVolume = prizePool?.totalVolumeUsd != null;
   const isStatsLoading = isLeaderboardLoading && !hasStats;
-  const isTotalVolumeLoading = isVolumeLoading && !hasTotalVolume;
+  const isTotalVolumeLoading = isPrizePoolLoading && !hasTotalVolume;
   const hasError =
-    (hasLeaderboardError && !hasStats) || (hasVolumeError && !hasTotalVolume);
+    (hasLeaderboardError && !hasStats) || (hasPrizePoolError && !hasPrizePool);
 
   const retry = useCallback(() => {
     onRetryLeaderboard?.();
-    onRetryVolume?.();
-  }, [onRetryLeaderboard, onRetryVolume]);
+    onRetryPrizePool?.();
+  }, [onRetryLeaderboard, onRetryPrizePool]);
 
   const topPnlColor =
     stats?.topPnl != null && stats.topPnl >= 0
@@ -68,9 +72,10 @@ const PerpsTradingCampaignEndedStats: React.FC<
       }}
       totalVolume={{
         label: strings('rewards.campaign_ended_stats.total_volume'),
-        value: totalNotionalVolume
-          ? formatCompactUsd(parseFloat(totalNotionalVolume))
-          : '-',
+        value:
+          prizePool?.totalVolumeUsd != null
+            ? formatCompactUsd(prizePool.totalVolumeUsd)
+            : '-',
         isLoading: isTotalVolumeLoading,
       }}
       topMetric={{

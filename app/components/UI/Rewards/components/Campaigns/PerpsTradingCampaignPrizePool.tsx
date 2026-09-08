@@ -7,11 +7,18 @@ import CampaignPrizePool, {
 
 export const PERPS_PRIZE_POOL_TEST_IDS = CAMPAIGN_PRIZE_POOL_TEST_IDS;
 
+interface PerpsTradingCampaignPrizePoolProps {
+  prizePool: PerpsTradingCampaignPrizePoolDto | null;
+  isLoading: boolean;
+  hasError: boolean;
+  refetch: () => void;
+}
+
 const buildMilestones = (
   prizePool: PerpsTradingCampaignPrizePoolDto | null,
 ): CampaignPrizePoolMilestone[] => {
   if (!prizePool) {
-    return [];
+    return [{ threshold: 0, prize: 0 }];
   }
 
   const milestones = prizePool.thresholdsUsd.map((threshold, index) => ({
@@ -29,27 +36,15 @@ const buildMilestones = (
   return milestones;
 };
 
-interface PerpsTradingCampaignPrizePoolProps {
-  prizePool: PerpsTradingCampaignPrizePoolDto | null;
-  totalNotionalVolume: string | null;
-  isLoading: boolean;
-  hasError: boolean;
-  refetch: () => void;
-}
-
 const PerpsTradingCampaignPrizePool: React.FC<
   PerpsTradingCampaignPrizePoolProps
-> = ({ prizePool, totalNotionalVolume, isLoading, hasError, refetch }) => {
+> = ({ prizePool, isLoading, hasError, refetch }) => {
   const milestones = useMemo(() => buildMilestones(prizePool), [prizePool]);
 
   return (
     <CampaignPrizePool
       milestones={milestones}
-      currentVolume={
-        totalNotionalVolume == null
-          ? null
-          : Number.parseFloat(totalNotionalVolume)
-      }
+      currentVolume={prizePool?.totalVolumeUsd ?? null}
       isLoading={isLoading}
       hasError={hasError}
       refetch={refetch}

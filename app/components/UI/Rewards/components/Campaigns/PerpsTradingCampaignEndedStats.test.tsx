@@ -5,6 +5,7 @@ import PerpsTradingCampaignEndedStats from './PerpsTradingCampaignEndedStats';
 import type {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardEntry,
+  PerpsTradingCampaignPrizePoolDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 interface CapturedEndedStatsProps {
@@ -78,21 +79,34 @@ const makeLeaderboard = (
   };
 };
 
+const makePrizePool = (
+  totalVolumeUsd: number | null,
+): PerpsTradingCampaignPrizePoolDto | null =>
+  totalVolumeUsd == null
+    ? null
+    : {
+        totalVolumeUsd,
+        unlockedPoolUsd: 10_000,
+        thresholdsUsd: [0],
+        poolScheduleUsd: [10_000],
+        computedAt: '2026-01-01T00:00:00Z',
+      };
+
 describe('PerpsTradingCampaignEndedStats', () => {
   beforeEach(() => {
     latestProps = null;
     jest.clearAllMocks();
   });
 
-  it('maps perps leaderboard and volume into the generic ended stats props', () => {
+  it('maps perps leaderboard and prize-pool volume into the generic ended stats props', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={makeLeaderboard(25, 200, 80_000)}
-        totalNotionalVolume="27500000"
+        prizePool={makePrizePool(27_500_000)}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
         hasLeaderboardError={false}
-        hasVolumeError={false}
+        hasPrizePoolError={false}
       />,
     );
 
@@ -125,9 +139,9 @@ describe('PerpsTradingCampaignEndedStats', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={{ ...makeLeaderboard(10, 100), numberOfWinners: 10 }}
-        totalNotionalVolume="1000000"
+        prizePool={makePrizePool(1_000_000)}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
       />,
     );
 
@@ -138,9 +152,9 @@ describe('PerpsTradingCampaignEndedStats', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={{ ...makeLeaderboard(25, 100), numberOfWinners: 30 }}
-        totalNotionalVolume="1000000"
+        prizePool={makePrizePool(1_000_000)}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
       />,
     );
 
@@ -151,22 +165,22 @@ describe('PerpsTradingCampaignEndedStats', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={makeLeaderboard(15, 50)}
-        totalNotionalVolume="1000000"
+        prizePool={makePrizePool(1_000_000)}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
       />,
     );
 
     expect(latestProps?.totalWinners.value).toBe('-');
   });
 
-  it('shows dashes when leaderboard and volume are null', () => {
+  it('shows dashes when leaderboard and prize pool are null', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={null}
-        totalNotionalVolume={null}
+        prizePool={null}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
       />,
     );
 
@@ -182,9 +196,9 @@ describe('PerpsTradingCampaignEndedStats', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={null}
-        totalNotionalVolume={null}
+        prizePool={null}
         isLeaderboardLoading
-        isVolumeLoading
+        isPrizePoolLoading
       />,
     );
 
@@ -208,9 +222,9 @@ describe('PerpsTradingCampaignEndedStats', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={empty}
-        totalNotionalVolume="0"
+        prizePool={makePrizePool(0)}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
       />,
     );
 
@@ -233,9 +247,9 @@ describe('PerpsTradingCampaignEndedStats', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={negativeTop}
-        totalNotionalVolume="1000"
+        prizePool={makePrizePool(1_000)}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
       />,
     );
 
@@ -245,34 +259,34 @@ describe('PerpsTradingCampaignEndedStats', () => {
 
   it('shows error and retries both data sources when uncached data fails', () => {
     const onRetryLeaderboard = jest.fn();
-    const onRetryVolume = jest.fn();
+    const onRetryPrizePool = jest.fn();
 
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={null}
-        totalNotionalVolume={null}
+        prizePool={null}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
         hasLeaderboardError
-        hasVolumeError
+        hasPrizePoolError
         onRetryLeaderboard={onRetryLeaderboard}
-        onRetryVolume={onRetryVolume}
+        onRetryPrizePool={onRetryPrizePool}
       />,
     );
 
     expect(latestProps?.hasError).toBe(true);
     latestProps?.onRetry?.();
     expect(onRetryLeaderboard).toHaveBeenCalledTimes(1);
-    expect(onRetryVolume).toHaveBeenCalledTimes(1);
+    expect(onRetryPrizePool).toHaveBeenCalledTimes(1);
   });
 
-  it('shows error when only leaderboard fails while volume still renders', () => {
+  it('shows error when only leaderboard fails while prize-pool volume still renders', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={null}
-        totalNotionalVolume="27500000"
+        prizePool={makePrizePool(27_500_000)}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
         hasLeaderboardError
       />,
     );
@@ -285,11 +299,11 @@ describe('PerpsTradingCampaignEndedStats', () => {
     render(
       <PerpsTradingCampaignEndedStats
         leaderboard={makeLeaderboard(25, 100, 10_000)}
-        totalNotionalVolume="1000000"
+        prizePool={makePrizePool(1_000_000)}
         isLeaderboardLoading={false}
-        isVolumeLoading={false}
+        isPrizePoolLoading={false}
         hasLeaderboardError={false}
-        hasVolumeError={false}
+        hasPrizePoolError={false}
       />,
     );
 

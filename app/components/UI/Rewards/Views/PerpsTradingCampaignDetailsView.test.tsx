@@ -15,7 +15,6 @@ import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
-import { useGetPerpsTradingCampaignVolume } from '../hooks/useGetPerpsTradingCampaignVolume';
 import { useGetPerpsTradingCampaignPrizePool } from '../hooks/useGetPerpsTradingCampaignPrizePool';
 import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import Routes from '../../../../constants/navigation/Routes';
@@ -304,12 +303,6 @@ const mockUseGetPerpsTradingCampaignLeaderboardPosition =
     typeof useGetPerpsTradingCampaignLeaderboardPosition
   >;
 
-jest.mock('../hooks/useGetPerpsTradingCampaignVolume');
-const mockUseGetPerpsTradingCampaignVolume =
-  useGetPerpsTradingCampaignVolume as jest.MockedFunction<
-    typeof useGetPerpsTradingCampaignVolume
-  >;
-
 jest.mock('../hooks/useGetPerpsTradingCampaignPrizePool');
 const mockUseGetPerpsTradingCampaignPrizePool =
   useGetPerpsTradingCampaignPrizePool as jest.MockedFunction<
@@ -381,15 +374,6 @@ const defaultLeaderboardHook = {
   refetch: jest.fn(),
 };
 
-const defaultVolumeHook = {
-  volume: {
-    totalUsdVolume: '1000000',
-  },
-  isLoading: false,
-  hasError: false,
-  refetch: jest.fn(),
-};
-
 function setupHooks(
   overrides: {
     campaigns?: CampaignDto[];
@@ -455,10 +439,6 @@ function setupHooks(
     hasFetched: true,
     refetch: jest.fn(),
   } as ReturnType<typeof useGetPerpsTradingCampaignLeaderboardPosition>);
-
-  mockUseGetPerpsTradingCampaignVolume.mockReturnValue({
-    ...defaultVolumeHook,
-  } as ReturnType<typeof useGetPerpsTradingCampaignVolume>);
 
   mockUseGetPerpsTradingCampaignPrizePool.mockReturnValue({
     prizePool: null,

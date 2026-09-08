@@ -119,7 +119,6 @@ const volumeScaledPrizePool = buildPrizePool({
 
 const baseProps = {
   prizePool: volumeScaledPrizePool as PerpsTradingCampaignPrizePoolDto | null,
-  totalNotionalVolume: '7500000' as string | null,
   isLoading: false,
   hasError: false,
   refetch: mockRefetch,
@@ -142,10 +141,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
 
   it('shows current and next prize between $5M and $10M notional', () => {
     const { getByText } = render(
-      <PerpsTradingCampaignPrizePool
-        {...baseProps}
-        totalNotionalVolume="7500000"
-      />,
+      <PerpsTradingCampaignPrizePool {...baseProps} />,
     );
 
     expect(getByText('$15,000.00')).toBeDefined();
@@ -154,10 +150,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
 
   it('computes 50% progress halfway between $5M and $10M volume', () => {
     const { getByTestId } = render(
-      <PerpsTradingCampaignPrizePool
-        {...baseProps}
-        totalNotionalVolume="7500000"
-      />,
+      <PerpsTradingCampaignPrizePool {...baseProps} />,
     );
 
     const progressBar = getByTestId(PERPS_PRIZE_POOL_TEST_IDS.PROGRESS_BAR);
@@ -169,7 +162,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
     const { getByTestId, getByText, queryByText } = render(
       <PerpsTradingCampaignPrizePool
         {...baseProps}
-        totalNotionalVolume="40000000"
+        prizePool={{ ...volumeScaledPrizePool, totalVolumeUsd: 40_000_000 }}
       />,
     );
 
@@ -190,19 +183,18 @@ describe('PerpsTradingCampaignPrizePool', () => {
     const { queryByTestId } = render(
       <PerpsTradingCampaignPrizePool
         {...baseProps}
-        totalNotionalVolume="10000000"
+        prizePool={{ ...volumeScaledPrizePool, totalVolumeUsd: 10_000_000 }}
       />,
     );
 
     expect(queryByTestId(PERPS_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeNull();
   });
 
-  it('with null volume and not loading, shows first-tier defaults ($10k → $15k)', () => {
+  it('with zero volume and not loading, shows first-tier defaults ($10k → $15k)', () => {
     const { getByText, getByTestId } = render(
       <PerpsTradingCampaignPrizePool
         {...baseProps}
-        totalNotionalVolume={null}
-        isLoading={false}
+        prizePool={{ ...volumeScaledPrizePool, totalVolumeUsd: 0 }}
       />,
     );
 
@@ -213,21 +205,11 @@ describe('PerpsTradingCampaignPrizePool', () => {
     expect(innerBar.props.style).toEqual({ width: '0%' });
   });
 
-  it('with zero notional string uses first milestone segment (0% in range to $5M)', () => {
-    const { getByTestId } = render(
-      <PerpsTradingCampaignPrizePool {...baseProps} totalNotionalVolume="0" />,
-    );
-
-    const progressBar = getByTestId(PERPS_PRIZE_POOL_TEST_IDS.PROGRESS_BAR);
-    const innerBar = progressBar.props.children;
-    expect(innerBar.props.style).toEqual({ width: '0%' });
-  });
-
-  it('shows skeleton when loading with no volume data', () => {
+  it('shows skeleton when loading with no prize-pool data', () => {
     const { getByTestId, queryByTestId } = render(
       <PerpsTradingCampaignPrizePool
         {...baseProps}
-        totalNotionalVolume={null}
+        prizePool={null}
         isLoading
       />,
     );
@@ -237,7 +219,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
     expect(queryByTestId(PERPS_PRIZE_POOL_TEST_IDS.SUBTEXT)).toBeNull();
   });
 
-  it('shows stale content when loading but volume already exists', () => {
+  it('shows stale content when loading but prize-pool data already exists', () => {
     const { getByTestId } = render(
       <PerpsTradingCampaignPrizePool {...baseProps} isLoading />,
     );
@@ -246,11 +228,11 @@ describe('PerpsTradingCampaignPrizePool', () => {
     expect(getByTestId(PERPS_PRIZE_POOL_TEST_IDS.SUBTEXT)).toBeDefined();
   });
 
-  it('shows error banner when hasError and no volume data', () => {
+  it('shows error banner when hasError and no prize-pool data', () => {
     const { getByTestId, queryByTestId } = render(
       <PerpsTradingCampaignPrizePool
         {...baseProps}
-        totalNotionalVolume={null}
+        prizePool={null}
         hasError
       />,
     );
@@ -259,7 +241,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
     expect(queryByTestId(PERPS_PRIZE_POOL_TEST_IDS.PROGRESS_BAR)).toBeNull();
   });
 
-  it('hides error banner when hasError but stale volume exists', () => {
+  it('hides error banner when hasError but stale prize-pool data exists', () => {
     const { queryByTestId, getByTestId } = render(
       <PerpsTradingCampaignPrizePool {...baseProps} hasError />,
     );
@@ -272,7 +254,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
     const { getByTestId } = render(
       <PerpsTradingCampaignPrizePool
         {...baseProps}
-        totalNotionalVolume={null}
+        prizePool={null}
         hasError
       />,
     );
@@ -285,10 +267,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
 
   it('renders volume subtext with compact amounts', () => {
     const { getByTestId } = render(
-      <PerpsTradingCampaignPrizePool
-        {...baseProps}
-        totalNotionalVolume="7500000"
-      />,
+      <PerpsTradingCampaignPrizePool {...baseProps} />,
     );
 
     const subtext = getByTestId(PERPS_PRIZE_POOL_TEST_IDS.SUBTEXT);
@@ -300,8 +279,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
       const { getByText, queryByText } = render(
         <PerpsTradingCampaignPrizePool
           {...baseProps}
-          prizePool={buildPrizePool()}
-          totalNotionalVolume="1500000"
+          prizePool={buildPrizePool({ totalVolumeUsd: 1_500_000 })}
         />,
       );
 
@@ -340,10 +318,10 @@ describe('PerpsTradingCampaignPrizePool', () => {
         <PerpsTradingCampaignPrizePool
           {...baseProps}
           prizePool={buildPrizePool({
+            totalVolumeUsd: 0,
             thresholdsUsd: [1_000_000, 2_000_000],
             poolScheduleUsd: [1_000, 2_000],
           })}
-          totalNotionalVolume="0"
         />,
       );
 
@@ -357,11 +335,11 @@ describe('PerpsTradingCampaignPrizePool', () => {
         <PerpsTradingCampaignPrizePool
           {...baseProps}
           prizePool={buildPrizePool({
+            totalVolumeUsd: 0,
             thresholdsUsd: [0, 1_000_000],
             poolScheduleUsd: [1_000],
             unlockedPoolUsd: 9_000,
           })}
-          totalNotionalVolume="0"
         />,
       );
 

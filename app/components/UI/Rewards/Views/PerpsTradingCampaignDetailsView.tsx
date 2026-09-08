@@ -43,7 +43,6 @@ import {
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
-import { useGetPerpsTradingCampaignVolume } from '../hooks/useGetPerpsTradingCampaignVolume';
 import { useGetPerpsTradingCampaignPrizePool } from '../hooks/useGetPerpsTradingCampaignPrizePool';
 import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
@@ -131,17 +130,11 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
     );
 
   const {
-    volume,
-    isLoading: isVolumeLoading,
-    hasError: hasVolumeError,
-    refetch: refetchVolume,
-  } = useGetPerpsTradingCampaignVolume(effectiveCampaignId || undefined);
-
-  // Only the prize ladder comes from this endpoint; the progress figure stays on
-  // the volume endpoint, which drives the section's loading and error states.
-  const { prizePool } = useGetPerpsTradingCampaignPrizePool(
-    effectiveCampaignId || undefined,
-  );
+    prizePool,
+    isLoading: isPrizePoolLoading,
+    hasError: hasPrizePoolError,
+    refetch: refetchPrizePool,
+  } = useGetPerpsTradingCampaignPrizePool(effectiveCampaignId || undefined);
 
   const leaderboardUserPosition = useMemo(
     () =>
@@ -312,13 +305,13 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                 <Box twClassName="p-4 gap-4">
                   <PerpsTradingCampaignEndedStats
                     leaderboard={leaderboard}
-                    totalNotionalVolume={volume?.totalUsdVolume ?? null}
+                    prizePool={prizePool}
                     isLeaderboardLoading={isLeaderboardLoading}
-                    isVolumeLoading={isVolumeLoading}
+                    isPrizePoolLoading={isPrizePoolLoading}
                     hasLeaderboardError={hasLeaderboardError}
-                    hasVolumeError={hasVolumeError}
+                    hasPrizePoolError={hasPrizePoolError}
                     onRetryLeaderboard={refetchLeaderboard}
-                    onRetryVolume={refetchVolume}
+                    onRetryPrizePool={refetchPrizePool}
                   />
                   {isOptedIn && participantOutcome?.outcomeStatus != null && (
                     <CampaignOutcomeBanner
@@ -379,10 +372,9 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                     </Text>
                     <PerpsTradingCampaignPrizePool
                       prizePool={prizePool}
-                      totalNotionalVolume={volume?.totalUsdVolume ?? null}
-                      isLoading={isVolumeLoading}
-                      hasError={hasVolumeError}
-                      refetch={refetchVolume}
+                      isLoading={isPrizePoolLoading}
+                      hasError={hasPrizePoolError}
+                      refetch={refetchPrizePool}
                     />
                   </Box>
                 </>
