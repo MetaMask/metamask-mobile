@@ -1138,6 +1138,17 @@
       "sumsub_privacy_policy": "Sumsub Privacy Policy",
       "sumsub_terms": "Sumsub T&C",
       "button": "Continue"
+    },
+    "onboarding": {
+      "loading_title": "Checking your Money account",
+      "loading_description": "This should only take a moment.",
+      "processing_title": "Your Money account is being prepared",
+      "processing_description": "You can leave this screen and check again later.",
+      "verify_email_title": "Verify your email",
+      "verify_email_description": "Finish email verification to continue setting up your Money account.",
+      "error_title": "We couldn't check your Money account",
+      "error_description": "Try again to continue where you left off.",
+      "retry": "Try again"
     }
   },
   "social_leaderboard": {

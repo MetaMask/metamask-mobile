@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { KycDisclaimer } from '@metamask/kyc-controller';
+import type { KycConsentRecord, KycDisclaimer } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
 import { VBA_KYC_VENDOR } from '../constants';
 
@@ -10,6 +10,8 @@ interface UseKycDisclaimersResult {
   isLoading: boolean;
   error: string | null;
   retry: () => void;
+  providerDisclaimersAccepted?: KycConsentRecord[];
+  idosDisclaimersAccepted?: KycConsentRecord[];
 }
 
 // Bounds the KYC controller wait so a hung request can't leave the CTA disabled forever.
@@ -20,9 +22,9 @@ const FETCH_TIMEOUT_MS = 10_000;
  * VBA KYC flow via {@link Engine.context.KycController.initialize} then
  * {@link Engine.context.KycController.loadDisclaimers}.
  *
- * This is vendor T&Cs only — not the idOS relay / SumSub session catalog
- * (`fetchDisclaimersCatalog` / session disclaimers). Those are a separate controller
- * path and must not be fetched here.
+ * The vendor terms come from KycController state. The SumSub and idOS consent
+ * catalog is loaded through KycService so the accepted document versions can
+ * be submitted when the user continues.
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
@@ -37,6 +39,11 @@ const FETCH_TIMEOUT_MS = 10_000;
  */
 export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<KycDisclaimer[] | null>(null);
+  const [providerDisclaimersAccepted, setProviderDisclaimersAccepted] =
+    useState<KycConsentRecord[]>([]);
+  const [idosDisclaimersAccepted, setIdosDisclaimersAccepted] = useState<
+    KycConsentRecord[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -47,6 +54,8 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
     let isMounted = true;
     setIsLoading(true);
     setError(null);
+    setProviderDisclaimersAccepted([]);
+    setIdosDisclaimersAccepted([]);
 
     const abortController = new AbortController();
     const timeoutId = setTimeout(
@@ -67,7 +76,15 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       await Engine.context.KycController.initialize({
         vendor: VBA_KYC_VENDOR,
       });
-      await Engine.context.KycController.loadDisclaimers({ country });
+      const kycService = Engine.context.KycService;
+      if (!kycService) {
+        throw new Error('KYC service is unavailable');
+      }
+      const [, catalog] = await Promise.all([
+        Engine.context.KycController.loadDisclaimers({ country }),
+        kycService.fetchDisclaimersCatalog({ country }),
+      ]);
+      return catalog;
     })();
 
     // True until this attempt finishes writing controller state (including after timeout).
@@ -79,7 +96,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
 
     const loadDisclaimers = async () => {
       try {
-        await Promise.race([controllerLoad, abortedPromise]);
+        const catalog = await Promise.race([controllerLoad, abortedPromise]);
 
         if (!isMounted) {
           return;
@@ -101,7 +118,22 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
           return;
         }
 
-        setDisclaimers(loadedDisclaimers);
+        setProviderDisclaimersAccepted(
+          catalog.kycProvider.map(({ key, version }) => ({ key, version })),
+        );
+        setIdosDisclaimersAccepted(
+          catalog.idOS.map(({ key, version }) => ({ key, version })),
+        );
+        setDisclaimers([
+          ...loadedDisclaimers,
+          ...[...catalog.kycProvider, ...catalog.idOS].map(
+            ({ key, title, url }) => ({
+              id: key,
+              display_name: title,
+              url,
+            }),
+          ),
+        ]);
         setError(null);
       } catch (err) {
         const isTimeout =
@@ -139,5 +171,12 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
     };
   }, [country, retryCount]);
 
-  return { disclaimers, isLoading, error, retry };
+  return {
+    disclaimers,
+    isLoading,
+    error,
+    retry,
+    providerDisclaimersAccepted,
+    idosDisclaimersAccepted,
+  };
 };
