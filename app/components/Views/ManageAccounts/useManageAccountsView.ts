@@ -4,16 +4,12 @@ import { useSelector } from 'react-redux';
 import { AccountGroupId, AccountWalletType } from '@metamask/account-api';
 import type { AccountWalletObject } from '@metamask/account-tree-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { toHex } from '@metamask/controller-utils';
 import { selectAccountGroupsByWallet } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../selectors/accountsController';
 import { selectHiddenAccountGroupIds } from '../../../selectors/multichainAccounts/manageAccounts';
 import { selectAvatarAccountType } from '../../../selectors/settings';
-import { removeAccountsFromPermissions } from '../../../core/Permissions';
-import { forgetLedger } from '../../../core/Ledger/Ledger';
-import { forgetQrDevice } from '../../../core/QrKeyring/QrKeyring';
-import Engine from '../../../core/Engine';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { removeHardwareAccount } from '../../../util/accounts/removeHardwareAccount';
 import { strings } from '../../../../locales/i18n';
 import useToggleAccountGroupHidden from './hooks/useToggleAccountGroupHidden';
 import type { ManageAccountsSection } from './ManageAccountsView';
@@ -113,58 +109,6 @@ const isWalletLocked = (wallet: AccountWalletObject): boolean =>
  */
 const showsWalletAddAccountFooter = (wallet: AccountWalletObject): boolean =>
   wallet.type === AccountWalletType.Entropy || isHardwareKeyringWallet(wallet);
-
-/**
- * Removes a hardware account, clears permissions, updates selected account
- * if needed, and forgets the device if no accounts remain on the keyring.
- *
- * @param options - Account address and keyring type.
- */
-const removeHardwareAccount = async ({
-  address,
-  keyringType,
-}: {
-  address: string;
-  keyringType: string;
-}): Promise<void> => {
-  const { AccountsController, KeyringController } = Engine.context;
-  const hexAddress = toHex(address);
-  const selectedAccountId =
-    AccountsController.state.internalAccounts.selectedAccount;
-  const selectedAddress =
-    AccountsController.state.internalAccounts.accounts[selectedAccountId]
-      ?.address;
-  const wasSelected =
-    Boolean(selectedAddress) && toHex(selectedAddress) === hexAddress;
-
-  await removeAccountsFromPermissions([hexAddress]);
-  await KeyringController.removeAccount(hexAddress);
-
-  if (wasSelected) {
-    const accounts = await KeyringController.getAccounts();
-    if (accounts.length > 0) {
-      Engine.setSelectedAddress(accounts[0]);
-    }
-  }
-
-  const updatedKeyring = KeyringController.state.keyrings.find(
-    (keyring) => keyring.type === keyringType,
-  );
-  const shouldForgetDevice =
-    !updatedKeyring || updatedKeyring.accounts.length === 0;
-  if (!shouldForgetDevice) {
-    return;
-  }
-
-  if (keyringType === ExtendedKeyringTypes.ledger) {
-    await forgetLedger();
-    return;
-  }
-
-  if (keyringType === ExtendedKeyringTypes.qr) {
-    await forgetQrDevice();
-  }
-};
 
 /**
  * Result shape returned by `useManageAccountsView`.
@@ -295,7 +239,6 @@ const useManageAccountsView = (
             },
           ],
         );
-        return;
       }
     },
     [accountSections, internalAccountsById, navigateToDeleteAccount],

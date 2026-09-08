@@ -15,8 +15,11 @@ import {
   createMockWallet,
 } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import { forgetLedger } from '../../../core/Ledger/Ledger';
-import { forgetQrDevice } from '../../../core/QrKeyring/QrKeyring';
+import { forgetLedger, getDeviceId } from '../../../core/Ledger/Ledger';
+import {
+  forgetQrDevice,
+  withQrKeyring,
+} from '../../../core/QrKeyring/QrKeyring';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { strings } from '../../../../locales/i18n';
 import useManageAccountsView from './useManageAccountsView';
@@ -53,10 +56,12 @@ jest.mock('../../../core/Permissions', () => ({
 
 jest.mock('../../../core/Ledger/Ledger', () => ({
   forgetLedger: jest.fn(),
+  getDeviceId: jest.fn(),
 }));
 
 jest.mock('../../../core/QrKeyring/QrKeyring', () => ({
   forgetQrDevice: jest.fn(),
+  withQrKeyring: jest.fn(),
 }));
 
 const mockSetAccountGroupHidden = jest.mocked(
@@ -190,6 +195,14 @@ describe('useManageAccountsView', () => {
     jest.clearAllMocks();
     mockSelectedAccount(REMAINING_ADDRESS);
     mockGetAccounts.mockResolvedValue([REMAINING_ADDRESS]);
+    jest.mocked(getDeviceId).mockResolvedValue('nano-x');
+    jest.mocked(withQrKeyring).mockImplementation(async (callback) =>
+      callback({
+        keyring: {
+          getName: jest.fn().mockResolvedValue('Keystone'),
+        },
+      } as never),
+    );
     setKeyrings([
       {
         type: ExtendedKeyringTypes.ledger,
