@@ -89,6 +89,20 @@ describe('pinScopedVariantsToDefault', () => {
     ]);
   });
 
+  it('pins named control when treatment is the remainder majority', () => {
+    const value = [
+      createThresholdVariant('control', 0.2),
+      createThresholdVariant('treatment', 1),
+    ];
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual([
+      createThresholdVariant('control', 1),
+      createThresholdVariant('treatment', 0),
+    ]);
+  });
+
   it('pins control to 1 and treatment to 0 for percentage_rollout arrays', () => {
     const value = [
       {
@@ -152,6 +166,22 @@ describe('pinScopedVariantsToDefault', () => {
     expect(result).toEqual([
       createThresholdVariant('feature is ON', 1, { value: true }),
       createThresholdVariant('feature is OFF', 0, { value: false }),
+    ]);
+  });
+
+  it('pins the middle bucket when it is the widest and there is no control', () => {
+    const value = [
+      createThresholdVariant('small', 0.1),
+      createThresholdVariant('wide', 0.7),
+      createThresholdVariant('remainder', 1),
+    ];
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual([
+      createThresholdVariant('small', 0),
+      createThresholdVariant('wide', 1),
+      createThresholdVariant('remainder', 0),
     ]);
   });
 
@@ -355,6 +385,38 @@ describe('compareProductionFlagsToRegistry', () => {
 
     expect(result.valueMismatches).toHaveLength(0);
     expect(result.hasDrift).toBe(false);
+  });
+
+  it('reports drift when a pinned variant name changes', () => {
+    const registryMap = {
+      socialAbTest: [
+        createThresholdVariant('control', 1),
+        createThresholdVariant('treatment', 0),
+      ],
+    };
+    const prodResponse = [
+      {
+        socialAbTest: [
+          createThresholdVariant('control', 0.95),
+          createThresholdVariant('treatment-b', 1),
+        ],
+      },
+    ];
+
+    const result = compareProductionFlagsToRegistry(prodResponse, registryMap);
+
+    expect(result.hasDrift).toBe(true);
+    expect(result.valueMismatches).toContainEqual({
+      name: 'socialAbTest',
+      productionValue: [
+        createThresholdVariant('control', 1),
+        createThresholdVariant('treatment-b', 0),
+      ],
+      registryValue: [
+        createThresholdVariant('control', 1),
+        createThresholdVariant('treatment', 0),
+      ],
+    });
   });
 
   it('reports new production scoped arrays with pinned scopes', () => {
