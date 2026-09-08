@@ -3,10 +3,16 @@ import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { WhatsHappeningSource } from '../../../../components/UI/WhatsHappening/constants';
 import {
+  getWhatsHappeningTraceEndData,
   getWhatsHappeningTraceId,
   getWhatsHappeningTraceTags,
 } from '../../../../components/UI/WhatsHappening/utils/whatsHappeningPerformance';
-import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 interface HandleWhatsHappeningUrlParams {
   /**
@@ -54,6 +60,11 @@ export const handleWhatsHappeningUrl = ({
       ...(id ? { outdatedItemId: id } : {}),
     });
   } catch (error) {
+    endTrace({
+      name: TraceName.WhatsHappeningViewLoad,
+      id: getWhatsHappeningTraceId(WhatsHappeningSource.Deeplink, 'expanded'),
+      data: getWhatsHappeningTraceEndData('cancelled'),
+    });
     DevLogger.log(
       '[handleWhatsHappeningUrl] Failed to handle deeplink:',
       error,

@@ -19,6 +19,13 @@ interface UseWhatsHappeningLoadTraceParams {
   enabled: boolean;
   /** When false, only close empty/error/cancel. Used when press/deeplink already started the span. */
   start?: boolean;
+  /**
+   * Close a caller-started span when this observer is inactive. Used for
+   * expanded View Load so a deeplink/press span cannot outlive a flagged-off
+   * or unmounted detail observer. Must stay false on carousel observers that
+   * also call this hook with `start: false`.
+   */
+  closeWhenDisabled?: boolean;
   source: WhatsHappeningSourceValue;
   stage: WhatsHappeningStage;
   cacheState: DigestCacheState;
@@ -35,6 +42,7 @@ export const useWhatsHappeningLoadTrace = ({
   name,
   enabled,
   start = true,
+  closeWhenDisabled = false,
   source,
   stage,
   cacheState,
@@ -58,7 +66,18 @@ export const useWhatsHappeningLoadTrace = ({
   }, [cacheState, enabled, name, source, stage, start, traceId]);
 
   useEffect(() => {
-    if (!enabled || isGenerationPending || hasContent) {
+    if (!enabled) {
+      if (closeWhenDisabled) {
+        endTrace({
+          name,
+          id: traceId,
+          data: getWhatsHappeningTraceEndData('cancelled'),
+        });
+      }
+      return;
+    }
+
+    if (isGenerationPending || hasContent) {
       return;
     }
 
@@ -67,11 +86,19 @@ export const useWhatsHappeningLoadTrace = ({
       id: traceId,
       data: getWhatsHappeningTraceEndData(error ? 'error' : 'empty'),
     });
-  }, [enabled, error, hasContent, isGenerationPending, name, traceId]);
+  }, [
+    closeWhenDisabled,
+    enabled,
+    error,
+    hasContent,
+    isGenerationPending,
+    name,
+    traceId,
+  ]);
 
   useEffect(
     () => () => {
-      if (!enabled) {
+      if (!enabled && !closeWhenDisabled) {
         return;
       }
 
@@ -81,7 +108,7 @@ export const useWhatsHappeningLoadTrace = ({
         data: getWhatsHappeningTraceEndData('cancelled'),
       });
     },
-    [enabled, name, traceId],
+    [closeWhenDisabled, enabled, name, traceId],
   );
 
   return enabled ? traceId : undefined;

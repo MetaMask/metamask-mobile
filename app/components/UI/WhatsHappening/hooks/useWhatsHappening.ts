@@ -22,6 +22,7 @@ import { TraceName, TraceOperation } from '../../../../util/trace';
 import { WhatsHappeningSource } from '../constants';
 import type { WhatsHappeningItem } from '../types';
 import {
+  getWhatsHappeningFetchTags,
   getWhatsHappeningTraceTags,
   type WhatsHappeningTelemetryContext,
 } from '../utils/whatsHappeningPerformance';
@@ -100,7 +101,7 @@ const mapFrontPageToItem = (
  * Fetches the deep-linked "outdated" front-page item, if any.
  *
  * @param outdatedItemId - The front-page item id from the deep link.
- * @returns The mapped outdated item, or `null` when there is none / on failure.
+ * @returns The mapped outdated item, or `null` when the id is a miss.
  */
 const fetchOutdatedItem = async (
   outdatedItemId: string,
@@ -111,9 +112,12 @@ const fetchOutdatedItem = async (
         outdatedItemId,
       );
     return frontPage ? mapFrontPageToItem(frontPage) : null;
-  } catch {
-    // Non-fatal: fall back to rendering just the latest market overview items.
-    return null;
+  } catch (err) {
+    Logger.error(ensureError(err, 'useWhatsHappening.fetchOutdatedItem'), {
+      tags: { feature: 'WhatsHappening' },
+      extra: { hook: 'useWhatsHappening' },
+    });
+    throw err instanceof Error ? err : new Error(WHATS_HAPPENING_FETCH_FAILED);
   }
 };
 
@@ -228,11 +232,7 @@ export const useWhatsHappening = (
         {
           name: TraceName.WhatsHappeningFetch,
           op: TraceOperation.WhatsHappeningFetch,
-          tags: getWhatsHappeningTraceTags(
-            resolvedTelemetryContext,
-            cacheState,
-            { fetch_kind: 'overview' },
-          ),
+          tags: getWhatsHappeningFetchTags(cacheState, 'overview'),
         },
         signal,
         fetchMarketOverview,
@@ -370,6 +370,7 @@ export const useWhatsHappening = (
     name: TraceName.WhatsHappeningViewLoad,
     enabled: isActive && resolvedTelemetryContext.stage === 'expanded',
     start: false,
+    closeWhenDisabled: resolvedTelemetryContext.stage === 'expanded',
     source: resolvedTelemetryContext.source,
     stage: 'expanded',
     cacheState,

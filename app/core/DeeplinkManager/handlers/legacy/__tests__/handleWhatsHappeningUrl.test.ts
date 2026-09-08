@@ -5,10 +5,12 @@ import { WhatsHappeningSource } from '../../../../../components/UI/WhatsHappenin
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 
 const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
 
 jest.mock('../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../util/trace'),
   trace: (...args: unknown[]) => mockTrace(...args),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
 }));
 
 jest.mock('../../../../NavigationService', () => ({
@@ -69,6 +71,15 @@ describe('handleWhatsHappeningUrl', () => {
         '[handleWhatsHappeningUrl] Failed to handle deeplink:',
         expect.any(Error),
       );
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: "What's Happening View Load",
+        id: 'deeplink:expanded',
+        data: {
+          result: 'cancelled',
+          success: false,
+          reason: 'owner_cancelled',
+        },
+      });
     });
   });
 

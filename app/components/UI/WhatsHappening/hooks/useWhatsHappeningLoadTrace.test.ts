@@ -114,4 +114,45 @@ describe('useWhatsHappeningLoadTrace', () => {
       },
     });
   });
+
+  it('ends a caller-started expanded span when the observer is inactive', () => {
+    renderHook(() =>
+      useWhatsHappeningLoadTrace({
+        ...defaultParams,
+        name: TraceName.WhatsHappeningViewLoad,
+        enabled: false,
+        start: false,
+        closeWhenDisabled: true,
+        source: WhatsHappeningSource.Deeplink,
+        stage: 'expanded',
+      }),
+    );
+
+    expect(mockTrace).not.toHaveBeenCalled();
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening View Load",
+      id: 'deeplink:expanded',
+      data: {
+        result: 'cancelled',
+        success: false,
+        reason: 'owner_cancelled',
+      },
+    });
+  });
+
+  it('does not close a caller-started span from an inactive carousel observer', () => {
+    renderHook(() =>
+      useWhatsHappeningLoadTrace({
+        ...defaultParams,
+        name: TraceName.WhatsHappeningViewLoad,
+        enabled: false,
+        start: false,
+        source: WhatsHappeningSource.Explore,
+        stage: 'expanded',
+      }),
+    );
+
+    expect(mockTrace).not.toHaveBeenCalled();
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
 });

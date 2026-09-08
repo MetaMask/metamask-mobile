@@ -151,8 +151,6 @@ describe('useWhatsHappening', () => {
         op: 'whats_happening.fetch',
         tags: {
           feature: 'whats_happening',
-          source: 'unknown',
-          stage: 'carousel',
           cache_state: 'cold',
           fetch_kind: 'overview',
         },
@@ -454,6 +452,27 @@ describe('useWhatsHappening', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('cancels a caller-started view load when the feature is disabled', () => {
+    configureSelectors({ enabled: false });
+
+    renderWhatsHappeningHook({
+      telemetryContext: {
+        source: WhatsHappeningSource.Deeplink,
+        stage: 'expanded',
+      },
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening View Load",
+      id: 'deeplink:expanded',
+      data: {
+        result: 'cancelled',
+        success: false,
+        reason: 'owner_cancelled',
+      },
+    });
+  });
+
   describe('deep-linked outdated front-page item', () => {
     const mockFrontPage = {
       id: 'a3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
@@ -579,6 +598,8 @@ describe('useWhatsHappening', () => {
       expect(result.current.items).toHaveLength(1);
       expect(result.current.items[0].isOutdated).toBeUndefined();
       expect(result.current.error).toBeNull();
+      expect(mockSetAttribute).toHaveBeenCalledWith('result', 'error');
+      expect(mockSetAttribute).toHaveBeenCalledWith('success', false);
     });
 
     it('falls back to the latest items when the front page is not found', async () => {
@@ -753,7 +774,7 @@ describe('useWhatsHappening', () => {
     expect(result.current.items[0]?.isOutdated).toBeUndefined();
   });
 
-  it('tags overview fetch with the observer source', async () => {
+  it('omits observer source from the shared overview fetch span', async () => {
     const { result } = renderWhatsHappeningHook({
       telemetryContext: {
         source: WhatsHappeningSource.Explore,
@@ -767,14 +788,23 @@ describe('useWhatsHappening', () => {
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "What's Happening Fetch",
-        tags: expect.objectContaining({
-          source: 'explore',
-          stage: 'carousel',
+        tags: {
+          feature: 'whats_happening',
+          cache_state: 'cold',
           fetch_kind: 'overview',
-        }),
+        },
       }),
       expect.any(Function),
     );
+    expect(mockTrace).toHaveBeenCalledWith({
+      name: "What's Happening Carousel Load",
+      op: 'whats_happening.load',
+      id: 'explore:carousel',
+      tags: expect.objectContaining({
+        source: 'explore',
+        stage: 'carousel',
+      }),
+    });
   });
 
   it('starts a front-page fetch span for a deep-linked item', async () => {

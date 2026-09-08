@@ -41,17 +41,17 @@ or What's Happening viewport Sentry spans.
 
 All attributes are bounded and safe for dashboard grouping.
 
-| Attribute       | Values                                                | Notes                                                |
-| --------------- | ----------------------------------------------------- | ---------------------------------------------------- |
-| `feature`       | `whats_happening`                                     | Common dashboard filter                              |
-| `source`        | `homepage`, `explore`, `perps`, `deeplink`, `unknown` | `unknown` is reserved for routes without attribution |
-| `stage`         | `carousel`, `expanded`                                | Journey phase                                        |
-| `cache_state`   | `cold`, `warm`                                        | Cache state when the query generation began          |
-| `fetch_kind`    | `overview`, `front_page`                              | Present on fetch spans only                          |
-| `result`        | `success`, `empty`, `error`, `cancelled`              | Terminal outcome                                     |
-| `success`       | `true`, `false`                                       | `empty` is a valid successful resolution             |
-| `content_state` | `filled`, `empty`, `error`                            | Omitted for cancellation                             |
-| `reason`        | `owner_cancelled`                                     | Present for cancellation                             |
+| Attribute       | Values                                                | Notes                                                                |
+| --------------- | ----------------------------------------------------- | -------------------------------------------------------------------- |
+| `feature`       | `whats_happening`                                     | Common dashboard filter                                              |
+| `source`        | `homepage`, `explore`, `perps`, `deeplink`, `unknown` | Per-observer TTC and front-page fetch only. Overview fetch omits it. |
+| `stage`         | `carousel`, `expanded`                                | Per-observer TTC and front-page fetch only. Overview fetch omits it. |
+| `cache_state`   | `cold`, `warm`                                        | Cache state when the query generation began                          |
+| `fetch_kind`    | `overview`, `front_page`                              | Present on fetch spans only                                          |
+| `result`        | `success`, `empty`, `error`, `cancelled`              | Terminal outcome                                                     |
+| `success`       | `true`, `false`                                       | `empty` is a valid successful resolution                             |
+| `content_state` | `filled`, `empty`, `error`                            | Omitted for cancellation                                             |
+| `reason`        | `owner_cancelled`                                     | Present for cancellation                                             |
 
 Item titles and front-page IDs are intentionally not tags because they are
 high-cardinality values. Trace ids are `${source}:${stage}`.
@@ -68,7 +68,7 @@ Use `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`, and
 `count()`:
 
 ```text
-span.description:"What's Happening Fetch" success:true
+span.description:"What's Happening Fetch" result:success
 ```
 
 ```text
@@ -79,9 +79,11 @@ span.description:"What's Happening Carousel Load" result:success
 span.description:"What's Happening View Load" result:success
 ```
 
-Split time-series widgets by `source`. The carousel widget compares Explore and
-Perps. The full-view widget compares the same sources plus deeplink from the
-press or navigate boundary.
+Split TTC time-series widgets by `source`. The carousel widget compares Explore
+and Perps. The full-view widget compares the same sources plus deeplink from the
+press or navigate boundary. Do not group overview fetch by `source`: one shared
+React Query generation serves every observer, so the mount that ran `queryFn`
+is not a meaningful caller.
 
 ### Reliability and cache behavior
 
@@ -91,8 +93,10 @@ span.op:[whats_happening.fetch,whats_happening.load] result:[empty,error,cancell
 
 Group by `span.description`, `result`, and `source`.
 
-Compare TTC counts grouped by `cache_state` with fetch counts. A warm TTC with no
-matching fetch is expected and represents a cache hit, not missing telemetry.
+Compare TTC counts grouped by `cache_state` with overview fetch counts. Do not
+join those series on `source`. A warm TTC with no matching fetch is a cache
+hit. Two cold TTC rows (Explore and Perps) against one unattributed overview
+fetch is the shared request, not missing telemetry.
 
 ## Recommended dashboard layout
 
@@ -116,7 +120,7 @@ restriction.
 | Widget                     | Visualization | Query                                                                                                                                              | Fields / grouping                                                                                                                    |
 | -------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Journey latency            | Table         | `feature:whats_happening result:success span.description:["What's Happening Fetch","What's Happening Carousel Load","What's Happening View Load"]` | Group by `span.description`, `source`; show `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`, `count()`              |
-| Fetch duration             | Time series   | `span.description:"What's Happening Fetch" success:true`                                                                                           | `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`; group by `source`                                                  |
+| Fetch duration             | Time series   | `span.description:"What's Happening Fetch" result:success`                                                                                         | `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`; group by `cache_state`                                             |
 | Carousel TTC               | Time series   | `span.description:"What's Happening Carousel Load" result:success`                                                                                 | `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`; group by `source`                                                  |
 | Full-view TTC              | Time series   | `span.description:"What's Happening View Load" result:success`                                                                                     | `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`; group by `source`                                                  |
 | Journey outcomes           | Table         | `feature:whats_happening span.op:[whats_happening.fetch,whats_happening.load]`                                                                     | Group by `span.description`, `result`, `source`; show `count()`                                                                      |
@@ -134,8 +138,7 @@ stage
 cache_state
 ```
 
-The live dashboard has not been created yet. Sentry MCP can read dashboards
-but cannot create them, and this environment has no scoped write token. Use
-the build sheet above in org `metamask`, project `metamask-mobile`
-(`2299799`), 14d, no environment filter. After creation, add the dashboard URL
-here.
+The dashboard described above is live at
+[Mobile — Social & AI — What's Happening](https://metamask.sentry.io/dashboard/9989431/).
+Keep this build sheet in sync when widgets change. Widgets will stay empty
+until a mobile release emits the What's Happening spans.
