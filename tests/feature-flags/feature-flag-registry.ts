@@ -4330,7 +4330,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsPositionModifyPreviewEnabled: {
     name: 'perpsPositionModifyPreviewEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '8.11.0',
@@ -7921,17 +7921,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  perpsPositionModifyPreviewEnabled: {
-    name: 'perpsPositionModifyPreviewEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.11.0',
     },
     status: FeatureFlagStatus.Active,
   },
