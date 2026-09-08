@@ -227,12 +227,12 @@ describe('NotificationManager', () => {
       findNetworkClientIdByChainId: jest.fn(),
     };
 
-    const mockAccountTrackerController = {
-      refresh: jest.fn(),
+    const mockAssetsController = {
+      getAssets: jest.fn().mockResolvedValue(undefined),
     };
 
-    const mockTokenBalancesController = {
-      updateBalances: jest.fn(),
+    const mockAccountsController = {
+      getAccountByAddress: jest.fn().mockReturnValue({ id: 'account-id' }),
     };
 
     let showNotificationSpy: jest.SpyInstance;
@@ -241,9 +241,9 @@ describe('NotificationManager', () => {
       // Set up spies and mocks once before all tests
       Object.defineProperty(Engine, 'context', {
         value: {
-          AccountTrackerController: mockAccountTrackerController,
+          AssetsController: mockAssetsController,
+          AccountsController: mockAccountsController,
           NetworkController: mockNetworkController,
-          TokenBalancesController: mockTokenBalancesController,
           TransactionController: mockTransactionController,
         },
         writable: true,
