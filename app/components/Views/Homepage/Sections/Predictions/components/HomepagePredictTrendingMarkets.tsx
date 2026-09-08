@@ -1,10 +1,7 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import type { UseHomepagePredictMarketSlotsResult } from '../hooks/useHomepagePredictMarketSlots';
 import type { PredictionsTrendingHeaderTestId } from '../predictionsSectionTypes';
-import type { PredictEmptyStateCtaName } from '../../../abTestConfig';
-import HomepagePredictDiscovery from './HomepagePredictDiscovery';
 import HomepagePredictTrendingCarousel from './HomepagePredictTrendingCarousel';
 
 export interface HomepagePredictTrendingMarketsProps {
@@ -18,14 +15,7 @@ export interface HomepagePredictTrendingMarketsProps {
   markets: PredictMarket[];
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Required when `discoveryLayout` is `list`. */
-  marketSlots?: UseHomepagePredictMarketSlotsResult;
-  emptyStateTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  onEmptyStateTreatmentCtaClick?: (
-    ctaName: PredictEmptyStateCtaName,
-    categoryName?: string,
-  ) => void;
-  /** Whether the Predictions homepage section is scrolled into the viewport. */
-  isSectionVisible: boolean;
+  discoveryList?: ReactNode;
 }
 
 const HomepagePredictTrendingMarkets = ({
@@ -36,10 +26,7 @@ const HomepagePredictTrendingMarkets = ({
   isLoadingMarkets,
   markets,
   transactionActiveAbTests,
-  marketSlots,
-  emptyStateTransactionActiveAbTests,
-  onEmptyStateTreatmentCtaClick,
-  isSectionVisible,
+  discoveryList,
 }: HomepagePredictTrendingMarketsProps) => {
   if (discoveryLayout === 'carousel') {
     return (
@@ -54,21 +41,7 @@ const HomepagePredictTrendingMarkets = ({
     );
   }
 
-  if (!marketSlots) {
-    return null;
-  }
-
-  return (
-    <HomepagePredictDiscovery
-      title={title}
-      onViewAll={onViewAll}
-      headerTestIdKey={headerTestIdKey}
-      marketSlots={marketSlots}
-      transactionActiveAbTests={emptyStateTransactionActiveAbTests}
-      onTreatmentCtaClick={onEmptyStateTreatmentCtaClick}
-      isSectionVisible={isSectionVisible}
-    />
-  );
+  return discoveryList ?? null;
 };
 
 export default HomepagePredictTrendingMarkets;

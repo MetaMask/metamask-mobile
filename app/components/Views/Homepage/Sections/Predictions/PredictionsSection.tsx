@@ -5,6 +5,7 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
   type ReactNode,
   type RefObject,
 } from 'react';
@@ -40,7 +41,6 @@ import {
   useRefreshPredictPositions,
 } from './hooks/usePredictionsSectionNavigation';
 import { usePredictionsDefaultSectionModel } from './hooks/usePredictionsDefaultSectionModel';
-import { useTreatmentDiscoveryFeedsLoading } from './hooks/useTreatmentDiscoveryFeedsLoading';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL';
 import { getPredictHomepageUnrealizedPnlRowState } from './utils/getPredictHomepageUnrealizedPnlRowState';
@@ -52,6 +52,11 @@ import {
   type PredictEmptyStateCtaName,
 } from '../../abTestConfig';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { UiSlotRenderer } from '../../../../UI/UiSlots/UiSlotRenderer';
+import { useUiSlotsScreen } from '../../../../UI/UiSlots/hooks/useUiSlotsScreen';
+import { PredictDiscoveryListWidget } from '../../../../UI/Predict/uiSlots/widgets/PredictDiscoveryListWidget';
+import { PredictDiscoveryListHostContext } from '../../../../UI/Predict/uiSlots/widgets/PredictDiscoveryListContext';
+import { HOMEPAGE_PREDICT_MARKET_SLOTS } from './constants/homepagePredictMarketSlots';
 
 const usePredictEmptyStateAnalytics = ({
   activeAbTests,
@@ -288,6 +293,10 @@ const PredictionsSectionDefault = forwardRef<
       predictEmptyStateVariantName,
       isPredictEmptyStateAssignmentActive,
     } = usePredictHomepageDiscoveryExperiment();
+    const refreshUiSlots = useUiSlotsScreen(
+      'wallet-home',
+      isPredictEnabled && isTreatmentDiscovery,
+    );
 
     const {
       markets,
@@ -298,14 +307,20 @@ const PredictionsSectionDefault = forwardRef<
       enabled: isPredictEnabled && !isTreatmentDiscovery,
     });
 
-    const homepageMarketSlots = useHomepagePredictMarketSlots({
-      enabled: isPredictEnabled && isTreatmentDiscovery,
-    });
-    const { refetch: refetchHomepageMarketSlots } = homepageMarketSlots;
-    const isLoadingMarketSlots = useTreatmentDiscoveryFeedsLoading({
-      isTreatmentDiscovery,
-      isDiscoveryFetching: homepageMarketSlots.isFetching,
-    });
+    const activeDiscoveryRefetchRef = useRef<
+      (() => Promise<unknown>) | undefined
+    >(undefined);
+    const [isLoadingMarketSlots, setIsLoadingMarketSlots] = useState(true);
+    const registerDiscoveryRefetch = useCallback(
+      (refetch: (() => Promise<unknown>) | undefined) => {
+        activeDiscoveryRefetchRef.current = refetch;
+      },
+      [],
+    );
+    const reportDiscoveryLoading = useCallback((isLoading: boolean) => {
+      setIsLoadingMarketSlots(isLoading);
+    }, []);
+    const positionsLayout = hasPositions || isLoadingPositions;
 
     const {
       hasAnyPositions,
@@ -321,7 +336,7 @@ const PredictionsSectionDefault = forwardRef<
       isLoadingPositions,
       isLoadingMarkets,
       isTreatmentDiscovery,
-      isLoadingWorldCupHomepage: isLoadingMarketSlots,
+      isLoadingWorldCupHomepage: positionsLayout ? false : isLoadingMarketSlots,
       hasPositions,
       positionsLength: positions.length,
       positionsError,
@@ -357,11 +372,9 @@ const PredictionsSectionDefault = forwardRef<
       variantName: predictEmptyStateVariantName,
     });
 
-    const emptyStateTransactionActiveAbTests = shouldTrackEmptyState
+    const discoveryTransactionActiveAbTests = shouldTrackEmptyState
       ? predictEmptyStateActiveAbTests
       : undefined;
-    const discoveryTransactionActiveAbTests =
-      emptyStateTransactionActiveAbTests;
 
     const refreshPositions = useRefreshPredictPositions({
       queryClient,
@@ -370,24 +383,63 @@ const PredictionsSectionDefault = forwardRef<
 
     const refresh = useCallback(async () => {
       const tasks: Promise<unknown>[] = [refreshPositions(), refetchMarkets()];
+      if (isTreatmentDiscovery && activeDiscoveryRefetchRef.current) {
+        tasks.push(activeDiscoveryRefetchRef.current());
+      }
       if (isTreatmentDiscovery) {
-        tasks.push(refetchHomepageMarketSlots());
+        tasks.push(refreshUiSlots());
       }
       await Promise.all(tasks);
     }, [
       refreshPositions,
       refetchMarkets,
       isTreatmentDiscovery,
-      refetchHomepageMarketSlots,
+      refreshUiSlots,
     ]);
 
-    const positionsLayout = hasAnyPositions || isLoadingPositions;
     const discoveryHasNothingToShow =
       !isTreatmentDiscovery && !isLoadingMarkets && markets.length === 0;
     const enabled =
       isPredictEnabled &&
       !hasError &&
       (positionsLayout || !discoveryHasNothingToShow);
+    const discoveryHost = useMemo(
+      () => ({
+        enabled: isPredictEnabled && isTreatmentDiscovery,
+        title,
+        onViewAll: handleViewAllPredictions,
+        headerTestIdKey: 'predictions' as const,
+        transactionActiveAbTests: discoveryTransactionActiveAbTests,
+        onTreatmentCtaClick: shouldTrackEmptyState
+          ? trackEmptyStateTreatmentCtaClick
+          : undefined,
+        registerDiscoveryRefetch,
+        reportDiscoveryLoading,
+        isSectionVisible,
+      }),
+      [
+        discoveryTransactionActiveAbTests,
+        handleViewAllPredictions,
+        isPredictEnabled,
+        isSectionVisible,
+        isTreatmentDiscovery,
+        registerDiscoveryRefetch,
+        reportDiscoveryLoading,
+        shouldTrackEmptyState,
+        title,
+        trackEmptyStateTreatmentCtaClick,
+      ],
+    );
+    const discoveryList = (
+      <PredictDiscoveryListHostContext.Provider value={discoveryHost}>
+        <UiSlotRenderer
+          screenId="wallet-home"
+          slotId="wallet-home.predict-empty-state"
+          fallback={<PredictDiscoveryListWidget />}
+          fallbackOnEmpty
+        />
+      </PredictDiscoveryListHostContext.Provider>
+    );
 
     return (
       <PredictionsSectionShell
@@ -415,16 +467,7 @@ const PredictionsSectionDefault = forwardRef<
                   isLoadingMarkets={isLoadingMarkets}
                   markets={markets}
                   transactionActiveAbTests={discoveryTransactionActiveAbTests}
-                  marketSlots={homepageMarketSlots}
-                  emptyStateTransactionActiveAbTests={
-                    discoveryTransactionActiveAbTests
-                  }
-                  onEmptyStateTreatmentCtaClick={
-                    shouldTrackEmptyState
-                      ? trackEmptyStateTreatmentCtaClick
-                      : undefined
-                  }
-                  isSectionVisible={isSectionVisible}
+                  discoveryList={discoveryList}
                 />
               </Box>
             )}
@@ -449,16 +492,7 @@ const PredictionsSectionDefault = forwardRef<
               isLoadingMarkets={isLoadingMarkets}
               markets={markets}
               transactionActiveAbTests={discoveryTransactionActiveAbTests}
-              marketSlots={homepageMarketSlots}
-              emptyStateTransactionActiveAbTests={
-                discoveryTransactionActiveAbTests
-              }
-              onEmptyStateTreatmentCtaClick={
-                shouldTrackEmptyState
-                  ? trackEmptyStateTreatmentCtaClick
-                  : undefined
-              }
-              isSectionVisible={isSectionVisible}
+              discoveryList={discoveryList}
             />
           </Box>
         )}
@@ -482,6 +516,7 @@ const PredictionsSectionSportsOnly = forwardRef<
 
     const homepageMarketSlots = useHomepagePredictMarketSlots({
       enabled: isPredictEnabled,
+      slots: HOMEPAGE_PREDICT_MARKET_SLOTS,
     });
     const { refetch: refetchHomepageMarketSlots } = homepageMarketSlots;
 
@@ -514,6 +549,7 @@ const PredictionsSectionSportsOnly = forwardRef<
             title={title}
             onViewAll={handleViewAllPredictions}
             headerTestIdKey="predictions"
+            slots={HOMEPAGE_PREDICT_MARKET_SLOTS}
             marketSlots={homepageMarketSlots}
             isSectionVisible={isSectionVisible}
           />

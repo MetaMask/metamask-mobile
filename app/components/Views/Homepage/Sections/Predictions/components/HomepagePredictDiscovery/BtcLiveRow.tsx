@@ -25,8 +25,10 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { formatPrice } from '../../../../../../UI/Predict/utils/format';
 import { useCurrentCryptoUpDownMarketData } from '../../../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData';
 import { selectPredictEnabledFlag } from '../../../../../../UI/Predict/selectors/featureFlags';
-import type { PredictMarket } from '../../../../../../UI/Predict/types';
-import { HOMEPAGE_PREDICT_SERIES_SLOT } from '../../constants/homepagePredictMarketSlots';
+import type {
+  PredictMarket,
+  PredictSeries,
+} from '../../../../../../UI/Predict/types';
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
 import HomepagePredictDiscoveryLivePill from './HomepagePredictDiscoveryLivePill';
 
@@ -36,7 +38,9 @@ const formatBtc = (value: number | undefined) =>
     : formatPrice(value, { maximumDecimals: 0 });
 
 interface BtcLiveRowProps {
+  series: PredictSeries;
   onPress: (
+    series: PredictSeries,
     marketId: string | undefined,
     market: PredictMarket | undefined,
   ) => void;
@@ -96,19 +100,20 @@ const BtcMarketValues = memo(
     </Box>
   ),
 );
+
 interface BtcLiveValuesProps {
+  series: PredictSeries;
   isSectionVisible: boolean;
 }
 
 const BtcLiveValues = forwardRef<BtcLiveValuesHandle, BtcLiveValuesProps>(
-  ({ isSectionVisible }, ref) => {
+  ({ series, isSectionVisible }, ref) => {
     const isFocused = useIsFocused();
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const enabled = isPredictEnabled && isFocused && isSectionVisible;
-
     const { marketId, market, currentPrice, priceToBeat, countdown } =
       useCurrentCryptoUpDownMarketData({
-        series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
+        series,
         enabled,
         withChartData: false,
       });
@@ -134,33 +139,43 @@ const BtcLiveValues = forwardRef<BtcLiveValuesHandle, BtcLiveValuesProps>(
  * stable on countdown ticks, while memoized labels update only when their
  * respective values change.
  */
-const BtcLiveRow = memo(({ onPress, isSectionVisible }: BtcLiveRowProps) => {
-  const tw = useTailwind();
-  const liveValuesRef = useRef<BtcLiveValuesHandle>(null);
-  const handlePress = useCallback(() => {
-    onPress(liveValuesRef.current?.marketId, liveValuesRef.current?.market);
-  }, [onPress]);
+const BtcLiveRow = memo(
+  ({ series, onPress, isSectionVisible }: BtcLiveRowProps) => {
+    const tw = useTailwind();
+    const liveValuesRef = useRef<BtcLiveValuesHandle>(null);
+    const handlePress = useCallback(() => {
+      onPress(
+        series,
+        liveValuesRef.current?.marketId,
+        liveValuesRef.current?.market,
+      );
+    }, [onPress, series]);
 
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={handlePress}
-      style={tw.style(
-        'w-full flex-row items-center self-stretch py-2 active:opacity-80',
-      )}
-      testID="homepage-predict-discovery-btc-row"
-    >
-      <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
-        <HomepagePredictDiscoveryMaterialGlyph name="currencyBitcoin" />
-      </Box>
-      <BtcLiveValues ref={liveValuesRef} isSectionVisible={isSectionVisible} />
-      <Icon
-        name={IconName.ArrowRight}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-    </Pressable>
-  );
-});
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={handlePress}
+        style={tw.style(
+          'w-full flex-row items-center self-stretch py-2 active:opacity-80',
+        )}
+        testID="homepage-predict-discovery-btc-row"
+      >
+        <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+          <HomepagePredictDiscoveryMaterialGlyph name="currencyBitcoin" />
+        </Box>
+        <BtcLiveValues
+          ref={liveValuesRef}
+          series={series}
+          isSectionVisible={isSectionVisible}
+        />
+        <Icon
+          name={IconName.ArrowRight}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      </Pressable>
+    );
+  },
+);
 
 export default BtcLiveRow;

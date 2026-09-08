@@ -12,7 +12,6 @@ describe('HomepagePredictTrendingMarkets', () => {
         discoveryLayout="list"
         isLoadingMarkets={false}
         markets={[]}
-        isSectionVisible
       />,
     );
 
