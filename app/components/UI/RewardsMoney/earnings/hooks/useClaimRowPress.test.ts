@@ -39,10 +39,12 @@ jest.mock('../utils/resolveClaimTransaction', () => ({
 }));
 
 import { selectMoneyAccountVaultConfig } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectSortedTransactions } from '../../../../../selectors/transactionController';
 
 const mockedResolve = jest.mocked(resolveClaimTransaction);
 const mockedNavigate = jest.mocked(navigateToTransactionDetails);
 const mockedVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
+const mockedSortedTransactions = jest.mocked(selectSortedTransactions);
 
 const CLAIM = { id: 'claim-1' } as ClaimDto;
 
@@ -52,6 +54,7 @@ describe('useClaimRowPress', () => {
     mockedVaultConfig.mockReturnValue({ chainId: '0x8f' } as ReturnType<
       typeof selectMoneyAccountVaultConfig
     >);
+    mockedSortedTransactions.mockReturnValue([]);
   });
 
   it('navigates to the resolved transaction on press', () => {
@@ -72,6 +75,29 @@ describe('useClaimRowPress', () => {
     const { result } = renderHook(() => useClaimRowPress());
 
     expect(result.current(CLAIM)?.isInferredMatch).toBe(true);
+  });
+
+  /**
+   * `selectSortedTransactions` merges in pending smart transactions, which
+   * carry no `TransactionMeta.id` — and the details screen resolves local rows
+   * by exactly that id, so passing one through would produce a tap that
+   * resolves to nothing.
+   */
+  it('drops transactions with no id before resolving', () => {
+    mockedSortedTransactions.mockReturnValue([
+      { hash: '0xsmart' },
+      { id: 'tx-local', hash: '0xlocal' },
+    ] as never);
+    mockedResolve.mockReturnValue({ kind: 'none' });
+    const { result } = renderHook(() => useClaimRowPress());
+
+    result.current(CLAIM);
+
+    expect(mockedResolve).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transactions: [{ id: 'tx-local', hash: '0xlocal' }],
+      }),
+    );
   });
 
   /** A null is what makes the row inert rather than a tap that goes nowhere. */
