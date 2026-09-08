@@ -1,19 +1,18 @@
 import { ConstantBackoff } from '@metamask/controller-utils';
 import { Messenger } from '@metamask/messenger';
+import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
+import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
 import {
-  PredictNextController,
-  type PredictNextControllerMessenger,
-} from '../../../app/components/UI/PredictNext/controller/PredictNextController';
-import type {
-  PredictMarketDataServiceActions,
-  PredictMarketDataServiceEvents,
+  PREDICT_MARKET_DATA_SERVICE_NAME,
+  PredictMarketDataService,
+  type PredictMarketDataServiceMessenger,
 } from '../../../app/components/UI/PredictNext/services/PredictMarketDataService';
 
 /**
  * PredictNext integration-test harness.
  *
- * REAL: PredictNextController, PredictMarketDataService, KalshiRemoteAdapter,
- * PredictApiReadClient, and the public service messenger namespace.
+ * REAL: PredictMarketDataService, KalshiRemoteAdapter, PredictApiReadClient,
+ * and the public market-data service messenger.
  * MOCKED: HTTP fetch and app-shell base URL/client version configuration.
  */
 
@@ -28,8 +27,8 @@ export type PredictFetchResponder = (
 ) => Promise<PredictFetchResult> | PredictFetchResult;
 
 export interface PredictNextIntegrationHarness {
-  controller: PredictNextController;
-  messenger: PredictNextControllerMessenger;
+  service: PredictMarketDataService;
+  messenger: PredictMarketDataServiceMessenger;
   fetchMock: jest.MockedFunction<typeof fetch>;
   destroy: () => void;
 }
@@ -44,31 +43,34 @@ const jsonResponse = ({ status = 200, body }: PredictFetchResult): Response =>
 export const buildPredictNextIntegrationHarness = (
   responder: PredictFetchResponder,
 ): PredictNextIntegrationHarness => {
-  const messenger: PredictNextControllerMessenger = new Messenger<
-    'PredictMarketDataService',
-    PredictMarketDataServiceActions,
-    PredictMarketDataServiceEvents
-  >({ namespace: 'PredictMarketDataService' });
+  const messenger: PredictMarketDataServiceMessenger = new Messenger({
+    namespace: PREDICT_MARKET_DATA_SERVICE_NAME,
+  });
   const fetchMock = jest.fn(async (input, init) =>
     jsonResponse(await responder(String(input), init)),
   ) as jest.MockedFunction<typeof fetch>;
-  const controller = new PredictNextController({
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example/',
+      clientVersion: '1.0.0',
+      fetch: fetchMock,
+    }),
+  );
+  const service = new PredictMarketDataService({
     messenger,
-    baseUrl: 'https://predict.example/',
-    clientVersion: '1.0.0',
-    fetch: fetchMock,
+    marketData: adapter.marketData,
+    venueId: adapter.venueId,
     policyOptions: {
       backoff: new ConstantBackoff(0),
       maxConsecutiveFailures: 3,
       circuitBreakDuration: 60_000,
     },
   });
-  controller.initialize();
 
   return {
-    controller,
+    service,
     messenger,
     fetchMock,
-    destroy: () => controller.destroy(),
+    destroy: () => service.destroy(),
   };
 };

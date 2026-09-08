@@ -115,6 +115,49 @@ describe('PredictHome', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('renders live game updates received for a Home Event', async () => {
+    let onGameUpdate:
+      | ((update: {
+          venueId: string;
+          eventId: string;
+          game: { type: string; details: Record<string, unknown> };
+        }) => void)
+      | undefined;
+    (
+      Engine.controllerMessenger.subscribe as unknown as jest.Mock
+    ).mockImplementation((eventName: string, listener: typeof onGameUpdate) => {
+      if (eventName === 'PredictLiveDataService:gameLiveUpdated') {
+        onGameUpdate = listener;
+      }
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+    const nflSection = await view.findByTestId(
+      PredictHomeTestIds.section(NFL_FEED_SCREEN_ID),
+    );
+
+    act(() => {
+      onGameUpdate?.({
+        venueId: 'kalshi',
+        eventId: 'nfl-1',
+        game: {
+          type: 'football_game',
+          details: {
+            status: 'live',
+            away_points: 28,
+            home_points: 24,
+            quarter: 4,
+            clock: '01:12',
+          },
+        },
+      });
+    });
+
+    expect(within(nflSection).getByText('28')).toBeOnTheScreen();
+    expect(within(nflSection).getByText('24')).toBeOnTheScreen();
+    expect(within(nflSection).getByText('Q4 · 01:12')).toBeOnTheScreen();
+  });
+
   it.each([
     {
       feedScreenId: NFL_FEED_SCREEN_ID,

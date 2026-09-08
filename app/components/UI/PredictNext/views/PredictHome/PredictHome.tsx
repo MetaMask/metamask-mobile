@@ -15,6 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useFeed } from '../../hooks/useFeed';
+import { useLiveGames } from '../../hooks/useLiveGames';
 import {
   FEED_SCREENS,
   NCAA_FEED_SCREEN_ID,
@@ -50,10 +51,16 @@ export const PredictHome = () => {
   const ncaaQuery = useFeed(KALSHI_VENUE_ID, NCAA_GAMES_FEED_ID, {
     limit: PREVIEW_LIMIT,
   });
-  const nflEvents =
+  const feedNflEvents =
     nflQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? [];
-  const ncaaEvents =
+  const feedNcaaEvents =
     ncaaQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? [];
+  const liveEvents = useLiveGames(KALSHI_VENUE_ID, [
+    ...feedNflEvents,
+    ...feedNcaaEvents,
+  ]);
+  const nflEvents = liveEvents.slice(0, feedNflEvents.length);
+  const ncaaEvents = liveEvents.slice(feedNflEvents.length);
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextHomeView,
