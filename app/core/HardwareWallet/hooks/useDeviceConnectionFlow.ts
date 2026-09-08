@@ -11,7 +11,6 @@ import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
 } from './useHardwareWalletStateManager';
-import Logger from '../../../util/Logger';
 
 interface UseDeviceConnectionFlowOptions {
   refs: HardwareWalletRefs;
@@ -139,12 +138,6 @@ export const useDeviceConnectionFlow = ({
       targetDeviceId: string,
     ): Promise<boolean> => {
       const isReady = await adapter.ensureDeviceReady(targetDeviceId);
-      Logger.log('[HW-SendBundle] adapter.ensureDeviceReady returned', {
-        isReady,
-        walletType: adapter.walletType,
-        hasResolve: Boolean(pendingReadyResolveRef?.current),
-        hasCallback: Boolean(connectionSuccessCallbackRef.current),
-      });
       if (isReady) {
         adapter.markFlowComplete();
         // Resolve the blocking promise immediately when the adapter reports
