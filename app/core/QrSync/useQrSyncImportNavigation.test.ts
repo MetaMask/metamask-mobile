@@ -185,7 +185,8 @@ describe('useQrSyncImportNavigation', () => {
   it('calls provisionFromMetadata for existing users with pending payload', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
-    mockQrSyncControllerState.pendingSecretImports = mockPendingSecretImportsPayload;
+    mockQrSyncControllerState.pendingSecretImports =
+      mockPendingSecretImportsPayload;
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts
       .mockResolvedValueOnce(['0xold'])
@@ -207,7 +208,8 @@ describe('useQrSyncImportNavigation', () => {
   it('shows already-synced sheet when provisionFromMetadata adds no accounts', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
-    mockQrSyncControllerState.pendingSecretImports = mockPendingSecretImportsPayload;
+    mockQrSyncControllerState.pendingSecretImports =
+      mockPendingSecretImportsPayload;
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts.mockResolvedValue(['0xexisting']);
 
@@ -228,7 +230,8 @@ describe('useQrSyncImportNavigation', () => {
   it('shows import-failed sheet when provisionFromMetadata throws and adds no accounts', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
-    mockQrSyncControllerState.pendingSecretImports = mockPendingSecretImportsPayload;
+    mockQrSyncControllerState.pendingSecretImports =
+      mockPendingSecretImportsPayload;
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts.mockResolvedValue(['0xexisting']);
     mockProvisionFromMetadata.mockRejectedValueOnce(new Error('vault locked'));
@@ -248,7 +251,8 @@ describe('useQrSyncImportNavigation', () => {
   it('navigates home without resetting when provisioning adds new accounts', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
-    mockQrSyncControllerState.pendingSecretImports = mockPendingSecretImportsPayload;
+    mockQrSyncControllerState.pendingSecretImports =
+      mockPendingSecretImportsPayload;
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts
       .mockResolvedValueOnce(['0xold'])
@@ -329,7 +333,8 @@ describe('useQrSyncImportNavigation', () => {
   it('reports and resets when existing-user finish path rejects', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
-    mockQrSyncControllerState.pendingSecretImports = mockPendingSecretImportsPayload;
+    mockQrSyncControllerState.pendingSecretImports =
+      mockPendingSecretImportsPayload;
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts.mockRejectedValueOnce(new Error('unexpected'));
 
