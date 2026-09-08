@@ -4,6 +4,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { isEmpty } from 'lodash';
@@ -14,6 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { toAssetId } from '../../../Bridge/hooks/useAssetMetadata/utils';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { capitalize } from '../../../../../util/general';
 import {
@@ -428,19 +430,26 @@ const EarnLendingDepositConfirmationView = () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
           endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
-          if (!outputToken) {
+          if (!outputToken && selectedAccount?.id) {
             try {
-              const networkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId,
-              }).catch(console.error);
+              const counterTokenChainId = tokenSnapshot?.chainId as Hex;
+              const counterTokenAddress = tokenSnapshot?.token?.address || '';
+              const caipChainId = toEvmCaipChainId(counterTokenChainId);
+              const caipAssetType = toAssetId(counterTokenAddress, caipChainId);
+
+              if (caipAssetType) {
+                Engine.context.AssetsController.addCustomAsset(
+                  selectedAccount.id,
+                  caipAssetType,
+                  {
+                    decimals: tokenSnapshot?.token?.decimals || 0,
+                    symbol: tokenSnapshot?.token?.symbol || '',
+                    address: counterTokenAddress,
+                    name: tokenSnapshot?.token?.name || '',
+                    chainId: counterTokenChainId,
+                  },
+                ).catch(console.error);
+              }
             } catch (error) {
               console.error(
                 error,
@@ -463,7 +472,14 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, earnToken, tokenSnapshot],
+    [
+      emitTxMetaMetric,
+      navigation,
+      outputToken,
+      earnToken,
+      tokenSnapshot,
+      selectedAccount,
+    ],
   );
 
   const createTransactionEventListeners = useCallback(
