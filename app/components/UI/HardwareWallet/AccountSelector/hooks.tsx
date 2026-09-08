@@ -29,9 +29,8 @@ export const useAccountsBalance = (accounts: IAccount[]) => {
   const ethQuery = useMemo(() => {
     const { NetworkController } = Engine.context;
     const networkClientId = NetworkController.state.selectedNetworkClientId;
-    const { provider } = NetworkController.getNetworkClientById(
-      networkClientId,
-    );
+    const { provider } =
+      NetworkController.getNetworkClientById(networkClientId);
     return new EthQuery(provider);
   }, []);
 

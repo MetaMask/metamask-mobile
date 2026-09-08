@@ -34,6 +34,9 @@ jest.mock('../../../../../../core/Engine', () => {
       TokensController: {
         addToken: () => undefined,
       },
+      AssetsController: {
+        addCustomAsset: () => undefined,
+      },
       KeyringController: {
         state: {
           keyrings: [],

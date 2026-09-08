@@ -55,20 +55,14 @@ describe('useAccountsBalance', () => {
       });
     });
 
-    expect(mockedQuery).toHaveBeenCalledWith(
-      expect.anything(),
-      'getBalance',
-      ['0x123'],
-    );
-    expect(mockedQuery).toHaveBeenCalledWith(
-      expect.anything(),
-      'getBalance',
-      ['0x456'],
-    );
-    expect(mockedQuery).toHaveBeenCalledWith(
-      expect.anything(),
-      'getBalance',
-      ['0x789'],
-    );
+    expect(mockedQuery).toHaveBeenCalledWith(expect.anything(), 'getBalance', [
+      '0x123',
+    ]);
+    expect(mockedQuery).toHaveBeenCalledWith(expect.anything(), 'getBalance', [
+      '0x456',
+    ]);
+    expect(mockedQuery).toHaveBeenCalledWith(expect.anything(), 'getBalance', [
+      '0x789',
+    ]);
   });
 });

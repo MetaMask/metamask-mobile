@@ -210,7 +210,9 @@ describe('wallet_watchAsset', () => {
       }),
     );
 
-    expect(MockEngine.context.AssetsController.addCustomAsset).toHaveBeenCalled();
+    expect(
+      MockEngine.context.AssetsController.addCustomAsset,
+    ).toHaveBeenCalled();
   });
 
   it('does not add the custom asset when the approval request is rejected', async () => {
@@ -246,7 +248,9 @@ describe('wallet_watchAsset', () => {
       }),
     ).rejects.toThrow('User rejected the request');
 
-    expect(MockEngine.context.AssetsController.addCustomAsset).not.toHaveBeenCalled();
+    expect(
+      MockEngine.context.AssetsController.addCustomAsset,
+    ).not.toHaveBeenCalled();
   });
 
   it('sanitizes pageMeta properties with undefined values before requesting approval', async () => {
