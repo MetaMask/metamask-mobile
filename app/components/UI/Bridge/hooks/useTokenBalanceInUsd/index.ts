@@ -72,12 +72,13 @@ export const useTokenBalanceInUsd = (
   const evmTokenPrice = useSelector((state: RootState) => {
     if (!token || isNonEvmChainId(token.chainId)) return undefined;
     const hexChainId = formatChainIdToHex(token.chainId);
+    const checksumTokenAddress = toChecksumAddress(token.address) as Hex;
     const data = selectSingleTokenPriceMarketData(
       state,
       hexChainId,
-      token.address as Hex,
+      checksumTokenAddress,
     );
-    return data[token.address as Hex]?.price;
+    return data[checksumTokenAddress]?.price;
   });
 
   const nonEvmAssetRate = useSelector((state: RootState) => {

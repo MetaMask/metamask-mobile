@@ -155,7 +155,7 @@ describe('useTokenBalanceInUsd', () => {
                 ...initialState.engine.backgroundState.AssetsController
                   .assetsInfo,
                 [`eip155:1/erc20:${lowercaseErc20}`]: {
-                  type: 'erc20',
+                  type: 'erc20' as const,
                   symbol: 'TKN',
                   name: 'TKN',
                   decimals: 18,

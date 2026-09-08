@@ -17,6 +17,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
+import type { AssetsControllerState } from '@metamask/assets-controller';
 
 import { backgroundState } from './initial-root-state';
 import {
@@ -553,13 +554,13 @@ const stakingConfirmationBaseState = {
         assetsInfo: {
           ...backgroundState.AssetsController.assetsInfo,
           'eip155:1/slip44:60': {
-            type: 'native',
+            type: 'native' as const,
             symbol: 'ETH',
             name: 'Ethereum',
             decimals: 18,
           },
           'eip155:59144/slip44:60': {
-            type: 'native',
+            type: 'native' as const,
             symbol: 'LineaETH',
             name: 'LineaETH',
             decimals: 18,
@@ -567,19 +568,19 @@ const stakingConfirmationBaseState = {
         },
         assetsPrice: {
           'eip155:1/slip44:60': {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: 3596.25,
             usdPrice: 3596.25,
             lastUpdated: 1732887955694,
           },
           'eip155:59144/slip44:60': {
-            assetPriceType: 'fungible',
+            assetPriceType: 'fungible' as const,
             price: 3596.25,
             usdPrice: 3596.25,
             lastUpdated: 1732887955694,
           },
         },
-      },
+      } as AssetsControllerState,
       TokensController: {
         allTokens: {
           '0x1': {

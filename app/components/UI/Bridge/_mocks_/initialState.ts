@@ -17,6 +17,8 @@ import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
+import type { AssetsControllerState } from '@metamask/assets-controller';
+import type { RootState } from '../../../../reducers';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
@@ -212,7 +214,7 @@ export const initialState = {
             decimals: 9,
           },
           [solanaToken2Address]: {
-            type: 'token',
+            type: 'spl',
             symbol: 'USDC',
             name: 'USD Coin',
             decimals: 6,
@@ -323,7 +325,7 @@ export const initialState = {
             lastUpdated: 1700000000000,
           },
         },
-      },
+      } as AssetsControllerState,
       TokensController: {
         allTokens: {
           [ethChainId]: {
@@ -986,4 +988,4 @@ export const initialState = {
     recurring: initialRecurringState,
     ordersNetworkFilter: undefined,
   },
-};
+} as unknown as RootState;

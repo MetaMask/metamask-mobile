@@ -129,6 +129,28 @@ export const currencyRateControllerMock = {
           },
         },
       },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native' as const,
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible' as const,
+            price: 10000,
+            usdPrice: 10000,
+            lastUpdated: 1732887955694,
+          },
+        },
+        assetsBalance: {},
+        customAssets: {},
+        assetPreferences: {},
+      },
     },
   },
 };
