@@ -96,11 +96,13 @@ let mockRouteParams: MockRouteParams = {
 const mockState = {
   engine: {
     backgroundState: {
-      TokenRatesController: {
-        marketData: {},
-      },
-      CurrencyRateController: {
-        currentCurrency: 'usd',
+      AssetsController: {
+        assetsBalance: {},
+        assetsInfo: {},
+        assetsPrice: {},
+        customAssets: {},
+        assetPreferences: {},
+        selectedCurrency: 'usd' as const,
       },
     },
   },
@@ -1181,18 +1183,38 @@ describe('TraderPositionView', () => {
     const stateWithMarket = {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {
-              '0x2105': {
-                '0x1234567890123456789012345678901234567890': {
-                  marketCap: 11700000,
-                  pricePercentChange1d: 7.2,
-                },
+          AssetsController: {
+            assetsBalance: {},
+            customAssets: {},
+            assetPreferences: {},
+            selectedCurrency: 'usd' as const,
+            assetsInfo: {
+              'eip155:8453/slip44:60': {
+                type: 'native' as const,
+                decimals: 18,
+                symbol: 'NATIVE',
+                name: 'Native',
+              },
+              'eip155:8453/erc20:0x1234567890123456789012345678901234567890': {
+                type: 'erc20' as const,
+                decimals: 18,
+                symbol: 'PEPE',
+                name: 'Pepe',
               },
             },
-          },
-          CurrencyRateController: {
-            currentCurrency: 'usd',
+            assetsPrice: {
+              'eip155:8453/slip44:60': {
+                assetPriceType: 'fungible' as const,
+                price: 1,
+                usdPrice: 1,
+                lastUpdated: Date.now(),
+              },
+              'eip155:8453/erc20:0x1234567890123456789012345678901234567890': {
+                assetPriceType: 'fungible' as const,
+                marketCap: 11700000,
+                pricePercentChange1d: 7.2,
+              },
+            },
           },
         },
       },
