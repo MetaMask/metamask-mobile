@@ -591,6 +591,18 @@ describe('exchange-rates', () => {
 
     const mockNonEvmMultichainAssetRates = {
       [mockSolanaTokenAddress]: {
+        conversionTime: 1745436145391,
+        currency: 'swift:0/iso4217:USD',
+        expirationTime: 1745439745391,
+        marketData: {
+          fungible: true,
+          allTimeHigh: '293.31',
+          allTimeLow: '0.500801',
+          circulatingSupply: '517313513.4593564',
+          marketCap: '78479310083',
+          pricePercentChange: {},
+          totalVolume: '6225869757',
+        },
         rate: '151.7',
       },
     } as ReturnType<typeof selectMultichainAssetsRates>;
