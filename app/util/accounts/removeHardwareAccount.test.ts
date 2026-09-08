@@ -2,10 +2,7 @@ import { toHex } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import { forgetLedger, getDeviceId } from '../../core/Ledger/Ledger';
-import {
-  forgetQrDevice,
-  withQrKeyring,
-} from '../../core/QrKeyring/QrKeyring';
+import { forgetQrDevice, withQrKeyring } from '../../core/QrKeyring/QrKeyring';
 import { removeAccountsFromPermissions } from '../../core/Permissions';
 import { removeHardwareAccount } from './removeHardwareAccount';
 
@@ -107,7 +104,8 @@ describe('removeHardwareAccount', () => {
 
   it.each([
     {
-      description: 'reselects the first account when the removed account was selected',
+      description:
+        'reselects the first account when the removed account was selected',
       selectedAddress: HARDWARE_ADDRESS,
       expectedReselect: REMAINING_ADDRESS,
     },

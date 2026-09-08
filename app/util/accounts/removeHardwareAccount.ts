@@ -1,10 +1,7 @@
 import { toHex } from '@metamask/controller-utils';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import { forgetLedger, getDeviceId } from '../../core/Ledger/Ledger';
-import {
-  forgetQrDevice,
-  withQrKeyring,
-} from '../../core/QrKeyring/QrKeyring';
+import { forgetQrDevice, withQrKeyring } from '../../core/QrKeyring/QrKeyring';
 import { removeAccountsFromPermissions } from '../../core/Permissions';
 import Engine from '../../core/Engine';
 
