@@ -11882,12 +11882,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/skills@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/skills@npm:0.2.0"
+"@metamask/skills@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "@metamask/skills@npm:0.3.1"
   bin:
     metamask-skills: bin/metamask-skills.mjs
-  checksum: 10/d45757d90ab53fea84e80b9156b86f8ab22e1ba1f6799e9e8a9b7e64179af5a5fe750c530ad9d8c2f12c0dd6122ce0857ec76f33b1f2fad02d3a31ee59045812
+  checksum: 10/c15c1065ce12c6aecb224bb027f4673fd7a6e1ed68c2f29a9ca6588e0e87339ef3183c50f12c99b2e960b0ba93c4b23c50ed8b1bd65c6b10d16707391f335648
   languageName: node
   linkType: hard
 
@@ -39814,7 +39814,7 @@ __metadata:
     "@metamask/sentinel-api-service": "npm:^1.0.1"
     "@metamask/shield-controller": "npm:^6.0.1"
     "@metamask/signature-controller": "npm:^39.2.0"
-    "@metamask/skills": "npm:^0.2.0"
+    "@metamask/skills": "npm:^0.3.1"
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "patch:@metamask/smart-transactions-controller@npm%3A25.0.0#~/.yarn/patches/@metamask-smart-transactions-controller-npm-25.0.0-3afc599382.patch"
     "@metamask/snap-account-service": "npm:^2.1.2"
