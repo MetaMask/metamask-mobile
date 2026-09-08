@@ -155,15 +155,19 @@ export const handleTronStakingNavigationResult = (
     // Refreshes the multichain balance after successful stake/unstake
     // to make sure that the asset overview displays the updated staked balance right away
     if (accountId) {
-      const { MultichainBalancesController } = Engine.context;
-      MultichainBalancesController.updateBalance(accountId).catch(
-        (error: Error) => {
+      const { AccountsController, AssetsController } = Engine.context;
+      const account = AccountsController.getAccount(accountId);
+
+      if (account) {
+        AssetsController.getAssets([account], {
+          forceUpdate: true,
+        }).catch((error: Error) => {
           Logger.error(
             error,
             `[Tron ${action}] Failed to refresh multichain balance`,
           );
-        },
-      );
+        });
+      }
     }
 
     navigation.goBack();
