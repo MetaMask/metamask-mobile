@@ -25,36 +25,28 @@ const getFoxAnimationHeight = (hasFooter: boolean) => {
 const getSafeBottomPosition = (hasFooter: boolean, insets?: EdgeInsets) => {
   const basePadding = insets?.bottom || 0;
 
-  // iOS specific
-  if (Platform.OS === 'ios') {
-    if (hasFooter) {
-      // Footer case: position above footer + safe area
+  if (hasFooter) {
+    if (Platform.OS === 'ios') {
       return Math.max(100, basePadding + 60);
     }
+    if (Platform.OS === 'android') {
+      return Math.max(100, basePadding + (basePadding > 20 ? 60 : 40));
+    }
+    return 100;
+  }
+
+  if (Platform.OS === 'ios') {
     if (basePadding > 0) {
-      // iPhone X+ with home indicator
       return Math.max(-40, -(basePadding - 10));
     }
     return -20;
   }
 
-  // Android specific
   if (Platform.OS === 'android') {
-    // Samsung and other Android devices with gesture navigation
-    if (basePadding > 20) {
-      return hasFooter
-        ? Math.max(100, basePadding + 60)
-        : Math.max(-20, basePadding);
-    }
-
-    // Standard Android devices
-    return hasFooter
-      ? Math.max(100, basePadding + 40)
-      : Math.max(-20, basePadding - 20);
+    return Math.max(0, basePadding);
   }
 
-  // Fallback for other platforms
-  return hasFooter ? 100 : -20;
+  return -20;
 };
 
 const createStyles = (hasFooter: boolean, insets?: EdgeInsets) =>
