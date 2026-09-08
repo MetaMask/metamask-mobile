@@ -1,11 +1,21 @@
 import { AppState } from 'react-native';
+import { unregisterBrazePush } from '../../../Braze/unregisterPush';
 import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { PressActionId } from '../../../../util/notifications';
 import { toFcmDataStringRecord } from '../../../../util/notifications/utils/fcm-data';
 
 export const createRegToken = FCMService.createRegToken;
-export const deleteRegToken = FCMService.deleteRegToken;
+
+/**
+ * Unregister this device from Braze before deleting the FCM token.
+ * Retriable failures are persisted for retry on the next app launch. Permanent
+ * failures throw so NaaP keeps the in-app toggle enabled.
+ */
+export const deleteRegToken = async (): Promise<boolean> => {
+  await unregisterBrazePush();
+  return FCMService.deleteRegToken();
+};
 
 /**
  * FCM `notification_type` for on-chain wallet activity (send/receive/etc).
