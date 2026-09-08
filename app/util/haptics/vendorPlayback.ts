@@ -16,7 +16,7 @@ import { ImpactMoment, type HapticImpactMoment } from './catalog';
 export const IMPACT_STYLE_MAP: Record<HapticImpactMoment, ImpactFeedbackStyle> =
   {
     [ImpactMoment.QuickAmountSelection]: ImpactFeedbackStyle.Light,
-    [ImpactMoment.KeypadKey]: ImpactFeedbackStyle.Rigid,
+    [ImpactMoment.KeypadKey]: ImpactFeedbackStyle.Light,
     [ImpactMoment.SliderTick]: ImpactFeedbackStyle.Light,
     [ImpactMoment.EdgeGestureEngage]: ImpactFeedbackStyle.Light,
     [ImpactMoment.PageNavigation]: ImpactFeedbackStyle.Medium,
