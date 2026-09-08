@@ -160,6 +160,11 @@ import {
 } from '../../utils/tpslValidation';
 import { deriveOrderSizing } from '../../utils/orderSizing';
 import {
+  beginPerpsOrderReceipt,
+  settlePerpsOrderReceipt,
+  recordPerpsOrderProtectionResult,
+} from '../../utils/perpsOrderReceipt';
+import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
 } from '../../utils/orderParams';
@@ -1483,6 +1488,44 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           return;
         }
 
+        const selectedAccount = __DEV__
+          ? Engine.context.AccountsController.getSelectedAccount()
+          : undefined;
+        const perpsState = __DEV__
+          ? Engine.context.PerpsController.state
+          : undefined;
+        const receiptId = beginPerpsOrderReceipt(
+          selectedAccount &&
+            perpsState &&
+            activeTransactionMeta?.type === 'perpsDepositAndOrder' &&
+            activeTransactionMeta.status === 'unapproved' &&
+            !activeTransactionMeta.hash &&
+            activeTransactionMeta.txParams.from.toLowerCase() ===
+              selectedAccount.address.toLowerCase() &&
+            !needsDeposit &&
+            !forceTrade
+            ? {
+                approvalId: activeTransactionMeta.id,
+                transactionTime: activeTransactionMeta.time,
+                account: selectedAccount.address,
+                provider: perpsState.activeProvider,
+                isTestnet: perpsState.isTestnet,
+                chainId: activeTransactionMeta.chainId,
+                routeKey: route.key,
+              }
+            : undefined,
+          {
+            asset: orderForm.asset,
+            direction: orderForm.direction,
+            amount: orderForm.amount,
+            leverage: orderForm.leverage,
+            orderType: orderForm.type,
+            limitPrice: orderForm.limitPrice,
+            takeProfitPrice: orderForm.takeProfitPrice,
+            stopLossPrice: orderForm.stopLossPrice,
+          },
+        );
+
         // Navigate immediately BEFORE order execution (enhanced with monitoring parameters for data-driven tab selection)
         // Always monitor both orders and positions because:
         // - Market orders: Usually create positions immediately
@@ -1569,7 +1612,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           delete orderWithoutTPSL.takeProfitPrice;
           delete orderWithoutTPSL.stopLossPrice;
 
-          const orderResult = await executeOrder(orderWithoutTPSL);
+          const orderResult = await executeOrder(orderWithoutTPSL, (result) => {
+            settlePerpsOrderReceipt(receiptId, orderWithoutTPSL, result);
+          });
           if (!orderResult?.success) {
             return;
           }
@@ -1579,6 +1624,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             takeProfitPrice: orderForm.takeProfitPrice,
             stopLossPrice: orderForm.stopLossPrice,
           });
+          recordPerpsOrderProtectionResult(receiptId, tpslResult);
 
           // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
           if (!tpslResult.success) {
@@ -1591,7 +1637,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             );
           }
         } else {
-          const orderResult = await executeOrder(orderParams);
+          const orderResult = await executeOrder(orderParams, (result) => {
+            settlePerpsOrderReceipt(receiptId, orderParams, result);
+          });
           if (!orderResult?.success) {
             return;
           }
@@ -1654,6 +1702,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isTradeWithAnyTokenEnabled,
       depositAmount,
       activeTransactionMeta,
+      route.key,
       hasCustomTokenSelected,
       payToken,
       onDepositConfirm,

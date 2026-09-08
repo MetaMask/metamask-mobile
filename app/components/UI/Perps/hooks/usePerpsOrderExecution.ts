@@ -44,7 +44,10 @@ interface UsePerpsOrderExecutionParams {
 }
 
 interface UsePerpsOrderExecutionReturn {
-  placeOrder: (params: OrderParams) => Promise<OrderResult | undefined>;
+  placeOrder: (
+    params: OrderParams,
+    onResult?: (result: OrderResult) => void,
+  ) => Promise<OrderResult | undefined>;
   isPlacing: boolean;
   lastResult?: OrderResult;
   error?: string;
@@ -54,6 +57,7 @@ type PerpsOrderTrackingValue = string | number | boolean;
 type PerpsOrderPositionSnapshot = Pick<Position, 'size'>;
 
 interface ControllerPlacementHandlers {
+  onResult?: (result: OrderResult) => void;
   onSuccess: (result: OrderResult) => void | Promise<void>;
   onFailure?: () => void;
   onException?: () => void;
@@ -126,6 +130,7 @@ export function usePerpsOrderExecution(
         onSubmitted?.();
 
         const result = await controllerPlaceOrder(orderParams);
+        handlers.onResult?.(result);
         markControllerSettled();
         setLastResult(result);
 
@@ -156,6 +161,7 @@ export function usePerpsOrderExecution(
           err instanceof Error
             ? err.message
             : strings('perps.order.error.unknown');
+        handlers.onResult?.({ success: false, error: errorMessage });
         setError(errorMessage);
         DevLogger.log('usePerpsOrderExecution: Error placing order', err);
 
@@ -196,7 +202,10 @@ export function usePerpsOrderExecution(
   );
 
   const placeOrder = useCallback(
-    async (orderParams: OrderParams): Promise<OrderResult | undefined> => {
+    async (
+      orderParams: OrderParams,
+      onResult?: (result: OrderResult) => void,
+    ): Promise<OrderResult | undefined> => {
       // Market orders measure submit -> position rendered (toast coupled to the
       // same stream render) via PerpsPlaceOrderToPositionRendered. Limit and
       // trigger orders measure submit -> resting order rendered in the orders
@@ -207,6 +216,7 @@ export function usePerpsOrderExecution(
         orderParams.orderType === 'twap' || orderParams.orderType === 'chase';
       if (isScheduledAcceptanceOrder) {
         return executeControllerPlacement(orderParams, {
+          onResult,
           // Strategy acceptance starts a schedule; it does not imply that a
           // position or resting child order has rendered yet.
           onSuccess: () => onSuccess?.(),
@@ -300,6 +310,7 @@ export function usePerpsOrderExecution(
       }, PERPS_CUF_STREAM_TIMEOUT_MS);
 
       return executeControllerPlacement(orderParams, {
+        onResult,
         onSettled: () => {
           controllerSettled = true;
         },

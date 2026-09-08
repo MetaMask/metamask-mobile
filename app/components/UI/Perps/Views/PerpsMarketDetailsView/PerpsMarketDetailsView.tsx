@@ -14,6 +14,7 @@ import {
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -383,6 +384,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // Compliance gate
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
+  const tradeEntrySessionRef = useRef<{ isActive: boolean } | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const session = { isActive: true };
+      tradeEntrySessionRef.current = session;
+
+      return () => {
+        // A new focus session must not revive a deferred trade entry.
+        session.isActive = false;
+      };
+    }, []),
+  );
 
   // Feature flags
   const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
@@ -1114,8 +1128,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   });
 
   const handleTradeAction = useCallback(
-    (direction: 'long' | 'short') =>
-      gate(async () => {
+    (direction: 'long' | 'short') => {
+      const session = tradeEntrySessionRef.current;
+      return gate(async () => {
+        if (!session?.isActive) return;
+
         if (!isEligible) {
           // Track geo-block screen viewed
           track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
@@ -1173,7 +1190,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             ? { transactionActiveAbTests }
             : {}),
         });
-      }),
+      });
+    },
     [
       gate,
       isEligible,

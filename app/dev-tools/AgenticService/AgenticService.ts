@@ -43,6 +43,7 @@ import Routes from '../../constants/navigation/Routes';
 import SecureKeychain from '../../core/SecureKeychain';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
+import { readPerpsOrderReceipts } from '../../components/UI/Perps/utils/perpsOrderReceipt';
 import { importNewSecretRecoveryPhrase } from '../../actions/multiSrp';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import Authentication from '../../core/Authentication';
@@ -115,6 +116,7 @@ interface AgenticHudStep {
 }
 
 interface AgenticBridge {
+  readPerpsOrderReceipts: typeof readPerpsOrderReceipts;
   platform: string;
   replayHarnessPatch?: string;
   navigate: (name: string, params?: object) => void;
@@ -1218,6 +1220,7 @@ const AgenticService = {
         ).navigate(name, params),
       getRoute: () => navRef.getCurrentRoute(),
       getState: () => navRef.getState(),
+      readPerpsOrderReceipts,
       canGoBack: () => navRef.canGoBack(),
       goBack: () => deferredNav.goBack(),
       listAccounts: () =>
