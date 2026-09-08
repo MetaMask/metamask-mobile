@@ -1,12 +1,12 @@
 import { useContext } from 'react';
 import type { FeatureId } from '@metamask/bridge-controller';
-import { FeatureIdContext } from '../../providers/SwapsFeatureIdProvider';
+import { SwapsFeatureIdContext } from '../../providers/SwapsFeatureIdProvider';
 
 export const useSwapsFeatureId = (): FeatureId => {
-  const featureId = useContext(FeatureIdContext);
+  const featureId = useContext(SwapsFeatureIdContext);
 
   if (!featureId) {
-    throw new Error('useFeatureId must be used within FeatureIdProvider');
+    throw new Error('useSwapsFeatureId must be used within FeatureIdProvider');
   }
 
   return featureId;

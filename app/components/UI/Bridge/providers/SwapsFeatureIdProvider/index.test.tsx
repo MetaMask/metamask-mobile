@@ -2,10 +2,10 @@ import React, { useContext } from 'react';
 import { Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { FeatureId } from '@metamask/bridge-controller';
-import { FeatureIdContext, SwapsFeatureIdProvider } from './index';
+import { SwapsFeatureIdContext, SwapsFeatureIdProvider } from './index';
 
 const FeatureIdConsumer = ({ testID }: { testID: string }) => {
-  const featureId = useContext(FeatureIdContext);
+  const featureId = useContext(SwapsFeatureIdContext);
 
   return <Text testID={testID}>{featureId ?? 'none'}</Text>;
 };

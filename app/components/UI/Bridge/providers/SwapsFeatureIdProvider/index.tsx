@@ -1,9 +1,9 @@
 import React, { createContext, useContext } from 'react';
 import type { FeatureId } from '@metamask/bridge-controller';
 
-export const FeatureIdContext = createContext<FeatureId | null>(null);
+export const SwapsFeatureIdContext = createContext<FeatureId | null>(null);
 
-interface FeatureIdProviderProps {
+interface SwapsFeatureIdProviderProps {
   children: React.ReactNode;
   featureId: FeatureId;
 }
@@ -20,10 +20,10 @@ interface FeatureIdProviderProps {
 export function SwapsFeatureIdProvider({
   children,
   featureId,
-}: FeatureIdProviderProps) {
+}: SwapsFeatureIdProviderProps) {
   return (
-    <FeatureIdContext.Provider value={featureId}>
+    <SwapsFeatureIdContext.Provider value={featureId}>
       {children}
-    </FeatureIdContext.Provider>
+    </SwapsFeatureIdContext.Provider>
   );
 }

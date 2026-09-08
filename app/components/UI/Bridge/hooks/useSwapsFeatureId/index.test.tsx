@@ -45,7 +45,7 @@ describe('useSwapsFeatureId', () => {
     const renderWithoutProvider = () => render(<FeatureIdReader />);
 
     expect(renderWithoutProvider).toThrow(
-      'useFeatureId must be used within FeatureIdProvider',
+      'useSwapsFeatureId must be used within FeatureIdProvider',
     );
   });
 });
