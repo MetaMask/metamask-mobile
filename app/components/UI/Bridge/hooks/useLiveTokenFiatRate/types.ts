@@ -13,19 +13,17 @@ export type LiveTokenFiatRateInterval =
 
 export interface UseLiveTokenFiatRateOptions {
   /**
-   * Update interval.
+   * Candle bucket to subscribe to.
    */
   interval?: LiveTokenFiatRateInterval;
   /**
-   * Delay before subscribing.
+   * Time period sent to the `/latest` REST endpoint that backs the stream when
+   * the socket is down, stale, or missing the asset.
    */
-  subscriptionDebounceMs?: number;
+  timePeriod?: string;
   /**
-   * Stalness check, to automatically discard channel connections.
+   * When false no subscription is opened and the polled Redux rate is returned,
+   * so a screen can keep the socket to the window it actually prices in.
    */
-  stalenessCheckIntervalMs?: number;
-  /**
-   * Silence after which the live price is dropped in favour of the Redux rate.
-   */
-  stalenessThresholdMs?: number;
+  enabled?: boolean;
 }
