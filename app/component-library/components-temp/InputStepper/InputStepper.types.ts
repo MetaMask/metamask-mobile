@@ -1,19 +1,19 @@
 import {
+  ButtonIconProps,
   IconColor,
   IconName,
   IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
-import {
-  type NativeSyntheticEvent,
-  type TextInputSelectionChangeEventData,
-} from 'react-native';
+import { type TextInputSelectionChangeEvent } from 'react-native';
+import { InputProps } from '../../components/Form/TextField/foundation/Input/Input.types';
 import { InputStepperDescriptionType } from './InputStepper.constants';
 
 export interface InputStepperDescription {
   message: string;
   color: TextColor;
   type?: InputStepperDescriptionType;
+  testID?: string;
   icon?: {
     name: IconName;
     size: IconSize;
@@ -34,8 +34,9 @@ export interface InputStepperProps {
     start: number;
     end: number;
   };
-  onSelectionChange?: (
-    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-  ) => void;
+  onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
   testID?: string;
+  decreaseButtonProps?: Partial<ButtonIconProps>;
+  increaseButtonProps?: Partial<ButtonIconProps>;
+  inputProps?: Partial<InputProps>;
 }

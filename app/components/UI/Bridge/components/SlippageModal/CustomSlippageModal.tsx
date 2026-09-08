@@ -11,8 +11,8 @@ import {
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { CaipChainId, Hex } from '@metamask/utils';
+import InputStepper from '../../../../../component-library/components-temp/InputStepper';
 import Keypad from '../../../../Base/Keypad';
-import { InputStepper } from '../InputStepper';
 import { customSlippageModalStyles } from './styles';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
