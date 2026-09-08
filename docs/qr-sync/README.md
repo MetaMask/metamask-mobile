@@ -24,12 +24,12 @@ Mobile imports the secrets securely, then rebuilds the **same account layout** t
 
 Secrets cannot all be imported at scan time. Mobile needs a **password first** to create the encrypted vault. Layout metadata (names, groups) is applied **after** secrets exist in the vault.
 
-| Phase | User-visible step                  | What happens                                                                                                                                                           |
-| ----- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **A** | Scan QR codes on Add Device        | Receive and validate extension data; open import screen with primary phrase pre-filled                                                                                 |
-| **B** | Create password on import screen   | Create vault from primary SRP; mark ready for layout                                                                                                                   |
-| **C** | Tap **Done** on Onboarding Success | Import all remaining secrets + apply names / groups / pin / hide from extension via `AccountTreeController:importState`, then reconcile with user storage (background) |
-| **D** | Use the app after Home             | Existing mobile behaviour (cloud backup, unlock-time account checks)                                                                                                   |
+| Phase | User-visible step                  | What happens                                                                                                                            |
+| ----- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Scan QR codes on Add Device        | Receive and validate extension data; open import screen with primary phrase pre-filled                                                  |
+| **B** | Create password on import screen   | Create vault from primary SRP; import secondary secrets immediately; mark ready for metadata                                            |
+| **C** | Tap **Done** on Onboarding Success | Apply names / groups / pin / hide from extension via `AccountTreeController:importState`, then reconcile with user storage (background) |
+| **D** | Use the app after Home             | Existing mobile behaviour (cloud backup, unlock-time account checks)                                                                    |
 
 ---
 
@@ -115,7 +115,7 @@ sequenceDiagram
 
 **User sees:** Brief loading, then Onboarding Success. No account renaming or grouping yet — that is Phase C.
 
-**Important:** Phase B only creates the vault from the primary SRP and marks provisioning ready. All remaining secrets (secondary SRPs, private keys) and all metadata are imported in Phase C via `AccountTreeController:importState`. Phase B does **not** run account discovery or cloud sync.
+**Important:** Phase B creates the vault from the primary SRP and immediately imports all secondary secrets (additional SRPs, private keys) via `AccountTreeController:importState`. Metadata (names, groups, pin/hide) is applied in Phase C. Phase B does **not** run account discovery or cloud sync.
 
 ---
 
@@ -134,7 +134,7 @@ sequenceDiagram
 
     User->>Success: Tap Done
     alt QR sync user
-        Success->>Layout: importState(pendingPayload) — background
+        Success->>Layout: importState(provisioningMetadata) — background
         Note over Layout: Import secondary wallets + private keys
         Note over Layout: Apply names, groups, pin, hide
         Note over Layout: Reconcile with user storage

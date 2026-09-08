@@ -2,7 +2,7 @@
 
 **Primary flow:** New users (`isOnboardingCompleted === false`) — Add Device → OTP → password import → OnboardingSuccess.
 
-**Phase B is reusable:** `QrSyncController.finalizeVaultCreation` marks `secrets_imported` after vault creation. Phase C (`provisionFromMetadata`) handles all secret and metadata import via `AccountTreeController:importState` for both new and existing users.
+**Phase B** (`QrSyncController.importRemainingSecrets`) imports secondary secrets right after vault creation, then marks `secrets_imported`. Phase C (`provisionFromMetadata`) applies all metadata via `AccountTreeController:importState` for both new and existing users.
 
 ---
 
@@ -14,7 +14,7 @@
 | What is next?         | [Known gaps](#known-gaps-deferred); Step C4 app-launch resume                                             |
 | Canonical types       | `app/core/QrSync/types.ts`                                                                                |
 | Canonical validation  | `app/core/QrSync/services/qr-sync-validation.ts`                                                          |
-| Phase B marker        | `QrSyncController.finalizeVaultCreation`                                                                  |
+| Phase B marker        | `QrSyncController.importRemainingSecrets`                                                                 |
 | Phase C orchestration | `QrSyncProvisioningService.provisionFromMetadata`                                                         |
 | Phase C import engine | `AccountTreeController:importState`                                                                       |
 | Onboarding wiring     | `Authentication.newWalletAndRestore(..., isQrSync)`                                                       |
@@ -53,9 +53,10 @@
 
 ### Phase A deliverables
 
-- [x] `pendingPayload` on `QrSyncController` (ephemeral — never persisted)
+- [x] `pendingSecretImports` on `QrSyncController` (full payload with secrets — never persisted)
+- [x] `provisioningMetadata` on `QrSyncController` (secrets-stripped payload — persisted for Phase C resume)
 - [x] `parseQrSyncSyncReadyMessage` in `qr-sync-validation.ts`
-- [x] `routeIncomingQrSyncMessage` stores `AccountTreePayload` as `pendingPayload`
+- [x] `routeIncomingQrSyncMessage` deserializes `AccountTreePayload`, stores full payload as `pendingSecretImports` and `snapshot.stripSecrets()` as `provisioningMetadata`
 - [x] Selectors: `selectQrSyncPrimaryMnemonic`, `selectQrSyncShouldNavigateToImport`, etc.
 - [x] `ImportFromSecretRecoveryPhrase` pre-fills primary mnemonic when `qrSyncImport: true`
 - [x] Primary-mnemonic validation only when `isOnboardingCompleted === false`
@@ -63,7 +64,7 @@
 
 ### Phase B deliverables
 
-- [x] `QrSyncController.finalizeVaultCreation` — sets `provisioningStatus = secrets_imported`
+- [x] `QrSyncController.importRemainingSecrets` — imports secondary secrets via `AccountTreeController:importState`, then sets `provisioningStatus = secrets_imported`
 - [x] Onboarding wired via `Authentication.newWalletAndRestore(..., isQrSync: true)`
 - [x] `ImportFromSecretRecoveryPhrase` does **not** call `resetState()` after successful QR import
 - [x] Engine init + messengers
@@ -82,14 +83,14 @@
 
 ## Goals and constraints
 
-| Goal                             | Approach                                                                         |
-| -------------------------------- | -------------------------------------------------------------------------------- |
-| Multi-SRP + private-key import   | `AccountTreeController:importState` — handles secrets + metadata in one call     |
-| Correct names, pin, hide         | `AccountTreeController:importState` applies metadata alongside secret import     |
-| Explicit account groups          | Replace **only** OnboardingSuccess `discoverAccounts` for QR users               |
-| No secret staleness              | `pendingPayload` not persisted; cleared on `completeProvisioning` / `resetState` |
-| Extension export is ground truth | Skip activity-based `discoverAccounts` for QR onboarding on OnboardingSuccess    |
-| Cloud tree reconciliation        | `syncWithUserStorage` at end of Phase C after layout; failures logged, non-fatal |
+| Goal                             | Approach                                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------------------------- |
+| Multi-SRP + private-key import   | `AccountTreeController:importState` — handles secrets + metadata in one call                |
+| Correct names, pin, hide         | `AccountTreeController:importState` applies metadata alongside secret import                |
+| Explicit account groups          | Replace **only** OnboardingSuccess `discoverAccounts` for QR users                          |
+| No secret staleness              | `pendingSecretImports` not persisted; cleared after `importRemainingSecrets` / `resetState` |
+| Extension export is ground truth | Skip activity-based `discoverAccounts` for QR onboarding on OnboardingSuccess               |
+| Cloud tree reconciliation        | `syncWithUserStorage` at end of Phase C after layout; failures logged, non-fatal            |
 
 **Hard constraints:**
 
@@ -98,7 +99,7 @@
 - Phase B must **not** call `discoverAccounts`, `syncWithUserStorage`, or seedless backup APIs.
 - Phase C may call `syncWithUserStorage` only **after** `importState` completes; sync failure must not block onboarding or mark provisioning failed.
 - `Authentication` must **not** import `QrSyncProvisioningService` directly.
-- `pendingPayload` must never be persisted (contains secret material).
+- `pendingSecretImports` must never be persisted (contains secret material).
 
 ---
 
@@ -116,31 +117,31 @@ sequenceDiagram
 
     Ext->>QC: SYNC_READY (AccountTreePayload v1)
     Note over QC: Phase A
-    QC->>QC: parse → pendingPayload
+    QC->>QC: parse → pendingSecretImports (full)<br/>provisioningMetadata (secrets-stripped)
     QC->>Import: Navigate (qrSyncImport: true)
 
     Import->>Auth: newWalletAndRestore(primary, isQrSync: true)
     Note over Auth,QC: Phase B
     Auth->>Auth: newWalletVaultAndRestore → vault created
-    Auth->>QC: finalizeVaultCreation()
-    Note over QC: secrets_imported
+    Auth->>QC: importRemainingSecrets()
+    Note over QC: importState(snapshot.stripMetadata())<br/>→ imports secondary wallets/keys<br/>→ clears pendingSecretImports<br/>→ secrets_imported
     Import->>Success: Navigate
 
     Note over Success,ATC: Phase C (background)
     Success->>Prov: void provisionFromMetadata()
     Success->>Success: Navigate Home immediately
-    Prov->>ATC: importState(pendingPayload)
-    Note over ATC: imports secondary wallets,\napplies all metadata
+    Prov->>ATC: importState(provisioningMetadata)
+    Note over ATC: applies all metadata<br/>(primary wallet matched, not re-imported)
     Prov->>ATC: syncWithUserStorage
     Prov->>QC: completeProvisioning
 ```
 
 ### Phase B callers
 
-| Context                             | Primary wallet             | Phase B trigger                                                      |
-| ----------------------------------- | -------------------------- | -------------------------------------------------------------------- |
-| **New-user onboarding**             | `newWalletVaultAndRestore` | `newWalletAndRestore(..., isQrSync: true)` → `finalizeVaultCreation` |
-| **Post-onboarding** (existing user) | Existing vault             | `provisionFromMetadata` called directly; accepts `awaiting_password` |
+| Context                             | Primary wallet             | Phase B trigger                                                                                                    |
+| ----------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **New-user onboarding**             | `newWalletVaultAndRestore` | `newWalletAndRestore(..., isQrSync: true)` → `importRemainingSecrets` → `secrets_imported`                         |
+| **Post-onboarding** (existing user) | Existing vault             | `provisionFromMetadata` called directly; reads `pendingSecretImports` (full snapshot); accepts `awaiting_password` |
 
 ### What existing onboarding already does (QR does not replace)
 
@@ -161,7 +162,7 @@ flowchart TD
     A[routeIncomingQrSyncMessage] --> B[parseQrSyncSyncReadyMessage]
     B --> C{Valid AccountTreePayload?}
     C -->|No| F[Session error / failed]
-    C -->|Yes| D[Store as pendingPayload]
+    C -->|Yes| D[Deserialize → pendingSecretImports full payload<br/>provisioningMetadata secrets-stripped]
     D --> E{Onboarding incomplete?}
     E -->|Yes| G[Require primary mnemonic wallet]
     E -->|No| H[Skip primary check]
@@ -175,7 +176,7 @@ flowchart TD
 
 1. `routeIncomingQrSyncMessage` → `parseQrSyncSyncReadyMessage`
 2. Validate envelope + `AccountTreePayload` shape
-3. Store payload as `pendingPayload` (ephemeral)
+3. Deserialize payload → store full payload as `pendingSecretImports` (ephemeral) and `snapshot.stripSecrets().serialize()` as `provisioningMetadata` (persisted)
 4. If onboarding incomplete: validate that `wallets[0]` is a mnemonic with a `value`
 5. `provisioningStatus = 'awaiting_password'`; tear down session
 6. Navigate via `selectQrSyncShouldNavigateToImport`
@@ -184,44 +185,51 @@ flowchart TD
 
 ---
 
-## Phase B — Vault creation
+## Phase B — Vault creation + secondary secret import
 
-**Goal:** Create the vault from the primary SRP and mark provisioning ready for Phase C. All secret and metadata import is deferred to Phase C via `importState`.
+**Goal:** Create the vault from the primary SRP, import all secondary secrets immediately (to keep secret material in memory for as short a time as possible), then mark provisioning ready for Phase C metadata application.
 
 ```mermaid
 flowchart TD
     A[newWalletAndRestore isQrSync] --> B[newWalletVaultAndRestore]
-    B --> C[finalizeVaultCreation]
-    C --> D[secrets_imported]
+    B --> C[importRemainingSecrets]
+    C --> D[importState snapshot.stripMetadata]
+    D --> E[clear pendingSecretImports]
+    E --> F[secrets_imported]
 ```
 
 ### Architecture
 
 ```
 Authentication.newWalletAndRestore(..., isQrSync)
-  → newWalletVaultAndRestore      — primary vault created
-  → if isQrSync: QrSyncController.finalizeVaultCreation()
-                                  — marks secrets_imported
+  → newWalletVaultAndRestore           — primary vault created
+  → if isQrSync: QrSyncController.importRemainingSecrets()
+      → AccountTreeController:importState(snapshot.stripMetadata())
+        — primary wallet matched by entropy source ID, not re-imported
+        — secondary wallets + private-key groups imported
+        — no metadata applied (Phase C's job)
+      → pendingSecretImports = null
+      → provisioningStatus = secrets_imported
 
 QrSyncProvisioningService.provisionFromMetadata()  // Phase C
 ```
 
 ### Separation of concerns
 
-| Layer                       | Responsibility                                          |
-| --------------------------- | ------------------------------------------------------- |
-| `Authentication`            | Primary vault; delegate `finalizeVaultCreation` when QR |
-| `QrSyncController`          | Status marker (`finalizeVaultCreation`)                 |
-| `QrSyncProvisioningService` | Full import + metadata via `importState` (Phase C)      |
+| Layer                       | Responsibility                                                                                 |
+| --------------------------- | ---------------------------------------------------------------------------------------------- |
+| `Authentication`            | Primary vault; delegates `importRemainingSecrets` when QR                                      |
+| `QrSyncController`          | Secondary secret import + status transition (`importRemainingSecrets`)                         |
+| `QrSyncProvisioningService` | Metadata-only import via `importState` (Phase C new-user); full import (Phase C existing-user) |
 
 ### Public controller API
 
-| Method                      | Phase | Effect                                          |
-| --------------------------- | ----- | ----------------------------------------------- |
-| `finalizeVaultCreation()`   | B     | Sets `secrets_imported`; no vault work          |
-| `hasPendingSecretImports()` | B/C   | `pendingPayload !== null`; used by UI messenger |
-| `markProvisioningFailed()`  | C     | `failed`                                        |
-| `completeProvisioning()`    | C     | `completed`; clears `pendingPayload`            |
+| Method                      | Phase | Effect                                                                         |
+| --------------------------- | ----- | ------------------------------------------------------------------------------ |
+| `importRemainingSecrets()`  | B     | Imports secondary secrets; clears `pendingSecretImports`; → `secrets_imported` |
+| `hasPendingSecretImports()` | B/C   | `pendingSecretImports !== null`; used by UI messenger                          |
+| `markProvisioningFailed()`  | C     | `failed`                                                                       |
+| `completeProvisioning()`    | C     | `completed`; clears `provisioningMetadata`                                     |
 
 ### Onboarding wiring
 
@@ -233,7 +241,7 @@ const primaryEntropySource = await this.newWalletVaultAndRestore(
 );
 
 if (isQrSync) {
-  await Engine.context.QrSyncController.finalizeVaultCreation();
+  await Engine.context.QrSyncController.importRemainingSecrets();
 }
 ```
 
@@ -242,8 +250,9 @@ if (isQrSync) {
 ### Phase B acceptance criteria
 
 - [x] Vault created from primary SRP only
-- [x] No secret imports during Phase B
-- [x] `secrets_imported` set on `finalizeVaultCreation`
+- [x] Secondary secrets imported immediately after vault creation (non-fatal if import fails)
+- [x] `pendingSecretImports` cleared after import
+- [x] `secrets_imported` set on `importRemainingSecrets`
 - [x] No `discoverAccounts` or `syncWithUserStorage` during Phase B
 
 ---
@@ -254,7 +263,11 @@ if (isQrSync) {
 
 ```mermaid
 flowchart TD
-    A[provisionFromMetadata] --> B[AccountTreeController:importState pendingPayload]
+    A[provisionFromMetadata] --> B{secrets_imported?}
+    B -->|Yes - new user| B2[importState provisioningMetadata]
+    B -->|No - existing user| B3[importState pendingSecretImports full]
+    B2 --> C
+    B3 --> C
     B --> C[Primary wallet — metadata applied, entropy matched]
     B --> D[Secondary wallets — secrets imported + metadata applied]
     B --> E[Private-key groups — imported + metadata applied]
@@ -269,10 +282,14 @@ flowchart TD
 ### `provisionFromMetadata` algorithm
 
 ```
-1. Read pendingPayload from QrSyncController state
+1. Read pendingSecretImports and provisioningMetadata from QrSyncController state
 2. Assert provisioningStatus is awaiting_password or secrets_imported
-3. AccountTreeController:importState(deserialize(pendingPayload))
-   — imports missing secrets, applies all metadata in one call
+3a. If secrets_imported (new-user path, Phase B already ran):
+      AccountTreeController:importState(deserialize(provisioningMetadata))
+      — provisioningMetadata is secrets-stripped; applies all metadata only
+3b. If awaiting_password (existing-user path):
+      AccountTreeController:importState(deserialize(pendingSecretImports))
+      — full snapshot; imports any missing secrets and applies all metadata in one call
 4. AccountTreeController:syncWithUserStorage
    — reconcile with cloud; failures logged, non-fatal
 5. QrSyncController:completeProvisioning
@@ -281,7 +298,7 @@ flowchart TD
 `AccountTreeController:importState` handles all cases internally:
 
 - Primary wallet: matched by entropy source ID, metadata applied, secret not re-imported
-- Secondary wallets: secrets imported, groups created, metadata applied
+- Secondary wallets: secrets imported if missing, groups created, metadata applied
 - Private-key accounts: imported if missing, metadata applied
 
 **Non-blocking onboarding:** `OnboardingSuccess` fires `provisionFromMetadata()` with `void` and navigates Home on the next microtask without awaiting Phase C.
@@ -299,7 +316,7 @@ queueMicrotask(() => onDone());
 
 ### Existing-user wiring
 
-`useQrSyncImportNavigation` → `finishExistingUserSyncWithoutMnemonic` → `messenger.call('QrSyncProvisioningService:provisionFromMetadata')`. Accepts both `awaiting_password` (existing-user, no vault creation step) and `secrets_imported` (new-user, after `finalizeVaultCreation`).
+`useQrSyncImportNavigation` → `finishExistingUserSyncWithoutMnemonic` → `messenger.call('QrSyncProvisioningService:provisionFromMetadata')`. Accepts both `awaiting_password` (existing-user — full snapshot with secrets used) and `secrets_imported` (new-user — secrets-stripped `provisioningMetadata` used).
 
 ### Step C4 — App launch resume (deferred)
 
@@ -311,7 +328,7 @@ See [Known gaps](#known-gaps-deferred).
 - [x] `AccountTreeController:importState` handles primary + secondary wallets + private keys
 - [x] User-storage reconciliation via `syncWithUserStorage` after `importState` (log-and-continue on failure)
 - [x] Phase C does not block navigation to Home (`void` + `queueMicrotask`)
-- [x] `completed` + `pendingPayload` cleared on success
+- [x] `completed` + `provisioningMetadata` cleared on success
 - [x] Import failure → `failed`
 
 ---
@@ -344,25 +361,27 @@ See [Discovery / sync conflicts](#discovery--sync-conflicts) and [Known gaps](#k
 ## Controller state
 
 ```typescript
-pendingPayload: AccountTreePayload | null; // never persisted — contains secrets
+pendingSecretImports: AccountTreePayload | null; // never persisted — contains secret material
+provisioningMetadata: AccountTreePayload | null; // persisted — secrets-stripped, used in Phase C
 provisioningStatus: QrSyncProvisioningStatus | null; // persisted
 ```
 
 ### `provisioningStatus`
 
-| Value               | Meaning                          |
-| ------------------- | -------------------------------- |
-| `null`              | No active pipeline               |
-| `awaiting_password` | Payload in memory; need password |
-| `secrets_imported`  | Vault ready; Phase C pending     |
-| `completed`         | Phase C done                     |
-| `failed`            | Phase C failed; no auto-retry    |
+| Value               | Meaning                                              |
+| ------------------- | ---------------------------------------------------- |
+| `null`              | No active pipeline                                   |
+| `awaiting_password` | Payload in memory; need password                     |
+| `secrets_imported`  | Secondary secrets imported; Phase C metadata pending |
+| `completed`         | Phase C done                                         |
+| `failed`            | Phase C failed; no auto-retry                        |
 
 ### Persistence
 
 | Field                                 | Persist |
 | ------------------------------------- | ------- |
-| `pendingPayload`                      | `false` |
+| `pendingSecretImports`                | `false` |
+| `provisioningMetadata`                | `true`  |
 | `provisioningStatus`                  | `true`  |
 | Session fields (`phase`, `otp`, etc.) | `false` |
 
@@ -401,12 +420,12 @@ The first `mnemonic` entry in `wallets` is always the primary wallet.
 
 ### Selectors
 
-| Selector                             | Returns                                                  |
-| ------------------------------------ | -------------------------------------------------------- |
-| `selectQrSyncPrimaryMnemonic`        | Decoded mnemonic string from `pendingPayload.wallets[0]` |
-| `selectQrSyncShouldNavigateToImport` | `provisioningStatus === 'awaiting_password'`             |
-| `selectQrSyncNeedsProvisioning`      | `provisioningStatus === 'secrets_imported'`              |
-| `selectQrSyncHasPendingSecrets`      | `pendingPayload !== null`                                |
+| Selector                             | Returns                                                              |
+| ------------------------------------ | -------------------------------------------------------------------- |
+| `selectQrSyncPrimaryMnemonic`        | Decoded mnemonic string from `pendingSecretImports.wallets[0].value` |
+| `selectQrSyncShouldNavigateToImport` | `provisioningStatus === 'awaiting_password'`                         |
+| `selectQrSyncNeedsProvisioning`      | `provisioningStatus === 'secrets_imported'`                          |
+| `selectQrSyncHasPendingSecrets`      | `pendingSecretImports !== null`                                      |
 
 ---
 
@@ -415,11 +434,12 @@ The first `mnemonic` entry in `wallets` is always the primary wallet.
 | Scenario                          | Status              | Recovery                                                                              |
 | --------------------------------- | ------------------- | ------------------------------------------------------------------------------------- |
 | Invalid `SYNC_READY` (onboarding) | `failed` (session)  | Re-scan QR                                                                            |
-| Abandon before password           | `awaiting_password` | Payload ephemeral; status persisted                                                   |
-| `importState` throws              | `failed`            | No auto-retry; `markProvisioningFailed` called                                        |
+| Abandon before password           | `awaiting_password` | `pendingSecretImports` ephemeral (lost on kill); `provisioningMetadata` persisted     |
+| `importRemainingSecrets` fails    | `secrets_imported`  | Non-fatal; error logged; `pendingSecretImports` still cleared                         |
+| `importState` throws (Phase C)    | `failed`            | No auto-retry; `markProvisioningFailed` called                                        |
 | `syncWithUserStorage` fails       | `completed` (still) | Logged only; does not mark failed                                                     |
 | App kill after Phase B            | `secrets_imported`  | Unlock + discovery; Phase C only via OnboardingSuccess — [gaps](#known-gaps-deferred) |
-| Success                           | `completed`         | `pendingPayload` cleared                                                              |
+| Success                           | `completed`         | `provisioningMetadata` cleared                                                        |
 
 ---
 
@@ -437,7 +457,7 @@ The first `mnemonic` entry in `wallets` is always the primary wallet.
 
 ### 2. Phase C failure — no retry
 
-- `markProvisioningFailed` → `failed`; `pendingPayload` retained
+- `markProvisioningFailed` → `failed`; `provisioningMetadata` retained (for potential future retry)
 - `selectQrSyncNeedsProvisioning` false for `failed`
 - No unlock/launch retry
 
@@ -451,36 +471,36 @@ Resolve gap #1 before or instead of running `discoverAccounts` when `secrets_imp
 
 ## Implementation checklist
 
-| #   | Step                                                  | Phase | Status       |
-| --- | ----------------------------------------------------- | ----- | ------------ |
-| 1   | Parse `AccountTreePayload`; store as `pendingPayload` | A     | Done         |
-| 2   | `finalizeVaultCreation` controller method             | B     | Done         |
-| 3   | `Authentication.newWalletAndRestore` `isQrSync`       | B     | Done         |
-| 4   | `selectQrSyncNeedsProvisioning`                       | C     | Done         |
-| 5   | `completeProvisioning`                                | C     | Done         |
-| 6   | `provisionFromMetadata` → `importState`               | C     | Done         |
-| 7   | OnboardingSuccess branch                              | C     | Done         |
-| 8   | QR `resetState` back only                             | B     | Done         |
-| 9   | User-storage reconciliation in Phase C                | C     | Done         |
-| 10  | Existing-user route messenger wiring                  | B/C   | Done         |
-| 11  | App-launch / unlock resume                            | C     | **Deferred** |
-| 12  | Phase C failure recovery                              | C     | **Deferred** |
+| #   | Step                                                                                  | Phase | Status       |
+| --- | ------------------------------------------------------------------------------------- | ----- | ------------ |
+| 1   | Parse `AccountTreePayload`; store as `pendingSecretImports` + `provisioningMetadata`  | A     | Done         |
+| 2   | `importRemainingSecrets` controller method (secondary secrets import + status marker) | B     | Done         |
+| 3   | `Authentication.newWalletAndRestore` `isQrSync`                                       | B     | Done         |
+| 4   | `selectQrSyncNeedsProvisioning`                                                       | C     | Done         |
+| 5   | `completeProvisioning`                                                                | C     | Done         |
+| 6   | `provisionFromMetadata` → `importState`                                               | C     | Done         |
+| 7   | OnboardingSuccess branch                                                              | C     | Done         |
+| 8   | QR `resetState` back only                                                             | B     | Done         |
+| 9   | User-storage reconciliation in Phase C                                                | C     | Done         |
+| 10  | Existing-user route messenger wiring                                                  | B/C   | Done         |
+| 11  | App-launch / unlock resume                                                            | C     | **Deferred** |
+| 12  | Phase C failure recovery                                                              | C     | **Deferred** |
 
 ---
 
 ## Testing plan
 
-| Area                             | What to test                                                                                  |
-| -------------------------------- | --------------------------------------------------------------------------------------------- |
-| `parseQrSyncSyncReadyMessage`    | Valid/invalid `AccountTreePayload`; missing primary mnemonic                                  |
-| `finalizeVaultCreation`          | Sets `secrets_imported`                                                                       |
-| `provisionFromMetadata`          | Calls `importState`; handles `awaiting_password` + `secrets_imported`; sync failure non-fatal |
-| `newWalletAndRestore` (isQrSync) | Calls / skips `finalizeVaultCreation`                                                         |
-| `selectQrSyncNeedsProvisioning`  | `secrets_imported` only                                                                       |
-| `selectQrSyncPrimaryMnemonic`    | Decodes `EncodedBytes` via `encodeMnemonicWords`                                              |
-| OnboardingSuccess                | QR vs `discoverAccounts`                                                                      |
-| ImportFromSecretRecoveryPhrase   | No `resetState` on success                                                                    |
-| Status transitions               | `awaiting_password` → `secrets_imported` → `completed` / `failed`                             |
+| Area                             | What to test                                                                                                               |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `parseQrSyncSyncReadyMessage`    | Valid/invalid `AccountTreePayload`; missing primary mnemonic                                                               |
+| `importRemainingSecrets`         | Imports secondary secrets via `importState(snapshot.stripMetadata())`; clears `pendingSecretImports`; → `secrets_imported` |
+| `provisionFromMetadata`          | New-user: `importState(provisioningMetadata)`; existing-user: `importState(pendingSecretImports)`; sync failure non-fatal  |
+| `newWalletAndRestore` (isQrSync) | Calls `importRemainingSecrets` after vault creation                                                                        |
+| `selectQrSyncNeedsProvisioning`  | `secrets_imported` only                                                                                                    |
+| `selectQrSyncPrimaryMnemonic`    | Decodes `EncodedBytes` via `encodeMnemonicWords`                                                                           |
+| OnboardingSuccess                | QR vs `discoverAccounts`                                                                                                   |
+| ImportFromSecretRecoveryPhrase   | No `resetState` on success                                                                                                 |
+| Status transitions               | `awaiting_password` → `secrets_imported` → `completed` / `failed`                                                          |
 
 ```bash
 yarn jest app/core/QrSync app/selectors/qrSyncController app/core/Authentication/Authentication.test.ts app/components/Views/ImportFromSecretRecoveryPhrase/index.test.tsx
