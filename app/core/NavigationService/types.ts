@@ -557,6 +557,7 @@ export type RootStackParamList = {
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
+  RampVbaOnboarding: undefined;
   RampGetPixKey: undefined;
   RampVbaVerifyIdentity: undefined;
 

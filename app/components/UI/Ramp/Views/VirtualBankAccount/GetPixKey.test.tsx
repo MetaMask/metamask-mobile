@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
@@ -8,12 +8,24 @@ import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockReset = jest.fn();
+const mockAcceptTermsAndStartSession = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    KycController: {
+      acceptTermsAndStartSession: (...args: unknown[]) =>
+        mockAcceptTermsAndStartSession(...args),
+    },
+  },
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    reset: mockReset,
   }),
 }));
 
@@ -31,11 +43,14 @@ describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
+    mockAcceptTermsAndStartSession.mockResolvedValue(undefined);
     mockUseKycDisclaimers.mockReturnValue({
       disclaimers: [loadedDisclaimer],
       isLoading: false,
       error: null,
       retry: mockRetry,
+      providerDisclaimersAccepted: [{ key: 'sumsub', version: '1' }],
+      idosDisclaimersAccepted: [{ key: 'idos', version: '1' }],
     });
   });
 
@@ -62,14 +77,24 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('navigates to the verify identity screen when agree and continue is pressed after disclaimers load', () => {
+  it('accepts the displayed terms and resumes stage routing', async () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
     expect(button).toBeEnabled();
 
     fireEvent.press(button);
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+    await waitFor(() => {
+      expect(mockAcceptTermsAndStartSession).toHaveBeenCalledWith({
+        product: 'money',
+        providerDisclaimersAccepted: [{ key: 'sumsub', version: '1' }],
+        idosDisclaimersAccepted: [{ key: 'idos', version: '1' }],
+      });
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: 'RampVbaOnboarding' }],
+      });
+    });
   });
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {

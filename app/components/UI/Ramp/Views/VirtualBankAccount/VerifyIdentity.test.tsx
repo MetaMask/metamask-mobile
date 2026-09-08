@@ -4,46 +4,42 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import { launchSumSubSdk } from './launchSumSubSdk';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   IDOS_PRIVACY_POLICY_URL,
   IDOS_TERMS_URL,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
-  MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
   SUMSUB_PRIVACY_POLICY_URL,
   SUMSUB_TERMS_URL,
 } from './constants';
 
-jest.mock('./launchSumSubSdk', () => ({
-  launchSumSubSdk: jest.fn(),
-}));
-
-jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    log: jest.fn(),
-    error: jest.fn(),
+const mockStartSumSub = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    KycController: {
+      startSumSub: (...args: unknown[]) => mockStartSumSub(...args),
+    },
   },
 }));
 
-const mockLaunchSumSubSdk = jest.mocked(launchSumSubSdk);
-
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockReset = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    reset: mockReset,
   }),
 }));
 
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLaunchSumSubSdk.mockResolvedValue({
+    mockStartSumSub.mockResolvedValue({
       success: true,
       status: 'Approved',
     });
@@ -184,46 +180,32 @@ describe('VbaVerifyIdentity', () => {
     expect(openUrlSpy).toHaveBeenCalledWith(SUMSUB_TERMS_URL);
   });
 
-  it('launches the Sumsub SDK with a mock applicant token when continue is pressed', async () => {
+  it('asks KycController to launch Sumsub and resumes routing', async () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
     await waitFor(() => {
-      expect(mockLaunchSumSubSdk).toHaveBeenCalledWith({
-        accessToken: MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-        onTokenExpired: expect.any(Function),
+      expect(mockStartSumSub).toHaveBeenCalledTimes(1);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.RAMP.VBA_ONBOARDING }],
       });
     });
   });
 
-  it('returns the mock applicant token when the SDK asks to refresh', async () => {
+  it('resumes routing when the Sumsub launch fails', async () => {
+    mockStartSumSub.mockRejectedValueOnce(new Error('launch failed'));
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
     await waitFor(() => {
-      expect(mockLaunchSumSubSdk).toHaveBeenCalledTimes(1);
+      expect(mockStartSumSub).toHaveBeenCalledTimes(1);
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.RAMP.VBA_ONBOARDING }],
+      });
     });
-
-    const { onTokenExpired } = mockLaunchSumSubSdk.mock.calls[0][0];
-
-    await expect(onTokenExpired?.()).resolves.toBe(
-      MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-    );
-  });
-
-  it('stays on the screen when the Sumsub SDK launch fails', async () => {
-    mockLaunchSumSubSdk.mockRejectedValueOnce(new Error('launch failed'));
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
-
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockLaunchSumSubSdk).toHaveBeenCalledTimes(1);
-    });
-    expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
-    ).toBeOnTheScreen();
   });
 });

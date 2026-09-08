@@ -4,6 +4,7 @@ import { useKycDisclaimers } from './useKycDisclaimers';
 
 const mockInitialize = jest.fn();
 const mockLoadDisclaimers = jest.fn();
+const mockFetchDisclaimersCatalog = jest.fn();
 const mockReset = jest.fn();
 const mockKycControllerState = {
   vendorDisclaimers: [] as { id: string; url: string; display_name: string }[],
@@ -20,6 +21,10 @@ jest.mock('../../../../../../core/Engine', () => ({
         return mockKycControllerState;
       },
     },
+    KycService: {
+      fetchDisclaimersCatalog: (...args: unknown[]) =>
+        mockFetchDisclaimersCatalog(...args),
+    },
   },
 }));
 
@@ -29,6 +34,10 @@ describe('useKycDisclaimers', () => {
     mockKycControllerState.vendorDisclaimers = [];
     mockKycControllerState.vendorError = null;
     mockInitialize.mockResolvedValue(undefined);
+    mockFetchDisclaimersCatalog.mockResolvedValue({
+      kycProvider: [],
+      idOS: [],
+    });
     mockLoadDisclaimers.mockImplementation(async () => {
       mockKycControllerState.vendorDisclaimers = [
         { id: '1', url: 'https://t.c', display_name: 'T&C' },
@@ -44,10 +53,58 @@ describe('useKycDisclaimers', () => {
 
     expect(mockInitialize).toHaveBeenCalledWith({ vendor: VBA_KYC_VENDOR });
     expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
+    expect(mockFetchDisclaimersCatalog).toHaveBeenCalledWith({
+      country: 'BRA',
+    });
     expect(result.current.disclaimers).toStrictEqual([
       { id: '1', url: 'https://t.c', display_name: 'T&C' },
     ]);
     expect(result.current.error).toBeNull();
+  });
+
+  it('returns SumSub and idOS consent records with their legal links', async () => {
+    mockFetchDisclaimersCatalog.mockResolvedValue({
+      kycProvider: [
+        {
+          key: 'sumsub-terms',
+          version: '1',
+          title: 'SumSub terms',
+          url: 'https://example.com/sumsub',
+        },
+      ],
+      idOS: [
+        {
+          key: 'idos-terms',
+          version: '2',
+          title: 'idOS terms',
+          url: 'https://example.com/idos',
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.disclaimers).toStrictEqual([
+      { id: '1', url: 'https://t.c', display_name: 'T&C' },
+      {
+        id: 'sumsub-terms',
+        display_name: 'SumSub terms',
+        url: 'https://example.com/sumsub',
+      },
+      {
+        id: 'idos-terms',
+        display_name: 'idOS terms',
+        url: 'https://example.com/idos',
+      },
+    ]);
+    expect(result.current.providerDisclaimersAccepted).toStrictEqual([
+      { key: 'sumsub-terms', version: '1' },
+    ]);
+    expect(result.current.idosDisclaimersAccepted).toStrictEqual([
+      { key: 'idos-terms', version: '2' },
+    ]);
   });
 
   it('surfaces vendorError from KycController state when the load fails', async () => {
