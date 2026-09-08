@@ -4228,6 +4228,7 @@
     "resources": "Resources",
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
+    "card_update_badge": "Update",
     "settings": "Settings",
     "networks": "Networks",
     "log_out": "Log out",
