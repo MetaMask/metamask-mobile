@@ -234,7 +234,8 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Account summary')).toBeOnTheScreen();
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
-        expect(screen.getByText('Margin used')).toBeOnTheScreen();
+        // The account summary and the Cross position both show this label.
+        expect(screen.getAllByText('Margin used')).toHaveLength(2);
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
@@ -631,7 +632,8 @@ describe('PerpsPositionsView', () => {
       await waitFor(() => {
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
-        expect(screen.getByText('Margin used')).toBeOnTheScreen();
+        // The account summary and the Cross position both show this label.
+        expect(screen.getAllByText('Margin used')).toHaveLength(2);
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
       });
     });
