@@ -45,9 +45,6 @@ export const sentryStateMask = {
   collectibles: true,
   engine: {
     backgroundState: {
-      AccountTrackerController: {
-        [AllProperties]: false,
-      },
       AccountsController: {
         internalAccounts: {
           accounts: {
@@ -86,9 +83,8 @@ export const sentryStateMask = {
       ApprovalController: {
         [AllProperties]: false,
       },
-      CurrencyRateController: {
-        currencyRates: true,
-        currentCurrency: true,
+      AssetsController: {
+        [AllProperties]: false,
       },
       GasFeeController: {
         estimatedGasFeeTimeBounds: true,
@@ -163,20 +159,6 @@ export const sentryStateMask = {
       },
       SubjectMetadataController: {
         [AllProperties]: false,
-      },
-      TokenRatesController: {
-        [AllProperties]: false,
-      },
-      TokensController: {
-        allDetectedTokens: {
-          [AllProperties]: false,
-        },
-        allIgnoredTokens: {
-          [AllProperties]: false,
-        },
-        allTokens: {
-          [AllProperties]: false,
-        },
       },
       TransactionController: {
         [AllProperties]: false,
