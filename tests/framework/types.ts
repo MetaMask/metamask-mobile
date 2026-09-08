@@ -301,6 +301,10 @@ export interface LaunchArgs {
   commandQueueServerPort: string;
   /** Account-activity WebSocket mock port; launch-arg key matches `launchArgKey` in `tests/websocket/constants.ts`. */
   accountActivityWsPort: string;
+  /** Test-only source account used to bypass the transaction-pay headless fiat flow. */
+  transactionPayFiatTestFundingSource: string;
+  /** Optional human-readable funding amount for the transaction-pay fiat test flow. */
+  transactionPayFiatTestAmountOverride: string;
   /** Appium specific launch args */
   stop: boolean;
   wait: boolean;

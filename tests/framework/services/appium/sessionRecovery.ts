@@ -8,6 +8,12 @@ const DEVICE_HEALTH_ERROR_PATTERNS: readonly RegExp[] = [
   /session is either terminated or not started/i,
   /UiAutomation not connected/i,
   /Error executing adbExec/i,
+  // Shared-adb / N=2 worker races: reverse --remove crashes the adb daemon and
+  // the sibling worker's element commands die with socket hang up / proxy errors.
+  /socket hang up/i,
+  /Could not proxy command to the remote server/i,
+  /device offline/i,
+  /protocol fault/i,
 ];
 
 let recreateRequested = false;

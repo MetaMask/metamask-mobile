@@ -8,6 +8,7 @@ import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
 import {
   adbDeviceArgs,
   hostListenPortForDevicePort,
+  isIosAppiumSmokeEnv,
 } from '../../framework/e2eWorkerPorts.ts';
 
 const logger = createLogger({
@@ -61,11 +62,16 @@ export function getDappUrlForBrowser(
 /**
  * Set up ADB reverse so the emulator's `devicePort` reaches `hostPort` on the
  * worker host. Worker 1 listens on a shifted host port to avoid EADDRINUSE.
+ * No-ops on iOS (simulators share the host network; adb is not available).
  */
 export function setupAdbReverse(
   devicePort: number,
   hostPort: number = devicePort,
 ): void {
+  if (isIosAppiumSmokeEnv()) {
+    return;
+  }
+
   const deviceArgs = adbDeviceArgs();
   try {
     execFileSync(
@@ -91,6 +97,10 @@ export function setupAdbReverse(
  * Clean up ADB reverse port forwarding for the device-facing port.
  */
 export function cleanupAdbReverse(devicePort: number): void {
+  if (isIosAppiumSmokeEnv()) {
+    return;
+  }
+
   try {
     execFileSync(
       'adb',

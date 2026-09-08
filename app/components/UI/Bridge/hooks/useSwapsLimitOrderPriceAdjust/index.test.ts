@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useTokenFiatRate } from '../useTokenFiatRate';
+import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import { createMockToken } from '../../testUtils/fixtures';
 import { LimitOrderExecutionType } from '../../constants/limitOrders';
 import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
@@ -10,14 +10,14 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../useTokenFiatRate', () => ({
-  useTokenFiatRate: jest.fn(),
+jest.mock('../useLiveTokenFiatRate', () => ({
+  useLiveTokenFiatRate: jest.fn(),
 }));
 
 jest.mock('../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison');
 
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseTokenFiatRate = jest.mocked(useTokenFiatRate);
+const mockUseLiveTokenFiatRate = jest.mocked(useLiveTokenFiatRate);
 const mockGetSwapsLimitOrderPriceMarketComparison = jest.mocked(
   getSwapsLimitOrderPriceMarketComparison,
 );
@@ -46,7 +46,7 @@ function mockFiatRates({
   sourceRate?: number | undefined;
   destRate?: number | undefined;
 } = {}) {
-  mockUseTokenFiatRate.mockImplementation((token) => {
+  mockUseLiveTokenFiatRate.mockImplementation((token) => {
     if (token?.symbol === 'ETH') {
       return sourceRate;
     }
@@ -97,7 +97,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       symbol: 'USDT',
       decimals: 6,
     });
-    mockUseTokenFiatRate.mockImplementation(() => 1);
+    mockUseLiveTokenFiatRate.mockImplementation(() => 1);
 
     const { result } = renderPriceAdjustHook({
       sourceToken: usdt,
@@ -193,6 +193,41 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.isCustomActive).toBe(true);
   });
 
+  it('caps a custom percent above the maximum to 99% on commit', () => {
+    const { result } = renderPriceAdjustHook();
+
+    act(() => {
+      result.current.handleCustomPress();
+      result.current.handleCustomValueChange('150');
+    });
+
+    act(() => {
+      result.current.commitCustomPercent();
+    });
+
+    expect(result.current.limitPrice).toBe('0.01');
+    expect(result.current.isCustomActive).toBe(true);
+    expect(result.current.customValue).toBe('99');
+  });
+
+  it('caps a custom percent above the maximum to 99% on commit in sell mode', () => {
+    const { result } = renderPriceAdjustHook();
+
+    act(() => {
+      result.current.onQuoteUnitPress?.();
+      result.current.handleCustomPress();
+      result.current.handleCustomValueChange('250');
+    });
+
+    act(() => {
+      result.current.commitCustomPercent();
+    });
+
+    expect(result.current.limitPrice).toBe('3980');
+    expect(result.current.isCustomActive).toBe(true);
+    expect(result.current.customValue).toBe('99');
+  });
+
   it('exits custom mode without changing the limit price when custom percent is empty', () => {
     const { result } = renderPriceAdjustHook();
 
@@ -265,7 +300,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       symbol: 'DAI',
       decimals: 18,
     });
-    mockUseTokenFiatRate.mockImplementation((token) => {
+    mockUseLiveTokenFiatRate.mockImplementation((token) => {
       if (token?.symbol === 'ETH') {
         return 2000;
       }
@@ -282,7 +317,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.limitPrice).toBe('1');
 
     const usdc = destToken;
-    mockUseTokenFiatRate.mockImplementation((token) => {
+    mockUseLiveTokenFiatRate.mockImplementation((token) => {
       if (token?.symbol === 'ETH') {
         return 2000;
       }
@@ -319,7 +354,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
   });
 
   it('omits amount type toggle when a token fiat rate is unavailable', () => {
-    mockUseTokenFiatRate.mockReturnValue(undefined);
+    mockUseLiveTokenFiatRate.mockReturnValue(undefined);
     const { result } = renderPriceAdjustHook();
 
     expect(result.current.onAmountTypeTogglePress).toBeUndefined();
@@ -476,7 +511,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       symbol: 'USDT',
       decimals: 6,
     });
-    mockUseTokenFiatRate.mockImplementation((token) =>
+    mockUseLiveTokenFiatRate.mockImplementation((token) =>
       token?.symbol === 'ETH' ? 2000 : 1,
     );
 
