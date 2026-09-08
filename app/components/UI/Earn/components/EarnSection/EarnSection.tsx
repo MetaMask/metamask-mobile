@@ -59,6 +59,7 @@ import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
+import useExploreSectionVisibility from '../../../../Views/TrendingView/hooks/useExploreSectionVisibility';
 import { EarnSectionTestIds } from './EarnSection.testIds';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useMoneyAnalytics } from '../../../Money/hooks/useMoneyAnalytics';
@@ -221,6 +222,14 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       trackSurfaceClicked: trackEarnSurfaceClicked,
     } = useEarnAnalytics(analyticsContext);
     const hasTrackedNonHomepageViewRef = useRef(false);
+    const {
+      isVisible: isExploreSectionVisible,
+      onLayout: onExploreSectionLayout,
+    } = useExploreSectionVisibility(
+      sectionViewRef,
+      !isHomepageSection && enabled,
+      isLoading,
+    );
     const earnListAnalyticsContext = useMemo(
       () =>
         buildEarnModuleNavigationContext({
@@ -292,7 +301,12 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         hasTrackedNonHomepageViewRef.current = false;
         return;
       }
-      if (isLoading || hasTrackedNonHomepageViewRef.current) return;
+      if (
+        isLoading ||
+        !isExploreSectionVisible ||
+        hasTrackedNonHomepageViewRef.current
+      )
+        return;
       hasTrackedNonHomepageViewRef.current = true;
       trackEarnComponentViewed({
         component_name: earnSectionComponentName,
@@ -301,6 +315,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       enabled,
       earnSectionComponentName,
       isHomepageSection,
+      isExploreSectionVisible,
       isLoading,
       trackEarnComponentViewed,
     ]);
@@ -481,7 +496,10 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     );
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View
+        ref={sectionViewRef}
+        onLayout={isHomepageSection ? onLayout : onExploreSectionLayout}
+      >
         <Box testID="earn-section">
           {showDividers && <SectionDivider />}
           <SectionHeader
