@@ -312,6 +312,13 @@ class PerpsProMarketView {
       description: 'Perps Pro Market View container',
       timeout,
     });
+    // The root container can stay mounted while order-form and positions-panel
+    // children are still remounting after Auto close Set.  Waiting for the
+    // positions panel confirms the inner layout has fully settled.
+    await Assertions.expectElementToExist(this.positionsPanel, {
+      description: 'Perps Pro Market View positions panel',
+      timeout,
+    });
   }
 
   async waitForProViewReady(timeout = 20000): Promise<void> {
