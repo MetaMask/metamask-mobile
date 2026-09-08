@@ -327,7 +327,10 @@ class MultichainTestDApp {
       await new Promise<void>((r) => setTimeout(r, 100));
     }
 
-    await ChromeCdpHelpers.clickByIdInWebView(getMultichainTestDappBaseUrl(), buttonId);
+    await ChromeCdpHelpers.clickByIdInWebView(
+      getMultichainTestDappBaseUrl(),
+      buttonId,
+    );
   }
 
   async tapConfirmButton(): Promise<void> {
