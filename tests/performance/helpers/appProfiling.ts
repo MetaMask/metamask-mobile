@@ -27,6 +27,8 @@ const RESULT_READY_TEST_ID = 'performance-profiler-result-ready';
 const ERROR_TEST_ID = 'performance-profiler-error';
 const RECORDING_TIMEOUT_MS = 60_000;
 const RESULT_TIMEOUT_MS = 60_000;
+const PROFILE_FILE_TIMEOUT_MS = 120_000;
+const PROFILE_FILE_POLL_INTERVAL_MS = 2_000;
 
 type PullFileDriver = WebdriverIO.Browser & {
   pullFile: (remotePath: string) => Promise<string>;
@@ -180,6 +182,44 @@ async function waitForProfilerResultPath(
   return profilePath;
 }
 
+async function pullValidProfilerFile(
+  appiumDriver: PullFileDriver,
+  remotePath: string,
+): Promise<Buffer> {
+  const deadline = Date.now() + PROFILE_FILE_TIMEOUT_MS;
+  let lastError = 'profile file is not available yet';
+
+  while (Date.now() < deadline) {
+    try {
+      const base64Profile = await appiumDriver.pullFile(remotePath);
+      const buffer = Buffer.from(base64Profile, 'base64');
+      if (buffer.length > 0) {
+        const parsedProfile: unknown = JSON.parse(buffer.toString('utf8'));
+        if (
+          parsedProfile &&
+          typeof parsedProfile === 'object' &&
+          !Array.isArray(parsedProfile)
+        ) {
+          return buffer;
+        }
+        lastError = 'profile JSON root is not an object';
+      } else {
+        lastError = 'profile file is empty';
+      }
+    } catch (error) {
+      lastError = String(error);
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, PROFILE_FILE_POLL_INTERVAL_MS);
+    });
+  }
+
+  throw new Error(
+    `Profiler file was not valid after ${PROFILE_FILE_TIMEOUT_MS}ms: ${remotePath}; last error: ${lastError}`,
+  );
+}
+
 /**
  * Pulls the on-device profile path exposed by PerformanceProfilerStatus,
  * saves it under `tests/reporters/reports/hermes-cpuprofiles/` (CI upload path),
@@ -202,24 +242,8 @@ export async function pullAndAttachAppProfiling(
   const profilePath = await waitForProfilerResultPath(appiumDriver);
   const remotePath = toAndroidPullPath(profilePath);
 
-  logger.info(`Pulling Hermes profile from ${remotePath}`);
-  const base64Profile = await appiumDriver.pullFile(remotePath);
-  const buffer = Buffer.from(base64Profile, 'base64');
-  if (buffer.length === 0) {
-    throw new Error(`Pulled cpuprofile was empty: ${remotePath}`);
-  }
-  try {
-    const parsedProfile: unknown = JSON.parse(buffer.toString('utf8'));
-    if (
-      !parsedProfile ||
-      typeof parsedProfile !== 'object' ||
-      Array.isArray(parsedProfile)
-    ) {
-      throw new Error('profile JSON root is not an object');
-    }
-  } catch (error) {
-    throw new Error(`Pulled cpuprofile is not valid JSON: ${String(error)}`);
-  }
+  logger.info(`Polling Hermes profile from ${remotePath}`);
+  const buffer = await pullValidProfilerFile(appiumDriver, remotePath);
 
   await fs.mkdir(PROFILE_OUTPUT_DIRECTORY, { recursive: true });
   const fileName = `${sanitizeFilePart(testInfo.project.name)}-${sanitizeFilePart(testInfo.title)}.cpuprofile`;

@@ -46800,7 +46800,7 @@ __metadata:
 
 "react-native-release-profiler@patch:react-native-release-profiler@npm%3A0.4.4#~/.yarn/patches/react-native-release-profiler-npm-0.4.4-895b27537a.patch":
   version: 0.4.4
-  resolution: "react-native-release-profiler@patch:react-native-release-profiler@npm%3A0.4.4#~/.yarn/patches/react-native-release-profiler-npm-0.4.4-895b27537a.patch::version=0.4.4&hash=a13901"
+  resolution: "react-native-release-profiler@patch:react-native-release-profiler@npm%3A0.4.4#~/.yarn/patches/react-native-release-profiler-npm-0.4.4-895b27537a.patch::version=0.4.4&hash=72178b"
   dependencies:
     "@margelo/hermes-profile-transformer": "npm:^0.0.10"
     commander: "npm:^11.1.0"
@@ -46810,7 +46810,7 @@ __metadata:
     react-native: "*"
   bin:
     react-native-release-profiler: lib/commonjs/cli.js
-  checksum: 10/67cc22d8be2a4791c6329800870032a2be800cebe9fc770ae2337c684375eb3b68a5af5d70620d063a0741121ee95566e6635803405e301af14886b7409e7f9b
+  checksum: 10/4eeddb64b97bebb4086da3283cb4afef8b5082bc2d7587f10bc4bd34f3fc9a830c44daccd8c450a703ee0f7e7a99c20c5599063dbc4ed28696534840c1e3f950
   languageName: node
   linkType: hard
 
