@@ -115,6 +115,22 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
+  it('skips all E2E for merge queue events', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'merge_group',
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: false,
+      e2eNeeded: false,
+      useMainBuildsForTestOnlyPrs: false,
+      runSmartE2ESelection: false,
+      message: 'Skipping E2E (merge queue)',
+    });
+  });
+
   it('selects Android only for Android-only path filters', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
