@@ -1385,6 +1385,57 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(confirmButton.props.accessibilityState.disabled).toBe(false);
     });
 
+    it.each([
+      {
+        bound: 'min' as const,
+        percent: -10,
+        min: applyPercentToPrice(MUSD_FIAT_RATE, -10),
+        max: '',
+      },
+      {
+        bound: 'max' as const,
+        percent: 10,
+        min: '',
+        max: applyPercentToPrice(MUSD_FIAT_RATE, 10),
+      },
+    ])(
+      'enables confirm and saves a $bound-only range',
+      async ({ bound, percent, min, max }) => {
+        const renderResult = renderRecurringPriceRangeView();
+
+        await openRecurringTab(renderResult);
+        await openPriceRangeSheet(renderResult);
+        fireEvent.press(
+          renderResult.getByTestId(
+            PriceRangeSheetSelectorsIDs.PERCENT(bound, percent),
+          ),
+        );
+
+        const confirmButton = renderResult.getByTestId(
+          PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON,
+        );
+        expect(confirmButton.props.accessibilityState.disabled).toBe(false);
+        fireEvent.press(confirmButton);
+
+        await waitFor(() => {
+          expect(
+            renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.SHEET),
+          ).not.toBeOnTheScreen();
+        });
+        expect(
+          renderResult.getByTestId(PriceRangeRowSelectorsIDs.VALUE),
+        ).toHaveTextContent(formatPriceRangeLabel(min, max, 'usd'));
+        expect(
+          renderResult.store.getState().bridge.recurring.priceRange,
+        ).toEqual({
+          tokenSide: 'dest',
+          currency: 'usd',
+          min,
+          max,
+        });
+      },
+    );
+
     it('keeps confirm disabled when min is not less than max', async () => {
       const renderResult = renderRecurringPriceRangeView();
 

@@ -114,8 +114,26 @@ describe('isValidPriceRange', () => {
     expect(result).toBe(false);
   });
 
-  it('returns false when a bound is empty', () => {
+  it('returns true when only min is set', () => {
     const result = isValidPriceRange('1800', '');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true when only max is set', () => {
+    const result = isValidPriceRange('', '2200');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when both bounds are empty', () => {
+    const result = isValidPriceRange('', '');
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the populated bound is invalid', () => {
+    const result = isValidPriceRange('.', '');
 
     expect(result).toBe(false);
   });
@@ -180,6 +198,19 @@ describe('formatPriceRangeLabel', () => {
     const result = formatPriceRangeLabel('1800', '2200', 'USD');
 
     expect(result).toBe('$1800.00 - $2200.00');
+  });
+
+  it('uses Market price for an empty bound', () => {
+    mockedFormatCurrency.mockImplementation(
+      (amount) => `$${String(amount)}.00`,
+    );
+
+    expect(formatPriceRangeLabel('1800', '', 'USD')).toBe(
+      '$1800.00 - Market price',
+    );
+    expect(formatPriceRangeLabel('', '2200', 'USD')).toBe(
+      'Market price - $2200.00',
+    );
   });
 });
 

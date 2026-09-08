@@ -66,6 +66,14 @@ export function isValidPriceRange(min: string, max: string): boolean {
   const parsedMin = parsePriceInput(min);
   const parsedMax = parsePriceInput(max);
 
+  if (min === '') {
+    return parsedMax !== undefined;
+  }
+
+  if (max === '') {
+    return parsedMin !== undefined;
+  }
+
   return (
     parsedMin !== undefined && parsedMax !== undefined && parsedMin < parsedMax
   );
@@ -101,7 +109,20 @@ export function formatPriceRangeLabel(
   max: string,
   currency: string,
 ): string {
-  return `${formatCurrency(min, currency)} - ${formatCurrency(max, currency)}`;
+  const minLabel = formatPriceRangeBound(min, currency, 'min');
+  const maxLabel = formatPriceRangeBound(max, currency, 'max');
+
+  return `${minLabel} - ${maxLabel}`;
+}
+
+export function formatPriceRangeBound(
+  value: string,
+  currency: string,
+  bound: 'min' | 'max',
+): string {
+  return value
+    ? formatCurrency(value, currency)
+    : strings(`bridge.recurring.price_range.${bound}_placeholder`);
 }
 
 export function formatTokenPrice(
