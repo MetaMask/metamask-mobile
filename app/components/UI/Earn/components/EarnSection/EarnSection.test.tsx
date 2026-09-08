@@ -223,20 +223,23 @@ const getSuccessArrowIcons = () =>
         props.color === IconColor.SuccessDefault,
     );
 
+const getEarnSection = (
+  props: Partial<React.ComponentProps<typeof EarnSection>> = {},
+) => (
+  <EarnSection
+    tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+    analyticsContext={{
+      component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+    }}
+    {...props}
+  />
+);
+
 const renderEarnSection = (
   props: Partial<React.ComponentProps<typeof EarnSection>> = {},
-) =>
-  render(
-    <EarnSection
-      tokenDetailsSource={TokenDetailsSource.ExploreEarn}
-      analyticsContext={{
-        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
-        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
-        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
-      }}
-      {...props}
-    />,
-  );
+) => render(getEarnSection(props));
 
 describe('EarnSection', () => {
   beforeEach(() => {
@@ -372,6 +375,19 @@ describe('EarnSection', () => {
 
     expect(mockEarnTrackComponentViewed).toHaveBeenCalledWith({
       component_name: EARN_MODULE_COMPONENT_NAMES.HOMEPAGE_EARN_SECTION,
+    });
+  });
+
+  it('retracks Explore Earn after the section is disabled and re-enabled', () => {
+    const { rerender } = renderEarnSection();
+    mockEarnTrackComponentViewed.mockClear();
+
+    rerender(getEarnSection({ enabled: false }));
+    rerender(getEarnSection());
+
+    expect(mockEarnTrackComponentViewed).toHaveBeenCalledTimes(1);
+    expect(mockEarnTrackComponentViewed).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
     });
   });
 

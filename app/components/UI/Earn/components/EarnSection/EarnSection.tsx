@@ -267,6 +267,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
+    // Homepage section view tracking
     const { onLayout } = useHomeViewedEvent({
       sectionRef: homepageTelemetryEnabled ? sectionViewRef : null,
       isLoading,
@@ -284,16 +285,14 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         : undefined,
     });
 
+    // Explore view tracking
     useEffect(() => {
-      if (
-        isHomepageSection ||
-        !enabled ||
-        isLoading ||
-        hasTrackedNonHomepageViewRef.current
-      ) {
+      if (isHomepageSection) return;
+      if (!enabled) {
+        hasTrackedNonHomepageViewRef.current = false;
         return;
       }
-
+      if (isLoading || hasTrackedNonHomepageViewRef.current) return;
       hasTrackedNonHomepageViewRef.current = true;
       trackEarnComponentViewed({
         component_name: earnSectionComponentName,
