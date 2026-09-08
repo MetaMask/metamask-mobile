@@ -15,8 +15,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
   ButtonSize,
-  ButtonsAlignment,
+  ButtonVariant,
   FilterButton,
   FontWeight,
   SegmentedControl,
@@ -279,8 +280,11 @@ const PriceRangeSheet = ({
     [focusedField],
   );
 
-  const handleClearAll = useCallback(() => {
+  const handleClearMin = useCallback(() => {
     setPendingMin('');
+  }, []);
+
+  const handleClearMax = useCallback(() => {
     setPendingMax('');
   }, []);
 
@@ -412,11 +416,31 @@ const PriceRangeSheet = ({
             </Box>
 
             <Box gap={4}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('bridge.recurring.price_range.min_token_price', {
-                  symbol: selectedToken?.symbol ?? '',
-                })}
-              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="-mr-3 min-h-8"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('bridge.recurring.price_range.min_token_price', {
+                    symbol: selectedToken?.symbol ?? '',
+                  })}
+                </Text>
+                {pendingMin ? (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleClearMin}
+                    testID={PriceRangeSheetSelectorsIDs.CLEAR_MIN}
+                  >
+                    {strings('bridge.recurring.price_range.clear')}
+                  </Button>
+                ) : null}
+              </Box>
               <PricePercentRow
                 bound="min"
                 percents={PRICE_RANGE_MIN_PERCENTS}
@@ -435,11 +459,31 @@ const PriceRangeSheet = ({
             </Box>
 
             <Box gap={4}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('bridge.recurring.price_range.max_token_price', {
-                  symbol: selectedToken?.symbol ?? '',
-                })}
-              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="-mr-3 min-h-8"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('bridge.recurring.price_range.max_token_price', {
+                    symbol: selectedToken?.symbol ?? '',
+                  })}
+                </Text>
+                {pendingMax ? (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleClearMax}
+                    testID={PriceRangeSheetSelectorsIDs.CLEAR_MAX}
+                  >
+                    {strings('bridge.recurring.price_range.clear')}
+                  </Button>
+                ) : null}
+              </Box>
               <PricePercentRow
                 bound="max"
                 percents={PRICE_RANGE_MAX_PERCENTS}
@@ -468,15 +512,6 @@ const PriceRangeSheet = ({
         ) : null}
       </Box>
       <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
-        twClassName="gap-4"
-        secondaryButtonProps={{
-          children: strings('bridge.recurring.price_range.clear_all'),
-          onPress: handleClearAll,
-          isDisabled: !pendingMin && !pendingMax,
-          size: ButtonSize.Lg,
-          testID: PriceRangeSheetSelectorsIDs.CLEAR_ALL,
-        }}
         primaryButtonProps={{
           children: strings('bridge.recurring.confirm'),
           onPress: handleConfirm,

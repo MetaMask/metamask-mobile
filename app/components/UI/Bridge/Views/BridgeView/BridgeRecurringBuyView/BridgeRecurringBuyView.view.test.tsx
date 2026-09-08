@@ -1265,8 +1265,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveDisplayValue('');
     });
 
-    it('clears pending min and max without closing the sheet', async () => {
+    it('clears min and max independently without closing the sheet', async () => {
       const renderResult = renderRecurringPriceRangeView();
+      const expectedMax = applyPercentToPrice(MUSD_FIAT_RATE, 10);
 
       await openRecurringTab(renderResult);
       await openPriceRangeSheet(renderResult);
@@ -1281,7 +1282,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         ),
       );
       fireEvent.press(
-        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_ALL),
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MIN),
       );
 
       await waitFor(() => {
@@ -1291,7 +1292,24 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       });
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
+      ).toHaveDisplayValue(expectedMax);
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MIN),
+      ).not.toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
+      );
+
+      expect(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MAX_INPUT),
       ).toHaveDisplayValue('');
+      expect(
+        renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
+      ).not.toBeOnTheScreen();
       expect(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.SHEET),
       ).toBeOnTheScreen();
@@ -1477,7 +1495,10 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       await seedPriceRangeAfterTokens(renderResult, STORED_USD_PRICE_RANGE);
       await openPriceRangeSheet(renderResult);
       fireEvent.press(
-        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_ALL),
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MIN),
+      );
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CLEAR_MAX),
       );
       fireEvent.press(
         renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON),
