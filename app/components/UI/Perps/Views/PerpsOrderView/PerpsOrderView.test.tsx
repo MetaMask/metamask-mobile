@@ -1105,10 +1105,11 @@ function applyDefaultHookMocks() {
 }
 
 describe('PerpsOrderView', () => {
-  const originalDev = global.__DEV__;
+  const devGlobal = global as typeof globalThis & { __DEV__: boolean };
+  const originalDev = devGlobal.__DEV__;
 
   afterEach(() => {
-    global.__DEV__ = originalDev;
+    devGlobal.__DEV__ = originalDev;
   });
 
   beforeEach(() => {
@@ -1436,7 +1437,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('includes discovery attribution from route source_section in order trackingData', async () => {
-    global.__DEV__ = true;
+    devGlobal.__DEV__ = true;
     mockReceiptConfirmation = true;
     mockUseIsPerpsBalanceSelected.mockReturnValue(true);
     const result: OrderResult = { success: true, orderId: '101' };
