@@ -1,14 +1,16 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  InputStepperDescriptionType,
+  type InputStepperProps,
+} from '../../../../../component-library/components-temp/InputStepper';
 import { BridgeSlippageConfig } from '../../types';
-import { InputStepperDescriptionType } from '../../components/InputStepper/constants';
 import {
   IconColor,
   IconName,
   IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { InputStepperProps } from '../../components/InputStepper/types';
 
 interface Props {
   inputAmount: string;
