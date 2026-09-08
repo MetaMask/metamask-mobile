@@ -277,6 +277,11 @@ function TradeWalletActions() {
     postCallback.current = () => {
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.SEARCH_LIST,
+        params: {
+          analyticsContext: {
+            entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
+          },
+        },
       });
     };
     handleNavigateBack();
