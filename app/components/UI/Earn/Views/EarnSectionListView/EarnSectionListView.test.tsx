@@ -7,7 +7,7 @@ import {
   View as MockView,
 } from 'react-native';
 import type { Asset } from '@metamask/assets-controllers';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type EarnMoneyAccountRow from '../../../../Views/TrendingView/feeds/earn/EarnMoneyAccountRow';
 import type EarnSearchAssetRow from '../../../../Views/TrendingView/feeds/earn/EarnSearchAssetRow';
@@ -19,7 +19,15 @@ import type {
   EarnExperience,
 } from '../../types/earnAssets';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import {
+  EARN_MODULE_BUTTON_INTENTS,
+  EARN_MODULE_BUTTON_TYPES,
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_SCREEN_NAMES,
+} from '../../constants/earnModuleEvents';
 import useEarnAssetCatalogue from '../../hooks/useEarnAssetCatalogue';
+import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useProjectedEarnings } from '../../../Money/hooks/useProjectedEarnings';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
@@ -34,13 +42,23 @@ import EarnSectionListView from './EarnSectionListView';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
+let mockIsOnboardingRedirectNeeded = false;
 const mockRedirectToOnboardingIfNeeded = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockLoggerError = jest.fn();
+const mockTrackMoneyButtonClicked = jest.fn();
+const mockTrackMoneySurfaceClicked = jest.fn();
+const mockTrackTokenButtonClicked = jest.fn();
+const mockTrackTokenSurfaceClicked = jest.fn();
+const mockTrackMoneyTooltipClicked = jest.fn();
+const mockTrackEarnScreenViewed = jest.fn();
+const mockTrackEarnButtonClicked = jest.fn();
+const mockTrackEarnSurfaceClicked = jest.fn();
 const mockRefresh = jest.fn();
 const mockRefetchMoneyAccountBalance = jest.fn();
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseEarnAssetCatalogue = jest.mocked(useEarnAssetCatalogue);
+const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseProjectedEarnings = jest.mocked(useProjectedEarnings);
 const mockNavigateFromEarnAsset = jest.fn();
@@ -91,6 +109,7 @@ const mockPotentialEarningsTokenRow = jest.fn(
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useRoute: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -132,10 +151,12 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   default: jest.fn(() => ({
     navigateFromEarnAsset: mockNavigateFromEarnAsset,
   })),
+  getEarnOpportunityRedirectTarget: jest.fn(() => 'stablecoin_lending_deposit'),
 }));
 
 jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: jest.fn(() => ({
+    isOnboardingRedirectNeeded: mockIsOnboardingRedirectNeeded,
     navigateToMoneyHome: (
       ...args: Parameters<typeof mockNavigateToMoneyHome>
     ) => mockNavigateToMoneyHome(...args),
@@ -144,6 +165,24 @@ jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
     redirectToOnboardingIfNeeded: (
       ...args: Parameters<typeof mockRedirectToOnboardingIfNeeded>
     ) => mockRedirectToOnboardingIfNeeded(...args),
+  })),
+}));
+
+jest.mock('../../../Money/hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(() => ({
+    trackButtonClicked: mockTrackMoneyButtonClicked,
+    trackSurfaceClicked: mockTrackMoneySurfaceClicked,
+    trackTokenButtonClicked: mockTrackTokenButtonClicked,
+    trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
+    trackTooltipClicked: mockTrackMoneyTooltipClicked,
+  })),
+}));
+
+jest.mock('../../hooks/useEarnAnalytics', () => ({
+  useEarnAnalytics: jest.fn(() => ({
+    trackScreenViewed: mockTrackEarnScreenViewed,
+    trackButtonClicked: mockTrackEarnButtonClicked,
+    trackSurfaceClicked: mockTrackEarnSurfaceClicked,
   })),
 }));
 
@@ -336,6 +375,7 @@ describe('EarnSectionListView', () => {
     jest.clearAllMocks();
     isMoneyAccountVisible = true;
     privacyMode = false;
+    mockIsOnboardingRedirectNeeded = false;
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsMoneyAccountVisible) {
         return isMoneyAccountVisible;
@@ -349,6 +389,9 @@ describe('EarnSectionListView', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
     } as ReturnType<typeof useNavigation>);
+    jest.mocked(useRoute).mockReturnValue({
+      params: {},
+    } as ReturnType<typeof useRoute>);
     mockUseEarnAssetCatalogue.mockReturnValue(createCatalogueResult());
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceResult());
     mockUseProjectedEarnings.mockReturnValue(createProjectionResult());
@@ -370,6 +413,11 @@ describe('EarnSectionListView', () => {
     expect(
       screen.getByText(strings('earn_module.stake_or_lend_description')),
     ).toBeOnTheScreen();
+    expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
+      screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
+    });
+    expect(mockTrackEarnScreenViewed).toHaveBeenCalledTimes(1);
     expect(
       screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION),
     ).toBeNull();
@@ -429,6 +477,12 @@ describe('EarnSectionListView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
     });
+    expect(mockTrackMoneyTooltipClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tooltip_name: 'earn_on_your_crypto',
+        component_name: 'money_balance_projection',
+      }),
+    );
   });
 
   it('caps Money rows at five and projects all derived Money assets in ranked order', () => {
@@ -635,6 +689,16 @@ describe('EarnSectionListView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({ pop: false });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
+    expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirect_target: 'money_home',
+      }),
+    );
+    expect(mockTrackMoneyButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirect_target: 'money_potential_earnings',
+      }),
+    );
   });
 
   it('initiates deposits from both token card and Add callbacks', async () => {
@@ -671,6 +735,12 @@ describe('EarnSectionListView', () => {
     };
     expect(mockInitiateDeposit).toHaveBeenNthCalledWith(1, expectedOptions);
     expect(mockInitiateDeposit).toHaveBeenNthCalledWith(2, expectedOptions);
+    expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith(
+      expect.objectContaining({ redirect_target: 'money_deposit' }),
+    );
+    expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({ redirect_target: 'money_deposit' }),
+    );
   });
 
   it('redirects to Money onboarding without initiating a deposit', async () => {
@@ -678,6 +748,7 @@ describe('EarnSectionListView', () => {
     mockUseEarnAssetCatalogue.mockReturnValue(
       createCatalogueResult({ assets: [moneyAsset] }),
     );
+    mockIsOnboardingRedirectNeeded = true;
     mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
 
     render(<EarnSectionListView />);
@@ -697,6 +768,9 @@ describe('EarnSectionListView', () => {
       },
     });
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({ redirect_target: 'money_onboarding' }),
+    );
   });
 
   it('logs deposit initiation failures', async () => {
@@ -740,6 +814,57 @@ describe('EarnSectionListView', () => {
     expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
       expect.objectContaining({ assetId: asset.assetId }),
       TokenDetailsSource.ExploreEarn,
+      expect.objectContaining({
+        entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
+        screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+        asset_position: 1,
+        assets_in_list: 1,
+      }),
+    );
+    expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_LIST_ASSET_ROW,
+      }),
+    );
+  });
+
+  it('uses the caller entry point in Earn asset analytics context', () => {
+    isMoneyAccountVisible = false;
+    const asset = createDiscoveryAsset(
+      'USDC',
+      1,
+      EARN_EXPERIENCES.STABLECOIN_LENDING,
+    );
+    mockUseEarnAssetCatalogue.mockReturnValue(
+      createCatalogueResult({ assets: [asset] }),
+    );
+    jest.mocked(useRoute).mockReturnValue({
+      params: {
+        analyticsContext: {
+          entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+        },
+      },
+    } as ReturnType<typeof useRoute>);
+
+    render(<EarnSectionListView />);
+
+    fireEvent.press(
+      screen.getByTestId(`mock-earn-search-asset-row-${asset.assetId}`),
+    );
+
+    expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
+      screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+    });
+    expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ assetId: asset.assetId }),
+      TokenDetailsSource.ExploreEarn,
+      {
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+        screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+        asset_position: 1,
+        assets_in_list: 1,
+      },
     );
   });
 
@@ -751,6 +876,10 @@ describe('EarnSectionListView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockTrackEarnButtonClicked).toHaveBeenCalledWith({
+      button_type: EARN_MODULE_BUTTON_TYPES.ICON,
+      button_intent: EARN_MODULE_BUTTON_INTENTS.GO_BACK,
+    });
   });
 
   it('renders fallback projection copy when projection data is unavailable', () => {
