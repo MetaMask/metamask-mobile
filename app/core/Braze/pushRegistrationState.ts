@@ -1,5 +1,6 @@
 import { BRAZE_PUSH_UNREGISTRATION_PENDING } from '../../constants/storage';
 import StorageWrapper from '../../store/storage-wrapper';
+import Logger from '../../util/Logger';
 
 export interface BrazePushOperationContext {
   isCurrent: () => boolean;
@@ -90,6 +91,10 @@ export function runLatestBrazePushOperation<T>({
 
   if (pendingOperation) {
     pendingOperation.resolve(pendingOperation.supersededResult);
+    Logger.log(
+      '[Braze] Dropping pending operation in favor of newer request',
+      pendingOperation.key,
+    );
   }
   pendingOperation = nextOperation as PendingOperation<unknown>;
   runPendingOperation();
@@ -98,14 +103,19 @@ export function runLatestBrazePushOperation<T>({
 }
 
 export function hasPendingBrazePushUnregistrationSync(): boolean {
-  return Boolean(StorageWrapper.getItemSync(BRAZE_PUSH_UNREGISTRATION_PENDING));
+  const isPending = Boolean(
+    StorageWrapper.getItemSync(BRAZE_PUSH_UNREGISTRATION_PENDING),
+  );
+  return isPending;
 }
 
 export async function markBrazePushUnregistrationPending(): Promise<void> {
+  Logger.log('[Braze] Marking push unregistration pending');
   await StorageWrapper.setItem(BRAZE_PUSH_UNREGISTRATION_PENDING, 'true');
 }
 
 export async function clearPendingBrazePushUnregistration(): Promise<void> {
+  Logger.log('[Braze] Clearing push unregistration pending marker');
   await StorageWrapper.removeItem(BRAZE_PUSH_UNREGISTRATION_PENDING);
 }
 

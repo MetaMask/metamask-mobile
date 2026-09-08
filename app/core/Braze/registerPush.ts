@@ -47,6 +47,9 @@ export async function registerBrazePush(fcmToken: string): Promise<void> {
       key: `register:${Platform.OS}:${Platform.OS === 'android' ? fcmToken : ''}`,
       supersededResult: undefined,
       operation: async () => {
+        Logger.log(
+          '[Braze] Register operation clearing any pending unregistration marker',
+        );
         await clearPendingBrazePushUnregistration();
         if (Platform.OS === 'ios') {
           await brazePushModule.registerPush();

@@ -6,12 +6,14 @@ import {
 } from '../../constants/storage';
 import StorageWrapper from '../storage-wrapper';
 import { ensureValidState } from './util';
+import Logger from '../../util/Logger';
 
 export const migrationVersion = 153;
 
 async function setBackfillMarker(key: string, name: string): Promise<boolean> {
   try {
     await StorageWrapper.setItem(key, 'true');
+    Logger.log(`[Braze] Migration 153 marked ${name} as pending`);
     return true;
   } catch (error) {
     captureException(

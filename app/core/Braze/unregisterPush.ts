@@ -82,9 +82,15 @@ async function attemptPendingUnregistration({
   throwOnPermanentFailure: boolean;
 }): Promise<boolean> {
   if (!hasPendingBrazePushUnregistrationSync()) {
+    Logger.log(
+      '[Braze] Unregistration attempt skipped: pending marker already cleared',
+    );
     return true;
   }
   if (!context.isCurrent()) {
+    Logger.log(
+      '[Braze] Unregistration attempt superseded by a newer push operation',
+    );
     return false;
   }
 
@@ -98,7 +104,23 @@ async function attemptPendingUnregistration({
     const isRetriable =
       error instanceof BrazePushUnregistrationError && error.isRetriable;
 
+    Logger.log(
+      '[Braze] Unregistration attempt failed',
+      JSON.stringify({
+        retriable: isRetriable,
+        httpStatusCode:
+          error instanceof BrazePushUnregistrationError
+            ? error.httpStatusCode
+            : undefined,
+        message: error.message,
+        current: context.isCurrent(),
+      }),
+    );
+
     if (!context.isCurrent()) {
+      Logger.log(
+        '[Braze] Unregistration attempt superseded; pending marker preserved for the newer request',
+      );
       return false;
     }
     if (!isRetriable) {
@@ -144,6 +166,9 @@ export async function unregisterBrazePush(): Promise<boolean> {
     await clearPendingBrazePushUnregistration();
     const error = toError(nativeError);
     Logger.error(error, '[Braze] Failed to unregister push');
+    Logger.log(
+      '[Braze] Permanent unregistration failure cleared the pending marker',
+    );
     throw error;
   }
 }
@@ -160,6 +185,10 @@ export async function retryPendingBrazePushUnregistration(): Promise<boolean> {
   if (hasTestOverrides || !hasPendingBrazePushUnregistrationSync()) {
     return true;
   }
+
+  Logger.log(
+    '[Braze] Retrying pending push unregistration left by a previous session',
+  );
 
   try {
     return await runLatestBrazePushOperation({
