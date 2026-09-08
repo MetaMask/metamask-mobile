@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { useKycDisclaimersCatalog } from './useKycDisclaimersCatalog';
+import { useKycSessionDisclaimers } from './useKycSessionDisclaimers';
 
 const mockFetchDisclaimersCatalog = jest.fn();
 
@@ -31,14 +31,14 @@ const catalog = {
   ],
 };
 
-describe('useKycDisclaimersCatalog', () => {
+describe('useKycSessionDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchDisclaimersCatalog.mockResolvedValue(catalog);
   });
 
   it('loads idOS and SumSub catalog documents for the given country via KycService', async () => {
-    const { result } = renderHook(() => useKycDisclaimersCatalog('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -70,7 +70,7 @@ describe('useKycDisclaimersCatalog', () => {
       kycProvider: [],
     });
 
-    const { result } = renderHook(() => useKycDisclaimersCatalog('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -85,7 +85,7 @@ describe('useKycDisclaimersCatalog', () => {
         new Promise(() => undefined),
       );
 
-      const { result } = renderHook(() => useKycDisclaimersCatalog('BRA'));
+      const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
 
       await act(async () => {
         jest.advanceTimersByTime(10_000);
@@ -104,7 +104,7 @@ describe('useKycDisclaimersCatalog', () => {
       new Error('not signed in'),
     );
 
-    const { result } = renderHook(() => useKycDisclaimersCatalog('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -117,7 +117,7 @@ describe('useKycDisclaimersCatalog', () => {
       .mockRejectedValueOnce(new Error('server error'))
       .mockResolvedValueOnce(catalog);
 
-    const { result } = renderHook(() => useKycDisclaimersCatalog('BRA'));
+    const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.error).toBe('server error');

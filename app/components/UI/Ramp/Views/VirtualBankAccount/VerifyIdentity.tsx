@@ -39,7 +39,7 @@ import {
 } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
-import { useKycDisclaimersCatalog } from './hooks/useKycDisclaimersCatalog';
+import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
 import { launchSumSubSdk } from './launchSumSubSdk';
 
 const CHEVRON_ANIMATION_DURATION = 200;
@@ -130,7 +130,7 @@ const VbaVerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } =
-    useKycDisclaimersCatalog(VBA_KYC_COUNTRY_CODE);
+    useKycSessionDisclaimers(VBA_KYC_COUNTRY_CODE);
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
   const [isLaunchingSumSub, setIsLaunchingSumSub] = useState(false);

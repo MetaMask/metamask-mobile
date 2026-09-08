@@ -19,7 +19,7 @@ const FETCH_TIMEOUT_MS = 10_000;
  * VBA KYC flow via {@link Engine.context.KycController.loadDisclaimers}.
  *
  * This is vendor T&Cs only — not the idOS / SumSub catalog used on Verify
- * Identity (`useKycDisclaimersCatalog` → `KycService.fetchDisclaimersCatalog`).
+ * Identity (`useKycSessionDisclaimers` → `KycService.fetchDisclaimersCatalog`).
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the

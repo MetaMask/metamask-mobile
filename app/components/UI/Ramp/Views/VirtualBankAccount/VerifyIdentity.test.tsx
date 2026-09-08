@@ -10,7 +10,7 @@ import {
   METAMASK_TERMS_URL,
   MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
 } from './constants';
-import { useKycDisclaimersCatalog } from './hooks/useKycDisclaimersCatalog';
+import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
 
 jest.mock('./launchSumSubSdk', () => ({
   launchSumSubSdk: jest.fn(),
@@ -24,8 +24,8 @@ jest.mock('../../../../../util/Logger', () => ({
   },
 }));
 
-jest.mock('./hooks/useKycDisclaimersCatalog');
-const mockUseKycDisclaimersCatalog = jest.mocked(useKycDisclaimersCatalog);
+jest.mock('./hooks/useKycSessionDisclaimers');
+const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
 const mockRetry = jest.fn();
 
 const mockLaunchSumSubSdk = jest.mocked(launchSumSubSdk);
@@ -65,7 +65,7 @@ describe('VbaVerifyIdentity', () => {
       success: true,
       status: 'Approved',
     });
-    mockUseKycDisclaimersCatalog.mockReturnValue({
+    mockUseKycSessionDisclaimers.mockReturnValue({
       disclaimers: catalogDisclaimers,
       isLoading: false,
       error: null,
@@ -199,7 +199,7 @@ describe('VbaVerifyIdentity', () => {
   });
 
   it('shows a skeleton loader instead of catalog links while the fetch is in flight, and disables the CTA', () => {
-    mockUseKycDisclaimersCatalog.mockReturnValue({
+    mockUseKycSessionDisclaimers.mockReturnValue({
       disclaimers: null,
       isLoading: true,
       error: null,
@@ -217,7 +217,7 @@ describe('VbaVerifyIdentity', () => {
   });
 
   it('shows an error with a retry action and keeps the CTA disabled when the fetch fails', () => {
-    mockUseKycDisclaimersCatalog.mockReturnValue({
+    mockUseKycSessionDisclaimers.mockReturnValue({
       disclaimers: null,
       isLoading: false,
       error: 'Request timed out',

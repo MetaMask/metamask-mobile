@@ -7,7 +7,7 @@ export type KycCatalogDisclaimerLink = KycCatalogDocument & {
   id: string;
 };
 
-interface UseKycDisclaimersCatalogResult {
+interface UseKycSessionDisclaimersResult {
   disclaimers: KycCatalogDisclaimerLink[] | null;
   isLoading: boolean;
   error: string | null;
@@ -44,9 +44,9 @@ const toLinks = (
  * @param country - ISO 3166-1 alpha-3 country code (e.g. `'BRA'`).
  * @returns The flattened catalog links, loading state, error, and a `retry` function.
  */
-export const useKycDisclaimersCatalog = (
+export const useKycSessionDisclaimers = (
   country: string,
-): UseKycDisclaimersCatalogResult => {
+): UseKycSessionDisclaimersResult => {
   const [disclaimers, setDisclaimers] = useState<
     KycCatalogDisclaimerLink[] | null
   >(null);
