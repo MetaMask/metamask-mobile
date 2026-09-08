@@ -37,28 +37,43 @@ describe('kycServiceInit', () => {
     expect(controller).toBeInstanceOf(KycService);
   });
 
-  it('passes the messenger, fetch, and the KYC API base URL', () => {
-    const requestMock = getInitRequestMock();
-
-    const { controller } = kycServiceInit(requestMock);
-
-    expect(controller).toMatchObject({
-      messenger: requestMock.controllerMessenger,
-      fetch,
-      baseUrl: process.env.KYC_API_URL,
-    });
-  });
-
-  it('falls back to an empty base URL when KYC_API_URL is unset', () => {
+  it('passes the messenger, fetch, and configured KYC API base URL', () => {
     const originalBaseUrl = process.env.KYC_API_URL;
-    delete process.env.KYC_API_URL;
+    process.env.KYC_API_URL = 'https://kyc-api.example.com';
 
     try {
-      const { controller } = kycServiceInit(getInitRequestMock());
+      const requestMock = getInitRequestMock();
+      const { controller } = kycServiceInit(requestMock);
 
-      expect(controller).toMatchObject({ baseUrl: '' });
+      expect(controller).toMatchObject({
+        messenger: requestMock.controllerMessenger,
+        fetch,
+        baseUrl: 'https://kyc-api.example.com',
+      });
     } finally {
       process.env.KYC_API_URL = originalBaseUrl;
     }
   });
+
+  it.each([undefined, ''])(
+    'falls back to the production KYC API when KYC_API_URL is %s',
+    (baseUrl) => {
+      const originalBaseUrl = process.env.KYC_API_URL;
+      if (baseUrl === undefined) {
+        delete process.env.KYC_API_URL;
+      } else {
+        process.env.KYC_API_URL = baseUrl;
+      }
+
+      try {
+        const { controller } = kycServiceInit(getInitRequestMock());
+
+        expect(controller).toMatchObject({
+          baseUrl: 'https://kyc-api.api.cx.metamask.io',
+        });
+      } finally {
+        process.env.KYC_API_URL = originalBaseUrl;
+      }
+    },
+  );
 });
