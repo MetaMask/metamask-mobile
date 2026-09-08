@@ -10,11 +10,14 @@ import {
 } from './appProfiling';
 import {
   startProfiling,
+  stopProfiling,
   stopProfilingToExternalFiles,
 } from 'react-native-release-profiler';
+import { Platform } from 'react-native';
 
 jest.mock('react-native-release-profiler', () => ({
   startProfiling: jest.fn(),
+  stopProfiling: jest.fn(),
   stopProfilingToExternalFiles: jest.fn(),
 }));
 
@@ -22,6 +25,7 @@ describe('appProfiling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __resetAppProfilingForTests();
+    Platform.OS = 'android';
   });
 
   it('reports profiling disabled outside performance APKs in unit tests', () => {

@@ -11,8 +11,10 @@
 
 import {
   startProfiling,
+  stopProfiling,
   stopProfilingToExternalFiles,
 } from 'react-native-release-profiler';
+import { Platform } from 'react-native';
 
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';
@@ -94,12 +96,13 @@ export async function startAppProfiling(
  */
 export async function stopAppProfiling(
   enabled: boolean = isPerformanceProfilingEnabled,
+  force: boolean = false,
 ): Promise<string | null> {
   if (!enabled) {
     return null;
   }
 
-  if (!isRecording) {
+  if (!isRecording && !force) {
     lastError = 'stopProfiling skipped: no active profiling session';
     notifyListeners();
     return null;
@@ -109,7 +112,10 @@ export async function stopAppProfiling(
   notifyListeners();
 
   try {
-    const path = await stopProfilingToExternalFiles();
+    const path =
+      Platform.OS === 'android'
+        ? await stopProfilingToExternalFiles()
+        : await stopProfiling(true);
     isRecording = false;
 
     if (typeof path === 'string' && path.length > 0) {

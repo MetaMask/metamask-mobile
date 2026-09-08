@@ -39,7 +39,7 @@ export interface WorkerLevelFixtures {
 
 export interface TestLevelFixtures {
   /**
-   * Automatically captures a Hermes `.cpuprofile` for @Performance tests.
+   * Automatically captures a Hermes `.cpuprofile` for performance specs.
    */
   appProfiling: void;
 

@@ -102,7 +102,10 @@ const PerformanceProfilerStatus: React.FC = () => {
 
   const handleStop = useCallback(() => {
     setStopAcked(true);
-    stopAppProfiling().catch(() => {
+    // The test flow can relaunch the app between Start and Stop. Force the
+    // native stop so the JS-side recording state reset does not lose the
+    // active Hermes session.
+    stopAppProfiling(undefined, true).catch(() => {
       // Errors are published via subscribeAppProfilingStatus (error hook).
     });
   }, []);
