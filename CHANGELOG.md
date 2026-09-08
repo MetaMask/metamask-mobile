@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Updated icons to Phosphor-based artwork from `@metamask/design-system-react-native` 0.44.0
-
 ## [8.10.1]
 
 ### Removed
