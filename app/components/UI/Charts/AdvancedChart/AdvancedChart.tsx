@@ -1025,6 +1025,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             allowsInlineMediaPlayback
             androidLayerType="hardware"
             mixedContentMode="always"
+            // §Gap-7: Android-specific — prevent window.open from creating new
+            // browser windows. A compromised chart page could otherwise open
+            // arbitrary URLs in a new window context.
+            setSupportMultipleWindows={false}
           />
           {showSkeleton && (
             <Skeleton
