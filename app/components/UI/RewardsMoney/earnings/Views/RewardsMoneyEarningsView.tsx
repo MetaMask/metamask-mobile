@@ -27,11 +27,15 @@ import {
 import EarningsSummaryHeader from '../components/EarningsSummaryHeader';
 import EarningsTabs, {
   CodePerformancePlaceholder,
+  EARNINGS_TAB_CLAIMS,
   EARNINGS_TAB_LEDGER,
 } from '../components/EarningsTabs';
 import EarningsLedgerList from '../components/EarningsLedgerList';
+import ClaimsList from '../components/ClaimsList';
 import useEarningsSummary from '../hooks/useEarningsSummary';
 import useEarningsLedger from '../hooks/useEarningsLedger';
+import useClaimHistory from '../hooks/useClaimHistory';
+import useClaimRowPress from '../hooks/useClaimRowPress';
 import { deriveClaimability } from '../utils/deriveClaimability';
 
 export interface RewardsMoneyEarningsViewProps {
@@ -95,6 +99,20 @@ const RewardsMoneyEarningsView: React.FC<RewardsMoneyEarningsViewProps> = ({
     isRefreshing,
   } = useEarningsLedger(originTypes);
 
+  const {
+    claims,
+    isLoading: isClaimsLoading,
+    isLoadingMore: isClaimsLoadingMore,
+    isRefreshing: isClaimsRefreshing,
+    hasMore: hasMoreClaims,
+    error: claimsError,
+    loadMore: loadMoreClaims,
+    refresh: refreshClaims,
+    retry: retryClaims,
+  } = useClaimHistory();
+
+  const resolveClaimRowPress = useClaimRowPress();
+
   const claimability = useMemo(
     () => deriveClaimability(summary, originTypes),
     [summary, originTypes],
@@ -144,8 +162,9 @@ const RewardsMoneyEarningsView: React.FC<RewardsMoneyEarningsViewProps> = ({
     ],
   );
 
-  const content =
-    activeTab === EARNINGS_TAB_LEDGER ? (
+  let content: React.ReactElement;
+  if (activeTab === EARNINGS_TAB_LEDGER) {
+    content = (
       <EarningsLedgerList
         entries={entries}
         isLoading={isLoading}
@@ -158,12 +177,31 @@ const RewardsMoneyEarningsView: React.FC<RewardsMoneyEarningsViewProps> = ({
         retry={retry}
         ListHeaderComponent={listHeader}
       />
-    ) : (
+    );
+  } else if (activeTab === EARNINGS_TAB_CLAIMS) {
+    content = (
+      <ClaimsList
+        claims={claims}
+        isLoading={isClaimsLoading}
+        isLoadingMore={isClaimsLoadingMore}
+        isRefreshing={isClaimsRefreshing}
+        hasMore={hasMoreClaims}
+        error={claimsError}
+        loadMore={loadMoreClaims}
+        refresh={refreshClaims}
+        retry={retryClaims}
+        resolveRowPress={resolveClaimRowPress}
+        ListHeaderComponent={listHeader}
+      />
+    );
+  } else {
+    content = (
       <Box twClassName="flex-1">
         {listHeader}
         <CodePerformancePlaceholder />
       </Box>
     );
+  }
 
   if (embedded) {
     return (

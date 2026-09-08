@@ -24,7 +24,12 @@ describe('EarningsTabs', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders no bar for a referee, who has only one tab', () => {
+  /**
+   * The bar used to hide itself for a referee, who had only Activity. Claims
+   * applies to referrer and referee alike, so two tabs is now the floor and the
+   * bar always renders.
+   */
+  it('renders the bar for a referee, who now has Activity and Claims', () => {
     render(
       <EarningsTabs
         activeIndex={0}
@@ -34,7 +39,15 @@ describe('EarningsTabs', () => {
     );
 
     expect(
-      screen.queryByTestId(REWARDS_MONEY_TEST_IDS.EARNINGS_TABS),
+      screen.getByTestId(REWARDS_MONEY_TEST_IDS.EARNINGS_TABS),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${REWARDS_MONEY_TEST_IDS.EARNINGS_TABS}-claims`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        `${REWARDS_MONEY_TEST_IDS.EARNINGS_TABS}-code-performance`,
+      ),
     ).not.toBeOnTheScreen();
   });
 
@@ -54,7 +67,8 @@ describe('EarningsTabs', () => {
       ),
     );
 
-    expect(onTabPress).toHaveBeenCalledWith(1);
+    // Code performance sits at 2 now that Claims occupies 1.
+    expect(onTabPress).toHaveBeenCalledWith(2);
   });
 });
 

@@ -33,6 +33,7 @@ describe('getRewardsMoneyControllerMessenger', () => {
           'RewardsMoneyDataService:getReferralMe',
           'RewardsMoneyDataService:getEarningsSummary',
           'RewardsMoneyDataService:getEarningsLedger',
+          'RewardsMoneyDataService:getClaimHistory',
           'RewardsMoneyDataService:initiateClaim',
         ],
         events: [],

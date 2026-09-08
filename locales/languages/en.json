@@ -11619,7 +11619,8 @@
       "claim": "Claim",
       "tab_activity": "Activity",
       "tab_code_performance": "Code performance",
-      "code_performance_coming_soon": "Code performance is coming soon."
+      "code_performance_coming_soon": "Code performance is coming soon.",
+      "tab_claims": "Claims"
     },
     "origin_type": {
       "cashback": "Fee cashback",
@@ -11658,6 +11659,17 @@
       "error_submit_failed": "Something went wrong sending the claim. Try again.",
       "error_confirmation_failed": "The claim didn't go through on the network. Nothing was taken from your balance — try again.",
       "error_confirmation_timeout": "The claim didn't confirm in time and its window has closed. Nothing was taken from your balance — try again."
+    },
+    "claims": {
+      "row_title": "Withdrawal",
+      "status_confirmed": "Confirmed",
+      "status_pending": "Pending",
+      "status_expired": "Expired",
+      "status_failed": "Not completed",
+      "likely_transaction": "likely transaction",
+      "empty": "No withdrawals yet.",
+      "error_title": "Couldn't load withdrawals",
+      "error_description": "Something went wrong. Try again."
     }
   }
 }

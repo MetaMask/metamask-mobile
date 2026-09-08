@@ -9,6 +9,7 @@ import type {
 import { REWARDS_MONEY_TEST_IDS } from '../../constants';
 import useEarningsSummary from '../hooks/useEarningsSummary';
 import useEarningsLedger from '../hooks/useEarningsLedger';
+import useClaimHistory from '../hooks/useClaimHistory';
 import RewardsMoneyEarningsView from './RewardsMoneyEarningsView';
 
 const mockNavigate = jest.fn();
@@ -30,6 +31,17 @@ jest.mock('../hooks/useEarningsLedger', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../hooks/useClaimHistory', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+// Reads Redux and navigation; the view only forwards its result to the list.
+jest.mock('../hooks/useClaimRowPress', () => ({
+  __esModule: true,
+  default: jest.fn(() => () => null),
+}));
+
 jest.mock('../../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
   return {
@@ -41,6 +53,7 @@ jest.mock('../../../../Views/ErrorBoundary', () => {
 
 const mockedUseSummary = jest.mocked(useEarningsSummary);
 const mockedUseLedger = jest.mocked(useEarningsLedger);
+const mockedUseClaimHistory = jest.mocked(useClaimHistory);
 
 const createTotals = (
   overrides: Partial<EarningsSummaryTotals> = {},
@@ -84,6 +97,21 @@ const mockLedgerState = (overrides = {}) => {
   });
 };
 
+const mockClaimHistoryState = (overrides = {}) => {
+  mockedUseClaimHistory.mockReturnValue({
+    claims: [],
+    isLoading: false,
+    isLoadingMore: false,
+    hasMore: false,
+    error: null,
+    loadMore: jest.fn(),
+    refresh: jest.fn(),
+    retry: jest.fn(),
+    isRefreshing: false,
+    ...overrides,
+  });
+};
+
 const mockSummaryState = (overrides = {}) => {
   mockedUseSummary.mockReturnValue({
     summary: createSummary(),
@@ -100,6 +128,7 @@ describe('RewardsMoneyEarningsView', () => {
     mockRouteParams = {};
     mockSummaryState();
     mockLedgerState();
+    mockClaimHistoryState();
   });
 
   it('scopes the summary and the ledger to the same origin types', () => {
@@ -153,8 +182,15 @@ describe('RewardsMoneyEarningsView', () => {
   it('hides the code-performance tab for a cashback-only scope', () => {
     render(<RewardsMoneyEarningsView originTypes={['CASHBACK']} />);
 
+    // The bar itself now always renders — Claims applies to a referee too, so
+    // what a cashback-only scope must hide is the code-performance tab.
     expect(
-      screen.queryByTestId(REWARDS_MONEY_TEST_IDS.EARNINGS_TABS),
+      screen.getByTestId(REWARDS_MONEY_TEST_IDS.EARNINGS_TABS),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        `${REWARDS_MONEY_TEST_IDS.EARNINGS_TABS}-code-performance`,
+      ),
     ).not.toBeOnTheScreen();
   });
 

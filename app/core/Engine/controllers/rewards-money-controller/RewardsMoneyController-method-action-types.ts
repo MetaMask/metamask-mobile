@@ -74,9 +74,21 @@ export type RewardsMoneyControllerGetEarningsLedgerAction = {
 };
 
 /**
- * Opens a claim. Never cached: the voucher it returns is single-use and
- * expires in 60 seconds.
+ * The caller's claim history, newest first.
+ *
+ * Deliberately uncached, unlike the summary and the ledger's first page. This
+ * is a history list the user opens on purpose and pull-to-refreshes, not a
+ * read on the hot path — and caching it would mean a new controller state key
+ * for no benefit.
+ *
+ * @param params.cursor - Cursor from a previous page, or omitted for the first.
+ * @returns One page of claims, or an empty page when the surface is disabled.
  */
+export type RewardsMoneyControllerGetClaimHistoryAction = {
+  type: `RewardsMoneyController:getClaimHistory`;
+  handler: RewardsMoneyController['getClaimHistory'];
+};
+
 export type RewardsMoneyControllerInitiateClaimAction = {
   type: `RewardsMoneyController:initiateClaim`;
   handler: RewardsMoneyController['initiateClaim'];
@@ -93,4 +105,5 @@ export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerGetReferralMeAction
   | RewardsMoneyControllerGetEarningsSummaryAction
   | RewardsMoneyControllerGetEarningsLedgerAction
+  | RewardsMoneyControllerGetClaimHistoryAction
   | RewardsMoneyControllerInitiateClaimAction;
