@@ -1,8 +1,9 @@
 import '../_mocks_/initialState';
 import { SolScope } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
-import { handleFetch } from '@metamask/controller-utils';
+import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import {
+  calcTokenFiatRate,
   calcTokenFiatValue,
   calcUsdAmountFromFiat,
   convertFiatToUsd,
@@ -15,6 +16,19 @@ import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 
 jest.mock('@metamask/controller-utils');
 jest.mock('@metamask/assets-controllers');
+
+// `@metamask/controller-utils` is auto-mocked above, which would otherwise
+// leave `toChecksumHexAddress` returning `undefined` for every test in this
+// file (silently falling back to the raw, un-checksummed address inside
+// `calcTokenFiatRate` / `calcTokenFiatValue` and hiding any regression in the
+// checksum-based market-data lookup). Wire it to the real implementation so
+// tests exercise the actual lookup behavior.
+const { toChecksumHexAddress: actualToChecksumHexAddress } = jest.requireActual(
+  '@metamask/controller-utils',
+);
+(toChecksumHexAddress as jest.Mock).mockImplementation(
+  actualToChecksumHexAddress,
+);
 
 describe('exchange-rates', () => {
   describe('convertFiatToUsd', () => {
@@ -458,6 +472,225 @@ describe('exchange-rates', () => {
         });
 
         expect(result).toBe(0);
+      });
+    });
+
+    describe('checksum handling', () => {
+      // Real-world Bridge tokens (e.g. mUSD) carry lowercase addresses, while
+      // market data is always keyed by the checksummed address (see
+      // `getTokenRatesControllerMarketData`). Regression test for a bug where
+      // the lookup used the raw address and silently missed the price.
+      const lowercaseAddress =
+        '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
+      const checksummedAddress = actualToChecksumHexAddress(
+        lowercaseAddress,
+      ) as Hex;
+
+      it('finds the price when the token address is lowercase but market data is keyed by the checksummed address', () => {
+        const lowercaseToken = {
+          ...mockEvmToken,
+          address: lowercaseAddress,
+        };
+
+        const result = calcTokenFiatValue({
+          token: lowercaseToken,
+          amount: '1',
+          evmMultiChainMarketData: {
+            [mockChainId]: {
+              [checksummedAddress]: { price: 10 },
+            },
+          },
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        // 1 * 10 * 2000 = 20000
+        expect(result).toBe(20000);
+      });
+
+      it('does NOT find the price when market data is keyed by a different checksummed address (sanity check)', () => {
+        const lowercaseToken = {
+          ...mockEvmToken,
+          address: lowercaseAddress,
+        };
+
+        const result = calcTokenFiatValue({
+          token: lowercaseToken,
+          amount: '1',
+          evmMultiChainMarketData: {
+            [mockChainId]: {
+              // Deliberately lowercase key: proves the lookup requires the
+              // checksummed form and isn't accidentally case-insensitive.
+              [lowercaseAddress]: { price: 10 },
+            },
+          },
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        expect(result).toBe(0);
+      });
+    });
+  });
+
+  describe('calcTokenFiatRate', () => {
+    const mockChainId = '0x1' as Hex;
+    const mockTokenAddress =
+      '0x0000000000000000000000000000000000000001' as Hex;
+    const nativeAddress = '0x0000000000000000000000000000000000000000' as Hex;
+    const mockSolanaChainId =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
+    const mockSolanaTokenAddress =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as const;
+
+    const mockEvmToken = {
+      address: mockTokenAddress,
+      chainId: mockChainId,
+      symbol: 'TOKEN1',
+      decimals: 18,
+      name: 'Token One',
+      balance: '1',
+    };
+
+    const mockNativeToken = {
+      ...mockEvmToken,
+      address: nativeAddress,
+      symbol: 'ETH',
+    };
+
+    const mockSolanaToken = {
+      address: mockSolanaTokenAddress,
+      chainId: mockSolanaChainId,
+      symbol: 'SOL',
+      decimals: 9,
+      name: 'Solana',
+      balance: '1',
+    };
+
+    const mockNetworkConfigurations = {
+      [mockChainId]: {
+        nativeCurrency: 'ETH',
+      },
+    };
+
+    const mockEvmMultiChainMarketData = {
+      [mockChainId]: {
+        [mockTokenAddress]: {
+          price: 10,
+        },
+      },
+    };
+
+    const mockEvmMultiChainCurrencyRates = {
+      ETH: {
+        conversionRate: 2000,
+      },
+    };
+
+    const mockNonEvmMultichainAssetRates = {
+      [mockSolanaTokenAddress]: {
+        rate: '151.7',
+      },
+    } as ReturnType<typeof selectMultichainAssetsRates>;
+
+    it('returns undefined when token is undefined', () => {
+      const result = calcTokenFiatRate({
+        token: undefined,
+        evmMultiChainMarketData: mockEvmMultiChainMarketData,
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the native currency conversion rate for a native asset', () => {
+      const result = calcTokenFiatRate({
+        token: mockNativeToken,
+        evmMultiChainMarketData: mockEvmMultiChainMarketData,
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+      });
+
+      expect(result).toBe(2000);
+    });
+
+    it('returns the fiat rate for an EVM ERC-20 using market data price * conversion rate', () => {
+      const result = calcTokenFiatRate({
+        token: mockEvmToken,
+        evmMultiChainMarketData: mockEvmMultiChainMarketData,
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+      });
+
+      // 10 (token price in ETH) * 2000 (USD/ETH) = 20000
+      expect(result).toBe(20000);
+    });
+
+    it('returns the non-EVM asset rate directly when available', () => {
+      const result = calcTokenFiatRate({
+        token: mockSolanaToken,
+        evmMultiChainMarketData: mockEvmMultiChainMarketData,
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+      });
+
+      expect(result).toBe(151.7);
+    });
+
+    it('falls back to currencyExchangeRate when market data is missing for an EVM token', () => {
+      const tokenWithExchangeRate = {
+        ...mockEvmToken,
+        currencyExchangeRate: 42,
+      };
+
+      const result = calcTokenFiatRate({
+        token: tokenWithExchangeRate,
+        evmMultiChainMarketData: undefined,
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+        nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+      });
+
+      expect(result).toBe(42);
+    });
+
+    describe('checksum handling', () => {
+      // Same regression as `calcTokenFiatValue`: Bridge tokens (e.g. mUSD)
+      // carry lowercase addresses, while market data is keyed by the
+      // checksummed address.
+      const lowercaseAddress =
+        '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
+      const checksummedAddress = actualToChecksumHexAddress(
+        lowercaseAddress,
+      ) as Hex;
+
+      it('finds the rate when the token address is lowercase but market data is keyed by the checksummed address', () => {
+        const lowercaseToken = {
+          ...mockEvmToken,
+          address: lowercaseAddress,
+        };
+
+        const result = calcTokenFiatRate({
+          token: lowercaseToken,
+          evmMultiChainMarketData: {
+            [mockChainId]: {
+              [checksummedAddress]: { price: 10 },
+            },
+          },
+          networkConfigurationsByChainId: mockNetworkConfigurations,
+          evmMultiChainCurrencyRates: mockEvmMultiChainCurrencyRates,
+          nonEvmMultichainAssetRates: mockNonEvmMultichainAssetRates,
+        });
+
+        // 10 (token price in ETH) * 2000 (USD/ETH) = 20000
+        expect(result).toBe(20000);
       });
     });
   });

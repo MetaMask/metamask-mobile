@@ -103,12 +103,16 @@ export const useTokenBalanceInUsd = (
   }, [token, evmHexBalance, nonEvmBalance]);
 
   return useMemo(() => {
-    // Reconstruct narrow objects matching calcTokenFiatValue's interface
+    // Reconstruct narrow objects matching calcTokenFiatValue's interface.
+    // Keyed by the checksummed address since calcTokenFiatValue looks up
+    // market data with a checksummed key.
     const evmMultiChainMarketData =
       evmTokenPrice !== undefined && token
         ? ({
             [formatChainIdToHex(token.chainId)]: {
-              [token.address as Hex]: { price: evmTokenPrice },
+              [toChecksumAddress(token.address) as Hex]: {
+                price: evmTokenPrice,
+              },
             },
           } as Record<Hex, Record<Hex, { price: number | undefined }>>)
         : undefined;
