@@ -71,8 +71,11 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type OrderParams,
+  type OrderResult,
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import { readPerpsOrderReceipts } from '../../utils/perpsOrderReceipt';
 import PerpsOrderView from './PerpsOrderView';
 
 jest.mock('@react-navigation/native', () => {
@@ -430,6 +433,7 @@ jest.mock('../../../../Views/confirmations/hooks/tokens/useAddToken', () => ({
   useAddToken: jest.fn(),
 }));
 
+let mockReceiptConfirmation = false;
 jest.mock(
   '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
   () => ({
@@ -437,6 +441,9 @@ jest.mock(
       id: 'test-transaction-id',
       type: 'perpsDeposit',
       status: 'unapproved',
+      ...(mockReceiptConfirmation
+        ? { type: 'perpsDepositAndOrder', time: 1700000000000 }
+        : {}),
       chainId: '0xa4b1',
       txParams: {
         from: '0x1234567890123456789012345678901234567890',
@@ -658,7 +665,13 @@ jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics');
 // Mock Engine context to prevent accessing real PerpsController
 jest.mock('../../../../../core/Engine', () => ({
   context: {
+    AccountsController: {
+      getSelectedAccount: jest.fn(() => ({
+        address: '0x1234567890123456789012345678901234567890',
+      })),
+    },
     PerpsController: {
+      state: { activeProvider: 'hyperliquid', isTestnet: true },
       subscribeToPrices: jest.fn(() => jest.fn()),
       getAccountState: jest.fn().mockResolvedValue({
         totalBalance: '1000',
@@ -1092,7 +1105,14 @@ function applyDefaultHookMocks() {
 }
 
 describe('PerpsOrderView', () => {
+  const originalDev = global.__DEV__;
+
+  afterEach(() => {
+    global.__DEV__ = originalDev;
+  });
+
   beforeEach(() => {
+    mockReceiptConfirmation = false;
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();
@@ -1416,8 +1436,18 @@ describe('PerpsOrderView', () => {
   });
 
   it('includes discovery attribution from route source_section in order trackingData', async () => {
-    const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
+    global.__DEV__ = true;
+    mockReceiptConfirmation = true;
+    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+    const result: OrderResult = { success: true, orderId: '101' };
+    const mockExecuteOrder = jest.fn(
+      async (_params: OrderParams, onResult?: (value: OrderResult) => void) => {
+        onResult?.(result);
+        return result;
+      },
+    );
     (useRoute as jest.Mock).mockReturnValue({
+      key: 'order-discovery-attribution',
       params: {
         asset: 'ETH',
         direction: 'long',
@@ -1452,6 +1482,18 @@ describe('PerpsOrderView', () => {
       }),
       expect.any(Function),
     );
+    expect(readPerpsOrderReceipts('test-transaction-id')).toEqual([
+      expect.objectContaining({
+        status: 'settled',
+        result,
+        submittedRequest: expect.objectContaining({
+          trackingData: expect.objectContaining({
+            discoverySource: 'watchlist',
+            perpDiscoverySource: 'watchlist',
+          }),
+        }),
+      }),
+    ]);
   });
 
   // The market page the trader came from is still below this screen, so the
