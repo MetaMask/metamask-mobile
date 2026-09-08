@@ -2091,22 +2091,38 @@ describe('PolymarketProvider', () => {
     expect(result).toBeUndefined();
   });
 
-  it('throws for Safe claims when the selected gas fee token is unavailable', async () => {
-    await expect(
-      createProvider().beforeSignClaim({
-        transactionMeta: {
-          id: 'claim-tx',
-          txParams: { from: signer.address },
-          selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
-          isGasFeeTokenIgnoredIfBalance: true,
-          gasFeeTokens: [] as GasFeeToken[],
-        } as TransactionMeta,
-        signer,
-        positions: [createClaimPosition()],
-      }),
-    ).rejects.toThrow(
-      'Insufficient POL and pUSD to pay network fees for this claim',
-    );
+  it('passes through Safe claims when the selected gas fee token is missing from gasFeeTokens', async () => {
+    const result = await createProvider().beforeSignClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        txParams: { from: signer.address },
+        selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+        isGasFeeTokenIgnoredIfBalance: true,
+        gasFeeTokens: [] as GasFeeToken[],
+      } as TransactionMeta,
+      signer,
+      positions: [createClaimPosition()],
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('passes through Safe claims when gasFeeTokens does not include the selected token', async () => {
+    const result = await createProvider().beforeSignClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        txParams: { from: signer.address },
+        selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+        isGasFeeTokenIgnoredIfBalance: true,
+        gasFeeTokens: [
+          { tokenAddress: '0x1111111111111111111111111111111111111111' },
+        ] as GasFeeToken[],
+      } as TransactionMeta,
+      signer,
+      positions: [createClaimPosition()],
+    });
+
+    expect(result).toBeUndefined();
   });
 
   it('passes through Safe claim publishing', async () => {

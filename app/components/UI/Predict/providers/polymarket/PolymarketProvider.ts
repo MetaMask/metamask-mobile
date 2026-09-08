@@ -2362,25 +2362,9 @@ export class PolymarketProvider implements PredictProvider {
       };
     }
 
-    const { gasFeeTokens, isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken } =
-      transactionMeta;
-
-    const isSelectedGasFeeTokenUnavailable =
-      Boolean(selectedGasFeeToken) &&
-      Boolean(isGasFeeTokenIgnoredIfBalance) &&
-      gasFeeTokens !== undefined &&
-      !gasFeeTokens.some(
-        (token) =>
-          token.tokenAddress.toLowerCase() ===
-          selectedGasFeeToken?.toLowerCase(),
-      );
-
-    if (isSelectedGasFeeTokenUnavailable) {
-      throw new Error(
-        'Insufficient POL and pUSD to pay network fees for this claim',
-      );
-    }
-
+    // Safe claims keep `isGasFeeTokenIgnoredIfBalance`, so native POL can pay
+    // when Sentinel returns an empty or mismatched `gasFeeTokens` list.
+    // Transaction-controller preflight rejects only when native is also short.
     return undefined;
   }
 
