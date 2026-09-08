@@ -34,11 +34,18 @@ type PullFileDriver = WebdriverIO.Browser & {
   pullFile: (remotePath: string) => Promise<string>;
 };
 
+function profilerSelector(testId: string): string {
+  if (testId === RESULT_READY_TEST_ID || testId === ERROR_TEST_ID) {
+    return `android=new UiSelector().descriptionStartsWith("${testId}:")`;
+  }
+  return `~${testId}`;
+}
+
 async function elementExists(
   appiumDriver: WebdriverIO.Browser,
   testId: string,
 ): Promise<boolean> {
-  const el = await appiumDriver.$(`~${testId}`);
+  const el = await appiumDriver.$(profilerSelector(testId));
   return el.isExisting().catch(() => false);
 }
 
@@ -95,7 +102,7 @@ async function waitForProfilerSignal(
   );
 
   if (await elementExists(appiumDriver, ERROR_TEST_ID)) {
-    const profilerError = await appiumDriver.$(`~${ERROR_TEST_ID}`);
+    const profilerError = await appiumDriver.$(profilerSelector(ERROR_TEST_ID));
     const errorLabel =
       (await profilerError.getAttribute('content-desc').catch(() => null)) ||
       (await profilerError.getAttribute('name').catch(() => null)) ||
@@ -165,7 +172,9 @@ async function waitForProfilerResultPath(
     timeoutMsg: `Profiler result not ready after ${RESULT_TIMEOUT_MS}ms`,
   });
 
-  const resultReady = await appiumDriver.$(`~${RESULT_READY_TEST_ID}`);
+  const resultReady = await appiumDriver.$(
+    profilerSelector(RESULT_READY_TEST_ID),
+  );
   const resultLabel =
     (await resultReady.getAttribute('content-desc').catch(() => null)) ||
     (await resultReady.getAttribute('name').catch(() => null));
