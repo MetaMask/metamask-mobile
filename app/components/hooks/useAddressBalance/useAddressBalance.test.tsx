@@ -6,7 +6,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
-import backgroundState from '../../../util/test/initial-root-state';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   createMockAccountsControllerState,
   createMockUuidFromAddress,

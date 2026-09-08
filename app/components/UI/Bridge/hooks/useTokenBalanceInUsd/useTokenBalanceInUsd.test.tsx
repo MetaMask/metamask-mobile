@@ -50,7 +50,7 @@ const stateWithUsdConversionRate = {
       },
     },
   },
-} as Parameters<typeof createBridgeTestState>[1];
+};
 
 describe('useTokenBalanceInUsd', () => {
   it('returns the USD balance for an EVM token when usdConversionRate is available', () => {
@@ -203,11 +203,13 @@ describe('useTokenBalanceInUsd', () => {
       symbol: 'ETH',
       chainId: ethChainId,
     };
-    const evmBalances =
-      stateWithUsdConversionRate.engine.backgroundState.AssetsController
-        .assetsBalance[evmAccountId];
-    const { [NATIVE_ETH_ASSET_ID]: _nativeEth, ...evmBalancesWithoutNative } =
-      evmBalances;
+    const evmBalancesWithoutNative = Object.fromEntries(
+      Object.entries(
+        initialState.engine.backgroundState.AssetsController.assetsBalance[
+          evmAccountId
+        ],
+      ).filter(([assetId]) => assetId !== NATIVE_ETH_ASSET_ID),
+    );
     const testState = createBridgeTestState(
       {
         bridgeReducerOverrides: { sourceToken },
@@ -229,7 +231,7 @@ describe('useTokenBalanceInUsd', () => {
             },
           },
         },
-      } as Parameters<typeof createBridgeTestState>[1],
+      },
     );
 
     const { result } = renderHookWithProvider(

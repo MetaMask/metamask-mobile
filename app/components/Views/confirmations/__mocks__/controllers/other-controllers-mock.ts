@@ -27,7 +27,9 @@ export const accountsControllerMock = {
         internalAccounts: {
           accounts: {
             [accountMock]: {
+              id: accountMock,
               address: accountMock,
+              type: 'eip155:eoa',
               metadata: {
                 name: 'Account 1',
                 keyring: {
@@ -138,6 +140,18 @@ export const currencyRateControllerMock = {
             name: 'Ethereum',
             decimals: 18,
           },
+          [`eip155:1/erc20:${tokenAddress1Mock}`]: {
+            type: 'erc20' as const,
+            symbol: 'T1',
+            name: 'T1',
+            decimals: 4,
+          },
+          [`eip155:1/erc20:${tokenAddress2Mock}`]: {
+            type: 'erc20' as const,
+            symbol: 'T2',
+            name: 'T2',
+            decimals: 6,
+          },
         },
         assetsPrice: {
           'eip155:1/slip44:60': {
@@ -146,8 +160,20 @@ export const currencyRateControllerMock = {
             usdPrice: 10000,
             lastUpdated: 1732887955694,
           },
+          [`eip155:1/erc20:${tokenAddress1Mock}`]: {
+            assetPriceType: 'fungible' as const,
+            price: 10000,
+            usdPrice: 10000,
+            lastUpdated: 1732887955694,
+          },
         },
-        assetsBalance: {},
+        assetsBalance: {
+          [accountMock]: {
+            'eip155:1/slip44:60': { amount: '2' },
+            [`eip155:1/erc20:${tokenAddress1Mock}`]: { amount: '0.01' },
+            [`eip155:1/erc20:${tokenAddress2Mock}`]: { amount: '0' },
+          },
+        },
         customAssets: {},
         assetPreferences: {},
       },
