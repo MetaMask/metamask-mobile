@@ -323,6 +323,19 @@ class PerpsProMarketView {
     });
   }
 
+  /**
+   * After Auto close Set from the position card, the root layout can survive
+   * while the positions list subtree is temporarily unmounted. Wait for the
+   * position row itself before asserting on a subsequent close transition.
+   */
+  async waitForPositionRowRemounted(
+    symbol: string,
+    timeout = 20000,
+  ): Promise<void> {
+    await this.waitForProContainer(timeout);
+    await this.waitForPositionRow(symbol, timeout);
+  }
+
   async waitForPositionsPanel(timeout = 20000): Promise<void> {
     await Assertions.expectElementToBeVisible(this.positionsPanel, {
       description: 'Pro positions panel',
@@ -652,6 +665,8 @@ class PerpsProMarketView {
    * liquidation / TP). Do **not** re-tap Positions or scroll — those use
    * `scrollUntilVisible` (default 45s) and burn the outer retry budget in one
    * attempt when the Pro scroll-view is mid-transition after Auto close Set.
+   * Call this only after a stronger readiness step has already observed the row
+   * (for example `waitForPositionRow` / `waitForPositionRowRemounted`).
    * Position row testIDs are absent from the hierarchy once the position is
    * closed, so a short `expectElementToNotExist` is enough.
    */
