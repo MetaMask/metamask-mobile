@@ -125,11 +125,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyAddMoneySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.resetAllMocks();
     mockRouteParams = undefined;
-    // Re-establish implementations wiped by resetAllMocks.
-    mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
-    mockInitiateDeposit.mockImplementation(() => Promise.resolve());
 
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,

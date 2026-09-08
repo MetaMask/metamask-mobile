@@ -208,6 +208,8 @@ function renderHarness(pendingTransactions: TransactionMeta[]) {
  * Regression test for the Money-home "Add funds" bug where tapping "Add"
  * landed the user back on money home, with an empty 'Deposited activity'.
  */
+const originalRequestAnimationFrame = global.requestAnimationFrame;
+
 describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -237,6 +239,10 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
       trackBottomSheetViewed: jest.fn(),
       trackSurfaceClicked: jest.fn(),
     });
+  });
+
+  afterEach(() => {
+    global.requestAnimationFrame = originalRequestAnimationFrame;
   });
 
   it('navigates to the Add funds flow even when an unconfirmed transaction is already pending', async () => {
