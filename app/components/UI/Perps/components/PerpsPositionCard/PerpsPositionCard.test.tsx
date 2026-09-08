@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import {
   PERPS_CONSTANTS,
@@ -257,6 +257,84 @@ describe('PerpsPositionCard', () => {
       return undefined;
     });
   });
+
+  it.each([null, '1800'])(
+    'renders Cross liquidation %s without a margin action',
+    (liquidationPrice) => {
+      const cross = {
+        ...mockPosition,
+        leverage: { type: 'cross' as const, value: 3 },
+        liquidationPrice,
+      };
+
+      render(<PerpsPositionCard position={cross} onMarginPress={jest.fn()} />);
+
+      expect(screen.getByTestId('cross-margin-tag-lite-ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('cross-liquidation-info-lite-ETH'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent(
+        liquidationPrice === null
+          ? 'perps.cross_position.no_liquidation_price'
+          : '$1,800',
+      );
+      expect(
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.cross_position.margin_used'),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('retains the isolated margin edit action', () => {
+    const onMarginPress = jest.fn();
+    render(
+      <PerpsPositionCard
+        position={mockPosition}
+        onMarginPress={onMarginPress}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+    );
+
+    expect(onMarginPress).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId('cross-liquidation-info-lite-ETH'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each([null, '1800'])(
+    'masks Cross liquidation %s in privacy mode',
+    (liquidationPrice) => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(
+        (selector: unknown) => selector === selectPrivacyMode,
+      );
+
+      render(
+        <PerpsPositionCard
+          position={{
+            ...mockPosition,
+            leverage: { type: 'cross', value: 3 },
+            liquidationPrice,
+          }}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('•'.repeat(6));
+    },
+  );
 
   describe('Component Rendering', () => {
     it('renders position card with all sections', () => {

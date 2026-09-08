@@ -2243,6 +2243,10 @@
         "assetNotSupported": "Asset {{assetId}} is not supported for withdrawals. Supported assets: {{supportedAssets}}"
       },
       "orderValidation": {
+        "marginModeInvalid": "Choose a valid margin mode.",
+        "marginModeUnsupported": "The selected margin mode is not available for this market.",
+        "marginModePositionOpen": "Close the open position on this market before changing margin mode.",
+        "marginModeOrderOpen": "Cancel the open orders on this market before changing margin mode.",
         "coinRequired": "Coin is required for orders",
         "sizePositive": "Size must be a positive number",
         "pricePositive": "Price must be a positive number if provided",
@@ -2470,6 +2474,14 @@
       "liquidation_price": {
         "title": "Liquidation price",
         "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "cross_liquidation_price": {
+        "title": "Cross liquidation price",
+        "content": "This price moves with the profit and loss of your other cross positions and changes to your cross balance. A liquidation can affect your entire cross balance."
+      },
+      "cross_no_liquidation_price": {
+        "title": "No liquidation price",
+        "content": "At the current account value, this position has no liquidation price. This can change as the value of your other cross positions changes. A liquidation can affect your entire cross balance."
       },
       "liquidation_distance": {
         "title": "Liquidation distance",
@@ -2709,6 +2721,12 @@
       "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
       "cross_title": "Cross",
       "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon."
+    },
+    "cross_position": {
+      "badge": "Cross",
+      "margin_used": "Margin used",
+      "no_liquidation_price": "No liquidation price",
+      "liquidation_info": "About cross liquidation price"
     },
     "crossMargin": {
       "title": "Cross margin not supported",
