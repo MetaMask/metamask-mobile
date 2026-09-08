@@ -27,6 +27,7 @@ jest.mock('../../app/core/Engine', () => {
           accountIdByAddress: {},
         },
         listAccounts: jest.fn().mockReturnValue([]),
+        getSelectedAccount: jest.fn(),
         listMultichainAccounts: jest.fn().mockReturnValue([]),
         setAccountName: jest.fn(),
       },

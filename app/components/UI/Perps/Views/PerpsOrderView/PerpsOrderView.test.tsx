@@ -1450,6 +1450,7 @@ describe('PerpsOrderView', () => {
           perpDiscoverySource: 'watchlist',
         }),
       }),
+      expect.any(Function),
     );
   });
 
@@ -5284,6 +5285,7 @@ describe('PerpsOrderView', () => {
           expect.objectContaining({
             maxSlippageBps: 100,
           }),
+          expect.any(Function),
         );
       });
     });
