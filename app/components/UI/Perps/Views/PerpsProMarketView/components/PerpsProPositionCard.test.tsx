@@ -37,6 +37,63 @@ describe('PerpsProPositionCard', () => {
     (useSelector as jest.Mock).mockReturnValue(false);
   });
 
+  it.each([null, '2500'])(
+    'renders Cross liquidation %s with its explanation action',
+    (liquidationPrice) => {
+      const cross = {
+        ...position,
+        leverage: { type: 'cross' as const, value: 3 },
+        liquidationPrice,
+      };
+
+      render(
+        <PerpsProPositionCard position={cross} onEditMargin={jest.fn()} />,
+      );
+
+      expect(screen.getByTestId('cross-margin-tag-pro-ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('cross-liquidation-info-pro-ETH'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+      ).toHaveTextContent(
+        liquidationPrice === null ? 'No liquidation price' : '$2,500 (13.79%)',
+      );
+      expect(screen.getByText('Margin used')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  it.each([null, '2500'])(
+    'masks Cross liquidation %s in privacy mode',
+    (liquidationPrice) => {
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      render(
+        <PerpsProPositionCard
+          position={{
+            ...position,
+            leverage: { type: 'cross', value: 3 },
+            liquidationPrice,
+          }}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+      ).toHaveTextContent(DOTS_SHORT);
+      expect(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+      ).not.toHaveTextContent(
+        liquidationPrice === null ? 'No liquidation price' : '$2,500 (13.79%)',
+      );
+    },
+  );
+
   it('renders position summary metrics and action controls', () => {
     render(<PerpsProPositionCard position={position} />);
 

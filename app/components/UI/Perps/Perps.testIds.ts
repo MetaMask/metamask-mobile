@@ -92,6 +92,16 @@ export const PerpsPositionCardSelectorsIDs = {
   FUNDING_PAYMENTS_VALUE: 'position-card-funding-payments-value',
 };
 
+export const getPerpsCrossMarginTagSelector = (
+  mode: 'lite' | 'pro',
+  symbol: string,
+) => `cross-margin-tag-${mode}-${symbol}`;
+
+export const getPerpsCrossLiquidationInfoSelector = (
+  mode: 'lite' | 'pro',
+  symbol: string,
+) => `cross-liquidation-info-${mode}-${symbol}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================

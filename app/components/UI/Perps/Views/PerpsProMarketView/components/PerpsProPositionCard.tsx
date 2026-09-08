@@ -29,7 +29,12 @@ import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../../constants/perpsConfig';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import {
+  getPerpsCrossLiquidationInfoSelector,
+  getPerpsCrossMarginTagSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
+import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfoButton';
 import {
   formatPerpsFiat,
   formatPositionTriggerSummary,
@@ -95,6 +100,7 @@ const KeyValueItem = ({
         color={isHidden ? TextColor.TextDefault : valueColor}
         isHidden={isHidden}
         length={SensitiveTextLength.Short}
+        twClassName="shrink"
       >
         {value}
       </SensitiveText>
@@ -167,6 +173,7 @@ const PerpsProPositionCard = ({
   isEditMarginDisabled = false,
 }: PerpsProPositionCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
+  const isCross = position.leverage.type === 'cross';
   const {
     displaySymbol,
     absoluteSize,
@@ -218,7 +225,9 @@ const PerpsProPositionCard = ({
       ? `${formatPerpsFiat(position.liquidationPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         })}${liquidationDistanceSuffix}`
-      : PERPS_CONSTANTS.FallbackPriceDisplay;
+      : isCross
+        ? strings('perps.cross_position.no_liquidation_price')
+        : PERPS_CONSTANTS.FallbackPriceDisplay;
   const marginDisplay = formatPerpsFiat(position.marginUsed, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
   });
@@ -361,6 +370,17 @@ const PerpsProPositionCard = ({
               />
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.liq_price')}
+                labelAccessory={
+                  isCross ? (
+                    <PerpsCrossMarginInfoButton
+                      hasLiquidationPrice={position.liquidationPrice != null}
+                      testID={getPerpsCrossLiquidationInfoSelector(
+                        'pro',
+                        position.symbol,
+                      )}
+                    />
+                  ) : undefined
+                }
                 value={liqPriceDisplay}
                 isHidden={privacyMode}
                 valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE}
@@ -368,11 +388,24 @@ const PerpsProPositionCard = ({
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
-                label={strings('perps.pro_positions_panel.card.margin')}
+                label={strings(
+                  isCross
+                    ? 'perps.cross_position.margin_used'
+                    : 'perps.pro_positions_panel.card.margin',
+                )}
                 value={marginDisplay}
                 isHidden={privacyMode}
                 labelAccessory={
-                  <Tag severity={TagSeverity.Neutral}>{marginTypeLabel}</Tag>
+                  <Tag
+                    severity={TagSeverity.Neutral}
+                    testID={
+                      isCross
+                        ? getPerpsCrossMarginTagSelector('pro', position.symbol)
+                        : undefined
+                    }
+                  >
+                    {marginTypeLabel}
+                  </Tag>
                 }
                 onValuePress={
                   canEditMargin ? () => onEditMargin?.(position) : undefined

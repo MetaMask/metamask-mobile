@@ -4,6 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   ListItem,
   ListItemVariant,
@@ -218,12 +221,24 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
       title={title}
       titleEndAccessory={
         positionDisplay ? (
-          <Tag
-            severity={positionDisplay.directionSeverity}
-            testID={testID ? `${testID}-direction-tag` : undefined}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+            accessible={false}
           >
-            {positionDisplay.directionLabel}
-          </Tag>
+            <Tag
+              severity={positionDisplay.directionSeverity}
+              testID={testID ? `${testID}-direction-tag` : undefined}
+            >
+              {positionDisplay.directionLabel}
+            </Tag>
+            {position?.leverage.type === 'cross' && (
+              <Tag testID={testID ? `${testID}-margin-tag` : undefined}>
+                {strings('perps.cross_position.badge')}
+              </Tag>
+            )}
+          </Box>
         ) : undefined
       }
       description={descriptionNode}
