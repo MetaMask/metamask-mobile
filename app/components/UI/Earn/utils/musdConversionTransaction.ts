@@ -4,6 +4,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import type { Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
@@ -13,6 +14,7 @@ import { getTokenTransferData } from '../../../Views/confirmations/utils/transac
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
+import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { store } from '../../../../store';
 
 interface PayTokenSelection {
@@ -149,25 +151,26 @@ function buildMusdConversionTx(params: {
 }
 
 /**
- * Ensures the mUSD token is registered in TokensController for the given chain.
+ * Ensures the mUSD token is registered in unified assets state for the given
+ * chain and account.
  *
  * The Pay controller discovers required tokens by looking up `txParams.to` in
- * TokensController synchronously when a transaction is added. If mUSD is not
- * in the registry (e.g. first-time users), the Pay controller cannot identify
- * it as a required token, which breaks the fee-handling flow.
+ * AssetsController. If mUSD is not registered (e.g. first-time users), the
+ * Pay controller cannot identify it as a required token, which breaks the
+ * fee-handling flow.
  *
  * This must be called BEFORE `createMusdConversionTransaction` so the token
  * is present when the Pay controller processes the new transaction.
  */
 export async function ensureMusdTokenRegistered({
   chainId,
-  networkClientId,
+  accountId,
 }: {
   chainId: Hex;
-  networkClientId: string;
+  accountId?: string;
 }): Promise<void> {
   const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
-  if (!musdTokenAddress) {
+  if (!musdTokenAddress || !accountId) {
     return;
   }
 
@@ -178,13 +181,22 @@ export async function ensureMusdTokenRegistered({
   );
 
   if (!hasMusdToken) {
-    await Engine.context.TokensController.addToken({
-      address: musdTokenAddress,
-      decimals: MUSD_TOKEN.decimals,
-      name: MUSD_TOKEN.name,
-      symbol: MUSD_TOKEN.symbol,
-      networkClientId,
-    });
+    const caipChainId = toEvmCaipChainId(chainId);
+    const caipAssetType = toAssetId(musdTokenAddress, caipChainId);
+
+    if (caipAssetType) {
+      await Engine.context.AssetsController.addCustomAsset(
+        accountId,
+        caipAssetType,
+        {
+          address: musdTokenAddress,
+          decimals: MUSD_TOKEN.decimals,
+          name: MUSD_TOKEN.name,
+          symbol: MUSD_TOKEN.symbol,
+          chainId,
+        },
+      );
+    }
   }
 }
 
