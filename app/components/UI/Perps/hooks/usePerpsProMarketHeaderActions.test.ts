@@ -58,9 +58,15 @@ jest.mock('../utils/perpsModeSwitch', () => ({
 }));
 
 const mockNavigate = jest.fn();
+// Index within the Perps stack itself: 0 means this screen is the only entry,
+// so there is nothing to pop without leaving Perps.
+let mockPerpsStackIndex = 1;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    getState: () => ({ index: mockPerpsStackIndex, routes: [] }),
+  }),
 }));
 
 const mockOpenPerpsModeSelectionIfNeeded = jest.fn(() =>
@@ -81,6 +87,7 @@ describe('usePerpsProMarketHeaderActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack = true;
+    mockPerpsStackIndex = 1;
     mockIsWatchlist = false;
     mockPerpsModeValue = PerpsMode.Pro;
     mockOpenPerpsModeSelectionIfNeeded.mockResolvedValue(false);
@@ -97,6 +104,51 @@ describe('usePerpsProMarketHeaderActions', () => {
 
     expect(mockNavigateBack).toHaveBeenCalledTimes(1);
     expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('returns to Perps Home when the Perps stack has no entry left to pop', () => {
+    // Arrange - the Lite -> Pro switch dropped Perps Home, so this market page
+    // is the only Perps route left, while a parent navigator still reports it
+    // can go back (TAT-3786).
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC', backFallback: 'home' }),
+    );
+
+    // Act
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    // Assert
+    expect(mockNavigateToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('leaves Perps when the stack has no entry left to pop and the fallback is wallet', () => {
+    // Arrange - Pro's stack root is itself a market page, so falling back to
+    // Perps Home would be a no-op and the user should exit to the wallet.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    // Act
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    // Assert
+    expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
   });
 
   it('falls back to leaving Perps when the stack cannot go back', () => {
