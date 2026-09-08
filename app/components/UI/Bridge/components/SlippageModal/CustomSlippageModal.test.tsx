@@ -3,26 +3,96 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import { type TextInputSelectionChangeEvent } from 'react-native';
 import { SwapCustomSlippageModal as CustomSlippageModal } from './SwapCustomSlippageModal';
 
-// Mock BottomSheet
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const ReactNative = jest.requireActual('react-native');
-    const { View } = ReactNative;
+const mockGoBack = jest.fn();
 
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        (props: { children: unknown }, _ref: unknown) => (
-          <View testID="bottom-sheet">{props.children as React.ReactNode}</View>
-        ),
-      ),
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactModule = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = ReactModule.forwardRef(
+    (
+      props: {
+        children: React.ReactNode;
+        testID?: string;
+        onClose?: () => void;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      ReactModule.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: () => undefined,
+        onCloseBottomSheet: (callback?: () => void) => {
+          props.onClose?.();
+          callback?.();
+        },
+      }));
+      return <View testID={props.testID}>{props.children}</View>;
+    },
+  );
+
+  const BottomSheetHeader = ({
+    children,
+    onClose,
+    closeButtonProps,
+  }: {
+    children: React.ReactNode;
+    onClose?: () => void;
+    closeButtonProps?: { testID?: string };
+  }) => (
+    <View>
+      <Text>{children}</Text>
+      <TouchableOpacity testID={closeButtonProps?.testID} onPress={onClose} />
+    </View>
+  );
+
+  const BottomSheetFooter = ({
+    primaryButtonProps,
+    secondaryButtonProps,
+  }: {
+    primaryButtonProps: {
+      children: React.ReactNode;
+      onPress: () => void;
+      isDisabled?: boolean;
+      testID?: string;
     };
-  },
-);
+    secondaryButtonProps: {
+      children: React.ReactNode;
+      onPress: () => void;
+      testID?: string;
+    };
+  }) => (
+    <View>
+      <TouchableOpacity
+        testID={secondaryButtonProps.testID}
+        onPress={secondaryButtonProps.onPress}
+      >
+        <Text>{secondaryButtonProps.children}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        testID={primaryButtonProps.testID}
+        onPress={primaryButtonProps.onPress}
+        disabled={primaryButtonProps.isDisabled}
+        accessibilityState={{ disabled: primaryButtonProps.isDisabled }}
+      >
+        <Text>{primaryButtonProps.children}</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
-// Mock InputStepper
+  return {
+    ...actual,
+    BottomSheet,
+    BottomSheetHeader,
+    BottomSheetFooter,
+  };
+});
+
 jest.mock(
   '../../../../../component-library/components-temp/InputStepper',
   () => ({
@@ -149,7 +219,6 @@ import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDes
 import { useParams } from '../../../../../util/navigation/navUtils';
 import InputStepper from '../../../../../component-library/components-temp/InputStepper';
 import Keypad from '../../../../Base/Keypad';
-import { strings } from '../../../../../../locales/i18n';
 
 const mockUseSlippageConfig = useSlippageConfig as jest.MockedFunction<
   typeof useSlippageConfig
@@ -1004,20 +1073,19 @@ describe('CustomSlippageModal', () => {
 
   describe('handleClose functionality', () => {
     it('closes modal via header close button', () => {
-      const { getByLabelText } = render(<CustomSlippageModal />);
+      const { getByTestId } = render(<CustomSlippageModal />);
 
-      const closeButton = getByLabelText(strings('bridge.close'));
+      const closeButton = getByTestId('custom-slippage-close');
       fireEvent.press(closeButton);
 
-      // Verify it doesn't throw and component handles close
       expect(closeButton).toBeOnTheScreen();
+      expect(mockGoBack).toHaveBeenCalled();
     });
 
     it('does not dispatch slippage when closing without confirm', () => {
-      const { getByLabelText } = render(<CustomSlippageModal />);
+      const { getByTestId } = render(<CustomSlippageModal />);
 
-      const closeButton = getByLabelText(strings('bridge.close'));
-      fireEvent.press(closeButton);
+      fireEvent.press(getByTestId('custom-slippage-close'));
 
       expect(mockDispatch).not.toHaveBeenCalled();
     });
