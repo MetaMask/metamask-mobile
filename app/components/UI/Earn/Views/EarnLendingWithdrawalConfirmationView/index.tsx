@@ -4,6 +4,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ethers } from 'ethers';
@@ -29,6 +30,7 @@ import {
 } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { toAssetId } from '../../../Bridge/hooks/useAssetMetadata/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -345,19 +347,26 @@ const EarnLendingWithdrawalConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
         () => {
-          if (!earnToken) {
+          if (!earnToken && selectedAccount?.id) {
             try {
-              const tokenNetworkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId: tokenNetworkClientId,
-              }).catch(console.error);
+              const counterTokenChainId = tokenSnapshot?.chainId as Hex;
+              const counterTokenAddress = tokenSnapshot?.token?.address || '';
+              const caipChainId = toEvmCaipChainId(counterTokenChainId);
+              const caipAssetType = toAssetId(counterTokenAddress, caipChainId);
+
+              if (caipAssetType) {
+                Engine.context.AssetsController.addCustomAsset(
+                  selectedAccount.id,
+                  caipAssetType,
+                  {
+                    decimals: tokenSnapshot?.token?.decimals || 0,
+                    symbol: tokenSnapshot?.token?.symbol || '',
+                    address: counterTokenAddress,
+                    name: tokenSnapshot?.token?.name || '',
+                    chainId: counterTokenChainId,
+                  },
+                ).catch(console.error);
+              }
             } catch (error) {
               console.error(
                 error,
@@ -371,7 +380,14 @@ const EarnLendingWithdrawalConfirmationView = () => {
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, tokenSnapshot, earnToken, outputToken, navigation],
+    [
+      emitTxMetaMetric,
+      tokenSnapshot,
+      earnToken,
+      outputToken,
+      navigation,
+      selectedAccount,
+    ],
   );
 
   // Guards

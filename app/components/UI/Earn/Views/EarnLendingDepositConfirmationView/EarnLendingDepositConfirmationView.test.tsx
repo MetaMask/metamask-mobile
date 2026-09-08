@@ -44,6 +44,7 @@ type TxCallback = (event: {
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    id: 'mock-account-id',
     address: MOCK_ADDRESS_2,
   })),
 }));
@@ -193,8 +194,8 @@ jest.mock('../../../../../core/Engine', () => ({
       executeLendingDeposit: jest.fn(),
       executeLendingTokenApprove: jest.fn(),
     },
-    TokensController: {
-      addToken: jest.fn().mockResolvedValue([]),
+    AssetsController: {
+      addCustomAsset: jest.fn().mockResolvedValue(undefined),
     },
   },
   controllerMessenger: {
@@ -1687,7 +1688,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       },
     });
 
-    expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+    expect(
+      Engine.context.AssetsController.addCustomAsset,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('should handle error adding counter-token on confirmation', async () => {
@@ -1734,9 +1737,10 @@ describe('EarnLendingDepositConfirmationView', () => {
         // Do nothing
       });
 
-    // Mock the findNetworkClientIdByChainId to throw an error
-    mockFindNetworkClientIdByChainId.mockImplementationOnce(() => 'mainnet');
-    mockFindNetworkClientIdByChainId.mockImplementationOnce(() => {
+    // Mock addCustomAsset to throw an error
+    (
+      Engine.context.AssetsController.addCustomAsset as jest.Mock
+    ).mockImplementationOnce(() => {
       throw new Error('Invalid chain ID');
     });
 
