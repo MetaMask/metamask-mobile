@@ -408,7 +408,6 @@
     "@metamask/tron-wallet-snap": "^3.2.0",
     "@metamask/utils": "^11.11.0",
     "@metamask/wallet": "^12.0.1",
-    "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.33.1",
     "@noble/curves": "1.9.6",

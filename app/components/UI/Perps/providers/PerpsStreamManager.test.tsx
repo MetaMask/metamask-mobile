@@ -266,10 +266,10 @@ describe('PerpsStreamManager', () => {
         providerId: 'hyperliquid',
       } as PerpsMarketData,
       {
-        symbol: 'MYX',
-        name: 'MYX',
+        symbol: 'LIGHTER',
+        name: 'Lighter',
         price: '1',
-        providerId: 'myx',
+        providerId: 'lighter',
       } as PerpsMarketData,
     ]);
 
@@ -285,7 +285,7 @@ describe('PerpsStreamManager', () => {
       entries: { providerNetworkKey: string; data: PerpsMarketData[] }[];
     };
     expect(payload.entries.map((entry) => entry.providerNetworkKey)).toEqual(
-      expect.arrayContaining(['hyperliquid:mainnet', 'myx:mainnet']),
+      expect.arrayContaining(['hyperliquid:mainnet', 'lighter:mainnet']),
     );
   });
 
@@ -304,9 +304,9 @@ describe('PerpsStreamManager', () => {
         providerId: 'hyperliquid',
       } as Position,
       {
-        symbol: 'MYX',
+        symbol: 'LIGHTER',
         size: '2.0',
-        providerId: 'myx',
+        providerId: 'lighter',
       } as Position,
     ]);
     jest.spyOn(testStreamManager.orders, 'getSnapshot').mockReturnValue([
@@ -316,9 +316,9 @@ describe('PerpsStreamManager', () => {
         providerId: 'hyperliquid',
       } as Order,
       {
-        orderId: 'order-myx',
-        symbol: 'MYX',
-        providerId: 'myx',
+        orderId: 'order-lighter',
+        symbol: 'LIGHTER',
+        providerId: 'lighter',
       } as Order,
     ]);
     jest.spyOn(testStreamManager.account, 'getSnapshot').mockReturnValue({
@@ -348,7 +348,7 @@ describe('PerpsStreamManager', () => {
       }[];
     };
     expect(payload.entries.map((entry) => entry.providerNetworkKey)).toEqual(
-      expect.arrayContaining(['hyperliquid:mainnet', 'myx:mainnet']),
+      expect.arrayContaining(['hyperliquid:mainnet', 'lighter:mainnet']),
     );
   });
 
@@ -2915,9 +2915,9 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('does not use the Hyperliquid snapshot path for MYX', () => {
+    it('does not use the Hyperliquid snapshot path for Lighter', () => {
       mockEngine.context.PerpsController.state = {
-        activeProvider: 'myx',
+        activeProvider: 'lighter',
         isTestnet: false,
       } as typeof mockEngine.context.PerpsController.state;
       mockPerpsConnectionManager.getConnectionState.mockReturnValue({
@@ -5752,7 +5752,7 @@ describe('PerpsStreamManager', () => {
     it('does not request an atomic user snapshot outside Hyperliquid mode', async () => {
       const getUserDataSnapshot = jest.fn();
       mockEngine.context.PerpsController.state = {
-        activeProvider: 'myx',
+        activeProvider: 'lighter',
         isTestnet: false,
       } as typeof mockEngine.context.PerpsController.state;
       (

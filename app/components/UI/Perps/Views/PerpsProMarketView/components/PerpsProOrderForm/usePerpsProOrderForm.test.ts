@@ -729,15 +729,15 @@ describe('usePerpsProOrderForm', () => {
       mockOrderForm.type = 'scale';
 
       renderProForm(true, true, 'hyperliquid', false, {
-        providerId: 'myx',
+        providerId: 'lighter',
       });
 
       expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'myx',
+          providerId: 'lighter',
         }),
       );
-      expect(mockOrderValidationParams?.providerId).toBe('myx');
+      expect(mockOrderValidationParams?.providerId).toBe('lighter');
     });
 
     it('routes Chase fees through its placement provider', () => {
@@ -1450,7 +1450,7 @@ describe('usePerpsProOrderForm', () => {
         await Promise.resolve();
       });
 
-      rerender({ providerId: 'myx' });
+      rerender({ providerId: 'lighter' });
       await act(async () => {
         resolveValidation?.({
           errors: [],
@@ -1617,7 +1617,10 @@ describe('usePerpsProOrderForm', () => {
         if (orderType === 'stop_market') {
           mockContextValue.triggerPrice = '91000';
         }
-        const myxMarket = { ...market, providerId: 'myx' } as PerpsMarketData;
+        const lighterMarket = {
+          ...market,
+          providerId: 'lighter',
+        } as PerpsMarketData;
         const { result } = renderProForm(
           true,
           true,
@@ -1625,14 +1628,14 @@ describe('usePerpsProOrderForm', () => {
           false,
           {},
           {},
-          myxMarket,
+          lighterMarket,
         );
 
         expect(mockUsePerpsOrderFees).toHaveBeenLastCalledWith(
-          expect.objectContaining({ providerId: 'myx' }),
+          expect.objectContaining({ providerId: 'lighter' }),
         );
-        expect(mockOrderValidationParams?.providerId).toBe('myx');
-        expect(mockPositionModifyPreviewParams?.providerId).toBe('myx');
+        expect(mockOrderValidationParams?.providerId).toBe('lighter');
+        expect(mockPositionModifyPreviewParams?.providerId).toBe('lighter');
 
         await act(async () => {
           await result.current.onPlaceOrderPress();
@@ -1641,7 +1644,7 @@ describe('usePerpsProOrderForm', () => {
         expect(mockExecuteOrder).toHaveBeenCalledWith(
           expect.objectContaining({
             orderType,
-            providerId: 'myx',
+            providerId: 'lighter',
           }),
         );
       },
@@ -3614,11 +3617,11 @@ describe('usePerpsProOrderForm', () => {
       });
     };
 
-    it('keeps Scale placement disabled for a MYX route', () => {
+    it('keeps Scale placement disabled for a Lighter route', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm(true, true, 'hyperliquid', false, {
-        providerId: 'myx',
+        providerId: 'lighter',
       });
 
       configureScaleOrder(result);
@@ -3798,16 +3801,16 @@ describe('usePerpsProOrderForm', () => {
       expect(hyperliquid.result.current.scaleOrder.rungs).toEqual([]);
       hyperliquid.unmount();
 
-      const myx = renderProForm(true, true, 'hyperliquid', false, {
-        providerId: 'myx',
+      const lighter = renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'lighter',
       });
       act(() => {
-        myx.result.current.scaleOrder.onStartPriceChange('100.123456');
-        myx.result.current.scaleOrder.onEndPriceChange('100.123457');
-        myx.result.current.scaleOrder.onTotalOrdersChange('3');
+        lighter.result.current.scaleOrder.onStartPriceChange('100.123456');
+        lighter.result.current.scaleOrder.onEndPriceChange('100.123457');
+        lighter.result.current.scaleOrder.onTotalOrdersChange('3');
       });
 
-      expect(myx.result.current.scaleOrder.rungs).toEqual([]);
+      expect(lighter.result.current.scaleOrder.rungs).toEqual([]);
     });
 
     it('clears limit and trigger drafts when Scale is selected', () => {
@@ -3874,7 +3877,7 @@ describe('usePerpsProOrderForm', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm(true, true, 'hyperliquid', false, {
-        providerId: 'myx',
+        providerId: 'lighter',
       });
       configureScaleOrder(result);
 
@@ -5207,7 +5210,7 @@ describe('usePerpsProOrderForm', () => {
       rerender({
         isScaleOrdersEnabled: true,
         isScaleOrderSupportPending: false,
-        scaleProviderId: 'myx',
+        scaleProviderId: 'lighter',
         checkScaleOrderSupport,
       });
       await act(async () => {
