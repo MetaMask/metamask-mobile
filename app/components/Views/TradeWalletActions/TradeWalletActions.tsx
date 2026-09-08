@@ -91,6 +91,7 @@ import {
   EARN_MODULE_ENTRY_POINTS,
 } from '../../UI/Earn/constants/earnModuleEvents';
 import { EarnRate } from '../../UI/Earn/types/earnAssets';
+import { truncateNumber } from '../../UI/Earn/utils/number';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -271,7 +272,7 @@ function TradeWalletActions() {
         >,
       }),
       ...(highestRate?.status === 'ready' && {
-        rate_percentage: highestRate.percentage,
+        rate_percentage: Number(truncateNumber(highestRate.percentage)),
       }),
     });
     postCallback.current = () => {
