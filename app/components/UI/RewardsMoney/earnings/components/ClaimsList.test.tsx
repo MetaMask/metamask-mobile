@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { ActivityIndicator } from 'react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { ClaimDto } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { REWARDS_MONEY_TEST_IDS } from '../../constants';
 import ClaimsList, { type ClaimsListProps } from './ClaimsList';
@@ -78,6 +79,58 @@ describe('ClaimsList', () => {
       screen.queryByTestId(REWARDS_MONEY_TEST_IDS.CLAIMS_EMPTY),
     ).not.toBeOnTheScreen();
     expect(screen.getByText("Couldn't load withdrawals")).toBeOnTheScreen();
+  });
+
+  describe('pagination', () => {
+    const endReached = () =>
+      fireEvent(
+        screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIMS_LIST),
+        'endReached',
+      );
+
+    it('loads the next page when the list end is reached', () => {
+      const loadMore = jest.fn();
+      renderList({ claims: [createClaim('a')], hasMore: true, loadMore });
+
+      endReached();
+
+      expect(loadMore).toHaveBeenCalledTimes(1);
+    });
+
+    /**
+     * Each guard exists to stop a second request racing the first, or firing
+     * against a list that has nothing to page past yet.
+     */
+    it.each<[string, Partial<ClaimsListProps>]>([
+      ['there is no next page', { hasMore: false }],
+      ['the first page is still loading', { hasMore: true, isLoading: true }],
+      ['a page is already in flight', { hasMore: true, isLoadingMore: true }],
+      ['a refresh is in flight', { hasMore: true, isRefreshing: true }],
+      ['the list is empty', { hasMore: true, claims: [] }],
+      ['the list is null', { hasMore: true, claims: null }],
+    ])('does not load more when %s', (_label, overrides) => {
+      const loadMore = jest.fn();
+      renderList({ claims: [createClaim('a')], loadMore, ...overrides });
+
+      endReached();
+
+      expect(loadMore).not.toHaveBeenCalled();
+    });
+
+    it('shows a footer spinner while a later page loads', () => {
+      renderList({ claims: [createClaim('a')], isLoadingMore: true });
+
+      // A composite, not a host element, so existence is the assertion —
+      // UNSAFE_getByType throws when it is absent.
+      expect(screen.UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+    });
+
+    /** Nothing to append to yet — the empty renderer already owns that state. */
+    it('shows no footer spinner when there are no rows', () => {
+      renderList({ claims: [], isLoadingMore: true });
+
+      expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+    });
   });
 
   /** The resolver decides tappability per row, so a null must stay inert. */

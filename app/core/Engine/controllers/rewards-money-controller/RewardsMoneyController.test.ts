@@ -66,6 +66,7 @@ interface Harness {
     getReferralMe: jest.Mock;
     getEarningsSummary: jest.Mock;
     getEarningsLedger: jest.Mock;
+    getClaimHistory: jest.Mock;
     initiateClaim: jest.Mock;
   };
 }
@@ -87,6 +88,9 @@ const createHarness = ({
     getReferralMe: jest.fn().mockResolvedValue(createReferralMe()),
     getEarningsSummary: jest.fn().mockResolvedValue(createSummary()),
     getEarningsLedger: jest.fn().mockResolvedValue(createLedgerPage()),
+    getClaimHistory: jest
+      .fn()
+      .mockResolvedValue({ results: [], has_more: false, cursor: null }),
     initiateClaim: jest.fn().mockResolvedValue({
       claim: {},
       voucher: null,
@@ -119,6 +123,10 @@ const createHarness = ({
     handlers.getEarningsLedger,
   );
   dataServiceMessenger.registerActionHandler(
+    'RewardsMoneyDataService:getClaimHistory',
+    handlers.getClaimHistory,
+  );
+  dataServiceMessenger.registerActionHandler(
     'RewardsMoneyDataService:initiateClaim',
     handlers.initiateClaim,
   );
@@ -139,6 +147,7 @@ const createHarness = ({
       'RewardsMoneyDataService:getReferralMe',
       'RewardsMoneyDataService:getEarningsSummary',
       'RewardsMoneyDataService:getEarningsLedger',
+      'RewardsMoneyDataService:getClaimHistory',
       'RewardsMoneyDataService:initiateClaim',
     ],
     events: [],
@@ -355,6 +364,54 @@ describe('RewardsMoneyController', () => {
       await expect(controller.getEarningsSummary()).rejects.toThrow(
         'Rewards Money is disabled',
       );
+    });
+  });
+
+  describe('getClaimHistory', () => {
+    it('reads the first page with a null cursor', async () => {
+      const { controller, handlers } = createHarness();
+
+      await controller.getClaimHistory();
+
+      expect(handlers.getClaimHistory).toHaveBeenCalledWith(null);
+    });
+
+    it('passes a cursor straight through', async () => {
+      const { controller, handlers } = createHarness();
+
+      await controller.getClaimHistory({ cursor: 'cursor-abc' });
+
+      expect(handlers.getClaimHistory).toHaveBeenCalledWith('cursor-abc');
+    });
+
+    /**
+     * Uncached, so every call is a read — unlike the summary and the ledger's
+     * first page there is nothing to serve from state.
+     */
+    it('reads again rather than serving a cached page', async () => {
+      const { controller, handlers } = createHarness();
+
+      await controller.getClaimHistory();
+      await controller.getClaimHistory();
+
+      expect(handlers.getClaimHistory).toHaveBeenCalledTimes(2);
+    });
+
+    /**
+     * An empty page, not a throw: the tab renders its empty state instead of
+     * an error for a surface that is simply switched off.
+     */
+    it('returns an empty page when the feature is disabled', async () => {
+      const { controller, handlers } = createHarness({
+        isDisabled: () => true,
+      });
+
+      await expect(controller.getClaimHistory()).resolves.toEqual({
+        results: [],
+        has_more: false,
+        cursor: null,
+      });
+      expect(handlers.getClaimHistory).not.toHaveBeenCalled();
     });
   });
 

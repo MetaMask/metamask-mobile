@@ -198,6 +198,67 @@ describe('RewardsMoneyDataService', () => {
     });
   });
 
+  describe('getClaimHistory', () => {
+    it('sends just the page size on a first page', async () => {
+      const fetchFn = jest.fn().mockResolvedValue(createResponse({}));
+      const { service } = createService({ fetchFn });
+
+      await service.getClaimHistory(null, 20);
+
+      expect(fetchFn).toHaveBeenCalledWith(
+        `${BASE_URL}/earnings/claim/me?limit=20`,
+        expect.anything(),
+      );
+    });
+
+    it('carries the cursor on a later page', async () => {
+      const fetchFn = jest.fn().mockResolvedValue(createResponse({}));
+      const { service } = createService({ fetchFn });
+
+      await service.getClaimHistory('cursor-abc', 20);
+
+      expect(fetchFn).toHaveBeenCalledWith(
+        `${BASE_URL}/earnings/claim/me?limit=20&cursor=cursor-abc`,
+        expect.anything(),
+      );
+    });
+
+    it('defaults the page size when none is given', async () => {
+      const fetchFn = jest.fn().mockResolvedValue(createResponse({}));
+      const { service } = createService({ fetchFn });
+
+      await service.getClaimHistory();
+
+      expect(fetchFn).toHaveBeenCalledWith(
+        `${BASE_URL}/earnings/claim/me?limit=20`,
+        expect.anything(),
+      );
+    });
+
+    it('returns the page the server sent', async () => {
+      const page = {
+        results: [{ id: 'claim-1' }],
+        has_more: false,
+        cursor: null,
+      };
+      const fetchFn = jest.fn().mockResolvedValue(createResponse(page));
+      const { service } = createService({ fetchFn });
+
+      await expect(service.getClaimHistory()).resolves.toEqual(page);
+    });
+
+    it('throws with the status code on a failed response', async () => {
+      const fetchFn = jest
+        .fn()
+        .mockResolvedValue(createResponse({}, { status: 500 }));
+      const { service } = createService({ fetchFn });
+
+      await expect(service.getClaimHistory()).rejects.toThrow(
+        'Get claim history failed: 500',
+      );
+    });
+  });
+
   describe('getEarningsLedger', () => {
     it('sends the origin-type filter and the page size on a first page', async () => {
       const fetchFn = jest.fn().mockResolvedValue(createResponse({}));

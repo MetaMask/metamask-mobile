@@ -203,6 +203,42 @@ describe('resolveClaimTransaction', () => {
     expect(result).toEqual({ kind: 'exact', transactionId: 'tx-real' });
   });
 
+  /** A row missing the fields the scope filter reads must not slip through it. */
+  it('ignores transactions with no chain or no sender', () => {
+    const result = resolveClaimTransaction({
+      claim: createClaim(),
+      transactions: [
+        createTx('tx-no-chain', OPENED_MS + 1_000, {
+          chainId: undefined,
+        } as unknown as Partial<TransactionMeta>),
+        createTx('tx-no-params', OPENED_MS + 1_000, {
+          txParams: undefined,
+        } as unknown as Partial<TransactionMeta>),
+      ],
+      chainId: CHAIN_ID,
+    });
+
+    expect(result).toEqual({ kind: 'none' });
+  });
+
+  /**
+   * Timestamps are optional on the meta, so a row without one cannot be
+   * compared and must not be guessed at.
+   */
+  it('ignores transactions with no timestamp', () => {
+    const result = resolveClaimTransaction({
+      claim: createClaim(),
+      transactions: [
+        createTx('tx-no-time', 0, {
+          time: undefined,
+        } as unknown as Partial<TransactionMeta>),
+      ],
+      chainId: CHAIN_ID,
+    });
+
+    expect(result).toEqual({ kind: 'none' });
+  });
+
   it('reports none when the claim has an unparseable timestamp', () => {
     const result = resolveClaimTransaction({
       claim: createClaim({ created_at: 'not-a-date' }),
