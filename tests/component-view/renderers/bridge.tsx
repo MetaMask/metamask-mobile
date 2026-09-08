@@ -38,6 +38,7 @@ export const withBridgeSession = (Component: React.ComponentType) =>
   };
 
 export const BridgeViewWithSession = withBridgeSession(BridgeView);
+
 interface RenderBridgeViewOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
@@ -71,7 +72,8 @@ export function renderBridgeView(
   const state = builder.build();
 
   return renderComponentViewScreen(
-    BridgeViewWithSession as unknown as React.ComponentType,    { name: Routes.BRIDGE.BRIDGE_VIEW },
+    BridgeViewWithSession as unknown as React.ComponentType,
+    { name: Routes.BRIDGE.BRIDGE_VIEW },
     { state },
   );
 }

@@ -6,9 +6,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
 import {
-  selectDestToken,
-  selectSourceAmount,
-  selectSourceToken,
   setDestToken,
   setSourceAmount,
   setSourceAmountAsMax,
@@ -38,9 +35,6 @@ export const useLimitOrderSwapInputs = () => {
   );
   const enabledChainIds = limitOrderFeatureFlags?.enabledChainIds;
 
-  const sourceAmount = useSelector(selectSourceAmount);
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
   const isFiatToggleEnabled = useSelector(
     (state: RootState) =>
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
@@ -77,6 +71,11 @@ export const useLimitOrderSwapInputs = () => {
     },
     [dispatch],
   );
+
+  const {
+    latestSourceBalance,
+    quoteParams: { srcAmount: sourceAmount, srcToken: sourceToken, destToken },
+  } = useBridgeSession();
 
   const sourceAmountInput = useSourceAmountInput({
     isFiatToggleEnabled,
@@ -128,7 +127,6 @@ export const useLimitOrderSwapInputs = () => {
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
 
-  const { latestSourceBalance } = useBridgeSession();
   const handleSourceMaxPress = useCallback(() => {
     if (!latestSourceBalance?.displayBalance) {
       return;

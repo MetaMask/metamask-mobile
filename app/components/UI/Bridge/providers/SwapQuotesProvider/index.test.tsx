@@ -67,6 +67,10 @@ jest.mock('../../hooks/useSwapsFeatureId', () => ({
   useSwapsFeatureId: jest.fn(),
 }));
 
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
 const Consumer = () => {
   useSwapQuotes();
   return null;
@@ -76,32 +80,28 @@ runQuoteProviderCases({
   name: 'SwapQuotesContext',
   missingProviderError: 'useSwapQuotes must be used within SwapQuotesProvider',
   featureId: FeatureId.LIMIT_ORDER,
+  quoteParams: {
+    srcAmount: '1000000000',
+    srcToken: {
+      chainId: '0x1',
+      address: '0x1',
+      decimals: 18,
+      symbol: 'USDC',
+      name: 'USDC',
+    },
+    destToken: {
+      chainId: '0x1',
+      address: '0x2',
+      decimals: 18,
+      symbol: 'USDC',
+      name: 'USDC',
+    },
+    walletAddress: '0x1',
+    destWalletAddress: '0x2',
+  },
   renderProvider: (state) =>
     renderWithProvider(
-      <SwapQuotesProvider
-        isActive
-        featureId={FeatureId.LIMIT_ORDER}
-        debounceWait={1000}
-        quoteParams={{
-          srcAmount: '1000000000',
-          srcToken: {
-            chainId: '0x1',
-            address: '0x1',
-            decimals: 18,
-            symbol: 'USDC',
-            name: 'USDC',
-          },
-          destToken: {
-            chainId: '0x1',
-            address: '0x2',
-            decimals: 18,
-            symbol: 'USDC',
-            name: 'USDC',
-          },
-          walletAddress: '0x1',
-          destWalletAddress: '0x2',
-        }}
-      >
+      <SwapQuotesProvider>
         <Consumer />
         <Consumer />
         <Consumer />

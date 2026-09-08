@@ -12,6 +12,10 @@ import useInsufficientBalance from '../useInsufficientBalance';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { FeatureId } from '@metamask/bridge-controller';
+import { useBridgeSession } from '../useBridgeSession';
+import type { buildGenericQuoteRequest } from '../useSwapQuotes/utils';
+import { BigNumber } from 'ethers';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
 const mockUseIsInsufficientBalance =
   useInsufficientBalance as jest.MockedFunction<typeof useInsufficientBalance>;
@@ -25,18 +29,24 @@ const mockUseValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
 >;
 const mockValidateBridgeTx = jest.fn();
 
+const mockUseBridgeSession = useBridgeSession as jest.MockedFunction<
+  typeof useBridgeSession
+>;
+
 export const runQuoteProviderCases = ({
   name,
   missingProviderError,
   renderProvider,
   renderWithoutProvider,
   featureId,
+  quoteParams,
 }: {
   name: string;
   missingProviderError: string;
   renderProvider: (state: DeepPartial<RootState>) => void;
   renderWithoutProvider: () => void;
   featureId: FeatureId;
+  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
 }) =>
   describe(name, () => {
     beforeEach(() => {
@@ -82,6 +92,17 @@ export const runQuoteProviderCases = ({
           refreshRate: 5000,
           maxRefreshCount: 10,
         }));
+      mockUseBridgeSession.mockReturnValue({
+        selectedTab: BridgeTabKey.Market,
+        renderedTab: BridgeTabKey.Market,
+        setSelectedTab: jest.fn(),
+        setRenderedTab: jest.fn(),
+        quoteParams,
+        latestSourceBalance: {
+          atomicBalance: BigNumber.from('1000000000'),
+          displayBalance: '123',
+        },
+      });
     });
 
     afterEach(() => {
@@ -118,7 +139,7 @@ export const runQuoteProviderCases = ({
       });
     });
 
-    it('throws when used outside BridgeQuoteDataProvider', () => {
+    it('throws when used outside its quote provider', () => {
       jest.spyOn(console, 'error').mockImplementation();
 
       const renderOutsideProvider = () => renderWithoutProvider();

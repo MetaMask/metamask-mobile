@@ -3,9 +3,6 @@ import type { CaipChainId } from '@metamask/utils';
 import { FeatureId } from '@metamask/bridge-controller';
 import { useLimitOrderSwapInputs } from '.';
 import {
-  selectDestToken,
-  selectSourceAmount,
-  selectSourceToken,
   setDestToken,
   setSourceAmount,
   setSourceToken,
@@ -16,6 +13,7 @@ import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { createMockToken } from '../../testUtils/fixtures';
 import { TokenSelectorType, type BridgeToken } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
 const mockDispatch = jest.fn();
 
@@ -52,9 +50,7 @@ jest.mock('../useIsHardwareWalletForBridge', () => ({
 }));
 
 jest.mock('../useBridgeSession', () => ({
-  useBridgeSession: () => ({
-    latestSourceBalance: undefined,
-  }),
+  useBridgeSession: jest.fn(),
 }));
 
 const mockSyncFiatAmountToTokenAmount = jest.fn();
@@ -84,7 +80,12 @@ jest.mock('../useSwitchTokens', () => ({
 }));
 
 import { useSelector } from 'react-redux';
+import { useBridgeSession } from '../useBridgeSession';
+
 const mockUseSelector = useSelector as jest.Mock;
+const mockUseBridgeSession = useBridgeSession as jest.MockedFunction<
+  typeof useBridgeSession
+>;
 
 const ENABLED_CHAIN_IDS: CaipChainId[] = [
   'eip155:1',
@@ -104,15 +105,6 @@ const renderLimitOrderSwapInputsHook = (
   gasSponsoredChainIds: string[] = [],
 ) => {
   mockUseSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectSourceToken) {
-      return selectorState.sourceToken;
-    }
-    if (selector === selectDestToken) {
-      return selectorState.destToken;
-    }
-    if (selector === selectSourceAmount) {
-      return selectorState.sourceAmount;
-    }
     if (selector === selectBridgeLimitOrderFeatureFlags) {
       return enabledChainIds ? { enabled: true, enabledChainIds } : undefined;
     }
@@ -120,6 +112,19 @@ const renderLimitOrderSwapInputsHook = (
       return (chainId: string) => gasSponsoredChainIds.includes(chainId);
     }
     return undefined;
+  });
+
+  mockUseBridgeSession.mockReturnValue({
+    selectedTab: BridgeTabKey.Limit,
+    renderedTab: BridgeTabKey.Limit,
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    latestSourceBalance: undefined,
+    quoteParams: {
+      srcToken: selectorState.sourceToken,
+      destToken: selectorState.destToken,
+      srcAmount: selectorState.sourceAmount,
+    },
   });
 
   return renderHook(() => useLimitOrderSwapInputs());

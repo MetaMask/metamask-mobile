@@ -1,12 +1,14 @@
 import React from 'react';
 import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
 import { useSwapQuotes } from './index';
+import { useBridgeSession } from '../useBridgeSession';
 import {
   mockContext,
   runQuoteRequestCases,
 } from '../useBridgeQuoteRequest/runQuoteRequestCases';
 import { renderHook } from '@testing-library/react-native';
 import { FeatureId } from '@metamask/bridge-controller';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { useSelector } from 'react-redux';
 import {
   selectDestAddress,
@@ -146,33 +148,42 @@ const Wrapper = ({
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
 
-  return (
-    <SwapQuotesProvider
-      isActive
-      featureId={featureId}
-      debounceWait={mockDebounceMs}
-      quoteRequestIndex={quoteRequestIndex}
-      quoteRequestCount={quoteRequestCount}
-      quoteParams={{
-        srcAmount: sourceAmount,
-        srcToken: sourceToken,
-        destToken,
-        slippage,
-        walletAddress,
-        destWalletAddress: destAddress,
-      }}
-      {...('latestSourceAtomicBalance' in options
-        ? { latestSourceAtomicBalance: options.latestSourceAtomicBalance }
-        : {})}
-    >
-      {children}
-    </SwapQuotesProvider>
-  );
+  mockUseBridgeSession.mockReturnValue({
+    selectedTab: BridgeTabKey.Limit,
+    renderedTab: BridgeTabKey.Limit,
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    quoteParams: {
+      srcAmount: sourceAmount,
+      srcToken: sourceToken,
+      destToken,
+      slippage,
+      walletAddress,
+      destWalletAddress: destAddress,
+    },
+    latestSourceBalance:
+      'latestSourceAtomicBalance' in options
+        ? {
+            atomicBalance: options.latestSourceAtomicBalance,
+            displayBalance: '',
+          }
+        : undefined,
+  });
+
+  return <SwapQuotesProvider>{children}</SwapQuotesProvider>;
 };
 
 jest.mock('../useSwapsFeatureId', () => ({
   useSwapsFeatureId: jest.fn().mockReturnValue('limit_order'),
 }));
+
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
+const mockUseBridgeSession = useBridgeSession as jest.MockedFunction<
+  typeof useBridgeSession
+>;
 
 describe('useSwapQuotes', () => {
   it('throws an error if used outside of SwapQuotesProvider', () => {
@@ -201,6 +212,8 @@ runQuoteRequestCases({
       },
     ),
   featureId: FeatureId.LIMIT_ORDER,
+  quoteParams: {},
+  debounceWait: mockDebounceMs,
 });
 
 runQuoteDataCases({
