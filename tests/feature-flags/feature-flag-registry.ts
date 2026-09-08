@@ -179,14 +179,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.5,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -4240,7 +4240,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 0.5,
+              value: 1,
             },
             thresholdName: 'control (white) — 50%',
             thresholdVersion: 2,
@@ -4249,7 +4249,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 1,
+              value: 0,
             },
             thresholdName: 'colors (green/red) — 50%',
             thresholdVersion: 2,
@@ -4612,14 +4612,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5111,7 +5111,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 1,
+              value: 0,
             },
             thresholdName: 'treatment — 0%',
             thresholdVersion: 2,
@@ -5132,14 +5132,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5156,7 +5156,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 0.5,
+              value: 1,
             },
             thresholdName: 'control — 50%',
             thresholdVersion: 2,
@@ -5165,7 +5165,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 1,
+              value: 0,
             },
             thresholdName: 'treatment — 100%',
             thresholdVersion: 2,
@@ -5376,14 +5376,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.5,
+          value: 1,
         },
       },
       {
         name: 'withBadge',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5548,14 +5548,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.4,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -6724,14 +6724,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.75,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -6789,14 +6789,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.5,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -6916,14 +6916,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             name: 'control',
             scope: {
               type: 'percentage_rollout',
-              value: 0.5,
+              value: 1,
             },
           },
           {
             name: 'treatment',
             scope: {
               type: 'percentage_rollout',
-              value: 1,
+              value: 0,
             },
           },
         ],
@@ -7088,14 +7088,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0,
+          value: 1,
         },
       },
       {
         name: 'postOnboardingSteps',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -7249,7 +7249,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0,
+          value: 1,
         },
       },
       {
@@ -7454,7 +7454,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.5,
+          value: 1,
         },
         thresholdName: 'control',
         thresholdVersion: 2,
@@ -7464,7 +7464,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
         thresholdName: 'treatment',
         thresholdVersion: 2,
@@ -7494,28 +7494,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.7,
+          value: 1,
         },
       },
       {
         name: 'icons',
         scope: {
           type: 'percentage_rollout',
-          value: 0.8,
+          value: 0,
         },
       },
       {
         name: 'allocation',
         scope: {
           type: 'percentage_rollout',
-          value: 0.9,
+          value: 0,
         },
       },
       {
         name: 'iconsWithArrows',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -7592,7 +7592,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.5,
+          value: 1,
         },
         thresholdName: 'control',
         thresholdVersion: 2,
@@ -7602,7 +7602,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
         thresholdName: 'treatment',
         thresholdVersion: 2,
@@ -7739,14 +7739,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'threshold',
-          value: 0,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'threshold',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -7801,14 +7801,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -7826,14 +7826,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             name: 'control',
             scope: {
               type: 'percentage_rollout',
-              value: 0,
+              value: 1,
             },
           },
           {
             name: 'treatment',
             scope: {
               type: 'percentage_rollout',
-              value: 1,
+              value: 0,
             },
           },
         ],
@@ -7851,21 +7851,21 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.4,
+          value: 1,
         },
       },
       {
         name: 'discovery_feed',
         scope: {
           type: 'percentage_rollout',
-          value: 0.8,
+          value: 0,
         },
       },
       {
         name: 'empty',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -7881,14 +7881,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
