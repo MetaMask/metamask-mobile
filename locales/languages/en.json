@@ -10148,7 +10148,7 @@
       "cancel": "Cancel",
       "done": "Done",
       "confirm": "Confirm",
-      "checking_allowance": "Checking token allowance...",
+      "checking_allowance": "Checking spending cap...",
       "token_not_enabled": "This token needs to be enabled for card spending",
       "token_enabled": "Token is enabled for card spending"
     },
