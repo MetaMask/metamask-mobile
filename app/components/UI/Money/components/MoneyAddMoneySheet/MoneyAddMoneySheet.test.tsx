@@ -7,6 +7,7 @@ import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
@@ -35,6 +36,8 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockInitiateDeposit = jest.fn(() => Promise.resolve());
 
+let mockRouteParams: object | undefined;
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -43,6 +46,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -122,6 +126,7 @@ describe('MoneyAddMoneySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
+    mockRouteParams = undefined;
     // Re-establish implementations wiped by resetAllMocks.
     mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
     mockInitiateDeposit.mockImplementation(() => Promise.resolve());
@@ -348,6 +353,33 @@ describe('MoneyAddMoneySheet', () => {
       intent: 'card',
     });
   });
+
+  it.each([
+    [
+      'Convert crypto',
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      { intent: 'convert' },
+    ],
+    [
+      'Deposit funds',
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+      { autoSelectFiatPayment: true, intent: 'card' },
+    ],
+  ])(
+    'forwards the launch source of the caller that opened the sheet when %s is pressed',
+    (_label, testID, expectedOptions) => {
+      mockRouteParams = { launchedFrom: ConfirmationLaunchSource.Rewards };
+
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(testID));
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        ...expectedOptions,
+        launchedFrom: ConfirmationLaunchSource.Rewards,
+      });
+    },
+  );
 
   it('initiates a deposit when Convert crypto is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);

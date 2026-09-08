@@ -78,6 +78,8 @@ const mockMoneyFormatUsd = moneyFormatUsd as jest.MockedFunction<
   typeof moneyFormatUsd
 >;
 
+let mockRouteParams: object | undefined;
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -88,7 +90,7 @@ jest.mock('@react-navigation/native', () => {
       setParams: jest.fn(),
     }),
     useFocusEffect: (callback: () => void) => callback(),
-    useRoute: () => ({ params: undefined }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -479,6 +481,7 @@ describe('MoneyHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.alert = jest.fn();
+    mockRouteParams = undefined;
 
     // clearAllMocks() resets call history but not a previously-set
     // mockReturnValue, so explicitly restore the default (visible) state.
@@ -1308,6 +1311,34 @@ describe('MoneyHomeView', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
+  });
+
+  describe('back button', () => {
+    it('is not rendered as the Money tab, which has nothing to go back to', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyHeaderTestIds.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('is rendered when the stack was pushed with showBackButton', () => {
+      mockRouteParams = { showBackButton: true };
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyHeaderTestIds.BACK_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('pops back to the screen that pushed this stack when pressed', () => {
+      mockRouteParams = { showBackButton: true };
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 

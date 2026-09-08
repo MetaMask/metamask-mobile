@@ -11,11 +11,13 @@ import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
+import { store } from '../../../../store';
+import { setLastLocalMoneyFlowConfirmedAt } from '../../../../core/redux/slices/moneyBalance';
 import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../store', () => ({
-  store: { getState: jest.fn(() => ({})) },
+  store: { getState: jest.fn(() => ({})), dispatch: jest.fn() },
 }));
 jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
@@ -49,6 +51,8 @@ const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as jest.MockedFunction<
     typeof selectPrimaryMoneyAccount
   >;
+
+const mockDispatch = store.dispatch as unknown as jest.Mock;
 
 type TransactionConfirmedHandler = (transactionMeta: TransactionMeta) => void;
 
@@ -282,5 +286,35 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     });
 
     expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledTimes(1);
+  });
+
+  describe('local flow marker', () => {
+    // `clearAllMocks` would leave a stubbed `Date.now` returning undefined for
+    // every later test in the file.
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it.each([
+      ['a deposit', TransactionType.moneyAccountDeposit],
+      ['a withdrawal', TransactionType.moneyAccountWithdraw],
+    ])('records the confirmation time for %s', (_case, type) => {
+      jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+      renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+      getConfirmedHandler()(makeTx(type));
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setLastLocalMoneyFlowConfirmedAt(1_700_000_000_000),
+      );
+    });
+
+    it('does not record a marker for a tx that leaves the Money balance alone', () => {
+      renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+
+      getConfirmedHandler()(makeTx(TransactionType.contractInteraction));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
   });
 });

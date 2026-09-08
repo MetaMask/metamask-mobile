@@ -2,7 +2,10 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { Hex } from '@metamask/utils';
 import type { AccountsApiActivity } from './moneyActivity';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
-import type { ConfirmationParams } from '../../../Views/confirmations/components/confirm/confirm-component';
+import type {
+  ConfirmationLaunchSource,
+  ConfirmationParams,
+} from '../../../Views/confirmations/components/confirm/confirm-component';
 import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
 
 export enum MoneyPostOnboardingRedirectType {
@@ -21,13 +24,22 @@ export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
   };
 }
 
+export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
+  /**
+   * Renders a back button on Money home. Set when the Money stack is pushed
+   * over the stack that opened it (e.g. a Rewards campaign) instead of being
+   * shown as the Money tab, where there is nothing to go back to.
+   */
+  showBackButton?: boolean;
+}
+
 /**
  * Param list for screens inside the Money tab stack (`MoneyTabScreenStack`).
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyScreensStackParamList = {
-  MoneyHome: NavigationAnalyticsRouteParams | undefined;
+  MoneyHome: MoneyHomeParams | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };
@@ -43,13 +55,21 @@ export type MoneyConfirmationsNavigationParamList = {
   RedesignedConfirmations: ConfirmationParams | undefined;
 };
 
+export interface MoneyAddMoneySheetParams {
+  /**
+   * Forwarded to the deposit confirmation so it can land somewhere other than
+   * the Money tab. Unset for the sheet's usual entry points on Money home.
+   */
+  launchedFrom?: ConfirmationLaunchSource;
+}
+
 /**
  * Param list for screens inside the Money modal stack (`MoneyModalStack`).
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyModalsNavigationParamList = {
-  MoneyAddMoneySheet: undefined;
+  MoneyAddMoneySheet: MoneyAddMoneySheetParams | undefined;
   MoneyMoreSheet: undefined;
   MoneyTransferSheet: undefined;
   MoneyApyInfoSheet: { apy?: number; variant?: 'default' | 'deposit' };

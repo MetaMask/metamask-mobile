@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import useApprovalRequest from '../useApprovalRequest';
@@ -15,6 +15,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
 import {
+  ConfirmationLaunchSource,
   ConfirmationParams,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
@@ -56,7 +57,7 @@ export function useTransactionConfirm() {
   const navigateToPerpsHome = useNavigateToPerpsHome();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
-  const { payWithOption } = useParams<ConfirmationParams>({});
+  const { launchedFrom, payWithOption } = useParams<ConfirmationParams>({});
 
   const { isSupported: isGaslessSupportedSTX, isSmartTransaction } =
     useGaslessSupportedSmartTransactions();
@@ -146,14 +147,26 @@ export function useTransactionConfirm() {
         TransactionType.moneyAccountDeposit,
       ])
     ) {
-      navigation.navigate(
-        Routes.HOME_TABS,
-        {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        },
-        { pop: true },
-      );
+      if (launchedFrom === ConfirmationLaunchSource.Rewards) {
+        // Replacing this confirmation — rather than switching to the Money tab
+        // — keeps the Rewards stack that opened the deposit underneath, so
+        // Money home's back button returns to the campaign.
+        navigation.dispatch(
+          StackActions.replace(Routes.MONEY.ROOT, {
+            screen: Routes.MONEY.HOME,
+            params: { showBackButton: true },
+          }),
+        );
+      } else {
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+      }
     } else if (
       isFullScreenConfirmation &&
       !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
@@ -167,6 +180,7 @@ export function useTransactionConfirm() {
   }, [
     chainId,
     isFullScreenConfirmation,
+    launchedFrom,
     navigateToPerpsHome,
     navigation,
     payWithOption,

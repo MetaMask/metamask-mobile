@@ -28,12 +28,17 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { PayWithOption } from '../../components/confirm/confirm-component';
+import {
+  ConfirmationLaunchSource,
+  PayWithOption,
+} from '../../components/confirm/confirm-component';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
+import { StackActions } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('../useApprovalRequest');
 jest.mock('./useTransactionMetadataRequest');
@@ -61,6 +66,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    dispatch: mockDispatch,
   }),
 }));
 
@@ -515,6 +521,34 @@ describe('useTransactionConfirm', () => {
         },
         { pop: true },
       );
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('money home over the Rewards stack if money account deposit was launched from Rewards', async () => {
+      useParamsMock.mockReturnValue({
+        launchedFrom: ConfirmationLaunchSource.Rewards,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.moneyAccountDeposit,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      // Replacing keeps the Rewards campaign underneath, so Money home's back
+      // button returns there; a HOME_TABS switch would strand the user.
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.MONEY.ROOT, {
+          screen: Routes.MONEY.HOME,
+          params: { showBackButton: true },
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 

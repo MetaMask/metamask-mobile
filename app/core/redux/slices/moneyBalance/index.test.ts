@@ -3,7 +3,9 @@ import reducer, {
   setLastKnownMoneyBalance,
   clearLastKnownMoneyBalance,
   setMoneyAccountRedeemableRaw,
+  setLastLocalMoneyFlowConfirmedAt,
   selectLastKnownMoneyBalance,
+  selectLastLocalMoneyFlowConfirmedAt,
   selectMoneyAccountRedeemable,
   getUsableMoneyAccountRedeemableRaw,
   isPersistedMoneyBalanceUsable,
@@ -30,6 +32,7 @@ describe('moneyBalance slice', () => {
     expect(reducer(undefined, { type: '@@INIT' })).toEqual(initialState);
     expect(initialState.lastKnownBalance).toBeNull();
     expect(initialState.redeemable).toBeNull();
+    expect(initialState.lastLocalFlowConfirmedAt).toBeNull();
   });
 
   it('setLastKnownMoneyBalance stores the balance', () => {
@@ -42,6 +45,7 @@ describe('moneyBalance slice', () => {
     const populated: MoneyBalanceSliceState = {
       lastKnownBalance: balance,
       redeemable: null,
+      lastLocalFlowConfirmedAt: null,
     };
 
     const state = reducer(populated, clearLastKnownMoneyBalance());
@@ -58,6 +62,31 @@ describe('moneyBalance slice', () => {
 
     const cleared = reducer(stored, setMoneyAccountRedeemableRaw(null));
     expect(cleared.redeemable).toBeNull();
+  });
+
+  it('setLastLocalMoneyFlowConfirmedAt stores the confirmation time', () => {
+    const state = reducer(
+      initialState,
+      setLastLocalMoneyFlowConfirmedAt(1700000000000),
+    );
+
+    expect(state.lastLocalFlowConfirmedAt).toBe(1700000000000);
+  });
+
+  it('selectLastLocalMoneyFlowConfirmedAt returns the stored time', () => {
+    const state = {
+      moneyBalance: { lastLocalFlowConfirmedAt: 1700000000000 },
+    } as unknown as RootState;
+
+    expect(selectLastLocalMoneyFlowConfirmedAt(state)).toBe(1700000000000);
+  });
+
+  it('selectLastLocalMoneyFlowConfirmedAt returns null for state persisted before the field existed', () => {
+    const state = {
+      moneyBalance: { lastKnownBalance: null, redeemable: null },
+    } as unknown as RootState;
+
+    expect(selectLastLocalMoneyFlowConfirmedAt(state)).toBeNull();
   });
 
   it('selectLastKnownMoneyBalance returns the stored balance', () => {

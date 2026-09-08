@@ -9,7 +9,10 @@ import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
+import {
+  navigateWithDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import {
@@ -68,6 +71,7 @@ import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import type { MoneyDepositAsset } from '../../selectors/depositTokens';
+import type { MoneyHomeParams } from '../../types/navigation';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -106,6 +110,7 @@ const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { showBackButton } = useParams<MoneyHomeParams>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
@@ -373,6 +378,12 @@ const MoneyHomeView = () => {
     navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
       source: 'money_header',
     });
+  }, [navigation]);
+
+  // Only set when this stack was pushed over the caller's (e.g. a Rewards
+  // campaign funding flow), so back returns there instead of to a tab.
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
   }, [navigation]);
 
   const handleAddPress = useCallback(
@@ -886,6 +897,7 @@ const MoneyHomeView = () => {
       <MoneyHeader
         onMenuPress={handleMenuPress}
         onGetProPress={handleGetProPress}
+        onBack={showBackButton ? handleBackPress : undefined}
       />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
