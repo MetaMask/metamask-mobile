@@ -89,6 +89,7 @@ export const useRecurringBuySwapInputs = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
+    featureId: FeatureId.RECURRING_BUY,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 

@@ -851,11 +851,11 @@ export const BridgeTokenSelector: React.FC = () => {
           token_contract: item.address,
           chain_name: networkName,
           chain_id: item.chainId,
-          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+          feature_id: featureId,
         },
       );
     },
-    [navigation, enabledChainRanking, isWatchlistListMode],
+    [navigation, enabledChainRanking, isWatchlistListMode, featureId],
   );
 
   const renderToken = useCallback<ListRenderItem<BridgeToken | null>>(

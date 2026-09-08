@@ -6,7 +6,10 @@ import React, {
   useCallback,
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { FeatureId, MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import ScreenView from '../../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
@@ -206,6 +209,7 @@ const BridgeMarketViewContent = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
+    featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
@@ -573,6 +577,7 @@ const BridgeMarketViewContent = ({
               <Box style={styles.tokenCard}>
                 <TokenInputArea
                   ref={inputRef}
+                  featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
                   amount={sourceAmountInput.amount}
                   selection={sourceAmountInput.selection}
                   token={sourceToken}
@@ -618,6 +623,7 @@ const BridgeMarketViewContent = ({
               />
               <Box style={styles.tokenCard}>
                 <TokenInputArea
+                  featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
                   amount={destTokenAmount}
                   token={destToken}
                   networkImageSource={
@@ -708,6 +714,7 @@ const BridgeMarketViewContent = ({
             />
           ) : (
             <GaslessQuickPickOptions
+              featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               onMaxPress={handleSourceMaxPress}

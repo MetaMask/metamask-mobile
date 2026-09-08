@@ -89,6 +89,7 @@ export const useLimitOrderSwapInputs = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
+    featureId: FeatureId.LIMIT_ORDER,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 

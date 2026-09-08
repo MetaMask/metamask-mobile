@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { FeatureId } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -320,6 +321,7 @@ const BridgeLimitOrderViewContent = ({
             onResponderRelease={dismissInputAndKeypad}
           >
             <SwapsInputs
+              featureId={FeatureId.LIMIT_ORDER}
               inputRef={inputRef}
               sourceToken={sourceToken}
               sourceAmountInput={sourceAmountInput}
@@ -432,6 +434,7 @@ const BridgeLimitOrderViewContent = ({
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions
+              featureId={FeatureId.LIMIT_ORDER}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               onMaxPress={handleSourceMaxPress}

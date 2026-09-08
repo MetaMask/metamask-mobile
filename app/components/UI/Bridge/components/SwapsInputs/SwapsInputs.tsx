@@ -9,12 +9,14 @@ import {
   TokenInputAreaType,
 } from '../TokenInputArea';
 import { FLipQuoteButton } from '../FlipQuoteButton';
+import type { FeatureId } from '@metamask/bridge-controller';
 import type { useLatestBalance } from '../../hooks/useLatestBalance';
 import type { useSourceAmountInput } from '../../hooks/useSourceAmountInput';
 import type { BridgeToken } from '../../types';
 import { createStyles } from './SwapsInputs.styles';
 
 interface SwapsInputsProps {
+  featureId: FeatureId;
   inputRef: React.Ref<TokenInputAreaRef>;
   sourceToken: BridgeToken | undefined;
   sourceAmountInput: ReturnType<typeof useSourceAmountInput>;
@@ -37,6 +39,7 @@ interface SwapsInputsProps {
 }
 
 export const SwapsInputs = ({
+  featureId,
   inputRef,
   sourceToken,
   sourceAmountInput,
@@ -65,6 +68,7 @@ export const SwapsInputs = ({
         <Box style={styles.tokenCard}>
           <TokenInputArea
             ref={inputRef}
+            featureId={featureId}
             amount={sourceAmountInput.amount}
             selection={sourceAmountInput.selection}
             token={sourceToken}
@@ -103,6 +107,7 @@ export const SwapsInputs = ({
           ]}
         >
           <TokenInputArea
+            featureId={featureId}
             amount={hideDestAmount ? undefined : destTokenAmount}
             token={destToken}
             networkImageSource={

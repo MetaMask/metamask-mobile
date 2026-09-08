@@ -4,6 +4,10 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { CaipChainId } from '@metamask/utils';
 import {
+  FeatureId,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
+import {
   createMockToken,
   createMockPopularToken,
   MOCK_CHAIN_IDS,
@@ -145,6 +149,7 @@ let mockRouteParams: {
   type: 'source' | 'dest';
   enabledChainIds?: CaipChainId[];
   excludeRwaTokens?: boolean;
+  featureId?: FeatureId;
 } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
@@ -1732,6 +1737,21 @@ describe('BridgeTokenSelector', () => {
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks the info button press with the feature id of the flow that opened the picker', async () => {
+      mockRouteParams = { type: 'source', featureId: FeatureId.LIMIT_ORDER };
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+
+      await act(async () => {
+        fireEvent.press(getByTestId('button-icon-info'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
+        expect.objectContaining({ feature_id: FeatureId.LIMIT_ORDER }),
+      );
     });
   });
 

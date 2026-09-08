@@ -159,6 +159,11 @@ export interface TokenInputAreaRef {
 }
 
 interface TokenInputAreaProps {
+  /**
+   * Identifies the flow rendering this input so analytics events are
+   * attributed to it rather than to plain swaps.
+   */
+  featureId: FeatureId;
   amount?: string;
   token?: BridgeToken;
   tokenBalance?: string;
@@ -213,6 +218,7 @@ export const TokenInputArea = forwardRef<
 >(
   (
     {
+      featureId,
       amount,
       token,
       tokenBalance,
@@ -280,16 +286,19 @@ export const TokenInputArea = forwardRef<
         ? TokenSelectorType.Source
         : TokenSelectorType.Dest;
 
-    const trackAssetPickerOpened = useCallback((type: TokenSelectorType) => {
-      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-        UnifiedSwapBridgeEventName.AssetPickerOpened,
-        {
-          asset_location:
-            type === TokenSelectorType.Source ? 'source' : 'destination',
-          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
-        },
-      );
-    }, []);
+    const trackAssetPickerOpened = useCallback(
+      (type: TokenSelectorType) => {
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+          UnifiedSwapBridgeEventName.AssetPickerOpened,
+          {
+            asset_location:
+              type === TokenSelectorType.Source ? 'source' : 'destination',
+            feature_id: featureId,
+          },
+        );
+      },
+      [featureId],
+    );
 
     const handleTokenButtonPress = useCallback(() => {
       trackAssetPickerOpened(tokenSelectorType);

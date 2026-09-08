@@ -14,6 +14,11 @@ const QUICK_PICK_ACTIONS = [25, 50, 75, 'MAX'] as const;
 const QUICK_PICK_ACTIONS_WITHOUT_MAX = [25, 50, 75, 90] as const;
 
 interface GaslessQuickPickOptionsProps {
+  /**
+   * Identifies the flow rendering these presets so analytics events are
+   * attributed to it rather than to plain swaps.
+   */
+  featureId: FeatureId;
   token?: BridgeToken;
   tokenBalance?: string;
   onMaxPress: () => void;
@@ -22,6 +27,7 @@ interface GaslessQuickPickOptionsProps {
 }
 
 export const GaslessQuickPickOptions = ({
+  featureId,
   onAmountSelect,
   onMaxPress,
   token,
@@ -35,12 +41,12 @@ export const GaslessQuickPickOptions = ({
         {
           input: 'token_amount_source',
           input_value: inputValue,
-          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+          feature_id: featureId,
           ...(preset && { input_amount_preset: preset }),
         },
       );
     },
-    [],
+    [featureId],
   );
 
   const onQuickOptionPress = useCallback(
