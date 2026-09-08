@@ -349,13 +349,21 @@ const reportAgentSkillsTask = {
     // It also counts skills from an earlier all-domains `yarn skills`: postinstall
     // does not pass --prune-stale, so those directories persist and keep loading
     // even though nothing refreshes them.
+    //
+    // The prune bullet cannot be one command, because sync's fallback depends on
+    // what the reader already has. With a domain saved in .skills.local, plain
+    // `--prune-stale` keeps it (saved wins) and adding `--domain none` silently
+    // discards it — measured 12 -> 10. With nothing saved the fallback is `all`, so
+    // plain `--prune-stale` installs every domain before pruning — measured
+    // 10 -> 37. Hence the parenthetical rather than a single copy-pasteable line.
     console.log(`
      Found ${installed.length} agent skill(s) in .claude/skills.
 
      The base set installs automatically; yarn skills adds every domain:
       🔎 Pick specific domains:       yarn skills --select
       📖 Inspect one:                 yarn metamask-skills describe <domain>/<skill>
-      🧹 Drop ones no longer managed: yarn skills --domain none --prune-stale
+      🧹 Drop ones no longer managed: yarn skills --prune-stale
+                                      (add --domain none for the base set only)
 ${TRAILING_BLANK_LINE}`);
     return undefined;
   },
