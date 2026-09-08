@@ -770,7 +770,13 @@
     "cardholderAccounts": [],
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
-    "lastUnauthenticatedReason": null
+    "lastUnauthenticatedReason": null,
+    "redeemWithdrawal": null
+  },
+  "UiSlotsController": {
+    "enabled": false,
+    "screenConfigurations": {},
+    "activeConfigurations": {}
   },
   "ConfigRegistryController": {
     "configs": {

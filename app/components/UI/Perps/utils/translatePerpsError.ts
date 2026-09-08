@@ -29,6 +29,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.bridgeContractNotFound',
   [PERPS_ERROR_CODES.WITHDRAW_FAILED]: 'perps.errors.withdrawFailed',
   [PERPS_ERROR_CODES.POSITIONS_FAILED]: 'perps.errors.positionsFailed',
+  [PERPS_ERROR_CODES.POSITION_NOT_FOUND]: 'perps.errors.position_not_found',
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
@@ -375,6 +376,23 @@ export function isPerpsErrorCode(
   }
 
   return error === code;
+}
+
+/** HyperLiquid phrasing for a close/TP-SL aimed at a position it no longer holds. */
+const NO_POSITION_FOUND_PATTERN = /No position found/i;
+
+/**
+ * True when the venue rejected the request because the position was already
+ * filled, closed, or liquidated — a stale-state race, not a user-side failure.
+ */
+export function isNoPositionFoundError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : '';
+  return NO_POSITION_FOUND_PATTERN.test(message);
 }
 
 /**

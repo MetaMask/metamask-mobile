@@ -27,7 +27,7 @@ export const SwapsRecurringBuyConfirmButton = ({
     onPress={onPress}
     isFullWidth
     testID={testID}
-    isDisabled={disabled}
+    isDisabled={Boolean(disabled || loading)}
   >
     {label}
   </Button>

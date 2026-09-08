@@ -6,17 +6,6 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        alternative: 'text-alternative',
-        default: 'text-default',
-      },
-    },
-  }),
-}));
-
 describe('ActivityListDateHeader', () => {
   afterEach(() => {
     jest.useRealTimers();

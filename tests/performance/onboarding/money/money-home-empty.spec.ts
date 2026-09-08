@@ -32,12 +32,10 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
       // Best practice: action before measure() with assertions inside measure();
       await TabBarComponent.tapMoney();
 
-      // Measure data load times.
       await timer.measure(async () => {
         await MoneyHomeView.waitForEmptyBalanceLoaded();
         await MoneyHomeView.waitForApyLoaded();
       });
-
       // Don't include regular assertions in measure().
       // Each assertion carries overhead and can skew the results.
       await MoneyHomeView.expectOnboardingCardTitleVisible();

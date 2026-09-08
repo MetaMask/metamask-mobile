@@ -50,7 +50,7 @@ import {
   PERPS_CONSTANTS,
   DECIMAL_PRECISION_CONFIG,
 } from '@metamask/perps-controller';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLivePositions, usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
@@ -293,6 +293,18 @@ const PerpsTPSLView: React.FC = () => {
 
   // Determine if this is create (new order) or edit (existing position) TP/SL
   const isEditingExistingPosition = !!position;
+
+  // The route snapshot outlives the position. Once the live stream has loaded
+  // without it, submitting would attach TP/SL to nothing and the controller
+  // would record a failed Risk Management request for a benign venue race.
+  const { positions: livePositions, isInitialLoading: isPositionsLoading } =
+    usePerpsLivePositions({
+      throttleMs: TP_SL_VIEW_CONFIG.PositionThrottleMs,
+    });
+  const isPositionGone =
+    isEditingExistingPosition &&
+    !isPositionsLoading &&
+    !livePositions.some((p) => p.symbol === position.symbol);
   const tpslScreenType = isEditingExistingPosition
     ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
     : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
@@ -495,7 +507,7 @@ const PerpsTPSLView: React.FC = () => {
   }, [focusedInput]);
 
   const handleConfirm = useCallback(async () => {
-    if (!hasChanges || !isValid || isUpdating) {
+    if (!hasChanges || !isValid || isUpdating || isPositionGone) {
       return;
     }
 
@@ -570,9 +582,11 @@ const PerpsTPSLView: React.FC = () => {
     hasChanges,
     isValid,
     isUpdating,
+    isPositionGone,
   ]);
 
-  const confirmDisabled = !hasChanges || !isValid || isUpdating;
+  const confirmDisabled =
+    !hasChanges || !isValid || isUpdating || isPositionGone;
   const inputsDisabled = isUpdating;
 
   const handleTakeProfitPresetPress = useCallback(

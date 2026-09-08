@@ -67,6 +67,21 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers the Pro position-modify margin preview as version-gated and default-off', () => {
+      expect(
+        FEATURE_FLAG_REGISTRY.perpsPositionModifyPreviewEnabled,
+      ).toMatchObject({
+        name: 'perpsPositionModifyPreviewEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.11.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('enables curated event pages for the extended sports leagues', () => {
       const extendedSportsLeagues = [
         'nba',

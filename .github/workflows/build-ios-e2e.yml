@@ -55,8 +55,8 @@ jobs:
       }}
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
-      app-uploaded: ${{ steps.upload-app-namespace.outcome == 'success' || steps.upload-app.outcome == 'success' }}
-      sourcemap-uploaded: ${{ steps.upload-sourcemap-namespace.outcome == 'success' || steps.upload-sourcemap.outcome == 'success' }}
+      app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
+      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
@@ -73,6 +73,7 @@ jobs:
       METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
       HAS_TEST_OVERRIDES: true
       E2E: 'true'
+      E2E_MOCK_OAUTH: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: true
       CI: 'true'
       NODE_OPTIONS: '--max-old-space-size=8192'
@@ -579,6 +580,7 @@ jobs:
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           HAS_TEST_OVERRIDES: true
           E2E: 'true'
+          E2E_MOCK_OAUTH: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
@@ -785,73 +787,41 @@ jobs:
       # upload, which also hard-fails. The metadata uploads below intentionally keep
       # `continue-on-error` (as Android's do) because they affect only future reuse,
       # not this run's own tests.
-      - name: Upload iOS APP Artifact (Simulator) (Namespace)
-        id: upload-app-namespace
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          retention-days: 7
-          if-no-files-found: error
-
-      # Always mirrored to the GitHub store, including on Namespace: cross-run
-      # reuse discovery lists artifacts through the GitHub API, which cannot see
-      # the Namespace store. See "Runner provider switch" in .github/CONTRIBUTING.md.
-      - name: Upload iOS APP Artifact (Simulator) (GitHub store)
+      - name: Upload iOS APP Artifact (Simulator) (artifact stores)
         id: upload-app
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
           retention-days: 7
           if-no-files-found: error
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
-      - name: Upload iOS build metadata (Namespace)
-        id: upload-metadata-namespace
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
-          path: .e2e-build-metadata/ios.json
-          retention-days: 7
-          if-no-files-found: error
-        continue-on-error: true
-
-      - name: Upload iOS build metadata (GitHub store)
+      - name: Upload iOS build metadata (artifact stores)
         id: upload-metadata
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-build-metadata/ios.json
           retention-days: 7
           if-no-files-found: error
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
         continue-on-error: true
 
       # Upload source map file for crash debugging and error tracking.
       # Both paths produce it: `yarn build:ios:${{ inputs.build_type }}:e2e` via
       # `scripts/ios/bundle-js-and-sentry-upload.sh` and `yarn build:repack:ios`
       # via `scripts/repack.js` both write to `sourcemaps/ios/index.js.map`.
-      - name: Upload iOS Source Map (Namespace)
-        id: upload-sourcemap-namespace
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
-          path: sourcemaps/ios/index.js.map
-          retention-days: 7
-          if-no-files-found: error
-        continue-on-error: true
-
-      - name: Upload iOS Source Map (current)
+      - name: Upload iOS Source Map (artifact stores)
         id: upload-sourcemap
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
           path: sourcemaps/ios/index.js.map
           retention-days: 7
           if-no-files-found: error
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+          skip-github: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         continue-on-error: true
 
       # Generate artifact download URL and display upload status summary
@@ -863,9 +833,9 @@ jobs:
           echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
           echo ""
           echo "Upload Status Summary:"
-          echo "- APP (Simulator): namespace=${{ steps.upload-app-namespace.outcome }} github=${{ steps.upload-app.outcome }}"
-          echo "- Build metadata: namespace=${{ steps.upload-metadata-namespace.outcome }} github=${{ steps.upload-metadata.outcome }}"
-          echo "- Source Map: namespace=${{ steps.upload-sourcemap-namespace.outcome }} current=${{ steps.upload-sourcemap.outcome }}"
+          echo "- APP (Simulator): ${{ steps.upload-app.outcome }}"
+          echo "- Build metadata: ${{ steps.upload-metadata.outcome }}"
+          echo "- Source Map: ${{ steps.upload-sourcemap.outcome }}"
 
         env:
           GITHUB_REPOSITORY: '${{ github.repository }}'
