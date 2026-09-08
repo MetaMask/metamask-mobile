@@ -940,6 +940,76 @@ describe('useWhatsHappening', () => {
     expect(second.result.current.isLoading).toBe(false);
   });
 
+  it('closes empty time to content on remount of a cached empty overview', async () => {
+    const emptyOverview = { ...mockOverview, trends: [] };
+    mockFetchMarketOverview.mockResolvedValue(emptyOverview);
+
+    const first = renderWhatsHappeningHook();
+    await waitFor(() => expect(first.result.current.isLoading).toBe(false));
+    expect(first.result.current.items).toHaveLength(0);
+    first.unmount();
+    mockEndTrace.mockClear();
+    mockFetchMarketOverview.mockClear();
+
+    const second = renderWhatsHappeningHook();
+
+    expect(second.result.current.isGenerationPending).toBe(false);
+    expect(mockFetchMarketOverview).not.toHaveBeenCalled();
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening Carousel Load",
+      id: 'unknown:carousel',
+      data: {
+        result: 'empty',
+        success: true,
+        content_state: 'empty',
+      },
+    });
+  });
+
+  it('keeps expanded time to content open until a deeplink front-page item settles', async () => {
+    mockFetchMarketOverview.mockResolvedValue({ ...mockOverview, trends: [] });
+    let resolveFrontPage: ((value: null) => void) | undefined;
+    mockFetchFrontPageItem.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveFrontPage = resolve;
+        }),
+    );
+
+    const { result } = renderWhatsHappeningHook({
+      outdatedItemId: 'front-page-1',
+      telemetryContext: {
+        source: WhatsHappeningSource.Deeplink,
+        stage: 'expanded',
+      },
+    });
+
+    await waitFor(() => expect(mockFetchMarketOverview).toHaveBeenCalled());
+
+    expect(result.current.isGenerationPending).toBe(true);
+    expect(mockEndTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "What's Happening View Load",
+        data: expect.objectContaining({ result: 'empty' }),
+      }),
+    );
+
+    await act(async () => {
+      resolveFrontPage?.(null);
+    });
+    await waitFor(() => expect(result.current.isGenerationPending).toBe(false));
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening View Load",
+      id: 'deeplink:expanded',
+      data: {
+        result: 'empty',
+        success: true,
+        content_state: 'empty',
+      },
+    });
+  });
+
   it('does not flip loading during a background refetch of a settled empty feed', async () => {
     mockFetchMarketOverview.mockResolvedValueOnce(null);
 

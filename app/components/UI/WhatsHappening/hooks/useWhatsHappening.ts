@@ -334,10 +334,27 @@ export const useWhatsHappening = (
   const isFrontPageLoading =
     Boolean(outdatedItemId) && frontPageQuery.isLoading;
   const visibleItems = isActive && !error ? items : [];
+  // A warm cached overview (including `{ trends: [] }`) does not refetch, so
+  // `isFetchedAfterMount` stays false. Treat a non-fetching cached payload as
+  // settled so empty TTC can close. A cached `null` miss is stale and stays
+  // pending until this observer fetches. When a deeplink front-page item is
+  // in flight, wait for that query too so expanded TTC does not close empty
+  // before the only card arrives.
+  const hasOverviewSettled =
+    overviewQuery.isFetchedAfterMount ||
+    Boolean(
+      overviewQuery.isFetched &&
+        !overviewQuery.isFetching &&
+        overviewQuery.data,
+    );
+  const hasFrontPageSettled =
+    !outdatedItemId ||
+    frontPageQuery.isFetchedAfterMount ||
+    (frontPageQuery.isFetched && !frontPageQuery.isFetching);
   const isGenerationPending = isDigestObserverPending({
     enabled: isActive,
     hasContent: visibleItems.length > 0,
-    isFetchedAfterMount: overviewQuery.isFetchedAfterMount,
+    isFetchedAfterMount: hasOverviewSettled && hasFrontPageSettled,
   });
   const carouselTraceId = useWhatsHappeningLoadTrace({
     name: TraceName.WhatsHappeningCarouselLoad,
