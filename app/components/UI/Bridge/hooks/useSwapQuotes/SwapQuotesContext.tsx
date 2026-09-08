@@ -25,22 +25,29 @@ export const SwapQuotesContext = createContext<SwapQuotesContextValue | null>(
   null,
 );
 
-interface SwapQuotesProviderProps
-  extends UseQuoteRequestParams,
-    UseQuoteDataParams {
-  children: React.ReactNode;
-}
-
 interface UseSwapQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
   quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
 }
 
-interface UseQuoteDataParams extends UseSwapQuotesParams {}
+interface UseQuoteDataParams extends UseSwapQuotesParams {
+  /**
+   * Whether this is the quote source for the rendered tab. The other quote
+   * provider stays mounted to keep the tree stable, this flag skips
+   * expensive computations.
+   */
+  isActive?: boolean;
+}
 
 interface UseQuoteRequestParams
   extends UseSwapQuotesParams,
     UseDebouncedUpdateParams {}
+
+interface SwapQuotesProviderProps
+  extends UseQuoteRequestParams,
+    UseQuoteDataParams {
+  children: React.ReactNode;
+}
 
 /**
  * Hook for handling bridge quote request updates
@@ -80,8 +87,8 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
     selectGasIncludedQuoteParams,
   );
 
-  const genericQuoteRequest: GenericQuoteRequest | undefined = useMemo(
-    () =>
+  const genericQuoteRequest = useMemo(
+    (): GenericQuoteRequest | undefined =>
       buildGenericQuoteRequest({
         quoteParams: {
           srcAmount,
@@ -135,6 +142,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
 const useQuoteData = ({
   latestSourceAtomicBalance,
   quoteParams,
+  isActive,
 }: UseQuoteDataParams) => {
   const { quoteFetchError, quotesLoadingStatus } = useSelector(
     selectBridgeControllerState,
@@ -151,10 +159,10 @@ const useQuoteData = ({
     needsNewQuote,
     validQuotes,
     willRefresh,
-  } = useValidQuotes({ latestSourceAtomicBalance, quoteParams });
+  } = useValidQuotes({ latestSourceAtomicBalance, isActive, quoteParams });
 
   // Validate solana quotes
-  const blockaidError = useBlockaidError({ activeQuote });
+  const blockaidError = useBlockaidError({ activeQuote, isActive });
 
   // Format quote data
   const { destTokenAmount, formattedQuoteData, shouldShowPriceImpactWarning } =

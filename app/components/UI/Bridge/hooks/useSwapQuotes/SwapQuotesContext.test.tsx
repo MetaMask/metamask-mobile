@@ -74,6 +74,7 @@ runQuoteProviderCases({
   renderProvider: (state) =>
     renderWithProvider(
       <SwapQuotesProvider
+        isActive
         featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
         debounceWait={1000}
         quoteParams={{

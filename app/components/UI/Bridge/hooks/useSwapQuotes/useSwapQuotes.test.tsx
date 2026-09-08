@@ -146,6 +146,7 @@ const Wrapper = ({
 
   return (
     <SwapQuotesProvider
+      isActive
       featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
       debounceWait={mockDebounceMs}
       quoteRequestIndex={quoteRequestIndex}
