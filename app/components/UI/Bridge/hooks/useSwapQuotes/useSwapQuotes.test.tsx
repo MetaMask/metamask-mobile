@@ -1,5 +1,5 @@
 import React from 'react';
-import { SwapQuotesProvider } from './SwapQuotesContext';
+import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
 import { useSwapQuotes } from './index';
 import {
   mockContext,

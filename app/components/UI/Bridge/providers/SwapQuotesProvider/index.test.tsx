@@ -1,10 +1,10 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { SwapQuotesProvider } from './SwapQuotesContext';
-import { useSwapQuotes } from './index';
-import { runQuoteProviderCases } from '../useBridgeQuoteData/runQuoteProviderCases';
+import { SwapQuotesProvider } from '.';
+import { useSwapQuotes } from '../../hooks/useSwapQuotes/index';
+import { runQuoteProviderCases } from '../../hooks/useBridgeQuoteData/runQuoteProviderCases';
 import { FeatureId } from '@metamask/bridge-controller';
-import { mockContext } from '../useBridgeQuoteRequest/runQuoteRequestCases';
+import { mockContext } from '../../hooks/useBridgeQuoteRequest/runQuoteRequestCases';
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -17,11 +17,11 @@ jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx', () => ({
   }),
 }));
 
-jest.mock('../useUnifiedSwapBridgeContext', () => ({
+jest.mock('../../hooks/useUnifiedSwapBridgeContext', () => ({
   useUnifiedSwapBridgeContext: jest.fn(() => mockContext),
 }));
 
-jest.mock('../useLatestBalance', () => ({
+jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn().mockImplementation((params) => jest.fn(params)),
 }));
 
@@ -32,12 +32,12 @@ jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx', () => ({
   })),
 }));
 
-jest.mock('../useInsufficientBalance', () => ({
+jest.mock('../../hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
 
-jest.mock('../useInsufficientNativeReserveError', () => ({
+jest.mock('../../hooks/useInsufficientNativeReserveError', () => ({
   useInsufficientNativeReserveError: jest.fn(),
 }));
 

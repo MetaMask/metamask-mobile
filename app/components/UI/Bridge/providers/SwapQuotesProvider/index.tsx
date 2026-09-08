@@ -3,20 +3,20 @@ import { useSelector } from 'react-redux';
 import { BigNumber as EthersBigNumber } from 'ethers';
 
 import { selectBridgeControllerState } from '../../../../../core/redux/slices/bridge';
-import { useValidQuotes } from '../useValidQuotes';
-import { useBlockaidError } from '../useBlockaidError';
-import { useFormattedQuoteData } from '../useFormattedQuoteData';
+import { useValidQuotes } from '../../hooks/useValidQuotes';
+import { useBlockaidError } from '../../hooks/useBlockaidError';
+import { useFormattedQuoteData } from '../../hooks/useFormattedQuoteData';
 
 import { type GenericQuoteRequest } from '@metamask/bridge-controller';
 import {
   useUpdateQuoteParams,
   type UseDebouncedUpdateParams,
-} from '../useUpdateQuoteParams';
-import { useLatestBalance } from '../useLatestBalance';
-import useIsInsufficientBalance from '../useInsufficientBalance';
-import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
+} from '../../hooks/useUpdateQuoteParams';
+import { useLatestBalance } from '../../hooks/useLatestBalance';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
-import { buildGenericQuoteRequest } from './utils';
+import { buildGenericQuoteRequest } from '../../hooks/useSwapQuotes/utils';
 
 export type SwapQuotesContextValue = ReturnType<typeof useQuoteRequest> &
   ReturnType<typeof useQuoteData>;
