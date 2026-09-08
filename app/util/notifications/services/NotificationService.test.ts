@@ -295,9 +295,6 @@ describe('canOsPromptForPushPermission', () => {
     },
   );
 
-  // Android gained POST_NOTIFICATIONS in API 33. Below that there is no runtime
-  // permission, so requestPermission() can never surface a dialog and would
-  // report a "denied" the user was never asked for.
   it.each([
     { version: 28, expected: false, label: 'Android 9 (P)' },
     { version: 29, expected: false, label: 'Android 10 (Q)' },

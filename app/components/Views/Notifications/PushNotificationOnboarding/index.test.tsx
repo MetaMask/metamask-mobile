@@ -339,10 +339,6 @@ describe('PushNotificationOnboarding', () => {
     },
   );
 
-  // Regression: Android <13 has no POST_NOTIFICATIONS permission, so
-  // requestPermission() can never show a dialog and just re-reports the current
-  // denied state. Requesting anyway logged an `OS Push Notification Button
-  // Clicked` / deny for a refusal the user was never asked for.
   describe('when the OS cannot show a push permission dialog', () => {
     beforeEach(() => {
       Platform.OS = 'android';
@@ -527,11 +523,6 @@ describe('PushNotificationOnboarding', () => {
     expectPersonalizedAlertsOnToast();
   });
 
-  // Regression: the marketing-consent sheet is the only sheet an Android <13 user
-  // with notifications enabled can ever see, because OS permission is granted at
-  // install and the push-permission variant is therefore unreachable. Without this
-  // the AUS preferences row is never created, so the backend has nothing to sync
-  // and no `notifications_*` attributes ever reach Braze.
   it('initializes notification preferences when the marketing prompt is confirmed', () => {
     const { getByTestId } = renderPushNotificationOnboarding({
       nativeOsPermissionEnabled: true,

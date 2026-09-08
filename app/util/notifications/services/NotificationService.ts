@@ -377,8 +377,8 @@ export async function isPushPermissionGranted(): Promise<boolean> {
 /**
  * Returns true when requesting push permission may show the OS dialog.
  * iOS exposes a NOT_DETERMINED state, but Notifee only exposes AUTHORIZED/DENIED
- * on Android. Treat Android's not-granted state as promptable and let
- * requestPermission determine whether the OS can show a dialog.
+ * on Android. Treat Android's not-granted state as promptable; on Android < 13
+ * there is still no dialog — check `canOsPromptForPushPermission` before requesting.
  */
 export async function isPushPermissionPromptable(): Promise<boolean> {
   if (Platform.OS === 'android') {
@@ -392,19 +392,13 @@ export async function isPushPermissionPromptable(): Promise<boolean> {
 export const ANDROID_POST_NOTIFICATIONS_API_LEVEL = 33;
 
 /**
- * Returns true when the OS is capable of showing a push permission dialog at all.
+ * Whether the OS can show a push-permission dialog.
  *
- * Android only gained the `POST_NOTIFICATIONS` runtime permission in API 33
- * (Android 13). Below that level notifications are granted at install and there is
- * no permission to request: `notifee.requestPermission()` merely re-reads
- * `areNotificationsEnabled()` and resolves to the state it started in, without ever
- * surfacing a dialog.
- *
- * `isPushPermissionPromptable` cannot express this — on Android it reports any
- * not-granted state as promptable and defers to `requestPermission` to decide
- * whether a dialog is possible. Requesting anyway on Android < 13 records a
- * "denied" response the user was never asked for. Check this before calling
- * `requestPushPermissions` and route these users to system settings instead.
+ * Android added `POST_NOTIFICATIONS` in API 33. Below that there is no runtime
+ * permission: `requestPermission()` never shows a dialog and just returns the
+ * current enabled/disabled state. `isPushPermissionPromptable` still treats
+ * Android's not-granted state as promptable, so callers must check this first
+ * and send Android < 13 users to system settings instead of requesting.
  */
 export function canOsPromptForPushPermission(): boolean {
   if (Platform.OS !== 'android') {
