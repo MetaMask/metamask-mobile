@@ -52,7 +52,11 @@ export const usePerpsWatchlistActions = (
           return;
         }
 
-        await controller.toggleWatchlistMarket(symbol);
+        // Not awaited: the controller applies its local update synchronously
+        // and only then persists to AUS. Awaiting the network write delayed the
+        // toast and its haptic by the round-trip. Failures surface through the
+        // rejection handler below, matching useEnableMarketingConsent.
+        const persisted = controller.toggleWatchlistMarket(symbol);
 
         const watchlistAfter = controller.getWatchlistMarkets();
         if (watchlistAfter.includes(symbol)) {
@@ -67,6 +71,8 @@ export const usePerpsWatchlistActions = (
           });
           showToast(PerpsToastOptions.watchlist.added(symbol));
         }
+
+        await persisted;
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.add'), {
           tags: {
@@ -90,7 +96,8 @@ export const usePerpsWatchlistActions = (
     async (symbol: string): Promise<void> => {
       try {
         const controller = Engine.context.PerpsController;
-        await controller.toggleWatchlistMarket(symbol);
+        // Not awaited before the toast — see addToWatchlist.
+        const persisted = controller.toggleWatchlistMarket(symbol);
 
         const watchlistAfter = controller.getWatchlistMarkets();
         if (!watchlistAfter.includes(symbol)) {
@@ -105,6 +112,8 @@ export const usePerpsWatchlistActions = (
           });
           showToast(PerpsToastOptions.watchlist.removed(symbol));
         }
+
+        await persisted;
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.remove'), {
           tags: {
@@ -117,6 +126,10 @@ export const usePerpsWatchlistActions = (
             data: { symbol, source },
           },
         });
+
+        // The removed toast has already shown against optimistic state, so it
+        // has to be corrected once the controller reverts the star.
+        showToast(PerpsToastOptions.watchlist.removeError);
       }
     },
     [source, track, showToast, PerpsToastOptions],

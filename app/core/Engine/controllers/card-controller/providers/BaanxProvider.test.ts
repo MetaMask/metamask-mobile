@@ -630,6 +630,49 @@ describe('BaanxProvider', () => {
     });
   });
 
+  describe('getUserDetails', () => {
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      refreshToken: 'rt',
+      accessTokenExpiresAt: 1,
+      refreshTokenExpiresAt: 2,
+      location: 'international',
+    };
+
+    it('returns the user profile from GET /v1/user', async () => {
+      const user = {
+        id: 'u1',
+        email: 'migrating@example.com',
+        phoneNumber: '7581572277',
+        phoneCountryCode: '+44',
+      };
+      const get = jest.fn().mockResolvedValue(user);
+      const provider = new BaanxProvider({
+        service: { get, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      const result = await provider.getUserDetails(tokens);
+
+      expect(result).toStrictEqual(user);
+      expect(get).toHaveBeenCalledWith('/v1/user', tokens);
+    });
+
+    it('maps API failures to CardProviderError', async () => {
+      const get = jest
+        .fn()
+        .mockRejectedValue(new CardApiError(401, '/v1/user', ''));
+      const provider = new BaanxProvider({
+        service: { get, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await expect(provider.getUserDetails(tokens)).rejects.toMatchObject({
+        name: 'CardProviderError',
+        code: CardProviderErrorCode.InvalidCredentials,
+        statusCode: 401,
+      });
+    });
+  });
+
   describe('getCardHomeData auth propagation', () => {
     const tokens: CardAuthTokens = {
       accessToken: 'at',
@@ -685,6 +728,21 @@ describe('BaanxProvider', () => {
     it('rejects on a 429 from a sub-request instead of degrading to null card', async () => {
       const get = jest.fn().mockImplementation((path: string) => {
         if (path === '/v1/card/status') {
+          return Promise.reject(new CardApiError(429, path, ''));
+        }
+        return Promise.resolve(null);
+      });
+
+      await expect(
+        buildProvider(get).getCardHomeData('0xabc', tokens),
+      ).rejects.toMatchObject({
+        statusCode: 429,
+      });
+    });
+
+    it('rejects on a 429 from getUserDetails instead of degrading to null user', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/user') {
           return Promise.reject(new CardApiError(429, path, ''));
         }
         return Promise.resolve(null);

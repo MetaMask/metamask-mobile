@@ -16,6 +16,9 @@ import {
   willFlipPosition,
   determineMakerStatus,
   isPriceOutsideDeviationBand,
+  getOrderPriceRowVisibility,
+  getValidPerpsPrice,
+  resolvePerpsTransactionOrderType,
 } from './orderUtils';
 import { Order, OrderParams } from '@metamask/perps-controller';
 import { Position } from '../hooks';
@@ -28,6 +31,61 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 describe('orderUtils', () => {
+  describe('transaction order price rows', () => {
+    it.each([
+      ['market', false, false],
+      ['limit', false, true],
+      ['stop_market', true, false],
+      ['stop_limit', true, true],
+      ['take_profit_market', true, false],
+      ['take_profit_limit', true, true],
+    ] as const)(
+      'maps %s to trigger-price=%s and limit-price=%s',
+      (orderType, showTriggerPrice, showLimitPrice) => {
+        const result = getOrderPriceRowVisibility(orderType);
+
+        expect(result).toEqual({ showTriggerPrice, showLimitPrice });
+      },
+    );
+
+    it.each([
+      ['stop_market', 'market', 'Stop Market'],
+      ['stop_limit', 'limit', 'Stop Limit'],
+      ['take_profit_market', 'market', 'Take Profit Market'],
+      ['take_profit_limit', 'limit', 'Take Profit Limit'],
+    ] as const)(
+      'resolves legacy %s from its detailed order type',
+      (orderType, executionType, detailedOrderType) => {
+        const result = resolvePerpsTransactionOrderType({
+          type: executionType,
+          orderType: executionType,
+          detailedOrderType,
+        });
+
+        expect(result).toBe(orderType);
+      },
+    );
+
+    it('keeps a normalized order type when transaction data provides one', () => {
+      const result = resolvePerpsTransactionOrderType({
+        type: 'market',
+        orderType: 'take_profit_limit',
+        detailedOrderType: 'Take Profit Market',
+      });
+
+      expect(result).toBe('take_profit_limit');
+    });
+
+    it.each([undefined, null, '', '0', 'not-a-price'] as const)(
+      'returns null for a missing or invalid price value %s',
+      (price) => {
+        const result = getValidPerpsPrice(price);
+
+        expect(result).toBeNull();
+      },
+    );
+  });
+
   describe('formatOrderLabel', () => {
     it('should format opening long market order', () => {
       const order: Order = {
@@ -149,7 +207,7 @@ describe('orderUtils', () => {
       expect(formatOrderLabel(order)).toBe('Limit close short');
     });
 
-    it('should use detailedOrderType when available for Stop Market', () => {
+    it('uses the canonical Stop Market type with closing direction', () => {
       const order: Order = {
         orderId: '1',
         symbol: 'BTC',
@@ -170,7 +228,7 @@ describe('orderUtils', () => {
       expect(formatOrderLabel(order)).toBe('Stop market close long');
     });
 
-    it('should use detailedOrderType for Take Profit Limit', () => {
+    it('uses the canonical Take Limit type with closing direction', () => {
       const order: Order = {
         orderId: '1',
         symbol: 'BTC',
@@ -188,10 +246,39 @@ describe('orderUtils', () => {
         isTrigger: true,
       };
 
-      expect(formatOrderLabel(order)).toBe('Take profit limit close long');
+      expect(formatOrderLabel(order)).toBe('Take limit close long');
     });
 
-    it('should handle trigger orders as closing orders', () => {
+    it.each([
+      ['buy', 'Stop market long'],
+      ['sell', 'Stop market short'],
+    ] as const)(
+      'formats a non-reduce-only %s trigger using its direct direction',
+      (side, expectedLabel) => {
+        const order: Order = {
+          orderId: '1',
+          symbol: 'ETH',
+          side,
+          orderType: 'market',
+          detailedOrderType: 'Stop Market',
+          size: '1',
+          originalSize: '1',
+          price: '2800',
+          filledSize: '0',
+          remainingSize: '1',
+          status: 'open',
+          timestamp: Date.now(),
+          reduceOnly: false,
+          isTrigger: true,
+        };
+
+        const result = formatOrderLabel(order);
+
+        expect(result).toBe(expectedLabel);
+      },
+    );
+
+    it('formats a legacy trigger without reduce-only as a closing order', () => {
       const order: Order = {
         orderId: '1',
         symbol: 'ETH',
@@ -204,35 +291,44 @@ describe('orderUtils', () => {
         remainingSize: '1',
         status: 'open',
         timestamp: Date.now(),
-        reduceOnly: false,
         isTrigger: true,
       };
 
-      expect(formatOrderLabel(order)).toBe('Market close short');
+      const result = formatOrderLabel(order);
+
+      expect(result).toBe('Market close short');
     });
   });
 
   describe('formatOrderTypeLabel', () => {
-    it('returns detailed order type when available', () => {
-      const order: Order = {
-        orderId: '1',
-        symbol: 'BTC',
-        side: 'buy',
-        orderType: 'market',
-        detailedOrderType: 'Stop Market',
-        size: '1',
-        originalSize: '1',
-        price: '50000',
-        filledSize: '0',
-        remainingSize: '1',
-        status: 'open',
-        timestamp: Date.now(),
-        reduceOnly: true,
-        isTrigger: true,
-      };
+    it.each([
+      ['Stop Limit', 'limit', 'Stop limit'],
+      ['Stop Market', 'market', 'Stop market'],
+      ['Take Profit Limit', 'limit', 'Take limit'],
+      ['Take Profit Market', 'market', 'Take market'],
+    ] as const)(
+      'maps provider type %s to the selected order type label',
+      (detailedOrderType, orderType, expectedLabel) => {
+        const order: Order = {
+          orderId: '1',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType,
+          detailedOrderType,
+          size: '1',
+          originalSize: '1',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '1',
+          status: 'open',
+          timestamp: Date.now(),
+          reduceOnly: true,
+          isTrigger: true,
+        };
 
-      expect(formatOrderTypeLabel(order)).toBe('Stop market');
-    });
+        expect(formatOrderTypeLabel(order)).toBe(expectedLabel);
+      },
+    );
 
     it('falls back to translated limit or market when detailed type is absent', () => {
       const limitOrder: Order = {
@@ -392,14 +488,16 @@ describe('orderUtils', () => {
       ).toBe('short');
     });
 
-    it('returns "long" for a trigger sell (TP/SL closing a long)', () => {
-      expect(
-        getOrderPositionDirection({
-          ...baseOrder,
-          side: 'sell',
-          isTrigger: true,
-        }),
-      ).toBe('long');
+    it('returns "short" for a non-reduce-only trigger sell', () => {
+      const order: Order = {
+        ...baseOrder,
+        side: 'sell',
+        isTrigger: true,
+      };
+
+      const result = getOrderPositionDirection(order);
+
+      expect(result).toBe('short');
     });
   });
 
@@ -511,15 +609,29 @@ describe('orderUtils', () => {
       detailedOrderType: 'Take Profit Limit',
     };
 
-    it('returns trigger price label when trigger price is valid', () => {
+    it('returns limit price from the detailed type compatibility fallback', () => {
       const result = resolveOrderDisplayPriceAndLabel({
         ...baseOrder,
         triggerPrice: '51000',
       });
 
       expect(result).toEqual({
-        priceValue: 51000,
-        labelKey: 'perps.order.trigger_price',
+        priceValue: 50000,
+        labelKey: 'perps.order.limit_price',
+      });
+    });
+
+    it('returns limit price for a normalized trigger-limit order', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        detailedOrderType: undefined,
+        triggerOrderType: 'take_profit_limit',
+        triggerPrice: '51000',
+      });
+
+      expect(result).toEqual({
+        priceValue: 50000,
+        labelKey: 'perps.order.limit_price',
       });
     });
 
@@ -536,13 +648,28 @@ describe('orderUtils', () => {
       });
     });
 
-    it('returns market label when trigger market has no valid prices', () => {
+    it('returns an unavailable limit price without labelling it as market', () => {
+      const result = resolveOrderDisplayPriceAndLabel({
+        ...baseOrder,
+        triggerOrderType: 'take_profit_limit',
+        triggerPrice: '51000',
+        price: '0',
+      });
+
+      expect(result).toEqual({
+        priceValue: null,
+        labelKey: 'perps.order.limit_price',
+      });
+    });
+
+    it('returns market label for trigger-market with trigger and cap prices', () => {
       const result = resolveOrderDisplayPriceAndLabel({
         ...baseOrder,
         orderType: 'market',
         detailedOrderType: 'Stop Market',
-        triggerPrice: '0',
-        price: '0',
+        triggerOrderType: 'stop_market',
+        triggerPrice: '49000',
+        price: '48510',
       });
 
       expect(result).toEqual({

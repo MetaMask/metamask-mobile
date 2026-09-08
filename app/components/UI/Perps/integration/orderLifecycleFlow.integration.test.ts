@@ -19,11 +19,23 @@
  *            tests/integration/STRATEGY.md (Shape A vs Shape B discussion)
  */
 
-import { act } from '@testing-library/react-native';
-import { type OrderResult, type Position } from '@metamask/perps-controller';
+import { act, waitFor } from '@testing-library/react-native';
 
+// The harness installs the controller boundary mocks before the controller
+// entrypoint is evaluated.
 import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps/perps-flow';
+import {
+  PERPS_ERROR_CODES,
+  type OrderResult,
+  type Position,
+} from '@metamask/perps-controller';
+import { HyperliquidError } from '@nktkas/hyperliquid';
+// Mobile's current Node resolver cannot read this package export, while Jest
+// and Metro resolve the SDK's declared `./api/exchange` entrypoint.
+import { ApiRequestError } from '@nktkas/hyperliquid/api/exchange';
+
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import Engine from '../../../../core/Engine';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
 
@@ -153,6 +165,120 @@ describe('Perps order lifecycle — FLOW integration', () => {
       expect(perps.harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
     });
 
+    it('places, reads, and terminates Chase through the real provider seam', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let placement: OrderResult | null = null;
+      await act(async () => {
+        placement = await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'chase',
+          currentPrice: 50_000,
+          chaseIntervalMs: 60_000,
+        });
+      });
+      const activeOrders =
+        await Engine.context.PerpsController.getChaseOrders();
+      const handle = activeOrders[0]?.handle;
+      if (!handle) throw new Error('Expected an active Chase handle');
+      let cancellation: { success: boolean } | null = null;
+      await act(async () => {
+        cancellation = await result.current.cancelOrder({
+          orderId: handle,
+          symbol: 'BTC',
+          orderType: 'chase',
+          skipCufConfirmationTrace: true,
+        });
+      });
+
+      expect(placement).toMatchObject({
+        success: true,
+        submittedSize: '0.1',
+      });
+      expect(activeOrders[0]).toMatchObject({
+        symbol: 'BTC',
+        status: 'active',
+      });
+      expect(cancellation).toMatchObject({ success: true, orderId: handle });
+      expect(perps.harness.mocks.exchangeClient.cancel).toHaveBeenCalled();
+    });
+
+    it('reprices and backgrounds Chase through the real provider lifecycle', async () => {
+      jest.useFakeTimers();
+      try {
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+        await act(async () => {
+          await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.1',
+            orderType: 'chase',
+            currentPrice: 50_000,
+            chaseIntervalMs: 10,
+          });
+        });
+        perps.harness.mocks.infoClient.l2Book.mockResolvedValue({
+          levels: [
+            [{ px: '50009', sz: '1', n: 1 }],
+            [{ px: '50011', sz: '1', n: 1 }],
+          ],
+        });
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(10);
+        });
+        const repriced = await Engine.context.PerpsController.getChaseOrders();
+        const cancelCountAfterRepricing =
+          perps.harness.mocks.exchangeClient.cancel.mock.calls.length;
+        const backgrounded =
+          await Engine.context.PerpsController.suspendChaseOrders();
+
+        expect(repriced[0]).toMatchObject({ repricings: 1, status: 'active' });
+        expect(backgrounded[0]).toMatchObject({ status: 'backgrounded' });
+        expect(cancelCountAfterRepricing).toBeGreaterThan(0);
+        expect(perps.harness.mocks.exchangeClient.cancel).toHaveBeenCalledTimes(
+          cancelCountAfterRepricing,
+        );
+        expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledTimes(
+          2,
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('rejects Chase when the provider has no external book touch', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.infoClient.l2Book.mockResolvedValue({
+        levels: [[], []],
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let placement: OrderResult | null = null;
+      await act(async () => {
+        placement = await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'chase',
+          currentPrice: 50_000,
+        });
+      });
+
+      expect(placement).toMatchObject({
+        success: false,
+        error: PERPS_ERROR_CODES.ORDER_CHASE_TOUCH_UNAVAILABLE,
+      });
+      expect(perps.harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
+    });
+
     it('emits Perp Trade Transaction with status failed when the provider rejects the order', async () => {
       const perps = buildPerpsFlowHarness();
       perps.harness.setupTradingReady();
@@ -218,6 +344,669 @@ describe('Perps order lifecycle — FLOW integration', () => {
         order_size: 0.1,
         amount_filled: 0.05,
         remaining_amount: 0.05,
+      });
+    });
+
+    it.each([
+      {
+        placement: 'full',
+        statuses: [
+          { resting: { oid: 101 } },
+          { resting: { oid: 102 } },
+          { resting: { oid: 103 } },
+        ],
+        childOrderIds: ['101', '102', '103'],
+        submittedSize: '0.6',
+        acceptedSize: '0.6',
+        acceptedChildren: [
+          { orderId: '101', state: 'resting' },
+          { orderId: '102', state: 'resting' },
+          { orderId: '103', state: 'resting' },
+        ],
+        submittedValue: 30_134,
+        filledSize: undefined,
+        averagePrice: undefined,
+        resultOrderSize: 0.6,
+        resultOrderValue: 30_134,
+      },
+      {
+        placement: 'partial',
+        statuses: [
+          { resting: { oid: 101 } },
+          { filled: { oid: 102, avgPx: '50000', totalSz: '0.2' } },
+          { error: 'Insufficient margin' },
+        ],
+        childOrderIds: ['101'],
+        submittedSize: '0.6',
+        acceptedSize: '0.333',
+        acceptedChildren: [
+          { orderId: '101', state: 'resting' },
+          { orderId: '102', state: 'filled' },
+        ],
+        submittedValue: 16_517,
+        filledSize: '0.2',
+        averagePrice: '50000',
+        resultOrderSize: 0.2,
+        resultOrderValue: 10_000,
+      },
+    ])(
+      'reports $placement Scale submitted size and weighted telemetry',
+      async ({
+        placement,
+        statuses,
+        childOrderIds,
+        submittedSize,
+        acceptedSize,
+        acceptedChildren,
+        submittedValue,
+        filledSize,
+        averagePrice,
+        resultOrderSize,
+        resultOrderValue,
+      }) => {
+        // Arrange
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        const venueResponse = {
+          status: 'ok',
+          response: { type: 'order', data: { statuses } },
+        } as const;
+        if (placement === 'partial') {
+          perps.harness.mocks.exchangeClient.order.mockRejectedValueOnce(
+            new ApiRequestError(venueResponse, 'order 2: Insufficient margin'),
+          );
+        } else {
+          perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce(
+            venueResponse,
+          );
+        }
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+        // Act
+        const placeOrderResultRef: { current: OrderResult | null } = {
+          current: null,
+        };
+        await act(async () => {
+          placeOrderResultRef.current = await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.6',
+            orderType: 'scale',
+            currentPrice: 50_000,
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 3,
+            scaleSkew: 2,
+          });
+        });
+
+        // Assert
+        expect(placeOrderResultRef.current).toMatchObject({
+          success: true,
+          childOrderIds,
+          submittedSize,
+          acceptedSize,
+          acceptedChildren,
+        });
+        expect(placeOrderResultRef.current?.filledSize).toBe(filledSize);
+        expect(placeOrderResultRef.current?.averagePrice).toBe(averagePrice);
+        expect(
+          Number(placeOrderResultRef.current?.weightedAverageLimitPrice),
+        ).toBeCloseTo(submittedValue / Number(acceptedSize));
+        expect(
+          perps.analytics.lastByName(PerpsAnalyticsEvent.TradeTransaction),
+        ).toMatchObject({
+          status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+          asset: 'BTC',
+          order_type: 'scale',
+          order_size: resultOrderSize,
+          limit_price: submittedValue / Number(acceptedSize),
+          order_value: resultOrderValue,
+        });
+        if (filledSize) {
+          const partialEvent = perps.analytics
+            .byName(PerpsAnalyticsEvent.TradeTransaction)
+            .find(
+              (event) =>
+                event.status === PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+            );
+          expect(partialEvent).toMatchObject({
+            order_size: Number(acceptedSize),
+            amount_filled: Number(filledSize),
+            remaining_amount: Number(acceptedSize) - Number(filledSize),
+            limit_price: submittedValue / Number(acceptedSize),
+            order_value: submittedValue,
+          });
+        }
+        expect(
+          perps.harness.mocks.exchangeClient.cancel,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['resolved', 'thrown'] as const)(
+      'rejects and cleans waiting Scale children from a %s venue response',
+      async (responseKind) => {
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        const venueResponse = {
+          status: 'ok' as const,
+          response: {
+            type: 'order' as const,
+            data: {
+              statuses: [
+                'waitingForFill',
+                'waitingForTrigger',
+                { error: 'Insufficient margin' },
+              ],
+            },
+          },
+        };
+        if (responseKind === 'thrown') {
+          perps.harness.mocks.exchangeClient.order.mockRejectedValueOnce(
+            new ApiRequestError(venueResponse, 'Insufficient margin'),
+          );
+        } else {
+          perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce(
+            venueResponse,
+          );
+        }
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+        let placeOrderResult: OrderResult | null = null;
+        await act(async () => {
+          placeOrderResult = await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.6',
+            orderType: 'scale',
+            currentPrice: 50_000,
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 3,
+            scaleSkew: 2,
+          });
+        });
+
+        expect(placeOrderResult).toMatchObject({
+          success: false,
+          childOrderIds: [],
+          acceptedChildren: [
+            { state: 'waitingForFill' },
+            { state: 'waitingForTrigger' },
+          ],
+        });
+        const submittedOrders =
+          perps.harness.mocks.exchangeClient.order.mock.calls[0][0].orders;
+        expect(
+          perps.harness.mocks.exchangeClient.cancelByCloid,
+        ).toHaveBeenCalledWith({
+          cancels: [0, 1].map((index) => ({
+            asset: 0,
+            cloid: submittedOrders[index].c,
+          })),
+        });
+        expect(
+          perps.harness.mocks.exchangeClient.cancel,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      {
+        failure: 'unrelated SDK error',
+        error: new HyperliquidError('SDK failure'),
+        message: 'SDK failure',
+        expectedCancels: undefined,
+        expectedCloidIndexes: [] as number[],
+      },
+      {
+        failure: 'unknown partial status',
+        error: new ApiRequestError(
+          {
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: {
+                statuses: [
+                  { resting: { oid: 101 } },
+                  { scheduled: { oid: 102 } },
+                  { error: 'Insufficient margin' },
+                ],
+              },
+            },
+          },
+          'Unknown bulk status',
+        ),
+        message: 'Unknown bulk status',
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1],
+      },
+      {
+        failure: 'malformed partial status',
+        error: new ApiRequestError(
+          {
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: {
+                statuses: [
+                  { resting: { oid: 101 } },
+                  { filled: { oid: '102' } },
+                  { error: 'Insufficient margin' },
+                ],
+              },
+            },
+          },
+          'Malformed bulk status',
+        ),
+        message: 'Malformed bulk status',
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1],
+      },
+      {
+        failure: 'hybrid partial response',
+        error: new ApiRequestError(
+          {
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: {
+                statuses: [
+                  { resting: { oid: 101 } },
+                  { error: 'Insufficient margin' },
+                  {
+                    resting: { oid: 103 },
+                    error: 'Invalid status',
+                  },
+                ],
+              },
+            },
+          },
+          'Hybrid bulk response',
+        ),
+        message: 'Hybrid bulk response',
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [2],
+      },
+      {
+        failure: 'all-rejected partial response',
+        error: new ApiRequestError(
+          {
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: {
+                statuses: [
+                  { error: 'Multi-sig required' },
+                  { error: 'Multi-sig required' },
+                  { error: 'Multi-sig required' },
+                ],
+              },
+            },
+          },
+          'order 0: Multi-sig required',
+        ),
+        message: PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED,
+        expectedCancels: undefined,
+        expectedCloidIndexes: [] as number[],
+      },
+    ])(
+      'preserves failure behavior for a $failure',
+      async ({ error, message, expectedCancels, expectedCloidIndexes }) => {
+        // Arrange
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        perps.harness.mocks.exchangeClient.order.mockRejectedValueOnce(error);
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+        // Act
+        let placeOrderResult: OrderResult | null = null;
+        await act(async () => {
+          placeOrderResult = await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.6',
+            orderType: 'scale',
+            currentPrice: 50_000,
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 3,
+            scaleSkew: 2,
+          });
+        });
+
+        // Assert
+        expect(placeOrderResult).toMatchObject({
+          success: false,
+          error: message,
+        });
+        if (expectedCancels) {
+          expect(
+            perps.harness.mocks.exchangeClient.cancel,
+          ).toHaveBeenCalledWith({ cancels: expectedCancels });
+        } else {
+          expect(
+            perps.harness.mocks.exchangeClient.cancel,
+          ).not.toHaveBeenCalled();
+        }
+        if (expectedCloidIndexes.length > 0) {
+          const submittedOrders =
+            perps.harness.mocks.exchangeClient.order.mock.calls[0][0].orders;
+          expect(
+            perps.harness.mocks.exchangeClient.cancelByCloid,
+          ).toHaveBeenCalledWith({
+            cancels: expectedCloidIndexes.map((index) => ({
+              asset: 0,
+              cloid: submittedOrders[index].c,
+            })),
+          });
+        } else {
+          expect(
+            perps.harness.mocks.exchangeClient.cancelByCloid,
+          ).not.toHaveBeenCalled();
+        }
+      },
+    );
+
+    it('rejects a Scale ladder when the venue accepts no children', async () => {
+      // Arrange
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'ok',
+        response: {
+          data: {
+            statuses: [
+              { error: 'Insufficient margin' },
+              { error: 'Insufficient margin' },
+              { error: 'Insufficient margin' },
+            ],
+          },
+        },
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      // Act
+      const placeOrderResultRef: { current: OrderResult | null } = {
+        current: null,
+      };
+      await act(async () => {
+        placeOrderResultRef.current = await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.6',
+          orderType: 'scale',
+          currentPrice: 50_000,
+          scaleMinPrice: '49000',
+          scaleMaxPrice: '51000',
+          scaleNumOrders: 3,
+          scaleSkew: 2,
+        });
+      });
+
+      // Assert
+      expect(placeOrderResultRef.current).toMatchObject({ success: false });
+      expect(placeOrderResultRef.current?.childOrderIds).toBeUndefined();
+      expect(perps.harness.mocks.exchangeClient.cancel).not.toHaveBeenCalled();
+      expect(
+        perps.analytics.lastByName(PerpsAnalyticsEvent.TradeTransaction),
+      ).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.FAILED,
+        asset: 'BTC',
+        order_type: 'scale',
+      });
+    });
+
+    it.each([
+      {
+        responseShape: 'truncated status array',
+        statuses: [{ resting: { oid: 101 } }],
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1, 2],
+        expectedChildOrderIds: [],
+      },
+      {
+        responseShape: 'malformed status payload',
+        statuses: { resting: { oid: 101 } },
+        expectedCancels: null,
+        expectedCloidIndexes: [0, 1, 2],
+        expectedChildOrderIds: undefined,
+      },
+      {
+        responseShape: 'unknown status entry',
+        statuses: [
+          { resting: { oid: 101 } },
+          { scheduled: { oid: 102 } },
+          { error: 'Insufficient margin' },
+        ],
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1],
+        expectedChildOrderIds: [],
+        cancelStatuses: ['success'],
+      },
+      {
+        responseShape: 'malformed status entry',
+        statuses: [
+          { resting: { oid: 101 } },
+          { filled: { oid: '102' } },
+          { error: 'Insufficient margin' },
+        ],
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1],
+        expectedChildOrderIds: [],
+      },
+      {
+        responseShape: 'hybrid accepted and error status entry',
+        statuses: [
+          { resting: { oid: 101 } },
+          { error: 'Insufficient margin' },
+          { resting: { oid: 103 }, error: 'Invalid status' },
+        ],
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [2],
+        expectedChildOrderIds: [],
+      },
+      {
+        responseShape: 'all-hybrid accepted and error status entries',
+        statuses: [
+          { resting: { oid: 101 }, error: 'Invalid status' },
+          { resting: { oid: 102 }, error: 'Invalid status' },
+          { filled: { oid: 103 }, error: 'Invalid status' },
+        ],
+        expectedCancels: null,
+        expectedCloidIndexes: [0, 1, 2],
+        expectedChildOrderIds: undefined,
+      },
+    ])(
+      'rejects and cleans up a Scale ladder with a $responseShape',
+      async ({
+        statuses,
+        expectedCancels,
+        expectedCloidIndexes,
+        expectedChildOrderIds,
+        cancelStatuses,
+      }) => {
+        // Arrange
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+          status: 'ok',
+          response: { data: { statuses } },
+        });
+        if (cancelStatuses) {
+          perps.harness.mocks.exchangeClient.cancel.mockResolvedValueOnce({
+            status: 'ok',
+            response: { data: { statuses: cancelStatuses } },
+          });
+        }
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+        // Act
+        const placeOrderResultRef: { current: OrderResult | null } = {
+          current: null,
+        };
+        await act(async () => {
+          placeOrderResultRef.current = await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.6',
+            orderType: 'scale',
+            currentPrice: 50_000,
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 3,
+            scaleSkew: 2,
+          });
+        });
+
+        // Assert
+        expect(placeOrderResultRef.current).toMatchObject({ success: false });
+        expect(placeOrderResultRef.current?.childOrderIds).toEqual(
+          expectedChildOrderIds,
+        );
+        const submittedOrders =
+          perps.harness.mocks.exchangeClient.order.mock.calls[0][0].orders;
+        expect(
+          perps.harness.mocks.exchangeClient.cancelByCloid,
+        ).toHaveBeenCalledWith({
+          cancels: expectedCloidIndexes.map((index) => ({
+            asset: 0,
+            cloid: submittedOrders[index].c,
+          })),
+        });
+        if (expectedCancels) {
+          expect(
+            perps.harness.mocks.exchangeClient.cancel,
+          ).toHaveBeenCalledWith({ cancels: expectedCancels });
+        } else {
+          expect(
+            perps.harness.mocks.exchangeClient.cancel,
+          ).not.toHaveBeenCalled();
+        }
+      },
+    );
+
+    it('rejects and cleans up a Scale ladder when the top-level result is non-ok', async () => {
+      // Arrange
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'err',
+        response: {
+          data: {
+            statuses: [
+              { resting: { oid: 101 } },
+              { resting: { oid: 102 } },
+              { resting: { oid: 103 } },
+            ],
+          },
+        },
+      });
+      perps.harness.mocks.exchangeClient.cancel.mockResolvedValueOnce({
+        status: 'ok',
+        response: {
+          data: { statuses: ['success', 'success', 'success'] },
+        },
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      // Act
+      const placeOrderResultRef: { current: OrderResult | null } = {
+        current: null,
+      };
+      await act(async () => {
+        placeOrderResultRef.current = await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.6',
+          orderType: 'scale',
+          currentPrice: 50_000,
+          scaleMinPrice: '49000',
+          scaleMaxPrice: '51000',
+          scaleNumOrders: 3,
+          scaleSkew: 2,
+        });
+      });
+
+      // Assert
+      expect(placeOrderResultRef.current).toMatchObject({ success: false });
+      expect(placeOrderResultRef.current?.childOrderIds).toEqual([]);
+      expect(perps.harness.mocks.exchangeClient.cancel).toHaveBeenCalledWith({
+        cancels: [
+          { a: 0, o: 101 },
+          { a: 0, o: 102 },
+          { a: 0, o: 103 },
+        ],
+      });
+    });
+
+    it('rejects and cleans up a Scale ladder whose placement outlives the provider lifecycle', async () => {
+      // Arrange
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      const venueResult = {
+        status: 'ok',
+        response: {
+          data: {
+            statuses: [
+              { resting: { oid: 101 } },
+              { resting: { oid: 102 } },
+              { resting: { oid: 103 } },
+            ],
+          },
+        },
+      };
+      let resolveOrder: ((value: typeof venueResult) => void) | undefined;
+      perps.harness.mocks.exchangeClient.order.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrder = resolve;
+          }),
+      );
+      perps.harness.mocks.exchangeClient.cancel.mockResolvedValueOnce({
+        status: 'ok',
+        response: {
+          data: { statuses: ['success', 'success', 'success'] },
+        },
+      });
+
+      // Act
+      const placement = perps.harness.provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.6',
+        orderType: 'scale',
+        currentPrice: 50_000,
+        scaleMinPrice: '49000',
+        scaleMaxPrice: '51000',
+        scaleNumOrders: 3,
+        scaleSkew: 2,
+      });
+      await waitFor(() =>
+        expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledTimes(
+          1,
+        ),
+      );
+      await perps.harness.provider.disconnect();
+      if (!resolveOrder) {
+        throw new Error('Scale order submission did not start');
+      }
+      resolveOrder(venueResult);
+      const placeOrderResult = await placement;
+
+      // Assert
+      expect(placeOrderResult).toMatchObject({
+        success: false,
+        error: 'PROVIDER_LIFECYCLE_STALE',
+      });
+      expect(placeOrderResult.childOrderIds).toEqual([]);
+      expect(perps.harness.mocks.exchangeClient.cancel).toHaveBeenCalledWith({
+        cancels: [
+          { a: 0, o: 101 },
+          { a: 0, o: 102 },
+          { a: 0, o: 103 },
+        ],
       });
     });
   });

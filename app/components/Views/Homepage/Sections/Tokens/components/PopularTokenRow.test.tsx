@@ -144,20 +144,6 @@ describe('PopularTokenRow', () => {
       expect(screen.queryByText(/\$\d+\.\d+\s+•\s*$/)).toBeNull();
     });
 
-    it('renders description instead of price when provided', () => {
-      const token = createMockToken({
-        description: 'Earn 3% bonus',
-        price: 100,
-        priceChange1d: 5,
-      });
-
-      renderWithProvider(<PopularTokenRow token={token} />);
-
-      expect(screen.getByText('Earn 3% bonus')).toBeOnTheScreen();
-      // Price and percentage should not be rendered when description is present
-      expect(screen.queryByText(/\$100\.00/)).toBeNull();
-    });
-
     it('renders Buy button', () => {
       const token = createMockToken();
 

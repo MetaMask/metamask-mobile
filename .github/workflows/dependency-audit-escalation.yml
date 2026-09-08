@@ -1,0 +1,190 @@
+name: Dependency Audit Escalation
+
+# `yarn audit:ci` is advisory-only in ci.yml (dependency-audit job) — it never
+# blocks a PR. This workflow is the actual triage loop:
+#   1. scripts/collect-audit-advisories.ts parses the raw `yarn audit` output
+#      and drops anything already tracked by an open PR/issue. (Permanently
+#      accepted risks never even get this far — see
+#      npmAuditIgnoreAdvisories in .yarnrc.yml.)
+#   2. Whatever's left gets filed/updated as a single tracking issue so a
+#      human decides the fix. The audit owner (and their manager, if
+#      configured) gets pinged in Slack once that's done — see
+#      .github/audit-owners.yml (owner) and npmAuditIgnoreAdvisories in
+#      .yarnrc.yml (accepting a risk instead of fixing it).
+#
+# No schedule: ci.yml's `dependency-audit` job already runs `yarn audit:ci`
+# on every push/PR/hourly-schedule run ci.yml itself has, so re-running the
+# same check again on a separate cron would just be redundant. Instead,
+# ci.yml calls this workflow (via workflow_call) only on runs where that job
+# actually found advisories.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  dependency-audit-escalation:
+    name: Triage dependency audit advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Run dependency audit
+        id: audit
+        shell: bash
+        run: |
+          set +e
+          yarn audit:ci --json > audit.ndjson 2> audit.stderr
+          EXIT="$?"
+          set -e
+          cat audit.stderr >&2 || true
+          # Exit 0 = clean, non-zero = advisories found. Either way audit.ndjson
+          # is what matters; a truncated/empty file on a non-zero exit is a real
+          # script error and should fail the job instead of silently no-oping.
+          if [[ "$EXIT" -ne 0 && ! -s audit.ndjson ]]; then
+            echo "::error::yarn npm audit exited $EXIT with no output; treating as a script failure, not a clean audit."
+            exit "$EXIT"
+          fi
+          if [[ -s audit.ndjson ]]; then
+            echo "has-advisories=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-advisories=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Idempotent: `gh label create --force` edits the label in place if it
+      # already exists instead of erroring, so this is safe to run every time
+      # rather than only on first setup.
+      - name: Ensure dependency-audit labels exist
+        id: labels
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create dependency-audit --repo "$GITHUB_REPOSITORY" --color '0e8a16' \
+            --description 'Auto-fix PR opened by dependency-audit-escalation.yml' --force
+          gh label create dependency-audit-manual --repo "$GITHUB_REPOSITORY" --color 'd93f0b' \
+            --description 'Tracking issue for an advisory dependency-audit-escalation.yml could not auto-fix' --force
+
+      - name: Build skip-list from open PRs/issues
+        id: skip-list
+        # Advisories the owner has permanently accepted as risk are handled
+        # by .yarnrc.yml's npmAuditIgnoreAdvisories instead — those never
+        # reach `yarn npm audit`'s output at all, so there's nothing to skip
+        # here for them. This step only dedupes against advisories that are
+        # mid-flight (already tracked by an open fix PR or manual-review
+        # issue from a previous run).
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          {
+            gh pr list --repo "$GITHUB_REPOSITORY" --label dependency-audit --state open --json body --jq '.[].body'
+            gh issue list --repo "$GITHUB_REPOSITORY" --label dependency-audit-manual --state open --json body --jq '.[].body'
+          } | grep -o '<!-- audit-ids: [^>]*-->' | sed -E 's/<!-- audit-ids: (.*) -->/\1/' | tr ',' '\n' \
+            > skip-ids.txt || true
+
+          node -e "
+            const fs = require('fs');
+            const ids = fs.existsSync('skip-ids.txt')
+              ? fs.readFileSync('skip-ids.txt', 'utf8').split('\n').map((s) => s.trim()).filter(Boolean)
+              : [];
+            fs.writeFileSync('skip-ids.json', JSON.stringify([...new Set(ids)]));
+          "
+          echo "Skip list: $(cat skip-ids.json)"
+
+      - name: Collect advisories for review
+        id: collect
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        run: |
+          yarn ts-node --transpile-only scripts/collect-audit-advisories.ts audit.ndjson skip-ids.json
+          MANUAL_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.length)")
+          echo "manual-count=$MANUAL_COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: File or update tracking issue for advisories needing manual review
+        id: manual-issue
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          NEW_IDS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.map((e) => e.id).join(','))")
+          NEW_SECTION="$(mktemp)"
+          node -e "
+            const entries = JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual;
+            for (const e of entries) {
+              console.log(\`- **\${e.pkg}** (\${e.severity}) — [\${e.id}](\${e.url || ''}): \${e.title}\`);
+              console.log(\`  - Reason: \${e.reason}\`);
+            }
+          " > "$NEW_SECTION"
+
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --label dependency-audit-manual --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$EXISTING" ]]; then
+            # The skip-list step (above) only scans issue *bodies* for the
+            # `<!-- audit-ids: ... -->` marker, not comments. Posting a
+            # comment alone would leave every ID mentioned only there
+            # invisible to that dedupe, so it gets re-collected on every
+            # subsequent run even though it's already tracked here. Rewrite
+            # the body instead, merging this run's IDs into the existing
+            # marker — the comment below is just for a human-readable
+            # changelog of what changed.
+            OLD_BODY=$(gh issue view "$EXISTING" --repo "$GITHUB_REPOSITORY" --json body --jq '.body')
+            OLD_IDS=$(printf '%s' "$OLD_BODY" | grep -o '<!-- audit-ids: [^>]*-->' | sed -E 's/<!-- audit-ids: (.*) -->/\1/' || true)
+            MERGED_IDS=$(OLD_IDS="$OLD_IDS" NEW_IDS="$NEW_IDS" node -e "
+              const old = (process.env.OLD_IDS || '').split(',').map((s) => s.trim()).filter(Boolean);
+              const fresh = (process.env.NEW_IDS || '').split(',').map((s) => s.trim()).filter(Boolean);
+              console.log([...new Set([...old, ...fresh])].join(','));
+            ")
+            BODY_FILE="$(mktemp)"
+            {
+              printf '%s' "$OLD_BODY" | sed -E '/<!-- audit-ids: .* -->/d'
+              echo
+              cat "$NEW_SECTION"
+              echo
+              echo "<!-- audit-ids: ${MERGED_IDS} -->"
+            } > "$BODY_FILE"
+            gh issue edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file "$BODY_FILE"
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file "$NEW_SECTION"
+            ISSUE_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues/${EXISTING}"
+          else
+            BODY_FILE="$(mktemp)"
+            {
+              echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically. See .github/audit-owners.yml for the owner, or add the ID to npmAuditIgnoreAdvisories in .yarnrc.yml (with a comment explaining why) to accept this as a risk instead of fixing it."
+              echo
+              cat "$NEW_SECTION"
+              echo
+              echo "<!-- audit-ids: ${NEW_IDS} -->"
+            } > "$BODY_FILE"
+            ISSUE_URL=$(gh issue create \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Dependency audit: manual review needed" \
+              --body-file "$BODY_FILE" \
+              --label dependency-audit-manual)
+          fi
+          echo "issue-url=$ISSUE_URL" >> "$GITHUB_OUTPUT"

@@ -64,6 +64,24 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for Chase orders.
+ * LaunchDarkly key (kebab-case): `perps-mobile-chase`.
+ */
+export const PERPS_MOBILE_CHASE_FLAG_KEY = 'perpsMobileChase' as const;
+
+/** Chase is default-off and may only be exposed to supported app versions. */
+export const selectPerpsMobileChaseEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_MOBILE_CHASE_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Client-config / Redux key for the Perps advanced chart feature flag.
  * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled-v2`
  */
@@ -425,6 +443,30 @@ export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.perpsProTriggeredOrdersEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Client-config / Redux key for the Pro Scale order feature flag.
+ * LaunchDarkly key (kebab-case): `perps-mobile-scale`.
+ */
+export const PERPS_MOBILE_SCALE_FLAG_KEY = 'perpsMobileScale' as const;
+
+/**
+ * Selector for Scale orders in the Perps Pro order form.
+ * Defaults to false so entry and placement can be rolled back without hiding
+ * already-resting child limit orders from either Lite or Pro order lists.
+ *
+ * @returns boolean - true if Scale order entry and placement are enabled
+ */
+export const selectPerpsMobileScaleEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_MOBILE_SCALE_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },

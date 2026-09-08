@@ -195,8 +195,6 @@ appiumTest.describe(SmokeAccounts('Add and rename accounts'), () => {
       await withIdentityFixtures(fixtureOptions, async () => {
         await loginAndOpenAccountList({
           scenarioType: 'e2e',
-          accountListDescription:
-            'Account list should be visible after restart',
         });
 
         await assertAccountCount(DEFAULT_ACCOUNT_NAME, 1);

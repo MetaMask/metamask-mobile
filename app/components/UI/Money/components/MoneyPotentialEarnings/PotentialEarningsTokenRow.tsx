@@ -2,6 +2,9 @@ import React, { useMemo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -16,12 +19,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import {
@@ -101,14 +98,17 @@ const PotentialEarningsTokenRow = ({
           twClassName="gap-4"
         >
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              networkBadgeSource && (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
+              networkBadgeSource ? (
+                <BadgeNetwork
+                  src={
+                    networkBadgeSource as React.ComponentProps<
+                      typeof BadgeNetwork
+                    >['src']
+                  }
                 />
-              )
+              ) : null
             }
           >
             <AssetLogo

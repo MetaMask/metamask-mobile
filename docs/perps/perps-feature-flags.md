@@ -171,7 +171,9 @@ Follow existing test patterns covering:
 | `perpsPerpGtmOnboardingModalEnabled`               | `perps-perp-gtm-onboarding-modal-enabled`                | `MM_PERPS_GTM_MODAL_ENABLED`                   | false   | GTM onboarding modal                                                                                     |
 | `perpsOrderBookEnabled`                            | `perps-order-book-enabled`                               | `MM_PERPS_ORDER_BOOK_ENABLED`                  | false   | Order Book feature                                                                                       |
 | `perpsProModeEnabled`                              | `perps-pro-mode-enabled`                                 | —                                              | false   | Lite/Pro mode toggle and Pro-mode entry points (Pro market view)                                         |
+| `perpsMobileScale`                                 | `perps-mobile-scale`                                     | —                                              | false   | Version-gated Scale ladder placement in the Pro order form, minimum production version 8.10.0            |
 | `perpsMobileTwap`                                  | `perps-mobile-twap`                                      | —                                              | false   | Version-gated Hyperliquid TWAP placement in the Pro order form, minimum production version 8.10.0        |
+| `perpsMobileChase`                                 | `perps-mobile-chase`                                     | —                                              | false   | Version-gated Chase order placement and lifecycle controls, minimum production version 8.10.0            |
 | `perpsAdvancedChartEnabledV2`                      | `perps-advanced-chart-enabled-v2`                        | —                                              | false   | Perps market detail / fullscreen TradingView AdvancedChart (remote only)                                 |
 | `perpsShowFullAssetNames`                          | `perps-show-full-asset-names`                            | —                                              | false   | Show full asset names (e.g. "Bitcoin") instead of tickers (e.g. "BTC") in market row lists (remote only) |
 | `perpsFeedbackEnabled`                             | `perps-feedback-enabled`                                 | `MM_PERPS_FEEDBACK_ENABLED`                    | false   | Feedback button on home                                                                                  |
@@ -180,7 +182,7 @@ Follow existing test patterns covering:
 | `vipProgramEnabled`                                | `vip-program-enabled`                                    | —                                              | false   | Gates VIP fee discount in perps (UI preview and order execution)                                         |
 | `perpsClosePositionLimitOrderEnabled`              | `perps-close-position-limit-order-enabled`               | —                                              | false   | Market/Limit order-type selector on the close position screen (limit close orders, remote only)          |
 
-`perpsMobileTwap` is remote-only. Missing, malformed, disabled, or below-version values resolve to `false`; the production configuration starts at Mobile 8.10.0.
+`perpsMobileScale`, `perpsMobileTwap`, and `perpsMobileChase` are independent remote-only flags. Missing, malformed, disabled, or below-version values resolve to `false`; all three production configurations start at Mobile 8.10.0. Enabling one strategy does not enable the others.
 
 ### A/B Test Flags
 

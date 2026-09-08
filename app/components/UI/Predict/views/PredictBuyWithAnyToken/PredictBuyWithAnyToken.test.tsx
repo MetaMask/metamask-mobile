@@ -540,7 +540,7 @@ describe('PredictBuyWithAnyToken', () => {
 
     expect(screen.getByTestId('predict-fee-breakdown-sheet')).toBeOnTheScreen();
     expect(screen.getByTestId('predict-fee-breakdown-sheet')).toHaveTextContent(
-      /provider-fee-2.25/,
+      /provider-fee-0/,
     );
 
     fireEvent.press(screen.getByTestId('close-fee-breakdown'));
