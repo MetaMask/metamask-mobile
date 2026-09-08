@@ -10,7 +10,7 @@ import type {
 } from './types.ts';
 
 function isPerformanceTest(testInfo: TestInfo): boolean {
-  return testInfo.titlePath().some((title) => title.includes('@Performance'));
+  return testInfo.titlePath.some((title) => title.includes('@Performance'));
 }
 
 export const appProfilingFixture: Fixtures<
