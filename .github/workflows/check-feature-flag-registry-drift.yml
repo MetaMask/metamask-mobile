@@ -40,6 +40,8 @@ jobs:
         id: check
         shell: bash
         run: |
+          # Ensure report existence reflects this run, not a leftover file.
+          rm -f sync-report.json
           set +e
           yarn feature-flags:sync:check 2>&1 | tee sync-report.txt
           EXIT="${PIPESTATUS[0]}"
