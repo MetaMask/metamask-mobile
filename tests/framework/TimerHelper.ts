@@ -118,6 +118,15 @@ class TimerHelper {
   }
 
   /**
+   * Renames this timer in the store (e.g. after measuring a destination-dependent step).
+   */
+  changeName(newName: string): void {
+    const oldId = this._id;
+    TimerStore.renameTimer(oldId, newName);
+    this._id = newName;
+  }
+
+  /**
    * Returns the duration of the timer in seconds.
    * @returns Duration in seconds, or 0 if the timer has no duration
    */

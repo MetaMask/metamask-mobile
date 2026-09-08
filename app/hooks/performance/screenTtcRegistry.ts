@@ -13,8 +13,13 @@ const records = new Map<OnboardingScreenId, ScreenTtcRecord>();
 const listeners = new Set<() => void>();
 
 let generationCounter = 0;
+/** Test-only override for `isE2EOrPerformanceTest` (undefined = use real flag). */
+let probeEnabledOverride: boolean | undefined;
 
 export function isScreenTtcProbeEnabled(): boolean {
+  if (probeEnabledOverride !== undefined) {
+    return probeEnabledOverride;
+  }
   return isE2EOrPerformanceTest;
 }
 
@@ -88,4 +93,12 @@ export function _resetScreenTtcRegistryForTesting(): void {
   records.clear();
   listeners.clear();
   generationCounter = 0;
+  probeEnabledOverride = undefined;
+}
+
+/** Test-only probe enable override (`undefined` restores production flag). */
+export function _setScreenTtcProbeEnabledForTesting(
+  enabled: boolean | undefined,
+): void {
+  probeEnabledOverride = enabled;
 }
