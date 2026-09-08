@@ -36,6 +36,12 @@ ESLint **errors** on dual-framework debt in POs, flows, and Appium specs (no war
 
 Page objects use `AppiumElement` from `tests/framework`. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
 
+### Performance E2E failure autofix (Cursor Automation)
+
+- [docs/testing/performance-failure-autofix.md](../docs/testing/performance-failure-autofix.md) — Agent + Automation: investigate failed performance runs (artifacts, BrowserStack video), Slack DM Javier Vera, open fix PR when not quality-gates-only.
+- Skill: [`.agents/skills/performance-failure-autofix/SKILL.md`](../.agents/skills/performance-failure-autofix/SKILL.md)
+- Command: `/performance-failure-autofix`
+
 ## Canonical Sources (read these, do not duplicate)
 
 - [docs/testing/e2e-testing.md](../docs/testing/e2e-testing.md) — Patterns, Page Objects, assertions, gestures, prohibited patterns.
