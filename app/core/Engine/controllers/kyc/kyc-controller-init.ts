@@ -3,13 +3,13 @@ import {
   type KycControllerMessenger,
 } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
-import { kycSumSubLauncherStub } from './kycSumSubLauncherStub';
+import { reactNativeSumSubLauncher } from './reactNativeSumSubLauncher';
 
 /**
- * Initialize the KycController for vendor T&C fetching on Get Pix Key.
+ * Initialize the KycController.
  *
- * {@link KycController.loadDisclaimers} is the only controller surface used by
- * this ticket; SumSub / session / identity-flow wiring is out of scope.
+ * Platform-specific SumSub presentation is delegated to the React Native
+ * launcher while the controller owns the identity flow.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger for the controller.
@@ -23,8 +23,7 @@ export const kycControllerInit: MessengerClientInitFunction<
   const controller = new KycController({
     messenger: controllerMessenger,
     state: persistedState.KycController,
-    // Required by the controller constructor; not used for disclaimer loading.
-    sumsubLauncher: kycSumSubLauncherStub,
+    sumsubLauncher: reactNativeSumSubLauncher,
   });
 
   return { controller };

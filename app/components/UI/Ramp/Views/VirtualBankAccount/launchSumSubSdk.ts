@@ -22,11 +22,13 @@ const assertSumSubNativeModuleLinked = (): void => {
 export const launchSumSubSdk = async ({
   accessToken,
   onTokenExpired,
+  onStatusChange,
   locale = 'en',
   debug = Boolean(__DEV__),
 }: {
   accessToken: string;
   onTokenExpired?: () => Promise<string>;
+  onStatusChange?: (previousStatus: string, nextStatus: string) => void;
   locale?: string;
   debug?: boolean;
 }): Promise<Record<string, unknown>> => {
@@ -55,6 +57,7 @@ export const launchSumSubSdk = async ({
             nextStatus: event.newStatus,
             elapsedMs: Date.now() - startedAt,
           });
+          onStatusChange?.(event.prevStatus, event.newStatus);
         },
       })
       .withDebug(debug)

@@ -28,7 +28,26 @@ export function getKycControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['KycService:getGeoCountry', 'KycService:fetchVendorDisclaimers'],
+    actions: [
+      'KycService:getGeoCountry',
+      'KycService:fetchVendorDisclaimers',
+      'KycService:createSession',
+      'KycService:checkKycRequired',
+      'KycService:createVendorCustomer',
+      'KycService:submitVendorDisclaimers',
+      'KycService:fetchDisclaimersCatalog',
+      'KycService:fetchSessionDisclaimers',
+      'KycService:submitSessionDisclaimers',
+      'KycService:fetchKycStatus',
+      'KycService:fetchIdosEnclaveJwks',
+      'KycService:fetchIdosRelayJwks',
+      'KycService:createUkycSession',
+      'KycService:setAuthorizations',
+      'KycService:createJourney',
+      'KycService:getSessionStatus',
+      'UserStorageController:performGetStorage',
+      'UserStorageController:performSetStorage',
+    ],
     messenger,
   });
   return messenger;

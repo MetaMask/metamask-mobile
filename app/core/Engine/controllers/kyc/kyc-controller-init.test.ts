@@ -8,6 +8,7 @@ import {
   type KycControllerMessenger,
 } from '@metamask/kyc-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { reactNativeSumSubLauncher } from './reactNativeSumSubLauncher';
 
 jest.mock('@metamask/kyc-controller', () => {
   class MockKycController {
@@ -89,5 +90,13 @@ describe('kycControllerInit', () => {
     kycControllerInit(getInitRequestMock());
 
     expect(getLastConstructorArgs()?.state).toBeUndefined();
+  });
+
+  it('uses the React Native SumSub launcher', () => {
+    kycControllerInit(getInitRequestMock());
+
+    expect(getLastConstructorArgs()?.sumsubLauncher).toBe(
+      reactNativeSumSubLauncher,
+    );
   });
 });
