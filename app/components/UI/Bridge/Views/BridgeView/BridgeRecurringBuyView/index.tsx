@@ -36,7 +36,7 @@ import {
 } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
-  formatPriceRangeBound,
+  formatPriceRangeBounds,
   isPriceRangeInCurrentCurrency,
 } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
@@ -129,12 +129,14 @@ const BridgeRecurringBuyViewContent = ({
     : undefined;
   const priceRangeToken =
     effectiveRange?.tokenSide === 'source' ? sourceToken : destToken;
-  const priceRangeMinLabel = effectiveRange
-    ? formatPriceRangeBound(effectiveRange.min, effectiveRange.currency, 'min')
-    : undefined;
-  const priceRangeMaxLabel = effectiveRange
-    ? formatPriceRangeBound(effectiveRange.max, effectiveRange.currency, 'max')
-    : undefined;
+  const { minLabel: priceRangeMinLabel, maxLabel: priceRangeMaxLabel } =
+    effectiveRange
+      ? formatPriceRangeBounds(
+          effectiveRange.min,
+          effectiveRange.max,
+          effectiveRange.currency,
+        )
+      : {};
 
   const handlePriceRangePress = useCallback(() => {
     dismissInputAndKeypad();

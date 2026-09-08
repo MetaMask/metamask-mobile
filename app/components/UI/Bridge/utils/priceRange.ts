@@ -109,20 +109,28 @@ export function formatPriceRangeLabel(
   max: string,
   currency: string,
 ): string {
-  const minLabel = formatPriceRangeBound(min, currency, 'min');
-  const maxLabel = formatPriceRangeBound(max, currency, 'max');
+  const { minLabel, maxLabel } = formatPriceRangeBounds(min, max, currency);
 
-  return `${minLabel} - ${maxLabel}`;
+  return [minLabel, maxLabel].filter(Boolean).join(' - ');
 }
 
-export function formatPriceRangeBound(
-  value: string,
+export function formatPriceRangeBounds(
+  min: string,
+  max: string,
   currency: string,
-  bound: 'min' | 'max',
-): string {
-  return value
-    ? formatCurrency(value, currency)
-    : strings(`bridge.recurring.price_range.${bound}_placeholder`);
+): { minLabel?: string; maxLabel?: string } {
+  if (min && !max) {
+    return { minLabel: `≥ ${formatCurrency(min, currency)}` };
+  }
+
+  if (max && !min) {
+    return { maxLabel: `≤ ${formatCurrency(max, currency)}` };
+  }
+
+  return {
+    minLabel: min ? formatCurrency(min, currency) : undefined,
+    maxLabel: max ? formatCurrency(max, currency) : undefined,
+  };
 }
 
 export function formatTokenPrice(

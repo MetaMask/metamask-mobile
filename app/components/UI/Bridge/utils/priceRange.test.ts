@@ -200,17 +200,13 @@ describe('formatPriceRangeLabel', () => {
     expect(result).toBe('$1800.00 - $2200.00');
   });
 
-  it('uses Market price for an empty bound', () => {
+  it('uses inequality symbols for a one-sided range', () => {
     mockedFormatCurrency.mockImplementation(
       (amount) => `$${String(amount)}.00`,
     );
 
-    expect(formatPriceRangeLabel('1800', '', 'USD')).toBe(
-      '$1800.00 - Market price',
-    );
-    expect(formatPriceRangeLabel('', '2200', 'USD')).toBe(
-      'Market price - $2200.00',
-    );
+    expect(formatPriceRangeLabel('1800', '', 'USD')).toBe('≥ $1800.00');
+    expect(formatPriceRangeLabel('', '2200', 'USD')).toBe('≤ $2200.00');
   });
 });
 
