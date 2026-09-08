@@ -176,7 +176,7 @@ function applyE2ELabelOverrides(flags, input) {
     useMainBuildsForTestOnlyPrs: e2eNeeded && testOnlyChanges,
     // A platform override can restore E2E after request-only PR suppression.
     runSmartE2ESelection: true,
-    message: `${flags.message} + iOS build (${reason})`,
+    message: `${flags.message} + platform override (${reason})`,
   };
 }
 

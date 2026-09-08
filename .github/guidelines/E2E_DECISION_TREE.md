@@ -43,7 +43,7 @@ labels cannot revive it.
 | `skip-smart-e2e-selection` label | Bypasses Smart E2E and runs the full `ALL` tag set on **both Android and iOS**, once path filters establish that the PR is E2E-eligible. |
 
 The same path-filter and label policy applies to PRs targeting `main` and
-`release/*`;  Additional requirements just for PRs targetting `main` branch:
+`release/*`;  Additional requirements just for PRs targeting `main` branch:
 
 - shared smoke/Appium test infra paths ensure both Android and iOS platforms are selected to run.
 
