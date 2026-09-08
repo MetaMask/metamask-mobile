@@ -20,7 +20,16 @@ import type { TokenI } from '../../Tokens/types';
 import { earnAssetToToken } from '../utils/earnAssets';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../utils/earnAssets/earnAssetBalance';
 import type { EarnToastOptions } from './useEarnToasts';
-import useEarnOpportunityNavigation from './useEarnOpportunityNavigation';
+import useEarnOpportunityNavigation, {
+  getEarnExperienceRedirectTarget,
+  getEarnOpportunityDestination,
+  getEarnOpportunityRedirectTarget,
+} from './useEarnOpportunityNavigation';
+import {
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_REDIRECT_TARGETS,
+  EARN_MODULE_SCREEN_NAMES,
+} from '../constants/earnModuleEvents';
 
 const mockNavigate = jest.fn();
 const assetAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const;
@@ -63,6 +72,10 @@ jest.mock('../utils/earnAssets', () => ({
 jest.mock('../utils/earnAssets/earnAssetBalance', () => ({
   __esModule: true,
   isEarnAssetBalanceBelowMinDepositAmount: jest.fn(),
+}));
+jest.mock('../utils/analytics', () => ({
+  formatChainIdForAnalytics: (chainId?: string | number) =>
+    chainId === undefined ? undefined : String(chainId),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -231,6 +244,99 @@ describe('useEarnOpportunityNavigation', () => {
     mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
   });
 
+  it('resolves destinations for Money account deposit strategy', () => {
+    mockIsEarnAssetBalanceBelowMinDepositAmount.mockReturnValue(false);
+    const earnAsset = createEarnAsset(1, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+
+    expect(getEarnOpportunityDestination(earnAsset)).toBe(
+      EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
+    );
+    expect(getEarnOpportunityRedirectTarget(earnAsset, true)).toBe(
+      EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING,
+    );
+    expect(getEarnOpportunityRedirectTarget(earnAsset, false)).toBe(
+      EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
+    );
+  });
+
+  it('resolves non-Money strategy destinations to Earn deposit', () => {
+    expect(
+      getEarnExperienceRedirectTarget(
+        createExperience(EARN_EXPERIENCES.POOLED_STAKING),
+        false,
+      ),
+    ).toBe(EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT);
+  });
+
+  it('throws when an asset has no eligible experiences', () => {
+    const earnAsset = createEarnAsset(1, []);
+
+    expect(() => getEarnOpportunityDestination(earnAsset)).toThrow(
+      '[useEarnOpportunityNavigation] Earn asset has no eligible experiences',
+    );
+  });
+
+  it('throws when an experience type is unsupported', () => {
+    const earnAsset = createEarnAsset(1, [
+      createExperience('UNSUPPORTED' as EarnExperience['type']),
+    ]);
+
+    expect(() => getEarnOpportunityDestination(earnAsset)).toThrow(
+      '[useEarnOpportunityNavigation] Unsupported Earn experience: UNSUPPORTED',
+    );
+  });
+
+  it('returns no redirect target when opportunity analytics data is invalid', () => {
+    const earnAsset = createEarnAsset(1, []);
+
+    expect(getEarnOpportunityRedirectTarget(earnAsset, false)).toBeUndefined();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          '[useEarnOpportunityNavigation] Earn asset has no eligible experiences',
+      }),
+      '[useEarnOpportunityNavigation] Failed to resolve Earn opportunity redirect target',
+    );
+  });
+
+  it('returns no redirect target when experience analytics data is invalid', () => {
+    const experience = createExperience(
+      'UNSUPPORTED' as EarnExperience['type'],
+    );
+
+    expect(getEarnExperienceRedirectTarget(experience, false)).toBeUndefined();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          '[useEarnOpportunityNavigation] Unsupported Earn experience: UNSUPPORTED',
+      }),
+      '[useEarnOpportunityNavigation] Failed to resolve Earn experience redirect target',
+    );
+  });
+
+  it.each([
+    [
+      EARN_EXPERIENCES.STABLECOIN_LENDING,
+      EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT,
+    ],
+    [
+      EARN_EXPERIENCES.TRX_STAKING,
+      EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT,
+    ],
+  ] as const)(
+    'resolves %s to its deposit destination',
+    (experienceType, expectedDestination) => {
+      const result = getEarnExperienceRedirectTarget(
+        createExperience(experienceType),
+        false,
+      );
+
+      expect(result).toBe(expectedDestination);
+    },
+  );
+
   it('does not navigate when the asset is undefined', () => {
     const { result } = renderHook(() => useEarnOpportunityNavigation());
 
@@ -241,6 +347,46 @@ describe('useEarnOpportunityNavigation', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockEarnAssetToToken).not.toHaveBeenCalled();
     expect(mockIsEarnAssetBalanceBelowMinDepositAmount).not.toHaveBeenCalled();
+  });
+
+  it('shows a toast and logs when an asset has no eligible experiences', () => {
+    const earnAsset = createEarnAsset(1, []);
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    act(() => {
+      result.current.navigateFromEarnAsset(earnAsset);
+    });
+
+    expect(showToast).toHaveBeenCalledWith(navigationToDepositToast);
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          '[useEarnOpportunityNavigation] Earn asset has no eligible experiences',
+      }),
+      '[useEarnOpportunityNavigation] Failed to resolve Earn opportunity destination',
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows a toast and logs when an asset has an unsupported experience', () => {
+    const earnAsset = createEarnAsset(1, [
+      createExperience('UNSUPPORTED' as EarnExperience['type']),
+    ]);
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    act(() => {
+      result.current.navigateFromEarnAsset(earnAsset);
+    });
+
+    expect(showToast).toHaveBeenCalledWith(navigationToDepositToast);
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message:
+          '[useEarnOpportunityNavigation] Unsupported Earn experience: UNSUPPORTED',
+      }),
+      '[useEarnOpportunityNavigation] Failed to resolve Earn opportunity destination',
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates an asset with more than one supported experience at the minimum deposit to strategy selection', () => {
@@ -257,6 +403,33 @@ describe('useEarnOpportunityNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.MODALS.ROOT, {
       screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
       params: { earnAsset },
+    });
+  });
+
+  it('passes analytics context to strategy selection', () => {
+    const earnAsset = createEarnAsset(1, [
+      createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING),
+      createExperience(EARN_EXPERIENCES.POOLED_STAKING),
+    ]);
+    const analyticsContext = {
+      entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+      screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+      asset_position: 2,
+      assets_in_list: 4,
+    };
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    act(() => {
+      result.current.navigateFromEarnAsset(
+        earnAsset,
+        undefined,
+        analyticsContext,
+      );
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
+      params: { earnAsset, analyticsContext },
     });
   });
 
