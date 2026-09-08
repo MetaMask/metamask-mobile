@@ -19,32 +19,32 @@ import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomName
 ///: END:ONLY_INCLUDE_IF
 
 const RootRPCMethodsUI = (props) => (
-    <React.Fragment>
-      <ConfirmRoot />
-      <AddChainApproval />
-      <SwitchChainApproval />
-      <WatchAssetApproval />
-      <ConnectApproval navigation={props.navigation} />
-      <PermissionApproval navigation={props.navigation} />
-      <FlowLoaderModal />
-      <TemplateConfirmationModal />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      }
-      <InstallSnapApproval />
-      <SnapDialogApproval />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      }
-      <SnapAccountCustomNameApproval />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
-    </React.Fragment>
-  );
+  <React.Fragment>
+    <ConfirmRoot />
+    <AddChainApproval />
+    <SwitchChainApproval />
+    <WatchAssetApproval />
+    <ConnectApproval navigation={props.navigation} />
+    <PermissionApproval navigation={props.navigation} />
+    <FlowLoaderModal />
+    <TemplateConfirmationModal />
+    {
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+    }
+    <InstallSnapApproval />
+    <SnapDialogApproval />
+    {
+      ///: END:ONLY_INCLUDE_IF
+    }
+    {
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    }
+    <SnapAccountCustomNameApproval />
+    {
+      ///: END:ONLY_INCLUDE_IF
+    }
+  </React.Fragment>
+);
 
 RootRPCMethodsUI.propTypes = {
   /**
