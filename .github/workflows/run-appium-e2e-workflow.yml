@@ -229,6 +229,7 @@ jobs:
         with:
           path: |
             ~/.cache/yarn
+            ~/.cache/mms-ffmpeg
             .metamask
             .yarn/cache
 
@@ -293,17 +294,17 @@ jobs:
           install-applesimutils: 'false'
           runner_provider: ${{ inputs.runner_provider }}
 
-      - name: Cache ffmpeg (Homebrew)
+      - name: Cache static ffmpeg
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/cache@v4
         with:
           path: ~/.cache/mms-ffmpeg
-          key: brew-ffmpeg-${{ runner.os }}-v1
-          restore-keys: |
-            brew-ffmpeg-${{ runner.os }}-
+          key: static-ffmpeg-b6.1.1-${{ runner.os }}-${{ runner.arch }}
 
       - name: Install ffmpeg for XCUITest screen recording
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
+        timeout-minutes: 2
+        continue-on-error: true
         run: bash .github/scripts/qa-automation/appium-runner-prep/ensure-ffmpeg-ci.sh
         shell: bash
 

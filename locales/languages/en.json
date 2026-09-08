@@ -314,7 +314,7 @@
     "new_to_metamask": "New to MetaMask?",
     "already_have_wallet": "Already have a wallet?",
     "optin_back_title": "Heads up!",
-    "optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings.",
+    "optin_back_desc": "Please agree or disagree to the usage of data analytics. You can also update this option in settings.",
     "warning_title": "Warning",
     "warning_text_1": "Your current wallet and accounts will be",
     "warning_text_2": "removed",
@@ -3509,7 +3509,7 @@
       "unavailable_description": "For urgent assistance, please contact Customer Service.",
       "unavailable_got_it": "Got it",
       "error_title": "Something went wrong",
-      "error_description": "Failed to proceed with withdraw",
+      "error_description": "Failed to proceed with withdrawal",
       "try_again": "Try again"
     },
     "fee_summary": {
@@ -4629,7 +4629,7 @@
     "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
     "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.",
     "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
-    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to a malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snaps",
       "description": "Overview and manage your snaps",
@@ -5819,7 +5819,7 @@
     "status_submitting_description": "Estimated completion {{timeLeft}}",
     "status_success_header": "Your transaction is complete",
     "status_submitting_past_estimated_deadline_header": "Sorry for the wait",
-    "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged for gas.",
+    "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged a network fee.",
     "status_cancelled_header": "Your transaction was canceled",
     "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary network fees.",
     "status_failed_header": "Your transaction failed",
@@ -7746,7 +7746,7 @@
   },
   "show_display_nft_media": {
     "show_display_nft_media_title": "Display NFT media",
-    "show_display_nft_media_content_1": "To see an NFT, you need turn on",
+    "show_display_nft_media_content_1": "To see an NFT, you need to turn on",
     "show_display_nft_media_content_2": "Display NFT media.",
     "show_display_nft_media_content_3": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
@@ -7754,7 +7754,7 @@
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
-    "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
+    "ipfs_gateway_banner_content1": "This is an IPFS website. To see this site, you need to turn on",
     "ipfs_gateway_banner_content2": "IPFS gateway",
     "ipfs_gateway_banner_content3": "in",
     "ipfs_gateway_banner_content4": "Settings."
@@ -8569,7 +8569,7 @@
     "drawer_assets_desc": "Autodetect tokens in your wallet, display NFTs, and get batched account balance updates",
     "drawer_security_title": "Security",
     "drawer_security_desc": "Reduce your chances of joining unsafe networks and protect your accounts",
-    "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
+    "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to a malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
@@ -11434,11 +11434,13 @@
   },
   "pro_hub": {
     "title": "MetaMask Pro",
-    "subtitle": "Your Pro membership",
     "manage": "Manage subscription",
     "manage_plan": "Manage plan",
-    "earned_with_pro": "Earned with Pro",
-    "saved_with_pro": "Saved with Pro",
+    "membership_brand": "METAMASK",
+    "membership_label": "Pro",
+    "lifetime_earnings": "Lifetime earnings",
+    "money_balance": "Money balance",
+    "musd_back": "3% mUSD back",
     "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
     "member_pricing": {
       "title": "Member pricing on trades",
@@ -11459,9 +11461,8 @@
       }
     },
     "physical_card": {
-      "title": "Get your physical card.",
-      "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
-      "cta": "Get card"
+      "title": "Get your free MetaMask Card",
+      "description": "Earn 3% mUSD back on purchases"
     },
     "earned": {
       "total_label": "Earned since joining Pro",
@@ -11475,7 +11476,6 @@
       "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
       "add_money": "Add money"
     },
-    "explore_benefits": "Explore benefits",
     "membership": {
       "title": "Your membership",
       "plan": "Membership",
@@ -11486,6 +11486,7 @@
       "paying_with": "Paying with",
       "renews_on": "Renews on",
       "manage": "Manage",
+      "invoices": "Invoices",
       "contact_support": "Contact support",
       "cancel_membership": "Cancel membership",
       "earned_info": {

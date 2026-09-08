@@ -54,3 +54,6 @@ export const IDOS_PRIVACY_POLICY_URL =
 export const IDOS_TERMS_URL = 'https://www.idos.network/legal/user-agreement';
 export const SUMSUB_PRIVACY_POLICY_URL = 'https://sumsub.com/privacy-notice/';
 export const SUMSUB_TERMS_URL = 'https://sumsub.com/terms-and-conditions/';
+
+// Placeholder until KycController + idOS session supply a real applicant token.
+export const MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN = 'mock-applicant-access-token';

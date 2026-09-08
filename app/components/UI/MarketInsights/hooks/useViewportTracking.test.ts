@@ -224,7 +224,12 @@ describe('useViewportTracking', () => {
 
   it('starts a trace on first layout and ends it on visibility', () => {
     const onVisible = jest.fn();
-    const { result } = renderHook(() => useViewportTracking(onVisible));
+    const { result } = renderHook(() =>
+      useViewportTracking(onVisible, 0.5, {
+        source: 'perps',
+        stage: 'entry_card',
+      }),
+    );
 
     const mockMeasureInWindow = jest.fn(
       (cb: (x: number, y: number, w: number, h: number) => void) => {
@@ -244,6 +249,11 @@ describe('useViewportTracking', () => {
       expect.objectContaining({
         name: 'Market Insights Viewport Tracking',
         op: 'market_insights.viewport_tracking',
+        tags: {
+          feature: 'market_insights',
+          source: 'perps',
+          stage: 'entry_card',
+        },
       }),
     );
 
@@ -254,6 +264,10 @@ describe('useViewportTracking', () => {
         data: expect.objectContaining({
           measure_calls: 1,
           resolved_by: 'visibility_threshold',
+          result: 'success',
+          success: true,
+          source: 'perps',
+          stage: 'entry_card',
         }),
       }),
     );
@@ -328,6 +342,9 @@ describe('useViewportTracking', () => {
         name: 'Market Insights Viewport Tracking',
         data: expect.objectContaining({
           resolved_by: 'unmount',
+          result: 'cancelled',
+          success: false,
+          reason: 'owner_cancelled',
         }),
       }),
     );
