@@ -5,11 +5,6 @@ import { AppiumAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
-  startAppProfilingFromTest,
-  stopAndCollectAppProfiling,
-  stopAppProfilingFromTest,
-} from '../helpers/appProfiling';
-import {
   Performance,
   PerformanceLogin,
   PerformanceAssetLoading,
@@ -22,47 +17,28 @@ perfTest.describe(
     perfTest(
       'Asset View, SRP 1 + SRP 2 + SRP 3',
       { tag: '@assets-dev-team' },
-      async ({ currentDeviceDetails, performanceTracker }, testInfo) => {
-        await startAppProfilingFromTest();
+      async ({ currentDeviceDetails, performanceTracker }) => {
+        await loginToAppPlaywright();
 
-        try {
-          await loginToAppPlaywright();
+        const assetViewScreen = new TimerHelper(
+          'Time since the user clicks on the asset view button until the user sees the token overview screen',
+          { ios: 6000, android: 6500 },
+          currentDeviceDetails.platform,
+        );
 
-          const assetViewScreen = new TimerHelper(
-            'Time since the user clicks on the asset view button until the user sees the token overview screen',
-            { ios: 6000, android: 6500 },
-            currentDeviceDetails.platform,
+        await WalletView.tapOnTokensSection();
+        await WalletView.tapOnToken('ETH');
+
+        await assetViewScreen.measure(async () => {
+          await AppiumAssertions.expectElementToBeVisible(
+            TokenOverview.priceChartContainer,
           );
-
-          await WalletView.tapOnTokensSection();
-          await WalletView.tapOnToken('ETH');
-
-          await assetViewScreen.measure(async () => {
-            await AppiumAssertions.expectElementToBeVisible(
-              TokenOverview.priceChartContainer,
-            );
-            await AppiumAssertions.expectElementToBeVisible(
-              TokenOverview.container,
-            );
-          });
-
-          await stopAndCollectAppProfiling(
-            testInfo,
-            currentDeviceDetails.platform,
+          await AppiumAssertions.expectElementToBeVisible(
+            TokenOverview.container,
           );
+        });
 
-          performanceTracker.addTimer(assetViewScreen);
-        } catch (error) {
-          try {
-            await stopAndCollectAppProfiling(
-              testInfo,
-              currentDeviceDetails.platform,
-            );
-          } catch {
-            await stopAppProfilingFromTest();
-          }
-          throw error;
-        }
+        performanceTracker.addTimer(assetViewScreen);
       },
     );
   },
