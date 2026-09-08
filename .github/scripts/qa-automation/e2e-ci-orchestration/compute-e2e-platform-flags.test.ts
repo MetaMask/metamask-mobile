@@ -129,7 +129,7 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
   });
 
-  it('runs both platforms on pushes to main and release/*', () => {
+  it('runs both platforms for E2E test-only pushes', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
@@ -138,8 +138,74 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.android).toBe(true);
     expect(result.ios).toBe(true);
     expect(result.e2eNeeded).toBe(true);
-    expect(result.message).toContain('push to main/release/*');
+    expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
+    expect(result.message).toContain('test-only');
     expect(result.runSmartE2ESelection).toBe(false);
+  });
+
+  it('runs both platforms for shared app changes pushed to main or release/*', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+    });
+  });
+
+  it('selects Android only for Android-only pushes', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+      androidCount: 1,
+      androidOrIgnorableCount: 1,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: false,
+      e2eNeeded: true,
+    });
+  });
+
+  it('skips ignorable-only pushes to main or release/*', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      ignorableCount: 1,
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 1,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: false,
+      e2eNeeded: false,
+      message: 'Skipping E2E (ignorable-only changes)',
+    });
+  });
+
+  it('keeps scheduled runs on both platforms', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'schedule',
+      ignorableCount: 1,
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 1,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+    });
   });
 
   it('drops iOS from both-platform selection for PRs targeting main', () => {

@@ -40,9 +40,8 @@ function computeE2EPlatformFlags(input) {
 
   if (isStableTarget) {
     message = 'Skipping E2E (stable branch synchronization PR)';
-  } else if (githubEventName === 'schedule' || githubEventName === 'push') {
-    message =
-      'E2E for both platforms (scheduled or push to main/release/*)';
+  } else if (githubEventName === 'schedule') {
+    message = 'E2E for both platforms (scheduled)';
     android = true;
     ios = true;
   } else if (githubEventName === 'merge_group') {
@@ -54,11 +53,13 @@ function computeE2EPlatformFlags(input) {
   } else if (ignorableOnly) {
     message = 'Skipping E2E (ignorable-only changes)';
   } else if (testOnlyChanges) {
-    message =
-      'E2E for both platforms (test-only changes — reuse main native builds)';
+    const isPullRequest = githubEventName === 'pull_request';
+    message = isPullRequest
+      ? 'E2E for both platforms (test-only changes — reuse main native builds)'
+      : 'E2E for both platforms (test-only changes)';
     android = true;
     ios = true;
-    useMainBuildsForTestOnlyPrs = true;
+    useMainBuildsForTestOnlyPrs = isPullRequest;
     changed = changedSpecFiles;
   } else if (
     androidCount > 0 &&

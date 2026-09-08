@@ -233,7 +233,7 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
   });
 
   describe('non-pull-request events', () => {
-    it('builds both platforms on a push and emits no main-PR suppression log', () => {
+    it('builds both platforms for a shared app push', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
         ...bothPlatformsPR,
@@ -245,6 +245,23 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         e2e_needed: 'true',
       });
       expect(stdout).not.toContain('iOS build disabled for PRs into main');
+    });
+
+    it('skips ignorable-only pushes to main or release/*', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        ...bothPlatformsPR,
+        IGNORABLE_COUNT: '1',
+        E2E_TEST_FILES_COUNT: '0',
+        E2E_TEST_OR_IGNORABLE_COUNT: '1',
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'false',
+        e2e_needed: 'false',
+      });
+      expect(stdout).toContain('ignorable-only changes');
     });
   });
 });
