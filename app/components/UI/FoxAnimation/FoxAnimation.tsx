@@ -22,7 +22,10 @@ const getFoxAnimationHeight = (hasFooter: boolean) => {
   return Device.isMediumDevice() ? 300 : 350;
 };
 
-const getSafeBottomPosition = (hasFooter: boolean, insets?: EdgeInsets) => {
+export const getSafeBottomPosition = (
+  hasFooter: boolean,
+  insets?: EdgeInsets,
+) => {
   const basePadding = insets?.bottom || 0;
 
   if (hasFooter) {
