@@ -29,6 +29,7 @@ import { ensureLedgerPermissions } from './shared/ledger-permissions';
 import {
   TRANSIENT_BLE_ERROR_NAMES,
   isDeviceLockedError,
+  isLedgerTimeoutError,
   hasTransientBleMessage,
   toError,
 } from './shared/ledger-errors';
@@ -54,6 +55,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   readonly #bleMonitor: BluetoothStateMonitor;
   #scanSubscription: Subscription | null = null;
   #scanTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  #pendingClose: Promise<void> | null = null;
 
   constructor(options: HardwareWalletAdapterOptions) {
     this.#options = options;
@@ -97,7 +99,26 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
   async #doConnect(deviceId: string): Promise<void> {
     try {
-      const transport = await TransportBLE.open(deviceId);
+      // Serialize with any in-flight teardown so TransportBLE.open can never
+      // race a pending disconnectDevice for the same peripheral.
+      if (this.#pendingClose) {
+        await this.#pendingClose.catch(() => undefined);
+        // Destroy may have run while awaiting the teardown.
+        this.#assertAdapterReady();
+      }
+
+      const transport = await withLedgerTimeout(
+        TransportBLE.open(deviceId),
+        LEDGER_OPERATION_TIMEOUT_MS,
+        'Device unresponsive while connecting',
+        () => {
+          // Clear any half-open native connection so the next attempt
+          // starts clean.
+          void TransportBLE.disconnectDevice(deviceId).catch(
+            () => undefined,
+          );
+        },
+      );
 
       if (transport == null) {
         this.#clearTransportState();
@@ -408,6 +429,17 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         });
       }
 
+      if (isLedgerTimeoutError(error)) {
+        // Device stalled during the app check (typically mid app-switch after
+        // the user tapped Continue). Return to the "open the app" modal
+        // instead of surfacing a fatal error screen.
+        this.#emitEvent({
+          event: DeviceEvent.AppNotOpen,
+          currentAppName: REQUIRED_APP_NAME,
+        });
+        return false;
+      }
+
       throw error;
     }
   }
@@ -454,6 +486,15 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         this.#emitEvent({
           event: DeviceEvent.DeviceLocked,
           error: toError(verifyError),
+        });
+      }
+
+      if (isLedgerTimeoutError(verifyError)) {
+        // Device stalled mid verification (e.g. the user was switching apps).
+        // Return to the "open the app" modal instead of a silent spinner.
+        this.#emitEvent({
+          event: DeviceEvent.AppNotOpen,
+          currentAppName: REQUIRED_APP_NAME,
         });
       }
       return false;
@@ -511,25 +552,35 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     const deviceId = this.#deviceId;
     this.#transport = null;
 
-    try {
-      if (transport) {
-        if (deviceId) {
-          // TransportBLE.close() queues a delayed disconnect (5s timeout).
-          // Force an immediate BLE disconnection so in-flight signing is
-          // aborted without delay.
+    const doClose = async (): Promise<void> => {
+      try {
+        if (transport) {
+          if (deviceId) {
+            // TransportBLE.close() queues a delayed disconnect (5s timeout).
+            // Force an immediate BLE disconnection so in-flight signing is
+            // aborted without delay.
+            await TransportBLE.disconnectDevice(deviceId);
+          } else {
+            await transport.close();
+          }
+        } else if (deviceId) {
+          // Transport already cleared (e.g. by #handleDisconnect) but device
+          // ID still set — force BLE cleanup so the OS stack doesn't keep a
+          // stale connection that blocks the next TransportBLE.open() call.
           await TransportBLE.disconnectDevice(deviceId);
-        } else {
-          await transport.close();
         }
-      } else if (deviceId) {
-        // Transport already cleared (e.g. by #handleDisconnect) but device
-        // ID still set — force BLE cleanup so the OS stack doesn't keep a
-        // stale connection that blocks the next TransportBLE.open() call.
-        await TransportBLE.disconnectDevice(deviceId);
+      } catch {
+        // Ignore close errors — device may already be disconnected
       }
-    } catch {
-      // Ignore close errors — device may already be disconnected
-    }
+    };
+
+    // Serialize concurrent closes so a subsequent TransportBLE.open can never
+    // race a pending disconnectDevice for the same peripheral.
+    this.#pendingClose = this.#pendingClose
+      ? this.#pendingClose.then(doClose, doClose)
+      : doClose();
+
+    await this.#pendingClose;
   }
 
   #clearTransportState(): void {
