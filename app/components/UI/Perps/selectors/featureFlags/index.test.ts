@@ -27,6 +27,7 @@ import {
   selectPerpsClosePositionLimitOrderEnabledFlag,
   PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY,
   selectPerpsMobileChaseEnabledFlag,
+  selectPerpsPositionModifyPreviewEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { StateWithPartialEngine } from '../../../../../selectors/featureFlagController/types';
@@ -127,6 +128,80 @@ describe('Perps Feature Flag Selectors', () => {
         expect(selectPerpsMobileChaseEnabledFlag(state)).toBe(false);
       },
     );
+  });
+
+  describe('selectPerpsPositionModifyPreviewEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags.perpsPositionModifyPreviewEnabled = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+    };
+
+    it('returns true at the preview minimum version 8.11.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.11.0');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.11.0',
+      });
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the preview flag is disabled', () => {
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '8.11.0',
+      });
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false below the preview minimum version 8.11.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.10.9');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.11.0',
+      });
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults the preview to false when the flag is absent', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the preview flag shape is malformed', () => {
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 8.11,
+      });
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('selectPerpsEnabledFlag', () => {
