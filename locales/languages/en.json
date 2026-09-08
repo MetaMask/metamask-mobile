@@ -4437,7 +4437,7 @@
     "conversion_title": "Currency conversion",
     "conversion_desc": "Display local currency values in using a specific currency throughout the application.",
     "primary_currency_title": "Primary currency",
-    "primary_currency_desc": "Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select local currency to prioritize displaying values in your selected local currency currency.",
+    "primary_currency_desc": "Select Native to prioritize displaying values in the native currency of the chain (e.g. ETH). Select local currency to prioritize displaying values in your selected local currency.",
     "primary_currency_text_first": "Native",
     "primary_currency_text_second": "local currency",
     "language_desc": "Translate the application to a different supported language.",
@@ -4698,7 +4698,7 @@
           "snap_manageAccounts": "Add and control Ethereum accounts",
           "endowment:signature-insight": "Display signature insights modal",
           "endowment:protocol": "Provide protocol data for one or more chains",
-          "snap_getPreferences": "See information like your preferred language and local currency currency",
+          "snap_getPreferences": "See information like your preferred language and local currency",
           "endowment:lifecycle-hooks": "Use lifecycle hooks",
           "endowment:name-lookup": "Provide domain and address lookups",
           "endowment:page-home": "Display a custom screen"
