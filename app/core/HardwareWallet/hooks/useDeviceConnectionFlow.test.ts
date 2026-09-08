@@ -5,6 +5,7 @@ import {
   ErrorCode,
   HardwareWalletError,
 } from '@metamask/hw-wallet-sdk';
+import { flushPromises as flushAllPromises } from '../../../util/test/utils';
 import { useDeviceConnectionFlow } from './useDeviceConnectionFlow';
 import {
   HardwareWalletRefs,
@@ -69,8 +70,7 @@ const createDefaultOptions = (overrides = {}) => ({
 
 const flushPromises = async () => {
   await act(async () => {
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushAllPromises();
   });
 };
 
