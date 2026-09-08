@@ -223,6 +223,10 @@ jobs:
 
       # No `cache: cocoapods`: this job passes skip-pod-install=true, so it
       # never runs pod install.
+      #
+      # ~/.cache/mms-ffmpeg is a pinned static binary — last-write-wins on the
+      # volume is safe (unlike ~/.android/avd). Do not also use actions/cache
+      # for this path; that was a per-shard restore/save on every iOS job.
       - name: Configure Namespace cache (iOS)
         if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -294,14 +298,9 @@ jobs:
           install-applesimutils: 'false'
           runner_provider: ${{ inputs.runner_provider }}
 
-      - name: Cache static ffmpeg
-        if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/mms-ffmpeg
-          key: static-ffmpeg-b6.1.1-${{ runner.os }}-${{ runner.arch }}
-
-      - name: Install ffmpeg for XCUITest screen recording
+      # No-op when ~/.cache/mms-ffmpeg is already on the Namespace volume or
+      # ffmpeg is on PATH. Downloads only on a cold volume.
+      - name: Ensure ffmpeg for XCUITest screen recording
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         timeout-minutes: 2
         continue-on-error: true
