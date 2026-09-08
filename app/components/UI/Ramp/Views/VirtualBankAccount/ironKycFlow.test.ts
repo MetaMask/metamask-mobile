@@ -4,7 +4,11 @@ import { startIronKycFlow, startIronKycVerification } from './ironKycFlow';
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KycController: {
-      state: { error: null, vendorDisclaimers: [] },
+      state: {
+        error: null,
+        vendorDisclaimers: [],
+        sumsub: { status: 'idle' },
+      },
       initialize: jest.fn(),
       createVendorCustomer: jest.fn(),
       acceptTermsAndStartSession: jest.fn(),
@@ -20,6 +24,7 @@ const mockKycController = Engine.context.KycController as unknown as {
   state: {
     error: string | null;
     vendorDisclaimers: { id: string }[];
+    sumsub: { status: string };
   };
   initialize: jest.Mock<Promise<void>, [unknown?]>;
   createVendorCustomer: jest.Mock<Promise<void>, [unknown?]>;
@@ -73,12 +78,15 @@ const MOCK_SESSION_CATALOG = {
 const resetControllerState = ({
   error = null,
   vendorDisclaimers = [{ id: 'disclaimer-1' }],
+  sumsubStatus = 'complete',
 }: {
   error?: string | null;
   vendorDisclaimers?: { id: string }[];
+  sumsubStatus?: string;
 } = {}) => {
   mockKycController.state.error = error;
   mockKycController.state.vendorDisclaimers = vendorDisclaimers;
+  mockKycController.state.sumsub.status = sumsubStatus;
 };
 
 describe('startIronKycFlow', () => {
@@ -146,7 +154,9 @@ describe('startIronKycVerification', () => {
   });
 
   it('creates the Iron customer then accepts terms from the fetched catalog', async () => {
-    await startIronKycVerification('user@example.com');
+    await expect(startIronKycVerification('user@example.com')).resolves.toBe(
+      'submitted',
+    );
 
     expect(mockKycController.createVendorCustomer).toHaveBeenCalledWith({
       vendor: 'iron',
@@ -217,6 +227,19 @@ describe('startIronKycVerification', () => {
 
     await expect(startIronKycVerification('user@example.com')).rejects.toThrow(
       'Iron session failed: consents.',
+    );
+  });
+
+  it('reports abandonment instead of throwing when the applicant backs out of SumSub', async () => {
+    // The controller records no error, so the status is the only signal.
+    mockKycController.acceptTermsAndStartSession.mockImplementation(
+      async () => {
+        mockKycController.state.sumsub.status = 'abandoned';
+      },
+    );
+
+    await expect(startIronKycVerification('user@example.com')).resolves.toBe(
+      'abandoned',
     );
   });
 });

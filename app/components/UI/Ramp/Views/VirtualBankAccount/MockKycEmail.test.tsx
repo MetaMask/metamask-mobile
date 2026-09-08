@@ -24,7 +24,7 @@ const mockStartIronKycVerification = jest.mocked(startIronKycVerification);
 describe('MockKycEmail', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockStartIronKycVerification.mockResolvedValue(undefined);
+    mockStartIronKycVerification.mockResolvedValue('submitted');
   });
 
   it('navigates back when the header back button is pressed', () => {
@@ -59,6 +59,20 @@ describe('MockKycEmail', () => {
     fireEvent.press(getByTestId(MockKycEmailSelectorsIDs.CONTINUE_BUTTON));
 
     expect(mockStartIronKycVerification).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('stays put without alerting when the applicant abandons SumSub', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockStartIronKycVerification.mockResolvedValue('abandoned');
+    const { getByTestId } = renderWithProvider(<MockKycEmail />);
+
+    fireEvent.press(getByTestId(MockKycEmailSelectorsIDs.CONTINUE_BUTTON));
+
+    await waitFor(() => {
+      expect(mockStartIronKycVerification).toHaveBeenCalled();
+    });
+    expect(alertSpy).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 

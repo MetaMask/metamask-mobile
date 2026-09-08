@@ -173,12 +173,25 @@ async function fetchSessionDisclaimers(): Promise<{
 }
 
 /**
+ * How the SumSub hand-off ended. `abandoned` means the applicant closed the SDK
+ * before submitting, which the controller has already rewound to the terms step
+ * without recording an error.
+ */
+export type IronKycVerificationOutcome = 'submitted' | 'abandoned';
+
+/**
  * Creates the Iron customer for `email`, posts the terms consents, and hands
  * off to the native SumSub SDK for document verification.
  *
+ * Throws only when a step failed; an applicant who backs out is reported as
+ * `abandoned` instead.
+ *
  * @param email - The email the Iron customer is keyed by.
+ * @returns Whether the applicant submitted or abandoned the verification.
  */
-export async function startIronKycVerification(email: string): Promise<void> {
+export async function startIronKycVerification(
+  email: string,
+): Promise<IronKycVerificationOutcome> {
   // `POST /vendors/iron/customers` creates or resumes, so re-running this step
   // for an email that already has a customer is safe.
   await runKycStep('createVendorCustomer', () =>
@@ -208,4 +221,11 @@ export async function startIronKycVerification(email: string): Promise<void> {
       idosDisclaimersAccepted: idosDisclaimers,
     }),
   );
+
+  if (Engine.context.KycController.state.sumsub.status === 'abandoned') {
+    vbaTrace('kyc.verification.abandoned', kycStateSummary());
+    return 'abandoned';
+  }
+
+  return 'submitted';
 }
