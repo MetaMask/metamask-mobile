@@ -50,7 +50,7 @@ import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweeps
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { resolveMoneyAccountSweepstakesEntryRoute } from '../utils/moneyAccountSweepstakesSeries';
 import { navigateToRewardsRoute } from '../utils';
-import { getLatestActiveOrUpcomingCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
+import { getLatestActiveCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
 import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
@@ -150,7 +150,7 @@ const RewardsDashboard: React.FC = () => {
       if (waitingForCampaigns) {
         handled = false;
       } else {
-        const perpsCampaign = getLatestActiveOrUpcomingCampaignOfType(
+        const perpsCampaign = getLatestActiveCampaignOfType(
           campaigns,
           CampaignType.PERPS_TRADING,
         );
@@ -161,8 +161,9 @@ const RewardsDashboard: React.FC = () => {
             { campaignId: perpsCampaign.id },
           );
         }
-        // No active or upcoming perps campaign: stay on the dashboard, which is
-        // rewards home. Navigating would surface a past campaign.
+        // No running perps campaign: stay on the dashboard, which is rewards
+        // home. Navigating would surface a past campaign, or an upcoming one
+        // whose details page has nothing to show yet.
       }
     } else if (pendingDeeplink.campaign === 'predict-the-pitch') {
       navigateToRewardsRoute(

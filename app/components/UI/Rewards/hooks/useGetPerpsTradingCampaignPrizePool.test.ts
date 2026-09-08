@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { useGetPerpsTradingCampaignPrizePool } from './useGetPerpsTradingCampaignPrizePool';
@@ -100,8 +101,13 @@ describe('useGetPerpsTradingCampaignPrizePool', () => {
 
     renderHook(() => useGetPerpsTradingCampaignPrizePool(CAMPAIGN_ID));
 
-    await act(async () => {
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPerpsTradingCampaignPrizePool({
+          campaignId: CAMPAIGN_ID,
+          prizePool: MOCK_PRIZE_POOL,
+        }),
+      );
     });
 
     expect(mockCall).toHaveBeenCalledWith(
@@ -121,12 +127,6 @@ describe('useGetPerpsTradingCampaignPrizePool', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignPrizePool({
-        campaignId: CAMPAIGN_ID,
-        prizePool: MOCK_PRIZE_POOL,
-      }),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
       setPerpsTradingCampaignPrizePoolLoading({
         campaignId: CAMPAIGN_ID,
         loading: false,
@@ -139,16 +139,15 @@ describe('useGetPerpsTradingCampaignPrizePool', () => {
 
     renderHook(() => useGetPerpsTradingCampaignPrizePool(CAMPAIGN_ID));
 
-    await act(async () => {
-      await Promise.resolve();
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPerpsTradingCampaignPrizePoolError({
+          campaignId: CAMPAIGN_ID,
+          error: true,
+        }),
+      );
     });
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setPerpsTradingCampaignPrizePoolError({
-        campaignId: CAMPAIGN_ID,
-        error: true,
-      }),
-    );
     expect(mockDispatch).toHaveBeenCalledWith(
       setPerpsTradingCampaignPrizePoolLoading({
         campaignId: CAMPAIGN_ID,

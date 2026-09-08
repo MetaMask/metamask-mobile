@@ -92,16 +92,6 @@ jest.mock('../../utils/formatUtils', () => ({
 
 const mockRefetch = jest.fn();
 
-const baseProps = {
-  // null exercises the built-in fallback ladder used before the backend served
-  // a per-campaign prize pool.
-  prizePool: null as PerpsTradingCampaignPrizePoolDto | null,
-  totalNotionalVolume: '7500000' as string | null,
-  isLoading: false,
-  hasError: false,
-  refetch: mockRefetch,
-};
-
 const buildPrizePool = (
   overrides: Partial<PerpsTradingCampaignPrizePoolDto> = {},
 ): PerpsTradingCampaignPrizePoolDto => ({
@@ -112,6 +102,28 @@ const buildPrizePool = (
   computedAt: '2026-07-15T00:00:00.000Z',
   ...overrides,
 });
+
+// The ladder the backend serves for the live perps campaign: $10k base, scaling
+// by $5k per $5M notional volume up to $50k at $40M. Used as the default so the
+// tier, progress and max-badge cases below read against a realistic schedule.
+const volumeScaledPrizePool = buildPrizePool({
+  unlockedPoolUsd: 15_000,
+  thresholdsUsd: [
+    0, 5_000_000, 10_000_000, 15_000_000, 20_000_000, 25_000_000, 30_000_000,
+    35_000_000, 40_000_000,
+  ],
+  poolScheduleUsd: [
+    10_000, 15_000, 20_000, 25_000, 30_000, 35_000, 40_000, 45_000, 50_000,
+  ],
+});
+
+const baseProps = {
+  prizePool: volumeScaledPrizePool as PerpsTradingCampaignPrizePoolDto | null,
+  totalNotionalVolume: '7500000' as string | null,
+  isLoading: false,
+  hasError: false,
+  refetch: mockRefetch,
+};
 
 describe('PerpsTradingCampaignPrizePool', () => {
   beforeEach(() => {
@@ -284,7 +296,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
   });
 
   describe('backend-driven prize ladder', () => {
-    it('renders the API ladder instead of the fallback when one is provided', () => {
+    it('renders the ladder the API provides', () => {
       const { getByText, queryByText } = render(
         <PerpsTradingCampaignPrizePool
           {...baseProps}
@@ -298,19 +310,29 @@ describe('PerpsTradingCampaignPrizePool', () => {
       expect(queryByText('$15,000.00')).not.toBeOnTheScreen();
     });
 
-    it('falls back to the built-in ladder when the API returns no thresholds', () => {
-      const { getByText } = render(
+    it('renders a single unlocked-pool tier when the API returns no thresholds', () => {
+      const { getByText, getByTestId } = render(
         <PerpsTradingCampaignPrizePool
           {...baseProps}
           prizePool={buildPrizePool({
             thresholdsUsd: [],
             poolScheduleUsd: [],
+            unlockedPoolUsd: 2_000,
           })}
         />,
       );
 
-      expect(getByText('$15,000.00')).toBeOnTheScreen();
-      expect(getByText('$20,000.00')).toBeOnTheScreen();
+      expect(getByText('$2,000.00')).toBeOnTheScreen();
+      expect(getByTestId(PERPS_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
+    });
+
+    it('renders an empty ladder when no prize pool is available', () => {
+      const { getByText, getByTestId } = render(
+        <PerpsTradingCampaignPrizePool {...baseProps} prizePool={null} />,
+      );
+
+      expect(getByText('$0.00')).toBeOnTheScreen();
+      expect(getByTestId(PERPS_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
     });
 
     it('prepends a zero-volume milestone when the API ladder omits one', () => {

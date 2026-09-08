@@ -948,6 +948,23 @@ describe('PerpsTradingCampaignDetailsView', () => {
     expect(queryByTestId('campaign-status')).not.toBeOnTheScreen();
   });
 
+  it('renders no campaign content when only an upcoming campaign exists and route has no campaignId', () => {
+    mockRouteState.params = {};
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          id: 'perps-upcoming',
+          startDate: '2026-01-01T00:00:00.000Z',
+          endDate: '2026-02-01T00:00:00.000Z',
+        }),
+      ],
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
+
+    expect(queryByTestId('campaign-status')).not.toBeOnTheScreen();
+  });
+
   it('still resolves the exact campaign by route id even when it is completed', () => {
     mockRouteState.params = { campaignId: 'perps-completed' };
     setupHooks({

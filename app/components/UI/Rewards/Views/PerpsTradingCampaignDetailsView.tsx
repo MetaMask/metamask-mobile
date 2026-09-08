@@ -38,7 +38,7 @@ import PerpsTradingCampaignEndedStats from '../components/Campaigns/PerpsTrading
 import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
 import {
   getCampaignStatus,
-  getLatestActiveOrUpcomingCampaignOfType,
+  getLatestActiveCampaignOfType,
 } from '../components/Campaigns/CampaignTile.utils';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
@@ -96,11 +96,9 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
       return campaigns.find((c) => c.id === routeCampaignId) ?? null;
     }
     // Entry points that reach this view without an id must not land on a past
-    // campaign once a second perps campaign exists.
-    return getLatestActiveOrUpcomingCampaignOfType(
-      campaigns,
-      CampaignType.PERPS_TRADING,
-    );
+    // campaign once a second perps campaign exists, nor on one that has not
+    // started — an upcoming campaign has no standing to show here.
+    return getLatestActiveCampaignOfType(campaigns, CampaignType.PERPS_TRADING);
   }, [campaigns, routeCampaignId]);
 
   const effectiveCampaignId = routeCampaignId ?? campaign?.id ?? '';
@@ -140,8 +138,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
   } = useGetPerpsTradingCampaignVolume(effectiveCampaignId || undefined);
 
   // Only the prize ladder comes from this endpoint; the progress figure stays on
-  // the volume endpoint, so a missing prize pool falls back to the built-in
-  // ladder instead of blanking the section.
+  // the volume endpoint, which drives the section's loading and error states.
   const { prizePool } = useGetPerpsTradingCampaignPrizePool(
     effectiveCampaignId || undefined,
   );

@@ -991,6 +991,21 @@ describe('RewardsDashboard', () => {
         expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
       });
 
+      it('stays on the dashboard when only an upcoming perps campaign exists', () => {
+        mockCampaigns([
+          buildPerpsCampaign({
+            id: 'perps-upcoming',
+            startDate: '2098-01-01T00:00:00.000Z',
+            endDate: '2099-01-01T00:00:00.000Z',
+          }),
+        ]);
+
+        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
       it('keeps the deeplink pending while campaigns are still loading', () => {
         mockCampaigns([], { isLoading: true });
 
