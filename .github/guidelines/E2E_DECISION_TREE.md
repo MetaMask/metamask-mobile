@@ -52,7 +52,21 @@ Consequences:
 - If at least one platform is selected, `skip-smart-e2e-selection` runs both
   Android and iOS.
 - Pushes to `main` and `release/*`, plus the overnight schedule, run all E2E on
-  both platforms.
+  both platforms. Consecutive pushes to `main` still **start** iOS, but only
+  the latest SHA is allowed to finish (see below).
+
+## Consecutive pushes to `main` keep the latest iOS SHA
+
+Android E2E still runs to completion on every `main` SHA. iOS build + Appium
+jobs on `push` to `main` share one concurrency group (`ci-ios-e2e-main-push`)
+with `cancel-in-progress: true`, so a newer merge cancels the previous merge's
+in-flight iOS work.
+
+This does **not** apply to:
+
+- Pull requests (including those labeled `run-appium-ios-tests`)
+- Pushes to `release/*`
+- The overnight `schedule` on `main`
 
 ## E2E tests skipped by default on new PRs during peak hours
 

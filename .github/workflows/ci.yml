@@ -1531,6 +1531,17 @@ jobs:
     # keeps ios_e2e_needed and run_appium_ios equal on those PRs so the app is
     # only built when iOS E2E will actually run. Pushes to main/release/*, the
     # nightly schedule, and PRs into release/* are unaffected.
+    #
+    # Consecutive pushes to main share one iOS lane with appium-smoke-tests-ios
+    # (same group). A newer SHA cancels the previous SHA's in-flight iOS build
+    # and Appium jobs. Android, PRs, release/*, and schedule runs are unchanged.
+    concurrency:
+      group: >-
+        ${{
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' && 'ci-ios-e2e-main-push') ||
+          format('ci-ios-e2e-{0}-{1}', github.job, github.run_id)
+        }}
+      cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     if: >-
       ${{
         !cancelled() &&
@@ -1612,6 +1623,16 @@ jobs:
     # PRs: skipped by default; add run-appium-ios-tests, or change
     # page-objects/selectors/locators/framework/smoke-appium
     # (same smart-selected tags as other E2E jobs).
+    #
+    # Same concurrency group as build-ios-apps on main pushes so a newer SHA's
+    # iOS build cancels the previous SHA's still-running Appium shards.
+    concurrency:
+      group: >-
+        ${{
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' && 'ci-ios-e2e-main-push') ||
+          format('ci-ios-e2e-{0}-{1}', github.job, github.run_id)
+        }}
+      cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     if: >-
       ${{
         !cancelled() &&
