@@ -60,7 +60,12 @@ jest.mock('../PerpsTokenLogo/PerpsTokenLogo', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => (key === 'trending.24h' ? '24h' : key),
+  strings: (key: string, vars?: { change?: string }) => {
+    if (key === 'perps.change_24h') {
+      return `${vars?.change ?? ''} 24h`;
+    }
+    return key;
+  },
 }));
 
 // Fix Date.now so formatTimeSinceListing is deterministic

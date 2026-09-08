@@ -1360,6 +1360,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
+    "change_24h": "{{change}} 24h",
     "mode": {
       "lite": "Lite",
       "pro": "Pro",

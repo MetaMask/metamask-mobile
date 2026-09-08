@@ -87,7 +87,7 @@ const PerpsRecentlyAddedTile: React.FC<{
           color={changeColor}
           numberOfLines={1}
         >
-          {`${market.change24hPercent} ${strings('trending.24h')}`}
+          {strings('perps.change_24h', { change: market.change24hPercent })}
         </Text>
       </View>
 
