@@ -3,7 +3,7 @@ name: Check Feature Flag Registry Drift PROD
 on:
   schedule:
     # Run every Tuesday at 01:00 UTC
-    - cron: "0 1 * * 2"
+    - cron: '0 1 * * 2'
   workflow_dispatch:
 
 permissions:
@@ -25,8 +25,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
-          cache: "yarn"
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
 
       - name: Install dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -44,6 +44,11 @@ jobs:
           yarn feature-flags:sync:check 2>&1 | tee sync-report.txt
           EXIT="${PIPESTATUS[0]}"
           set -e
+          # Exit 1 is drift only when the script wrote a report. A load-time
+          # crash also exits 1 and must not be treated as drift.
+          if [ "$EXIT" -eq 1 ] && [ ! -f sync-report.json ]; then
+            EXIT=2
+          fi
           echo "HAS_DRIFT=$( [ "$EXIT" -eq 1 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
           echo "HAS_ERROR=$( [ "$EXIT" -eq 2 ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
           # Succeed for 0 (no drift) and 1 (drift); fail for 2 (API/script error)
