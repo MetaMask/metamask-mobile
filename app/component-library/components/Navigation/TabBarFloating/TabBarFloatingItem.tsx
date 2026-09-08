@@ -12,6 +12,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
+import {
+  TAB_BAR_FLOATING_LABEL_FONT_SIZE,
+  TAB_BAR_FLOATING_LABEL_LINE_HEIGHT,
+} from './TabBarFloating.constants';
+
 export interface TabBarFloatingItemProps {
   iconName: IconName;
   label: string;
@@ -33,7 +38,7 @@ const TabBarFloatingItem = ({
     <ButtonAnimated
       onPress={onPress}
       style={tw.style(
-        'flex-1 items-center justify-center self-stretch rounded-full py-2',
+        'flex-1 items-center justify-center self-stretch rounded-full py-1',
         isActive ? 'bg-muted' : 'bg-transparent',
       )}
       testID={testID}
@@ -44,7 +49,7 @@ const TabBarFloatingItem = ({
     >
       <Icon
         name={iconName}
-        size={IconSize.Lg}
+        size={IconSize.Md}
         color={isActive ? IconColor.IconDefault : IconColor.IconAlternative}
       />
       <Text
@@ -52,7 +57,13 @@ const TabBarFloatingItem = ({
         fontWeight={isActive ? FontWeight.Medium : FontWeight.Regular}
         color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
         numberOfLines={1}
-        twClassName="mt-0 text-center"
+        twClassName="mt-1 text-center"
+        // The variant's own 12/20 ramp is too tall for the bar; only the size
+        // is overridden so weight and colour still come from the design system.
+        style={{
+          fontSize: TAB_BAR_FLOATING_LABEL_FONT_SIZE,
+          lineHeight: TAB_BAR_FLOATING_LABEL_LINE_HEIGHT,
+        }}
       >
         {label}
       </Text>

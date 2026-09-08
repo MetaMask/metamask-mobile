@@ -14,6 +14,7 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
 import TabBarFloating from './TabBarFloating';
 import {
+  TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
@@ -199,16 +200,11 @@ describe('TabBarFloating', () => {
     expect(backgroundOf(onMoney, TabBarIconKey.Wallet)).not.toBe(active);
   });
 
-  it('sizes the search button to a circle matching the pill height', () => {
+  it('holds the pill to the measured bar height', () => {
     const { getByTestId } = renderBar();
 
-    fireEvent(getByTestId(TAB_BAR_FLOATING_TEST_IDS.PILL), 'layout', {
-      nativeEvent: { layout: { height: 60, width: 300, x: 0, y: 0 } },
-    });
-
-    expect(getByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON)).toHaveStyle({
-      height: 60,
-      width: 60,
+    expect(getByTestId(TAB_BAR_FLOATING_TEST_IDS.PILL)).toHaveStyle({
+      height: TAB_BAR_FLOATING_HEIGHT,
     });
   });
 
