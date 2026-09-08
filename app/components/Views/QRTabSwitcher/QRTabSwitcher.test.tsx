@@ -279,7 +279,7 @@ describe('QRTabSwitcher', () => {
     renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingPayload: {
+        pendingSecretImports: {
           version: 1 as const,
           wallets: [
             {
@@ -329,7 +329,7 @@ describe('QRTabSwitcher', () => {
     renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingPayload: {
+        pendingSecretImports: {
           version: 1 as const,
           wallets: [
             {
