@@ -25,8 +25,11 @@ export const wallet_switchEthereumChain = async ({
   analytics,
   hooks,
 }) => {
-  const { NetworkController, MultichainNetworkController, SelectedNetworkController } =
-    Engine.context;
+  const {
+    NetworkController,
+    MultichainNetworkController,
+    SelectedNetworkController,
+  } = Engine.context;
   const params = req.params?.[0];
   const { origin } = req;
   if (!params || typeof params !== 'object') {
