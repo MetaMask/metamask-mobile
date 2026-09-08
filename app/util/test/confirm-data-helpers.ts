@@ -507,6 +507,7 @@ const stakingConfirmationBaseState = {
             '0x0000000000000000000000000000000000000000': {
               id: '0x0000000000000000000000000000000000000000',
               address: '0x0000000000000000000000000000000000000000',
+              type: 'eip155:eoa' as const,
               metadata: {
                 name: 'Account 1',
                 keyring: {

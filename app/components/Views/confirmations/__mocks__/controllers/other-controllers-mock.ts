@@ -246,6 +246,28 @@ export const tokensControllerMock = {
           },
         },
       },
+      AssetsController: {
+        assetsInfo: {
+          [`eip155:1/erc20:${tokenAddress1Mock}`]: {
+            type: 'erc20' as const,
+            symbol: 'T1',
+            name: 'T1',
+            decimals: 4,
+          },
+          [`eip155:1/erc20:${tokenAddress2Mock}`]: {
+            type: 'erc20' as const,
+            symbol: 'T2',
+            name: 'T2',
+            decimals: 6,
+          },
+        },
+        assetsBalance: {
+          [accountMock]: {
+            [`eip155:1/erc20:${tokenAddress1Mock}`]: { amount: '0.01' },
+            [`eip155:1/erc20:${tokenAddress2Mock}`]: { amount: '0' },
+          },
+        },
+      },
     },
   },
 };

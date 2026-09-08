@@ -1,8 +1,6 @@
-import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
-import { zeroAddress } from 'ethereumjs-util';
 import {
   createMockAccountsControllerState,
   createMockInternalAccount,
@@ -719,11 +717,119 @@ describe('Engine', () => {
   describe('getTotalEvmFiatAccountBalance', () => {
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
     const selectedAccountId = 'test-account-id';
-    const chainId: Hex = '0x1';
-    const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
     const ethBalance = 1;
     const stakedEthBalance = 1;
+    const ethAssetId = 'eip155:1/slip44:60';
+    const stakedEthAssetId =
+      'eip155:1/erc20:0x4FEF9D741011476750A243aC70b9789a63dd47Df';
+    const priceLastUpdated = 1732887955694;
+
+    const selectedInternalAccount = {
+      ...createMockInternalAccount(selectedAddress, 'Test Account'),
+      type: 'eip155:eoa' as const,
+    };
+
+    const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
+    const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
+
+    const buildAssetsController = ({
+      ethAmount = String(ethBalance),
+      ethPricePercentChange1d,
+      tokens = [],
+      stakedAmount,
+    }: {
+      ethAmount?: string;
+      ethPricePercentChange1d?: number;
+      tokens?: {
+        address: Hex;
+        balance: number;
+        price: number;
+        pricePercentChange1d: number;
+        decimals: number;
+        symbol: string;
+      }[];
+      stakedAmount?: string;
+    } = {}) => {
+      const assetsInfo: Record<
+        string,
+        {
+          type: 'native' | 'erc20';
+          symbol: string;
+          name: string;
+          decimals: number;
+        }
+      > = {
+        [ethAssetId]: {
+          type: 'native',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          decimals: 18,
+        },
+      };
+      const assetsPrice: Record<
+        string,
+        {
+          assetPriceType: 'fungible';
+          price: number;
+          usdPrice: number;
+          lastUpdated: number;
+          pricePercentChange1d?: number;
+        }
+      > = {
+        [ethAssetId]: {
+          assetPriceType: 'fungible',
+          price: ethConversionRate,
+          usdPrice: ethConversionRate,
+          lastUpdated: priceLastUpdated,
+          ...(ethPricePercentChange1d !== undefined
+            ? { pricePercentChange1d: ethPricePercentChange1d }
+            : {}),
+        },
+      };
+      const accountBalances: Record<string, { amount: string }> = {
+        [ethAssetId]: { amount: ethAmount },
+      };
+
+      tokens.forEach((token) => {
+        const assetId = `eip155:1/erc20:${token.address}`;
+        assetsInfo[assetId] = {
+          type: 'erc20',
+          symbol: token.symbol,
+          name: token.symbol,
+          decimals: token.decimals,
+        };
+        assetsPrice[assetId] = {
+          assetPriceType: 'fungible',
+          price: token.price * ethConversionRate,
+          usdPrice: token.price * ethConversionRate,
+          lastUpdated: priceLastUpdated,
+          pricePercentChange1d: token.pricePercentChange1d,
+        };
+        accountBalances[assetId] = { amount: String(token.balance) };
+      });
+
+      if (stakedAmount !== undefined) {
+        assetsInfo[stakedEthAssetId] = {
+          type: 'erc20',
+          symbol: 'stETH',
+          name: 'Staked ETH',
+          decimals: 18,
+        };
+        accountBalances[stakedEthAssetId] = { amount: stakedAmount };
+      }
+
+      return {
+        selectedCurrency: 'usd',
+        assetsInfo,
+        assetsPrice,
+        assetsBalance: {
+          [selectedAccountId]: accountBalances,
+        },
+        customAssets: {},
+        assetPreferences: {},
+      };
+    };
 
     const state: Partial<EngineState> = {
       AccountsController: {
@@ -733,19 +839,9 @@ describe('Engine', () => {
         ),
         internalAccounts: {
           accounts: {
-            [selectedAccountId]: createMockInternalAccount(
-              selectedAddress,
-              'Test Account',
-            ),
+            [selectedAccountId]: selectedInternalAccount,
           },
           selectedAccount: selectedAccountId,
-        },
-      },
-      AccountTrackerController: {
-        accountsByChainId: {
-          [chainId]: {
-            [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
-          },
         },
       },
       NetworkController: mockNetworkState({
@@ -754,16 +850,7 @@ describe('Engine', () => {
         nickname: 'mainnet',
         ticker: 'ETH',
       }),
-      CurrencyRateController: {
-        currencyRates: {
-          [ticker]: {
-            conversionRate: ethConversionRate,
-            conversionDate: 0,
-            usdConversionRate: ethConversionRate,
-          },
-        },
-        currentCurrency: ticker,
-      },
+      AssetsController: buildAssetsController(),
     };
 
     it('calculates when theres no balances', () => {
@@ -776,16 +863,7 @@ describe('Engine', () => {
         engine: {
           backgroundState: {
             ...state,
-            AccountTrackerController: {
-              accountsByChainId: {
-                [chainId]: {
-                  [selectedAddress]: {
-                    balance: '0',
-                    stakedBalance: '0',
-                  },
-                },
-              },
-            },
+            AssetsController: buildAssetsController({ ethAmount: '0' }),
           },
         },
       });
@@ -813,15 +891,9 @@ describe('Engine', () => {
         engine: {
           backgroundState: {
             ...state,
-            TokenRatesController: {
-              marketData: {
-                [chainId]: {
-                  [zeroAddress()]: {
-                    pricePercentChange1d: ethPricePercentChange1d,
-                  } as Partial<MarketDataDetails> as MarketDataDetails,
-                },
-              },
-            },
+            AssetsController: buildAssetsController({
+              ethPricePercentChange1d,
+            }),
           },
         },
       });
@@ -841,9 +913,6 @@ describe('Engine', () => {
 
     it('calculates when there are ETH and tokens', () => {
       const ethPricePercentChange1d = 5;
-
-      const token1Address = '0x0001' as Hex;
-      const token2Address = '0x0002' as Hex;
 
       const tokens = [
         {
@@ -873,49 +942,10 @@ describe('Engine', () => {
         engine: {
           backgroundState: {
             ...state,
-            TokensController: {
-              allTokens: {
-                [chainId]: {
-                  [selectedAddress]: tokens.map(
-                    ({ address, balance, decimals, symbol }) => ({
-                      address,
-                      balance,
-                      decimals,
-                      symbol,
-                    }),
-                  ),
-                },
-              },
-              allIgnoredTokens: {},
-              allDetectedTokens: {},
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                [selectedAddress as Hex]: {
-                  [chainId]: {
-                    [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                    [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
-                  },
-                },
-              },
-            },
-            TokenRatesController: {
-              marketData: {
-                [chainId]: {
-                  [zeroAddress()]: {
-                    pricePercentChange1d: ethPricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                  [token1Address]: {
-                    price: tokens[0].price,
-                    pricePercentChange1d: tokens[0].pricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                  [token2Address]: {
-                    price: tokens[1].price,
-                    pricePercentChange1d: tokens[1].pricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                },
-              },
-            },
+            AssetsController: buildAssetsController({
+              ethPricePercentChange1d,
+              tokens,
+            }),
           },
         },
       });
@@ -947,9 +977,6 @@ describe('Engine', () => {
     it('calculates when there is ETH and staked ETH and tokens', () => {
       const ethPricePercentChange1d = 5;
 
-      const token1Address = '0x0001' as Hex;
-      const token2Address = '0x0002' as Hex;
-
       const tokens = [
         {
           address: token1Address,
@@ -978,59 +1005,11 @@ describe('Engine', () => {
         engine: {
           backgroundState: {
             ...state,
-            AccountTrackerController: {
-              accountsByChainId: {
-                [chainId]: {
-                  [selectedAddress]: {
-                    balance: (ethBalance * 1e18).toString(),
-                    stakedBalance: (stakedEthBalance * 1e18).toString(),
-                  },
-                },
-              },
-            },
-            TokensController: {
-              allTokens: {
-                [chainId]: {
-                  [selectedAddress]: tokens.map(
-                    ({ address, balance, decimals, symbol }) => ({
-                      address,
-                      balance,
-                      decimals,
-                      symbol,
-                    }),
-                  ),
-                },
-              },
-              allIgnoredTokens: {},
-              allDetectedTokens: {},
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                [selectedAddress as Hex]: {
-                  [chainId]: {
-                    [token1Address]: '0x0de0b6b3a7640000',
-                    [token2Address]: '0x1bc16d674ec80000',
-                  },
-                },
-              },
-            },
-            TokenRatesController: {
-              marketData: {
-                [chainId]: {
-                  [zeroAddress()]: {
-                    pricePercentChange1d: ethPricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                  [token1Address]: {
-                    price: tokens[0].price,
-                    pricePercentChange1d: tokens[0].pricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                  [token2Address]: {
-                    price: tokens[1].price,
-                    pricePercentChange1d: tokens[1].pricePercentChange1d,
-                  } as unknown as MarketDataDetails,
-                },
-              },
-            },
+            AssetsController: buildAssetsController({
+              ethPricePercentChange1d,
+              tokens,
+              stakedAmount: String(stakedEthBalance),
+            }),
           },
         },
       });

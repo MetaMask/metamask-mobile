@@ -30,6 +30,8 @@ jest.mock('./useNetworkInfo', () => ({
 
 const mockData =
   '0xa9059cbb000000000000000000000000d8da6bf26964af9d7eed9e03e53415d37aa96045000000000000000000000000000000000000000000000000016345785d8a0000';
+const ethAssetId = 'eip155:1/slip44:60';
+const ethConversionRate = 3596.25;
 
 describe('useTokenAmount', () => {
   describe('returns amount and fiat display values', () => {
@@ -96,6 +98,8 @@ describe('ERC20 token transactions', () => {
   const erc20TokenAddress = '0x6b175474e89094c44da98b954eedeac495271d0f';
   const checksumErc20TokenAddress =
     '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+  const erc20AssetId = `eip155:1/erc20:${checksumErc20TokenAddress}`;
+  const selectedAccountId = '0x0000000000000000000000000000000000000000';
   const updateEditableParamsMock = jest.mocked(updateEditableParams);
 
   const createERC20State = (
@@ -105,12 +109,29 @@ describe('ERC20 token transactions', () => {
     merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {
-              '0x1': {
-                [checksumErc20TokenAddress]: {
-                  price: contractExchangeRate,
-                },
+          AssetsController: {
+            assetsInfo: {
+              [erc20AssetId]: {
+                type: 'erc20' as const,
+                symbol: 'DAI',
+                name: 'Dai',
+                decimals: 18,
+              },
+            },
+            assetsPrice:
+              contractExchangeRate === undefined
+                ? {}
+                : {
+                    [erc20AssetId]: {
+                      assetPriceType: 'fungible' as const,
+                      price: contractExchangeRate * ethConversionRate,
+                      usdPrice: contractExchangeRate * ethConversionRate,
+                      lastUpdated: 1732887955694,
+                    },
+                  },
+            assetsBalance: {
+              [selectedAccountId]: {
+                [erc20AssetId]: { amount: '0' },
               },
             },
           },
@@ -171,9 +192,14 @@ describe('ERC20 token transactions', () => {
     const stateWithoutExchangeRate = merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {
-              '0x1': {}, // No exchange rate for this token
+          AssetsController: {
+            assetsInfo: {
+              [erc20AssetId]: {
+                type: 'erc20' as const,
+                symbol: 'DAI',
+                name: 'Dai',
+                decimals: 18,
+              },
             },
           },
           TransactionController: {
@@ -334,12 +360,21 @@ describe('Edge cases', () => {
     const smallExchangeRateState = merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {
-              '0x1': {
-                '0x6B175474E89094C44Da98b954EedeAC495271d0F': {
-                  price: 0.000000001, // Very small exchange rate
-                },
+          AssetsController: {
+            assetsInfo: {
+              'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                type: 'erc20' as const,
+                symbol: 'DAI',
+                name: 'Dai',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                assetPriceType: 'fungible' as const,
+                price: 0.000000001 * 3596.25,
+                usdPrice: 0.000000001 * 3596.25,
+                lastUpdated: 1732887955694,
               },
             },
           },
@@ -390,8 +425,15 @@ describe('Edge cases', () => {
     const stateWithoutTokenRates = merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {},
+          AssetsController: {
+            assetsInfo: {
+              'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                type: 'erc20' as const,
+                symbol: 'DAI',
+                name: 'Dai',
+                decimals: 18,
+              },
+            },
           },
           TransactionController: {
             transactions: [
@@ -427,22 +469,10 @@ describe('Edge cases', () => {
   });
 
   it('calculates USD value when usdConversionRateFromCurrencyRates is not available', async () => {
-    const stateWithoutUsdRate = merge({}, transferConfirmationState, {
-      engine: {
-        backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: 'usd',
-            currencyRates: {
-              ETH: {
-                conversionDate: 1732887955.694,
-                conversionRate: 3596.25,
-                usdConversionRate: null,
-              },
-            },
-          },
-        },
-      },
-    });
+    const stateWithoutUsdRate = merge({}, transferConfirmationState);
+    stateWithoutUsdRate.engine.backgroundState.AssetsController.assetsPrice[
+      ethAssetId
+    ].usdPrice = undefined;
 
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
       state: stateWithoutUsdRate,
