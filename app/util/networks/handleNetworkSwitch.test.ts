@@ -9,9 +9,6 @@ const mockStore = jest.mocked(store);
 
 jest.mock('../../core/Engine', () => ({
   context: {
-    CurrencyRateController: {
-      updateExchangeRate: jest.fn(),
-    },
     NetworkController: {
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
@@ -113,10 +110,6 @@ describe('useHandleNetworkSwitch', () => {
     const result = handleNetworkSwitch('');
 
     expect(
-      mockEngine.context.CurrencyRateController.updateExchangeRate,
-    ).not.toBeCalled();
-
-    expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toBeCalled();
     expect(
@@ -129,10 +122,6 @@ describe('useHandleNetworkSwitch', () => {
     setupGetStateMock();
 
     const result = handleNetworkSwitch('1');
-
-    expect(
-      mockEngine.context.CurrencyRateController.updateExchangeRate,
-    ).not.toBeCalled();
 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
