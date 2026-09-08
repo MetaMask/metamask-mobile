@@ -547,6 +547,39 @@ const stakingConfirmationBaseState = {
           },
         },
       },
+      AssetsController: {
+        ...backgroundState.AssetsController,
+        selectedCurrency: 'usd',
+        assetsInfo: {
+          ...backgroundState.AssetsController.assetsInfo,
+          'eip155:1/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          'eip155:59144/slip44:60': {
+            type: 'native',
+            symbol: 'LineaETH',
+            name: 'LineaETH',
+            decimals: 18,
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            price: 3596.25,
+            usdPrice: 3596.25,
+            lastUpdated: 1732887955694,
+          },
+          'eip155:59144/slip44:60': {
+            assetPriceType: 'fungible',
+            price: 3596.25,
+            usdPrice: 3596.25,
+            lastUpdated: 1732887955694,
+          },
+        },
+      },
       TokensController: {
         allTokens: {
           '0x1': {

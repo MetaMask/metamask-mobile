@@ -173,6 +173,157 @@ export const initialState = {
           },
         },
       },
+      AssetsController: {
+        selectedCurrency: 'usd',
+        assetPreferences: {},
+        customAssets: {},
+        assetsInfo: {
+          'eip155:1/slip44:60': {
+            type: 'native',
+            symbol: 'ETH',
+            name: 'Ether',
+            decimals: 18,
+          },
+          [`eip155:1/erc20:${ethToken1Address}`]: {
+            type: 'erc20',
+            symbol: 'TOKEN1',
+            name: 'Token One',
+            decimals: 18,
+            image: 'https://token1.com/logo.png',
+          },
+          [`eip155:1/erc20:${ethToken2Address}`]: {
+            type: 'erc20',
+            symbol: 'HELLO',
+            name: 'Hello Token',
+            decimals: 18,
+            image: 'https://token2.com/logo.png',
+          },
+          [`eip155:10/erc20:${optimismToken1Address}`]: {
+            type: 'erc20',
+            symbol: 'FOO',
+            name: 'Foo Token',
+            decimals: 18,
+            image: 'https://token3.com/logo.png',
+          },
+          [solanaNativeTokenAddress]: {
+            type: 'native',
+            symbol: 'SOL',
+            name: 'Solana',
+            decimals: 9,
+          },
+          [solanaToken2Address]: {
+            type: 'token',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+          [btcNativeTokenAddress]: {
+            type: 'native',
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            decimals: 8,
+          },
+          [trxNativeTokenAddress]: {
+            type: 'native',
+            symbol: 'TRX',
+            name: 'Tron',
+            decimals: 6,
+          },
+          [xlmNativeTokenAddress]: {
+            type: 'native',
+            symbol: 'XLM',
+            name: 'Stellar',
+            decimals: 7,
+          },
+        },
+        assetsBalance: {
+          [evmAccountId]: {
+            [`eip155:1/erc20:${ethToken1Address}`]: { amount: '1' },
+            [`eip155:1/erc20:${ethToken2Address}`]: { amount: '2' },
+            [`eip155:10/erc20:${optimismToken1Address}`]: { amount: '5' },
+          },
+          [solanaAccountId]: {
+            [solanaNativeTokenAddress]: { amount: '100.123' },
+            [solanaToken2Address]: { amount: '20000.456' },
+          },
+          [btcAccountId]: {
+            [btcNativeTokenAddress]: { amount: '0.015' },
+          },
+          [trxAccountId]: {
+            [trxNativeTokenAddress]: { amount: '500' },
+          },
+          [xlmAccountId]: {
+            [xlmNativeTokenAddress]: { amount: '250' },
+          },
+        },
+        assetsPrice: {
+          'eip155:1/slip44:60': {
+            assetPriceType: 'fungible',
+            id: 'eth',
+            price: 2000,
+            usdPrice: 2000,
+            lastUpdated: 1700000000000,
+          },
+          // TokenRatesController prices are native-denominated; AssetsController
+          // stores fiat. TOKEN1=10 ETH, HELLO=50 ETH, FOO=8 ETH at $2000/ETH.
+          [`eip155:1/erc20:${ethToken1Address}`]: {
+            assetPriceType: 'fungible',
+            id: 'token1',
+            price: 20000,
+            usdPrice: 20000,
+            lastUpdated: 1700000000000,
+          },
+          [`eip155:1/erc20:${ethToken2Address}`]: {
+            assetPriceType: 'fungible',
+            id: 'hello',
+            price: 100000,
+            usdPrice: 100000,
+            lastUpdated: 1700000000000,
+          },
+          [`eip155:10/erc20:${optimismToken1Address}`]: {
+            assetPriceType: 'fungible',
+            id: 'foo',
+            price: 16000,
+            usdPrice: 16000,
+            lastUpdated: 1700000000000,
+          },
+          [solanaNativeTokenAddress]: {
+            assetPriceType: 'fungible',
+            id: 'sol',
+            price: 100,
+            usdPrice: 100,
+            lastUpdated: 1700000000000,
+          },
+          [solanaToken2Address]: {
+            assetPriceType: 'fungible',
+            id: 'usdc',
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1700000000000,
+          },
+          [btcNativeTokenAddress]: {
+            assetPriceType: 'fungible',
+            id: 'btc',
+            price: 100000,
+            usdPrice: 100000,
+            lastUpdated: 1700000000000,
+          },
+          [trxNativeTokenAddress]: {
+            assetPriceType: 'fungible',
+            id: 'trx',
+            price: 0.1,
+            usdPrice: 0.1,
+            lastUpdated: 1700000000000,
+          },
+          [xlmNativeTokenAddress]: {
+            assetPriceType: 'fungible',
+            id: 'xlm',
+            price: 0.12,
+            usdPrice: 0.12,
+            lastUpdated: 1700000000000,
+          },
+        },
+      },
       TokensController: {
         allTokens: {
           [ethChainId]: {
