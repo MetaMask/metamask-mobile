@@ -69,6 +69,7 @@ export const Amount = () => {
     fiatCurrencySymbol,
     getFiatValue,
     getFiatDisplayValue,
+    getNativeValue,
   } = useCurrencyConversions();
   const isNFT =
     asset?.standard === TokenStandard.ERC721 ||
@@ -241,6 +242,7 @@ export const Amount = () => {
             <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
               <AnimatedNumericText
                 color={TextColor.TextAlternative}
+                deferRolling
                 testID="send_amount_alternate"
                 value={alternateDisplayValue}
               />
@@ -257,6 +259,7 @@ export const Amount = () => {
           <AnimatedNumericText
             color={TextColor.TextAlternative}
             containerStyle={styles.balanceText}
+            deferRolling
             testID="send_balance"
             value={balanceDisplayValue}
           />
@@ -266,6 +269,8 @@ export const Amount = () => {
         amount={amount}
         amountError={amountError}
         fiatMode={fiatMode}
+        getFiatValue={getFiatValue}
+        getNativeValue={getNativeValue}
         updateAmount={setAmount}
         validateNonEvmAmountAsync={validateNonEvmAmountAsync}
       />

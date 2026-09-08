@@ -55,6 +55,13 @@ export const ImpactMoment = {
   /** Quick amount selection — Light impact. Paired with quick amount selection animation. */
   QuickAmountSelection: 'quickAmountSelection',
 
+  /**
+   * Single key press on an in-app numeric keypad — Rigid impact, chosen to match
+   * the crisp click of the iOS system keyboard. `playSelection` is the picker
+   * tick and reads as too soft for typing.
+   */
+  KeypadKey: 'keypadKey',
+
   /** Slider step / tick — Light impact. Paired with slider animation. */
   SliderTick: 'sliderTick',
 

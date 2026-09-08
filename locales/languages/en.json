@@ -4775,6 +4775,7 @@
         "raw_impacts_desc": "Direct expo-haptics impact styles for comparison with the mapped catalog moments above.",
         "impacts": {
           "quick_amount_selection": "Impact — Quick amount selection",
+          "keypad_key": "Impact — Keypad key",
           "slider_tick": "Impact — Slider tick",
           "edge_gesture_engage": "Impact — Edge gesture engage",
           "page_navigation": "Impact — Page navigation",
