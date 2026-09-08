@@ -64,6 +64,24 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for Chase orders.
+ * LaunchDarkly key (kebab-case): `perps-mobile-chase`.
+ */
+export const PERPS_MOBILE_CHASE_FLAG_KEY = 'perpsMobileChase' as const;
+
+/** Chase is default-off and may only be exposed to supported app versions. */
+export const selectPerpsMobileChaseEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_MOBILE_CHASE_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Client-config / Redux key for the Perps advanced chart feature flag.
  * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled-v2`
  */
@@ -274,43 +292,6 @@ export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
     const versionGatedFlag = remoteFlag as unknown as VersionGatedFeatureFlag;
     return validatedVersionGatedFeatureFlag(versionGatedFlag) ?? false;
   },
-);
-
-/**
- * Resolve whether the MYX provider is enabled.
- * Pure utility so that both the Redux selector and the controller
- * (which reads RemoteFeatureFlagController state directly) share
- * the same logic.
- *
- * Local env var takes priority — if set to "true", MYX is always enabled
- * regardless of remote flag. Remote flag only used as fallback when
- * local is not explicitly enabled.
- */
-export function resolvePerpsMyxProviderEnabled(
-  remoteFeatureFlags: Record<string, unknown> | undefined,
-): boolean {
-  const localFlag = process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
-
-  // Local override always wins
-  if (localFlag) {
-    return true;
-  }
-
-  const remoteFlag =
-    remoteFeatureFlags?.perpsMyxProviderEnabled as VersionGatedFeatureFlag;
-
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-}
-
-/**
- * Selector for MYX Provider enabled flag
- * Controls whether MYX is available as a provider option
- *
- * @returns boolean - true if MYX provider should be available, false otherwise
- */
-export const selectPerpsMYXProviderEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => resolvePerpsMyxProviderEnabled(remoteFeatureFlags),
 );
 
 /**

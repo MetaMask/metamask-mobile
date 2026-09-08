@@ -12,6 +12,7 @@ import {
   type CardControllerState,
   type CardHomeDataError,
   type CardHomeDataStatus,
+  type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
   FundingAssetStatus,
@@ -132,6 +133,12 @@ export const selectIsMoneyAccountCardLinkInProgress = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.moneyAccountCardLinkInProgress ?? false,
+);
+
+export const selectCardRedeemWithdrawal = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    (cardState?.redeemWithdrawal as CardRedeemWithdrawal | null) ?? null,
 );
 
 export const selectCardholderAccounts = createSelector(

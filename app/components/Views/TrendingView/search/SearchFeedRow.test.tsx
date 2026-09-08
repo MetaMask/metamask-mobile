@@ -8,7 +8,6 @@ import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowI
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import SearchFeedRow, {
   SearchFeedSkeleton,
-  EARN_ROW_WRAPPER_TEST_ID,
   PERPS_ROW_WRAPPER_TEST_ID,
   getItemId,
 } from './SearchFeedRow';
@@ -39,12 +38,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => false),
-}));
-
-jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(() => ({
-    navigateToMoneyHome: jest.fn(),
-  })),
 }));
 
 jest.mock('./analytics', () => ({
@@ -95,17 +88,18 @@ jest.mock('../feeds/sites/SiteRowItem', () => ({
   ),
 }));
 
-jest.mock('../feeds/earn/EarnMoneyAccountRow', () => ({
+jest.mock('./EarnSearchRow', () => ({
   __esModule: true,
   default: ({ item }: { item: EarnSearchItem }) => (
-    <MockText testID="stub-earn-money-row">{item.id}</MockText>
-  ),
-}));
-
-jest.mock('../feeds/earn/EarnSearchAssetRow', () => ({
-  __esModule: true,
-  default: ({ item }: { item: EarnSearchItem }) => (
-    <MockText testID="stub-earn-search-asset-row">{item.id}</MockText>
+    <MockText
+      testID={
+        item.kind === 'money-account'
+          ? 'stub-earn-money-row'
+          : 'stub-earn-search-asset-row'
+      }
+    >
+      {item.id}
+    </MockText>
   ),
 }));
 

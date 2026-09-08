@@ -52,7 +52,6 @@ import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
 import EarnNewTag from '../EarnNewTag';
-import EarnNoFeeTag from '../EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
@@ -149,9 +148,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   ) => {
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
-    const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
-      tokenDetailsSource,
-    });
+    const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
     const isHomepageSection = homeAnalytics !== undefined;
     const homepageTelemetryEnabled = isHomepageSection && enabled;
     const sectionIndex = homeAnalytics?.sectionIndex ?? -1;
@@ -248,8 +245,8 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     }, [navigation]);
 
     const handleAssetCardPress = useCallback(
-      (asset: EarnAsset) => navigateToEarnOpportunity(asset),
-      [navigateToEarnOpportunity],
+      (asset: EarnAsset) => navigateFromEarnAsset(asset, tokenDetailsSource),
+      [navigateFromEarnAsset, tokenDetailsSource],
     );
 
     const moneyAccountCardSecondaryText = useMemo(() => {
@@ -316,23 +313,15 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           const { asset } = slot;
           const {
             metadata,
-            hasSubsidizedFee,
             hasMinDepositAmount,
             fiatBalance,
-            rateCopy,
+            highestRateCopy,
           } = deriveEarnAssetDisplayData(asset);
 
           return (
             <EarnSectionAssetCard
               key={slot.key}
               icon={<EarnAssetIcon asset={asset} />}
-              tag={
-                hasSubsidizedFee ? (
-                  <EarnNoFeeTag
-                    testID={EarnSectionTestIds.ASSET_NO_FEE_TAG(index)}
-                  />
-                ) : undefined
-              }
               primaryText={metadata.ticker ?? metadata.symbol}
               secondaryText={renderAssetSecondaryText({
                 hasMinDepositAmount,
@@ -340,7 +329,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                 metadata,
                 privacyMode,
               })}
-              tertiaryText={rateCopy}
+              tertiaryText={highestRateCopy}
               testID={EarnSectionTestIds.ASSET_CARD(index)}
               onPress={() => handleAssetCardPress(asset)}
             />

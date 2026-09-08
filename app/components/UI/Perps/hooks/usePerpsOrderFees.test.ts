@@ -77,6 +77,15 @@ const createWrapper = () => {
   };
 };
 
+/**
+ * Split plan (follow-up; this file predates the current size warning):
+ * 1. Keep base fee calculation plus `formatFeeRate` in this file.
+ * 2. Move maker/taker determination to `usePerpsOrderFees.makerTaker.test.ts`.
+ * 3. Move enhanced errors, cache TTL, and lifecycle coverage to `usePerpsOrderFees.resilience.test.ts`.
+ *
+ * Shared controller/Redux builders should move to a sibling test helper first
+ * so each suite can keep isolated AAA setup without duplicating mocks.
+ */
 describe('usePerpsOrderFees', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
@@ -167,6 +176,7 @@ describe('usePerpsOrderFees', () => {
       clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
+      previewPositionModify: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
@@ -927,6 +937,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
       clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
+      previewPositionModify: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
@@ -974,6 +985,39 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         symbol: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
+    });
+  });
+
+  describe('Chase Orders', () => {
+    it('uses maker pricing for post-only Chase orders', async () => {
+      mockCalculateFees.mockResolvedValue({
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'chase',
+            amount: '100000',
+            direction: 'long',
+            providerId: 'hyperliquid',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'chase',
+        isMaker: true,
+        amount: '100000',
+        symbol: 'ETH',
+        providerId: 'hyperliquid',
+      });
     });
   });
 
@@ -1639,6 +1683,7 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
+      previewPositionModify: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),

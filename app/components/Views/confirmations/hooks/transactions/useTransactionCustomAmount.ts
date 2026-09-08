@@ -15,6 +15,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS,
 } from '../../../../UI/Earn/constants/musd';
 import Engine from '../../../../../core/Engine';
@@ -125,7 +126,7 @@ export function useTransactionCustomAmount({
   const tokenFiatRate = isMoneyAccountWithdraw
     ? musdFiatRate
     : payTokenFiatRate;
-  const { balanceUsd } = useTransactionPayBalance({ currency });
+  const { balanceRaw, balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
   const payTokenKey = `${payToken?.chainId ?? ''}:${
     payToken?.address.toLowerCase() ?? ''
@@ -353,12 +354,28 @@ export function useTransactionCustomAmount({
         return false;
       }
 
-      const newAmount = formatFiatAmount(
-        new BigNumber(percentage)
-          .dividedBy(100)
-          .multipliedBy(balanceUsd)
-          .decimalPlaces(2, BigNumber.ROUND_DOWN),
-      );
+      // Money-account withdraw Max must not arm isMaxAmount (post-quote would
+      // treat destination payment-token balance as the source). Use the exact
+      // redeemable balanceRaw instead of fiat rounded to cents so Max does not
+      // leave dust.
+      let newAmount: string;
+      if (percentage === 100 && isMoneyAccountWithdraw && balanceRaw) {
+        const exactHuman = new BigNumber(balanceRaw).shiftedBy(-MUSD_DECIMALS);
+        if (!exactHuman.isFinite() || exactHuman.lte(0)) {
+          return false;
+        }
+        const exactFiat = tokenFiatRate
+          ? exactHuman.multipliedBy(tokenFiatRate)
+          : exactHuman;
+        newAmount = exactFiat.toFixed();
+      } else {
+        newAmount = formatFiatAmount(
+          new BigNumber(percentage)
+            .dividedBy(100)
+            .multipliedBy(balanceUsd)
+            .decimalPlaces(2, BigNumber.ROUND_DOWN),
+        );
+      }
 
       // Sub-cent / dust balances ROUND_DOWN to $0. Treat that like no balance
       // so Max does not arm auto-submit and strand the page on Loading.
@@ -375,12 +392,12 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Always arm isMaxAmount on a full (100%) selection. TPC resolves the
-      // correct source balance for every flow — including money-account deposit
-      // max — via the getBalance callback (perps HyperLiquid, predict
-      // Polymarket, money-account mUSD + vmUSD), so no per-transaction-type
-      // exclusion or client-side full-precision override is needed here.
-      if (percentage === 100) {
+      // Arm isMaxAmount on a full (100%) selection so TPC can resolve the exact
+      // source balance via getBalance (perps HyperLiquid, predict Polymarket,
+      // money-account deposit mUSD + vmUSD). Money-account withdraws are the
+      // exception: Max must keep the explicit nested-tx amount, not treat the
+      // destination payment token balance as the source amount in post-quote.
+      if (percentage === 100 && !isMoneyAccountWithdraw) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
@@ -389,7 +406,15 @@ export function useTransactionCustomAmount({
       setAmountFiat(newAmount);
       return true;
     },
-    [balanceUsd, isMaxAmount, setIsMax, setConfirmationMetric],
+    [
+      balanceRaw,
+      balanceUsd,
+      isMaxAmount,
+      isMoneyAccountWithdraw,
+      setConfirmationMetric,
+      setIsMax,
+      tokenFiatRate,
+    ],
   );
 
   const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);

@@ -6,6 +6,10 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import type {
+  MarketInsightsSource,
+  MarketInsightsStage,
+} from '../utils/marketInsightsPerformance';
 
 const POLL_INTERVAL_MS = 250;
 const DEFAULT_AREA_THRESHOLD = 0.5;
@@ -26,6 +30,10 @@ const DEFAULT_AREA_THRESHOLD = 0.5;
 export const useViewportTracking = (
   onVisible: () => void,
   areaThreshold = DEFAULT_AREA_THRESHOLD,
+  context: {
+    source: MarketInsightsSource;
+    stage: MarketInsightsStage;
+  } = { source: 'unknown', stage: 'entry_card' },
 ) => {
   const ref = useRef<View>(null);
   const hasFired = useRef(false);
@@ -68,13 +76,17 @@ export const useViewportTracking = (
           data: {
             measure_calls: measureCountRef.current,
             resolved_by: 'visibility_threshold',
+            result: 'success',
+            success: true,
+            source: context.source,
+            stage: context.stage,
           },
         });
 
         onVisibleRef.current();
       }
     });
-  }, [areaThreshold]);
+  }, [areaThreshold, context.source, context.stage]);
 
   const onLayout = useCallback(() => {
     if (!traceStartedRef.current) {
@@ -82,6 +94,11 @@ export const useViewportTracking = (
       trace({
         name: TraceName.MarketInsightsViewportTracking,
         op: TraceOperation.MarketInsightsViewportTracking,
+        tags: {
+          feature: 'market_insights',
+          source: context.source,
+          stage: context.stage,
+        },
       });
     }
 
@@ -90,7 +107,7 @@ export const useViewportTracking = (
     if (!hasFired.current && !intervalRef.current) {
       intervalRef.current = setInterval(checkVisibility, POLL_INTERVAL_MS);
     }
-  }, [checkVisibility]);
+  }, [checkVisibility, context.source, context.stage]);
 
   useEffect(
     () => () => {
@@ -105,11 +122,16 @@ export const useViewportTracking = (
           data: {
             measure_calls: measureCountRef.current,
             resolved_by: 'unmount',
+            result: 'cancelled',
+            success: false,
+            reason: 'owner_cancelled',
+            source: context.source,
+            stage: context.stage,
           },
         });
       }
     },
-    [],
+    [context.source, context.stage],
   );
 
   return { ref, onLayout };

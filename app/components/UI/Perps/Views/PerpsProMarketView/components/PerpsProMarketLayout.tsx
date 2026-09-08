@@ -3,7 +3,7 @@ import type { ProLayoutPreferences } from '@metamask/perps-controller';
 import React, { type ReactNode } from 'react';
 import { View } from 'react-native';
 import Animated, {
-  FadeIn,
+  FadeInDown,
   FadeOut,
   LinearTransition,
 } from 'react-native-reanimated';
@@ -64,7 +64,7 @@ const PerpsProMarketLayout = ({
       key="order-book"
       testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN}
       style={styles.orderBookColumn}
-      entering={FadeIn.duration(AnimationDuration.Fast)}
+      entering={FadeInDown.duration(AnimationDuration.Fast)}
       exiting={FadeOut.duration(AnimationDuration.Fast)}
     >
       {orderBook}

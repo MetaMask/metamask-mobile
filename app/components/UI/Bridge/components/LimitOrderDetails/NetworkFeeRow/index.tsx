@@ -55,6 +55,7 @@ const NetworkFeeRow: React.FC<NetworkFeeRowProps> = ({
     <BadgeWrapper
       testID={NetworkFeeRowSelectorsIDs.AVATAR}
       position={BadgeWrapperPosition.BottomRight}
+      twClassName="mt-1"
       badge={
         <Box
           twClassName="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
@@ -95,10 +96,10 @@ const NetworkFeeRow: React.FC<NetworkFeeRowProps> = ({
       >
         {feeTokenAvatar}
         <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           testID={NetworkFeeRowSelectorsIDs.VALUE}
+          fontWeight={FontWeight.Regular}
         >
           {amount}
         </Text>
@@ -113,8 +114,9 @@ const NetworkFeeRow: React.FC<NetworkFeeRowProps> = ({
       variant={KeyValueRowVariant.Summary}
       keyLabel={strings('bridge.limit.est_network_fee')}
       keyTextProps={{
-        variant: TextVariant.BodySm,
+        variant: TextVariant.BodyMd,
         color: TextColor.TextAlternative,
+        fontWeight: FontWeight.Regular,
       }}
       valueStartAccessory={onPress ? undefined : feeTokenAvatar}
       value={value}
@@ -122,9 +124,10 @@ const NetworkFeeRow: React.FC<NetworkFeeRowProps> = ({
         onPress
           ? undefined
           : {
-              variant: TextVariant.BodySm,
-              color: TextColor.TextDefault,
+              variant: TextVariant.BodyMd,
+              color: TextColor.TextAlternative,
               testID: NetworkFeeRowSelectorsIDs.VALUE,
+              fontWeight: FontWeight.Regular,
             }
       }
       twClassName="h-8"

@@ -27,6 +27,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import EarnSectionListView from './EarnSectionListView';
 
@@ -42,7 +43,7 @@ const mockUseSelector = jest.mocked(useSelector);
 const mockUseEarnAssetCatalogue = jest.mocked(useEarnAssetCatalogue);
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseProjectedEarnings = jest.mocked(useProjectedEarnings);
-const mockNavigateToEarnOpportunity = jest.fn();
+const mockNavigateFromEarnAsset = jest.fn();
 const mockEarnMoneyAccountRow = jest.fn(
   ({
     item,
@@ -129,7 +130,7 @@ jest.mock('../../../Money/hooks/useProjectedEarnings', () => ({
 jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    navigateToEarnOpportunity: mockNavigateToEarnOpportunity,
+    navigateFromEarnAsset: mockNavigateFromEarnAsset,
   })),
 }));
 
@@ -408,6 +409,28 @@ describe('EarnSectionListView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('navigates to Earn crypto info when the projection is pressed', () => {
+    const moneyAsset = createHeldAsset('USDC', 1, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+    mockUseEarnAssetCatalogue.mockReturnValue(
+      createCatalogueResult({ assets: [moneyAsset] }),
+    );
+    mockUseProjectedEarnings.mockReturnValue(
+      createProjectionResult({ totalAssetsFiat: 100, projectedAmount: 4.2 }),
+    );
+
+    render(<EarnSectionListView />);
+
+    fireEvent.press(
+      screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+    });
+  });
+
   it('caps Money rows at five and projects all derived Money assets in ranked order', () => {
     const moneyAssets = createMoneyAssets(6);
     const catalogueSymbols = moneyAssets.map((asset) =>
@@ -581,6 +604,18 @@ describe('EarnSectionListView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not render More Ways content when no supported assets exist', () => {
+    render(<EarnSectionListView />);
+
+    expect(
+      screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_TITLE),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_SUBTITLE),
+    ).toBeNull();
+    expect(screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.DIVIDER)).toBeNull();
+  });
+
   it('navigates back, to Money, and to View all', () => {
     const moneyAssets = createMoneyAssets(6);
     mockUseEarnAssetCatalogue.mockReturnValue(
@@ -702,8 +737,9 @@ describe('EarnSectionListView', () => {
       screen.getByTestId(`mock-earn-search-asset-row-${asset.assetId}`),
     );
 
-    expect(mockNavigateToEarnOpportunity).toHaveBeenCalledWith(
+    expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
       expect.objectContaining({ assetId: asset.assetId }),
+      TokenDetailsSource.ExploreEarn,
     );
   });
 

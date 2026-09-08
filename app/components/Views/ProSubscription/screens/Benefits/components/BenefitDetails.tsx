@@ -6,6 +6,7 @@ import {
   TextVariant,
   TextColor,
   Box,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { BenefitDetailItem } from '../Benefits.constants';
 import { strings } from '../../../../../../../locales/i18n';
@@ -22,15 +23,15 @@ const BenefitDetails = ({
   details,
   selectedPlan,
 }: BenefitDetailsProps) => {
-  const descriptionKey =
-    selectedPlan === 'monthly' && details?.descriptionMonthly
+  const descriptionKeys =
+    selectedPlan === 'monthly' && details.descriptionMonthly
       ? details.descriptionMonthly
       : details.description;
-  const handleLearnMorePress = useCallback(() => {
-    if (details.learnMoreUrl) {
-      Linking.openURL(details.learnMoreUrl);
+  const handleLinkPress = useCallback(() => {
+    if (details.link) {
+      Linking.openURL(details.link.url);
     }
-  }, [details.learnMoreUrl]);
+  }, [details.link]);
 
   return (
     <BottomSheet
@@ -39,35 +40,31 @@ const BenefitDetails = ({
     >
       <Box twClassName="px-4 pt-6 flex flex-col">
         <Text
-          variant={TextVariant.HeadingMd}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
-          twClassName="mb-4"
+          twClassName="mb-2"
+          accessibilityRole="header"
         >
           {strings(details.title)}
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mb-4"
-        >
-          {strings(descriptionKey)}
-        </Text>
-        {details.subDescription && (
+        {descriptionKeys.map((descriptionKey) => (
           <Text
-            variant={TextVariant.BodyMd}
+            key={descriptionKey}
+            variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="mb-4"
+            twClassName="mb-3"
           >
-            {strings(details.subDescription)}
+            {strings(descriptionKey)}
           </Text>
-        )}
+        ))}
 
         {details.points && (
-          <Box twClassName="flex flex-col gap-y-2 mb-4">
+          <Box twClassName="flex flex-col gap-y-1.5 mb-3">
             {details.points.map((pointKey) => (
               <Text
                 key={pointKey}
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
                 {`\u2022 ${strings(pointKey)}`}
@@ -76,15 +73,15 @@ const BenefitDetails = ({
           </Box>
         )}
 
-        {details.learnMore && details.learnMoreUrl && (
+        {details.link && (
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             color={TextColor.TextDefault}
-            twClassName="mb-4 self-start border-b-2 border-border-default"
-            onPress={handleLearnMorePress}
+            twClassName="mb-3 self-start border-b border-border-default"
+            onPress={handleLinkPress}
             accessibilityRole="link"
           >
-            {strings(details.learnMore)}
+            {strings(details.link.label)}
           </Text>
         )}
 
