@@ -345,7 +345,7 @@
     "sign_in_with_apple": "Sign in with Apple",
     "continue_with_telegram": "Continue with Telegram",
     "sign_in_with_telegram": "Sign in with Telegram",
-    "your_wallet": "You successfully reset your wallet!",
+    "your_wallet": "You reset your wallet!",
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
     "import_using_srp": "Import using Secret Recovery Phrase",
@@ -640,7 +640,7 @@
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "password_updated": "New password saved",
-    "successfully_changed": "Your password has been successfully changed",
+    "successfully_changed": "Your password has been changed",
     "new_password_placeholder": "Use at least 8 characters",
     "confirm_password_placeholder": "Re-enter your password",
     "confirm_btn": "Save",
@@ -837,7 +837,7 @@
       "view_order_history": "View order history",
       "contact_support": "Contact support",
       "log_out": "Log out of Transak",
-      "logged_out_success": "Successfully logged out",
+      "logged_out_success": "Logged out",
       "error_sdk_not_initialized": "SDK not initialized",
       "logged_out_error": "Error logging out",
       "more_ways_to_buy": "More ways to buy",
@@ -1460,7 +1460,7 @@
       "processing": {
         "title": "Processing deposit"
       },
-      "deposit_completed": "Deposit completed successfully",
+      "deposit_completed": "Deposit completed",
       "deposit_failed": "Deposit failed",
       "retry_deposit": "Retry deposit",
       "go_back": "Go back",
@@ -1483,7 +1483,7 @@
         "swapping": "Converting your tokens to USDC for deposit...",
         "bridging": "Moving USDC to Arbitrum network...",
         "depositing": "Transferring USDC to your HyperLiquid account...",
-        "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
+        "success": "Deposited {{amount}} USDC to your HyperLiquid account",
         "error": "Something went wrong during the deposit process. Please try again."
       },
       "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
@@ -1491,7 +1491,7 @@
       "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
       "success": {
         "title": "Deposit successful",
-        "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
+        "description": "Your USDC has been deposited to your HyperLiquid trading account",
         "amount": "Amount",
         "processing_time": "Processing time",
         "status": "Status",
@@ -1979,7 +1979,7 @@
       "swap_error_message": "Failed to submit swap transaction: {{error}}",
       "swap_converting": "Converting balance to USDC on ARBITRUM",
       "success": {
-        "title": "Order placed successfully",
+        "title": "Order placed",
         "subtitle": "Your {{direction}} position for {{asset}} has been created",
         "asset": "Asset",
         "direction": "Direction",
@@ -2095,7 +2095,7 @@
       "you_receive": "You'll receive",
       "select_amount": "Select amount to close",
       "error_unknown": "Failed to close position",
-      "success_title": "Position closed successfully",
+      "success_title": "Position closed",
       "position_closed": "Position closed",
       "funds_are_available_to_trade": "Funds are available to trade",
       "already_closed": "Position already closed",
@@ -2370,7 +2370,7 @@
         "unrealized_pnl": "Unrealized P&L"
       },
       "tpsl": {
-        "update_success": "TP/SL updated successfully",
+        "update_success": "TP/SL updated",
         "update_failed": "Failed to update TP/SL"
       },
       "margin": {
@@ -2664,7 +2664,7 @@
       "close_count": "Close ({{count}})",
       "closing": "Closing...",
       "success_title": "Positions closed",
-      "success_message": "Successfully closed {{count}} position(s)",
+      "success_message": "Closed {{count}} position(s)",
       "partial_success": "Closed {{successCount}} of {{totalCount}} positions",
       "error_title": "Failed to close positions",
       "error_message": "Failed to close {{count}} position(s)"
@@ -2679,7 +2679,7 @@
       "confirm": "Cancel all",
       "canceling": "Canceling...",
       "success_title": "Orders canceled",
-      "success_message": "Successfully canceled {{count}} order(s)",
+      "success_message": "Canceled {{count}} order(s)",
       "partial_success": "Canceled {{successCount}} of {{totalCount}} orders",
       "error_title": "Failed to cancel orders",
       "error_message": "Failed to cancel {{count}} order(s)"
@@ -3671,9 +3671,9 @@
     "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
     "token_toast": {
       "tokens_imported_title": "Imported tokens",
-      "tokens_imported_desc": "Successfully imported {{tokenSymbols}}",
+      "tokens_imported_desc": "Imported {{tokenSymbols}}",
       "token_imported_title": "Imported token",
-      "token_imported_desc": "Successfully imported {{tokenSymbol}}",
+      "token_imported_desc": "Imported {{tokenSymbol}}",
       "token_imported_desc_1": "You’ve imported a token.",
       "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Hiding tokens",
@@ -4013,7 +4013,7 @@
     "ok": "OK",
     "success": "Success",
     "error": "Error",
-    "resultPageSuccessDefaultMessage": "The operation completed successfully.",
+    "resultPageSuccessDefaultMessage": "The operation completed.",
     "resultPageErrorDefaultMessage": "The operation failed."
   },
   "token": {
@@ -4175,9 +4175,9 @@
   "toast": {
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
-    "network_added": "was successfully added",
-    "network_removed": "was successfully removed",
-    "network_deleted": "was successfully deleted",
+    "network_added": "was added",
+    "network_removed": "was removed",
+    "network_deleted": "was deleted",
     "network_permissions_updated": "Network permissions updated",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
@@ -4892,7 +4892,7 @@
   },
   "sdk_return_to_app_toast": {
     "returnToAppLabel": "Now you can return to app",
-    "networkSwitchMethodLabel": "Network successfully switched"
+    "networkSwitchMethodLabel": "Network switched"
   },
   "sdk_feedback_modal": {
     "ok": "OK",
@@ -5010,7 +5010,7 @@
     "quick_percentage": "{{percentage}}%",
     "set_price_alert": "Set price alert",
     "update_price_alert": "Update price alert",
-    "save_success": "Price alert for {{ticker}} saved successfully.",
+    "save_success": "Price alert for {{ticker}} saved.",
     "save_error": "Failed to save price alert. Please try again.",
     "delete_success": "Price alert deleted.",
     "delete_error": "Failed to delete price alert. Please try again.",
@@ -5538,7 +5538,7 @@
     "function": "Function",
     "close": "Close",
     "all_set": "All set!",
-    "all_set_desc": "You’ve successfully set permissions for this site.",
+    "all_set_desc": "You've set permissions for this site.",
     "must_be_at_least": "Must be at least {{allowance}}",
     "access_up_to": "Access up to:",
     "spending_cap": "Spending cap:",
@@ -6071,7 +6071,7 @@
     "or_scan_a_qr_code": "or scan a QR code"
   },
   "import_private_key_success": {
-    "title": "Account successfully imported!",
+    "title": "Account imported!",
     "description_one": "You'll now be able to view your account in MetaMask."
   },
   "import_new_secret_recovery_phrase": {
@@ -6272,7 +6272,7 @@
   "manual_backup_step_3": {
     "steps": "Step {{currentStep}} of {{totalSteps}}",
     "congratulations": "Congratulations",
-    "success": "You’ve successfully protected your wallet. Remember to keep your Secret Recovery Phrase safe, it's your responsibility!",
+    "success": "You've protected your wallet. Remember to keep your Secret Recovery Phrase safe, it's your responsibility!",
     "hint": "Leave yourself a hint?",
     "recover": "MetaMask cannot recover your wallet should you lose it. You can find your Secret Recovery Phrase in Settings > Security and privacy.",
     "learn": "Learn more",
@@ -6762,7 +6762,7 @@
       "view_order_history": "View order history",
       "contact_support": "Contact support",
       "log_out": "Log out of {{provider}}",
-      "logged_out_success": "Successfully logged out",
+      "logged_out_success": "Logged out",
       "logged_out_error": "Error logging out"
     },
     "token_unavailable_modal": {
@@ -7774,7 +7774,7 @@
     "permissions_request_description": "{{origin}} wants to install {{snap}}, which is requesting the following permissions.",
     "approve_permissions": "Approve",
     "installed": "Installed",
-    "install_successful": "{{snap}} was successfully installed.",
+    "install_successful": "{{snap}} was installed.",
     "okay_action": "OK",
     "error_title": "Install failed",
     "error_description": "Installation of {{snap}} failed."
@@ -8370,10 +8370,10 @@
     "earn": "Earn",
     "tron": {
       "stake_completed": "Staking completed",
-      "stake_completed_description": "Your staking transaction has been completed successfully.",
+      "stake_completed_description": "Your staking transaction has been completed.",
       "stake_failed": "Staking failed",
       "unstake_completed": "Unstaking completed",
-      "unstake_completed_description": "Your unstaking transaction has been completed successfully.",
+      "unstake_completed_description": "Your unstaking transaction has been completed.",
       "unstake_failed": "Unstaking failed",
       "bandwidth": "Bandwidth",
       "energy": "Energy",
@@ -9983,8 +9983,8 @@
         "freeze_card_description": "Pause all spending on your card",
         "unfreeze_card_description": "Resume all spending on your card",
         "freeze_error": "Failed to update card status. Please try again.",
-        "freeze_success": "Card successfully frozen",
-        "unfreeze_success": "Card successfully unfrozen",
+        "freeze_success": "Card frozen",
+        "unfreeze_success": "Card unfrozen",
         "change_asset": "Change asset",
         "change_asset_description": "Select a different token"
       }
@@ -10055,7 +10055,7 @@
       "skip": "Skip for now",
       "set_new_limit": "Set a limit",
       "dismiss": "Dismiss",
-      "update_success": "Spending limit updated successfully",
+      "update_success": "Spending limit updated",
       "update_error": "Failed to update spending limit",
       "select_token": "Select token",
       "loading": "Loading available tokens...",
@@ -10082,7 +10082,7 @@
       "to": "To",
       "withdraw": "Withdraw",
       "withdraw_unavailable": "Withdrawal unavailable",
-      "withdrawal_success": "Withdrawal completed successfully",
+      "withdrawal_success": "Withdrawal completed",
       "withdrawal_failed": "Withdrawal failed. Please try again.",
       "no_cashback": "No mUSD back available",
       "loading_error": "Failed to load mUSD back. Please try again.",
