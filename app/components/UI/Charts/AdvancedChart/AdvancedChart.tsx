@@ -174,6 +174,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     // Reset all chart state when the WebView remounts (key change).
     useEffect(() => {
+      // Save stale data before resetting if this is a series key change (not a webViewInstanceKey change)
+      if (prevOhlcvSeriesKeyRef.current !== undefined && !webViewInstanceKey) {
+        ohlcvSeriesStaleSnapshotRef.current = prevOhlcvDataRef.current;
+      } else {
+        ohlcvSeriesStaleSnapshotRef.current = null;
+      }
+
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
@@ -188,8 +195,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
-      ohlcvSeriesStaleSnapshotRef.current = null;
-    }, [resolvedWebViewKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [resolvedWebViewKey, webViewInstanceKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
 
@@ -271,27 +277,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     }, [resetWebViewSessionState]);
 
     const useIntervalHotReload = webViewInstanceKey !== undefined;
-
-    // Default: WebView remounts when `ohlcvSeriesKey` changes (time range / legacy path).
-    useEffect(() => {
-      if (useIntervalHotReload || ohlcvSeriesKey === undefined) {
-        return;
-      }
-      resetWebViewSessionState();
-      // Mark "not loaded" synchronously: the WebView is remounting (new `key`), so
-      // the OHLCV sync effect running later in THIS same commit must not post to the
-      // fresh, not-yet-loaded WebView (the message would be dropped and the data
-      // never re-sent). `setWebViewLoaded(false)` only applies next render, so the
-      // ref is the synchronously-correct gate. Re-set true in `handleLoadEnd`.
-      webViewLoadedRef.current = false;
-      ohlcvSeriesStaleSnapshotRef.current =
-        prevOhlcvSeriesKeyRef.current !== undefined
-          ? prevOhlcvDataRef.current
-          : null;
-      // Trade markers belong to the WebView session; clear so the fresh instance
-      // re-posts them from scratch once it loads.
-      prevTradeMarkersRef.current = undefined;
-    }, [useIntervalHotReload, ohlcvSeriesKey, resetWebViewSessionState]);
 
     // Technical-indicators path: remount only when `webViewInstanceKey` changes.
     useEffect(() => {
