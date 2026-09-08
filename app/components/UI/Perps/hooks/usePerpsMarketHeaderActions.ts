@@ -75,7 +75,17 @@ export const usePerpsMarketHeaderActions = ({
   const isWatchlist = useSelector(selectIsWatchlist);
 
   const handleBackPress = useCallback(() => {
-    if (canGoBack) {
+    // `canGoBack()` is parent-aware: it stays true while an ancestor navigator
+    // can pop, so on a single-entry Perps stack `goBack()` unwinds out of Perps
+    // entirely. Switching Lite -> Pro drops Perps Home from history (TAT-3612)
+    // and switching back to Lite does not restore it, which is exactly how the
+    // stack ends up with one route. Require a poppable Perps entry of our own
+    // before delegating, so the fallback below still runs (TAT-3786). Read the
+    // stack at press time: it is reset while this screen stays mounted, so a
+    // value captured on render would be stale.
+    const hasPerpsStackHistory = (navigation.getState()?.index ?? 0) > 0;
+
+    if (canGoBack && hasPerpsStackHistory) {
       navigateBack();
       return;
     }
@@ -89,7 +99,14 @@ export const usePerpsMarketHeaderActions = ({
     // Pro mode is active is itself a market screen, so falling back to it
     // here would often be a no-op. Leave Perps entirely instead.
     navigateToWallet();
-  }, [backFallback, canGoBack, navigateBack, navigateToHome, navigateToWallet]);
+  }, [
+    backFallback,
+    canGoBack,
+    navigateBack,
+    navigateToHome,
+    navigateToWallet,
+    navigation,
+  ]);
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {
