@@ -14,6 +14,7 @@ import {
 import {
   compareProductionFlagsToRegistry,
   findDuplicateRegistryKeys,
+  pinScopedVariantsToDefault,
   updateRegistryFile,
   validateRegistryFile,
 } from './sync-production-flags';
@@ -62,6 +63,155 @@ export const FEATURE_FLAG_REGISTRY = {
 // Helper Functions
 // ============================================================================
 `;
+
+const createThresholdVariant = (
+  name: string,
+  scopeValue: number,
+  extra: Record<string, unknown> = {},
+) => ({
+  name,
+  scope: { type: 'threshold', value: scopeValue },
+  ...extra,
+});
+
+describe('pinScopedVariantsToDefault', () => {
+  it('pins control to 1 and treatment to 0 for threshold arrays', () => {
+    const value = [
+      createThresholdVariant('control', 0.95),
+      createThresholdVariant('treatment', 1),
+    ];
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual([
+      createThresholdVariant('control', 1),
+      createThresholdVariant('treatment', 0),
+    ]);
+  });
+
+  it('pins control to 1 and treatment to 0 for percentage_rollout arrays', () => {
+    const value = [
+      {
+        name: 'control',
+        scope: { type: 'percentage_rollout', value: 0.7 },
+      },
+      {
+        name: 'treatment',
+        scope: { type: 'percentage_rollout', value: 1 },
+      },
+    ];
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual([
+      {
+        name: 'control',
+        scope: { type: 'percentage_rollout', value: 1 },
+      },
+      {
+        name: 'treatment',
+        scope: { type: 'percentage_rollout', value: 0 },
+      },
+    ]);
+  });
+
+  it('pins control when the variant uses thresholdName', () => {
+    const value = [
+      {
+        thresholdName: 'control',
+        scope: { type: 'threshold', value: 0.5 },
+      },
+      {
+        thresholdName: 'treatment',
+        scope: { type: 'threshold', value: 1 },
+      },
+    ];
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual([
+      {
+        thresholdName: 'control',
+        scope: { type: 'threshold', value: 1 },
+      },
+      {
+        thresholdName: 'treatment',
+        scope: { type: 'threshold', value: 0 },
+      },
+    ]);
+  });
+
+  it('pins the widest rollout bucket when there is no control', () => {
+    const value = [
+      createThresholdVariant('feature is ON', 0.8, { value: true }),
+      createThresholdVariant('feature is OFF', 1, { value: false }),
+    ];
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual([
+      createThresholdVariant('feature is ON', 1, { value: true }),
+      createThresholdVariant('feature is OFF', 0, { value: false }),
+    ]);
+  });
+
+  it('pins a single variant to 1', () => {
+    const value = [
+      createThresholdVariant('feature is ON', 0.4, { value: true }),
+    ];
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual([
+      createThresholdVariant('feature is ON', 1, { value: true }),
+    ]);
+  });
+
+  it('returns an empty array unchanged', () => {
+    const value: unknown[] = [];
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual([]);
+  });
+
+  it('returns chain id lists unchanged', () => {
+    const value = ['0x1', '0xe708'];
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual(['0x1', '0xe708']);
+  });
+
+  it('returns objects and primitives unchanged', () => {
+    expect(pinScopedVariantsToDefault(true)).toBe(true);
+    expect(pinScopedVariantsToDefault({ enabled: true })).toEqual({
+      enabled: true,
+    });
+  });
+
+  it('pins nested variant arrays under versioned flag values', () => {
+    const value = {
+      versions: {
+        '8.1.0': [
+          createThresholdVariant('control', 0),
+          createThresholdVariant('treatment', 1),
+        ],
+      },
+    };
+
+    const result = pinScopedVariantsToDefault(value);
+
+    expect(result).toEqual({
+      versions: {
+        '8.1.0': [
+          createThresholdVariant('control', 1),
+          createThresholdVariant('treatment', 0),
+        ],
+      },
+    });
+  });
+});
 
 describe('compareProductionFlagsToRegistry', () => {
   it('detects new flags in production not in registry', () => {
@@ -183,6 +333,49 @@ describe('compareProductionFlagsToRegistry', () => {
     expect(result.newInProduction).toContainEqual({
       name: 'flagC',
       value: [1, 2, 3],
+    });
+  });
+
+  it('does not report drift when production AB weights differ from pinned registry control', () => {
+    const pinned = [
+      createThresholdVariant('control', 1),
+      createThresholdVariant('treatment', 0),
+    ];
+    const registryMap = { socialAbTest: pinned };
+    const prodResponse = [
+      {
+        socialAbTest: [
+          createThresholdVariant('control', 0.95),
+          createThresholdVariant('treatment', 1),
+        ],
+      },
+    ];
+
+    const result = compareProductionFlagsToRegistry(prodResponse, registryMap);
+
+    expect(result.valueMismatches).toHaveLength(0);
+    expect(result.hasDrift).toBe(false);
+  });
+
+  it('reports new production scoped arrays with pinned scopes', () => {
+    const registryMap: Record<string, unknown> = {};
+    const prodResponse = [
+      {
+        brandNewAbTest: [
+          createThresholdVariant('control', 0.95),
+          createThresholdVariant('treatment', 1),
+        ],
+      },
+    ];
+
+    const result = compareProductionFlagsToRegistry(prodResponse, registryMap);
+
+    expect(result.newInProduction).toContainEqual({
+      name: 'brandNewAbTest',
+      value: [
+        createThresholdVariant('control', 1),
+        createThresholdVariant('treatment', 0),
+      ],
     });
   });
 });
