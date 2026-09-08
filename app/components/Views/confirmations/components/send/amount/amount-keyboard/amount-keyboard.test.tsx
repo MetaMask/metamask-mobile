@@ -17,8 +17,6 @@ import { useRouteParams } from '../../../../hooks/send/useRouteParams';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { useSendActions } from '../../../../hooks/send/useSendActions';
-// eslint-disable-next-line import-x/no-namespace
-import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
 import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
 import { ImpactMoment } from '../../../../../../../util/haptics';
 import { getBackgroundColor } from './amount-keyboard.styles';
@@ -117,6 +115,7 @@ const { playImpact: mockPlayImpact, playSelection: mockPlaySelection } =
 const renderComponent = (
   mockState?: ProviderValues['state'],
   amount = '100',
+  validateNonEvmAmountAsync = jest.fn().mockResolvedValue(undefined),
 ) => {
   const state = mockState
     ? merge(evmSendStateMock, mockState)
@@ -129,6 +128,7 @@ const renderComponent = (
         amount={amount}
         fiatMode={false}
         updateAmount={() => undefined}
+        validateNonEvmAmountAsync={validateNonEvmAmountAsync}
       />
     );
   };
@@ -244,10 +244,11 @@ describe('Amount', () => {
       asset: SOLANA_ASSET,
       updateAsset: jest.fn(),
     } as unknown as ReturnType<typeof useSendContext>);
-    jest.spyOn(AmountValidation, 'useAmountValidation').mockReturnValue({
-      validateNonEvmAmountAsync: mockValidateNonEvmAmountAsync,
-    } as unknown as ReturnType<typeof AmountValidation.useAmountValidation>);
-    const { getByText } = renderComponent();
+    const { getByText } = renderComponent(
+      undefined,
+      '100',
+      mockValidateNonEvmAmountAsync,
+    );
     fireEvent.press(getByText('Continue'));
     expect(mockValidateNonEvmAmountAsync).toHaveBeenCalled();
   });
