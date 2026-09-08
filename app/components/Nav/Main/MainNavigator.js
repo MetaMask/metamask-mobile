@@ -9,7 +9,7 @@ import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
 import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
@@ -91,16 +91,7 @@ import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import DepositOrderDetails from '../../UI/Ramp/Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
-import TabBar from '../../../component-library/components/Navigation/TabBar';
-import TabBarFloating, {
-  FloatingTabBarInsetContext,
-} from '../../../component-library/components/Navigation/TabBarFloating';
-import {
-  HEADER_NAV_BAR_AB_KEY,
-  HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  HEADER_NAV_BAR_VARIANTS,
-} from '../../Views/Homepage/abTestConfig';
-import { useABTest } from '../../../hooks';
+import { strings } from '../../../../locales/i18n';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
@@ -207,9 +198,56 @@ import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
+// Rasterised from the design system's own icon assets, since the native tab bar
+// takes `UIImage`s rather than the SVG-backed Icon component.
+import tabIconHome from '../../../images/tab-icons/home.png';
+import tabIconHomeSelected from '../../../images/tab-icons/home-selected.png';
+import tabIconExplore from '../../../images/tab-icons/explore.png';
+import tabIconExploreSelected from '../../../images/tab-icons/explore-selected.png';
+import tabIconMoney from '../../../images/tab-icons/money.png';
+import tabIconMoneySelected from '../../../images/tab-icons/money-selected.png';
+import tabIconActivity from '../../../images/tab-icons/activity.png';
+import tabIconActivitySelected from '../../../images/tab-icons/activity-selected.png';
+import tabIconRewards from '../../../images/tab-icons/rewards.png';
+import tabIconRewardsSelected from '../../../images/tab-icons/rewards-selected.png';
 
 const NativeStack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const Tab = createNativeBottomTabNavigator();
+
+/**
+ * The native bar renders `UIImage`s, so it can't take the design system's SVG
+ * icon components. These are the same glyphs, rasterised from the design
+ * system's own assets, outline when unselected and filled when selected.
+ * `tinted` leaves colouring to UIKit, which applies `tabBarActiveTintColor`
+ * to the selected item and the system grey to the rest.
+ */
+const nativeTabIcon = (unselected, selected) => ({ focused }) => ({
+  type: 'image',
+  source: focused ? selected : unselected,
+  tinted: true,
+});
+
+/**
+ * Local to the tab navigator, so `Routes.EXPLORE_SEARCH` keeps resolving to the
+ * root-stack screen that actually presents search.
+ */
+const SEARCH_TAB_NAME = 'SearchTab';
+
+/**
+ * Shared rather than built inline: a new style object makes the native bar
+ * re-apply its `UITabBarAppearance`, and re-applying one that specifies no
+ * background drops Liquid Glass for UIKit's default opaque material.
+ */
+const TAB_BAR_VISIBLE_STYLE = { display: 'flex' };
+const TAB_BAR_HIDDEN_STYLE = { display: 'none' };
+
+const NATIVE_TAB_ICONS = {
+  home: nativeTabIcon(tabIconHome, tabIconHomeSelected),
+  explore: nativeTabIcon(tabIconExplore, tabIconExploreSelected),
+  money: nativeTabIcon(tabIconMoney, tabIconMoneySelected),
+  activity: nativeTabIcon(tabIconActivity, tabIconActivitySelected),
+  rewards: nativeTabIcon(tabIconRewards, tabIconRewardsSelected),
+};
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
@@ -614,27 +652,16 @@ const SettingsFlow = () => {
 };
 
 // Replaces `unmountOnBlur` (removed in React Navigation v7).
-const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { colors } = useTheme();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
-
-  const { variant: headerNavBarVariant } = useABTest(
-    HEADER_NAV_BAR_AB_KEY,
-    HEADER_NAV_BAR_VARIANTS,
-    HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
-  );
-  const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
-  const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
-  const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
-
-  const showSocialTab = isFloatingTabBar && isSocialTabEnabled;
 
   const trackMoneyTabPressRef = useRef(null);
 
@@ -649,12 +676,10 @@ const HomeTabs = () => {
     return ChainId[providerConfig.type];
   });
 
-  const amountOfBrowserOpenTabs = useSelector(
-    (state) => state.browser.tabs.length,
-  );
-
   const options = {
     home: {
+      title: strings('bottom_nav.home'),
+      tabBarIcon: NATIVE_TAB_ICONS.home,
       tabBarIconKey: TabBarIconKey.Wallet,
       callback: () => {
         trackEvent(
@@ -668,29 +693,21 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.WALLET_VIEW,
     },
-    trade: {
-      tabBarIconKey: TabBarIconKey.Trade,
-      rootScreenName: Routes.MODAL.TRADE_WALLET_ACTIONS,
-    },
-    browser: {
-      tabBarIconKey: TabBarIconKey.Browser,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
-            .addProperties({
-              number_of_accounts: accountsLength,
-              chain_id: getDecimalChainId(chainId),
-              source: 'Navigation Tab',
-              number_of_open_tabs: amountOfBrowserOpenTabs,
-            })
-            .build(),
-        );
-      },
-      rootScreenName: Routes.BROWSER_VIEW,
-      // Required with `withUnmountOnTabBlur` — freezing blocks the unmount.
-      freezeOnBlur: false,
+    /**
+     * From iOS 26 the system lifts a `search` item out of the bar and floats it
+     * alongside, which is the separated treatment we want. Its glyph and
+     * localised title come from UIKit.
+     *
+     * It stays selectable on purpose: an item that can't be selected gets no
+     * selection capsule and none of the glass response the other items have on
+     * press, which is how Apple's own apps treat their search tab.
+     */
+    search: {
+      tabBarSystemItem: 'search',
     },
     activity: {
+      title: strings('bottom_nav.activity'),
+      tabBarIcon: NATIVE_TAB_ICONS.activity,
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
         trackEvent(
@@ -700,9 +717,10 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
-      freezeOnBlur: false,
     },
     money: {
+      title: strings('bottom_nav.money'),
+      tabBarIcon: NATIVE_TAB_ICONS.money,
       tabBarIconKey: TabBarIconKey.Money,
       callback: () => {
         trackMoneyTabPressRef.current?.();
@@ -710,6 +728,8 @@ const HomeTabs = () => {
       rootScreenName: Routes.MONEY.HOME,
     },
     rewards: {
+      title: strings('bottom_nav.rewards'),
+      tabBarIcon: NATIVE_TAB_ICONS.rewards,
       tabBarIconKey: TabBarIconKey.Rewards,
       callback: () => {
         trackEvent(
@@ -717,14 +737,10 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.REWARDS_VIEW,
-      freezeOnBlur: false,
-    },
-    social: {
-      tabBarIconKey: TabBarIconKey.Social,
-      rootScreenName: Routes.SOCIAL_LEADERBOARD.TAB,
-      freezeOnBlur: false,
     },
     trending: {
+      title: strings('bottom_nav.trending'),
+      tabBarIcon: NATIVE_TAB_ICONS.explore,
       tabBarIconKey: TabBarIconKey.Trending,
       callback: () => {
         trackEvent(
@@ -780,54 +796,21 @@ const HomeTabs = () => {
     }
   }, []);
 
-  const renderTabBar = ({ state, descriptors, navigation }) => {
-    const currentRoute = state.routes[state.index];
+  // Rewards shows the bar on its home and onboarding pages only. Keyboard
+  // visibility stays with the navigator, which covers every tab.
+  const shouldHideRewardsTabBar = (route) => {
+    const rewardsViewRoute = route?.state?.routes?.find(
+      (nestedRoute) => nestedRoute.name === Routes.REWARDS_VIEW,
+    );
+    const rewardsNavState = rewardsViewRoute?.state;
+    const activeRewardsRouteName =
+      rewardsNavState?.routes?.[rewardsNavState?.index]?.name;
 
-    // Hide tab bar when in browser
-    const currentStackRouteName =
-      currentRoute?.state?.routes?.[currentRoute?.state?.index]?.name;
-    const isInBrowser =
-      currentRoute.name?.startsWith(Routes.BROWSER.HOME) ||
-      currentStackRouteName?.startsWith(Routes.BROWSER.HOME);
-    if (isInBrowser) {
-      return null;
-    }
-
-    // Hide tab bar when on rewards sub-pages (only show on home + onboarding)
-    if (currentRoute.name === Routes.REWARDS_VIEW) {
-      const rewardsHomeState = currentRoute?.state;
-      const rewardsViewRoute = rewardsHomeState?.routes?.find(
-        (r) => r.name === Routes.REWARDS_VIEW,
-      );
-      const rewardsNavState = rewardsViewRoute?.state;
-      const activeRewardsRouteName =
-        rewardsNavState?.routes?.[rewardsNavState?.index]?.name;
-      const isRewardsHomePage =
-        !activeRewardsRouteName ||
-        activeRewardsRouteName === Routes.REWARDS_DASHBOARD ||
-        activeRewardsRouteName === Routes.REWARDS_ONBOARDING_FLOW;
-      if (!isRewardsHomePage) {
-        return null;
-      }
-    }
-
-    if (isKeyboardHidden) {
-      return isFloatingTabBar ? (
-        <TabBarFloating
-          state={state}
-          descriptors={descriptors}
-          navigation={navigation}
-          onHeightChange={setFloatingTabBarHeight}
-        />
-      ) : (
-        <TabBar
-          state={state}
-          descriptors={descriptors}
-          navigation={navigation}
-        />
-      );
-    }
-    return null;
+    return !(
+      !activeRewardsRouteName ||
+      activeRewardsRouteName === Routes.REWARDS_DASHBOARD ||
+      activeRewardsRouteName === Routes.REWARDS_ONBOARDING_FLOW
+    );
   };
 
   return (
@@ -849,78 +832,81 @@ const HomeTabs = () => {
         {isMoneyAccountEnabled ? (
           <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
         ) : null}
-        <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
-          <Tab.Navigator
-            initialRouteName={Routes.WALLET.HOME}
-            tabBar={renderTabBar}
-            screenOptions={{ headerShown: false }}
-          >
-            {/* Home Tab */}
+        <Tab.Navigator
+          initialRouteName={Routes.WALLET.HOME}
+          screenOptions={{
+            headerShown: false,
+            // UIKit owns the unselected colour; this is the selected one, taken
+            // from the same token the JS tab bar uses for an active item.
+            tabBarActiveTintColor: colors.icon.default,
+            tabBarStyle: isKeyboardHidden
+              ? TAB_BAR_VISIBLE_STYLE
+              : TAB_BAR_HIDDEN_STYLE,
+          }}
+        >
+          {/* Home Tab */}
+          <Tab.Screen
+            name={Routes.WALLET.HOME}
+            options={options.home}
+            listeners={{ tabPress: options.home.callback }}
+            component={WalletTabStackFlow}
+          />
+
+          {/* Explore Tab */}
+          <Tab.Screen
+            name={Routes.TRENDING_VIEW}
+            options={options.trending}
+            listeners={{
+              tabPress: options.trending.callback,
+              blur: options.trending.onLeave,
+            }}
+            component={ExploreHome}
+          />
+
+          {/* Activity Tab (replaced by Money when feature flag is on and user is geo-eligible) */}
+          {isMoneyAccountVisible ? (
             <Tab.Screen
-              name={Routes.WALLET.HOME}
-              options={options.home}
-              component={WalletTabStackFlow}
+              name={Routes.MONEY.ROOT}
+              options={options.money}
+              listeners={{ tabPress: options.money.callback }}
+              component={MoneyTabScreenStack}
             />
+          ) : (
+            <Tab.Screen
+              name={Routes.TRANSACTIONS_VIEW}
+              options={options.activity}
+              listeners={{ tabPress: options.activity.callback }}
+              component={TransactionsHomeUnmountOnTabBlur}
+            />
+          )}
 
-            <>
-              <Tab.Screen
-                name={Routes.TRENDING_VIEW}
-                options={{
-                  ...options.trending,
-                  isSelected: (rootScreenName) =>
-                    [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                      rootScreenName,
-                    ),
-                }}
-                component={ExploreHome}
-              />
-              <Tab.Screen
-                name={Routes.BROWSER.HOME}
-                options={{
-                  ...options.browser,
-                  isHidden: true,
-                }}
-                component={BrowserFlowUnmountOnTabBlur}
-              />
-            </>
+          {/* Rewards Tab */}
+          <Tab.Screen
+            name={Routes.REWARDS_VIEW}
+            options={({ route }) => ({
+              ...options.rewards,
+              // Only override when hiding, so the shared style — and the
+              // appearance UIKit already configured — survives otherwise.
+              ...(shouldHideRewardsTabBar(route)
+                ? { tabBarStyle: TAB_BAR_HIDDEN_STYLE }
+                : null),
+            })}
+            listeners={{ tabPress: options.rewards.callback }}
+            component={RewardsHomeUnmountOnTabBlur}
+          />
 
-            {isFloatingTabBar ? null : (
-              <Tab.Screen
-                name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-                options={options.trade}
-                component={WalletTabStackFlow}
-              />
-            )}
-
-            {isMoneyAccountVisible ? (
-              <Tab.Screen
-                name={Routes.MONEY.ROOT}
-                options={options.money}
-                component={MoneyTabScreenStack}
-              />
-            ) : (
-              <Tab.Screen
-                name={Routes.TRANSACTIONS_VIEW}
-                options={options.activity}
-                component={TransactionsHomeUnmountOnTabBlur}
-              />
-            )}
-
-            {showSocialTab ? (
-              <Tab.Screen
-                name={Routes.SOCIAL_LEADERBOARD.TAB}
-                options={options.social}
-                component={SocialTradersTabsView}
-              />
-            ) : (
-              <Tab.Screen
-                name={Routes.REWARDS_VIEW}
-                options={options.rewards}
-                component={RewardsHomeUnmountOnTabBlur}
-              />
-            )}
-          </Tab.Navigator>
-        </FloatingTabBarInsetContext.Provider>
+          {/*
+           * Search sits apart from the other items on iOS 26. Its route name is
+           * deliberately not `Routes.EXPLORE_SEARCH`: that screen belongs to the
+           * root stack, and reusing the name here would make `navigate` resolve
+           * to this tab instead of pushing the search screen.
+           */}
+          <Tab.Screen
+            name={SEARCH_TAB_NAME}
+            options={options.search}
+            component={ExploreSearchScreen}
+          />
+        </Tab.Navigator>
       </TrendingQuickBuySheetProvider>
     </PredictPreviewSheetProvider>
   );
@@ -1075,6 +1061,7 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+
   return (
     <NativeStack.Navigator
       screenOptions={{
@@ -1084,19 +1071,6 @@ const MainNavigator = () => {
       initialRouteName={'Home'}
     >
       <NativeStack.Screen name="Home" component={HomeTabs} />
-      {/*
-       * Fallback home for Rewards. Treatment gives the tab slot to Social, so
-       * `navigate(REWARDS_VIEW)` from the header has no tab to land on and
-       * bubbles up to here. Control registers the tab too, and the tab
-       * navigator is nearer to the caller, so it wins and this is never
-       * reached. Registered unconditionally so the route always resolves
-       * regardless of how the arms are configured.
-       */}
-      <NativeStack.Screen
-        name={Routes.REWARDS_VIEW}
-        component={RewardsHome}
-        options={{ headerShown: false }}
-      />
       {/*
        * Separate from the Rewards tab (REWARDS_VIEW → RewardsHome). RewardsNavigator
        * is its own native stack pushed onto the root native stack; nesting a native

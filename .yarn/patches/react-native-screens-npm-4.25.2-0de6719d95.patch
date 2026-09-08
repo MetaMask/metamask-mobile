@@ -1,0 +1,46 @@
+diff --git a/ios/tabs/screen/RNSTabsScreenComponentView.mm b/ios/tabs/screen/RNSTabsScreenComponentView.mm
+index 02c39ca9fe35505ea76de42d7959cad8492de2d1..8f257a253c46ec0272f5b2f8b35acb6c091468ec 100644
+--- a/ios/tabs/screen/RNSTabsScreenComponentView.mm
++++ b/ios/tabs/screen/RNSTabsScreenComponentView.mm
+@@ -81,7 +81,7 @@ namespace react = facebook::react;
+   _isTitleUndefined = YES;
+   _orientation = RNSOrientationInherit;
+ 
+-  _standardAppearance = [UITabBarAppearance new];
++  _standardAppearance = nil;
+   _scrollEdgeAppearance = nil;
+ 
+   _shouldUseRepeatedTabSelectionPopToRootSpecialEffect = YES;
+@@ -281,10 +281,14 @@ RNS_IGNORE_SUPER_CALL_END
+   }
+ 
+   if (newComponentProps.standardAppearance != oldComponentProps.standardAppearance) {
+-    _standardAppearance = [UITabBarAppearance new];
+-    [RNSTabBarAppearanceCoordinator configureTabBarAppearance:_standardAppearance
+-                                          fromAppearanceProps:rnscreens::conversion::RNSConvertFollyDynamicToId(
+-                                                                  newComponentProps.standardAppearance)];
++    if (newComponentProps.standardAppearance.type() == folly::dynamic::OBJECT) {
++      _standardAppearance = [UITabBarAppearance new];
++      [RNSTabBarAppearanceCoordinator configureTabBarAppearance:_standardAppearance
++                                            fromAppearanceProps:rnscreens::conversion::RNSConvertFollyDynamicToId(
++                                                                    newComponentProps.standardAppearance)];
++    } else {
++      _standardAppearance = nil;
++    }
+     tabItemNeedsAppearanceUpdate = YES;
+   }
+ 
+@@ -585,10 +589,12 @@ RNS_IGNORE_SUPER_CALL_END
+ 
+ - (void)setStandardAppearance:(NSDictionary *)standardAppearanceProps
+ {
+-  _standardAppearance = [UITabBarAppearance new];
+   if (standardAppearanceProps != nil) {
++    _standardAppearance = [UITabBarAppearance new];
+     [RNSTabBarAppearanceCoordinator configureTabBarAppearance:_standardAppearance
+                                           fromAppearanceProps:standardAppearanceProps];
++  } else {
++    _standardAppearance = nil;
+   }
+   _tabItemNeedsAppearanceUpdate = YES;
+ }
