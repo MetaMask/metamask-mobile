@@ -574,10 +574,14 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsPrice ?? {},
+    (state) =>
+      state.engine?.backgroundState?.NetworkController
+        ?.networkConfigurationsByChainId ?? {},
   ],
   (
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsPrice: AssetsControllerState['assetsPrice'],
+    networkConfigurationsByChainId: NetworkState['networkConfigurationsByChainId'],
   ): CurrencyRateState['currencyRates'] => {
     const result: CurrencyRateState['currencyRates'] = {};
 
@@ -610,6 +614,26 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
         conversionDate: price.lastUpdated / 1000,
         conversionRate: price.price,
         usdConversionRate: price.usdPrice,
+      };
+    }
+
+    const hasUsdNativeCurrency = Object.values(
+      networkConfigurationsByChainId,
+    ).some(({ nativeCurrency }) => nativeCurrency === 'USD');
+    const usdPrice = Object.values(assetsPrice).find(
+      (price): price is FungibleAssetPrice =>
+        price.assetPriceType === 'fungible' &&
+        Number.isFinite(price.price) &&
+        price.price > 0 &&
+        Number.isFinite(price.usdPrice) &&
+        price.usdPrice > 0,
+    );
+
+    if (hasUsdNativeCurrency && !result.USD && usdPrice) {
+      result.USD = {
+        conversionDate: usdPrice.lastUpdated / 1000,
+        conversionRate: usdPrice.price / usdPrice.usdPrice,
+        usdConversionRate: 1,
       };
     }
 
