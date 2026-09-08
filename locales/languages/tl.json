@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Ang membership mo sa Pro",
     "manage": "Pamahalaan ang subskripsyon",
-    "manage_plan": "Pamahalaan ang plano",
-    "earned_with_pro": "Kumita sa Pro",
-    "saved_with_pro": "Na-save sa Pro",
-    "next_payment": "Ang kasunod na pagbabayad mo ng {{amount}} ay sa darating na {{date}}.",
     "member_pricing": {
       "title": "Presyo para sa member sa mga pag-trade",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "Ang membership mo",
       "plan": "Membership",
       "earned_this_month": "Kinita ngayong buwan",
-      "saved_this_month": "Natipid ngayong buwan",
       "payment_details": "Mga detalye ng pagbabayad",
       "total": "Kabuuan",
       "paying_with": "Nagbabayad gamit ang",

@@ -11436,8 +11436,6 @@
     "title": "MetaMask Pro",
     "manage": "Manage subscription",
     "manage_membership": "Manage membership",
-    "earned_with_pro": "Earned with Pro",
-    "saved_with_pro": "Saved with Pro",
     "also_included": {
       "title": "Also included",
       "transaction_protection": {
@@ -11451,13 +11449,11 @@
       },
       "disclaimer": "Allowances reset monthly. APY is variable and not guaranteed. Benefits and card availability vary by region."
     },
-    "manage_plan": "Manage plan",
     "membership_brand": "METAMASK",
     "membership_label": "Pro",
     "lifetime_earnings": "Lifetime earnings",
     "money_balance": "Money balance",
     "musd_back": "3% mUSD back",
-    "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
     "member_pricing": {
       "title": "Member pricing on trades",
       "allowance_currency": "${{amount}}",
@@ -11496,7 +11492,6 @@
       "title": "Your membership",
       "plan": "Membership",
       "earned_this_month": "Earned this month",
-      "saved_this_month": "Saved this month",
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
