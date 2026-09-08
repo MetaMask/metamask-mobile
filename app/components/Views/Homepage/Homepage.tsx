@@ -34,13 +34,13 @@ import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager
 import BalanceBreakdownSection, {
   type BalanceBreakdownSectionProps,
 } from './Sections/BalanceBreakdown';
-import { selectEarnHomeSectionEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { HomepageEarnSection } from './Sections/EarnSection';
 import {
   HOMEPAGE_EARN_SECTION_AB_KEY,
   HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_EARN_SECTION_VARIANTS,
 } from './abTestConfig';
+import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -70,17 +70,19 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
     const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-    const isEarnSectionEnabled = useSelector(selectEarnHomeSectionEnabledFlag);
+    const isHomepageEarnSectionVisible = useSelector(
+      selectIsHomepageEarnSectionVisible,
+    );
     const { variant: earnSectionVariant } = useABTest(
       HOMEPAGE_EARN_SECTION_AB_KEY,
       HOMEPAGE_EARN_SECTION_VARIANTS,
       {
         ...HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS,
-        trackExposure: isEarnSectionEnabled,
+        trackExposure: isHomepageEarnSectionVisible,
       },
     );
     const shouldRenderEarnSection =
-      isEarnSectionEnabled && earnSectionVariant.showEarnSection;
+      isHomepageEarnSectionVisible && earnSectionVariant.showEarnSection;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();

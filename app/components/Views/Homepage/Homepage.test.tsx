@@ -83,7 +83,6 @@ jest.mock('./Sections/NFTs/hooks', () => ({
 
 // Mock feature flags - enable all sections
 const mockPerpsEnabled = true;
-let mockEarnHomeSectionEnabled = false;
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
 }));
@@ -195,6 +194,10 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
     metamaskFee: 0.02,
     providerFee: 0.02,
   })),
+}));
+
+jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
+  UiSlotRenderer: ({ fallback }: { fallback: React.ReactNode }) => fallback,
 }));
 
 jest.mock('@tanstack/react-query', () => {
@@ -323,16 +326,11 @@ function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
   ][];
 }
 
-jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
-  selectEarnHomeSectionEnabledFlag: jest.fn(() => mockEarnHomeSectionEnabled),
-  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
-  selectPooledStakingEnabledFlag: jest.fn(() => false),
-  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
-  selectIsMusdGetBuyCtaEnabledFlag: jest.fn(() => false),
-  selectMusdConversionCTATokens: jest.fn(() => ({})),
-  selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
-  selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
-  selectMusdBalanceChainIds: jest.fn(() => []),
+let mockHomepageEarnSectionVisible = false;
+jest.mock('../../UI/Earn/selectors/visibility', () => ({
+  selectIsHomepageEarnSectionVisible: jest.fn(
+    () => mockHomepageEarnSectionVisible,
+  ),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
@@ -424,14 +422,14 @@ describe('Homepage', () => {
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
-    mockEarnHomeSectionEnabled = false;
+    mockHomepageEarnSectionVisible = false;
   });
 
   const mockEarnSectionExperiment = (
     enabled: boolean,
     variantName: HomepageEarnSectionVariant,
   ) => {
-    mockEarnHomeSectionEnabled = enabled;
+    mockHomepageEarnSectionVisible = enabled;
     mockUseABTest.mockImplementation((key: string) => {
       if (key === HOMEPAGE_EARN_SECTION_AB_KEY) {
         return {

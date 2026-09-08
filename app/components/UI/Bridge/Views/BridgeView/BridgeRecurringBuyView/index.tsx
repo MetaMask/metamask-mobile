@@ -318,6 +318,7 @@ const BridgeRecurringBuyViewContent = ({
         <RecurringConfirmOrderSheet
           isVisible={isConfirmSheetVisible}
           onClose={handleConfirmSheetClosed}
+          latestSourceBalance={latestSourceBalance}
         />
       </Box>
     </Box>

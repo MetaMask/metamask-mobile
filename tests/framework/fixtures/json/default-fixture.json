@@ -161,6 +161,7 @@
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
           "providerUserId": null,
+          "redeemWithdrawal": null,
           "selectedCountry": null
         },
         "ClaimsController": {
@@ -732,6 +733,11 @@
           "swapsTransactions": {},
           "transactions": []
         },
+        "UiSlotsController": {
+          "activeConfigurations": {},
+          "enabled": false,
+          "screenConfigurations": {}
+        },
         "UserStorageController": {}
       }
     },
@@ -795,6 +801,7 @@
       "networkId": "1"
     },
     "legalNotices": {
+      "arcUsageNoticeShown": true,
       "isPna25Acknowledged": true,
       "newPrivacyPolicyToastClickedOrClosed": true,
       "newPrivacyPolicyToastShownDate": 1684232000000

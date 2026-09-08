@@ -68,6 +68,8 @@ import {
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
+import { selectPerpsProvider } from '../../selectors/perpsController';
+import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsStackParamList } from '../../types/navigation';
 import {
   getPerpsChartAnalyticsProperties,
@@ -216,6 +218,12 @@ const PerpsProMarketView = ({
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const routeMarket = route.params?.market;
+  const activeProvider = useSelector(selectPerpsProvider);
+  const routeProviderId =
+    routeMarket?.providerId ??
+    (activeProvider === 'aggregated'
+      ? PROVIDER_CONFIG.DefaultProvider
+      : activeProvider);
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
   // Set by entry points that already carry a trade intent (e.g. spot token
@@ -238,8 +246,16 @@ const PerpsProMarketView = ({
     skipInitialFetch: hasFormattedMaxLeverage,
   });
   const enrichedMarket = useMemo(
-    () => markets.find((item) => item.symbol === routeMarket?.symbol),
-    [markets, routeMarket?.symbol],
+    () =>
+      markets.find(
+        (item) =>
+          item.symbol === routeMarket?.symbol &&
+          (item.providerId ??
+            (activeProvider === 'aggregated'
+              ? PROVIDER_CONFIG.DefaultProvider
+              : activeProvider)) === routeProviderId,
+      ),
+    [activeProvider, markets, routeMarket?.symbol, routeProviderId],
   );
   const market = useMemo(() => {
     if (hasFormattedMaxLeverage) return routeMarket;
@@ -260,7 +276,16 @@ const PerpsProMarketView = ({
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
         | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     ) => {
-      if (!nextMarket.symbol || nextMarket.symbol === routeMarket?.symbol) {
+      const nextProviderId =
+        nextMarket.providerId ??
+        (activeProvider === 'aggregated'
+          ? PROVIDER_CONFIG.DefaultProvider
+          : activeProvider);
+      if (
+        !nextMarket.symbol ||
+        (nextMarket.symbol === routeMarket?.symbol &&
+          nextProviderId === routeProviderId)
+      ) {
         return;
       }
 
@@ -278,7 +303,13 @@ const PerpsProMarketView = ({
         direction: undefined,
       });
     },
-    [navigation, playSelection, routeMarket?.symbol],
+    [
+      activeProvider,
+      navigation,
+      playSelection,
+      routeMarket?.symbol,
+      routeProviderId,
+    ],
   );
 
   // Bring the chart back into view when the active market changes (e.g. the
@@ -287,7 +318,7 @@ const PerpsProMarketView = ({
   // `animated: false` so a near-top scroll doesn't flash an animation.
   useEffect(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
-  }, [market?.symbol]);
+  }, [market?.providerId, market?.symbol]);
 
   const handleCollapseOrderBook = useCallback(() => {
     setOrderBookExpanded(false);
@@ -332,13 +363,19 @@ const PerpsProMarketView = ({
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
   const [chartDeliveryRevision, setChartDeliveryRevision] = useState(0);
   const currentSymbol = market?.symbol;
+  const currentProviderId =
+    market?.providerId ??
+    (activeProvider === 'aggregated'
+      ? PROVIDER_CONFIG.DefaultProvider
+      : activeProvider);
+  const currentMarketIdentityKey = `${currentSymbol ?? ''}|${currentProviderId}`;
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const {
     key: marketContextKey,
     isReady: isMarketContextReady,
     isUserReady: isUserContextReady,
   } = usePerpsMarketContext();
-  const marketSectionContextKey = `${currentSymbol ?? ''}|${marketContextKey}`;
+  const marketSectionContextKey = `${currentMarketIdentityKey}|${marketContextKey}`;
   const userSectionContextKey = `${marketContextKey}|${selectedAddress ?? ''}`;
 
   // Same parent-owned merge as Lite: last candle close, overridden by the
@@ -403,7 +440,7 @@ const PerpsProMarketView = ({
 
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    resetKey: `${market?.symbol || ''}:${effectiveChartLibrary}`,
+    resetKey: `${currentMarketIdentityKey}:${effectiveChartLibrary}`,
     conditions: [Boolean(market?.symbol)],
     properties: screenViewedProperties,
   });
@@ -436,7 +473,12 @@ const PerpsProMarketView = ({
   const marketSectionState = resolveProMarketSectionState(
     Boolean(
       currentSymbol &&
-        (hasFormattedMaxLeverage || enrichedMarket?.symbol === currentSymbol),
+        (hasFormattedMaxLeverage ||
+          (enrichedMarket?.symbol === currentSymbol &&
+            (enrichedMarket.providerId ??
+              (activeProvider === 'aggregated'
+                ? PROVIDER_CONFIG.DefaultProvider
+                : activeProvider)) === currentProviderId)),
     ),
     Boolean(marketsError),
     areMarketsLoading || !haveMarketsResolved,
@@ -598,7 +640,7 @@ const PerpsProMarketView = ({
               context (TAT-3643). Keyed by symbol so form state resets when the
               market changes. */}
           <PerpsOrderProvider
-            key={market.symbol}
+            key={currentMarketIdentityKey}
             initialAsset={market.symbol}
             initialDirection={initialDirection}
             fallbackAmount=""

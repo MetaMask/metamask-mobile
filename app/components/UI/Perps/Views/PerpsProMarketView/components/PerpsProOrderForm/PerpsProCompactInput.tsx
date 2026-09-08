@@ -148,7 +148,9 @@ const PerpsProCompactInput = React.forwardRef<
     const [isFocused, setIsFocused] = useState(false);
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
     const isInlineActive = isFocused || value.length > 0;
-    const isInputVisible = variant !== 'inline' || isInlineActive;
+    const usesFloatingLabel =
+      variant === 'inline' || variant === 'inline-labeled';
+    const isInputVisible = !usesFloatingLabel || isInlineActive;
     useImperativeHandle(
       ref,
       () => ({ focus: () => inputRef.current?.focus() }),
@@ -230,45 +232,7 @@ const PerpsProCompactInput = React.forwardRef<
       />
     );
 
-    if (variant === 'inline-labeled') {
-      return (
-        <Box
-          ref={containerRef}
-          twClassName={
-            isHidden
-              ? undefined
-              : 'h-[54px] flex-row items-center border-t border-muted px-3 py-1'
-          }
-          testID={`${testID}-container`}
-          {...hiddenProps}
-        >
-          <Pressable
-            onPress={focusInput}
-            disabled={isDisabled}
-            accessible={false}
-            style={tw`h-full min-w-0 flex-1 justify-center`}
-            testID={`${testID}-field`}
-          >
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-              numberOfLines={labelNumberOfLines}
-              accessible={false}
-              importantForAccessibility="no"
-            >
-              {label}
-            </Text>
-            <Box twClassName="flex-row items-center">
-              {startAccessory}
-              {input}
-            </Box>
-          </Pressable>
-          {endAccessory}
-        </Box>
-      );
-    }
-
-    if (variant === 'inline') {
+    if (usesFloatingLabel) {
       return (
         <Box
           ref={containerRef}
