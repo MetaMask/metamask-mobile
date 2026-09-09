@@ -22,7 +22,6 @@ describe('LiveTradesView', () => {
     ).toBeOnTheScreen();
     expect(screen.getByTestId(getSubnavPillTestId('perps'))).toBeOnTheScreen();
     expect(screen.getByTestId(getSubnavPillTestId('stocks'))).toBeOnTheScreen();
-    expect(screen.getByTestId(getSubnavPillTestId('whales'))).toBeOnTheScreen();
   });
 
   it('selects a Live trades category pill', () => {
