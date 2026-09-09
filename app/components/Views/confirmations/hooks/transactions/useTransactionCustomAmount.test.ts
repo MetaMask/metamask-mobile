@@ -48,6 +48,7 @@ import {
 import { isRouteToken } from '../../utils/relayFixedSpread';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
+import { DepositPrefillStatus } from './useDepositPrefillAmount';
 
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
@@ -1797,6 +1798,24 @@ describe('useTransactionCustomAmount', () => {
       });
     });
 
+    it('returns skipped deposit prefill status for a zero-balance pay token', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      expect(result.current.depositPrefillStatus).toBe(
+        DepositPrefillStatus.Skipped,
+      );
+    });
+
     it('prefills stablecoin with 100% of balance via Max path', async () => {
       (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
@@ -1994,7 +2013,9 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('800');
-      expect(result.current.isDepositPrefillLoading).toBe(false);
+      expect(result.current.depositPrefillStatus).toBe(
+        DepositPrefillStatus.Prefilled,
+      );
     });
 
     it('only prefills once even if balance changes', async () => {
