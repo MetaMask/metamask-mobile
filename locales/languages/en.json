@@ -2263,7 +2263,11 @@
         "chaseLimitReached": "Too many chase orders are already running",
         "chaseAbandoned": "Chase order was cancelled because the connection dropped",
         "chaseTouchUnavailable": "No market price is available to place this chase order",
-        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range"
+        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range",
+        "marginModeInvalid": "Margin mode is invalid",
+        "marginModeUnsupported": "This margin mode isn't available on this market",
+        "marginModePositionOpen": "Can't change margin mode while a position is open",
+        "marginModeOrderOpen": "Can't change margin mode while an order is open"
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
