@@ -86,18 +86,6 @@ describe('deleteRegToken', () => {
 
     expect(FCMService.deleteRegToken).toHaveBeenCalled();
   });
-
-  it('does not delete the FCM token when Braze unregister fails', async () => {
-    jest
-      .mocked(unregisterBrazePush)
-      .mockRejectedValue(new Error('Failed to unregister Braze push'));
-
-    await expect(deleteRegToken()).rejects.toThrow(
-      'Failed to unregister Braze push',
-    );
-
-    expect(FCMService.deleteRegToken).not.toHaveBeenCalled();
-  });
 });
 
 describe('shouldDisplayForegroundPushNotification', () => {

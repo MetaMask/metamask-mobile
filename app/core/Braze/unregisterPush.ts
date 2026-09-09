@@ -2,12 +2,9 @@ import { NativeModules } from 'react-native';
 import Logger from '../../util/Logger';
 import { hasTestOverrides } from '../../util/test/utils';
 import {
-  type BrazePushOperationContext,
-  clearPendingBrazePushUnregistration,
-  ensureBrazePushUnregistrationDesired,
   hasPendingBrazePushUnregistrationSync,
   markBrazePushUnregistrationPending,
-  runLatestBrazePushOperation,
+  markBrazePushUnregistered,
 } from './pushRegistrationState';
 
 interface BrazePushNativeModule {
@@ -17,36 +14,11 @@ interface BrazePushNativeModule {
 interface BrazePushUnregistrationResult {
   success: boolean;
   message?: string;
-  isRetriable?: boolean;
-  httpStatusCode?: number;
 }
 
 const nativeModules = NativeModules as {
   BrazePushModule?: BrazePushNativeModule;
 };
-
-const UNREGISTER_OPERATION_KEY = 'unregister';
-
-export class BrazePushUnregistrationError extends Error {
-  readonly isRetriable: boolean;
-
-  readonly httpStatusCode?: number;
-
-  constructor({
-    message,
-    isRetriable,
-    httpStatusCode,
-  }: {
-    message: string;
-    isRetriable: boolean;
-    httpStatusCode?: number;
-  }) {
-    super(message);
-    this.name = 'BrazePushUnregistrationError';
-    this.isRetriable = isRetriable;
-    this.httpStatusCode = httpStatusCode;
-  }
-}
 
 const toError = (error: unknown): Error =>
   error instanceof Error
@@ -66,46 +38,21 @@ async function unregisterOnce(): Promise<void> {
     return;
   }
 
-  throw new BrazePushUnregistrationError({
-    message: result.message ?? 'Failed to unregister Braze push',
-    isRetriable: result.isRetriable === true,
-    ...(result.httpStatusCode === undefined
-      ? {}
-      : { httpStatusCode: result.httpStatusCode }),
-  });
+  throw new Error(result.message ?? 'Failed to unregister Braze push');
 }
 
-async function attemptPendingUnregistration({
-  context,
-}: {
-  context: BrazePushOperationContext;
-}): Promise<boolean> {
+async function attemptPendingUnregistration(): Promise<boolean> {
   if (!hasPendingBrazePushUnregistrationSync()) {
     return true;
-  }
-  if (!context.isCurrent()) {
-    return false;
   }
 
   try {
     await unregisterOnce();
-    await clearPendingBrazePushUnregistration();
+    await markBrazePushUnregistered();
     return true;
   } catch (nativeError) {
     const error = toError(nativeError);
-    const isRetriable =
-      error instanceof BrazePushUnregistrationError && error.isRetriable;
-
-    if (!context.isCurrent()) {
-      return false;
-    }
-    if (!isRetriable) {
-      Logger.error(
-        error,
-        '[Braze] Push unregistration reported a non-retriable failure',
-      );
-    }
-
+    Logger.error(error, '[Braze] Push unregistration remains pending');
     return false;
   }
 }
@@ -125,14 +72,8 @@ export async function unregisterBrazePush(): Promise<boolean> {
   }
 
   try {
-    return await runLatestBrazePushOperation({
-      key: UNREGISTER_OPERATION_KEY,
-      supersededResult: false,
-      operation: async (context) => {
-        await markBrazePushUnregistrationPending();
-        return attemptPendingUnregistration({ context });
-      },
-    });
+    await markBrazePushUnregistrationPending();
+    return await attemptPendingUnregistration();
   } catch (nativeError) {
     const error = toError(nativeError);
     Logger.error(error, '[Braze] Failed to unregister push');
@@ -153,18 +94,5 @@ export async function retryPendingBrazePushUnregistration(): Promise<boolean> {
     return true;
   }
 
-  try {
-    return await runLatestBrazePushOperation({
-      key: UNREGISTER_OPERATION_KEY,
-      supersededResult: false,
-      operation: async (context) => {
-        await ensureBrazePushUnregistrationDesired();
-        return attemptPendingUnregistration({ context });
-      },
-    });
-  } catch (nativeError) {
-    const error = toError(nativeError);
-    Logger.error(error, '[Braze] Failed to retry push unregistration');
-    return false;
-  }
+  return attemptPendingUnregistration();
 }

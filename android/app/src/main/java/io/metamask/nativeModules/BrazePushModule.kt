@@ -1,7 +1,6 @@
 package io.metamask.nativeModules
 
 import com.braze.Braze
-import com.braze.push.BrazePushUnregistrationException
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -59,11 +58,8 @@ class BrazePushModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
 
     private fun failureResult(error: Throwable) =
         Arguments.createMap().apply {
-            val pushError = error as? BrazePushUnregistrationException
             putBoolean("success", false)
             putString("message", error.message ?: "Failed to unregister Braze push")
-            putBoolean("isRetriable", pushError?.isRetriable == true)
-            pushError?.httpStatusCode?.let { putInt("httpStatusCode", it) }
         }
 
     companion object {

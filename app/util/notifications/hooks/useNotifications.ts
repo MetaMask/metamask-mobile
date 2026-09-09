@@ -134,7 +134,9 @@ export function useEnableNotifications(props?: UseEnableNotificationsProps) {
       await enableNotificationsHelper({
         hasMarketingConsent,
         productAnnouncementEnabled,
-        registerPushNotifications: nudgeEnablePush,
+        // Push registration is performed once, below, after shared notification
+        // setup and the OS-permission check.
+        registerPushNotifications: false,
       });
     } catch (enableError) {
       setError(enableError);
@@ -147,7 +149,6 @@ export function useEnableNotifications(props?: UseEnableNotificationsProps) {
     });
     await updateNotificationSubscriptionExpiration();
   }, [
-    nudgeEnablePush,
     throwOnError,
     hasMarketingConsent,
     productAnnouncementEnabled,

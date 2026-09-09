@@ -6,6 +6,7 @@ import type {
 import Engine from '../../../core/Engine';
 import { unregisterBrazePush } from '../../../core/Braze/unregisterPush';
 import { markBrazePushRegistrationDesired } from '../../../core/Braze/pushRegistrationState';
+import Logger from '../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
 const CLIENT_TYPE = 'mobile' as const;
@@ -44,6 +45,17 @@ export const assertIsFeatureEnabled = () => {
   }
 };
 
+const markBrazePushRegistrationDesiredSafely = async (): Promise<void> => {
+  try {
+    await markBrazePushRegistrationDesired();
+  } catch (error) {
+    Logger.error(
+      error instanceof Error ? error : new Error(String(error)),
+      '[Braze] Failed to persist push registration intent',
+    );
+  }
+};
+
 /**
  * Enable Notifications Switch
  * - This is used during onboarding and for the notifications settings toggle
@@ -54,7 +66,7 @@ export const enableNotifications = async (
 ) => {
   assertIsFeatureEnabled();
   if (options?.registerPushNotifications !== false) {
-    await markBrazePushRegistrationDesired();
+    await markBrazePushRegistrationDesiredSafely();
   }
   await Engine.context.NotificationServicesController.enableMetamaskNotifications(
     options,
@@ -118,7 +130,7 @@ export const disableNotifications = async () => {
  */
 export const enablePushNotifications = async () => {
   assertIsFeatureEnabled();
-  await markBrazePushRegistrationDesired();
+  await markBrazePushRegistrationDesiredSafely();
   await Engine.context.NotificationServicesController.enablePushNotifications();
 };
 

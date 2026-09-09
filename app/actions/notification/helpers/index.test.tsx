@@ -93,6 +93,18 @@ describe('helpers - enableNotificationServices()', () => {
       Engine.context.NotificationServicesController.enableMetamaskNotifications,
     ).toHaveBeenCalledWith({ registerPushNotifications: false });
   });
+
+  it('enables NaaP when Braze registration-state persistence fails', async () => {
+    jest
+      .mocked(markBrazePushRegistrationDesired)
+      .mockRejectedValue(new Error('Storage unavailable'));
+
+    await enableNotifications();
+
+    expect(
+      Engine.context.NotificationServicesController.enableMetamaskNotifications,
+    ).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('helpers - hasNotificationPreferences()', () => {
@@ -267,6 +279,18 @@ describe('helpers - enablePushNotifications()', () => {
     expect(
       Engine.context.NotificationServicesController.enablePushNotifications,
     ).toHaveBeenCalled();
+  });
+
+  it('enables NaaP push when Braze registration-state persistence fails', async () => {
+    jest
+      .mocked(markBrazePushRegistrationDesired)
+      .mockRejectedValue(new Error('Storage unavailable'));
+
+    await enablePushNotifications();
+
+    expect(
+      Engine.context.NotificationServicesController.enablePushNotifications,
+    ).toHaveBeenCalledTimes(1);
   });
 });
 

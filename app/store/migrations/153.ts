@@ -1,8 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import {
-  BRAZE_PUSH_DESIRED_STATE,
-  BRAZE_PUSH_UNREGISTRATION_PENDING,
+  BRAZE_PUSH_REGISTRATION_STATE,
   LEGACY_NOTIFICATION_AUS_BACKFILL_PENDING,
 } from '../../constants/storage';
 import StorageWrapper from '../storage-wrapper';
@@ -21,7 +20,7 @@ async function setBackfillValue(
   } catch (error) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Failed to mark ${name} as pending: ${String(
+        `Migration ${migrationVersion}: Failed to persist ${name}: ${String(
           error,
         )}`,
       ),
@@ -77,28 +76,18 @@ const migration = async (state: unknown): Promise<unknown> => {
     }
   }
 
-  if (!notificationsEnabled || !pushEnabled) {
-    if (
-      !(await setBackfillValue(
-        BRAZE_PUSH_UNREGISTRATION_PENDING,
-        'true',
-        'Braze push unregistration',
-      ))
-    ) {
-      failedValues.push('Braze push unregistration');
-    }
-  }
-
-  const desiredBrazePushState =
-    notificationsEnabled && pushEnabled ? 'registered' : 'unregistered';
+  const brazePushRegistrationState =
+    notificationsEnabled && pushEnabled
+      ? 'registered'
+      : 'unregistration-pending';
   if (
     !(await setBackfillValue(
-      BRAZE_PUSH_DESIRED_STATE,
-      desiredBrazePushState,
-      'Braze push desired state',
+      BRAZE_PUSH_REGISTRATION_STATE,
+      brazePushRegistrationState,
+      'Braze push registration state',
     ))
   ) {
-    failedValues.push('Braze push desired state');
+    failedValues.push('Braze push registration state');
   }
 
   if (failedValues.length > 0) {

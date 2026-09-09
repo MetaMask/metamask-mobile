@@ -59,19 +59,10 @@ RCT_REMAP_METHOD(
       return;
     }
 
-    NSNumber *isRetriable =
-      error.userInfo[BRZPushUnregistrationErrorUserInfoKey.isRetriable] ?: @NO;
-    NSNumber *httpStatusCode =
-      error.userInfo[BRZPushUnregistrationErrorUserInfoKey.httpStatusCode];
-    NSMutableDictionary *result = [@{
+    resolve(@{
       @"success": @NO,
-      @"message": error.localizedDescription,
-      @"isRetriable": isRetriable
-    } mutableCopy];
-    if (httpStatusCode != nil) {
-      result[@"httpStatusCode"] = httpStatusCode;
-    }
-    resolve(result);
+      @"message": error.localizedDescription
+    });
   }];
 }
 

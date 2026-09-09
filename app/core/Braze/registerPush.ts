@@ -1,11 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import { hasTestOverrides } from '../../util/test/utils';
-import {
-  getBrazePushDesiredState,
-  hasPendingBrazePushUnregistrationSync,
-  runLatestBrazePushOperation,
-} from './pushRegistrationState';
+import { getBrazePushRegistrationState } from './pushRegistrationState';
 
 interface BrazePushNativeModule {
   registerPush: (fcmToken?: string) => Promise<void>;
@@ -36,9 +32,10 @@ export async function registerBrazePush(fcmToken: string): Promise<void> {
     return;
   }
 
+  const registrationState = getBrazePushRegistrationState();
   if (
-    hasPendingBrazePushUnregistrationSync() ||
-    getBrazePushDesiredState() === 'unregistered'
+    registrationState === 'unregistration-pending' ||
+    registrationState === 'unregistered'
   ) {
     return;
   }
@@ -51,25 +48,13 @@ export async function registerBrazePush(fcmToken: string): Promise<void> {
   }
 
   try {
-    await runLatestBrazePushOperation({
-      key: `register:${Platform.OS}:${Platform.OS === 'android' ? fcmToken : ''}`,
-      supersededResult: undefined,
-      operation: async () => {
-        if (
-          hasPendingBrazePushUnregistrationSync() ||
-          getBrazePushDesiredState() === 'unregistered'
-        ) {
-          return;
-        }
-        if (Platform.OS === 'ios') {
-          await brazePushModule.registerPush();
-        } else if (Platform.OS === 'android') {
-          await brazePushModule.registerPush(fcmToken);
-        } else {
-          throw new Error(`Unsupported Braze push platform: ${Platform.OS}`);
-        }
-      },
-    });
+    if (Platform.OS === 'ios') {
+      await brazePushModule.registerPush();
+    } else if (Platform.OS === 'android') {
+      await brazePushModule.registerPush(fcmToken);
+    } else {
+      throw new Error(`Unsupported Braze push platform: ${Platform.OS}`);
+    }
   } catch (nativeError) {
     const error = toError(nativeError);
     Logger.error(error, '[Braze] Failed to register push');

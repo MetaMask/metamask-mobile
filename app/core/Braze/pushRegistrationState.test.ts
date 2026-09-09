@@ -1,24 +1,18 @@
 import StorageWrapper from '../../store/storage-wrapper';
 import {
-  clearPendingBrazePushUnregistration,
-  getBrazePushDesiredState,
+  getBrazePushRegistrationState,
   hasPendingBrazePushUnregistrationSync,
   markBrazePushRegistrationDesired,
   markBrazePushUnregistrationPending,
-  resetBrazePushOperationCoordinatorForTests,
-  runLatestBrazePushOperation,
+  markBrazePushUnregistered,
 } from './pushRegistrationState';
-import {
-  BRAZE_PUSH_DESIRED_STATE,
-  BRAZE_PUSH_UNREGISTRATION_PENDING,
-} from '../../constants/storage';
+import { BRAZE_PUSH_REGISTRATION_STATE } from '../../constants/storage';
 
 jest.mock('../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
     getItemSync: jest.fn(),
     setItem: jest.fn(),
-    removeItem: jest.fn(),
   },
 }));
 
@@ -28,23 +22,23 @@ describe('Braze push registration state', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
-    resetBrazePushOperationCoordinatorForTests();
   });
 
-  it('persists and clears pending unregistration', async () => {
+  it('persists pending unregistration', async () => {
     await markBrazePushUnregistrationPending();
-    await clearPendingBrazePushUnregistration();
 
     expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-      BRAZE_PUSH_UNREGISTRATION_PENDING,
-      'true',
+      BRAZE_PUSH_REGISTRATION_STATE,
+      'unregistration-pending',
     );
+  });
+
+  it('persists confirmed unregistration', async () => {
+    await markBrazePushUnregistered();
+
     expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-      BRAZE_PUSH_DESIRED_STATE,
+      BRAZE_PUSH_REGISTRATION_STATE,
       'unregistered',
-    );
-    expect(mockStorageWrapper.removeItem).toHaveBeenCalledWith(
-      BRAZE_PUSH_UNREGISTRATION_PENDING,
     );
   });
 
@@ -52,98 +46,22 @@ describe('Braze push registration state', () => {
     await markBrazePushRegistrationDesired();
 
     expect(mockStorageWrapper.setItem).toHaveBeenCalledWith(
-      BRAZE_PUSH_DESIRED_STATE,
+      BRAZE_PUSH_REGISTRATION_STATE,
       'registered',
     );
-    expect(mockStorageWrapper.removeItem).toHaveBeenCalledWith(
-      BRAZE_PUSH_UNREGISTRATION_PENDING,
-    );
-    expect(getBrazePushDesiredState()).toBe('registered');
   });
 
-  it('reads the persisted desired state after a process restart', () => {
-    mockStorageWrapper.getItemSync.mockImplementation((key) =>
-      key === BRAZE_PUSH_DESIRED_STATE ? 'unregistered' : null,
-    );
+  it('reads the persisted registration state', () => {
+    mockStorageWrapper.getItemSync.mockReturnValue('unregistered');
 
-    expect(getBrazePushDesiredState()).toBe('unregistered');
+    expect(getBrazePushRegistrationState()).toBe('unregistered');
   });
 
-  it('reads pending state synchronously', () => {
-    mockStorageWrapper.getItemSync.mockReturnValue('true');
+  it('reports only unconfirmed unregistration as pending', () => {
+    mockStorageWrapper.getItemSync.mockReturnValue('unregistration-pending');
 
     expect(hasPendingBrazePushUnregistrationSync()).toBe(true);
-  });
-
-  it('runs the latest different intent after an in-flight operation', async () => {
-    let finishFirstOperation: (() => void) | undefined;
-    const calls: string[] = [];
-    const firstOperation = runLatestBrazePushOperation({
-      key: 'unregister',
-      supersededResult: undefined,
-      operation: () =>
-        new Promise<void>((resolve) => {
-          calls.push('unregister-start');
-          finishFirstOperation = () => {
-            calls.push('unregister-finish');
-            resolve();
-          };
-        }),
-    });
-    const secondOperation = runLatestBrazePushOperation({
-      key: 'register:token',
-      supersededResult: undefined,
-      operation: async () => {
-        calls.push('register');
-      },
-    });
-
-    await Promise.resolve();
-    expect(calls).toEqual(['unregister-start']);
-
-    finishFirstOperation?.();
-    await Promise.all([firstOperation, secondOperation]);
-
-    expect(calls).toEqual([
-      'unregister-start',
-      'unregister-finish',
-      'register',
-    ]);
-  });
-
-  it('replaces a pending intent when the active intent becomes latest again', async () => {
-    let finishUnregister: (() => void) | undefined;
-    const registerOperation = jest.fn();
-    const unregisterOperation = jest.fn(
-      () =>
-        new Promise<boolean>((resolve) => {
-          finishUnregister = () => resolve(true);
-        }),
-    );
-
-    const firstUnregister = runLatestBrazePushOperation({
-      key: 'unregister',
-      supersededResult: false,
-      operation: unregisterOperation,
-    });
-    await Promise.resolve();
-    const register = runLatestBrazePushOperation({
-      key: 'register:token',
-      supersededResult: undefined,
-      operation: registerOperation,
-    });
-    const latestUnregister = runLatestBrazePushOperation({
-      key: 'unregister',
-      supersededResult: false,
-      operation: unregisterOperation,
-    });
-
-    await expect(register).resolves.toBeUndefined();
-    finishUnregister?.();
-    await expect(
-      Promise.all([firstUnregister, latestUnregister]),
-    ).resolves.toEqual([true, true]);
-    expect(unregisterOperation).toHaveBeenCalledTimes(1);
-    expect(registerOperation).not.toHaveBeenCalled();
+    mockStorageWrapper.getItemSync.mockReturnValue('unregistered');
+    expect(hasPendingBrazePushUnregistrationSync()).toBe(false);
   });
 });

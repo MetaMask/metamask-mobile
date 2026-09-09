@@ -4,11 +4,7 @@ import {
   retryPendingBrazePushUnregistration,
   unregisterBrazePush,
 } from './unregisterPush';
-import { resetBrazePushOperationCoordinatorForTests } from './pushRegistrationState';
-import {
-  BRAZE_PUSH_DESIRED_STATE,
-  BRAZE_PUSH_UNREGISTRATION_PENDING,
-} from '../../constants/storage';
+import { BRAZE_PUSH_REGISTRATION_STATE } from '../../constants/storage';
 
 jest.mock('../../util/test/utils', () => ({
   hasTestOverrides: false,
@@ -27,42 +23,29 @@ jest.mock('../../store/storage-wrapper', () => ({
   default: {
     getItemSync: jest.fn(),
     setItem: jest.fn(),
-    removeItem: jest.fn(),
   },
 }));
 
 const mockUnregisterPush = jest.fn();
 const mockStorageWrapper = jest.mocked(StorageWrapper);
-let pendingValue: string | null;
-let desiredValue: string | null;
+let registrationState: string | null;
 
 describe('unregisterBrazePush', () => {
   beforeEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
     jest.resetAllMocks();
-    pendingValue = null;
-    desiredValue = null;
-    resetBrazePushOperationCoordinatorForTests();
+    registrationState = null;
     mockStorageWrapper.getItemSync.mockImplementation((key) => {
-      if (key === BRAZE_PUSH_UNREGISTRATION_PENDING) {
-        return pendingValue;
-      }
-      if (key === BRAZE_PUSH_DESIRED_STATE) {
-        return desiredValue;
+      if (key === BRAZE_PUSH_REGISTRATION_STATE) {
+        return registrationState;
       }
       return null;
     });
     mockStorageWrapper.setItem.mockImplementation(async (key, value) => {
-      if (key === BRAZE_PUSH_UNREGISTRATION_PENDING) {
-        pendingValue = value;
+      if (key === BRAZE_PUSH_REGISTRATION_STATE) {
+        registrationState = value;
       }
-      if (key === BRAZE_PUSH_DESIRED_STATE) {
-        desiredValue = value;
-      }
-    });
-    mockStorageWrapper.removeItem.mockImplementation(async () => {
-      pendingValue = null;
     });
     NativeModules.BrazePushModule = {
       unregisterPush: mockUnregisterPush,
@@ -76,71 +59,41 @@ describe('unregisterBrazePush', () => {
 
     expect(mockUnregisterPush).toHaveBeenCalledTimes(1);
     expect(mockStorageWrapper.setItem).toHaveBeenCalledTimes(2);
-    expect(mockStorageWrapper.removeItem).toHaveBeenCalledTimes(1);
-    expect(pendingValue).toBeNull();
-    expect(desiredValue).toBe('unregistered');
+    expect(registrationState).toBe('unregistered');
   });
 
-  it('keeps the intent pending after a retriable failure', async () => {
+  it('keeps the intent pending after a native failure', async () => {
     mockUnregisterPush.mockResolvedValue({
       success: false,
-      message: 'Rate limited',
-      isRetriable: true,
+      message: 'Request failed',
     });
 
     await expect(unregisterBrazePush()).resolves.toBe(false);
 
     expect(mockUnregisterPush).toHaveBeenCalledTimes(1);
-    expect(pendingValue).not.toBeNull();
+    expect(registrationState).toBe('unregistration-pending');
   });
 
-  it('retains a persisted intent after a permanent retry failure', async () => {
-    pendingValue = 'true';
+  it('retains a persisted intent after a retry failure', async () => {
+    registrationState = 'unregistration-pending';
     mockUnregisterPush.mockResolvedValue({
       success: false,
-      message: 'Unauthorized',
-      isRetriable: false,
-      httpStatusCode: 401,
+      message: 'Request failed',
     });
 
     await expect(retryPendingBrazePushUnregistration()).resolves.toBe(false);
 
-    expect(pendingValue).not.toBeNull();
+    expect(registrationState).toBe('unregistration-pending');
   });
 
   it('retries a persisted intent and clears it on success', async () => {
-    pendingValue = 'true';
+    registrationState = 'unregistration-pending';
     mockUnregisterPush.mockResolvedValue({ success: true });
 
     await expect(retryPendingBrazePushUnregistration()).resolves.toBe(true);
 
     expect(mockUnregisterPush).toHaveBeenCalledTimes(1);
-    expect(pendingValue).toBeNull();
-  });
-
-  it('preserves a newer registration intent while finishing a stale unregister', async () => {
-    pendingValue = 'true';
-    desiredValue = 'registered';
-    mockUnregisterPush.mockResolvedValue({ success: true });
-
-    await expect(retryPendingBrazePushUnregistration()).resolves.toBe(true);
-
-    expect(desiredValue).toBe('registered');
-    expect(pendingValue).toBeNull();
-  });
-
-  it('keeps the intent pending after a permanent native failure', async () => {
-    mockUnregisterPush.mockResolvedValue({
-      success: false,
-      message: 'Unauthorized',
-      isRetriable: false,
-      httpStatusCode: 401,
-    });
-
-    await expect(unregisterBrazePush()).resolves.toBe(false);
-
-    expect(pendingValue).toBe('true');
-    expect(desiredValue).toBe('unregistered');
+    expect(registrationState).toBe('unregistered');
   });
 
   it('keeps the intent pending when the native module is missing', async () => {
@@ -148,6 +101,6 @@ describe('unregisterBrazePush', () => {
 
     await expect(unregisterBrazePush()).resolves.toBe(false);
 
-    expect(pendingValue).toBe('true');
+    expect(registrationState).toBe('unregistration-pending');
   });
 });

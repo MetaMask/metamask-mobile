@@ -14,17 +14,9 @@ jest.mock('../../util/Logger', () => ({
   },
 }));
 
-const mockGetBrazePushDesiredState = jest.fn();
-const mockHasPendingBrazePushUnregistrationSync = jest.fn();
+const mockGetBrazePushRegistrationState = jest.fn();
 jest.mock('./pushRegistrationState', () => ({
-  getBrazePushDesiredState: () => mockGetBrazePushDesiredState(),
-  hasPendingBrazePushUnregistrationSync: () =>
-    mockHasPendingBrazePushUnregistrationSync(),
-  runLatestBrazePushOperation: ({
-    operation,
-  }: {
-    operation: () => Promise<unknown>;
-  }) => operation(),
+  getBrazePushRegistrationState: () => mockGetBrazePushRegistrationState(),
 }));
 
 const mockRegisterPush = jest.fn();
@@ -37,8 +29,7 @@ describe('registerBrazePush', () => {
     NativeModules.BrazePushModule = {
       registerPush: mockRegisterPush,
     };
-    mockGetBrazePushDesiredState.mockReturnValue('registered');
-    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
+    mockGetBrazePushRegistrationState.mockReturnValue('registered');
     mockRegisterPush.mockResolvedValue(undefined);
   });
 
@@ -97,7 +88,7 @@ describe('registerBrazePush', () => {
   });
 
   it('does not register while unregistration remains pending', async () => {
-    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+    mockGetBrazePushRegistrationState.mockReturnValue('unregistration-pending');
 
     await registerBrazePush('fcm-token');
 
@@ -105,7 +96,7 @@ describe('registerBrazePush', () => {
   });
 
   it('does not register when unregistration is the latest desired state', async () => {
-    mockGetBrazePushDesiredState.mockReturnValue('unregistered');
+    mockGetBrazePushRegistrationState.mockReturnValue('unregistered');
 
     await registerBrazePush('fcm-token');
 

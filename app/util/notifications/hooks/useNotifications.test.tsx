@@ -135,8 +135,9 @@ describe('useNotifications - useEnableNotifications()', () => {
     expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
       hasMarketingConsent: false,
       productAnnouncementEnabled: true,
-      registerPushNotifications: true,
+      registerPushNotifications: false,
     });
+    expect(mocks.mockTogglePushNotification).toHaveBeenCalledTimes(1);
   });
 
   it('passes the current marketing consent when enabling notifications', async () => {
@@ -153,7 +154,7 @@ describe('useNotifications - useEnableNotifications()', () => {
     expect(mocks.mockEnableNotifications).toHaveBeenCalledWith({
       hasMarketingConsent: true,
       productAnnouncementEnabled: true,
-      registerPushNotifications: true,
+      registerPushNotifications: false,
     });
   });
 
