@@ -310,7 +310,6 @@ yarn build:android:flask:e2e  # or yarn build:ios:flask:e2e
 
 **Platform**: iOS Appium only (not Android; not Appium smoke tag suites)  
 **Test Location**: `tests/smoke-appium/api-specs/`  
-**CI**: [`.github/workflows/run-e2e-api-specs.yml`](../../.github/workflows/run-e2e-api-specs.yml) (`api-specs-ios` job; currently `if: false`)
 
 The API Spec tests use `@open-rpc/test-coverage` against the in-app Test Dapp WebView (`window.ethereum`). Coverage is generated from the MetaMask [api-specs](https://github.com/MetaMask/api-specs) OpenRPC document (`0.10.8`). Specs are excluded from `yarn appium-smoke:*` via Playwright `testIgnore` unless `APPIUM_RUN_API_SPECS=1`.
 
