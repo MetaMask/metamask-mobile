@@ -32,6 +32,11 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { isHardwareAccount } from '../../../util/address';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import useEarnHighestRate from '../../UI/Earn/hooks/useEarnHighestRate';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_REDIRECT_TARGETS,
+  EARN_MODULE_ENTRY_POINTS,
+} from '../../UI/Earn/constants/earnModuleEvents';
 import TradeWalletActions from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
@@ -219,6 +224,13 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
 jest.mock('../../UI/Earn/hooks/useEarnHighestRate', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+const mockTrackEarnSurfaceClicked = jest.fn();
+jest.mock('../../UI/Earn/hooks/useEarnAnalytics', () => ({
+  useEarnAnalytics: () => ({
+    trackSurfaceClicked: mockTrackEarnSurfaceClicked,
+  }),
 }));
 
 const mockGoToSwaps = jest.fn();
@@ -1160,6 +1172,88 @@ describe('TradeWalletActions', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
         screen: Routes.EARN.SEARCH_LIST,
+        params: {
+          analyticsContext: {
+            entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
+          },
+        },
+      });
+    });
+
+    it('tracks Earn click with ready rate details', async () => {
+      mockSelectIsEarnSectionEligible.mockReturnValue(true);
+      mockUseEarnHighestRate.mockReturnValue({
+        highestRate: {
+          type: 'APY',
+          percentage: 6.2,
+          status: 'ready',
+        },
+      });
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
+      );
+
+      expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
+        redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
+        rate_type: 'apy',
+        rate_percentage: 6.2,
+      });
+    });
+
+    it('tracks Earn click without rate percentage when rate is not ready', async () => {
+      mockSelectIsEarnSectionEligible.mockReturnValue(true);
+      mockUseEarnHighestRate.mockReturnValue({
+        highestRate: {
+          type: 'APR',
+          status: 'error',
+        },
+      });
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
+      );
+
+      expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
+        redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
+        rate_type: 'apr',
+      });
+    });
+
+    it('tracks Earn click without rate details when no rate is available', async () => {
+      mockSelectIsEarnSectionEligible.mockReturnValue(true);
+      mockUseEarnHighestRate.mockReturnValue({ highestRate: undefined });
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
+      );
+
+      expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
+        redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
       });
     });
 
