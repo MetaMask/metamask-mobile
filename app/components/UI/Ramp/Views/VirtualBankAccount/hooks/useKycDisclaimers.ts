@@ -21,7 +21,7 @@ const FETCH_TIMEOUT_MS = 10_000;
  * {@link Engine.context.KycController.loadDisclaimers}.
  *
  * This is vendor T&Cs only — not the idOS / SumSub catalog used on Verify
- * Identity (`useKycSessionDisclaimers` → `KycService.fetchDisclaimersCatalog`).
+ * Identity (`useKycSessionDisclaimers` → `KycController.fetchSessionDisclaimers`).
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the

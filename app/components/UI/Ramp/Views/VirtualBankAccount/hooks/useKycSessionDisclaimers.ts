@@ -14,7 +14,7 @@ interface UseKycSessionDisclaimersResult {
   retry: () => void;
 }
 
-// Bounds the KYC service wait so a hung request can't leave the CTA disabled forever.
+// Bounds the KYC controller wait so a hung request can't leave the CTA disabled forever.
 const FETCH_TIMEOUT_MS = 10_000;
 
 const toLinks = (
@@ -28,11 +28,10 @@ const toLinks = (
 
 /**
  * Loads idOS + SumSub (KYC-provider) legal documents for the VBA Verify Identity
- * screen via {@link Engine.context.KycService.fetchDisclaimersCatalog}.
+ * screen via {@link Engine.context.KycController.fetchSessionDisclaimers}.
  *
- * This is the pre-session global catalog (`GET /disclaimers?country=`). Do not
- * use {@link Engine.context.KycService.fetchSessionDisclaimers} here — that
- * endpoint requires a UKYC `sessionId`. Vendor T&Cs stay on
+ * Passing `country` loads the pre-session global catalog
+ * (`GET /disclaimers?country=`). Vendor T&Cs stay on
  * {@link Engine.context.KycController.loadDisclaimers} (Get Pix Key).
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
@@ -77,15 +76,15 @@ export const useKycSessionDisclaimers = (
 
     const loadCatalog = async () => {
       try {
-        // KycService is an optional messenger client, so it can be absent when
+        // KycController is an optional messenger client, so it can be absent when
         // the KYC feature is not enabled for this build.
-        const kycService = Engine.context.KycService;
-        if (!kycService) {
-          throw new Error('KYC service is unavailable');
+        const kycController = Engine.context.KycController;
+        if (!kycController) {
+          throw new Error('KYC controller is unavailable');
         }
 
         const catalog = await Promise.race([
-          kycService.fetchDisclaimersCatalog({ country }),
+          kycController.fetchSessionDisclaimers({ country }),
           abortedPromise,
         ]);
 

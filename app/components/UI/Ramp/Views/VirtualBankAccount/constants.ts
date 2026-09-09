@@ -11,7 +11,7 @@ export const VBA_KYC_VENDOR = 'iron' as const;
 export const PIX_BRAND_COLOR = '#2CBFB0';
 
 // MetaMask legal URLs on "Verify your identity". idOS / SumSub documents come
-// from `KycService.fetchDisclaimersCatalog` (via `useKycSessionDisclaimers`).
+// from `KycController.fetchSessionDisclaimers` (via `useKycSessionDisclaimers`).
 // Iron / MoonPay Enterprise T&Cs on Get Pix Key come from
 // `KycController.loadDisclaimers` (via `useKycDisclaimers`).
 export const METAMASK_PRIVACY_POLICY_URL = AppConstants.URLS.PRIVACY_POLICY;

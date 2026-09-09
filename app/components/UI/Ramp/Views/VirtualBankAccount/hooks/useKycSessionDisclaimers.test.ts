@@ -1,13 +1,13 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useKycSessionDisclaimers } from './useKycSessionDisclaimers';
 
-const mockFetchDisclaimersCatalog = jest.fn();
+const mockFetchSessionDisclaimers = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
-    KycService: {
-      fetchDisclaimersCatalog: (...args: unknown[]) =>
-        mockFetchDisclaimersCatalog(...args),
+    KycController: {
+      fetchSessionDisclaimers: (...args: unknown[]) =>
+        mockFetchSessionDisclaimers(...args),
     },
   },
 }));
@@ -34,15 +34,15 @@ const catalog = {
 describe('useKycSessionDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockFetchDisclaimersCatalog.mockResolvedValue(catalog);
+    mockFetchSessionDisclaimers.mockResolvedValue(catalog);
   });
 
-  it('loads idOS and SumSub catalog documents for the given country via KycService', async () => {
+  it('loads idOS and SumSub catalog documents for the given country via KycController', async () => {
     const { result } = renderHook(() => useKycSessionDisclaimers('BRA'));
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(mockFetchDisclaimersCatalog).toHaveBeenCalledWith({
+    expect(mockFetchSessionDisclaimers).toHaveBeenCalledWith({
       country: 'BRA',
     });
     expect(result.current.disclaimers).toStrictEqual([
@@ -65,7 +65,7 @@ describe('useKycSessionDisclaimers', () => {
   });
 
   it('treats an empty catalog as an error so the CTA is not soft-locked', async () => {
-    mockFetchDisclaimersCatalog.mockResolvedValueOnce({
+    mockFetchSessionDisclaimers.mockResolvedValueOnce({
       idOS: [],
       kycProvider: [],
     });
@@ -78,10 +78,10 @@ describe('useKycSessionDisclaimers', () => {
     expect(result.current.error).toBe('No KYC disclaimers returned');
   });
 
-  it('times out when fetchDisclaimersCatalog hangs', async () => {
+  it('times out when fetchSessionDisclaimers hangs', async () => {
     jest.useFakeTimers();
     try {
-      mockFetchDisclaimersCatalog.mockReturnValueOnce(
+      mockFetchSessionDisclaimers.mockReturnValueOnce(
         new Promise(() => undefined),
       );
 
@@ -99,8 +99,8 @@ describe('useKycSessionDisclaimers', () => {
     }
   });
 
-  it('propagates thrown errors from fetchDisclaimersCatalog', async () => {
-    mockFetchDisclaimersCatalog.mockRejectedValueOnce(
+  it('propagates thrown errors from fetchSessionDisclaimers', async () => {
+    mockFetchSessionDisclaimers.mockRejectedValueOnce(
       new Error('not signed in'),
     );
 
@@ -113,7 +113,7 @@ describe('useKycSessionDisclaimers', () => {
   });
 
   it('re-loads and clears the previous error when retry is called', async () => {
-    mockFetchDisclaimersCatalog
+    mockFetchSessionDisclaimers
       .mockRejectedValueOnce(new Error('server error'))
       .mockResolvedValueOnce(catalog);
 
@@ -130,6 +130,6 @@ describe('useKycSessionDisclaimers', () => {
 
     expect(result.current.error).toBeNull();
     expect(result.current.disclaimers).toHaveLength(2);
-    expect(mockFetchDisclaimersCatalog).toHaveBeenCalledTimes(2);
+    expect(mockFetchSessionDisclaimers).toHaveBeenCalledTimes(2);
   });
 });
