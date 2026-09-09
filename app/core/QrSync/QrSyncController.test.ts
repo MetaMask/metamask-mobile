@@ -43,6 +43,7 @@ jest.mock('@metamask/account-tree-controller', () => {
             serialize: jest.fn().mockReturnValue(stripped),
           }),
           stripMetadata: jest.fn().mockReturnThis(),
+          filterWallets: jest.fn().mockReturnThis(),
         };
         return Promise.resolve(snapshot);
       }),

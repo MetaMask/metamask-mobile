@@ -355,8 +355,19 @@ export class QrSyncController extends BaseController<
     }
 
     try {
-      const snapshot =
-        await AccountTreeSnapshot.deserialize(pendingSecretImports);
+      // Strip the primary mnemonic wallet (first mnemonic entry) — it is already
+      // in the vault, so importState does not need to see it. Filtering here also
+      // means importState does not need the account tree initialized to skip it.
+      let primarySkipped = false;
+      const snapshot = (
+        await AccountTreeSnapshot.deserialize(pendingSecretImports)
+      ).filterWallets((wallet) => {
+        if (wallet.type === 'mnemonic' && !primarySkipped) {
+          primarySkipped = true;
+          return false;
+        }
+        return true;
+      });
       await this.messenger.call(
         'AccountTreeController:importState',
         snapshot.stripMetadata(),
