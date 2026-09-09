@@ -16,8 +16,13 @@ import {
   type BftChildPreference,
 } from '../../../util/basicFunctionality/getBasicFunctionalityConsolidationPlan';
 
+/**
+ * Matches the LaunchDarkly flag key exactly. The remote key is misspelled
+ * (`BftcOnsolidation`), and renaming it remotely would orphan the rollout, so
+ * the client mirrors the remote spelling.
+ */
 export const MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME =
-  'mobileUxBftcConsolidation';
+  'mobileUxBftcOnsolidation';
 
 /**
  * Preference keys unified under consolidated Basic Functionality on mobile.

@@ -82,7 +82,7 @@ describe('OnboardingAssetSettings', () => {
           ...initialState.engine.backgroundState,
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              mobileUxBftcConsolidation: {
+              mobileUxBftcOnsolidation: {
                 enabled: true,
                 minimumVersion: '0.0.0',
               },
