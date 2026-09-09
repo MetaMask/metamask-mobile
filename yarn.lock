@@ -39983,7 +39983,6 @@ __metadata:
     mockttp: "npm:^3.15.2"
     multihashes: "npm:0.4.14"
     nock: "npm:^14.0.11"
-    number-flow-react-native: "npm:^0.5.1"
     number-to-bn: "npm:1.7.0"
     nyc: "npm:^15.1.0"
     openai: "npm:^6.25.0"
@@ -40033,6 +40032,7 @@ __metadata:
     react-native-keyboard-aware-scroll-view: "npm:^0.9.5"
     react-native-keyboard-controller: "npm:1.20.7"
     react-native-keychain: "npm:^10.0.0"
+    react-native-laminar: "npm:^1.4.5"
     react-native-launch-arguments: "patch:react-native-launch-arguments@npm%3A4.0.1#~/.yarn/patches/react-native-launch-arguments-npm-4.0.1-97eaf39f12.patch"
     react-native-level-fs: "npm:3.0.1"
     react-native-linear-gradient: "npm:^2.8.3"
@@ -42295,17 +42295,6 @@ __metadata:
   version: 1.1.1
   resolution: "nullthrows@npm:1.1.1"
   checksum: 10/c7cf377a095535dc301d81cf7959d3784d090a609a2a4faa40b6121a0c1d7f70d3a3aa534a34ab852e8553b66848ec503c28f2c19efd617ed564dc07dfbb6d33
-  languageName: node
-  linkType: hard
-
-"number-flow-react-native@npm:^0.5.1":
-  version: 0.5.1
-  resolution: "number-flow-react-native@npm:0.5.1"
-  peerDependencies:
-    react: ">=18"
-    react-native: ">=0.73"
-    react-native-reanimated: ">=3.0.0"
-  checksum: 10/d28d9d1a12be0a557d05c2fb200e7acb29a5ea0862114ff71d35c5f01092dc613e9deeeffdc94ba75c39caaf0fa0606f6c44d9926d1d826a70a60977f7eb93b4
   languageName: node
   linkType: hard
 
@@ -46035,6 +46024,17 @@ __metadata:
   version: 10.0.0
   resolution: "react-native-keychain@npm:10.0.0"
   checksum: 10/f06f2214ec7f8ac6fe63a30bee8a434e2d14c316be4b67821d7c25f1f540869ca852a567949783a560b0f7ca97f18be50c409cb35cb2cde3d49fb0700338604a
+  languageName: node
+  linkType: hard
+
+"react-native-laminar@npm:^1.4.5":
+  version: 1.4.5
+  resolution: "react-native-laminar@npm:1.4.5"
+  peerDependencies:
+    react: ">=18"
+    react-native: ">=0.74"
+    react-native-reanimated: ">=3"
+  checksum: 10/6c1001ed29a4faace5f7727361522d7458271ced177fd51a4bc8f948f360f8ed1e422853bf089a476aa6c9f606e228a56241ced09b0843e78bed1f89c3d236fa
   languageName: node
   linkType: hard
 

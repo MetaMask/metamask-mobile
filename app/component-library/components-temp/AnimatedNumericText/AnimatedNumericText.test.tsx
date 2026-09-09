@@ -1,10 +1,8 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { NumberFlow } from 'number-flow-react-native/native';
+import { Laminar } from 'react-native-laminar';
 
-import AnimatedNumericText, {
-  getNumberFlowConfig,
-} from './AnimatedNumericText';
+import AnimatedNumericText from './AnimatedNumericText';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: () => ({}) }),
@@ -51,7 +49,7 @@ describe('AnimatedNumericText', () => {
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
       '$ 250.00 available',
     );
-    expect(UNSAFE_getAllByType(NumberFlow)).toHaveLength(1);
+    expect(UNSAFE_getAllByType(Laminar)).toHaveLength(1);
   });
 
   it('keeps a ticker containing digits as static text', () => {
@@ -63,7 +61,7 @@ describe('AnimatedNumericText', () => {
   });
 
   it('renders the same content with digit rolling turned off', () => {
-    const { getByTestId } = render(
+    const { getByTestId, UNSAFE_queryAllByType } = render(
       <AnimatedNumericText
         value="$ 250.00 available"
         rollDigits={false}
@@ -74,6 +72,22 @@ describe('AnimatedNumericText', () => {
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
       '$ 250.00 available',
     );
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+  });
+
+  it('renders static text when animation is disabled', () => {
+    const { getByTestId, UNSAFE_queryAllByType } = render(
+      <AnimatedNumericText
+        value="$ 250.00 available"
+        animated={false}
+        testID="animated-numeric-text"
+      />,
+    );
+
+    expect(getByTestId('animated-numeric-text')).toHaveTextContent(
+      '$ 250.00 available',
+    );
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
   });
 
   it('exposes the raw string to screen readers', () => {
@@ -84,13 +98,14 @@ describe('AnimatedNumericText', () => {
     expect(getByLabelText('12.')).toBeOnTheScreen();
   });
 
-  it('falls back to lossless text when Number Flow would round the value', () => {
+  it('passes high-precision values to Laminar without numeric conversion', () => {
     const value = '9007199254740993.000001';
+    const { UNSAFE_getByType } = render(<AnimatedNumericText value={value} />);
 
-    expect(getNumberFlowConfig(value)).toBeUndefined();
+    expect(UNSAFE_getByType(Laminar).props.text).toBe(value);
   });
 
-  it('defers mounting Number Flow until the JS thread is idle', () => {
+  it('defers mounting Laminar until the JS thread is idle', () => {
     const mockRequestIdleCallback = jest.fn();
     const originalRequestIdleCallback = globalThis.requestIdleCallback;
     globalThis.requestIdleCallback = mockRequestIdleCallback;
@@ -99,13 +114,13 @@ describe('AnimatedNumericText', () => {
       <AnimatedNumericText value="250.00" deferRolling />,
     );
 
-    expect(UNSAFE_queryAllByType(NumberFlow)).toHaveLength(0);
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
 
     act(() => {
       mockRequestIdleCallback.mock.calls[0][0]();
     });
 
-    expect(UNSAFE_queryAllByType(NumberFlow)).toHaveLength(1);
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
     globalThis.requestIdleCallback = originalRequestIdleCallback;
   });
 });
