@@ -669,7 +669,7 @@ describe('useTransactionConfirm', () => {
   });
 
   describe('isGasFeeSponsored override', () => {
-    it('clears isGasFeeSponsored when gasless is not supported', async () => {
+    it('passes gas sponsorship metadata through when gasless is not supported', async () => {
       useIsGaslessSupportedMock.mockReturnValue({
         isSmartTransaction: false,
         isSupported: false,
@@ -692,7 +692,7 @@ describe('useTransactionConfirm', () => {
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.objectContaining({
-          isGasFeeSponsored: false,
+          isGasFeeSponsored: true,
         }),
       });
     });
@@ -725,7 +725,7 @@ describe('useTransactionConfirm', () => {
       });
     });
 
-    it('clears isGasFeeSponsored for revoke delegation when gasless is supported', async () => {
+    it('passes gas sponsorship metadata through for revoke delegation when gasless is supported', async () => {
       useIsGaslessSupportedMock.mockReturnValue({
         isSmartTransaction: true,
         isSupported: true,
@@ -749,12 +749,12 @@ describe('useTransactionConfirm', () => {
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.objectContaining({
-          isGasFeeSponsored: false,
+          isGasFeeSponsored: true,
         }),
       });
     });
 
-    it('clears isGasFeeSponsored even without selectedGasFeeToken', async () => {
+    it('passes gas sponsorship metadata through even without selectedGasFeeToken', async () => {
       useIsGaslessSupportedMock.mockReturnValue({
         isSmartTransaction: false,
         isSupported: false,
@@ -781,7 +781,7 @@ describe('useTransactionConfirm', () => {
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
         txMeta: expect.objectContaining({
-          isGasFeeSponsored: false,
+          isGasFeeSponsored: true,
         }),
       });
     });
@@ -916,8 +916,8 @@ describe('useTransactionConfirm', () => {
     });
   });
 
-  describe('handleGasless7702', () => {
-    it('sets isExternalSign when selectedGasFeeToken is present and not smart transaction', async () => {
+  describe('selected gas fee token handling', () => {
+    it('keeps external-sign metadata out of the confirmation request when selectedGasFeeToken is present and not smart transaction', async () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
@@ -931,13 +931,11 @@ describe('useTransactionConfirm', () => {
       });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
-        txMeta: expect.objectContaining({
-          isExternalSign: true,
-        }),
+        txMeta: expect.not.objectContaining({ isExternalSign: true }),
       });
     });
 
-    it('sets isExternalSign when selectedGasFeeToken is present and smart transaction but the chain does not support send bundle', async () => {
+    it('keeps external-sign metadata out of the confirmation request when selectedGasFeeToken is present and smart transaction but the chain does not support send bundle', async () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
 
       useSelectedGasFeeTokenMock.mockReturnValue({
@@ -951,9 +949,7 @@ describe('useTransactionConfirm', () => {
       });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
-        txMeta: expect.objectContaining({
-          isExternalSign: true,
-        }),
+        txMeta: expect.not.objectContaining({ isExternalSign: true }),
       });
     });
 
@@ -978,7 +974,7 @@ describe('useTransactionConfirm', () => {
       });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
-        txMeta: expect.objectContaining({ isExternalSign: true }),
+        txMeta: expect.not.objectContaining({ isExternalSign: true }),
       });
     });
 
@@ -998,7 +994,7 @@ describe('useTransactionConfirm', () => {
       });
     });
 
-    it('clears stale external signing when the fee token is ignored for native balance', async () => {
+    it('keeps the confirmation request free of client-side external-sign hints when the fee token is ignored for native balance', async () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
       useIsGaslessSupportedMock.mockReturnValue({
         isSupported: false,
@@ -1010,7 +1006,6 @@ describe('useTransactionConfirm', () => {
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
-        isExternalSign: true,
         isGasFeeSponsored: true,
         isGasFeeTokenIgnoredIfBalance: true,
         txParams: { from: SOFTWARE_SIGNER_ADDRESS },
@@ -1023,24 +1018,13 @@ describe('useTransactionConfirm', () => {
       });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
-        txMeta: expect.objectContaining({
-          isExternalSign: false,
-          isGasFeeSponsored: false,
-        }),
+        txMeta: expect.not.objectContaining({ isExternalSign: true }),
       });
     });
   });
 
-  describe('isExternalSign revert for unsupported accounts', () => {
-    // Regression: on gas-sponsorship chains (e.g. Monad, SEI) the
-    // TransactionController sets `isExternalSign = true` from
-    // `isGasFeeSponsored` during gas simulation regardless of account type.
-    // For hardware wallets no relay is eligible (HW cannot hold an EIP-7702
-    // delegation), so leaving the flag set skips device signing and an empty
-    // `0x` payload reaches eth_sendRawTransaction. The fix reverts the flag
-    // whenever gasless sponsorship cannot apply for the account/chain.
-
-    it('reverts isExternalSign when gasless is unsupported (hardware wallet on sponsored chain)', async () => {
+  describe('isExternalSign handling', () => {
+    it('keeps the confirmation request free of external-sign hints when gasless is unsupported (hardware wallet on sponsored chain)', async () => {
       isHardwareAccountMock.mockReturnValue(true);
       useIsGaslessSupportedMock.mockReturnValue({
         isSupported: false,
@@ -1051,7 +1035,6 @@ describe('useTransactionConfirm', () => {
         id: transactionIdMock,
         chainId: CHAIN_ID_MOCK,
         isGasFeeSponsored: true,
-        isExternalSign: true,
         txParams: { from: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' },
       } as unknown as TransactionMeta);
 
@@ -1062,14 +1045,11 @@ describe('useTransactionConfirm', () => {
       });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
-        txMeta: expect.objectContaining({
-          isExternalSign: false,
-          isGasFeeSponsored: false,
-        }),
+        txMeta: expect.not.objectContaining({ isExternalSign: true }),
       });
     });
 
-    it('keeps isExternalSign when gasless is supported (EOA relay path intact)', async () => {
+    it('keeps the confirmation request free of external-sign hints when gasless is supported (EOA relay path intact)', async () => {
       isHardwareAccountMock.mockReturnValue(false);
       useIsGaslessSupportedMock.mockReturnValue({
         isSupported: true,
@@ -1080,7 +1060,6 @@ describe('useTransactionConfirm', () => {
         id: transactionIdMock,
         chainId: CHAIN_ID_MOCK,
         isGasFeeSponsored: true,
-        isExternalSign: true,
         txParams: { from: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' },
       } as unknown as TransactionMeta);
 
@@ -1091,10 +1070,7 @@ describe('useTransactionConfirm', () => {
       });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
-        txMeta: expect.objectContaining({
-          isExternalSign: true,
-          isGasFeeSponsored: true,
-        }),
+        txMeta: expect.not.objectContaining({ isExternalSign: true }),
       });
     });
   });
@@ -1180,7 +1156,7 @@ describe('useTransactionConfirm', () => {
       expect(onApprovalConfirm).not.toHaveBeenCalled();
     });
 
-    it('forwards locally signed metadata when sponsorship is unsupported by a hardware signer', async () => {
+    it('forwards sponsored metadata to the hardware signer without client-side external-sign hints', async () => {
       const spy = setupHwSend();
       useIsGaslessSupportedMock.mockReturnValue({
         isSupported: false,
@@ -1191,7 +1167,6 @@ describe('useTransactionConfirm', () => {
         id: transactionIdMock,
         chainId: CHAIN_ID_MOCK,
         type: TransactionType.simpleSend,
-        isExternalSign: true,
         isGasFeeSponsored: true,
         txParams: {
           from: HARDWARE_PAYER_ADDRESS,
@@ -1208,8 +1183,7 @@ describe('useTransactionConfirm', () => {
 
       expect(spy).toHaveBeenCalledWith(
         expect.objectContaining({
-          isExternalSign: false,
-          isGasFeeSponsored: false,
+          isGasFeeSponsored: true,
         }),
       );
       expect(onApprovalConfirm).not.toHaveBeenCalled();

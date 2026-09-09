@@ -9,7 +9,6 @@ import {
   TransactionMeta,
   TransactionType,
   hasTransactionType,
-  prepareTransactionForApproval,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -21,8 +20,6 @@ import {
 } from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
@@ -62,8 +59,6 @@ export function useTransactionConfirm() {
   const { isSupported: isGaslessSupportedSTX, isSmartTransaction } =
     useGaslessSupportedSmartTransactions();
 
-  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-
   // Signer of the confirmed transaction; gates signing-related paths.
   const isSignerHardwareWallet = isHardwareAccount(
     transactionMetadata?.txParams?.from ?? '',
@@ -95,17 +90,6 @@ export function useTransactionConfirm() {
         selectedGasFeeToken.maxPriorityFeePerGas;
     },
     [selectedGasFeeToken, isGasFeeTokenIgnoredIfBalance],
-  );
-
-  const handleGasless7702 = useCallback(
-    (updatedMetadata: TransactionMeta) => {
-      if (!selectedGasFeeToken || isGasFeeTokenIgnoredIfBalance) {
-        return;
-      }
-
-      updatedMetadata.isExternalSign = true;
-    },
-    [isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken],
   );
 
   const navigateOnConfirm = useCallback(() => {
@@ -192,29 +176,10 @@ export function useTransactionConfirm() {
         return;
       }
 
-      const { transactionMeta: updatedMetadata } =
-        prepareTransactionForApproval({
-          transactionMeta: cloneDeep(transactionMetadata),
-          sponsorship: {
-            available:
-              isTransactionMarkedAsGasFeeSponsored(transactionMetadata),
-            supported: isGaslessSupported,
-            optedOut: false,
-            required: false,
-          },
-          signing: {
-            externalSigningSupported: Boolean(
-              transactionMetadata.isExternalSign,
-            ),
-          },
-        });
+      const updatedMetadata = cloneDeep(transactionMetadata);
 
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
-      } else if (selectedGasFeeToken && !isSignerHardwareWallet) {
-        // Gas-fee-token EIP-7702 signing remains client-owned and is applied
-        // after canonical sponsorship normalization.
-        handleGasless7702(updatedMetadata);
       }
 
       if (shouldDeferHwSend(updatedMetadata)) {
@@ -244,12 +209,10 @@ export function useTransactionConfirm() {
       }
     },
     [
-      handleGasless7702,
-      shouldDeferHwSend,
+        shouldDeferHwSend,
       deferHwSend,
       handleSmartTransaction,
       isFiatPaymentSelected,
-      isGaslessSupported,
       isGaslessSupportedSTX,
       navigateOnConfirm,
       onFiatConfirm,
