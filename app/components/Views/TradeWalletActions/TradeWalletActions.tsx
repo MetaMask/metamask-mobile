@@ -108,7 +108,7 @@ import { truncateNumber } from '../../UI/Earn/utils/number';
 
 const bottomMaskHeight = 35;
 // The trade-focused sheet sits on a blur with its own edge, so its page is not dimmed.
-const TRADE_FOCUSED_BACKDROP_OPACITY = 0;
+const TRADE_FOCUSED_BACKDROP_OPACITY = 0.2;
 const animationDuration = AnimationDuration.Fast;
 
 const batchSellIconStyle = {
