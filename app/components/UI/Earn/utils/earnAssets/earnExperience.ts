@@ -7,20 +7,20 @@ const isMoneyExperience = (experience: EarnExperience): boolean =>
  * Returns experiences that present the asset as a deposit input.
  *
  * Output experiences describe receipt or position-token associations and are
- * not user-facing strategies for depositing the asset.
+ * not experiences used to deposit the asset.
  */
-export const getEarnStrategyExperiences = (
+export const getEarnInputExperiences = (
   experiences: readonly EarnExperience[],
 ): EarnExperience[] =>
   experiences.filter((experience) => experience.role !== 'output');
 
 /**
- * Returns strategies that can currently accept a deposit.
+ * Returns deposit experiences that can currently accept a deposit.
  */
-export const getAvailableEarnStrategyExperiences = (
+export const getAvailableEarnDepositExperiences = (
   experiences: readonly EarnExperience[],
 ): EarnExperience[] =>
-  getEarnStrategyExperiences(experiences).filter(
+  getEarnInputExperiences(experiences).filter(
     ({ availability }) => availability.status === 'available',
   );
 
@@ -30,6 +30,6 @@ export const getAvailableEarnStrategyExperiences = (
 export const getNonMoneyEarnStrategyExperiences = (
   experiences: readonly EarnExperience[],
 ): EarnExperience[] =>
-  getEarnStrategyExperiences(experiences).filter(
+  getEarnInputExperiences(experiences).filter(
     (experience) => !isMoneyExperience(experience),
   );

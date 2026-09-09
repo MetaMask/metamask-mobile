@@ -4,6 +4,8 @@ import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
+import type { BridgeToken } from '../../../Bridge/types';
+import { convertApiTokenToBridgeToken } from '../../../Bridge/utils/tokenUtils';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import type { TokenI } from '../../../Tokens/types';
 import type {
@@ -144,4 +146,25 @@ export const earnAssetToToken = (earnAsset: EarnAsset): TokenI => {
       ? moneyFormatFiat(new BigNumber(asset.fiat.balance), asset.fiat.currency)
       : undefined,
   };
+};
+
+/**
+ * Converts an Earn asset into the token shape used by unified Swap.
+ *
+ * @param earnAsset - Earn asset to convert.
+ * @returns Bridge token with chain-specific address formatting.
+ */
+export const earnAssetToBridgeToken = (earnAsset: EarnAsset): BridgeToken => {
+  const metadata = getEarnAssetMetadata(earnAsset);
+
+  return convertApiTokenToBridgeToken(
+    {
+      assetId: earnAsset.assetId,
+      name: metadata.name,
+      symbol: metadata.symbol,
+      decimals: metadata.decimals,
+      iconUrl: metadata.image,
+    },
+    metadata.image,
+  );
 };

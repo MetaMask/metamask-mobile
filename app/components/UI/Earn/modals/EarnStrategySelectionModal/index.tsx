@@ -44,11 +44,12 @@ import {
 } from '../../utils';
 import {
   getEarnAssetMetadata,
-  getEarnStrategyExperiences,
+  getEarnInputExperiences,
 } from '../../utils/earnAssets';
 import useEarnOpportunityNavigation, {
   getSelectedEarnStrategyRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
+import type { EarnAssetAcquisitionRoute } from '../../hooks/useEarnAssetAcquisitionNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -177,6 +178,9 @@ const renderNonMoneyStrategyCard = (
 const EarnStrategySelectionModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const isNavigatingToDepositRef = useRef(false);
+  const pendingAcquisitionRouteRef = useRef<
+    EarnAssetAcquisitionRoute | undefined
+  >(undefined);
   const [isNavigatingToDeposit, setIsNavigatingToDeposit] = useState(false);
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tw = useTailwind();
@@ -186,7 +190,8 @@ const EarnStrategySelectionModal = () => {
   const { isOnboardingRedirectNeeded } = useMoneyNavigation();
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
-  const { navigateToDepositForExperience } = useEarnOpportunityNavigation();
+  const { navigateToDepositForExperience, resolveEarnAssetAcquisitionRoute } =
+    useEarnOpportunityNavigation();
   const { trackBottomSheetViewed, trackButtonClicked, trackSurfaceClicked } =
     useEarnAnalytics({
       bottom_sheet_name:
@@ -200,7 +205,7 @@ const EarnStrategySelectionModal = () => {
   useMountEffect(trackBottomSheetViewed);
 
   const strategies = useMemo(
-    () => getEarnStrategyExperiences(earnAsset.experiences),
+    () => getEarnInputExperiences(earnAsset.experiences),
     [earnAsset.experiences],
   );
 
@@ -236,6 +241,17 @@ const EarnStrategySelectionModal = () => {
     navigation.goBack();
   }, [navigation, trackSurfaceClicked]);
 
+  const handleNavigationError = useCallback(
+    (error: unknown) => {
+      showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
+      Logger.error(
+        error as Error,
+        '[Earn Strategy Selection Modal] Failed to navigate from strategy selection for earn asset',
+      );
+    },
+    [EarnToastOptions.earnStrategySelection.navigationToDeposit, showToast],
+  );
+
   const handleGetStartedAfterClose = useCallback(async () => {
     try {
       if (!selectedStrategy || !earnAsset) {
@@ -246,23 +262,20 @@ const EarnStrategySelectionModal = () => {
         earnAsset,
         selectedStrategy,
         params.tokenDetailsSource,
+        pendingAcquisitionRouteRef.current,
       );
     } catch (error) {
-      showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
-      Logger.error(
-        error as Error,
-        '[Earn Strategy Selection Modal] Failed to navigate to deposit screen for earn asset',
-      );
+      handleNavigationError(error);
     } finally {
+      pendingAcquisitionRouteRef.current = undefined;
       setIsNavigatingToDeposit(false);
     }
   }, [
     earnAsset,
+    handleNavigationError,
     navigateToDepositForExperience,
     params.tokenDetailsSource,
     selectedStrategy,
-    showToast,
-    EarnToastOptions.earnStrategySelection.navigationToDeposit,
   ]);
 
   const handleGetStartedPress = useCallback(() => {
@@ -276,6 +289,16 @@ const EarnStrategySelectionModal = () => {
     );
     const selectedStrategyType =
       selectedStrategy.type as EARN_MODULE_STRATEGY_TYPES;
+
+    try {
+      pendingAcquisitionRouteRef.current = resolveEarnAssetAcquisitionRoute(
+        earnAsset,
+        selectedStrategy,
+      );
+    } catch (error) {
+      handleNavigationError(error);
+      return;
+    }
 
     trackButtonClicked({
       button_type: EARN_MODULE_BUTTON_TYPES.TEXT,
@@ -303,6 +326,7 @@ const EarnStrategySelectionModal = () => {
       redirect_target: getSelectedEarnStrategyRedirectTarget(
         selectedStrategy,
         isOnboardingRedirectNeeded,
+        pendingAcquisitionRouteRef.current,
       ),
     });
     isNavigatingToDepositRef.current = true;
@@ -311,9 +335,11 @@ const EarnStrategySelectionModal = () => {
   }, [
     earnAsset,
     handleGetStartedAfterClose,
+    handleNavigationError,
     isOnboardingRedirectNeeded,
     params.analyticsContext?.asset_position,
     params.analyticsContext?.assets_in_list,
+    resolveEarnAssetAcquisitionRoute,
     selectedStrategy,
     strategies,
     trackButtonClicked,
