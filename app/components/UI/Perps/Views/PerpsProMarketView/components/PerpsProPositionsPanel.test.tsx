@@ -391,6 +391,33 @@ describe('PerpsProPositionsPanel', () => {
     });
   });
 
+  it('spaces the TWAP inner tabs below the filter row', () => {
+    // Arrange
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Assert
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY),
+    ).toHaveStyle({ paddingTop: 12 });
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('keeps TWAP selected when Chase is hidden', () => {
     // Arrange
     renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
