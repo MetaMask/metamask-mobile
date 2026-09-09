@@ -75,8 +75,9 @@ const ActivityDetails = () => {
     ? resolveActivityListItemTitle(item, bridgeHistoryItem)
     : strings('activity_details.not_found');
 
-  // Pending speed-up / cancel: live local `TransactionMeta` by hash/id. API /
-  // non-EVM items have none (no banner).
+  // Pending speed-up / cancel: resolve the live local `TransactionMeta` for the
+  // resolved item so the banner reflects current status/gas. Only local EVM
+  // items carry a `TransactionMeta`; API / non-EVM items have none (no banner).
   const pendingTx = useLocalTransactionMeta(item?.hash);
 
   const {

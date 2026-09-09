@@ -21,9 +21,10 @@ export function getBridgeDestinationTxHash(
 }
 
 /**
- * The transaction the block-explorer sheet resolves both legs from. EVM rows
- * pass the looked-up local `TransactionMeta`; non-EVM still reads the keyring
- * tx off `raw`. Empty for indexer-only rows.
+ * The transaction the block-explorer sheet resolves both legs from. Uses
+ * `initialTransaction`, matching {@link getBridgeHistoryItem}, so the two can't
+ * land on different history items. Empty for indexer-only rows, which have no
+ * local transaction.
  */
 export function getBridgeExplorerSheetTx(
   item: Extract<ActivityListItem, { type: 'bridge' }>,

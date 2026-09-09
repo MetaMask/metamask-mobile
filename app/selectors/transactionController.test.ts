@@ -22,7 +22,6 @@ import {
   selectExcludedActivityTransactionHashes,
   selectSwapsTransactions,
   selectTransactionBatchMetadataById,
-  selectTransactionMetadataByHash,
   selectTransactionMetadataById,
   selectTransactionsByBatchId,
   selectTransactionsByIds,
@@ -842,64 +841,6 @@ describe('TransactionController Selectors', () => {
       ]);
 
       expect(selectReplacedLocalTransactions(state)).toStrictEqual([]);
-    });
-  });
-
-  describe('selectTransactionMetadataByHash', () => {
-    const stateWithTransactions = {
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: [
-              { id: 'pending-id', chainId: '0x1' },
-              { id: 'confirmed-id', hash: '0xabc', chainId: '0x1' },
-            ],
-          },
-        },
-      },
-    } as unknown as RootState;
-
-    it('returns the transaction matching the on-chain hash', () => {
-      expect(
-        selectTransactionMetadataByHash(stateWithTransactions, '0xABC'),
-      ).toStrictEqual({ id: 'confirmed-id', hash: '0xabc', chainId: '0x1' });
-    });
-
-    it('returns the transaction matching the meta id when no hash matches', () => {
-      expect(
-        selectTransactionMetadataByHash(stateWithTransactions, 'pending-id'),
-      ).toStrictEqual({ id: 'pending-id', chainId: '0x1' });
-    });
-
-    it('prefers an on-chain hash match over a meta id', () => {
-      const collidingState = {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [
-                { id: '0xabc', chainId: '0x89' },
-                { id: 'other', hash: '0xabc', chainId: '0x1' },
-              ],
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      expect(
-        selectTransactionMetadataByHash(collidingState, '0xabc'),
-      ).toStrictEqual({ id: 'other', hash: '0xabc', chainId: '0x1' });
-    });
-
-    it('returns undefined when no transaction matches', () => {
-      expect(
-        selectTransactionMetadataByHash(stateWithTransactions, 'missing'),
-      ).toBeUndefined();
-    });
-
-    it('returns undefined when the identifier is empty', () => {
-      expect(
-        selectTransactionMetadataByHash(stateWithTransactions, undefined),
-      ).toBeUndefined();
     });
   });
 
