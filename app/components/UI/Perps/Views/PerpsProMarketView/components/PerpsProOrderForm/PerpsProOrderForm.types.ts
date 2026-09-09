@@ -88,8 +88,8 @@ export interface PerpsProScaleOrderModel {
   onSizeSkewBlur: () => void;
   onSizeSkewInfoPress: () => void;
   rungs: ScaleOrderRung[];
-  marginRange: string;
-  liquidationRange: string;
+  margin: string;
+  liquidationPrice: string;
   fees: string;
 }
 

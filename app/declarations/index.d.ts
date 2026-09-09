@@ -436,6 +436,8 @@ declare module '@sentry/react-native' {
     hint?: Parameters<typeof import('@sentry/core').captureException>[1],
   ): string;
 }
+declare module '@sumsub/react-native-mobilesdk-module';
+
 declare module '@tommasini/react-native-scrollable-tab-view';
 declare module '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 

@@ -10,7 +10,7 @@ import {
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { Position } from '../hooks';
 import { resolveOrderDirection, isClosingOrder } from './orderDirection';
 
@@ -668,9 +668,10 @@ export const willFlipPosition = (
 /**
  * Returns the position direction ('long' | 'short') an order corresponds to.
  *
- * For closing orders (reduce-only or trigger) the order side is the inverse of
- * the position it acts on: a sell closes a long, a buy closes a short. For
- * opening orders the side maps directly (buy = long, sell = short).
+ * For orders classified as closing, the order side is the inverse of the
+ * position it acts on: a sell closes a long, a buy closes a short. Explicit
+ * `reduceOnly` metadata is authoritative; trigger status is only a fallback
+ * when that metadata is absent. Opening order sides map directly.
  *
  * @param order - The order object
  * @returns The position direction the order corresponds to
@@ -704,8 +705,41 @@ const formatOrderTypeString = (typeString: string): string => {
   if (normalized === 'market') {
     return strings('perps.order.market');
   }
+  if (normalized === 'stop limit') {
+    return strings('perps.order.type.stop_limit.title');
+  }
+  if (normalized === 'stop market') {
+    return strings('perps.order.type.stop_market.title');
+  }
+  if (normalized === 'take profit limit') {
+    return strings('perps.order.type.take_profit_limit.title');
+  }
+  if (normalized === 'take profit market') {
+    return strings('perps.order.type.take_profit_market.title');
+  }
 
   return capitalize(typeString);
+};
+
+const getLocalizedOrderDirectionLabel = (
+  order: Order,
+  isClosing: boolean,
+): string => {
+  const direction = resolveOrderDirection(order.side, isClosing);
+  const key = isClosing
+    ? direction === 'long'
+      ? 'perps.market.close_long'
+      : 'perps.market.close_short'
+    : direction === 'long'
+      ? 'perps.market.long_lowercase'
+      : 'perps.market.short_lowercase';
+  const label = strings(key);
+
+  // English close labels are capitalized as standalone copy but sentence case
+  // inline. Other locales retain their translated casing.
+  return isClosing && I18n.locale?.toLowerCase().startsWith('en')
+    ? label.toLocaleLowerCase('en')
+    : label;
 };
 
 /**
@@ -717,7 +751,7 @@ const formatOrderTypeString = (typeString: string): string => {
  * - Limit Short
  * - Limit Close Short
  * - Stop Market Close Long
- * - Take Profit Limit Close Short
+ * - Take Limit Close Short
  *
  * @param order - The order object
  * @returns Formatted order label string
@@ -727,20 +761,30 @@ export const formatOrderLabel = (order: Order): string => {
 
   const isClosing = isClosingOrder(order);
   const direction = resolveOrderDirection(side, isClosing);
-  const typeString = resolveOrderTypeString(order);
+  const resolvedTypeString = resolveOrderTypeString(order);
+  const isTrigger = isTriggerOrder(order);
+  const typeString = isTrigger
+    ? formatOrderTypeString(resolvedTypeString)
+    : resolvedTypeString;
+  const localizedDirection = isTrigger
+    ? getLocalizedOrderDirectionLabel(order, isClosing)
+    : direction;
 
   // Build the label: [Type] [Close?] [Direction]
-  if (isClosing) {
-    return capitalize(`${typeString} close ${direction}`);
-  }
+  const label = isTrigger
+    ? `${typeString} ${localizedDirection}`
+    : isClosing
+      ? `${typeString} close ${direction}`
+      : `${typeString} ${direction}`;
 
-  return capitalize(`${typeString} ${direction}`);
+  // Preserve the legacy Lite label path for ordinary market/limit orders.
+  return isTrigger ? label : capitalize(label);
 };
 
 /**
  * Format just the order type portion of an order label (no direction/close).
  *
- * Examples: "Limit", "Stop market", "Take profit limit"
+ * Examples: "Limit", "Stop market", "Take limit"
  *
  * @param order - The order object
  * @returns Formatted order type string for compact UI pills
@@ -764,6 +808,11 @@ export const getOrderLabelDirection = (order: Order): string => {
   }
 
   return direction;
+};
+
+export const getInlineOrderLabelDirection = (order: Order): string => {
+  const isClosing = isClosingOrder(order);
+  return getLocalizedOrderDirectionLabel(order, isClosing);
 };
 
 /**

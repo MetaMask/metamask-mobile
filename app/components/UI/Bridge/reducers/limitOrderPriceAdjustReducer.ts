@@ -16,6 +16,7 @@ export type LimitOrderPriceAdjustAction =
       type: 'commitCustomPercent';
       limitPrice: string;
       isTrackingMarket: boolean;
+      customValue: string;
     }
   | { type: 'seedFromMarket'; limitPrice: string }
   | { type: 'enterCustom' }
@@ -67,6 +68,7 @@ export const limitOrderPriceAdjustReducer = (
         ...state,
         isTrackingMarket: action.isTrackingMarket,
         limitPrice: action.limitPrice,
+        customValue: action.customValue,
       };
     case 'seedFromMarket':
       // A market refresh that rounds to the same string is not a state change.

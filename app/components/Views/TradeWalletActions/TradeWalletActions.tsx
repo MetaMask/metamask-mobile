@@ -33,6 +33,7 @@ import {
   BoxFlexDirection,
   FontWeight,
   IconName,
+  IconSize,
   Tag,
   TagSeverity,
   Text,
@@ -59,19 +60,13 @@ import {
   selectCanSignTransactions,
   selectSelectedInternalAccountAddress,
 } from '../../../selectors/accountsController';
-import { earnSelectors } from '../../../selectors/earnController';
-import { selectChainId } from '../../../selectors/networkController';
 import { isHardwareAccount } from '../../../util/address';
-import { getDecimalChainId } from '../../../util/networks';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../UI/Earn/selectors/featureFlags';
+import { getEarnRateCopy } from '../../UI/Earn/utils/earnRate';
+import useEarnHighestRate from '../../UI/Earn/hooks/useEarnHighestRate';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import { usePerpsMode } from '../../UI/Perps/hooks';
@@ -83,15 +78,20 @@ import { openPerpsModeSelection } from '../../UI/Perps/utils/openPerpsModeSelect
 import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSelectionStorage';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
-import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
+import { selectIsEarnSectionEligible } from '../../UI/Earn/selectors/eligibility';
+import { useEarnAnalytics } from '../../UI/Earn/hooks/useEarnAnalytics';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_REDIRECT_TARGETS,
+  EARN_MODULE_ENTRY_POINTS,
+} from '../../UI/Earn/constants/earnModuleEvents';
+import { EarnRate } from '../../UI/Earn/types/earnAssets';
+import { truncateNumber } from '../../UI/Earn/utils/number';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -148,16 +148,11 @@ function TradeWalletActions() {
     sheetProgress.value = withTiming(1, { duration: animationDuration });
   }, [backdropOpacity, sheetProgress]);
 
-  const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
   );
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
-
-  const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -177,22 +172,13 @@ function TradeWalletActions() {
     perpsMode === PerpsMode.Pro ? PerpsMode.Pro : PerpsMode.Lite;
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
-  );
-  const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
+  const { highestRate } = useEarnHighestRate();
 
-  const isEarnWalletActionEnabled = useMemo(() => {
-    if (
-      !isStablecoinLendingEnabled ||
-      (earnTokens.length <= 1 &&
-        earnTokens[0]?.isETH &&
-        !isPooledStakingEnabled)
-    ) {
-      return false;
-    }
-    return true;
-  }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
+  const isEarnWalletActionEnabled = useSelector(selectIsEarnSectionEligible);
+
+  const { trackSurfaceClicked: trackEarnSurfaceClicked } = useEarnAnalytics({
+    entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
+  });
 
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
@@ -277,32 +263,30 @@ function TradeWalletActions() {
   }, [handleNavigateBack, navigate]);
 
   const onEarn = useCallback(async () => {
+    trackEarnSurfaceClicked({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
+      redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
+      ...(highestRate?.type && {
+        rate_type: highestRate.type.toLowerCase() as Lowercase<
+          EarnRate['type']
+        >,
+      }),
+      ...(highestRate?.status === 'ready' && {
+        rate_percentage: Number(truncateNumber(highestRate.percentage)),
+      }),
+    });
     postCallback.current = () => {
-      navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.SEARCH_LIST,
         params: {
-          tokenFilter: {
-            includeNativeTokens: true,
-            includeStakingTokens: false,
-            includeLendingTokens: true,
-            includeReceiptTokens: false,
+          analyticsContext: {
+            entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
           },
-          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
         },
       });
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Earn',
-            location: STAKE_EVENT_LOCATIONS.WALLET_ACTIONS_BOTTOM_SHEET,
-            chain_id_destination: getDecimalChainId(chainId),
-          })
-          .build(),
-      );
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate, trackEvent, createEventBuilder, chainId]);
+  }, [trackEarnSurfaceClicked, handleNavigateBack, navigation, highestRate]);
 
   useFocusEffect(
     useCallback(() => {
@@ -431,11 +415,36 @@ function TradeWalletActions() {
           isDisabled={!canSignTransactions}
         />
       )}
-      {isEarnWalletActionEnabled && isEarnEligible && (
+      {isEarnWalletActionEnabled && (
         <ActionListItem
-          label={strings('asset_overview.earn_button')}
+          label={
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('asset_overview.earn_button')}
+              </Text>
+              {highestRate?.status === 'ready' && (
+                <Tag
+                  startIconName={IconName.Sparkle}
+                  startIconProps={{
+                    size: IconSize.Sm,
+                  }}
+                  severity={TagSeverity.Success}
+                  testID={WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG}
+                >
+                  {getEarnRateCopy({
+                    percentage: highestRate.percentage,
+                    rateType: highestRate.type,
+                  })}
+                </Tag>
+              )}
+            </Box>
+          }
           description={strings('asset_overview.earn_description')}
-          iconName={IconName.Stake}
+          iconName={IconName.Plant}
           onPress={onEarn}
           testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
           isDisabled={!canSignTransactions}

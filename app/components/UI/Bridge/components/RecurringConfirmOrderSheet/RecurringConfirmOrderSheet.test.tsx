@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { BigNumber } from 'ethers';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
@@ -8,28 +9,14 @@ import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { createBridgeTestState } from '../../testUtils';
 import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { multiplyAmountByCount } from '../../utils/recurringConfirmTotals';
-
-/**
- * CV cannot cover this sheet: Recurring remounts on tab switch and resets
- * the token pair, which clears seeded BridgeController quotes before Preview
- * Order can open it.
- */
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -43,12 +30,12 @@ jest.mock('@metamask/design-system-react-native', () => {
         props: {
           children: unknown;
           testID?: string;
-          onClose?: () => void;
+          goBack?: () => void;
         },
         ref: React.Ref<{ onCloseBottomSheet: () => void }>,
       ) => {
         ReactModule.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: () => props.onClose?.(),
+          onCloseBottomSheet: () => props.goBack?.(),
         }));
 
         return (
@@ -73,6 +60,10 @@ jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
     useBridgeQuoteDataContext: jest.fn(() => useQuotedData()),
   };
 });
+
+jest.mock('../../hooks/useHasSufficientGas', () => ({
+  useHasSufficientGas: jest.fn(() => true),
+}));
 
 function buildState(
   bridgeReducerOverrides: Record<string, unknown> = {},
@@ -101,17 +92,35 @@ function buildState(
   });
 }
 
+const SUFFICIENT_SOURCE_BALANCE = {
+  displayBalance: '1000',
+  atomicBalance: BigNumber.from('1000000000000000000000'),
+};
+
+const INSUFFICIENT_SOURCE_BALANCE = {
+  displayBalance: '1',
+  atomicBalance: BigNumber.from('1000000000000000000'),
+};
+
 function renderSheet({
-  isVisible = true,
-  onClose = jest.fn(),
+  goBack = jest.fn(),
+  onEditSlippagePress = jest.fn(),
   state = buildState(),
+  latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
-  isVisible?: boolean;
-  onClose?: () => void;
+  goBack?: () => void;
+  onEditSlippagePress?: () => void;
   state?: DeepPartial<RootState>;
+  latestSourceBalance?:
+    | { displayBalance: string; atomicBalance: BigNumber }
+    | undefined;
 } = {}) {
   return renderWithProvider(
-    <RecurringConfirmOrderSheet isVisible={isVisible} onClose={onClose} />,
+    <RecurringConfirmOrderSheet
+      latestSourceBalance={latestSourceBalance}
+      onEditSlippagePress={onEditSlippagePress}
+      goBack={goBack}
+    />,
     { state },
   );
 }
@@ -129,14 +138,7 @@ describe('RecurringConfirmOrderSheet', () => {
           networkFee: '$1.23',
         },
       }));
-  });
-
-  it('renders nothing when the sheet is hidden', () => {
-    const { queryByTestId } = renderSheet({ isVisible: false });
-
-    expect(
-      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.SHEET),
-    ).toBeNull();
+    jest.mocked(useHasSufficientGas).mockReturnValue(true);
   });
 
   it('shows per-order source amount and the all-orders total', () => {
@@ -489,43 +491,117 @@ describe('RecurringConfirmOrderSheet', () => {
     );
   });
 
-  it('opens the shared slippage sheet from the edit control', () => {
-    const { getByTestId } = renderSheet();
+  it('calls the slippage edit handler from the edit control', () => {
+    const onEditSlippagePress = jest.fn();
+    const { getByTestId } = renderSheet({ onEditSlippagePress });
 
     fireEvent.press(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE_EDIT),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: '0x1',
-        destChainId: '0xa',
-      },
-    });
+    expect(onEditSlippagePress).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when Confirm is pressed', () => {
-    const onClose = jest.fn();
+  it('goes back when Confirm is pressed', () => {
+    const goBack = jest.fn();
 
-    const { getByTestId } = renderSheet({ onClose });
+    const { getByTestId } = renderSheet({ goBack });
 
     fireEvent.press(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON),
     );
 
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(goBack).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onClose when the header close is pressed', () => {
-    const onClose = jest.fn();
+  it('goes back when the header close is pressed', () => {
+    const goBack = jest.fn();
 
-    const { getByTestId } = renderSheet({ onClose });
+    const { getByTestId } = renderSheet({ goBack });
 
     fireEvent.press(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CLOSE_BUTTON),
     );
 
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables Confirm and shows Insufficient funds when source balance is below the per-order amount', () => {
+    const goBack = jest.fn();
+    const { getByTestId } = renderSheet({
+      latestSourceBalance: INSUFFICIENT_SOURCE_BALANCE,
+      goBack,
+    });
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    fireEvent.press(confirmButton);
+
+    expect(confirmButton).toHaveTextContent(
+      strings('bridge.insufficient_funds'),
+    );
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    expect(goBack).not.toHaveBeenCalled();
+  });
+
+  it('shows Confirm when source balance covers the per-order amount', () => {
+    const { getByTestId } = renderSheet();
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton).toHaveTextContent(
+      strings('bridge.recurring.confirm'),
+    );
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(false);
+  });
+
+  it('closes from the header when Confirm is disabled for insufficient funds', () => {
+    const goBack = jest.fn();
+    const { getByTestId } = renderSheet({
+      latestSourceBalance: INSUFFICIENT_SOURCE_BALANCE,
+      goBack,
+    });
+
+    fireEvent.press(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    expect(goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables Confirm and shows Insufficient gas when native gas is short', () => {
+    jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+    const { getByTestId } = renderSheet({
+      latestSourceBalance: SUFFICIENT_SOURCE_BALANCE,
+    });
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton).toHaveTextContent(strings('bridge.insufficient_gas'));
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it('shows Insufficient funds when source balance and gas are both short', () => {
+    jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+    const { getByTestId } = renderSheet({
+      latestSourceBalance: INSUFFICIENT_SOURCE_BALANCE,
+    });
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton).toHaveTextContent(
+      strings('bridge.insufficient_funds'),
+    );
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
   });
 });

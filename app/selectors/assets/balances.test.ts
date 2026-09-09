@@ -159,7 +159,7 @@ import {
   selectTokenBalancesStateForBalances,
   selectUnifiedBalanceBySelectedAccountGroup,
   getUnifiedBalanceForAccountGroup,
-  augmentAssetControllersState,
+  augmentAssetsControllerStateForBalances,
 } from './balances';
 import {
   calculateBalanceForAllWallets as calculateBalanceForAllWalletsLegacy,
@@ -921,7 +921,7 @@ describe('assets unify state balance path', () => {
     });
   });
 
-  describe('augmentAssetControllersState', () => {
+  describe('augmentAssetsControllerStateForBalances', () => {
     const arcErc20UsdcAssetId = `eip155:5042/erc20:${ARC_USDC_ERC20_TOKEN_ADDRESS}`;
     const stableErc20Usdt0AssetId = `eip155:988/erc20:${STABLE_USDT0_ERC20_ADDRESS}`;
     const otherAssetId =
@@ -931,7 +931,11 @@ describe('assets unify state balance path', () => {
 
     it('strips Arc ERC20 USDC and Stable ERC20 USDT0 from assetsBalance', () => {
       const state = {
-        assetsInfo: {},
+        assetsInfo: {
+          [arcNativeAssetId]: { symbol: 'USDC' },
+          [stableNativeAssetId]: { symbol: 'USDT0' },
+          [otherAssetId]: { symbol: 'OTHER' },
+        },
         assetsPrice: {},
         assetPreferences: {},
         customAssets: {},
@@ -948,7 +952,9 @@ describe('assets unify state balance path', () => {
       } as unknown as AssetsControllerState;
 
       expect(
-        augmentAssetControllersState(state).assetsBalance['account-1'],
+        augmentAssetsControllerStateForBalances(state).assetsBalance[
+          'account-1'
+        ],
       ).toEqual({
         [arcNativeAssetId]: { balance: '3' },
         [stableNativeAssetId]: { balance: '4' },

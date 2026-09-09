@@ -10,6 +10,8 @@ import {
   type TPSLTrackingData,
 } from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
+import { isNoPositionFoundError } from '../utils/translatePerpsError';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { TraceName } from '../../../../util/trace';
 import {
@@ -67,6 +69,27 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         PERPS_CUF_STREAM_TIMEOUT_MS,
       );
 
+      // The venue filled, closed or liquidated the position before this
+      // request landed, so there is nothing left to attach TP/SL to. Reconcile
+      // the stale local state and say so instead of raising a generic error.
+      const reconcileAlreadyClosed = () => {
+        endPerpsCufTrace({
+          id: tpslCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+          },
+        });
+        showToast(
+          PerpsToastOptions.positionManagement.closePosition
+            .positionAlreadyClosed,
+        );
+        // The position is gone, so its margin and balance moved with it — the
+        // controller pairs these two everywhere it closes.
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
+      };
+
       try {
         const result = await updatePositionTPSL({
           symbol: position.symbol,
@@ -103,6 +126,12 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           return { success: true };
         }
         DevLogger.log('Failed to update position TP/SL:', result.error);
+
+        if (isNoPositionFoundError(result.error)) {
+          reconcileAlreadyClosed();
+          return { success: false };
+        }
+
         endPerpsCufTrace({
           id: tpslCufOpId,
           data: {
@@ -124,6 +153,11 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
         return { success: false };
       } catch (error) {
+        if (isNoPositionFoundError(error)) {
+          reconcileAlreadyClosed();
+          return { success: false };
+        }
+
         endPerpsCufTrace({
           id: tpslCufOpId,
           data: {
@@ -184,6 +218,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       updatePositionTPSL,
       showToast,
       PerpsToastOptions.positionManagement.tpsl,
+      PerpsToastOptions.positionManagement.closePosition,
       options,
       stream,
     ],
