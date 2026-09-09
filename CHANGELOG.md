@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added Segment tracking for clicks on the redesigned Earn row (#35960)
 - Added a one-time notice on the wallet home when an account holds assets on Arc (#35716)
 - Added a warning when a Perps Pro limit or scale price is more than 5% away from the best bid or ask (#35666)
 - Added a sequenced entrance animation to the Card education screen (#33759)
