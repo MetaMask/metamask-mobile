@@ -166,7 +166,9 @@ function formatTokenAmountValue(
 }
 
 const RecurringConfirmOrderSheet = ({
+  isSubmitting,
   latestSourceBalance,
+  onConfirm,
   onEditSlippagePress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
@@ -349,8 +351,9 @@ const RecurringConfirmOrderSheet = ({
       <BottomSheetFooter
         primaryButtonProps={{
           children: confirmLabel,
-          onPress: closeSheet,
-          isDisabled: isConfirmDisabled,
+          onPress: onConfirm,
+          isDisabled: isConfirmDisabled || isSubmitting,
+          isLoading: isSubmitting,
           testID: RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />

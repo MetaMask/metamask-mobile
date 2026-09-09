@@ -104,11 +104,15 @@ const INSUFFICIENT_SOURCE_BALANCE = {
 
 function renderSheet({
   goBack = jest.fn(),
+  isSubmitting = false,
+  onConfirm = jest.fn(),
   onEditSlippagePress = jest.fn(),
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
   goBack?: () => void;
+  isSubmitting?: boolean;
+  onConfirm?: () => void;
   onEditSlippagePress?: () => void;
   state?: DeepPartial<RootState>;
   latestSourceBalance?:
@@ -117,7 +121,9 @@ function renderSheet({
 } = {}) {
   return renderWithProvider(
     <RecurringConfirmOrderSheet
+      isSubmitting={isSubmitting}
       latestSourceBalance={latestSourceBalance}
+      onConfirm={onConfirm}
       onEditSlippagePress={onEditSlippagePress}
       goBack={goBack}
     />,
@@ -502,16 +508,32 @@ describe('RecurringConfirmOrderSheet', () => {
     expect(onEditSlippagePress).toHaveBeenCalledTimes(1);
   });
 
-  it('goes back when Confirm is pressed', () => {
-    const goBack = jest.fn();
+  it('calls the confirm handler when Confirm is pressed', () => {
+    const onConfirm = jest.fn();
 
-    const { getByTestId } = renderSheet({ goBack });
+    const { getByTestId } = renderSheet({ onConfirm });
 
     fireEvent.press(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON),
     );
 
-    expect(goBack).toHaveBeenCalledTimes(1);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows loading and disables Confirm while submitting', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      isSubmitting: true,
+      onConfirm,
+    });
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('goes back when the header close is pressed', () => {

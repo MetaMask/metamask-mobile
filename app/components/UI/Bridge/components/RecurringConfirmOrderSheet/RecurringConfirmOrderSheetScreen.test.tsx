@@ -1,13 +1,19 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createBridgeTestState } from '../../testUtils';
+import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
+import {
+  showRecurringAutoUpgradeError,
+  submitRecurringOrder,
+} from './RecurringConfirmOrderSheet.utils';
 import { RecurringConfirmOrderSheetScreen } from './RecurringConfirmOrderSheetScreen';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockAutoUpgradeEIP7702Account = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -26,12 +32,25 @@ jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
     children,
 }));
 
+jest.mock('../../hooks/useAutoUpgradeEIP7702Account', () => ({
+  useAutoUpgradeEIP7702Account: jest.fn(),
+}));
+
+jest.mock('./RecurringConfirmOrderSheet.utils', () => ({
+  showRecurringAutoUpgradeError: jest.fn(),
+  submitRecurringOrder: jest.fn(),
+}));
+
 jest.mock('./RecurringConfirmOrderSheet', () => ({
   __esModule: true,
   default: ({
+    isSubmitting,
+    onConfirm,
     onEditSlippagePress,
     goBack,
   }: {
+    isSubmitting: boolean;
+    onConfirm: () => void;
     onEditSlippagePress: () => void;
     goBack: () => void;
   }) => {
@@ -42,6 +61,15 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     return ReactModule.createElement(
       ReactModule.Fragment,
       null,
+      ReactModule.createElement(
+        Pressable,
+        { testID: 'confirm-order', onPress: onConfirm },
+        ReactModule.createElement(
+          Text,
+          null,
+          isSubmitting ? 'Submitting' : 'Confirm',
+        ),
+      ),
       ReactModule.createElement(
         Pressable,
         { testID: 'edit-slippage', onPress: onEditSlippagePress },
@@ -88,6 +116,11 @@ function renderScreen() {
 describe('RecurringConfirmOrderSheetScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(useAutoUpgradeEIP7702Account)
+      .mockReturnValue(mockAutoUpgradeEIP7702Account);
+    mockAutoUpgradeEIP7702Account.mockResolvedValue(undefined);
+    jest.mocked(submitRecurringOrder).mockResolvedValue(undefined);
   });
 
   it('opens the shared slippage modal above the confirmation modal', () => {
@@ -110,5 +143,69 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     fireEvent.press(getByTestId('close-confirm'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for auto-upgrade before submitting the recurring order', async () => {
+    let resolveUpgrade: () => void = () => undefined;
+    mockAutoUpgradeEIP7702Account.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveUpgrade = resolve;
+        }),
+    );
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    expect(mockAutoUpgradeEIP7702Account).toHaveBeenCalledWith();
+    expect(submitRecurringOrder).not.toHaveBeenCalled();
+    expect(getByTestId('confirm-order')).toHaveTextContent('Submitting');
+
+    resolveUpgrade();
+
+    await waitFor(() => {
+      expect(submitRecurringOrder).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('surfaces upgrade failures without submitting or closing', async () => {
+    const error = new Error('Upgrade failed');
+    mockAutoUpgradeEIP7702Account.mockRejectedValue(error);
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    await waitFor(() => {
+      expect(showRecurringAutoUpgradeError).toHaveBeenCalledWith(error);
+    });
+    expect(submitRecurringOrder).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(getByTestId('confirm-order')).toHaveTextContent('Confirm');
+  });
+
+  it('ignores duplicate confirmation presses', async () => {
+    mockAutoUpgradeEIP7702Account.mockReturnValue(
+      new Promise<void>(() => undefined),
+    );
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('confirm-order'));
+    fireEvent.press(getByTestId('confirm-order'));
+
+    expect(mockAutoUpgradeEIP7702Account).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not open the transaction confirmation modal', async () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('confirm-order'));
+
+    await waitFor(() => {
+      expect(submitRecurringOrder).toHaveBeenCalledTimes(1);
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.CONFIRMATION_REQUEST_MODAL,
+    );
   });
 });
