@@ -25,6 +25,7 @@ import {
 } from '../../smart-transactions/smart-publish-hook';
 import { accountSupports7702 } from '../account-supports-7702';
 import { getTransactionById } from '..';
+import { isRelaySupported } from '../transaction-relay';
 import { isSendBundleSupported } from '../sentinel-api';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
 import {
@@ -47,6 +48,7 @@ jest.mock('../../../store', () => ({
 jest.mock('../../smart-transactions/smart-publish-hook');
 jest.mock('../account-supports-7702');
 jest.mock('..');
+jest.mock('../transaction-relay');
 jest.mock('../sentinel-api');
 jest.mock('./delegation-7702-publish');
 
@@ -147,12 +149,33 @@ describe('getTransactionControllerHooks', () => {
 
     expect(hooks).toStrictEqual(
       expect.objectContaining({
+        isSponsored: expect.any(Function),
+        shouldSign: expect.any(Function),
         beforePublish: expect.any(Function),
         beforeSign: expect.any(Function),
         publish: expect.any(Function),
         publishBatch: expect.any(Function),
       }),
     );
+  });
+
+  it('returns sponsorship and signing decisions', async () => {
+    jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
+    jest.mocked(isSendBundleSupported).mockResolvedValue(false);
+    jest.mocked(isRelaySupported).mockResolvedValue(false);
+
+    const request = buildRequest();
+    const hooks = getTransactionControllerHooks(request);
+
+    await expect(
+      hooks.isSponsored?.({ transactionMeta: MOCK_TRANSACTION_META }),
+    ).resolves.toBe(false);
+    await expect(
+      hooks.shouldSign?.({
+        transactionMeta: MOCK_TRANSACTION_META,
+        isSponsored: false,
+      }),
+    ).resolves.toBe(true);
   });
 
   it('delegates Predict beforePublish and beforeSign through the init messenger', async () => {
