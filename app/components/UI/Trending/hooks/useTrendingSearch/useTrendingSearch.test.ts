@@ -188,13 +188,10 @@ describe('useTrendingSearch', () => {
       expect(result.current.data).toHaveLength(2);
     });
 
-    // Should contain ETH from trending (matches query) and USDC from search
-    expect(result.current.data).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ symbol: 'ETH' }),
-        expect.objectContaining({ symbol: 'USDC' }),
-      ]),
-    );
+    expect(result.current.data.map((item) => item.symbol)).toEqual([
+      'ETH',
+      'USDC',
+    ]);
   });
 
   it('removes duplicate results when combining search and trending', async () => {
@@ -242,19 +239,88 @@ describe('useTrendingSearch', () => {
     );
   });
 
-  it('keeps search API order ahead of trending matches for the query', async () => {
-    // Trending ETH (0x123) also matches 'ETH'; the API ranked a different token
-    // first, and that ranking must be preserved.
+  it.each([
+    ['laptop', 'Laptop'],
+    ['$laptop', '$Laptop'],
+  ])(
+    'keeps search API order ahead of trending matches for "%s"',
+    async (searchQuery, trendingName) => {
+      const trendingLaptop = {
+        ...mockTrendingResults[0],
+        symbol: 'LAPTOP',
+        name: trendingName,
+      };
+      const apiRankedFirst = {
+        assetId: 'eip155:8453/erc20:0xabc' as CaipChainId,
+        symbol: 'LAPTOP',
+        name: 'Laptop Official',
+        decimals: 18,
+        price: '1',
+        aggregatedUsdVolume: 1,
+        marketCap: 0,
+        pricePercentChange1d: '0',
+      };
+      mockUseTrendingRequest.mockReturnValue({
+        results: [trendingLaptop],
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+      mockUseSearchRequest.mockReturnValue({
+        results: [apiRankedFirst],
+        isLoading: false,
+        error: null,
+        search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
+      });
+
+      const { result } = renderHookWithProvider(() =>
+        useTrendingSearch({ searchQuery, sortBy: 'h24_trending' }),
+      );
+
+      jest.advanceTimersByTime(200);
+
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(2);
+      });
+
+      expect(result.current.data.map((item) => item.assetId)).toEqual([
+        'eip155:8453/erc20:0xabc',
+        'eip155:1/erc20:0x123',
+      ]);
+      expect(mockUseSearchRequest).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          query: searchQuery.replace(/^\$/, ''),
+        }),
+      );
+    },
+  );
+
+  it('prepends trending matches for LAPTOP when the remote flag is off', async () => {
+    const trendingLaptop = {
+      ...mockTrendingResults[0],
+      symbol: 'LAPTOP',
+      name: 'Laptop',
+    };
     const apiRankedFirst = {
       assetId: 'eip155:8453/erc20:0xabc' as CaipChainId,
-      symbol: 'ETH2',
-      name: 'Ether Two',
+      symbol: 'LAPTOP',
+      name: 'Laptop Official',
       decimals: 18,
       price: '1',
       aggregatedUsdVolume: 1,
       marketCap: 0,
       pricePercentChange1d: '0',
     };
+    mockUseTrendingRequest.mockReturnValue({
+      results: [trendingLaptop],
+      isLoading: false,
+      error: null,
+      fetch: mockFetchTrendingTokens,
+    });
     mockUseSearchRequest.mockReturnValue({
       results: [apiRankedFirst],
       isLoading: false,
@@ -266,8 +332,25 @@ describe('useTrendingSearch', () => {
       totalCount: undefined,
     });
 
-    const { result } = renderHookWithProvider(() =>
-      useTrendingSearch({ searchQuery: 'ETH', sortBy: 'h24_trending' }),
+    const { result } = renderHookWithProvider(
+      () =>
+        useTrendingSearch({ searchQuery: 'laptop', sortBy: 'h24_trending' }),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  exploreLaptopSearchApiRanking: {
+                    enabled: false,
+                    minimumVersion: '8.12.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     );
 
     jest.advanceTimersByTime(200);
@@ -277,24 +360,35 @@ describe('useTrendingSearch', () => {
     });
 
     expect(result.current.data.map((item) => item.assetId)).toEqual([
-      'eip155:8453/erc20:0xabc',
       'eip155:1/erc20:0x123',
+      'eip155:8453/erc20:0xabc',
     ]);
   });
 
-  it('keeps the trending object for a token in both sets but at the API position', async () => {
-    const duplicateOfTrendingEth = {
-      assetId: mockTrendingResults[0].assetId as CaipChainId,
-      symbol: 'ETH',
-      name: 'Ethereum',
+  it('keeps the trending object for duplicate LAPTOP at its API position', async () => {
+    const trendingLaptop = {
+      ...mockTrendingResults[0],
+      symbol: 'LAPTOP',
+      name: 'Laptop',
+    };
+    const duplicateOfTrendingLaptop = {
+      assetId: trendingLaptop.assetId as CaipChainId,
+      symbol: trendingLaptop.symbol,
+      name: trendingLaptop.name,
       decimals: 18,
       price: '2000',
       aggregatedUsdVolume: 1000000,
       marketCap: 500000000,
       pricePercentChange1d: '3',
     };
+    mockUseTrendingRequest.mockReturnValue({
+      results: [trendingLaptop],
+      isLoading: false,
+      error: null,
+      fetch: mockFetchTrendingTokens,
+    });
     mockUseSearchRequest.mockReturnValue({
-      results: [mockSearchResults[0], duplicateOfTrendingEth],
+      results: [mockSearchResults[0], duplicateOfTrendingLaptop],
       isLoading: false,
       error: null,
       search: jest.fn(),
@@ -305,7 +399,7 @@ describe('useTrendingSearch', () => {
     });
 
     const { result } = renderHookWithProvider(() =>
-      useTrendingSearch({ searchQuery: 'ETH', sortBy: 'h24_trending' }),
+      useTrendingSearch({ searchQuery: 'laptop', sortBy: 'h24_trending' }),
     );
 
     jest.advanceTimersByTime(200);
@@ -315,7 +409,7 @@ describe('useTrendingSearch', () => {
     });
 
     expect(result.current.data[0].assetId).toBe('eip155:1/erc20:0x789');
-    expect(result.current.data[1]).toBe(mockTrendingResults[0]);
+    expect(result.current.data[1]).toBe(trendingLaptop);
   });
 
   it('returns trending loading state when no search query', () => {

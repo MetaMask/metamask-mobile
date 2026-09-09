@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
@@ -9,6 +10,8 @@ import {
   SortDirection,
   TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
+import { selectExploreLaptopSearchApiRankingEnabled } from '../../selectors/featureFlags';
+import { usesTemporaryApiRanking } from '../../utils/usesTemporaryApiRanking';
 import { isEqual } from 'lodash';
 
 const useStableReference = <T>(value: T) => {
@@ -61,7 +64,16 @@ export const useTrendingSearch = (opts?: {
     },
   } = useStableReference(opts ?? {});
 
+  const isLaptopApiRankingEnabled = useSelector(
+    selectExploreLaptopSearchApiRankingEnabled,
+  );
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
+  const searchRequestQuery = usesTemporaryApiRanking(
+    debouncedQuery,
+    isLaptopApiRankingEnabled,
+  )
+    ? (debouncedQuery?.trim().replace(/^\$/, '') ?? '')
+    : debouncedQuery || '';
 
   // Debounce the search query
   useEffect(() => {
@@ -82,7 +94,7 @@ export const useTrendingSearch = (opts?: {
     hasNextPage,
     totalCount,
   } = useSearchRequest({
-    query: debouncedQuery || '',
+    query: searchRequestQuery,
     limit: 20,
     chainIds: chainIds ?? undefined,
     includeMarketData,
@@ -118,9 +130,17 @@ export const useTrendingSearch = (opts?: {
       trendingMatches.map((result) => [result.assetId, result]),
     );
 
-    // The search API ranks results (relevance, verification, pinned assets).
-    // Keep that order; trending matches the API did not return are appended.
-    const resultMap = new Map<string, TrendingAsset>();
+    // TEMPORARY: Preserve API ranking only for the LAPTOP launch. All other
+    // queries retain the existing trending-first merge behavior.
+    const preserveApiRanking = usesTemporaryApiRanking(
+      debouncedQuery,
+      isLaptopApiRankingEnabled,
+    );
+    const resultMap = new Map<string, TrendingAsset>(
+      preserveApiRanking
+        ? []
+        : trendingMatches.map((result) => [result.assetId, result]),
+    );
 
     searchResults
       .filter((item) => includeStocks || !item.rwaData)
@@ -155,6 +175,7 @@ export const useTrendingSearch = (opts?: {
     return Array.from(resultMap.values());
   }, [
     debouncedQuery,
+    isLaptopApiRankingEnabled,
     trendingResults,
     searchResults,
     sortTrendingTokensOptions,
