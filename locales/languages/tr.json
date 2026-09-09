@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Pro üyeliğiniz",
     "manage": "Aboneliği yönet",
-    "manage_plan": "Planı yönet",
-    "earned_with_pro": "Pro ile kazanılan",
-    "saved_with_pro": "Pro ile tasarruf edilen",
-    "next_payment": "Bir sonraki {{amount}} ödemeniz {{date}} tarihinde gerçekleşecektir.",
     "member_pricing": {
       "title": "İşlemlerde üyelik fiyatlandırması",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "Üyeliğiniz",
       "plan": "Üyelik",
       "earned_this_month": "Bu ay kazanılan",
-      "saved_this_month": "Bu ay tasarruf edilen",
       "payment_details": "Ödeme bilgileri",
       "total": "Toplam",
       "paying_with": "Ödeme aracı",

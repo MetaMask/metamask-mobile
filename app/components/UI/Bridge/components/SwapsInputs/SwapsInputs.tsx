@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -17,8 +16,6 @@ import { createStyles } from './SwapsInputs.styles';
 
 interface SwapsInputsProps {
   inputRef: React.Ref<TokenInputAreaRef>;
-  /** Chains both token selectors are restricted to. */
-  enabledChainIds?: CaipChainId[];
   sourceToken: BridgeToken | undefined;
   sourceAmountInput: ReturnType<typeof useSourceAmountInput>;
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -41,7 +38,6 @@ interface SwapsInputsProps {
 
 export const SwapsInputs = ({
   inputRef,
-  enabledChainIds,
   sourceToken,
   sourceAmountInput,
   latestSourceBalance,
@@ -96,8 +92,6 @@ export const SwapsInputs = ({
                 : undefined
             }
             amountTypeToggleTestID={sourceAmountTypeToggleTestID}
-            enabledChainIds={enabledChainIds}
-            excludeRwaTokens
             hideFiatValueWhenUnpriced
           />
         </Box>
@@ -131,8 +125,6 @@ export const SwapsInputs = ({
               hideDestAmount ? strings('bridge.recurring.you_get') : undefined
             }
             amountReplacementLabelTestID={destAmountReplacementLabelTestID}
-            enabledChainIds={enabledChainIds}
-            excludeRwaTokens
             hideFiatValueWhenUnpriced
           />
         </Box>

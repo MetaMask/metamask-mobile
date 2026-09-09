@@ -18,6 +18,7 @@ export enum EARN_MODULE_ENTRY_POINTS {
   EXPLORE_CRYPTO_TAB = 'explore_crypto_tab',
   EXPLORE_SEARCH = 'explore_search',
   EARN_SECTION_LIST = 'earn_section_list',
+  TRADE_MENU = 'trade_menu',
 }
 
 export enum EARN_MODULE_BUTTON_TYPES {
@@ -46,6 +47,7 @@ export enum EARN_MODULE_COMPONENT_NAMES {
   EARN_SEARCH_ASSET_ROW = 'earn_search_asset_row',
   EARN_SECTION_ERROR_RETRY_BUTTON = 'earn_section_error_retry_button',
   EARN_STRATEGY_SELECTION_MODAL_CLOSE_ICON = 'earn_strategy_selection_modal_close_icon',
+  EARN_TRADE_MENU_ROW = 'earn_trade_menu_row',
 }
 
 export enum EARN_MODULE_STRATEGY_TYPES {

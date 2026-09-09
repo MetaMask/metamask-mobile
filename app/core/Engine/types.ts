@@ -152,6 +152,8 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
+  NeoBankServiceActions,
+  NeoBankServiceEvents,
   TransakService,
   TransakServiceActions,
   TransakServiceEvents,
@@ -715,6 +717,7 @@ export type GlobalActions =
   | ProofOfOwnershipServiceActions
   | RampsControllerActions
   | RampsServiceActions
+  | NeoBankServiceActions
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
@@ -823,6 +826,7 @@ export type GlobalEvents =
   | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
+  | NeoBankServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents

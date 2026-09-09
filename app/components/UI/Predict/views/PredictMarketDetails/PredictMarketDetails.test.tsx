@@ -1757,7 +1757,13 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         singleOutcomeMarket,
         {},
-        { eligibility: { isEligible: false } },
+        {
+          eligibility: {
+            isEligible: false,
+            isIneligible: true,
+            status: 'ineligible',
+          },
+        },
       );
 
       const yesButton = findActionButtonByPrice(65);
@@ -1802,7 +1808,13 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         singleOutcomeMarket,
         {},
-        { eligibility: { isEligible: false } },
+        {
+          eligibility: {
+            isEligible: false,
+            isIneligible: true,
+            status: 'ineligible',
+          },
+        },
       );
 
       const noButton = findActionButtonByPrice(35);

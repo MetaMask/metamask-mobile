@@ -1,10 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import {
-  FeatureId,
-  UnifiedSwapBridgeEventName,
-} from '@metamask/bridge-controller';
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { QuickPickButtonOption } from '../SwapsKeypad/types';
 import { QuickPickButtons } from '../SwapsKeypad/QuickPickButtons';
+import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
@@ -28,6 +26,8 @@ export const GaslessQuickPickOptions = ({
   tokenBalance,
   isQuoteSponsored,
 }: GaslessQuickPickOptionsProps) => {
+  const featureId = useSwapsFeatureId();
+
   const trackInputAmountChange = useCallback(
     ({ inputValue, preset }: { inputValue: string; preset?: string }) => {
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
@@ -35,12 +35,12 @@ export const GaslessQuickPickOptions = ({
         {
           input: 'token_amount_source',
           input_value: inputValue,
-          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+          feature_id: featureId,
           ...(preset && { input_amount_preset: preset }),
         },
       );
     },
-    [],
+    [featureId],
   );
 
   const onQuickOptionPress = useCallback(
