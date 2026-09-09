@@ -2,8 +2,10 @@ import {
   adbDeviceArgs,
   chromeCdpForwardPort,
   hostListenPortForDevicePort,
+  isIosAppiumSmokeEnv,
   metamaskWebViewCdpForwardPort,
   resolveE2eWorkerIndex,
+  resolveWorkerAdbServerPort,
   resolveWorkerAndroidSerial,
   webviewCdpForwardPort,
 } from './e2eWorkerPorts.ts';
@@ -99,13 +101,66 @@ describe('e2eWorkerPorts', () => {
       expect(args).toEqual(['-s', 'emulator-5556']);
     });
 
-    it('pins adb to the pool device when ANDROID_SERIAL is not exported yet', () => {
+    it('pins adb to the pool device and server when ANDROID_SERIAL is not exported yet', () => {
       const args = adbDeviceArgs({
         ANDROID_DEVICE_POOL_SIZE: '2',
         TEST_PARALLEL_INDEX: '1',
       });
 
-      expect(args).toEqual(['-s', 'emulator-5556']);
+      expect(args).toEqual(['-P', '5038', '-s', 'emulator-5556']);
+    });
+
+    it('pins adb to the exported worker adb server port', () => {
+      const args = adbDeviceArgs({
+        ANDROID_SERIAL: 'emulator-5558',
+        ANDROID_ADB_SERVER_PORT: '5039',
+      });
+
+      expect(args).toEqual(['-P', '5039', '-s', 'emulator-5558']);
+    });
+  });
+
+  describe('resolveWorkerAdbServerPort', () => {
+    it('returns no port on the single emulator path', () => {
+      const port = resolveWorkerAdbServerPort({});
+
+      expect(port).toBeUndefined();
+    });
+
+    it('prefers the exported port', () => {
+      const port = resolveWorkerAdbServerPort({
+        ANDROID_ADB_SERVER_PORT: '5038',
+      });
+
+      expect(port).toBe(5038);
+    });
+
+    it('falls back to the pool assignment before the deviceProvider fixture runs', () => {
+      const port = resolveWorkerAdbServerPort({
+        ANDROID_DEVICE_POOL_SIZE: '3',
+        TEST_PARALLEL_INDEX: '2',
+      });
+
+      expect(port).toBe(5039);
+    });
+
+    it('never targets an adb server on an iOS Appium worker', () => {
+      const port = resolveWorkerAdbServerPort({
+        ANDROID_DEVICE_POOL_SIZE: '2',
+        TEST_PARALLEL_INDEX: '1',
+        IOS_SIMULATOR_UDID: '11111111-1111-1111-1111-111111111111',
+      });
+
+      expect(port).toBeUndefined();
+    });
+
+    it('rejects a non-numeric exported port', () => {
+      const resolveInvalidPort = () =>
+        resolveWorkerAdbServerPort({ ANDROID_ADB_SERVER_PORT: 'not-a-port' });
+
+      expect(resolveInvalidPort).toThrow(
+        'Invalid ANDROID_ADB_SERVER_PORT "not-a-port"',
+      );
     });
   });
 
@@ -141,6 +196,37 @@ describe('e2eWorkerPorts', () => {
 
       expect(resolveMissingWorker).toThrow(
         'Android worker 2 has no device in ANDROID_DEVICE_POOL (2 devices).',
+      );
+    });
+
+    it('does not invent Android serials when iOS pool env is present', () => {
+      const serial = resolveWorkerAndroidSerial({
+        ANDROID_DEVICE_POOL_SIZE: '3',
+        IOS_DEVICE_POOL_SIZE: '2',
+        IOS_SIMULATOR_UDID: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        TEST_PARALLEL_INDEX: '1',
+      });
+
+      expect(serial).toBeUndefined();
+    });
+  });
+
+  describe('isIosAppiumSmokeEnv', () => {
+    it('detects iOS from simulator UDID', () => {
+      expect(
+        isIosAppiumSmokeEnv({
+          IOS_SIMULATOR_UDID: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        }),
+      ).toBe(true);
+    });
+
+    it('detects iOS from pool size greater than one', () => {
+      expect(isIosAppiumSmokeEnv({ IOS_DEVICE_POOL_SIZE: '2' })).toBe(true);
+    });
+
+    it('is false on Android-only env', () => {
+      expect(isIosAppiumSmokeEnv({ ANDROID_DEVICE_POOL_SIZE: '3' })).toBe(
+        false,
       );
     });
   });

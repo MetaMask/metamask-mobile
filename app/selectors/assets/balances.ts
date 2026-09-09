@@ -65,66 +65,18 @@ import {
 import type { NetworkConfig } from '@metamask/network-enablement-controller';
 import { selectIsAssetsUnifyStateEnabled } from '../featureFlagController/assetsUnifyState';
 import { selectAssetsControllerStateForBalances } from './assets-controller';
-import { ARC_USDC_ERC20_ADDRESS } from '../../enablement/assets/arc';
-import {
-  filterExcludedTokenBalances,
-  STABLE_USDT0_ERC20_ADDRESS,
-} from '../../enablement/assets/networks-customization';
+import { augmentArcExcludedAssets } from '../../enablement/assets/arc';
+import { filterExcludedTokenBalances } from '../../enablement/assets/networks-customization';
 
 /**
- * CAIP-19 ERC-20 asset ids that duplicate native gas tokens (Arc USDC,
- * Stable USDT0). Stripped only on the unified aggregation path so fiat
- * totals match the legacy `filterExcludedTokenBalances` behavior.
- */
-const EXCLUDED_UNIFIED_BALANCE_ASSET_IDS = new Set([
-  `eip155:5042/erc20:${ARC_USDC_ERC20_ADDRESS.toLowerCase()}`,
-  `eip155:988/erc20:${STABLE_USDT0_ERC20_ADDRESS.toLowerCase()}`,
-]);
-
-/**
- * TEMPORARY (until scaleToHumanIfRaw is fixed in core): strip `assetsInfo` so
- * aggregation cannot re-divide large human-readable balances by 10^decimals
- * and drop them from the fiat total (#44786).
+ * State transforms applied before unified fiat aggregation.
  *
- * @param state - AssetsController state slice.
- * @returns State with empty assetsInfo.
+ * Balances without matching `assetsInfo` are excluded by AssetsController
+ * 15+ itself (see `balances.missing-assets-info.test.ts` + anonymised
+ * `__fixtures__/assets-controller-state-log` for regression coverage).
+ * Only the Arc/Stable duplicate-token exclusion remains here.
  */
-function stripAssetsInfoForAggregation(
-  state: AssetsControllerState,
-): AssetsControllerState {
-  return {
-    ...state,
-    assetsInfo: {},
-  };
-}
-
-/**
- * Prepares AssetsController state for unified fiat aggregation by removing
- * ERC-20 balances that duplicate native gas tokens (Arc USDC, Stable USDT0).
- *
- * @param assetsControllerState - AssetsController state slice.
- * @returns Copy of state without excluded ERC-20 balances.
- */
-export function augmentAssetControllersState(
-  assetsControllerState: AssetsControllerState,
-): AssetsControllerState {
-  return {
-    ...assetsControllerState,
-    assetsBalance: Object.fromEntries(
-      Object.entries(assetsControllerState.assetsBalance ?? {}).map(
-        ([accountId, assets]) => [
-          accountId,
-          Object.fromEntries(
-            Object.entries(assets).filter(
-              ([assetId]) =>
-                !EXCLUDED_UNIFIED_BALANCE_ASSET_IDS.has(assetId.toLowerCase()),
-            ),
-          ),
-        ],
-      ),
-    ),
-  };
-}
+export const augmentAssetsControllerStateForBalances = augmentArcExcludedAssets;
 
 /**
  * Account ids that belong to a group, read from the account tree.
@@ -180,7 +132,7 @@ export function getUnifiedBalanceForAccountGroup(
   // selected-account argument is only a placeholder.
   const placeholderAccount = { id: accountIds[0] } as InternalAccount;
   const { totalBalanceInFiat = 0 } = getAggregatedBalanceForAccount(
-    stripAssetsInfoForAggregation(assetsControllerState),
+    augmentAssetsControllerStateForBalances(assetsControllerState),
     placeholderAccount,
     enabledNetworkMap,
     undefined,
@@ -357,9 +309,7 @@ export const selectBalanceForAllWallets = (popularChainIds?: CaipChainId[]) =>
     ) => {
       if (isAssetsUnifyStateEnabled) {
         return calculateBalanceForAllWalletsFromUnified(
-          stripAssetsInfoForAggregation(
-            augmentAssetControllersState(assetsControllerState),
-          ),
+          augmentAssetsControllerStateForBalances(assetsControllerState),
           accountTreeState,
           enabledNetworkMap,
         );
@@ -409,9 +359,7 @@ export const selectBalanceForAllWalletsAndChains = createSelector(
   ) => {
     if (isAssetsUnifyStateEnabled) {
       return calculateBalanceForAllWalletsFromUnified(
-        stripAssetsInfoForAggregation(
-          augmentAssetControllersState(assetsControllerState),
-        ),
+        augmentAssetsControllerStateForBalances(assetsControllerState),
         accountTreeState,
         undefined,
       );
@@ -526,7 +474,7 @@ export const selectUnifiedBalanceBySelectedAccountGroup = (
       }
 
       return getUnifiedBalanceForAccountGroup(
-        augmentAssetControllersState(assetsControllerState),
+        augmentAssetsControllerStateForBalances(assetsControllerState),
         accountTreeState,
         selectedGroupId,
         enabledNetworkMap,
@@ -628,9 +576,7 @@ const selectRawAccountGroupBalanceForEmptyState = createSelector(
     // Calculate balance using the mainnet-only network map
     const allBalances = isAssetsUnifyStateEnabled
       ? calculateBalanceForAllWalletsFromUnified(
-          stripAssetsInfoForAggregation(
-            augmentAssetControllersState(assetsControllerState),
-          ),
+          augmentAssetsControllerStateForBalances(assetsControllerState),
           accountTreeState,
           enabledNetworkMap,
         )
@@ -767,9 +713,7 @@ export const selectBalanceChangeByAccountGroup = (
     ): BalanceChangeResult => {
       if (isAssetsUnifyStateEnabled) {
         return calculateBalanceChangeForAccountGroupFromUnified(
-          stripAssetsInfoForAggregation(
-            augmentAssetControllersState(assetsControllerState),
-          ),
+          augmentAssetsControllerStateForBalances(assetsControllerState),
           accountTreeState,
           groupId,
           period,
@@ -843,9 +787,7 @@ export const selectBalanceChangeBySelectedAccountGroup = (
       }
       if (isAssetsUnifyStateEnabled) {
         return calculateBalanceChangeForAccountGroupFromUnified(
-          stripAssetsInfoForAggregation(
-            augmentAssetControllersState(assetsControllerState),
-          ),
+          augmentAssetsControllerStateForBalances(assetsControllerState),
           accountTreeState,
           selectedGroupId,
           period,

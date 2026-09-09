@@ -759,6 +759,20 @@ describe('usePerpsToasts', () => {
         });
       });
 
+      it('returns TWAP-specific cancellation success copy', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancellationSuccess(
+            false,
+            'TWAP',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Twap order cancelled',
+          isBold: true,
+        });
+      });
+
       it('returns cancellation success configuration without detailed order type (non-reduce only)', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =

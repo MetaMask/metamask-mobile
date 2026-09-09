@@ -2,7 +2,10 @@ import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ApprovalType } from '@metamask/controller-utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  hasTransactionType,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
@@ -27,7 +30,10 @@ export const useConfirmActions = () => {
     onReject: onRequestReject,
     approvalRequest,
   } = useApprovalRequest();
-  const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
+  const {
+    navigateOnConfirm: onTransactionSigningComplete,
+    onConfirm: onTransactionConfirm,
+  } = useTransactionConfirm();
   const transactionMetadata = useTransactionMetadataRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
   const {
@@ -45,6 +51,13 @@ export const useConfirmActions = () => {
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
   const isQrAccount = useIsConfirmationFromQrAccount();
   const payingAccount = useTransactionPayingAccount();
+  const batchSigningTransactionId =
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountDeposit,
+    ])
+      ? transactionMetadata.id
+      : undefined;
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -103,17 +116,21 @@ export const useConfirmActions = () => {
       fromAddress:
         payingAccount || (approvalRequest?.requestData?.from as string),
       onReject,
+      onSigningComplete: onTransactionSigningComplete,
       onTransactionConfirm,
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
+      transactionId: batchSigningTransactionId,
     }),
     [
       approvalRequest?.requestData?.from,
       payingAccount,
       onReject,
+      onTransactionSigningComplete,
       onTransactionConfirm,
       executeApproval,
       isTransactionReq,
+      batchSigningTransactionId,
     ],
   );
 
