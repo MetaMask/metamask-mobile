@@ -196,6 +196,10 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   })),
 }));
 
+jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
+  UiSlotRenderer: ({ fallback }: { fallback: React.ReactNode }) => fallback,
+}));
+
 jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query');
   return {

@@ -24,7 +24,9 @@ export * from './types';
 export {
   CARD_PROVIDER_FLAGS,
   CARD_UK_MIGRATION_COUNTRY_CODE,
+  CARD_UK_MIGRATION_UPDATE_BADGE_WARNING_DAYS,
   FALLBACK_CARD_PROVIDER_ID,
+  getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
   readCardProviderChains,
@@ -35,6 +37,7 @@ export {
   resolveCardProviderForCountry,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
+  type CardUkMigrationUpdateBadgeSeverity,
 } from './read';
 
 /**

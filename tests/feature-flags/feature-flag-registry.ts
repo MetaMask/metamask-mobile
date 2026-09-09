@@ -7067,7 +7067,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
       {
-        name: 'treatment',
+        name: 'grayIcons',
+        scope: {
+          value: 0,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'colorIcons',
         scope: {
           type: 'percentage_rollout',
           value: 0,
@@ -7103,7 +7110,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
       {
-        name: 'postOnboardingSteps',
+        name: 'row1Top',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+      {
+        name: 'row2Top',
         scope: {
           type: 'percentage_rollout',
           value: 0,
@@ -7403,8 +7417,19 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  coreMCU589AbtestHubPageDiscoveryTabs: {
-    name: 'coreMCU589AbtestHubPageDiscoveryTabs',
+  uiSlots: {
+    name: 'uiSlots',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictFeedBanner: {
+    name: 'predictFeedBanner',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
@@ -7651,20 +7676,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           stage: 0,
         },
       },
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  networkAssetsSnapsMigrationTron: {
-    name: 'networkAssetsSnapsMigrationTron',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      versions: {
-        '13.41.0': {
-          featureVersion: '1',
-          minimumSnapVersion: '1.20.0',
-          stage: 0,
+      {
+        name: 'postOnboardingSteps',
+        scope: {
+          value: 0,
+          type: 'percentage_rollout',
         },
       },
     },

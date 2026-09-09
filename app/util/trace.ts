@@ -39,6 +39,7 @@ export enum TraceName {
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
   HomepageReady = 'Homepage Ready',
+  UiSlotsLoad = 'UI Slots Load',
   DeeplinkProcessed = 'Deeplink Processed',
   DeeplinkNavigated = 'Deeplink Navigated',
   DeeplinkSignatureVerify = 'Deeplink Signature Verify',
