@@ -298,6 +298,56 @@ describe('usePayWithPerpsSection', () => {
     expect(depositWithOrderMock).toHaveBeenCalledTimes(1);
   });
 
+  it('retries on the next focus when recreating the order failed', async () => {
+    depositWithOrderMock.mockRejectedValueOnce(new Error('no-connection'));
+
+    const { result, rerender } = renderHook(() => usePayWithPerpsSection());
+
+    await pressAdd(result);
+
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
+
+    await act(async () => {
+      rerender();
+    });
+    await act(async () => {
+      rerender();
+    });
+
+    expect(depositWithOrderMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not recreate the order while the deposit is still in flight', async () => {
+    let resolveDeposit: (value: unknown) => void = () => undefined;
+    depositWithConfirmationMock.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveDeposit = resolve;
+      }),
+    );
+
+    const { result, rerender } = renderHook(() => usePayWithPerpsSection());
+
+    const trailing = result.current?.rows[0].trailingElement as
+      | { props: { onPress: () => Promise<void> } }
+      | undefined;
+
+    act(() => {
+      trailing?.props.onPress();
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
+
+    await act(async () => {
+      rerender();
+    });
+
+    expect(depositWithOrderMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveDeposit({ result: Promise.resolve('ok') });
+    });
+  });
+
   it('does not navigate when deposit confirmation rejects', async () => {
     depositWithConfirmationMock.mockRejectedValueOnce(new Error('user-cancel'));
 

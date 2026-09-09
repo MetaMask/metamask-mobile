@@ -72,15 +72,15 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
 
   const handleAdd = useCallback(async () => {
     onReject();
-    hasLeftForDeposit.current = true;
     try {
       await depositWithConfirmation();
+      hasLeftForDeposit.current = true;
       navigation.navigate(
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         { showPerpsHeader: true },
       );
     } catch {
-      // Deposit flow handles errors (e.g. user rejection or missing network).
+      hasLeftForDeposit.current = true;
     }
   }, [depositWithConfirmation, navigation, onReject]);
 
@@ -100,11 +100,11 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
       isRestoringOrder.current = true;
 
       depositWithOrder()
-        .catch(() => {
-          // The deposit flow surfaces its own errors.
-        })
-        .finally(() => {
+        .then(() => {
           hasLeftForDeposit.current = false;
+        })
+        .catch(() => undefined)
+        .finally(() => {
           isRestoringOrder.current = false;
         });
     }, [depositWithOrder, transactionMeta]),
