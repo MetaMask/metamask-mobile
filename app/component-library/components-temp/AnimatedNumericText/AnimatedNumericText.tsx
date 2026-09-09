@@ -12,14 +12,14 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 import {
   FontWeight,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NumberFlow } from 'number-flow-react-native/native';
+import { Laminar } from 'react-native-laminar';
 
 import {
   NUMERIC_LAYOUT_TRANSITION,
@@ -44,7 +44,7 @@ export interface AnimatedNumericTextProps {
    */
   rollDigits?: boolean;
   /**
-   * Render plain text until the JS thread is idle before mounting Number Flow.
+   * Render plain text until the JS thread is idle before mounting Laminar.
    * Useful for secondary values on screens opened during app startup.
    *
    * @default false
@@ -81,8 +81,8 @@ interface NumericSlotProps {
 
 /**
  * Memoised so appending a character re-renders one slot rather than all of
- * them. Number Flow measures glyphs asynchronously per font configuration, so
- * mounting it needlessly is what makes a keypress feel delayed.
+ * them. The editable amount uses these lightweight text slots so typing does
+ * not rebuild Laminar's digit reels on every keypress.
  */
 const NumericSlot = memo(
   ({ character, textStyle, entering, exiting }: NumericSlotProps) => (
@@ -93,42 +93,6 @@ const NumericSlot = memo(
 );
 
 NumericSlot.displayName = 'NumericSlot';
-
-interface NumberFlowConfig {
-  value: number;
-  format: Intl.NumberFormatOptions;
-}
-
-/**
- * Number Flow accepts only `number`, so use it only when Intl can reproduce the
- * source string exactly. Large token balances and partially typed values fall
- * back to lossless text instead of being rounded through IEEE-754.
- */
-export const getNumberFlowConfig = (
-  numeric: string,
-): NumberFlowConfig | undefined => {
-  const match = /^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?$/u.exec(numeric);
-  if (!match) {
-    return undefined;
-  }
-
-  const fractionDigits = match[1]?.length ?? 0;
-  const format: Intl.NumberFormatOptions = {
-    minimumFractionDigits: fractionDigits,
-    maximumFractionDigits: fractionDigits,
-    useGrouping: numeric.includes(','),
-  };
-  const value = Number(numeric.replaceAll(',', ''));
-
-  if (
-    !Number.isFinite(value) ||
-    new Intl.NumberFormat('en-US', format).format(value) !== numeric
-  ) {
-    return undefined;
-  }
-
-  return { value, format };
-};
 
 interface IdleCallbackGlobals {
   requestIdleCallback?: (callback: () => void) => number;
@@ -164,12 +128,12 @@ const VARIANT_FONT_WEIGHT: Record<TextVariant, FontWeight> = {
 };
 
 /**
- * Renders a numeric string as one animated slot per character.
+ * Renders a numeric string without converting it to a JavaScript number, so
+ * token balances retain their full precision.
  *
- * Number Flow keys digits by place value (`integer:0` is the ones column), so
- * feeding it a whole appended value re-rolls every digit: `123` -> `1237` moves
- * ones 3->7, tens 2->3, hundreds 1->2. Keying each slot by its index from the
- * left keeps typed digits still and animates only the appended one.
+ * Editable keypad values use index-keyed text slots so appending a digit leaves
+ * existing characters still. Secondary values use Laminar's string-native
+ * slots renderer for rolling updates.
  */
 const AnimatedNumericText = ({
   value,
@@ -187,6 +151,7 @@ const AnimatedNumericText = ({
   const tw = useTailwind();
   const hasMountedRef = useRef(false);
   const [rollingReady, setRollingReady] = React.useState(!deferRolling);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     hasMountedRef.current = true;
@@ -236,10 +201,6 @@ const AnimatedNumericText = ({
   );
 
   const characters = useMemo(() => numeric.split(''), [numeric]);
-  const numberFlowConfig = useMemo(
-    () => getNumberFlowConfig(numeric),
-    [numeric],
-  );
 
   // Slots present on the first render are already on screen, so only later
   // appends animate in.
@@ -250,8 +211,8 @@ const AnimatedNumericText = ({
   // An append-only row never reflows internally, so per-slot transitions would
   // only fire when the caller restyles (a font size step) and animate every
   // character sliding to its new size at once.
-  const shouldRenderNumberFlow =
-    rollDigits && rollingReady && numberFlowConfig !== undefined;
+  const shouldRenderLaminar =
+    rollDigits && rollingReady && animated && !reduceMotion;
 
   return (
     <Animated.View
@@ -262,19 +223,15 @@ const AnimatedNumericText = ({
       layout={layout}
       style={rowStyle}
     >
-      {shouldRenderNumberFlow ? (
-        <NumberFlow
-          value={numberFlowConfig.value}
-          format={numberFlowConfig.format}
-          locales="en-US"
-          prefix={prefix}
-          suffix={suffix}
+      {shouldRenderLaminar ? (
+        <Laminar
+          text={value}
+          variant="slots"
+          autoSize={false}
+          clipToBounds
+          animationPreset="snappy"
+          animationDuration={NUMERIC_SLOT_TIMING.duration}
           style={textStyle}
-          animated={animated}
-          respectMotionPreference
-          spinTiming={NUMERIC_SLOT_TIMING}
-          transformTiming={NUMERIC_SLOT_TIMING}
-          opacityTiming={NUMERIC_SLOT_TIMING}
         />
       ) : rollDigits ? (
         <Animated.Text layout={layout} style={textStyle}>
