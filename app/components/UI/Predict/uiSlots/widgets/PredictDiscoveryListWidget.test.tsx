@@ -74,7 +74,6 @@ describe('PredictDiscoveryListWidget', () => {
       headerTestIdKey: 'predictions' as const,
       registerDiscoveryRefetch: jest.fn(),
       reportDiscoveryLoading: jest.fn(),
-      isSectionVisible: true,
     };
 
     render(
@@ -93,9 +92,6 @@ describe('PredictDiscoveryListWidget', () => {
       ],
     });
     expect(mockHomepagePredictDiscovery).toHaveBeenCalledTimes(1);
-    expect(mockHomepagePredictDiscovery).toHaveBeenCalledWith(
-      expect.objectContaining({ isSectionVisible: true }),
-    );
   });
 
   it('uses bundled slots and resets loading during unmount', () => {
@@ -107,7 +103,6 @@ describe('PredictDiscoveryListWidget', () => {
       headerTestIdKey: 'predictions' as const,
       registerDiscoveryRefetch: jest.fn(),
       reportDiscoveryLoading,
-      isSectionVisible: true,
     };
     const { unmount } = render(
       <PredictDiscoveryListHostContext.Provider value={host}>
@@ -133,7 +128,6 @@ describe('PredictDiscoveryListWidget', () => {
       headerTestIdKey: 'predictions' as const,
       registerDiscoveryRefetch: jest.fn(),
       reportDiscoveryLoading: jest.fn(),
-      isSectionVisible: true,
     };
     const { rerender } = render(
       <PredictDiscoveryListHostContext.Provider value={host}>

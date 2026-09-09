@@ -65,7 +65,6 @@ function HostedPredictDiscoveryList({
       marketSlots={marketSlots}
       transactionActiveAbTests={host.transactionActiveAbTests}
       onTreatmentCtaClick={host.onTreatmentCtaClick}
-      isSectionVisible={host.isSectionVisible}
     />
   );
 }

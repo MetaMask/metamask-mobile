@@ -19,8 +19,6 @@ export interface PredictDiscoveryListHost {
     refetch: (() => Promise<unknown>) | undefined,
   ) => void;
   reportDiscoveryLoading: (isLoading: boolean) => void;
-  /** Whether the Predictions homepage section is scrolled into the viewport. */
-  isSectionVisible: boolean;
 }
 
 export const PredictDiscoveryListHostContext =

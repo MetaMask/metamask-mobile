@@ -5,7 +5,7 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -29,8 +29,13 @@ import type {
   PredictMarket,
   PredictSeries,
 } from '../../../../../../UI/Predict/types';
+import { useDebouncedValue } from '../../../../../../hooks/useDebouncedValue';
+import useSectionViewportVisible from '../../../../hooks/useSectionViewportVisible';
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
 import HomepagePredictDiscoveryLivePill from './HomepagePredictDiscoveryLivePill';
+
+/** Hold the live subscription after the row scrolls off-screen. */
+export const BTC_LIVE_DISCONNECT_DELAY_MS = 5000;
 
 const formatBtc = (value: number | undefined) =>
   value === undefined || Number.isNaN(value)
@@ -44,8 +49,6 @@ interface BtcLiveRowProps {
     marketId: string | undefined,
     market: PredictMarket | undefined,
   ) => void;
-  /** Whether the Predictions homepage section is scrolled into the viewport. */
-  isSectionVisible: boolean;
 }
 
 interface BtcLiveValuesHandle {
@@ -103,14 +106,14 @@ const BtcMarketValues = memo(
 
 interface BtcLiveValuesProps {
   series: PredictSeries;
-  isSectionVisible: boolean;
+  isVisibleForLive: boolean;
 }
 
 const BtcLiveValues = forwardRef<BtcLiveValuesHandle, BtcLiveValuesProps>(
-  ({ series, isSectionVisible }, ref) => {
+  ({ series, isVisibleForLive }, ref) => {
     const isFocused = useIsFocused();
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-    const enabled = isPredictEnabled && isFocused && isSectionVisible;
+    const enabled = isPredictEnabled && isFocused && isVisibleForLive;
     const { marketId, market, currentPrice, priceToBeat, countdown } =
       useCurrentCryptoUpDownMarketData({
         series,
@@ -139,43 +142,50 @@ const BtcLiveValues = forwardRef<BtcLiveValuesHandle, BtcLiveValuesProps>(
  * stable on countdown ticks, while memoized labels update only when their
  * respective values change.
  */
-const BtcLiveRow = memo(
-  ({ series, onPress, isSectionVisible }: BtcLiveRowProps) => {
-    const tw = useTailwind();
-    const liveValuesRef = useRef<BtcLiveValuesHandle>(null);
-    const handlePress = useCallback(() => {
-      onPress(
-        series,
-        liveValuesRef.current?.marketId,
-        liveValuesRef.current?.market,
-      );
-    }, [onPress, series]);
-
-    return (
-      <Pressable
-        accessibilityRole="button"
-        onPress={handlePress}
-        style={tw.style(
-          'w-full flex-row items-center self-stretch py-2 active:opacity-80',
-        )}
-        testID="homepage-predict-discovery-btc-row"
-      >
-        <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
-          <HomepagePredictDiscoveryMaterialGlyph name="currencyBitcoin" />
-        </Box>
-        <BtcLiveValues
-          ref={liveValuesRef}
-          series={series}
-          isSectionVisible={isSectionVisible}
-        />
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-        />
-      </Pressable>
+const BtcLiveRow = memo(({ series, onPress }: BtcLiveRowProps) => {
+  const tw = useTailwind();
+  const liveValuesRef = useRef<BtcLiveValuesHandle>(null);
+  const rowRef = useRef<View>(null);
+  const { isVisible, onLayout } = useSectionViewportVisible(rowRef);
+  const debouncedIsVisible = useDebouncedValue(
+    isVisible,
+    BTC_LIVE_DISCONNECT_DELAY_MS,
+  );
+  const isVisibleForLive = isVisible || debouncedIsVisible;
+  const handlePress = useCallback(() => {
+    onPress(
+      series,
+      liveValuesRef.current?.marketId,
+      liveValuesRef.current?.market,
     );
-  },
-);
+  }, [onPress, series]);
+
+  return (
+    <Pressable
+      ref={rowRef}
+      accessibilityRole="button"
+      onPress={handlePress}
+      onLayout={onLayout}
+      style={tw.style(
+        'w-full flex-row items-center self-stretch py-2 active:opacity-80',
+      )}
+      testID="homepage-predict-discovery-btc-row"
+    >
+      <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+        <HomepagePredictDiscoveryMaterialGlyph name="currencyBitcoin" />
+      </Box>
+      <BtcLiveValues
+        ref={liveValuesRef}
+        series={series}
+        isVisibleForLive={isVisibleForLive}
+      />
+      <Icon
+        name={IconName.ArrowRight}
+        size={IconSize.Sm}
+        color={IconColor.IconAlternative}
+      />
+    </Pressable>
+  );
+});
 
 export default BtcLiveRow;

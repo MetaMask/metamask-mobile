@@ -440,7 +440,7 @@ describe('PredictionsSection', () => {
   );
 
   it.each([true, false])(
-    'sets crypto up/down market data enabled to %s based on section viewport visibility',
+    'sets crypto up/down market data enabled to %s based on BTC row viewport visibility',
     (isSectionVisible) => {
       const { useCurrentCryptoUpDownMarketData } = jest.requireMock(
         '../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData',
@@ -460,7 +460,7 @@ describe('PredictionsSection', () => {
     },
   );
 
-  it('disables crypto up/down market data when focused but scrolled out of the viewport', () => {
+  it('disables crypto up/down market data when focused but the BTC row is off-screen', () => {
     const { useCurrentCryptoUpDownMarketData } = jest.requireMock(
       '../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData',
     ) as {
