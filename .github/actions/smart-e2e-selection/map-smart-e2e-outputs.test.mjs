@@ -32,6 +32,13 @@ describe('mapSmartE2eOutputs', () => {
     assert.equal(out.ai_e2e_test_tags, '["ALL"]');
   });
 
+  it('falls back to ALL when the result is missing', () => {
+    const out = mapSmartE2eOutputs(null);
+    assert.equal(out.ai_e2e_test_tags, '["ALL"]');
+    assert.equal(out.ai_performance_test_tags, '');
+    assert.equal(out.ai_confidence, '0');
+  });
+
   it('stringifies specific performance tags', () => {
     const out = mapSmartE2eOutputs({
       selected_tags: ['SmokeAccounts'],

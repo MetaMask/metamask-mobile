@@ -1495,9 +1495,8 @@ jobs:
           repository: ${{ github.repository }}
           post-comment: true
           base-ref: ${{ github.event.pull_request.base.ref }}
-          # Feature branch until MetaMask/ai-analyzer cuts a release with
-          # mode-owned hard-rule plugins + continue. Swap to a tag/SHA pin after.
-          analyzer-ref: docs/smart-e2e-engine-migration
+          # ai-analyzer main @ mode-driven comments/labels + hard-rule plugins.
+          analyzer-ref: c592f54e7920f8834938226165d25a5351b8e78b
           analyzer-token: ${{ secrets.AI_ANALYZER_TOKEN }}
           litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
           langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}
