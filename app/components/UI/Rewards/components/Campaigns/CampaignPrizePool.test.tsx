@@ -292,12 +292,24 @@ describe('CampaignPrizePool', () => {
     expect(getByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
   });
 
-  it('renders an empty ladder when no prize pool is available', () => {
-    const { getByText, getByTestId } = render(
+  it('renders nothing when there is no prize pool and no request in flight', () => {
+    // A zeroed ladder would assert a $0 prize pool rather than an absent one.
+    const { queryByTestId } = render(
       <CampaignPrizePool {...baseProps} prizePool={null} />,
     );
 
-    expect(getByText('$0.00')).toBeDefined();
-    expect(getByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
+    expect(queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeNull();
+    expect(queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.PROGRESS_BAR)).toBeNull();
+    expect(queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeNull();
+  });
+
+  it('prefers existing data over a loading state (stale-while-revalidate)', () => {
+    const { getByTestId } = render(
+      <CampaignPrizePool {...baseProps} isLoading hasError />,
+    );
+
+    expect(
+      getByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.PROGRESS_BAR),
+    ).toBeDefined();
   });
 });

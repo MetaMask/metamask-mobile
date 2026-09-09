@@ -125,6 +125,13 @@ const CampaignPrizePool: React.FC<CampaignPrizePoolProps> = ({
     );
   }
 
+  // No data, and nothing in flight or failed to explain its absence. Rendering
+  // the ladder here would state a $0 prize pool as fact, which is a claim about
+  // the campaign rather than a missing value.
+  if (prizePool == null) {
+    return null;
+  }
+
   return (
     <Box
       twClassName="gap-2 mt-2"
