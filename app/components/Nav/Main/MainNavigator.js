@@ -892,32 +892,6 @@ const Webview = () => (
   </NativeStack.Navigator>
 );
 
-/* eslint-disable react/prop-types */
-const NftDetailsModeView = (props) => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name=" " // No name here because this title will be displayed in the header of the page
-      component={NftDetails}
-      initialParams={{
-        collectible: props.route.params?.collectible,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
-/* eslint-disable react/prop-types */
-const NftDetailsFullImageModeView = (props) => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name=" " // No name here because this title will be displayed in the header of the page
-      component={NftDetailsFullImage}
-      initialParams={{
-        collectible: props.route.params?.collectible,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
 const AddBookmarkView = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
     <NativeStack.Screen name="AddBookmark" component={AddBookmark} />
@@ -1190,12 +1164,12 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name="NftDetails"
-        component={NftDetailsModeView}
+        component={NftDetails}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
         name="NftDetailsFullImage"
-        component={NftDetailsFullImageModeView}
+        component={NftDetailsFullImage}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
