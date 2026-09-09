@@ -669,11 +669,15 @@ describe('TradingViewChart — incremental update routing', () => {
      * it against a stubbed `window`, so the assertions exercise the shipped code
      * rather than a re-implementation of it.
      */
-    const reportCandleCount = (
+    const executeCandleCountReport = (
       range: { from: number; to: number },
       dataLength: number,
       isPinchZoomActive = true,
-    ): number | undefined => {
+      initialVisibleCandleCount = 30,
+    ): {
+      reportedCandleCount: number | undefined;
+      visibleCandleCount: number;
+    } => {
       const template = createTradingViewChartTemplate(mockTheme, '', true);
       const start = template.indexOf('if (window.isPinchZoomActive) {');
       const end = template.indexOf(
@@ -686,6 +690,7 @@ describe('TradingViewChart — incremental update routing', () => {
       const windowStub = {
         allCandleData: new Array(dataLength).fill({}),
         lastReportedVisibleCandleCount: null,
+        visibleCandleCount: initialVisibleCandleCount,
         isPinchZoomActive,
         ZOOM_LIMITS: {
           MIN_CANDLES: 10,
@@ -704,8 +709,19 @@ describe('TradingViewChart — incremental update routing', () => {
         windowStub,
       );
 
-      return posted[0]?.candleCount;
+      return {
+        reportedCandleCount: posted[0]?.candleCount,
+        visibleCandleCount: windowStub.visibleCandleCount,
+      };
     };
+
+    const reportCandleCount = (
+      range: { from: number; to: number },
+      dataLength: number,
+      isPinchZoomActive = true,
+    ): number | undefined =>
+      executeCandleCountReport(range, dataLength, isPinchZoomActive)
+        .reportedCandleCount;
 
     /** Mirrors window.applyZoom's setVisibleLogicalRange framing. */
     const rangeFromApplyZoom = (candleCount: number, dataLength: number) => ({
@@ -743,6 +759,23 @@ describe('TradingViewChart — incremental update routing', () => {
           false,
         ),
       ).toBeUndefined();
+    });
+
+    it('uses the pinched count when a new realtime bar reapplies zoom', () => {
+      const dataLength = 500;
+      const result = executeCandleCountReport(
+        rangeFromApplyZoom(80, dataLength),
+        dataLength,
+        true,
+        30,
+      );
+      const template = createTradingViewChartTemplate(mockTheme, '', true);
+
+      expect(result.reportedCandleCount).toBe(80);
+      expect(result.visibleCandleCount).toBe(80);
+      expect(template).toContain(
+        'window.applyZoom(window.visibleCandleCount, false)',
+      );
     });
 
     it('tracks two-finger gestures on the chart container', () => {

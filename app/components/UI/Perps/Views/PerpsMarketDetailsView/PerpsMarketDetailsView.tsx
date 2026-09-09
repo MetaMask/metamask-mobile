@@ -192,6 +192,7 @@ import {
 } from '../../abTestConfig';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
+import { refreshLightweightChartViewport } from '../../utils/refreshLightweightChartViewport';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import {
@@ -955,7 +956,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         setEffectiveChartLibrary(configuredChartLibrary);
         setAdvancedChartResetKey((key) => key + 1);
       } else {
-        chartRef.current?.zoomToLatestCandle(visibleCandleCount);
+        refreshLightweightChartViewport(chartRef.current, visibleCandleCount);
       }
 
       // WebSocket streaming provides real-time data - no manual refresh needed

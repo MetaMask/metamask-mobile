@@ -20,10 +20,15 @@ export function usePerpsRecordMarketViewed(symbol?: string): void {
 
   useFocusEffect(
     useCallback(() => {
-      if (!symbol) {
+      // Wait for the authoritative tradable market list. Recording before it
+      // resolves can persist an arbitrary deeplink symbol as the Pro landing
+      // target for 24 hours.
+      if (!symbol || hasResolvedInitialData === false) {
         return;
       }
-      if (hasResolvedInitialData && !tradableSymbols.has(symbol)) {
+      // Production always supplies this field. The explicit comparison keeps
+      // legacy test doubles that predate it backward compatible.
+      if (hasResolvedInitialData === true && !tradableSymbols.has(symbol)) {
         return;
       }
       Engine.context.PerpsController.recordMarketViewed(symbol);

@@ -87,7 +87,7 @@ describe('usePerpsRecordMarketViewed', () => {
     expect(mockRecordMarketViewed).not.toHaveBeenCalled();
   });
 
-  it('records a symbol while the market list is still loading', () => {
+  it('does not record a symbol while the market list is still loading', () => {
     mockUsePerpsMarkets.mockReturnValue(
       createMarketsResult({
         markets: [],
@@ -101,7 +101,7 @@ describe('usePerpsRecordMarketViewed', () => {
     const focusCallback = useFocusEffect.mock.calls[0][0] as () => void;
     focusCallback();
 
-    expect(mockRecordMarketViewed).toHaveBeenCalledWith('ETH');
+    expect(mockRecordMarketViewed).not.toHaveBeenCalled();
   });
 
   it('does not record a delisted or unknown symbol once markets are loaded', () => {
@@ -109,6 +109,34 @@ describe('usePerpsRecordMarketViewed', () => {
 
     const focusCallback = useFocusEffect.mock.calls[0][0] as () => void;
     focusCallback();
+
+    expect(mockRecordMarketViewed).not.toHaveBeenCalled();
+  });
+
+  it('never records an invalid symbol while markets transition to resolved', () => {
+    mockUsePerpsMarkets.mockReturnValue(
+      createMarketsResult({
+        markets: [],
+        isLoading: true,
+        hasResolvedInitialData: false,
+      }),
+    );
+    const { rerender } = renderHook(
+      ({ symbol }: { symbol?: string }) => usePerpsRecordMarketViewed(symbol),
+      { initialProps: { symbol: 'DELISTED' } },
+    );
+
+    const unresolvedFocusCallback = useFocusEffect.mock.calls.at(-1)?.[0] as
+      | (() => void)
+      | undefined;
+    unresolvedFocusCallback?.();
+
+    mockUsePerpsMarkets.mockReturnValue(createMarketsResult());
+    rerender({ symbol: 'DELISTED' });
+    const resolvedFocusCallback = useFocusEffect.mock.calls.at(-1)?.[0] as
+      | (() => void)
+      | undefined;
+    resolvedFocusCallback?.();
 
     expect(mockRecordMarketViewed).not.toHaveBeenCalled();
   });

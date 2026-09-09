@@ -461,6 +461,9 @@ export const createTradingViewChartTemplate = (
                         if (candleCount > window.ZOOM_LIMITS.MAX_CANDLES) {
                             candleCount = window.ZOOM_LIMITS.MAX_CANDLES;
                         }
+                        // Keep realtime-follow and interval refreshes aligned with the
+                        // user's latest pinch instead of reapplying the pre-pinch zoom.
+                        window.visibleCandleCount = candleCount;
                         if (window.lastReportedVisibleCandleCount !== candleCount) {
                             window.lastReportedVisibleCandleCount = candleCount;
                             if (window.ReactNativeWebView) {

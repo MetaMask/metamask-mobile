@@ -102,7 +102,7 @@ const PerpsMarketListView = ({
   const title = route.params?.title ?? propTitle;
   const showBalanceActions =
     route.params?.showBalanceActions ?? propShowBalanceActions ?? true;
-  const showWatchlistOnly =
+  const requestedShowWatchlistOnly =
     route.params?.showWatchlistOnly ?? propShowWatchlistOnly;
   const defaultMarketTypeFilter = route.params?.defaultMarketTypeFilter;
   const defaultSortOptionId = route.params?.defaultSortOptionId;
@@ -112,6 +112,12 @@ const PerpsMarketListView = ({
   const enableHaptics = route.params?.enableHaptics === true;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  // Hide a persisted watchlist-only filter while Watchlist V2 is disabled.
+  // This is a route override, so it does not erase the stored preference and
+  // the preference can be restored if the flag is enabled again.
+  const showWatchlistOnly = isWatchlistEnabled
+    ? requestedShowWatchlistOnly
+    : false;
   const isRecentlyViewedEnabled = useSelector(
     selectPerpsRecentlyViewedEnabledFlag,
   );
