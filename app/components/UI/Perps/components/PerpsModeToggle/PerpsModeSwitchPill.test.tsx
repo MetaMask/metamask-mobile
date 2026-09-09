@@ -21,6 +21,8 @@ import PerpsModeSwitchPill, {
   GLOW_TOTAL_MS,
 } from './PerpsModeSwitchPill';
 
+jest.mock('../../../../../util/haptics');
+
 const PILL_TEST_ID = 'mode-switch-pill';
 
 const darkThemeContext = {
@@ -129,13 +131,13 @@ describe('PerpsModeSwitchPill', () => {
     expect(UNSAFE_queryAllByType(LinearGradient)).toHaveLength(0);
   });
 
-  it('still defers the mode switch until the glow animation finishes', async () => {
+  it('switches immediately while the glow animation finishes', async () => {
     jest.useFakeTimers();
     const { onSwitchRequest } = renderPill({ isPro: true });
 
     fireEvent.press(screen.getByTestId(PILL_TEST_ID));
 
-    expect(onSwitchRequest).not.toHaveBeenCalled();
+    expect(onSwitchRequest).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
