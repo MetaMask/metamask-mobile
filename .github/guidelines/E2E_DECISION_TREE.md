@@ -16,7 +16,7 @@ flowchart TD
     L2 -->|non-ignorable changes| Skip2[⛔️ Merge blocked]
     GR -->|PR ignorable-only changes| Ignorable[ ❌ No E2E]
     GR -->|Scheduled or Push to release/*| Full[🧪 Run all E2E for Android and iOS]
-    GR -->|Push to main| MainPush[🧪 Android always; iOS 1 of every 3 commits]
+    GR -->|Push to main| MainPush[🧪 Android always; iOS ~1/3 of SHAs]
 
     GR -->|PR with non-ignorable changes| PRToValidate["Path-filtered platforms (Android, iOS, or both)"]
     PRToValidate -->|Android tests required| Smart{{PR label: skip-smart-e2e-selection ?}}
@@ -53,11 +53,10 @@ ignorable-only changes skip E2E, while other changes run the full `ALL` tag set
 on the required platforms. Smart E2E Selection remains PR-only.
 
 On **pushes to `main` only**, Appium iOS is sampled: Android still runs on every
-non-ignorable push, and iOS runs on every 3rd commit on `main` (commit history
-`totalCount % 3 === 0`). This is not cancel-in-progress — skipped SHAs never
-start an iOS build. iOS-only path-filter pushes always keep iOS. If the commit
-count cannot be resolved, iOS is kept (fail open). Scheduled runs and pushes to
-`release/*` still run both platforms when path filters require them.
+non-ignorable push, and iOS runs on about one third of SHAs. Skipped SHAs never
+start an iOS build. iOS-only path-filter pushes always keep iOS. Scheduled runs
+and pushes to `release/*` still run both platforms when path filters require
+them.
 
 ## E2E tests skipped by default on new PRs during peak hours
 
@@ -104,7 +103,7 @@ Flakiness detection is applied to modified E2E test files in PRs targeting
   platform-selection, platform-request, and Smart E2E policy.
 - Pushes to `release/*` use path filtering and run `ALL` tags on the required
   platforms; ignorable-only pushes skip E2E.
-- Pushes to `main` use the same path filtering for Android. iOS runs on every
-  3rd commit (iOS-only diffs always run; see sampling above).
+- Pushes to `main` use the same path filtering for Android. iOS runs on about
+  one third of SHAs (iOS-only diffs always run; see sampling above).
 - Pull requests from `release/*` to `stable` are synchronization PRs and run no E2E.
 - The final release decision is based on the latest tested `release/*` SHA.

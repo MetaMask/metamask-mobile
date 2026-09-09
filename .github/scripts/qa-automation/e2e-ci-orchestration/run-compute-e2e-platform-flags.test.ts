@@ -247,11 +247,11 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(stdout).not.toContain('iOS build disabled for PRs into main');
     });
 
-    it('skips iOS on a main push when MAIN_COMMIT_COUNT is not a multiple of 3', () => {
+    it('skips iOS on a main push when the SHA is not sampled', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
         GITHUB_REF: 'refs/heads/main',
-        MAIN_COMMIT_COUNT: '4',
+        GITHUB_SHA: '00000001deadbeef',
         ...bothPlatformsPR,
       });
 
@@ -263,11 +263,11 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(stdout).toContain('iOS skipped');
     });
 
-    it('keeps iOS on a main push when MAIN_COMMIT_COUNT is a multiple of 3', () => {
-      const { stdout, outputs } = runEntrypoint({
+    it('keeps iOS on a main push when the SHA is sampled', () => {
+      const { outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
         GITHUB_REF: 'refs/heads/main',
-        MAIN_COMMIT_COUNT: '6',
+        GITHUB_SHA: '00000000deadbeef',
         ...bothPlatformsPR,
       });
 
@@ -276,14 +276,13 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         ios_final: 'true',
         e2e_needed: 'true',
       });
-      expect(stdout).toContain('iOS sampled');
     });
 
-    it('keeps iOS for iOS-only main pushes when MAIN_COMMIT_COUNT is not a multiple of 3', () => {
+    it('keeps iOS for iOS-only main pushes when the SHA is not sampled', () => {
       const { outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
         GITHUB_REF: 'refs/heads/main',
-        MAIN_COMMIT_COUNT: '4',
+        GITHUB_SHA: '00000001deadbeef',
         ...bothPlatformsPR,
         ANDROID_COUNT: '0',
         ANDROID_OR_IGNORABLE_COUNT: '0',

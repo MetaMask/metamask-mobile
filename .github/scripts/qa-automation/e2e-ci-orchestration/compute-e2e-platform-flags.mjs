@@ -2,7 +2,6 @@
  * Pure decision logic for CI E2E platform and native-build requirements.
  */
 
-/** Run post-merge Appium iOS on every Nth commit pushed to `main`. */
 const MAIN_PUSH_IOS_SAMPLE_EVERY = 3;
 
 /**
@@ -12,6 +11,8 @@ const MAIN_PUSH_IOS_SAMPLE_EVERY = 3;
 function computeE2EPlatformFlags(input) {
   const {
     githubEventName,
+    githubRef = '',
+    githubSha = '',
     prBaseRef = '',
     isFork,
     shouldSkipE2E,
@@ -92,6 +93,16 @@ function computeE2EPlatformFlags(input) {
   if (isIOSRequestOnlyPullRequest && ios) {
     ios = false;
     message = `${message} — iOS not requested for this PR (add run-appium-ios-tests or skip-smart-e2e-selection)`;
+  }
+
+  const isMainPush =
+    githubEventName === 'push' && githubRef === 'refs/heads/main';
+  if (isMainPush && ios && android) {
+    const sample = Number.parseInt(githubSha.slice(0, 8), 16);
+    if (Number.isFinite(sample) && sample % MAIN_PUSH_IOS_SAMPLE_EVERY !== 0) {
+      ios = false;
+      message = `${message} — iOS skipped (sampled 1/${MAIN_PUSH_IOS_SAMPLE_EVERY} on main)`;
+    }
   }
 
   const e2eNeeded = android || ios;
@@ -185,61 +196,6 @@ function applyE2ELabelOverrides(flags, input) {
 }
 
 /**
- * Sample post-merge iOS on `main` pushes: keep Android every time, run iOS on
- * every Nth commit (`MAIN_PUSH_IOS_SAMPLE_EVERY`). Deterministic per SHA via
- * commit history count, so concurrent merges do not all skip or all run.
- *
- * iOS-only path filters always keep iOS. Unknown/missing commit count keeps
- * iOS (fail open). Schedule, `release/*`, PRs, and workflow_dispatch are
- * unchanged.
- *
- * @param {object} flags
- * @param {object} input
- * @returns {object}
- */
-function applyMainPushIosSampling(flags, input) {
-  const {
-    githubEventName,
-    githubRef = '',
-    mainCommitCount = 0,
-    sampleEvery = MAIN_PUSH_IOS_SAMPLE_EVERY,
-  } = input;
-
-  const isMainPush =
-    githubEventName === 'push' && githubRef === 'refs/heads/main';
-
-  if (!isMainPush || !flags.ios) {
-    return flags;
-  }
-
-  if (!flags.android) {
-    return flags;
-  }
-
-  if (!Number.isInteger(mainCommitCount) || mainCommitCount <= 0) {
-    return {
-      ...flags,
-      message: `${flags.message} — iOS sampling skipped (unknown main commit count; keeping iOS)`,
-    };
-  }
-
-  const remainder = mainCommitCount % sampleEvery;
-  if (remainder === 0) {
-    return {
-      ...flags,
-      message: `${flags.message} — iOS sampled (main commit ${mainCommitCount}, 1 of every ${sampleEvery})`,
-    };
-  }
-
-  return {
-    ...flags,
-    ios: false,
-    e2eNeeded: flags.android,
-    message: `${flags.message} — iOS skipped (main commit ${mainCommitCount}, 1 of every ${sampleEvery})`,
-  };
-}
-
-/**
  * Resolve final E2E platform flags for CI.
  *
  * @param {object} input
@@ -251,21 +207,13 @@ function resolveE2EPlatformRequirements(input) {
     labelOverrideInput,
     skipSmartSelection = false,
     e2eSmokeInfraCount = 0,
-    githubRef = '',
-    mainCommitCount = 0,
   } = input;
 
   const baseFlags = computeE2EPlatformFlags(pathFilterInput);
-  const flags = applyE2ELabelOverrides(baseFlags, {
+  return applyE2ELabelOverrides(baseFlags, {
     ...labelOverrideInput,
     skipSmartSelection,
     e2eSmokeInfraCount,
-  });
-
-  return applyMainPushIosSampling(flags, {
-    githubEventName: pathFilterInput.githubEventName,
-    githubRef,
-    mainCommitCount,
   });
 }
 
@@ -296,10 +244,8 @@ function classifyE2EChanges(input) {
 }
 
 export {
-  MAIN_PUSH_IOS_SAMPLE_EVERY,
   computeE2EPlatformFlags,
   applyE2ELabelOverrides,
-  applyMainPushIosSampling,
   resolveE2EPlatformRequirements,
   classifyE2EChanges,
 };

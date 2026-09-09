@@ -15,7 +15,7 @@ on:
         description: 'Whether Android E2E tests and builds should run (true when Android-specific or shared files changed)'
         value: ${{ jobs.detect-changes.outputs.android_e2e_needed }}
       ios_e2e_needed:
-        description: 'Whether iOS is selected by the final platform policy for E2E. This flag gates both the iOS build and iOS tests. Pull requests targeting main require an explicit iOS request, including the smoke-infrastructure exception; release/* requires an explicit label request. Pushes to release/* use path-filtered platforms. Pushes to main keep Android on path filters and sample iOS on every 3rd commit (iOS-only diffs always run). Schedule runs select both.'
+        description: 'Whether iOS is selected by the final platform policy for E2E. This flag gates both the iOS build and iOS tests. Pull requests targeting main require an explicit iOS request, including the smoke-infrastructure exception; release/* requires an explicit label request. Pushes to release/* use path-filtered platforms. Pushes to main keep Android on path filters and sample iOS on about 1/3 of SHAs (iOS-only diffs always run). Schedule runs select both.'
         value: ${{ jobs.detect-changes.outputs.ios_e2e_needed }}
       changed_spec_files:
         description: 'Space-separated list of changed E2E spec file paths only — never the full changed-file list, which overflows ARG_MAX and kills this job on large PRs. Smoke test workflows use this to run modified spec files twice for flakiness detection on PRs targeting main.'
@@ -141,50 +141,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      # History totalCount is SHA-stable, so concurrent main merges do not all
-      # skip or all run iOS. Shallow checkout cannot provide this number.
-      - name: Count commits on this SHA for main iOS sampling
-        id: main-ios-sample
-        if: steps.skip-merge-queue.outputs.up-to-date != 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          HEAD_SHA: ${{ env.HEAD_COMMIT_HASH }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          OWNER="${REPOSITORY%%/*}"
-          NAME="${REPOSITORY#*/}"
-          COUNT=0
-          if RESPONSE="$(gh api graphql \
-            -f query='query($owner: String!, $name: String!, $oid: GitObjectID!) {
-              repository(owner: $owner, name: $name) {
-                object(oid: $oid) {
-                  ... on Commit { history(first: 1) { totalCount } }
-                }
-              }
-            }' \
-            -f owner="$OWNER" \
-            -f name="$NAME" \
-            -f oid="$HEAD_SHA")"; then
-            PARSED="$(echo "$RESPONSE" | jq -r '.data.repository.object.history.totalCount // empty')"
-            if [[ -n "$PARSED" && "$PARSED" != "null" ]]; then
-              COUNT="$PARSED"
-            else
-              echo "GraphQL commit count missing; iOS sampling will keep iOS (fail open)"
-            fi
-          else
-            echo "GraphQL commit count failed; iOS sampling will keep iOS (fail open)"
-          fi
-          echo "count=${COUNT}" >> "$GITHUB_OUTPUT"
-          echo "Main commit history totalCount=${COUNT}"
-
       - name: Compute E2E flags
         id: set-outputs
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_REF: ${{ github.ref }}
-          MAIN_COMMIT_COUNT: ${{ steps.main-ios-sample.outputs.count || '0' }}
+          GITHUB_SHA: ${{ github.sha }}
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
