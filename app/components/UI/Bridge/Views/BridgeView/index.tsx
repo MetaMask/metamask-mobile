@@ -140,7 +140,7 @@ const BridgeView = () => {
       setSelectedTab(nextTab);
       startTransition(() => setRenderedTab(nextTab));
     },
-    [tabs],
+    [tabs, setRenderedTab, setSelectedTab],
   );
 
   const goToPreviousTab = useCallback(() => {
@@ -187,7 +187,7 @@ const BridgeView = () => {
       setSelectedTab(BridgeTabKey.Market);
       setRenderedTab(BridgeTabKey.Market);
     }
-  }, [tabs, renderedTab]);
+  }, [tabs, renderedTab, setRenderedTab, setSelectedTab]);
 
   // Stops any in-flight BridgeController quote polling, clears the amount
   // inputs and drops the destination token for the tab being left, whenever

@@ -89,7 +89,7 @@ export function renderBridgeViewWithModals(
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    BridgeView as unknown as React.ComponentType,
+    BridgeViewWithSession as unknown as React.ComponentType,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
     [
       {
@@ -112,7 +112,7 @@ export function renderBridgeViewWithRecurringJobDetails(
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    BridgeView as unknown as React.ComponentType,
+    BridgeViewWithSession as unknown as React.ComponentType,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
     [
       {

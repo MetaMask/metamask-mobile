@@ -126,6 +126,18 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'USD',
 }));
 
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn().mockReturnValue('limit_order'),
+}));
+
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
+const mockUseBridgeSession = useBridgeSession as jest.MockedFunction<
+  typeof useBridgeSession
+>;
+
 const mockDebounceMs = 300;
 
 const Wrapper = ({
@@ -172,18 +184,6 @@ const Wrapper = ({
 
   return <SwapQuotesProvider>{children}</SwapQuotesProvider>;
 };
-
-jest.mock('../useSwapsFeatureId', () => ({
-  useSwapsFeatureId: jest.fn().mockReturnValue('limit_order'),
-}));
-
-jest.mock('../useBridgeSession', () => ({
-  useBridgeSession: jest.fn(),
-}));
-
-const mockUseBridgeSession = useBridgeSession as jest.MockedFunction<
-  typeof useBridgeSession
->;
 
 describe('useSwapQuotes', () => {
   it('throws an error if used outside of SwapQuotesProvider', () => {

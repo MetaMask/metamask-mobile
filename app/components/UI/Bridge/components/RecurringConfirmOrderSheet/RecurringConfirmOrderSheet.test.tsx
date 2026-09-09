@@ -8,7 +8,8 @@ import { Hex } from '@metamask/utils';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { createBridgeTestState } from '../../testUtils';
 import type { RootState } from '../../../../../reducers';
@@ -46,23 +47,16 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest
-    .fn()
-    .mockImplementation(() => mockUseBridgeQuoteData),
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn(),
 }));
-
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
-  const { useBridgeQuoteData: useQuotedData } = jest.requireMock(
-    '../../hooks/useBridgeQuoteData',
-  );
-  return {
-    useBridgeQuoteDataContext: jest.fn(() => useQuotedData()),
-  };
-});
 
 jest.mock('../../hooks/useHasSufficientGas', () => ({
   useHasSufficientGas: jest.fn(() => true),
+}));
+
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
 }));
 
 function buildState(
@@ -115,9 +109,11 @@ function renderSheet({
     | { displayBalance: string; atomicBalance: BigNumber }
     | undefined;
 } = {}) {
+  jest.mocked(useBridgeSession).mockReturnValue({
+    latestSourceBalance,
+  } as ReturnType<typeof useBridgeSession>);
   return renderWithProvider(
     <RecurringConfirmOrderSheet
-      latestSourceBalance={latestSourceBalance}
       onEditSlippagePress={onEditSlippagePress}
       goBack={goBack}
     />,
@@ -129,7 +125,7 @@ describe('RecurringConfirmOrderSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount: '24.44',
@@ -194,7 +190,7 @@ describe('RecurringConfirmOrderSheet', () => {
     const repeat = 10;
 
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount,
@@ -286,7 +282,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows skeletons for quote-dependent values while a quote is loading', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         isLoading: true,
@@ -332,7 +328,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('keeps paying, receiving, expiry, and slippage populated while a quote is loading', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         isLoading: true,
@@ -369,7 +365,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows placeholders for est receiving and network fee when there is no quote', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         isLoading: false,
@@ -422,7 +418,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows the discounted fee disclaimer when the quote has a promo discount', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount: '24.44',
@@ -458,7 +454,7 @@ describe('RecurringConfirmOrderSheet', () => {
 
   it('shows the no MetaMask fee disclaimer when dest fee is zero', () => {
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext as unknown as jest.Mock)
       .mockImplementation(() => ({
         ...mockUseBridgeQuoteData,
         destTokenAmount: '24.44',

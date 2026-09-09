@@ -1,5 +1,4 @@
 import React from 'react';
-import { BigNumber } from 'ethers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   BridgeQuoteDataProvider,
@@ -41,11 +40,11 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useSwapsFeatureId', () => ({
+jest.mock('../useSwapsFeatureId', () => ({
   useSwapsFeatureId: jest.fn(),
 }));
 
-jest.mock('../hooks/useBridgeSession', () => ({
+jest.mock('../useBridgeSession', () => ({
   useBridgeSession: jest.fn(),
 }));
 
@@ -70,4 +69,6 @@ runQuoteProviderCases({
       { state },
     ),
   renderWithoutProvider: () => renderWithProvider(<Consumer />),
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+  quoteParams: {},
 });

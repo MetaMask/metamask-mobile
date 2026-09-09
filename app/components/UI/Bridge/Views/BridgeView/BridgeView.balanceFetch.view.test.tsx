@@ -14,8 +14,8 @@ import {
   renderBridgeView,
   withBridgeSession,
 } from '../../../../../../tests/component-view/renderers/bridge';
-import { BridgeSessionProvider } from '../../hooks/useBridgeSession/BridgeSessionContext';
-import { SwapQuotesProvider } from '../../hooks/useSwapQuotes/SwapQuotesContext';
+import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
 import { BridgeQuoteDataProvider } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
