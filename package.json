@@ -187,6 +187,8 @@
     ]
   },
   "resolutions": {
+    "@scure/bip32/@noble/curves": "1.9.6",
+    "@metamask/key-tree/@noble/curves": "1.9.6",
     "@metamask/network-controller": "35.0.0",
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/geolocation-controller": "^1.0.0",

@@ -47,6 +47,8 @@ Always measure on **Android** (more sensitive, more representative) with the **p
 - **[anti-patterns.md](./anti-patterns.md)** — the catalogue: selectors, Redux/`useSelector`, Context, hook deps, unstable hook returns, lists, layout animations, eager-work-on-mount, streaming, bundle/barrel, memory.
 - **[tools.md](./tools.md)** — symptom-first decision tree + when/how to use each tool (Perf Monitor, RN DevTools, Flashlight, `trace()`, Reassure, E2E gates, Release Profiler, Sentry).
 - **[measuring.md](./measuring.md)** — the power-user scenario, TTI via `trace()`, render-regression tests, FPS benchmarking, CI gates.
+- **[startup-instrumentation.md](./startup-instrumentation.md)** — measuring a cold start stage by stage on a release build: `StartupTimeline`, the native `ReactMarker` stages, build-variant traps.
+- **[native-crypto.md](./native-crypto.md)** — the native secp256k1 patch in `shimPerf.js` and the `@noble/curves` single-copy invariant it depends on. **Read this before bumping a dependency that does elliptic-curve work.**
 - **[react-compiler.md](./react-compiler.md)** — automatic memoization: how it's set up here and how to opt a feature in.
 
 ## Deep dives & references
