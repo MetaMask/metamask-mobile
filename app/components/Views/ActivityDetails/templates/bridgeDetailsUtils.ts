@@ -21,16 +21,16 @@ export function getBridgeDestinationTxHash(
 }
 
 /**
- * The transaction the block-explorer sheet resolves both legs from. Uses
- * `initialTransaction`, matching {@link getBridgeHistoryItem}, so the two can't
- * land on different history items. Empty for indexer-only rows, which have no
- * local transaction.
+ * The transaction the block-explorer sheet resolves both legs from. EVM rows
+ * pass the looked-up local `TransactionMeta`; non-EVM still reads the keyring
+ * tx off `raw`. Empty for indexer-only rows.
  */
 export function getBridgeExplorerSheetTx(
   item: Extract<ActivityListItem, { type: 'bridge' }>,
+  transactionMeta?: TransactionMeta,
 ): { evmTxMeta?: TransactionMeta; multiChainTx?: Transaction } {
-  if (item.raw?.type === 'localTransaction') {
-    return { evmTxMeta: item.raw.data.initialTransaction };
+  if (transactionMeta) {
+    return { evmTxMeta: transactionMeta };
   }
   if (item.raw?.type === 'keyringTransaction') {
     return { multiChainTx: item.raw.data };
@@ -41,12 +41,8 @@ export function getBridgeExplorerSheetTx(
 export function getBridgeHistoryItem(
   item: Extract<ActivityListItem, { type: 'bridge' }>,
   bridgeHistory: Record<string, BridgeHistoryItem>,
+  transactionMeta?: TransactionMeta,
 ) {
-  const transactionMeta =
-    item.raw?.type === 'localTransaction'
-      ? item.raw.data.initialTransaction
-      : undefined;
-
   return findBridgeHistoryItem({
     bridgeHistory,
     transactionMetaId: transactionMeta?.id,
