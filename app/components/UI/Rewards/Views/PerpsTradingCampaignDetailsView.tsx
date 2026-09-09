@@ -434,6 +434,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                       maxEntries={5}
                       campaignId={effectiveCampaignId}
                       isCampaignComplete={isComplete}
+                      numberOfWinners={leaderboard?.numberOfWinners}
                     />
                   </Box>
                 </>

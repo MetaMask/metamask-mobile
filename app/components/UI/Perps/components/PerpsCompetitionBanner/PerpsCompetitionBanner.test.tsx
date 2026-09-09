@@ -210,6 +210,33 @@ describe('PerpsCompetitionBanner', () => {
     });
   });
 
+  it('shows the banner for a new campaign after dismissing a different one', async () => {
+    // Dismissing campaign 1 must not suppress campaign 2's banner when the
+    // campaign list swaps under the component mid-session.
+    setupSelector(true, [buildCampaign({ id: 'perps-campaign-1' })]);
+
+    const { getByTestId, queryByTestId, rerender } = render(
+      <PerpsCompetitionBanner />,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('perps-competition-banner-close'));
+
+    await waitFor(() => {
+      expect(queryByTestId('perps-competition-banner')).not.toBeOnTheScreen();
+    });
+
+    setupSelector(true, [buildCampaign({ id: 'perps-campaign-2' })]);
+    rerender(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+  });
+
   it('ignores a late read under the previous key when the campaign resolves', async () => {
     // Mount unresolved, then let campaigns land. The ':unknown' read is made to
     // resolve LAST and report a dismissal; without a cancellation guard it

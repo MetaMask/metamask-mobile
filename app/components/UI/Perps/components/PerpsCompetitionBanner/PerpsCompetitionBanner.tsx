@@ -45,6 +45,9 @@ import type { PerpsCompetitionBannerProps } from './PerpsCompetitionBanner.types
 // are keyed separately rather than against a real campaign id, so they can never
 // suppress the banner for a later campaign.
 const UNRESOLVED_CAMPAIGN_KEY = 'unknown';
+const UNRESOLVED_STORAGE_KEY = perpsCompetitionBannerDismissedKey(
+  UNRESOLVED_CAMPAIGN_KEY,
+);
 
 // Pending addition to PERPS_EVENT_VALUE.BUTTON_CLICKED in @metamask/perps-controller
 const COMPETITION_BANNER_BUTTON = {
@@ -92,7 +95,9 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
   const dispatch = useDispatch();
   const { track } = usePerpsEventTracking();
   const [isDismissed, setIsDismissed] = useState<boolean | null>(null);
-  const dismissedThisSessionRef = useRef(false);
+  // The storage key a dismissal was made against this session, not a bare
+  // boolean: a dismissal must not carry across to a different campaign.
+  const dismissedKeyRef = useRef<string | null>(null);
   const campaigns = useSelector(selectCampaigns);
 
   const dismissedStorageKey = useMemo(() => {
@@ -106,11 +111,16 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
   }, [campaigns]);
 
   useEffect(() => {
-    // Campaigns can land in Redux after this mounts, which switches the key from
-    // the unresolved one to a real campaign id. Re-reading then would bring the
-    // banner back after the user had already closed it, so a dismissal in this
-    // session wins over whatever the new key holds.
-    if (dismissedThisSessionRef.current) {
+    // A dismissal made before the campaign was known was aimed at whatever the
+    // banner was advertising, so it carries forward once the id resolves —
+    // otherwise the banner would reappear the moment campaigns land. A
+    // dismissal made against a real campaign id applies only to that campaign,
+    // so a second campaign still gets its own banner.
+    const dismissedKey = dismissedKeyRef.current;
+    if (
+      dismissedKey === dismissedStorageKey ||
+      dismissedKey === UNRESOLVED_STORAGE_KEY
+    ) {
       return;
     }
     // The key changes under this effect when campaigns land in Redux, leaving
@@ -146,7 +156,7 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
       [PERPS_EVENT_PROPERTY.LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });
-    dismissedThisSessionRef.current = true;
+    dismissedKeyRef.current = dismissedStorageKey;
     setIsDismissed(true);
     try {
       await StorageWrapper.setItem(dismissedStorageKey, 'true');

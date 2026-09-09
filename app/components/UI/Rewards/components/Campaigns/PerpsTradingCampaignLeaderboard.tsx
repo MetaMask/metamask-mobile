@@ -58,6 +58,11 @@ export interface PerpsTradingCampaignLeaderboardProps {
   userPosition?: UserPosition | null;
   campaignId?: string;
   isCampaignComplete?: boolean;
+  /**
+   * Number of prize-winning ranks for this campaign, from the leaderboard API.
+   * Falls back to PERPS_TRADING_MAX_WINNERS when the backend does not send it.
+   */
+  numberOfWinners?: number;
 }
 
 const PerpsTradingCampaignLeaderboard: React.FC<
@@ -72,6 +77,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   maxEntries,
   userPosition,
   isCampaignComplete = false,
+  numberOfWinners = PERPS_TRADING_MAX_WINNERS,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
@@ -167,7 +173,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
             key={`${entry.rank}-${entry.referralCode}`}
             entry={{ ...entry, qualified: true }}
             isCurrentUser={isCurrentUser(entry)}
-            showCrown={!isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS}
+            showCrown={!isPreview && entry.rank <= numberOfWinners}
             isCampaignComplete={isCampaignComplete}
             formatPrimaryMetric={(e) => formatSignedUsd(e.pnl)}
             isPositivePrimaryMetric={(e) => e.pnl >= 0}
@@ -181,9 +187,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
                 key={`neighbor-${entry.rank}-${entry.referralCode}`}
                 entry={{ ...entry, qualified: true }}
                 isCurrentUser={isCurrentUser(entry)}
-                showCrown={
-                  !isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS
-                }
+                showCrown={!isPreview && entry.rank <= numberOfWinners}
                 isCampaignComplete={isCampaignComplete}
                 formatPrimaryMetric={(e) => formatSignedUsd(e.pnl)}
                 isPositivePrimaryMetric={(e) => e.pnl >= 0}
