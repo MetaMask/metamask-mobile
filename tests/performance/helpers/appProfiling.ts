@@ -12,6 +12,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import type { TestInfo } from '@playwright/test';
+import type { ChainablePromiseElement } from 'webdriverio';
 import { getDriver } from '../../framework/AppiumUtilities.ts';
 import { createLogger } from '../../framework/logger.ts';
 
@@ -67,7 +68,7 @@ async function tapProfilerControl(testId: string): Promise<void> {
       );
     });
   }
-  let control: WebdriverIO.Element | undefined;
+  let control: ChainablePromiseElement | undefined;
   await appiumDriver.waitUntil(
     async () => {
       control = await appiumDriver.$(`~${testId}`);
@@ -78,18 +79,19 @@ async function tapProfilerControl(testId: string): Promise<void> {
       timeoutMsg: `Profiler control not found: ${testId}`,
     },
   );
-  if (!control) {
+  const resolvedControl = control;
+  if (!resolvedControl) {
     throw new Error(`Profiler control was not resolved: ${testId}`);
   }
   // Prefer a11y click; fall back to coordinate tap if RN onPress is not delivered.
   try {
-    await control.click();
+    await resolvedControl.click();
   } catch (error) {
     logger.warn(
       `Profiler control click failed for ${testId}, retrying via coordinates: ${String(error)}`,
     );
-    const location = await control.getLocation();
-    const size = await control.getSize();
+    const location = await resolvedControl.getLocation();
+    const size = await resolvedControl.getSize();
     await appiumDriver.execute('mobile: clickGesture', {
       x: Math.round(location.x + size.width / 2),
       y: Math.round(location.y + size.height / 2),
