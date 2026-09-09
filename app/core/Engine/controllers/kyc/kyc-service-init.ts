@@ -18,7 +18,7 @@ export const kycServiceInit: MessengerClientInitFunction<
   const controller = new KycService({
     fetch,
     messenger: controllerMessenger,
-    baseUrl: process.env.KYC_API_URL,
+    baseUrl: process.env.KYC_API_URL as string,
   });
 
   return { controller };
