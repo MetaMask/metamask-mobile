@@ -2108,8 +2108,13 @@ class FixtureBuilder {
   private applyUnifiedAssetHolding(holding: TokenHolding, account: string) {
     const engine = this.fixture.state.engine.backgroundState;
     const accountsController = engine.AccountsController;
+    const internalAccounts = accountsController?.internalAccounts?.accounts;
     const accountId =
       accountsController?.accountIdByAddress?.[account.toLowerCase()] ??
+      Object.values(internalAccounts ?? {}).find(
+        (internalAccount) =>
+          internalAccount?.address?.toLowerCase() === account.toLowerCase(),
+      )?.id ??
       accountsController?.internalAccounts?.selectedAccount;
     if (!accountId) {
       return;

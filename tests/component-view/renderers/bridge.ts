@@ -11,6 +11,7 @@ import {
 } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import BridgeView from '../../../app/components/UI/Bridge/Views/BridgeView';
+import { BridgeModalStack } from '../../../app/components/UI/Bridge/routes';
 import RecurringJobDetailsView from '../../../app/components/UI/Bridge/Views/RecurringJobDetailsView';
 import { RecurringJobDetailsViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/RecurringJobDetailsView/RecurringJobDetailsView.testIds';
 import type { RecurringJobDetailsRouteParams } from '../../../app/components/UI/Bridge/Views/RecurringJobDetailsView/RecurringJobDetailsView.types';
@@ -55,6 +56,29 @@ export function renderBridgeView(
   return renderComponentViewScreen(
     BridgeView as unknown as React.ComponentType,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
+    { state },
+  );
+}
+
+export function renderBridgeViewWithModals(
+  options: RenderBridgeViewOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const { overrides, deterministicFiat } = options;
+  const builder = initialStateBridge({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    BridgeView as unknown as React.ComponentType,
+    { name: Routes.BRIDGE.BRIDGE_VIEW },
+    [
+      {
+        name: Routes.BRIDGE.MODALS.ROOT,
+        Component: BridgeModalStack,
+      },
+    ],
     { state },
   );
 }

@@ -81,11 +81,23 @@ class ForgotPasswordModalView {
   }
 
   async tapResetWalletButton(): Promise<void> {
-    await Gestures.waitAndTap(this.resetWalletButton, { timeout: 25000 });
+    await Gestures.waitAndTap(this.resetWalletButton, {
+      elemDescription: 'Forgot password — Reset wallet',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
+      timeout: 25000,
+    });
   }
 
   async tapYesResetWalletButton(): Promise<void> {
-    await Gestures.waitAndTap(this.yesResetWalletButton);
+    await Gestures.waitAndTap(this.yesResetWalletButton, {
+      elemDescription: 'Forgot password — Yes, reset wallet',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
+      timeout: 25000,
+    });
   }
 
   async tapCancelButton(): Promise<void> {
