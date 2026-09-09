@@ -58,9 +58,6 @@ describe('registerBrazePush', () => {
     await registerBrazePush('fcm-token');
 
     expect(mockRegisterPush).toHaveBeenCalledWith('fcm-token');
-    expect(Logger.log).toHaveBeenCalledWith(
-      '[Braze] Registered this device for Braze push',
-    );
   });
 
   it('does not pass the FCM token to iOS', async () => {

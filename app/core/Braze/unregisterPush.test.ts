@@ -1,5 +1,4 @@
 import { NativeModules } from 'react-native';
-import Logger from '../../util/Logger';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
   retryPendingBrazePushUnregistration,
@@ -80,9 +79,6 @@ describe('unregisterBrazePush', () => {
     expect(mockStorageWrapper.removeItem).toHaveBeenCalledTimes(1);
     expect(pendingValue).toBeNull();
     expect(desiredValue).toBe('unregistered');
-    expect(Logger.log).toHaveBeenCalledWith(
-      '[Braze] Unregistered this device from Braze push',
-    );
   });
 
   it('keeps the intent pending after a retriable failure', async () => {

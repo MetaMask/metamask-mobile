@@ -3,7 +3,6 @@ import {
   BRAZE_PUSH_UNREGISTRATION_PENDING,
 } from '../../constants/storage';
 import StorageWrapper from '../../store/storage-wrapper';
-import Logger from '../../util/Logger';
 
 export type BrazePushDesiredState = 'registered' | 'unregistered';
 
@@ -109,10 +108,6 @@ export function runLatestBrazePushOperation<T>({
 
   if (pendingOperation) {
     pendingOperation.resolve(pendingOperation.supersededResult);
-    Logger.log(
-      '[Braze] Dropping pending operation in favor of newer request',
-      pendingOperation.key,
-    );
   }
   pendingOperation = nextOperation as PendingOperation<unknown>;
   runPendingOperation();
@@ -153,14 +148,12 @@ export async function ensureBrazePushUnregistrationDesired(): Promise<void> {
 }
 
 export async function markBrazePushUnregistrationPending(): Promise<void> {
-  Logger.log('[Braze] Marking push unregistration pending');
   desiredStateOverride = 'unregistered';
   await StorageWrapper.setItem(BRAZE_PUSH_UNREGISTRATION_PENDING, 'true');
   await persistBrazePushDesiredState('unregistered');
 }
 
 export async function clearPendingBrazePushUnregistration(): Promise<void> {
-  Logger.log('[Braze] Clearing push unregistration pending marker');
   await StorageWrapper.removeItem(BRAZE_PUSH_UNREGISTRATION_PENDING);
 }
 

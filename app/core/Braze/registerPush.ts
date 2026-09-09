@@ -40,9 +40,6 @@ export async function registerBrazePush(fcmToken: string): Promise<void> {
     hasPendingBrazePushUnregistrationSync() ||
     getBrazePushDesiredState() === 'unregistered'
   ) {
-    Logger.log(
-      '[Braze] Push registration skipped because unregistration is desired',
-    );
     return;
   }
 
@@ -62,9 +59,6 @@ export async function registerBrazePush(fcmToken: string): Promise<void> {
           hasPendingBrazePushUnregistrationSync() ||
           getBrazePushDesiredState() === 'unregistered'
         ) {
-          Logger.log(
-            '[Braze] Superseded push registration skipped before native call',
-          );
           return;
         }
         if (Platform.OS === 'ios') {
@@ -76,7 +70,6 @@ export async function registerBrazePush(fcmToken: string): Promise<void> {
         }
       },
     });
-    Logger.log('[Braze] Registered this device for Braze push');
   } catch (nativeError) {
     const error = toError(nativeError);
     Logger.error(error, '[Braze] Failed to register push');

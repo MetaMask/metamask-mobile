@@ -64,9 +64,6 @@ export async function clearBrazeUser(): Promise<boolean> {
 
   getBrazePlugin().setBrazeProfileId(undefined);
   if (hasPendingBrazePushUnregistrationSync()) {
-    Logger.log(
-      '[Braze] Deferred local SDK data clearing until push unregistration succeeds',
-    );
     return false;
   }
 

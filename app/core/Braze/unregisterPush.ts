@@ -81,45 +81,22 @@ async function attemptPendingUnregistration({
   context: BrazePushOperationContext;
 }): Promise<boolean> {
   if (!hasPendingBrazePushUnregistrationSync()) {
-    Logger.log(
-      '[Braze] Unregistration attempt skipped: pending marker already cleared',
-    );
     return true;
   }
   if (!context.isCurrent()) {
-    Logger.log(
-      '[Braze] Unregistration attempt superseded by a newer push operation',
-    );
     return false;
   }
 
   try {
     await unregisterOnce();
     await clearPendingBrazePushUnregistration();
-    Logger.log('[Braze] Unregistered this device from Braze push');
     return true;
   } catch (nativeError) {
     const error = toError(nativeError);
     const isRetriable =
       error instanceof BrazePushUnregistrationError && error.isRetriable;
 
-    Logger.log(
-      '[Braze] Unregistration attempt failed',
-      JSON.stringify({
-        retriable: isRetriable,
-        httpStatusCode:
-          error instanceof BrazePushUnregistrationError
-            ? error.httpStatusCode
-            : undefined,
-        message: error.message,
-        current: context.isCurrent(),
-      }),
-    );
-
     if (!context.isCurrent()) {
-      Logger.log(
-        '[Braze] Unregistration attempt superseded; pending marker preserved for the newer request',
-      );
       return false;
     }
     if (!isRetriable) {
@@ -129,9 +106,6 @@ async function attemptPendingUnregistration({
       );
     }
 
-    Logger.log(
-      '[Braze] Push unregistration remains pending until the next session',
-    );
     return false;
   }
 }
@@ -162,9 +136,6 @@ export async function unregisterBrazePush(): Promise<boolean> {
   } catch (nativeError) {
     const error = toError(nativeError);
     Logger.error(error, '[Braze] Failed to unregister push');
-    Logger.log(
-      '[Braze] Push unregistration intent remains pending after failure',
-    );
     return false;
   }
 }
@@ -181,10 +152,6 @@ export async function retryPendingBrazePushUnregistration(): Promise<boolean> {
   if (hasTestOverrides || !hasPendingBrazePushUnregistrationSync()) {
     return true;
   }
-
-  Logger.log(
-    '[Braze] Retrying pending push unregistration left by a previous session',
-  );
 
   try {
     return await runLatestBrazePushOperation({

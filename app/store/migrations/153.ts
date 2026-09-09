@@ -7,7 +7,6 @@ import {
 } from '../../constants/storage';
 import StorageWrapper from '../storage-wrapper';
 import { ensureValidState } from './util';
-import Logger from '../../util/Logger';
 
 export const migrationVersion = 153;
 
@@ -18,7 +17,6 @@ async function setBackfillValue(
 ): Promise<boolean> {
   try {
     await StorageWrapper.setItem(key, value);
-    Logger.log(`[Braze] Migration 153 persisted ${name}`);
     return true;
   } catch (error) {
     captureException(

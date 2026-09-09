@@ -59,9 +59,6 @@ export function useBrazeIdentity(): void {
           : Promise.resolve(true);
       await startupUnregistrationRetryRef.current;
       if (cancelled) {
-        Logger.log(
-          '[Braze] Identity effect cancelled before unregistration retry resolved',
-        );
         return;
       }
 
@@ -104,16 +101,6 @@ export function useBrazeIdentity(): void {
       !fcmToken ||
       hasPendingBrazePushUnregistrationSync()
     ) {
-      Logger.log(
-        '[Braze] Push registration skipped',
-        JSON.stringify({
-          isSignedIn,
-          hasIdentifiedProfile: identifiedProfileId === canonicalProfileId,
-          areNotificationsEnabled,
-          isPushEnabled,
-          hasFcmToken: Boolean(fcmToken),
-        }),
-      );
       return;
     }
 
