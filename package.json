@@ -303,7 +303,7 @@
     "@metamask/config-registry-controller": "^3.1.0",
     "@metamask/connectivity-controller": "^0.3.0",
     "@metamask/controller-utils": "^12.3.0",
-    "@metamask/core-backend": "^9.0.0",
+    "@metamask/core-backend": "^9.1.1",
     "@metamask/delegation-controller": "^3.0.2",
     "@metamask/delegation-deployments": "^2.0.0",
     "@metamask/design-system-react-native": "^0.44.0",
@@ -780,8 +780,7 @@
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
     "ws": "^8.19.0",
-    "xhr2": "^0.2.1",
-    "xml2js": "^0.5.0"
+    "xhr2": "^0.2.1"
   },
   "config": {
     "react-native-storybook-loader": {

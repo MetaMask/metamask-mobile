@@ -107,6 +107,9 @@ export function useAutomaticTransactionPayToken({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
@@ -141,8 +144,9 @@ export function useAutomaticTransactionPayToken({
     () =>
       getBestToken({
         isHardwareWallet,
-        isMoneyPaymentOverride,
+        isMoneyAccountDeposit,
         isMoneyAccountWithdraw,
+        isMoneyPaymentOverride,
         isWithdraw,
         lastWithdrawToken,
         minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
@@ -154,8 +158,9 @@ export function useAutomaticTransactionPayToken({
       }),
     [
       isHardwareWallet,
-      isMoneyPaymentOverride,
+      isMoneyAccountDeposit,
       isMoneyAccountWithdraw,
+      isMoneyPaymentOverride,
       isWithdraw,
       lastWithdrawToken,
       relayFixedSpread,
@@ -340,8 +345,9 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
-  isMoneyPaymentOverride,
+  isMoneyAccountDeposit,
   isMoneyAccountWithdraw,
+  isMoneyPaymentOverride,
   isWithdraw,
   lastWithdrawToken,
   minimumRequiredTokenBalance,
@@ -352,8 +358,9 @@ function getBestToken({
   tokens,
 }: {
   isHardwareWallet: boolean;
-  isMoneyPaymentOverride: boolean;
+  isMoneyAccountDeposit: boolean;
   isMoneyAccountWithdraw: boolean;
+  isMoneyPaymentOverride: boolean;
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
   minimumRequiredTokenBalance: number;
@@ -378,10 +385,19 @@ function getBestToken({
     return { address: MUSD_TOKEN_ADDRESS, chainId: CHAIN_IDS.MONAD };
   }
 
+  // Exclude zero-balance EOA tokens from every money-account deposit
+  // selection path. If none are funded, leave the pay token unresolved so the
+  // deposit prefill lifecycle can settle in its skipped state.
+  const selectableTokens = isMoneyAccountDeposit
+    ? tokens.filter((token) => (token.fiat?.balance ?? 0) > 0)
+    : tokens;
+  const hasMinimumRequiredBalance = (token: AssetType) =>
+    (token.fiat?.balance ?? 0) >= minimumRequiredTokenBalance;
+
   // Money account withdraws always default to mUSD (passed in via preferredToken),
   // ignoring the user's last-used withdraw token.
   if (isMoneyAccountWithdraw && preferredToken) {
-    const preferredTokenAvailable = tokens.some(
+    const preferredTokenAvailable = selectableTokens.some(
       (token) =>
         token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
         token.chainId?.toLowerCase() === preferredToken.chainId.toLowerCase(),
@@ -393,7 +409,7 @@ function getBestToken({
   }
 
   if (isWithdraw && lastWithdrawToken) {
-    const lastWithdrawTokenAvailable = tokens.some(
+    const lastWithdrawTokenAvailable = selectableTokens.some(
       (token) =>
         token.address.toLowerCase() ===
           lastWithdrawToken.address.toLowerCase() &&
@@ -407,7 +423,7 @@ function getBestToken({
   }
 
   if (preferredToken) {
-    const preferredTokenAvailable = tokens.some(
+    const preferredTokenAvailable = selectableTokens.some(
       (token) =>
         token.address.toLowerCase() === preferredToken.address.toLowerCase() &&
         token.chainId?.toLowerCase() === preferredToken.chainId.toLowerCase(),
@@ -421,7 +437,7 @@ function getBestToken({
   if (preferredTokensFromFlags.length) {
     const candidates: AssetType[] = [];
     for (const preferred of preferredTokensFromFlags) {
-      const matchingToken = tokens.find(
+      const matchingToken = selectableTokens.find(
         (token) =>
           token.address.toLowerCase() === preferred.address.toLowerCase() &&
           token.chainId?.toLowerCase() === preferred.chainId.toLowerCase(),
@@ -439,9 +455,7 @@ function getBestToken({
     }
 
     const eligible = candidates
-      .filter(
-        (token) => (token.fiat?.balance ?? 0) >= minimumRequiredTokenBalance,
-      )
+      .filter(hasMinimumRequiredBalance)
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
     if (eligible.length) {
@@ -452,12 +466,11 @@ function getBestToken({
     }
   }
 
-  if (tokens?.length && !isWithdraw) {
-    const noFeeCandidates = tokens
+  if (selectableTokens.length && !isWithdraw) {
+    const noFeeCandidates = selectableTokens
       .filter((token) => {
         if (!token.chainId) return false;
-        const fiatBalance = token.fiat?.balance ?? 0;
-        if (fiatBalance < minimumRequiredTokenBalance) return false;
+        if (!hasMinimumRequiredBalance(token)) return false;
         return isSubsidizedSource(relayFixedSpread, {
           chainId: token.chainId,
           address: token.address,
@@ -473,7 +486,7 @@ function getBestToken({
     }
   }
 
-  if (tokens?.length) {
+  if (selectableTokens.length) {
     if (isWithdraw) {
       // Withdraws never guess a token from balances, but the required
       // destination token is a known, safe default — and the one the pay-with
@@ -482,10 +495,10 @@ function getBestToken({
     }
 
     return {
-      address: tokens[0].address as Hex,
-      chainId: tokens[0].chainId as Hex,
+      address: selectableTokens[0].address as Hex,
+      chainId: selectableTokens[0].chainId as Hex,
     };
   }
 
-  return targetTokenFallback;
+  return isMoneyAccountDeposit ? undefined : targetTokenFallback;
 }
