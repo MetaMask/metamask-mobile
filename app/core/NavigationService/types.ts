@@ -25,7 +25,7 @@ import type {
   BrowserTabHomeParamList,
   HomeTabsParamList,
   ImportPrivateKeyStackParamList,
-  MainFlowParamList,
+  MainStackParamList,
   SettingsStackParamList,
   SetPasswordFlowParamList,
   TrendingViewStackParamList,
@@ -477,7 +477,7 @@ export type RootModalFlowParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RootStackParamList = {
   // Top-level routes
-  Main: NavigatorScreenParams<MainFlowParamList> | undefined;
+  ReviewModal: undefined;
   WalletView: undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   BrowserView: BrowserParams | undefined;
@@ -721,7 +721,7 @@ export type RootStackParamList = {
   GeneralSettings: undefined;
   AssetsSettings: undefined;
   SecuritySettings: undefined;
-  HomeNav: undefined;
+  HomeNav: NavigatorScreenParams<MainStackParamList> | undefined;
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
   Onboarding: undefined;
   Login: undefined;
