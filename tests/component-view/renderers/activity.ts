@@ -283,23 +283,6 @@ export function renderActivityDetailsView(
 }
 
 /**
- * Opens Details with the serializable `{ chainId, txIdentifier }` params used
- * in production. Provider-backed rows rematch from live perps/predict sources.
- */
-export function renderPreloadedActivityDetailsView(
-  item: ActivityListItem,
-  options: Omit<RenderActivityDetailsViewOptions, 'params'> = {},
-): ReturnType<typeof renderScreenWithRoutes> {
-  return renderActivityDetailsView({
-    ...options,
-    params: {
-      chainId: item.chainId,
-      txIdentifier: item.hash,
-    },
-  });
-}
-
-/**
  * Builds Activity Details route params the same way ActivityList navigates.
  */
 export function getActivityDetailsViewParams(

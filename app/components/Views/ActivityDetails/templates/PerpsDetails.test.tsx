@@ -11,7 +11,7 @@ import {
   type PerpsTransaction,
 } from '../../../UI/Perps/types/transactionHistory';
 import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
-import { usePerpsDetailsTransaction } from '../hooks/usePerpsDetailsTransaction';
+import { usePerpsDetailsItem } from './Perps/usePerpsDetailsItem';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { PerpsDetails } from './PerpsDetails';
 
@@ -61,11 +61,11 @@ jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsTransactionHistory: () => ({ transactions: [] }),
 }));
 
-jest.mock('../hooks/usePerpsDetailsTransaction', () => ({
-  usePerpsDetailsTransaction: jest.fn(),
+jest.mock('./Perps/usePerpsDetailsItem', () => ({
+  usePerpsDetailsItem: jest.fn(),
 }));
 
-const usePerpsDetailsTransactionMock = jest.mocked(usePerpsDetailsTransaction);
+const usePerpsDetailsItemMock = jest.mocked(usePerpsDetailsItem);
 
 const mockUsePerpsRecordedOrderFees =
   usePerpsRecordedOrderFees as jest.MockedFunction<
@@ -162,14 +162,17 @@ function perpsItem(
   transaction: PerpsTransaction,
   status: ActivityListItem['status'] = 'success',
 ): ActivityListItem {
-  usePerpsDetailsTransactionMock.mockReturnValue(transaction);
+  usePerpsDetailsItemMock.mockReturnValue({
+    transaction,
+    item: undefined,
+    isLoading: false,
+  });
   return {
     type,
     chainId: 'eip155:42161',
     status,
     timestamp: transaction.timestamp,
     hash: transaction.id,
-    raw: { type: 'perpsTransaction', data: transaction },
     data: { token: { amount: '1', symbol: 'USD', direction: 'out' } },
   } as ActivityListItem;
 }
@@ -253,7 +256,11 @@ function localPerpsFundsItem(
 describe('PerpsDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    usePerpsDetailsTransactionMock.mockReturnValue(undefined);
+    usePerpsDetailsItemMock.mockReturnValue({
+      transaction: undefined,
+      item: undefined,
+      isLoading: false,
+    });
   });
 
   it.each(orderRowCases)('renders the $orderType price rows', (orderCase) => {
@@ -350,34 +357,6 @@ describe('PerpsDetails', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
     ).toHaveTextContent('Confirmed');
-  });
-
-  it('renders trade details without Perps provider contexts', () => {
-    const transaction: PerpsTransaction = {
-      ...baseTransaction,
-      type: 'trade',
-      fill: {
-        shortTitle: 'Closed short',
-        amount: '-$0.02',
-        amountNumber: -0.02,
-        isPositive: false,
-        size: '0.0001',
-        entryPrice: '92113',
-        points: '0',
-        pnl: '-$0.02',
-        fee: '0.02',
-        action: 'Closed',
-        feeToken: 'USDC',
-        fillType: FillType.Standard,
-      },
-    };
-
-    renderWithProvider(
-      <PerpsDetails item={perpsItem('perpsCloseShort', transaction)} />,
-    );
-
-    expect(mockPerpsConnectionProvider).toHaveBeenCalled();
-    expect(mockPerpsStreamProvider).toHaveBeenCalled();
   });
 
   it('renders canceled order rows and try-again CTA', () => {

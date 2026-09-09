@@ -4,21 +4,21 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import {
   FIAT_ORDER_PROVIDERS as fiatOrderProviders,
   FIAT_ORDER_STATES as fiatOrderStates,
-} from '../../../../constants/on-ramp';
-import { getOrders } from '../../../../reducers/fiatOrders';
-import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import { useRampsOrders } from '../../../UI/Ramp/hooks/useRampsOrders';
+} from '#app/constants/on-ramp';
+import { getOrders } from '#app/reducers/fiatOrders';
+import type { FiatOrder } from '#app/reducers/fiatOrders/types';
+import { useRampsOrders } from '#app/components/UI/Ramp/hooks/useRampsOrders';
 import { useRampsDetailsOrder } from './useRampsDetailsOrder';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../reducers/fiatOrders', () => ({
+jest.mock('#app/reducers/fiatOrders', () => ({
   getOrders: jest.fn(),
 }));
 
-jest.mock('../../../UI/Ramp/hooks/useRampsOrders', () => ({
+jest.mock('#app/components/UI/Ramp/hooks/useRampsOrders', () => ({
   useRampsOrders: jest.fn(),
 }));
 

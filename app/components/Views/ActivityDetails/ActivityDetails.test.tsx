@@ -6,9 +6,13 @@ import type { ActivityListItem } from '../../../util/activity-adapters';
 import ActivityDetails from './ActivityDetails';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
+// eslint-disable-next-line import-x/no-restricted-paths -- same query the screen uses
+import { useTransactionsQuery } from '../ActivityList/useTransactionsQuery';
 import { useParams } from '../../../util/navigation/navUtils';
 // eslint-disable-next-line import-x/no-restricted-paths -- test controls the shared speed-up/cancel actions hook
 import { useUnifiedTxActions } from '../ActivityList/useUnifiedTxActions';
+import { selectPerpsEnabledFlag } from '#app/components/UI/Perps/selectors/featureFlags';
+import { usePerpsDetailsItem } from '#app/components/Views/ActivityDetails/templates/Perps/usePerpsDetailsItem';
 
 const mockGoBack = jest.fn();
 const mockIsFocused = jest.fn(() => true);
@@ -25,6 +29,14 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 
 jest.mock('./hooks/useActivityDetailsItem', () => ({
   useActivityDetailsItem: jest.fn(),
+}));
+
+jest.mock('../ActivityList/useTransactionsQuery', () => ({
+  useTransactionsQuery: jest.fn(() => ({
+    data: { pages: [{ data: [] }] },
+    isPending: false,
+    isFetching: false,
+  })),
 }));
 
 // The title resolves the bridge quote via this selector; the screen test uses a
@@ -52,13 +64,34 @@ jest.mock('../ActivityList/useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(),
 }));
 
-jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
-  selectPerpsEnabledFlag: () => false,
+jest.mock('#app/components/UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsEnabledFlag: jest.fn(() => false),
 }));
 
-jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
-  selectPredictEnabledFlag: () => false,
-}));
+jest.mock(
+  '#app/components/Views/ActivityDetails/templates/PerpsDetails',
+  () => ({
+    PerpsDetailsProviders: ({ children }: { children: React.ReactNode }) =>
+      children,
+  }),
+);
+
+jest.mock(
+  '#app/components/Views/ActivityDetails/templates/Perps/usePerpsDetailsItem',
+  () => ({
+    usePerpsDetailsItem: jest.fn(() => ({ item: undefined, isLoading: false })),
+  }),
+);
+
+jest.mock(
+  '#app/components/Views/ActivityDetails/templates/PredictDetails/usePredictDetailsItem',
+  () => ({
+    usePredictDetailsItem: jest.fn(() => ({
+      item: undefined,
+      isLoading: false,
+    })),
+  }),
+);
 
 // Expose the modal's onConfirm so a test can simulate the user confirming a
 // speed-up/cancel on this screen.
@@ -76,7 +109,9 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
 
 const useParamsMock = jest.mocked(useParams);
 const useActivityDetailsItemMock = jest.mocked(useActivityDetailsItem);
+const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const useUnifiedTxActionsMock = jest.mocked(useUnifiedTxActions);
+const selectPerpsEnabledFlagMock = jest.mocked(selectPerpsEnabledFlag);
 
 const buildTxActions = (
   overrides: Partial<ReturnType<typeof useUnifiedTxActions>> = {},
@@ -113,12 +148,18 @@ const sendItem: ActivityListItem = {
 describe('ActivityDetails screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useTransactionsQueryMock.mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      isPending: false,
+      isFetching: false,
+    } as unknown as ReturnType<typeof useTransactionsQuery>);
     mockIsFocused.mockReturnValue(true);
     useParamsMock.mockReturnValue({
       chainId: 'eip155:1',
       txIdentifier: '0xhash',
     });
     useUnifiedTxActionsMock.mockReturnValue(buildTxActions());
+    selectPerpsEnabledFlagMock.mockReturnValue(false);
   });
 
   it('renders the template when the transaction resolves', () => {
@@ -231,18 +272,17 @@ describe('ActivityDetails screen', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('rematches from live sources with the route identifier', () => {
-    useParamsMock.mockReturnValue({
-      chainId: 'eip155:1',
-      txIdentifier: '0xhash',
-    });
+  it('does not flash not-found while rematch is still loading', () => {
+    useActivityDetailsItemMock.mockReturnValue(undefined);
+    useTransactionsQueryMock.mockReturnValue({
+      data: undefined,
+      isPending: true,
+      isFetching: true,
+    } as unknown as ReturnType<typeof useTransactionsQuery>);
 
-    renderWithProvider(<ActivityDetails />);
+    const { queryByTestId } = renderWithProvider(<ActivityDetails />);
 
-    expect(useActivityDetailsItemMock).toHaveBeenCalledWith(
-      '0xhash',
-      'eip155:1',
-      [],
-    );
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.NOT_FOUND)).toBeNull();
+    expect(queryByTestId('mock-template-loader')).toBeNull();
   });
 });

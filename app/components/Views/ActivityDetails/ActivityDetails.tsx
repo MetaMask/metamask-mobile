@@ -1,14 +1,10 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import type { CaipChainId } from '@metamask/utils';
+import { ARBITRUM_MAINNET_CAIP_CHAIN_ID as arbitrumMainnetCaipChainId } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -28,81 +24,48 @@ import {
 import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the confirmations speed-up/cancel modal; route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
-/* eslint-disable import-x/no-restricted-paths -- shared pending-action logic + live perps/predict sources from the activity list; route-isolation backlog */
+/* eslint-disable import-x/no-restricted-paths -- transient row hand-off + shared pending-action logic from the activity list; route-isolation backlog */
 import {
   useUnifiedTxActions,
   type SpeedUpCancelParams,
 } from '../ActivityList/useUnifiedTxActions';
-import {
-  INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
-  PerpsActivitySource,
-  type PerpsActivitySourceState,
-} from '../ActivityList/hooks/PerpsActivitySource';
-import {
-  INITIAL_PREDICT_ACTIVITY_SOURCE_STATE,
-  PredictActivitySource,
-  type PredictActivitySourceState,
-} from '../ActivityList/hooks/PredictActivitySource';
 /* eslint-enable import-x/no-restricted-paths */
 import { selectPerpsEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import type { ActivityListItem } from '../../../util/activity-adapters';
+import { usePerpsDetailsItem } from './templates/Perps/usePerpsDetailsItem';
+import { usePredictDetailsItem } from './templates/PredictDetails/usePredictDetailsItem';
+import { PerpsDetailsProviders } from './templates/PerpsDetails';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
 import { useLocalTransactionMeta } from './hooks/useLocalTransactionMeta';
+/* eslint-disable-next-line import-x/no-restricted-paths */
+import { useTransactionsQuery } from '../ActivityList/useTransactionsQuery';
 import { ActivityDetailsPendingBanner } from './components/ActivityDetailsPendingBanner';
 import { TemplateLoader } from './templates/TemplateLoader';
 
-/**
- * Redesigned activity details screen. Re-resolves the {@link ActivityListItem}
- * from the `{ chainId, txIdentifier }` route params (mirroring the extension's
- * `ui/pages/details` flow), then dispatches to a per-type template via
- * `TemplateLoader`. Gated behind `selectIsTransactionsRedesignEnabled` at the
- * navigation call site.
- */
-const ActivityDetails = () => {
+const perpsActivityChainId = arbitrumMainnetCaipChainId as CaipChainId;
+const predictActivityChainId = 'eip155:137' as CaipChainId;
+
+function ActivityDetailsScreen({
+  item,
+  isLoading = false,
+}: {
+  item?: ActivityListItem;
+  isLoading?: boolean;
+}) {
+  const {
+    data: evmTransactions,
+    isPending,
+    isFetching,
+  } = useTransactionsQuery();
+  const waitingForApi =
+    !item && evmTransactions === undefined && (isPending || isFetching);
+  const waiting = Boolean(isLoading || waitingForApi);
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
-  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
-    INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
-  );
-  const [predictSource, setPredictSource] =
-    useState<PredictActivitySourceState>(INITIAL_PREDICT_ACTIVITY_SOURCE_STATE);
-  const [perpsReported, setPerpsReported] = useState(false);
-  const [predictReported, setPredictReported] = useState(false);
-
-  const handlePerpsSourceChange = useCallback(
-    (state: PerpsActivitySourceState) => {
-      setPerpsSource(state);
-      setPerpsReported(true);
-    },
-    [],
-  );
-  const handlePredictSourceChange = useCallback(
-    (state: PredictActivitySourceState) => {
-      setPredictSource(state);
-      setPredictReported(true);
-    },
-    [],
-  );
-
-  const extraItems = useMemo(
-    () => [
-      ...(isPerpsEnabled ? perpsSource.items : []),
-      ...(isPredictEnabled ? predictSource.items : []),
-    ],
-    [isPerpsEnabled, isPredictEnabled, perpsSource.items, predictSource.items],
-  );
-
-  const item = useActivityDetailsItem(txIdentifier, chainId, extraItems);
-  const waitingOnProviderSource =
-    !item &&
-    ((isPerpsEnabled && !perpsReported) ||
-      (isPredictEnabled && !predictReported));
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
   const bridgeHistoryItem = findBridgeHistoryItemBySrcTxHash(
     bridgeHistoryItemsBySrcTxHash,
@@ -110,7 +73,7 @@ const ActivityDetails = () => {
   );
   const title = item
     ? resolveActivityListItemTitle(item, bridgeHistoryItem)
-    : waitingOnProviderSource
+    : waiting
       ? ''
       : strings('activity_details.not_found');
 
@@ -186,13 +149,6 @@ const ActivityDetails = () => {
           }}
         />
 
-        {isPerpsEnabled ? (
-          <PerpsActivitySource onChange={handlePerpsSourceChange} />
-        ) : null}
-        {isPredictEnabled ? (
-          <PredictActivitySource onChange={handlePredictSourceChange} />
-        ) : null}
-
         {item ? (
           <ScrollView
             style={tw.style('flex-1')}
@@ -212,7 +168,7 @@ const ActivityDetails = () => {
             ) : null}
             <TemplateLoader item={item} />
           </ScrollView>
-        ) : waitingOnProviderSource ? null : (
+        ) : waiting ? null : (
           <Box twClassName="flex-1 items-center justify-center p-4">
             <Text
               variant={TextVariant.BodyMd}
@@ -243,6 +199,56 @@ const ActivityDetails = () => {
       </Box>
     </SafeAreaView>
   );
+}
+
+function PerpsDetailsByIdentifier({
+  txIdentifier,
+}: {
+  txIdentifier: string | undefined;
+}) {
+  const { item, isLoading } = usePerpsDetailsItem(txIdentifier);
+  return <ActivityDetailsScreen item={item} isLoading={isLoading} />;
+}
+
+function PredictDetailsByIdentifier({
+  txIdentifier,
+}: {
+  txIdentifier: string | undefined;
+}) {
+  const { item, isLoading } = usePredictDetailsItem(txIdentifier);
+  return <ActivityDetailsScreen item={item} isLoading={isLoading} />;
+}
+
+/**
+ * Redesigned activity details screen. Re-resolves the {@link ActivityListItem}
+ * from the `{ chainId, txIdentifier }` route params (mirroring the extension's
+ * `ui/pages/details` flow), then dispatches to a per-type template via
+ * `TemplateLoader`. Gated behind `selectIsTransactionsRedesignEnabled` at the
+ * navigation call site.
+ */
+const ActivityDetails = () => {
+  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
+  const item = useActivityDetailsItem(txIdentifier, chainId);
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+
+  if (item) {
+    return <ActivityDetailsScreen item={item} />;
+  }
+
+  if (isPerpsEnabled && chainId === perpsActivityChainId) {
+    return (
+      <PerpsDetailsProviders>
+        <PerpsDetailsByIdentifier txIdentifier={txIdentifier} />
+      </PerpsDetailsProviders>
+    );
+  }
+
+  if (isPredictEnabled && chainId === predictActivityChainId) {
+    return <PredictDetailsByIdentifier txIdentifier={txIdentifier} />;
+  }
+
+  return <ActivityDetailsScreen />;
 };
 
 export default ActivityDetails;

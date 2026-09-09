@@ -17,7 +17,7 @@ import {
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { mapRampOrder } from '../../../../util/activity-adapters';
 import { useAccountNames } from '../../../hooks/DisplayName/useAccountNames';
-import { useRampsDetailsOrder } from '../hooks/useRampsDetailsOrder';
+import { useRampsDetailsOrder } from './Ramps/useRampsDetailsOrder';
 import { RampDetails, type RampActivityListItem } from './RampDetails';
 
 const mockNavigate = jest.fn();
@@ -53,8 +53,12 @@ jest.mock('../../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('../hooks/useRampsDetailsOrder', () => ({
+jest.mock('./Ramps/useRampsDetailsOrder', () => ({
   useRampsDetailsOrder: jest.fn(),
+}));
+
+jest.mock('./DefaultDetails', () => ({
+  DefaultDetails: () => null,
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -269,7 +273,9 @@ describe('RampDetails', () => {
       statusDescription: 'Payment failed. Please place another order.',
     };
     const item = mapRampsOrder({ order }) as RampActivityListItem;
-    useRampsDetailsOrderMock.mockReturnValue(order);
+    useRampsDetailsOrderMock.mockReturnValue(
+      order as ReturnType<typeof useRampsDetailsOrder>,
+    );
 
     const { getByText, getByTestId } = render(<RampDetails item={item} />);
 
@@ -323,7 +329,9 @@ describe('RampDetails', () => {
       provider: { name: 'Transak' },
     };
     const item = mapRampsOrder({ order }) as RampActivityListItem;
-    useRampsDetailsOrderMock.mockReturnValue(order);
+    useRampsDetailsOrderMock.mockReturnValue(
+      order as ReturnType<typeof useRampsDetailsOrder>,
+    );
 
     const { getByText } = render(<RampDetails item={item} />);
 

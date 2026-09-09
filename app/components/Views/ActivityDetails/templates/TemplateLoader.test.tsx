@@ -504,25 +504,6 @@ describe('TemplateLoader', () => {
     expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('routes a buy without ramp raw to RampDetails', () => {
-    const buyItem = {
-      type: 'buy',
-      chainId: 'eip155:1',
-      status: 'success',
-      timestamp: 1,
-      hash: '0xbuy',
-      data: {
-        token: { amount: '1', decimals: 18, symbol: 'ETH', direction: 'in' },
-      },
-    } as ActivityListItem;
-
-    const { getByTestId } = renderWithProvider(
-      <TemplateLoader item={buyItem} />,
-    );
-
-    expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
-  });
-
   it('renders the SmartAccountUpgradeDetails template (fee, no total) for upgrades', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <TemplateLoader item={smartAccountUpgradeItem} />,

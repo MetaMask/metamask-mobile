@@ -4,7 +4,8 @@ import {
   isRampRampsOrder,
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
-import { useRampsDetailsOrder } from '../hooks/useRampsDetailsOrder';
+import { useRampsDetailsOrder } from './Ramps/useRampsDetailsOrder';
+import { DefaultDetails } from './DefaultDetails';
 import { RampFiatOrderDetails } from './RampFiatOrderDetails';
 import { RampRampsOrderDetails } from './RampRampsOrderDetails';
 
@@ -22,15 +23,15 @@ export function RampDetails({
   const order = useRampsDetailsOrder(item.hash);
 
   if (!order) {
-    return null;
+    return <DefaultDetails item={item} />;
   }
 
   if (isRampRampsOrder(order)) {
-    return <RampRampsOrderDetails item={item} order={order} />;
+    return <RampRampsOrderDetails order={order} />;
   }
 
   if (isRampFiatOrder(order)) {
-    return <RampFiatOrderDetails item={item} order={order} />;
+    return <RampFiatOrderDetails order={order} />;
   }
 
   return null;

@@ -1,5 +1,4 @@
 import type { CaipChainId } from '@metamask/utils';
-import type { ActivityListItem } from '../../../util/activity-adapters';
 
 /**
  * Route params for the redesigned activity details screen.
@@ -14,11 +13,4 @@ export interface ActivityDetailsParams {
   chainId: CaipChainId;
   /** Transaction identifier — hash, local meta id, or domain id. */
   txIdentifier?: string;
-}
-
-/** Props shared by every per-type details template. */
-export interface ActivityDetailsTemplateProps<
-  T extends ActivityListItem = ActivityListItem,
-> {
-  item: T;
 }

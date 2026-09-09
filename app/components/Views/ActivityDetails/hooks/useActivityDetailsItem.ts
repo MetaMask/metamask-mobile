@@ -31,8 +31,8 @@ import {
  *
  * Local gasless/STX rows may temporarily change their displayed hash while the
  * meta `id` stays stable. Lookup therefore indexes local rows by meta id and
- * both primary/initial hashes. Provider-backed extras (perps / predict) win
- * hash collisions so details rematch the live domain row.
+ * both primary/initial hashes. A stashed preloaded local row bridges route
+ * params that still hold a superseded hash to the live meta by id.
  *
  * When a `chainId` is provided, candidates are restricted to that chain first,
  * so a hash that collides across chains resolves to the correct transaction.
@@ -51,7 +51,7 @@ function buildItemsByHash(
 }
 
 /** Keys that can address a local EVM Activity row (meta id + hashes). */
-export function getLocalActivityLookupKeys(item: ActivityListItem): string[] {
+function getLocalActivityLookupKeys(item: ActivityListItem): string[] {
   const keys = new Set<string>();
   if (item.hash) {
     keys.add(item.hash.toLowerCase());
@@ -85,24 +85,13 @@ function buildLocalItemsByLookupKey(
   return byKey;
 }
 
-function isProviderBackedItem(item: ActivityListItem): boolean {
-  return (
-    item.raw?.type === 'perpsTransaction' ||
-    item.raw?.type === 'predictActivity'
-  );
-}
-
 function buildItemsByIdentifier(
   items: ActivityListItem[],
 ): Map<string, ActivityListItem> {
   const byIdentifier = buildItemsByHash(items);
   for (const item of items) {
     const domainId =
-      item.raw?.type === 'perpsTransaction' ||
-      item.raw?.type === 'predictActivity' ||
-      item.raw?.type === 'rampOrder'
-        ? item.raw.data.id
-        : undefined;
+      item.raw?.type === 'rampOrder' ? item.raw.data.id : undefined;
     const normalizedDomainId = domainId?.toLowerCase();
     if (normalizedDomainId && !byIdentifier.has(normalizedDomainId)) {
       byIdentifier.set(normalizedDomainId, item);
@@ -153,7 +142,6 @@ function getPreferredApiItem(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
-  extraItems: ActivityListItem[] = [],
 ): ActivityListItem | undefined {
   const localActivityItems = useLocalActivityItems();
   const rampActivityItems = useRampActivityItems();
@@ -198,10 +186,6 @@ export function useActivityDetailsItem(
     () => buildItemsByHash(filterByChain(nonEvmItems, chainId)),
     [nonEvmItems, chainId],
   );
-  const extraByIdentifier = useMemo(
-    () => buildItemsByIdentifier(filterByChain(extraItems, chainId)),
-    [extraItems, chainId],
-  );
   const rampByIdentifier = useMemo(
     () => buildItemsByIdentifier(filterByChain(rampActivityItems, chainId)),
     [rampActivityItems, chainId],
@@ -213,19 +197,14 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
-    const extraItem = extraByIdentifier.get(id);
-    if (extraItem && isProviderBackedItem(extraItem)) {
-      return extraItem;
+    const rampsActivityItem = rampByIdentifier.get(id);
+    if (rampsActivityItem) {
+      return rampsActivityItem;
     }
 
     const localItem = localByLookupKey.get(id);
-    const apiItem = getPreferredApiItem(apiByHash, id, localItem, extraItem);
+    const apiItem = getPreferredApiItem(apiByHash, id, localItem);
     const nonEvmItem = nonEvmByHash.get(id);
-    const rampItem = rampByIdentifier.get(id);
-
-    if (rampItem) {
-      return rampItem;
-    }
 
     if (localItem) {
       return preferLocalOrApiActivityItem(localItem, apiItem);
@@ -235,17 +214,12 @@ export function useActivityDetailsItem(
       return nonEvmItem;
     }
 
-    if (apiItem) {
-      return apiItem;
-    }
-
-    return extraItem;
+    return apiItem;
   }, [
     txIdentifier,
     localByLookupKey,
     apiByHash,
     nonEvmByHash,
-    extraByIdentifier,
     rampByIdentifier,
   ]);
 }

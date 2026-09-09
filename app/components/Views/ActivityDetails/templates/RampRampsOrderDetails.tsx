@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import type { RampsOrder } from '@metamask/ramps-controller';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
   getRampsOrderCreatedAt,
   getRampsOrderTransactionHash,
@@ -23,10 +22,6 @@ import {
   getRampsOrderStatusDescription,
   mapRampsOrderActivityStatus,
 } from './rampDetailsUtils';
-
-export type RampRampsActivityListItem = ActivityListItem & {
-  type: 'buy' | 'sell' | 'rampBuy' | 'rampSell';
-};
 
 function isRampsSellOrder(order: RampsOrder) {
   return mapRampsOrderType(order.orderType) === 'sell';
@@ -55,9 +50,8 @@ function getRampsExplorerChainId(order: RampsOrder) {
 
 /** Native RampsOrder ActivityDetails template — visual parity with Fiat path. */
 export function RampRampsOrderDetails({
-  item,
   order,
-}: Readonly<{ item: RampRampsActivityListItem; order: RampsOrder }>) {
+}: Readonly<{ order: RampsOrder }>) {
   const isSell = isRampsSellOrder(order);
   const transactionHash = getRampsOrderTransactionHash(order);
   const chainId = getRampsExplorerChainId(order);

@@ -1,6 +1,6 @@
 import React from 'react';
+import type { ActivityListItem } from '../../../../util/activity-adapters';
 import { ActivityDetailsAmountHeader } from '../components';
-import type { ActivityDetailsTemplateProps } from '../ActivityDetails.types';
 import { ActivityDetailsStandardTemplate } from './ActivityDetailsStandardTemplate';
 
 /**
@@ -8,7 +8,7 @@ import { ActivityDetailsStandardTemplate } from './ActivityDetailsStandardTempla
  * kind without a dedicated template. Mirrors the extension's `DefaultDetails`.
  * The footer is pinned to the bottom of the screen.
  */
-export function DefaultDetails({ item }: ActivityDetailsTemplateProps) {
+export function DefaultDetails({ item }: { item: ActivityListItem }) {
   return (
     <ActivityDetailsStandardTemplate
       item={item}

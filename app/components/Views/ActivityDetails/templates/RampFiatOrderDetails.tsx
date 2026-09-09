@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { getProviderName } from '../../../../reducers/fiatOrders';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
 import { ActivityDetailsBlockExplorerButton } from '../components/ActivityDetailsFooter';
 import { ActivityDetailsTemplateFrame } from '../components/ActivityDetailsTemplateFrame';
 import {
@@ -23,15 +22,10 @@ import {
   mapRampActivityStatus,
 } from './rampDetailsUtils';
 
-export type RampFiatActivityListItem = ActivityListItem & {
-  type: 'buy' | 'sell' | 'rampBuy' | 'rampSell';
-};
-
 /** Legacy FiatOrder ActivityDetails template — extract of prior RampDetails. */
 export function RampFiatOrderDetails({
-  item,
   order,
-}: Readonly<{ item: RampFiatActivityListItem; order: FiatOrder }>) {
+}: Readonly<{ order: FiatOrder }>) {
   const isSell = isRampSellOrder(order);
   const transactionHash = getRampActivityTransactionHash(order);
   const chainId = getRampActivityExplorerChainId(order.network);

@@ -1,18 +1,16 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { RampsOrder } from '@metamask/ramps-controller';
-import { getOrders } from '../../../../reducers/fiatOrders';
-import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import { useRampsOrders } from '../../../UI/Ramp/hooks/useRampsOrders';
+import { getOrders } from '../../../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../../../reducers/fiatOrders/types';
+import { useRampsOrders } from '../../../../UI/Ramp/hooks/useRampsOrders';
 import {
   getRampOrderTransactionHash,
   mapRampOrderType,
-} from '../../../../util/activity-adapters/adapters/ramp-order-helpers';
-import { getRampsOrderTransactionHash } from '../../../../util/activity-adapters/adapters/ramps-order-helpers';
+} from '../../../../../util/activity-adapters/adapters/ramp-order-helpers';
+import { getRampsOrderTransactionHash } from '../../../../../util/activity-adapters/adapters/ramps-order-helpers';
 
-export type RampsDetailsOrder = FiatOrder | RampsOrder;
-
-function matchesLegacyOrder(order: FiatOrder, identifier: string): boolean {
+function matchesLegacyOrder(order: FiatOrder, identifier: string) {
   if (order.id.toLowerCase() === identifier) {
     return true;
   }
@@ -30,8 +28,8 @@ function matchesLegacyOrder(order: FiatOrder, identifier: string): boolean {
   );
 }
 
-function matchesRampsOrder(order: RampsOrder, identifier: string): boolean {
-  if (order.id.toLowerCase() === identifier) {
+function matchesRampsOrder(order: RampsOrder, identifier: string) {
+  if (order.id?.toLowerCase() === identifier) {
     return true;
   }
   if (order.providerOrderId?.toLowerCase() === identifier) {
@@ -40,9 +38,7 @@ function matchesRampsOrder(order: RampsOrder, identifier: string): boolean {
   return getRampsOrderTransactionHash(order)?.toLowerCase() === identifier;
 }
 
-export function useRampsDetailsOrder(
-  txIdentifier: string | undefined,
-): RampsDetailsOrder | undefined {
+export function useRampsDetailsOrder(txIdentifier: string | undefined) {
   const legacyOrders = useSelector(getOrders);
   const { orders, getOrderById } = useRampsOrders();
 

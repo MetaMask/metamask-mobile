@@ -283,55 +283,6 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(local);
   });
 
-  it('falls back to an extra local item when live lookup misses', () => {
-    const extra = makeItem({
-      type: 'send',
-      hash: '0xorphan',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-orphan', hash: '0xorphan' },
-          initialTransaction: { id: 'meta-orphan' },
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({});
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('meta-orphan', 'eip155:1', [extra]),
-    );
-    expect(result.current).toBe(extra);
-  });
-
-  it('prefers a confirmed API copy over a leftover extra local item', () => {
-    const api = makeItem({
-      type: 'send',
-      hash: '0xshared2',
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    const extra = makeItem({
-      type: 'send',
-      hash: '0xshared2',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-plain', hash: '0xshared2' },
-          initialTransaction: { id: 'meta-plain' },
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({ confirmed: [api] });
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('meta-plain', 'eip155:1', [extra]),
-    );
-    expect(result.current).toBe(api);
-  });
-
   it('returns the API item when there is no local match', () => {
     const api = makeItem({ type: 'swap', hash: '0xapi' });
     setSources({ confirmed: [api] });
@@ -379,73 +330,5 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current).toBe(ramp);
-  });
-
-  it('resolves a provider-backed extra item by hash', () => {
-    const extra = makeItem({
-      type: 'perpsOpenLong',
-      chainId: 'eip155:42161',
-      hash: 'perps-fill-1',
-      raw: {
-        type: 'perpsTransaction',
-        data: {
-          id: 'fill-1',
-          type: 'trade',
-          category: 'position_open',
-          title: 'Opened long',
-          subtitle: '0.0001 BTC',
-          timestamp: 1,
-          asset: 'BTC',
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({});
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('perps-fill-1', 'eip155:42161', [extra]),
-    );
-
-    expect(result.current).toBe(extra);
-  });
-
-  it('prefers a matching extra domain item over a local hash collision', () => {
-    const local = makeItem({
-      type: 'send',
-      chainId: 'eip155:42161',
-      hash: '0xshared',
-    });
-    const extra = makeItem({
-      type: 'perpsAddFunds',
-      chainId: 'eip155:42161',
-      hash: '0xshared',
-      raw: {
-        type: 'perpsTransaction',
-        data: {
-          id: 'wallet-deposit-1',
-          type: 'deposit',
-          category: 'deposit',
-          title: 'Account funded',
-          subtitle: 'Completed',
-          timestamp: 1,
-          asset: 'USDC',
-          depositWithdrawal: {
-            amount: '+$1.00',
-            amountNumber: 1,
-            isPositive: true,
-            asset: 'USDC',
-            txHash: '0xshared',
-            status: 'completed',
-            type: 'deposit',
-          },
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({ local: [local] });
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('0xshared', 'eip155:42161', [extra]),
-    );
-
-    expect(result.current).toBe(extra);
   });
 });

@@ -39,7 +39,9 @@ describe('getActivityDetailsRoute', () => {
       },
     } as unknown as Partial<ActivityListItem>);
 
-    expect(getActivityDetailsRoute(pendingItem)).toEqual({
+    const route = getActivityDetailsRoute(pendingItem);
+
+    expect(route).toEqual({
       chainId: 'eip155:1',
       txIdentifier: 'meta-pending-1',
     });
@@ -56,7 +58,9 @@ describe('getActivityDetailsRoute', () => {
       },
     } as unknown as Partial<ActivityListItem>);
 
-    expect(getActivityDetailsRoute(confirmedItem)).toEqual({
+    const route = getActivityDetailsRoute(confirmedItem);
+
+    expect(route).toEqual({
       chainId: 'eip155:1',
       txIdentifier: 'meta-confirmed-1',
     });
@@ -70,10 +74,12 @@ describe('getActivityDetailsRoute', () => {
       },
     } as unknown as Partial<ActivityListItem>);
 
-    expect(getActivityDetailsRoute(localWithoutId)?.txIdentifier).toBe('0xabc');
+    const route = getActivityDetailsRoute(localWithoutId);
+
+    expect(route?.txIdentifier).toBe('0xabc');
   });
 
-  it('routes a bridge local transaction to ActivityDetails', () => {
+  it('routes a bridge local transaction to ActivityDetails (BridgeDetails template)', () => {
     const bridgeItem = baseItem({
       raw: {
         type: 'localTransaction',
@@ -86,27 +92,32 @@ describe('getActivityDetailsRoute', () => {
       },
     } as unknown as Partial<ActivityListItem>);
 
+    // Bridges used to be excluded in favour of the legacy bridge-status
+    // screen, which predates the BridgeDetails template.
     expect(getActivityDetailsRoute(bridgeItem)).toEqual(
       expect.objectContaining({ txIdentifier: 'bridge-meta-1' }),
     );
   });
 
-  it('routes perps and predict rows by hash', () => {
-    expect(
-      getActivityDetailsRoute(
-        baseItem({
-          type: 'perpsOpenLong',
-          raw: { type: 'perpsTransaction', data: { id: 'perps-1' } },
-        } as unknown as Partial<ActivityListItem>),
-      )?.txIdentifier,
-    ).toBe('0xabc');
-    expect(
-      getActivityDetailsRoute(
-        baseItem({
-          type: 'predictionPlaced',
-          raw: { type: 'predictActivity', data: { id: 'predict-1' } },
-        } as unknown as Partial<ActivityListItem>),
-      )?.txIdentifier,
-    ).toBe('0xabc');
+  it('routes perps rows by hash', () => {
+    const perpsItem = baseItem({
+      type: 'perpsOpenLong',
+      raw: { type: 'perpsTransaction', data: { id: 'perps-1' } },
+    } as unknown as Partial<ActivityListItem>);
+
+    const route = getActivityDetailsRoute(perpsItem);
+
+    expect(route?.txIdentifier).toBe('0xabc');
+  });
+
+  it('routes predict rows by hash', () => {
+    const predictItem = baseItem({
+      type: 'predictionPlaced',
+      raw: { type: 'predictActivity', data: { id: 'predict-1' } },
+    } as unknown as Partial<ActivityListItem>);
+
+    const route = getActivityDetailsRoute(predictItem);
+
+    expect(route?.txIdentifier).toBe('0xabc');
   });
 });

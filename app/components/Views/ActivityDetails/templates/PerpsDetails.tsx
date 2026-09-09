@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
@@ -35,21 +35,20 @@ import {
 } from '../components';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import {
-  asPerpsActivityItem,
   formatPerpsOrderFee,
   formatPositiveFiat,
   formatPerpsTransactionDate,
   formatSignedPerpsFiat,
   getPerpsFundsCtaLabel,
   getPerpsPositionSize,
-  getPerpsPriceLabel,
   getPerpsPriceValue,
   shouldShowPerpsPnl,
   type PerpsActivityListItem,
   type PerpsDepositWithdrawalStatus,
   type PerpsTransaction,
 } from '../components/ActivityDetailsPerps.utils';
-import { usePerpsDetailsTransaction } from '../hooks/usePerpsDetailsTransaction';
+import { usePerpsDetailsItem } from './Perps/usePerpsDetailsItem';
+import { DefaultDetails } from './DefaultDetails';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import {
@@ -123,6 +122,12 @@ function StatusAndDateRows({
       />
     </>
   );
+}
+
+function getPerpsPriceLabel(fill: PerpsTransaction['fill']) {
+  return fill?.action === 'Closed' || fill?.action === 'Flipped'
+    ? strings('perps.transactions.position.close_price')
+    : strings('perps.transactions.position.entry_price');
 }
 
 function TradeDetails({
@@ -502,14 +507,17 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
 }
 
 function PerpsDetailsBody({ item }: { item: ActivityListItem }) {
-  const perpsItem = asPerpsActivityItem(item);
-  const transaction = usePerpsDetailsTransaction(item.hash);
+  const perpsItem = item as PerpsActivityListItem;
+  const { transaction, isLoading } = usePerpsDetailsItem(item.hash);
 
   if (!transaction) {
+    if (isLoading) {
+      return null;
+    }
     if (item.type === 'perpsAddFunds' || item.type === 'perpsWithdraw') {
       return <LocalFundsDetails item={perpsItem} />;
     }
-    return null;
+    return <DefaultDetails item={item} />;
   }
 
   if (transaction.type === 'trade') {
@@ -531,12 +539,27 @@ function PerpsDetailsBody({ item }: { item: ActivityListItem }) {
   return null;
 }
 
-export function PerpsDetails({ item }: { item: ActivityListItem }) {
+const perpsDetailsProvidersActive = createContext(false);
+
+export function PerpsDetailsProviders({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <PerpsConnectionProvider suppressErrorView>
-      <PerpsStreamProvider>
-        <PerpsDetailsBody item={item} />
-      </PerpsStreamProvider>
-    </PerpsConnectionProvider>
+    <perpsDetailsProvidersActive.Provider value>
+      <PerpsConnectionProvider suppressErrorView>
+        <PerpsStreamProvider>{children}</PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    </perpsDetailsProvidersActive.Provider>
   );
+}
+
+export function PerpsDetails({ item }: { item: ActivityListItem }) {
+  const hasProviders = useContext(perpsDetailsProvidersActive);
+  const body = <PerpsDetailsBody item={item} />;
+  if (hasProviders) {
+    return body;
+  }
+  return <PerpsDetailsProviders>{body}</PerpsDetailsProviders>;
 }

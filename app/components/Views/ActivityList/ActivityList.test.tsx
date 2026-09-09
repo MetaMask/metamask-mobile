@@ -1849,7 +1849,7 @@ describe('ActivityList', () => {
     render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
     fireEvent.press(screen.getByTestId('row-perps-fill-2'));
 
-    // Params stay serializable; details rematch the row from live sources.
+    // Params stay serializable; details rematch the row.
     const call = mockNavigate.mock.calls.find(
       ([route]) => route === Routes.ACTIVITY_DETAILS,
     );
