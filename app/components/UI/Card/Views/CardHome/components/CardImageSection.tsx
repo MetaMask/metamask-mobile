@@ -49,7 +49,7 @@ const formatExpiry = (expiry: string): string => {
 };
 
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const CARD_DETAILS_ORANGE = '#FF5C16';
+const CARD_DETAILS_ORANGE = '#FA4B00';
 
 const DetailField = ({
   label,
