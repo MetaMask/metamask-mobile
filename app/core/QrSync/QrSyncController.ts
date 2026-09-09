@@ -310,9 +310,7 @@ export class QrSyncController extends BaseController<
         ? QrSyncSyncFlows.EXISTING_USER
         : QrSyncSyncFlows.NEW_USER;
       state.pendingSecretImports = pendingPayload;
-      state.provisioningMetadata = snapshot
-        .stripSecrets()
-        .serialize() as AccountTreePayload;
+      state.provisioningMetadata = snapshot.stripSecrets().serialize();
       state.provisioningStatus = QrSyncProvisioningStatuses.AWAITING_PASSWORD;
       state.phase = QrSyncPhases.REVIEWING_IMPORT;
       state.otp = null;
@@ -336,14 +334,19 @@ export class QrSyncController extends BaseController<
   }
 
   /**
-   * Phase B (new-user): imports secondary secrets right after vault creation.
+   * Phase B: imports wallet secrets into the keyring.
    *
-   * Called from `Authentication.newWalletAndRestore` after the primary vault
-   * is created. Calls `AccountTreeController:importState` with the full
-   * snapshot minus metadata — `importState` skips the primary wallet (already
-   * in the vault by entropy source ID) and imports any secondary wallets or
-   * private keys. Errors are non-fatal: secrets are cleared and the status
-   * advances regardless so Phase C can still apply metadata.
+   * Called from two entry points:
+   * - **New-user**: `Authentication.newWalletAndRestore` after vault creation.
+   * - **Existing-user**: `finishExistingUserSyncWithoutMnemonic` in the
+   *   add-device flow, before `startExistingUserQrMetadataProvisioning` (Phase C).
+   *
+   * Calls `AccountTreeController:importState` with the metadata-stripped snapshot.
+   * For new users the primary mnemonic is also filtered out (account tree not yet
+   * initialized); for existing users it is included so `importState` can match it
+   * by entropy source ID and skip it safely. Errors are non-fatal: secrets are
+   * cleared and the status advances to `SECRETS_IMPORTED` regardless so Phase C
+   * can still apply metadata.
    */
   public async importRemainingSecrets(): Promise<void> {
     const { pendingSecretImports, provisioningStatus } = this.state;
@@ -355,25 +358,31 @@ export class QrSyncController extends BaseController<
     }
 
     try {
-      // Strip the primary mnemonic wallet (first mnemonic entry) before calling
-      // importState. Two reasons:
-      //   1. It is already in the vault — vault creation (new-user) or the
-      //      existing keyring (existing-user) already holds this SRP, so
-      //      passing it to importState would be a no-op at best.
-      //   2. importState resolves wallets by entropy source ID, which requires
-      //      the account tree to be initialized. Filtering out the primary here
-      //      avoids that dependency: we only import wallets that are genuinely
-      //      new, and those have no prior account-tree entry to look up.
-      let primarySkipped = false;
-      const snapshot = (
-        await AccountTreeSnapshot.deserialize(pendingSecretImports)
-      ).filterWallets((wallet) => {
-        if (wallet.type === 'mnemonic' && !primarySkipped) {
-          primarySkipped = true;
-          return false;
-        }
-        return true;
-      });
+      const isNewUser = this.state.syncFlow !== QrSyncSyncFlows.EXISTING_USER;
+
+      let snapshot =
+        await AccountTreeSnapshot.deserialize(pendingSecretImports);
+
+      // For new users only: strip the primary mnemonic wallet (first mnemonic
+      // entry) before calling importState. Two reasons:
+      //   1. It was just imported into the vault during onboarding, so passing
+      //      it to importState would be a no-op at best.
+      //   2. importState resolves wallets by entropy source ID against the
+      //      account tree. For new users the account tree is not yet initialized
+      //      at this point, so filtering out the primary avoids that dependency.
+      // For existing users the account tree is already initialized, so importState
+      // can safely match the primary by entropy source ID and skip it itself.
+      if (isNewUser) {
+        let primarySkipped = false;
+        snapshot = snapshot.filterWallets((wallet) => {
+          if (wallet.type === 'mnemonic' && !primarySkipped) {
+            primarySkipped = true;
+            return false;
+          }
+          return true;
+        });
+      }
+
       await this.messenger.call(
         'AccountTreeController:importState',
         snapshot.stripMetadata(),

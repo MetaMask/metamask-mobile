@@ -82,6 +82,10 @@ jest.mock('../Engine', () => ({
       },
       resetState: () => mockResetState(),
     },
+    QrSyncProvisioningService: {
+      provisionFromMetadata: (...args: unknown[]) =>
+        mockProvisionFromMetadata(...args),
+    },
   },
 }));
 
@@ -146,8 +150,6 @@ const renderUseQrSyncImportNavigation = <TProps>(
             'KeyringController:getAccounts': mockGetAccounts,
             'QrSyncController:importRemainingSecrets':
               mockImportRemainingSecrets,
-            'QrSyncProvisioningService:provisionFromMetadata':
-              mockProvisionFromMetadata,
           }),
         },
         children,
@@ -208,7 +210,7 @@ describe('useQrSyncImportNavigation', () => {
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
   });
 
-  it('shows already-synced sheet when existing-user sync adds no accounts', async () => {
+  it('runs Phase C and shows already-synced sheet when existing-user sync adds no accounts', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
     mockQrSyncControllerState.pendingSecretImports =
@@ -224,9 +226,11 @@ describe('useQrSyncImportNavigation', () => {
       expect(mockShowAlreadySyncedSheet).toHaveBeenCalled();
     });
 
+    // Phase C must run even when no new accounts were added — it applies
+    // wallet/account names, groups, and layout from the extension.
     expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
-    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
-    expect(mockResetState).toHaveBeenCalledTimes(1);
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockResetState).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
   });

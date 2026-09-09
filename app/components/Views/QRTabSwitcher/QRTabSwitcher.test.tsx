@@ -58,7 +58,19 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
+jest.mock(
+  '../../../core/QrSync/startExistingUserQrMetadataProvisioning',
+  () => ({
+    startExistingUserQrMetadataProvisioning: jest.fn(),
+  }),
+);
+
 import Engine from '../../../core/Engine';
+import { startExistingUserQrMetadataProvisioning } from '../../../core/QrSync/startExistingUserQrMetadataProvisioning';
+
+const mockStartExistingUserQrMetadataProvisioning = jest.mocked(
+  startExistingUserQrMetadataProvisioning,
+);
 
 const mockResetState = jest.fn();
 const mockHandleScannedQrPayload = jest.fn(() => Promise.resolve());
@@ -113,8 +125,6 @@ const wrapQrTabSwitcher = (ui: React.ReactElement = <QRTabSwitcher />) => (
       'QrSyncController:handleScannedQrPayload': mockHandleScannedQrPayload,
       'QrSyncController:hasPendingSecretImports': mockHasPendingSecretImports,
       'KeyringController:getAccounts': mockGetAccounts,
-      'QrSyncProvisioningService:provisionFromMetadata':
-        mockProvisionFromMetadata,
     })}
   >
     {ui}
@@ -414,7 +424,9 @@ describe('QRTabSwitcher', () => {
 
     await waitFor(() => {
       expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
-      expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+      expect(mockStartExistingUserQrMetadataProvisioning).toHaveBeenCalledTimes(
+        1,
+      );
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
     expect(mockResetState).not.toHaveBeenCalled();

@@ -12,6 +12,7 @@ import type { RouteMessengerInstance } from './route-messenger';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
 import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
+import { startExistingUserQrMetadataProvisioning } from './startExistingUserQrMetadataProvisioning';
 import Logger from '../../util/Logger';
 import {
   QrSyncOperations,
@@ -30,17 +31,20 @@ interface UseQrSyncImportNavigationOptions {
 let inFlightImportNavigation: Promise<void> | null = null;
 
 /**
- * Existing-user QR sync after SYNC_READY: mirrors the new-user two-phase flow.
+ * Existing-user QR sync after SYNC_READY: two-phase flow matching new-user.
  *
- * Phase B — `importRemainingSecrets`: imports any missing secondary wallet secrets
- * via `importState(stripMetadata)`. The primary wallet is already in the keyring
- * so `importState` skips it by entropy source ID; status advances to SECRETS_IMPORTED.
+ * Phase B — `importRemainingSecrets`: imports any missing wallet secrets via
+ * `importState(stripMetadata)`. For existing users the primary wallet is already
+ * in the keyring; `importState` skips it by entropy source ID. Status advances
+ * to SECRETS_IMPORTED regardless.
  *
- * Phase C — `provisionFromMetadata`: applies account names, groups, and layout
- * from the persisted secrets-stripped `provisioningMetadata` payload.
+ * Phase C — `provisionFromMetadata`: always runs for existing users. Applies
+ * wallet/account names, groups, and layout from the persisted secrets-stripped
+ * `provisioningMetadata` payload — even when Phase B imported no new secrets
+ * (the common case: primary-only payload, names/groups changed on extension).
  *
- * Account count before/after Phase B determines whether to show the "already
- * synced" sheet or navigate to the wallet.
+ * Account count before vs. after Phase B determines whether to show the
+ * "already synced" sheet after navigation (Phase C always runs either way).
  */
 const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
@@ -71,25 +75,19 @@ const finishExistingUserSyncWithoutMnemonic = async (
     return;
   }
 
-  if (!addedNewAccounts) {
-    await messenger.call('QrSyncController:resetState');
-    navigation.navigate(Routes.WALLET_VIEW);
-    showAlreadySyncedSheet(navigation);
-    return;
-  }
-
-  try {
-    await messenger.call('QrSyncProvisioningService:provisionFromMetadata');
-  } catch (error) {
-    reportQrSyncFailure(error, {
-      surface: QrSyncSurfaces.IMPORT,
-      operation: QrSyncOperations.PROVISION_FROM_METADATA,
-      source: QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
-      syncFlow: QrSyncSyncFlows.EXISTING_USER,
-    });
-  }
-
+  // Phase C: non-blocking, matches new-user finalizeOnboardingCompletion pattern.
+  // Always runs for existing users — applies names/groups/layout even when no new
+  // secrets were imported (the common case: primary-only payload, metadata changed).
+  // Do NOT resetState here — that would clear provisioningMetadata before Phase C reads it.
+  startExistingUserQrMetadataProvisioning(
+    QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
+  );
   navigation.navigate(Routes.WALLET_VIEW);
+
+  // Show "already synced" sheet after navigation when no new wallets were imported.
+  if (!addedNewAccounts) {
+    showAlreadySyncedSheet(navigation);
+  }
 };
 
 /**

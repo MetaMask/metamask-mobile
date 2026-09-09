@@ -105,13 +105,14 @@ export class QrSyncProvisioningService {
    * both new-user and existing-user paths:
    *
    * - **New-user** (`SECRETS_IMPORTED` after vault creation): Phase B imported
-   *   secondary wallet secrets into the keyring. `provisioningMetadata` carries
-   *   a secrets-stripped `AccountTreePayload` (wallet `value` absent); `importState`
-   *   matches wallets by entropy source ID and applies names, groups, and layout.
+   *   secondary wallet secrets. `provisioningMetadata` carries a secrets-stripped
+   *   `AccountTreePayload`; `importState` matches wallets by entropy source ID
+   *   and applies names, groups, and layout.
    *
    * - **Existing-user** (`SECRETS_IMPORTED` after `importRemainingSecrets`): Phase B
-   *   imported any missing secondary wallet secrets via `importState(stripMetadata)`.
-   *   `provisioningMetadata` then applies the full metadata layer in the same way.
+   *   imported any missing secondary wallet secrets (or was a no-op for primary-only
+   *   payloads). Phase C always runs regardless — it applies the full metadata layer
+   *   (names, groups, layout) even when no new secrets were imported.
    *
    * In both cases the payload shape is identical: a persisted, secrets-stripped
    * `AccountTreePayload` where `value` is absent for every wallet entry.
@@ -120,7 +121,10 @@ export class QrSyncProvisioningService {
     const { provisioningMetadata, provisioningStatus } =
       this.#getQrSyncControllerState();
 
-    this.#assertProvisioningPreconditions(provisioningStatus, provisioningMetadata);
+    this.#assertProvisioningPreconditions(
+      provisioningStatus,
+      provisioningMetadata,
+    );
 
     try {
       await this.#messenger.call(
