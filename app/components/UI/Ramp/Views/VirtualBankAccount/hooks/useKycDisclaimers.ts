@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KycDisclaimer } from '@metamask/kyc-controller';
 import Engine from '../../../../../../core/Engine';
+import { VBA_KYC_VENDOR } from '../constants';
 
 export type { KycDisclaimer };
 
@@ -16,7 +17,8 @@ const FETCH_TIMEOUT_MS = 10_000;
 
 /**
  * Loads Iron / MoonPay Enterprise legal disclaimers (Privacy Policy / T&Cs) for the
- * VBA KYC flow via {@link Engine.context.KycController.loadDisclaimers}.
+ * VBA KYC flow via {@link Engine.context.KycController.initialize} then
+ * {@link Engine.context.KycController.loadDisclaimers}.
  *
  * This is vendor T&Cs only — not the idOS relay / SumSub session catalog
  * (`fetchDisclaimersCatalog` / session disclaimers). Those are a separate controller
@@ -50,9 +52,9 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       FETCH_TIMEOUT_MS,
     );
 
-    // `loadDisclaimers` does not take an AbortSignal, so race it against the same
-    // timeout used for the old direct fetch to keep the CTA from being stuck on a
-    // hung controller / network call.
+    // Neither `initialize` nor `loadDisclaimers` takes an AbortSignal, so race
+    // them against the same timeout used for the old direct fetch to keep the
+    // CTA from being stuck on a hung controller / network call.
     const abortedPromise = new Promise<never>((_, reject) => {
       abortController.signal.addEventListener('abort', () => {
         const abortError = new Error('Aborted');
@@ -64,7 +66,12 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
     const loadDisclaimers = async () => {
       try {
         await Promise.race([
-          Engine.context.KycController.loadDisclaimers({ country }),
+          (async () => {
+            await Engine.context.KycController.initialize({
+              vendor: VBA_KYC_VENDOR,
+            });
+            await Engine.context.KycController.loadDisclaimers({ country });
+          })(),
           abortedPromise,
         ]);
 

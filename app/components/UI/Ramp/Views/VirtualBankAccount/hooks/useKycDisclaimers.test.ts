@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { VBA_KYC_VENDOR } from '../constants';
 import { useKycDisclaimers } from './useKycDisclaimers';
 
+const mockInitialize = jest.fn();
 const mockLoadDisclaimers = jest.fn();
 const mockKycControllerState = {
   vendorDisclaimers: [] as { id: string; url: string; display_name: string }[],
@@ -10,6 +12,7 @@ const mockKycControllerState = {
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
+      initialize: (...args: unknown[]) => mockInitialize(...args),
       loadDisclaimers: (...args: unknown[]) => mockLoadDisclaimers(...args),
       get state() {
         return mockKycControllerState;
@@ -23,6 +26,7 @@ describe('useKycDisclaimers', () => {
     jest.clearAllMocks();
     mockKycControllerState.vendorDisclaimers = [];
     mockKycControllerState.vendorError = null;
+    mockInitialize.mockResolvedValue(undefined);
     mockLoadDisclaimers.mockImplementation(async () => {
       mockKycControllerState.vendorDisclaimers = [
         { id: '1', url: 'https://t.c', display_name: 'T&C' },
@@ -36,6 +40,7 @@ describe('useKycDisclaimers', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
+    expect(mockInitialize).toHaveBeenCalledWith({ vendor: VBA_KYC_VENDOR });
     expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
     expect(result.current.disclaimers).toStrictEqual([
       { id: '1', url: 'https://t.c', display_name: 'T&C' },

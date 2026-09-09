@@ -9,13 +9,27 @@ import {
 } from '@metamask/kyc-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('@metamask/kyc-controller', () => ({
-  KycController: class KycController {
+jest.mock('@metamask/kyc-controller', () => {
+  class MockKycController {
+    static lastConstructorArgs: Record<string, unknown>[] = [];
+
     constructor(args: Record<string, unknown>) {
+      MockKycController.lastConstructorArgs.push(args);
       Object.assign(this, args);
     }
-  },
-}));
+  }
+
+  return { KycController: MockKycController };
+});
+
+type MockKycControllerConstructor = {
+  lastConstructorArgs: Record<string, unknown>[];
+};
+
+function getLastConstructorArgs(): Record<string, unknown> | undefined {
+  return (KycController as unknown as MockKycControllerConstructor)
+    .lastConstructorArgs.at(-1);
+}
 
 function getInitRequestMock(
   overrides: {
@@ -41,6 +55,9 @@ describe('kycControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
+    (
+      KycController as unknown as MockKycControllerConstructor
+    ).lastConstructorArgs = [];
   });
 
   it('instantiates the KycController', () => {
@@ -62,5 +79,14 @@ describe('kycControllerInit', () => {
     );
 
     expect(controller).toBeInstanceOf(KycController);
+    expect(getLastConstructorArgs()?.state).toStrictEqual(
+      persistedState.KycController,
+    );
+  });
+
+  it('does not pin an identity vendor in constructor state', () => {
+    kycControllerInit(getInitRequestMock());
+
+    expect(getLastConstructorArgs()?.state).toBeUndefined();
   });
 });
