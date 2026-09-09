@@ -35,9 +35,18 @@ type PullFileDriver = WebdriverIO.Browser & {
   pullFile: (remotePath: string) => Promise<string>;
 };
 
-function profilerSelector(testId: string): string {
+function profilerSelector(
+  appiumDriver: WebdriverIO.Browser,
+  testId: string,
+): string {
   if (testId === RESULT_READY_TEST_ID || testId === ERROR_TEST_ID) {
     return `android=new UiSelector().descriptionStartsWith("${testId}:")`;
+  }
+  const platformName = String(
+    (appiumDriver.capabilities as Record<string, unknown>)?.platformName ?? '',
+  ).toLowerCase();
+  if (platformName === 'android') {
+    return `android=new UiSelector().resourceIdMatches(".*${testId}.*")`;
   }
   return `~${testId}`;
 }
@@ -46,7 +55,7 @@ async function elementExists(
   appiumDriver: WebdriverIO.Browser,
   testId: string,
 ): Promise<boolean> {
-  const el = await appiumDriver.$(profilerSelector(testId));
+  const el = await appiumDriver.$(profilerSelector(appiumDriver, testId));
   return el.isExisting().catch(() => false);
 }
 
@@ -72,7 +81,7 @@ async function tapProfilerControl(testId: string): Promise<void> {
   let lastRecoveryAt = 0;
   await appiumDriver.waitUntil(
     async () => {
-      control = await appiumDriver.$(`~${testId}`);
+      control = await appiumDriver.$(profilerSelector(appiumDriver, testId));
       if (await control.isExisting().catch(() => false)) {
         return true;
       }
@@ -144,7 +153,9 @@ async function waitForProfilerSignal(
   );
 
   if (await elementExists(appiumDriver, ERROR_TEST_ID)) {
-    const profilerError = await appiumDriver.$(profilerSelector(ERROR_TEST_ID));
+    const profilerError = await appiumDriver.$(
+      profilerSelector(appiumDriver, ERROR_TEST_ID),
+    );
     const errorLabel =
       (await profilerError.getAttribute('content-desc').catch(() => null)) ||
       (await profilerError.getAttribute('name').catch(() => null)) ||
@@ -215,7 +226,7 @@ async function waitForProfilerResultPath(
   });
 
   const resultReady = await appiumDriver.$(
-    profilerSelector(RESULT_READY_TEST_ID),
+    profilerSelector(appiumDriver, RESULT_READY_TEST_ID),
   );
   const resultLabel =
     (await resultReady.getAttribute('content-desc').catch(() => null)) ||
