@@ -21,7 +21,7 @@ describe('buildHomeNavResetState', () => {
     jest.clearAllMocks();
   });
 
-  it('mounts the given state below HomeNav and MainFlow', () => {
+  it('mounts the given state directly below HomeNav', () => {
     const mainNavigatorState = {
       routes: [{ name: Routes.HOME_TABS }],
     };
@@ -30,14 +30,7 @@ describe('buildHomeNavResetState', () => {
       routes: [
         {
           name: Routes.ONBOARDING.HOME_NAV,
-          state: {
-            routes: [
-              {
-                name: Routes.MAIN_FLOW,
-                state: mainNavigatorState,
-              },
-            ],
-          },
+          state: mainNavigatorState,
         },
       ],
     });
@@ -52,7 +45,7 @@ describe('buildHomeNavResetState', () => {
       ],
     });
 
-    expect(result.routes[0].state?.routes[0].state).toStrictEqual({
+    expect(result.routes[0].state).toStrictEqual({
       index: 1,
       routes: [
         { name: Routes.HOME_TABS },

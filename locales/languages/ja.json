@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Proメンバーシップ",
     "manage": "サブスクリプションの管理",
-    "manage_plan": "プランの管理",
-    "earned_with_pro": "Proプランでの収益額",
-    "saved_with_pro": "Proプランでの節約額",
-    "next_payment": "次回の{{amount}}のお支払いは{{date}}です。",
     "member_pricing": {
       "title": "メンバー向けの取引手数料を適用",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "メンバーシップ",
       "plan": "メンバーシップ",
       "earned_this_month": "今月の収益",
-      "saved_this_month": "今月の節約額",
       "payment_details": "支払いの詳細",
       "total": "合計",
       "paying_with": "支払方法",

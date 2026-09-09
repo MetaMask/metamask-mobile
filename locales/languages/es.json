@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Tu membresía Pro",
     "manage": "Administrar suscripción",
-    "manage_plan": "Administrar plan",
-    "earned_with_pro": "Ganado con Pro",
-    "saved_with_pro": "Ahorrado con Pro",
-    "next_payment": "Tu próximo pago de {{amount}} se realizará el {{date}}.",
     "member_pricing": {
       "title": "Precios exclusivos para miembros en operaciones",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "Tu membresía",
       "plan": "Membresía",
       "earned_this_month": "Ganado este mes",
-      "saved_this_month": "Ahorrado este mes",
       "payment_details": "Detalles de pago",
       "total": "Total",
       "paying_with": "Pagar con",
