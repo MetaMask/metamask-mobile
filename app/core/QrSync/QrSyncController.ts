@@ -27,6 +27,7 @@ import type {
 } from './types';
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
 import {
+  isQrSyncReadyForSecretImport,
   parseQrSyncConnectionRequest,
   validateQrSyncPayloadForOnboarding,
 } from './services/qr-sync-validation';
@@ -240,7 +241,7 @@ export class QrSyncController extends BaseController<
 
   /**
    * Whether ephemeral secrets are waiting for vault import.
-   * UI callers should use this instead of reading `pendingSecretImports` directly.
+   * UI callers should use this instead of reading `pendingSecretImports`.
    */
   public hasPendingSecretImports(): boolean {
     return this.state.pendingSecretImports !== null;
@@ -349,13 +350,10 @@ export class QrSyncController extends BaseController<
    * can still apply metadata.
    */
   public async importRemainingSecrets(): Promise<void> {
-    const { pendingSecretImports, provisioningStatus } = this.state;
-    if (
-      provisioningStatus !== QrSyncProvisioningStatuses.AWAITING_PASSWORD ||
-      !pendingSecretImports
-    ) {
+    if (!isQrSyncReadyForSecretImport(this.state)) {
       return;
     }
+    const { pendingSecretImports } = this.state;
 
     try {
       const isNewUser = this.state.syncFlow !== QrSyncSyncFlows.EXISTING_USER;
@@ -390,21 +388,19 @@ export class QrSyncController extends BaseController<
     } catch (error) {
       reportQrSyncFailure(error, {
         surface: QrSyncSurfaces.IMPORT,
-        operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
-        source: QrSyncTelemetrySources.CONTROLLER,
+        operation: QrSyncOperations.IMPORT_REMAINING_SECRETS_FINALIZE,
+        phase: this.state.phase,
+        source: QrSyncTelemetrySources.CONTROLLER_IMPORT_REMAINING,
         ...(this.state.syncFlow ? { syncFlow: this.state.syncFlow } : {}),
       });
     }
 
-    this.update((state) => {
-      state.pendingSecretImports = null;
-      state.provisioningStatus = QrSyncProvisioningStatuses.SECRETS_IMPORTED;
-    });
+    this.finalizeSecretImport();
   }
 
   /**
-   * Marks onboarding provisioning as failed and clears ephemeral payload.
-   * Persisted status is retained for potential recovery.
+   * Marks onboarding provisioning as failed and clears ephemeral secrets.
+   * Persisted metadata is retained for potential retry (Phase C).
    */
   public markProvisioningFailed(): void {
     this.update((state) => {
@@ -414,13 +410,28 @@ export class QrSyncController extends BaseController<
   }
 
   /**
-   * Marks metadata provisioning complete and clears all provisioning state.
+   * Marks metadata provisioning complete and clears persisted metadata.
    */
   public completeProvisioning(): void {
     this.update(() => ({
       ...defaultQrSyncControllerState,
       provisioningStatus: QrSyncProvisioningStatuses.COMPLETED,
     }));
+  }
+
+  /**
+   * Clears ephemeral secrets and marks Phase B complete. Persisted metadata is
+   * left as-is for Phase C to apply.
+   */
+  private finalizeSecretImport(): void {
+    if (!this.state.provisioningMetadata) {
+      throw new Error('QR sync finalize requires provisioning metadata');
+    }
+
+    this.update((state) => {
+      state.pendingSecretImports = null;
+      state.provisioningStatus = QrSyncProvisioningStatuses.SECRETS_IMPORTED;
+    });
   }
 
   private attachClient(client: WalletClient, sessionId: string): void {

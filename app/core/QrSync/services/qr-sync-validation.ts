@@ -5,6 +5,8 @@ import type {
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
 
+import { QrSyncProvisioningStatuses } from '../constants';
+
 import { isUUID } from '../../SDKConnect/utils/isUUID';
 import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import type {
@@ -249,6 +251,26 @@ export function validateQrSyncPayloadForOnboarding(
   }
 
   return { valid: true };
+}
+
+export type QrSyncSecretImportPreconditions = {
+  provisioningStatus: string | null;
+  pendingSecretImports: AccountTreePayload | null;
+};
+
+/**
+ * Returns true when the controller is ready for Phase B secret import:
+ * status is `AWAITING_PASSWORD` and a non-null `pendingSecretImports` payload
+ * is present in state.
+ */
+export function isQrSyncReadyForSecretImport(
+  preconditions: QrSyncSecretImportPreconditions,
+): boolean {
+  const { provisioningStatus, pendingSecretImports } = preconditions;
+  return (
+    provisioningStatus === QrSyncProvisioningStatuses.AWAITING_PASSWORD &&
+    pendingSecretImports !== null
+  );
 }
 
 /**
