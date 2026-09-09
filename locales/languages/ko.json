@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "내 Pro 멤버십",
     "manage": "구독 관리",
-    "manage_plan": "요금제 관리",
-    "earned_with_pro": "Pro로 얻은 혜택",
-    "saved_with_pro": "Pro로 절약한 금액",
-    "next_payment": "{{amount}}의 다음 결제 금액이 {{date}}에 결제될 예정입니다.",
     "member_pricing": {
       "title": "거래 시 멤버 전용 요금",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "내 멤버십",
       "plan": "멤버십",
       "earned_this_month": "이번 달 적립액",
-      "saved_this_month": "이번 달 절감액",
       "payment_details": "결제 세부 정보",
       "total": "총액",
       "paying_with": "결제 수단:",

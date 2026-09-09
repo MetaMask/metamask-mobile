@@ -2,7 +2,11 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import { CaipChainId } from '@metamask/utils';
-import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
+import {
+  BridgeClientId,
+  FeatureId,
+  getClientHeaders,
+} from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
@@ -31,6 +35,12 @@ type SearchTraceResult = 'success' | 'error';
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
   includeAssets: IncludeAsset[];
+  /**
+   * Identifies which surface triggered this request (e.g. Limit order,
+   * Recurring buy, Market order) so the backend can attribute it
+   * accordingly. Required so every caller must make an explicit choice.
+   */
+  featureId: FeatureId;
 }
 
 interface UseSearchTokensResult {
@@ -67,6 +77,7 @@ const getResultCountBucket = (count: number): string =>
 export const useSearchTokens = ({
   chainIds,
   includeAssets,
+  featureId,
 }: UseSearchTokensParams): UseSearchTokensResult => {
   const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
@@ -80,6 +91,7 @@ export const useSearchTokens = ({
   // Use refs to store the latest values without causing re-renders or callback recreation
   const chainIdsRef = useRef(chainIds);
   const includeAssetsRef = useRef(includeAssets);
+  const featureIdRef = useRef(featureId);
 
   // Update refs when values change
   useEffect(() => {
@@ -89,6 +101,10 @@ export const useSearchTokens = ({
   useEffect(() => {
     includeAssetsRef.current = includeAssets;
   }, [includeAssets]);
+
+  useEffect(() => {
+    featureIdRef.current = featureId;
+  }, [featureId]);
 
   useEffect(() => {
     Engine.context.AuthenticationController.getBearerToken()
@@ -138,9 +154,11 @@ export const useSearchTokens = ({
           query: string;
           after?: string;
           includeAssets?: IncludeAsset[];
+          featureId: FeatureId;
         } = {
           chainIds: chainIdsRef.current,
           query: query.trim(),
+          featureId: featureIdRef.current,
         };
 
         if (cursor) {
