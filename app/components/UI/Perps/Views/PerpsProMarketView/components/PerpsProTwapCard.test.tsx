@@ -326,7 +326,7 @@ describe('PerpsProTwapCard', () => {
     });
     const secondOrder = buildTwapOrder({
       orderId: 'shared',
-      providerId: 'myx',
+      providerId: 'lighter',
       symbol: 'ETH',
     });
     render(
@@ -339,7 +339,7 @@ describe('PerpsProTwapCard', () => {
     // Act
     fireEvent.press(
       screen.getByTestId(
-        getPerpsProTwapTerminateSelector('myx', secondOrder.orderId),
+        getPerpsProTwapTerminateSelector('lighter', secondOrder.orderId),
       ),
     );
 

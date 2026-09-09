@@ -29,6 +29,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.bridgeContractNotFound',
   [PERPS_ERROR_CODES.WITHDRAW_FAILED]: 'perps.errors.withdrawFailed',
   [PERPS_ERROR_CODES.POSITIONS_FAILED]: 'perps.errors.positionsFailed',
+  [PERPS_ERROR_CODES.POSITION_NOT_FOUND]: 'perps.errors.position_not_found',
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
