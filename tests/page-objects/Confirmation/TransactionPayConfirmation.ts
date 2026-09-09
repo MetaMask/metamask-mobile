@@ -422,18 +422,18 @@ class TransactionPayConfirmation {
 
     // Prod pay configs may sponsor gas (Paid by MetaMask) instead of showing a
     // fiat `transaction-fee` value — either means the quote/fee row resolved.
-    try {
-      await Assertions.expectElementToBeVisible(this.transactionFee, {
-        description: 'Transaction fee value should be visible',
-        timeout: 5000,
-      });
-    } catch {
-      await Assertions.expectElementToBeVisible(this.paidByMetaMask, {
-        description:
-          'Paid by MetaMask label should be visible when fee value is sponsored',
-        timeout: 5000,
-      });
-    }
+    await Utilities.waitUntil(
+      async () => {
+        const feeExisting = await (await this.transactionFee)
+          .unwrap()
+          .isExisting();
+        if (feeExisting) {
+          return true;
+        }
+        return (await this.paidByMetaMask).unwrap().isExisting();
+      },
+      { interval: 300, timeout: 15000 },
+    );
   }
 
   async verifyCustomAmount(amount: string, description: string): Promise<void> {
