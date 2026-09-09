@@ -3,27 +3,27 @@
   "data": [
     {
       "path": "app/fonts/Inter-SemiBoldItalic.ttf",
-      "sha1": "6b5eb26c850c647aaab42e7e299e23108416ca32"
+      "sha1": "a8b8866596d9f9d5dc2cafd67c19e9a48cb8389f"
     },
     {
       "path": "app/fonts/Inter-SemiBold.ttf",
-      "sha1": "53a86395df86386bb56a7657596f3d93ee32f05e"
+      "sha1": "847f164d8bdd1af5cb52b600a33b7ec2626f0ac2"
     },
     {
       "path": "app/fonts/Inter-MediumItalic.ttf",
-      "sha1": "be7237b6cdcd5738007a1fb702309e23bdfd7125"
+      "sha1": "2804632e171219474bc088d04294c1e206b3928b"
     },
     {
       "path": "app/fonts/Inter-Medium.ttf",
-      "sha1": "5da721087cb95495a62de2bd831181d2aff921c7"
+      "sha1": "1bb63a6f94e351acbdcf52eb000e706cdbed07c0"
     },
     {
       "path": "app/fonts/Inter-RegularItalic.ttf",
-      "sha1": "ec36f0b6431e16cae9c11f93832eae6dbad40b4a"
+      "sha1": "92f92635cd421dc89df8ed7a67a08af8b5e02a25"
     },
     {
       "path": "app/fonts/Inter-Regular.ttf",
-      "sha1": "3a6c0590c58e6b3d20fae4dc0a66ae466c7ddf45"
+      "sha1": "c1a9a094a8b367b66a4b9fade67239cf7cc55ce6"
     },
     {
       "path": "app/fonts/MMPoly-Regular.otf",
