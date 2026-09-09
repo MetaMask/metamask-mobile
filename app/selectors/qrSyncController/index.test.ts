@@ -106,7 +106,7 @@ describe('qrSyncController selectors', () => {
   });
 
   describe('selectQrSyncShouldNavigateToImport', () => {
-    it('returns true when awaiting password with pending secret imports', () => {
+    it('returns true when awaiting password with pending secrets', () => {
       expect(
         selectQrSyncShouldNavigateToImport(
           buildState({
@@ -142,7 +142,7 @@ describe('qrSyncController selectors', () => {
   });
 
   describe('selectQrSyncNeedsProvisioning', () => {
-    it('returns true when secrets are imported and provisioningMetadata is present', () => {
+    it('returns true when secrets are imported and metadata is present', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
@@ -153,7 +153,7 @@ describe('qrSyncController selectors', () => {
       ).toBe(true);
     });
 
-    it('returns false when provisioning status is not secrets_imported', () => {
+    it('returns true when provisioning status is not secrets_imported', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
@@ -164,7 +164,7 @@ describe('qrSyncController selectors', () => {
       ).toBe(false);
     });
 
-    it('returns false when provisioningMetadata is null', () => {
+    it('returns false when provisioning metadata is null', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
@@ -175,7 +175,7 @@ describe('qrSyncController selectors', () => {
       ).toBe(false);
     });
 
-    it('returns false when provisioning is already completed', () => {
+    it('returns false when provisioning is already completed with import data still pending', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
