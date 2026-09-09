@@ -208,13 +208,11 @@ describe('QrSyncProvisioningService', () => {
       );
     });
 
-    it('on AWAITING_PASSWORD path: uses pendingSecretImports (full snapshot with secrets)', async () => {
-      const pendingSecretImports = createPendingPayload();
+    it('throws when provisioningStatus is AWAITING_PASSWORD (secrets not yet imported)', async () => {
       const mockCall = jest.fn((action: string) => {
         if (action === 'QrSyncController:getState') {
           return createSecretsImportedState({
             provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-            pendingSecretImports,
           });
         }
         return undefined;
@@ -224,17 +222,8 @@ describe('QrSyncProvisioningService', () => {
         messenger: asProvisioningMessenger(mockMessenger),
       });
 
-      await provisionService.provisionFromMetadata();
-
-      expect(mockCall).toHaveBeenCalledWith(
-        'AccountTreeController:importState',
-        expect.objectContaining({
-          version: 1,
-          wallets: pendingSecretImports.wallets,
-        }),
-      );
-      expect(mockCall).toHaveBeenCalledWith(
-        'QrSyncController:completeProvisioning',
+      await expect(provisionService.provisionFromMetadata()).rejects.toThrow(
+        `QR sync metadata provisioning requires provisioningStatus ${QrSyncProvisioningStatuses.SECRETS_IMPORTED}`,
       );
     });
 
@@ -306,7 +295,7 @@ describe('QrSyncProvisioningService', () => {
       );
     });
 
-    it('throws when provisioningStatus is not awaiting_password or secrets_imported', async () => {
+    it('throws when provisioningStatus is not secrets_imported', async () => {
       mockMessenger.call = createMessengerCallMock({
         provisioningStatus: QrSyncProvisioningStatuses.FAILED,
       });
@@ -315,12 +304,11 @@ describe('QrSyncProvisioningService', () => {
       });
 
       await expect(provisionService.provisionFromMetadata()).rejects.toThrow(
-        `QR sync metadata provisioning requires provisioningStatus ${QrSyncProvisioningStatuses.AWAITING_PASSWORD} or ${QrSyncProvisioningStatuses.SECRETS_IMPORTED}`,
+        `QR sync metadata provisioning requires provisioningStatus ${QrSyncProvisioningStatuses.SECRETS_IMPORTED}`,
       );
     });
 
-    it('throws when the resolved source payload is null', async () => {
-      // SECRETS_IMPORTED but provisioningMetadata is null
+    it('throws when provisioningMetadata is null', async () => {
       mockMessenger.call = createMessengerCallMock({
         provisioningMetadata: null,
       });
@@ -329,7 +317,7 @@ describe('QrSyncProvisioningService', () => {
       });
 
       await expect(provisionService.provisionFromMetadata()).rejects.toThrow(
-        'QR sync metadata provisioning requires a pending payload',
+        'QR sync metadata provisioning requires provisioning metadata',
       );
     });
   });

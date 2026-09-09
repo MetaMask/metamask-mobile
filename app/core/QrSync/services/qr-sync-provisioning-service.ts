@@ -97,31 +97,35 @@ export class QrSyncProvisioningService {
   }
 
   /**
-   * Runs Phase C: imports the pending payload via `importState`, reconciles with
-   * user storage, and marks provisioning complete.
+   * Runs Phase C: applies account metadata (wallet/group names, pin, hidden)
+   * via `importState` on the secrets-stripped `provisioningMetadata` payload,
+   * reconciles with user storage, and marks provisioning complete.
    *
-   * Accepts both `awaiting_password` (existing-user path, where no vault-creation
-   * marker was set) and `secrets_imported` (new-user path after vault creation).
+   * Always runs after Phase B (`QrSyncController:importRemainingSecrets`), for
+   * both new-user and existing-user paths:
+   *
+   * - **New-user** (`SECRETS_IMPORTED` after vault creation): Phase B imported
+   *   secondary wallet secrets into the keyring. `provisioningMetadata` carries
+   *   a secrets-stripped `AccountTreePayload` (wallet `value` absent); `importState`
+   *   matches wallets by entropy source ID and applies names, groups, and layout.
+   *
+   * - **Existing-user** (`SECRETS_IMPORTED` after `importRemainingSecrets`): Phase B
+   *   imported any missing secondary wallet secrets via `importState(stripMetadata)`.
+   *   `provisioningMetadata` then applies the full metadata layer in the same way.
+   *
+   * In both cases the payload shape is identical: a persisted, secrets-stripped
+   * `AccountTreePayload` where `value` is absent for every wallet entry.
    */
   async provisionFromMetadata(): Promise<void> {
-    const { pendingSecretImports, provisioningMetadata, provisioningStatus } =
+    const { provisioningMetadata, provisioningStatus } =
       this.#getQrSyncControllerState();
 
-    // On the new-user path (SECRETS_IMPORTED) use the persisted secrets-stripped
-    // provisioningMetadata — all secrets were already imported in Phase B.
-    // On the existing-user path (AWAITING_PASSWORD) use pendingSecretImports (full
-    // snapshot) so importState can import any missing wallets/keys in one call.
-    const source =
-      provisioningStatus === QrSyncProvisioningStatuses.SECRETS_IMPORTED
-        ? provisioningMetadata
-        : pendingSecretImports;
-
-    this.#assertProvisioningPreconditions(provisioningStatus, source);
+    this.#assertProvisioningPreconditions(provisioningStatus, provisioningMetadata);
 
     try {
       await this.#messenger.call(
         'AccountTreeController:importState',
-        await AccountTreeSnapshot.deserialize(source),
+        await AccountTreeSnapshot.deserialize(provisioningMetadata),
       );
 
       await this.#reconcileWithUserStorage();
@@ -135,21 +139,17 @@ export class QrSyncProvisioningService {
 
   #assertProvisioningPreconditions(
     provisioningStatus: string | null,
-    pendingPayload: unknown,
-  ): asserts pendingPayload is NonNullable<typeof pendingPayload> {
-    const isValidStatus =
-      provisioningStatus === QrSyncProvisioningStatuses.AWAITING_PASSWORD ||
-      provisioningStatus === QrSyncProvisioningStatuses.SECRETS_IMPORTED;
-
-    if (!isValidStatus) {
+    provisioningMetadata: unknown,
+  ): asserts provisioningMetadata is NonNullable<typeof provisioningMetadata> {
+    if (provisioningStatus !== QrSyncProvisioningStatuses.SECRETS_IMPORTED) {
       throw new Error(
-        `QR sync metadata provisioning requires provisioningStatus ${QrSyncProvisioningStatuses.AWAITING_PASSWORD} or ${QrSyncProvisioningStatuses.SECRETS_IMPORTED}`,
+        `QR sync metadata provisioning requires provisioningStatus ${QrSyncProvisioningStatuses.SECRETS_IMPORTED}`,
       );
     }
 
-    if (!pendingPayload) {
+    if (!provisioningMetadata) {
       throw new Error(
-        'QR sync metadata provisioning requires a pending payload',
+        'QR sync metadata provisioning requires provisioning metadata',
       );
     }
   }

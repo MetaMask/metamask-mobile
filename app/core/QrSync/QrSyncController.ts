@@ -355,9 +355,15 @@ export class QrSyncController extends BaseController<
     }
 
     try {
-      // Strip the primary mnemonic wallet (first mnemonic entry) — it is already
-      // in the vault, so importState does not need to see it. Filtering here also
-      // means importState does not need the account tree initialized to skip it.
+      // Strip the primary mnemonic wallet (first mnemonic entry) before calling
+      // importState. Two reasons:
+      //   1. It is already in the vault — vault creation (new-user) or the
+      //      existing keyring (existing-user) already holds this SRP, so
+      //      passing it to importState would be a no-op at best.
+      //   2. importState resolves wallets by entropy source ID, which requires
+      //      the account tree to be initialized. Filtering out the primary here
+      //      avoids that dependency: we only import wallets that are genuinely
+      //      new, and those have no prior account-tree entry to look up.
       let primarySkipped = false;
       const snapshot = (
         await AccountTreeSnapshot.deserialize(pendingSecretImports)

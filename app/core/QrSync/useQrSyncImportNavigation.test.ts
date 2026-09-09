@@ -144,6 +144,8 @@ const renderUseQrSyncImportNavigation = <TProps>(
               mockHasPendingSecretImports,
             'QrSyncController:handleScannedQrPayload': jest.fn(),
             'KeyringController:getAccounts': mockGetAccounts,
+            'QrSyncController:importRemainingSecrets':
+              mockImportRemainingSecrets,
             'QrSyncProvisioningService:provisionFromMetadata':
               mockProvisionFromMetadata,
           }),
@@ -168,7 +170,7 @@ describe('useQrSyncImportNavigation', () => {
     mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
-  it('navigates to QR sync import for new users when payload is ready', async () => {
+  it('navigates to QR sync import for new users when secrets are ready', async () => {
     mockCompletedOnboarding = false;
     mockShouldNavigateToImport = true;
 
@@ -182,7 +184,7 @@ describe('useQrSyncImportNavigation', () => {
     expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
   });
 
-  it('calls provisionFromMetadata for existing users with pending payload', async () => {
+  it('imports remaining secrets and provisions metadata for existing users with pending secrets', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
     mockQrSyncControllerState.pendingSecretImports =
@@ -197,6 +199,7 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
+      expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
       expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
@@ -205,7 +208,7 @@ describe('useQrSyncImportNavigation', () => {
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
   });
 
-  it('shows already-synced sheet when provisionFromMetadata adds no accounts', async () => {
+  it('shows already-synced sheet when existing-user sync adds no accounts', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
     mockQrSyncControllerState.pendingSecretImports =
@@ -221,20 +224,21 @@ describe('useQrSyncImportNavigation', () => {
       expect(mockShowAlreadySyncedSheet).toHaveBeenCalled();
     });
 
-    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
+    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
     expect(mockResetState).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
   });
 
-  it('shows import-failed sheet when provisionFromMetadata throws and adds no accounts', async () => {
+  it('shows import-failed sheet when existing-user sync throws and adds no accounts', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
     mockQrSyncControllerState.pendingSecretImports =
       mockPendingSecretImportsPayload;
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts.mockResolvedValue(['0xexisting']);
-    mockProvisionFromMetadata.mockRejectedValueOnce(new Error('vault locked'));
+    mockImportRemainingSecrets.mockRejectedValueOnce(new Error('vault locked'));
 
     renderUseQrSyncImportNavigation(() =>
       useQrSyncImportNavigation({ enabled: true }),
@@ -244,11 +248,12 @@ describe('useQrSyncImportNavigation', () => {
       expect(mockShowImportFailedSheet).toHaveBeenCalled();
     });
 
+    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
 
-  it('navigates home without resetting when provisioning adds new accounts', async () => {
+  it('navigates home and starts Phase C without resetting when sync adds accounts', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
     mockQrSyncControllerState.pendingSecretImports =
@@ -263,6 +268,7 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
+      expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
       expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
@@ -272,7 +278,7 @@ describe('useQrSyncImportNavigation', () => {
     expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
   });
 
-  it('resets QR sync and goes home when existing user has no pending payload', async () => {
+  it('resets QR sync and goes home when existing user has no pending secrets', async () => {
     mockCompletedOnboarding = true;
     mockShouldNavigateToImport = true;
     mockQrSyncControllerState.pendingSecretImports = null;

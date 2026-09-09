@@ -30,12 +30,17 @@ interface UseQrSyncImportNavigationOptions {
 let inFlightImportNavigation: Promise<void> | null = null;
 
 /**
- * Existing-user QR sync after SYNC_READY: delegates to
- * `QrSyncProvisioningService.provisionFromMetadata`, which calls
- * `AccountTreeController:importState` to apply secrets + metadata in one step.
+ * Existing-user QR sync after SYNC_READY: mirrors the new-user two-phase flow.
  *
- * Account count before/after determines whether the user should see the
- * "already synced" sheet or be navigated to the wallet.
+ * Phase B — `importRemainingSecrets`: imports any missing secondary wallet secrets
+ * via `importState(stripMetadata)`. The primary wallet is already in the keyring
+ * so `importState` skips it by entropy source ID; status advances to SECRETS_IMPORTED.
+ *
+ * Phase C — `provisionFromMetadata`: applies account names, groups, and layout
+ * from the persisted secrets-stripped `provisioningMetadata` payload.
+ *
+ * Account count before/after Phase B determines whether to show the "already
+ * synced" sheet or navigate to the wallet.
  */
 const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
@@ -45,12 +50,12 @@ const finishExistingUserSyncWithoutMnemonic = async (
   let importFailed = false;
 
   try {
-    await messenger.call('QrSyncProvisioningService:provisionFromMetadata');
+    await messenger.call('QrSyncController:importRemainingSecrets');
   } catch (error) {
     importFailed = true;
     reportQrSyncFailure(error, {
       surface: QrSyncSurfaces.IMPORT,
-      operation: QrSyncOperations.PROVISION_FROM_METADATA,
+      operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
       source: QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
       syncFlow: QrSyncSyncFlows.EXISTING_USER,
     });
@@ -73,12 +78,23 @@ const finishExistingUserSyncWithoutMnemonic = async (
     return;
   }
 
+  try {
+    await messenger.call('QrSyncProvisioningService:provisionFromMetadata');
+  } catch (error) {
+    reportQrSyncFailure(error, {
+      surface: QrSyncSurfaces.IMPORT,
+      operation: QrSyncOperations.PROVISION_FROM_METADATA,
+      source: QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
+      syncFlow: QrSyncSyncFlows.EXISTING_USER,
+    });
+  }
+
   navigation.navigate(Routes.WALLET_VIEW);
 };
 
 /**
  * Drives vault import / onboarding navigation after QR sync Phase A
- * (SYNC_READY → awaiting_password with pending payload).
+ * (SYNC_READY → awaiting_password with pending secrets).
  */
 export const useQrSyncImportNavigation = ({
   enabled,
