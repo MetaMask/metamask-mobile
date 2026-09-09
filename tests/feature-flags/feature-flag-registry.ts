@@ -109,8 +109,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
+      enabled: true,
       minimumVersion: '8.1.0',
-      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5774,22 +5774,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [
-      {
-        scope: {
-          value: 1,
-          type: 'percentage_rollout',
-        },
-        name: 'control',
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-      },
-    ],
+    productionDefault: {
+      enabled: false,
+    },
     status: FeatureFlagStatus.Active,
   },
 
