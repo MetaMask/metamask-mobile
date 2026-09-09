@@ -197,7 +197,7 @@ jest.mock('../components/Campaigns/PerpsCampaignStatsSummary', () => {
   };
 });
 
-jest.mock('../components/Campaigns/PerpsTradingCampaignPrizePool', () => {
+jest.mock('../components/Campaigns/CampaignPrizePool', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {

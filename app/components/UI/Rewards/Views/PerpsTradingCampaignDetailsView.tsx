@@ -31,7 +31,7 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import PerpsTradingCampaignLeaderboard, {
   PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from '../components/Campaigns/PerpsTradingCampaignLeaderboard';
-import PerpsTradingCampaignPrizePool from '../components/Campaigns/PerpsTradingCampaignPrizePool';
+import CampaignPrizePool from '../components/Campaigns/CampaignPrizePool';
 import PerpsTradingCampaignCTA from '../components/Campaigns/PerpsTradingCampaignCTA';
 import PerpsCampaignStatsSummary from '../components/Campaigns/PerpsCampaignStatsSummary';
 import PerpsTradingCampaignEndedStats from '../components/Campaigns/PerpsTradingCampaignEndedStats';
@@ -370,7 +370,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                     >
                       {strings('rewards.campaign_prize_pool.title')}
                     </Text>
-                    <PerpsTradingCampaignPrizePool
+                    <CampaignPrizePool
                       prizePool={prizePool}
                       isLoading={isPrizePoolLoading}
                       hasError={hasPrizePoolError}
