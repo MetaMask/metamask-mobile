@@ -312,13 +312,6 @@ class PerpsProMarketView {
       description: 'Perps Pro Market View container',
       timeout,
     });
-    // The root container can stay mounted while order-form and positions-panel
-    // children are still remounting after Auto close Set.  Waiting for the
-    // positions panel confirms the inner layout has fully settled.
-    await Assertions.expectElementToExist(this.positionsPanel, {
-      description: 'Perps Pro Market View positions panel',
-      timeout,
-    });
   }
 
   async waitForProViewReady(timeout = 20000): Promise<void> {
@@ -335,9 +328,10 @@ class PerpsProMarketView {
    * mounted while order-form and positions-list children remount. Wait for a
    * Pro child anchor and the concrete position row before close polling.
    *
-   * Anchors on the positions panel, not `waitForProViewReady`: Set is reached
-   * from the position card, which leaves the order form (and its Long control)
-   * unmounted, so a readiness gate would never pass on this path.
+   * Anchors on the Pro root, not `waitForProViewReady`: Set is reached from the
+   * position card, which leaves the order form (and its Long control)
+   * unmounted, so a readiness gate would never pass on this path. The row wait
+   * below scrolls, so it covers the positions panel being below the fold.
    */
   async waitForPositionRowRemounted(
     symbol: string,
@@ -677,15 +671,16 @@ class PerpsProMarketView {
    * `scrollUntilVisible` (default 45s) and burn the outer retry budget in one
    * attempt when the Pro scroll-view is mid-transition after Auto close Set.
    *
-   * The positions panel is the rows' own parent and stays mounted even with
-   * zero positions, so requiring it rules out a false "row gone" pass during a
-   * transient unmount while keeping this to two short waits per poll. Do not
-   * gate on order-form controls here — close and liquidation both leave the
-   * order form unmounted, so the poll would never reach the row check.
+   * Requiring the Pro root rules out a false "row gone" pass while the whole
+   * view is transiently unmounted, and keeps this to two short waits per poll.
+   * Anchor on the root only: order-form controls are unmounted after close and
+   * liquidation, and the positions panel sits below the fold (absent from the
+   * UiAutomator hierarchy until scrolled), so either would stall the poll
+   * before it ever reached the row check.
    */
   async expectPositionRowGone(symbol: string, timeout = 1500): Promise<void> {
-    await Assertions.expectElementToExist(this.positionsPanel, {
-      description: 'Pro positions panel anchor for position-gone poll',
+    await Assertions.expectElementToExist(this.container, {
+      description: 'Pro root anchor for position-gone poll',
       timeout,
     });
     await Assertions.expectElementToNotExist(this.positionRow(symbol), {
