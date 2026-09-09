@@ -27,8 +27,9 @@ type MockKycControllerConstructor = {
 };
 
 function getLastConstructorArgs(): Record<string, unknown> | undefined {
-  return (KycController as unknown as MockKycControllerConstructor)
-    .lastConstructorArgs.at(-1);
+  return (
+    KycController as unknown as MockKycControllerConstructor
+  ).lastConstructorArgs.at(-1);
 }
 
 function getInitRequestMock(
