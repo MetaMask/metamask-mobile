@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CaipChainId } from '@metamask/utils';
+import { FeatureId } from '@metamask/bridge-controller';
 import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -20,6 +21,7 @@ import {
 } from '../../../constants/limitOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { SwapsFeatureIdProvider } from '../../../providers/SwapsFeatureIdProvider';
 import BridgeLimitOrderView from './index';
 
 /**
@@ -344,14 +346,19 @@ function renderLimitOrderView(
     Parameters<typeof createBridgeTestState>[0]
   >['bridgeReducerOverrides'] = {},
 ) {
-  return renderWithProvider(<BridgeLimitOrderView />, {
-    state: createBridgeTestState({
-      bridgeReducerOverrides: {
-        sourceToken: mockSourceToken,
-        ...bridgeReducerOverrides,
-      },
-    }),
-  });
+  return renderWithProvider(
+    <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+      <BridgeLimitOrderView />
+    </SwapsFeatureIdProvider>,
+    {
+      state: createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: mockSourceToken,
+          ...bridgeReducerOverrides,
+        },
+      }),
+    },
+  );
 }
 
 describe('BridgeLimitOrderView', () => {

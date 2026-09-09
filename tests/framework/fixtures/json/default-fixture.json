@@ -229,7 +229,7 @@
         },
         "KycController": {
           "activeProduct": null,
-          "activeVendor": "iron",
+          "activeVendor": "moonpay",
           "credentialReusabilityConsentGiven": null,
           "email": null,
           "error": null,
@@ -974,6 +974,7 @@
       },
       "perpsTradingCampaignLeaderboardPositions": {},
       "perpsTradingCampaignLeaderboards": {},
+      "perpsTradingCampaignPrizePools": {},
       "perpsTradingCampaignVolumes": {},
       "pointsEvents": null,
       "predictThePitchLeaderboardPositions": {},

@@ -812,7 +812,7 @@
     "moonpaySessionToken": null,
     "moonpayAccessToken": null,
     "moonpayCustomerId": null,
-    "activeVendor": "iron",
+    "activeVendor": "moonpay",
     "activeProduct": null,
     "kycRequiredByProduct": {},
     "lastCheckedAt": null,
@@ -912,6 +912,7 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "perpsTradingCampaignPrizePool": {},
     "predictThePitchLeaderboard": {},
     "predictThePitchLeaderboardPositions": {},
     "predictThePitchPositions": {},
@@ -936,6 +937,7 @@
   },
   "PredictController": {
     "eligibility": {
+      "status": "checking",
       "eligible": false
     },
     "lastError": null,
@@ -961,6 +963,7 @@
   },
   "AiDigestController": {},
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],

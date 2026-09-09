@@ -115,6 +115,52 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
+  it('skips all E2E for merge queue events', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'merge_group',
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: false,
+      e2eNeeded: false,
+      useMainBuildsForTestOnlyPrs: false,
+      runSmartE2ESelection: false,
+      message: 'Skipping E2E (merge queue)',
+    });
+  });
+
+  it('skips all E2E for fork PRs', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      isFork: true,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: false,
+      e2eNeeded: false,
+      runSmartE2ESelection: false,
+      message: 'Skipping E2E (fork PR)',
+    });
+  });
+
+  it('skips all E2E for hard skip signals', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      shouldSkipE2E: true,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: false,
+      e2eNeeded: false,
+      runSmartE2ESelection: false,
+      message: 'Skipping E2E (skip signal)',
+    });
+  });
+
   it('selects Android only for Android-only path filters', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
@@ -127,6 +173,24 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.android).toBe(true);
     expect(result.ios).toBe(false);
     expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
+  });
+
+  it('selects iOS only for iOS-only path filters outside request-only branches', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      prBaseRef: 'feature/1',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+      iosCount: 1,
+      iosOrIgnorableCount: 1,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: true,
+      e2eNeeded: true,
+      runSmartE2ESelection: true,
+    });
   });
 
   it('runs both platforms for E2E test-only pushes', () => {

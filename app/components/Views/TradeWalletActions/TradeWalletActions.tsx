@@ -84,6 +84,14 @@ import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import { selectIsEarnSectionEligible } from '../../UI/Earn/selectors/eligibility';
+import { useEarnAnalytics } from '../../UI/Earn/hooks/useEarnAnalytics';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_REDIRECT_TARGETS,
+  EARN_MODULE_ENTRY_POINTS,
+} from '../../UI/Earn/constants/earnModuleEvents';
+import { EarnRate } from '../../UI/Earn/types/earnAssets';
+import { truncateNumber } from '../../UI/Earn/utils/number';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -168,6 +176,10 @@ function TradeWalletActions() {
 
   const isEarnWalletActionEnabled = useSelector(selectIsEarnSectionEligible);
 
+  const { trackSurfaceClicked: trackEarnSurfaceClicked } = useEarnAnalytics({
+    entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
+  });
+
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
@@ -251,13 +263,30 @@ function TradeWalletActions() {
   }, [handleNavigateBack, navigate]);
 
   const onEarn = useCallback(async () => {
+    trackEarnSurfaceClicked({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
+      redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
+      ...(highestRate?.type && {
+        rate_type: highestRate.type.toLowerCase() as Lowercase<
+          EarnRate['type']
+        >,
+      }),
+      ...(highestRate?.status === 'ready' && {
+        rate_percentage: Number(truncateNumber(highestRate.percentage)),
+      }),
+    });
     postCallback.current = () => {
       navigation.navigate(Routes.EARN.ROOT, {
         screen: Routes.EARN.SEARCH_LIST,
+        params: {
+          analyticsContext: {
+            entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
+          },
+        },
       });
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigation]);
+  }, [trackEarnSurfaceClicked, handleNavigateBack, navigation, highestRate]);
 
   useFocusEffect(
     useCallback(() => {

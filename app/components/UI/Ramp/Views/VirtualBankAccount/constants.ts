@@ -3,6 +3,10 @@ import AppConstants from '../../../../../core/AppConstants';
 // ISO 3166-1 alpha-3 country code; the VBA MVP is Brazil-only.
 export const VBA_KYC_COUNTRY_CODE = 'BRA';
 
+// Identity vendor for Get Pix Key. Passed at call time via
+// `KycController.initialize({ vendor })` so Engine init stays vendor-agnostic.
+export const VBA_KYC_VENDOR = 'iron' as const;
+
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- Pix's brand teal has no design-token equivalent
 export const PIX_BRAND_COLOR = '#2CBFB0';
 
