@@ -199,6 +199,8 @@ const AccountActions = () => {
     );
   }, []);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
   /**
    * Remove the snap account from the keyring
    */

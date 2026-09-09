@@ -82,8 +82,8 @@ export const removeHardwareAccount = async ({
   }
 
   if (keyringType === ExtendedKeyringTypes.qr) {
-    const deviceModel = await withQrKeyring(
-      async ({ keyring }) => await keyring.getName(),
+    const deviceModel = await withQrKeyring(async ({ keyring }) =>
+      keyring.getName(),
     );
     await forgetQrDevice();
     return {
