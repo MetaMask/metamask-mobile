@@ -54,26 +54,4 @@ describe('kycServiceInit', () => {
       process.env.KYC_API_URL = originalBaseUrl;
     }
   });
-
-  it.each([undefined, ''])(
-    'falls back to the dev KYC API when KYC_API_URL is %s',
-    (baseUrl) => {
-      const originalBaseUrl = process.env.KYC_API_URL;
-      if (baseUrl === undefined) {
-        delete process.env.KYC_API_URL;
-      } else {
-        process.env.KYC_API_URL = baseUrl;
-      }
-
-      try {
-        const { controller } = kycServiceInit(getInitRequestMock());
-
-        expect(controller).toMatchObject({
-          baseUrl: 'https://kyc-api.dev-api.cx.metamask.io',
-        });
-      } finally {
-        process.env.KYC_API_URL = originalBaseUrl;
-      }
-    },
-  );
 });
