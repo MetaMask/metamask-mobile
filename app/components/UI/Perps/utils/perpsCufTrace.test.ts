@@ -786,14 +786,14 @@ describe('perpsCufTrace', () => {
 
     handlePerpsCufTwapOrdersDelivered([
       { orderId: 'shared-id', providerId: 'hyperliquid', status: 'active' },
-      { orderId: 'shared-id', providerId: 'myx', status: 'canceled' },
+      { orderId: 'shared-id', providerId: 'lighter', status: 'canceled' },
     ]);
     expect(mockEndTrace).not.toHaveBeenCalled();
     expect(onEnd).not.toHaveBeenCalled();
 
     handlePerpsCufTwapOrdersDelivered([
       { orderId: 'shared-id', providerId: 'hyperliquid', status: 'canceled' },
-      { orderId: 'shared-id', providerId: 'myx', status: 'canceled' },
+      { orderId: 'shared-id', providerId: 'lighter', status: 'canceled' },
     ]);
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: opId }),
@@ -810,13 +810,13 @@ describe('perpsCufTrace', () => {
 
     handlePerpsCufTwapOrdersDelivered([
       { orderId: 'shared-id', status: 'active' },
-      { orderId: 'shared-id', providerId: 'myx', status: 'canceled' },
+      { orderId: 'shared-id', providerId: 'lighter', status: 'canceled' },
     ]);
     expect(mockEndTrace).not.toHaveBeenCalled();
 
     handlePerpsCufTwapOrdersDelivered([
       { orderId: 'shared-id', status: 'canceled' },
-      { orderId: 'shared-id', providerId: 'myx', status: 'active' },
+      { orderId: 'shared-id', providerId: 'lighter', status: 'active' },
     ]);
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: opId }),

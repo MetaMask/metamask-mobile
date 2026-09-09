@@ -746,7 +746,7 @@ describe('PerpsProMarketView', () => {
       },
     };
     mockUsePerpsLivePositions.mockReturnValue({
-      positions: [{ ...ethPosition, symbol: 'BTC', providerId: 'myx' }],
+      positions: [{ ...ethPosition, symbol: 'BTC', providerId: 'lighter' }],
       isInitialLoading: false,
     });
 
@@ -755,7 +755,7 @@ describe('PerpsProMarketView', () => {
     fireEvent.press(getByTestId(getPerpsProPositionRowSelector('BTC')));
 
     expect(mockSetParams).toHaveBeenCalledWith({
-      market: { symbol: 'BTC', providerId: 'myx' },
+      market: { symbol: 'BTC', providerId: 'lighter' },
       source: PERPS_EVENT_VALUE.SOURCE.POSITION_TAB,
       source_section: PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
       direction: undefined,
@@ -990,7 +990,7 @@ describe('PerpsProMarketView', () => {
     };
     mockUsePerpsMarketsImpl.mockReturnValue({
       markets: [
-        { symbol: 'BTC', maxLeverage: '75x', providerId: 'myx' },
+        { symbol: 'BTC', maxLeverage: '75x', providerId: 'lighter' },
         { symbol: 'BTC', maxLeverage: '40x', providerId: 'hyperliquid' },
       ],
       isLoading: false,
