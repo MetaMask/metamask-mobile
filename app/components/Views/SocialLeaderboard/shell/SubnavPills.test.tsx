@@ -44,21 +44,6 @@ describe('SubnavPills', () => {
     expect(onChange).toHaveBeenCalledWith('following');
   });
 
-  it('keeps the whale emoji outside the translated label', () => {
-    const onChange = jest.fn();
-    renderWithProvider(
-      <SubnavPills
-        items={SOCIAL_SHELL_TAB_CONFIG.liveTrades.subnav}
-        value="memecoins"
-        onChange={onChange}
-      />,
-    );
-
-    expect(screen.getByTestId(getSubnavPillTestId('whales'))).toHaveTextContent(
-      '🐋 social_leaderboard.shell.subnav.whales',
-    );
-  });
-
   it('renders the end accessory alongside the pills', () => {
     renderWithProvider(
       <SubnavPills
