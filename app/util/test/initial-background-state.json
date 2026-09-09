@@ -900,6 +900,7 @@
   },
   "PredictController": {
     "eligibility": {
+      "status": "checking",
       "eligible": false
     },
     "lastError": null,
