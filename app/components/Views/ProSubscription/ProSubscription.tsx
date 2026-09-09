@@ -12,7 +12,11 @@ import {
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from '../../../hooks/useMoneyAccountPlusAccess';
+import { refresh as refreshEntitlements } from '../../../core/Subscription/entitlementResolution';
 import Benefits from './screens/Benefits';
 import Success from './screens/Success';
 import Routes from '../../../constants/navigation/Routes';
@@ -33,16 +37,30 @@ const ProSubscription = () => {
       >
     >();
 
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const proAccess = useMoneyAccountPlusAccess();
   const [currentScreen, setCurrentScreen] =
     useState<ProSubscriptionScreen>('benefits');
 
-  // Guard: dismiss immediately if the Pro feature flag is off.
+  // Dismiss when the Pro flag is off, and send anyone already entitled to the
+  // hub so an existing subscriber never lands on the upsell.
   useEffect(() => {
-    if (!isProSubscriptionEnabled) {
+    if (proAccess === MoneyAccountPlusAccess.Disabled) {
       navigation.goBack();
+      return;
     }
-  }, [isProSubscriptionEnabled, navigation]);
+
+    // On the success screen the user has just subscribed, so becoming a
+    // subscriber is expected — let them read the confirmation instead of
+    // yanking them to the hub.
+    if (
+      proAccess === MoneyAccountPlusAccess.Subscriber &&
+      currentScreen !== 'success'
+    ) {
+      navigation.replace(Routes.PRO_HUB.ROOT, {
+        source: 'pro_subscription_already_subscribed',
+      });
+    }
+  }, [proAccess, currentScreen, navigation]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -52,7 +70,14 @@ const ProSubscription = () => {
     setCurrentScreen('success');
   }, []);
 
-  const handleSubscriptionOnSuccess = useCallback(() => {
+  const shouldRenderFlow =
+    proAccess === MoneyAccountPlusAccess.Eligible ||
+    currentScreen === 'success';
+
+  const handleSubscriptionOnSuccess = useCallback(async () => {
+    // Land on the hub with entitlements that reflect the new subscription
+    // rather than the pre-checkout snapshot.
+    await refreshEntitlements();
     navigation.replace(Routes.PRO_HUB.ROOT, {
       source: 'pro_subscription_success',
     });
@@ -73,14 +98,17 @@ const ProSubscription = () => {
         />
       </Box>
 
-      {currentScreen === 'benefits' ? (
-        <Benefits
-          onSuccess={handleSuccess}
-          initialPlan={route.params?.initialPlan as PlanId | undefined}
-        />
-      ) : (
-        <Success onSuccess={handleSubscriptionOnSuccess} />
-      )}
+      {/* Held back until entitlements resolve so a subscriber never sees a
+          flash of the upsell before being redirected to the hub. */}
+      {shouldRenderFlow &&
+        (currentScreen === 'benefits' ? (
+          <Benefits
+            onSuccess={handleSuccess}
+            initialPlan={route.params?.initialPlan as PlanId | undefined}
+          />
+        ) : (
+          <Success onSuccess={handleSubscriptionOnSuccess} />
+        ))}
     </SafeAreaView>
   );
 };
