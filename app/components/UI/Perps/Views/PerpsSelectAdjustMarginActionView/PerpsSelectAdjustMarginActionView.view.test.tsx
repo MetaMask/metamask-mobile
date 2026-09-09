@@ -12,6 +12,9 @@ import {
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsAdjustMarginActionSheetSelectorsIDs } from '../../Perps.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+
+const TIMEOUT_MS = 5000;
 
 describe('PerpsSelectAdjustMarginActionView', () => {
   beforeEach(() => {
@@ -41,7 +44,7 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('pressing add margin does not throw', async () => {
+  it('navigates to adjust margin when add margin is selected', async () => {
     renderPerpsSelectAdjustMarginActionView({
       initialParams: {
         position: defaultPositionForViews,
@@ -49,9 +52,20 @@ describe('PerpsSelectAdjustMarginActionView', () => {
       extraRoutes: [{ name: Routes.PERPS.ADJUST_MARGIN }],
     });
 
-    const addMarginBtn = await screen.findByTestId(
-      PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
+      ),
     );
-    expect(() => fireEvent.press(addMarginBtn)).not.toThrow();
+
+    // Route probe confirms navigation — await directly so the assertion retries
+    // correctly rather than passing trivially via implicit .resolves handling.
+    expect(
+      await screen.findByTestId(
+        getRouteProbeTestId(Routes.PERPS.ADJUST_MARGIN),
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
   });
 });
