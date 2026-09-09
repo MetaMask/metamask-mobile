@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
@@ -45,8 +45,10 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
   const perpsAccount = useSelector(selectPerpsAccountState);
   const { onPaymentTokenChange } = usePerpsPaymentToken();
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
-  const { depositWithConfirmation } = usePerpsTrading();
+  const { depositWithConfirmation, depositWithOrder } = usePerpsTrading();
   const { onReject } = useApprovalRequest();
+  const hasLeftForDeposit = useRef(false);
+  const isRestoringOrder = useRef(false);
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
@@ -70,6 +72,7 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
 
   const handleAdd = useCallback(async () => {
     onReject();
+    hasLeftForDeposit.current = true;
     try {
       await depositWithConfirmation();
       navigation.navigate(
@@ -80,6 +83,32 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
       // Deposit flow handles errors (e.g. user rejection or missing network).
     }
   }, [depositWithConfirmation, navigation, onReject]);
+
+  // Only one approval can be pending, so `handleAdd` rejects the order to make
+  // room for the deposit. Put it back on the way out, or the confirmation
+  // still mounted beneath this sheet has nothing left to render.
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !hasLeftForDeposit.current ||
+        isRestoringOrder.current ||
+        transactionMeta
+      ) {
+        return;
+      }
+
+      isRestoringOrder.current = true;
+
+      depositWithOrder()
+        .catch(() => {
+          // The deposit flow surfaces its own errors.
+        })
+        .finally(() => {
+          hasLeftForDeposit.current = false;
+          isRestoringOrder.current = false;
+        });
+    }, [depositWithOrder, transactionMeta]),
+  );
 
   return useMemo(() => {
     if (!isPerpsDepositAndOrder) {
