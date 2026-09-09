@@ -321,7 +321,6 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
     it('builds both platforms for a shared app push', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
-        GITHUB_REF: 'refs/heads/main',
         ...bothPlatformsPR,
       });
 
@@ -333,10 +332,9 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(stdout).not.toContain('iOS build disabled for PRs into main');
     });
 
-    it('skips ignorable-only pushes to main', () => {
+    it('skips ignorable-only pushes to main or release/*', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
-        GITHUB_REF: 'refs/heads/main',
         ...bothPlatformsPR,
         IGNORABLE_COUNT: '1',
         E2E_TEST_FILES_COUNT: '0',
@@ -349,24 +347,6 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         e2e_needed: 'false',
       });
       expect(stdout).toContain('ignorable-only changes');
-    });
-
-    it('runs full E2E for every push to release/*', () => {
-      const { stdout, outputs } = runEntrypoint({
-        GITHUB_EVENT_NAME: 'push',
-        GITHUB_REF: 'refs/heads/release/1.0.0',
-        ...bothPlatformsPR,
-        IGNORABLE_COUNT: '1',
-        E2E_TEST_FILES_COUNT: '0',
-        E2E_TEST_OR_IGNORABLE_COUNT: '1',
-      });
-
-      expect(outputs).toMatchObject({
-        android_final: 'true',
-        ios_final: 'true',
-        e2e_needed: 'true',
-      });
-      expect(stdout).toContain('push to release/*');
     });
   });
 });

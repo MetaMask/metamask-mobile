@@ -56,7 +56,6 @@ const labelOverrideInput = {
 const flags = resolveE2EPlatformRequirements({
   pathFilterInput: {
     githubEventName: process.env.GITHUB_EVENT_NAME || '',
-    githubRef: process.env.GITHUB_REF || '',
     prBaseRef: process.env.PR_BASE_REF || '',
     isFork: readBool(process.env.IS_FORK),
     shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),

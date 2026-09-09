@@ -15,7 +15,7 @@ on:
         description: 'Whether Android E2E tests and builds should run (true when Android-specific or shared files changed)'
         value: ${{ jobs.detect-changes.outputs.android_e2e_needed }}
       ios_e2e_needed:
-        description: 'Whether iOS is selected by the final platform policy for E2E. This flag gates both the iOS build and iOS tests. Pull requests targeting main require an explicit iOS request, including the smoke-infrastructure exception; release/* requires an explicit label request. Main pushes use path-filtered platforms; release/* pushes and schedule runs select both.'
+        description: 'Whether iOS is selected by the final platform policy for E2E. This flag gates both the iOS build and iOS tests. Pull requests targeting main require an explicit iOS request, including the smoke-infrastructure exception; release/* requires an explicit label request. Pushes use path-filtered platforms, while schedule runs select both.'
         value: ${{ jobs.detect-changes.outputs.ios_e2e_needed }}
       changed_spec_files:
         description: 'Space-separated list of changed E2E spec file paths only — never the full changed-file list, which overflows ARG_MAX and kills this job on large PRs. Smoke test workflows use this to run modified spec files twice for flakiness detection on PRs targeting main.'
@@ -146,7 +146,6 @@ jobs:
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_REF: ${{ github.ref }}
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
