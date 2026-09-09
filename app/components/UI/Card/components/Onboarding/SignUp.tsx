@@ -48,7 +48,9 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   CardActions,
   CardEntryPoint,
+  CardFlow,
   CardScreens,
+  mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
@@ -68,6 +70,7 @@ import {
 } from '../../../../../selectors/featureFlagController/card';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
+import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import ImmersveLegalClickwrap from './ImmersveLegalClickwrap';
 import type { CardOnboardingStackParamList } from '../../types/navigation';
@@ -134,6 +137,19 @@ const SignUp = () => {
   const geoLocation = useSelector(selectGeolocationLocation);
   const immersveCountries = useSelector(selectCardImmersveCountries);
   const immersveOnboardingEnabled = useSelector(selectCardImmersveEnabled);
+  const {
+    state: { phase: ukMigrationPhase },
+  } = useCardUkMigrationState();
+  const migrationAnalyticsProps = useMemo(() => {
+    if (!fromMigration) {
+      return {};
+    }
+    const migrationPhase = mapUkMigrationPhaseToAnalytics(ukMigrationPhase);
+    return {
+      flow: CardFlow.MIGRATION,
+      ...(migrationPhase ? { migration_phase: migrationPhase } : {}),
+    };
+  }, [fromMigration, ukMigrationPhase]);
   const {
     allRegions,
     getRegionByCode,
@@ -340,11 +356,18 @@ const SignUp = () => {
         .addProperties(
           withCardProvider(provider, {
             screen: CardScreens.SIGN_UP,
+            ...migrationAnalyticsProps,
           }),
         )
         .build(),
     );
-  }, [trackEvent, createEventBuilder, selectedCountry, isImmersveCountry]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    selectedCountry,
+    isImmersveCountry,
+    migrationAnalyticsProps,
+  ]);
 
   const {
     onboardingDocuments,
@@ -437,6 +460,13 @@ const SignUp = () => {
         .addProperties(
           withCardProvider(CardProviderIds.Immersve, {
             action: CardActions.SIGN_UP_BUTTON,
+            ...migrationAnalyticsProps,
+            ...(fromMigration
+              ? {
+                  country_of_residence: selectedCountry.key,
+                  phone_number_country_code: phoneRegion.areaCode,
+                }
+              : {}),
           }),
         )
         .build(),
@@ -468,6 +498,7 @@ const SignUp = () => {
     phoneNumber,
     phoneRegion?.areaCode,
     fromMigration,
+    migrationAnalyticsProps,
     resumeImmersveOnboarding,
     trackEvent,
     createEventBuilder,

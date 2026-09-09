@@ -43,7 +43,14 @@ import {
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { getBetaSupportUrl } from './AccountsMenu.utils';
 import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
+import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
 import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
+import { selectCardActiveProviderId } from '../../../selectors/cardController';
+import {
+  CardFlow,
+  mapUkMigrationPhaseToAnalytics,
+  withCardProvider,
+} from '../../UI/Card/util/metrics';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -63,6 +70,10 @@ const AccountsMenu = () => {
   );
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
   const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const {
+    state: { phase: ukMigrationPhase },
+  } = useCardUkMigrationState();
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -123,9 +134,36 @@ const AccountsMenu = () => {
   }, [navigation]);
 
   const onPressManageWallet = useCallback(() => {
-    trackEvent(createEventBuilder(EVENT_NAME.CARD_HOME_CLICKED).build());
+    const updateLabelVisible = Boolean(cardUpdateBadgeSeverity);
+    const migrationPhase = updateLabelVisible
+      ? mapUkMigrationPhaseToAnalytics(ukMigrationPhase)
+      : undefined;
+    trackEvent(
+      createEventBuilder(EVENT_NAME.CARD_HOME_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            update_label_visible: updateLabelVisible,
+            ...(updateLabelVisible
+              ? {
+                  flow: CardFlow.MIGRATION,
+                  ...(migrationPhase
+                    ? { migration_phase: migrationPhase }
+                    : {}),
+                }
+              : {}),
+          }),
+        )
+        .build(),
+    );
     navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [
+    activeProviderId,
+    cardUpdateBadgeSeverity,
+    createEventBuilder,
+    navigation,
+    trackEvent,
+    ukMigrationPhase,
+  ]);
 
   const onPressNetworks = useCallback(() => {
     navigation.navigate(Routes.SETTINGS.NETWORKS_MANAGEMENT);

@@ -105,7 +105,16 @@ import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
 import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
-import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardFlow,
+  CardScreens,
+  mapUkMigrationPhaseToAnalytics,
+  withCardProvider,
+} from '../../util/metrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -132,6 +141,7 @@ const CardHome = () => {
     selectMetalCardCheckoutFeatureFlag,
   );
   const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
   const theme = useTheme();
@@ -432,6 +442,30 @@ const CardHome = () => {
     });
   }, [navigation]);
 
+  const handleUkMigrationBannerConfirm = useCallback(() => {
+    const migrationPhase = mapUkMigrationPhaseToAnalytics(
+      ukMigrationState.phase,
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.MIGRATION_ATTENTION_SET_UP_CARD_BUTTON,
+            flow: CardFlow.MIGRATION,
+            ...(migrationPhase ? { migration_phase: migrationPhase } : {}),
+          }),
+        )
+        .build(),
+    );
+    handleOpenUkMigrationSheet();
+  }, [
+    activeProviderId,
+    createEventBuilder,
+    handleOpenUkMigrationSheet,
+    trackEvent,
+    ukMigrationState.phase,
+  ]);
+
   const ukMigrationSoftDeadlineLabel = useMemo(() => {
     if (!ukMigrationState.deadline) {
       return null;
@@ -635,7 +669,7 @@ const CardHome = () => {
                   ? { deadline: ukMigrationSoftDeadlineLabel }
                   : undefined
               }
-              onConfirm={handleOpenUkMigrationSheet}
+              onConfirm={handleUkMigrationBannerConfirm}
               onClose={() => setIsUkMigrationSoftBannerDismissed(true)}
             />
           </Box>
@@ -648,7 +682,7 @@ const CardHome = () => {
           >
             <CardMessageBox
               messageType={CardMessageBoxType.UkMigrationRequired}
-              onConfirm={handleOpenUkMigrationSheet}
+              onConfirm={handleUkMigrationBannerConfirm}
             />
           </Box>
         )}

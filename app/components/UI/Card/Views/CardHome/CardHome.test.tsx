@@ -7154,12 +7154,25 @@ describe('CardHome Component', () => {
 
       render();
       mockNavigate.mockClear();
+      mockEventBuilder.addProperties.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockTrackEvent.mockClear();
 
       fireEvent.press(screen.getByTestId('confirm-button'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
         screen: Routes.CARD.MODALS.UK_MIGRATION,
       });
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: 'MIGRATION_ATTENTION_SET_UP_CARD_BUTTON',
+        flow: 'migration',
+        migration_phase: 'post_cutoff',
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });
