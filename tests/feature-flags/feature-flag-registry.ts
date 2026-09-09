@@ -7676,13 +7676,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           stage: 0,
         },
       },
-      {
-        name: 'postOnboardingSteps',
-        scope: {
-          value: 0,
-          type: 'percentage_rollout',
-        },
-      },
     },
     status: FeatureFlagStatus.Active,
   },
