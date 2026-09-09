@@ -589,7 +589,7 @@ describe('TradeWalletActions', () => {
       mockIsTradeFocusedArm = false;
     });
 
-    it('dims the backdrop to half strength in the trade-focused arm', () => {
+    it('leaves the backdrop undimmed in the trade-focused arm', () => {
       mockIsTradeFocusedArm = true;
 
       renderScreen(
@@ -599,7 +599,7 @@ describe('TradeWalletActions', () => {
       );
 
       expect(mockOverlayWithHole).toHaveBeenCalled();
-      expect(mockWithTiming).toHaveBeenCalledWith(0.5, expect.anything());
+      expect(mockWithTiming).toHaveBeenCalledWith(0, expect.anything());
     });
 
     it('dims the backdrop fully outside the trade-focused arm', () => {
@@ -610,7 +610,7 @@ describe('TradeWalletActions', () => {
       );
 
       expect(mockOverlayWithHole).toHaveBeenCalled();
-      expect(mockWithTiming).not.toHaveBeenCalledWith(0.5, expect.anything());
+      expect(mockWithTiming).not.toHaveBeenCalledWith(0, expect.anything());
       expect(mockWithTiming).toHaveBeenCalledWith(1, expect.anything());
     });
 
