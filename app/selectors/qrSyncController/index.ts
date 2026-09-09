@@ -50,7 +50,7 @@ export const selectQrSyncHasPendingSecrets = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
     qrSyncState.pendingSecretImports !== null &&
-    qrSyncState.pendingSecretImports?.wallets.length > 0,
+    qrSyncState.pendingSecretImports.wallets.length > 0,
 );
 
 export const selectQrSyncIsBusy = createSelector(
@@ -99,7 +99,8 @@ export const selectQrSyncShouldNavigateToImport = createSelector(
   (qrSyncState) =>
     qrSyncState.provisioningStatus ===
       QrSyncProvisioningStatuses.AWAITING_PASSWORD &&
-    qrSyncState.pendingSecretImports !== null,
+    qrSyncState.pendingSecretImports !== null &&
+    qrSyncState.pendingSecretImports.wallets.length > 0,
 );
 
 export const selectQrSyncNeedsProvisioning = createSelector(
