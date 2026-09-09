@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added feature-gated in-app routing for `link.metamask.com` universal links
 - Added support for `link.metamask.com` and `metamask.com` iOS Universal Links and Android App Links
 
+### Changed
+
+- Updated `link.metamask.com` signature verification to use the legacy `.io` signing origin
+
 ## [8.10.2]
 
 ### Fixed
