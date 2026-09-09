@@ -11345,10 +11345,6 @@
     "title": "MetaMask प्रो",
     "subtitle": "आपकी प्रो मेंबरशिप",
     "manage": "सब्सक्रिप्शन मैनेज करें",
-    "manage_plan": "प्लान प्रबंधित करें",
-    "earned_with_pro": "प्रो के साथ कमाया गया",
-    "saved_with_pro": "प्रो के साथ बचाया गया",
-    "next_payment": "आपका अगला पेमेंट {{amount}} {{date}} को आ रहा है।",
     "member_pricing": {
       "title": "ट्रेड पर मेंबर प्राइसिंग",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "आपकी मेंबरशिप",
       "plan": "मेंबरशिप",
       "earned_this_month": "इस महीने कमाया",
-      "saved_this_month": "इस महीने बचाया",
       "payment_details": "पेमेंट डिटेल्स",
       "total": "कुल",
       "paying_with": "के साथ भुगतान किया जा रहा है",

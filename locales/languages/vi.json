@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Gói thành viên Pro của bạn",
     "manage": "Quản lý gói đăng ký",
-    "manage_plan": "Quản lý gói",
-    "earned_with_pro": "Đã sinh lời với gói Pro",
-    "saved_with_pro": "Đã tiết kiệm với gói Pro",
-    "next_payment": "Khoản thanh toán tiếp theo trị giá {{amount}} sẽ đến vào {{date}}.",
     "member_pricing": {
       "title": "Mức phí giao dịch dành cho thành viên",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "Gói thành viên của bạn",
       "plan": "Gói thành viên",
       "earned_this_month": "Đã sinh lời trong tháng này",
-      "saved_this_month": "Đã tiết kiệm trong tháng này",
       "payment_details": "Chi tiết thanh toán",
       "total": "Tổng cộng",
       "paying_with": "Thanh toán bằng",

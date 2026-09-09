@@ -930,6 +930,18 @@ export type RewardsControllerGetPerpsTradingCampaignVolumeAction = {
 };
 
 /**
+ * Get the perps trading campaign prize ladder and currently unlocked pool.
+ * This is a public endpoint - no authentication required.
+ * Results are cached for 5 minutes.
+ * @param campaignId - The campaign ID to get the prize pool for.
+ * @returns The prize pool schedule and unlocked amount for the campaign.
+ */
+export type RewardsControllerGetPerpsTradingCampaignPrizePoolAction = {
+  type: `RewardsController:getPerpsTradingCampaignPrizePool`;
+  handler: RewardsController['getPerpsTradingCampaignPrizePool'];
+};
+
+/**
  * Union of all RewardsController action types.
  */
 export type RewardsControllerMethodActions =
@@ -1024,4 +1036,5 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsControllerGetPerpsTradingCampaignVolumeAction;
+  | RewardsControllerGetPerpsTradingCampaignVolumeAction
+  | RewardsControllerGetPerpsTradingCampaignPrizePoolAction;

@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import type { CaipChainId } from '@metamask/utils';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useLimitOrderSwapInputs } from '.';
 import {
   selectDestToken,
@@ -317,6 +318,7 @@ describe('useLimitOrderSwapInputs', () => {
           type: TokenSelectorType.Source,
           enabledChainIds: ENABLED_CHAIN_IDS,
           excludeRwaTokens: true,
+          featureId: FeatureId.LIMIT_ORDER,
         }),
       );
     });
@@ -339,6 +341,7 @@ describe('useLimitOrderSwapInputs', () => {
           type: TokenSelectorType.Dest,
           enabledChainIds: ENABLED_CHAIN_IDS,
           excludeRwaTokens: true,
+          featureId: FeatureId.LIMIT_ORDER,
         }),
       );
     });
