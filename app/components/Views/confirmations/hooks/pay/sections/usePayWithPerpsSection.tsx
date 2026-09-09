@@ -70,6 +70,23 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
     navigation.goBack();
   }, [clearPaymentOverride, navigation, onPaymentTokenChange]);
 
+  const restoreOrder = useCallback(() => {
+    if (isRestoringOrder.current) {
+      return;
+    }
+
+    isRestoringOrder.current = true;
+
+    depositWithOrder()
+      .then(() => {
+        hasLeftForDeposit.current = false;
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        isRestoringOrder.current = false;
+      });
+  }, [depositWithOrder]);
+
   const handleAdd = useCallback(async () => {
     onReject();
     try {
@@ -81,33 +98,18 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
       );
     } catch {
       hasLeftForDeposit.current = true;
+      restoreOrder();
     }
-  }, [depositWithConfirmation, navigation, onReject]);
+  }, [depositWithConfirmation, navigation, onReject, restoreOrder]);
 
-  // Only one approval can be pending, so `handleAdd` rejects the order to make
-  // room for the deposit. Put it back on the way out, or the confirmation
-  // still mounted beneath this sheet has nothing left to render.
   useFocusEffect(
     useCallback(() => {
-      if (
-        !hasLeftForDeposit.current ||
-        isRestoringOrder.current ||
-        transactionMeta
-      ) {
+      if (!hasLeftForDeposit.current || transactionMeta) {
         return;
       }
 
-      isRestoringOrder.current = true;
-
-      depositWithOrder()
-        .then(() => {
-          hasLeftForDeposit.current = false;
-        })
-        .catch(() => undefined)
-        .finally(() => {
-          isRestoringOrder.current = false;
-        });
-    }, [depositWithOrder, transactionMeta]),
+      restoreOrder();
+    }, [restoreOrder, transactionMeta]),
   );
 
   return useMemo(() => {

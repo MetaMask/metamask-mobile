@@ -348,6 +348,16 @@ describe('usePayWithPerpsSection', () => {
     });
   });
 
+  it('recreates the order immediately when the deposit fails', async () => {
+    depositWithConfirmationMock.mockRejectedValueOnce(new Error('user-cancel'));
+
+    const { result } = renderHook(() => usePayWithPerpsSection());
+
+    await pressAdd(result);
+
+    expect(depositWithOrderMock).toHaveBeenCalledTimes(1);
+  });
+
   it('does not navigate when deposit confirmation rejects', async () => {
     depositWithConfirmationMock.mockRejectedValueOnce(new Error('user-cancel'));
 
