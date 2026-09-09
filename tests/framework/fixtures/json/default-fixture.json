@@ -229,7 +229,7 @@
         },
         "KycController": {
           "activeProduct": null,
-          "activeVendor": "iron",
+          "activeVendor": "moonpay",
           "credentialReusabilityConsentGiven": null,
           "email": null,
           "error": null,

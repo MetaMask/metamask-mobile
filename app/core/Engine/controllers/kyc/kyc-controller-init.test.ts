@@ -22,9 +22,9 @@ jest.mock('@metamask/kyc-controller', () => {
   return { KycController: MockKycController };
 });
 
-type MockKycControllerConstructor = {
+interface MockKycControllerConstructor {
   lastConstructorArgs: Record<string, unknown>[];
-};
+}
 
 function getLastConstructorArgs(): Record<string, unknown> | undefined {
   return (

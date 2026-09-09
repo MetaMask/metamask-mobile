@@ -812,7 +812,7 @@
     "moonpaySessionToken": null,
     "moonpayAccessToken": null,
     "moonpayCustomerId": null,
-    "activeVendor": "iron",
+    "activeVendor": "moonpay",
     "activeProduct": null,
     "kycRequiredByProduct": {},
     "lastCheckedAt": null,
