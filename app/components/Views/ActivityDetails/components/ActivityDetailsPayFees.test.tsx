@@ -17,9 +17,7 @@ import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 const { NETWORK_FEE_ROW, BRIDGE_FEE_ROW, TOTAL_ROW } =
   ActivityDetailsSelectorsIDs;
 
-function payItem(
-  metamaskPay: Record<string, string> | undefined,
-): ActivityListItem {
+function payItem(): ActivityListItem {
   return {
     type: 'predictionsAddFunds',
     chainId: 'eip155:137',
@@ -27,15 +25,31 @@ function payItem(
     timestamp: 1,
     hash: '0xfund',
     data: { token: { amount: '100000', decimals: 6, symbol: 'USDC' } },
-    raw: {
-      type: 'localTransaction',
-      data: {
-        primaryTransaction: { id: 'tx-1', chainId: '0x89', metamaskPay },
-        initialTransaction: { id: 'tx-1', chainId: '0x89' },
-        transactions: [],
+  } as unknown as ActivityListItem;
+}
+
+function stateWithPayOnLocalTx(
+  metamaskPay: Record<string, string> | undefined,
+  hash = '0xfund',
+) {
+  return {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        TransactionController: {
+          ...backgroundState.TransactionController,
+          transactions: [
+            {
+              id: 'tx-1',
+              chainId: '0x89',
+              hash,
+              metamaskPay,
+            } as unknown as TransactionMeta,
+          ],
+        },
       },
     },
-  } as unknown as ActivityListItem;
+  };
 }
 
 /** A provider-backed row — its Pay metadata lives on the local tx behind `hash`. */
@@ -228,9 +242,26 @@ describe('useActivityPayFiat', () => {
     renderHookWithProvider(() => useActivityPayFiat(item), { state }).result
       .current;
 
-  it('reads Pay metadata straight off a local row', () => {
+  it('reads Pay metadata from the local transaction behind the row hash', () => {
     expect(
-      renderPayFiat(payItem({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' })),
+      renderPayFiat(
+        payItem(),
+        stateWithPayOnLocalTx({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' }),
+      ),
+    ).toMatchObject({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' });
+  });
+
+  it('reads Pay metadata when the row hash is the pending transaction id', () => {
+    const pendingItem = { ...payItem(), hash: 'tx-1' };
+
+    expect(
+      renderPayFiat(
+        pendingItem,
+        stateWithPayOnLocalTx(
+          { networkFeeFiat: '0', bridgeFeeFiat: '0.04' },
+          undefined,
+        ),
+      ),
     ).toMatchObject({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' });
   });
 
@@ -274,10 +305,14 @@ describe('useActivityPayFiat', () => {
     ['a total with no fees resolves', { totalFiat: '0.14' }, true],
     ['empty Pay metadata does not', {}, false],
   ])('%s', (_name, metamaskPay, resolved) => {
-    expect(Boolean(renderPayFiat(payItem(metamaskPay)))).toBe(resolved);
+    expect(
+      Boolean(renderPayFiat(payItem(), stateWithPayOnLocalTx(metamaskPay))),
+    ).toBe(resolved);
   });
 
   it('is undefined when the local transaction has no Pay metadata', () => {
-    expect(renderPayFiat(payItem(undefined))).toBeUndefined();
+    expect(
+      renderPayFiat(payItem(), stateWithPayOnLocalTx(undefined)),
+    ).toBeUndefined();
   });
 });

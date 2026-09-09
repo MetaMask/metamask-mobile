@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "您的 Pro 会员资格",
     "manage": "管理订阅",
-    "manage_plan": "管理方案",
-    "earned_with_pro": "使用 Pro 已赚取",
-    "saved_with_pro": "使用 Pro 已节省",
-    "next_payment": "您的下一笔付款 {{amount}} 将于 {{date}} 到期。",
     "member_pricing": {
       "title": "交易会员优惠价",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "您的会员资格",
       "plan": "会员资格",
       "earned_this_month": "本月赚取",
-      "saved_this_month": "本月节省",
       "payment_details": "付款详情",
       "total": "总额",
       "paying_with": "支付方式",
