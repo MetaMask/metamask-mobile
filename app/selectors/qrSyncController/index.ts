@@ -26,7 +26,7 @@ export const selectQrSyncError = createSelector(
   (qrSyncState) => qrSyncState.error,
 );
 
-export const selectQrSyncPrimaryMnemonic = createSelector(
+export const selectQrSyncImportMnemonic = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) => {
     const primaryWallet = qrSyncState.pendingSecretImports?.wallets.find(
@@ -42,8 +42,6 @@ export const selectQrSyncPrimaryMnemonic = createSelector(
     }
   },
 );
-
-export const selectQrSyncImportMnemonic = selectQrSyncPrimaryMnemonic;
 
 export const selectQrSyncHasPendingSecrets = createSelector(
   selectQrSyncControllerState,

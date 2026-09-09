@@ -7,7 +7,7 @@ import type { RootState } from '../../reducers';
 import {
   selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
-  selectQrSyncPrimaryMnemonic,
+  selectQrSyncImportMnemonic,
   selectQrSyncShouldNavigateToImport,
 } from './index';
 
@@ -77,9 +77,9 @@ const provisioningMetadata = {
 };
 
 describe('qrSyncController selectors', () => {
-  describe('selectQrSyncPrimaryMnemonic', () => {
+  describe('selectQrSyncImportMnemonic', () => {
     it('decodes EncodedBytes value to a mnemonic phrase string', () => {
-      const result = selectQrSyncPrimaryMnemonic(
+      const result = selectQrSyncImportMnemonic(
         buildState({ pendingSecretImports }),
       );
       expect(result).toBe(`decoded:${TEST_MNEMONIC_BYTES.join(',')}`);
@@ -87,7 +87,7 @@ describe('qrSyncController selectors', () => {
 
     it('returns null when pendingSecretImports is null', () => {
       expect(
-        selectQrSyncPrimaryMnemonic(buildState({ pendingSecretImports: null })),
+        selectQrSyncImportMnemonic(buildState({ pendingSecretImports: null })),
       ).toBeNull();
     });
 
@@ -97,7 +97,7 @@ describe('qrSyncController selectors', () => {
         wallets: [{ ...pendingSecretImports.wallets[0], value: undefined }],
       };
       expect(
-        selectQrSyncPrimaryMnemonic(
+        selectQrSyncImportMnemonic(
           buildState({ pendingSecretImports: payloadWithoutValue }),
         ),
       ).toBeNull();
