@@ -14,6 +14,7 @@
 		<string>applinks:metamask.app.link</string>
 		<string>applinks:metamask-alternate.app.link</string>
 		<string>applinks:link.metamask.io</string>
+		<string>applinks:link.metamask.com</string>
 		<string>applinks:link-test.metamask.io</string>
 		<string>applinks:metamask.test-app.link</string>
 		<string>applinks:metamask-alternate.test-app.link</string>
