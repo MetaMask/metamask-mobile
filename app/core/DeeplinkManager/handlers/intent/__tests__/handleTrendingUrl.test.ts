@@ -2,6 +2,7 @@ import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import { EXPLORE_TAB_INDEX } from '../../../../../constants/navigation/exploreTabIndices';
 import { executeStartupDeeplinkIntent } from '../../../utils/executeDeeplinkIntent';
+import { buildHomeNavResetState } from '../../../utils/resetToHomeNav';
 import {
   createTrendingDeeplinkIntent,
   handleTrendingUrl,
@@ -259,42 +260,30 @@ describe('handleTrendingUrl - full-screen views (screen=...)', () => {
 
     await executeStartupDeeplinkIntent(intent);
 
-    expect(NavigationService.navigation.reset).toHaveBeenCalledWith({
-      routes: [
-        {
-          name: Routes.ONBOARDING.HOME_NAV,
-          state: {
-            routes: [
-              {
-                name: Routes.MAIN_FLOW,
-                state: {
-                  index: 1,
-                  routes: [
-                    {
-                      name: Routes.HOME_TABS,
-                      state: {
-                        index: 1,
-                        routes: [
-                          { name: Routes.WALLET.HOME },
-                          { name: Routes.TRENDING_VIEW },
-                        ],
-                      },
-                    },
-                    {
-                      name: Routes.EXPLORE_SEARCH,
-                      params: {
-                        initialQuery: 'Apple Inc',
-                        entryPoint: 'deeplink',
-                      },
-                    },
-                  ],
-                },
-              },
-            ],
+    expect(NavigationService.navigation.reset).toHaveBeenCalledWith(
+      buildHomeNavResetState({
+        index: 1,
+        routes: [
+          {
+            name: Routes.HOME_TABS,
+            state: {
+              index: 1,
+              routes: [
+                { name: Routes.WALLET.HOME },
+                { name: Routes.TRENDING_VIEW },
+              ],
+            },
           },
-        },
-      ],
-    });
+          {
+            name: Routes.EXPLORE_SEARCH,
+            params: {
+              initialQuery: 'Apple Inc',
+              entryPoint: 'deeplink',
+            },
+          },
+        ],
+      }),
+    );
   });
 });
 
