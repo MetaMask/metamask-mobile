@@ -168,7 +168,9 @@ describe('useInitialBridgeTokens', () => {
         unknown,
         { body: string },
       ];
-      expect(JSON.parse(requestInit.body).featureId).toBe(FeatureId.LIMIT_ORDER);
+      expect(JSON.parse(requestInit.body).featureId).toBe(
+        FeatureId.LIMIT_ORDER,
+      );
     });
 
     it('preserves securityData in the response', async () => {
