@@ -414,7 +414,7 @@ const SocialBundleV1View: React.FC = () => {
             gap={1}
           >
             <ButtonIcon
-              iconName={IconName.Heart}
+              iconName={IconName.Star}
               size={ButtonIconSize.Md}
               onPress={handlePlaceholderHeaderAction}
               testID={SocialBundleV1ViewSelectorsIDs.HEART_BUTTON}
