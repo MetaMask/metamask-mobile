@@ -217,7 +217,12 @@ const PerpsHomeView = () => {
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
-  const whatsHappeningFeed = useWhatsHappening();
+  const whatsHappeningFeed = useWhatsHappening({
+    telemetryContext: {
+      source: WhatsHappeningSource.Perps,
+      stage: 'carousel',
+    },
+  });
   const isWhatsHappeningVisible =
     isWhatsHappeningEnabled &&
     isWhatsHappeningSectionVisible({
@@ -853,6 +858,7 @@ const PerpsHomeView = () => {
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION}
             title={strings('perps.home.crypto')}
             markets={perpsMarkets}
             marketType="crypto"

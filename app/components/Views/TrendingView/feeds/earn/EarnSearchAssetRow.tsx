@@ -10,7 +10,6 @@ import {
 import EarnAssetIcon from '../../../../UI/Earn/components/EarnAssetIcon/EarnAssetIcon';
 import { deriveEarnAssetDisplayData } from '../../../../UI/Earn/utils/earnAssets';
 import type { EarnAssetSearchItem } from './earnSearchTypes';
-import EarnNoFeeTag from '../../../../UI/Earn/components/EarnNoFeeTag';
 import { EarnSearchAssetRowTestIds } from './EarnSearchAssetRow.testIds';
 
 interface EarnSearchAssetRowProps {
@@ -32,13 +31,8 @@ const EarnSearchAssetRow = ({
   privacyMode = false,
 }: EarnSearchAssetRowProps) => {
   const { asset } = item;
-  const {
-    metadata,
-    hasSubsidizedFee,
-    hasMinDepositAmount,
-    fiatBalance,
-    rateCopy,
-  } = deriveEarnAssetDisplayData(asset);
+  const { metadata, hasMinDepositAmount, fiatBalance, highestRateCopy } =
+    deriveEarnAssetDisplayData(asset);
 
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
 
@@ -64,7 +58,6 @@ const EarnSearchAssetRow = ({
       testID={EarnSearchAssetRowTestIds.ROW}
       avatar={<EarnAssetIcon asset={asset} />}
       title={metadata.name}
-      titleEndAccessory={hasSubsidizedFee ? <EarnNoFeeTag /> : undefined}
       titleProps={{
         numberOfLines: 1,
       }}
@@ -72,7 +65,7 @@ const EarnSearchAssetRow = ({
       descriptionProps={{
         numberOfLines: 1,
       }}
-      value={rateCopy}
+      value={highestRateCopy}
       valueProps={{
         color: TextColor.SuccessDefault,
         numberOfLines: 1,

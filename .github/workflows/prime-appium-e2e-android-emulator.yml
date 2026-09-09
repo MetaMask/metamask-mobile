@@ -42,7 +42,8 @@ jobs:
       ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
       ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
       ANDROID_SYSTEM_IMAGE_ABI: x86_64
-      ANDROID_EMULATOR_CI_CORES: '8'
+      # Must match shard jobs. Pool mode shares this one 4-core golden.
+      ANDROID_EMULATOR_CI_CORES: '4'
     steps:
       - name: Checkout (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1

@@ -19,7 +19,7 @@ import PerpsMarketListView from './PerpsMarketListView';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
 import { type AppiumElement, PlatformDetector, sleep } from '../../framework';
 
-/** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
+/** Portfolio: limit order primary (`formatOrderLabel`) + position direction badge (`{n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
   symbol: string;
   direction: 'long' | 'short';
@@ -122,29 +122,23 @@ class PerpsView {
     return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON);
   }
 
-  private getPortfolioPositionCard(index = 0): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`,
-    );
-  }
-
   private getPortfolioOrderCard(index = 0): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`,
     );
   }
 
-  private getWalletHomePositionRow(symbol: string): Promise<AppiumElement> {
-    return Matchers.getElementByID(`perps-position-row-${symbol}`);
+  private getPortfolioPositionDirectionTag(index = 0): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}-direction-tag`,
+    );
   }
 
-  private getPositionPrimaryLine(
+  private getWalletHomePositionDirectionTag(
     symbol: string,
-    direction: 'long' | 'short',
   ): Promise<AppiumElement> {
-    const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return Matchers.getElementByText(
-      new RegExp(`${escapedSymbol} \\d+x ${direction}`),
+    return Matchers.getElementByID(
+      `perps-position-row-${symbol}-direction-tag`,
     );
   }
 
@@ -256,17 +250,17 @@ class PerpsView {
   }
 
   /**
-   * After fill: order label gone and position row matches `{symbol} {n}x {direction}` (PerpsCard).
+   * After fill: order label gone and the position row or its `{n}x {direction}` badge is visible.
    */
   async expectPositionRowAfterLimitOrderFilled(
     options: PerpsPortfolioLimitFlowExpectOptions,
   ): Promise<void> {
     const { symbol, direction } = options;
     const orderLabel = options.orderLabel ?? `Limit ${direction}`;
+    const directionLabel = direction === 'long' ? 'Long' : 'Short';
     const positionLocators: Promise<AppiumElement>[] = [
-      this.getPortfolioPositionCard(0),
-      this.getWalletHomePositionRow(symbol),
-      this.getPositionPrimaryLine(symbol, direction),
+      this.getPortfolioPositionDirectionTag(0),
+      this.getWalletHomePositionDirectionTag(symbol),
     ];
     await Utilities.executeWithRetry(
       async () => {
@@ -282,6 +276,14 @@ class PerpsView {
               description: `${symbol} position row visible (${direction})`,
               timeout: 3000,
             });
+            await Assertions.expectElementToContainText(
+              locator,
+              directionLabel,
+              {
+                description: `${symbol} position direction is ${direction}`,
+                timeout: 3000,
+              },
+            );
             positionVisible = true;
             break;
           } catch {

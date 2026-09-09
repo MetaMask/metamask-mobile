@@ -49,6 +49,19 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockUseScreenPerformance = jest.fn();
+const mockUseNavigationPerformance = jest.fn();
+
+jest.mock('../../../hooks/performance/useScreenPerformance', () => ({
+  useScreenPerformance: (...args: unknown[]) =>
+    mockUseScreenPerformance(...args),
+}));
+
+jest.mock('../../../hooks/performance/useNavigationPerformance', () => ({
+  useNavigationPerformance: (...args: unknown[]) =>
+    mockUseNavigationPerformance(...args),
+}));
+
 describe('OnboardingSheet', () => {
   const defaultParams = {
     onPressCreate: mockOnPressCreate,
@@ -67,6 +80,24 @@ describe('OnboardingSheet', () => {
     it('renders correctly with createWallet=false (import mode)', () => {
       const { getByText } = render(<OnboardingSheet />);
       expect(getByText(strings('onboarding.import_srp'))).toBeOnTheScreen();
+    });
+
+    it('emits onboarding sheet screen and navigation performance hooks', () => {
+      render(<OnboardingSheet />);
+
+      expect(mockUseScreenPerformance).toHaveBeenCalledWith(
+        expect.objectContaining({
+          screenId: 'onboarding_sheet',
+          contentReady: true,
+          isEmpty: false,
+        }),
+      );
+      expect(mockUseNavigationPerformance).toHaveBeenCalledWith(
+        expect.objectContaining({
+          destinationScreenId: 'onboarding_sheet',
+          destinationReady: true,
+        }),
+      );
     });
 
     it('renders correctly with createWallet=true (create mode)', () => {

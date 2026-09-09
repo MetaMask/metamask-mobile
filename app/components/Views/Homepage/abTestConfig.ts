@@ -3,6 +3,49 @@ import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnaly
 import { createActiveABTestAssignment } from '../../../util/analytics/activeABTestAssignments';
 import type { TransactionActiveAbTestEntry } from '../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
+// ─── Homepage Earn section (MUSD-1313) ──────────────────────────────────────
+export const HOMEPAGE_EARN_SECTION_AB_KEY =
+  'musd1313AbtestEarnSectionOnHomepage';
+
+export enum HomepageEarnSectionVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+interface HomepageEarnSectionVariantConfig {
+  showEarnSection: boolean;
+}
+
+export const HOMEPAGE_EARN_SECTION_VARIANTS: Record<
+  HomepageEarnSectionVariant,
+  HomepageEarnSectionVariantConfig
+> = {
+  [HomepageEarnSectionVariant.Control]: {
+    showEarnSection: false,
+  },
+  [HomepageEarnSectionVariant.Treatment]: {
+    showEarnSection: true,
+  },
+};
+
+export const HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Earn section on Homepage',
+  variationNames: {
+    control: 'Homepage without Earn section',
+    treatment: 'Homepage with Earn section',
+  },
+} as const;
+
+export const HOMEPAGE_EARN_SECTION_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_EARN_SECTION_AB_KEY,
+    validVariants: Object.values(HomepageEarnSectionVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+    injectWhenPropertiesMatch: {
+      section_name: 'earn',
+    },
+  };
+
 // ─── Homepage Perps empty state — Explore-style pills (TMCU-725) ─────────────
 
 /**

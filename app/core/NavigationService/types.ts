@@ -25,7 +25,7 @@ import type {
   BrowserTabHomeParamList,
   HomeTabsParamList,
   ImportPrivateKeyStackParamList,
-  MainFlowParamList,
+  MainStackParamList,
   SettingsStackParamList,
   SetPasswordFlowParamList,
   TrendingViewStackParamList,
@@ -477,7 +477,7 @@ export type RootModalFlowParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RootStackParamList = {
   // Top-level routes
-  Main: NavigatorScreenParams<MainFlowParamList> | undefined;
+  ReviewModal: undefined;
   WalletView: undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   BrowserView: BrowserParams | undefined;
@@ -721,7 +721,7 @@ export type RootStackParamList = {
   GeneralSettings: undefined;
   AssetsSettings: undefined;
   SecuritySettings: undefined;
-  HomeNav: undefined;
+  HomeNav: NavigatorScreenParams<MainStackParamList> | undefined;
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
   Onboarding: undefined;
   Login: undefined;
@@ -912,6 +912,7 @@ export type RootStackParamList = {
   BatchSellTokenSelect: BridgeScreensStackParamList['BatchSellTokenSelect'];
   BatchSellReview: BridgeScreensStackParamList['BatchSellReview'];
   QuoteSelectorView: BridgeScreensStackParamList['QuoteSelectorView'];
+  RecurringJobDetails: BridgeScreensStackParamList['RecurringJobDetails'];
   HwQrScanner: BridgeScreensStackParamList['HwQrScanner'];
   HardwareWalletsSwaps: BridgeScreensStackParamList['HardwareWalletsSwaps'];
   BridgeModals:
@@ -937,6 +938,7 @@ export type RootStackParamList = {
   BatchSellFinalReviewModal: BridgeModalsNavigationParamList['BatchSellFinalReviewModal'];
   BatchSellNetworkFeeInfoModal: BridgeModalsNavigationParamList['BatchSellNetworkFeeInfoModal'];
   BatchSellMinimumReceivedInfoModal: BridgeModalsNavigationParamList['BatchSellMinimumReceivedInfoModal'];
+  SwapsLimitOrderExpirationModal: BridgeModalsNavigationParamList['SwapsLimitOrderExpirationModal'];
   BridgeTransactionDetails:
     | BridgeTransactionDetailsParams
     | BridgeModalsNavigationParamList['TransactionDetailsBlockExplorer'];
@@ -1077,7 +1079,7 @@ export type RootStackParamList = {
   EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
   EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
   EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];
-  EarnStrategySelection: EarnScreensStackParamList['EarnStrategySelection'];
+  EarnStrategySelectionModal: EarnModalsNavigationParamList['EarnStrategySelectionModal'];
   EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
   EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];

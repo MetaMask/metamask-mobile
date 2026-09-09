@@ -32,9 +32,27 @@ export const FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY: Partial<
   [TabBarIconKey.Money]: IconName.MusdFilled,
 };
 
+/** Trimmed off the bottom safe-area inset so the pill sits closer to the edge. */
+export const TAB_BAR_FLOATING_INSET_REDUCTION = 12;
+
+/** Floor for the bottom gap, for devices reporting little or no bottom inset. */
+export const TAB_BAR_FLOATING_MIN_BOTTOM_PADDING = 16;
+
+/** Matches Apple's iOS 26 tab bar; also the diameter of the search circle. */
+export const TAB_BAR_FLOATING_HEIGHT = 62;
+
+/** Gap between the pill and the search circle. */
+export const TAB_BAR_FLOATING_GAP = 14;
+
+/** Smallest design-system body variant is 12/20, which overruns the bar. */
+export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 11;
+export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 14;
+
+/** Strength of the system material used below iOS 26. */
+export const TAB_BAR_FLOATING_BLUR_INTENSITY = 60;
+
 export const TAB_BAR_FLOATING_TEST_IDS = {
   CONTAINER: 'tab-bar-floating-container',
-  SCRIM: 'tab-bar-floating-scrim',
 
   PILL: 'tab-bar-floating-pill',
   SEARCH_BUTTON: 'tab-bar-floating-search-button',

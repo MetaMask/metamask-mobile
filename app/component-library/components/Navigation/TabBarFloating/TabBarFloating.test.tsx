@@ -13,7 +13,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
 import TabBarFloating from './TabBarFloating';
-import { TAB_BAR_FLOATING_TEST_IDS } from './TabBarFloating.constants';
+import {
+  TAB_BAR_FLOATING_HEIGHT,
+  TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
+  TAB_BAR_FLOATING_TEST_IDS,
+} from './TabBarFloating.constants';
 import {
   TabBarIconKey,
   ExtendedBottomTabDescriptor,
@@ -88,26 +92,6 @@ const descriptors: Record<string, TestTabDescriptor> = {
   },
 };
 
-const barElement = (
-  overrides: Partial<Record<string, TestTabDescriptor>> = {},
-  onHeightChange?: (height: number) => void,
-  activeIndex = 0,
-) => (
-  <TabBarFloating
-    state={
-      { ...state, index: activeIndex } as TabNavigationState<ParamListBase>
-    }
-    descriptors={
-      { ...descriptors, ...overrides } as Record<
-        string,
-        ExtendedBottomTabDescriptor
-      >
-    }
-    navigation={navigation}
-    onHeightChange={onHeightChange}
-  />
-);
-
 const renderBar = (
   overrides: Partial<Record<string, TestTabDescriptor>> = {},
   onHeightChange?: (height: number) => void,
@@ -166,16 +150,16 @@ describe('TabBarFloating', () => {
     });
   });
 
-  it('fades content out behind the bar with a transparent-to-background scrim', () => {
+  // Devices reporting no bottom inset (Android emulators, gesture nav) once
+  // produced negative padding, dropping the pill onto the system nav bar.
+  it('keeps a positive bottom gap when the device reports no bottom inset', () => {
     const { getByTestId } = renderBar();
 
-    const [top, bottom] = getByTestId(TAB_BAR_FLOATING_TEST_IDS.SCRIM).props
-      .colors;
+    const { paddingBottom } = StyleSheet.flatten(
+      getByTestId(TAB_BAR_FLOATING_TEST_IDS.CONTAINER).props.style,
+    );
 
-    // Colors arrive processed to ARGB ints, so read the alpha byte. The exact
-    // bottom alpha is a design dial; only the fade direction is asserted.
-    expect(top >>> 24).toBe(0);
-    expect(bottom >>> 24).toBeGreaterThan(0);
+    expect(paddingBottom).toBe(TAB_BAR_FLOATING_MIN_BOTTOM_PADDING);
   });
 
   it('highlights only the active tab, and follows it when the tab changes', () => {
@@ -196,17 +180,18 @@ describe('TabBarFloating', () => {
     expect(backgroundOf(onMoney, TabBarIconKey.Wallet)).not.toBe(active);
   });
 
-  it('sizes the search button to a circle matching the pill height', () => {
+  it('holds the pill to the measured bar height', () => {
     const { getByTestId } = renderBar();
 
-    fireEvent(getByTestId(TAB_BAR_FLOATING_TEST_IDS.PILL), 'layout', {
-      nativeEvent: { layout: { height: 60, width: 300, x: 0, y: 0 } },
+    expect(getByTestId(TAB_BAR_FLOATING_TEST_IDS.PILL)).toHaveStyle({
+      height: TAB_BAR_FLOATING_HEIGHT,
     });
+  });
 
-    expect(getByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON)).toHaveStyle({
-      height: 60,
-      width: 60,
-    });
+  it('pins the label size so a fixed-height bar cannot clip scaled text', () => {
+    const { getByText } = renderBar();
+
+    expect(getByText('Home').props.maxFontSizeMultiplier).toBe(1);
   });
 
   it('reports its measured height so scenes can pad for the overlay', () => {
@@ -218,6 +203,41 @@ describe('TabBarFloating', () => {
     });
 
     expect(onHeightChange).toHaveBeenCalledWith(88);
+  });
+
+  it('does not re-report height for sub-3px fluctuations (Android inset oscillation)', () => {
+    const onHeightChange = jest.fn();
+    const { getByTestId } = renderBar({}, onHeightChange);
+    const container = getByTestId(TAB_BAR_FLOATING_TEST_IDS.CONTAINER);
+
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 88, width: 390, x: 0, y: 0 } },
+    });
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 89, width: 390, x: 0, y: 0 } },
+    });
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 88, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(onHeightChange).toHaveBeenCalledTimes(1);
+    expect(onHeightChange).toHaveBeenCalledWith(88);
+  });
+
+  it('does re-report height when a genuine resize exceeds the threshold', () => {
+    const onHeightChange = jest.fn();
+    const { getByTestId } = renderBar({}, onHeightChange);
+    const container = getByTestId(TAB_BAR_FLOATING_TEST_IDS.CONTAINER);
+
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 88, width: 390, x: 0, y: 0 } },
+    });
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 96, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(onHeightChange).toHaveBeenCalledTimes(2);
+    expect(onHeightChange).toHaveBeenLastCalledWith(96);
   });
 
   it('reports zero height on unmount so a hidden bar leaves no gap', () => {

@@ -16,6 +16,7 @@ import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { isMoneyDepositFeeSubsidized } from '../../Money/utils/isMoneyDepositFeeSubsidized';
 import type { TokenI } from '../../Tokens/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
+import { createEarnRate, parseRatePercent } from '../utils/earnRate';
 import type {
   EarnAsset,
   EarnAssetId,
@@ -46,39 +47,6 @@ const selectMainnetPooledStakingVaultApy =
 interface UseEarnAssetCatalogueOptions {
   enabled?: boolean;
 }
-
-const parseRatePercent = (value: string | number | null | undefined) => {
-  if (value === null || value === undefined || String(value).trim() === '') {
-    return undefined;
-  }
-  const parsed = Number(
-    typeof value === 'string' ? value.trim().replace(/%$/, '') : value,
-  );
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
-
-const createEarnRate = ({
-  type,
-  percentage,
-  isLoading,
-  isError,
-}: {
-  type: EarnRate['type'];
-  percentage?: number;
-  isLoading?: boolean;
-  isError?: boolean;
-}): EarnRate => {
-  if (percentage !== undefined) {
-    return { type, percentage, status: 'ready' };
-  }
-  if (isLoading) {
-    return { type, status: 'loading' };
-  }
-  if (isError) {
-    return { type, status: 'error' };
-  }
-  return { type, status: 'unavailable' };
-};
 
 /**
  * Provides pooled-staking discovery when the EVM token selector has no
@@ -243,6 +211,7 @@ const useEarnAssetCatalogue = ({
   } = useSelector(selectEarnAssetCatalogueInputs);
   const {
     apyPercent: moneyApyPercent,
+    apyDecimal: moneyApyDecimal,
     vaultApyQuery: {
       isLoading: isMoneyApyLoading,
       isError: isMoneyApyError,
@@ -602,6 +571,7 @@ const useEarnAssetCatalogue = ({
       hasError,
       errors,
       refresh,
+      moneyApyDecimal,
       moneyApyPercent,
       moneyRateStatus: createEarnRate({
         type: 'APY',
@@ -618,6 +588,7 @@ const useEarnAssetCatalogue = ({
       isLoading,
       isMoneyApyError,
       isMoneyApyLoading,
+      moneyApyDecimal,
       moneyApyPercent,
       refresh,
     ],

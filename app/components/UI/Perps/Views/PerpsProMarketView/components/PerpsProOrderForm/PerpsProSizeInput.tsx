@@ -47,6 +47,8 @@ export interface PerpsProSizeInputProps {
    * below it and must stay clear of the keyboard too.
    */
   containerRef?: React.Ref<View>;
+  /** Optional shared-form ref used by keyboard field traversal. */
+  inputRef?: React.RefObject<TextInput | null>;
   /** Fires on every field tap, including while already focused. Idempotent. */
   onFieldPress?: () => void;
   isDisabled?: boolean;
@@ -64,12 +66,14 @@ const PerpsProSizeInput = ({
   availableBalance,
   onAddFundsPress,
   containerRef,
+  inputRef: externalInputRef,
   onFieldPress,
   isDisabled = false,
 }: PerpsProSizeInputProps) => {
   const tw = useTailwind();
   const { playImpact, playSelection } = useHaptics();
-  const inputRef = useRef<TextInput>(null);
+  const internalInputRef = useRef<TextInput>(null);
+  const inputRef = externalInputRef ?? internalInputRef;
   const unitLabel = getUnitLabel(denomination);
   const showUsdPrefix = denomination.unit === 'usd';
   const label = strings('perps.pro_order_form.size_unit', {
@@ -88,7 +92,7 @@ const PerpsProSizeInput = ({
     }
     inputRef.current?.focus();
     onFieldPress?.();
-  }, [isDisabled, onFieldPress]);
+  }, [inputRef, isDisabled, onFieldPress]);
 
   const handleToggleDenomination = useCallback(() => {
     if (!canPressDenominationToggle) {
@@ -162,7 +166,7 @@ const PerpsProSizeInput = ({
   return (
     <Box
       ref={containerRef}
-      twClassName="overflow-visible rounded-2xl border border-muted bg-muted"
+      twClassName="overflow-visible rounded-xl bg-muted"
       testID={ids.SIZE_CARD}
     >
       <Box twClassName="relative">

@@ -5,6 +5,7 @@ import BuildQuote, {
   isBailedOrderStatus,
 } from './BuildQuote';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
+import { WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS } from '../../components/WalletPayCheckoutOverlay/WalletPayCheckoutOverlay.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -348,9 +349,25 @@ const buildRampsControllerResult = (overrides = {}) => ({
   ...overrides,
 });
 
+const mockCrossmintWalletPayDefaults = {
+  isEligible: false,
+  checkoutUrl: null as string | null,
+  isPreparing: false,
+  isCheckoutReady: false,
+  onCheckoutReady: jest.fn(),
+  onMessage: jest.fn(),
+};
+let mockCrossmintWalletPay = { ...mockCrossmintWalletPayDefaults };
+
+jest.mock('../../hooks/useCrossmintWalletPayOverlay', () => ({
+  __esModule: true,
+  default: () => mockCrossmintWalletPay,
+}));
+
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCrossmintWalletPay = { ...mockCrossmintWalletPayDefaults };
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: unknown) => value);
@@ -2164,6 +2181,63 @@ describe('BuildQuote', () => {
 
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
       expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Crossmint wallet-pay overlay', () => {
+    it('replaces Continue with the hosted payment button once the overlay is ready', () => {
+      mockCrossmintWalletPay = {
+        ...mockCrossmintWalletPayDefaults,
+        isEligible: true,
+        checkoutUrl: 'https://staging.crossmint.com/embedded-checkout',
+        isCheckoutReady: true,
+      };
+
+      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      expect(
+        queryByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BuildQuoteSelectors.CONTINUE_BUTTON)).toBeNull();
+    });
+
+    it('keeps Continue when the overlay has no checkout URL but still reports ready', () => {
+      mockCrossmintWalletPay = {
+        ...mockCrossmintWalletPayDefaults,
+        isEligible: true,
+        checkoutUrl: null,
+        isCheckoutReady: true,
+      };
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(
+        queryByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY),
+      ).toBeNull();
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+    });
+
+    it('shows Continue in a loading state while the overlay is preparing', () => {
+      mockCrossmintWalletPay = {
+        ...mockCrossmintWalletPayDefaults,
+        isEligible: true,
+        isPreparing: true,
+      };
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
     });
   });
 });

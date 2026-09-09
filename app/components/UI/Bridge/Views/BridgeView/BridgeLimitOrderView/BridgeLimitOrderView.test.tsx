@@ -1,6 +1,7 @@
 import React from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import { fireEvent } from '@testing-library/react-native';
+import { FeatureId } from '@metamask/bridge-controller';
+import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { createBridgeTestState } from '../../../testUtils';
@@ -12,8 +13,15 @@ import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrder
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
 import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import { LimitOrderExecutionType } from '../../../constants/limitOrders';
+import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
+import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas';
+import {
+  LimitOrderExecutionType,
+  getSwapsLimitOrderExpirationLabel,
+} from '../../../constants/limitOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { SwapsFeatureIdProvider } from '../../../providers/SwapsFeatureIdProvider';
 import BridgeLimitOrderView from './index';
 
 /**
@@ -54,6 +62,15 @@ jest.mock('../../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => false),
+}));
+
+jest.mock('../../../hooks/useHasSufficientGas', () => ({
+  useHasSufficientGas: jest.fn(() => true),
+}));
+
 jest.mock('../../../hooks/useLimitOrderSwapsInput', () => ({
   useLimitOrderSwapInputs: jest.fn(),
 }));
@@ -69,6 +86,18 @@ jest.mock('../../../hooks/useSwapsLimitOrderKeypad', () => ({
 jest.mock('../../../hooks/useHasMissingQuoteAndAssetsPriceData', () => ({
   useHasMissingQuoteAndAssetsPriceData: jest.fn(() => false),
 }));
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
 
 jest.mock('../../../components/SwapsKeypad', () => {
   const ReactActual = jest.requireActual('react');
@@ -134,6 +163,7 @@ jest.mock('../../../components/SwapsBanners', () => ({
   InsufficientNativeReserveBanner: () => null,
   MissingQuoteAndAssetsPriceDataBanner: () => null,
   QuoteErrorBanner: () => null,
+  DestAssetRequireActivateBanner: () => null,
   TokenWarningBanner: () => null,
 }));
 
@@ -177,9 +207,44 @@ jest.mock('../../../components/LimitOrderPriceAdjustCard', () => {
   };
 });
 
+jest.mock('../../../components/LimitOrderDetails', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ({
+      slippage,
+      onPricePress,
+      expiration,
+      onExpirationPress,
+    }: {
+      slippage: string;
+      onPricePress: () => void;
+      expiration: string;
+      onExpirationPress: () => void;
+    }) => (
+      <View>
+        <View
+          testID="limit-order-details-expiration-row"
+          onTouchEnd={onExpirationPress}
+        >
+          <Text>{expiration}</Text>
+        </View>
+        <View testID="limit-order-details-price-row" onTouchEnd={onPricePress}>
+          <Text>{slippage}</Text>
+        </View>
+      </View>
+    ),
+  };
+});
+
 const mockSourceToken = createMockTokenWithBalance({
   symbol: 'ETH',
   name: 'Ether',
+});
+const mockDestToken = createMockTokenWithBalance({
+  symbol: 'USDC',
 });
 
 const mockCommitCustomPercent = jest.fn();
@@ -196,7 +261,7 @@ let mockSourceAmount = '';
 
 function buildSwapInputsMock() {
   return {
-    destToken: createMockTokenWithBalance({ symbol: 'USDC' }),
+    destToken: mockDestToken,
     destTokenAmount: '24.44',
     enabledChainIds: ['eip155:1'] as CaipChainId[],
     handleDestTokenPress: jest.fn(),
@@ -248,6 +313,7 @@ function buildPriceAdjustMock() {
     onAmountTypeTogglePress: undefined,
     onQuoteUnitPress: jest.fn(),
     quotedSymbol: 'USDC',
+    quotedToken: mockSourceToken,
     secondaryValue: undefined,
     value: '1',
   };
@@ -275,14 +341,24 @@ function buildKeypadMock() {
   };
 }
 
-function renderLimitOrderView() {
-  return renderWithProvider(<BridgeLimitOrderView />, {
-    state: createBridgeTestState({
-      bridgeReducerOverrides: {
-        sourceToken: mockSourceToken,
-      },
-    }),
-  });
+function renderLimitOrderView(
+  bridgeReducerOverrides: NonNullable<
+    Parameters<typeof createBridgeTestState>[0]
+  >['bridgeReducerOverrides'] = {},
+) {
+  return renderWithProvider(
+    <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+      <BridgeLimitOrderView />
+    </SwapsFeatureIdProvider>,
+    {
+      state: createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: mockSourceToken,
+          ...bridgeReducerOverrides,
+        },
+      }),
+    },
+  );
 }
 
 describe('BridgeLimitOrderView', () => {
@@ -309,6 +385,8 @@ describe('BridgeLimitOrderView', () => {
       .mocked(useSwapsLimitOrderKeypad)
       .mockImplementation(() => buildKeypadMock());
     jest.mocked(useHasMissingQuoteAndAssetsPriceData).mockReturnValue(false);
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
+    jest.mocked(useHasSufficientGas).mockReturnValue(true);
   });
 
   it('renders the limit order container and source token input', () => {
@@ -368,6 +446,38 @@ describe('BridgeLimitOrderView', () => {
 
     const { getByTestId } = renderLimitOrderView();
 
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('disables the keypad confirm button and shows insufficient funds when source balance is too low', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toHaveTextContent(strings('bridge.insufficient_funds'));
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('disables the keypad confirm button and shows insufficient gas when gas token balance is too low', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toHaveTextContent(strings('bridge.insufficient_gas'));
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
         .accessibilityState?.disabled,
@@ -463,5 +573,69 @@ describe('BridgeLimitOrderView', () => {
     expect(
       queryByTestId('limit-order-price-adjust-with-banner'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('displays 2% when slippage is not set', () => {
+    const { getByText } = renderLimitOrderView();
+
+    expect(getByText('2%')).toBeOnTheScreen();
+  });
+
+  it('displays the selected slippage percent from state', () => {
+    const { getByText } = renderLimitOrderView({ slippage: '2' });
+
+    expect(getByText('2%')).toBeOnTheScreen();
+  });
+
+  it('navigates to the swap default slippage modal when the slippage row is pressed', () => {
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-order-details-price-row'), 'touchEnd');
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: mockSourceToken.chainId,
+        destChainId: mockDestToken.chainId,
+      },
+    });
+  });
+
+  it('displays 1 hour as the default expiration', () => {
+    const { getByText } = renderLimitOrderView();
+
+    expect(getByText(getSwapsLimitOrderExpirationLabel(60))).toBeOnTheScreen();
+  });
+
+  it('navigates to the expiration modal when the expiration row is pressed', () => {
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-order-details-expiration-row'), 'touchEnd');
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_EXPIRATION_MODAL,
+      params: {
+        selectedMinutes: 60,
+        onConfirm: expect.any(Function),
+      },
+    });
+  });
+
+  it('saves the selected expiration in minutes when the modal confirms', () => {
+    const { getByTestId, getByText, queryByText } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-order-details-expiration-row'), 'touchEnd');
+
+    const navigateConfig = mockNavigate.mock.calls[0][1] as {
+      params: { onConfirm: (minutes: number) => void };
+    };
+    act(() => {
+      navigateConfig.params.onConfirm(10080);
+    });
+
+    expect(
+      getByText(getSwapsLimitOrderExpirationLabel(10080)),
+    ).toBeOnTheScreen();
+    expect(queryByText(getSwapsLimitOrderExpirationLabel(60))).toBeNull();
   });
 });

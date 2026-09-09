@@ -1,17 +1,43 @@
-export enum EarnStrategyRiskLevel {
-  Recommended = 'recommended',
-  Low = 'low',
-  Medium = 'medium',
-  High = 'high',
+import { IconName } from '@metamask/design-system-react-native';
+import type {
+  EarnExperience,
+  EarnExperienceType,
+} from '../../types/earnAssets';
+
+export enum EarnStrategyCardVariant {
+  Primary = 'primary',
+  Secondary = 'secondary',
 }
 
-export interface EarnStrategyCardProps {
-  risk: EarnStrategyRiskLevel;
+export type MoneyAccountDepositExperience = EarnExperience & {
+  type: 'MONEY_ACCOUNT_DEPOSIT';
+};
+
+export type NonMoneyAccountExperience = EarnExperience & {
+  type: Exclude<EarnExperienceType, 'MONEY_ACCOUNT_DEPOSIT'>;
+};
+
+interface EarnStrategyCardInfoRow {
+  id: string;
+  text: string;
+  icon: IconName;
+}
+
+interface EarnStrategyCardSharedProps {
   title: string;
-  subtitle: string;
-  tertiaryText: string;
-  isFeeSubsidized?: boolean;
-  selected?: boolean;
-  onPress?: () => void;
+  subtitle?: string;
+  infoRows?: readonly EarnStrategyCardInfoRow[];
+  isActive: boolean;
+  onPress: () => void;
   testID?: string;
 }
+
+export type EarnStrategyCardProps =
+  | (EarnStrategyCardSharedProps & {
+      variant: EarnStrategyCardVariant.Primary;
+      experience: MoneyAccountDepositExperience;
+    })
+  | (EarnStrategyCardSharedProps & {
+      variant: EarnStrategyCardVariant.Secondary;
+      experience: NonMoneyAccountExperience;
+    });

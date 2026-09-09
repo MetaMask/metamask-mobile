@@ -83,6 +83,8 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -100,10 +102,33 @@ import {
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
 import {
-  cancelHomepageReadyTrace,
-  startHomepageReadyTrace,
-  type HomepageReadyTraceToken,
-} from '../../../core/Performance/HomepageReady';
+  cancelUnlockTraces,
+  startUnlockTraces,
+  type UnlockTraceTokens,
+} from '../../../core/Performance/unlockTraces';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import {
+  getLoginUnlockFailureErrorType,
+  trackAppUnlocked,
+  trackAppUnlockedFailed,
+  UNLOCK_TYPE,
+  type UnlockType,
+} from './loginUnlockAnalytics';
+
+/** Returns true if `candidatePassword` decrypts the on-device vault backup. */
+const canDecryptVaultBackup = async (
+  candidatePassword: string,
+): Promise<boolean> => {
+  const backupResult = await getVaultFromBackup();
+  if (!backupResult.vault) {
+    return false;
+  }
+  const vaultSeed = await parseVaultValue(
+    candidatePassword,
+    backupResult.vault,
+  );
+  return Boolean(vaultSeed);
+};
 
 interface LoginRouteParams {
   locked: boolean;
@@ -118,6 +143,8 @@ interface LoginProps {
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput | null>(null);
+  const lastSubmittedPasswordRef = useRef('');
+  const isProcessingForgotPassword = useRef(false);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -125,6 +152,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [startFoxAnimation, setStartFoxAnimation] = useState<
     undefined | 'Start' | 'Loader'
   >(undefined);
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.LOGIN,
+    saveOnboardingEvent,
+  });
 
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
@@ -238,9 +271,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, []);
 
   const handleLoginError = useCallback(
-    async (loginError: Error) => {
+    async (loginError: Error, unlockType: UnlockType) => {
       // Prioritize message property over toString for error handling
       const loginErrorMessage = loginError.message || loginError.toString();
+
+      trackAppUnlockedFailed({
+        unlockType,
+        reason: getLoginUnlockFailureErrorType(loginError),
+        saveOnboardingEvent,
+      });
 
       const isWrongPasswordError =
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR) ||
@@ -302,22 +341,26 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setLoading(false);
       Logger.error(loginError, 'Failed to unlock');
     },
-    [handlePasswordError, handleVaultCorruption, navigation],
+    [
+      handlePasswordError,
+      handleVaultCorruption,
+      navigation,
+      saveOnboardingEvent,
+    ],
   );
 
   const unlockWithPassword = useCallback(async () => {
     if (loading) return;
 
+    lastSubmittedPasswordRef.current = password;
     fieldRef.current?.clear();
     setPassword('');
     setLoading(true);
     setError(null);
 
-    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
-      startHomepageReadyTrace({
-        source: 'unlock',
-        appStartType: loginPerformanceTags.current.app_start_type,
-      });
+    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -338,6 +381,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               captureSentryError: true,
             });
           await unlockWallet({ password });
+          lastSubmittedPasswordRef.current = '';
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();
             if (
@@ -359,12 +403,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           }
         },
       );
-    } catch (loginErr) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
+      trackAppUnlocked({
+        unlockType: UNLOCK_TYPE.PASSWORD,
+        saveOnboardingEvent,
       });
-      await handleLoginError(loginErr as Error);
+    } catch (loginErr) {
+      cancelUnlockTraces(unlockTraceTokens);
+      await handleLoginError(loginErr as Error, UNLOCK_TYPE.PASSWORD);
     }
     setLoading(false);
   }, [
@@ -374,6 +419,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     unlockWallet,
     getAuthType,
     checkIsSeedlessPasswordOutdated,
+    saveOnboardingEvent,
   ]);
 
   const unlockWithDeviceAuthentication = useCallback(async () => {
@@ -385,11 +431,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
-      startHomepageReadyTrace({
-        source: 'unlock',
-        appStartType: loginPerformanceTags.current.app_start_type,
-      });
+    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -407,25 +451,109 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await unlockWallet();
         },
       );
-    } catch (loginerror) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
+      trackAppUnlocked({
+        unlockType: UNLOCK_TYPE.BIOMETRIC,
+        saveOnboardingEvent,
       });
-      await handleLoginError(loginerror as Error);
+    } catch (loginerror) {
+      cancelUnlockTraces(unlockTraceTokens);
+      await handleLoginError(loginerror as Error, UNLOCK_TYPE.BIOMETRIC);
     }
     setLoading(false);
-  }, [unlockWallet, loading, handleLoginError]);
+  }, [unlockWallet, loading, handleLoginError, saveOnboardingEvent]);
 
-  const toggleWarningModal = () => {
+  const toggleWarningModal = async () => {
+    if (isProcessingForgotPassword.current) {
+      return;
+    }
+    isProcessingForgotPassword.current = true;
+
     trackOnboarding(
       MetaMetricsEvents.FORGOT_PASSWORD_CLICKED,
       saveOnboardingEvent,
     );
 
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.DELETE_WALLET,
-    });
+    // Use the last submitted password.
+    const submittedPassword = lastSubmittedPasswordRef.current;
+    lastSubmittedPasswordRef.current = '';
+
+    try {
+      const isSeedlessLogin = selectSeedlessOnboardingLoginFlow(
+        ReduxService.store.getState(),
+      );
+
+      if (isSeedlessLogin) {
+        const isPasswordOutdated = await checkIsSeedlessPasswordOutdated({
+          skipCache: true,
+          captureSentryError: true,
+        });
+
+        let localBackupDecrypts = false;
+        if (submittedPassword) {
+          try {
+            localBackupDecrypts =
+              await canDecryptVaultBackup(submittedPassword);
+          } catch (e: unknown) {
+            Logger.error(
+              e as Error,
+              'Login/ toggleWarningModal: seedless vault backup check failed',
+            );
+          }
+        }
+
+        if (isPasswordOutdated || localBackupDecrypts) {
+          Logger.error(
+            new Error(
+              'Forgot password: seedless local vault may be out of sync with server',
+            ),
+            {
+              tags: {
+                feature: 'account_access',
+              },
+              context: {
+                name: 'ForgotPasswordSeedlessDesync',
+                data: {
+                  password_outdated: isPasswordOutdated,
+                  local_backup_decrypts: localBackupDecrypts,
+                  unlock_attempted: Boolean(submittedPassword),
+                },
+              },
+            },
+          );
+        }
+      } else if (submittedPassword) {
+        const backupDecrypts = await canDecryptVaultBackup(submittedPassword);
+        if (backupDecrypts) {
+          Logger.error(
+            new Error(
+              'Forgot password: submitted password decrypts on-device vault backup',
+            ),
+            {
+              tags: {
+                feature: 'account_access',
+              },
+              context: {
+                name: 'ForgotPasswordVaultMismatch',
+                data: {
+                  local_backup_decrypts: true,
+                  unlock_attempted: true,
+                },
+              },
+            },
+          );
+        }
+      }
+    } catch (e: unknown) {
+      Logger.error(
+        e as Error,
+        'Login/ toggleWarningModal: vault backup check failed',
+      );
+    } finally {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      isProcessingForgotPassword.current = false;
+    }
   };
 
   const handleDownloadStateLogs = () => {

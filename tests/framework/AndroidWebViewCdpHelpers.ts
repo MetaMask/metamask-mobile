@@ -4,11 +4,9 @@ import { WebSocket as WsClient } from 'ws';
 import { APP_PACKAGE_IDS } from './Constants.ts';
 import { getDriver } from './AppiumUtilities';
 import { createAppiumLogger } from './appiumLogger.ts';
+import { adbDeviceArgs, webviewCdpForwardPort } from './e2eWorkerPorts.ts';
 
 const logger = createAppiumLogger('AndroidWebViewCdp');
-
-/** Host port for `adb forward` to MetaMask `@webview_devtools_remote_<pid>`. */
-const WEBVIEW_CDP_FORWARD_PORT = 9223;
 const CDP_READY_TIMEOUT_MS = 10_000;
 /** Short `/json/list` poll when Appium `pages[]` has no match. */
 const PAGE_TIMEOUT_MS = 3_000;
@@ -682,7 +680,7 @@ export default class AndroidWebViewCdpHelpers {
     }
 
     this.ensureAdbForwardToWebView();
-    const endpoint = `http://127.0.0.1:${WEBVIEW_CDP_FORWARD_PORT}`;
+    const endpoint = `http://127.0.0.1:${webviewCdpForwardPort()}`;
     await this.waitForCdpEndpoint(endpoint);
     return endpoint;
   }
@@ -719,27 +717,37 @@ export default class AndroidWebViewCdpHelpers {
 
   private static ensureAdbForwardToWebView(): void {
     const packageId = APP_PACKAGE_IDS.ANDROID;
-    const pid = execFileSync('adb', ['shell', 'pidof', packageId], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
+    const serialArgs = adbDeviceArgs();
+    const pid = execFileSync(
+      'adb',
+      [...serialArgs, 'shell', 'pidof', packageId],
+      {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
+    )
       .trim()
       .split(/\s+/)[0];
     if (!pid) {
       throw new Error(`adb pidof ${packageId} returned empty`);
     }
 
-    const port = String(WEBVIEW_CDP_FORWARD_PORT);
+    const port = String(webviewCdpForwardPort());
     try {
-      execFileSync('adb', ['forward', '--remove', `tcp:${port}`], {
-        stdio: 'pipe',
-      });
+      execFileSync(
+        'adb',
+        [...serialArgs, 'forward', '--remove', `tcp:${port}`],
+        {
+          stdio: 'pipe',
+        },
+      );
     } catch {
       // No existing forward is fine.
     }
     execFileSync(
       'adb',
       [
+        ...serialArgs,
         'forward',
         `tcp:${port}`,
         `localabstract:webview_devtools_remote_${pid}`,

@@ -4,6 +4,10 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { CaipChainId } from '@metamask/utils';
 import {
+  FeatureId,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
+import {
   createMockToken,
   createMockPopularToken,
   MOCK_CHAIN_IDS,
@@ -145,6 +149,7 @@ let mockRouteParams: {
   type: 'source' | 'dest';
   enabledChainIds?: CaipChainId[];
   excludeRwaTokens?: boolean;
+  featureId?: FeatureId;
 } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
@@ -1016,10 +1021,11 @@ describe('BridgeTokenSelector', () => {
         renderWithReduxProvider(<BridgeTokenSelector />);
 
         await waitFor(() => {
-          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-            MOCK_CHAIN_IDS.ethereum,
-            MOCK_CHAIN_IDS.polygon,
-          ]);
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
+            }),
+          );
           expect(mockUseSearchTokens).toHaveBeenCalledWith(
             expect.objectContaining({
               chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
@@ -1036,9 +1042,11 @@ describe('BridgeTokenSelector', () => {
       renderWithReduxProvider(<BridgeTokenSelector />);
 
       await waitFor(() => {
-        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-          MOCK_CHAIN_IDS.polygon,
-        ]);
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
       });
     });
 
@@ -1088,13 +1096,17 @@ describe('BridgeTokenSelector', () => {
 
       try {
         await waitFor(() => {
-          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-            MOCK_CHAIN_IDS.ethereum,
-          ]);
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum],
+            }),
+          );
         });
-        expect(mockUseInitialBridgeTokens).not.toHaveBeenCalledWith([
-          MOCK_CHAIN_IDS.polygon,
-        ]);
+        expect(mockUseInitialBridgeTokens).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
       } finally {
         restoreDefaultAllowedChainRankingMock();
       }
@@ -1386,6 +1398,13 @@ describe('BridgeTokenSelector', () => {
       );
       const initialMountCount = mockFlashListMount.mock.calls.length;
       const { FlatList } = jest.requireActual('react-native');
+      const flushAnimationFrame = async () => {
+        await act(async () => {
+          await new Promise<void>((resolve) => {
+            requestAnimationFrame(() => resolve());
+          });
+        });
+      };
 
       await act(async () => {
         UNSAFE_getByType(FlatList).props.onScroll({
@@ -1397,19 +1416,21 @@ describe('BridgeTokenSelector', () => {
         });
       });
 
+      // Flush rAF after each chain change so the scroll reset effect does not
+      // race (cleanup can cancel a pending frame when presses are back-to-back).
       await act(async () => {
         fireEvent.press(getByTestId('select-eth-network'));
       });
+      await flushAnimationFrame();
       await act(async () => {
         fireEvent.press(getByTestId('select-all-networks'));
       });
+      await flushAnimationFrame();
 
-      await waitFor(() => {
-        expect(mockFlashListScrollToIndex).toHaveBeenCalledTimes(1);
-        expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
-          index: 0,
-          animated: false,
-        });
+      expect(mockFlashListScrollToIndex).toHaveBeenCalledTimes(2);
+      expect(mockFlashListScrollToIndex).toHaveBeenLastCalledWith({
+        index: 0,
+        animated: false,
       });
       expect(mockFlashListMount).toHaveBeenCalledTimes(initialMountCount);
       expect(mockFlashListUnmount).not.toHaveBeenCalled();
@@ -1463,9 +1484,11 @@ describe('BridgeTokenSelector', () => {
       expect(mockResetSearch).toHaveBeenCalled();
 
       await waitFor(() => {
-        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
-          MOCK_CHAIN_IDS.polygon,
-        ]);
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
         expect(mockUseSearchTokens).toHaveBeenCalledWith(
           expect.objectContaining({
             chainIds: [MOCK_CHAIN_IDS.polygon],
@@ -1714,6 +1737,21 @@ describe('BridgeTokenSelector', () => {
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks the info button press with the feature id of the flow that opened the picker', async () => {
+      mockRouteParams = { type: 'source', featureId: FeatureId.LIMIT_ORDER };
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+
+      await act(async () => {
+        fireEvent.press(getByTestId('button-icon-info'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        UnifiedSwapBridgeEventName.AssetDetailTooltipClicked,
+        expect.objectContaining({ feature_id: FeatureId.LIMIT_ORDER }),
+      );
     });
   });
 

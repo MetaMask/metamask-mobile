@@ -13,12 +13,12 @@ import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
-import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
 import {
   PERPS_ORDER_CAPABILITIES_MAX_RETRIES,
   PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS,
   PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 interface OrderCapabilitiesState {
   requestKey?: string;
@@ -38,36 +38,24 @@ const EMPTY_ORDER_CAPABILITIES_STATE: OrderCapabilitiesState = {
   capabilities: null,
   isLoading: false,
 };
+const AVAILABLE_PROVIDERS: PerpsActiveProviderMode[] = ['hyperliquid'];
 
 /**
  * Hook for managing perps provider selection
  *
  * Provides:
  * - Current active provider
- * - Available providers based on feature flags
+ * - Providers available in Mobile
  * - Method to switch between providers
  */
 export function usePerpsProvider(
   orderCapabilitiesParams?: GetOrderCapabilitiesParams,
 ) {
   const activeProvider = useSelector(selectPerpsProvider);
-  const isMYXProviderEnabled = useSelector(selectPerpsMYXProviderEnabledFlag);
   const perpsNetwork = useSelector(selectPerpsNetwork);
   const initializationState = useSelector(selectPerpsInitializationState);
 
-  /**
-   * Get list of available providers based on feature flags
-   */
-  const availableProviders = useMemo((): PerpsActiveProviderMode[] => {
-    const providers: PerpsActiveProviderMode[] = ['hyperliquid'];
-
-    if (isMYXProviderEnabled) {
-      providers.push('myx');
-      providers.push('aggregated');
-    }
-
-    return providers;
-  }, [isMYXProviderEnabled]);
+  const availableProviders = AVAILABLE_PROVIDERS;
 
   /**
    * Switch to a different provider
@@ -77,7 +65,9 @@ export function usePerpsProvider(
       providerId: PerpsActiveProviderMode,
     ): Promise<SwitchProviderResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.switchProvider(providerId);
+      return PerpsConnectionManager.runWithContextChangePreparation(() =>
+        controller.switchProvider(providerId),
+      );
     },
     [],
   );
@@ -89,14 +79,6 @@ export function usePerpsProvider(
     (providerId: PerpsActiveProviderMode): boolean =>
       availableProviders.includes(providerId),
     [availableProviders],
-  );
-
-  /**
-   * Check if the current provider is MYX
-   */
-  const isMYXProvider = useMemo(
-    () => activeProvider === 'myx',
-    [activeProvider],
   );
 
   /**
@@ -225,6 +207,9 @@ export function usePerpsProvider(
     orderCapabilities?.status === 'ready' &&
     orderCapabilities.providerId === PROVIDER_CONFIG.DefaultProvider &&
     orderCapabilities.supportedStrategies.includes('scale');
+  const supportsChaseOrders =
+    orderCapabilities?.status === 'ready' &&
+    orderCapabilities.supportedStrategies.includes('chase');
   const checkOrderCapability = useCallback(
     async (
       strategy: SupportedOrderStrategy,
@@ -278,12 +263,12 @@ export function usePerpsProvider(
 
     // Helpers
     isProviderAvailable,
-    isMYXProvider,
     isHyperLiquidProvider,
     isLoadingOrderCapabilities,
     orderCapabilities,
     supportsTwapOrders,
     supportsScaleOrders,
+    supportsChaseOrders,
     checkOrderCapability,
     isMultiProviderEnabled,
   };

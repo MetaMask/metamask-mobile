@@ -8,7 +8,6 @@ import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowI
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import SearchFeedRow, {
   SearchFeedSkeleton,
-  EARN_ROW_WRAPPER_TEST_ID,
   PERPS_ROW_WRAPPER_TEST_ID,
   getItemId,
 } from './SearchFeedRow';
@@ -41,17 +40,30 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => false),
 }));
 
-jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(() => ({
-    navigateToMoneyHome: jest.fn(),
-  })),
-}));
-
 jest.mock('./analytics', () => ({
   trackExploreSearchEvent: jest.fn(),
 }));
 
 const mockOnQuickTrade = jest.fn();
+const mockEarnSearchRow = jest.fn(
+  ({
+    item,
+  }: {
+    item: EarnSearchItem;
+    position: number;
+    resultCount?: number;
+  }) => (
+    <MockText
+      testID={
+        item.kind === 'money-account'
+          ? 'stub-earn-money-row'
+          : 'stub-earn-search-asset-row'
+      }
+    >
+      {item.id}
+    </MockText>
+  ),
+);
 
 jest.mock('../feeds/tokens/TokenRowItem', () => ({
   TokenSearchRowItem: ({
@@ -95,18 +107,13 @@ jest.mock('../feeds/sites/SiteRowItem', () => ({
   ),
 }));
 
-jest.mock('../feeds/earn/EarnMoneyAccountRow', () => ({
+jest.mock('./EarnSearchRow', () => ({
   __esModule: true,
-  default: ({ item }: { item: EarnSearchItem }) => (
-    <MockText testID="stub-earn-money-row">{item.id}</MockText>
-  ),
-}));
-
-jest.mock('../feeds/earn/EarnSearchAssetRow', () => ({
-  __esModule: true,
-  default: ({ item }: { item: EarnSearchItem }) => (
-    <MockText testID="stub-earn-search-asset-row">{item.id}</MockText>
-  ),
+  default: (props: {
+    item: EarnSearchItem;
+    position: number;
+    resultCount?: number;
+  }) => mockEarnSearchRow(props),
 }));
 
 jest.mock(
@@ -318,6 +325,48 @@ describe('SearchFeedRow', () => {
     expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
       expect.objectContaining({ search_query: 'second' }),
     );
+  });
+
+  it('passes one-based position and Earn result count to Earn rows', () => {
+    const item = createEarnItem('eip155:1/erc20:usdc');
+
+    render(
+      <SearchFeedRow
+        feedId="earn"
+        item={item}
+        index={1}
+        resultCount={4}
+        searchQuery="usdc"
+        tabName="earn"
+      />,
+    );
+
+    expect(mockEarnSearchRow).toHaveBeenCalledWith({
+      item,
+      position: 2,
+      resultCount: 4,
+    });
+  });
+
+  it('omits Earn result count outside the Earn tab', () => {
+    const item = createEarnItem('eip155:1/erc20:usdc');
+
+    render(
+      <SearchFeedRow
+        feedId="earn"
+        item={item}
+        index={1}
+        resultCount={4}
+        searchQuery="usdc"
+        tabName="all"
+      />,
+    );
+
+    expect(mockEarnSearchRow).toHaveBeenCalledWith({
+      item,
+      position: 2,
+      resultCount: undefined,
+    });
   });
 });
 

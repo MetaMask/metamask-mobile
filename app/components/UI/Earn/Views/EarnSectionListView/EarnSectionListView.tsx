@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import {
@@ -36,6 +40,8 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyAccountDeposit } from '../../../Money/hooks/useMoneyAccount';
+import { useMoneyAnalytics } from '../../../Money/hooks/useMoneyAnalytics';
+import useMountEffect from '../../../Money/hooks/useMountEffect';
 import { useProjectedEarnings } from '../../../Money/hooks/useProjectedEarnings';
 import type { MoneyDepositAsset } from '../../../Money/selectors/depositTokens';
 import PotentialEarningsTokenRow from '../../../Money/components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
@@ -45,7 +51,9 @@ import {
 } from '../../../Money/hooks/useMoneyNavigation';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import { isPositiveNumber } from '../../../Money/utils/number';
-import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
+import useEarnOpportunityNavigation, {
+  getEarnOpportunityRedirectTarget,
+} from '../../hooks/useEarnOpportunityNavigation';
 import useEarnAssetCatalogue from '../../hooks/useEarnAssetCatalogue';
 import EarnSearchAssetRow from '../../../../Views/TrendingView/feeds/earn/EarnSearchAssetRow';
 import EarnMoneyAccountRow from '../../../../Views/TrendingView/feeds/earn/EarnMoneyAccountRow';
@@ -57,6 +65,24 @@ import {
 import { rankEarnAssets } from '../../utils/earnSection';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import type { EarnScreensStackParamList } from '../../types/navigation';
+import {
+  COMPONENT_NAMES as MONEY_COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
+  SCREEN_NAMES,
+} from '../../../Money/constants/moneyEvents';
+import {
+  EARN_MODULE_BUTTON_INTENTS,
+  EARN_MODULE_BUTTON_TYPES,
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_SCREEN_NAMES,
+} from '../../constants/earnModuleEvents';
+import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
+import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
 import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 
@@ -101,12 +127,14 @@ const MoneyProjection = ({
   currency,
   privacyMode,
   isLoading,
+  onProjectionPress,
 }: {
   totalAssetsFiat: number;
   projectedAmount: number;
   currency: string;
   privacyMode: boolean;
   isLoading: boolean;
+  onProjectionPress: () => void;
 }) => {
   const hasPositiveProjection =
     isPositiveNumber(projectedAmount) && isPositiveNumber(totalAssetsFiat);
@@ -153,12 +181,15 @@ const MoneyProjection = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.SuccessDefault}
+            twClassName="underline"
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
             testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED}
+            onPress={onProjectionPress}
           >
             {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
           </SensitiveText>
+
           {` ${strings('money.potential_earnings.description_with_amounts_suffix')}`}
         </Text>
       ) : (
@@ -174,11 +205,15 @@ const MoneyProjection = ({
   );
 };
 
+const MAX_VISIBLE_MONEY_ASSETS = 5;
+
 /**
  * Displays the Earn eligible assets and Money projections.
  */
 const EarnSectionListView = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { params } =
+    useRoute<RouteProp<EarnScreensStackParamList, 'EarnSearchList'>>();
   const insets = useSafeAreaInsets();
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const privacyMode = useSelector(selectPrivacyMode);
@@ -186,6 +221,7 @@ const EarnSectionListView = () => {
     assets,
     hasError,
     isLoading,
+    moneyApyDecimal,
     moneyApyPercent,
     moneyRateStatus,
     refresh,
@@ -200,16 +236,39 @@ const EarnSectionListView = () => {
   const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
     useMoneyNavigation();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
-  const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
-    tokenDetailsSource: TokenDetailsSource.ExploreEarn,
-  });
+  const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const {
+    trackButtonClicked: trackMoneyButtonClicked,
+    trackSurfaceClicked: trackMoneySurfaceClicked,
+    trackTokenButtonClicked,
+    trackTokenSurfaceClicked,
+    trackTooltipClicked,
+  } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+  });
+  const {
+    trackScreenViewed: trackEarnScreenViewed,
+    trackButtonClicked: trackEarnButtonClicked,
+    trackSurfaceClicked: trackEarnSurfaceClicked,
+  } = useEarnAnalytics({
+    screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+    entry_point:
+      params?.analyticsContext?.entry_point ??
+      EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
+  });
   const retryInFlightRef = useRef(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
+  useMountEffect(trackEarnScreenViewed);
+
   const handleBack = useCallback(() => {
+    trackEarnButtonClicked({
+      button_type: EARN_MODULE_BUTTON_TYPES.ICON,
+      button_intent: EARN_MODULE_BUTTON_INTENTS.GO_BACK,
+    });
     navigation.goBack();
-  }, [navigation]);
+  }, [navigation, trackEarnButtonClicked]);
 
   const rankedAssets = useMemo(() => rankEarnAssets(assets), [assets]);
   const moneyAssets = useMemo(
@@ -219,7 +278,7 @@ const EarnSectionListView = () => {
 
   const { totalAssetsFiat, projectedAmount, currency } = useProjectedEarnings(
     moneyAssets,
-    moneyApyPercent === undefined ? undefined : moneyApyPercent / 100,
+    moneyApyDecimal,
   );
 
   const moneyFeeByToken = useMemo(
@@ -272,10 +331,35 @@ const EarnSectionListView = () => {
   );
 
   const handleItemPress = useCallback(
-    (item: EarnAssetSearchItem) => {
-      navigateToEarnOpportunity(item.asset);
+    (item: EarnAssetSearchItem, position: number) => {
+      trackEarnSurfaceClicked({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_LIST_ASSET_ROW,
+        ...getEarnModuleAssetProperties(
+          item.asset,
+          position,
+          moreWaysAssets.length,
+        ),
+        redirect_target: getEarnOpportunityRedirectTarget(
+          item.asset,
+          // isMoneyOnboardingRedirectNeeded is always false here since this handler is for non-Money deposit experiences.
+          false,
+        ),
+      });
+      navigateFromEarnAsset(item.asset, TokenDetailsSource.ExploreEarn, {
+        entry_point:
+          params?.analyticsContext?.entry_point ??
+          EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
+        screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+        asset_position: position,
+        assets_in_list: moreWaysAssets.length,
+      });
     },
-    [navigateToEarnOpportunity],
+    [
+      moreWaysAssets.length,
+      navigateFromEarnAsset,
+      params?.analyticsContext?.entry_point,
+      trackEarnSurfaceClicked,
+    ],
   );
 
   const handleDeposit = useCallback(
@@ -310,9 +394,80 @@ const EarnSectionListView = () => {
     [initiateDeposit, redirectToOnboardingIfNeeded],
   );
 
+  const handleMoneyAccountPress = useCallback(() => {
+    trackMoneySurfaceClicked({
+      component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,
+      redirect_target: isOnboardingRedirectNeeded
+        ? SCREEN_NAMES.MONEY_ONBOARDING
+        : SCREEN_NAMES.MONEY_HOME,
+    });
+    navigateToMoneyHome({ pop: false });
+  }, [
+    isOnboardingRedirectNeeded,
+    navigateToMoneyHome,
+    trackMoneySurfaceClicked,
+  ]);
+
+  const handleTokenCardPress = useCallback(
+    async (token: MoneyDepositAsset, tokenIndex: number) => {
+      trackTokenSurfaceClicked({
+        component_name:
+          MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+        redirect_target: isOnboardingRedirectNeeded
+          ? SCREEN_NAMES.MONEY_ONBOARDING
+          : SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: token.symbol,
+        token_position_in_list: tokenIndex + 1,
+        token_chain_id: token.chainId ?? '',
+        tokens_in_list: Math.min(moneyAssets.length, MAX_VISIBLE_MONEY_ASSETS),
+        token_has_balance: new BigNumber(token.balance).gt(0),
+      });
+      await handleDeposit(token);
+    },
+    [
+      handleDeposit,
+      isOnboardingRedirectNeeded,
+      moneyAssets.length,
+      trackTokenSurfaceClicked,
+    ],
+  );
+
+  const handleTokenButtonPress = useCallback(
+    async (token: MoneyDepositAsset, tokenIndex: number) => {
+      trackTokenButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        component_name:
+          MONEY_COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+        label_key: 'money.potential_earnings.add',
+        redirect_target: isOnboardingRedirectNeeded
+          ? SCREEN_NAMES.MONEY_ONBOARDING
+          : SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: token.symbol,
+        token_position_in_list: tokenIndex + 1,
+        token_chain_id: token.chainId ?? '',
+        tokens_in_list: Math.min(moneyAssets.length, MAX_VISIBLE_MONEY_ASSETS),
+        token_has_balance: new BigNumber(token.balance).gt(0),
+      });
+      await handleDeposit(token);
+    },
+    [
+      handleDeposit,
+      isOnboardingRedirectNeeded,
+      moneyAssets.length,
+      trackTokenButtonClicked,
+    ],
+  );
+
   const handleViewAllMoney = useCallback(() => {
-    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
-  }, [navigation]);
+    trackMoneyButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
+      label_key: 'money.potential_earnings.view_all',
+      redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
+    });
+    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS);
+  }, [navigation, trackMoneyButtonClicked]);
 
   const handleRetry = useCallback(async () => {
     if (retryInFlightRef.current) {
@@ -320,6 +475,11 @@ const EarnSectionListView = () => {
     }
 
     retryInFlightRef.current = true;
+    trackEarnButtonClicked({
+      button_type: EARN_MODULE_BUTTON_TYPES.TEXT,
+      button_intent: EARN_MODULE_BUTTON_INTENTS.RETRY,
+      label_key: 'earn_module.retry',
+    });
     setIsRetrying(true);
 
     try {
@@ -333,13 +493,13 @@ const EarnSectionListView = () => {
       retryInFlightRef.current = false;
       setIsRetrying(false);
     }
-  }, [refresh, refetchMoneyAccountBalance]);
+  }, [refresh, refetchMoneyAccountBalance, trackEarnButtonClicked]);
 
   const renderItem: ListRenderItem<EarnAssetSearchItem> = useCallback(
-    ({ item }) => (
+    ({ item, index }) => (
       <EarnSearchAssetRow
         item={item}
-        onPress={handleItemPress}
+        onPress={() => handleItemPress(item, index + 1)}
         privacyMode={privacyMode}
       />
     ),
@@ -347,6 +507,17 @@ const EarnSectionListView = () => {
   );
 
   const keyExtractor = useCallback((item: EarnAssetSearchItem) => item.id, []);
+
+  const handleEarningsProjectionPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+      component_name: MONEY_COMPONENT_NAMES.MONEY_BALANCE_PROJECTION,
+    });
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+    });
+  }, [navigation, trackTooltipClicked]);
 
   const listHeader = useMemo(() => {
     const errorBanner = hasError ? (
@@ -380,7 +551,9 @@ const EarnSectionListView = () => {
       );
     }
 
-    const visibleMoneyAssets = isLoading ? [] : moneyAssets.slice(0, 5);
+    const visibleMoneyAssets = isLoading
+      ? []
+      : moneyAssets.slice(0, MAX_VISIBLE_MONEY_ASSETS);
 
     return (
       <>
@@ -393,10 +566,11 @@ const EarnSectionListView = () => {
           currency={currency}
           privacyMode={privacyMode}
           isLoading={isLoading}
+          onProjectionPress={handleEarningsProjectionPress}
         />
         <EarnMoneyAccountRow
           item={moneyAccountItem}
-          onPress={() => navigateToMoneyHome({ pop: false })}
+          onPress={handleMoneyAccountPress}
           isOnboardingRedirectNeeded={isOnboardingRedirectNeeded}
           privacyMode={privacyMode}
         />
@@ -405,11 +579,9 @@ const EarnSectionListView = () => {
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={isNoFeeToken(token)}
-            apyDecimal={
-              moneyApyPercent === undefined ? 0 : moneyApyPercent / 100
-            }
-            onCardPress={() => handleDeposit(token)}
-            onButtonPress={() => handleDeposit(token)}
+            apyDecimal={moneyApyDecimal ?? 0}
+            onCardPress={() => handleTokenCardPress(token, index)}
+            onButtonPress={() => handleTokenButtonPress(token, index)}
             testID={EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(index)}
             privacyMode={privacyMode}
           />
@@ -429,7 +601,7 @@ const EarnSectionListView = () => {
             </Button>
           </Box>
         )}
-        {!isLoading && (
+        {!isLoading && moreWaysAssets.length > 0 && (
           <>
             <SectionDivider testID={EARN_SECTION_LIST_TEST_IDS.DIVIDER} />
             <Box twClassName="px-4 py-3 gap-1">
@@ -449,8 +621,11 @@ const EarnSectionListView = () => {
     );
   }, [
     currency,
+    handleEarningsProjectionPress,
     handleRetry,
-    handleDeposit,
+    handleMoneyAccountPress,
+    handleTokenCardPress,
+    handleTokenButtonPress,
     handleViewAllMoney,
     hasError,
     isLoading,
@@ -459,12 +634,12 @@ const EarnSectionListView = () => {
     isNoFeeToken,
     isRetrying,
     moneyAccountItem,
-    moneyApyPercent,
+    moneyApyDecimal,
     moneyAssets,
-    navigateToMoneyHome,
     privacyMode,
     projectedAmount,
     totalAssetsFiat,
+    moreWaysAssets.length,
   ]);
 
   const listEmptyComponent = useMemo(
@@ -472,7 +647,10 @@ const EarnSectionListView = () => {
       isLoading ? (
         <EarnSectionListSkeleton />
       ) : isMoneyAccountVisible ? null : (
-        <Box testID={EARN_SECTION_LIST_TEST_IDS.EMPTY} twClassName="flex-1">
+        <Box
+          testID={EARN_SECTION_LIST_TEST_IDS.EMPTY}
+          twClassName="flex-1 items-center justify-center pt-4"
+        >
           <TabEmptyState
             description={strings('earn_module.empty_state_description')}
           />
