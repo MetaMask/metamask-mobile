@@ -9484,9 +9484,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^15.0.0, @metamask/assets-controller@npm:^15.1.0":
-  version: 15.1.0
-  resolution: "@metamask/assets-controller@npm:15.1.0"
+"@metamask/assets-controller@npm:@metamask-previews/assets-controller@15.1.0-preview-6eff555ee":
+  version: 15.1.0-preview-6eff555ee
+  resolution: "@metamask-previews/assets-controller@npm:15.1.0-preview-6eff555ee"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -9519,7 +9519,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/d0879a6ab9c49c2a0b3503c00bab0494f5b0e14c23655ae3b748bfeebb8281c3c5b5f34ab17e68cae126e31a0df7e900e4cac552b785c653b1ee29a6175b6aa7
+  checksum: 10/e5bc7fb5f1bb50d1791a3f39bdece279613c4684056de1ae1328c0c91aba6f4b600fd21ab5725e63a1dfcd1d8dab054316b9f273ce95564d088579e7adec421e
   languageName: node
   linkType: hard
 
