@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
@@ -47,6 +48,29 @@ function predictItem(overrides: Partial<ActivityListItem>): ActivityListItem {
 
 /** Real network configurations, so chain ids resolve to display names. */
 const stateWithNetworks = { engine: { backgroundState } };
+
+function stateWithPayOnLocalTx(
+  metamaskPay: Record<string, string> | undefined,
+) {
+  return {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        TransactionController: {
+          ...backgroundState.TransactionController,
+          transactions: [
+            {
+              id: 'tx-1',
+              chainId: '0x89',
+              hash: '0xfund',
+              metamaskPay,
+            } as unknown as TransactionMeta,
+          ],
+        },
+      },
+    },
+  };
+}
 
 describe('PredictDetails', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -261,13 +285,14 @@ describe('PredictDetails', () => {
 
   it('renders MetaMask Pay network fee, bridge fee and total for a funded account', () => {
     const { getByText } = renderWithProvider(
-      <PredictDetails
-        item={addFundsItemWithPayMetadata({
+      <PredictDetails item={addFundsItemWithPayMetadata()} />,
+      {
+        state: stateWithPayOnLocalTx({
           networkFeeFiat: '0',
           bridgeFeeFiat: '0.04',
           totalFiat: '0.14',
-        })}
-      />,
+        }),
+      },
     );
 
     expect(getByText('Network fee')).toBeOnTheScreen();
@@ -281,7 +306,7 @@ describe('PredictDetails', () => {
 
   it('omits the fee section when the funding transaction has no MetaMask Pay metadata', () => {
     const { queryByText } = renderWithProvider(
-      <PredictDetails item={addFundsItemWithPayMetadata(undefined)} />,
+      <PredictDetails item={addFundsItemWithPayMetadata()} />,
     );
 
     expect(queryByText('Network fee')).toBeNull();
@@ -295,10 +320,8 @@ describe('PredictDetails', () => {
     // row's own chain can't describe where the user paid.
     it('omits the row entirely for a deposit', () => {
       const { queryByTestId, queryByText } = renderWithProvider(
-        <PredictDetails
-          item={addFundsItemWithPayMetadata({ chainId: '0x1' })}
-        />,
-        { state: stateWithNetworks },
+        <PredictDetails item={addFundsItemWithPayMetadata()} />,
+        { state: stateWithPayOnLocalTx({ chainId: '0x1' }) },
       );
 
       expect(queryByTestId(ActivityDetailsSelectorsIDs.NETWORK_ROW)).toBeNull();
@@ -308,11 +331,9 @@ describe('PredictDetails', () => {
     it('names the payment chain on a withdrawal, not the injected Predict chain', () => {
       const { getByTestId, getByText, queryByText } = renderWithProvider(
         <PredictDetails
-          item={fundsItemWithPayMetadata('predictionsWithdrawFunds', {
-            chainId: '0x1',
-          })}
+          item={fundsItemWithPayMetadata('predictionsWithdrawFunds')}
         />,
-        { state: stateWithNetworks },
+        { state: stateWithPayOnLocalTx({ chainId: '0x1' }) },
       );
 
       expect(
@@ -325,7 +346,7 @@ describe('PredictDetails', () => {
     it("falls back to the row's chain on a withdrawal Pay did not route", () => {
       const { getByTestId, getByText } = renderWithProvider(
         <PredictDetails
-          item={fundsItemWithPayMetadata('predictionsWithdrawFunds', undefined)}
+          item={fundsItemWithPayMetadata('predictionsWithdrawFunds')}
         />,
         { state: stateWithNetworks },
       );
@@ -342,20 +363,12 @@ describe('PredictDetails', () => {
  * @param metamaskPay - Pay metadata for the backing local transaction.
  * @returns A Predict deposit row.
  */
-function addFundsItemWithPayMetadata(
-  metamaskPay: Record<string, string> | undefined,
-): ActivityListItem {
-  return fundsItemWithPayMetadata('predictionsAddFunds', metamaskPay);
+function addFundsItemWithPayMetadata(): ActivityListItem {
+  return fundsItemWithPayMetadata('predictionsAddFunds');
 }
 
-/**
- * @param type - Whether the row is a deposit or a withdrawal.
- * @param metamaskPay - Pay metadata for the backing local transaction.
- * @returns The activity row.
- */
 function fundsItemWithPayMetadata(
   type: 'predictionsAddFunds' | 'predictionsWithdrawFunds',
-  metamaskPay: Record<string, string> | undefined,
 ): ActivityListItem {
   return predictItem({
     type,
@@ -368,13 +381,5 @@ function fundsItemWithPayMetadata(
         direction: type === 'predictionsAddFunds' ? 'in' : 'out',
       },
     },
-    raw: {
-      type: 'localTransaction',
-      data: {
-        primaryTransaction: { id: 'tx-1', chainId: '0x89', metamaskPay },
-        initialTransaction: { id: 'tx-1', chainId: '0x89' },
-        transactions: [],
-      },
-    },
-  } as unknown as Partial<ActivityListItem>);
+  });
 }
