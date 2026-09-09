@@ -400,7 +400,7 @@ jobs:
 
       - name: Setup project dependencies with retry (native-build path)
         if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
-        uses: ./.github/actions/retry-command
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -411,7 +411,7 @@ jobs:
 
       - name: Setup project dependencies with retry (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
-        uses: ./.github/actions/retry-command
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
           max_attempts: 3
