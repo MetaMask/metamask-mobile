@@ -3,7 +3,11 @@ import type {
   EarnExperience,
   EarnRateStatus,
 } from '../../types/earnAssets';
-import { getEarnAssetFiatNumber, hasEarnAssetBalance } from '../earnAssets';
+import {
+  getEarnAssetFiatNumber,
+  getEarnStrategyExperiences,
+  hasEarnAssetBalance,
+} from '../earnAssets';
 import { getHighestReadyRateEntry } from '../earnRate';
 
 /** Maximum number of assets displayed in the horizontal Earn section. */
@@ -81,14 +85,16 @@ const compareByKey = (
 export const rankEarnAssets = (
   assets: readonly EarnAsset[],
 ): EarnSectionRankedAsset[] => {
-  const rankedAssets = assets.map(
-    (asset): EarnSectionRankedAsset => ({
+  const rankedAssets = assets.map((asset): EarnSectionRankedAsset => {
+    const strategies = getEarnStrategyExperiences(asset.experiences);
+
+    return {
       ...asset,
-      highestRatePercent: getHighestRatePercent(asset.experiences),
-      highestRateExperience: getHighestRateExperience(asset.experiences),
-      rateStatus: getRateStatus(asset.experiences),
-    }),
-  );
+      highestRatePercent: getHighestRatePercent(strategies),
+      highestRateExperience: getHighestRateExperience(strategies),
+      rateStatus: getRateStatus(strategies),
+    };
+  });
 
   const held = rankedAssets
     .filter(hasEarnAssetBalance)

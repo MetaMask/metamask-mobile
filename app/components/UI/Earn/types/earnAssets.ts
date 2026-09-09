@@ -24,10 +24,26 @@ export type EarnExperienceType = EARN_EXPERIENCES | 'MONEY_ACCOUNT_DEPOSIT';
 
 export type EarnAssetRole = 'funding' | 'underlying' | 'output';
 
+export type EarnExperienceUnavailableReason =
+  | 'output_asset'
+  | 'asset_not_held'
+  | 'balance_unavailable'
+  | 'insufficient_balance';
+
+export type EarnExperienceAvailability =
+  | {
+      status: 'available';
+    }
+  | {
+      status: 'unavailable';
+      reason: EarnExperienceUnavailableReason;
+    };
+
 export interface EarnExperience {
   id: string;
   type: EarnExperienceType;
   role: EarnAssetRole;
+  availability: EarnExperienceAvailability;
   rate: EarnRate;
   isFeeSubsidized: boolean;
   market?: LendingMarket;

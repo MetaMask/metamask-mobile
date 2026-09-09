@@ -10,9 +10,10 @@ import type {
 } from '../types/earnAssets';
 import {
   earnAssetToToken,
+  getAvailableEarnStrategyExperiences,
+  getEarnStrategyExperiences,
   getMoneyDepositPaymentToken,
 } from '../utils/earnAssets';
-import { isEarnAssetBalanceBelowMinDepositAmount } from '../utils/earnAssets/earnAssetBalance';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../../core/Engine';
@@ -75,19 +76,23 @@ const getEarnExperienceDestination = (
 export const getEarnOpportunityDestination = (
   earnAsset: EarnAsset,
 ): EarnOpportunityDestination => {
-  if (isEarnAssetBalanceBelowMinDepositAmount(earnAsset)) {
-    return EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS;
-  }
+  const strategies = getEarnStrategyExperiences(earnAsset.experiences);
+  const availableStrategies = getAvailableEarnStrategyExperiences(
+    earnAsset.experiences,
+  );
 
-  if (earnAsset.experiences.length === 0) {
+  if (strategies.length === 0) {
     throw new Error(`${LOG_PREFIX} Earn asset has no eligible experiences`);
   }
 
-  if (earnAsset.experiences.length > 1) {
+  if (
+    availableStrategies.length !== strategies.length ||
+    strategies.length > 1
+  ) {
     return EARN_MODULE_REDIRECT_TARGETS.STRATEGY_SELECTION_BOTTOM_SHEET;
   }
 
-  const singleSupportedExperience = earnAsset.experiences[0];
+  const singleSupportedExperience = strategies[0];
 
   return getEarnExperienceDestination(singleSupportedExperience.type);
 };
@@ -138,9 +143,20 @@ export const getEarnExperienceRedirectTarget = (
   }
 };
 
+export const getSelectedEarnStrategyRedirectTarget = (
+  experience: EarnExperience,
+  isMoneyOnboardingRedirectNeeded: boolean,
+): EarnOpportunityRedirectTarget | undefined =>
+  experience.availability.status === 'unavailable'
+    ? EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS
+    : getEarnExperienceRedirectTarget(
+        experience,
+        isMoneyOnboardingRedirectNeeded,
+      );
+
 /**
  * Navigates an Earn opportunity to strategy selection or Token Details based
- * on whether the asset meets the minimum deposit amount.
+ * on whether its experiences can currently accept a deposit.
  *
  * @param tokenDetailsSource - Attribution source for Token Details navigation.
  * @returns Earn opportunity navigation callback.
@@ -151,6 +167,17 @@ const useEarnOpportunityNavigation = () => {
   const { isStakingSupportedChain } = useStakingChain();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const navigateToAssetOverview = useCallback(
+    (earnAsset: EarnAsset, tokenDetailsSource?: TokenDetailsSource) => {
+      const token = earnAssetToToken(earnAsset);
+      navigation.navigate('Asset', {
+        ...token,
+        source: tokenDetailsSource,
+      });
+    },
+    [navigation],
+  );
 
   /**
    * Navigation to legacy EarnInputView screen.
@@ -251,7 +278,16 @@ const useEarnOpportunityNavigation = () => {
   );
 
   const navigateToDepositForExperience = useCallback(
-    async (earnAsset: EarnAsset, experience: EarnExperience) => {
+    async (
+      earnAsset: EarnAsset,
+      experience: EarnExperience,
+      tokenDetailsSource?: TokenDetailsSource,
+    ) => {
+      if (experience.availability.status === 'unavailable') {
+        navigateToAssetOverview(earnAsset, tokenDetailsSource);
+        return;
+      }
+
       if (earnAsset.kind !== 'held') {
         throw new Error(
           `${LOG_PREFIX} Deposit redirect is only supported for held assets`,
@@ -282,6 +318,7 @@ const useEarnOpportunityNavigation = () => {
       navigateToPooledStaking,
       navigateToStablecoinLending,
       navigateToLegacyEarnDeposit,
+      navigateToAssetOverview,
     ],
   );
 
@@ -295,6 +332,7 @@ const useEarnOpportunityNavigation = () => {
         return;
       }
 
+      const strategies = getEarnStrategyExperiences(asset.experiences);
       let destination: EarnOpportunityDestination;
       try {
         destination = getEarnOpportunityDestination(asset);
@@ -308,11 +346,7 @@ const useEarnOpportunityNavigation = () => {
       }
 
       if (destination === EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS) {
-        const token = earnAssetToToken(asset);
-        navigation.navigate('Asset', {
-          ...token,
-          source: tokenDetailsSource,
-        });
+        navigateToAssetOverview(asset, tokenDetailsSource);
         return;
       }
 
@@ -323,7 +357,7 @@ const useEarnOpportunityNavigation = () => {
         destination === EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT ||
         destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
       ) {
-        navigateToDepositForExperience(asset, asset.experiences[0]).catch(
+        navigateToDepositForExperience(asset, strategies[0]).catch(
           (error: Error) => {
             showToast(
               EarnToastOptions.earnStrategySelection.navigationToDeposit,
@@ -341,12 +375,14 @@ const useEarnOpportunityNavigation = () => {
         screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
         params: {
           earnAsset: asset,
+          tokenDetailsSource,
           ...(analyticsContext ? { analyticsContext } : {}),
         },
       });
     },
     [
       navigation,
+      navigateToAssetOverview,
       navigateToDepositForExperience,
       showToast,
       EarnToastOptions.earnStrategySelection.navigationToDeposit,

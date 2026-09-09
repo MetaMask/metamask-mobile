@@ -13,8 +13,9 @@ const isMoneyDepositAsset = (asset: Asset): asset is MoneyDepositAsset =>
 /**
  * Extracts Money deposit assets from the shared Earn catalogue.
  *
- * The catalogue is the source of truth for both eligibility and ordering.
- * Discovery assets and assets without a Money deposit experience are excluded.
+ * The catalogue owns membership, deposit availability, and ordering.
+ * Discovery assets and assets without an available Money experience are
+ * excluded.
  *
  * @param assets - Earn catalogue assets.
  * @returns Held EVM assets eligible for Money deposits, in catalogue order.
@@ -26,7 +27,9 @@ export const deriveMoneyDepositAssets = (
     if (
       earnAsset.kind !== 'held' ||
       !earnAsset.experiences.some(
-        ({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT',
+        ({ availability, type }) =>
+          type === 'MONEY_ACCOUNT_DEPOSIT' &&
+          availability.status === 'available',
       ) ||
       !isMoneyDepositAsset(earnAsset.asset)
     ) {
