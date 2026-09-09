@@ -1,29 +1,22 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   selectBridgeBalanceRefreshKey,
-  selectRecurringEveryUnit,
   selectRecurringPriceRange,
   selectRecurringScheduleValidation,
   selectSourceToken,
-  setRecurringEveryUnit,
-  setRecurringPriceRange,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs from '../../../components/OrdersTabs';
 import PriceRangeRow from '../../../components/PriceRangeRow';
-import PriceRangeSheet from '../../../components/PriceRangeSheet';
-import RecurringConfirmOrderSheet from '../../../components/RecurringConfirmOrderSheet';
-import RecurringIntervalSheet from '../../../components/RecurringIntervalSheet';
-import RecurringRepeatInfoSheet from '../../../components/RecurringRepeatInfoSheet';
 import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
 import {
   HardwareWalletUnsupportedBanner,
@@ -42,13 +35,10 @@ import {
   useBridgeQuoteDataContext,
 } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import { useTokenFiatRate } from '../../../hooks/useTokenFiatRate';
-import { formatCurrency } from '../../../utils/currencyUtils';
 import {
+  formatPriceRangeBounds,
   isPriceRangeInCurrentCurrency,
-  type RecurringPriceRange,
 } from '../../../utils/priceRange';
-import type { RecurringIntervalUnit } from '../../../utils/recurringSchedule';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
@@ -66,14 +56,7 @@ const BridgeRecurringBuyViewContent = ({
 }: BridgeRecurringBuyViewContentProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const dispatch = useDispatch();
   const inputRef = useRef<TokenInputAreaRef>(null);
-  const [isPriceRangeSheetVisible, setIsPriceRangeSheetVisible] =
-    useState(false);
-  const [isIntervalSheetVisible, setIsIntervalSheetVisible] = useState(false);
-  const [isRepeatInfoSheetVisible, setIsRepeatInfoSheetVisible] =
-    useState(false);
-  const [isConfirmSheetVisible, setIsConfirmSheetVisible] = useState(false);
 
   const {
     destToken,
@@ -93,12 +76,9 @@ const BridgeRecurringBuyViewContent = ({
   } = useRecurringBuySwapInputs({ latestSourceBalance });
 
   const priceRange = useSelector(selectRecurringPriceRange);
-  const everyUnit = useSelector(selectRecurringEveryUnit);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const scheduleValidation = useSelector(selectRecurringScheduleValidation);
   const { activeQuote, isLoading } = useBridgeQuoteDataContext();
-  const sourceFiatRate = useTokenFiatRate(sourceToken);
-  const destFiatRate = useTokenFiatRate(destToken);
 
   const {
     close: closeKeypad,
@@ -106,6 +86,7 @@ const BridgeRecurringBuyViewContent = ({
     focusEvery,
     focusRepeat,
     handleChange: handleKeypadChange,
+    isAmountFocused,
     keypadProps,
     keypadRef,
   } = useRecurringBuyKeypad({ sourceAmountInput });
@@ -119,12 +100,10 @@ const BridgeRecurringBuyViewContent = ({
 
   const handlePreviewOrder = useCallback(() => {
     dismissInputAndKeypad();
-    setIsConfirmSheetVisible(true);
-  }, [dismissInputAndKeypad]);
-
-  const handleConfirmSheetClosed = useCallback(() => {
-    setIsConfirmSheetVisible(false);
-  }, []);
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
+    });
+  }, [dismissInputAndKeypad, navigation]);
 
   const handleJobPress = useCallback(
     (jobId: string) => {
@@ -150,53 +129,33 @@ const BridgeRecurringBuyViewContent = ({
     : undefined;
   const priceRangeToken =
     effectiveRange?.tokenSide === 'source' ? sourceToken : destToken;
-  const priceRangeMinLabel = effectiveRange
-    ? formatCurrency(effectiveRange.min, effectiveRange.currency)
-    : undefined;
-  const priceRangeMaxLabel = effectiveRange
-    ? formatCurrency(effectiveRange.max, effectiveRange.currency)
-    : undefined;
+  const { minLabel: priceRangeMinLabel, maxLabel: priceRangeMaxLabel } =
+    formatPriceRangeBounds(
+      effectiveRange?.min ?? '',
+      effectiveRange?.max ?? '',
+      effectiveRange?.currency ?? currentCurrency,
+    );
 
   const handlePriceRangePress = useCallback(() => {
     dismissInputAndKeypad();
-    setIsPriceRangeSheetVisible(true);
-  }, [dismissInputAndKeypad]);
-
-  const handlePriceRangeSheetClosed = useCallback(() => {
-    setIsPriceRangeSheetVisible(false);
-  }, []);
-
-  const handlePriceRangeConfirm = useCallback(
-    (nextPriceRange?: RecurringPriceRange) => {
-      dispatch(setRecurringPriceRange(nextPriceRange));
-    },
-    [dispatch],
-  );
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_PRICE_RANGE_MODAL,
+    });
+  }, [dismissInputAndKeypad, navigation]);
 
   const handleUnitPress = useCallback(() => {
     dismissInputAndKeypad();
-    setIsIntervalSheetVisible(true);
-  }, [dismissInputAndKeypad]);
-
-  const handleIntervalSheetClosed = useCallback(() => {
-    setIsIntervalSheetVisible(false);
-  }, []);
-
-  const handleIntervalConfirm = useCallback(
-    (unit: RecurringIntervalUnit) => {
-      dispatch(setRecurringEveryUnit(unit));
-    },
-    [dispatch],
-  );
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_INTERVAL_MODAL,
+    });
+  }, [dismissInputAndKeypad, navigation]);
 
   const handleRepeatInfoPress = useCallback(() => {
     dismissInputAndKeypad();
-    setIsRepeatInfoSheetVisible(true);
-  }, [dismissInputAndKeypad]);
-
-  const handleRepeatInfoSheetClosed = useCallback(() => {
-    setIsRepeatInfoSheetVisible(false);
-  }, []);
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_REPEAT_INFO_MODAL,
+    });
+  }, [dismissInputAndKeypad, navigation]);
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -297,7 +256,7 @@ const BridgeRecurringBuyViewContent = ({
               disabled={!canPreviewOrder}
               loading={isLoading}
             />
-          ) : (
+          ) : isAmountFocused ? (
             <GaslessQuickPickOptions
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
@@ -305,40 +264,8 @@ const BridgeRecurringBuyViewContent = ({
               isQuoteSponsored={isQuoteSponsored}
               onAmountSelect={handleSourcePresetAmountSelect}
             />
-          )}
+          ) : null}
         </SwapsKeypad>
-
-        <PriceRangeSheet
-          isVisible={isPriceRangeSheetVisible}
-          sourceToken={sourceToken}
-          destToken={destToken}
-          sourceFiatRate={sourceFiatRate}
-          destFiatRate={destFiatRate}
-          currentCurrency={currentCurrency}
-          initialTokenSide={effectiveRange?.tokenSide}
-          initialMin={effectiveRange?.min}
-          initialMax={effectiveRange?.max}
-          onClose={handlePriceRangeSheetClosed}
-          onConfirm={handlePriceRangeConfirm}
-        />
-
-        <RecurringIntervalSheet
-          isVisible={isIntervalSheetVisible}
-          currentUnit={everyUnit}
-          onClose={handleIntervalSheetClosed}
-          onConfirm={handleIntervalConfirm}
-        />
-
-        <RecurringRepeatInfoSheet
-          isVisible={isRepeatInfoSheetVisible}
-          onClose={handleRepeatInfoSheetClosed}
-        />
-
-        <RecurringConfirmOrderSheet
-          isVisible={isConfirmSheetVisible}
-          onClose={handleConfirmSheetClosed}
-          latestSourceBalance={latestSourceBalance}
-        />
       </Box>
     </Box>
   );

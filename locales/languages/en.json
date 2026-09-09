@@ -8938,9 +8938,9 @@
         "exchange_rate": "Exchange rate",
         "min_token_price": "Min {{symbol}} price",
         "max_token_price": "Max {{symbol}} price",
-        "min_placeholder": "Min price",
-        "max_placeholder": "Max price",
-        "clear_all": "Clear all",
+        "min_placeholder": "Market price",
+        "max_placeholder": "Market price",
+        "clear": "Clear",
         "token_price": "1 {{symbol}} = {{price}}",
         "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
       },
