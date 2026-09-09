@@ -1,8 +1,11 @@
 import { ACTIONS, PROTOCOLS } from '../../../../constants/deeplinks';
-import { METAMASK_DEEPLINK_HOSTS } from '../../../../core/DeeplinkManager/util/deeplinks';
+import { getMetaMaskDeeplinkHosts } from '../../../../core/DeeplinkManager/util/deeplinks';
 
 /** Restricts remote carousel destinations to MetaMask-owned Predict links. */
-export const isAllowedPredictDeeplink = (uri: unknown): uri is string => {
+export const isAllowedPredictDeeplink = (
+  uri: unknown,
+  includeCom = false,
+): uri is string => {
   if (typeof uri !== 'string' || uri.length === 0) {
     return false;
   }
@@ -16,7 +19,7 @@ export const isAllowedPredictDeeplink = (uri: unknown): uri is string => {
 
     if (
       parsed.protocol !== `${PROTOCOLS.HTTPS}:` ||
-      !METAMASK_DEEPLINK_HOSTS.includes(parsed.hostname)
+      !getMetaMaskDeeplinkHosts(includeCom).includes(parsed.hostname)
     ) {
       return false;
     }

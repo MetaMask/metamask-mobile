@@ -10,15 +10,18 @@ const MWP_PREFIX = `${PROTOCOLS.METAMASK}://${ACTIONS.CONNECT}/mwp`;
  * MetaMask-owned universal-link hosts that Braze campaigns are allowed to
  * reference.
  */
-const getAllowedHttpsHosts = (): ReadonlySet<string> =>
-  new Set([
-    AppConstants.MM_UNIVERSAL_LINK_HOST,
-    AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE,
-    AppConstants.MM_UNIVERSAL_LINK_TEST_APP_HOST,
-    AppConstants.MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
-    AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
-    AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
-  ]);
+const getAllowedHttpsHosts = (includeCom = false): ReadonlySet<string> =>
+  new Set(
+    [
+      AppConstants.MM_UNIVERSAL_LINK_HOST,
+      AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+      AppConstants.MM_UNIVERSAL_LINK_TEST_APP_HOST,
+      AppConstants.MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
+      AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+      AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+      ...(includeCom ? [AppConstants.MM_COM_UNIVERSAL_LINK_HOST] : []),
+    ].filter(Boolean),
+  );
 
 /**
  * Returns `true` only for deeplinks that are safe to route through the central
@@ -31,7 +34,10 @@ const getAllowedHttpsHosts = (): ReadonlySet<string> =>
  * Everything else (javascript:, file:, data:, intent:, https:// on third-party hosts,
  * malformed strings, etc.) is rejected.
  */
-export function isAllowedBrazeDeeplink(uri: unknown): uri is string {
+export function isAllowedBrazeDeeplink(
+  uri: unknown,
+  includeCom = false,
+): uri is string {
   if (typeof uri !== 'string' || uri.length === 0) return false;
 
   // Reject MWP before URL parsing. The handleDeeplink fast-path bypasses all
@@ -55,7 +61,7 @@ export function isAllowedBrazeDeeplink(uri: unknown): uri is string {
   }
 
   if (protocol === `${PROTOCOLS.HTTPS}:`) {
-    return getAllowedHttpsHosts().has(hostname);
+    return getAllowedHttpsHosts(includeCom).has(hostname);
   }
 
   // Reject http:, javascript:, file:, data:, intent:, about:, wc:, etc.

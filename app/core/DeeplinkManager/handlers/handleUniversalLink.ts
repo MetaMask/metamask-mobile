@@ -84,6 +84,7 @@ import {
 } from '../types/deepLinkAnalytics.types';
 import { isSupportedAction } from '../types/deepLink.types';
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
+import { selectLinkMetamaskComEnabled } from '../../../selectors/featureFlagController/linkMetamaskCom';
 import ReduxService from '../../redux';
 import { analytics } from '../../../util/analytics/analytics';
 import branch from 'react-native-branch';
@@ -92,7 +93,7 @@ import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import { handleMoney } from './legacy/handleMoney';
 
-const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
+const { MM_IO_UNIVERSAL_LINK_HOST, MM_COM_UNIVERSAL_LINK_HOST } = AppConstants;
 
 const SUPPORTED_ACTIONS = {
   DAPP: ACTIONS.DAPP,
@@ -349,7 +350,10 @@ async function handleUniversalLink({
   let isPrivateLink = false;
   let isInvalidLink = false;
 
-  const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href);
+  const includeCom = selectLinkMetamaskComEnabled(
+    ReduxService.store.getState(),
+  );
+  const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href, includeCom);
   const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
   const universalLinkActionHandler = isActionSupported
     ? UNIVERSAL_LINK_ACTION_HANDLERS[action]
@@ -367,10 +371,16 @@ async function handleUniversalLink({
 
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (isMetaMaskSDKDeeplinkAction(action)) {
-    const mappedUrl = url.replace(
-      `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/`,
-      `${PROTOCOLS.METAMASK}://`,
-    );
+    const sdkHttpsHosts = includeCom
+      ? [MM_IO_UNIVERSAL_LINK_HOST, MM_COM_UNIVERSAL_LINK_HOST]
+      : [MM_IO_UNIVERSAL_LINK_HOST];
+    let mappedUrl = url;
+    for (const host of sdkHttpsHosts) {
+      mappedUrl = mappedUrl.replace(
+        `${PROTOCOLS.HTTPS}://${host}/`,
+        `${PROTOCOLS.METAMASK}://`,
+      );
+    }
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
     const wcURL = params?.uri || mappedUrlObj.href;
 

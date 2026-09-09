@@ -9,6 +9,22 @@ describe('isAllowedPredictDeeplink', () => {
     expect(isAllowedPredictDeeplink(url)).toBe(true);
   });
 
+  it('rejects link.metamask.com when includeCom is false', () => {
+    const url = 'https://link.metamask.com/predict?feed=live';
+
+    const result = isAllowedPredictDeeplink(url);
+
+    expect(result).toBe(false);
+  });
+
+  it('allows link.metamask.com when includeCom is true', () => {
+    const url = 'https://link.metamask.com/predict?feed=live';
+
+    const result = isAllowedPredictDeeplink(url, true);
+
+    expect(result).toBe(true);
+  });
+
   it.each([
     'metamask://connect?channelId=test',
     'https://link.metamask.io/swap',

@@ -78,8 +78,21 @@ let mockLastDismissed: string | null = null;
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: (selector: (s: unknown) => unknown) =>
-    selector({ banners: { lastDismissedBrazeBanner: mockLastDismissed } }),
+  useSelector: (selector: (s: unknown) => unknown) => {
+    try {
+      return selector({
+        banners: { lastDismissedBrazeBanner: mockLastDismissed },
+        settings: { basicFunctionalityEnabled: true },
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: { remoteFeatureFlags: {} },
+          },
+        },
+      });
+    } catch {
+      return undefined;
+    }
+  },
 }));
 
 // ---------------------------------------------------------------------------
@@ -440,6 +453,7 @@ describe('BrazeBanner', () => {
 
       expect(mockIsAllowedBrazeDeeplink).toHaveBeenCalledWith(
         'metamask://home',
+        false,
       );
     });
   });

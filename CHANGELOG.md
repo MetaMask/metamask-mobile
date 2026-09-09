@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added feature-gated in-app routing for `link.metamask.com` universal links
 - Added support for `link.metamask.com` and `metamask.com` iOS Universal Links and Android App Links
 
 ## [8.10.2]

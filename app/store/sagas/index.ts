@@ -45,6 +45,7 @@ import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
 import { isSDKServiceDeeplink } from '../../core/DeeplinkManager/util/deeplinks';
+import { selectLinkMetamaskComEnabled } from '../../selectors/featureFlagController/linkMetamaskCom';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
 import { AppState, AppStateStatus } from 'react-native';
@@ -412,7 +413,8 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
-      if (isSDKServiceDeeplink(deeplink)) {
+      const includeCom: boolean = yield select(selectLinkMetamaskComEnabled);
+      if (isSDKServiceDeeplink(deeplink, includeCom)) {
         yield call(waitForSDKServicesInitialization);
       }
 

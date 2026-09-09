@@ -13,6 +13,8 @@ import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
 import { useBrazeBanner } from './useBrazeBanner';
 import { isAllowedBrazeDeeplink } from './isAllowedBrazeDeeplink';
 import BrazeBannerCard from './BrazeBannerCard';
+import { useSelector } from 'react-redux';
+import { selectLinkMetamaskComEnabled } from '../../../selectors/featureFlagController/linkMetamaskCom';
 
 interface BrazeBannerProps {
   placementId: string;
@@ -33,6 +35,7 @@ interface BrazeBannerProps {
  */
 const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
   const tw = useTailwind();
+  const includeCom = useSelector(selectLinkMetamaskComEnabled);
   const {
     status,
     eventProperties,
@@ -52,7 +55,7 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
 
   const handlePress = useCallback(() => {
     if (!deeplink) return;
-    if (!isAllowedBrazeDeeplink(deeplink)) {
+    if (!isAllowedBrazeDeeplink(deeplink, includeCom)) {
       Logger.error(new Error('BrazeBanner: deeplink rejected by allowlist'), {
         placementId,
         deeplink,
@@ -67,7 +70,7 @@ const BrazeBanner = ({ placementId }: BrazeBannerProps) => {
       .catch((error) => {
         Logger.error(error, 'BrazeBanner: failed to handle deeplink');
       });
-  }, [deeplink, placementId]);
+  }, [deeplink, placementId, includeCom]);
 
   if (status === 'empty' || status === 'dismissed' || status === 'loading')
     return null;
