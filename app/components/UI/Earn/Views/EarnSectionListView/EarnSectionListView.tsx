@@ -208,7 +208,6 @@ const EarnSectionListView = () => {
   const privacyMode = useSelector(selectPrivacyMode);
   const {
     assets,
-    opportunityAssets,
     hasError,
     isLoading,
     moneyApyDecimal,
@@ -216,8 +215,6 @@ const EarnSectionListView = () => {
     moneyRateStatus,
     refresh,
   } = useEarnAssetCatalogue();
-
-  console.log('assets: ', JSON.stringify(assets, null, 2));
 
   const {
     totalFiatRaw: moneyAccountBalanceRaw,
@@ -262,12 +259,8 @@ const EarnSectionListView = () => {
   }, [navigation, trackEarnButtonClicked]);
 
   const rankedAssets = useMemo(
-    () => rankEarnAssets(opportunityAssets),
-    [opportunityAssets],
-  );
-  const rankedAssetsById = useMemo(
-    () => new Map(rankedAssets.map((asset) => [asset.assetId, asset])),
-    [rankedAssets],
+    () => rankEarnAssets(assets),
+    [assets],
   );
   const moneyAssets = useMemo(
     () => deriveMoneyDepositAssets(rankedAssets),
@@ -282,14 +275,14 @@ const EarnSectionListView = () => {
   const moneyFeeByToken = useMemo(
     () =>
       new Map<Asset, boolean>(
-        opportunityAssets.flatMap((asset) =>
+        assets.flatMap((asset) =>
           asset.kind === 'held' &&
           asset.experiences.some(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT')
             ? [[asset.asset, hasEarnAssetSubsidizedFee(asset)]]
             : [],
         ),
       ),
-    [opportunityAssets],
+    [assets],
   );
 
   const isNoFeeToken = useCallback(
@@ -328,31 +321,20 @@ const EarnSectionListView = () => {
 
   const handleItemPress = useCallback(
     (item: EarnAssetSearchItem, position: number) => {
-      const earnAsset = rankedAssetsById.get(item.asset.assetId);
-      if (!earnAsset) {
-        // TODO: Reminder to add error toast in subsequent pass.
-        Logger.error(
-          new Error(
-            `[EarnSectionListView] Catalogue asset not found: ${item.asset.assetId}`,
-          ),
-        );
-        return;
-      }
-
       trackEarnSurfaceClicked({
         component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_LIST_ASSET_ROW,
         ...getEarnModuleAssetProperties(
-          earnAsset,
+          item.asset,
           position,
           moreWaysAssets.length,
         ),
         redirect_target: getEarnOpportunityRedirectTarget(
-          earnAsset,
+          item.asset,
           // isMoneyOnboardingRedirectNeeded is always false here since this handler is for non-Money deposit experiences.
           false,
         ),
       });
-      navigateFromEarnAsset(earnAsset, TokenDetailsSource.ExploreEarn, {
+      navigateFromEarnAsset(item.asset, TokenDetailsSource.ExploreEarn, {
         entry_point:
           params?.analyticsContext?.entry_point ??
           EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
@@ -365,7 +347,6 @@ const EarnSectionListView = () => {
       moreWaysAssets.length,
       navigateFromEarnAsset,
       params?.analyticsContext?.entry_point,
-      rankedAssetsById,
       trackEarnSurfaceClicked,
     ],
   );

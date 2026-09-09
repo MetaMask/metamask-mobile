@@ -16,7 +16,7 @@ const useEarnSectionAssets = ({
   enabled = true,
 }: UseEarnSectionAssetsOptions = {}) => {
   const {
-    opportunityAssets,
+    assets,
     moneyApyPercent,
     moneyRateStatus,
     isLoading,
@@ -25,13 +25,8 @@ const useEarnSectionAssets = ({
     refresh,
   } = useEarnAssetCatalogue({ enabled });
 
-  console.log('opportunityAssets', JSON.stringify(opportunityAssets, null, 2));
-
-  const assetSlots = useMemo(
-    () => rankEarnSectionAssets(opportunityAssets),
-    [opportunityAssets],
-  );
-  const hasMoreAssets = opportunityAssets.length > EARN_SECTION_ASSET_LIMIT;
+  const assetSlots = useMemo(() => rankEarnSectionAssets(assets), [assets]);
+  const hasMoreAssets = assets.length > EARN_SECTION_ASSET_LIMIT;
 
   return useMemo(
     () => ({

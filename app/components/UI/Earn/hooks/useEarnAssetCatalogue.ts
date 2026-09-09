@@ -505,7 +505,7 @@ const useEarnAssetCatalogue = ({
       }),
     [isMoneyApyError, isMoneyApyLoading, moneyApyPercent],
   );
-  const assets = useMemo(() => {
+  const catalogueAssets = useMemo(() => {
     const baseAssets = buildEarnAssets(candidates);
     const enrichedAssets = baseAssets.map((asset) => {
       if (!isMoneyAccountVisible) {
@@ -548,19 +548,19 @@ const useEarnAssetCatalogue = ({
     moneyRate,
     relayFixedSpread,
   ]);
-  const opportunityAssets = useMemo(
+  const assets = useMemo(
     () =>
-      assets.filter(
+      catalogueAssets.filter(
         ({ experiences }) => getEarnStrategyExperiences(experiences).length > 0,
       ),
-    [assets],
+    [catalogueAssets],
   );
   const assetsById = useMemo<Readonly<Partial<Record<string, EarnAsset>>>>(
     () =>
       Object.fromEntries(
-        assets.map((asset) => [asset.assetId.toLowerCase(), asset]),
+        catalogueAssets.map((asset) => [asset.assetId.toLowerCase(), asset]),
       ),
-    [assets],
+    [catalogueAssets],
   );
   const hasMissingLendingMetadata =
     isLendingMetadataSettled &&
@@ -661,7 +661,6 @@ const useEarnAssetCatalogue = ({
     () => ({
       assets,
       assetsById,
-      opportunityAssets,
       isLoading,
       hasError,
       errors,
@@ -679,7 +678,6 @@ const useEarnAssetCatalogue = ({
       moneyApyDecimal,
       moneyApyPercent,
       moneyRate,
-      opportunityAssets,
       refresh,
     ],
   );
