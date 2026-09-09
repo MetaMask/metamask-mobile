@@ -3,4 +3,5 @@ export const MoneyHeaderTestIds = {
   TITLE: 'money-header-title',
   MENU_BUTTON: 'money-header-menu-button',
   GET_PRO_BUTTON: 'money-header-get-pro-button',
+  PRO_HUB_BUTTON: 'money-header-pro-hub-button',
 } as const;

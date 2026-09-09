@@ -99,6 +99,8 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
+import useSubscriptionPolling from '../../../../hooks/useSubscriptionPolling';
+import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -139,6 +141,12 @@ const MoneyHomeView = () => {
     useMoneyAccountInterest();
 
   const refreshMusdFiatRate = useRefreshMusdFiatRate();
+
+  // Keeps subscription state and Plus entitlements fresh while Money is
+  // mounted, so the header CTA reacts to subscribe, cancel, and token refresh
+  // without the user reopening the screen.
+  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  useSubscriptionPolling({ enabled: isProSubscriptionEnabled });
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
@@ -371,6 +379,12 @@ const MoneyHomeView = () => {
 
   const handleGetProPress = useCallback(() => {
     navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
+      source: 'money_header',
+    });
+  }, [navigation]);
+
+  const handleProHubPress = useCallback(() => {
+    navigation.navigate(Routes.PRO_HUB.ROOT, {
       source: 'money_header',
     });
   }, [navigation]);
@@ -886,6 +900,7 @@ const MoneyHomeView = () => {
       <MoneyHeader
         onMenuPress={handleMenuPress}
         onGetProPress={handleGetProPress}
+        onProHubPress={handleProHubPress}
       />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}

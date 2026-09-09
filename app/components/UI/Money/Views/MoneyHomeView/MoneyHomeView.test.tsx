@@ -9,6 +9,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import MoneyHomeView from './MoneyHomeView';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import { MoneyHeaderTestIds } from '../../components/MoneyHeader/MoneyHeader.testIds';
+import { MoneyAccountPlusAccess } from '../../../../../hooks/useMoneyAccountPlusAccess';
 import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary/MoneyBalanceSummary.testIds';
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
@@ -202,6 +203,29 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+// Plus entitlement resolution has its own coverage; here we only drive the
+// header CTA so this suite stays focused on Money home behavior.
+const mockUseMoneyAccountPlusAccess = jest.fn();
+jest.mock('../../../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../../../hooks/useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
+}));
+
+const mockUseSubscriptionPolling = jest.fn();
+jest.mock('../../../../hooks/useSubscriptionPolling', () => ({
+  __esModule: true,
+  default: (options: { enabled: boolean }) =>
+    mockUseSubscriptionPolling(options),
+}));
+
+jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
+  useProSubscriptionEnabled: () => ({
+    isProSubscriptionEnabled: true,
+    variantName: 'treatment',
+    isActive: true,
   }),
 }));
 
@@ -483,6 +507,10 @@ describe('MoneyHomeView', () => {
     // clearAllMocks() resets call history but not a previously-set
     // mockReturnValue, so explicitly restore the default (visible) state.
     jest.mocked(selectPrivacyMode).mockReturnValue(false);
+
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Disabled,
+    );
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
@@ -1318,6 +1346,42 @@ describe('MoneyHomeView', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MORE_SHEET,
+    });
+  });
+
+  describe('Pro header CTA', () => {
+    it('opens the subscription upsell for an eligible non-subscriber', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'money_header',
+      });
+    });
+
+    it('opens the Pro Hub for an entitled subscriber', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.PRO_HUB_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'money_header',
+      });
+    });
+
+    it('polls subscription state while the Pro flow is enabled', () => {
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseSubscriptionPolling).toHaveBeenCalledWith({
+        enabled: true,
+      });
     });
   });
 
