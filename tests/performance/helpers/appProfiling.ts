@@ -69,10 +69,31 @@ async function tapProfilerControl(testId: string): Promise<void> {
     });
   }
   let control: ChainablePromiseElement | undefined;
+  let lastRecoveryAt = 0;
   await appiumDriver.waitUntil(
     async () => {
       control = await appiumDriver.$(`~${testId}`);
-      return control.isExisting().catch(() => false);
+      if (await control.isExisting().catch(() => false)) {
+        return true;
+      }
+
+      if (
+        typeof packageCandidate === 'string' &&
+        Date.now() - lastRecoveryAt >= 10_000
+      ) {
+        lastRecoveryAt = Date.now();
+        await appiumDriver.activateApp(packageCandidate).catch((error) => {
+          logger.warn(
+            `Could not reactivate profiler app while waiting for ${testId}: ${String(error)}`,
+          );
+        });
+        await appiumDriver.launchApp().catch((error) => {
+          logger.warn(
+            `Could not relaunch profiler app while waiting for ${testId}: ${String(error)}`,
+          );
+        });
+      }
+      return false;
     },
     {
       timeout: RECORDING_TIMEOUT_MS,
