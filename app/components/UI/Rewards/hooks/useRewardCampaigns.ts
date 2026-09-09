@@ -6,6 +6,7 @@ import {
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
+  setCampaignsFetching,
 } from '../../../../reducers/rewards';
 import {
   selectCampaigns,
@@ -66,6 +67,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       dispatch(setCampaigns([]));
       dispatch(setCampaignsLoading(false));
       dispatch(setCampaignsError(false));
+      dispatch(setCampaignsFetching(false));
       return;
     }
 
@@ -75,6 +77,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
     try {
       isLoadingRef.current = true;
+      dispatch(setCampaignsFetching(true));
       if (!hasLoadedRef.current) {
         dispatch(setCampaignsLoading(true));
       }
@@ -89,6 +92,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
     } finally {
       isLoadingRef.current = false;
       dispatch(setCampaignsLoading(false));
+      dispatch(setCampaignsFetching(false));
     }
   }, [dispatch, subscriptionId]);
 

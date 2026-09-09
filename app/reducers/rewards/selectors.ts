@@ -250,6 +250,9 @@ export const selectCampaignsError = (state: RootState) =>
 export const selectCampaignsHasLoaded = (state: RootState) =>
   state.rewards.campaignsHasLoaded;
 
+export const selectCampaignsFetching = (state: RootState) =>
+  state.rewards.campaignsFetching ?? false;
+
 // Campaign participant status selectors
 export const selectCampaignParticipantStatuses = (state: RootState) =>
   state.rewards.campaignParticipantStatuses;

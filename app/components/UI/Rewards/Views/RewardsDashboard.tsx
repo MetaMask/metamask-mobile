@@ -25,6 +25,7 @@ import {
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
   selectPendingDeeplink,
+  selectCampaignsFetching,
 } from '../../../../reducers/rewards/selectors';
 import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
@@ -94,6 +95,7 @@ const RewardsDashboard: React.FC = () => {
     hasError: campaignsHasError,
     isLoading: isCampaignsLoading,
   } = useRewardCampaigns();
+  const isCampaignsFetching = useSelector(selectCampaignsFetching);
   const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
   const {
     optedInAny: moneyAccountOptedInAny,
@@ -140,10 +142,19 @@ const RewardsDashboard: React.FC = () => {
       );
     } else if (pendingDeeplink.campaign === 'perps-comp') {
       // The deeplink carries no campaign id, so it has to be resolved against
-      // the campaign list. Failed and in-flight fetches also flip
-      // campaignsHasLoaded, so an empty list is only trustworthy once a
-      // successful fetch has settled.
+      // the campaign list — and resolving against a list that is not yet
+      // authoritative would drop the deeplink for good, because a null result
+      // still counts as handled. The list is only authoritative once every one
+      // of these is false:
+      //  - no subscription yet: fetchCampaigns short-circuits to an empty list
+      //    and still marks it loaded, so "no campaigns" means "not signed in",
+      //    not "no campaigns exist".
+      //  - a fetch is in flight: campaignsLoading is suppressed once campaigns
+      //    exist, so only campaignsFetching catches a refresh over a stale list.
+      //  - never loaded, or failed/in-flight with nothing cached.
       const waitingForCampaigns =
+        !subscriptionId ||
+        isCampaignsFetching ||
         !campaignsHasLoaded ||
         (campaigns.length === 0 && (campaignsHasError || isCampaignsLoading));
 
@@ -226,10 +237,12 @@ const RewardsDashboard: React.FC = () => {
     navigation,
     dispatch,
     pendingDeeplink,
+    subscriptionId,
     campaigns,
     campaignsHasLoaded,
     campaignsHasError,
     isCampaignsLoading,
+    isCampaignsFetching,
     moneyAccountSeries,
     moneyAccountOptedInAny,
     isMoneyAccountParticipationLoading,

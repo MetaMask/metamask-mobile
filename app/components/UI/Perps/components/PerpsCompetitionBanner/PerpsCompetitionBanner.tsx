@@ -113,15 +113,29 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
     if (dismissedThisSessionRef.current) {
       return;
     }
+    // The key changes under this effect when campaigns land in Redux, leaving
+    // two storage reads racing. Storage gives no ordering guarantee, so without
+    // this guard a late read under the previous key can overwrite the newer
+    // key's result and hide a banner the user never dismissed.
+    let cancelled = false;
     const checkDismissed = async () => {
       try {
         const value = await StorageWrapper.getItem(dismissedStorageKey);
+        if (cancelled) {
+          return;
+        }
         setIsDismissed(value === 'true');
       } catch {
+        if (cancelled) {
+          return;
+        }
         setIsDismissed(false);
       }
     };
     checkDismissed();
+    return () => {
+      cancelled = true;
+    };
   }, [dismissedStorageKey]);
 
   const handleDismiss = useCallback(async () => {

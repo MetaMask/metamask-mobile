@@ -210,6 +210,43 @@ describe('PerpsCompetitionBanner', () => {
     });
   });
 
+  it('ignores a late read under the previous key when the campaign resolves', async () => {
+    // Mount unresolved, then let campaigns land. The ':unknown' read is made to
+    // resolve LAST and report a dismissal; without a cancellation guard it
+    // would clobber the resolved key's result and hide the banner.
+    const unknownKey = perpsCompetitionBannerDismissedKey('unknown');
+    const resolvedKey = perpsCompetitionBannerDismissedKey('perps-campaign-9');
+    let releaseUnknownRead: (value: string | null) => void = () => undefined;
+
+    (StorageWrapper.getItem as jest.Mock).mockImplementation(
+      async (key: string) => {
+        if (key === unknownKey) {
+          return new Promise<string | null>((resolve) => {
+            releaseUnknownRead = resolve;
+          });
+        }
+        return null;
+      },
+    );
+
+    setupSelector(true, []);
+    const { getByTestId, rerender } = render(<PerpsCompetitionBanner />);
+
+    setupSelector(true, [buildCampaign({ id: 'perps-campaign-9' })]);
+    rerender(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(resolvedKey);
+    });
+
+    // The stale read now resolves with a dismissal for the old key.
+    releaseUnknownRead('true');
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+  });
+
   it('ignores a completed perps campaign when building the storage key', async () => {
     setupSelector(true, [
       buildCampaign({
