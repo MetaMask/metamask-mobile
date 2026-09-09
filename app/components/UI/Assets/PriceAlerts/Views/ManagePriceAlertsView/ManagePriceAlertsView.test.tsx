@@ -873,7 +873,7 @@ describe('ManagePriceAlertsView', () => {
 
       await waitFor(() =>
         expect(toast).toHaveBeenCalledWith({
-          title: 'Failed to load price alerts. Please try again.',
+          title: 'Failed to load price alerts. Try again.',
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
           showCloseButton: false,
@@ -896,7 +896,7 @@ describe('ManagePriceAlertsView', () => {
 
       await waitFor(() =>
         expect(toast).toHaveBeenCalledWith({
-          title: 'Failed to load price alerts. Please try again.',
+          title: 'Failed to load price alerts. Try again.',
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
           showCloseButton: false,
@@ -935,7 +935,7 @@ describe('ManagePriceAlertsView', () => {
 
       await waitFor(() =>
         expect(toast).toHaveBeenCalledWith({
-          title: 'Failed to delete price alert. Please try again.',
+          title: 'Failed to delete price alert. Try again.',
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
           showCloseButton: false,
