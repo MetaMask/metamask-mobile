@@ -30,6 +30,8 @@ const FETCH_TIMEOUT_MS = 10_000;
  * response is reported as an `error` (with `disclaimers` left `null`) so the
  * retry affordance is reachable. There's intentionally no static fallback copy.
  *
+ * `retry()` invalidates an in-flight load via {@link Engine.context.KycController.reset}.
+ *
  * @param country - ISO 3166-1 alpha-3 country code (e.g. `'BRA'`).
  * @returns The disclaimers, loading state, error, and a `retry` function.
  */
@@ -52,9 +54,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       FETCH_TIMEOUT_MS,
     );
 
-    // Neither `initialize` nor `loadDisclaimers` takes an AbortSignal, so race
-    // them against the same timeout used for the old direct fetch to keep the
-    // CTA from being stuck on a hung controller / network call.
+    // Abort unblocks this race only; initialize/loadDisclaimers ignore the signal.
     const abortedPromise = new Promise<never>((_, reject) => {
       abortController.signal.addEventListener('abort', () => {
         const abortError = new Error('Aborted');
@@ -63,17 +63,23 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       });
     });
 
+    const controllerLoad = (async () => {
+      await Engine.context.KycController.initialize({
+        vendor: VBA_KYC_VENDOR,
+      });
+      await Engine.context.KycController.loadDisclaimers({ country });
+    })();
+
+    // True until this attempt finishes writing controller state (including after timeout).
+    let isControllerLoadPending = true;
+    const markControllerLoadSettled = () => {
+      isControllerLoadPending = false;
+    };
+    controllerLoad.then(markControllerLoadSettled, markControllerLoadSettled);
+
     const loadDisclaimers = async () => {
       try {
-        await Promise.race([
-          (async () => {
-            await Engine.context.KycController.initialize({
-              vendor: VBA_KYC_VENDOR,
-            });
-            await Engine.context.KycController.loadDisclaimers({ country });
-          })(),
-          abortedPromise,
-        ]);
+        await Promise.race([controllerLoad, abortedPromise]);
 
         if (!isMounted) {
           return;
@@ -88,8 +94,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
           return;
         }
 
-        // An empty list is not a usable success: the CTA stays disabled, so it has
-        // to surface as an error to give the user the retry affordance.
+        // Empty list is not usable success; surface as error so retry is reachable.
         if (!loadedDisclaimers?.length) {
           setDisclaimers(null);
           setError('No KYC disclaimers returned');
@@ -126,6 +131,11 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       isMounted = false;
       clearTimeout(timeoutId);
       abortController.abort();
+
+      // Invalidate this attempt so a late write cannot clobber the next load.
+      if (isControllerLoadPending) {
+        Engine.context.KycController.reset();
+      }
     };
   }, [country, retryCount]);
 

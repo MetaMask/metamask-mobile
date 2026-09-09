@@ -4,6 +4,7 @@ import { useKycDisclaimers } from './useKycDisclaimers';
 
 const mockInitialize = jest.fn();
 const mockLoadDisclaimers = jest.fn();
+const mockReset = jest.fn();
 const mockKycControllerState = {
   vendorDisclaimers: [] as { id: string; url: string; display_name: string }[],
   vendorError: null as string | null,
@@ -14,6 +15,7 @@ jest.mock('../../../../../../core/Engine', () => ({
     KycController: {
       initialize: (...args: unknown[]) => mockInitialize(...args),
       loadDisclaimers: (...args: unknown[]) => mockLoadDisclaimers(...args),
+      reset: (...args: unknown[]) => mockReset(...args),
       get state() {
         return mockKycControllerState;
       },
@@ -138,5 +140,48 @@ describe('useKycDisclaimers', () => {
       { id: '1', url: 'https://t.c', display_name: 'T&C' },
     ]);
     expect(mockLoadDisclaimers).toHaveBeenCalledTimes(2);
+    expect(mockReset).not.toHaveBeenCalled();
+  });
+
+  it('invalidates a superseded in-flight load so it cannot overwrite the retry result', async () => {
+    let settleFirstLoad = () => undefined as void;
+    mockLoadDisclaimers
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            settleFirstLoad = () => {
+              mockKycControllerState.vendorDisclaimers = [];
+              mockKycControllerState.vendorError = 'stale server error';
+              resolve();
+            };
+          }),
+      )
+      .mockImplementationOnce(async () => {
+        mockKycControllerState.vendorDisclaimers = [
+          { id: '1', url: 'https://t.c', display_name: 'T&C' },
+        ];
+        mockKycControllerState.vendorError = null;
+      });
+
+    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+
+    await waitFor(() => expect(mockLoadDisclaimers).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      result.current.retry();
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockReset).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      settleFirstLoad();
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.disclaimers).toStrictEqual([
+      { id: '1', url: 'https://t.c', display_name: 'T&C' },
+    ]);
   });
 });
