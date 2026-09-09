@@ -54,4 +54,12 @@ describe('kycServiceInit', () => {
       process.env.KYC_API_URL = originalBaseUrl;
     }
   });
+
+  it('always resolves a non-empty base URL, since KycService throws without one', () => {
+    const { controller } = kycServiceInit(getInitRequestMock());
+
+    expect(controller).toMatchObject({
+      baseUrl: expect.stringMatching(/^https:\/\//u),
+    });
+  });
 });
