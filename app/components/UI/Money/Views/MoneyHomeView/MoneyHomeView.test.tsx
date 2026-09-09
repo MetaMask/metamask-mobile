@@ -22,6 +22,7 @@ import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoadi
 import { MoneyCondensedInfoCardsTestIds } from '../../components/MoneyCondensedInfoCards/MoneyCondensedInfoCards.testIds';
 import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/MoneySectionHeader.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
@@ -1311,6 +1312,24 @@ describe('MoneyHomeView', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    });
+  });
+
+  it('carries the Rewards launch source into Add money when this home was opened from a Rewards deposit', () => {
+    mockRouteParams = {
+      showBackButton: true,
+      launchedFrom: ConfirmationLaunchSource.Rewards,
+    };
+
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
+
+    // Without this the next confirmation defaults to a HOME_TABS switch and
+    // drops the Rewards campaign the user came from.
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      params: { launchedFrom: ConfirmationLaunchSource.RewardsMoneyHome },
     });
   });
 

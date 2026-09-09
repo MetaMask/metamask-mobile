@@ -545,11 +545,39 @@ describe('useTransactionConfirm', () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         StackActions.replace(Routes.MONEY.ROOT, {
           screen: Routes.MONEY.HOME,
-          params: { showBackButton: true },
+          params: {
+            showBackButton: true,
+            launchedFrom: ConfirmationLaunchSource.Rewards,
+          },
         }),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('back to the existing money home if the deposit was launched from a Rewards-originated money home', async () => {
+      useParamsMock.mockReturnValue({
+        launchedFrom: ConfirmationLaunchSource.RewardsMoneyHome,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.moneyAccountDeposit,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      // Money home is already on the stack, so popping back to it avoids
+      // landing the user on a second copy stacked over the first.
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        StackActions.replace(Routes.MONEY.ROOT, expect.anything()),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('defers money account deposit navigation until requested', async () => {

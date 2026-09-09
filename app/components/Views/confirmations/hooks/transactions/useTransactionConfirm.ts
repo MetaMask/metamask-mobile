@@ -147,14 +147,25 @@ export function useTransactionConfirm() {
         TransactionType.moneyAccountDeposit,
       ])
     ) {
-      if (launchedFrom === ConfirmationLaunchSource.Rewards) {
+      if (launchedFrom === ConfirmationLaunchSource.RewardsMoneyHome) {
+        // The deposit started from a Money home that is already on the stack
+        // beneath this confirmation, so popping back to it returns the user
+        // there with the Rewards campaign still underneath. Replacing would
+        // leave a second Money home stacked on the first.
+        navigation.goBack();
+      } else if (launchedFrom === ConfirmationLaunchSource.Rewards) {
         // Replacing this confirmation — rather than switching to the Money tab
         // — keeps the Rewards stack that opened the deposit underneath, so
         // Money home's back button returns to the campaign.
         navigation.dispatch(
           StackActions.replace(Routes.MONEY.ROOT, {
             screen: Routes.MONEY.HOME,
-            params: { showBackButton: true },
+            params: {
+              showBackButton: true,
+              // Marks this Money home as Rewards-originated so a further
+              // deposit started from it lands back here, not on the Money tab.
+              launchedFrom: ConfirmationLaunchSource.Rewards,
+            },
           }),
         );
       } else {

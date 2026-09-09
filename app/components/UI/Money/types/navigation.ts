@@ -31,6 +31,12 @@ export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
    * shown as the Money tab, where there is nothing to go back to.
    */
   showBackButton?: boolean;
+  /**
+   * What opened this Money home. Kept separate from `showBackButton`, which
+   * only says a stack sits underneath and not whose it is. Forwarded to Add
+   * Money so a further deposit lands back here rather than on the Money tab.
+   */
+  launchedFrom?: ConfirmationLaunchSource;
 }
 
 /**

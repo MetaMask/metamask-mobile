@@ -83,6 +83,12 @@ export enum ConfirmationLaunchSource {
    * confirmation, so the landing preserves it rather than switching tabs.
    */
   Rewards = 'rewards',
+  /**
+   * Money home, itself already pushed over a Rewards campaign by an earlier
+   * deposit. That screen is still on the stack underneath the confirmation, so
+   * the landing returns to it instead of stacking a second copy on top.
+   */
+  RewardsMoneyHome = 'rewards-money-home',
 }
 
 export interface ConfirmationParams {
