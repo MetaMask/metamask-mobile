@@ -16,6 +16,7 @@ import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
+import { useLocalTransactionMeta } from '../hooks/useLocalTransactionMeta';
 import {
   getBridgeDestinationCaipChainId,
   getBridgeDestinationTxHash,
@@ -29,12 +30,17 @@ export function BridgeDetails({
   item: Extract<ActivityListItem, { type: 'bridge' }>;
 }) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const bridgeHistoryItem = getBridgeHistoryItem(item, bridgeHistory);
+  const transactionMeta = useLocalTransactionMeta(item.hash);
+  const bridgeHistoryItem = getBridgeHistoryItem(
+    item,
+    bridgeHistory,
+    transactionMeta,
+  );
   const destinationChainId = getBridgeDestinationCaipChainId(
     item.data.destinationToken,
   );
   const destinationHash = getBridgeDestinationTxHash(bridgeHistoryItem);
-  const explorerSheetTx = getBridgeExplorerSheetTx(item);
+  const explorerSheetTx = getBridgeExplorerSheetTx(item, transactionMeta);
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken: item.data.sourceToken,
     destinationToken: item.data.destinationToken,

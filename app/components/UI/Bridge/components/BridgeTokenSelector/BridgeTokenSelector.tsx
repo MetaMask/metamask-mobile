@@ -61,6 +61,8 @@ import {
 import { useAssetFromTheme } from '../../../../../util/theme';
 import NoSearchResultsLight from '../../../../../images/predictions-no-search-results-light.svg';
 import NoSearchResultsDark from '../../../../../images/predictions-no-search-results-dark.svg';
+import WatchlistEmptyLight from '../../../../../images/watchlist-empty-light.svg';
+import WatchlistEmptyDark from '../../../../../images/watchlist-empty-dark.svg';
 import { SkeletonItem } from '../SkeletonItem';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
@@ -171,9 +173,12 @@ const BridgeTokenSelectorRow = React.memo(
   },
 );
 
-interface BridgeTokenSelectorSearchEmptyStateProps {
+interface BridgeTokenSelectorEmptyStateProps {
   containerStyle: StyleProp<ViewStyle>;
-  NoSearchResultsIcon: React.ComponentType<{ width: number; height: number }>;
+  Icon: React.ComponentType<{ width: number; height: number }>;
+  title: string;
+  description: string;
+  testID?: string;
 }
 
 const useRwaFilteredTokens = (
@@ -185,29 +190,33 @@ const useRwaFilteredTokens = (
     [tokens, excludeRwaTokens],
   );
 
-const BridgeTokenSelectorSearchEmptyState = React.memo(
+const BridgeTokenSelectorEmptyState = React.memo(
   ({
     containerStyle,
-    NoSearchResultsIcon,
-  }: BridgeTokenSelectorSearchEmptyStateProps) => (
+    Icon,
+    title,
+    description,
+    testID = 'bridge-token-selector-empty-state',
+  }: BridgeTokenSelectorEmptyStateProps) => (
     <TabEmptyState
-      testID="bridge-token-selector-empty-state"
-      icon={<NoSearchResultsIcon width={72} height={78} />}
-      description={strings('bridge.no_tokens_found')}
+      testID={testID}
+      icon={<Icon width={72} height={78} />}
+      description={title}
       descriptionProps={{
         variant: TextVariant.HeadingMd,
         color: TextColor.TextDefault,
         twClassName: 'text-center',
+        numberOfLines: 1,
       }}
       style={containerStyle}
-      twClassName="self-center"
+      twClassName="self-center max-w-full"
     >
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
         twClassName="text-center -mt-1"
       >
-        {strings('bridge.no_tokens_found_description')}
+        {description}
       </Text>
     </TabEmptyState>
   ),
@@ -239,10 +248,14 @@ export const BridgeTokenSelector: React.FC = () => {
     };
   }, [dispatch]);
 
-  // Get themed SVG for empty state
+  // Get themed SVGs for empty states
   const NoSearchResultsIcon = useAssetFromTheme(
     NoSearchResultsLight,
     NoSearchResultsDark,
+  );
+  const WatchlistEmptyIcon = useAssetFromTheme(
+    WatchlistEmptyLight,
+    WatchlistEmptyDark,
   );
 
   // Check if search string meets minimum length requirement
@@ -564,6 +577,9 @@ export const BridgeTokenSelector: React.FC = () => {
       excludeRwaTokens ? filterOutRwaTokens(mappedTokens) : mappedTokens,
       {
         selectedChainId,
+        allowedChainIds: enabledChainRanking.map(
+          (chain: { chainId: CaipChainId }) => chain.chainId,
+        ),
         searchQuery: isValidSearch ? searchString : undefined,
       },
     );
@@ -576,6 +592,7 @@ export const BridgeTokenSelector: React.FC = () => {
     balancesByAssetId,
     currentCurrency,
     excludeRwaTokens,
+    enabledChainRanking,
   ]);
 
   const watchlistMergedSearchResults = useMemo(() => {
@@ -952,20 +969,38 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const renderEmptyState = useCallback(() => {
     if (isWatchlistListMode && hasWatchlistItems) {
-      if (
-        isWatchlistLoading ||
-        !isValidSearch ||
-        isSearchLoading ||
-        isLoadingMore ||
-        isAwaitingMoreSearchResults
-      ) {
+      if (isWatchlistLoading) {
+        return null;
+      }
+
+      // No active search: this picker's watchlist has items overall, but
+      // none matched the current chain scope (either a specific network
+      // pill, or this picker's narrower `enabledChainIds` under "All"), so
+      // show favorites-specific empty copy instead of a blank list.
+      if (!isValidSearch) {
+        return (
+          <BridgeTokenSelectorEmptyState
+            containerStyle={styles.emptyStateContainer}
+            Icon={WatchlistEmptyIcon}
+            title={strings('bridge.no_watchlist_tokens_found')}
+            description={strings(
+              'bridge.no_watchlist_tokens_found_description',
+            )}
+            testID="bridge-watchlist-empty-state"
+          />
+        );
+      }
+
+      if (isSearchLoading || isLoadingMore || isAwaitingMoreSearchResults) {
         return null;
       }
 
       return (
-        <BridgeTokenSelectorSearchEmptyState
+        <BridgeTokenSelectorEmptyState
           containerStyle={styles.emptyStateContainer}
-          NoSearchResultsIcon={NoSearchResultsIcon}
+          Icon={NoSearchResultsIcon}
+          title={strings('bridge.no_tokens_found')}
+          description={strings('bridge.no_tokens_found_description')}
         />
       );
     }
@@ -982,9 +1017,11 @@ export const BridgeTokenSelector: React.FC = () => {
     }
 
     return (
-      <BridgeTokenSelectorSearchEmptyState
+      <BridgeTokenSelectorEmptyState
         containerStyle={styles.emptyStateContainer}
-        NoSearchResultsIcon={NoSearchResultsIcon}
+        Icon={NoSearchResultsIcon}
+        title={strings('bridge.no_tokens_found')}
+        description={strings('bridge.no_tokens_found_description')}
       />
     );
   }, [
@@ -997,6 +1034,7 @@ export const BridgeTokenSelector: React.FC = () => {
     isAwaitingMoreSearchResults,
     styles.emptyStateContainer,
     NoSearchResultsIcon,
+    WatchlistEmptyIcon,
   ]);
 
   return (
