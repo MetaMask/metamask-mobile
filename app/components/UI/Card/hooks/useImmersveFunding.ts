@@ -45,6 +45,19 @@ function getController() {
   return controller;
 }
 
+function getImmersveFundingErrorContext(
+  method: string,
+  data: Record<string, unknown>,
+) {
+  return {
+    tags: { feature: 'card', provider: 'immersve' },
+    context: {
+      name: 'useImmersveFunding',
+      data: { method, ...data },
+    },
+  };
+}
+
 export const useImmersveFunding = () => {
   const { TransactionController } = Engine.context;
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
@@ -66,6 +79,7 @@ export const useImmersveFunding = () => {
         setState({ isLoading: false, error: null });
         return result;
       } catch (e) {
+        // Provider already reports API failures via reportAndMap.
         setState({ isLoading: false, error: getCardProviderErrorMessage(e) });
         throw e;
       }
@@ -80,7 +94,10 @@ export const useImmersveFunding = () => {
       const metricsProps = withCardProvider(CardProviderIds.Immersve, {
         step: 'approve',
       });
+      const network = immersveConfig?.network;
+      let caipChainId: string | undefined;
       try {
+        caipChainId = immersveNetworkToCaipChainId(network);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_FUNDING_PROCESS_STARTED)
             .addProperties(metricsProps)
@@ -93,9 +110,6 @@ export const useImmersveFunding = () => {
           throw new Error('No account found for funding');
         }
 
-        const caipChainId = immersveNetworkToCaipChainId(
-          immersveConfig?.network,
-        );
         const networkClientId = await ensureNetworkExists(caipChainId);
         const writeToEncode = approveAmountBaseUnits
           ? withApproveAmount(write, approveAmountBaseUnits)
@@ -158,7 +172,12 @@ export const useImmersveFunding = () => {
         );
         Logger.error(
           e as Error,
-          'useImmersveFunding: funding execution failed',
+          getImmersveFundingErrorContext('executeFunding', {
+            step: 'approve',
+            network,
+            chainId: caipChainId,
+            contractMethod: write.method,
+          }),
         );
         setState({ isLoading: false, error: getCardProviderErrorMessage(e) });
         throw e;
@@ -192,6 +211,7 @@ export const useImmersveFunding = () => {
             .addProperties(metricsProps)
             .build(),
         );
+        // Provider already reports API failures via reportAndMap.
         setState({ isLoading: false, error: getCardProviderErrorMessage(e) });
         throw e;
       }

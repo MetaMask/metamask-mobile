@@ -11,19 +11,6 @@ import {
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
-import {
-  QrSyncOperations,
-  QrSyncSurfaces,
-  QrSyncTelemetrySources,
-  reportQrSyncFailure,
-} from '../../../core/QrSync/qrSyncTelemetry';
-
-jest.mock('../../../core/QrSync/qrSyncTelemetry', () => ({
-  ...jest.requireActual('../../../core/QrSync/qrSyncTelemetry'),
-  reportQrSyncFailure: jest.fn(),
-}));
-
-const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -39,22 +26,8 @@ jest.mock(
 );
 
 jest.mock('../../../core/Engine', () => ({
-  context: {
-    QrSyncController: {
-      cancelSession: jest.fn(),
-      handleScannedQrPayload: jest.fn(),
-      resetState: jest.fn(),
-    },
-  },
+  context: {},
 }));
-
-import Engine from '../../../core/Engine';
-
-const mockCancelSession = Engine.context.QrSyncController
-  .cancelSession as jest.Mock;
-const mockResetState = Engine.context.QrSyncController.resetState as jest.Mock;
-const mockHandleScannedQrPayload = Engine.context.QrSyncController
-  .handleScannedQrPayload as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -100,12 +73,25 @@ jest.mock(
 );
 
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
+
+const mockHandleScannedQrPayload = jest.fn();
+const mockResetState = jest.fn();
 
 const renderComponent = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState> = {},
   completedOnboarding = false,
 ) =>
   renderWithProvider(<AddDeviceToWallet />, {
+    routeMessenger: createMockRouteMessenger({
+      'QrSyncController:resetState': mockResetState,
+      'QrSyncController:handleScannedQrPayload': mockHandleScannedQrPayload,
+      'QrSyncController:importRemainingSecrets': jest.fn(),
+      'QrSyncController:hasPendingSecretImports': jest
+        .fn()
+        .mockResolvedValue(false),
+      'KeyringController:getAccounts': jest.fn().mockResolvedValue([]),
+    }),
     state: {
       engine: {
         backgroundState: {
@@ -211,23 +197,27 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('back navigation', () => {
-    it('calls navigation.goBack when back button is pressed', () => {
+    it('calls navigation.goBack when back button is pressed', async () => {
       const { getByTestId } = renderComponent();
 
       fireEvent.press(getByTestId('button-icon'));
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
     });
 
-    it('resets QR sync state when back is pressed during an active session', () => {
+    it('resets QR sync state when back is pressed during an active session', async () => {
       const { getByTestId } = renderComponent({
         phase: QrSyncPhases.DISPLAYING_OTP,
       });
 
       fireEvent.press(getByTestId('button-icon'));
 
-      expect(mockResetState).toHaveBeenCalledTimes(1);
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockResetState).toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalled();
+      });
     });
   });
 
@@ -242,7 +232,7 @@ describe('AddDeviceToWallet', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('resets a stale QR sync session before opening the scanner', () => {
+    it('resets a stale QR sync session before opening the scanner', async () => {
       mockIsQrTabSwitcherOpen = true;
 
       const { getByText } = renderComponent({
@@ -253,8 +243,10 @@ describe('AddDeviceToWallet', () => {
         getByText(strings('app_settings.add_device.scan_qr_code_button')),
       );
 
-      expect(mockResetState).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockResetState).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalled();
+      });
     });
 
     it('navigates to the QR scanner with Scanner screen and tabber disabled', () => {
@@ -270,37 +262,9 @@ describe('AddDeviceToWallet', () => {
           initialScreen: 'Scanner',
           disableTabber: true,
           origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-          onScanSuccess: expect.any(Function),
         }),
       );
-    });
-
-    it('reports scan submit failures to Sentry', async () => {
-      mockHandleScannedQrPayload.mockRejectedValueOnce(
-        new Error('scan submit failed'),
-      );
-      const { getByText } = renderComponent();
-
-      fireEvent.press(
-        getByText(strings('app_settings.add_device.scan_qr_code_button')),
-      );
-
-      const onScanSuccess = mockNavigate.mock.calls[0][1].onScanSuccess as (
-        data: { content?: string },
-        content?: string,
-      ) => void;
-      onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
-
-      await waitFor(() => {
-        expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
-          expect.any(Error),
-          {
-            surface: QrSyncSurfaces.SCANNER,
-            operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
-            source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
-          },
-        );
-      });
+      expect(mockNavigate.mock.calls[0][1].onScanSuccess).toBeUndefined();
     });
   });
 
@@ -383,6 +347,7 @@ describe('AddDeviceToWallet', () => {
             initialStep: 1,
             qrSyncImport: true,
           },
+          { pop: true },
         );
       });
     });
@@ -401,6 +366,7 @@ describe('AddDeviceToWallet', () => {
             initialStep: 1,
             qrSyncImport: true,
           },
+          { pop: true },
         );
       });
     });

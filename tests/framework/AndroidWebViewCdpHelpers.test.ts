@@ -7,7 +7,7 @@ import AndroidWebViewCdpHelpers, {
   urlsReferToSameDapp,
   type RawAppiumWebViewContext,
 } from './AndroidWebViewCdpHelpers';
-import { getDriver } from './PlaywrightUtilities';
+import { getDriver } from './AppiumUtilities';
 
 jest.mock('child_process', () => ({
   execFileSync: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock('child_process', () => ({
 
 const execFileSyncMock = execFileSync as unknown as jest.Mock;
 
-jest.mock('./PlaywrightUtilities', () => ({
+jest.mock('./AppiumUtilities', () => ({
   getDriver: jest.fn(),
 }));
 

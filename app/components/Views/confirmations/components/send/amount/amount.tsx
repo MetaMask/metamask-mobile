@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -14,10 +20,6 @@ import Icon, {
 import TagBase, {
   TagShape,
 } from '../../../../../../component-library/base-components/TagBase';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
@@ -37,13 +39,22 @@ import { AmountKeyboard } from './amount-keyboard';
 import { AnimatedCursor } from './animated-cursor';
 import { styleSheet } from './amount.styles';
 import { InitSendLocation } from '../../../constants/send';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export const Amount = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { header: renderAmountHeader } = useSendNavbar().Amount;
-  const { location } = useParams<{ location?: string }>();
+  const { location, predefinedAmount } = useParams<{
+    location?: string;
+    predefinedAmount?: string;
+  }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
-  const { asset, value } = useSendContext();
+  const { asset, updateValue, value } = useSendContext();
   const { balance } = useBalance();
   const { amountError } = useAmountValidation();
   const [amount, setAmount] = useState('');
@@ -68,10 +79,28 @@ export const Amount = () => {
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
   const { isLoading: isNftLoading } = useRouteParams();
+  const hasSeededPredefinedAmountRef = useRef(false);
 
   useEffect(() => {
+    if (predefinedAmount) {
+      setFiatMode(false);
+      return;
+    }
     setFiatMode(primaryCurrency === 'Fiat');
-  }, [primaryCurrency, setFiatMode]);
+  }, [primaryCurrency, predefinedAmount, setFiatMode]);
+
+  // Seed once from navigation params. Do not re-run when the user clears the
+  // field — that would restore the QR amount while send-context value stays
+  // empty (AmountKeyboard already called updateValue('')).
+  useEffect(() => {
+    if (!predefinedAmount || hasSeededPredefinedAmountRef.current) {
+      return;
+    }
+    hasSeededPredefinedAmountRef.current = true;
+    setAmountInputTypeToken();
+    setAmount(predefinedAmount);
+    updateValue(predefinedAmount);
+  }, [predefinedAmount, setAmountInputTypeToken, updateValue]);
 
   useEffect(() => {
     if (location && location === InitSendLocation.AssetOverview) {
@@ -125,12 +154,12 @@ export const Amount = () => {
   );
 
   const defaultValue = fiatMode ? '0.00' : '0';
-  let textColor = TextColor.Default;
+  let textColor: TextColor = TextColor.TextDefault;
   if (amountError) {
-    textColor = TextColor.Error;
+    textColor = TextColor.ErrorDefault;
   }
   if (!amount.length) {
-    textColor = TextColor.Muted;
+    textColor = TextColor.TextMuted;
   }
 
   return (
@@ -147,10 +176,13 @@ export const Amount = () => {
               collectible={asset as Nft}
               isTokenImage
             />
-            <Text variant={TextVariant.BodyMDBold}>{asset?.name}</Text>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+              {asset?.name}
+            </Text>
             <Text
-              color={TextColor.Alternative}
-              variant={TextVariant.BodyMDBold}
+              color={TextColor.TextAlternative}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
             >
               {asset?.tokenId}
             </Text>
@@ -169,7 +201,7 @@ export const Amount = () => {
               color={textColor}
               style={styles.inputText}
               numberOfLines={1}
-              variant={TextVariant.DisplayMD}
+              variant={TextVariant.DisplayMd}
               adjustsFontSizeToFit
               testID="send_amount"
             >
@@ -178,9 +210,9 @@ export const Amount = () => {
             <AnimatedCursor />
             <Text
               style={styles.inputText}
-              color={amountError ? TextColor.Error : TextColor.Muted}
+              color={amountError ? TextColor.ErrorDefault : TextColor.TextMuted}
               numberOfLines={1}
-              variant={TextVariant.DisplayLG}
+              variant={TextVariant.DisplayLg}
             >
               {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
             </Text>
@@ -189,7 +221,9 @@ export const Amount = () => {
         {conversionSupportedForAsset && (
           <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
             <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-              <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
+              <Text color={TextColor.TextAlternative}>
+                {alternateDisplayValue}
+              </Text>
               <Icon
                 color={IconColor.Alternative}
                 name={IconName.SwapVertical}
@@ -200,7 +234,7 @@ export const Amount = () => {
         {isNftLoading ? (
           <Skeleton twClassName="h-4 w-40 rounded self-center mt-4" />
         ) : (
-          <Text style={styles.balanceText} color={TextColor.Alternative}>
+          <Text style={styles.balanceText} color={TextColor.TextAlternative}>
             {balanceDisplayValue}
           </Text>
         )}

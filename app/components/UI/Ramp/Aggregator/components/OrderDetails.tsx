@@ -18,7 +18,7 @@ import {
   renderFiat,
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
-} from '../../../../../util/number';
+} from '../../../../../util/number/bigint';
 import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import { useLegacySwapsBlockExplorer } from '../../../Bridge/hooks/useLegacySwapsBlockExplorer';
 import Spinner from '../../../AnimatedSpinner';

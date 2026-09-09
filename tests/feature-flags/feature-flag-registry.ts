@@ -115,17 +115,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  aiSocialFeedEnabled: {
-    name: 'aiSocialFeedEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.3.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   aiSocialAusCacheRefreshEnabled: {
     name: 'aiSocialAusCacheRefreshEnabled',
     type: FeatureFlagType.Remote,
@@ -188,7 +177,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: [
       {
         scope: {
-          value: 0.5,
+          value: 1,
           type: 'percentage_rollout',
         },
         name: 'control',
@@ -196,7 +185,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
         name: 'treatment',
       },
@@ -287,6 +276,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           featureVersion: null,
           minimumVersion: null,
           tracesEnabled: false,
+          useUnlockCleanup: true,
           deprecatedControllers: [],
         },
         '8.3.0': {
@@ -294,6 +284,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           featureVersion: '1',
           minimumVersion: '8.3.0',
           tracesEnabled: false,
+          useUnlockCleanup: true,
           deprecatedControllers: [],
         },
       },
@@ -3341,6 +3332,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  crossmintApplePayCheckout: {
+    name: 'crossmintApplePayCheckout',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   depositConfig: {
     name: 'depositConfig',
     type: FeatureFlagType.Remote,
@@ -3412,6 +3411,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   earnMoneyEarningSectionEnabled: {
     name: 'earnMoneyEarningSectionEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnHomeSectionEnabled: {
+    name: 'earnHomeSectionEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnExploreSectionEnabled: {
+    name: 'earnExploreSectionEnabled',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {
@@ -3493,6 +3514,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   },
   earnMoneyParallaxAnimationEnabled: {
     name: 'earnMoneyParallaxAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+  earnMoneyCardEducationAnimationEnabled: {
+    name: 'earnMoneyCardEducationAnimationEnabled',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: false,
@@ -3799,6 +3827,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  cardUkMigration: {
+    name: 'cardUkMigration',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   mobileMinimumVersions: {
     name: 'mobileMinimumVersions',
     type: FeatureFlagType.Remote,
@@ -3835,6 +3874,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   moneyAccountDepositQuotePipeline: {
     name: 'moneyAccountDepositQuotePipeline',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyMovementBrazilNeobank: {
+    name: 'moneyMovementBrazilNeobank',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: false,
@@ -3905,6 +3952,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: true,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableCardActivityEnrichment: {
+    name: 'moneyEnableCardActivityEnrichment',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
       minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
@@ -4065,6 +4123,50 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '8.8.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsMobileScale: {
+    name: 'perpsMobileScale',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsPositionModifyPreviewEnabled: {
+    name: 'perpsPositionModifyPreviewEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.11.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsMobileTwap: {
+    name: 'perpsMobileTwap',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsMobileChase: {
+    name: 'perpsMobileChase',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4332,14 +4434,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         scope: {
           type: 'percentage_rollout',
-          value: 0,
+          value: 1,
         },
         name: 'control',
       },
       {
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
         name: 'treatment',
       },
@@ -4809,14 +4911,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  socialAIQuickBuyStreamQuotes: {
-    name: 'socialAIQuickBuyStreamQuotes',
+  socialAiTSA1042AbtestLeaderboardLandingFeed: {
+    name: 'socialAiTSA1042AbtestLeaderboardLandingFeed',
     type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.2.0',
-    },
+    inProd: true,
+    productionDefault: 'control',
     status: FeatureFlagStatus.Active,
   },
 
@@ -4828,7 +4927,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'control',
         scope: {
-          value: 0.95,
+          value: 1,
           type: 'percentage_rollout',
         },
       },
@@ -4836,7 +4935,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -4851,7 +4950,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'control',
         scope: {
-          value: 0.5,
+          value: 1,
           type: 'percentage_rollout',
         },
       },
@@ -4859,7 +4958,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -4879,29 +4978,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
-  swapsSWAPS4135AbtestNumpadQuickAmounts: {
-    name: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0.5,
-        },
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 
@@ -5087,7 +5163,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'control',
         scope: {
-          value: 0.5,
+          value: 1,
           type: 'percentage_rollout',
         },
       },
@@ -5095,7 +5171,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'withBadge',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5172,6 +5248,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  mobileUxBftcConsolidation: {
+    name: 'mobileUxBftcConsolidation',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsDefaultPayTokenWhenNoBalanceEnabled: {
     name: 'perpsDefaultPayTokenWhenNoBalanceEnabled',
     type: FeatureFlagType.Remote,
@@ -5179,52 +5266,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  swapsSWAPS4242AbtestTokenSelectorBalanceLayout: {
-    name: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          value: 0.5,
-          type: 'percentage_rollout',
-        },
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
-  swapsSWAPS4784AbtestCTAButtonColor: {
-    name: 'swapsSWAPS4784AbtestCTAButtonColor',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0.5,
-        },
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 
@@ -5236,7 +5277,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'control',
         scope: {
-          value: 0.5,
+          value: 1,
           type: 'percentage_rollout',
         },
       },
@@ -5244,7 +5285,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5320,14 +5361,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.5,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5431,7 +5472,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: [
       {
         scope: {
-          value: 0.5,
+          value: 1,
           type: 'percentage_rollout',
         },
         name: 'control',
@@ -5440,7 +5481,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'treatment',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5462,7 +5503,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'grayIcons',
         scope: {
-          value: 1,
+          value: 0,
           type: 'percentage_rollout',
         },
       },
@@ -5470,7 +5511,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'colorIcons',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5493,11 +5534,27 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'row1Top',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
       {
         name: 'row2Top',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1276AbtestHeaderNavBar: {
+    name: 'homeTMCU1276AbtestHeaderNavBar',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: [
+      {
+        name: 'control',
         scope: {
           type: 'percentage_rollout',
           value: 1,
@@ -5574,6 +5631,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             'spreads',
             'totals',
             'first_half_moneyline',
+            'first_half_spreads',
             'both_teams_to_score',
             'both_teams_to_score_first_half',
             'both_teams_to_score_second_half',
@@ -5584,6 +5642,12 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             'soccer_second_half_result',
             'soccer_player_goals',
             'team_totals',
+            'team_totals_home',
+            'team_totals_away',
+            'anytime_touchdowns',
+            'first_touchdowns',
+            'rushing_yards',
+            'receiving_yards',
             'soccer_team_totals',
             'basketball_team_to_score_first',
             'soccer_exact_score',
@@ -5856,13 +5920,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'control',
         scope: {
           type: 'percentage_rollout',
-          value: 0.25,
+          value: 1,
         },
       },
       {
         name: 'treatment',
         scope: {
-          value: 1,
+          value: 0,
           type: 'percentage_rollout',
         },
       },
@@ -5900,6 +5964,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  exploreLaptopSearchApiRanking: {
+    name: 'exploreLaptopSearchApiRanking',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.12.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   exploreSectionsOrder: {
     name: 'exploreSectionsOrder',
     type: FeatureFlagType.Remote,
@@ -5919,11 +5994,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: [
       {
         name: 'control',
-        scope: { type: 'percentage_rollout', value: 0.75 },
+        scope: { type: 'percentage_rollout', value: 1 },
       },
       {
         name: 'treatment',
-        scope: { type: 'percentage_rollout', value: 1.0 },
+        scope: { type: 'percentage_rollout', value: 0 },
       },
     ],
     status: FeatureFlagStatus.Active,
@@ -5931,6 +6006,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   predictHomeRedesign: {
     name: 'predictHomeRedesign',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  uiSlots: {
+    name: 'uiSlots',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
@@ -6174,14 +6260,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         scope: {
           type: 'percentage_rollout',
-          value: 0,
+          value: 1,
         },
         name: 'control',
       },
       {
         name: 'postOnboardingSteps',
         scope: {
-          value: 1,
+          value: 0,
           type: 'percentage_rollout',
         },
       },
@@ -6334,11 +6420,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: [
       {
         name: 'control',
-        scope: { type: 'percentage_rollout', value: 1.0 },
+        scope: { type: 'percentage_rollout', value: 1 },
       },
       {
         name: 'treatment',
-        scope: { type: 'percentage_rollout', value: 1.0 },
+        scope: { type: 'percentage_rollout', value: 0 },
       },
     ],
     status: FeatureFlagStatus.Active,

@@ -373,6 +373,23 @@ describe('PerpsPositionCard', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders the take profit order count in the auto close row when several take profit orders exist', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        takeProfitPrice: '2.1946',
+        takeProfitCount: 3,
+        stopLossPrice: '2.1234',
+        stopLossCount: 1,
+      };
+
+      render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
+
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.AUTO_CLOSE_VALUE),
+      ).toHaveTextContent('perps.order.tp 3 orders, perps.order.sl $2.1234');
+    });
+
     it('renders SHORT position correctly', () => {
       // Arrange
       const shortPosition = {
@@ -489,6 +506,56 @@ describe('PerpsPositionCard', () => {
       expect(
         screen.getByText(PERPS_CONSTANTS.FallbackPriceDisplay),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Liquidation Distance Display', () => {
+    it('renders the distance to liquidation with two decimal digits', () => {
+      // Arrange - liquidation at 1800 is exactly 10% below a 2000 current price
+      // Act
+      render(<PerpsPositionCard position={mockPosition} currentPrice={2000} />);
+
+      // Assert
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent('10.00%');
+    });
+
+    it('keeps sub-one-percent distances visible instead of collapsing them to zero', () => {
+      // Arrange - 0.4% away; whole-number rounding would render this as 0%
+      const positionNearLiquidation = {
+        ...mockPosition,
+        liquidationPrice: '1992.00',
+      };
+
+      // Act
+      render(
+        <PerpsPositionCard
+          position={positionNearLiquidation}
+          currentPrice={2000}
+        />,
+      );
+
+      // Assert
+      expect(
+        screen.getByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent('0.40%');
+    });
+
+    it('omits the distance when no current price is available', () => {
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert
+      expect(
+        screen.queryByTestId(
+          PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toBeNull();
     });
   });
 

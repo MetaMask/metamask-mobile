@@ -7,13 +7,10 @@ import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import Text from '../../../../../../component-library/components/Texts/Text';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayIsMaxAmount,
-} from '../../../hooks/pay/useTransactionPayData';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
+import { Text } from '@metamask/design-system-react-native';
+import { formatAmountForDisplay } from '../../../utils/transaction-pay';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -38,12 +35,14 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
 
   const { isHeadlessBuyInProgress } = useConfirmationContext();
   const disabled = disabledProp || isHeadlessBuyInProgress;
-  const isMaxAmount = useTransactionPayIsMaxAmount();
-  const isQuotesLoading = useIsTransactionPayLoading();
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
-  const formattedAmount = formatAmountWithLocaleSeparators(amountFiat);
+
+  const formattedAmount = formatAmountWithLocaleSeparators(
+    formatAmountForDisplay(amountFiat),
+  );
+
   const amountLength = formattedAmount.length;
 
   const { styles } = useStyles(styleSheet, {
@@ -52,7 +51,10 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     disabled,
   });
 
-  const showLoader = isLoading || (isMaxAmount && isQuotesLoading);
+  // The input always shows the full amount being paid (the balance on Max),
+  // which is known synchronously and no longer changes once quotes resolve —
+  // so there is no Max-specific quote-loading skeleton to show here.
+  const showLoader = isLoading;
   const cursorVisible = showCursor && !disabled && !showLoader;
   const cursorOpacity = useBlinkingCursor(cursorVisible);
 

@@ -28,26 +28,19 @@ import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmatio
 import { ensureError } from '../../../../util/errorUtils';
 import { getErrorCode, getErrorMessage } from '../utils/errorUtils';
 import useMoneyToasts from './useMoneyToasts';
+import {
+  clearMoneyAccountDepositIntent,
+  setMoneyAccountDepositIntent,
+  type MoneyAccountDepositIntent,
+} from '../utils/moneyAccountDepositIntent';
+
+export type { MoneyAccountDepositIntent };
+export {
+  clearMoneyAccountDepositIntent,
+  getMoneyAccountDepositIntent,
+} from '../utils/moneyAccountDepositIntent';
 
 const LOG_TAG = '[Money Account]';
-
-export type MoneyAccountDepositIntent = 'convert' | 'addMusd' | 'card';
-
-const depositIntentByBatchId = new Map<string, MoneyAccountDepositIntent>();
-
-export function getMoneyAccountDepositIntent(
-  batchId: string | undefined,
-): MoneyAccountDepositIntent | undefined {
-  if (!batchId) return undefined;
-  return depositIntentByBatchId.get(batchId.toLowerCase());
-}
-
-export function clearMoneyAccountDepositIntent(
-  batchId: string | undefined,
-): void {
-  if (!batchId) return;
-  depositIntentByBatchId.delete(batchId.toLowerCase());
-}
 
 export interface InitiateDepositOptions {
   preferredPaymentToken?: {
@@ -153,7 +146,7 @@ export function useMoneyAccountDeposit() {
       // (e.g. the home "Add" button) are left unset so the toast derives the
       // intent from the transaction's actual payment method instead of a guess.
       if (options?.intent) {
-        depositIntentByBatchId.set(batchId.toLowerCase(), options.intent);
+        setMoneyAccountDepositIntent(batchId, options.intent);
       }
 
       const confirmationParams = {
@@ -213,7 +206,7 @@ export function useMoneyAccountDeposit() {
         });
       } catch (error) {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
-        depositIntentByBatchId.delete(batchId.toLowerCase());
+        clearMoneyAccountDepositIntent(batchId);
         if (!isUserRejectedError(error, errorObj.message)) {
           if (isMoneyConfirmationActive()) {
             navigation.goBack();

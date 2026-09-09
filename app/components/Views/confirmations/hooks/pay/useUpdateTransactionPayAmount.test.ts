@@ -11,7 +11,7 @@ import {
   updateAtomicBatchData,
   updateTransaction,
 } from '../../../../../util/transaction-controller';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
@@ -39,7 +39,7 @@ jest.mock(
   '../../../../../core/Engine/controllers/transaction-pay-controller/money-account-amount-update',
 );
 jest.mock('../../../../../util/transaction-controller');
-jest.mock('../../../../UI/Money/hooks/useMoneyAccount');
+jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent');
 jest.mock('../../../../UI/Money/utils/moneyAccountTransactions');
 jest.mock('../transactions/useUpdateTokenAmount');
 jest.mock('../transactions/useTransactionAccountOverride');

@@ -7,6 +7,7 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderBookViewSelectorsIDs,
 } from '../../Perps.testIds';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 
 // Navigation mock functions
 const mockNavigate = jest.fn();
@@ -72,6 +73,7 @@ describe('PerpsMarketStatisticsCard', () => {
     currentPrice: 47500,
     priceChange24h: 0.05,
     isLoading: false,
+    hasLiveData: true,
     refresh: jest.fn(),
   };
 
@@ -159,6 +161,34 @@ describe('PerpsMarketStatisticsCard', () => {
 
     const fundingRateText = getByText(FUNDING_RATE_CONFIG.ZeroDisplay);
     expect(fundingRateText).toBeOnTheScreen();
+  });
+
+  it('displays a positive threshold funding rate in success color', () => {
+    const { UNSAFE_getAllByType } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={{ ...mockMarketStats, fundingRate: '<0.0001%' }}
+      />,
+    );
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '<0.0001%',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('displays a negative threshold funding rate in error color', () => {
+    const { UNSAFE_getAllByType } = render(
+      <PerpsMarketStatisticsCard
+        {...defaultProps}
+        marketStats={{ ...mockMarketStats, fundingRate: '-<0.0001%' }}
+      />,
+    );
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '-<0.0001%',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.ErrorDefault);
   });
 
   it('calls onTooltipPress with open_interest when info icon is pressed', () => {

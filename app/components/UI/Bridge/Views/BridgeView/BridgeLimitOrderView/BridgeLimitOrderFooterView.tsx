@@ -1,0 +1,64 @@
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  selectSourceAmount,
+  selectSourceToken,
+  selectBridgeControllerState,
+} from '../../../../../../core/redux/slices/bridge';
+import type { useLatestBalance } from '../../../hooks/useLatestBalance';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
+import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton/index.tsx';
+import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+
+interface Props {
+  onCTAPress: () => void;
+  ctaDisabled?: boolean;
+  ctaLabel: string;
+  latestSourceBalance?: ReturnType<typeof useLatestBalance>;
+}
+
+export const BridgeLimitOrderFooterView = ({
+  onCTAPress,
+  ctaLabel,
+  ctaDisabled,
+  latestSourceBalance,
+}: Props) => {
+  const { bottom: bottomInset } = useSafeAreaInsets();
+  const sourceAmount = useSelector(selectSourceAmount);
+  const sourceToken = useSelector(selectSourceToken);
+  const { quotesLastFetched } = useSelector(selectBridgeControllerState);
+
+  const isValidSourceAmount =
+    sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
+
+  if (!isValidSourceAmount || !quotesLastFetched) {
+    return null;
+  }
+
+  return (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      gap={3}
+      paddingTop={3}
+      paddingLeft={4}
+      paddingRight={4}
+      twClassName="w-full shrink-0 bg-default"
+      style={{ paddingBottom: bottomInset }}
+    >
+      <SwapsLimitOrderConfirmButton
+        onPress={onCTAPress}
+        label={ctaLabel}
+        testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
+        disabled={ctaDisabled}
+        loading={ctaDisabled}
+        latestSourceBalance={latestSourceBalance}
+      />
+    </Box>
+  );
+};

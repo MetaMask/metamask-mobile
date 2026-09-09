@@ -14,6 +14,13 @@ import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import type { PredictActivity } from '../../../app/components/UI/Predict/types';
+import type {
+  Funding,
+  Order,
+  OrderFill,
+  UserHistoryItem,
+  OrdinaryOrderType,
+} from '@metamask/perps-controller';
 import {
   FillType,
   PerpsOrderTransactionStatus,
@@ -169,6 +176,7 @@ export const buildConfirmedLocalUsdcApproveTransaction = (): TransactionMeta =>
     time: 1_716_367_785_000,
     type: TransactionType.tokenMethodApprove,
     transferInformation: {
+      amount: '100000000',
       contractAddress: ACTIVITY_CV_USDC,
       decimals: 6,
       symbol: 'USDC',
@@ -194,6 +202,7 @@ export const buildConfirmedLocalUsdcIncreaseAllowanceTransaction =
       time: 1_716_367_786_000,
       type: TransactionType.tokenMethodIncreaseAllowance,
       transferInformation: {
+        amount: '100000000',
         contractAddress: ACTIVITY_CV_USDC,
         decimals: 6,
         symbol: 'USDC',
@@ -224,6 +233,7 @@ export const buildConfirmedLocalUsdcUnlimitedApproveTransaction =
       time: 1_716_367_787_000,
       type: TransactionType.tokenMethodApprove,
       transferInformation: {
+        amount: MAX_UINT256.toString(),
         contractAddress: ACTIVITY_CV_USDC,
         decimals: 6,
         symbol: 'USDC',
@@ -248,6 +258,7 @@ export const buildConfirmedLocalUsdcRevokeTransaction = (): TransactionMeta =>
     time: 1_716_367_788_000,
     type: TransactionType.tokenMethodApprove,
     transferInformation: {
+      amount: '0',
       contractAddress: ACTIVITY_CV_USDC,
       decimals: 6,
       symbol: 'USDC',
@@ -271,6 +282,7 @@ export const ACTIVITY_CV_NFT_COLLECTION_NAME = 'CryptoPunks';
 /**
  * Confirmed zero-value contract interaction for ActivityScreen transaction-row CV.
  * Uses a non-wrap method id so it stays `contractInteraction` (no token amount).
+ * Nonce is unique among local CV txs — Activity groups by chain + from + nonce.
  */
 export const buildConfirmedLocalContractInteractionTransaction =
   (): TransactionMeta =>
@@ -279,13 +291,13 @@ export const buildConfirmedLocalContractInteractionTransaction =
       hash: '0xactivitycvconfirmedcontract',
       chainId: '0x1',
       status: TransactionStatus.confirmed,
-      time: 1_716_367_786_000,
+      time: 1_716_367_784_000,
       type: TransactionType.contractInteraction,
       txParams: {
         from: ACTIVITY_CV_ACCOUNT,
         to: ACTIVITY_CV_RECIPIENT,
         value: '0x0',
-        nonce: '0x5',
+        nonce: '0x9',
         data: '0xabcdef12',
       },
       txReceipt: { status: '0x1' },
@@ -326,6 +338,7 @@ export const buildConfirmedLocalUsdtUnlimitedApproveTransaction =
       time: 1_716_367_791_000,
       type: TransactionType.tokenMethodApprove,
       transferInformation: {
+        amount: MAX_UINT256.toString(),
         contractAddress: ACTIVITY_CV_USDT,
         decimals: 6,
         symbol: 'USDT',
@@ -351,6 +364,7 @@ export const buildConfirmedLocalUsdtIncreaseAllowanceTransaction =
       time: 1_716_367_792_000,
       type: TransactionType.tokenMethodIncreaseAllowance,
       transferInformation: {
+        amount: '100000000',
         contractAddress: ACTIVITY_CV_USDT,
         decimals: 6,
         symbol: 'USDT',
@@ -537,6 +551,200 @@ export const activityCvPendingCrossChainSwapBridgeHistoryEntry = {
   },
   startTime: 1_716_367_789_500,
 };
+
+/** Monad mainnet — bridge Activity CV. */
+export const ACTIVITY_CV_MONAD_CHAIN_ID = '0x8f';
+
+/** Base mainnet — Monad bridge destination for Activity CV. */
+export const ACTIVITY_CV_BASE_CHAIN_ID = '0x2105';
+
+/** Base USDC — Monad→Base bridge destination asset. */
+export const ACTIVITY_CV_BASE_USDC =
+  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+
+const ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID = 'activity-cv-bridge-mon-to-base';
+const ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH = '0xactivitycvbridgemontobase';
+const ACTIVITY_CV_MON_TO_BASE_DEST_HASH = '0xactivitycvbridgemontobasedest';
+
+/**
+ * Submitted Monad→Base bridge for ActivityScreen pending→complete CV.
+ * Source stays submitted until dest completion overrides status via history.
+ */
+export const buildPendingLocalBridgeMonToBaseTransaction =
+  (): TransactionMeta =>
+    ({
+      id: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+      hash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+      chainId: ACTIVITY_CV_MONAD_CHAIN_ID,
+      status: TransactionStatus.submitted,
+      time: 1_716_367_810_000,
+      type: TransactionType.bridge,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_BASE_USDC,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x20',
+      },
+    }) as unknown as TransactionMeta;
+
+/**
+ * Confirmed Monad→Base bridge with gas for Activity Details Fee/Total CV.
+ * Same id/hash as {@link buildPendingLocalBridgeMonToBaseTransaction}.
+ */
+export const buildConfirmedLocalBridgeMonToBaseTransaction =
+  (): TransactionMeta =>
+    ({
+      id: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+      hash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+      chainId: ACTIVITY_CV_MONAD_CHAIN_ID,
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_810_000,
+      type: TransactionType.bridge,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_BASE_USDC,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x20',
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
+const activityCvMonToBaseBridgeQuote = {
+  srcChainId: 143,
+  destChainId: 8453,
+  srcAsset: {
+    symbol: 'MON',
+    decimals: 18,
+    assetId: 'eip155:143/slip44:60',
+  },
+  destAsset: {
+    symbol: 'USDC',
+    decimals: 6,
+    assetId: `eip155:8453/erc20:${ACTIVITY_CV_BASE_USDC.toLowerCase()}`,
+  },
+  srcTokenAmount: '2000000000000000000',
+  destTokenAmount: '3500000',
+};
+
+/** In-flight Monad→Base history — no dest txHash keeps Activity pending. */
+export const activityCvPendingBridgeMonToBaseHistoryEntry = {
+  txMetaId: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: activityCvMonToBaseBridgeQuote,
+  status: {
+    srcChain: {
+      chainId: 143,
+      txHash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+    },
+    destChain: {
+      chainId: 8453,
+    },
+  },
+  startTime: 1_716_367_810_000,
+  estimatedProcessingTimeInSeconds: 60,
+  slippagePercentage: 0,
+};
+
+/** Completed Monad→Base history for Bridged list + details Fee/Total. */
+export const activityCvBridgeMonToBaseHistoryEntry = {
+  txMetaId: ACTIVITY_CV_MON_TO_BASE_BRIDGE_ID,
+  account: ACTIVITY_CV_ACCOUNT,
+  quote: activityCvMonToBaseBridgeQuote,
+  status: {
+    srcChain: {
+      chainId: 143,
+      txHash: ACTIVITY_CV_MON_TO_BASE_BRIDGE_HASH,
+    },
+    destChain: {
+      chainId: 8453,
+      txHash: ACTIVITY_CV_MON_TO_BASE_DEST_HASH,
+    },
+  },
+  startTime: 1_716_367_810_000,
+  estimatedProcessingTimeInSeconds: 60,
+  slippagePercentage: 0,
+};
+
+/** NetworkController configs so Monad/Base names and native MON resolve. */
+export const activityMonadBaseNetworkOverride = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          [ACTIVITY_CV_MONAD_CHAIN_ID]: {
+            chainId: ACTIVITY_CV_MONAD_CHAIN_ID,
+            rpcEndpoints: [
+              {
+                networkClientId: 'monad-mainnet',
+                url: 'https://monad-mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+                name: 'Monad default RPC',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://monadscan.com'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Monad',
+            nativeCurrency: 'MON',
+          },
+          [ACTIVITY_CV_BASE_CHAIN_ID]: {
+            chainId: ACTIVITY_CV_BASE_CHAIN_ID,
+            rpcEndpoints: [
+              {
+                networkClientId: 'base-mainnet',
+                url: 'https://base-mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+                name: 'Base default RPC',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://basescan.org'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Base',
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+      NetworkEnablementController: {
+        enabledNetworkMap: {
+          eip155: {
+            '0x1': true,
+            [ACTIVITY_CV_MONAD_CHAIN_ID]: true,
+            [ACTIVITY_CV_BASE_CHAIN_ID]: true,
+          },
+        },
+      },
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+        currencyRates: {
+          ETH: {
+            conversionRate: 2500,
+            usdConversionRate: 2500,
+          },
+          MON: {
+            conversionRate: 5,
+            usdConversionRate: 5,
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
+/** TokenRates so Monad→Base bridge Total can resolve USDC fiat. */
+export const activityMonToBaseTokenRatesOverride = {
+  engine: {
+    backgroundState: {
+      TokenRatesController: {
+        marketData: {
+          [ACTIVITY_CV_BASE_CHAIN_ID]: {
+            [ACTIVITY_CV_BASE_USDC]: { price: 1 },
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
 
 /** Solana mainnet scope — Activity Details EVM→nonEVM bridge and non-EVM fiat CV. */
 export const ACTIVITY_CV_SOLANA_CHAIN_ID =
@@ -838,6 +1046,27 @@ export const buildConfirmedLocalMusdClaimTransaction = (): TransactionMeta =>
     },
   }) as unknown as TransactionMeta;
 
+/**
+ * Confirmed staking deposit (1 ETH) with gas for Activity Details stake CV.
+ */
+export const buildConfirmedLocalStakingDepositTransaction =
+  (): TransactionMeta =>
+    ({
+      id: 'activity-cv-confirmed-staking-deposit',
+      hash: '0xactivitycvconfirmedstakingdeposit',
+      chainId: '0x1',
+      status: TransactionStatus.confirmed,
+      time: 1_716_367_799_000,
+      type: TransactionType.stakingDeposit,
+      txParams: {
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '0xde0b6b3a7640000',
+        nonce: '0x13',
+      },
+      txReceipt: { ...ACTIVITY_CV_GAS_RECEIPT },
+    }) as unknown as TransactionMeta;
+
 /** TokenRates so Linea claim Total can resolve mUSD fiat. */
 export const activityLineaMusdTokenRatesOverride = {
   engine: {
@@ -892,17 +1121,33 @@ const buildErc20TransferCalldata = (to: string, amount: bigint): string =>
 /** 4,000 USDC (6 decimals) — funded / withdrawal CV fixtures. */
 const ACTIVITY_CV_PREDICT_USDC_AMOUNT = 4_000_000_000n;
 
+export const ACTIVITY_CV_PREDICT_DEPOSIT_ID = 'activity-cv-predict-deposit';
+export const ACTIVITY_CV_PREDICT_DEPOSIT_HASH = '0xactivitycvpredictdeposit';
+export const ACTIVITY_CV_PREDICT_DEPOSIT_TIME_MS = 1_716_367_790_000;
+
+/**
+ * MetaMask Pay fee metadata for Predict deposit Activity Details CV
+ * (network fee in ETH, bridge fee in USDC, total in USD).
+ */
+export const ACTIVITY_CV_PREDICT_DEPOSIT_PAY = {
+  chainId: '0x1' as const,
+  tokenAddress: ACTIVITY_CV_USDC,
+  networkFeeFiat: '1.23',
+  bridgeFeeFiat: '0.09',
+  totalFiat: '4001.32',
+};
+
 /**
  * Confirmed Predict deposit batch → `predictionsAddFunds` under Predictions filter.
  */
 export const buildConfirmedLocalPredictDepositTransaction =
   (): TransactionMeta =>
     ({
-      id: 'activity-cv-predict-deposit',
-      hash: '0xactivitycvpredictdeposit',
+      id: ACTIVITY_CV_PREDICT_DEPOSIT_ID,
+      hash: ACTIVITY_CV_PREDICT_DEPOSIT_HASH,
       chainId: '0x1',
       status: TransactionStatus.confirmed,
-      time: 1_716_367_790_000,
+      time: ACTIVITY_CV_PREDICT_DEPOSIT_TIME_MS,
       type: TransactionType.batch,
       txParams: {
         from: ACTIVITY_CV_ACCOUNT,
@@ -922,6 +1167,64 @@ export const buildConfirmedLocalPredictDepositTransaction =
       ],
       txReceipt: { status: '0x1' },
     }) as unknown as TransactionMeta;
+
+/**
+ * Confirmed Predict deposit with MetaMask Pay fees for Activity Details CV.
+ */
+export const buildConfirmedLocalPredictDepositWithPayTransaction =
+  (): TransactionMeta =>
+    ({
+      ...buildConfirmedLocalPredictDepositTransaction(),
+      metamaskPay: ACTIVITY_CV_PREDICT_DEPOSIT_PAY,
+    }) as unknown as TransactionMeta;
+
+/**
+ * Pending Predict deposit with MetaMask Pay fees for Activity Details CV.
+ */
+export const buildPendingLocalPredictDepositWithPayTransaction =
+  (): TransactionMeta =>
+    ({
+      ...buildConfirmedLocalPredictDepositTransaction(),
+      id: 'activity-cv-predict-deposit-pending',
+      hash: '0xactivitycvpredictdepositpending',
+      status: TransactionStatus.submitted,
+      metamaskPay: ACTIVITY_CV_PREDICT_DEPOSIT_PAY,
+    }) as unknown as TransactionMeta;
+
+/**
+ * Failed Predict deposit with MetaMask Pay fees for Activity Details CV.
+ */
+export const buildFailedLocalPredictDepositWithPayTransaction =
+  (): TransactionMeta =>
+    ({
+      ...buildConfirmedLocalPredictDepositTransaction(),
+      id: 'activity-cv-predict-deposit-failed',
+      hash: '0xactivitycvpredictdepositfailed',
+      status: TransactionStatus.failed,
+      metamaskPay: ACTIVITY_CV_PREDICT_DEPOSIT_PAY,
+      txReceipt: { status: '0x0' },
+    }) as unknown as TransactionMeta;
+
+/** Seeds TokensController so Pay bridge-fee rows resolve the USDC symbol. */
+export const activityPredictPayUsdcTokenOverride = {
+  engine: {
+    backgroundState: {
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            [ACTIVITY_CV_ACCOUNT]: [
+              {
+                address: ACTIVITY_CV_USDC,
+                symbol: 'USDC',
+                decimals: 6,
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
 
 /**
  * Confirmed Predict withdraw batch → `predictionsWithdrawFunds` under Predictions filter.
@@ -961,14 +1264,15 @@ export const buildPredictBuyActivity = (): PredictActivity => ({
   title: ACTIVITY_CV_PREDICT_MARKET_TITLE,
   icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
   outcome: 'Yes',
+  eventSlug: 'spain-world-cup-2026',
   entry: {
     type: 'buy',
     timestamp: 1_716_367_792,
     marketId: 'm-cv-1',
     outcomeId: 'o-cv-1',
     outcomeTokenId: 1,
-    amount: 3,
-    price: 0.42,
+    amount: 55,
+    price: 10,
   },
 });
 
@@ -979,14 +1283,15 @@ export const buildPredictSellActivity = (): PredictActivity => ({
   title: ACTIVITY_CV_PREDICT_MARKET_TITLE,
   icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
   outcome: 'Yes',
+  eventSlug: 'spain-world-cup-2026',
   entry: {
     type: 'sell',
     timestamp: 1_716_367_793,
     marketId: 'm-cv-1',
     outcomeId: 'o-cv-1',
     outcomeTokenId: 1,
-    amount: 75,
-    price: 0.6,
+    amount: 10,
+    price: 0.7,
   },
 });
 
@@ -996,16 +1301,25 @@ export const buildPredictClaimActivity = (): PredictActivity => ({
   providerId: 'polymarket',
   title: ACTIVITY_CV_PREDICT_MARKET_TITLE,
   icon: ACTIVITY_CV_PREDICT_MARKET_ICON,
+  totalNetPnlUsd: 12.5,
+  netPnlUsd: 4.25,
   entry: {
     type: 'claimWinnings',
     timestamp: 1_716_367_794,
-    amount: 250,
+    amount: 5.49,
   },
 });
 
 /** Remote flag shape that enables PredictActivitySource on ActivityScreen CV. */
 export const activityPredictTradingEnabledFlag = {
   predictTradingEnabled: {
+    enabled: true,
+    minimumVersion: '0.0.0',
+  },
+} as const;
+
+export const activityPerpsTradingEnabledFlag = {
+  perpsPerpTradingEnabled: {
     enabled: true,
     minimumVersion: '0.0.0',
   },
@@ -1144,9 +1458,7 @@ export const initialStateActivityWithLocalTransactions = (
   } as unknown as DeepPartial<RootState>);
 
 export const initialStateActivityWithRedesignEnabled = () =>
-  initialStateActivity().withRemoteFeatureFlags({
-    tmcuActivityRedesignEnabled: true,
-  });
+  initialStateActivity();
 
 /** State for ActivityList tests that load EVM history from the accounts API. */
 export const initialStateActivityWithAccountsApi = () =>
@@ -1212,23 +1524,21 @@ export const buildActivityCvRampSellEthOrder = (): FiatOrder =>
 
 /** Activity state with redesign + legacy fiatOrders for Ramp Details CV. */
 export const initialStateActivityWithRampOrders = (orders: FiatOrder[]) =>
-  initialStateActivity()
-    .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-    .withOverrides({
-      fiatOrders: {
-        orders,
-      },
-      engine: {
-        backgroundState: {
-          NetworkEnablementController: {
-            enabledNetworkMap: enabledMainnetNetworkMap,
-          },
-          RampsController: {
-            orders: [],
-          },
+  initialStateActivity().withOverrides({
+    fiatOrders: {
+      orders,
+    },
+    engine: {
+      backgroundState: {
+        NetworkEnablementController: {
+          enabledNetworkMap: enabledMainnetNetworkMap,
+        },
+        RampsController: {
+          orders: [],
         },
       },
-    } as unknown as DeepPartial<RootState>);
+    },
+  } as unknown as DeepPartial<RootState>);
 
 export const ACTIVITY_CV_SOLANA_ACCOUNT_ID = 'activity-cv-solana-acc';
 
@@ -1236,8 +1546,13 @@ export const ACTIVITY_CV_SOLANA_ADDRESS = '11111111111111111111111111111111';
 
 export const ACTIVITY_CV_SOLANA_SEND_ID = 'activity-cv-solana-send';
 
+export const ACTIVITY_CV_SOLANA_SWAP_ID = 'activity-cv-solana-swap';
+
 export const ACTIVITY_CV_SOLANA_ASSET_ID =
   `${ACTIVITY_CV_SOLANA_CHAIN_ID}/slip44:501` as const;
+
+export const ACTIVITY_CV_SOLANA_USDC_ASSET_ID =
+  `${ACTIVITY_CV_SOLANA_CHAIN_ID}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` as const;
 
 /**
  * Confirmed Solana native send (2 SOL). Keyring amounts are human-readable.
@@ -1268,6 +1583,53 @@ export const activityCvSolanaSendTransaction = {
     },
   ],
   fees: [],
+  events: [],
+};
+
+/**
+ * Confirmed Solana SOL → USDC swap (1 SOL → 100 USDC) with a SOL network fee.
+ * Pair with {@link activityCvSolanaSwapStateOverrides} for Activity Details CV.
+ */
+export const activityCvSolanaSwapTransaction = {
+  id: ACTIVITY_CV_SOLANA_SWAP_ID,
+  chain: ACTIVITY_CV_SOLANA_CHAIN_ID,
+  account: ACTIVITY_CV_SOLANA_ACCOUNT_ID,
+  status: 'confirmed',
+  timestamp: 1_716_367_796,
+  type: 'swap',
+  from: [
+    {
+      address: ACTIVITY_CV_SOLANA_ADDRESS,
+      asset: {
+        fungible: true,
+        type: ACTIVITY_CV_SOLANA_ASSET_ID,
+        unit: 'SOL',
+        amount: '1',
+      },
+    },
+  ],
+  to: [
+    {
+      address: ACTIVITY_CV_SOLANA_ADDRESS,
+      asset: {
+        fungible: true,
+        type: ACTIVITY_CV_SOLANA_USDC_ASSET_ID,
+        unit: 'USDC',
+        amount: '100',
+      },
+    },
+  ],
+  fees: [
+    {
+      type: 'base',
+      asset: {
+        fungible: true,
+        type: ACTIVITY_CV_SOLANA_ASSET_ID,
+        unit: 'SOL',
+        amount: '0.01',
+      },
+    },
+  ],
   events: [],
 };
 
@@ -1627,7 +1989,10 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   {
     id: string;
     title: string;
-    orderType: 'market' | 'limit';
+    orderType: OrdinaryOrderType;
+    executionType: 'market' | 'limit';
+    limitPrice?: string;
+    triggerPrice?: string;
     filled: string;
     statusText: PerpsOrderTransactionStatus;
     statusType: PerpsOrderTransactionStatusType;
@@ -1640,6 +2005,8 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
     id: 'activity-cv-perps-order-market-close-short',
     title: 'Market close short',
     orderType: 'market',
+    executionType: 'market',
+    limitPrice: undefined,
     filled: '100%',
     statusText: PerpsOrderTransactionStatus.Filled,
     statusType: PerpsOrderTransactionStatusType.Filled,
@@ -1648,7 +2015,9 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   stopMarketCloseShort: {
     id: 'activity-cv-perps-order-stop-market-close-short',
     title: 'Stop market close short',
-    orderType: 'market',
+    orderType: 'stop_market',
+    executionType: 'market',
+    triggerPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
     filled: '100%',
     statusText: PerpsOrderTransactionStatus.Filled,
     statusType: PerpsOrderTransactionStatusType.Filled,
@@ -1657,8 +2026,11 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   },
   takeProfitCanceled: {
     id: 'activity-cv-perps-order-tp-canceled',
-    title: 'Take profit limit close short',
-    orderType: 'limit',
+    title: 'Take limit close short',
+    orderType: 'take_profit_limit',
+    executionType: 'limit',
+    limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
+    triggerPrice: '91000',
     filled: '0%',
     statusText: PerpsOrderTransactionStatus.Canceled,
     statusType: PerpsOrderTransactionStatusType.Canceled,
@@ -1667,8 +2039,11 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   },
   takeProfitFilled: {
     id: 'activity-cv-perps-order-tp-filled',
-    title: 'Take profit limit close short',
-    orderType: 'limit',
+    title: 'Take limit close short',
+    orderType: 'take_profit_limit',
+    executionType: 'limit',
+    limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
+    triggerPrice: '91000',
     filled: '100%',
     statusText: PerpsOrderTransactionStatus.Filled,
     statusType: PerpsOrderTransactionStatusType.Filled,
@@ -1694,9 +2069,11 @@ export const buildActivityCvPerpsOrderTransaction = (
       orderId: spec.id,
       text: spec.statusText,
       statusType: spec.statusType,
-      type: spec.orderType,
+      type: spec.executionType,
+      orderType: spec.orderType,
       size: '9.2113',
-      limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
+      limitPrice: spec.limitPrice,
+      triggerPrice: spec.triggerPrice,
       filled: spec.filled,
       side: 'buy',
       reduceOnly: spec.reduceOnly,
@@ -1851,11 +2228,45 @@ export const activityPerpsDetailsStateOverrides = {
   },
 } as unknown as DeepPartial<RootState>;
 
+/**
+ * Same Solana account wiring as {@link activityCvSolanaSendStateOverrides}, with
+ * the SOL→USDC swap history and USDC rate for fee/total fiat on Activity Details.
+ */
+export const activityCvSolanaSwapStateOverrides = {
+  engine: {
+    backgroundState: {
+      ...(activityCvSolanaSendStateOverrides.engine?.backgroundState ?? {}),
+      MultichainTransactionsController: {
+        nonEvmTransactions: {
+          [ACTIVITY_CV_SOLANA_ACCOUNT_ID]: {
+            [ACTIVITY_CV_SOLANA_CHAIN_ID]: {
+              transactions: [activityCvSolanaSwapTransaction],
+              next: null,
+              lastUpdated: 1_716_367_796_000,
+            },
+          },
+        },
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {
+          [ACTIVITY_CV_SOLANA_ASSET_ID]: {
+            rate: '4',
+            currency: 'usd',
+          },
+          [ACTIVITY_CV_SOLANA_USDC_ASSET_ID]: {
+            rate: '1',
+            currency: 'usd',
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
 export const initialStateActivityWithPerpsDetails = (
   transactions: TransactionMeta[] = [],
 ) =>
   initialStateActivity()
-    .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
     .withOverrides(activityPerpsDetailsStateOverrides)
     .withOverrides({
       engine: {
@@ -1867,3 +2278,147 @@ export const initialStateActivityWithPerpsDetails = (
         },
       },
     } as unknown as DeepPartial<RootState>);
+
+const ACTIVITY_CV_PERPS_TRADE_FILL_TIMESTAMPS: Record<
+  ActivityCvPerpsTradeKind,
+  number
+> = {
+  openLong: ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS + 3000,
+  openShort: ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS + 2000,
+  closeLong: ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS + 1000,
+  closeShort: ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS,
+};
+
+const ACTIVITY_CV_PERPS_TRADE_FILL_DIRECTION: Record<
+  ActivityCvPerpsTradeKind,
+  OrderFill['direction']
+> = {
+  openLong: 'Open Long',
+  openShort: 'Open Short',
+  closeLong: 'Close Long',
+  closeShort: 'Close Short',
+};
+
+const ACTIVITY_CV_PERPS_TRADE_FILL_SIDE: Record<
+  ActivityCvPerpsTradeKind,
+  OrderFill['side']
+> = {
+  openLong: 'buy',
+  openShort: 'sell',
+  closeLong: 'sell',
+  closeShort: 'buy',
+};
+
+export const buildActivityCvPerpsOverviewOrderFill = (
+  kind: ActivityCvPerpsTradeKind,
+): OrderFill => {
+  const spec = ACTIVITY_CV_PERPS_TRADE_SPECS[kind];
+  const isOpen = spec.action === 'Opened';
+
+  return {
+    orderId: spec.id,
+    symbol: ACTIVITY_CV_PERPS_TRADE_ASSET,
+    side: ACTIVITY_CV_PERPS_TRADE_FILL_SIDE[kind],
+    size: ACTIVITY_CV_PERPS_TRADE_SIZE,
+    price: ACTIVITY_CV_PERPS_TRADE_PRICE,
+    pnl: isOpen ? '0' : String(spec.amountNumber),
+    direction: ACTIVITY_CV_PERPS_TRADE_FILL_DIRECTION[kind],
+    fee: isOpen ? ACTIVITY_CV_PERPS_TRADE_FEE : '0',
+    feeToken: 'USDC',
+    timestamp: ACTIVITY_CV_PERPS_TRADE_FILL_TIMESTAMPS[kind],
+    startPosition: ACTIVITY_CV_PERPS_TRADE_SIZE,
+    success: true,
+  };
+};
+
+export const activityCvPerpsTradeRowHash = (
+  kind: ActivityCvPerpsTradeKind,
+): string =>
+  `${ACTIVITY_CV_PERPS_TRADE_SPECS[kind].id}-${ACTIVITY_CV_PERPS_TRADE_FILL_TIMESTAMPS[kind]}`;
+
+const ACTIVITY_CV_PERPS_ORDER_TIMESTAMP_MS =
+  ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS + 6000;
+
+export const buildActivityCvPerpsOverviewCanceledTakeProfitOrder =
+  (): Order => {
+    const spec = ACTIVITY_CV_PERPS_ORDER_SPECS.takeProfitCanceled;
+
+    return {
+      orderId: spec.id,
+      symbol: ACTIVITY_CV_PERPS_TRADE_ASSET,
+      side: 'buy',
+      orderType: 'limit',
+      detailedOrderType: 'Take Profit Limit',
+      size: ACTIVITY_CV_PERPS_TRADE_SIZE,
+      originalSize: ACTIVITY_CV_PERPS_TRADE_SIZE,
+      price: ACTIVITY_CV_PERPS_TRADE_PRICE,
+      filledSize: '0',
+      remainingSize: ACTIVITY_CV_PERPS_TRADE_SIZE,
+      status: 'canceled',
+      timestamp: ACTIVITY_CV_PERPS_ORDER_TIMESTAMP_MS,
+      reduceOnly: true,
+      isTrigger: true,
+    };
+  };
+
+export const activityCvPerpsCanceledTakeProfitRowHash = (): string =>
+  `${ACTIVITY_CV_PERPS_ORDER_SPECS.takeProfitCanceled.id}-${ACTIVITY_CV_PERPS_ORDER_TIMESTAMP_MS}`;
+
+const ACTIVITY_CV_PERPS_FUNDING_TIMESTAMPS = {
+  received: ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS + 5000,
+  paid: ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS + 4000,
+} as const;
+
+export const buildActivityCvPerpsOverviewFunding = (
+  kind: ActivityCvPerpsFundingKind,
+): Funding => {
+  const spec = ACTIVITY_CV_PERPS_FUNDING_SPECS[kind];
+
+  return {
+    symbol: ACTIVITY_CV_PERPS_TRADE_ASSET,
+    amountUsd: String(spec.feeNumber),
+    rate: kind === 'received' ? '-0.000125' : '0.0001',
+    timestamp: ACTIVITY_CV_PERPS_FUNDING_TIMESTAMPS[kind],
+  };
+};
+
+export const activityCvPerpsFundingRowHash = (
+  kind: ActivityCvPerpsFundingKind,
+): string =>
+  `funding-${ACTIVITY_CV_PERPS_FUNDING_TIMESTAMPS[kind]}-${ACTIVITY_CV_PERPS_TRADE_ASSET}`;
+
+export const buildActivityCvPerpsOverviewUserHistory =
+  (): UserHistoryItem[] => [
+    {
+      id: 'activity-cv-perps-deposit',
+      timestamp: ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS + 8000,
+      type: 'deposit',
+      amount: '1000',
+      asset: 'USDC',
+      txHash: ACTIVITY_CV_PERPS_DEPOSIT_HASH,
+      status: 'completed',
+      details: { source: 'activity-cv' },
+    },
+    {
+      id: 'activity-cv-perps-withdrawal',
+      timestamp: ACTIVITY_CV_PERPS_DEPOSIT_TIMESTAMP_MS + 7000,
+      type: 'withdrawal',
+      amount: '1000',
+      asset: 'USDC',
+      txHash: ACTIVITY_CV_PERPS_WITHDRAWAL_HASH,
+      status: 'completed',
+      details: { source: 'activity-cv' },
+    },
+  ];
+
+/** Mixed Engine payloads so Overview Perps sub-filters can assert isolation. */
+export const buildActivityCvPerpsOverviewEngineSeed = () => ({
+  fills: (['openLong', 'openShort', 'closeLong', 'closeShort'] as const).map(
+    buildActivityCvPerpsOverviewOrderFill,
+  ),
+  orders: [buildActivityCvPerpsOverviewCanceledTakeProfitOrder()],
+  funding: (['paid', 'received'] as const).map(
+    buildActivityCvPerpsOverviewFunding,
+  ),
+  userHistory: buildActivityCvPerpsOverviewUserHistory(),
+});

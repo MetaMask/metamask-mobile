@@ -11,6 +11,16 @@ on:
   schedule:
     - cron: '0 4 * * *'
   workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
+        required: false
+        type: choice
+        options:
+          - inherit
+          - namespace
+          - current
+        default: inherit
 
 permissions:
   contents: read
@@ -25,6 +35,7 @@ jobs:
       environment: exp
       testflight_group: 'MetaMask BETA & Release Candidates'
       distribute_external: true
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   ios-rc:
@@ -36,6 +47,7 @@ jobs:
       environment: rc
       testflight_group: 'MetaMask BETA & Release Candidates'
       distribute_external: true
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   android-exp-generate:
@@ -50,6 +62,7 @@ jobs:
       platform: android
       source_branch: main
       build_number: ${{ needs.android-exp-generate.outputs.build-version }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   android-rc-generate:
@@ -65,6 +78,7 @@ jobs:
       platform: android
       source_branch: main
       build_number: ${{ needs.android-rc-generate.outputs.build-version }}
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   size-analysis-ios:

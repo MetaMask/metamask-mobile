@@ -135,22 +135,7 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 
 ### @MetaMask/money-movement
 
-- `app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.test.tsx`
-- `app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.tsx`
-- `app/components/UI/Ramp/Aggregator/Views/OrdersList/OrdersList.tsx`
-- `app/components/UI/Ramp/Aggregator/Views/SendTransaction/SendTransaction.tsx`
-- `app/components/UI/Ramp/Aggregator/components/OrderDetails.tsx`
-- `app/components/UI/Ramp/Aggregator/components/OrderListItem/OrderListItem.tsx`
-- `app/components/UI/Ramp/Aggregator/components/Quote/Quote.tsx`
-- `app/components/UI/Ramp/Aggregator/hooks/useBalance.test.ts`
-- `app/components/UI/Ramp/Aggregator/hooks/useBalance.ts`
-- `app/components/UI/Ramp/Aggregator/hooks/useERC20GasLimitEstimation.ts`
-- `app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts`
-- `app/components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts`
-- `app/components/UI/Ramp/Aggregator/utils/index.ts`
-- `app/components/UI/Ramp/Deposit/utils/index.ts`
-- `app/components/UI/Ramp/utils/getOrderAmount.ts`
-- `app/components/UI/Ramp/utils/v2OrderToast.ts`
+_(migrated — no remaining burndown entries)_
 
 ### @MetaMask/notifications
 
@@ -509,6 +494,36 @@ if (balance === 0) { ... }    // always false — different types
 if (balance == 0) { ... }     // works but avoid loose equality
 ```
 
+### 5b. `0n` is falsy — do not reuse BN truthiness checks
+
+BN.js instances are objects, so they are always truthy — including `new BN(0)`.
+Native `bigint` follows normal JS falsiness: `0n` is falsy.
+
+```ts
+// BEFORE — BN(0) is truthy, so this still entered the branch
+if (balanceBN) {
+  return balanceBN.lt(amountBN);
+}
+
+// AFTER — 0n is falsy and would skip the comparison incorrectly
+if (balanceBN) { ... } // ❌ skips when balance is 0n
+
+// Use nullish / explicit zero checks instead
+if (balanceBN != null) {
+  return balanceBN < amountBN;
+}
+if (balanceBN === 0n) { ... }
+```
+
+Common call-site shapes to rewrite when migrating:
+
+| Legacy (BN, always truthy) | BigInt-safe                                                |
+| -------------------------- | ---------------------------------------------------------- |
+| `if (balanceBN)`           | `if (balanceBN != null)`                                   |
+| `if (!balanceBN)`          | `if (balanceBN == null)`                                   |
+| `if (!maxSellAmount)`      | `if (maxSellAmount === null)` (when `0n` is a valid value) |
+| `balanceBN && gasFee`      | `balanceBN != null && gasFee`                              |
+
 ### 6. `toWei` / `toTokenMinimalUnit` return `bigint`, not `BN`
 
 If your code chains BN methods on the result, you need to switch to BigInt operators:
@@ -553,11 +568,12 @@ For each file you migrate:
 2. [ ] Replace `hexToBN` → `hexToBigInt`, `BNToHex` → `bigIntToHex`
 3. [ ] Replace BN method chains with native operators (`+`, `-`, `*`, `===`, `>`, etc.)
 4. [ ] Replace `.isZero()` with `=== 0n`
-5. [ ] Replace `.toString('hex')` with `.toString(16)` or `bigIntToHex()`
-6. [ ] Remove any `as any` or `as unknown as BN` casts (no longer needed)
-7. [ ] Update type annotations from `BN` to `bigint`
-8. [ ] Run `yarn jest <your-file>` to confirm tests pass
-9. [ ] Run `yarn lint:tsc` to confirm no type errors
+5. [ ] Replace BN truthiness checks (`if (balanceBN)` / `if (!balanceBN)`) with nullish / `=== 0n` checks — `0n` is falsy
+6. [ ] Replace `.toString('hex')` with `.toString(16)` or `bigIntToHex()`
+7. [ ] Remove any `as any` or `as unknown as BN` casts (no longer needed)
+8. [ ] Update type annotations from `BN` to `bigint`
+9. [ ] Run `yarn jest <your-file>` to confirm tests pass
+10. [ ] Run `yarn lint:tsc` to confirm no type errors
 
 ## Parity tests
 
@@ -585,5 +601,5 @@ These are the hot-path call-sites identified so far (see `bigint-migration-refer
 | 4   | `app/selectors/assets/assets-list.ts`                              | `hexToBN` + `weiToFiatNumber` + `fromWei`                  |
 | 5   | `app/selectors/earnController/earn/index.ts`                       | `hexToBN` + conditional selection + `weiToFiatNumber`      |
 | 6   | `app/components/Views/confirmations/context/send-context/utils.ts` | `BNToHex(toWei(...))` + `BNToHex(toTokenMinimalUnit(...))` |
-| 7   | `app/components/UI/Ramp/Aggregator/hooks/useBalance.ts`            | `hexToBN`                                                  |
+| 7   | `app/components/UI/Ramp/Aggregator/hooks/useBalance.ts`            | ~~`hexToBN`~~ **migrated** (`hexToBigInt`)                 |
 | 8   | `app/components/UI/Stake/hooks/useBalance.ts`                      | `hexToBN`                                                  |

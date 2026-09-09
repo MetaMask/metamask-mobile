@@ -22,6 +22,7 @@ import { colors as importedColors } from '../../../../../styles/common';
 import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
@@ -39,9 +40,6 @@ import OldButton, {
   ButtonVariants as OldButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
@@ -52,18 +50,20 @@ import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import {
-  FeatureId,
   formatAddressToAssetId,
   isNativeAddress,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
+import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
+import { useTokenFiatRate } from '../../hooks/useTokenFiatRate';
+import { hasMissingTokenFiatRate } from '../../utils/hasMissingTokenFiatRate';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import Engine from '../../../../../core/Engine';
@@ -121,7 +121,7 @@ const createStyles = ({
     secondaryValueContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 1,
       alignSelf: 'flex-start',
       paddingVertical: 4,
       paddingHorizontal: 4,
@@ -186,6 +186,25 @@ interface TokenInputAreaProps {
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
   showFiatAmountAsPrimary?: boolean;
+  /**
+   * When true, no fiat value is shown for a token that has no fiat rate,
+   * rather than the "$0.00" such a token would otherwise be priced at.
+   */
+  hideFiatValueWhenUnpriced?: boolean;
+  /**
+   * When true, the amount input, loading skeleton, fiat row, and subtitle
+   * are omitted. Used by Recurring dest to show a static label instead of
+   * the quoted dest amount. Limit and Market must leave this unset.
+   */
+  hideAmount?: boolean;
+  /**
+   * Label rendered in place of the amount when `hideAmount` is true.
+   */
+  amountReplacementLabel?: string;
+  /**
+   * Test ID for the `amountReplacementLabel` text.
+   */
+  amountReplacementLabelTestID?: string;
 }
 
 export const TokenInputArea = forwardRef<
@@ -219,9 +238,14 @@ export const TokenInputArea = forwardRef<
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
       showFiatAmountAsPrimary = false,
+      hideFiatValueWhenUnpriced = false,
+      hideAmount = false,
+      amountReplacementLabel,
+      amountReplacementLabelTestID,
     },
     ref,
   ) => {
+    const featureId = useSwapsFeatureId();
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     // Need to fetch the exchange rate for the token if we don't have it already
@@ -252,41 +276,29 @@ export const TokenInputArea = forwardRef<
       isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
-    const navigation = useNavigation<AppNavigationProp>();
     const tokenSelectorType =
       tokenType === TokenInputAreaType.Source || isSourceToken
         ? TokenSelectorType.Source
         : TokenSelectorType.Dest;
 
-    const trackAssetPickerOpened = useCallback((type: TokenSelectorType) => {
-      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
-        UnifiedSwapBridgeEventName.AssetPickerOpened,
-        {
-          asset_location:
-            type === TokenSelectorType.Source ? 'source' : 'destination',
-          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
-        },
-      );
-    }, []);
+    const trackAssetPickerOpened = useCallback(
+      (type: TokenSelectorType) => {
+        Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+          UnifiedSwapBridgeEventName.AssetPickerOpened,
+          {
+            asset_location:
+              type === TokenSelectorType.Source ? 'source' : 'destination',
+            feature_id: featureId,
+          },
+        );
+      },
+      [featureId],
+    );
 
     const handleTokenButtonPress = useCallback(() => {
       trackAssetPickerOpened(tokenSelectorType);
       onTokenPress?.();
     }, [onTokenPress, tokenSelectorType, trackAssetPickerOpened]);
-
-    const navigateToDestTokenSelector = () => {
-      trackAssetPickerOpened(TokenSelectorType.Dest);
-      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Dest,
-      });
-    };
-
-    const navigateToSourceTokenSelector = () => {
-      trackAssetPickerOpened(TokenSelectorType.Source);
-      navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: TokenSelectorType.Source,
-      });
-    };
 
     const tokenAmount = balanceCheckAmount ?? amount;
     const isInsufficientBalance = useIsInsufficientBalance({
@@ -296,9 +308,16 @@ export const TokenInputArea = forwardRef<
     });
 
     const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
+    const tokenFiatRate = useTokenFiatRate(token);
+    // Without a rate the currency value is formatted as a bare "$0.00", which
+    // reads as the token being worthless rather than unpriced.
+    const shouldHideFiatValue =
+      hideFiatValueWhenUnpriced &&
+      hasMissingTokenFiatRate(token, tokenFiatRate);
     const shouldShowFiatAmountAsPrimary = Boolean(
       tokenType === TokenInputAreaType.Destination &&
         showFiatAmountAsPrimary &&
+        !shouldHideFiatValue &&
         token &&
         amount &&
         Number(amount) > 0,
@@ -310,7 +329,8 @@ export const TokenInputArea = forwardRef<
         )} ${token?.symbol}`
       : undefined;
     const defaultSecondaryAmountDisplayValue =
-      secondaryTokenAmountDisplayValue ?? defaultCurrencyValue;
+      secondaryTokenAmountDisplayValue ??
+      (shouldHideFiatValue ? undefined : defaultCurrencyValue);
     const secondaryAmountDisplayValue =
       secondaryValue === undefined
         ? defaultSecondaryAmountDisplayValue
@@ -380,8 +400,19 @@ export const TokenInputArea = forwardRef<
       <Box style={style}>
         <Box style={styles.content} gap={2}>
           <Box style={styles.row}>
-            <Box style={styles.amountContainer} onLayout={onContainerLayout}>
-              {isLoading ? (
+            <Box
+              style={styles.amountContainer}
+              onLayout={hideAmount ? undefined : onContainerLayout}
+            >
+              {hideAmount ? (
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Alternative}
+                  testID={amountReplacementLabelTestID}
+                >
+                  {amountReplacementLabel}
+                </Text>
+              ) : isLoading ? (
                 <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
                 <Box style={styles.amountInputWrapper}>
@@ -442,84 +473,82 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariant.Primary}
-                onPress={
-                  isSourceToken
-                    ? navigateToSourceTokenSelector
-                    : navigateToDestTokenSelector
-                }
+                onPress={handleTokenButtonPress}
                 testID={testID}
               >
                 {strings(tokenButtonText)}
               </Button>
             )}
           </Box>
-          <Box style={styles.row}>
-            {isLoading ? (
-              <Skeleton width={80} height={24} />
-            ) : (
-              <>
-                <Box style={styles.currencyContainer}>
-                  <TouchableOpacity
-                    style={styles.secondaryValueContainer}
-                    onPress={onAmountTypeTogglePress}
-                    disabled={!onAmountTypeTogglePress}
-                    testID={
-                      onAmountTypeTogglePress
-                        ? amountTypeToggleTestID
-                        : undefined
+          {hideAmount ? null : (
+            <Box style={styles.row}>
+              {isLoading ? (
+                <Skeleton width={80} height={24} />
+              ) : (
+                <>
+                  <Box style={styles.currencyContainer}>
+                    <TouchableOpacity
+                      style={styles.secondaryValueContainer}
+                      onPress={onAmountTypeTogglePress}
+                      disabled={!onAmountTypeTogglePress}
+                      testID={
+                        onAmountTypeTogglePress
+                          ? amountTypeToggleTestID
+                          : undefined
+                      }
+                    >
+                      {shouldShowSecondaryAmount ? (
+                        <Text color={TextColor.Alternative}>
+                          {secondaryAmountDisplayValue}
+                        </Text>
+                      ) : null}
+                      {onAmountTypeTogglePress ? (
+                        <Icon
+                          name={IconName.SwapVertical}
+                          size={IconSize.Sm}
+                          color={IconColor.Alternative}
+                        />
+                      ) : null}
+                    </TouchableOpacity>
+                  </Box>
+                  <Box
+                    flexDirection={
+                      tokenType === TokenInputAreaType.Source &&
+                      onMaxPress &&
+                      shouldShowMaxButton
+                        ? FlexDirection.Row
+                        : FlexDirection.Column
                     }
+                    gap={4}
+                    style={styles.hidden}
                   >
-                    {shouldShowSecondaryAmount ? (
-                      <Text color={TextColor.Alternative}>
-                        {secondaryAmountDisplayValue}
-                      </Text>
-                    ) : null}
-                    {onAmountTypeTogglePress ? (
-                      <Icon
-                        name={IconName.SwapVertical}
-                        size={IconSize.Sm}
-                        color={IconColor.Alternative}
-                      />
-                    ) : null}
-                  </TouchableOpacity>
-                </Box>
-                <Box
-                  flexDirection={
-                    tokenType === TokenInputAreaType.Source &&
-                    onMaxPress &&
-                    shouldShowMaxButton
-                      ? FlexDirection.Row
-                      : FlexDirection.Column
-                  }
-                  gap={4}
-                  style={styles.hidden}
-                >
-                  <Text
-                    color={
-                      isInsufficientBalance &&
-                      tokenType === TokenInputAreaType.Source
-                        ? TextColor.Error
-                        : TextColor.Alternative
-                    }
-                  >
-                    {subtitle}
-                  </Text>
-                  {tokenType === TokenInputAreaType.Source &&
-                    tokenBalance &&
-                    onMaxPress &&
-                    shouldShowMaxButton && (
-                      <OldButton
-                        variant={OldButtonVariants.Link}
-                        label={strings('bridge.max')}
-                        onPress={onMaxPress}
-                        disabled={!subtitle}
-                        testID="token-input-area-max-button"
-                      />
-                    )}
-                </Box>
-              </>
-            )}
-          </Box>
+                    <Text
+                      color={
+                        isInsufficientBalance &&
+                        tokenType === TokenInputAreaType.Source
+                          ? TextColor.Error
+                          : TextColor.Alternative
+                      }
+                    >
+                      {subtitle}
+                    </Text>
+                    {tokenType === TokenInputAreaType.Source &&
+                      tokenBalance &&
+                      onMaxPress &&
+                      shouldShowMaxButton && (
+                        <OldButton
+                          variant={OldButtonVariants.Link}
+                          label={strings('bridge.max')}
+                          onPress={onMaxPress}
+                          disabled={!subtitle}
+                          testID="token-input-area-max-button"
+                        />
+                      )}
+                  </Box>
+                </>
+              )}
+            </Box>
+          )}
         </Box>
       </Box>
     );

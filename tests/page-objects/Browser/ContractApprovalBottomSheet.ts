@@ -3,13 +3,10 @@
 // This e2e page object needs to be updated to use redesigned confirmation testIds
 // or deleted if the functionality is no longer tested.
 
-// import {
-//   ContractApprovalBottomSheetSelectorsIDs,
-//   ContractApprovalBottomSheetSelectorsText,
-// } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
+// import { //   ContractApprovalBottomSheetSelectorsIDs, //   ContractApprovalBottomSheetSelectorsText, // } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 // Temporary placeholders to prevent TypeScript errors
 const ContractApprovalBottomSheetSelectorsIDs = {
@@ -28,55 +25,55 @@ const ContractApprovalBottomSheetSelectorsText = {
 };
 
 class ContractApprovalBottomSheet {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ContractApprovalBottomSheetSelectorsIDs.CONTAINER,
     );
   }
 
-  get addNickName(): EncapsulatedElementType {
+  get addNickName(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.ADD_NICKNAME,
     );
   }
 
-  get editNickName(): EncapsulatedElementType {
+  get editNickName(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.EDIT_NICKNAME,
     );
   }
 
-  get rejectButton(): EncapsulatedElementType {
+  get rejectButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.REJECT,
     );
   }
 
-  get approveButton(): EncapsulatedElementType {
+  get approveButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.APPROVE,
     );
   }
 
-  get contractAddress(): EncapsulatedElementType {
+  get contractAddress(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ContractApprovalBottomSheetSelectorsIDs.CONTRACT_ADDRESS,
     );
   }
 
-  get nextButton(): EncapsulatedElementType {
+  get nextButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.NEXT,
     );
   }
 
-  get approveTokenAmount(): EncapsulatedElementType {
+  get approveTokenAmount(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ContractApprovalBottomSheetSelectorsIDs.APPROVE_TOKEN_AMOUNT,
     );
   }
 
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ContractApprovalBottomSheetSelectorsText.CONFIRM,
     );

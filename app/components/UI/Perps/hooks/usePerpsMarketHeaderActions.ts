@@ -108,8 +108,10 @@ export const usePerpsMarketHeaderActions = ({
 
     navigateToMarketListFromHeader({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      // Selection haptics on list rows are Pro-only; Lite stays silent.
+      enableHaptics: perpsMode === PerpsMode.Pro,
     });
-  }, [symbol, track, navigateToMarketListFromHeader]);
+  }, [symbol, track, navigateToMarketListFromHeader, perpsMode]);
 
   const handleFavoritePress = useCallback(() => {
     if (!symbol) {
@@ -130,7 +132,6 @@ export const usePerpsMarketHeaderActions = ({
 
   const handlePerpsModeChange = useCallback(
     async (nextMode: PerpsMode): Promise<boolean> => {
-      // The market-header pill owns the shimmer delay; this fires once it ends.
       // The chooser gates every header toggle, so a user who reaches a market
       // without ever seeing it gets the sheet here and it owns the switch.
       const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {

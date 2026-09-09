@@ -80,6 +80,8 @@ import {
   RESET_PASSWORD_GUIDE_URL,
   RESET_PASSWORD_SOCIAL_LOGIN_URL,
 } from '../../../constants/urls';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import { hasTestOverrides } from '../../../util/test/utils';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -143,13 +145,19 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   >(undefined);
 
   const confirmPasswordInput = useRef<TextInput | null>(null);
+  const passwordRef = useRef('');
 
   const reauthenticate = useCallback(async (pwd?: string) => {
-    setReady(false);
+    // Biometric (no pwd) uses the full-screen loader. Password confirm keeps
+    // the form mounted so E2E can observe the transition to ResetForm.
+    if (!pwd) {
+      setReady(false);
+    }
     let reauthError: Error | undefined;
     try {
       const { password: verifiedPassword } =
         await Authentication.reauthenticate(pwd);
+      passwordRef.current = '';
       setPassword('');
       setOriginalPassword(verifiedPassword);
       setView(ViewState.ResetForm);
@@ -166,6 +174,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           strings('reveal_credential.warning_incorrect_password'),
         );
       }
+      setView(ViewState.ConfirmCurrent);
     }
     setReady(true);
   }, []);
@@ -196,12 +205,22 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         setBiometryChoice(
           !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
         );
+        setView(ViewState.ConfirmCurrent);
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-        reauthenticate();
+        // E2E builds: skip Face ID auto-reauth so change-password always uses
+        // the current-password step.
+        // Production: await biometric reauth; on success reauthenticate sets
+        // ResetForm — do not force ConfirmCurrent afterward.
+        if (hasTestOverrides) {
+          setView(ViewState.ConfirmCurrent);
+        } else {
+          await reauthenticate();
+        }
+      } else {
+        setView(ViewState.ConfirmCurrent);
       }
-      setView(ViewState.ConfirmCurrent);
     };
 
     initAuth();
@@ -373,6 +392,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, []);
 
   const onPasswordChange = useCallback((val: string) => {
+    passwordRef.current = val;
     setPassword(val);
     setConfirmPassword((prev) => (val === '' ? '' : prev));
   }, []);
@@ -400,8 +420,12 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, [navigation]);
 
   const reauthenticateWithPassword = useCallback(() => {
-    reauthenticate(password);
-  }, [reauthenticate, password]);
+    const pwd = passwordRef.current;
+    if (!pwd) {
+      return;
+    }
+    reauthenticate(pwd);
+  }, [reauthenticate]);
 
   const isError = useCallback(
     () =>
@@ -569,6 +593,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                 secureTextEntry: true,
                 onSubmitEditing: reauthenticateWithPassword,
                 testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                accessibilityLabel:
+                  ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
                 keyboardAppearance: themeAppearance,
                 autoComplete: 'password',
               }}
@@ -665,6 +691,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     inputProps={{
                       secureTextEntry: showPasswordIndex.includes(0),
                       testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                      accessibilityLabel:
+                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
                       onSubmitEditing: jumpToConfirmPassword,
                       returnKeyType: 'next',
                       autoComplete: 'password-new',
@@ -710,6 +738,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     inputProps={{
                       secureTextEntry: showPasswordIndex.includes(1),
                       testID:
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                      accessibilityLabel:
                         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
                       returnKeyType: 'done',
                       autoComplete: 'password-new',
@@ -789,7 +819,20 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     );
   };
 
-  if (!ready) return renderLoader();
+  // The deterrent stays mounted through the re-authentication loader so
+  // capture protection is not released between verifying the current password
+  // and showing the new-password form.
+  const captureDeterrent = (
+    <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
+  );
+
+  if (!ready)
+    return (
+      <>
+        {renderLoader()}
+        {captureDeterrent}
+      </>
+    );
 
   return (
     <SafeAreaView
@@ -808,6 +851,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           ? renderResetPassword()
           : renderConfirmPassword()}
       </Box>
+      {captureDeterrent}
     </SafeAreaView>
   );
 };

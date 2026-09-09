@@ -1020,65 +1020,60 @@ const PriceAdvanced = ({
           {Platform.OS === 'ios' && (
             <View style={styles.edgeOverlay} pointerEvents="box-only" />
           )}
-          {useAmbientColor && initialAmbientColor === undefined ? (
-            <Skeleton height={chartHeight} width="100%" />
-          ) : (
-            <AdvancedChart
-              ohlcvData={ohlcvData}
-              ohlcvSeriesKey={ohlcvSeriesKey}
-              webViewInstanceKey={
-                isTechnicalIndicatorsEnabled
-                  ? chartWebViewSessionKey
-                  : undefined
-              }
-              realtimeBar={realtimeBar}
-              height={chartHeight}
-              showVolume={
-                isTechnicalIndicatorsEnabled
-                  ? chartType === ChartType.Candles &&
-                    activeIndicators.has('Volume')
-                  : chartType === ChartType.Candles
-              }
-              volumeOverlay
-              chartType={chartType}
-              indicators={showChartIndicators ? indicatorsArray : []}
-              selectedMAs={showChartIndicators ? selectedMAs : []}
-              subPaneHeightRatio={
-                advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
-              }
-              useSubscriptPriceFormat={
-                advancedChartLineChromePresets.tokenOverview
-                  .useSubscriptPriceFormat
-              }
-              isLoading={
-                isTechnicalIndicatorsEnabled
-                  ? !hasChartBeenRevealed && chartLoading
-                  : chartLoading
-              }
-              ohlcvPagination={ohlcvPagination}
-              visibleFromMs={visibleFromMs}
-              visibleToMs={visibleToMs}
-              onCrosshairMove={handleCrosshairMove}
-              onChartInteracted={handleChartInteracted}
-              onChartTradingViewClicked={handleChartTradingViewClicked}
-              onSkeletonHidden={handleAdvancedChartSkeletonHidden}
-              onChartLayoutSettled={
-                isTechnicalIndicatorsEnabled
-                  ? handleAdvancedChartLayoutSettled
-                  : undefined
-              }
-              onError={handleAdvancedChartError}
-              onInitFailed={handleAdvancedChartInitFailed}
-              lineColorOverride={initialAmbientColor}
-              successColorOverride={
-                initialAmbientColor ? ambientSuccessGreen : undefined
-              }
-              errorColorOverride={
-                initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
-              }
-              legendOverlay={tokenDetailsLegendOverlay}
-            />
-          )}
+          {/* Mount immediately so the WebView boots in parallel with the OHLCV fetch; AdvancedChart's own skeleton covers it until ready. */}
+          <AdvancedChart
+            ohlcvData={ohlcvData}
+            ohlcvSeriesKey={ohlcvSeriesKey}
+            webViewInstanceKey={
+              isTechnicalIndicatorsEnabled ? chartWebViewSessionKey : undefined
+            }
+            realtimeBar={realtimeBar}
+            height={chartHeight}
+            showVolume={
+              isTechnicalIndicatorsEnabled
+                ? chartType === ChartType.Candles &&
+                  activeIndicators.has('Volume')
+                : chartType === ChartType.Candles
+            }
+            volumeOverlay
+            chartType={chartType}
+            indicators={showChartIndicators ? indicatorsArray : []}
+            selectedMAs={showChartIndicators ? selectedMAs : []}
+            subPaneHeightRatio={
+              advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
+            }
+            useSubscriptPriceFormat={
+              advancedChartLineChromePresets.tokenOverview
+                .useSubscriptPriceFormat
+            }
+            isLoading={
+              isTechnicalIndicatorsEnabled
+                ? !hasChartBeenRevealed && chartLoading
+                : chartLoading
+            }
+            ohlcvPagination={ohlcvPagination}
+            visibleFromMs={visibleFromMs}
+            visibleToMs={visibleToMs}
+            onCrosshairMove={handleCrosshairMove}
+            onChartInteracted={handleChartInteracted}
+            onChartTradingViewClicked={handleChartTradingViewClicked}
+            onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+            onChartLayoutSettled={
+              isTechnicalIndicatorsEnabled
+                ? handleAdvancedChartLayoutSettled
+                : undefined
+            }
+            onError={handleAdvancedChartError}
+            onInitFailed={handleAdvancedChartInitFailed}
+            lineColorOverride={initialAmbientColor}
+            successColorOverride={
+              initialAmbientColor ? ambientSuccessGreen : undefined
+            }
+            errorColorOverride={
+              initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
+            }
+            legendOverlay={tokenDetailsLegendOverlay}
+          />
         </View>
       </Box>
       {/* IndicatorBar appears when not loading */}

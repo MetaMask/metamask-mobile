@@ -11,7 +11,7 @@ export const ConfirmationTopSheetSelectorsIDs = {
 export const ConfirmationTopSheetSelectorsText = {
   BANNER_FAILED_TITLE: enContent.blockaid_banner.failed_title,
   BANNER_FAILED_DESCRIPTION: enContent.blockaid_banner.failed_description,
-  BANNER_MALICIOUS_TITLE: enContent.blockaid_banner.deceptive_request_title,
+  BANNER_MALICIOUS_TITLE: enContent.blockaid_banner.site_flagged_unsafe_title,
   BANNER_MALICIOUS_DESCRIPTION:
     enContent.blockaid_banner.malicious_domain_description,
 } as const;
@@ -53,6 +53,9 @@ export const ConfirmationRowComponentIDs = {
 export const ConfirmationFooterSelectorIDs = {
   CANCEL_BUTTON: 'cancel-button',
   CONFIRM_BUTTON: 'confirm-button',
+  STAKING_TERMS_OF_USE_BUTTON: 'confirm-staking-footer-terms-of-use-button',
+  STAKING_RISK_DISCLOSURE_BUTTON:
+    'confirm-staking-footer-risk-disclosure-button',
 } as const;
 
 export const ConfirmationLoaderSelectorIDs = {
@@ -62,7 +65,9 @@ export const ConfirmationLoaderSelectorIDs = {
 export const ConfirmAlertModalSelectorsIDs = {
   CONFIRM_ALERT_CHECKBOX: 'confirm-alert-checkbox',
   CONFIRM_ALERT_BUTTON: 'confirm-alert-confirm-button',
+  CONFIRM_ALERT_CANCEL_BUTTON: 'confirm-alert-cancel-button',
   CONFIRM_ALERT_MODAL: 'confirm-alert-modal',
+  REVIEW_ALERTS_BUTTON: 'confirm-alert-review-alerts-button',
 } as const;
 
 export const AlertModalSelectorsIDs = {
@@ -122,6 +127,7 @@ export const TransactionPayComponentIDs = {
   PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_SYMBOL: 'pay-with-symbol',
   PAY_WITH_TOKEN_LIST: 'pay-with-token-list',
+  PAY_WITH_TOKEN_LIST_SKELETON: 'pay-with-token-list-skeleton',
   KEYBOARD_CONTAINER: 'custom-amount-input',
 };
 

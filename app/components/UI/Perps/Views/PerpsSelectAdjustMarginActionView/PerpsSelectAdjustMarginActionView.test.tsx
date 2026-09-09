@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsSelectAdjustMarginActionView from './PerpsSelectAdjustMarginActionView';
 import { type Position } from '@metamask/perps-controller';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 let mockRouteParams: { position?: Position } = {};
 const mockGoBack = jest.fn();
@@ -21,6 +22,7 @@ jest.mock('@react-navigation/native', () => ({
     name: 'SELECT_ADJUST_MARGIN_ACTION',
   }),
 }));
+jest.mock('../../../../../util/haptics');
 
 jest.mock('../../hooks/usePerpsNavigation', () => ({
   usePerpsNavigation: () => ({
@@ -141,7 +143,9 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(
       mockPosition,
       'add',
+      { enableHaptics: false },
     );
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('calls goBack after add_margin action is selected without external sheetRef', () => {
@@ -153,14 +157,22 @@ describe('PerpsSelectAdjustMarginActionView', () => {
   });
 
   it('navigates to reduce margin when reduce_margin action is selected', () => {
-    render(<PerpsSelectAdjustMarginActionView position={mockPosition} />);
+    render(
+      <PerpsSelectAdjustMarginActionView
+        position={mockPosition}
+        enableHaptics
+      />,
+    );
 
     fireEvent.press(screen.getByTestId('reduce-margin'));
 
     expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(
       mockPosition,
       'remove',
+      { enableHaptics: true },
     );
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
   it('does not navigate when position is not available', () => {
@@ -170,6 +182,7 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     fireEvent.press(screen.getByTestId('add-margin'));
 
     expect(mockNavigateToAdjustMargin).not.toHaveBeenCalled();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('calls goBack when close button is pressed without external sheetRef', () => {
@@ -229,6 +242,7 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     expect(mockNavigateToAdjustMargin).toHaveBeenCalledWith(
       mockPosition,
       'add',
+      { enableHaptics: false },
     );
   });
 });

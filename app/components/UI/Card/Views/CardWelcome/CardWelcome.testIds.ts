@@ -4,4 +4,5 @@ export const CardWelcomeSelectors = {
   WELCOME_TO_CARD_TITLE_TEXT: 'welcome-to-card-title-text',
   WELCOME_TO_CARD_DESCRIPTION_TEXT: 'welcome-to-card-description-text',
   CARD_IMAGE: 'card-image',
+  CARDS_ANIMATION: 'card-welcome-cards-rive',
 };

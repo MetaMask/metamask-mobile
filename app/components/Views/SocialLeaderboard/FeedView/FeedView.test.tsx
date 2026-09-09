@@ -30,7 +30,7 @@ const spotItem: FeedItem = {
   traderId: 'trader-1',
   username: 'dutchiono',
   traderAddress: '0x1111111111111111111111111111111111111111',
-  action: 'bought',
+  action: 'opened',
   timestamp: 1722470400000 - 1000,
   subHeader: { sizeLabel: '$120K' },
   valueLabel: '$123,000.5',
@@ -99,14 +99,20 @@ const buildResult = (
     loadMore: mockLoadMore,
     error: null,
     refresh: mockRefresh,
+    // Undefined by default so rows fall back to their own render-time clock.
+    dataUpdatedAt: undefined,
     ...overrides,
   };
 };
 
 let mockFeedResult: UseTraderFeedResult = buildResult();
 
+const mockUseTraderFeed = jest.fn();
 jest.mock('./hooks/useTraderFeed', () => ({
-  useTraderFeed: () => mockFeedResult,
+  useTraderFeed: (options: unknown) => {
+    mockUseTraderFeed(options);
+    return mockFeedResult;
+  },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -124,6 +130,10 @@ jest.mock('../../../../util/haptics', () => ({
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+
+// `strings` is mocked to the identity above, so the sub-minute age label
+// renders as its translation key rather than "Just now".
+const JUST_NOW_LABEL = /social_leaderboard\.feed\.just_now/;
 
 const mockTrack = jest.fn();
 jest.mock('../analytics', () => {
@@ -149,6 +159,15 @@ jest.mock('../components/Filters', () => {
     },
   };
 });
+
+/** Left-to-right order of the audience toggle segments as rendered. */
+const getAudienceToggleOrder = () =>
+  screen
+    .getAllByRole('button')
+    .map((option) => option.props.testID as string | undefined)
+    .filter((id): id is string =>
+      Boolean(id?.startsWith(`${FeedViewSelectorsIDs.AUDIENCE_TOGGLE}-`)),
+    );
 
 describe('FeedView', () => {
   beforeEach(() => {
@@ -236,12 +255,26 @@ describe('FeedView', () => {
         trader_address: spotItem.traderAddress,
         trader_username: spotItem.username,
         trade_type: 'spot',
-        feed_action: 'bought',
+        feed_action: 'opened',
         asset_name: 'PEPE',
         feed_audience: 'following',
         feed_type_filter: 'all',
         caip19: expect.stringContaining('eip155:1/erc20:'),
       }),
+    );
+  });
+
+  it('omits feed action analytics when lifecycle metadata is missing', () => {
+    const item = { ...spotItem, action: undefined };
+    mockFeedResult = buildResult({ items: [item] });
+
+    renderWithProvider(<FeedView onQuickBuy={jest.fn()} />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId(item.id)));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
+      expect.not.objectContaining({ feed_action: expect.anything() }),
     );
   });
 
@@ -288,6 +321,52 @@ describe('FeedView', () => {
         feed_type_filter: 'all',
       }),
     );
+  });
+
+  it('opens on the Following audience by default', () => {
+    renderWithProvider(<FeedView />);
+
+    expect(mockUseTraderFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ audience: 'following' }),
+    );
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('following')).props
+        .accessibilityState?.selected,
+    ).toBe(true);
+  });
+
+  it('opens on the audience requested by the entry point', () => {
+    renderWithProvider(<FeedView initialAudience="all" />);
+
+    expect(mockUseTraderFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ audience: 'all' }),
+    );
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('all')).props
+        .accessibilityState?.selected,
+    ).toBe(true);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      expect.objectContaining({ feed_audience: 'all' }),
+    );
+  });
+
+  it('puts the preselected audience first in the toggle', () => {
+    renderWithProvider(<FeedView initialAudience="all" />);
+
+    const toggleOptions = getAudienceToggleOrder();
+
+    expect(toggleOptions[0]).toBe(getFeedAudienceOptionTestId('all'));
+    expect(toggleOptions[1]).toBe(getFeedAudienceOptionTestId('following'));
+  });
+
+  it('keeps Following first in the toggle by default', () => {
+    renderWithProvider(<FeedView />);
+
+    const toggleOptions = getAudienceToggleOrder();
+
+    expect(toggleOptions[0]).toBe(getFeedAudienceOptionTestId('following'));
+    expect(toggleOptions[1]).toBe(getFeedAudienceOptionTestId('all'));
   });
 
   it('tracks audience filter changes via Trader Feed Interaction', () => {
@@ -469,12 +548,99 @@ describe('FeedView', () => {
       // the promise can settle under fake timers.
       await act(async () => {
         const refreshPromise = refreshControl.props.onRefresh();
-        jest.runAllTimers();
+        // 1s min-duration only — runAllTimers would loop the 30s age clock.
+        jest.advanceTimersByTime(1000);
         await refreshPromise;
       });
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
     } finally {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  });
+
+  // The age has to straddle the one-minute boundary for this to prove anything:
+  // every sub-minute value renders "Just now", so a refresh that stayed inside
+  // that range would assert the same label before and after and would pass even
+  // if the clock were ignored entirely.
+  it('updates the relative timestamp on pull-to-refresh when the payload is unchanged', async () => {
+    jest.useFakeTimers();
+    const t0 = 1_700_000_000_000;
+    jest.setSystemTime(t0);
+    const unchangedItem: FeedItem = {
+      ...spotItem,
+      timestamp: t0 - 55_000,
+    };
+    const sections: FeedSection[] = [
+      { dateLabel: 'Today', data: [unchangedItem] },
+    ];
+    mockFeedResult = buildResult({
+      items: [unchangedItem],
+      sections,
+      dataUpdatedAt: t0,
+    });
+
+    try {
+      const { rerender } = renderWithProvider(<FeedView />);
+
+      expect(screen.getByText(JUST_NOW_LABEL)).toBeOnTheScreen();
+
+      const list = screen.getByTestId(FeedViewSelectorsIDs.LIST);
+      await act(async () => {
+        const refreshPromise = list.props.refreshControl.props.onRefresh();
+        jest.advanceTimersByTime(1000);
+        await refreshPromise;
+      });
+
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+
+      // The refetch resolved 10s later with the same payload, so React Query's
+      // structural sharing keeps `data` identical and only `dataUpdatedAt`
+      // moves. That change is what re-renders the feed in the real app.
+      jest.setSystemTime(t0 + 10_000);
+      mockFeedResult = buildResult({
+        items: [unchangedItem],
+        sections,
+        dataUpdatedAt: t0 + 10_000,
+      });
+      await act(async () => {
+        rerender(<FeedView />);
+      });
+
+      expect(screen.getByText(/1m/)).toBeOnTheScreen();
+      expect(screen.queryByText(JUST_NOW_LABEL)).not.toBeOnTheScreen();
+    } finally {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  });
+
+  it('advances relative timestamps on the shared clock without refetching', () => {
+    jest.useFakeTimers();
+    const t0 = 1_700_000_000_000;
+    jest.setSystemTime(t0);
+    const item: FeedItem = { ...spotItem, timestamp: t0 - 55_000 };
+    mockFeedResult = buildResult({
+      items: [item],
+      sections: [{ dateLabel: 'Today', data: [item] }],
+      dataUpdatedAt: t0,
+    });
+
+    try {
+      renderWithProvider(<FeedView />);
+
+      expect(screen.getByText(JUST_NOW_LABEL)).toBeOnTheScreen();
+
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(screen.getByText(/1m/)).toBeOnTheScreen();
+      expect(screen.queryByText(JUST_NOW_LABEL)).not.toBeOnTheScreen();
+      expect(mockRefresh).not.toHaveBeenCalled();
+    } finally {
+      jest.clearAllTimers();
       jest.useRealTimers();
     }
   });

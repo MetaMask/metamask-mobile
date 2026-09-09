@@ -402,7 +402,10 @@ describe('PredictCryptoUpDownDetails', () => {
       ),
     ).toBeOnTheScreen();
     expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
+      expect.objectContaining({
+        enabled: true,
+        twapWindowSeconds: 30,
+      }),
     );
 
     fireEvent.press(

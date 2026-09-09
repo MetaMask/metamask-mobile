@@ -10,6 +10,12 @@ import {
   getMetaMaskPayFiatChainTarget,
   normalizeMetaMaskPayPaymentMethod,
 } from '../../../../../components/Views/confirmations/utils/transaction-pay-metrics';
+import {
+  MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED,
+  resolveMoneyAccountDepositPrefillPresented,
+} from '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics';
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
 import { isNoOpQuote } from '../../../../../selectors/transactionPayController';
@@ -44,6 +50,11 @@ const USE_CASE_MAP: [TransactionType[], string][] = [
 const UI_PAYMENT_METHOD_PROPERTIES = [
   'mm_pay_payment_method_available',
   'mm_pay_payment_method_presented',
+] as const;
+
+const UI_AMOUNT_INPUT_PROPERTIES = [
+  MM_PAY_AMOUNT_INPUT_TYPE_KEY,
+  MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
 ] as const;
 
 type TransactionPayData =
@@ -99,11 +110,25 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
       // mm_pay_payment_method_selected
       addPersistedPayMetadata(properties, payTransaction, state);
     }
+
+    // mm_pay_amount_input_type, mm_pay_amount_input_prefill_presented
+    // UI fragment wins; intent-to-treat only on Transaction Added.
+    addAmountInputProperties(properties, {
+      eventType,
+      transaction: payTransaction,
+      uiMetrics: getUIMetrics(payTransaction.id),
+      state,
+    });
   }
 
   if (parentTransaction) {
-    // mm_pay_payment_method_available, mm_pay_payment_method_presented
+    // mm_pay_payment_method_available, mm_pay_payment_method_presented,
+    // mm_pay_amount_input_type, mm_pay_amount_input_prefill_presented
     addParentPaymentMethodUIMetrics(
+      properties,
+      getUIMetrics(parentTransaction.id),
+    );
+    addParentAmountInputUIMetrics(
       properties,
       getUIMetrics(parentTransaction.id),
     );
@@ -466,6 +491,83 @@ function addParentPaymentMethodUIMetrics(
     if (value !== undefined) {
       properties[property] = value;
     }
+  }
+}
+
+function addParentAmountInputUIMetrics(
+  properties: JsonMap,
+  parentMetrics: TransactionMetrics | undefined,
+) {
+  for (const property of UI_AMOUNT_INPUT_PROPERTIES) {
+    const value = parentMetrics?.properties?.[property];
+
+    if (value !== undefined) {
+      properties[property] = value;
+    }
+  }
+}
+
+/**
+ * Attaches amount-input metrics on every Transaction * event.
+ *
+ * Prefers the confirmation UI fragment (last edit + sticky prefill_presented).
+ * Intent-to-treat from the A/B / kill-switch assignment is only applied on
+ * Transaction Added when the UI has not recorded an amount input yet — never
+ * backfill `prefill_presented` on later events from assignment alone.
+ */
+function addAmountInputProperties(
+  properties: JsonMap,
+  {
+    eventType,
+    transaction,
+    uiMetrics,
+    state,
+  }: {
+    eventType: Parameters<TransactionMetricsBuilder>[0]['eventType'];
+    transaction: TransactionMeta;
+    uiMetrics: TransactionMetrics | undefined;
+    state: RootState;
+  },
+) {
+  if (!hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    return;
+  }
+
+  const uiType = uiMetrics?.properties?.[MM_PAY_AMOUNT_INPUT_TYPE_KEY];
+  const uiPresented =
+    uiMetrics?.properties?.[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY];
+
+  if (uiType !== undefined) {
+    properties[MM_PAY_AMOUNT_INPUT_TYPE_KEY] = uiType;
+  }
+  if (uiPresented !== undefined) {
+    properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = uiPresented;
+  }
+
+  // Keypad / manual writes only set amount_input_type. That must not be treated
+  // as "prefill presented" via A/B assignment on later Transaction events.
+  if (uiType !== undefined) {
+    if (uiPresented === undefined) {
+      properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = false;
+    }
+    return;
+  }
+
+  if (
+    eventType !== TRANSACTION_EVENTS.TRANSACTION_ADDED ||
+    uiPresented !== undefined
+  ) {
+    return;
+  }
+
+  const presented = resolveMoneyAccountDepositPrefillPresented(
+    transaction,
+    state,
+  );
+  properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = presented;
+  if (presented) {
+    properties[MM_PAY_AMOUNT_INPUT_TYPE_KEY] =
+      MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED;
   }
 }
 

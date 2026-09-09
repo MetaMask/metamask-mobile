@@ -2,10 +2,6 @@ import React from 'react';
 import { CustomAmount } from './custom-amount';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayIsMaxAmount,
-} from '../../../hooks/pay/useTransactionPayData';
 import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -15,16 +11,9 @@ const mockFormatAmountWithLocaleSeparators = jest.mocked(
   formatAmountWithLocaleSeparators,
 );
 
-const mockUseTransactionPayIsMaxAmount = jest.mocked(
-  useTransactionPayIsMaxAmount,
-);
-const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
-
 describe('CustomAmount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
-    mockUseIsTransactionPayLoading.mockReturnValue(false);
     mockFormatAmountWithLocaleSeparators.mockImplementation((value) => value);
   });
 
@@ -74,37 +63,13 @@ describe('CustomAmount', () => {
     expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
   });
 
-  it('renders skeleton when max amount and quotes are loading', () => {
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
-    mockUseIsTransactionPayLoading.mockReturnValue(true);
-
-    const { getByTestId } = renderWithProvider(
-      <CustomAmount amountFiat="123.45" />,
-    );
-
-    expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
-  });
-
-  it('renders amount when max amount but quotes are not loading', () => {
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
-    mockUseIsTransactionPayLoading.mockReturnValue(false);
-
-    const { getByText } = renderWithProvider(
+  it('renders the amount even on Max — the input shows the full amount being paid, which is known synchronously and does not wait on quotes', () => {
+    const { getByText, queryByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
     );
 
     expect(getByText('123.45')).toBeOnTheScreen();
-  });
-
-  it('renders amount when quotes are loading but not max amount', () => {
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
-    mockUseIsTransactionPayLoading.mockReturnValue(true);
-
-    const { getByText } = renderWithProvider(
-      <CustomAmount amountFiat="123.45" />,
-    );
-
-    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(queryByTestId('custom-amount-skeleton')).toBeNull();
   });
 
   it('renders blinking cursor when showCursor is true', () => {
@@ -137,5 +102,70 @@ describe('CustomAmount', () => {
     );
 
     expect(queryByTestId('custom-amount-cursor')).toBeNull();
+  });
+
+  describe('cents truncation', () => {
+    it('truncates full-precision amounts to two decimals', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="500.123456" />,
+      );
+
+      expect(getByText('500.12')).toBeOnTheScreen();
+    });
+
+    it('truncates rather than rounding up', () => {
+      // The rendered value is re-typable through the keypad, so rounding up
+      // would let the user enter an amount above their balance.
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="10.379" />,
+      );
+
+      expect(getByText('10.37')).toBeOnTheScreen();
+    });
+
+    it('never carries into the whole part', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="1.999" />,
+      );
+
+      expect(getByText('1.99')).toBeOnTheScreen();
+    });
+
+    it('truncates before applying locale separators', () => {
+      renderWithProvider(<CustomAmount amountFiat="1234.987654" />);
+
+      expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
+        '1234.98',
+      );
+    });
+
+    it('normalises a comma decimal separator to a period', () => {
+      // formatAmountWithLocaleSeparators splits on `.` and applies the locale
+      // separator itself, so handing it a comma would drop the decimals.
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="500,987654" />,
+      );
+
+      expect(getByText('500.98')).toBeOnTheScreen();
+    });
+
+    it('renders malformed input unchanged rather than NaN', () => {
+      const { getByText } = renderWithProvider(
+        <CustomAmount amountFiat="1.2.3456" />,
+      );
+
+      expect(getByText('1.2.3456')).toBeOnTheScreen();
+    });
+
+    it.each(['500', '1000000', '123.45', '123.4', '0.10', '12.'])(
+      'leaves keypad input %s exactly as typed',
+      (amountFiat) => {
+        const { getByText } = renderWithProvider(
+          <CustomAmount amountFiat={amountFiat} />,
+        );
+
+        expect(getByText(amountFiat)).toBeOnTheScreen();
+      },
+    );
   });
 });

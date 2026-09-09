@@ -12,7 +12,7 @@ const mockGetSessionProfileId = jest.mocked(getSessionProfileId);
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);

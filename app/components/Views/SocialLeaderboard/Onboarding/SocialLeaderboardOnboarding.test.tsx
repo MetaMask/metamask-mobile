@@ -1,6 +1,7 @@
-import { act, screen, waitFor } from '@testing-library/react-native';
+import { act, screen } from '@testing-library/react-native';
 import React from 'react';
 import { StackActions } from '@react-navigation/native';
+import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import {
   ToastContext,
   ToastVariants,
@@ -12,6 +13,11 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 // eslint-disable-next-line import-x/no-restricted-paths
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+import {
+  __fireRiveTrigger,
+  __getRivePropertySetter,
+  __resetRiveMocks,
+} from '../../../../__mocks__/rive-app-react-native';
 import SocialLeaderboardOnboarding from './SocialLeaderboardOnboarding';
 import { SocialLeaderboardOnboardingSelectorsIDs } from './SocialLeaderboardOnboarding.testIds';
 import {
@@ -20,6 +26,7 @@ import {
   RIVE_AVATAR_PLACEHOLDERS,
   RIVE_TOKEN_ASSET_SOURCES,
   RIVE_BOOLEAN_BINDINGS,
+  RIVE_NUMBER_BINDINGS,
   RIVE_TRANSITION_SPEED,
   RIVE_TRIGGERS,
   riveStepTextBinding,
@@ -46,69 +53,37 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Local Rive mock: render a plain View, capture onError, referencedAssets and
-// the per-trigger callbacks so tests can drive the state machine directly, and
-// record every string/boolean binding push keyed by path.
-let mockOnError:
-  | ((error: { message: string; type: string }) => void)
-  | undefined;
-let mockReferencedAssets:
-  | Record<string, { source: { uri: string } | number }>
-  | undefined;
-const mockTriggerCallbacks: Record<string, () => void | Promise<void>> = {};
-const mockStringCalls: { path: string; value: string }[] = [];
-const mockBooleanCalls: { path: string; value: boolean }[] = [];
-const mockSetNumber = jest.fn();
+// Local wrapper around the global Nitro Rive mock (jest moduleNameMapper):
+// triggers and data bindings are driven through the global helpers
+// (`__fireRiveTrigger` / `__getRivePropertySetter`), while this wrapper
+// additionally captures the RiveView props (onError) and the `useRiveFile`
+// options — `referencedAssets` moved from a view prop to a file-level option
+// in the Nitro runtime, so tests read the frozen mapping from there.
+interface MockRiveFileOptions {
+  referencedAssets?: Record<string, { source: { uri: string } | number }>;
+}
+const mockRiveViewProps: {
+  current?: { testID?: string; onError?: (error: RiveError) => void };
+} = {};
+const mockRiveFileOptions: { current?: MockRiveFileOptions } = {};
 
-jest.mock('rive-react-native', () => {
-  const { View } = jest.requireActual('react-native');
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual('@rive-app/react-native');
+  const ReactActual = jest.requireActual('react');
+  const MockRiveView = (props: {
+    testID?: string;
+    onError?: (error: RiveError) => void;
+  }) => {
+    mockRiveViewProps.current = props;
+    return ReactActual.createElement(actual.RiveView, props);
+  };
   return {
     __esModule: true,
-    default: (props: {
-      testID?: string;
-      onError?: (error: { message: string; type: string }) => void;
-      referencedAssets?: Record<string, { source: { uri: string } | number }>;
-    }) => {
-      mockOnError = props.onError;
-      mockReferencedAssets = props.referencedAssets;
-      return <View testID={props.testID} />;
-    },
-    useRive: () => [jest.fn(), {}],
-    useRiveString: (_riveRef: unknown, path: string) => [
-      undefined,
-      (value: string) => {
-        mockStringCalls.push({ path, value });
-      },
-    ],
-    useRiveNumber: () => [undefined, mockSetNumber],
-    useRiveBoolean: (_riveRef: unknown, path: string) => [
-      undefined,
-      (value: boolean) => {
-        mockBooleanCalls.push({ path, value });
-      },
-    ],
-    useRiveTrigger: (
-      _riveRef: unknown,
-      path: string,
-      callback: () => void | Promise<void>,
-    ) => {
-      mockTriggerCallbacks[path] = callback;
-    },
-    AutoBind: (value: boolean) => ({ type: 'autobind', value }),
-    Fit: { Cover: 'cover', Layout: 'layout' },
-    Alignment: { Center: 'center' },
-    RNRiveErrorType: {
-      FileNotFound: 'FileNotFound',
-      UnsupportedRuntimeVersion: 'UnsupportedRuntimeVersion',
-      IncorrectRiveFileUrl: 'IncorrectRiveFileUrl',
-      IncorrectAnimationName: 'IncorrectAnimationName',
-      MalformedFile: 'MalformedFile',
-      IncorrectArtboardName: 'IncorrectArtboardName',
-      IncorrectStateMachineName: 'IncorrectStateMachineName',
-      IncorrectStateMachineInput: 'IncorrectStateMachineInput',
-      TextRunNotFoundError: 'TextRunNotFoundError',
-      DataBindingError: 'DataBindingError',
-      UnusedReferencedAssetError: 'UnusedReferencedAssetError',
+    ...actual,
+    RiveView: MockRiveView,
+    useRiveFile: (input?: unknown, options?: MockRiveFileOptions) => {
+      mockRiveFileOptions.current = options;
+      return actual.useRiveFile(input, options);
     },
   };
 });
@@ -182,9 +157,13 @@ const makeTrader = (overrides: Partial<TopTrader> = {}): TopTrader => ({
   ...overrides,
 });
 
+/**
+ * Fires a state-machine trigger through the global mock registry and flushes
+ * microtasks so async handlers (follow / allow-notifications) settle.
+ */
 const fireTrigger = async (path: string) => {
   await act(async () => {
-    await mockTriggerCallbacks[path]?.();
+    __fireRiveTrigger(path);
   });
 };
 
@@ -204,22 +183,16 @@ const advanceToNotifyStep = async () => {
   await fireTrigger(RIVE_TRIGGERS.GOT_IT);
 };
 
-const getLastStringValue = (path: string) =>
-  mockStringCalls.filter((call) => call.path === path).pop()?.value;
-
-const getLastBooleanValue = (path: string) =>
-  mockBooleanCalls.filter((call) => call.path === path).pop()?.value;
+/** Last value pushed into the given data-binding path (undefined if never). */
+const lastBoundValue = (path: string) =>
+  __getRivePropertySetter(path).mock.calls.at(-1)?.[0];
 
 describe('SocialLeaderboardOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOnError = undefined;
-    mockReferencedAssets = undefined;
-    mockStringCalls.length = 0;
-    mockBooleanCalls.length = 0;
-    Object.keys(mockTriggerCallbacks).forEach(
-      (key) => delete mockTriggerCallbacks[key],
-    );
+    __resetRiveMocks();
+    mockRiveViewProps.current = undefined;
+    mockRiveFileOptions.current = undefined;
     mockTraders = [
       makeTrader({ id: 'a', username: 'dutchiono', pnlValue: 456900 }),
       makeTrader({ id: 'b', username: 'raggedand', pnlValue: 324660, rank: 2 }),
@@ -256,34 +229,36 @@ describe('SocialLeaderboardOnboarding', () => {
   it('pushes config, readiness and button labels into the Rive bindings on load', () => {
     renderComponent();
 
-    expect(mockSetNumber).toHaveBeenCalledWith(RIVE_TRANSITION_SPEED);
-    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.IS_READY)).toBe(true);
+    expect(
+      __getRivePropertySetter(RIVE_NUMBER_BINDINGS.TRANSITION_SPEED),
+    ).toHaveBeenCalledWith(RIVE_TRANSITION_SPEED);
+    expect(lastBoundValue(RIVE_BOOLEAN_BINDINGS.IS_READY)).toBe(true);
 
     // Button labels are still Rive-owned across stepText slots 1..4 (v4 removed
     // the title/content text runs — those are rendered by RN, see below).
-    expect(getLastStringValue(riveStepTextBinding(1, 'primaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(1, 'primaryButton'))).toBe(
       'Next',
     );
-    expect(getLastStringValue(riveStepTextBinding(2, 'primaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(2, 'primaryButton'))).toBe(
       'Follow the top ten',
     );
-    expect(getLastStringValue(riveStepTextBinding(2, 'secondaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(2, 'secondaryButton'))).toBe(
       'Maybe later',
     );
     // Notifications are OFF by default in these tests, so both Notify slots (3
     // follow-path and 4 maybe-later) prompt. The artboard's run names are
     // inverted vs their roles: `primaryButton` feeds the ghost (gotIt) button
     // and `secondaryButton` feeds the solid "Allow notifications" (enables) CTA.
-    expect(getLastStringValue(riveStepTextBinding(3, 'primaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(3, 'primaryButton'))).toBe(
       'Got it',
     );
-    expect(getLastStringValue(riveStepTextBinding(3, 'secondaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(3, 'secondaryButton'))).toBe(
       'Allow notifications',
     );
-    expect(getLastStringValue(riveStepTextBinding(4, 'primaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(4, 'primaryButton'))).toBe(
       'Got it',
     );
-    expect(getLastStringValue(riveStepTextBinding(4, 'secondaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(4, 'secondaryButton'))).toBe(
       'Allow notifications',
     );
   });
@@ -295,16 +270,16 @@ describe('SocialLeaderboardOnboarding', () => {
 
     // No prompt needed: both Notify slots collapse to "Got it" (paired with the
     // `allowNotificationsBoolean = false` single-button layout).
-    expect(getLastStringValue(riveStepTextBinding(3, 'primaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(3, 'primaryButton'))).toBe(
       'Got it',
     );
-    expect(getLastStringValue(riveStepTextBinding(3, 'secondaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(3, 'secondaryButton'))).toBe(
       'Got it',
     );
-    expect(getLastStringValue(riveStepTextBinding(4, 'primaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(4, 'primaryButton'))).toBe(
       'Got it',
     );
-    expect(getLastStringValue(riveStepTextBinding(4, 'secondaryButton'))).toBe(
+    expect(lastBoundValue(riveStepTextBinding(4, 'secondaryButton'))).toBe(
       'Got it',
     );
   });
@@ -385,14 +360,14 @@ describe('SocialLeaderboardOnboarding', () => {
     renderComponent();
 
     // "Got it" until we reach the follow-path Notify slide (step 3).
-    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
+    expect(lastBoundValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
       false,
     );
 
     await advanceToNotifyStep();
 
     // On the follow-path Notify slide with prompting, show "Allow notifications".
-    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
+    expect(lastBoundValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
       true,
     );
   });
@@ -405,7 +380,7 @@ describe('SocialLeaderboardOnboarding', () => {
     await fireTrigger(RIVE_TRIGGERS.NEXT);
     await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
 
-    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
+    expect(lastBoundValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
       true,
     );
   });
@@ -419,7 +394,7 @@ describe('SocialLeaderboardOnboarding', () => {
     await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
 
     // No prompt needed: single "Got it" (`false`).
-    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
+    expect(lastBoundValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
       false,
     );
   });
@@ -432,7 +407,7 @@ describe('SocialLeaderboardOnboarding', () => {
 
     await advanceToNotifyStep();
 
-    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
+    expect(lastBoundValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
       false,
     );
   });
@@ -440,15 +415,15 @@ describe('SocialLeaderboardOnboarding', () => {
   it('pushes live trader name and full (non-abbreviated) PnL into the cards', () => {
     renderComponent();
 
-    expect(getLastStringValue(riveTraderBinding(1, 'name'))).toBe('dutchiono');
-    expect(getLastStringValue(riveTraderBinding(1, 'profitAmount'))).toBe(
+    expect(lastBoundValue(riveTraderBinding(1, 'name'))).toBe('dutchiono');
+    expect(lastBoundValue(riveTraderBinding(1, 'profitAmount'))).toBe(
       '+$456,900',
     );
-    expect(getLastStringValue(riveTraderBinding(2, 'name'))).toBe('raggedand');
-    expect(getLastStringValue(riveTraderBinding(2, 'profitAmount'))).toBe(
+    expect(lastBoundValue(riveTraderBinding(2, 'name'))).toBe('raggedand');
+    expect(lastBoundValue(riveTraderBinding(2, 'profitAmount'))).toBe(
       '+$324,660',
     );
-    expect(getLastStringValue(riveTraderBinding(3, 'profitAmount'))).toBe(
+    expect(lastBoundValue(riveTraderBinding(3, 'profitAmount'))).toBe(
       '+$120,364',
     );
   });
@@ -461,10 +436,18 @@ describe('SocialLeaderboardOnboarding', () => {
     ];
     renderComponent();
 
-    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[0]]).toEqual({
+    expect(
+      mockRiveFileOptions.current?.referencedAssets?.[
+        RIVE_AVATAR_ASSET_KEYS[0]
+      ],
+    ).toEqual({
       source: { uri: 'https://img.example/a.png' },
     });
-    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[2]]).toEqual({
+    expect(
+      mockRiveFileOptions.current?.referencedAssets?.[
+        RIVE_AVATAR_ASSET_KEYS[2]
+      ],
+    ).toEqual({
       source: { uri: 'https://img.example/c.png' },
     });
   });
@@ -473,7 +456,9 @@ describe('SocialLeaderboardOnboarding', () => {
     renderComponent();
 
     Object.entries(RIVE_TOKEN_ASSET_SOURCES).forEach(([assetKey, source]) => {
-      expect(mockReferencedAssets?.[assetKey]).toEqual({ source });
+      expect(mockRiveFileOptions.current?.referencedAssets?.[assetKey]).toEqual(
+        { source },
+      );
     });
   });
 
@@ -489,15 +474,27 @@ describe('SocialLeaderboardOnboarding', () => {
     ];
     renderComponent();
 
-    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[0]]).toEqual({
+    expect(
+      mockRiveFileOptions.current?.referencedAssets?.[
+        RIVE_AVATAR_ASSET_KEYS[0]
+      ],
+    ).toEqual({
       source: RIVE_AVATAR_PLACEHOLDERS[0],
     });
     // Known shared ENS placeholder also falls through to the bundled asset.
-    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[1]]).toEqual({
+    expect(
+      mockRiveFileOptions.current?.referencedAssets?.[
+        RIVE_AVATAR_ASSET_KEYS[1]
+      ],
+    ).toEqual({
       source: RIVE_AVATAR_PLACEHOLDERS[1],
     });
     // Missing trader slot still gets a placeholder.
-    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[2]]).toEqual({
+    expect(
+      mockRiveFileOptions.current?.referencedAssets?.[
+        RIVE_AVATAR_ASSET_KEYS[2]
+      ],
+    ).toEqual({
       source: RIVE_AVATAR_PLACEHOLDERS[2],
     });
   });
@@ -525,7 +522,11 @@ describe('SocialLeaderboardOnboarding', () => {
         SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION,
       ),
     ).toBeOnTheScreen();
-    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[0]]).toEqual({
+    expect(
+      mockRiveFileOptions.current?.referencedAssets?.[
+        RIVE_AVATAR_ASSET_KEYS[0]
+      ],
+    ).toEqual({
       source: RIVE_AVATAR_PLACEHOLDERS[0],
     });
 
@@ -543,7 +544,8 @@ describe('SocialLeaderboardOnboarding', () => {
         SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION,
       ),
     ).toBeOnTheScreen();
-    const settledAssets = mockReferencedAssets;
+    const settledAssets = mockRiveFileOptions.current?.referencedAssets;
+    expect(settledAssets).toBeTruthy();
 
     act(() => {
       jest.advanceTimersByTime(REFERENCED_ASSETS_TIMEOUT_MS);
@@ -551,7 +553,7 @@ describe('SocialLeaderboardOnboarding', () => {
 
     // Assets were frozen from the natural settle; the timeout firing afterwards
     // must not recompute or remount them.
-    expect(mockReferencedAssets).toBe(settledAssets);
+    expect(mockRiveFileOptions.current?.referencedAssets).toBe(settledAssets);
 
     jest.useRealTimers();
   });
@@ -667,8 +669,8 @@ describe('SocialLeaderboardOnboarding', () => {
     expect(mockToggleFollow).toHaveBeenCalledTimes(10);
 
     // Only the three displayed cards are bound into the artboard.
-    expect(getLastStringValue(riveTraderBinding(3, 'name'))).toBe('trader3');
-    expect(getLastStringValue(riveTraderBinding(4, 'name'))).toBeUndefined();
+    expect(lastBoundValue(riveTraderBinding(3, 'name'))).toBe('trader3');
+    expect(lastBoundValue(riveTraderBinding(4, 'name'))).toBeUndefined();
 
     // The pre-selected count reported on completion reflects the full ten.
     await fireTrigger(RIVE_TRIGGERS.GOT_IT);
@@ -838,30 +840,16 @@ describe('SocialLeaderboardOnboarding', () => {
 
     await advanceToNotifyStep();
 
-    // Fire the trigger but don't await it settling — the handler parks on the
-    // still-pending enable promise.
-    let handlerPromise: Promise<void> | undefined;
-    await act(async () => {
-      handlerPromise = mockTriggerCallbacks[
-        RIVE_TRIGGERS.ALLOW_NOTIFICATIONS
-      ]?.() as Promise<void> | undefined;
-    });
+    // Fire the trigger — the handler parks on the still-pending enable promise.
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
 
-    await waitFor(() =>
-      expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true),
-    );
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
     // Enable is still in flight, so we must not have navigated yet.
-    expect(mockDispatch).not.toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
-        source: 'nux',
-        showNotificationsBanner: false,
-      }),
-    );
+    expect(mockDispatch).not.toHaveBeenCalled();
 
     // Once the enable resolves, the flow completes and navigates.
     await act(async () => {
       resolveEnable();
-      await handlerPromise;
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -1106,7 +1094,10 @@ describe('SocialLeaderboardOnboarding', () => {
     renderComponent();
 
     act(() => {
-      mockOnError?.({ message: 'boom', type: 'MalformedFile' });
+      mockRiveViewProps.current?.onError?.({
+        message: 'boom',
+        type: RiveErrorType.MalformedFile,
+      });
     });
 
     expect(setItemSpy).toHaveBeenCalledWith(
@@ -1123,20 +1114,23 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('stays on the onboarding for a non-fatal Rive error (missing binding / asset)', () => {
+  it('stays on the onboarding for a non-fatal Rive error (missing binding / input)', () => {
     renderComponent();
 
     act(() => {
-      mockOnError?.({ message: 'no such property', type: 'DataBindingError' });
+      mockRiveViewProps.current?.onError?.({
+        message: 'no such view-model instance',
+        type: RiveErrorType.ViewModelInstanceNotFound,
+      });
     });
     act(() => {
-      mockOnError?.({
-        message: 'unused avatar',
-        type: 'UnusedReferencedAssetError',
+      mockRiveViewProps.current?.onError?.({
+        message: 'missing input',
+        type: RiveErrorType.IncorrectStateMachineInputName,
       });
     });
 
-    // A missing binding or unused referenced asset must not boot the user out.
+    // A missing binding or state-machine input must not boot the user out.
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });

@@ -1,11 +1,34 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import PerpsMarketDetailsView from '../PerpsMarketDetailsView';
 import PerpsProMarketView from '../PerpsProMarketView';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
+import type { PerpsStackParamList } from '../../types/navigation';
 
 const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
+
+function resolveGenerationTrigger(
+  explicitTrigger: 'market_switch' | undefined,
+  previousIdentity: { symbol?: string; mode: string } | undefined,
+  symbol: string | undefined,
+  mode: string,
+): 'initial' | 'market_switch' | 'mode_switch' {
+  if (explicitTrigger) return explicitTrigger;
+  if (previousIdentity?.symbol && previousIdentity.symbol !== symbol) {
+    return 'market_switch';
+  }
+  if (previousIdentity?.mode && previousIdentity.mode !== mode) {
+    return 'mode_switch';
+  }
+  return 'initial';
+}
 
 /**
  * Route component registered for `Routes.PERPS.MARKET_DETAILS`.
@@ -25,10 +48,42 @@ const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
 const PerpsMarketDetailsRouter: React.FC = () => {
   const tw = useTailwind();
   const isProModeEnabled = usePerpsProModeEnabled();
+  const route =
+    useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
+  const navigation =
+    useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
+  const symbol = route.params?.market?.symbol;
+  const mode = isProModeEnabled ? 'pro' : 'lite';
+  const previousIdentityRef = useRef<
+    { symbol?: string; mode: string } | undefined
+  >(undefined);
+  const consumedExplicitTriggerRef = useRef(false);
+  const previousIdentity = previousIdentityRef.current;
+  const explicitGenerationTrigger = !consumedExplicitTriggerRef.current
+    ? route.params?.detailGenerationTrigger
+    : undefined;
+  const generationTrigger = resolveGenerationTrigger(
+    explicitGenerationTrigger,
+    previousIdentity,
+    symbol,
+    mode,
+  );
+
+  useLayoutEffect(() => {
+    previousIdentityRef.current = { symbol, mode };
+    consumedExplicitTriggerRef.current = true;
+    if (explicitGenerationTrigger) {
+      navigation.setParams({ detailGenerationTrigger: undefined });
+    }
+  }, [explicitGenerationTrigger, mode, navigation, symbol]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')} edges={SAFE_AREA_EDGES}>
-      {isProModeEnabled ? <PerpsProMarketView /> : <PerpsMarketDetailsView />}
+      {isProModeEnabled ? (
+        <PerpsProMarketView generationTrigger={generationTrigger} />
+      ) : (
+        <PerpsMarketDetailsView generationTrigger={generationTrigger} />
+      )}
     </SafeAreaView>
   );
 };

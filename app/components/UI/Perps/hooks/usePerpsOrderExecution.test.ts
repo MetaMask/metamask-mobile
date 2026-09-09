@@ -11,9 +11,19 @@ import {
   PERPS_CUF_STREAM_CONFIRM_RACE_MS,
   PERPS_CUF_STREAM_TIMEOUT_MS,
 } from '../constants/perpsCufTags';
-import { endTrace, TraceName } from '../../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
+import Logger from '../../../../util/Logger';
 
 jest.mock('./usePerpsTrading');
+jest.mock('./usePerpsNetwork', () => ({
+  usePerpsNetwork: () => 'testnet',
+}));
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 jest.mock('../../../../util/trace', () => {
   const actual = jest.requireActual('../../../../util/trace');
   return {
@@ -23,6 +33,8 @@ jest.mock('../../../../util/trace', () => {
   };
 });
 const mockEndTrace = endTrace as jest.Mock;
+const mockTrace = trace as jest.Mock;
+const mockLoggerError = jest.mocked(Logger.error);
 const mockGetPositionsSnapshot = jest.fn();
 const mockGetOrdersSnapshot = jest.fn();
 const mockPositionsLastDeliveredAt = jest.fn(() => null as number | null);
@@ -124,6 +136,132 @@ describe('usePerpsOrderExecution', () => {
       return { success: true, orderId: 'order123', ...result };
     });
   };
+
+  describe('strategy orders', () => {
+    it('confirms TWAP acceptance without a render CUF or stream wait', async () => {
+      const onSuccess = jest.fn();
+      mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'twap-1' });
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: true,
+        });
+      });
+
+      expect(onSuccess).toHaveBeenCalledWith();
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('confirms Chase acceptance without a render CUF or stream wait', async () => {
+      const onSuccess = jest.fn();
+      mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'chase-1' });
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'chase',
+          chaseIntervalMs: 5000,
+        });
+      });
+
+      expect(onSuccess).toHaveBeenCalledWith();
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('reports a rejected TWAP without creating a render CUF', async () => {
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      mockPlaceOrder.mockResolvedValue({
+        success: false,
+        error: 'TWAP order rejected',
+      });
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess, onError }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: false,
+        });
+      });
+
+      expect(onError).toHaveBeenCalledWith('TWAP order rejected');
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(result.current.error).toBe('TWAP order rejected');
+      expect(result.current.lastResult).toEqual({
+        success: false,
+        error: 'TWAP order rejected',
+      });
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('reports a thrown TWAP placement error without creating a render CUF', async () => {
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      mockPlaceOrder.mockRejectedValue(new Error('TWAP network timeout'));
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess, onError }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: true,
+        });
+      });
+
+      expect(onError).toHaveBeenCalledWith('TWAP network timeout');
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(result.current.error).toBe('TWAP network timeout');
+      expect(result.current.lastResult).toBeUndefined();
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('reports the routed provider and network for a thrown TWAP placement error', async () => {
+      mockPlaceOrder.mockRejectedValue(new Error('TWAP network timeout'));
+      const { result } = renderHook(() => usePerpsOrderExecution());
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: true,
+          providerId: 'hyperliquid',
+        });
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              providerId: 'hyperliquid',
+              network: 'testnet',
+            }),
+          }),
+        }),
+      );
+    });
+  });
 
   describe('limit orders (order-render CUF, not position-render)', () => {
     it('confirms immediately when the resting order is already rendered', async () => {
@@ -330,6 +468,366 @@ describe('usePerpsOrderExecution', () => {
         jest.useRealTimers();
       }
     });
+
+    it('ignores the Scale group handle and completes from a child order ID', async () => {
+      jest.useFakeTimers();
+      try {
+        const onSuccess = jest.fn();
+        mockGetOrdersSnapshot.mockReturnValue([]);
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'scale-group',
+          childOrderIds: ['scale-1', 'scale-2'],
+          submittedSize: '0.2',
+        });
+        const { result } = renderHook(() =>
+          usePerpsOrderExecution({ onSuccess }),
+        );
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'scale',
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 2,
+            scaleSkew: 1,
+          });
+        });
+
+        expect(onSuccess).toHaveBeenCalledWith();
+        expect(mockEndTrace).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceOrderToPositionRendered,
+            ),
+          }),
+        );
+
+        act(() => {
+          handlePerpsCufOrdersDelivered([{ orderId: 'scale-group' }]);
+        });
+
+        expect(mockEndTrace).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
+        act(() => {
+          handlePerpsCufOrdersDelivered([{ orderId: 'scale-1' }]);
+        });
+
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('finishes Scale CUF immediately when a child order is already rendered', async () => {
+      mockGetOrdersSnapshot.mockReturnValue([{ orderId: 'scale-2' }]);
+      mockOrdersLastDeliveredAt.mockReturnValue(4242);
+      mockPlaceOrder.mockResolvedValue({
+        success: true,
+        orderId: 'scale-group',
+        childOrderIds: ['scale-1', 'scale-2'],
+        submittedSize: '0.2',
+      });
+      const { result } = renderHook(() => usePerpsOrderExecution());
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'scale',
+          scaleMinPrice: '49000',
+          scaleMaxPrice: '51000',
+          scaleNumOrders: 2,
+          scaleSkew: 1,
+        });
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.stringContaining(
+            TraceName.PerpsPlaceLimitOrderToOrderRendered,
+          ),
+          timestamp: 4242,
+          data: expect.objectContaining({ success: true }),
+        }),
+      );
+    });
+
+    it('completes Scale CUF when any resting child order renders', async () => {
+      jest.useFakeTimers();
+      try {
+        mockGetOrdersSnapshot.mockReturnValue([]);
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'scale-group',
+          childOrderIds: ['resting-child'],
+          acceptedChildren: [
+            { orderId: 'filled-child', state: 'filled' },
+            { orderId: 'resting-child', state: 'resting' },
+          ],
+          submittedSize: '0.2',
+          acceptedSize: '0.2',
+        });
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'scale',
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 2,
+            scaleSkew: 1,
+          });
+        });
+
+        act(() => {
+          handlePerpsCufOrdersDelivered([{ orderId: 'resting-child' }]);
+        });
+
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('tracks an all-filled Scale result through the position stream', async () => {
+      jest.useFakeTimers();
+      try {
+        mockGetPositionsSnapshot.mockReturnValue([]);
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'scale-group',
+          childOrderIds: [],
+          acceptedChildren: [
+            { orderId: 'filled-1', state: 'filled' },
+            { orderId: 'filled-2', state: 'filled' },
+          ],
+          submittedSize: '0.2',
+          acceptedSize: '0.2',
+          filledSize: '0.2',
+          averagePrice: '50000',
+        });
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'scale',
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 2,
+            scaleSkew: 1,
+          });
+        });
+
+        expect(mockEndTrace).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              success: false,
+              reason: 'request_failed',
+            }),
+          }),
+        );
+
+        act(() => {
+          handlePerpsCufPositionsDelivered([mockPosition]);
+        });
+
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('rejects a successful Scale result without resting or filled children', async () => {
+      jest.useFakeTimers();
+      try {
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'scale-group',
+          childOrderIds: [],
+          acceptedChildren: [],
+          submittedSize: '0.2',
+          acceptedSize: '0',
+        });
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'scale',
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 2,
+            scaleSkew: 1,
+          });
+        });
+
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({
+              success: false,
+              reason: 'request_failed',
+            }),
+          }),
+        );
+        act(() => jest.runOnlyPendingTimers());
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not use strategy child IDs for an ordinary limit order', async () => {
+      jest.useFakeTimers();
+      try {
+        mockGetOrdersSnapshot.mockReturnValue([]);
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'limit-1',
+          childOrderIds: ['unrelated-child'],
+        });
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'limit',
+            price: '10000',
+          });
+        });
+
+        act(() => {
+          handlePerpsCufOrdersDelivered([{ orderId: 'unrelated-child' }]);
+        });
+        expect(mockEndTrace).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
+        act(() => {
+          handlePerpsCufOrdersDelivered([{ orderId: 'limit-1' }]);
+        });
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+  });
+
+  describe('trigger orders (order-render CUF, never position-render)', () => {
+    it.each([
+      'stop_market',
+      'stop_limit',
+      'take_profit_market',
+      'take_profit_limit',
+    ] as const)(
+      'uses the resting-order confirmation path for %s',
+      async (orderType) => {
+        jest.useFakeTimers();
+        try {
+          const onSuccess = jest.fn();
+          mockPlaceOrder.mockResolvedValue({
+            success: true,
+            orderId: `trigger-${orderType}`,
+          });
+
+          const { result } = renderHook(() =>
+            usePerpsOrderExecution({ onSuccess }),
+          );
+
+          await act(async () => {
+            await result.current.placeOrder({
+              ...mockOrderParams,
+              orderType,
+              triggerPrice: '51000',
+              ...(orderType.endsWith('_limit') ? { price: '51000' } : {}),
+            });
+          });
+
+          expect(onSuccess).toHaveBeenCalledWith();
+          expect(mockGetPositionsSnapshot).toHaveBeenCalledTimes(1);
+          expect(mockEndTrace).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: expect.stringContaining(
+                TraceName.PerpsPlaceOrderToPositionRendered,
+              ),
+            }),
+          );
+          expect(mockEndTrace).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+              id: expect.stringContaining(
+                TraceName.PerpsPlaceLimitOrderToOrderRendered,
+              ),
+              data: expect.objectContaining({ success: true }),
+            }),
+          );
+
+          act(() => {
+            jest.runOnlyPendingTimers();
+          });
+        } finally {
+          jest.useRealTimers();
+        }
+      },
+    );
   });
 
   describe('successful order placement', () => {

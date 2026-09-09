@@ -1,45 +1,26 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
+import { EthAccountType } from '@metamask/keyring-api';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
-import {
-  selectMetaMaskPayTokensFlags,
-  selectRelayFixedSpread,
-} from '../../../../selectors/featureFlagController/confirmations';
-import { selectMoneyDepositMinBalance } from '../selectors/featureFlags';
-import {
-  isTokenBlocked,
-  getBlockedTokensForTransactionType,
-} from '../../../Views/confirmations/utils/transaction-pay';
-import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
-import { AssetType } from '../../../Views/confirmations/types/token';
+import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
+import {
+  type MoneyDepositAsset,
+  selectMoneyDepositEligibleAssets,
+} from '../selectors/depositTokens';
 
 jest.mock('react-redux');
 jest.mock('../../../../selectors/featureFlagController/confirmations');
-jest.mock('../selectors/featureFlags');
-jest.mock('../../../Views/confirmations/utils/transaction-pay');
-jest.mock('../../../Views/confirmations/hooks/send/useAccountTokens');
 jest.mock('../../../../selectors/currencyRateController');
 jest.mock('../../../../selectors/networkController');
 jest.mock('../../Bridge/utils/exchange-rates');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockIsTokenBlocked = isTokenBlocked as jest.MockedFunction<
-  typeof isTokenBlocked
->;
-const mockGetBlockedTokensForTransactionType =
-  getBlockedTokensForTransactionType as jest.MockedFunction<
-    typeof getBlockedTokensForTransactionType
-  >;
-const mockUseAccountTokens = useAccountTokens as jest.MockedFunction<
-  typeof useAccountTokens
->;
 const mockCalcUsdAmountFromFiat = calcUsdAmountFromFiat as jest.MockedFunction<
   typeof calcUsdAmountFromFiat
 >;
@@ -56,13 +37,6 @@ const DEFAULT_NETWORK_CONFIGURATIONS: ReturnType<
 > = {
   '0x1': { nativeCurrency: 'ETH' },
 } as unknown as ReturnType<typeof selectNetworkConfigurations>;
-
-const DEFAULT_BLOCKED_TOKENS = { chainIds: [], tokens: [] };
-const DEFAULT_PAY_FLAGS = {
-  preferredTokens: { default: [], overrides: {} },
-  blockedTokens: { default: DEFAULT_BLOCKED_TOKENS, overrides: {} },
-  minimumRequiredTokenBalance: 0,
-};
 
 /** Minimal relay config: eth USDC -> Monad mUSD (no-fee deposit route). */
 const RELAY_CONFIG_WITH_DEPOSIT_ROUTE: RelayFixedSpreadConfig = {
@@ -121,8 +95,12 @@ const RELAY_CONFIG_WITH_NON_MONAD_DEPOSIT: RelayFixedSpreadConfig = {
 
 const EMPTY_RELAY_CONFIG: RelayFixedSpreadConfig = { routes: [] };
 
-const makeToken = (overrides: Partial<AssetType> = {}): AssetType =>
+const makeToken = (
+  overrides: Partial<MoneyDepositAsset> = {},
+): MoneyDepositAsset =>
   ({
+    accountId: 'account-id',
+    assetId: '0xabc0000000000000000000000000000000000001',
     address: '0xabc0000000000000000000000000000000000001',
     chainId: '0x1',
     symbol: 'TOK',
@@ -130,12 +108,12 @@ const makeToken = (overrides: Partial<AssetType> = {}): AssetType =>
     decimals: 18,
     balance: '1000000000000000000',
     fiat: { balance: 100, currency: 'usd', conversionRate: 1 },
-    isETH: false,
-    aggregators: [],
+    rawBalance: '0xde0b6b3a7640000',
+    isNative: false,
     image: '',
     accountType: EthAccountType.Eoa,
     ...overrides,
-  }) as AssetType;
+  }) as MoneyDepositAsset;
 
 const ETH_USDC = makeToken({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -149,32 +127,27 @@ const ETH_USDT = makeToken({
   chainId: '0x1',
   fiat: { balance: 300, currency: 'usd', conversionRate: 1 },
 });
-const ETH_DAI = makeToken({
-  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-  symbol: 'DAI',
-  chainId: '0x1',
-  fiat: { balance: 200, currency: 'usd', conversionRate: 1 },
-});
+
+let eligibleAssets: MoneyDepositAsset[] = [];
+
+const mockSelectors = (
+  relayFixedSpread: RelayFixedSpreadConfig = EMPTY_RELAY_CONFIG,
+) => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectMoneyDepositEligibleAssets) return eligibleAssets;
+    if (selector === selectRelayFixedSpread) return relayFixedSpread;
+    if (selector === selectCurrencyRates) return DEFAULT_CURRENCY_RATES;
+    if (selector === selectNetworkConfigurations)
+      return DEFAULT_NETWORK_CONFIGURATIONS;
+    return undefined;
+  });
+};
 
 describe('useMoneyDepositTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
-      if (selector === selectRelayFixedSpread) return EMPTY_RELAY_CONFIG;
-      if (selector === selectMoneyDepositMinBalance) return 0.01;
-      if (selector === selectCurrencyRates) return DEFAULT_CURRENCY_RATES;
-      if (selector === selectNetworkConfigurations)
-        return DEFAULT_NETWORK_CONFIGURATIONS;
-      return undefined;
-    });
-
-    mockUseAccountTokens.mockReturnValue([]);
-    mockGetBlockedTokensForTransactionType.mockReturnValue(
-      DEFAULT_BLOCKED_TOKENS,
-    );
-    mockIsTokenBlocked.mockReturnValue(false);
+    eligibleAssets = [];
+    mockSelectors();
     mockCalcUsdAmountFromFiat.mockReturnValue(undefined);
   });
 
@@ -191,175 +164,25 @@ describe('useMoneyDepositTokens', () => {
     });
   });
 
-  describe('tokens — useAccountTokens options', () => {
-    it('calls useAccountTokens with includeNoBalance false', () => {
-      renderHook(() => useMoneyDepositTokens());
-
-      expect(mockUseAccountTokens).toHaveBeenCalledWith({
-        includeNoBalance: false,
-      });
-    });
-  });
-
-  describe('tokens — blocklist', () => {
-    it('scopes blocklist lookup to moneyAccountDeposit transaction type', () => {
-      renderHook(() => useMoneyDepositTokens());
-
-      expect(mockGetBlockedTokensForTransactionType).toHaveBeenCalledWith(
-        DEFAULT_PAY_FLAGS.blockedTokens,
-        'moneyAccountDeposit',
-      );
-    });
-
-    it('includes tokens that pass the MM Pay blocklist', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+  describe('tokens', () => {
+    it('returns eligible assets from selector unchanged', () => {
+      eligibleAssets = [ETH_USDC, ETH_USDT];
 
       const { result } = renderHook(() => useMoneyDepositTokens());
 
-      expect(result.current.tokens).toContainEqual(ETH_USDC);
+      expect(result.current.tokens).toEqual(eligibleAssets);
     });
 
-    it('excludes tokens blocked by MM Pay', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_USDC, ETH_USDT]);
-      mockIsTokenBlocked.mockImplementation(
-        (token: { address: string }) => token.address === ETH_USDC.address,
-      );
-
-      const { result } = renderHook(() => useMoneyDepositTokens());
-
-      expect(result.current.tokens).not.toContainEqual(ETH_USDC);
-      expect(result.current.tokens).toContainEqual(ETH_USDT);
-    });
-
-    it('returns empty array when all tokens are MM Pay blocked', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
-      mockIsTokenBlocked.mockReturnValue(true);
-
+    it('returns an empty array when selector has no eligible assets', () => {
       const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).toEqual([]);
-    });
-  });
-
-  describe('tokens — EVM filter', () => {
-    it('excludes non-EVM tokens', () => {
-      const solanaToken = makeToken({
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        symbol: 'USDC',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        accountType: SolAccountType.DataAccount,
-        fiat: { balance: 400, currency: 'usd', conversionRate: 1 },
-      });
-      mockUseAccountTokens.mockReturnValue([solanaToken, ETH_USDC]);
-
-      const { result } = renderHook(() => useMoneyDepositTokens());
-
-      expect(result.current.tokens).not.toContainEqual(solanaToken);
-      expect(result.current.tokens).toContainEqual(ETH_USDC);
-    });
-
-    it('excludes non-EVM tokens without calling isTokenBlocked on them', () => {
-      const solanaToken = makeToken({
-        address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        symbol: 'USDC',
-        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        accountType: SolAccountType.DataAccount,
-        fiat: { balance: 400, currency: 'usd', conversionRate: 1 },
-      });
-      mockUseAccountTokens.mockReturnValue([solanaToken]);
-
-      renderHook(() => useMoneyDepositTokens());
-
-      expect(mockIsTokenBlocked).not.toHaveBeenCalledWith(
-        solanaToken,
-        expect.anything(),
-      );
-    });
-  });
-
-  describe('tokens — minimum balance filter', () => {
-    it('excludes tokens below the minBalance threshold', () => {
-      const dustToken = makeToken({
-        symbol: 'DUST',
-        fiat: { balance: 0.005, currency: 'usd', conversionRate: 1 },
-      });
-      mockUseAccountTokens.mockReturnValue([dustToken, ETH_USDC]);
-
-      const { result } = renderHook(() => useMoneyDepositTokens());
-
-      expect(result.current.tokens).not.toContainEqual(dustToken);
-      expect(result.current.tokens).toContainEqual(ETH_USDC);
-    });
-
-    it('excludes tokens with undefined fiat balance', () => {
-      const noFiat = makeToken({ fiat: undefined });
-      mockUseAccountTokens.mockReturnValue([noFiat, ETH_USDC]);
-
-      const { result } = renderHook(() => useMoneyDepositTokens());
-
-      expect(result.current.tokens).not.toContainEqual(noFiat);
-    });
-
-    it('excludes tokens with null fiat balance', () => {
-      const nullFiat = makeToken({
-        fiat: {
-          balance: null as unknown as number,
-          currency: 'usd',
-          conversionRate: 1,
-        },
-      });
-      mockUseAccountTokens.mockReturnValue([nullFiat, ETH_USDC]);
-
-      const { result } = renderHook(() => useMoneyDepositTokens());
-
-      expect(result.current.tokens).not.toContainEqual(nullFiat);
-    });
-
-    it('includes token at exactly the minBalance threshold', () => {
-      const atThreshold = makeToken({
-        symbol: 'EXACT',
-        fiat: { balance: 0.01, currency: 'usd', conversionRate: 1 },
-      });
-      mockUseAccountTokens.mockReturnValue([atThreshold]);
-
-      const { result } = renderHook(() => useMoneyDepositTokens());
-
-      expect(result.current.tokens).toContainEqual(atThreshold);
-    });
-
-    it('returns empty array when useAccountTokens returns empty list', () => {
-      mockUseAccountTokens.mockReturnValue([]);
-
-      const { result } = renderHook(() => useMoneyDepositTokens());
-
-      expect(result.current.tokens).toEqual([]);
-    });
-  });
-
-  describe('tokens — fiat balance descending sort', () => {
-    it('orders eligible tokens highest-to-lowest fiat balance', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_DAI, ETH_USDC, ETH_USDT]);
-
-      const { result } = renderHook(() => useMoneyDepositTokens());
-
-      expect(result.current.tokens.map((t) => t.symbol)).toEqual([
-        'USDC',
-        'USDT',
-        'DAI',
-      ]);
     });
   });
 
   describe('isNoFeeToken — directional Monad mUSD route match', () => {
     it('returns true for a token with a subsidized route TO Monad mUSD', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
-        if (selector === selectRelayFixedSpread)
-          return RELAY_CONFIG_WITH_DEPOSIT_ROUTE;
-        if (selector === selectMoneyDepositMinBalance) return 0.01;
-        return undefined;
-      });
-      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+      mockSelectors(RELAY_CONFIG_WITH_DEPOSIT_ROUTE);
 
       const { result } = renderHook(() => useMoneyDepositTokens());
 
@@ -373,14 +196,7 @@ describe('useMoneyDepositTokens', () => {
         chainId: '0x1',
         fiat: { balance: 500, currency: 'usd', conversionRate: 1 },
       });
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
-        if (selector === selectRelayFixedSpread)
-          return RELAY_CONFIG_WITH_MUSD_SOURCE_DEPOSIT;
-        if (selector === selectMoneyDepositMinBalance) return 0.01;
-        return undefined;
-      });
-      mockUseAccountTokens.mockReturnValue([ethMusd]);
+      mockSelectors(RELAY_CONFIG_WITH_MUSD_SOURCE_DEPOSIT);
 
       const { result } = renderHook(() => useMoneyDepositTokens());
 
@@ -394,14 +210,7 @@ describe('useMoneyDepositTokens', () => {
         chainId: CHAIN_IDS.MONAD,
         fiat: { balance: 500, currency: 'usd', conversionRate: 1 },
       });
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
-        if (selector === selectRelayFixedSpread)
-          return RELAY_CONFIG_WITH_MUSD_WITHDRAW_ROUTE;
-        if (selector === selectMoneyDepositMinBalance) return 0.01;
-        return undefined;
-      });
-      mockUseAccountTokens.mockReturnValue([monadMusd]);
+      mockSelectors(RELAY_CONFIG_WITH_MUSD_WITHDRAW_ROUTE);
 
       const { result } = renderHook(() => useMoneyDepositTokens());
 
@@ -415,14 +224,7 @@ describe('useMoneyDepositTokens', () => {
         chainId: '0xe708',
         fiat: { balance: 500, currency: 'usd', conversionRate: 1 },
       });
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
-        if (selector === selectRelayFixedSpread)
-          return RELAY_CONFIG_WITH_NON_MONAD_DEPOSIT;
-        if (selector === selectMoneyDepositMinBalance) return 0.01;
-        return undefined;
-      });
-      mockUseAccountTokens.mockReturnValue([lineaUsdc]);
+      mockSelectors(RELAY_CONFIG_WITH_NON_MONAD_DEPOSIT);
 
       const { result } = renderHook(() => useMoneyDepositTokens());
 
@@ -430,32 +232,17 @@ describe('useMoneyDepositTokens', () => {
     });
 
     it('returns false when the relay config has no routes', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
-        if (selector === selectRelayFixedSpread) return EMPTY_RELAY_CONFIG;
-        if (selector === selectMoneyDepositMinBalance) return 0.01;
-        return undefined;
-      });
-      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
-
       const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.isNoFeeToken(ETH_USDC)).toBe(false);
     });
 
     it('returns false for a token with no chainId', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
-        if (selector === selectRelayFixedSpread)
-          return RELAY_CONFIG_WITH_DEPOSIT_ROUTE;
-        if (selector === selectMoneyDepositMinBalance) return 0.01;
-        return undefined;
-      });
-      mockUseAccountTokens.mockReturnValue([]);
+      mockSelectors(RELAY_CONFIG_WITH_DEPOSIT_ROUTE);
       const noChain = {
         ...ETH_USDC,
         chainId: undefined,
-      } as unknown as AssetType;
+      };
 
       const { result } = renderHook(() => useMoneyDepositTokens());
 
@@ -463,21 +250,14 @@ describe('useMoneyDepositTokens', () => {
     });
 
     it('returns false for a token on a different chain with same address', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
-        if (selector === selectRelayFixedSpread)
-          return RELAY_CONFIG_WITH_DEPOSIT_ROUTE;
-        if (selector === selectMoneyDepositMinBalance) return 0.01;
-        return undefined;
-      });
+      mockSelectors(RELAY_CONFIG_WITH_DEPOSIT_ROUTE);
       // Same address as ETH_USDC but on Arbitrum — no matching route
       const arbitrumUsdc = makeToken({
         address: ETH_USDC.address,
-        chainId: '0xa4b1',
+        chainId: '0xa4b1' as `0x${string}`,
         symbol: 'USDC',
         fiat: { balance: 100, currency: 'usd', conversionRate: 1 },
       });
-      mockUseAccountTokens.mockReturnValue([arbitrumUsdc]);
 
       const { result } = renderHook(() => useMoneyDepositTokens());
 
@@ -487,7 +267,7 @@ describe('useMoneyDepositTokens', () => {
 
   describe('tokens — overrideToUsd', () => {
     it('leaves fiat balance untouched when overrideToUsd is not passed', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+      eligibleAssets = [ETH_USDC];
 
       const { result } = renderHook(() => useMoneyDepositTokens());
 
@@ -496,7 +276,7 @@ describe('useMoneyDepositTokens', () => {
     });
 
     it('leaves fiat balance untouched when overrideToUsd is false', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+      eligibleAssets = [ETH_USDC];
 
       const { result } = renderHook(() =>
         useMoneyDepositTokens({ overrideToUsd: false }),
@@ -507,7 +287,7 @@ describe('useMoneyDepositTokens', () => {
     });
 
     it('converts fiat balance to usd when overrideToUsd is true', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+      eligibleAssets = [ETH_USDC];
       mockCalcUsdAmountFromFiat.mockReturnValue(450);
 
       const { result } = renderHook(() =>
@@ -522,7 +302,7 @@ describe('useMoneyDepositTokens', () => {
     });
 
     it('passes token chainId, network configurations, and currency rates to calcUsdAmountFromFiat', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+      eligibleAssets = [ETH_USDC];
       mockCalcUsdAmountFromFiat.mockReturnValue(450);
 
       renderHook(() => useMoneyDepositTokens({ overrideToUsd: true }));
@@ -535,20 +315,20 @@ describe('useMoneyDepositTokens', () => {
       });
     });
 
-    it('excludes tokens with no fiat balance before usd conversion runs', () => {
+    it('preserves tokens with no fiat balance without requesting a usd rate', () => {
       const noFiat = makeToken({ symbol: 'NOFIAT', fiat: undefined });
-      mockUseAccountTokens.mockReturnValue([noFiat]);
+      eligibleAssets = [noFiat];
 
       const { result } = renderHook(() =>
         useMoneyDepositTokens({ overrideToUsd: true }),
       );
 
-      expect(result.current.tokens).toEqual([]);
+      expect(result.current.tokens).toEqual([noFiat]);
       expect(mockCalcUsdAmountFromFiat).not.toHaveBeenCalled();
     });
 
     it('drops fiat when calcUsdAmountFromFiat cannot resolve a usd rate', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+      eligibleAssets = [ETH_USDC];
       mockCalcUsdAmountFromFiat.mockReturnValue(undefined);
 
       const { result } = renderHook(() =>
@@ -559,7 +339,7 @@ describe('useMoneyDepositTokens', () => {
     });
 
     it('converts fiat for every eligible token when overrideToUsd is true', () => {
-      mockUseAccountTokens.mockReturnValue([ETH_USDC, ETH_USDT]);
+      eligibleAssets = [ETH_USDC, ETH_USDT];
       mockCalcUsdAmountFromFiat.mockImplementation(
         ({ tokenFiatValue }) => tokenFiatValue * 2,
       );

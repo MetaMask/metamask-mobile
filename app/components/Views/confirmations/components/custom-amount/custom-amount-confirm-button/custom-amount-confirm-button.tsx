@@ -22,14 +22,13 @@ import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 
 export function CustomAmountConfirmButton({
-  alertTitle,
   isDisabled,
   onContinue,
   stage,
 }: Readonly<{
-  alertTitle: string | undefined;
   isDisabled: boolean;
   onContinue?: () => void;
   stage: CustomAmountStage;
@@ -39,6 +38,7 @@ export function CustomAmountConfirmButton({
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
     useConfirmationContext();
   const { onConfirm } = useConfirmActions();
+  const isPayLoading = useIsTransactionPayLoading();
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
@@ -56,14 +56,10 @@ export function CustomAmountConfirmButton({
     isDisabled ||
     stage !== CustomAmountStage.ShowTotals ||
     hasBlockingAlerts ||
+    isPayLoading ||
     isHeadlessBuyInProgress;
 
-  const enabledButtonLabel = useButtonLabel();
-
-  const buttonLabel =
-    stage === CustomAmountStage.Loading
-      ? enabledButtonLabel
-      : (alertTitle ?? enabledButtonLabel);
+  const buttonLabel = useButtonLabel();
 
   return (
     <Button
@@ -97,10 +93,6 @@ function useButtonLabel() {
     ])
   ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirm');
   }
 
   if (

@@ -6,8 +6,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
-import Text from '../../../../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import Name from '../../../../../../UI/Name';
@@ -32,6 +30,7 @@ import NestedTransactionData from '../../../nested-transaction-data/nested-trans
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import styleSheet from './advanced-details-row.styles';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const MAX_DATA_LENGTH_FOR_SCROLL = 200;
 
@@ -118,7 +117,7 @@ const AdvancedDetailsRow = () => {
                 tooltip={strings('transaction.custom_nonce_tooltip')}
               >
                 <Text
-                  variant={TextVariant.BodyMD}
+                  variant={TextVariant.BodyMd}
                   style={styles.nonceText}
                   onPress={
                     isNonceChangeDisabled ? undefined : handleShowNonceModal

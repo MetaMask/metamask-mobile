@@ -94,9 +94,11 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   }, []);
 
   const handleSet = useCallback(() => {
-    onSave(selectedBps);
+    if (selectedBps !== currentValueBps) {
+      onSave(selectedBps);
+    }
     onClose();
-  }, [onSave, onClose, selectedBps]);
+  }, [currentValueBps, onSave, onClose, selectedBps]);
 
   const primaryButtonProps = useMemo(
     () => ({

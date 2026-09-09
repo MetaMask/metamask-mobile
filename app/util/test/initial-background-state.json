@@ -370,6 +370,7 @@
     "tokenDisplayData": []
   },
   "TransactionController": {
+    "batchTransactionCounts": {},
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
@@ -533,12 +534,16 @@
       "direction": "desc"
     },
     "mode": "lite",
+    "orderBookPreferences": {
+      "currency": "usd",
+      "metric": "total"
+    },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
     "proLayoutPreferences": {
-      "chartExpanded": false,
-      "orderBookExpanded": false,
-      "orderBookPosition": "left",
+      "chartExpanded": true,
+      "orderBookExpanded": true,
+      "orderBookPosition": "right",
       "orderFormPosition": "right",
       "ordersSideFilter": "all",
       "ordersSortDirection": "desc",
@@ -547,7 +552,9 @@
       "positionsSortDirection": "desc",
       "positionsSortField": "positionValue"
     },
+    "selectedOrderType": "market",
     "selectedPaymentToken": null,
+    "visibleCandleCount": 30,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
   },
@@ -591,7 +598,8 @@
   },
   "AuthenticationController": {
     "isSignedIn": false,
-    "needsProfilePairing": true
+    "needsProfilePairing": true,
+    "needsSocialPairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -716,6 +724,10 @@
   "MultichainTransactionsController": {
     "nonEvmTransactions": {}
   },
+  "NetworkConnectionBannerController": {
+    "networkConnectionBannerStatus": "available",
+    "networkConnectionBannerNetwork": null
+  },
   "MultichainAssetsController": {
     "accountsAssets": {},
     "assetsMetadata": {},
@@ -751,12 +763,21 @@
     "activeProviderId": "baanx",
     "providerUserId": null,
     "cardHomeData": null,
+    "cardHomeDataAddress": null,
     "cardHomeDataStatus": "idle",
+    "cardHomeDataError": null,
+    "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
-    "lastUnauthenticatedReason": null
+    "lastUnauthenticatedReason": null,
+    "redeemWithdrawal": null
+  },
+  "UiSlotsController": {
+    "enabled": false,
+    "screenConfigurations": {},
+    "activeConfigurations": {}
   },
   "ConfigRegistryController": {
     "configs": {
@@ -859,6 +880,9 @@
     "predictThePitchLeaderboardPositions": {},
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
+    "moneyAccountSweepstakesStats": {},
+    "moneyAccountSweepstakesPrizePool": {},
+    "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
     "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
@@ -899,11 +923,9 @@
     "otp": null,
     "error": null
   },
-  "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
-  },
+  "AiDigestController": {},
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],

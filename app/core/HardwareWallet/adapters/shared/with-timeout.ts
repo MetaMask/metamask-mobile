@@ -16,7 +16,7 @@
  * the timeout fires.
  * @returns The resolved value of `promise`, or rejects with a timeout error.
  */
-export async function withTimeout<T>(
+export async function withLedgerTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
   errorMessage: string,

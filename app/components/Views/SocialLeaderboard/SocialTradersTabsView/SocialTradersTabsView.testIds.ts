@@ -9,4 +9,5 @@ export const SocialTradersTabsViewSelectorsIDs = {
   FEED_PAGE: 'social-traders-tabs-view-feed-page',
   NOTIFICATION_BUTTON: 'social-traders-tabs-view-notification-button',
   BACK_BUTTON: 'social-traders-tabs-view-back-button',
+  NOTIFICATIONS_BANNER: 'social-traders-tabs-view-notifications-banner',
 } as const;

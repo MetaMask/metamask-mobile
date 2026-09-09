@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
+import { FeatureId } from '@metamask/bridge-controller';
 import {
   Box,
   HeaderStandard,
@@ -23,6 +24,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
 import {
+  resetBridgeDestToken,
   resetBridgeState,
   resetBridgeTokenInputs,
   selectBridgeViewMode,
@@ -33,7 +35,8 @@ import { BridgeViewMode } from '../../types';
 import {
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyTabEnabledFlag,
-} from '../../selectors/featureFlags';
+} from '../../../../../selectors/bridge/featureFlags';
+import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { BridgeTabKey } from './BridgeView.constants';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import BridgeMarketView from './BridgeMarketView';
@@ -199,20 +202,25 @@ const BridgeView = () => {
     }
   }, [tabs, renderedTab]);
 
-  // Stops any in-flight BridgeController quote polling and clears the
-  // amount inputs (not the selected tokens) for the tab being left,
-  // whenever the rendered tab changes. This intentionally runs as the
-  // effect's cleanup rather than eagerly inside handleTabPress: cleanups
-  // fire after React commits the tab switch (deferred via startTransition
-  // above), so the outgoing tab is already gone by the time this runs
-  // instead of visibly flashing back to a reset state right before it's
-  // replaced.
+  // Stops any in-flight BridgeController quote polling, clears the amount
+  // inputs and drops the destination token for the tab being left, whenever
+  // the rendered tab changes. The destination goes because each tab anchors
+  // its own source token as it mounts (Market from its route params, Limit to
+  // the default pair of its restricted chains), so a destination kept from the
+  // previous tab would be left on an unrelated chain; clearing it lets the
+  // incoming tab derive the destination from its own source token's default
+  // pair. This intentionally runs as the effect's cleanup rather than eagerly
+  // inside handleTabPress: cleanups fire after React commits the tab switch
+  // (deferred via startTransition above), so the outgoing tab is already gone
+  // by the time this runs instead of visibly flashing back to a reset state
+  // right before it's replaced.
   useEffect(
     () => () => {
       if (Engine.context.BridgeController?.resetState) {
         Engine.context.BridgeController.resetState();
       }
       dispatch(resetBridgeTokenInputs());
+      dispatch(resetBridgeDestToken());
     },
     [renderedTab, dispatch],
   );
@@ -250,10 +258,20 @@ const BridgeView = () => {
       ) : null}
       <GestureDetector gesture={swipeGesture}>
         <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
-          {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
-          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Market ? (
+            <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+              <BridgeMarketView />
+            </SwapsFeatureIdProvider>
+          ) : null}
+          {renderedTab === BridgeTabKey.Limit ? (
+            <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+              <BridgeLimitOrderView />
+            </SwapsFeatureIdProvider>
+          ) : null}
           {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView />
+            <SwapsFeatureIdProvider featureId={FeatureId.RECURRING_BUY}>
+              <BridgeRecurringBuyView />
+            </SwapsFeatureIdProvider>
           ) : null}
         </Box>
       </GestureDetector>

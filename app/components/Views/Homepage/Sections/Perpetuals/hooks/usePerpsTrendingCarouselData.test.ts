@@ -31,4 +31,17 @@ describe('usePerpsTrendingCarouselData', () => {
 
     expect(result.current).toBe(initialResult);
   });
+
+  it('exposes refreshMarkets as the refresh function from usePerpsMarkets', () => {
+    const refresh = jest.fn().mockResolvedValue(undefined);
+    (usePerpsMarkets as jest.Mock).mockReturnValue({
+      markets: [],
+      isLoading: false,
+      refresh,
+    });
+
+    const { result } = renderHook(() => usePerpsTrendingCarouselData());
+
+    expect(result.current.refreshMarkets).toBe(refresh);
+  });
 });

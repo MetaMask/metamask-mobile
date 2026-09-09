@@ -21,9 +21,6 @@ export interface UseOpenSocialNotificationPreferencesResult {
  * Users who have never saved notification preferences are sent to the top-level
  * notification settings first (they must opt in before a per-feature section
  * exists); everyone else lands directly on the Social AI section.
- *
- * Shared by `TopTradersView` and `SocialTradersTabsView`, which render the same
- * bell in their headers.
  */
 export const useOpenSocialNotificationPreferences =
   (): UseOpenSocialNotificationPreferencesResult => {

@@ -18,6 +18,7 @@ import {
   formatTradeUnitPrice,
   formatUsd,
 } from '../../utils/formatters';
+import { resolveTradeAction } from '../../utils/tradeAction';
 import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
 import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
 import type {
@@ -69,32 +70,18 @@ function findTriggeringTrade(
 }
 
 /**
- * Feed rows are keyed off a triggering trade when one exists, and the trade's
- * intent is authoritative in both directions: an `exit` fill reads as closed
- * (even when {@link isClosedPosition} misclassifies a perp that still carries
- * stale non-zero margin in the Clicker payload), and an `enter` fill reads as
- * open (even when the position snapshot looks closed). We only fall back to the
- * {@link isClosedPosition} snapshot heuristic when there is no triggering trade.
+ * Resolves the lifecycle stage a feed row announces from its triggering trade
+ * (see {@link resolveTradeAction}), which separates a partial exit from a full
+ * close — the row used to read "closed" for a 10% trim.
+ *
+ * Missing action metadata remains undefined so the row can use a neutral label
+ * without inventing a lifecycle stage.
  */
-function isFeedItemClosed(
+function resolveAction(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
-): boolean {
-  if (trade) {
-    return trade.intent === 'exit';
-  }
-  return isClosedPosition(coreItem);
-}
-
-/**
- * Resolves the action verb for a feed row. Perp fills read as "opened"/"closed",
- * spot as "bought"/"sold" (mirrors `TradeRow`).
- */
-function resolveAction(isPerp: boolean, isClosed: boolean): FeedAction {
-  if (isPerp) {
-    return isClosed ? 'closed' : 'opened';
-  }
-  return isClosed ? 'sold' : 'bought';
+): FeedAction | undefined {
+  return trade ? resolveTradeAction(coreItem, trade) : undefined;
 }
 
 /**
@@ -237,7 +224,8 @@ function mapPerpFeedItem(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
   presentation: FeedItemPresentation,
-  action: FeedAction,
+  action: FeedAction | undefined,
+  isClosed: boolean,
   timestampMs: number,
   subHeader: FeedSubHeader,
 ): FeedPerpItem {
@@ -253,6 +241,7 @@ function mapPerpFeedItem(
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,
     action,
+    isClosed,
     timestamp: timestampMs,
     subHeader,
     ...presentation,
@@ -272,7 +261,8 @@ function mapPerpFeedItem(
 function mapSpotFeedItem(
   coreItem: CoreFeedItem,
   presentation: FeedItemPresentation,
-  action: FeedAction,
+  action: FeedAction | undefined,
+  isClosed: boolean,
   timestampMs: number,
   subHeader: FeedSubHeader,
 ): FeedSpotItem | null {
@@ -288,6 +278,7 @@ function mapSpotFeedItem(
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,
     action,
+    isClosed,
     timestamp: timestampMs,
     subHeader,
     ...presentation,
@@ -315,8 +306,12 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const timestampMs = tradeTimestampToMs(timestamp);
   const isPerp = isPerpPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
-  const isClosed = isFeedItemClosed(coreItem, trade);
-  const action = resolveAction(isPerp, isClosed);
+  const action = resolveAction(coreItem, trade);
+  const isClosed =
+    action === 'closed' || (action === undefined && isClosedPosition(coreItem));
+  // Only a full close realizes P&L. A reduce leaves the position open, so the
+  // right column keeps showing current value — the old `intent === 'exit'`
+  // test flipped it to a realized figure on every partial trim.
   const subHeader = buildSubHeader(trade, !isPerp);
   const presentation = buildFeedItemPresentation(coreItem, isClosed);
 
@@ -326,6 +321,7 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
       trade,
       presentation,
       action,
+      isClosed,
       timestampMs,
       subHeader,
     );
@@ -335,6 +331,7 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
     coreItem,
     presentation,
     action,
+    isClosed,
     timestampMs,
     subHeader,
   );

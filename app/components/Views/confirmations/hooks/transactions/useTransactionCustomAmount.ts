@@ -7,18 +7,12 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
-import {
-  getTokenAddress,
-  setMoneyAccountDepositMaxAtomic,
-} from '../../utils/transaction-pay';
+import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
-import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS,
@@ -30,21 +24,23 @@ import {
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
   useTransactionPayQuotesLastUpdated,
-  useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
 import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
-import { MONEY_ACCOUNT_CURRENCY } from '../../components/info/money-account-withdraw-info/money-account-withdraw-info';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
-import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import {
+  getDepositPrefillAmountInputType,
+  MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED_MAX,
+} from '../../utils/pay-amount-input-metrics';
 import { useDepositPrefillAmount } from './useDepositPrefillAmount';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
+const MIN_FIAT_AMOUNT = 0.01;
 
 interface DepositPrefetchQuoteRequest {
   amountHuman: string;
@@ -52,10 +48,6 @@ interface DepositPrefetchQuoteRequest {
   isAmountPrepared: boolean;
   quoteBaseline: number | undefined;
   sawQuoteLoading: boolean;
-}
-
-function formatFiatAmount(value: BigNumber): string {
-  return value.isInteger() ? value.toString(10) : value.toFixed(2);
 }
 
 export function useTransactionCustomAmount({
@@ -72,14 +64,13 @@ export function useTransactionCustomAmount({
     getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
   const { amount: defaultAmount } = useParams<{ amount?: string }>();
-  const [amountFiatState, setAmountFiat] = useState(defaultAmount ?? '0');
+  const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
   const [amountFiatDebounced, setAmountFiatDebounced] = useState(
     defaultAmount ?? '0',
   );
-  const totals = useTransactionPayTotals();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
   const isQuoteLoading = useIsTransactionPayQuoteLoading();
@@ -88,7 +79,6 @@ export function useTransactionCustomAmount({
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
   const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
   const hasPrefilled = useRef(false);
-  const depositMaxHumanRef = useRef<string | null>(null);
   const userHasEditedRef = useRef(false);
   // Dispatching the metric per keystroke triggers a store-wide selector sweep;
   // only dispatch when the input type actually changes.
@@ -118,13 +108,6 @@ export function useTransactionCustomAmount({
   );
 
   const isMaxAmount = useTransactionPayIsMaxAmount();
-  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const isPerpsWithdraw = hasTransactionType(transactionMeta, [
-    TransactionType.perpsWithdraw,
-  ]);
-  const isPredictWithdraw = hasTransactionType(transactionMeta, [
-    TransactionType.predictWithdraw,
-  ]);
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
@@ -139,14 +122,13 @@ export function useTransactionCustomAmount({
   const tokenFiatRate = isMoneyAccountWithdraw
     ? musdFiatRate
     : payTokenFiatRate;
-  const balanceUsd = useTokenBalance(tokenFiatRate);
+  const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
   const payTokenKey = `${payToken?.chainId ?? ''}:${
     payToken?.address.toLowerCase() ?? ''
   }`;
 
   useEffect(() => {
-    depositMaxHumanRef.current = null;
     userHasEditedRef.current = false;
     prefetchQuoteRequestRef.current = undefined;
     prefetchedQuoteAmountHumanRef.current = undefined;
@@ -207,31 +189,9 @@ export function useTransactionCustomAmount({
   const { maxAmount: fiatMaxAmount } = useRampsBuyLimits({
     amount: 0,
     paymentMethodId: fiatPaymentMethodId,
-    currency: MONEY_ACCOUNT_CURRENCY,
+    // Money Account confirmations are always USD-denominated.
+    currency: 'usd',
   });
-
-  const amountFiat = useMemo(() => {
-    const targetAmountUsd = totals?.targetAmount.usd;
-
-    // For withdrawals, targetAmount.usd is the destination-side received
-    // value (e.g. BNB after bridge fees), not the amount being withdrawn.
-    // The input field should always display what the user is withdrawing.
-    if (
-      !isWithdraw &&
-      isMaxAmount &&
-      targetAmountUsd &&
-      targetAmountUsd !== '0'
-    ) {
-      return formatFiatAmount(
-        new BigNumber(targetAmountUsd).decimalPlaces(
-          2,
-          BigNumber.ROUND_HALF_UP,
-        ),
-      );
-    }
-
-    return amountFiatState;
-  }, [amountFiatState, isMaxAmount, isWithdraw, totals?.targetAmount.usd]);
 
   const amountHuman = useMemo(
     () =>
@@ -268,14 +228,12 @@ export function useTransactionCustomAmount({
       return;
     }
 
-    const depositMaxHuman = depositMaxHumanRef.current;
-    const effectiveHuman = depositMaxHuman ?? amountHumanDebounced;
     const isNewPrefetch =
-      prefetchQuoteRequestRef.current?.amountHuman !== effectiveHuman ||
+      prefetchQuoteRequestRef.current?.amountHuman !== amountHumanDebounced ||
       prefetchQuoteRequestRef.current?.payTokenKey !== payTokenKey;
     if (isNewPrefetch) {
       prefetchQuoteRequestRef.current = {
-        amountHuman: effectiveHuman,
+        amountHuman: amountHumanDebounced,
         payTokenKey,
         isAmountPrepared: false,
         quoteBaseline: quotesLastUpdatedRef.current,
@@ -287,7 +245,7 @@ export function useTransactionCustomAmount({
 
     // Prefetch failures stay speculative. Continue retries the cleared request
     // and uses the existing toast path if the committed update also fails.
-    updateTransactionPayAmount(effectiveHuman).then(
+    updateTransactionPayAmount(amountHumanDebounced).then(
       (isPublished) => {
         if (!isPublished) {
           return;
@@ -296,7 +254,7 @@ export function useTransactionCustomAmount({
         const prefetchRequest = prefetchQuoteRequestRef.current;
         if (
           isNewPrefetch &&
-          prefetchRequest?.amountHuman === effectiveHuman &&
+          prefetchRequest?.amountHuman === amountHumanDebounced &&
           prefetchRequest.payTokenKey === payTokenKey
         ) {
           prefetchRequest.isAmountPrepared = true;
@@ -306,7 +264,8 @@ export function useTransactionCustomAmount({
       },
       () => {
         if (
-          prefetchQuoteRequestRef.current?.amountHuman === effectiveHuman &&
+          prefetchQuoteRequestRef.current?.amountHuman ===
+            amountHumanDebounced &&
           prefetchQuoteRequestRef.current.payTokenKey === payTokenKey
         ) {
           prefetchQuoteRequestRef.current = undefined;
@@ -326,11 +285,11 @@ export function useTransactionCustomAmount({
 
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
         config.isMaxAmount = value;
-      });
 
-      if (isMoneyAccountDeposit) {
-        setMoneyAccountDepositMaxAtomic(transactionId, value);
-      }
+        if (isMoneyAccountDeposit) {
+          config.atomic = value ? false : undefined;
+        }
+      });
     },
     [isMoneyAccountDeposit, transactionId],
   );
@@ -359,7 +318,6 @@ export function useTransactionCustomAmount({
         setIsMax(false);
       }
 
-      depositMaxHumanRef.current = null;
       userHasEditedRef.current = true;
       amountChangeTimeRef.current = Date.now();
 
@@ -392,16 +350,22 @@ export function useTransactionCustomAmount({
         return false;
       }
 
-      const newAmount = formatFiatAmount(
-        new BigNumber(percentage)
-          .dividedBy(100)
-          .multipliedBy(balanceUsd)
-          .decimalPlaces(2, BigNumber.ROUND_DOWN),
-      );
+      const rawAmount = new BigNumber(percentage)
+        .dividedBy(100)
+        .multipliedBy(balanceUsd);
 
-      // Sub-cent / dust balances ROUND_DOWN to $0. Treat that like no balance
-      // so Max does not arm auto-submit and strand the page on Loading.
-      if (new BigNumber(newAmount).lte(0)) {
+      // Pad a lone decimal to cents (`500.1` -> `500.10`).
+      // Anything more precise keeps every digit.
+      const newAmount =
+        rawAmount.decimalPlaces() === 1
+          ? rawAmount.toFixed(2)
+          : rawAmount.toFixed();
+
+      // Sub-cent dust renders as $0.00 and cannot produce a usable quote, so
+      // treat it like no balance rather than arming auto-submit and stranding
+      // the page on Loading. Checked against the raw amount because the
+      // applied amount deliberately keeps full precision.
+      if (rawAmount.lt(MIN_FIAT_AMOUNT)) {
         return false;
       }
 
@@ -414,55 +378,16 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Do NOT set isMaxAmount=true for perps, predict, or money-account
-      // withdraw. TPC's calculatePostQuoteSourceAmounts substitutes
-      // `token.balanceRaw` when isMaxAmount is true: wrong for perps/predict
-      // (wallet USDC vs typed HyperLiquid/Polymarket balance) and wrong for
-      // money account (on-chain mUSD only vs mUSD + vmUSD fiat total).
-      // Keeping isMaxAmount false routes the typed amount through as
-      // token.amountRaw.
-      const shouldSetMax =
-        percentage === 100 &&
-        !isPerpsWithdraw &&
-        !isPredictWithdraw &&
-        !isMoneyAccountWithdraw;
-
-      if (shouldSetMax) {
+      if (percentage === 100) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
       }
 
-      // For money account deposit max, store the full-precision human amount
-      // derived directly from the raw token balance. This bypasses the lossy
-      // fiat roundtrip (ROUND_DOWN → ÷ rate → × 10^decimals → ROUND_UP) that
-      // can inflate the required amount past the actual balance.
-      const isMaxMoneyAccountDeposit =
-        percentage === 100 && isMoneyAccountDeposit;
-
-      if (isMaxMoneyAccountDeposit && payToken?.balanceRaw) {
-        depositMaxHumanRef.current = new BigNumber(payToken.balanceRaw)
-          .shiftedBy(-(payToken.decimals ?? 6))
-          .toString(10);
-      } else {
-        depositMaxHumanRef.current = null;
-      }
-
       setAmountFiat(newAmount);
       return true;
     },
-    [
-      balanceUsd,
-      isMaxAmount,
-      isPerpsWithdraw,
-      isPredictWithdraw,
-      isMoneyAccountWithdraw,
-      isMoneyAccountDeposit,
-      payToken?.balanceRaw,
-      payToken?.decimals,
-      setIsMax,
-      setConfirmationMetric,
-    ],
+    [balanceUsd, isMaxAmount, setIsMax, setConfirmationMetric],
   );
 
   const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
@@ -474,12 +399,18 @@ export function useTransactionCustomAmount({
       prevHasPrefilled.current = depositPrefill.hasPrefilled;
       return;
     }
-    if (depositPrefill.hasPrefilled) {
+    // Apply when committed, or on the token-switch frame where the next
+    // amount is already computed but `hasPrefilled` has not flipped true yet.
+    // Clearing to $0 in that gap is what made the prefill disappear.
+    if (
+      depositPrefill.hasPrefilled ||
+      depositPrefill.prefillAmount !== undefined
+    ) {
       amountChangeTimeRef.current = Date.now();
       // Uncapped percentage prefills go through the same Max/percentage path
-      // as the keypad buttons so money-account Max gets isMaxAmount and
-      // depositMaxHumanRef — matching other Max deposits. Limit-capped
-      // amounts are not a true Max and must use the literal value.
+      // as the keypad buttons so money-account Max gets isMaxAmount —
+      // matching other Max deposits. Limit-capped amounts are not a true Max
+      // and must use the literal value.
       if (
         depositPrefill.percentage !== undefined &&
         !depositPrefill.isLimitCapped
@@ -488,16 +419,33 @@ export function useTransactionCustomAmount({
       } else {
         setAmountFiat(depositPrefill.prefillAmount ?? '0');
       }
+
+      // Prefill is not a keypad press — use prefilled_* so analytics can
+      // distinguish automatic prefill from user Max / 50%. Sticky
+      // prefill_presented survives later manual / % edits.
+      const prefillInputType = getDepositPrefillAmountInputType({
+        percentage: depositPrefill.percentage,
+        isLimitCapped: depositPrefill.isLimitCapped,
+      });
+      lastAmountInputTypeRef.current = prefillInputType;
+      setConfirmationMetric({
+        properties: {
+          [MM_PAY_AMOUNT_INPUT_TYPE_KEY]: prefillInputType,
+          [MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY]: true,
+        },
+      });
     } else if (prevHasPrefilled.current) {
       setAmountFiat('0');
-      depositMaxHumanRef.current = null;
       if (isMaxAmount) {
         setIsMax(false);
       }
     }
     prevHasPrefilled.current = depositPrefill.hasPrefilled;
+    // Re-run on token change so a new funded token applies immediately instead
+    // of waiting for hasPrefilled to toggle. Same-token balance updates do not
+    // change payTokenKey, so the one-shot prefill is preserved.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [depositPrefill.hasPrefilled]);
+  }, [depositPrefill.hasPrefilled, payTokenKey]);
 
   useEffect(() => {
     if (
@@ -508,13 +456,25 @@ export function useTransactionCustomAmount({
     ) {
       hasPrefilled.current = true;
       updatePendingAmountPercentage(100);
+      lastAmountInputTypeRef.current = MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED_MAX;
+      setConfirmationMetric({
+        properties: {
+          [MM_PAY_AMOUNT_INPUT_TYPE_KEY]:
+            MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED_MAX,
+          [MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY]: true,
+        },
+      });
       setIsPrefillPending(false);
     }
-  }, [isAddMusdFlow, balanceUsd, updatePendingAmountPercentage]);
+  }, [
+    isAddMusdFlow,
+    balanceUsd,
+    setConfirmationMetric,
+    updatePendingAmountPercentage,
+  ]);
 
   const updateTokenAmount = useCallback(async () => {
-    const effectiveHuman = depositMaxHumanRef.current ?? amountHuman;
-    await updateTransactionPayAmount(effectiveHuman);
+    await updateTransactionPayAmount(amountHuman);
     setIsTokenAmountUpdated(true);
   }, [amountHuman, updateTransactionPayAmount]);
 
@@ -540,10 +500,9 @@ export function useTransactionCustomAmount({
     setConfirmationMetric,
   ]);
 
-  const effectiveCurrentAmountHuman = depositMaxHumanRef.current ?? amountHuman;
   const hasPrefetchedQuote =
     isAmountUpdateQuotePipelineEnabled &&
-    prefetchedQuoteAmountHuman === effectiveCurrentAmountHuman &&
+    prefetchedQuoteAmountHuman === amountHuman &&
     prefetchedQuotePayTokenKey === payTokenKey;
 
   return {
@@ -562,65 +521,4 @@ export function useTransactionCustomAmount({
     updatePendingAmountPercentage,
     updateTokenAmount,
   };
-}
-
-function useTokenBalance(tokenUsdRate: number | undefined) {
-  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const transactionId = transactionMeta?.id ?? '';
-
-  const { payToken } = useTransactionPayToken();
-
-  const payTokenBalanceUsd = new BigNumber(
-    payToken?.balanceUsd ?? 0,
-  ).toNumber();
-
-  const { data: predictBalanceHuman = 0 } = usePredictBalance();
-
-  const predictBalanceUsd = tokenUsdRate
-    ? new BigNumber(predictBalanceHuman ?? '0')
-        .multipliedBy(tokenUsdRate)
-        .toNumber()
-    : 0;
-
-  const { withdrawableMusd, withdrawableFiatRaw } = useMoneyAccountBalance();
-
-  const paymentOverride = useSelector((state: RootState) =>
-    selectPaymentOverrideByTransactionId(state, transactionId),
-  );
-
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
-    const perpsState = Engine.context.PerpsController?.state;
-    const withdrawableBalance = perpsState?.accountState?.withdrawableBalance;
-    return withdrawableBalance ? parseFloat(withdrawableBalance) : 0;
-  }
-
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
-  ) {
-    // Only vmUSD shares (converted via vault rate) are withdrawable through the
-    // teller — bare mUSD in the account is not part of this flow.
-    if (withdrawableMusd === undefined) {
-      return 0;
-    }
-    return tokenUsdRate
-      ? withdrawableMusd.multipliedBy(tokenUsdRate).toNumber()
-      : 0;
-  }
-
-  if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
-    return predictBalanceUsd;
-  }
-
-  if (paymentOverride === PaymentOverride.MoneyAccount) {
-    if (!withdrawableFiatRaw) {
-      return 0;
-    }
-    // ROUND_DOWN to cents before Max/percentage math so we never set an
-    // amount above the spendable withdrawable balance after display rounding.
-    return new BigNumber(withdrawableFiatRaw)
-      .decimalPlaces(2, BigNumber.ROUND_DOWN)
-      .toNumber();
-  }
-
-  return payTokenBalanceUsd;
 }

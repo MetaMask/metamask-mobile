@@ -15,10 +15,10 @@ on:
         description: 'Whether Android E2E tests and builds should run (true when Android-specific or shared files changed)'
         value: ${{ jobs.detect-changes.outputs.android_e2e_needed }}
       ios_e2e_needed:
-        description: 'Whether iOS E2E tests and builds should run (true when iOS-specific or shared files changed)'
+        description: 'Whether iOS is selected by the final platform policy for E2E. This flag gates both the iOS build and iOS tests. Pull requests targeting main require an explicit iOS request, including the smoke-infrastructure exception; release/* requires an explicit label request. Pushes use path-filtered platforms, while schedule runs select both.'
         value: ${{ jobs.detect-changes.outputs.ios_e2e_needed }}
       changed_spec_files:
-        description: 'Space-separated list of changed E2E spec file paths only — never the full changed-file list, which overflows ARG_MAX and kills this job on large PRs. Smoke test workflows use this to run modified spec files twice for flakiness detection (catches flaky tests before they land on main)'
+        description: 'Space-separated list of changed E2E spec file paths only — never the full changed-file list, which overflows ARG_MAX and kills this job on large PRs. Smoke test workflows use this to run modified spec files twice for flakiness detection on PRs targeting main.'
         value: ${{ jobs.detect-changes.outputs.changed_spec_files }}
       block_merge_for_e2e_readiness:
         description: 'Whether merge should be blocked for E2E readiness. True when "pr-not-ready-for-e2e" label is applied AND changes are not ignorable-only (i.e. E2E is actually relevant). Ignorable-only PRs (docs, assets, configs, test files) bypass the block automatically.'
@@ -29,12 +29,9 @@ on:
       run_performance:
         description: 'Whether performance E2E tests should be forced to run via the run-performance-tests PR label'
         value: ${{ jobs.detect-changes.outputs.run_performance }}
-      run_appium_ios:
-        description: 'Whether Appium iOS smoke tests should also run on an eligible PR via the run-appium-ios-tests label or e2e smoke infra / smoke-appium file changes'
-        value: ${{ jobs.detect-changes.outputs.run_appium_ios }}
-      native_build_needed:
-        description: 'Whether fresh iOS/Android native E2E builds are required. False when only E2E/performance test files changed — CI reuses main branch builds instead.'
-        value: ${{ jobs.detect-changes.outputs.native_build_needed }}
+      use_main_builds_for_test_only_prs:
+        description: 'Whether test-only E2E runs should reuse Android/iOS builds from main and fall back to fresh native builds when unavailable; false for normal E2E runs.'
+        value: ${{ jobs.detect-changes.outputs.use_main_builds_for_test_only_prs }}
 
 jobs:
   detect-changes:
@@ -50,8 +47,7 @@ jobs:
       block_merge_for_e2e_readiness: ${{ steps.set-outputs.outputs.block_merge }}
       run_smart_e2e_selection: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
       run_performance: ${{ steps.set-outputs.outputs.run_performance }}
-      run_appium_ios: ${{ steps.set-outputs.outputs.run_appium_ios }}
-      native_build_needed: ${{ steps.set-outputs.outputs.native_build_needed }}
+      use_main_builds_for_test_only_prs: ${{ steps.set-outputs.outputs.use_main_builds_for_test_only_prs }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -98,7 +94,7 @@ jobs:
             echo "LABEL_BLOCKS_MERGE=false"
             echo "SKIP_SMART_SELECTION=false"
             echo "RUN_PERFORMANCE=false"
-            echo "RUN_APPIUM_IOS=false"
+            echo "RUN_APPIUM_IOS_LABEL=false"
           } >> "$GITHUB_OUTPUT"
 
           LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
@@ -127,8 +123,8 @@ jobs:
           fi
 
           if echo "$LABELS" | grep -qx "run-appium-ios-tests"; then
-            echo "RUN_APPIUM_IOS=true" >> "$GITHUB_OUTPUT"
-            echo "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR"
+            echo "RUN_APPIUM_IOS_LABEL=true" >> "$GITHUB_OUTPUT"
+            echo "-> RUN_APPIUM_IOS_LABEL=true due to 'run-appium-ios-tests' label on PR"
           fi
 
       - name: Filter changed files
@@ -153,12 +149,13 @@ jobs:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
+          SKIP_SMART_SELECTION: ${{ steps.check-labels.outputs.SKIP_SMART_SELECTION }}
           LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}
           RUN_PERFORMANCE_LABEL: ${{ steps.check-labels.outputs.RUN_PERFORMANCE }}
-          RUN_APPIUM_IOS_LABEL: ${{ steps.check-labels.outputs.RUN_APPIUM_IOS }}
+          RUN_APPIUM_IOS_LABEL: ${{ steps.check-labels.outputs.RUN_APPIUM_IOS_LABEL }}
           E2E_SMOKE_INFRA_COUNT: ${{ steps.filter.outputs.e2e_smoke_infra_count }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
-          CHANGED_SPEC_FILES: ${{ github.event_name == 'pull_request' && steps.filter.outputs.e2e_spec_files_files || '' }}
+          CHANGED_SPEC_FILES: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && steps.filter.outputs.e2e_spec_files_files || '' }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
           E2E_TEST_FILES_COUNT: ${{ steps.filter.outputs.e2e_test_files_count }}
           E2E_TEST_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_test_or_ignorable_count }}
@@ -167,4 +164,4 @@ jobs:
           IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
           ANDROID_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.android_or_ignorable_count }}
           IOS_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.ios_or_ignorable_count }}
-        run: node .github/scripts/run-compute-e2e-platform-flags.cjs
+        run: node .github/scripts/qa-automation/e2e-ci-orchestration/run-compute-e2e-platform-flags.mjs

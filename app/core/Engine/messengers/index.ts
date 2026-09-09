@@ -117,7 +117,7 @@ import {
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
-import { getConfigRegistryControllerMessenger } from './config-registry-controller-messenger';
+import { getNetworkConnectionBannerControllerMessenger } from './network-connection-banner-controller-messenger';
 import {
   getMultichainRoutingServiceInitMessenger,
   getMultichainRoutingServiceMessenger,
@@ -141,12 +141,12 @@ import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
+import { getUiSlotsControllerMessenger } from './ui-slots-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
 import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
-import { getConfigRegistryApiServiceMessenger } from './config-registry-api-service-messenger.ts';
 import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
@@ -168,12 +168,8 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getAccountTreeControllerMessenger,
     getInitMessenger: getAccountTreeControllerInitMessenger,
   },
-  ConfigRegistryController: {
-    getMessenger: getConfigRegistryControllerMessenger,
-    getInitMessenger: noop,
-  },
-  ConfigRegistryApiService: {
-    getMessenger: getConfigRegistryApiServiceMessenger,
+  NetworkConnectionBannerController: {
+    getMessenger: getNetworkConnectionBannerControllerMessenger,
     getInitMessenger: noop,
   },
   AssetsContractController: {
@@ -472,6 +468,10 @@ export const MESSENGER_FACTORIES = {
   },
   CardController: {
     getMessenger: getCardControllerMessenger,
+    getInitMessenger: noop,
+  },
+  UiSlotsController: {
+    getMessenger: getUiSlotsControllerMessenger,
     getInitMessenger: noop,
   },
   QrSyncController: {

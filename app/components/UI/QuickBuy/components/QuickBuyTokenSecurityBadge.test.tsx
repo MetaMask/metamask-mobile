@@ -49,7 +49,7 @@ const createToken = (overrides: Partial<BridgeToken> = {}): BridgeToken => ({
 
 const createQueryClient = () =>
   new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
 
 const renderBadge = (

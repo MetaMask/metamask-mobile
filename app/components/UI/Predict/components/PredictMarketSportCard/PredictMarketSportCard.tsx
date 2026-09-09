@@ -286,7 +286,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={tw.style(isCarousel ? 'h-full' : 'my-[8px]')}
+      style={tw.style(isCarousel ? 'h-full' : 'mb-3')}
       testID={testID}
       onPress={handleCardPress}
       activeOpacity={0.9}
@@ -307,7 +307,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           </Box>
         )}
 
-        <Box twClassName={isCompact ? 'flex-1 p-3' : 'p-4 gap-4'}>
+        <Box twClassName={isCompact ? 'flex-1 p-4' : 'p-4 gap-4'}>
           <Text
             variant={TextVariant.HeadingSm}
             color={TextColor.TextDefault}

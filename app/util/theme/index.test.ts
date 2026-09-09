@@ -1,11 +1,8 @@
 import { Appearance, StatusBar } from 'react-native';
-import { resolveDarkTheme } from '@metamask/design-tokens';
+import { darkTheme } from '@metamask/design-tokens';
 import { renderHookWithProvider } from '../test/renderWithProvider';
 import { useAppTheme } from './index';
 import { AppThemeKey } from './models';
-import { isPureBlackEnabled } from './pureBlackPreview';
-
-const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
 
 describe('useAppTheme', () => {
   let setBarStyleSpy: jest.SpyInstance;
@@ -25,7 +22,7 @@ describe('useAppTheme', () => {
 
     expect(result.current.themeAppearance).toBe(AppThemeKey.dark);
     expect(result.current.colors.background.default).toBe(
-      resolvedDarkTheme.colors.background.default,
+      darkTheme.colors.background.default,
     );
   });
 
@@ -40,7 +37,7 @@ describe('useAppTheme', () => {
 
     expect(result.current.themeAppearance).toBe(AppThemeKey.dark);
     expect(result.current.colors.background.default).toBe(
-      resolvedDarkTheme.colors.background.default,
+      darkTheme.colors.background.default,
     );
 
     getColorSchemeSpy.mockRestore();

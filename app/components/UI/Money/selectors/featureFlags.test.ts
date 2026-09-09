@@ -4,6 +4,7 @@ import {
   selectMoneyActivityMockDataEnabledFlag,
   selectMoneyEnableActivityDetailsFlag,
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+  selectMoneyEnableCardActivityEnrichmentFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyHubEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
@@ -15,6 +16,7 @@ import {
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyCardFlipAnimationEnabledFlag,
   selectMoneyCardTiltAnimationEnabledFlag,
+  selectMoneyCardEducationAnimationEnabledFlag,
   selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
   selectIsMoneyAssetOverviewBalanceCtaEnabledFlag,
@@ -92,6 +94,53 @@ describe('selectMoneyEnableActivityDetailsFlag', () => {
     const state = createState({});
 
     const result = selectMoneyEnableActivityDetailsFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyEnableCardActivityEnrichmentFlag', () => {
+  const originalEnv = process.env.MM_MONEY_ENABLE_CARD_ACTIVITY_ENRICHMENT;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    delete process.env.MM_MONEY_ENABLE_CARD_ACTIVITY_ENRICHMENT;
+  });
+
+  afterEach(() => {
+    if (originalEnv === undefined) {
+      delete process.env.MM_MONEY_ENABLE_CARD_ACTIVITY_ENRICHMENT;
+    } else {
+      process.env.MM_MONEY_ENABLE_CARD_ACTIVITY_ENRICHMENT = originalEnv;
+    }
+  });
+
+  it('returns true when remote flag is enabled', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const result = selectMoneyEnableCardActivityEnrichmentFlag.resultFunc({
+      moneyEnableCardActivityEnrichment: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('falls back to env when remote flag is absent', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_ENABLE_CARD_ACTIVITY_ENRICHMENT = 'true';
+
+    const result = selectMoneyEnableCardActivityEnrichmentFlag.resultFunc({});
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote and env are unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+
+    const result = selectMoneyEnableCardActivityEnrichmentFlag.resultFunc({});
 
     expect(result).toBe(false);
   });
@@ -1028,6 +1077,104 @@ describe('selectMoneyCardTiltAnimationEnabledFlag', () => {
     });
 
     const result = selectMoneyCardTiltAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyCardEducationAnimationEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyCardEducationAnimationEnabled: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardEducationAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyCardEducationAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardEducationAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('defaults to false when remote flag returns undefined and env is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED;
+
+    const state = createState({
+      _unique: 'card-education-default-off',
+    });
+
+    const result = selectMoneyCardEducationAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when env var is set to true and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      _unique: 'card-education-env-true',
+    });
+
+    const result = selectMoneyCardEducationAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when env var is set to false and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED = 'false';
+
+    const state = createState({
+      _unique: 'card-education-env-false',
+    });
+
+    const result = selectMoneyCardEducationAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('remote flag takes precedence over env var', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      earnMoneyCardEducationAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyCardEducationAnimationEnabledFlag(state as never);
 
     expect(result).toBe(false);
   });

@@ -8,16 +8,15 @@ import {
   TestDapps,
 } from '../../../framework/index.js';
 import {
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from '../../mm-connect/utils.js';
 import SolanaTestDApp, {
   SOLANA_DAPP_PORT,
 } from '../../../page-objects/Browser/SolanaTestDApp.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
-import PlaywrightMatchers from '../../../framework/PlaywrightMatchers.js';
-import PlaywrightGestures from '../../../framework/PlaywrightGestures.js';
+import Gestures from '../../../framework/Gestures.js';
+import Matchers from '../../../framework/Matchers.js';
 import { navigateToBrowserView } from '../../../flows/browser.flow.js';
 
 // Truncated Solana account addresses shown in the dapp header
@@ -34,15 +33,11 @@ appiumTest.describe(SmokeNetworkExpansion('Solana Wallet Standard'), () => {
   appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest.beforeAll(async () => {
-    solanaDappServer.setServerPort(SOLANA_DAPP_PORT);
-    await solanaDappServer.start();
-    await waitForDappServerReady(SOLANA_DAPP_PORT);
-    setupAdbReverse(SOLANA_DAPP_PORT);
+    await startLocalDappServerOnWorker(solanaDappServer, SOLANA_DAPP_PORT);
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(SOLANA_DAPP_PORT);
-    await solanaDappServer.stop();
+    await stopLocalDappServerOnWorker(solanaDappServer, SOLANA_DAPP_PORT);
   });
 
   appiumTest(
@@ -166,17 +161,16 @@ appiumTest.describe(SmokeNetworkExpansion('Solana Wallet Standard'), () => {
 
           // Switch to a different account via the wallet tab
           await TabBarComponent.tapWallet();
-          const accountLabelEl =
-            await PlaywrightMatchers.getElementById('account-label');
-          await PlaywrightGestures.waitAndTap(accountLabelEl, {
+          const accountLabelEl = Matchers.getElementByID('account-label');
+          await Gestures.waitAndTap(accountLabelEl, {
             timeout: 10_000,
           });
           // The active account (account2) is listed first; index 1 is account1
-          const account1Cell = await PlaywrightMatchers.getElementById(
+          const account1Cell = Matchers.getElementByID(
             'cellbase-avatar-title',
-            { index: 1 },
+            1,
           );
-          await PlaywrightGestures.waitAndTap(account1Cell, {
+          await Gestures.waitAndTap(account1Cell, {
             timeout: 10_000,
           });
 

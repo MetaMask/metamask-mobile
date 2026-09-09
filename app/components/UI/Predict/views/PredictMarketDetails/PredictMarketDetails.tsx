@@ -42,6 +42,7 @@ import PredictDetailsContentSkeleton from '../../components/PredictDetailsConten
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 import PredictCryptoUpDownDetails from '../../components/PredictCryptoUpDownDetails';
 import { isCryptoUpDown } from '../../utils/cryptoUpDown';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import {
   selectPredictUpDownEnabledFlag,
   selectPredictFeeCollectionFlag,
@@ -116,7 +117,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const {
     data: marketData,
-    isLoading: isMarketLoading,
+    isPending: isMarketPending,
     isFetching: isMarketFetching,
     error: marketError,
     refetch: refetchMarket,
@@ -130,7 +131,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     !resolvedMarketId &&
     isCurrentSeriesMarketLoading;
   const isResolvedMarketLoading =
-    isMarketLoading || isResolvingMarketFromSeries;
+    isMarketPending || isResolvingMarketFromSeries;
   const isResolvedMarketFetching =
     isMarketFetching || isCurrentSeriesMarketFetching;
 
@@ -452,10 +453,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   }, [market, tabsReady, activeTab, tabs, trackMarketDetailsOpened]);
 
-  // see if there are any positions with positive percentPnl
-  const hasPositivePnl = claimablePositions.some(
-    (position) => position.percentPnl > 0,
+  const actionableClaimablePositions = claimablePositions.filter(
+    isActionableClaimablePosition,
   );
+  const hasPositivePnl = actionableClaimablePositions.length > 0;
 
   const isMarketUnavailable = isMarketUnresolved;
   const resolvedMarketError = marketError ?? currentSeriesMarketError;
@@ -506,7 +507,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         refreshing={isRefreshing}
         onBetPress={handleBuyPress}
         onClaimPress={handleClaimPress}
-        claimableAmount={claimablePositions.reduce(
+        claimableAmount={actionableClaimablePositions.reduce(
           (sum, p) => sum + (p.currentValue ?? 0),
           0,
         )}

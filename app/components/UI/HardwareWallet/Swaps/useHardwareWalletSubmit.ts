@@ -116,7 +116,7 @@ interface UseHardwareWalletSubmitOptions {
   approvalRequestId?: string;
   submissionParams?: SubmissionParams;
   ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
-  setPendingOperationAddress?: (address: string | null) => void;
+  setPendingOperationAddress: (address: string | null) => void;
 }
 
 /**
@@ -223,7 +223,7 @@ export function useHardwareWalletSubmit({
     }
 
     await runSubmit(async () => {
-      setPendingOperationAddress?.(walletAddress);
+      setPendingOperationAddress(walletAddress);
       try {
         const deviceId = await getDeviceIdForAddress(walletAddress);
         const isReady = await ensureDeviceReady?.(deviceId);
@@ -258,7 +258,7 @@ export function useHardwareWalletSubmit({
           await retrySendTransaction(currentPreparedTxMeta);
         }
       } finally {
-        setPendingOperationAddress?.(null);
+        setPendingOperationAddress(null);
       }
     });
   }, [
@@ -285,18 +285,41 @@ export function useHardwareWalletSubmit({
     const submissionGenerationAtStart = submissionGenerationRef.current;
     setSubmittedTransaction(null);
 
-    const submitted = await runSubmit(() =>
-      withPostTradeNotificationSuppression(() =>
-        submitBridgeTxRef.current(cachedParams),
-      ),
-    );
+    const submitted = await runSubmit(async () => {
+      setPendingOperationAddress(walletAddress);
+      try {
+        const deviceId = await getDeviceIdForAddress(walletAddress);
+        const isReady = await ensureDeviceReady?.(deviceId);
+        if (!isReady) {
+          dispatch(
+            updateHardwareWalletsSwaps({
+              type: HardwareWalletsSwapsEventType.TransactionFailed,
+            }),
+          );
+          return undefined;
+        }
+
+        return await withPostTradeNotificationSuppression(() =>
+          submitBridgeTxRef.current(cachedParams),
+        );
+      } finally {
+        setPendingOperationAddress(null);
+      }
+    });
 
     if (submissionGenerationRef.current !== submissionGenerationAtStart) {
       return;
     }
 
     setSubmittedTransaction(submitted);
-  }, [dispatch, walletAddress, runSubmit, submissionGenerationRef]);
+  }, [
+    dispatch,
+    walletAddress,
+    runSubmit,
+    submissionGenerationRef,
+    ensureDeviceReady,
+    setPendingOperationAddress,
+  ]);
 
   const submit = useCallback(async () => {
     if (isSendFlow) {

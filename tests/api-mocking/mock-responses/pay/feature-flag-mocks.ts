@@ -54,5 +54,13 @@ export function moneyAccountDepositFlags(): Record<string, unknown> {
     ...getBaseFlags(),
     moneyEnableMoneyAccount: { enabled: true, minimumVersion: '0.0.0' },
     moneyHomeScreenEnabled: { enabled: true, minimumVersion: '0.0.0' },
+    moneyAccountVaultConfig: {
+      chainId: '0x8f',
+      boringVault: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
+      tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
+      accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
+      lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
+    },
+    confirmationsCONF1775AbtestMoneyAccountDepositPrefill: 'control',
   };
 }

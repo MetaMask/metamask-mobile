@@ -652,6 +652,36 @@ describe('BrowserUrlBar', () => {
 
       expect(getByText('https://example.com/page')).toBeDefined();
     });
+
+    it('shows the committed activeUrl after leftover setNativeProps input', () => {
+      const urlBarRef = createRef<BrowserUrlBarRef>();
+
+      const { rerender, getByTestId, queryByText } = renderWithProvider(
+        <BrowserUrlBar
+          {...propsWithoutUrlBarFocused}
+          ref={urlBarRef}
+          activeUrl="https://first.example/path"
+        />,
+        { state: mockInitialState },
+      );
+
+      act(() => {
+        urlBarRef.current?.setNativeProps({ text: 'https://first.example' });
+      });
+
+      rerender(
+        <BrowserUrlBar
+          {...propsWithoutUrlBarFocused}
+          ref={urlBarRef}
+          activeUrl="https://second.example/path"
+        />,
+      );
+
+      expect(
+        getByTestId(BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT),
+      ).toHaveTextContent('https://second.example/path');
+      expect(queryByText('https://first.example')).toBeNull();
+    });
   });
 
   describe('Tabs Button', () => {

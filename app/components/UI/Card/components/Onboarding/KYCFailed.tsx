@@ -1,12 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import {
-  Image,
-  View,
-  StyleSheet,
-  useWindowDimensions,
-  ViewStyle,
-  ImageStyle,
-} from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,10 +28,14 @@ import { brandColor } from '@metamask/design-tokens';
 import { colors as importedColors } from '../../../../../styles/common';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 
-// Threshold for small screen adjustments
-const SMALL_SCREEN_THRESHOLD = 700;
-
 const staticStyles = StyleSheet.create({
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  },
   headerContainer: {
     zIndex: 2,
   },
@@ -58,36 +55,6 @@ const KYCFailed = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedView = useRef(false);
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-
-  const dynamicStyles = useMemo<{
-    imageContainer: ViewStyle;
-    image: ImageStyle;
-  }>(() => {
-    const isSmallScreen = screenHeight < SMALL_SCREEN_THRESHOLD;
-    const imageTop = isSmallScreen ? '28%' : '25%';
-    const imageWidth = isSmallScreen ? screenWidth * 1.5 : screenWidth * 1.2;
-    const imageHeight = isSmallScreen
-      ? screenHeight * 0.8
-      : screenHeight * 0.75;
-
-    return {
-      imageContainer: {
-        position: 'absolute',
-        top: imageTop,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        zIndex: 1,
-      },
-      image: {
-        width: imageWidth,
-        height: imageHeight,
-      },
-    };
-  }, [screenWidth, screenHeight]);
 
   useEffect(() => {
     dispatch(resetOnboardingState());
@@ -117,6 +84,13 @@ const KYCFailed = () => {
 
   return (
     <Box twClassName="flex-1" style={tw.style(`bg-[${brandColor.purple800}]`)}>
+      <Image
+        source={MM_CARD_ONBOARDING_FAILED}
+        resizeMode="cover"
+        style={staticStyles.backgroundImage}
+        testID="kyc-failed-image"
+      />
+
       {/* Header with back button */}
       <SafeAreaView edges={['top']} style={staticStyles.headerContainer}>
         <Box twClassName="px-4 py-2 items-start">
@@ -140,23 +114,13 @@ const KYCFailed = () => {
           </Text>
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="text-white opacity-80 mt-4"
+            twClassName="text-white opacity-80 mt-2"
             testID="kyc-failed-description"
           >
             {strings('card.card_onboarding.kyc_failed.description')}
           </Text>
         </Box>
       </SafeAreaView>
-
-      {/* Image - positioned absolutely to extend behind footer */}
-      <View style={dynamicStyles.imageContainer}>
-        <Image
-          source={MM_CARD_ONBOARDING_FAILED}
-          resizeMode="contain"
-          style={dynamicStyles.image}
-          testID="kyc-failed-image"
-        />
-      </View>
 
       {/* Footer */}
       <SafeAreaView

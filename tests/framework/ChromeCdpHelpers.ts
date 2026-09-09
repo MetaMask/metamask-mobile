@@ -2,17 +2,19 @@
 import { execFileSync } from 'child_process';
 import { WebSocket as WsClient } from 'ws';
 import type { Context } from '@wdio/protocols';
-import type { AndroidDetailedContext } from 'webdriverio/build/types';
+import type { AndroidDetailedContext } from 'webdriverio';
 import { APP_PACKAGE_IDS } from './Constants.ts';
-import { getDriver, executeMobileDeepLink } from './PlaywrightUtilities';
+import { getDriver, executeMobileDeepLink } from './AppiumUtilities';
 import { PlatformDetector } from './PlatformLocator';
-import PlaywrightContextHelpers from './PlaywrightContextHelpers';
-import { createPlaywrightLogger } from './playwrightLogger.ts';
+import AppiumContextHelpers from './AppiumContextHelpers';
+import { createAppiumLogger } from './appiumLogger.ts';
+import {
+  adbDeviceArgs,
+  chromeCdpForwardPort,
+  metamaskWebViewCdpForwardPort,
+} from './e2eWorkerPorts.ts';
 
-const logger = createPlaywrightLogger('ChromeCdpHelpers');
-
-/** Host port for `adb forward` to Chrome's `@chrome_devtools_remote` socket. */
-const CDP_FORWARD_PORT = 9222;
+const logger = createAppiumLogger('ChromeCdpHelpers');
 const CDP_READY_TIMEOUT_MS = 20_000;
 const DAPP_PAGE_TIMEOUT_MS = 30_000;
 /** SDK opens metamask:// only after transport `session_request` (can take several seconds). */
@@ -179,7 +181,7 @@ export default class ChromeCdpHelpers {
   /**
    * Forward host → device Chrome DevTools abstract socket.
    */
-  private static ensureAdbForward(port = CDP_FORWARD_PORT): void {
+  private static ensureAdbForward(port = chromeCdpForwardPort()): void {
     this.ensureAdbForwardToAbstractSocket(port, 'chrome_devtools_remote');
     logger.debug(`ADB forwarded tcp:${port} → chrome_devtools_remote`);
   }
@@ -193,15 +195,24 @@ export default class ChromeCdpHelpers {
     abstractSocket: string,
   ): void {
     try {
-      execFileSync('adb', ['forward', '--remove', `tcp:${port}`], {
-        stdio: 'pipe',
-      });
+      execFileSync(
+        'adb',
+        [...adbDeviceArgs(), 'forward', '--remove', `tcp:${port}`],
+        {
+          stdio: 'pipe',
+        },
+      );
     } catch {
       // No existing forward is fine.
     }
     execFileSync(
       'adb',
-      ['forward', `tcp:${port}`, `localabstract:${abstractSocket}`],
+      [
+        ...adbDeviceArgs(),
+        'forward',
+        `tcp:${port}`,
+        `localabstract:${abstractSocket}`,
+      ],
       { stdio: 'pipe' },
     );
   }
@@ -475,8 +486,7 @@ export default class ChromeCdpHelpers {
             set(v) {
               pushObserved(v);
               return desc.set.call(this, v);
-            },
-          });
+            } });
         }
       } catch (_) {}
 
@@ -523,8 +533,7 @@ export default class ChromeCdpHelpers {
           : [],
         reconstructed: Array.isArray(window.__mmCdpReconstructedDeeplinks)
           ? window.__mmCdpReconstructedDeeplinks.slice()
-          : [],
-      })`,
+          : [] })`,
     );
   }
 
@@ -644,7 +653,7 @@ export default class ChromeCdpHelpers {
     }
 
     this.ensureAdbForward();
-    const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
+    const endpoint = `http://127.0.0.1:${chromeCdpForwardPort()}`;
     await this.waitForCdpEndpoint(endpoint);
     return endpoint;
   }
@@ -811,7 +820,6 @@ export default class ChromeCdpHelpers {
   // is cached so `mobile: getContexts` (which can be slow) is called at most
   // once per test — call `resetMetaMaskWebViewCache()` between tests.
 
-  private static readonly MM_WV_CDP_PORT = 10902;
   private static cachedMmWebViewSocket: string | null = null;
 
   /** Clear the WebView socket cache — call at the start of each test. */
@@ -823,10 +831,10 @@ export default class ChromeCdpHelpers {
     if (this.cachedMmWebViewSocket) {
       try {
         this.ensureAdbForwardToAbstractSocket(
-          this.MM_WV_CDP_PORT,
+          metamaskWebViewCdpForwardPort(),
           this.cachedMmWebViewSocket,
         );
-        const endpoint = `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+        const endpoint = `http://127.0.0.1:${metamaskWebViewCdpForwardPort()}`;
         // adb forward succeeds even when the abstract socket is gone — probe CDP.
         const response = await fetch(`${endpoint}/json/version`);
         if (response.ok) {
@@ -850,9 +858,12 @@ export default class ChromeCdpHelpers {
     if (!mmCtx?.proc) throw new Error('MetaMask WebView CDP context not found');
 
     const socketName = mmCtx.proc.replace(/^@/, '');
-    this.ensureAdbForwardToAbstractSocket(this.MM_WV_CDP_PORT, socketName);
+    this.ensureAdbForwardToAbstractSocket(
+      metamaskWebViewCdpForwardPort(),
+      socketName,
+    );
     this.cachedMmWebViewSocket = socketName;
-    return `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+    return `http://127.0.0.1:${metamaskWebViewCdpForwardPort()}`;
   }
 
   private static async withMetaMaskWebViewSession<T>(
@@ -901,16 +912,14 @@ export default class ChromeCdpHelpers {
     }
     // iOS: use Appium WebView context switching
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       const result = (await getDriver().execute(
         `return (${expression})`,
       )) as T | null;
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
       return result ?? null;
     } catch {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       return null;
     }
   }
@@ -948,18 +957,16 @@ export default class ChromeCdpHelpers {
     }
     // iOS
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       const el = getDriver().$(`#${elementId}`);
       await el.waitForExist({ timeout: timeoutMs });
       await el.waitForEnabled({ timeout: timeoutMs });
       await el.scrollIntoView();
       await el.click();
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
       return true;
     } catch {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       return false;
     }
   }
@@ -988,16 +995,14 @@ export default class ChromeCdpHelpers {
     }
     // iOS
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       const text = (await getDriver().execute(
         `return document.getElementById(${JSON.stringify(elementId)})?.textContent ?? null`,
       )) as string | null;
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
       return text || null;
     } catch {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       return null;
     }
   }
@@ -1022,22 +1027,20 @@ export default class ChromeCdpHelpers {
     }
 
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       while (Date.now() < deadline) {
         const ready = (await getDriver().execute(
           `return (${isEnabledExpression})`,
         )) as boolean;
         if (ready) {
-          await PlaywrightContextHelpers.switchToNativeContext();
+          await AppiumContextHelpers.switchToNativeContext();
           return;
         }
         await new Promise<void>((r) => setTimeout(r, POLL_MS));
       }
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
     } catch (error) {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       throw error;
     }
 
@@ -1081,7 +1084,7 @@ export default class ChromeCdpHelpers {
     }
     // iOS: hold WebView context open for the full polling duration
     try {
-      await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+      await AppiumContextHelpers.switchToWebViewContext(dappUrl);
       const deadline = Date.now() + timeoutMs;
       while (Date.now() < deadline) {
         try {
@@ -1089,7 +1092,7 @@ export default class ChromeCdpHelpers {
             `return document.getElementById(${JSON.stringify(elementId)})?.textContent ?? null`,
           )) as string | null;
           if (text) {
-            await PlaywrightContextHelpers.switchToNativeContext();
+            await AppiumContextHelpers.switchToNativeContext();
             return text;
           }
         } catch {
@@ -1097,12 +1100,10 @@ export default class ChromeCdpHelpers {
         }
         await new Promise<void>((r) => setTimeout(r, POLL_MS));
       }
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
       return null;
     } catch {
-      await PlaywrightContextHelpers.switchToNativeContext().catch(
-        () => undefined,
-      );
+      await AppiumContextHelpers.switchToNativeContext().catch(() => undefined);
       return null;
     }
   }

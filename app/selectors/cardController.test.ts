@@ -11,6 +11,8 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardHomeDataError,
+  selectCardHomeDataFetchedThisSession,
   selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
@@ -25,6 +27,7 @@ import {
   selectCardResidencyRegion,
   selectIsCardResidencyBlocked,
   selectCardRedemptionDestinationIsMoneyAccount,
+  selectCardRedeemWithdrawal,
 } from './cardController';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
@@ -128,6 +131,7 @@ const createMockRootState = (
           providerData: {},
           cardHomeData: null,
           cardHomeDataStatus: 'idle',
+          cardHomeDataError: null,
           moneyAccountCardLinkInProgress: false,
           ...overrides,
         },
@@ -148,6 +152,33 @@ const createMockRootState = (
   }) as unknown as RootState;
 
 describe('CardController selectors', () => {
+  describe('selectCardRedeemWithdrawal', () => {
+    it('returns null when CardController state is undefined', () => {
+      const state = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+      expect(selectCardRedeemWithdrawal(state)).toBeNull();
+    });
+
+    it('returns null when redeemWithdrawal is null', () => {
+      const state = createMockRootState({ redeemWithdrawal: null });
+      expect(selectCardRedeemWithdrawal(state)).toBeNull();
+    });
+
+    it('returns the redeemWithdrawal state', () => {
+      const redeemWithdrawal = {
+        mode: 'cashback' as const,
+        status: 'monitoring' as const,
+        txHash: '0xabc',
+        chainId: '0xe708',
+        submittedAt: 1,
+        error: null,
+      };
+      const state = createMockRootState({ redeemWithdrawal });
+      expect(selectCardRedeemWithdrawal(state)).toEqual(redeemWithdrawal);
+    });
+  });
+
   describe('selectIsMoneyAccountCardLinkInProgress', () => {
     it('returns false when CardController state is undefined', () => {
       const state = {
@@ -518,6 +549,52 @@ describe('selectCardHomeDataStatus', () => {
   });
 });
 
+describe('selectCardHomeDataError', () => {
+  it('returns null by default', () => {
+    const state = createMockRootState();
+    expect(selectCardHomeDataError(state)).toBeNull();
+  });
+
+  it('returns the stored error object', () => {
+    const error = {
+      reason: 'no_evm_address' as const,
+      code: null,
+      statusCode: null,
+      at: 123,
+    };
+    const state = createMockRootState({ cardHomeDataError: error });
+    expect(selectCardHomeDataError(state)).toStrictEqual(error);
+  });
+
+  it('returns null when CardController state is undefined', () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardHomeDataError(state)).toBeNull();
+  });
+});
+
+describe('selectCardHomeDataFetchedThisSession', () => {
+  it('returns false by default, so restored data is revalidated', () => {
+    const state = createMockRootState();
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(false);
+  });
+
+  it('returns true once a fetch has run in this session', () => {
+    const state = createMockRootState({
+      cardHomeDataFetchedThisSession: true,
+    });
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(true);
+  });
+
+  it('returns false when CardController state is undefined', () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardHomeDataFetchedThisSession(state)).toBe(false);
+  });
+});
+
 describe('selectIsCardStateResolved', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -572,6 +649,28 @@ describe('selectIsCardStateResolved', () => {
       isAuthenticated: true,
     });
     expect(selectIsCardStateResolved(state)).toBe(false);
+  });
+
+  it('returns true while refreshing existing data for an authenticated user', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns true when a background refresh fails with existing data', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'error',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
   });
 
   it('returns false while idle for a cardholder', () => {

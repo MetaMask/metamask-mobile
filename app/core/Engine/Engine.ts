@@ -2,13 +2,11 @@
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   AppState,
   AppStateStatus,
   NativeEventSubscription,
 } from 'react-native';
-///: END:ONLY_INCLUDE_IF
 import {
   CodefiTokenPricesServiceV2,
   TokenListService,
@@ -172,7 +170,7 @@ import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-featu
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
-import { configRegistryControllerInit } from './controllers/config-registry-controller-init';
+import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
@@ -184,13 +182,13 @@ import { socialServiceInit } from './controllers/social-service-init';
 import { authenticatedUserStorageServiceInit } from './controllers/authenticated-user-storage-service-init';
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
+import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
-import { configRegistryApiServiceInit } from './controllers/config-registry-api-service-init.ts';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
@@ -232,13 +230,14 @@ export class Engine {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastIncomingTxBlockInfo: any;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   /**
    * The app state event listener.
-   * This is used to handle app state changes in snaps lifecycle hooks.
+   * Keeps ClientController's isUiOpen in sync and handles app state changes in
+   * snaps lifecycle hooks.
    */
   appStateListener: NativeEventSubscription;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   subjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
 
@@ -386,8 +385,8 @@ export class Engine {
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
-        ConfigRegistryController: configRegistryControllerInit,
-        ConfigRegistryApiService: configRegistryApiServiceInit,
+        NetworkConnectionBannerController:
+          networkConnectionBannerControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
@@ -400,6 +399,7 @@ export class Engine {
         SocialController: socialControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
+        UiSlotsController: uiSlotsControllerInit,
         QrSyncController: qrSyncControllerInit,
         QrSyncProvisioningService: qrSyncProvisioningServiceInit,
         ComplianceService: complianceServiceInit,
@@ -452,11 +452,20 @@ export class Engine {
     const connectivityController = this.#wallet.getInstance(
       'ConnectivityController',
     );
+    const networkConnectionBannerController =
+      messengerClientsByName.NetworkConnectionBannerController;
     const subscriptionController = this.#wallet.getInstance(
       'SubscriptionController',
     );
+    const subscriptionService = this.#wallet.getInstance('SubscriptionService');
     const shieldController = this.#wallet.getInstance('ShieldController');
     const claimsController = this.#wallet.getInstance('ClaimsController');
+    const configRegistryController = this.#wallet.getInstance(
+      'ConfigRegistryController',
+    );
+    const configRegistryApiService = this.#wallet.getInstance(
+      'ConfigRegistryApiService',
+    );
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -471,6 +480,7 @@ export class Engine {
     const authenticatedUserStorageService =
       messengerClientsByName.AuthenticatedUserStorageService;
     const cardController = messengerClientsByName.CardController;
+    const uiSlotsController = messengerClientsByName.UiSlotsController;
     const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
@@ -587,8 +597,9 @@ export class Engine {
       AddressBookController: addressBookController,
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
-      ConfigRegistryController: messengerClientsByName.ConfigRegistryController,
-      ConfigRegistryApiService: messengerClientsByName.ConfigRegistryApiService,
+      NetworkConnectionBannerController: networkConnectionBannerController,
+      ConfigRegistryController: configRegistryController,
+      ConfigRegistryApiService: configRegistryApiService,
       SentinelApiService: messengerClientsByName.SentinelApiService,
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
@@ -606,6 +617,7 @@ export class Engine {
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
       SubscriptionController: subscriptionController,
+      SubscriptionService: subscriptionService,
       ShieldController: shieldController,
       ClaimsController: claimsController,
       GasFeeController: this.gasFeeController,
@@ -676,6 +688,7 @@ export class Engine {
       SocialController: socialController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
+      UiSlotsController: uiSlotsController,
       QrSyncController: messengerClientsByName.QrSyncController,
       QrSyncProvisioningService: qrSyncProvisioningService,
       ClientController: clientController,
@@ -843,6 +856,15 @@ export class Engine {
       },
     );
 
+    ///: END:ONLY_INCLUDE_IF
+
+    // Seed ClientController with the current foreground state; the listener
+    // below only fires on changes and the app launches already active.
+    this.controllerMessenger.call(
+      'ClientController:setUiOpen',
+      AppState.currentState === 'active',
+    );
+
     this.appStateListener = AppState.addEventListener(
       'change',
       (state: AppStateStatus) => {
@@ -850,6 +872,16 @@ export class Engine {
           return;
         }
 
+        // Keep ClientController's isUiOpen in sync with the app being in the
+        // foreground, so controllers gating on it (e.g.
+        // NetworkConnectionBannerController) only run while a user is
+        // looking at the wallet.
+        this.controllerMessenger.call(
+          'ClientController:setUiOpen',
+          state === 'active',
+        );
+
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         const { isUnlocked } = this.controllerMessenger.call(
           'KeyringController:getState',
         );
@@ -872,9 +904,9 @@ export class Engine {
               });
           }
         }
+        ///: END:ONLY_INCLUDE_IF
       },
     );
-    ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
     this.handleVaultBackup();
@@ -937,6 +969,30 @@ export class Engine {
       previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
       syncWithBasicFunctionality(currentBasicFunctionalityEnabled);
     });
+
+    // Force-refresh flags when a canonical profile id first becomes available
+    let previousCanonicalProfileId =
+      Object.entries(
+        this.controllerMessenger.call('AuthenticationController:getState')
+          .srpSessionData ?? {},
+      )?.[0]?.[1]?.profile?.canonicalProfileId ?? '';
+
+    this.controllerMessenger.subscribe(
+      'AuthenticationController:stateChange',
+      ({ srpSessionData }) => {
+        const canonicalProfileId =
+          Object.entries(srpSessionData ?? {})?.[0]?.[1]?.profile
+            ?.canonicalProfileId ?? '';
+        if (canonicalProfileId === previousCanonicalProfileId) {
+          return;
+        }
+
+        previousCanonicalProfileId = canonicalProfileId;
+        remoteFeatureFlagController
+          .updateRemoteFeatureFlags(true)
+          .catch((error) => Logger.log('Feature flags update failed: ', error));
+      },
+    );
 
     Engine.instance = this;
   }
@@ -1326,6 +1382,7 @@ export class Engine {
       methodData: {},
       transactions: [],
       transactionBatches: [],
+      batchTransactionCounts: {},
       lastFetchedBlockNumbers: {},
       submitHistory: [],
       swapsTransactions: {},
@@ -1337,6 +1394,7 @@ export class Engine {
     MoneyAccountController.clearState();
 
     // Subscriptions:
+    SubscriptionController.stopAllPolling();
     SubscriptionController.clearState();
 
     // Shield:
@@ -1349,9 +1407,7 @@ export class Engine {
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     this.appStateListener?.remove();
-    ///: END:ONLY_INCLUDE_IF
 
     // Cleanup AppStateWebSocketManager
     this.appStateWebSocketManager.cleanup();
@@ -1494,8 +1550,10 @@ export default {
       BridgeController,
       BridgeStatusController,
       CardController,
+      UiSlotsController,
       ConfigRegistryController,
       ConnectivityController,
+      NetworkConnectionBannerController,
       CurrencyRateController,
       DeFiPositionsController,
       DeFiPositionsControllerV2,
@@ -1574,6 +1632,8 @@ export default {
       BridgeStatusController: BridgeStatusController.state,
       ConfigRegistryController: ConfigRegistryController.state,
       ConnectivityController: ConnectivityController.state,
+      NetworkConnectionBannerController:
+        NetworkConnectionBannerController.state,
       CurrencyRateController: CurrencyRateController.state,
       DeFiPositionsController: DeFiPositionsController.state,
       DeFiPositionsControllerV2: DeFiPositionsControllerV2.state,
@@ -1613,6 +1673,7 @@ export default {
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
       CardController: CardController.state,
+      UiSlotsController: UiSlotsController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)

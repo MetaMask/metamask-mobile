@@ -7,10 +7,13 @@ import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selector
 
 /**
  * Params forwarded to the leaderboard when onboarding is not shown. Mirrors the
- * `TopTradersView` route params (only `source` is set by the entry points).
+ * `TopTradersView` route params set by the entry points (`source`, plus the
+ * TSA-1042 landing target for the homepage Top Traders carousel).
  */
 interface SocialLeaderboardViewParams {
   source?: string;
+  landingTab?: 'leaderboard' | 'feed';
+  landingFeedAudience?: 'all' | 'following';
 }
 
 /**

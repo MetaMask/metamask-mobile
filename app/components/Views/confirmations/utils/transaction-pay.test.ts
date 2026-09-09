@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import {
   applyMoneyAccountOverride,
+  formatAmountForDisplay,
   getAvailableTokens,
   getBlockedTokensForTransactionType,
   getRequiredBalance,
@@ -14,7 +15,6 @@ import {
   isTokenBlocked,
   replaceAccountInNestedTransactions,
   resolvePreferredPayToken,
-  setMoneyAccountDepositMaxAtomic,
 } from './transaction-pay';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import Logger from '../../../../util/Logger';
@@ -1039,29 +1039,38 @@ describe('Transaction Pay Utils', () => {
     });
   });
 
-  describe('setMoneyAccountDepositMaxAtomic', () => {
-    const TRANSACTION_ID = 'tx-max-atomic';
-
-    const setTransactionConfigMock = jest.mocked(
-      Engine.context.TransactionPayController.setTransactionConfig,
-    );
-
-    it('sets atomic to false when isMax is true', () => {
-      setMoneyAccountDepositMaxAtomic(TRANSACTION_ID, true);
-
-      const config: Record<string, unknown> = {};
-      setTransactionConfigMock.mock.calls[0][1](config as never);
-
-      expect(config.atomic).toBe(false);
+  describe('formatAmountForDisplay', () => {
+    it('returns whole numbers unchanged', () => {
+      expect(formatAmountForDisplay('500')).toBe('500');
     });
 
-    it('clears atomic (to undefined) when isMax is false', () => {
-      setMoneyAccountDepositMaxAtomic(TRANSACTION_ID, false);
+    it.each(['12.', '12.3', '12.34', '0.05'])(
+      'returns %s unchanged when already within two decimals',
+      (amount) => {
+        expect(formatAmountForDisplay(amount)).toBe(amount);
+      },
+    );
 
-      const config: Record<string, unknown> = { atomic: false };
-      setTransactionConfigMock.mock.calls[0][1](config as never);
+    it('truncates rather than rounds so the result never exceeds the balance', () => {
+      // The displayed value is re-typable through the keypad, so rounding up
+      // would let the user enter an amount above their balance.
+      expect(formatAmountForDisplay('50.389')).toBe('50.38');
+    });
 
-      expect(config.atomic).toBeUndefined();
+    it('never carries into the whole part', () => {
+      expect(formatAmountForDisplay('1.999')).toBe('1.99');
+    });
+
+    it('truncates a long exact balance to cents', () => {
+      expect(formatAmountForDisplay('2160.6159999')).toBe('2160.61');
+    });
+
+    it('truncates an amount using a comma separator', () => {
+      expect(formatAmountForDisplay('50,389')).toBe('50.38');
+    });
+
+    it('returns the input unchanged when it is not a parseable number', () => {
+      expect(formatAmountForDisplay('1.2.3')).toBe('1.2.3');
     });
   });
 });

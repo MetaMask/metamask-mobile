@@ -52,7 +52,7 @@ describeForPlatforms('ActivityList', () => {
 
     const { findByTestId } = renderActivityListViewWithRoutes({
       state,
-      extraRoutes: [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
+      extraRoutes: [{ name: Routes.ACTIVITY_DETAILS }],
     });
 
     const pendingRow = await findByTestId(
@@ -84,7 +84,7 @@ describeForPlatforms('ActivityList', () => {
     fireEvent.press(confirmedRow);
 
     expect(
-      await findByTestId(getRouteProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW)),
+      await findByTestId(getRouteProbeTestId(Routes.ACTIVITY_DETAILS)),
     ).toBeOnTheScreen();
   });
 
@@ -147,7 +147,7 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
       { timeout: 10000 },
     );
 
-    expect(incomingTitle).toHaveTextContent('Received');
+    expect(incomingTitle).toHaveTextContent('Received ETH');
     expect(
       await findByTestId(activityListRowSubtitleTestId(incomingHash)),
     ).toHaveTextContent('From: 0x80181...229cC');
@@ -177,7 +177,7 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
       { timeout: 10000 },
     );
 
-    expect(outgoingTitle).toHaveTextContent('Sent');
+    expect(outgoingTitle).toHaveTextContent('Sent ETH');
     expect(
       await findByTestId(activityListRowSubtitleTestId(outgoingHash)),
     ).toHaveTextContent('To: 0x80181...229cC');

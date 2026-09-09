@@ -4,28 +4,28 @@ import {
   NetworkNonPemittedBottomSheetSelectorsIDs,
   NetworkNonPemittedBottomSheetSelectorsText,
 } from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class NetworkNonPemittedBottomSheet {
-  get addThisNetworkTitle(): EncapsulatedElementType {
+  get addThisNetworkTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkNonPemittedBottomSheetSelectorsText.ADD_THIS_NETWORK_TITLE,
     );
   }
 
-  get addThisNetworkButton(): EncapsulatedElementType {
+  get addThisNetworkButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON,
     );
   }
 
-  get chooseFromPermittedNetworksButton(): EncapsulatedElementType {
+  get chooseFromPermittedNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON,
     );
   }
 
-  get editPermissionsButton(): EncapsulatedElementType {
+  get editPermissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON,
     );

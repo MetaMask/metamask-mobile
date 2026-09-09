@@ -326,6 +326,9 @@ export const usePerpsMarketListView = ({
   //
   // 'new' is special-cased the same way as `marketTypeFilteredMarkets` above,
   // so the rail agrees with the main list on what "New" means.
+  //
+  // On the watchlist tab the rail is also intersected with the user's
+  // watchlist so it only shows recently viewed markets that are favorited.
   const recentlyViewedMarketObjects = useMemo(() => {
     const marketsBySymbol = new Map(allMarkets.map((m) => [m.symbol, m]));
     const orderedMarkets = recentlyViewedSymbols.reduce<PerpsMarketData[]>(
@@ -338,13 +341,27 @@ export const usePerpsMarketListView = ({
       },
       [],
     );
-    if (marketTypeFilter === 'new') {
-      return orderedMarkets.filter((market) =>
-        isRecentlyListed(market.listedAt, now),
-      );
+    const categoryFiltered =
+      marketTypeFilter === 'new'
+        ? orderedMarkets.filter((market) =>
+            isRecentlyListed(market.listedAt, now),
+          )
+        : filterMarketsByCategory(orderedMarkets, marketTypeFilter);
+
+    if (!showFavoritesOnly) {
+      return categoryFiltered;
     }
-    return filterMarketsByCategory(orderedMarkets, marketTypeFilter);
-  }, [allMarkets, recentlyViewedSymbols, marketTypeFilter, now]);
+    return categoryFiltered.filter((market) =>
+      watchlistMarkets.includes(market.symbol),
+    );
+  }, [
+    allMarkets,
+    recentlyViewedSymbols,
+    marketTypeFilter,
+    now,
+    showFavoritesOnly,
+    watchlistMarkets,
+  ]);
 
   // Apply sorting to searched and favorites-filtered markets
   // Use useMemo to ensure sorting is applied with current sortBy/direction when markets change
