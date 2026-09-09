@@ -2,8 +2,10 @@ import React, {
   forwardRef,
   memo,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
+  useState,
 } from 'react';
 import { Pressable, View } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
@@ -29,7 +31,6 @@ import type {
   PredictMarket,
   PredictSeries,
 } from '../../../../../../UI/Predict/types';
-import { useDebouncedValue } from '../../../../../../hooks/useDebouncedValue';
 import useSectionViewportVisible from '../../../../hooks/useSectionViewportVisible';
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
 import HomepagePredictDiscoveryLivePill from './HomepagePredictDiscoveryLivePill';
@@ -147,11 +148,23 @@ const BtcLiveRow = memo(({ series, onPress }: BtcLiveRowProps) => {
   const liveValuesRef = useRef<BtcLiveValuesHandle>(null);
   const rowRef = useRef<View>(null);
   const { isVisible, onLayout } = useSectionViewportVisible(rowRef);
-  const debouncedIsVisible = useDebouncedValue(
-    isVisible,
-    BTC_LIVE_DISCONNECT_DELAY_MS,
-  );
-  const isVisibleForLive = isVisible || debouncedIsVisible;
+  const [isVisibleForLive, setIsVisibleForLive] = useState(isVisible);
+
+  useEffect(() => {
+    if (isVisible) {
+      setIsVisibleForLive(true);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setIsVisibleForLive(false);
+    }, BTC_LIVE_DISCONNECT_DELAY_MS);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isVisible]);
+
   const handlePress = useCallback(() => {
     onPress(
       series,

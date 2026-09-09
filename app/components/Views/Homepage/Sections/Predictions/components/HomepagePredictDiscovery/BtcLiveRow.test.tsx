@@ -80,7 +80,9 @@ describe('BtcLiveRow', () => {
     const { rerender } = renderRow();
 
     mockIsRowVisible.mockReturnValue(false);
-    rerender(<BtcLiveRow series={BTC_UP_OR_DOWN_5M_SERIES} onPress={jest.fn()} />);
+    rerender(
+      <BtcLiveRow series={BTC_UP_OR_DOWN_5M_SERIES} onPress={jest.fn()} />,
+    );
 
     expect(useCurrentCryptoUpDownMarketData).toHaveBeenLastCalledWith({
       series: BTC_UP_OR_DOWN_5M_SERIES,
@@ -109,16 +111,50 @@ describe('BtcLiveRow', () => {
     });
   });
 
+  it('holds the live subscription when the row is only briefly on screen', () => {
+    mockIsRowVisible.mockReturnValue(false);
+    const { rerender } = renderRow();
+
+    mockIsRowVisible.mockReturnValue(true);
+    rerender(
+      <BtcLiveRow series={BTC_UP_OR_DOWN_5M_SERIES} onPress={jest.fn()} />,
+    );
+    mockIsRowVisible.mockReturnValue(false);
+    rerender(
+      <BtcLiveRow series={BTC_UP_OR_DOWN_5M_SERIES} onPress={jest.fn()} />,
+    );
+
+    expect(useCurrentCryptoUpDownMarketData).toHaveBeenLastCalledWith({
+      series: BTC_UP_OR_DOWN_5M_SERIES,
+      enabled: true,
+      withChartData: false,
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(BTC_LIVE_DISCONNECT_DELAY_MS);
+    });
+
+    expect(useCurrentCryptoUpDownMarketData).toHaveBeenLastCalledWith({
+      series: BTC_UP_OR_DOWN_5M_SERIES,
+      enabled: false,
+      withChartData: false,
+    });
+  });
+
   it('keeps live market data enabled when the row returns before the disconnect delay', () => {
     const { rerender } = renderRow();
 
     mockIsRowVisible.mockReturnValue(false);
-    rerender(<BtcLiveRow series={BTC_UP_OR_DOWN_5M_SERIES} onPress={jest.fn()} />);
+    rerender(
+      <BtcLiveRow series={BTC_UP_OR_DOWN_5M_SERIES} onPress={jest.fn()} />,
+    );
     act(() => {
       jest.advanceTimersByTime(2000);
     });
     mockIsRowVisible.mockReturnValue(true);
-    rerender(<BtcLiveRow series={BTC_UP_OR_DOWN_5M_SERIES} onPress={jest.fn()} />);
+    rerender(
+      <BtcLiveRow series={BTC_UP_OR_DOWN_5M_SERIES} onPress={jest.fn()} />,
+    );
     act(() => {
       jest.advanceTimersByTime(BTC_LIVE_DISCONNECT_DELAY_MS);
     });
