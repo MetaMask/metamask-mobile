@@ -189,8 +189,9 @@ let mockExistingPosition: {
 
 let mockPositionModifyPreview: PositionModifyPreviewResult = { status: 'none' };
 let mockIsAwaitingPositionModifyPreview = false;
+let mockIsPositionModifyPreviewEnabled = true;
 let mockPositionModifyPreviewParams:
-  | { providerId?: PerpsProviderType }
+  | { providerId?: PerpsProviderType; enabled?: boolean }
   | undefined;
 
 let mockIsAtCap = false;
@@ -316,8 +317,17 @@ jest.mock('../../../../hooks', () => ({
   }),
   usePerpsPositionModifyPreview: (params: {
     providerId?: PerpsProviderType;
+    enabled?: boolean;
   }) => {
     mockPositionModifyPreviewParams = params;
+    if (params.enabled === false) {
+      return {
+        preview: { status: 'none' as const },
+        isCalculating: false,
+        isAwaitingFirstPreview: false,
+        error: null,
+      };
+    }
     return {
       preview: mockPositionModifyPreview,
       isCalculating: mockIsAwaitingPositionModifyPreview,
@@ -417,8 +427,17 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: (selector: { isSelectedAccountSelector?: boolean }) =>
-    selector.isSelectedAccountSelector ? mockSelectedAddress : false,
+  useSelector: (selector: { isSelectedAccountSelector?: boolean }) => {
+    if (selector.isSelectedAccountSelector) {
+      return mockSelectedAddress;
+    }
+    const { selectPerpsPositionModifyPreviewEnabledFlag: mockPreviewFlag } =
+      jest.requireActual('../../../../selectors/featureFlags');
+    if (selector === mockPreviewFlag) {
+      return mockIsPositionModifyPreviewEnabled;
+    }
+    return false;
+  },
 }));
 
 jest.mock('../../../../../../../selectors/accountsController', () => ({
@@ -561,6 +580,7 @@ describe('usePerpsProOrderForm', () => {
     mockPositionModifyPreview = { status: 'none' };
     mockPositionModifyPreviewParams = undefined;
     mockIsAwaitingPositionModifyPreview = false;
+    mockIsPositionModifyPreviewEnabled = true;
     mockLiquidationPrice = '80000';
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
@@ -676,6 +696,39 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.margin).toMatch(/\$1,000/);
       expect(result.current.summary.liquidationPrice).toMatch(/→/);
       expect(result.current.summary.liquidationPrice).toMatch(/\$48/);
+    });
+
+    it('keeps single-value summary when the position-modify preview flag is off', () => {
+      mockIsPositionModifyPreviewEnabled = false;
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'increase',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 48000 },
+        },
+        resulting: {
+          direction: 'long',
+          size: 1.002,
+          entryPrice: 50010,
+          leverage: 5,
+          margin: { available: true, value: 1015 },
+          liquidationPrice: { available: true, value: 47000 },
+        },
+      };
+
+      const { result } = renderProForm();
+
+      expect(mockPositionModifyPreviewParams?.enabled).toBe(false);
+      expect(result.current.summary.margin).not.toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
     });
 
     it('keeps single-value summary when the controller returns no preview', () => {

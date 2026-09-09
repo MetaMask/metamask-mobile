@@ -100,7 +100,11 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       case 'earn':
         return (
           <Box twClassName="-mx-4" testID={EARN_ROW_WRAPPER_TEST_ID}>
-            <EarnSearchRow item={item as EarnSearchItem} />
+            <EarnSearchRow
+              item={item as EarnSearchItem}
+              position={index + 1}
+              resultCount={tabName === 'earn' ? resultCount : undefined}
+            />
           </Box>
         );
     }

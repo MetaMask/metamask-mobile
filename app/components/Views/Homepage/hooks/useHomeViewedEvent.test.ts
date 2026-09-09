@@ -99,16 +99,19 @@ describe('useHomeViewedEvent', () => {
 
   describe('null sectionRef — non-rendered sections', () => {
     it('does not fire when visitId is 0 (pre-focus; avoids duplicate on first load)', () => {
+      const onSectionViewed = jest.fn();
       mockContextValue = { ...mockContextValue, visitId: 0 };
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
           isLoading: false,
+          onSectionViewed,
         }),
       );
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(onSectionViewed).not.toHaveBeenCalled();
     });
 
     it('fires immediately when sectionRef is null and not loading', () => {
@@ -136,12 +139,14 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('fires once loading finishes', () => {
+      const onSectionViewed = jest.fn();
       const { rerender } = renderHook(
         ({ isLoading }: { isLoading: boolean }) =>
           useHomeViewedEvent({
             ...defaultParams,
             sectionRef: null,
             isLoading,
+            onSectionViewed,
           }),
         { initialProps: { isLoading: true } },
       );
@@ -151,6 +156,7 @@ describe('useHomeViewedEvent', () => {
       rerender({ isLoading: false });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
     });
 
     it('does not fire the immediate path when fireImmediateWhenNoView is false', () => {
@@ -267,11 +273,13 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('fires on scroll when section scrolls into ≥50% visibility', () => {
+      const onSectionViewed = jest.fn();
       const mockRef = createMockRef(800, 200); // starts below viewport
       renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
+          onSectionViewed,
         }),
       );
 
@@ -296,6 +304,7 @@ describe('useHomeViewedEvent', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
     });
 
     it('does not fire again on subsequent scrolls after already firing', () => {
@@ -412,12 +421,14 @@ describe('useHomeViewedEvent', () => {
 
   describe('visitId — re-firing on each homepage visit', () => {
     it('re-fires for null-ref sections when visitId increments', () => {
+      const onSectionViewed = jest.fn();
       let currentVisitId = 0;
       const { rerender } = renderHook(() => {
         mockContextValue = { ...mockContextValue, visitId: currentVisitId };
         return useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
+          onSectionViewed,
         });
       });
 
@@ -427,11 +438,13 @@ describe('useHomeViewedEvent', () => {
       rerender();
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
 
       currentVisitId = 2;
       rerender();
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      expect(onSectionViewed).toHaveBeenCalledTimes(2);
     });
 
     it('re-fires for visible sections when visitId increments', () => {
@@ -459,15 +472,18 @@ describe('useHomeViewedEvent', () => {
     });
 
     it('does not re-fire when visitId stays the same', () => {
+      const onSectionViewed = jest.fn();
       mockContextValue = { ...mockContextValue, visitId: 1 };
       const { rerender } = renderHook(() =>
         useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
+          onSectionViewed,
         }),
       );
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
 
       rerender();
       rerender();
@@ -565,6 +581,35 @@ describe('useHomeViewedEvent', () => {
   });
 
   describe('new analytics properties', () => {
+    it('calls onSectionViewed when the section impression fires', () => {
+      const onSectionViewed = jest.fn();
+
+      renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          onSectionViewed,
+        }),
+      );
+
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onSectionViewed more than once for one visit', () => {
+      const onSectionViewed = jest.fn();
+      const { rerender } = renderHook(() =>
+        useHomeViewedEvent({
+          ...defaultParams,
+          sectionRef: null,
+          onSectionViewed,
+        }),
+      );
+
+      rerender();
+
+      expect(onSectionViewed).toHaveBeenCalledTimes(1);
+    });
+
     it('includes app_session_id from context', () => {
       mockContextValue = {
         ...mockContextValue,

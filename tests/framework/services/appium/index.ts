@@ -21,6 +21,11 @@ export {
   resetSharedSessionRecreateState,
 } from './sessionRecovery.ts';
 export {
+  isAdbTransportFault,
+  withAdbHostLock,
+  withAdbHostLockSync,
+} from './adbHostLock.ts';
+export {
   softReloadAppForFixtures,
   type SoftReloadAppForFixturesOptions,
   type SoftReloadAppForFixturesResult,
