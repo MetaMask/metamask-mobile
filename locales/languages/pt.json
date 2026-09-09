@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Sua assinatura Pro",
     "manage": "Gerenciar assinatura",
-    "manage_plan": "Gerenciar plano",
-    "earned_with_pro": "Ganhou com Pro",
-    "saved_with_pro": "Economizou com Pro",
-    "next_payment": "Seu próximo pagamento de {{amount}} está chegando {{date}}.",
     "member_pricing": {
       "title": "Preços para assinantes nas negociações",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "Sua assinatura",
       "plan": "Assinatura",
       "earned_this_month": "Ganhos este mês",
-      "saved_this_month": "Economia neste mês",
       "payment_details": "Detalhes do pagamento",
       "total": "Total",
       "paying_with": "Pagando com",
