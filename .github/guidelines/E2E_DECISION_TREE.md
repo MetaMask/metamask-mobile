@@ -16,7 +16,7 @@ flowchart TD
     L2 -->|non-ignorable changes| Skip2[⛔️ Merge blocked]
     GR -->|PR ignorable-only changes| Ignorable[ ❌ No E2E]
     GR -->|Scheduled or Push to release/*| Full[🧪 Run all E2E for Android and iOS]
-    GR -->|Push to main| MainPush[🧪 Android always; iOS ~1/3 of SHAs]
+    GR -->|Push to main| MainPush[🧪 Android always; iOS ~1/MAIN_PUSH_IOS_SAMPLE_EVERY of SHAs]
 
     GR -->|PR with non-ignorable changes| PRToValidate["Path-filtered platforms (Android, iOS, or both)"]
     PRToValidate -->|Android tests required| Smart{{PR label: skip-smart-e2e-selection ?}}
