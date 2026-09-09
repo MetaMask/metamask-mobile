@@ -203,6 +203,83 @@ describe('verifySignature', () => {
       );
     });
 
+    it('validates a link.metamask.com URL against its link.metamask.io signing origin', async () => {
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      const url = new URL(
+        `https://link.metamask.com/perps?utm_source=carousel&sig=${validSignature}`,
+      );
+      const expectedCanonicalUrl =
+        'https://link.metamask.io/perps?utm_source=carousel';
+      mockSubtle.verify.mockImplementation(
+        async (_algorithm, _key, _signature, data) =>
+          new TextDecoder().decode(data as Uint8Array) === expectedCanonicalUrl,
+      );
+
+      const result = await verifyDeeplinkSignature(url, {
+        rewriteComOrigin: true,
+      });
+
+      expect(result).toBe(VALID);
+    });
+
+    it('rejects a link.metamask.com URL signed for link.metamask.io when rewriting is off', async () => {
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      const url = new URL(
+        `https://link.metamask.com/perps?utm_source=carousel&sig=${validSignature}`,
+      );
+      const expectedCanonicalUrl =
+        'https://link.metamask.io/perps?utm_source=carousel';
+      mockSubtle.verify.mockImplementation(
+        async (_algorithm, _key, _signature, data) =>
+          new TextDecoder().decode(data as Uint8Array) === expectedCanonicalUrl,
+      );
+
+      const result = await verifyDeeplinkSignature(url);
+
+      expect(result).toBe(INVALID);
+    });
+
+    it('keeps link.metamask.io signature verification unchanged', async () => {
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      const url = new URL(
+        `https://link.metamask.io/perps?utm_source=carousel&sig=${validSignature}`,
+      );
+      const expectedCanonicalUrl =
+        'https://link.metamask.io/perps?utm_source=carousel';
+      mockSubtle.verify.mockImplementation(
+        async (_algorithm, _key, _signature, data) =>
+          new TextDecoder().decode(data as Uint8Array) === expectedCanonicalUrl,
+      );
+
+      const result = await verifyDeeplinkSignature(url, {
+        rewriteComOrigin: true,
+      });
+
+      expect(result).toBe(VALID);
+    });
+
+    it('rejects a failed signature after rewriting link.metamask.com origin', async () => {
+      const invalidSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      const url = new URL(
+        `https://link.metamask.com/perps?sig=${invalidSignature}`,
+      );
+      mockSubtle.verify.mockResolvedValue(false);
+
+      const result = await verifyDeeplinkSignature(url, {
+        rewriteComOrigin: true,
+      });
+
+      expect(result).toBe(INVALID);
+    });
+
     it('handles URLs with no query parameters except sig', async () => {
       const validSignature = Buffer.from(new Array(64).fill(0)).toString(
         'base64',

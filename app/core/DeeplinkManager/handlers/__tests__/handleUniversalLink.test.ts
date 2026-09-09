@@ -3300,5 +3300,26 @@ describe('handleUniversalLink', () => {
         }),
       );
     });
+
+    it('verifies link.metamask.com signatures with the link.metamask.io origin', async () => {
+      jest.mocked(selectLinkMetamaskComEnabled).mockReturnValue(true);
+      mockSubtle.verify.mockResolvedValue(true);
+      const signature = Buffer.from(new Array(64).fill(0)).toString('base64');
+      const comUrl = `https://link.metamask.com/${ACTIONS.PERPS}?sig=${signature}`;
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: extractURLParams(comUrl).urlObj,
+        url: comUrl,
+        source: 'test-source',
+      });
+
+      const verifyCall = mockSubtle.verify.mock.calls[0];
+      const canonicalUrl = new TextDecoder().decode(
+        verifyCall[3] as Uint8Array,
+      );
+      expect(canonicalUrl).toBe(`https://link.metamask.io/${ACTIONS.PERPS}`);
+    });
   });
 });
