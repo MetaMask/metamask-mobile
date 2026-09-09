@@ -33,6 +33,7 @@ import type {
 } from '../../components/EarnStrategyCard/EarnStrategyCard.types';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import type { TokenI } from '../../../Tokens/types';
+import type { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
 import Logger from '../../../../../util/Logger';
 import useEarnToasts from '../../hooks/useEarnToasts';
@@ -41,8 +42,12 @@ import {
   isNonMoneyAccountExperience,
   truncateNumber,
 } from '../../utils';
+import {
+  getEarnAssetMetadata,
+  getEarnStrategyExperiences,
+} from '../../utils/earnAssets';
 import useEarnOpportunityNavigation, {
-  getEarnExperienceRedirectTarget,
+  getSelectedEarnStrategyRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
@@ -61,6 +66,7 @@ import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.
 
 export interface EarnStrategySelectionModalRouteParams {
   earnAsset: EarnAsset;
+  tokenDetailsSource?: TokenDetailsSource;
   analyticsContext?: EarnModuleNavigationContext;
 }
 
@@ -137,23 +143,22 @@ const renderNonMoneyStrategyCard = (
   strategy: NonMoneyAccountExperience,
   { earnAsset, selectedStrategyId, onStrategyPress }: StrategyCardRenderContext,
 ) => {
-  if (strategy.rate.status !== 'ready' || earnAsset.kind !== 'held') {
-    return null;
-  }
-
   const assetSymbol =
     strategy.type === EARN_EXPERIENCES.STABLECOIN_LENDING
-      ? earnAsset.asset.symbol
+      ? getEarnAssetMetadata(earnAsset).symbol
       : undefined;
 
   const title = strings(
     `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.title`,
     { asset: assetSymbol },
   );
-  const subtitle = strings(
-    `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.subtitle`,
-    { percentage: truncateNumber(strategy.rate.percentage) },
-  );
+  const subtitle =
+    strategy.rate.status === 'ready'
+      ? strings(
+          `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.subtitle`,
+          { percentage: truncateNumber(strategy.rate.percentage) },
+        )
+      : strings('earn.strategy_selection.strategies.rate_unavailable_subtitle');
 
   return (
     <EarnStrategyCard
@@ -194,7 +199,10 @@ const EarnStrategySelectionModal = () => {
 
   useMountEffect(trackBottomSheetViewed);
 
-  const strategies = earnAsset.experiences;
+  const strategies = useMemo(
+    () => getEarnStrategyExperiences(earnAsset.experiences),
+    [earnAsset.experiences],
+  );
 
   useEffect(() => {
     if (
@@ -234,7 +242,11 @@ const EarnStrategySelectionModal = () => {
         throw new Error('Selected strategy or earn asset is not available');
       }
 
-      await navigateToDepositForExperience(earnAsset, selectedStrategy);
+      await navigateToDepositForExperience(
+        earnAsset,
+        selectedStrategy,
+        params.tokenDetailsSource,
+      );
     } catch (error) {
       showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
       Logger.error(
@@ -247,6 +259,7 @@ const EarnStrategySelectionModal = () => {
   }, [
     earnAsset,
     navigateToDepositForExperience,
+    params.tokenDetailsSource,
     selectedStrategy,
     showToast,
     EarnToastOptions.earnStrategySelection.navigationToDeposit,
@@ -287,7 +300,7 @@ const EarnStrategySelectionModal = () => {
           }
         : {}),
       is_fee_subsidized: selectedStrategy.isFeeSubsidized,
-      redirect_target: getEarnExperienceRedirectTarget(
+      redirect_target: getSelectedEarnStrategyRedirectTarget(
         selectedStrategy,
         isOnboardingRedirectNeeded,
       ),

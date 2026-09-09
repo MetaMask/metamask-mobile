@@ -1,6 +1,6 @@
 import { strings } from '../../../../../../locales/i18n';
 import { truncateNumber } from '../../utils';
-import { isEarnAssetBalanceBelowMinDepositAmount } from '../earnAssets/earnAssetBalance';
+import { getAvailableEarnStrategyExperiences } from '../earnAssets';
 import type { EarnSectionRankedAsset } from './rankEarnSectionAssets';
 
 /**
@@ -14,7 +14,8 @@ export const getEarnAssetHighestRateCopy = ({
 }: {
   asset: EarnSectionRankedAsset;
 }): string => {
-  const hasMinDepositAmount = !isEarnAssetBalanceBelowMinDepositAmount(asset);
+  const hasAvailableExperience =
+    getAvailableEarnStrategyExperiences(asset.experiences).length > 0;
 
   if (asset.highestRatePercent === undefined) {
     return strings('earn_module.rate_unavailable');
@@ -27,11 +28,11 @@ export const getEarnAssetHighestRateCopy = ({
     key = 'earn_module.rate_apr';
   }
 
-  if (hasMinDepositAmount) {
+  if (hasAvailableExperience) {
     key = 'earn_module.get_rate_apy';
   }
 
-  if (hasMinDepositAmount && isApr) {
+  if (hasAvailableExperience && isApr) {
     key = 'earn_module.get_rate_apr';
   }
 

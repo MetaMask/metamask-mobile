@@ -12,6 +12,10 @@ import { pooledStakingSelectors } from '../../../../selectors/earnController/poo
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
+import {
+  isMoneyDepositSupportedToken,
+  selectMoneyDepositBlockedTokens,
+} from '../../Money/selectors/depositTokens';
 import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { isMoneyDepositFeeSubsidized } from '../../Money/utils/isMoneyDepositFeeSubsidized';
 import type { TokenI } from '../../Tokens/types';
@@ -23,6 +27,7 @@ import type {
   EarnAssetMetadata,
   EarnAssetRole,
   EarnExperience,
+  EarnExperienceAvailability,
   EarnRate,
 } from '../types/earnAssets';
 import {
@@ -30,7 +35,10 @@ import {
   createDiscoveryEarnAsset,
   createHeldEarnAsset,
   getAssetEarnId,
+  getEarnAssetMetadata,
+  getEarnStrategyExperiences,
 } from '../utils/earnAssets';
+import { MIN_EARN_DEPOSIT_BALANCE } from '../utils/earnAssets/earnAssetBalance';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
 import useEarnSectionTokenMetadata from './useEarnSectionTokenMetadata';
 import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
@@ -125,6 +133,26 @@ const getLendingAssetId = (chainId: number, address: string): EarnAssetId =>
     toHex(chainId) as Hex,
   ).toLowerCase() as EarnAssetId;
 
+const getMoneyDepositAvailability = (
+  asset: EarnAsset,
+  eligibleAssetIds: ReadonlySet<string>,
+): EarnExperienceAvailability => {
+  if (eligibleAssetIds.has(asset.assetId.toLowerCase())) {
+    return { status: 'available' };
+  }
+
+  if (asset.kind === 'discovery') {
+    return { status: 'unavailable', reason: 'asset_not_held' };
+  }
+
+  const fiatBalance = asset.asset.fiat?.balance;
+  return fiatBalance === undefined ||
+    fiatBalance === null ||
+    !Number.isFinite(Number(fiatBalance))
+    ? { status: 'unavailable', reason: 'balance_unavailable' }
+    : { status: 'unavailable', reason: 'insufficient_balance' };
+};
+
 const getHeldEarnExperiences = ({
   token,
   assetId,
@@ -149,10 +177,15 @@ const getHeldEarnExperiences = ({
     const isTrxStaking = experience.type === EARN_EXPERIENCES.TRX_STAKING;
 
     /**
-     * Output assets are receipt or position tokens used by withdrawal flows.
-     * They must not be exposed as deposit strategies in the Earn catalogue.
+     * Staking output assets are not part of this catalogue. Lending output
+     * associations are retained and filtered from user-facing strategies.
      */
-    if (isPooledStaking && (!isPooledStakingEnabled || role === 'output')) {
+    if (
+      isPooledStaking &&
+      (!isPooledStakingEnabled ||
+        role === 'output' ||
+        assetId !== ETH_MAINNET_ASSET_ID)
+    ) {
       return [];
     }
     if (isTrxStaking && (!isTrxStakingEnabled || role === 'output')) {
@@ -160,7 +193,7 @@ const getHeldEarnExperiences = ({
     }
     if (
       experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
-      (!isStablecoinLendingEnabled || role === 'output')
+      !isStablecoinLendingEnabled
     ) {
       return [];
     }
@@ -183,6 +216,16 @@ const getHeldEarnExperiences = ({
             : `pooled:${assetId}`,
         type: experience.type,
         role,
+        // TODO: Breakout this nested ternary into a separate function.
+        availability:
+          role === 'output'
+            ? { status: 'unavailable', reason: 'output_asset' }
+            : !token.isBalanceFiatAvailable ||
+                !Number.isFinite(token.balanceFiatNumber)
+              ? { status: 'unavailable', reason: 'balance_unavailable' }
+              : token.balanceFiatNumber < MIN_EARN_DEPOSIT_BALANCE
+                ? { status: 'unavailable', reason: 'insufficient_balance' }
+                : { status: 'available' },
         rate,
         isFeeSubsidized: false,
         market,
@@ -199,6 +242,9 @@ const useEarnAssetCatalogue = ({
 }: UseEarnAssetCatalogueOptions = {}) => {
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+  const moneyDepositBlockedTokens = useSelector(
+    selectMoneyDepositBlockedTokens,
+  );
   const {
     earnTokens,
     earnOutputTokens,
@@ -326,33 +372,6 @@ const useEarnAssetCatalogue = ({
       addHeldEarnAssets(earnOutputTokens, 'output');
     }
 
-    if (isMoneyAccountVisible) {
-      moneyDepositAssets.forEach((token) => {
-        const assetId = getAssetEarnId(token);
-        if (!assetId) return;
-
-        nextCandidates.push(
-          createHeldEarnAsset(token, assetId, [
-            {
-              id: `money:${assetId}`,
-              type: 'MONEY_ACCOUNT_DEPOSIT',
-              role: 'funding',
-              rate: createEarnRate({
-                type: 'APY',
-                percentage: moneyApyPercent,
-                isLoading: isMoneyApyLoading,
-                isError: isMoneyApyError,
-              }),
-              isFeeSubsidized: isMoneyDepositFeeSubsidized(
-                relayFixedSpread,
-                token,
-              ),
-            },
-          ]),
-        );
-      });
-    }
-
     // Add unheld lending assets for strategy discovery.
     if (isStablecoinLendingEnabled && isEarnEligible) {
       lendingMarkets.forEach((market) => {
@@ -366,6 +385,10 @@ const useEarnAssetCatalogue = ({
           id: experienceId,
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying' as const,
+          availability: {
+            status: 'unavailable' as const,
+            reason: 'asset_not_held' as const,
+          },
           rate: createEarnRate({
             type: 'APY',
             percentage: ratePercentage,
@@ -409,6 +432,10 @@ const useEarnAssetCatalogue = ({
               id: `pooled:${ETH_MAINNET_ASSET_ID}`,
               type: EARN_EXPERIENCES.POOLED_STAKING,
               role: 'underlying',
+              availability: {
+                status: 'unavailable',
+                reason: 'asset_not_held',
+              },
               rate: createEarnRate({
                 type: 'APR',
                 percentage: ethRatePercent,
@@ -430,6 +457,10 @@ const useEarnAssetCatalogue = ({
               id: `trx-staking:${TRX_NATIVE_TOKEN_ADDRESS}`,
               type: EARN_EXPERIENCES.TRX_STAKING,
               role: 'underlying',
+              availability: {
+                status: 'unavailable',
+                reason: 'asset_not_held',
+              },
               rate: trxRate,
               isFeeSubsidized: false,
             },
@@ -444,23 +475,86 @@ const useEarnAssetCatalogue = ({
     earnTokens,
     ethRatePercent,
     isEarnEligible,
-    isMoneyAccountVisible,
     isPooledStakingEnabled,
     isStablecoinLendingEnabled,
     isTrxStakingEnabled,
     lendingMetadata,
     lendingMarkets,
-    moneyApyPercent,
-    moneyDepositAssets,
-    isMoneyApyError,
-    isMoneyApyLoading,
-    relayFixedSpread,
     trxRatePercent,
     trxFetchStatus,
     walletAssetsById,
   ]);
 
-  const assets = useMemo(() => buildEarnAssets(candidates), [candidates]);
+  const moneyDepositEligibleAssetIds = useMemo(
+    () =>
+      new Set(
+        moneyDepositAssets.flatMap((asset) => {
+          const assetId = getAssetEarnId(asset);
+          return assetId ? [assetId.toLowerCase()] : [];
+        }),
+      ),
+    [moneyDepositAssets],
+  );
+  const moneyRate = useMemo(
+    () =>
+      createEarnRate({
+        type: 'APY',
+        percentage: moneyApyPercent,
+        isLoading: isMoneyApyLoading,
+        isError: isMoneyApyError,
+      }),
+    [isMoneyApyError, isMoneyApyLoading, moneyApyPercent],
+  );
+  const assets = useMemo(() => {
+    const baseAssets = buildEarnAssets(candidates);
+    const enrichedAssets = baseAssets.map((asset) => {
+      if (!isMoneyAccountVisible) {
+        return asset;
+      }
+
+      const metadata = getEarnAssetMetadata(asset);
+      if (!isMoneyDepositSupportedToken(metadata, moneyDepositBlockedTokens)) {
+        return asset;
+      }
+
+      return {
+        ...asset,
+        experiences: [
+          {
+            id: `money:${asset.assetId}`,
+            type: 'MONEY_ACCOUNT_DEPOSIT' as const,
+            role: 'funding' as const,
+            availability: getMoneyDepositAvailability(
+              asset,
+              moneyDepositEligibleAssetIds,
+            ),
+            rate: moneyRate,
+            isFeeSubsidized: isMoneyDepositFeeSubsidized(
+              relayFixedSpread,
+              metadata,
+            ),
+          },
+          ...asset.experiences,
+        ],
+      };
+    });
+
+    return enrichedAssets;
+  }, [
+    candidates,
+    isMoneyAccountVisible,
+    moneyDepositBlockedTokens,
+    moneyDepositEligibleAssetIds,
+    moneyRate,
+    relayFixedSpread,
+  ]);
+  const opportunityAssets = useMemo(
+    () =>
+      assets.filter(
+        ({ experiences }) => getEarnStrategyExperiences(experiences).length > 0,
+      ),
+    [assets],
+  );
   const assetsById = useMemo<Readonly<Partial<Record<string, EarnAsset>>>>(
     () =>
       Object.fromEntries(
@@ -567,18 +661,14 @@ const useEarnAssetCatalogue = ({
     () => ({
       assets,
       assetsById,
+      opportunityAssets,
       isLoading,
       hasError,
       errors,
       refresh,
       moneyApyDecimal,
       moneyApyPercent,
-      moneyRateStatus: createEarnRate({
-        type: 'APY',
-        percentage: moneyApyPercent,
-        isLoading: isMoneyApyLoading,
-        isError: isMoneyApyError,
-      }).status,
+      moneyRateStatus: moneyRate.status,
     }),
     [
       assets,
@@ -586,10 +676,10 @@ const useEarnAssetCatalogue = ({
       errors,
       hasError,
       isLoading,
-      isMoneyApyError,
-      isMoneyApyLoading,
       moneyApyDecimal,
       moneyApyPercent,
+      moneyRate,
+      opportunityAssets,
       refresh,
     ],
   );

@@ -22,7 +22,7 @@ export const getEarnAssetFiatDisplay = (earnAsset: EarnAsset) => {
   );
 };
 
-const MIN_DEPOSIT_BALANCE = 0.01;
+export const MIN_EARN_DEPOSIT_BALANCE = 0.01;
 
 export const isEarnAssetBalanceBelowMinDepositAmount = (
   earnAsset: EarnAsset,
@@ -32,6 +32,6 @@ export const isEarnAssetBalanceBelowMinDepositAmount = (
   }
 
   return new BigNumber(earnAsset.asset.fiat?.balance ?? 0).isLessThan(
-    MIN_DEPOSIT_BALANCE,
+    MIN_EARN_DEPOSIT_BALANCE,
   );
 };

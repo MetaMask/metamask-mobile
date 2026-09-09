@@ -6,6 +6,7 @@ import type {
   EarnModuleEventLocation,
 } from '../types/earnModuleEvents.types';
 import { formatChainIdForAnalytics } from './analytics';
+import { getEarnStrategyExperiences } from './earnAssets/earnExperience';
 import { truncateNumber } from './number';
 
 export const getEarnModuleAssetProperties = (
@@ -23,32 +24,33 @@ export const getEarnModuleAssetProperties = (
         }
       : earnAsset.metadata;
 
-  const earnAssetSupportsSingleExperience = earnAsset.experiences.length === 1;
+  const strategies = getEarnStrategyExperiences(earnAsset.experiences);
+  const earnAssetSupportsSingleExperience = strategies.length === 1;
 
   return {
     asset_symbol: metadata.ticker ?? metadata.symbol ?? metadata.name,
     chain_id: formatChainIdForAnalytics(metadata.chainId),
     ...(position === undefined ? {} : { asset_position: position }),
     ...(assetsInList === undefined ? {} : { assets_in_list: assetsInList }),
-    eligible_strategy_count: earnAsset.experiences.length,
-    eligible_strategy_types: earnAsset.experiences.map(
+    eligible_strategy_count: strategies.length,
+    eligible_strategy_types: strategies.map(
       ({ type }) => type.toLowerCase() as Lowercase<EARN_MODULE_STRATEGY_TYPES>,
     ),
     asset_has_balance:
       earnAsset.kind === 'held' && earnAsset.asset.balance !== '0',
     // Only attach rate when we know the experience being used. We don't want an ambiguous rate property.
     ...(earnAssetSupportsSingleExperience &&
-    earnAsset.experiences[0]?.rate?.status === 'ready'
+    strategies[0]?.rate?.status === 'ready'
       ? {
           rate_percentage: Number(
-            truncateNumber(earnAsset.experiences[0]?.rate.percentage),
+            truncateNumber(strategies[0].rate.percentage),
           ),
         }
       : {}),
     // Only attach when we know the experience being used. We don't want an ambiguous is_fee_subsidized property.
     ...(earnAssetSupportsSingleExperience
       ? {
-          is_fee_subsidized: earnAsset.experiences.some(
+          is_fee_subsidized: strategies.some(
             ({ isFeeSubsidized }) => isFeeSubsidized,
           ),
         }

@@ -46,7 +46,7 @@ export const useEarnSearchFeed = ({
   enabled = true,
 }: UseEarnSearchFeedOptions = {}): EarnSearchFeedResult => {
   const {
-    assets,
+    opportunityAssets,
     hasError,
     isLoading: isCatalogueLoading,
     moneyApyPercent,
@@ -65,7 +65,10 @@ export const useEarnSearchFeed = ({
   const [isRetrying, setIsRetrying] = useState(false);
 
   const normalizedQuery = query.trim().toLowerCase();
-  const rankedAssets = useMemo(() => rankEarnAssets(assets), [assets]);
+  const rankedAssets = useMemo(
+    () => rankEarnAssets(opportunityAssets),
+    [opportunityAssets],
+  );
 
   const matchingAssets = useMemo(
     () =>

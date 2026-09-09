@@ -52,7 +52,7 @@ export const getAssetEarnId = (asset: Asset): EarnAssetId | undefined => {
  *
  * @param asset - AssetsController asset held in the wallet.
  * @param assetId - Canonical CAIP-19 asset ID.
- * @param experiences - Earn experiences available for the asset.
+ * @param experiences - Earn experiences associated with the asset.
  * @returns Held Earn asset.
  */
 export const createHeldEarnAsset = (
@@ -71,7 +71,7 @@ export const createHeldEarnAsset = (
  *
  * @param assetId - Canonical CAIP-19 asset ID.
  * @param metadata - Asset metadata needed to display and use the asset.
- * @param experiences - Earn experiences available for the asset.
+ * @param experiences - Earn experiences associated with the asset.
  * @returns Discovery Earn asset.
  */
 export const createDiscoveryEarnAsset = (

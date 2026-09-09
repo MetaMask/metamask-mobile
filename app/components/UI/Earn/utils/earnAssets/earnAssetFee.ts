@@ -7,4 +7,7 @@ import type { EarnAsset } from '../../types/earnAssets';
  * @returns True when at least one experience has a subsidized fee.
  */
 export const hasEarnAssetSubsidizedFee = (asset: EarnAsset): boolean =>
-  asset.experiences.some(({ isFeeSubsidized }) => isFeeSubsidized);
+  asset.experiences.some(
+    ({ availability, isFeeSubsidized }) =>
+      availability.status === 'available' && isFeeSubsidized,
+  );
