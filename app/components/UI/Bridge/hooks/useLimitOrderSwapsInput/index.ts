@@ -183,8 +183,8 @@ export const useLimitOrderSwapInputs = ({
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Dest,
       enabledChainIds: sourceToken?.chainId
-      ? [formatChainIdToCaip(sourceToken.chainId)]
-      : [],
+        ? [formatChainIdToCaip(sourceToken.chainId)]
+        : [],
       excludeRwaTokens: true,
       featureId: FeatureId.LIMIT_ORDER,
     });
