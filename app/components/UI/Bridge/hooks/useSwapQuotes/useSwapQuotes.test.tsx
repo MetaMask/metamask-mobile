@@ -1,5 +1,5 @@
 import React from 'react';
-import { SwapQuotesProvider } from './SwapQuotesContext';
+import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
 import { useSwapQuotes } from './index';
 import {
   mockContext,
@@ -146,6 +146,7 @@ const Wrapper = ({
 
   return (
     <SwapQuotesProvider
+      isActive
       featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
       debounceWait={mockDebounceMs}
       quoteRequestIndex={quoteRequestIndex}
@@ -181,9 +182,8 @@ runQuoteRequestCases({
   renderHook: (options) =>
     renderHook(
       () => {
-        const { debouncedUpdateQuoteParams, refreshQuotes } = useSwapQuotes();
-
-        return Object.assign(debouncedUpdateQuoteParams, { refreshQuotes });
+        const { debouncedUpdateQuoteParams } = useSwapQuotes();
+        return debouncedUpdateQuoteParams;
       },
       {
         wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,

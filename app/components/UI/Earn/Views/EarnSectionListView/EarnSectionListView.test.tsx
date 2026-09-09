@@ -339,6 +339,7 @@ const createCatalogueResult = (
     errors: [],
     hasError: false,
     isLoading: false,
+    moneyApyDecimal: 0.042,
     moneyApyPercent: 4.2,
     moneyRateStatus: 'ready',
     refresh: mockRefresh,
