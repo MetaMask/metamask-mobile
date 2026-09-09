@@ -9890,7 +9890,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/claims-controller@npm:^0.6.0, @metamask/claims-controller@npm:^0.6.1":
+"@metamask/claims-controller@npm:^0.6.1":
   version: 0.6.1
   resolution: "@metamask/claims-controller@npm:0.6.1"
   dependencies:
@@ -9964,7 +9964,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/config-registry-controller@npm:^3.0.0, @metamask/config-registry-controller@npm:^3.1.0":
+"@metamask/config-registry-controller@npm:^3.1.0":
   version: 3.1.0
   resolution: "@metamask/config-registry-controller@npm:3.1.0"
   dependencies:
@@ -10604,7 +10604,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gas-fee-controller@npm:^26.3.0, @metamask/gas-fee-controller@npm:^26.3.1, @metamask/gas-fee-controller@npm:^26.3.2":
+"@metamask/gas-fee-controller@npm:^26.3.0, @metamask/gas-fee-controller@npm:^26.3.2":
   version: 26.3.2
   resolution: "@metamask/gas-fee-controller@npm:26.3.2"
   dependencies:
@@ -11346,20 +11346,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/passkey-controller@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/passkey-controller@npm:3.0.0"
+"@metamask/passkey-controller@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@metamask/passkey-controller@npm:3.1.0"
   dependencies:
     "@levischuck/tiny-cbor": "npm:^0.3.3"
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/keyring-controller": "npm:^27.1.0"
+    "@metamask/keyring-controller": "npm:^27.1.1"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/utils": "npm:^11.11.0"
     "@noble/ciphers": "npm:^1.3.0"
     "@noble/curves": "npm:^1.9.2"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/8ceeca27fad12e74402155f870525a54bebc62ad73ee7ac45346b2075e55ec195be4d8793355282f423ae5a04a171b1ff5e502e99d10d20b0262295c62b13863
+  checksum: 10/8e62532b3ad8d534c409ccab7b743b3dd5799ae9de87adb3d4d7bf34e4fd5f3f670726d360d34ad6932adf8d303b0508d03615c22d06d166bde8b1a47733565b
   languageName: node
   linkType: hard
 
@@ -11745,16 +11745,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/remote-feature-flag-controller@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "@metamask/remote-feature-flag-controller@npm:6.1.0"
+"@metamask/remote-feature-flag-controller@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "@metamask/remote-feature-flag-controller@npm:6.1.1"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/utils": "npm:^11.11.0"
+    "@metamask/utils": "npm:^11.12.0"
     uuid: "npm:^8.3.2"
-  checksum: 10/d32c187c638416bd1535b464187b1184ecbfd80b8100597b86cf17704cb04887f283df900fdc538b483f2d5684f34b2442bae84f468fb150e0e053230222ca45
+  checksum: 10/bf244c96c84a4e676514f4287bf02ce87a3b6c9436fb1d217523902d85a975d9ec2a14ae5bdb81579116f8fb35d2a13376617c98f7b49ca9efeef2ca00bf4d7f
   languageName: node
   linkType: hard
 
@@ -11875,7 +11875,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/shield-controller@npm:^6.0.0, @metamask/shield-controller@npm:^6.0.1":
+"@metamask/shield-controller@npm:^6.0.1":
   version: 6.0.1
   resolution: "@metamask/shield-controller@npm:6.0.1"
   dependencies:
@@ -12260,7 +12260,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/subscription-controller@npm:^8.0.0, @metamask/subscription-controller@npm:^8.0.1":
+"@metamask/subscription-controller@npm:^8.0.1":
   version: 8.0.1
   resolution: "@metamask/subscription-controller@npm:8.0.1"
   dependencies:
@@ -12500,33 +12500,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/wallet@npm:^12.0.1":
-  version: 12.0.1
-  resolution: "@metamask/wallet@npm:12.0.1"
+"@metamask/wallet@npm:^12.0.3":
+  version: 12.0.3
+  resolution: "@metamask/wallet@npm:12.0.3"
   dependencies:
-    "@metamask/accounts-controller": "npm:^39.1.0"
+    "@metamask/accounts-controller": "npm:^39.1.1"
     "@metamask/address-book-controller": "npm:^7.1.2"
     "@metamask/approval-controller": "npm:^9.0.2"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
-    "@metamask/claims-controller": "npm:^0.6.0"
-    "@metamask/config-registry-controller": "npm:^3.0.0"
+    "@metamask/claims-controller": "npm:^0.6.1"
+    "@metamask/config-registry-controller": "npm:^3.1.0"
     "@metamask/connectivity-controller": "npm:^0.3.0"
     "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/gas-fee-controller": "npm:^26.3.1"
+    "@metamask/gas-fee-controller": "npm:^26.3.2"
     "@metamask/keyring-controller": "npm:^27.1.1"
     "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/network-controller": "npm:^35.0.1"
-    "@metamask/passkey-controller": "npm:^3.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^6.0.0"
+    "@metamask/network-controller": "npm:^36.0.0"
+    "@metamask/passkey-controller": "npm:^3.1.0"
+    "@metamask/remote-feature-flag-controller": "npm:^6.1.1"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/seedless-onboarding-controller": "npm:^10.1.1"
-    "@metamask/shield-controller": "npm:^6.0.0"
+    "@metamask/shield-controller": "npm:^6.0.1"
     "@metamask/storage-service": "npm:^1.0.2"
-    "@metamask/subscription-controller": "npm:^8.0.0"
-    "@metamask/transaction-controller": "npm:^69.5.2"
-    "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/43073b959adc4bee007ea5885db483645b8e17bcce7306543b80d25c00100d57f8bc4ffd05d22c51d573be0f1c10c1b5b184e6f45b901e2fb4383ef2256c49b7
+    "@metamask/subscription-controller": "npm:^8.0.1"
+    "@metamask/transaction-controller": "npm:^69.8.1"
+    "@metamask/utils": "npm:^11.12.0"
+  checksum: 10/eefb6a44cd00f63963149c7c503731d1e95d79b199daedbce35060bd1606f0ab35428c4d248710eda2dfb8ee67bd9fc4dca258da38422fa4ed0f92d0b44b02dc
   languageName: node
   linkType: hard
 
@@ -39821,7 +39821,7 @@ __metadata:
     "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch"
     "@metamask/react-native-search-api": "npm:1.0.1"
     "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch"
-    "@metamask/remote-feature-flag-controller": "npm:^6.1.0"
+    "@metamask/remote-feature-flag-controller": "npm:^6.1.1"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.0"
@@ -39858,7 +39858,7 @@ __metadata:
     "@metamask/transaction-pay-controller": "npm:^27.1.1"
     "@metamask/tron-wallet-snap": "npm:^3.2.0"
     "@metamask/utils": "npm:^11.11.0"
-    "@metamask/wallet": "npm:^12.0.1"
+    "@metamask/wallet": "npm:^12.0.3"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.33.1"
     "@noble/curves": "npm:1.9.6"
