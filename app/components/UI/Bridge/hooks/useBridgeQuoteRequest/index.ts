@@ -46,7 +46,7 @@ interface UpdateQuoteParamsOptions {
 export const useBridgeQuoteRequest = (
   options: UseBridgeQuoteRequestOptions = {},
 ) => {
-  const ownedTraceId = useRef<string>();
+  const ownedTraceId = useRef<string | undefined>(undefined);
   const cancelOwnedTrace = useCallback(() => {
     if (ownedTraceId.current) {
       swapQuoteFetchTrace.finish('cancelled', ownedTraceId.current);
@@ -216,8 +216,9 @@ export const useBridgeQuoteRequest = (
 
       if (!traceId) {
         cancelOwnedTrace();
+      } else {
+        ownedTraceId.current = traceId;
       }
-      ownedTraceId.current = traceId;
 
       debounced({
         ...requestOptions,
