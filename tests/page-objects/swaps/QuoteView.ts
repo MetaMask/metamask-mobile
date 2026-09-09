@@ -4,6 +4,7 @@ import {
   Matchers,
   PlatformDetector,
   sleep,
+  Utilities,
   type AppiumElement,
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
@@ -326,6 +327,29 @@ class QuoteView {
   }
 
   async tapOnBackButton(): Promise<void> {
+    // Android: header back shares the generic `button-icon` testID with the
+    // settings gear, so a single UI tap can miss dismiss. Retry tap + verify.
+    if (PlatformDetector.isAndroid()) {
+      await Utilities.executeWithRetry(
+        async () => {
+          await Gestures.waitAndTap(this.backButton, {
+            timeout: 2000,
+            elemDescription: 'Back button on Quote View (retry loop)',
+          });
+          await Assertions.expectElementToNotBeVisible(this.sourceTokenArea, {
+            timeout: 3000,
+            description: 'Swap screen dismissed after back',
+          });
+        },
+        {
+          timeout: 15000,
+          description: 'dismiss Swap with back and verify navigation',
+          elemDescription: 'Swap source token area',
+        },
+      );
+      return;
+    }
+
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back button on Quote View',
     });

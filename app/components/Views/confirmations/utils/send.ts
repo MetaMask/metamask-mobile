@@ -49,6 +49,7 @@ export interface SendNavigationParams {
   location: string;
   asset?: AssetType | Nft;
   predefinedRecipient?: PredefinedRecipient;
+  predefinedAmount?: string;
 }
 
 const captureSendStartedEvent = (location: string) => {
@@ -109,7 +110,7 @@ export const handleSendPageNavigation = (
   ) => void,
   params: SendNavigationParams,
 ) => {
-  const { location, asset, predefinedRecipient } = params;
+  const { location, asset, predefinedRecipient, predefinedAmount } = params;
   captureSendStartedEvent(location);
   let screen: SendStackScreen = Routes.SEND.ASSET;
   if (asset) {
@@ -126,6 +127,7 @@ export const handleSendPageNavigation = (
       asset,
       location,
       predefinedRecipient,
+      ...(predefinedAmount ? { predefinedAmount } : {}),
     },
   });
 };

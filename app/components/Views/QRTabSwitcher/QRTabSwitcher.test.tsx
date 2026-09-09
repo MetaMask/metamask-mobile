@@ -65,6 +65,7 @@ jest.mock('../../../core/Engine', () => {
 import Engine from '../../../core/Engine';
 
 const mockResetState = jest.fn();
+const mockHandleScannedQrPayload = jest.fn(() => Promise.resolve());
 const mockImportRemainingSecrets = jest.fn(() => Promise.resolve());
 const mockGetAccounts = jest.fn<Promise<string[]>, []>(() =>
   Promise.resolve([]),
@@ -82,6 +83,11 @@ jest.mock('../../../core/QrSync/showExtensionCancelledErrorSheet', () => {
     showExtensionCancelledErrorSheet: jest.fn(),
   };
 });
+
+jest.mock('../../../core/QrSync/qrSyncTelemetry', () => ({
+  ...jest.requireActual('../../../core/QrSync/qrSyncTelemetry'),
+  reportQrSyncFailure: jest.fn(),
+}));
 
 const mockShowExtensionCancelledErrorSheet = jest.mocked(
   showExtensionCancelledErrorSheet,
@@ -109,7 +115,7 @@ const wrapQrTabSwitcher = (ui: React.ReactElement = <QRTabSwitcher />) => (
     value={createMockRouteMessenger({
       'QrSyncController:resetState': mockResetState,
       'QrSyncController:importRemainingSecrets': mockImportRemainingSecrets,
-      'QrSyncController:handleScannedQrPayload': jest.fn(),
+      'QrSyncController:handleScannedQrPayload': mockHandleScannedQrPayload,
       'QrSyncController:hasPendingSecretImports': mockHasPendingSecretImports,
       'KeyringController:getAccounts': mockGetAccounts,
     })}
@@ -122,6 +128,7 @@ const renderQrTabSwitcher = () => render(wrapQrTabSwitcher());
 
 jest.mock('../QRScanner', () => jest.fn(() => null));
 
+const MockQRScanner = jest.requireMock('../QRScanner') as jest.Mock;
 jest.mock('../AddDeviceToWallet/DeviceAdded', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -264,6 +271,57 @@ describe('QRTabSwitcher', () => {
     });
 
     expect(getByTestId('device-added-loader-screen')).toBeOnTheScreen();
+  });
+
+  it('submits add-device scans via the live QRTabSwitcher route messenger', async () => {
+    const staleParentOnScanSuccess = jest.fn();
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        onScanError: jest.fn(),
+        // Stale parent callback must not be used for add-device submit.
+        onScanSuccess: staleParentOnScanSuccess,
+        origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+      },
+    });
+
+    renderWithQrSyncState({});
+
+    const scannerProps = MockQRScanner.mock.calls.at(-1)?.[0] as {
+      onScanSuccess: (data: { content?: string }, content?: string) => void;
+    };
+    scannerProps.onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
+
+    await waitFor(() => {
+      expect(mockHandleScannedQrPayload).toHaveBeenCalledWith(
+        'metamask://connect/mwp?p=test',
+      );
+    });
+    expect(staleParentOnScanSuccess).not.toHaveBeenCalled();
+  });
+
+  it('reports add-device scan submit failures to Sentry', async () => {
+    const { reportQrSyncFailure } = jest.requireMock(
+      '../../../core/QrSync/qrSyncTelemetry',
+    ) as { reportQrSyncFailure: jest.Mock };
+
+    mockHandleScannedQrPayload.mockRejectedValueOnce(
+      new Error('scan submit failed'),
+    );
+
+    renderAddDeviceFlow({});
+
+    const scannerProps = MockQRScanner.mock.calls.at(-1)?.[0] as {
+      onScanSuccess: (data: { content?: string }, content?: string) => void;
+    };
+    scannerProps.onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
+
+    await waitFor(() => {
+      expect(reportQrSyncFailure).toHaveBeenCalledWith(expect.any(Error), {
+        surface: 'scanner',
+        operation: 'submit_scanned_payload',
+        source: 'QRTabSwitcher.addDeviceScan',
+      });
+    });
   });
 
   it('resets QR sync session when closing scanner during add-device flow', async () => {

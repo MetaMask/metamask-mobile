@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Η Pro συνδρομή σας",
     "manage": "Διαχείριση συνδρομής",
-    "manage_plan": "Διαχείριση προγράμματος",
-    "earned_with_pro": "Κερδίσατε με το Pro",
-    "saved_with_pro": "Εξοικονομήσατε με το Pro",
-    "next_payment": "Η επόμενη πληρωμή σας, ύψους {{amount}}, είναι προγραμματισμένη για τις {{date}}.",
     "member_pricing": {
       "title": "Ειδική τιμολόγηση για μέλη στις συναλλαγές",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "Η συνδρομή σας",
       "plan": "Συνδρομή",
       "earned_this_month": "Κερδίσατε αυτόν τον μήνα",
-      "saved_this_month": "Εξοικονομήσατε αυτόν τον μήνα",
       "payment_details": "Στοιχεία πληρωμής",
       "total": "Σύνολο",
       "paying_with": "Τρόπος πληρωμής",
