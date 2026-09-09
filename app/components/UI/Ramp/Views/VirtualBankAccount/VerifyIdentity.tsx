@@ -154,8 +154,8 @@ const VbaVerifyIdentity = () => {
         onTokenExpired: async () => MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
       });
       Logger.log('[VBA KYC] Sumsub SDK closed', result);
-    } catch (error) {
-      Logger.error(error as Error, {
+    } catch (sumSubError) {
+      Logger.error(sumSubError as Error, {
         tags: { feature: 'vba-kyc', provider: 'sumsub' },
       });
     } finally {

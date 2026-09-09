@@ -21,9 +21,9 @@ const toLinks = (
   group: 'idOS' | 'kycProvider',
   documents: KycCatalogDocument[] | undefined,
 ): KycCatalogDisclaimerLink[] =>
-  (documents ?? []).map((document) => ({
-    ...document,
-    id: `${group}:${document.key}`,
+  (documents ?? []).map((catalogDocument) => ({
+    ...catalogDocument,
+    id: `${group}:${catalogDocument.key}`,
   }));
 
 /**
@@ -77,8 +77,15 @@ export const useKycSessionDisclaimers = (
 
     const loadCatalog = async () => {
       try {
+        // KycService is an optional messenger client, so it can be absent when
+        // the KYC feature is not enabled for this build.
+        const kycService = Engine.context.KycService;
+        if (!kycService) {
+          throw new Error('KYC service is unavailable');
+        }
+
         const catalog = await Promise.race([
-          Engine.context.KycService.fetchDisclaimersCatalog({ country }),
+          kycService.fetchDisclaimersCatalog({ country }),
           abortedPromise,
         ]);
 
