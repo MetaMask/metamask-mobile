@@ -72,7 +72,9 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     // pendingSecretImports: metadata-stripped — secrets present, wallet/group metadata absent
     expect(controller.state.pendingSecretImports).toMatchObject({
       version: 1,
-      wallets: [{ type: AccountWalletPayloadType.Mnemonic, value: expect.anything() }],
+      wallets: [
+        { type: AccountWalletPayloadType.Mnemonic, value: expect.anything() },
+      ],
     });
     expect(
       controller.state.pendingSecretImports?.wallets[0],

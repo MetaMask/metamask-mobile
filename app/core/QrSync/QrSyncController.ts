@@ -374,7 +374,10 @@ export class QrSyncController extends BaseController<
       if (isNewUser) {
         let primarySkipped = false;
         snapshot = snapshot.filterWallets((wallet) => {
-          if (wallet.type === AccountWalletPayloadType.Mnemonic && !primarySkipped) {
+          if (
+            wallet.type === AccountWalletPayloadType.Mnemonic &&
+            !primarySkipped
+          ) {
             primarySkipped = true;
             return false;
           }
@@ -382,10 +385,7 @@ export class QrSyncController extends BaseController<
         });
       }
 
-      await this.messenger.call(
-        'AccountTreeController:importState',
-        snapshot,
-      );
+      await this.messenger.call('AccountTreeController:importState', snapshot);
     } catch (error) {
       reportQrSyncFailure(error, {
         surface: QrSyncSurfaces.IMPORT,

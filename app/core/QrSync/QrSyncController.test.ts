@@ -37,7 +37,11 @@ jest.mock('@metamask/account-tree-controller', () => {
       deserialize: jest.fn((payload: unknown) => {
         const typedPayload = payload as {
           version?: number;
-          wallets?: { value?: unknown; metadata?: unknown; groups?: { metadata?: unknown }[] }[];
+          wallets?: {
+            value?: unknown;
+            metadata?: unknown;
+            groups?: { metadata?: unknown }[];
+          }[];
         };
         const secretsStrippedWallets = typedPayload.wallets?.map(
           ({ value: _v, ...rest }) => rest,
@@ -48,8 +52,14 @@ jest.mock('@metamask/account-tree-controller', () => {
             groups: groups?.map(({ metadata: _gm, ...g }) => g),
           }),
         );
-        const secretsStripped = { ...typedPayload, wallets: secretsStrippedWallets };
-        const metadataStripped = { ...typedPayload, wallets: metadataStrippedWallets };
+        const secretsStripped = {
+          ...typedPayload,
+          wallets: secretsStrippedWallets,
+        };
+        const metadataStripped = {
+          ...typedPayload,
+          wallets: metadataStrippedWallets,
+        };
         const snapshot = {
           ...(payload as object),
           stripSecrets: jest.fn().mockReturnValue({

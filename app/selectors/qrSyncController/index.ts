@@ -33,7 +33,8 @@ export const selectQrSyncImportMnemonic = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) => {
     const primaryWallet = qrSyncState.pendingSecretImports?.wallets.find(
-      (w): w is AccountWalletMnemonicPayload => w.type === AccountWalletPayloadType.Mnemonic,
+      (w): w is AccountWalletMnemonicPayload =>
+        w.type === AccountWalletPayloadType.Mnemonic,
     );
     if (!primaryWallet?.value) {
       return null;

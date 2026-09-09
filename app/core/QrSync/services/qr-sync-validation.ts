@@ -244,7 +244,8 @@ export function validateQrSyncPayloadForOnboarding(
   error?: QrSyncError;
 } {
   const primaryMnemonic = payload?.wallets.find(
-    (w): w is AccountWalletMnemonicPayload => w.type === AccountWalletPayloadType.Mnemonic,
+    (w): w is AccountWalletMnemonicPayload =>
+      w.type === AccountWalletPayloadType.Mnemonic,
   );
 
   if (!primaryMnemonic?.value) {
