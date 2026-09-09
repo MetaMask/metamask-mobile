@@ -9726,7 +9726,7 @@
         "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
         "terms_2_us": "Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.",
         "verify_button": "Next",
-        "start_verification_error": "Error starting verification. Please try again shortly."
+        "start_verification_error": "Error starting verification. Try again shortly."
       },
       "kyc_webview": {
         "close_confirmation_title": "Exit verification?",
@@ -9749,28 +9749,28 @@
       "verifying_veriff_kyc": {
         "title": "Awaiting approval",
         "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app."
+        "helper_text": "This usually takes a few seconds. Do not close the app."
       },
       "immersve_kyc_processing": {
         "title": "Awaiting approval",
         "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "incomplete_title": "Finish verifying your identity",
         "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
         "continue_button": "Continue verification",
         "info_needed_title": "Additional information needed",
         "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
         "info_needed_button": "Continue verification",
-        "expiring_error": "Your verification session expired. Please contact support to continue."
+        "expiring_error": "Your verification session expired. Contact support to continue."
       },
       "immersve_kyc_modal": {
-        "load_error": "Something went wrong loading identity verification. Please try again.",
+        "load_error": "Something went wrong loading identity verification. Try again.",
         "try_again": "Try again"
       },
       "immersve_funding_approval": {
         "title": "Set up card funding",
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "Approve funding",
         "retry_button": "Try again"
       },
@@ -9841,7 +9841,7 @@
       },
       "mailing_address": {
         "title": "Mailing address",
-        "description": "Please provide a mailing address that we can send your card to."
+        "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
         "title": "You're in!",
@@ -9864,7 +9864,7 @@
       "close_button": "Got it",
       "waitlist_form": {
         "title": "Join waitlist",
-        "load_error": "Something went wrong loading the form. Please try again.",
+        "load_error": "Something went wrong loading the form. Try again.",
         "try_again": "Try again",
         "success_toast": "You're on the waitlist!",
         "success_toast_description": "We'll let you know when the card is available in your country."
@@ -9874,24 +9874,24 @@
       },
       "errors": {
         "no_region_results": "No region matches {{searchString}}",
-        "email_already_exists": "Email already exists. Please use a different email.",
-        "invalid_email_format": "Invalid email format. Please check your email and try again.",
-        "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
-        "verification_code_expired": "Verification code has expired. Please request a new code.",
-        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please restart the registration process.",
-        "invalid_phone_format": "Invalid phone number format. Please check your phone number and try again.",
-        "phone_already_exists": "Phone number already exists. Please use a different phone number.",
-        "phone_number_mismatch": "Phone number does not match verification session. Please check your phone number and try again.",
-        "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
-        "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
-        "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
-        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process.",
-        "create_user_failed": "Failed to create user. Please try again."
+        "email_already_exists": "Email already exists. Use a different email.",
+        "invalid_email_format": "Invalid email format. Check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Enter a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Enter a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Restart the registration process.",
+        "create_user_failed": "Failed to create user. Try again."
       }
     },
     "card_home": {
       "title": "Card",
-      "authentication_error": "Your session has expired. Please log in again.",
+      "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
       "available_balance": "Available balance",
       "error_title": "Can't fetch data",
