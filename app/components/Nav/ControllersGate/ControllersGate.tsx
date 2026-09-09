@@ -4,6 +4,17 @@ import { ControllersGateProps } from './types';
 import { useSelector } from 'react-redux';
 import { selectAppServicesReady } from '../../../reducers/user/selectors';
 import FoxLoader from '../../UI/FoxLoader';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import {
+  flushNativeStartupMarks,
+  flushStartupTimeline,
+  startupMark,
+} from '../../../core/Performance/StartupTimeline';
 /**
  * A higher order component that gate keeps the children until the app services are finished loaded
  * and the splash animation has completed.
@@ -25,8 +36,34 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
-    }).start(() => setLoaderDone(true));
+    }).start(() => {
+      // Closes the reveal-tax span: children have been rendering underneath
+      // since `appServicesReady` flipped, so everything between that moment and
+      // here is perceived latency the user pays with nothing to show for it.
+      startupMark('splash_loader_done');
+      endTrace({ name: TraceName.SplashRevealTax });
+      flushStartupTimeline('cold_start');
+      // Flushed here rather than earlier so late markers (contentAppeared,
+      // attachMeasuredRootViews*) have already been recorded.
+      flushNativeStartupMarks();
+      setLoaderDone(true);
+    });
   }, [loaderOpacity]);
+
+  // Open the reveal-tax span the moment the gate unblocks. Neither `UIStartup`
+  // (ends at App's first render) nor Sentry's `app_start_cold` (ends at root
+  // mount) covers this window, so without an explicit span the fixed
+  // 800ms + 250ms + 300ms below is invisible to every shipped metric.
+  useEffect(() => {
+    if (!appServicesReady) {
+      return;
+    }
+    startupMark('app_services_ready');
+    trace({
+      name: TraceName.SplashRevealTax,
+      op: TraceOperation.UIStartup,
+    });
+  }, [appServicesReady]);
 
   // Only fade out once BOTH the animation is done AND app services are ready.
   // This prevents a blank screen when Rive fails or times out before services finish.

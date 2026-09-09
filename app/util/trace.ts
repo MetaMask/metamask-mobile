@@ -39,6 +39,25 @@ export enum TraceName {
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
   HomepageReady = 'Homepage Ready',
+  /**
+   * Process start -> the unlock screen genuinely accepts input. The app's
+   * most-executed cold path, previously untracked in production: `UIStartup`
+   * ends at `App`'s first render, before the splash reveal and unlock paint.
+   */
+  AppStartToUnlockInteractive = 'App Start To Unlock Interactive',
+  /**
+   * `appServicesReady` -> splash overlay removed. Fixed animation cost paid
+   * after the UI is already rendered underneath, so it is pure perceived
+   * latency. Should trend to zero.
+   */
+  SplashRevealTax = 'Splash Reveal Tax',
+  /**
+   * `AppFlow`'s first render — the synchronous navigator module-evaluation
+   * burst. Splits "engine init" from "screen graph evaluation" inside startup.
+   */
+  RootNavigatorFirstRender = 'Root Navigator First Render',
+  /** Reading and parsing every `persist:<Controller>` blob before Engine init. */
+  ControllerStateRehydration = 'Controller State Rehydration',
   UiSlotsLoad = 'UI Slots Load',
   DeeplinkProcessed = 'Deeplink Processed',
   DeeplinkNavigated = 'Deeplink Navigated',

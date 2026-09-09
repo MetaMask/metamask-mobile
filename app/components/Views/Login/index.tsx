@@ -54,6 +54,7 @@ import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from './LoginView.testIds';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { startupMark } from '../../../core/Performance/StartupTimeline';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import {
@@ -145,6 +146,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput | null>(null);
   const lastSubmittedPasswordRef = useRef('');
   const isProcessingForgotPassword = useRef(false);
+
+  /** Cold start -> unlock interactive. See the `onLayout` call site below. */
+  const markUnlockInteractive = useCallback(() => {
+    startupMark('unlock_interactive');
+  }, []);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -615,6 +621,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 inputRef={fieldRef}
                 onChangeText={handlePasswordChange}
                 value={password}
+                // Fires on the password field's NATIVE layout — the first
+                // moment the user can actually type. A React mount or effect
+                // would fire earlier and measure ~zero, which is why the mark
+                // is anchored here (see docs/performance/startup-instrumentation.md).
+                // `startupMark` keeps only the first occurrence, so repeated
+                // layouts are harmless.
+                onLayout={markUnlockInteractive}
                 endAccessory={
                   capabilities ? (
                     <DeviceAuthenticationButton

@@ -5,6 +5,7 @@ import {
   TraceOperation,
   TRACES_CLEANUP_INTERVAL,
 } from '../../util/trace';
+import { startupMark, stopStartupProfile } from './StartupTimeline';
 
 export type HomepageReadyContentState = 'filled' | 'empty' | 'error';
 export type HomepageReadyStartSource = 'app_open' | 'unlock';
@@ -124,6 +125,13 @@ export const endHomepageReadyTrace = ({
       content_state: contentState,
     },
   });
+  // Mirrors the CUF end onto the local startup timeline so cold-start ->
+  // homepage can be read over adb without metrics consent.
+  startupMark('homepage_ready');
+  // Cold start ends HERE, so the CPU profile stops immediately after the mark.
+  // Anything added between the two would land inside the profiled window and
+  // be attributed to startup.
+  stopStartupProfile();
   startedAt = null;
   activeTraceToken = null;
 };

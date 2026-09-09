@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { FullWindowOverlay } from 'react-native-screens';
 import { useRoute } from '@react-navigation/native';
 import {
@@ -134,7 +134,14 @@ import TooltipModal from '../../Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../UI/FoxLoader';
 import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
-import { endTrace, TraceName } from '../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import { startupMark } from '../../../core/Performance/StartupTimeline';
+import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { Performance } from '../../../core/Performance';
 import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
@@ -1164,12 +1171,50 @@ const ModalSwitchAccountType = () => (
   </NativeStack.Navigator>
 );
 
+/**
+ * Guards the first-render span below. Module scope, not a ref, so a remount
+ * cannot restart the measurement — the module-evaluation burst it measures can
+ * only ever happen once per JS context.
+ */
+let hasMeasuredRootNavigatorRender = false;
+
 const AppFlow = () => {
   const { colors, themeAppearance } = useTheme();
   const onboardingCanvasColor =
     themeAppearance === 'dark'
       ? importedColors.gettingStartedTextColor
       : importedColors.gettingStartedPageBackgroundColorLightMode;
+
+  // Opens on the first render, before the JSX below is constructed. Every
+  // `component={Screen}` reference in this navigator is an inline `require()`,
+  // so building that element tree synchronously evaluates the screen graph —
+  // this span is what separates that cost from Engine initialisation.
+  //
+  // A lazy `useState` initialiser is used rather than a ref write during
+  // render because this directory is compiled by the React Compiler (see
+  // `babel.config.js` `pathsToInclude`); NavigationProvider uses the same
+  // pattern for `NavInit`.
+  useState(() => {
+    if (hasMeasuredRootNavigatorRender) {
+      return false;
+    }
+    startupMark('root_navigator_render_start');
+    trace({
+      name: TraceName.RootNavigatorFirstRender,
+      op: TraceOperation.UIStartup,
+      parentContext: getUIStartupSpan(),
+    });
+    return true;
+  });
+
+  useEffect(() => {
+    if (hasMeasuredRootNavigatorRender) {
+      return;
+    }
+    hasMeasuredRootNavigatorRender = true;
+    startupMark('root_navigator_render_end');
+    endTrace({ name: TraceName.RootNavigatorFirstRender });
+  }, []);
 
   return (
     <NativeStack.Navigator

@@ -18,6 +18,7 @@ import {
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
+import { startupMark } from '../Performance/StartupTimeline';
 
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
@@ -145,7 +146,19 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
+    // Separately spanned because this is ~70 filesystem reads + JSON.parse
+    // before a single controller can be constructed, and it needs to be
+    // attributable independently of Engine.init() to know whether startup is
+    // I/O-bound or CPU-bound here.
+    startupMark('controller_rehydrate_start');
+    trace({
+      name: TraceName.ControllerStateRehydration,
+      op: TraceOperation.StorageRehydration,
+      parentContext: getUIStartupSpan(),
+    });
     const persistedState = await ControllerStorage.getAllPersistedState();
+    endTrace({ name: TraceName.ControllerStateRehydration });
+    startupMark('controller_rehydrate_end');
 
     if (reduxState?.user?.existingUser) {
       Logger.log(
@@ -177,7 +190,9 @@ export class EngineService {
       // Passing it to engine ensures all controllers are initialized with the same analyticsId.
       // The persisted controller copy is passed as a recovery source for MMKV loss.
       const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
+      startupMark('engine_init_start');
       Engine.init(analyticsId, state);
+      startupMark('engine_init_end');
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       // Pass state to detect controllers that changed during init
       this.initializeControllers(

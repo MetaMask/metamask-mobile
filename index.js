@@ -34,6 +34,9 @@ import Root from './app/components/Views/Root';
 import { name } from './app.config.js';
 import { hasTestOverrides } from './app/util/test/utils.js';
 import { Performance } from './app/core/Performance';
+// The cold-start CPU profile is started from shim.js, which runs before this
+// module, so that the bundle prelude is inside the trace.
+import { startupMark } from './app/core/Performance/StartupTimeline';
 import {
   handleCustomError,
   setReactNativeDefaultHandler,
@@ -124,6 +127,11 @@ AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
   hasTestOverrides ? Root : Sentry.wrap(Root),
 );
+
+// Last statement of the entry module: everything above (SES lockdown, shim.js
+// polyfills, Nitro setup, Sentry, the store IIFE) has now been evaluated, so
+// this mark closes out bundle-prelude time.
+startupMark('js_bundle_evaluated');
 
 function setupGlobalErrorHandler() {
   const reactNativeDefaultHandler = global.ErrorUtils.getGlobalHandler();

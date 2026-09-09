@@ -1,4 +1,16 @@
 /* eslint-disable import-x/no-nodejs-modules */
+// Earliest reachable point in application code — before this module's own
+// polyfills and before index.js runs. Starting the cold-start CPU profile here
+// (rather than in index.js, which is the END of the prelude) is what makes the
+// ~1.3s `runJsBundle` phase attributable. No-op unless MM_STARTUP_PROFILE=true.
+//
+// Note this still cannot see SES `hardenIntrinsics()`: lockdown is injected by
+// the Metro serializer and runs before any app module, so that portion of
+// runJsBundle needs a Perfetto/native trace instead.
+import { startStartupProfile } from './app/core/Performance/StartupTimeline';
+
+startStartupProfile();
+
 import { BackHandler, Platform, Settings } from 'react-native';
 
 // RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
