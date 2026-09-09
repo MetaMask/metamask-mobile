@@ -1094,6 +1094,7 @@ describe('useAutomaticTransactionPayToken', () => {
         {
           address: TOKEN_ADDRESS_1_MOCK,
           chainId: CHAIN_ID_1_MOCK,
+          fiat: { balance: 10 },
         },
       ] as AssetType[],
       hasTokens: true,
@@ -1139,6 +1140,7 @@ describe('useAutomaticTransactionPayToken', () => {
         {
           address: TOKEN_ADDRESS_1_MOCK,
           chainId: CHAIN_ID_1_MOCK,
+          fiat: { balance: 10 },
         },
       ] as AssetType[],
       hasTokens: true,
@@ -1608,7 +1610,37 @@ describe('useAutomaticTransactionPayToken', () => {
       });
     });
 
-    it('falls back to the preferred token when every balance is zero', () => {
+    it('selects a funded token over a zero-balance explicit preferred token', () => {
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            fiat: { balance: 50 },
+          },
+          {
+            address: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            fiat: { balance: 0 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook({
+        preferredToken: {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+        },
+      });
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      });
+    });
+
+    it('does not select a token when every balance is zero', () => {
       selectMetaMaskPayTokensFlagsMock.mockReturnValue(musdPreferredFlags);
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
@@ -1629,13 +1661,10 @@ describe('useAutomaticTransactionPayToken', () => {
 
       runHook();
 
-      expect(setPayTokenMock).toHaveBeenCalledWith({
-        address: MUSD_TOKEN_ADDRESS,
-        chainId: CHAIN_IDS.MONAD,
-      });
+      expect(setPayTokenMock).not.toHaveBeenCalled();
     });
 
-    it('still selects a zero-balance preferred token for non-deposit flows', () => {
+    it('still selects a zero-balance preferred token for perps deposits', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.perpsDeposit,

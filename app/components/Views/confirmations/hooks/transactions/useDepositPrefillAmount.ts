@@ -29,6 +29,8 @@ import {
 import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPrefillEnabled';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
+import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
@@ -46,19 +48,25 @@ export interface DepositPrefillResult {
    * Limit-capped prefills must not go through the Max/percentage path.
    */
   isLimitCapped: boolean;
-  enabled: boolean;
-  isLoading: boolean;
-  hasPrefilled: boolean;
-  /**
-   * True when prefill is enabled but the resolved pay token has no balance to
-   * prefill from, so the amount should settle at $0 with the keypad open.
-   */
-  isSkipped: boolean;
+  status: DepositPrefillStatus;
 }
 
-export function useDepositPrefillAmount(): DepositPrefillResult {
+export enum DepositPrefillStatus {
+  Disabled = 'disabled',
+  Loading = 'loading',
+  Prefilled = 'prefilled',
+  Skipped = 'skipped',
+}
+
+export function useDepositPrefillAmount({
+  autoSelectFiatPayment = false,
+}: {
+  autoSelectFiatPayment?: boolean;
+} = {}): DepositPrefillResult {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { payToken } = useTransactionPayToken();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const { availableTokens } = useTransactionPayAvailableTokens();
 
   const { prefilledAmount } = useSelector(selectMetaMaskPayFlags);
   const depositLimits = useSelector(selectDepositLimits);
@@ -184,22 +192,36 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     }
   }, [enabled, tokenKey, prefillAmount, committedKey]);
 
-  // A resolved pay token with no balance can never produce a prefill amount,
-  // so the skeleton below would never clear.
-  const isSkipped = enabled && Boolean(payToken) && balanceUsd <= 0;
-
   const hasPrefilled = committedKey === tokenKey;
-  // Keep the skeleton up until this token's amount is committed. Dropping it
-  // when `prefillAmount` is merely computed (before apply) flashes $0.00.
-  const isLoading = enabled && !hasPrefilled && !isSkipped;
+  const hasFundedToken = availableTokens.some(
+    (token) => (token.fiat?.balance ?? 0) > 0,
+  );
+  const isFiatPrefillSkipped =
+    autoSelectFiatPayment ||
+    (Boolean(fiatPayment?.selectedPaymentMethodId) && !payToken);
+  const isSkipped =
+    enabled &&
+    (isFiatPrefillSkipped ||
+      (Boolean(payToken) && balanceUsd <= 0) ||
+      (!payToken && !hasFundedToken));
+
+  let status = DepositPrefillStatus.Loading;
+  if (!enabled) {
+    status = DepositPrefillStatus.Disabled;
+  } else if (isSkipped) {
+    // Nothing can produce a prefill amount. Marking this skipped prevents
+    // CustomAmountInfo from rendering its loading state indefinitely.
+    status = DepositPrefillStatus.Skipped;
+  } else if (hasPrefilled) {
+    // Keep loading until this token's amount is committed. Treating a merely
+    // computed amount as ready flashes $0 before the amount is applied.
+    status = DepositPrefillStatus.Prefilled;
+  }
 
   return {
     prefillAmount,
     percentage,
     isLimitCapped,
-    isLoading,
-    hasPrefilled,
-    enabled,
-    isSkipped,
+    status,
   };
 }
