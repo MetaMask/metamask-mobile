@@ -6,6 +6,7 @@ jest.mock('../../util/test/utils', () => ({
   },
 }));
 
+import { AccountWalletPayloadType } from '@metamask/account-tree-controller';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import { Messenger } from '@metamask/messenger';
 
@@ -73,7 +74,7 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
       version: 1,
       wallets: [
         {
-          type: 'mnemonic',
+          type: AccountWalletPayloadType.Mnemonic,
           value: expect.any(Array),
           metadata: { name: 'Extension Wallet' },
           groups: [{ groupIndex: 0, metadata: { name: 'Synced Account' } }],
@@ -85,7 +86,7 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
       version: 1,
       wallets: [
         {
-          type: 'mnemonic',
+          type: AccountWalletPayloadType.Mnemonic,
           metadata: { name: 'Extension Wallet' },
         },
       ],

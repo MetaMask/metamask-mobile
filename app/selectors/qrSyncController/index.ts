@@ -1,5 +1,8 @@
 import { createSelector } from 'reselect';
-import { type AccountWalletMnemonicPayload } from '@metamask/account-tree-controller';
+import {
+  AccountWalletPayloadType,
+  type AccountWalletMnemonicPayload,
+} from '@metamask/account-tree-controller';
 import { encodeMnemonicWords } from '@metamask/keyring-sdk';
 import type { RootState } from '../../reducers';
 import {
@@ -30,7 +33,7 @@ export const selectQrSyncImportMnemonic = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) => {
     const primaryWallet = qrSyncState.pendingSecretImports?.wallets.find(
-      (w): w is AccountWalletMnemonicPayload => w.type === 'mnemonic',
+      (w): w is AccountWalletMnemonicPayload => w.type === AccountWalletPayloadType.Mnemonic,
     );
     if (!primaryWallet?.value) {
       return null;

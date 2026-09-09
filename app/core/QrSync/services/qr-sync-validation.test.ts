@@ -1,7 +1,8 @@
-import type {
-  AccountGroupPayloadId,
-  AccountTreePayload,
-  AccountWalletPayloadId,
+import {
+  AccountWalletPayloadType,
+  type AccountGroupPayloadId,
+  type AccountTreePayload,
+  type AccountWalletPayloadId,
 } from '@metamask/account-tree-controller';
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 
@@ -45,7 +46,7 @@ const defaultSyncReadyPayload = (): AccountTreePayload => ({
   wallets: [
     {
       id: 'wallet:test-primary' as AccountWalletPayloadId,
-      type: 'mnemonic',
+      type: AccountWalletPayloadType.Mnemonic,
       value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
       metadata: { name: 'Wallet 1' },
       groups: [
@@ -231,7 +232,7 @@ describe('qr-sync-validation', () => {
         wallets: [
           {
             id: 'wallet:test-primary' as AccountWalletPayloadId,
-            type: 'mnemonic',
+            type: AccountWalletPayloadType.Mnemonic,
             value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
             metadata: { name: 'Wallet 1' },
             groups: [
@@ -366,7 +367,7 @@ describe('qr-sync-validation', () => {
         wallets: [
           {
             id: 'wallet:test' as AccountWalletPayloadId,
-            type: 'mnemonic',
+            type: AccountWalletPayloadType.Mnemonic,
             value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
             metadata: { name: 'Wallet 1' },
             groups: [
@@ -414,7 +415,7 @@ describe('qr-sync-validation', () => {
         wallets: [
           {
             id: 'wallet:test' as AccountWalletPayloadId,
-            type: 'mnemonic',
+            type: AccountWalletPayloadType.Mnemonic,
             // value intentionally omitted (metadata-only export)
             metadata: { name: 'Wallet 1' },
             groups: [

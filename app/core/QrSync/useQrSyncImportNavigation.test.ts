@@ -1,3 +1,4 @@
+import { AccountWalletPayloadType } from '@metamask/account-tree-controller';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
@@ -26,7 +27,7 @@ const mockPendingSecretImportsPayload = {
   wallets: [
     {
       id: 'wallet:test' as `wallet:${string}`,
-      type: 'mnemonic' as const,
+      type: AccountWalletPayloadType.Mnemonic,
       value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
       metadata: { name: 'Wallet 1' },
       groups: [

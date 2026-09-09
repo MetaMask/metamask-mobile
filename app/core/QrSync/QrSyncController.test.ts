@@ -1,4 +1,7 @@
-import type { AccountTreeControllerImportStateAction } from '@metamask/account-tree-controller';
+import {
+  AccountWalletPayloadType,
+  type AccountTreeControllerImportStateAction,
+} from '@metamask/account-tree-controller';
 import type {
   IKeyManager,
   SessionRequest,
@@ -130,7 +133,7 @@ const createSyncReadyWireMessage = (
       wallets: [
         {
           id: 'wallet:test-primary' as `wallet:${string}`,
-          type: 'mnemonic',
+          type: AccountWalletPayloadType.Mnemonic,
           value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
           metadata: { name: 'Wallet 1' },
           groups: [
@@ -487,7 +490,7 @@ describe('QrSyncController', () => {
         version: 1,
         wallets: [
           {
-            type: 'mnemonic',
+            type: AccountWalletPayloadType.Mnemonic,
             value: expect.any(Array),
             metadata: { name: 'Wallet 1' },
             groups: [{ groupIndex: 0, metadata: { name: 'Account 1' } }],
@@ -496,7 +499,7 @@ describe('QrSyncController', () => {
       });
       expect(controller.state.provisioningMetadata).toMatchObject({
         version: 1,
-        wallets: [{ type: 'mnemonic' }],
+        wallets: [{ type: AccountWalletPayloadType.Mnemonic }],
       });
       expect(
         controller.state.provisioningMetadata?.wallets[0],

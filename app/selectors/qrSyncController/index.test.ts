@@ -1,3 +1,4 @@
+import { AccountWalletPayloadType } from '@metamask/account-tree-controller';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
@@ -44,7 +45,7 @@ const pendingSecretImports = {
   wallets: [
     {
       id: 'wallet:test' as `wallet:${string}`,
-      type: 'mnemonic' as const,
+      type: AccountWalletPayloadType.Mnemonic,
       value: TEST_MNEMONIC_BYTES,
       metadata: { name: 'Wallet 1' },
       groups: [
@@ -63,7 +64,7 @@ const provisioningMetadata = {
   wallets: [
     {
       id: 'wallet:test' as `wallet:${string}`,
-      type: 'mnemonic' as const,
+      type: AccountWalletPayloadType.Mnemonic,
       metadata: { name: 'Wallet 1' },
       groups: [
         {

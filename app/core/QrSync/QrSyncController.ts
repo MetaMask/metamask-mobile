@@ -1,5 +1,6 @@
 import {
   AccountTreeSnapshot,
+  AccountWalletPayloadType,
   type AccountTreePayload,
   type AccountWalletPayloadId,
   type AccountGroupPayloadId,
@@ -279,7 +280,7 @@ export class QrSyncController extends BaseController<
       wallets: [
         {
           id: walletId,
-          type: 'mnemonic',
+          type: AccountWalletPayloadType.Mnemonic,
           value: Array.from(decodeMnemonicWords(mnemonic)),
           metadata: { name: payload.walletName ?? 'Extension Wallet' },
           groups: [
@@ -373,7 +374,7 @@ export class QrSyncController extends BaseController<
       if (isNewUser) {
         let primarySkipped = false;
         snapshot = snapshot.filterWallets((wallet) => {
-          if (wallet.type === 'mnemonic' && !primarySkipped) {
+          if (wallet.type === AccountWalletPayloadType.Mnemonic && !primarySkipped) {
             primarySkipped = true;
             return false;
           }

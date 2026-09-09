@@ -1,6 +1,7 @@
-import type {
-  AccountTreePayload,
-  AccountWalletMnemonicPayload,
+import {
+  AccountWalletPayloadType,
+  type AccountTreePayload,
+  type AccountWalletMnemonicPayload,
 } from '@metamask/account-tree-controller';
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
@@ -243,7 +244,7 @@ export function validateQrSyncPayloadForOnboarding(
   error?: QrSyncError;
 } {
   const primaryMnemonic = payload?.wallets.find(
-    (w): w is AccountWalletMnemonicPayload => w.type === 'mnemonic',
+    (w): w is AccountWalletMnemonicPayload => w.type === AccountWalletPayloadType.Mnemonic,
   );
 
   if (!primaryMnemonic?.value) {

@@ -1,7 +1,8 @@
-import type {
-  AccountGroupPayloadId,
-  AccountTreePayload,
-  AccountWalletPayloadId,
+import {
+  AccountWalletPayloadType,
+  type AccountGroupPayloadId,
+  type AccountTreePayload,
+  type AccountWalletPayloadId,
 } from '@metamask/account-tree-controller';
 
 jest.mock('@metamask/account-tree-controller', () => {
@@ -42,7 +43,7 @@ const createPendingPayload = (): AccountTreePayload => ({
   wallets: [
     {
       id: 'wallet:test' as AccountWalletPayloadId,
-      type: 'mnemonic',
+      type: AccountWalletPayloadType.Mnemonic,
       value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
       metadata: { name: 'Test Wallet' },
       groups: [
@@ -61,7 +62,7 @@ const createProvisioningMetadata = (): AccountTreePayload => ({
   wallets: [
     {
       id: 'wallet:test' as AccountWalletPayloadId,
-      type: 'mnemonic',
+      type: AccountWalletPayloadType.Mnemonic,
       metadata: { name: 'Test Wallet' },
       groups: [
         {
