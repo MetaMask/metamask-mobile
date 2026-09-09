@@ -4,16 +4,25 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  selectFeatureFlagThresholdGroups,
+  selectRemoteFeatureFlags,
+} from '../../../../selectors/featureFlagController';
+import { resolveABTestAssignment } from '../../../../util/abTest';
+import {
+  SOCIAL_BUNDLE_V1_AB_KEY,
+  SocialBundleV1Variant,
+} from '../SocialBundleV1View/abTestConfig';
 
 /**
- * Params forwarded to the leaderboard when onboarding is not shown. Mirrors the
- * `TopTradersView` route params set by the entry points (`source`, plus the
- * TSA-1042 landing target for the homepage Top Traders carousel).
+ * Params forwarded to Follow Trading home when onboarding is not shown.
+ * `landingTab` is only meaningful on the legacy `TopTradersView` (TSA-1042).
  */
 interface SocialLeaderboardViewParams {
   source?: string;
   landingTab?: 'leaderboard' | 'feed';
   landingFeedAudience?: 'all' | 'following';
+  showNotificationsBanner?: boolean;
 }
 
 /**
@@ -44,13 +53,47 @@ export const shouldShowSocialLeaderboardOnboarding = (): boolean => {
   );
 };
 
+export const isSocialBundleV1Treatment = (): boolean => {
+  const state = ReduxService.store.getState();
+  const { variantName } = resolveABTestAssignment(
+    selectRemoteFeatureFlags(state),
+    SOCIAL_BUNDLE_V1_AB_KEY,
+    Object.values(SocialBundleV1Variant),
+    selectFeatureFlagThresholdGroups(state),
+  );
+  return variantName === SocialBundleV1Variant.Treatment;
+};
+
+export const getFollowTradingHomeRoute = ():
+  | typeof Routes.SOCIAL_LEADERBOARD.BUNDLE_V1
+  | typeof Routes.SOCIAL_LEADERBOARD.VIEW =>
+  isSocialBundleV1Treatment()
+    ? Routes.SOCIAL_LEADERBOARD.BUNDLE_V1
+    : Routes.SOCIAL_LEADERBOARD.VIEW;
+
+const toHomeRouteParams = (
+  params: SocialLeaderboardViewParams | undefined,
+): SocialLeaderboardViewParams | undefined => {
+  if (!params) {
+    return undefined;
+  }
+  if (isSocialBundleV1Treatment()) {
+    return {
+      source: params.source,
+      showNotificationsBanner: params.showNotificationsBanner,
+    };
+  }
+  return params;
+};
+
 /**
  * Entry point into the Social Leaderboard feature. Routes a first-time user
  * straight to the onboarding (so no leaderboard/loading frame is shown first),
- * otherwise opens the leaderboard with the caller's `source`.
+ * otherwise opens Follow Trading home (legacy or Social Bundle V1) with the
+ * caller's `source`.
  *
  * @param navigate - The caller's navigate function (React or deeplink).
- * @param params - Params forwarded to the leaderboard when onboarding is skipped.
+ * @param params - Params forwarded to the home route when onboarding is skipped.
  */
 export const navigateToSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
@@ -60,7 +103,7 @@ export const navigateToSocialLeaderboard = (
     navigate(Routes.SOCIAL_LEADERBOARD.ONBOARDING);
     return;
   }
-  navigate(Routes.SOCIAL_LEADERBOARD.VIEW, params);
+  navigate(getFollowTradingHomeRoute(), toHomeRouteParams(params));
 };
 
 /**

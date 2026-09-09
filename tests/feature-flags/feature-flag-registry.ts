@@ -82,17 +82,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  aiSocialBundleV1Enabled: {
-    name: 'aiSocialBundleV1Enabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.12.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   aiSocialLeaderboardEnabled: {
     name: 'aiSocialLeaderboardEnabled',
     type: FeatureFlagType.Remote,
@@ -4927,6 +4916,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: 'control',
+    status: FeatureFlagStatus.Active,
+  },
+
+  socialAiTSA1122AbtestSocialBundleV1: {
+    name: 'socialAiTSA1122AbtestSocialBundleV1',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 1,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 

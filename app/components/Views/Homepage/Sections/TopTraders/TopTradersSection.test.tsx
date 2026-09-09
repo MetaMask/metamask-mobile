@@ -233,11 +233,20 @@ const channelsDisabledPreferences = {
 describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseABTest.mockImplementation((_flagKey, variants) => ({
-      variant: variants.control,
-      variantName: 'control',
-      isActive: false,
-    }));
+    mockUseABTest.mockImplementation((flagKey, variants) => {
+      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+        return {
+          variant: variants.control,
+          variantName: 'control',
+          isActive: false,
+        };
+      }
+      return {
+        variant: variants.control,
+        variantName: 'control',
+        isActive: false,
+      };
+    });
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
     mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
     mockIsMasterNotificationsEnabled = true;
@@ -487,11 +496,20 @@ describe('TopTradersSection', () => {
   });
 
   it('lands the section header on the Feed tab with the All audience for the treatment variant', () => {
-    mockUseABTest.mockImplementation((_flagKey, variants) => ({
-      variant: variants.treatment,
-      variantName: 'treatment',
-      isActive: true,
-    }));
+    mockUseABTest.mockImplementation((flagKey, variants) => {
+      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+        return {
+          variant: variants.control,
+          variantName: 'control',
+          isActive: false,
+        };
+      }
+      return {
+        variant: variants.treatment,
+        variantName: 'treatment',
+        isActive: true,
+      };
+    });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     fireEvent.press(screen.getByText('Top traders'));
@@ -507,11 +525,20 @@ describe('TopTradersSection', () => {
   });
 
   it('lands the view-more card on the Feed tab with the All audience for the treatment variant', () => {
-    mockUseABTest.mockImplementation((_flagKey, variants) => ({
-      variant: variants.treatment,
-      variantName: 'treatment',
-      isActive: true,
-    }));
+    mockUseABTest.mockImplementation((flagKey, variants) => {
+      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+        return {
+          variant: variants.control,
+          variantName: 'control',
+          isActive: false,
+        };
+      }
+      return {
+        variant: variants.treatment,
+        variantName: 'treatment',
+        isActive: true,
+      };
+    });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     fireEvent.press(screen.getByTestId('top-traders-view-more-card'));
@@ -522,6 +549,33 @@ describe('TopTradersSection', () => {
         source: 'home_carousel',
         landingTab: 'feed',
         landingFeedAudience: 'all',
+      },
+    );
+  });
+
+  it('opens Social Bundle V1 without TSA-1042 landing params for the treatment variant', () => {
+    mockUseABTest.mockImplementation((flagKey, variants) => {
+      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+        return {
+          variant: variants.treatment,
+          variantName: 'treatment',
+          isActive: true,
+        };
+      }
+      return {
+        variant: variants.control,
+        variantName: 'control',
+        isActive: false,
+      };
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Top traders'));
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        source: 'home_carousel',
       },
     );
   });

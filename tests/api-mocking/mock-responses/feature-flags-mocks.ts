@@ -180,13 +180,3 @@ export const remoteFeatureFlagMarketInsightsEnabled = (enabled = true) => ({
     minimumVersion: '0.0.0',
   },
 });
-
-/**
- * Enables the Social Bundle V1 Follow Trading shell.
- */
-export const remoteFeatureFlagSocialBundleV1Enabled = (enabled = true) => ({
-  aiSocialBundleV1Enabled: {
-    enabled,
-    minimumVersion: '0.0.0',
-  },
-});

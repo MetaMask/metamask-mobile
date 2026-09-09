@@ -142,6 +142,12 @@ jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
   }),
 }));
 
+jest.mock('./socialLeaderboardOnboardingNavigation', () => ({
+  getFollowTradingHomeRoute: () =>
+    jest.requireActual('../../../../constants/navigation/Routes').default
+      .SOCIAL_LEADERBOARD.VIEW,
+}));
+
 const makeTrader = (overrides: Partial<TopTrader> = {}): TopTrader => ({
   id: 'profile-1',
   address: '0xabc',

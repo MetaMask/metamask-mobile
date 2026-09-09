@@ -49,6 +49,11 @@ import {
   LEADERBOARD_LANDING_FEED_VARIANTS,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../../SocialLeaderboard/SocialTradersTabsView/abTestConfig';
+import {
+  SOCIAL_BUNDLE_V1_AB_KEY,
+  SOCIAL_BUNDLE_V1_VARIANTS,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../../../SocialLeaderboard/SocialBundleV1View/abTestConfig';
 import { useABTest } from '../../../../../hooks/useABTest';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -219,6 +224,11 @@ const TopTradersSection = forwardRef<
   // TSA-1042: where this entry point lands inside Follow Trading. Exposure is
   // emitted by the destination once it receives these params, so rendering the
   // homepage carousel does not count a user as exposed.
+  const { variant: bundleVariant } = useABTest(
+    SOCIAL_BUNDLE_V1_AB_KEY,
+    SOCIAL_BUNDLE_V1_VARIANTS,
+    { trackExposure: false },
+  );
   const { variant: landingVariant } = useABTest(
     LEADERBOARD_LANDING_FEED_AB_KEY,
     LEADERBOARD_LANDING_FEED_VARIANTS,
@@ -226,12 +236,18 @@ const TopTradersSection = forwardRef<
   );
 
   const handleViewAll = useCallback(() => {
+    if (bundleVariant.useSocialBundleV1) {
+      navigateToSocialLeaderboard(navigation.navigate, {
+        source: 'home_carousel',
+      });
+      return;
+    }
     navigateToSocialLeaderboard(navigation.navigate, {
       source: 'home_carousel',
       landingTab: landingVariant.landingTab,
       landingFeedAudience: landingVariant.landingFeedAudience,
     });
-  }, [navigation, landingVariant]);
+  }, [navigation, bundleVariant, landingVariant]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {

@@ -1,5 +1,6 @@
 export { default as TopTradersView } from './TopTradersView';
 export { default as SocialTradersTabsView } from './SocialTradersTabsView';
+export { default as SocialBundleV1View } from './SocialBundleV1View';
 export { default as FeedView } from './FeedView';
 export { default as TraderProfileView } from './TraderProfileView';
 export { default as TraderPositionView } from './TraderPositionView';

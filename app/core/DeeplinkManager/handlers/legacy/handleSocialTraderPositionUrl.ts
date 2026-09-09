@@ -6,6 +6,7 @@ import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
+import { getFollowTradingHomeRoute } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -39,7 +40,7 @@ const parseSocialTraderPositionNavigationParams = (
 
 const navigateToFallback = () => {
   NavigationService.navigation.navigate(
-    Routes.SOCIAL_LEADERBOARD.VIEW,
+    getFollowTradingHomeRoute(),
     undefined,
     { pop: true },
   );

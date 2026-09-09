@@ -425,6 +425,7 @@ const Routes = {
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
+    BUNDLE_V1: 'SocialBundleV1View',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {

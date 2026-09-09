@@ -1,7 +1,6 @@
 import {
   selectAiSocialAusCacheRefreshEnabled,
   selectAiSocialLeaderboardOnboardingEnabled,
-  selectSocialBundleV1Enabled,
   selectSocialLeaderboardEnabled,
   selectSocialLeaderboardOptFlowEnabled,
   selectSocialLeaderboardPerpsEnabled,
@@ -64,64 +63,6 @@ describe('selectSocialLeaderboardEnabled', () => {
     const result = selectSocialLeaderboardEnabled.resultFunc({
       aiSocialLeaderboardEnabled: { enabled: 'invalid', minimumVersion: 123 },
     });
-
-    expect(result).toBe(false);
-  });
-});
-
-describe('selectSocialBundleV1Enabled', () => {
-  let mockHasMinimumRequiredVersion: jest.SpyInstance;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockHasMinimumRequiredVersion = jest.spyOn(
-      remoteFeatureFlagModule,
-      'hasMinimumRequiredVersion',
-    );
-    mockHasMinimumRequiredVersion.mockReturnValue(true);
-  });
-
-  afterEach(() => {
-    mockHasMinimumRequiredVersion.mockRestore();
-  });
-
-  it('returns true when the remote flag is enabled for the current version', () => {
-    const result = selectSocialBundleV1Enabled.resultFunc({
-      aiSocialBundleV1Enabled: {
-        enabled: true,
-        minimumVersion: '7.72.0',
-      },
-    });
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when the remote flag is disabled', () => {
-    const result = selectSocialBundleV1Enabled.resultFunc({
-      aiSocialBundleV1Enabled: {
-        enabled: false,
-        minimumVersion: '7.72.0',
-      },
-    });
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when the current version is below the minimum', () => {
-    mockHasMinimumRequiredVersion.mockReturnValue(false);
-
-    const result = selectSocialBundleV1Enabled.resultFunc({
-      aiSocialBundleV1Enabled: {
-        enabled: true,
-        minimumVersion: '99.0.0',
-      },
-    });
-
-    expect(result).toBe(false);
-  });
-
-  it('returns false when the remote flag is absent', () => {
-    const result = selectSocialBundleV1Enabled.resultFunc({});
 
     expect(result).toBe(false);
   });

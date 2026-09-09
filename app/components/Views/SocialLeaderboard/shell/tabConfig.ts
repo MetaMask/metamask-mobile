@@ -35,11 +35,6 @@ const LIVE_TRADES_CONFIG: SocialShellTabConfig<LiveTradesSubnavId> = {
       id: 'stocks',
       labelKey: 'social_leaderboard.shell.subnav.stocks',
     },
-    {
-      id: 'whales',
-      labelKey: 'social_leaderboard.shell.subnav.whales',
-      leadingEmoji: '🐋',
-    },
   ],
   defaultSubnav: 'memecoins',
 };
@@ -58,10 +53,6 @@ const LEADERBOARD_CONFIG: SocialShellTabConfig<LeaderboardSubnavId> = {
     {
       id: 'kols',
       labelKey: 'social_leaderboard.shell.subnav.kols',
-    },
-    {
-      id: 'topTokens',
-      labelKey: 'social_leaderboard.shell.subnav.top_tokens',
     },
   ],
   defaultSubnav: 'topTraders',

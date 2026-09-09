@@ -16,6 +16,7 @@ import { useAssetFromTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { getFollowTradingHomeRoute } from '../../Onboarding/socialLeaderboardOnboardingNavigation';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import errorStateLight from '../../../../../images/error-state-no-connection-light.png';
 import errorStateDark from '../../../../../images/error-state-no-connection-dark.png';
@@ -45,7 +46,7 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
         traderName: traderName ?? '',
       });
     } else {
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW);
+      navigation.navigate(getFollowTradingHomeRoute());
     }
   }, [navigation, traderId, traderName]);
 

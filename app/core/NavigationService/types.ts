@@ -1012,6 +1012,12 @@ export type RootStackParamList = {
         landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
+  SocialBundleV1View:
+    | {
+        source?: string;
+        showNotificationsBanner?: boolean;
+      }
+    | undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;

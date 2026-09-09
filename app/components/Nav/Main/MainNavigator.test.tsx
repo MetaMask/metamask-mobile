@@ -1295,6 +1295,13 @@ describe('MainNavigator', () => {
 
     expect(topTradersScreen).toBeDefined();
     expect(topTradersScreen?.component.name).toBe('SocialTradersTabsView');
+
+    const bundleV1Screen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL_LEADERBOARD.BUNDLE_V1,
+    );
+
+    expect(bundleV1Screen).toBeDefined();
+    expect(bundleV1Screen?.component.name).toBe('SocialBundleV1View');
   });
 
   describe('Inner navigator component rendering', () => {

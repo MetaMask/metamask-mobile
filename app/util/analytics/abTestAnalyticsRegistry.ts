@@ -16,6 +16,7 @@ import {
 import { SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/QuickBuy/abTestConfig';
 import { TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/abTestConfig';
 import { LEADERBOARD_LANDING_FEED_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialTradersTabsView/abTestConfig';
+import { SOCIAL_BUNDLE_V1_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialBundleV1View/abTestConfig';
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
 import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
@@ -56,6 +57,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Top Traders (Social Leaderboard)
   TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING,
   LEADERBOARD_LANDING_FEED_AB_TEST_ANALYTICS_MAPPING,
+  SOCIAL_BUNDLE_V1_AB_TEST_ANALYTICS_MAPPING,
 
   // Perps
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,

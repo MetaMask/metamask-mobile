@@ -7,7 +7,6 @@ export const SocialTradersTabsViewSelectorsIDs = {
   PAGER: 'social-traders-tabs-view-pager',
   LEADERBOARD_PAGE: 'social-traders-tabs-view-leaderboard-page',
   FEED_PAGE: 'social-traders-tabs-view-feed-page',
-  LIVE_TRADES_PAGE: 'social-traders-tabs-view-live-trades-page',
   NOTIFICATION_BUTTON: 'social-traders-tabs-view-notification-button',
   BACK_BUTTON: 'social-traders-tabs-view-back-button',
   NOTIFICATIONS_BANNER: 'social-traders-tabs-view-notifications-banner',

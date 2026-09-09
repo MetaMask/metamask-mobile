@@ -30,6 +30,13 @@ jest.mock('../../../../../util/analytics/analytics', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    getFollowTradingHomeRoute: () => 'TopTradersView',
+  }),
+);
+
 const mockBuild = jest.fn().mockReturnValue({ event: 'mocked' });
 const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
 jest.mock('../../../../../util/analytics/AnalyticsEventBuilder', () => ({

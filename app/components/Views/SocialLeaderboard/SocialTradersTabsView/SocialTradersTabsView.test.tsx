@@ -19,20 +19,6 @@ let mockRouteParams: {
   landingTab?: 'leaderboard' | 'feed';
   landingFeedAudience?: 'all' | 'following';
 } = {};
-let mockSocialBundleV1Enabled = false;
-
-jest.mock(
-  '../../../../selectors/featureFlagController/socialLeaderboard',
-  () => {
-    const actual = jest.requireActual(
-      '../../../../selectors/featureFlagController/socialLeaderboard',
-    );
-    return {
-      ...actual,
-      selectSocialBundleV1Enabled: () => mockSocialBundleV1Enabled,
-    };
-  },
-);
 
 // TSA-1042 landing A/B test. The landing itself is driven by the route params
 // the entry point sends; this mock lets the tests assert the exposure gate.
@@ -142,14 +128,6 @@ jest.mock('../TopTradersView', () => {
   };
 });
 
-jest.mock('../LiveTradesView', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => <View testID="mock-live-trades" />,
-  };
-});
-
 let mockHasSpotItem = true;
 let mockOnSpotAvailabilityChange: ((hasSpotItem: boolean) => void) | undefined;
 let mockDeferBuyActionRef = false;
@@ -236,7 +214,6 @@ describe('SocialTradersTabsView', () => {
     mockOnSpotAvailabilityChange = undefined;
     mockHasNotificationPreferences.mockReturnValue(false);
     mockRouteParams = {};
-    mockSocialBundleV1Enabled = false;
     mockSettleLeaderboardOnMount = false;
   });
 
@@ -254,51 +231,6 @@ describe('SocialTradersTabsView', () => {
     ).toBeOnTheScreen();
     expect(screen.getByTestId('mock-top-traders')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-feed')).toBeOnTheScreen();
-  });
-
-  it('renders the three Social Bundle V1 tabs when its feature flag is enabled', () => {
-    mockSocialBundleV1Enabled = true;
-
-    renderWithProvider(<SocialTradersTabsView />);
-
-    expect(
-      screen.getByTestId(
-        `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-0-label`,
-      ),
-    ).toHaveTextContent('social_leaderboard.feed.tabs.feed');
-    expect(
-      screen.getByTestId(
-        `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1-label`,
-      ),
-    ).toHaveTextContent('social_leaderboard.feed.tabs.live_trades');
-    expect(
-      screen.getByTestId(
-        `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-2-label`,
-      ),
-    ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
-    expect(screen.getByTestId('mock-live-trades')).toBeOnTheScreen();
-    expect(screen.getByTestId('mock-feed').props.initialAudience).toBe('all');
-    expect(
-      screen.getByTestId('mock-feed').props.accessibilityState?.selected,
-    ).toBe(true);
-  });
-
-  it('tracks Live trades tab selection with the Social Bundle analytics value', () => {
-    mockSocialBundleV1Enabled = true;
-    renderWithProvider(<SocialTradersTabsView />);
-
-    fireEvent.press(
-      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
-    );
-
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
-      expect.objectContaining({
-        interaction_type: 'tab_changed',
-        tab: 'tab_live_trades',
-        tab_change_method: 'tap',
-      }),
-    );
   });
 
   describe('safe area layout', () => {
@@ -597,6 +529,16 @@ describe('SocialTradersTabsView', () => {
         'socialAiTSA1042AbtestLeaderboardLandingFeed',
         expect.anything(),
         expect.objectContaining({ trackExposure: false }),
+      );
+    });
+
+    it('emits TSA-1122 exposure on the legacy Follow Trading home', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(mockUseABTest).toHaveBeenCalledWith(
+        'socialAiTSA1122AbtestSocialBundleV1',
+        expect.anything(),
+        expect.objectContaining({ experimentName: 'Social Bundle V1' }),
       );
     });
   });

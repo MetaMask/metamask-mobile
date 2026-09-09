@@ -2,6 +2,10 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
   Text,
@@ -9,24 +13,16 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
-import type {
-  AppNavigationProp,
-  RootStackParamList,
-} from '../../../../core/NavigationService/types';
+import { useRoute, type RouteProp } from '@react-navigation/native';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { LayoutChangeEvent, View } from 'react-native';
+import { Image, LayoutChangeEvent, Pressable, View } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -38,114 +34,97 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
-import { useOpenSocialNotificationPreferences } from '../hooks/useOpenSocialNotificationPreferences';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import FeedView from '../FeedView';
-import FeedSpotBuyAction, {
-  type FeedSpotBuyActionHandle,
-} from '../FeedView/components/FeedSpotBuyAction';
-import { usePrefetchTraderFeeds } from '../FeedView/hooks/usePrefetchTraderFeeds';
-import TopTradersView from '../TopTradersView';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
-import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
-import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
+import { SocialBundleV1ViewSelectorsIDs } from './SocialBundleV1View.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
-import {
-  LEADERBOARD_LANDING_FEED_AB_KEY,
-  LEADERBOARD_LANDING_FEED_EXPOSURE_METADATA,
-  LEADERBOARD_LANDING_FEED_VARIANTS,
-} from './abTestConfig';
 import {
   SOCIAL_BUNDLE_V1_AB_KEY,
   SOCIAL_BUNDLE_V1_EXPOSURE_METADATA,
   SOCIAL_BUNDLE_V1_VARIANTS,
-} from '../SocialBundleV1View/abTestConfig';
+} from './abTestConfig';
+import EmptyShellTabPage from '../shell/EmptyShellTabPage';
+import {
+  SOCIAL_BUNDLE_TAB_ORDER,
+  SOCIAL_SHELL_TAB_CONFIG,
+} from '../shell/tabConfig';
+import type { SocialShellTab } from '../shell/types';
+import superheroAvatar from '../../../../images/socialBundleV1/superhero.png';
 
-type SocialTradersTab = 'leaderboard' | 'feed';
-
-/**
- * Left-to-right tab order. The landing tab comes first so the preselected tab
- * is always the leftmost one (TSA-1042): the default keeps Leaderboard first,
- * and a feed landing swaps them.
- */
-const DEFAULT_TAB_ORDER: readonly SocialTradersTab[] = ['leaderboard', 'feed'];
-const FEED_FIRST_TAB_ORDER: readonly SocialTradersTab[] = [
-  'feed',
-  'leaderboard',
-];
 const LANDING_INDEX = 0;
+
+const PAGE_TEST_IDS: Record<
+  SocialShellTab,
+  {
+    page: string;
+    container: string;
+    scroll: string;
+  }
+> = {
+  feed: {
+    page: SocialBundleV1ViewSelectorsIDs.FEED_PAGE,
+    container: `${SocialBundleV1ViewSelectorsIDs.FEED_PAGE}-content`,
+    scroll: `${SocialBundleV1ViewSelectorsIDs.FEED_PAGE}-scroll`,
+  },
+  liveTrades: {
+    page: SocialBundleV1ViewSelectorsIDs.LIVE_TRADES_PAGE,
+    container: `${SocialBundleV1ViewSelectorsIDs.LIVE_TRADES_PAGE}-content`,
+    scroll: `${SocialBundleV1ViewSelectorsIDs.LIVE_TRADES_PAGE}-scroll`,
+  },
+  leaderboard: {
+    page: SocialBundleV1ViewSelectorsIDs.LEADERBOARD_PAGE,
+    container: `${SocialBundleV1ViewSelectorsIDs.LEADERBOARD_PAGE}-content`,
+    scroll: `${SocialBundleV1ViewSelectorsIDs.LEADERBOARD_PAGE}-scroll`,
+  },
+};
 
 // How long the post-onboarding "turn on notifications" nudge stays up before it
 // auto-dismisses (ms). Long enough to notice and act on after landing here, but
 // still transient so it never becomes permanent chrome.
 const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
-const getTabAnalyticsValue = (tab: SocialTradersTab) =>
-  tab === 'feed'
-    ? SocialLeaderboardEventValues.TAB.FEED
-    : SocialLeaderboardEventValues.TAB.LEADERBOARD;
+const getTabAnalyticsValue = (tab: SocialShellTab) => {
+  switch (tab) {
+    case 'feed':
+      return SocialLeaderboardEventValues.TAB.FEED;
+    case 'liveTrades':
+      return SocialLeaderboardEventValues.TAB.LIVE_TRADES;
+    case 'leaderboard':
+      return SocialLeaderboardEventValues.TAB.LEADERBOARD;
+    default:
+      return tab satisfies never;
+  }
+};
 
 /**
- * Follow Trading surface: Leaderboard | Feed tabs, collapsing title, and
- * notification bell. The leaderboard page and activity feed sit in swipeable
- * pages under a shared header.
- *
- * Tab order follows the entry point's requested landing tab, so the tab the
- * surface opens on is always the leftmost one. Indices are therefore derived
- * from `tabOrder` rather than hardcoded.
+ * Social Bundle V1 Follow Trading home: Feed | Live trades | Leaderboard
+ * under a collapsing header. Opened only for TSA-1122 treatment.
  */
-const SocialTradersTabsView: React.FC = () => {
+const SocialBundleV1View: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'SocialBundleV1View'>>();
   const { track } = useSocialLeaderboardAnalytics();
-  // Wait until the visible leaderboard query settles before warming feed
-  // pages, so those requests never contend with the landing list fetch.
-  const [isLeaderboardSettled, setIsLeaderboardSettled] = useState(false);
-  const handleVisibleLeaderboardSettled = useCallback(() => {
-    setIsLeaderboardSettled(true);
-  }, []);
-  usePrefetchTraderFeeds(isLeaderboardSettled);
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
 
-  // TSA-1042 landing A/B test. The variant is resolved by the entry point and
-  // arrives as route params, so the landing itself is driven by `landingTab`;
-  // this read exists to emit `Experiment Viewed` at the moment the surface
-  // actually opens from that entry point. Entry points that don't send
-  // `landingTab` (nav tab, deeplink, notification, onboarding hand-off) never
-  // count as exposed and keep the leaderboard landing.
-  const landingTab = route.params?.landingTab;
   useABTest(
     SOCIAL_BUNDLE_V1_AB_KEY,
     SOCIAL_BUNDLE_V1_VARIANTS,
     SOCIAL_BUNDLE_V1_EXPOSURE_METADATA,
   );
-  useABTest(
-    LEADERBOARD_LANDING_FEED_AB_KEY,
-    LEADERBOARD_LANDING_FEED_VARIANTS,
-    {
-      ...LEADERBOARD_LANDING_FEED_EXPOSURE_METADATA,
-      trackExposure: Boolean(landingTab),
-    },
-  );
-  // Read once: a param change mid-mount must not reshuffle the tabs or yank the
-  // user across pages.
-  const tabOrderRef = useRef(
-    landingTab === 'feed' ? FEED_FIRST_TAB_ORDER : DEFAULT_TAB_ORDER,
-  );
-  const tabOrder = tabOrderRef.current;
+  const tabOrder = SOCIAL_BUNDLE_TAB_ORDER;
   const feedIndex = tabOrder.indexOf('feed');
+  const liveTradesIndex = tabOrder.indexOf('liveTrades');
   // The landing tab is the first one, so the surface always opens on index 0.
   const [activeIndex, setActiveIndex] = useState(LANDING_INDEX);
 
@@ -156,15 +135,22 @@ const SocialTradersTabsView: React.FC = () => {
   // one (see `syncIncomingPageScroll`) so the header never flips.
   const leaderboardScrollY = useSharedValue(0);
   const feedScrollY = useSharedValue(0);
+  const liveTradesScrollY = useSharedValue(0);
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
   const feedPageRef = useRef<SocialTabPageHandle>(null);
+  const liveTradesPageRef = useRef<SocialTabPageHandle>(null);
   const activeIndexSv = useSharedValue(LANDING_INDEX);
   const feedIndexSv = useSharedValue(feedIndex);
-  const scrollY = useDerivedValue(() =>
-    activeIndexSv.value === feedIndexSv.value
-      ? feedScrollY.value
-      : leaderboardScrollY.value,
-  );
+  const liveTradesIndexSv = useSharedValue(liveTradesIndex);
+  const scrollY = useDerivedValue(() => {
+    if (activeIndexSv.value === feedIndexSv.value) {
+      return feedScrollY.value;
+    }
+    if (activeIndexSv.value === liveTradesIndexSv.value) {
+      return liveTradesScrollY.value;
+    }
+    return leaderboardScrollY.value;
+  });
 
   const leaderboardScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -176,6 +162,19 @@ const SocialTradersTabsView: React.FC = () => {
       feedScrollY.value = event.contentOffset.y;
     },
   });
+  const liveTradesScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      liveTradesScrollY.value = event.contentOffset.y;
+    },
+  });
+  const scrollHandlers: Record<
+    SocialShellTab,
+    ReturnType<typeof useAnimatedScrollHandler>
+  > = {
+    feed: feedScrollHandler,
+    liveTrades: liveTradesScrollHandler,
+    leaderboard: leaderboardScrollHandler,
+  };
 
   // Height of the large title only: the compact header title crossfades in and
   // the title slides fully behind the header once scrolled past this distance.
@@ -209,13 +208,17 @@ const SocialTradersTabsView: React.FC = () => {
         return;
       }
 
-      const isFeedIncoming = nextIndex === feedIndex;
-      const outgoingOffset = isFeedIncoming
-        ? leaderboardScrollY.value
-        : feedScrollY.value;
-      const incomingOffset = isFeedIncoming
-        ? feedScrollY.value
-        : leaderboardScrollY.value;
+      const getOffset = (index: number) => {
+        if (index === feedIndex) {
+          return feedScrollY.value;
+        }
+        if (index === liveTradesIndex) {
+          return liveTradesScrollY.value;
+        }
+        return leaderboardScrollY.value;
+      };
+      const outgoingOffset = getOffset(activeIndex);
+      const incomingOffset = getOffset(nextIndex);
 
       const target =
         outgoingOffset >= collapseRange
@@ -230,16 +233,31 @@ const SocialTradersTabsView: React.FC = () => {
       // the moment `activeIndexSv` flips, and the native scroll only reports back
       // a frame later — without this the header would collapse/expand for that
       // frame before settling.
-      if (isFeedIncoming) {
+      if (nextIndex === feedIndex) {
         feedScrollY.value = target;
+      } else if (nextIndex === liveTradesIndex) {
+        liveTradesScrollY.value = target;
       } else {
         leaderboardScrollY.value = target;
       }
 
-      const incomingPage = isFeedIncoming ? feedPageRef : leaderboardPageRef;
+      const incomingPage =
+        nextIndex === feedIndex
+          ? feedPageRef
+          : nextIndex === liveTradesIndex
+            ? liveTradesPageRef
+            : leaderboardPageRef;
       incomingPage.current?.scrollToOffset(target);
     },
-    [titleHeight, feedIndex, leaderboardScrollY, feedScrollY],
+    [
+      activeIndex,
+      feedIndex,
+      feedScrollY,
+      leaderboardScrollY,
+      liveTradesIndex,
+      liveTradesScrollY,
+      titleHeight,
+    ],
   );
 
   // The title, tabs, and pager form one normal-flow column that slides up as
@@ -268,66 +286,7 @@ const SocialTradersTabsView: React.FC = () => {
     };
   });
 
-  // The spot Buy orchestrator (QuickBuy sheet / swaps A/B) is hosted here,
-  // outside the PagerView, so its QuickBuy sheet isn't clipped by the pager page
-  // and the content behind it stays interactive (no backdrop, tap/swipe-through).
-  // FeedView reports spot availability and triggers the buy via this ref.
-  const buyActionRef = useRef<FeedSpotBuyActionHandle | null>(null);
-  const [feedHasSpotItem, setFeedHasSpotItem] = useState(false);
-  // A Buy can be requested in the same tick the feed first renders spot rows —
-  // before the availability effect has mounted the orchestrator. Buffer that
-  // request (and mount the orchestrator now) so the tap is never a silent no-op.
-  const pendingBuyTargetRef = useRef<QuickBuyTarget | null>(null);
-
-  const flushPendingBuy = useCallback(() => {
-    const pending = pendingBuyTargetRef.current;
-    if (!pending || !buyActionRef.current) {
-      return;
-    }
-    buyActionRef.current.open(pending);
-    pendingBuyTargetRef.current = null;
-  }, []);
-
-  const setBuyActionRef = useCallback(
-    (instance: FeedSpotBuyActionHandle | null) => {
-      buyActionRef.current = instance;
-      if (instance) {
-        flushPendingBuy();
-      }
-    },
-    [flushPendingBuy],
-  );
-
-  const handleFeedSpotAvailabilityChange = useCallback(
-    (hasSpotItem: boolean) => {
-      if (!hasSpotItem) {
-        pendingBuyTargetRef.current = null;
-      }
-      setFeedHasSpotItem(hasSpotItem);
-    },
-    [],
-  );
-
-  const handleQuickBuy = useCallback((target: QuickBuyTarget) => {
-    if (buyActionRef.current) {
-      buyActionRef.current.open(target);
-      return;
-    }
-    pendingBuyTargetRef.current = target;
-    setFeedHasSpotItem(true);
-  }, []);
-
-  // Backup flush when spot availability flips to true (callback ref handles
-  // the common case where feedHasSpotItem was already true).
-  useLayoutEffect(() => {
-    if (!feedHasSpotItem) {
-      return;
-    }
-    flushPendingBuy();
-  }, [feedHasSpotItem, flushPendingBuy]);
-
-  const { openNotificationPreferences } =
-    useOpenSocialNotificationPreferences();
+  const handlePlaceholderHeaderAction = useCallback(() => undefined, []);
 
   // One-shot nudge shown when onboarding reports the user tapped "Allow
   // notifications" but the OS denied it. Seeded from the route param so it only
@@ -362,10 +321,7 @@ const SocialTradersTabsView: React.FC = () => {
     () =>
       tabOrder.map((tab) => ({
         key: tab,
-        label:
-          tab === 'feed'
-            ? strings('social_leaderboard.feed.tabs.feed')
-            : strings('social_leaderboard.feed.tabs.leaderboard'),
+        label: strings(SOCIAL_SHELL_TAB_CONFIG[tab].labelKey),
         content: null,
       })),
     [tabOrder],
@@ -420,10 +376,6 @@ const SocialTradersTabsView: React.FC = () => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
 
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
   const title = strings('homepage.sections.top_traders');
 
   return (
@@ -433,7 +385,7 @@ const SocialTradersTabsView: React.FC = () => {
     <SafeAreaView
       edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
       style={tw.style('flex-1 bg-default')}
-      testID={SocialTradersTabsViewSelectorsIDs.CONTAINER}
+      testID={SocialBundleV1ViewSelectorsIDs.CONTAINER}
     >
       <HeaderStandardAnimated
         includesTopInset
@@ -441,20 +393,41 @@ const SocialTradersTabsView: React.FC = () => {
         titleSectionHeight={titleHeightSv}
         title={title}
         titleProps={{
-          testID: SocialTradersTabsViewSelectorsIDs.HEADER_TITLE,
+          testID: SocialBundleV1ViewSelectorsIDs.HEADER_TITLE,
         }}
-        onBack={handleBack}
-        backButtonProps={{
-          testID: SocialTradersTabsViewSelectorsIDs.BACK_BUTTON,
-        }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Notification,
-            onPress: openNotificationPreferences,
-            testID: SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON,
-          },
-        ]}
-        testID={SocialTradersTabsViewSelectorsIDs.HEADER}
+        startAccessory={
+          <Pressable
+            onPress={handlePlaceholderHeaderAction}
+            testID={SocialBundleV1ViewSelectorsIDs.AVATAR_BUTTON}
+            accessibilityRole="button"
+          >
+            <Image
+              source={superheroAvatar}
+              style={tw.style('w-8 h-8 rounded-full')}
+            />
+          </Pressable>
+        }
+        endAccessory={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <ButtonIcon
+              iconName={IconName.Heart}
+              size={ButtonIconSize.Md}
+              onPress={handlePlaceholderHeaderAction}
+              testID={SocialBundleV1ViewSelectorsIDs.HEART_BUTTON}
+            />
+            <ButtonIcon
+              iconName={IconName.Add}
+              size={ButtonIconSize.Md}
+              onPress={handlePlaceholderHeaderAction}
+              testID={SocialBundleV1ViewSelectorsIDs.PLUS_BUTTON}
+            />
+          </Box>
+        }
+        testID={SocialBundleV1ViewSelectorsIDs.HEADER}
       />
 
       {showNotificationsBanner && (
@@ -469,14 +442,14 @@ const SocialTradersTabsView: React.FC = () => {
             )}
             actionButtonOnPress={handleOpenNotificationSettings}
             onClose={handleDismissNotificationsBanner}
-            testID={SocialTradersTabsViewSelectorsIDs.NOTIFICATIONS_BANNER}
+            testID={SocialBundleV1ViewSelectorsIDs.NOTIFICATIONS_BANNER}
           />
         </Box>
       )}
 
       {/* `overflow-hidden` clips the title as the block slides up so it
           disappears *under* the fixed header (revealing the compact title)
-          instead of scrolling over the back button / notification bell. */}
+          instead of scrolling over the header actions. */}
       <Box twClassName="flex-1 overflow-hidden">
         <Animated.View
           style={[
@@ -484,25 +457,12 @@ const SocialTradersTabsView: React.FC = () => {
             collapsingBlockStyle,
           ]}
         >
-          <Box
-            twClassName="px-4 pt-2 pb-3 bg-default"
-            onLayout={handleTitleLayout}
-          >
-            <Text
-              variant={TextVariant.HeadingLg}
-              color={TextColor.TextDefault}
-              testID={SocialTradersTabsViewSelectorsIDs.TITLE}
-            >
-              {title}
-            </Text>
-          </Box>
-
-          <Box twClassName="bg-default">
+          <Box twClassName="bg-default mt-4">
             <TabsBar
               tabs={tabs}
               activeIndex={activeIndex}
               onTabPress={handleTabPress}
-              testID={SocialTradersTabsViewSelectorsIDs.TABS}
+              testID={SocialBundleV1ViewSelectorsIDs.TABS}
             />
           </Box>
 
@@ -510,57 +470,41 @@ const SocialTradersTabsView: React.FC = () => {
               aligned with the tabs bar. */}
           <PagerView
             ref={pagerRef}
-            style={tw.style('flex-1')}
+            style={tw.style('flex-1 mt-4')}
             initialPage={LANDING_INDEX}
             onPageSelected={handlePageSelected}
-            testID={SocialTradersTabsViewSelectorsIDs.PAGER}
+            testID={SocialBundleV1ViewSelectorsIDs.PAGER}
           >
-            {tabOrder.map((tab) =>
-              tab === 'leaderboard' ? (
+            {tabOrder.map((tab) => {
+              const testIds = PAGE_TEST_IDS[tab];
+              const pageRef =
+                tab === 'feed'
+                  ? feedPageRef
+                  : tab === 'liveTrades'
+                    ? liveTradesPageRef
+                    : leaderboardPageRef;
+              return (
                 <View
-                  key="leaderboard"
+                  key={tab}
                   style={tw.style('flex-1')}
                   collapsable={false}
-                  testID={SocialTradersTabsViewSelectorsIDs.LEADERBOARD_PAGE}
+                  testID={testIds.page}
                 >
-                  <TopTradersView
-                    onScroll={leaderboardScrollHandler}
-                    pageRef={leaderboardPageRef}
-                    onVisibleLeaderboardSettled={
-                      handleVisibleLeaderboardSettled
-                    }
+                  <EmptyShellTabPage
+                    tab={tab}
+                    onScroll={scrollHandlers[tab]}
+                    pageRef={pageRef}
+                    containerTestID={testIds.container}
+                    scrollTestID={testIds.scroll}
                   />
                 </View>
-              ) : (
-                <View
-                  key="feed"
-                  style={tw.style('flex-1')}
-                  collapsable={false}
-                  testID={SocialTradersTabsViewSelectorsIDs.FEED_PAGE}
-                >
-                  <FeedView
-                    isActive={activeIndex === feedIndex}
-                    initialAudience={route.params?.landingFeedAudience}
-                    onQuickBuy={handleQuickBuy}
-                    onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
-                    onScroll={feedScrollHandler}
-                    pageRef={feedPageRef}
-                  />
-                </View>
-              ),
-            )}
+              );
+            })}
           </PagerView>
         </Animated.View>
       </Box>
-
-      {feedHasSpotItem && (
-        <FeedSpotBuyAction
-          ref={setBuyActionRef}
-          isActive={activeIndex === feedIndex}
-        />
-      )}
     </SafeAreaView>
   );
 };
 
-export default SocialTradersTabsView;
+export default SocialBundleV1View;
