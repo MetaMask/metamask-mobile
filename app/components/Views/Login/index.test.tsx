@@ -29,6 +29,10 @@ import {
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
+  trackAppUnlocked,
+  trackAppUnlockedFailed,
+} from './loginUnlockAnalytics';
+import {
   PASSCODE_NOT_SET_ERROR,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
   VAULT_ERROR,
@@ -250,6 +254,22 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
+jest.mock('./loginUnlockAnalytics', () => {
+  const actual = jest.requireActual('./loginUnlockAnalytics');
+  return {
+    ...actual,
+    trackAppUnlocked: jest.fn(),
+    trackAppUnlockedFailed: jest.fn(),
+  };
+});
+
 jest.mock('../../../util/trace', () => {
   const actualTrace = jest.requireActual('../../../util/trace');
   const traceCallbackPromiseRef: { current: Promise<unknown> | null } = {
@@ -272,16 +292,17 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
-const HOMEPAGE_READY_TRACE_TOKEN = 1;
-const mockStartHomepageReadyTrace = jest.fn(
-  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
+const UNLOCK_TRACE_TOKENS = {
+  homepageReadyTraceToken: 1,
+  deeplinkNavigatedTraceToken: 2,
+};
+const mockStartUnlockTraces = jest.fn(
+  (..._args: unknown[]) => UNLOCK_TRACE_TOKENS,
 );
-const mockCancelHomepageReadyTrace = jest.fn();
-jest.mock('../../../core/Performance/HomepageReady', () => ({
-  startHomepageReadyTrace: (...args: unknown[]) =>
-    mockStartHomepageReadyTrace(...args),
-  cancelHomepageReadyTrace: (...args: unknown[]) =>
-    mockCancelHomepageReadyTrace(...args),
+const mockCancelUnlockTraces = jest.fn();
+jest.mock('../../../core/Performance/unlockTraces', () => ({
+  startUnlockTraces: (...args: unknown[]) => mockStartUnlockTraces(...args),
+  cancelUnlockTraces: (...args: unknown[]) => mockCancelUnlockTraces(...args),
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -346,6 +367,8 @@ describe('Login', () => {
   const mockTrackOnboarding = jest.mocked(
     jest.requireMock('../../../util/metrics/TrackOnboarding/trackOnboarding'),
   );
+  const mockTrackAppUnlocked = jest.mocked(trackAppUnlocked);
+  const mockTrackAppUnlockedFailed = jest.mocked(trackAppUnlockedFailed);
   const mockTrackErrorAsAnalytics =
     trackErrorAsAnalytics as jest.MockedFunction<typeof trackErrorAsAnalytics>;
   const mockTrackVaultCorruption = jest.mocked(trackVaultCorruption);
@@ -400,9 +423,29 @@ describe('Login', () => {
     jest.clearAllTimers();
     jest.useRealTimers();
     Alert.alert = originalAlert;
+    jest.restoreAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation(mockRunAfterInteractions);
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
+
+  const waitForPasswordInput = async () => {
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+      ).toBeOnTheScreen();
+    });
+  };
+
+  const waitForDeviceAuthIcon = async () => {
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeOnTheScreen();
+    });
+  };
 
   it('renders matching snapshot', () => {
     renderWithProvider(<Login />);
@@ -485,13 +528,9 @@ describe('Login', () => {
         },
         isLoading: false,
       });
-      const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-      expect(
-        getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-      ).toBeOnTheScreen();
+      renderWithProvider(<Login />);
+
+      await waitForDeviceAuthIcon();
     });
 
     it('shows button when capabilities allow BIOMETRIC', async () => {
@@ -515,9 +554,9 @@ describe('Login', () => {
         params: { locked: true, oauthLoginSuccess: false },
       });
       const { queryByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+
+      await waitForPasswordInput();
+
       expect(
         queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
       ).toBeNull();
@@ -532,9 +571,9 @@ describe('Login', () => {
         isLoading: false,
       });
       const { queryByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+
+      await waitForPasswordInput();
+
       expect(
         queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
       ).toBeNull();
@@ -650,9 +689,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -677,9 +714,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -861,10 +896,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      // Wait for mount effects that call getAuthType
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+      await waitForPasswordInput();
       const getAuthTypeCallCountAfterMount = mockGetAuthType.mock.calls.length;
 
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1001,6 +1033,42 @@ describe('Login', () => {
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         MetaMetricsEvents.LOGIN_SCREEN_VIEWED,
         expect.any(Function),
+      );
+    });
+
+    it('tracks App Unlocked on password unlock', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackAppUnlocked).toHaveBeenCalledWith(
+        expect.objectContaining({ unlockType: 'password' }),
+      );
+    });
+
+    it('tracks App Unlocked Failed on incorrect password', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockTrackAppUnlockedFailed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          unlockType: 'password',
+          reason: 'incorrect_password',
+        }),
       );
     });
 
@@ -1248,9 +1316,7 @@ describe('Login', () => {
       mockUnlockWallet.mockResolvedValueOnce(true);
 
       const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1273,9 +1339,7 @@ describe('Login', () => {
       );
 
       const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1296,9 +1360,7 @@ describe('Login', () => {
         );
 
         const { getByTestId } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
 
         const biometryButton = getByTestId(
           LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1306,8 +1368,8 @@ describe('Login', () => {
         await act(async () => {
           fireEvent.press(biometryButton);
         });
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(
@@ -1326,9 +1388,7 @@ describe('Login', () => {
         );
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
         mockLogger.error.mockClear();
 
         const biometryButton = getByTestId(
@@ -1337,8 +1397,8 @@ describe('Login', () => {
         await act(async () => {
           fireEvent.press(biometryButton);
         });
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(
@@ -1358,9 +1418,7 @@ describe('Login', () => {
         );
 
         const { getByTestId, getByText } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
         mockLogger.error.mockClear();
 
         const biometryButton = getByTestId(
@@ -1389,9 +1447,7 @@ describe('Login', () => {
         );
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
         mockLogger.error.mockClear();
 
         const biometryButton = getByTestId(
@@ -1400,8 +1456,8 @@ describe('Login', () => {
         await act(async () => {
           fireEvent.press(biometryButton);
         });
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(
@@ -1434,9 +1490,7 @@ describe('Login', () => {
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        });
+        await waitForPasswordInput();
         mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1445,10 +1499,11 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
 
         await waitFor(() => {
-          expect(
-            queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
-          ).not.toBeOnTheScreen();
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
         expect(mockLogger.error).not.toHaveBeenCalled();
       } finally {
         jest.useFakeTimers();
@@ -1476,17 +1531,15 @@ describe('Login', () => {
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        });
+        await waitForPasswordInput();
         mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
         fireEvent.changeText(passwordInput, 'valid-password123');
         fireEvent(passwordInput, 'submitEditing');
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(mockLogger.error).not.toHaveBeenCalled();
@@ -1519,17 +1572,15 @@ describe('Login', () => {
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        });
+        await waitForPasswordInput();
         mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
         fireEvent.changeText(passwordInput, 'valid-password123');
         fireEvent(passwordInput, 'submitEditing');
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(mockLogger.error).not.toHaveBeenCalled();
@@ -1598,9 +1649,7 @@ describe('Login', () => {
       mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
 
       const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+      await waitForPasswordInput();
       const getAuthTypeCallCountAfterMount = mockGetAuthType.mock.calls.length;
 
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -2143,9 +2192,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -2175,7 +2222,24 @@ describe('Login', () => {
       );
     });
 
-    it('cancels Homepage Ready when password unlock fails', async () => {
+    it('starts the unlock CUF traces on password submit', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockStartUnlockTraces).toHaveBeenCalledWith({
+        appStartType: LOGIN_APP_START_TYPE.COLD,
+      });
+      expect(mockCancelUnlockTraces).not.toHaveBeenCalled();
+    });
+
+    it('cancels the unlock CUF traces when password unlock fails', async () => {
       mockUnlockWallet.mockRejectedValueOnce(new Error('Wrong password'));
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -2185,13 +2249,10 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
+      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
     });
 
-    it('cancels Homepage Ready when device authentication fails', async () => {
+    it('cancels the unlock CUF traces when device authentication fails', async () => {
       mockUseAuthCapabilities.mockReturnValue({
         capabilities: defaultCapabilities,
         isLoading: false,
@@ -2203,19 +2264,14 @@ describe('Login', () => {
       mockUnlockWallet.mockRejectedValueOnce(new Error('Biometric failed'));
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
       await act(async () => {
         fireEvent.press(
           getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
         );
       });
 
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
+      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
     });
   });
 

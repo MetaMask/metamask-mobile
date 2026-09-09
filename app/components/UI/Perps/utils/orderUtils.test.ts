@@ -207,7 +207,7 @@ describe('orderUtils', () => {
       expect(formatOrderLabel(order)).toBe('Limit close short');
     });
 
-    it('should use detailedOrderType when available for Stop Market', () => {
+    it('uses the canonical Stop Market type with closing direction', () => {
       const order: Order = {
         orderId: '1',
         symbol: 'BTC',
@@ -228,7 +228,7 @@ describe('orderUtils', () => {
       expect(formatOrderLabel(order)).toBe('Stop market close long');
     });
 
-    it('should use detailedOrderType for Take Profit Limit', () => {
+    it('uses the canonical Take Limit type with closing direction', () => {
       const order: Order = {
         orderId: '1',
         symbol: 'BTC',
@@ -246,10 +246,39 @@ describe('orderUtils', () => {
         isTrigger: true,
       };
 
-      expect(formatOrderLabel(order)).toBe('Take profit limit close long');
+      expect(formatOrderLabel(order)).toBe('Take limit close long');
     });
 
-    it('should handle trigger orders as closing orders', () => {
+    it.each([
+      ['buy', 'Stop market long'],
+      ['sell', 'Stop market short'],
+    ] as const)(
+      'formats a non-reduce-only %s trigger using its direct direction',
+      (side, expectedLabel) => {
+        const order: Order = {
+          orderId: '1',
+          symbol: 'ETH',
+          side,
+          orderType: 'market',
+          detailedOrderType: 'Stop Market',
+          size: '1',
+          originalSize: '1',
+          price: '2800',
+          filledSize: '0',
+          remainingSize: '1',
+          status: 'open',
+          timestamp: Date.now(),
+          reduceOnly: false,
+          isTrigger: true,
+        };
+
+        const result = formatOrderLabel(order);
+
+        expect(result).toBe(expectedLabel);
+      },
+    );
+
+    it('formats a legacy trigger without reduce-only as a closing order', () => {
       const order: Order = {
         orderId: '1',
         symbol: 'ETH',
@@ -262,35 +291,44 @@ describe('orderUtils', () => {
         remainingSize: '1',
         status: 'open',
         timestamp: Date.now(),
-        reduceOnly: false,
         isTrigger: true,
       };
 
-      expect(formatOrderLabel(order)).toBe('Market close short');
+      const result = formatOrderLabel(order);
+
+      expect(result).toBe('Market close short');
     });
   });
 
   describe('formatOrderTypeLabel', () => {
-    it('returns detailed order type when available', () => {
-      const order: Order = {
-        orderId: '1',
-        symbol: 'BTC',
-        side: 'buy',
-        orderType: 'market',
-        detailedOrderType: 'Stop Market',
-        size: '1',
-        originalSize: '1',
-        price: '50000',
-        filledSize: '0',
-        remainingSize: '1',
-        status: 'open',
-        timestamp: Date.now(),
-        reduceOnly: true,
-        isTrigger: true,
-      };
+    it.each([
+      ['Stop Limit', 'limit', 'Stop limit'],
+      ['Stop Market', 'market', 'Stop market'],
+      ['Take Profit Limit', 'limit', 'Take limit'],
+      ['Take Profit Market', 'market', 'Take market'],
+    ] as const)(
+      'maps provider type %s to the selected order type label',
+      (detailedOrderType, orderType, expectedLabel) => {
+        const order: Order = {
+          orderId: '1',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType,
+          detailedOrderType,
+          size: '1',
+          originalSize: '1',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '1',
+          status: 'open',
+          timestamp: Date.now(),
+          reduceOnly: true,
+          isTrigger: true,
+        };
 
-      expect(formatOrderTypeLabel(order)).toBe('Stop market');
-    });
+        expect(formatOrderTypeLabel(order)).toBe(expectedLabel);
+      },
+    );
 
     it('falls back to translated limit or market when detailed type is absent', () => {
       const limitOrder: Order = {
@@ -450,14 +488,16 @@ describe('orderUtils', () => {
       ).toBe('short');
     });
 
-    it('returns "long" for a trigger sell (TP/SL closing a long)', () => {
-      expect(
-        getOrderPositionDirection({
-          ...baseOrder,
-          side: 'sell',
-          isTrigger: true,
-        }),
-      ).toBe('long');
+    it('returns "short" for a non-reduce-only trigger sell', () => {
+      const order: Order = {
+        ...baseOrder,
+        side: 'sell',
+        isTrigger: true,
+      };
+
+      const result = getOrderPositionDirection(order);
+
+      expect(result).toBe('short');
     });
   });
 

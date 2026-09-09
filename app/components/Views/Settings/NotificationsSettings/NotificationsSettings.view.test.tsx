@@ -132,7 +132,8 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.socialAI)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(5);
+    // Wallet activity shows no channel summary; its settings are per-account.
+    expect(await findAllByText('Push, In app')).toHaveLength(4);
     expect(getByText('Off')).toBeOnTheScreen();
   });
 
@@ -145,7 +146,8 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(4);
+    // Wallet activity shows no channel summary; its settings are per-account.
+    expect(await findAllByText('Push, In app')).toHaveLength(3);
   });
 
   it('renders price alerts section when notifications are enabled', async () => {

@@ -127,4 +127,16 @@ describe('initializeWallet', () => {
       messenger: 'tx-init-messenger',
     });
   });
+
+  it('sets up TransactionController listeners before constructing the Wallet, so the TransactionController can emit events to the wallet messenger during initialization', () => {
+    initializeWallet({ messenger, state });
+
+    const setupListenersCallOrder = jest.mocked(
+      setupTransactionControllerListeners,
+    ).mock.invocationCallOrder[0];
+    const walletConstructorCallOrder =
+      jest.mocked(Wallet).mock.invocationCallOrder[0];
+
+    expect(setupListenersCallOrder).toBeLessThan(walletConstructorCallOrder);
+  });
 });

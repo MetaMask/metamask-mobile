@@ -530,6 +530,28 @@ describe('mapPerpsTransaction', () => {
         'marketCloseLong',
       ],
       [
+        'Stop market long (open)',
+        {
+          orderType: 'market',
+          side: 'buy',
+          reduceOnly: false,
+          isTrigger: true,
+          detailedOrderType: 'Stop Market',
+        },
+        'marketLong',
+      ],
+      [
+        'Stop market short (open)',
+        {
+          orderType: 'market',
+          side: 'sell',
+          reduceOnly: false,
+          isTrigger: true,
+          detailedOrderType: 'Stop Market',
+        },
+        'marketShort',
+      ],
+      [
         'Stop market close short',
         {
           orderType: 'market',
@@ -550,7 +572,7 @@ describe('mapPerpsTransaction', () => {
         'stopMarketCloseLong',
       ],
       [
-        'Stop loss close long (MYX)',
+        'Stop loss close long (Lighter)',
         {
           orderType: 'market',
           side: 'sell',
@@ -580,7 +602,7 @@ describe('mapPerpsTransaction', () => {
         'limitCloseLong',
       ],
       [
-        'Take profit market close long',
+        'Take market close long',
         {
           orderType: 'market',
           side: 'sell',
@@ -590,7 +612,7 @@ describe('mapPerpsTransaction', () => {
         'marketCloseLong',
       ],
       [
-        'Take profit limit close short',
+        'Take limit close short',
         {
           orderType: 'limit',
           side: 'buy',
@@ -604,6 +626,58 @@ describe('mapPerpsTransaction', () => {
       (_label, overrides, expectedKind) => {
         const result = mapFromOrder(makeOrder(overrides));
         expect(result?.type).toBe(expectedKind);
+      },
+    );
+
+    it('keeps a trigger-market order with a limit slippage cap classified as market', () => {
+      const result = mapFromOrder(
+        makeOrder({
+          orderType: 'limit',
+          side: 'buy',
+          reduceOnly: false,
+          isTrigger: true,
+          detailedOrderType: 'Stop Market',
+        }),
+      );
+
+      expect(result?.type).toBe('marketLong');
+    });
+
+    it('classifies normalized stop-market metadata without provider display text', () => {
+      const result = mapFromOrder(
+        makeOrder({
+          orderType: 'limit',
+          triggerOrderType: 'stop_market',
+          side: 'sell',
+          reduceOnly: true,
+          isTrigger: true,
+          detailedOrderType: undefined,
+        }),
+      );
+
+      expect(result?.type).toBe('stopMarketCloseLong');
+    });
+
+    it.each([
+      ['Stop Limit', 'limit', false, 'stop_limit'],
+      ['Stop Market', 'market', true, 'stop_market'],
+      ['Take Profit Limit', 'limit', true, 'take_profit_limit'],
+      ['Take Profit Market', 'market', false, 'take_profit_market'],
+    ] as const)(
+      'preserves the semantic %s trigger type in Activity data',
+      (detailedOrderType, orderType, reduceOnly, expectedTriggerOrderType) => {
+        const result = mapFromOrder(
+          makeOrder({
+            detailedOrderType,
+            orderType,
+            reduceOnly,
+            isTrigger: true,
+          }),
+        );
+
+        expect(result?.data.perpsTriggerOrderType).toBe(
+          expectedTriggerOrderType,
+        );
       },
     );
 

@@ -1,5 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import PredictPosition from './PredictPosition';
 import {
   PredictPositionStatus,
@@ -8,6 +10,19 @@ import {
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+
+jest.mock('../../selectors/featureFlags', () => {
+  const feeCollection = {
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  };
+
+  return {
+    ...jest.requireActual('../../selectors/featureFlags'),
+    selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
+  };
+});
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
     if (key === 'predict.position_info' && vars) {
@@ -48,12 +63,13 @@ const renderComponent = (
     ...basePosition,
     ...overrides,
   } as PredictPositionType;
-  return render(
+  return renderWithProvider(
     <PredictPosition
       position={position}
       onPress={onPress}
       privacyMode={false}
     />,
+    { state: { engine: { backgroundState } } },
   );
 };
 
@@ -67,19 +83,22 @@ describe('PredictPosition', () => {
 
     expect(screen.getByText(basePosition.title)).toBeOnTheScreen();
     expect(screen.getByText('$123.45 on Yes to win $10')).toBeOnTheScreen();
-    expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-    expect(screen.getByText('5.25%')).toBeOnTheScreen();
+    expect(screen.getByText('$2,251.84')).toBeOnTheScreen();
+    expect(screen.getByText('1724.09%')).toBeOnTheScreen();
   });
 
   it.each([
-    { value: -3.5, expected: '-3.5%' },
-    { value: 0, expected: '0%' },
-    { value: 7.5, expected: '7.5%' },
-  ])('formats percentPnl $value as $expected', ({ value, expected }) => {
-    renderComponent({ percentPnl: value });
+    { currentValue: 50, initialValue: 100, expected: '-52%' },
+    { currentValue: 100, initialValue: 96, expected: '0%' },
+    { currentValue: 100, initialValue: 50, expected: '92%' },
+  ])(
+    'formats derived percent PnL from net value for currentValue $currentValue',
+    ({ currentValue, initialValue, expected }) => {
+      renderComponent({ currentValue, initialValue });
 
-    expect(screen.getByText(expected)).toBeOnTheScreen();
-  });
+      expect(screen.getByText(expected)).toBeOnTheScreen();
+    },
+  );
 
   it('displays plural shares when size is greater than 1', () => {
     renderComponent({
@@ -163,7 +182,7 @@ describe('PredictPosition', () => {
     ({ value }) => {
       renderComponent({ percentPnl: value, currentValue: 5000.99 });
 
-      expect(screen.getByText('$5,000.99')).toBeOnTheScreen();
+      expect(screen.getByText('$4,800.95')).toBeOnTheScreen();
     },
   );
 
@@ -214,12 +233,15 @@ describe('PredictPosition', () => {
       claimable: true,
       endDate: '2026-01-01T00:00:00Z',
     };
-    render(<PredictPosition position={position} privacyMode={false} />);
+    renderWithProvider(
+      <PredictPosition position={position} privacyMode={false} />,
+      { state: { engine: { backgroundState } } },
+    );
 
     expect(screen.getByText('Test Market Question?')).toBeOnTheScreen();
     expect(screen.getByText('$75.25 on Maybe to win $7.50')).toBeOnTheScreen();
-    expect(screen.getByText('$100.75')).toBeOnTheScreen();
-    expect(screen.getByText('15.75%')).toBeOnTheScreen();
+    expect(screen.getByText('$96.72')).toBeOnTheScreen();
+    expect(screen.getByText('28.53%')).toBeOnTheScreen();
   });
 
   describe('optimistic updates UI', () => {
@@ -238,8 +260,8 @@ describe('PredictPosition', () => {
     it('shows actual values when position is not optimistic', () => {
       renderComponent({ optimistic: false });
 
-      expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-      expect(screen.getByText('5.25%')).toBeOnTheScreen();
+      expect(screen.getByText('$2,251.84')).toBeOnTheScreen();
+      expect(screen.getByText('1724.09%')).toBeOnTheScreen();
     });
 
     it('shows initial value line when optimistic', () => {
@@ -251,12 +273,13 @@ describe('PredictPosition', () => {
 
   describe('privacy mode', () => {
     it('hides monetary values when privacy mode is enabled', () => {
-      const { queryByText, getByText, queryAllByText } = render(
+      const { queryByText, getByText, queryAllByText } = renderWithProvider(
         <PredictPosition position={basePosition} privacyMode />,
+        { state: { engine: { backgroundState } } },
       );
 
-      expect(queryByText('$2,345.67')).toBeNull();
-      expect(queryByText('5.25%')).toBeNull();
+      expect(queryByText('$2,251.84')).toBeNull();
+      expect(queryByText('1724.09%')).toBeNull();
       expect(queryByText('$123.45 on Yes to win $10')).toBeNull();
       expect(getByText(basePosition.title)).toBeOnTheScreen();
       expect(queryAllByText(/•+/).length).toBeGreaterThan(0);
@@ -266,8 +289,8 @@ describe('PredictPosition', () => {
       renderComponent();
 
       expect(screen.getByText('$123.45 on Yes to win $10')).toBeOnTheScreen();
-      expect(screen.getByText('$2,345.67')).toBeOnTheScreen();
-      expect(screen.getByText('5.25%')).toBeOnTheScreen();
+      expect(screen.getByText('$2,251.84')).toBeOnTheScreen();
+      expect(screen.getByText('1724.09%')).toBeOnTheScreen();
     });
   });
 });

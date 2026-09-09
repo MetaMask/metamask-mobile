@@ -5,7 +5,21 @@ import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import { endPerpsCufTrace } from '../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
 jest.mock('./usePerpsTrading');
+jest.mock('../services/PerpsCacheInvalidator', () => ({
+  PerpsCacheInvalidator: { invalidate: jest.fn() },
+}));
+jest.mock('../utils/perpsCufTrace', () => ({
+  ...jest.requireActual('../utils/perpsCufTrace'),
+  startPerpsCufTrace: jest.fn(() => 'tpsl-cuf-op'),
+  endPerpsCufTrace: jest.fn(),
+  endPerpsCufRequestAfter: jest.fn(),
+  watchPerpsCufTpSlChanged: jest.fn(),
+  acceptPerpsCufRequest: jest.fn(),
+}));
 jest.mock('./usePerpsToasts');
 jest.mock('../providers/PerpsStreamManager');
 jest.mock('../../../../../locales/i18n', () => ({
@@ -52,6 +66,18 @@ describe('usePerpsTPSLUpdate', () => {
 
   const mockPerpsToastOptions = {
     positionManagement: {
+      closePosition: {
+        positionAlreadyClosed: {
+          variant: 'icon',
+          iconName: 'Info',
+          labelOptions: [
+            {
+              label: 'perps.close_position.already_closed',
+              isBold: true,
+            },
+          ],
+        },
+      },
       tpsl: {
         updateTPSLSuccess: {
           variant: 'icon',
@@ -206,6 +232,87 @@ describe('usePerpsTPSLUpdate', () => {
       ),
     );
     expect(onError).toHaveBeenCalledWith('Network error');
+  });
+
+  it('shows already-closed toast when TP/SL update returns No position found', async () => {
+    const onSuccess = jest.fn();
+    const onError = jest.fn();
+    const { result } = renderHookWithToast({ onSuccess, onError });
+    const position = createMockPosition();
+
+    mockUpdatePositionTPSL.mockResolvedValue({
+      success: false,
+      error: 'No position found for ETH',
+    });
+
+    let updateResult: { success: boolean } | undefined;
+    await act(async () => {
+      updateResult = await result.current.handleUpdateTPSL(
+        position,
+        '3300',
+        '2700',
+      );
+    });
+
+    expect(updateResult).toEqual({ success: false });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.closePosition
+        .positionAlreadyClosed,
+    );
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith('positions');
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+      'accountState',
+    );
+    expect(endPerpsCufTrace).toHaveBeenCalledTimes(1);
+    expect(endPerpsCufTrace).toHaveBeenCalledWith({
+      id: 'tpsl-cuf-op',
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+      },
+    });
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it('shows already-closed toast when TP/SL update throws No position found', async () => {
+    const onSuccess = jest.fn();
+    const onError = jest.fn();
+    const { result } = renderHookWithToast({ onSuccess, onError });
+    const position = createMockPosition();
+
+    mockUpdatePositionTPSL.mockRejectedValue(
+      new Error('No position found for ETH'),
+    );
+
+    let updateResult: { success: boolean } | undefined;
+    await act(async () => {
+      updateResult = await result.current.handleUpdateTPSL(
+        position,
+        '3300',
+        '2700',
+      );
+    });
+
+    expect(updateResult).toEqual({ success: false });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.closePosition
+        .positionAlreadyClosed,
+    );
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith('positions');
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+      'accountState',
+    );
+    expect(endPerpsCufTrace).toHaveBeenCalledTimes(1);
+    expect(endPerpsCufTrace).toHaveBeenCalledWith({
+      id: 'tpsl-cuf-op',
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+      },
+    });
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
   });
 
   it('should show error toast and call onError callback on exception', async () => {

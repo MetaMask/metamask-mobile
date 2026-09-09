@@ -242,6 +242,10 @@ const mockNavigation = {
 };
 
 const mockNavigateToPostUnlockHome = jest.fn();
+const mockCancelDeeplinkNavigatedTrace = jest.fn();
+const mockClearUnlockAppStartType = jest.fn();
+const mockGetUnlockAppStartType = jest.fn(() => 'warm');
+const mockResumeUnlockDeeplinkNavigatedAfterOptIn = jest.fn();
 
 jest.mock('../NavigationService', () => ({
   __esModule: true,
@@ -257,6 +261,18 @@ jest.mock('../NavigationService', () => ({
 
 jest.mock('../DeeplinkManager/utils/startupDeeplinkNavigation', () => ({
   navigateToPostUnlockHome: () => mockNavigateToPostUnlockHome(),
+}));
+
+jest.mock('../Performance/DeeplinkPerformance', () => ({
+  cancelDeeplinkNavigatedTrace: (...args: unknown[]) =>
+    mockCancelDeeplinkNavigatedTrace(...args),
+}));
+
+jest.mock('../Performance/unlockTraces', () => ({
+  clearUnlockAppStartType: () => mockClearUnlockAppStartType(),
+  getUnlockAppStartType: () => mockGetUnlockAppStartType(),
+  resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
+    mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -5472,11 +5488,33 @@ describe('Authentication', () => {
               screen: Routes.ONBOARDING.NAV,
               params: {
                 screen: Routes.ONBOARDING.OPTIN_METRICS,
+                params: {
+                  onContinue: expect.any(Function),
+                },
               },
             },
           },
         ],
       });
+      expect(mockCancelDeeplinkNavigatedTrace).toHaveBeenCalledWith({
+        reason: 'metrics_opt_in',
+      });
+      expect(mockClearUnlockAppStartType).toHaveBeenCalledTimes(1);
+    });
+
+    it('resumes pending deeplink navigation after metrics consent', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
+      jest.spyOn(analytics, 'isEnabled').mockReturnValue(false);
+
+      await Authentication.unlockWallet({ password: passwordToUse });
+      const onContinue =
+        mockReset.mock.calls[0][0].routes[0].params.params.params.onContinue;
+      await onContinue();
+
+      expect(mockResumeUnlockDeeplinkNavigatedAfterOptIn).toHaveBeenCalledWith({
+        appStartType: 'warm',
+      });
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 
     it('submits password to KeyringController when password is derived', async () => {

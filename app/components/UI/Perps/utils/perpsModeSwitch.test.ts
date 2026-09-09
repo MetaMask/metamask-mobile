@@ -14,6 +14,7 @@ import {
   useGetPerpsHomeNavigationTarget,
   useNavigateToPerpsHome,
   useDropPerpsHomeFromStackHistory,
+  toPerpsNavigatorScreenParams,
 } from './perpsModeSwitch';
 
 jest.mock('react-redux', () => ({
@@ -224,6 +225,7 @@ describe('perpsModeSwitch', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
         params: { source: 'activity_details' },
+        pop: true,
       });
     });
 
@@ -244,6 +246,67 @@ describe('perpsModeSwitch', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: { market: buildDefaultProMarket() },
+        pop: true,
+      });
+    });
+
+    // The deposit confirmation sits on top of the Pro market screen when this
+    // runs. Without `pop` React Navigation pushes a second market screen and
+    // Back returns to add funds.
+    it('pops back to the Pro market instead of stacking a duplicate over the caller', () => {
+      // Arrange
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectPerpsProModeEnabledFlag) return true;
+        if (selector === selectPerpsMode) return PerpsMode.Pro;
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNavigateToPerpsHome());
+
+      // Act
+      result.current();
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({ pop: true }),
+      );
+    });
+  });
+
+  describe('toPerpsNavigatorScreenParams', () => {
+    it('carries the resolved screen and params through unchanged', () => {
+      // Arrange
+      const target = {
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'wallet_actions' },
+      };
+
+      // Act
+      const params = toPerpsNavigatorScreenParams(target);
+
+      // Assert
+      expect(params).toEqual({
+        screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'wallet_actions' },
+      });
+    });
+
+    it('adds pop only when the caller asks to return to an existing entry', () => {
+      // Arrange
+      const target = {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market: buildDefaultProMarket() },
+      };
+
+      // Act
+      const params = toPerpsNavigatorScreenParams(target, { pop: true });
+
+      // Assert
+      expect(params).toEqual({
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market: buildDefaultProMarket() },
+        pop: true,
       });
     });
   });
