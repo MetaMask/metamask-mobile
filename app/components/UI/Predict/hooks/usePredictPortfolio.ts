@@ -4,6 +4,7 @@ import {
   type AccountState,
   type PredictPosition,
 } from '../types';
+import { isActionableClaimablePosition } from '../utils/positions';
 import { usePredictAccountState } from './usePredictAccountState';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictClaim } from './usePredictClaim';
@@ -114,13 +115,7 @@ export function usePredictPortfolio({
     [activePositions],
   );
   const actionableClaimablePositions = useMemo(
-    () =>
-      claimablePositions.filter(
-        (position) =>
-          (position.status === PredictPositionStatus.WON ||
-            position.status === PredictPositionStatus.REDEEMABLE) &&
-          position.currentValue > 0,
-      ),
+    () => claimablePositions.filter(isActionableClaimablePosition),
     [claimablePositions],
   );
   const openPositionsValue = useMemo(
@@ -194,7 +189,7 @@ export function usePredictPortfolio({
       activePositionsQuery.error ??
       claimablePositionsQuery.error ??
       null,
-    hasClaimableWinnings: claimableAmount > 0,
+    hasClaimableWinnings: actionableClaimablePositions.length > 0,
     isBalanceLoading,
     isClaimPending,
     isDepositPending,

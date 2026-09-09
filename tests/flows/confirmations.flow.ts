@@ -22,6 +22,7 @@ import WalletView from '../page-objects/wallet/WalletView';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
 import {
   dismissPushNotificationExistingUserSheet,
+  ensureAccountListOpenPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
 
@@ -349,7 +350,7 @@ export const confirmSponsoredNativeSendAndOpenActivity =
  */
 export const openSmartAccountSwitchForSelectedAccount =
   async (): Promise<void> => {
-    await WalletView.tapIdenticon();
+    await ensureAccountListOpenPlaywright();
     await AccountListBottomSheet.waitForAccountListVisible();
     await AccountListBottomSheet.tapAccountEllipsisForAccountNameV2(
       'Account 1',

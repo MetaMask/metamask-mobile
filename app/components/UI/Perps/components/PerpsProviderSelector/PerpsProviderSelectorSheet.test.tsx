@@ -22,7 +22,7 @@ const defaultProps = {
 beforeEach(() => {
   jest.clearAllMocks();
   mockUsePerpsProvider.mockReturnValue({
-    availableProviders: ['hyperliquid', 'myx'],
+    availableProviders: ['hyperliquid'],
   });
 });
 
@@ -45,40 +45,19 @@ describe('PerpsProviderSelectorSheet', () => {
 
   it('renders only options matching availableProviders', () => {
     mockUsePerpsProvider.mockReturnValue({
-      availableProviders: ['hyperliquid'],
+      availableProviders: [],
     });
 
-    const { getByTestId, queryByTestId } = render(
+    const { queryByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
     expect(
-      getByTestId('provider-sheet-option-hyperliquid-mainnet'),
-    ).toBeOnTheScreen();
+      queryByTestId('provider-sheet-option-hyperliquid-mainnet'),
+    ).not.toBeOnTheScreen();
     expect(
-      getByTestId('provider-sheet-option-hyperliquid-testnet'),
-    ).toBeOnTheScreen();
-    expect(queryByTestId('provider-sheet-option-myx-mainnet')).toBeNull();
-    expect(queryByTestId('provider-sheet-option-myx-testnet')).toBeNull();
-  });
-
-  it('renders all matching options when all providers available', () => {
-    mockUsePerpsProvider.mockReturnValue({
-      availableProviders: ['hyperliquid', 'myx'],
-    });
-
-    const { getByTestId } = render(
-      <PerpsProviderSelectorSheet {...defaultProps} />,
-    );
-
-    expect(
-      getByTestId('provider-sheet-option-hyperliquid-mainnet'),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId('provider-sheet-option-hyperliquid-testnet'),
-    ).toBeOnTheScreen();
-    expect(getByTestId('provider-sheet-option-myx-mainnet')).toBeOnTheScreen();
-    expect(getByTestId('provider-sheet-option-myx-testnet')).toBeOnTheScreen();
+      queryByTestId('provider-sheet-option-hyperliquid-testnet'),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls onOptionSelect when an option is pressed', async () => {

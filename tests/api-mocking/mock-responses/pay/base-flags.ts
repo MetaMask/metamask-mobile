@@ -1015,6 +1015,24 @@ const BASE_PERPS_FLAGS = [
     },
   },
   {
+    perpsMobileScale: {
+      minimumVersion: '8.10.0',
+      enabled: false,
+    },
+  },
+  {
+    perpsPositionModifyPreviewEnabled: {
+      minimumVersion: '8.11.0',
+      enabled: false,
+    },
+  },
+  {
+    perpsMobileChase: {
+      minimumVersion: '8.10.0',
+      enabled: false,
+    },
+  },
+  {
     perpsMobileTwap: {
       minimumVersion: '8.10.0',
       enabled: false,

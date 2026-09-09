@@ -90,13 +90,39 @@ class NotificationMenuView {
    * waiting longer would find the row. Retry short scroll passes until the
    * outer timeout so late mock merges still succeed.
    */
+  /**
+   * Reset the FlatList viewport toward the top after a failed down-scroll.
+   * Without this, retry passes start near the bottom and can miss a late-merged
+   * wallet row that mounts above the current offset.
+   */
+  async scrollListTowardTop(): Promise<void> {
+    await Gestures.swipe(
+      Matchers.getElementByID(
+        NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
+      ),
+      'down',
+      {
+        speed: 'fast',
+        elemDescription: 'Notification list scroll toward top',
+      },
+    );
+  }
+
   async waitForNotificationItem(
     id: string,
     options?: { direction?: 'up' | 'down'; timeout?: number },
   ): Promise<void> {
-    const timeout = options?.timeout ?? 30_000;
+    // Default 90s so late wallet mock merges get multiple short scroll passes
+    // (each ~10s / 3 scrolls). Prior 30s only fit ~2 passes and left the list
+    // scrolled to the bottom between retries.
+    const timeout = options?.timeout ?? 90_000;
+    let attempt = 0;
     await Utilities.executeWithRetry(
       async () => {
+        if (attempt > 0) {
+          await this.scrollListTowardTop();
+        }
+        attempt += 1;
         await this.scrollToNotificationItem(id, {
           direction: options?.direction ?? 'down',
           // ~3 scrolls per attempt (Gestures.scrollToElement: timeout/5000, capped 3–12)

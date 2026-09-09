@@ -84,8 +84,9 @@ appiumTest.describe(SmokeMoney('Onramp Unified Buy'), () => {
         },
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
-          await WalletView.tapWalletBuyButton();
-          await FundActionMenu.tapUnifiedBuyButton();
+          await FundActionMenu.openAndTapUnifiedBuy(() =>
+            WalletView.tapWalletBuyButton(),
+          );
           await TokenSelectScreen.tapTokenByName(nativeDepositOrder.token);
 
           await BuildQuoteView.tapContinueButton();
@@ -144,8 +145,9 @@ appiumTest.describe(SmokeMoney('Onramp Unified Buy'), () => {
         },
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
-          await WalletView.tapWalletBuyButton();
-          await FundActionMenu.tapUnifiedBuyButton();
+          await FundActionMenu.openAndTapUnifiedBuy(() =>
+            WalletView.tapWalletBuyButton(),
+          );
           await TokenSelectScreen.tapTokenByName(aggregatorBuyOrder.token);
           await BuildQuoteView.tapKeypadDeleteButton(1);
           await BuildQuoteView.enterAmount('15', 'unifiedBuy');

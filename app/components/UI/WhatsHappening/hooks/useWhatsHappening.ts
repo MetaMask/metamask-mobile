@@ -1,17 +1,39 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import type {
   MarketOverview,
   MarketOverviewFrontPage,
 } from '@metamask/ai-controllers';
+import {
+  DIGEST_QUERY_GC_TIME_MS,
+  digestQueryStaleTime,
+} from '../../../../constants/digestQuery';
 import Engine from '../../../../core/Engine';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import {
+  getDigestCacheState,
+  isDigestObserverPending,
+  withDigestFetchSpan,
+} from '../../../../util/digestPerformance';
+import { TraceName, TraceOperation } from '../../../../util/trace';
+import { WhatsHappeningSource } from '../constants';
 import type { WhatsHappeningItem } from '../types';
+import {
+  getWhatsHappeningFetchTags,
+  getWhatsHappeningTraceTags,
+  type WhatsHappeningTelemetryContext,
+} from '../utils/whatsHappeningPerformance';
+import { useWhatsHappeningLoadTrace } from './useWhatsHappeningLoadTrace';
 
 /** Internal error flag when fetch rejects with a non-Error value (not shown in UI). */
 export const WHATS_HAPPENING_FETCH_FAILED = 'WHATS_HAPPENING_FETCH_FAILED';
+
+export const WHATS_HAPPENING_QUERY_KEY = 'whats-happening';
+export const WHATS_HAPPENING_FRONT_PAGE_QUERY_KEY =
+  'whats-happening-front-page';
 
 /**
  * Result interface for useWhatsHappening hook
@@ -21,6 +43,12 @@ export interface UseWhatsHappeningResult {
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  /** Cache state when this overview observer generation began. */
+  cacheState: 'warm' | 'cold';
+  /** True until this observer has fetched and still lacks items or an error. */
+  isGenerationPending: boolean;
+  /** Carousel time-to-content trace id, when this observer owns the entry span. */
+  carouselTraceId?: string;
 }
 
 export interface UseWhatsHappeningOptions {
@@ -32,6 +60,8 @@ export interface UseWhatsHappeningOptions {
    * detail view passes it, so the Explore/Perps carousels are unaffected.
    */
   outdatedItemId?: string | null;
+  /** Bounded Sentry context for fetch and carousel time-to-content spans. */
+  telemetryContext?: WhatsHappeningTelemetryContext;
 }
 
 export const isWhatsHappeningSectionVisible = ({
@@ -70,25 +100,36 @@ const mapFrontPageToItem = (
 /**
  * Fetches the deep-linked "outdated" front-page item, if any.
  *
- * @param outdatedItemId - The front-page item id from the deep link, or `null`.
- * @returns The mapped outdated item, or `null` when there is none / on failure.
+ * @param outdatedItemId - The front-page item id from the deep link.
+ * @returns The mapped outdated item, or `null` when the id is a miss.
  */
 const fetchOutdatedItem = async (
-  outdatedItemId: string | null,
+  outdatedItemId: string,
 ): Promise<WhatsHappeningItem | null> => {
-  if (!outdatedItemId) {
-    return null;
-  }
-
   try {
     const frontPage =
       await Engine.context.AiDigestController.fetchFrontPageItem(
         outdatedItemId,
       );
     return frontPage ? mapFrontPageToItem(frontPage) : null;
-  } catch {
-    // Non-fatal: fall back to rendering just the latest market overview items.
-    return null;
+  } catch (err) {
+    Logger.error(ensureError(err, 'useWhatsHappening.fetchOutdatedItem'), {
+      tags: { feature: 'WhatsHappening' },
+      extra: { hook: 'useWhatsHappening' },
+    });
+    throw err instanceof Error ? err : new Error(WHATS_HAPPENING_FETCH_FAILED);
+  }
+};
+
+const fetchMarketOverview = async (): Promise<MarketOverview | null> => {
+  try {
+    return await Engine.context.AiDigestController.fetchMarketOverview();
+  } catch (err) {
+    Logger.error(ensureError(err, 'useWhatsHappening.fetchMarketOverview'), {
+      tags: { feature: 'WhatsHappening' },
+      extra: { hook: 'useWhatsHappening' },
+    });
+    throw err instanceof Error ? err : new Error(WHATS_HAPPENING_FETCH_FAILED);
   }
 };
 
@@ -145,10 +186,9 @@ const prependOutdatedItem = (
 /**
  * Hook to fetch trending "What's Happening" items for the carousel.
  *
- * Calls `AiDigestController.fetchMarketOverview()` (which handles caching
- * internally) and maps the returned `MarketOverviewTrend` entries to
- * `WhatsHappeningItem` shape for the carousel cards. Item count is owned by
- * the Digest API — the client does not slice the response.
+ * Calls `AiDigestController.fetchMarketOverview()` and maps trends to
+ * `WhatsHappeningItem`. React Query owns the 10-minute overview cache.
+ * A deep-linked front-page item is a separate uncached query.
  *
  * @param options - Hook options (`enabled`, `outdatedItemId`).
  * @returns Object with items, isLoading, error, refresh
@@ -160,98 +200,198 @@ export const useWhatsHappening = (
   const outdatedItemId = options?.outdatedItemId ?? null;
   const isHookEnabled = options?.enabled ?? true;
   const isActive = isFeatureEnabled && isHookEnabled;
-
-  const [items, setItems] = useState<WhatsHappeningItem[]>([]);
-  const [isLoading, setIsLoading] = useState(isActive);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const pendingRefreshRef = useRef<{
-    generation: number;
-    resolve: () => void;
+  const queryClient = useQueryClient();
+  const pendingRefreshRef = useRef<(() => void) | null>(null);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const resolvedTelemetryContext: WhatsHappeningTelemetryContext =
+    options?.telemetryContext ?? {
+      source: WhatsHappeningSource.Unknown,
+      stage: 'carousel',
+    };
+  const cacheStateRef = useRef<{
+    active: boolean;
+    state: 'warm' | 'cold';
   } | null>(null);
 
+  if (!cacheStateRef.current || cacheStateRef.current.active !== isActive) {
+    const cachedOverview = queryClient.getQueryData<MarketOverview | null>([
+      WHATS_HAPPENING_QUERY_KEY,
+    ]);
+    cacheStateRef.current = {
+      active: isActive,
+      state: getDigestCacheState(cachedOverview),
+    };
+  }
+
+  const cacheState = cacheStateRef.current.state;
+
+  const overviewQuery = useQuery<MarketOverview | null, Error>({
+    queryKey: [WHATS_HAPPENING_QUERY_KEY],
+    queryFn: ({ signal }) =>
+      withDigestFetchSpan(
+        {
+          name: TraceName.WhatsHappeningFetch,
+          op: TraceOperation.WhatsHappeningFetch,
+          tags: getWhatsHappeningFetchTags(cacheState, 'overview'),
+        },
+        signal,
+        fetchMarketOverview,
+      ),
+    enabled: isActive,
+    retry: false,
+    networkMode: 'always',
+    staleTime: digestQueryStaleTime,
+    gcTime: DIGEST_QUERY_GC_TIME_MS,
+  });
+
+  const frontPageQuery = useQuery<WhatsHappeningItem | null, Error>({
+    queryKey: [WHATS_HAPPENING_FRONT_PAGE_QUERY_KEY, outdatedItemId],
+    queryFn: ({ signal }) =>
+      withDigestFetchSpan(
+        {
+          name: TraceName.WhatsHappeningFrontPageFetch,
+          op: TraceOperation.WhatsHappeningFetch,
+          tags: getWhatsHappeningTraceTags(resolvedTelemetryContext, 'cold', {
+            fetch_kind: 'front_page',
+          }),
+        },
+        signal,
+        () => fetchOutdatedItem(outdatedItemId ?? ''),
+      ),
+    enabled: isActive && Boolean(outdatedItemId),
+    retry: false,
+    networkMode: 'always',
+    staleTime: 0,
+    gcTime: 0,
+  });
+
   useEffect(() => {
-    const generation = refreshKey;
-    let cancelled = false;
-
-    const settleRefresh = () => {
-      const pending = pendingRefreshRef.current;
-      if (pending?.generation === generation) {
-        pending.resolve();
-        pendingRefreshRef.current = null;
-      }
-    };
-
-    if (!isActive) {
-      setItems([]);
-      setIsLoading(false);
-      setError(null);
-      settleRefresh();
-      return () => {
-        cancelled = true;
-        settleRefresh();
-      };
+    // Only the feature flag should drop the shared query. `enabled: false` is
+    // used by WhatsHappeningSection when a parent already owns the feed.
+    if (!isFeatureEnabled) {
+      queryClient.removeQueries({
+        queryKey: [WHATS_HAPPENING_QUERY_KEY],
+        exact: true,
+      });
+      queryClient.removeQueries({
+        queryKey: [WHATS_HAPPENING_FRONT_PAGE_QUERY_KEY],
+      });
     }
+  }, [isFeatureEnabled, queryClient]);
 
-    setIsLoading(true);
-    setError(null);
-
-    const load = async () => {
-      try {
-        const data =
-          await Engine.context.AiDigestController.fetchMarketOverview();
-        const baseItems = data === null ? [] : mapTrendsToItems(data);
-
-        // When a deep link supplied an id, prepend that front-page item as the
-        // first card, deduped against the latest feed. It is flagged "Outdated"
-        // only when it is not already in the feed (see prependOutdatedItem).
-        const outdatedItem = await fetchOutdatedItem(outdatedItemId);
-
-        if (!cancelled) {
-          setItems(prependOutdatedItem(outdatedItem, baseItems));
-          setError(null);
-        }
-      } catch (err) {
-        Logger.error(ensureError(err, 'useWhatsHappening.fetchItems'), {
-          tags: { feature: 'WhatsHappening' },
-          extra: { hook: 'useWhatsHappening' },
-        });
-        if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : WHATS_HAPPENING_FETCH_FAILED,
-          );
-          setItems([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-          settleRefresh();
-        }
-      }
-    };
-
-    load().catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-      settleRefresh();
-    };
-  }, [isActive, outdatedItemId, refreshKey]);
-
-  const refresh = useCallback(
-    () =>
-      new Promise<void>((resolve) => {
-        pendingRefreshRef.current?.resolve();
-        setRefreshKey((key) => {
-          const nextKey = key + 1;
-          pendingRefreshRef.current = { generation: nextKey, resolve };
-          return nextKey;
-        });
-      }),
+  useEffect(
+    () => () => {
+      pendingRefreshRef.current?.();
+      pendingRefreshRef.current = null;
+    },
     [],
   );
 
-  return { items, isLoading, error, refresh };
+  const refresh = useCallback(() => {
+    pendingRefreshRef.current?.();
+    pendingRefreshRef.current = null;
+    setIsManualRefreshing(true);
+
+    return new Promise<void>((resolve) => {
+      pendingRefreshRef.current = resolve;
+      const refreshes = [
+        queryClient.refetchQueries({
+          queryKey: [WHATS_HAPPENING_QUERY_KEY],
+          exact: true,
+        }),
+      ];
+      if (outdatedItemId) {
+        refreshes.push(
+          queryClient.refetchQueries({
+            queryKey: [WHATS_HAPPENING_FRONT_PAGE_QUERY_KEY, outdatedItemId],
+            exact: true,
+          }),
+        );
+      }
+      Promise.all(refreshes).finally(() => {
+        if (pendingRefreshRef.current === resolve) {
+          pendingRefreshRef.current();
+          pendingRefreshRef.current = null;
+          setIsManualRefreshing(false);
+        }
+      });
+    });
+  }, [outdatedItemId, queryClient]);
+
+  const error =
+    isActive && overviewQuery.error
+      ? overviewQuery.error.message || WHATS_HAPPENING_FETCH_FAILED
+      : null;
+
+  const baseItems =
+    isActive && !error && overviewQuery.data
+      ? mapTrendsToItems(overviewQuery.data)
+      : [];
+  const outdatedItem =
+    outdatedItemId && frontPageQuery.data ? frontPageQuery.data : null;
+  const items = prependOutdatedItem(outdatedItem, baseItems);
+
+  const isFrontPageLoading =
+    Boolean(outdatedItemId) && frontPageQuery.isLoading;
+  const visibleItems = isActive && !error ? items : [];
+  // A warm cached overview (including `{ trends: [] }`) does not refetch, so
+  // `isFetchedAfterMount` stays false. Treat a non-fetching cached payload as
+  // settled so empty TTC can close. A cached `null` miss is stale and stays
+  // pending until this observer fetches. When a deeplink front-page item is
+  // in flight, wait for that query too so expanded TTC does not close empty
+  // before the only card arrives.
+  const hasOverviewSettled =
+    overviewQuery.isFetchedAfterMount ||
+    Boolean(
+      overviewQuery.isFetched &&
+        !overviewQuery.isFetching &&
+        overviewQuery.data,
+    );
+  const hasFrontPageSettled =
+    !outdatedItemId ||
+    frontPageQuery.isFetchedAfterMount ||
+    (frontPageQuery.isFetched && !frontPageQuery.isFetching);
+  const isGenerationPending = isDigestObserverPending({
+    enabled: isActive,
+    hasContent: visibleItems.length > 0,
+    isFetchedAfterMount: hasOverviewSettled && hasFrontPageSettled,
+  });
+  const carouselTraceId = useWhatsHappeningLoadTrace({
+    name: TraceName.WhatsHappeningCarouselLoad,
+    enabled: isActive && resolvedTelemetryContext.stage === 'carousel',
+    source: resolvedTelemetryContext.source,
+    stage: 'carousel',
+    cacheState,
+    isGenerationPending,
+    hasContent: visibleItems.length > 0,
+    error,
+  });
+  useWhatsHappeningLoadTrace({
+    name: TraceName.WhatsHappeningViewLoad,
+    enabled: isActive && resolvedTelemetryContext.stage === 'expanded',
+    start: false,
+    closeWhenDisabled: resolvedTelemetryContext.stage === 'expanded',
+    source: resolvedTelemetryContext.source,
+    stage: 'expanded',
+    cacheState,
+    isGenerationPending,
+    hasContent: visibleItems.length > 0,
+    error,
+  });
+
+  return {
+    items: visibleItems,
+    // isFetching is true for background refetches (new observer, stale mount).
+    // Only the initial load and an explicit refresh should show skeletons.
+    isLoading:
+      isActive &&
+      (overviewQuery.isLoading || isFrontPageLoading || isManualRefreshing),
+    error,
+    refresh,
+    cacheState,
+    isGenerationPending,
+    carouselTraceId,
+  };
 };
 
 export default useWhatsHappening;

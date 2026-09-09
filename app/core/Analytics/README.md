@@ -16,35 +16,18 @@ Analytics infrastructure lives in [`app/util/analytics/`](../../util/analytics/)
 
 ```ts
 import { useAnalytics } from 'app/components/hooks/useAnalytics/useAnalytics';
-import { AnalyticsEventBuilder } from 'app/util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from 'app/core/Analytics';
+import { EVENT_NAME } from 'app/core/Analytics';
 
 const { trackEvent, createEventBuilder } = useAnalytics();
 
-// Non-anonymous event
 trackEvent(
-  createEventBuilder(MetaMetricsEvents.ONBOARDING_STARTED)
+  createEventBuilder(EVENT_NAME.ONBOARDING_STARTED)
     .addProperties({ source: 'import' })
-    .build(),
-);
-
-// Anonymous event (sensitive properties trigger dual-event emission)
-trackEvent(
-  createEventBuilder(MetaMetricsEvents.WALLET_CREATED)
-    .addProperties({ method: 'new_wallet' })
-    .addSensitiveProperties({ device_os: 'ios' })
     .build(),
 );
 ```
 
-## Anonymous / privacy events
-
-When `addSensitiveProperties()` is called the built event's `isAnonymous` getter returns `true`. The `useAnalytics` hook sends **two** events to AnalyticsController:
-
-1. **Anonymous event** — carries only the sensitive properties and is associated with the anonymous ID.
-2. **Non-anonymous event** — carries only the non-sensitive properties and is associated with the user ID.
-
-This ensures "what happened" (sensitive) is kept separate from "who did it" (non-sensitive).
+Event names come from `EVENT_NAME` / `MetaMetricsEvents`. Properties go through `addProperties`. Tests mock the hook with `createMockUseAnalyticsHook` from `app/util/test/analyticsMock.ts`.
 
 ## User identification
 

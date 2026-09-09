@@ -127,10 +127,13 @@ function clearCapturedLoadingSessionTraceData(traceId: string): void {
   loadingSessionDataByTraceId.delete(traceId);
 }
 
+type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic' | 'cleared';
+
 // Generic subscription parameters
 interface StreamSubscription<T> {
   id: string;
   callback: (data: T) => void;
+  onDelivery?: (source: StreamUpdateSource) => void;
   throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
@@ -141,7 +144,6 @@ interface StreamSubscription<T> {
   symbols?: string[];
 }
 
-type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic';
 const DYNAMIC_DEX_SNAPSHOT_UNAVAILABLE =
   'User data snapshot DEX identity is not static';
 
@@ -337,16 +339,19 @@ abstract class StreamChannel<T> {
       }
       subscriber.pendingUpdate = undefined;
       subscriber.callback(updates);
+      subscriber.onDelivery?.(source);
       return;
     }
 
     if (source === 'cache') {
       subscriber.callback(updates);
+      subscriber.onDelivery?.(source);
       return;
     }
 
     if (!subscriber.hasReceivedFirstFreshUpdate) {
       subscriber.callback(updates);
+      subscriber.onDelivery?.(source);
       subscriber.hasReceivedFirstFreshUpdate = true;
       return;
     }
@@ -354,6 +359,7 @@ abstract class StreamChannel<T> {
     // If no throttling (throttleMs is 0 or undefined), notify immediately
     if (!subscriber.throttleMs) {
       subscriber.callback(updates);
+      subscriber.onDelivery?.(source);
       return;
     }
 
@@ -368,6 +374,7 @@ abstract class StreamChannel<T> {
     subscriber.timer ??= setTimeout(() => {
       if (subscriber.pendingUpdate) {
         subscriber.callback(subscriber.pendingUpdate);
+        subscriber.onDelivery?.('fresh');
         subscriber.pendingUpdate = undefined;
       }
       subscriber.timer = undefined;
@@ -393,6 +400,7 @@ abstract class StreamChannel<T> {
       subscriber.timer = undefined;
       if (subscriber.pendingUpdate !== undefined) {
         subscriber.callback(subscriber.pendingUpdate);
+        subscriber.onDelivery?.('fresh');
         subscriber.pendingUpdate = undefined;
       }
     });
@@ -439,6 +447,7 @@ abstract class StreamChannel<T> {
 
   subscribe(params: {
     callback: (data: T) => void;
+    onDelivery?: (source: StreamUpdateSource) => void;
     throttleMs?: number;
     symbols?: string[];
   }): () => void {
@@ -453,9 +462,10 @@ abstract class StreamChannel<T> {
     this.indexSubscriptionSymbols(subscription);
 
     // Give immediate cached data if available
-    const cached = this.getCachedData();
+    const cached = this.getCachedDataForSubscription(params);
     if (cached != null) {
       params.callback(cached);
+      params.onDelivery?.('cache');
       // Cached data renders immediately but must not consume the first fresh
       // update exemption. The first live snapshot should also bypass throttling.
     }
@@ -689,6 +699,17 @@ abstract class StreamChannel<T> {
     return null;
   }
 
+  /**
+   * Return the cache payload used to hydrate a new subscriber.
+   * Symbol-aware channels can override this to avoid materializing data the
+   * subscriber did not request.
+   */
+  protected getCachedDataForSubscription(
+    params: Pick<StreamSubscription<T>, 'symbols'>,
+  ): T | null {
+    return this.getCachedData();
+  }
+
   public seedCache(key: string, data: T): void {
     this.cache.set(key, data);
   }
@@ -750,6 +771,7 @@ abstract class StreamChannel<T> {
     this.subscribers.forEach((subscriber) => {
       // Send cleared data to indicate "no data yet" (loading state)
       subscriber.callback(this.getClearedData());
+      subscriber.onDelivery?.('cleared');
     });
 
     // If we have active subscribers, they'll trigger reconnect in their next render
@@ -924,6 +946,23 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       cached[key] = value;
     });
     return cached;
+  }
+
+  protected getCachedDataForSubscription(
+    params: Pick<StreamSubscription<Record<string, PriceUpdate>>, 'symbols'>,
+  ): Record<string, PriceUpdate> | null {
+    if (!params.symbols) {
+      return this.getCachedData();
+    }
+
+    const cached: Record<string, PriceUpdate> = {};
+    params.symbols.forEach((symbol) => {
+      const price = this.priceCache.get(symbol);
+      if (price) {
+        cached[symbol] = price;
+      }
+    });
+    return Object.keys(cached).length > 0 ? cached : null;
   }
 
   protected getClearedData(): Record<string, PriceUpdate> {
@@ -2668,6 +2707,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       if (!preserveCache) {
         subscriber.hasReceivedFirstFreshUpdate = false;
         subscriber.callback([]);
+        subscriber.onDelivery?.('cleared');
       }
     });
   }

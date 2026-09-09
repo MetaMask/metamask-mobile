@@ -42,6 +42,8 @@ import {
 } from '../../../actions/user';
 import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
+import { RouteMessengerInstance } from './messenger';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
@@ -108,6 +110,8 @@ import generateDeviceAnalyticsMetaData, {
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import {
@@ -184,6 +188,7 @@ const ChoosePassword = () => {
 
   const dispatch = useDispatch();
   const metrics = useAnalytics();
+  const messenger = useMessenger<RouteMessengerInstance>();
 
   const isSocialLoginUser = route.params?.oauthLoginSuccess === true;
   const geoLocation = useSelector(selectGeolocationLocation);
@@ -199,6 +204,25 @@ const ChoosePassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const stallOauthProvider = route.params?.provider;
+  const stallAccountType = stallOauthProvider
+    ? getSocialAccountType(stallOauthProvider, false)
+    : AccountType.Metamask;
+  const walletSetupType =
+    route.params?.[PREVIOUS_SCREEN] === ONBOARDING ? 'new' : 'import';
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.CREATE_PASSWORD,
+    properties: {
+      wallet_setup_type: walletSetupType,
+      account_type: stallAccountType,
+    },
+    saveOnboardingEvent: (event) => {
+      dispatch(saveEvent([event]));
+    },
+  });
+
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
@@ -258,9 +282,7 @@ const ChoosePassword = () => {
     let cancelled = false;
     setIsGeolocationResolved(false);
 
-    Promise.resolve(
-      Engine.context.GeolocationController?.refreshGeolocation?.(),
-    )
+    Promise.resolve(messenger.call('GeolocationController:refreshGeolocation'))
       .then((location) => {
         if (!cancelled) {
           setResolvedGeolocationLocation(location);
@@ -277,7 +299,7 @@ const ChoosePassword = () => {
     return () => {
       cancelled = true;
     };
-  }, [isSocialLoginUser, geoLocation]);
+  }, [isSocialLoginUser, geoLocation, messenger]);
 
   const marketingOptInChecked = useMemo(() => {
     if (isSocialLoginUser) {

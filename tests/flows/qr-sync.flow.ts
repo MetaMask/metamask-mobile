@@ -12,7 +12,6 @@ import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInVie
 import AddDeviceToWalletView from '../page-objects/Onboarding/AddDeviceToWalletView';
 import AddWalletView from '../page-objects/Onboarding/AddWalletView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
-import WalletView from '../page-objects/wallet/WalletView';
 import type CommandQueueServer from '../framework/fixtures/CommandQueueServer';
 import { E2ECommandTypes } from '../framework/types';
 import { sleep } from '../framework/Utilities';
@@ -23,6 +22,7 @@ import {
   dismissExperienceEnhancerModal,
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
+  ensureAccountListOpenPlaywright,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
@@ -187,13 +187,8 @@ export const completeExistingUserQrSyncSrp = async ({
   commandQueueServer?: CommandQueueServer;
 } = {}): Promise<void> => {
   await loginToAppPlaywright({ scenarioType: 'e2e' });
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(
-    AccountListBottomSheet.accountList,
-    {
-      description: 'Account list should be visible',
-    },
-  );
+  // Retry open — first post-login tap can no-op while wallet chrome settles.
+  await ensureAccountListOpenPlaywright();
   await AccountListBottomSheet.tapAddWalletButton();
   await AddWalletView.expectScreenVisible();
   await AddWalletView.tapLinkMetaMaskExtension();

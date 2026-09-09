@@ -5,6 +5,7 @@ const Routes = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_VIEW: 'BrowserView',
   ACCOUNTS_MENU_VIEW: 'AccountsMenuView',
+  ACCOUNT_HUB_VIEW: 'AccountHubView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -346,6 +347,7 @@ const Routes = {
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
+    RECURRING_JOB_DETAILS: 'RecurringJobDetails',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -372,6 +374,12 @@ const Routes = {
       BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
         'BatchSellMinimumReceivedInfoModal',
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
+      SWAPS_LIMIT_ORDER_EXPIRATION_MODAL: 'SwapsLimitOrderExpirationModal',
+      LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
+      RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
+      RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
+      RECURRING_PRICE_RANGE_MODAL: 'RecurringPriceRangeModal',
+      RECURRING_CONFIRM_ORDER_MODAL: 'RecurringConfirmOrderModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -466,7 +474,7 @@ const Routes = {
   },
   EARN: {
     ROOT: 'EarnScreens',
-    STRATEGY_SELECTION: 'EarnStrategySelection',
+    SEARCH_LIST: 'EarnSearchList',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
@@ -476,6 +484,7 @@ const Routes = {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
       LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
+      STRATEGY_SELECTION: 'EarnStrategySelectionModal',
     },
   },
   MONEY: {
@@ -591,6 +600,7 @@ const Routes = {
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
+      UK_MIGRATION: 'CardUkMigrationModal',
     },
   },
   SEND: {
