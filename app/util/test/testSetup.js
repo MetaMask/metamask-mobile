@@ -1133,7 +1133,10 @@ jest.mock('@sentry/react-native', () => ({
   // Capture methods
   captureException: jest.fn(),
   captureMessage: jest.fn(),
-  captureUserFeedback: jest.fn(),
+  captureFeedback: jest.fn(),
+
+  dedupeIntegration: jest.fn(() => ({ name: 'Dedupe' })),
+  extraErrorDataIntegration: jest.fn(() => ({ name: 'ExtraErrorData' })),
 
   // Breadcrumb and context methods
   addBreadcrumb: jest.fn(),

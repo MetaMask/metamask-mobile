@@ -326,14 +326,14 @@ interface Crypto {
 }
 
 /**
- * @sentry/react-native types for v^6.10.0
- * Types are overridden to ensure captureException receives an Error type for more reliable stack traces
+ * @sentry/react-native types for v8.
+ * Ambient module so we can require `captureException` to take an Error (more reliable stacks).
+ * Keep this list in sync with `@sentry/react-native` `dist/js/index.d.ts`.
  * Reference - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
  */
 declare module '@sentry/react-native' {
   export type {
     Breadcrumb,
-    Request,
     SdkInfo,
     Event,
     Exception,
@@ -375,7 +375,6 @@ declare module '@sentry/react-native' {
     getClient,
     setCurrentClient,
     addEventProcessor,
-    metricsDefault as metrics,
     lastEventId,
   } from '@sentry/core';
 
@@ -398,7 +397,6 @@ declare module '@sentry/react-native' {
     nativeCrash,
     flush,
     close,
-    captureUserFeedback,
     withScope,
     crashedLastRun,
   } from '@sentry/react-native/dist/js/sdk';
@@ -425,11 +423,11 @@ declare module '@sentry/react-native' {
   } from '@sentry/react-native/dist/js/tracing';
   export type { TimeToDisplayProps } from '@sentry/react-native/dist/js/tracing';
   export { Mask, Unmask } from '@sentry/react-native/dist/js/replay/CustomMask';
-  export { FeedbackWidget } from '@sentry/react-native/dist/js/feedback/FeedbackWidget';
-  export { showFeedbackWidget } from '@sentry/react-native/dist/js/feedback/FeedbackWidgetManager';
+  export { FeedbackForm as FeedbackWidget } from '@sentry/react-native/dist/js/feedback/FeedbackForm';
+  export { showFeedbackForm as showFeedbackWidget } from '@sentry/react-native/dist/js/feedback/FeedbackFormManager';
   export { getDataFromUri } from '@sentry/react-native/dist/js/wrapper';
 
-  // Enforce exception to be of type Error for more reliable stack traces - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
+  // Enforce exception to be of type Error for more reliable stack traces.
   // Hint type matches @sentry/core captureException without deep imports (not in package "exports").
   export function captureException(
     exception: Error,

@@ -1,6 +1,5 @@
 /* eslint-disable import-x/no-namespace */
 import * as Sentry from '@sentry/react-native';
-import { dedupeIntegration, extraErrorDataIntegration } from '@sentry/browser';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';
 import {
   updateId,
@@ -261,13 +260,12 @@ export const captureSentryFeedback = ({
   sentryId,
   comments,
 }: CaptureSentryFeedbackOptions): void => {
-  const userFeedback = {
-    event_id: sentryId,
+  Sentry.captureFeedback({
+    associatedEventId: sentryId,
+    message: comments,
     name: '',
     email: '',
-    comments,
-  };
-  Sentry.captureUserFeedback(userFeedback);
+  });
 };
 
 function getProtocolFromURL(url: string): string {
@@ -689,8 +687,8 @@ export async function setupSentry(
     // is true (both hold for this config). Adding it explicitly would be a no-op after
     // the SDK's name-deduplication pass.
     const integrations = [
-      dedupeIntegration(),
-      extraErrorDataIntegration(),
+      Sentry.dedupeIntegration(),
+      Sentry.extraErrorDataIntegration(),
       getNavIntegration(),
     ];
     const environment = deriveSentryEnvironment(
