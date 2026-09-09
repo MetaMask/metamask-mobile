@@ -1473,6 +1473,211 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
+  describe('money account deposit zero-balance tokens', () => {
+    const musdPreferredFlags = {
+      preferredTokens: {
+        default: [],
+        overrides: {
+          moneyAccountDeposit: [
+            {
+              address: MUSD_TOKEN_ADDRESS,
+              chainId: CHAIN_IDS.MONAD,
+              successRate: 100,
+            },
+          ],
+        },
+      },
+      minimumRequiredTokenBalance: 0,
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [],
+        },
+        overrides: {},
+      },
+    } as MetaMaskPayTokensFlags;
+
+    beforeEach(() => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+      } as never);
+    });
+
+    it('selects the highest balance token over a zero-balance preferred token', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue(musdPreferredFlags);
+
+      // Sorted by fiat balance descending, matching `useAccountTokens`.
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            fiat: { balance: 50 },
+          },
+          {
+            address: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            fiat: { balance: 0 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      });
+    });
+
+    it('selects the preferred token when it has a balance', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue(musdPreferredFlags);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            fiat: { balance: 50 },
+          },
+          {
+            address: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            fiat: { balance: 10 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MONAD,
+      });
+    });
+
+    it('selects the highest balance token over a zero-balance no-fee token', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+        preferredTokens: { default: [], overrides: {} },
+        minimumRequiredTokenBalance: 0,
+        blockedTokens: {
+          default: {
+            chainIds: [],
+            tokens: [],
+          },
+          overrides: {},
+        },
+      } as MetaMaskPayTokensFlags);
+
+      selectRelayFixedSpreadMock.mockReturnValue({
+        routes: [
+          {
+            sourceChain: CHAIN_ID_2_MOCK,
+            sourceToken: TOKEN_ADDRESS_2_MOCK,
+            targetChain: CHAIN_ID_2_MOCK,
+            targetToken: TOKEN_ADDRESS_2_MOCK,
+          },
+        ],
+      } as RelayFixedSpreadConfig);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            fiat: { balance: 50 },
+          },
+          {
+            address: TOKEN_ADDRESS_2_MOCK,
+            chainId: CHAIN_ID_2_MOCK,
+            fiat: { balance: 0 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      });
+    });
+
+    it('falls back to the preferred token when every balance is zero', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue(musdPreferredFlags);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            fiat: { balance: 0 },
+          },
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            fiat: { balance: 0 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MONAD,
+      });
+    });
+
+    it('still selects a zero-balance preferred token for non-deposit flows', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsDeposit,
+        txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+      } as never);
+
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+        ...musdPreferredFlags,
+        preferredTokens: {
+          default: [],
+          overrides: {
+            perpsDeposit:
+              musdPreferredFlags.preferredTokens.overrides.moneyAccountDeposit,
+          },
+        },
+      } as MetaMaskPayTokensFlags);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            fiat: { balance: 50 },
+          },
+          {
+            address: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            fiat: { balance: 0 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MONAD,
+      });
+    });
+  });
+
   describe('no-fee token preference', () => {
     it('selects no-fee token over first available when no preferred tokens match', () => {
       selectMetaMaskPayTokensFlagsMock.mockReturnValue({

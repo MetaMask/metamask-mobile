@@ -49,6 +49,11 @@ export interface DepositPrefillResult {
   enabled: boolean;
   isLoading: boolean;
   hasPrefilled: boolean;
+  /**
+   * True when prefill is enabled but the resolved pay token has no balance to
+   * prefill from, so the amount should settle at $0 with the keypad open.
+   */
+  isSkipped: boolean;
 }
 
 export function useDepositPrefillAmount(): DepositPrefillResult {
@@ -179,10 +184,14 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     }
   }, [enabled, tokenKey, prefillAmount, committedKey]);
 
+  // A resolved pay token with no balance can never produce a prefill amount,
+  // so the skeleton below would never clear.
+  const isSkipped = enabled && Boolean(payToken) && balanceUsd <= 0;
+
   const hasPrefilled = committedKey === tokenKey;
   // Keep the skeleton up until this token's amount is committed. Dropping it
   // when `prefillAmount` is merely computed (before apply) flashes $0.00.
-  const isLoading = enabled && !hasPrefilled;
+  const isLoading = enabled && !hasPrefilled && !isSkipped;
 
   return {
     prefillAmount,
@@ -191,5 +200,6 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     isLoading,
     hasPrefilled,
     enabled,
+    isSkipped,
   };
 }

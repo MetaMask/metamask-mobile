@@ -108,6 +108,9 @@ export function useAutomaticTransactionPayToken({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
@@ -143,6 +146,7 @@ export function useAutomaticTransactionPayToken({
       getBestToken({
         isHardwareWallet,
         isMoneyPaymentOverride,
+        isMoneyAccountDeposit,
         isMoneyAccountWithdraw,
         isWithdraw,
         lastWithdrawToken,
@@ -156,6 +160,7 @@ export function useAutomaticTransactionPayToken({
     [
       isHardwareWallet,
       isMoneyPaymentOverride,
+      isMoneyAccountDeposit,
       isMoneyAccountWithdraw,
       isWithdraw,
       lastWithdrawToken,
@@ -342,6 +347,7 @@ export function useAutomaticTransactionPayToken({
 function getBestToken({
   isHardwareWallet,
   isMoneyPaymentOverride,
+  isMoneyAccountDeposit,
   isMoneyAccountWithdraw,
   isWithdraw,
   lastWithdrawToken,
@@ -354,6 +360,7 @@ function getBestToken({
 }: {
   isHardwareWallet: boolean;
   isMoneyPaymentOverride: boolean;
+  isMoneyAccountDeposit: boolean;
   isMoneyAccountWithdraw: boolean;
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
@@ -370,6 +377,19 @@ function getBestToken({
         chainId: targetToken.chainId,
       }
     : undefined;
+
+  // Money account deposits must never default to a zero-balance token. The
+  // preferred and no-fee lists rank by routing cost rather than balance, and
+  // `minimumRequiredTokenBalance` defaults to 0, so a $0 mUSD row would
+  // otherwise outrank a funded token. Rejecting it falls through to
+  // `tokens[0]`, which is the highest fiat balance.
+  const hasSufficientBalance = (token: AssetType) => {
+    const fiatBalance = token.fiat?.balance ?? 0;
+    return (
+      fiatBalance >= minimumRequiredTokenBalance &&
+      (!isMoneyAccountDeposit || fiatBalance > 0)
+    );
+  };
 
   if (isHardwareWallet) {
     return targetTokenFallback;
@@ -440,9 +460,7 @@ function getBestToken({
     }
 
     const eligible = candidates
-      .filter(
-        (token) => (token.fiat?.balance ?? 0) >= minimumRequiredTokenBalance,
-      )
+      .filter(hasSufficientBalance)
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
     if (eligible.length) {
@@ -457,8 +475,7 @@ function getBestToken({
     const noFeeCandidates = tokens
       .filter((token) => {
         if (!token.chainId) return false;
-        const fiatBalance = token.fiat?.balance ?? 0;
-        if (fiatBalance < minimumRequiredTokenBalance) return false;
+        if (!hasSufficientBalance(token)) return false;
         return isSubsidizedSource(relayFixedSpread, {
           chainId: token.chainId,
           address: token.address,

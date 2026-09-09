@@ -515,6 +515,7 @@ export function useTransactionCustomAmount({
     isDepositPrefillEnabled: depositPrefill.enabled,
     isDepositPrefilled: depositPrefill.hasPrefilled,
     isDepositPrefillLoading: depositPrefill.isLoading,
+    isDepositPrefillSkipped: depositPrefill.isSkipped,
     isInputChanged,
     isPrefillPending,
     updatePendingAmount,

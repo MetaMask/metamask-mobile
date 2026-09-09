@@ -159,6 +159,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isDepositPrefillEnabled,
       isDepositPrefilled,
       isDepositPrefillLoading,
+      isDepositPrefillSkipped,
       isInputChanged,
       isPrefillPending,
       updatePendingAmount,
@@ -177,7 +178,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       Boolean(autoSelectFiatPayment) ||
       (Boolean(selectedFiatPaymentMethodId) && !payToken);
     const skipDepositPrefill =
-      isFiatPrefillSkip || (!hasAvailableTokens && !payToken);
+      isFiatPrefillSkip ||
+      isDepositPrefillSkipped ||
+      (!hasAvailableTokens && !payToken);
 
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;

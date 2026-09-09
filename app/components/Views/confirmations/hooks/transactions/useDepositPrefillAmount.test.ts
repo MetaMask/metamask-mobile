@@ -178,6 +178,7 @@ describe('useDepositPrefillAmount', () => {
         enabled: false,
         isLoading: false,
         hasPrefilled: false,
+        isSkipped: false,
       });
     });
 
@@ -370,6 +371,40 @@ describe('useDepositPrefillAmount', () => {
     });
   });
 
+  describe('zero-balance pay token', () => {
+    it('settles instead of loading when the pay token has no balance', () => {
+      setupMocks({ payToken: makePayToken({ balanceUsd: '0' }) });
+
+      const { result } = runHook();
+
+      expect(result.current.isSkipped).toBe(true);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.prefillAmount).toBeUndefined();
+    });
+
+    it('keeps loading while the pay token is still unresolved', () => {
+      setupMocks({ payToken: null });
+
+      const { result } = runHook();
+
+      expect(result.current.isSkipped).toBe(false);
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('does not skip when prefill is disabled', () => {
+      setupMocks({
+        payToken: makePayToken({ balanceUsd: '0' }),
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {},
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.isSkipped).toBe(false);
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
   describe('reset effect', () => {
     it('resets when switching to a zero-balance account', async () => {
       setupMocks();
@@ -388,7 +423,10 @@ describe('useDepositPrefillAmount', () => {
       });
 
       expect(result.current.hasPrefilled).toBe(false);
-      expect(result.current.isLoading).toBe(true);
+      // Nothing to prefill from, so the amount settles at $0 rather than
+      // waiting on an amount that can never arrive.
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isSkipped).toBe(true);
     });
 
     it('recommits with new amount when payToken address changes', async () => {
