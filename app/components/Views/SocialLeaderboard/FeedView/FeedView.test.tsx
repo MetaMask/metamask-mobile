@@ -18,7 +18,6 @@ import {
 } from '../components/Filters';
 import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
-import { getSubnavPillTestId } from '../shell/SubnavPills';
 
 const mockNavigate = jest.fn();
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
@@ -381,35 +380,6 @@ describe('FeedView', () => {
         interaction_type: 'audience_filter_changed',
         feed_audience: 'all',
       },
-    );
-  });
-
-  it('maps Social Bundle Trending and Following pills to feed audiences', () => {
-    renderWithProvider(
-      <FeedView isSocialBundleV1Enabled initialAudience="all" />,
-    );
-
-    expect(
-      screen.queryByTestId(FeedViewSelectorsIDs.AUDIENCE_TOGGLE),
-    ).not.toBeOnTheScreen();
-    expect(mockUseTraderFeed).toHaveBeenLastCalledWith(
-      expect.objectContaining({ audience: 'all' }),
-    );
-
-    fireEvent.press(screen.getByTestId(getSubnavPillTestId('following')));
-
-    expect(mockUseTraderFeed).toHaveBeenLastCalledWith(
-      expect.objectContaining({ audience: 'following' }),
-    );
-  });
-
-  it('selects Trending when the Social Bundle flag hydrates after mount', () => {
-    const { rerender } = renderWithProvider(<FeedView />);
-
-    rerender(<FeedView isSocialBundleV1Enabled />);
-
-    expect(mockUseTraderFeed).toHaveBeenLastCalledWith(
-      expect.objectContaining({ audience: 'all' }),
     );
   });
 

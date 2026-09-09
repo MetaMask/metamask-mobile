@@ -79,24 +79,8 @@ import {
   type SocialTimeframe,
   type SocialTypeFilter,
 } from '../components/Filters';
-import SubnavPills from '../shell/SubnavPills';
-import { SOCIAL_SHELL_TAB_CONFIG } from '../shell/tabConfig';
-import type { LeaderboardSubnavId } from '../shell/types';
 
 type TabFilter = SocialTypeFilter;
-
-const LEADERBOARD_SUBNAV_TAB: Partial<Record<LeaderboardSubnavId, TabFilter>> =
-  {
-    topTraders: 'all',
-    topPerps: 'perps',
-    topTokens: 'tokens',
-  };
-
-const TAB_LEADERBOARD_SUBNAV: Record<TabFilter, LeaderboardSubnavId> = {
-  all: 'topTraders',
-  perps: 'topPerps',
-  tokens: 'topTokens',
-};
 
 /**
  * A ranked trader with its display metric precomputed. Attaching the metric to
@@ -162,8 +146,6 @@ type AnimatedScrollHandler = React.ComponentProps<
 >['onScroll'];
 
 export interface TopTradersViewProps {
-  /** Renders Social Bundle V1 leaderboard sub-navigation. */
-  isSocialBundleV1Enabled?: boolean;
   /**
    * Scroll handler forwarded by the tabs container so the page's scroll drives
    * the parent's collapsing title.
@@ -188,7 +170,6 @@ export interface TopTradersViewProps {
  * and notification bell.
  */
 const TopTradersView: React.FC<TopTradersViewProps> = ({
-  isSocialBundleV1Enabled = false,
   onScroll,
   pageRef,
   onVisibleLeaderboardSettled,
@@ -204,19 +185,14 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const { followWithSetup } = useFollowWithNotificationSetup();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
-  const initialTypeTab = isSocialBundleV1Enabled ? 'all' : DEFAULT_TYPE_TAB;
 
-  const [renderedTab, setRenderedTab] = useState<TabFilter>(initialTypeTab);
-  const [selectedBundleSubnav, setSelectedBundleSubnav] =
-    useState<LeaderboardSubnavId>(
-      SOCIAL_SHELL_TAB_CONFIG.leaderboard.defaultSubnav,
-    );
+  const [renderedTab, setRenderedTab] = useState<TabFilter>(DEFAULT_TYPE_TAB);
   // Only the landing tab's query starts enabled; the others are switched on
   // when the user picks them, or by the idle prefetch below. Perps being off
   // pins the whole screen to the spot-only "all" query.
   const [queryEnabledTabs, setQueryEnabledTabs] = useState<
     Record<TabFilter, boolean>
-  >(() => buildQueryEnabledTabs(isPerpsEnabled ? initialTypeTab : 'all'));
+  >(() => buildQueryEnabledTabs(isPerpsEnabled ? DEFAULT_TYPE_TAB : 'all'));
   const [timeframe, setTimeframe] =
     useState<SocialTimeframe>(DEFAULT_TIMEFRAME);
   const [sort, setSort] = useState<LeaderboardSort>(DEFAULT_LEADERBOARD_SORT);
@@ -228,7 +204,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
-  const selectedTabRef = useRef<TabFilter>(initialTypeTab);
+  const selectedTabRef = useRef<TabFilter>(DEFAULT_TYPE_TAB);
   // Tracks whether the user has explicitly chosen a tab. Once they have, late
   // feature-flag hydration must not override their selection with the default.
   const hasUserSelectedTabRef = useRef(false);
@@ -291,25 +267,17 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   const activeTab = isPerpsEnabled ? renderedTab : 'all';
   const activeResult = resultsByTab[activeTab];
-  const {
-    traders: loadedTraders,
-    isLoading: isActiveResultLoading,
-    toggleFollow,
-  } = activeResult;
-  const isKolsSelected =
-    isSocialBundleV1Enabled && selectedBundleSubnav === 'kols';
-  const isLoading = isKolsSelected ? false : isActiveResultLoading;
+  const { traders: loadedTraders, isLoading, toggleFollow } = activeResult;
   // The API ranks on its own (30-day) window, so the selected time frame is
   // only honoured once the loaded page is re-ranked here.
-  const traders = useMemo<RankedTrader[]>(() => {
-    if (isKolsSelected) {
-      return [];
-    }
-    return rankTradersByMetric(loadedTraders, sort).map((trader) => ({
-      ...trader,
-      displayMetric: getTraderMetricDisplay(trader, sort),
-    }));
-  }, [isKolsSelected, loadedTraders, sort]);
+  const traders = useMemo<RankedTrader[]>(
+    () =>
+      rankTradersByMetric(loadedTraders, sort).map((trader) => ({
+        ...trader,
+        displayMetric: getTraderMetricDisplay(trader, sort),
+      })),
+    [loadedTraders, sort],
+  );
   // The visible tab always fetches alone first; the other two are prefetched
   // behind it so switching pills is instant. Gate on `isFetching` rather than
   // `isLoading`: arriving with a warm cache (the homepage carousel shares the
@@ -336,18 +304,6 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   }, [isEnabled, navigation]);
 
   useEffect(() => {
-    if (
-      isSocialBundleV1Enabled &&
-      !hasUserSelectedTabRef.current &&
-      selectedTabRef.current !== 'all'
-    ) {
-      selectedTabRef.current = 'all';
-      setRenderedTab('all');
-      setSelectedBundleSubnav('topTraders');
-      setQueryEnabledTabs(buildQueryEnabledTabs('all'));
-      return;
-    }
-
     if (!isPerpsEnabled) {
       if (selectedTabRef.current !== 'all') {
         selectedTabRef.current = 'all';
@@ -365,13 +321,13 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     // tab's query never switched on. Skip this if the user already picked a tab.
     if (
       !hasUserSelectedTabRef.current &&
-      selectedTabRef.current !== initialTypeTab
+      selectedTabRef.current !== DEFAULT_TYPE_TAB
     ) {
-      selectedTabRef.current = initialTypeTab;
-      setRenderedTab(initialTypeTab);
-      setQueryEnabledTabs(buildQueryEnabledTabs(initialTypeTab));
+      selectedTabRef.current = DEFAULT_TYPE_TAB;
+      setRenderedTab(DEFAULT_TYPE_TAB);
+      setQueryEnabledTabs(buildQueryEnabledTabs(DEFAULT_TYPE_TAB));
     }
-  }, [initialTypeTab, isPerpsEnabled, isSocialBundleV1Enabled]);
+  }, [isPerpsEnabled]);
 
   useEffect(() => {
     if (!isEnabled || hasFiredScreenViewedRef.current) return;
@@ -405,17 +361,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     (next: TabFilter) => {
       if (!isPerpsEnabled && next !== 'all') return;
       const previousTab = selectedTabRef.current;
-      if (previousTab === next) {
-        if (isSocialBundleV1Enabled) {
-          setSelectedBundleSubnav(TAB_LEADERBOARD_SUBNAV[next]);
-        }
-        return;
-      }
+      if (previousTab === next) return;
       hasUserSelectedTabRef.current = true;
       selectedTabRef.current = next;
-      if (isSocialBundleV1Enabled) {
-        setSelectedBundleSubnav(TAB_LEADERBOARD_SUBNAV[next]);
-      }
       track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED, {
         [SocialLeaderboardEventProperties.CHAIN_FILTER]: next,
         [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: previousTab,
@@ -427,23 +375,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         setRenderedTab(next);
       });
     },
-    [isPerpsEnabled, isSocialBundleV1Enabled, startTabTransition, track],
-  );
-
-  const handleBundleSubnavChange = useCallback(
-    (next: LeaderboardSubnavId) => {
-      if (next === 'kols') {
-        hasUserSelectedTabRef.current = true;
-        setSelectedBundleSubnav(next);
-        return;
-      }
-
-      const nextTab = LEADERBOARD_SUBNAV_TAB[next];
-      if (nextTab) {
-        handleTabPress(nextTab);
-      }
-    },
-    [handleTabPress],
+    [isPerpsEnabled, startTabTransition, track],
   );
 
   // Sort is part of the query key, so a change invalidates every tab at once.
@@ -570,52 +502,40 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   // parent tabs container owns the collapsing title and pinned tabs bar.
   const listHeader = useMemo(
     () => (
-      <>
-        {isSocialBundleV1Enabled && (
-          <SubnavPills
-            items={SOCIAL_SHELL_TAB_CONFIG.leaderboard.subnav}
-            value={selectedBundleSubnav}
-            onChange={handleBundleSubnavChange}
-          />
-        )}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 pt-4 pb-4"
-        >
-          <Box flexDirection={BoxFlexDirection.Row} gap={2}>
-            {isPerpsEnabled && (
-              <TypeFilterSelector
-                value={activeTab}
-                onPress={openTypeSheet}
-                testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
-              />
-            )}
-            <TimeframeFilterSelector
-              value={timeframe}
-              onPress={openTimeframeSheet}
-              testID={TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="px-4 pt-4 pb-4"
+      >
+        <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+          {isPerpsEnabled && (
+            <TypeFilterSelector
+              value={activeTab}
+              onPress={openTypeSheet}
+              testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
             />
-          </Box>
-          <SortFilterSelector
-            value={sort}
-            onPress={openSortSheet}
-            testID={TopTradersViewSelectorsIDs.SORT_SELECTOR}
+          )}
+          <TimeframeFilterSelector
+            value={timeframe}
+            onPress={openTimeframeSheet}
+            testID={TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR}
           />
         </Box>
-      </>
+        <SortFilterSelector
+          value={sort}
+          onPress={openSortSheet}
+          testID={TopTradersViewSelectorsIDs.SORT_SELECTOR}
+        />
+      </Box>
     ),
     [
       activeTab,
-      handleBundleSubnavChange,
       isPerpsEnabled,
-      isSocialBundleV1Enabled,
       openSortSheet,
       openTimeframeSheet,
       openTypeSheet,
       sort,
-      selectedBundleSubnav,
       timeframe,
     ],
   );
