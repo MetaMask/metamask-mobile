@@ -55,9 +55,10 @@ export function getBrazeInitialPush(): Promise<{
  * links are resolved by Branch and delivered through the Branch flow with
  * ORIGIN_DEEPLINK (unless further tagged).
  *
- * In-app messages, Content Cards, and Banners are not delivered here. Their
- * CTAs are opened by BrazeKit when `shouldOpenURL` returns true (Safari for
- * https:// URLs, the app URL handler for custom schemes).
+ * In-app messages, Content Cards, and Banners are not delivered here. Native
+ * `shouldOpenURL` opens http(s) CTAs with `UIApplication.open` so they leave
+ * the app (Safari / the system browser) instead of Braze's in-app webview.
+ * Custom schemes are still opened by BrazeKit.
  *
  * @returns An EmitterSubscription, or null on error.
  */

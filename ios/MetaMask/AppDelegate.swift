@@ -279,9 +279,10 @@ extension AppDelegate: BrazeDelegate {
   //
   // In-app messages, Content Cards, and Banners have no JS open-URL listener.
   // Returning false for those channels swallows the CTA (iOS-only; Android lets
-  // the Braze SDK open the URI). Return true so Braze can open the URL — Safari
-  // / the system browser for https:// links such as calendly.com, or the app
-  // URL handler for custom schemes.
+  // the Braze SDK open the URI). HTML in-app messages default to Braze's in-app
+  // webview (`context.useWebView == true`); `target="_blank"` does not leave the
+  // app. Open http(s) URLs with UIApplication.open so Safari / the system
+  // browser launches outside MetaMask. Custom schemes still go through Braze.
   func braze(_ braze: Braze, shouldOpenURL context: Braze.URLContext) -> Bool {
     if isBrazeUniversalLinkHost(context.url.host) {
       Branch.getInstance().handleDeepLink(context.url)
@@ -289,11 +290,16 @@ extension AppDelegate: BrazeDelegate {
     }
 
     // Push taps are delivered to JS via PUSH_NOTIFICATION_EVENT. Opening them
-    // here would double-handle the same URL. Every other Braze surface (in-app
-    // messages, Content Cards, Banners) has no JS listener, so Braze must open.
+    // here would double-handle the same URL.
     if context.channel == .notification {
       return false
     }
+
+    if isWebURL(context.url) {
+      UIApplication.shared.open(context.url)
+      return false
+    }
+
     return true
   }
 
@@ -305,5 +311,10 @@ extension AppDelegate: BrazeDelegate {
       host.contains("test-app.link") ||
       host.contains("link.metamask.io") ||
       host.contains("link-test.metamask.io")
+  }
+
+  private func isWebURL(_ url: URL) -> Bool {
+    let scheme = url.scheme?.lowercased()
+    return scheme == "http" || scheme == "https"
   }
 }
