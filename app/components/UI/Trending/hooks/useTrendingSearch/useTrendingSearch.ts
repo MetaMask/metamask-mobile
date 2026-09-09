@@ -109,21 +109,25 @@ export const useTrendingSearch = (opts?: {
     }
 
     const query = debouncedQuery.toLowerCase().trim();
-    const filteredTrendingResults = trendingResults.filter(
+    const trendingMatches = trendingResults.filter(
       (item) =>
         item.symbol?.toLowerCase().includes(query) ||
         item.name?.toLowerCase().includes(query),
     );
-
-    const resultMap = new Map(
-      filteredTrendingResults.map((result) => [result.assetId, result]),
+    const trendingByAssetId = new Map(
+      trendingMatches.map((result) => [result.assetId, result]),
     );
+
+    // The search API ranks results (relevance, verification, pinned assets).
+    // Keep that order; trending matches the API did not return are appended.
+    const resultMap = new Map<string, TrendingAsset>();
 
     searchResults
       .filter((item) => includeStocks || !item.rwaData)
       .forEach((asset) => {
-        if (!resultMap.has(asset.assetId)) {
-          resultMap.set(asset.assetId, {
+        resultMap.set(
+          asset.assetId,
+          trendingByAssetId.get(asset.assetId) ?? {
             assetId: asset.assetId,
             symbol: asset.symbol,
             name: asset.name,
@@ -138,9 +142,15 @@ export const useTrendingSearch = (opts?: {
               | TrendingAsset['rwaData']
               | undefined,
             securityData: asset.securityData,
-          });
-        }
+          },
+        );
       });
+
+    trendingMatches.forEach((item) => {
+      if (!resultMap.has(item.assetId)) {
+        resultMap.set(item.assetId, item);
+      }
+    });
 
     return Array.from(resultMap.values());
   }, [

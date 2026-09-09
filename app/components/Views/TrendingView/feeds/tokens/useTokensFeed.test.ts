@@ -60,23 +60,17 @@ describe('useTokensFeed', () => {
     expect(result.current.refetch).toBe(mockRefetch);
   });
 
-  it('when query is active, returns all data sorted by market cap (skips Fuse re-filter)', () => {
+  it('when query is active, preserves the order returned by the search API', () => {
     const { result } = renderHook(() => useTokensFeed({ query: 'wrap' }));
 
-    // useTrendingSearch already searched the API; all items in `data` are
-    // considered relevant. We only sort by marketCap, not fuzzy-filter.
+    // The API ranks results (relevance, verification); the client must not
+    // re-sort them, e.g. by market cap, or lower-quality tokens can outrank
+    // the intended match.
     expect(result.current.data.map((t) => t.symbol)).toEqual([
+      'AAA',
       'WBTC',
       'WETH',
-      'AAA',
     ]);
-  });
-
-  it('when query is absent, fuzzy-filters by Fuse and returns only matching items', () => {
-    const { result } = renderHook(() => useTokensFeed({ query: undefined }));
-
-    // Without a query, fuseSearch is a no-op (returns data unchanged).
-    expect(result.current.data).toEqual(sampleTokens);
   });
 
   it('refetches when refresh trigger increments past initial mount', async () => {

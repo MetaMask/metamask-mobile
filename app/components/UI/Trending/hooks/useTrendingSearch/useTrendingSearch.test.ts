@@ -242,6 +242,82 @@ describe('useTrendingSearch', () => {
     );
   });
 
+  it('keeps search API order ahead of trending matches for the query', async () => {
+    // Trending ETH (0x123) also matches 'ETH'; the API ranked a different token
+    // first, and that ranking must be preserved.
+    const apiRankedFirst = {
+      assetId: 'eip155:8453/erc20:0xabc' as CaipChainId,
+      symbol: 'ETH2',
+      name: 'Ether Two',
+      decimals: 18,
+      price: '1',
+      aggregatedUsdVolume: 1,
+      marketCap: 0,
+      pricePercentChange1d: '0',
+    };
+    mockUseSearchRequest.mockReturnValue({
+      results: [apiRankedFirst],
+      isLoading: false,
+      error: null,
+      search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({ searchQuery: 'ETH', sortBy: 'h24_trending' }),
+    );
+
+    jest.advanceTimersByTime(200);
+
+    await waitFor(() => {
+      expect(result.current.data).toHaveLength(2);
+    });
+
+    expect(result.current.data.map((item) => item.assetId)).toEqual([
+      'eip155:8453/erc20:0xabc',
+      'eip155:1/erc20:0x123',
+    ]);
+  });
+
+  it('keeps the trending object for a token in both sets but at the API position', async () => {
+    const duplicateOfTrendingEth = {
+      assetId: mockTrendingResults[0].assetId as CaipChainId,
+      symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: 18,
+      price: '2000',
+      aggregatedUsdVolume: 1000000,
+      marketCap: 500000000,
+      pricePercentChange1d: '3',
+    };
+    mockUseSearchRequest.mockReturnValue({
+      results: [mockSearchResults[0], duplicateOfTrendingEth],
+      isLoading: false,
+      error: null,
+      search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({ searchQuery: 'ETH', sortBy: 'h24_trending' }),
+    );
+
+    jest.advanceTimersByTime(200);
+
+    await waitFor(() => {
+      expect(result.current.data).toHaveLength(2);
+    });
+
+    expect(result.current.data[0].assetId).toBe('eip155:1/erc20:0x789');
+    expect(result.current.data[1]).toBe(mockTrendingResults[0]);
+  });
+
   it('returns trending loading state when no search query', () => {
     mockUseTrendingRequest.mockReturnValue({
       results: [],
