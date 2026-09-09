@@ -1,18 +1,17 @@
 import React from 'react';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../component-library/components/Badges/BadgeWrapper';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { ImageSourcePropType } from 'react-native';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  type ImageOrSvgSrc,
+} from '@metamask/design-system-react-native';
 
 interface DeFiAvatarWithBadgeProps {
   avatarName: string;
   avatarIconUrl: string;
-  networkIconAvatar: ImageSourcePropType | undefined;
+  networkIconAvatar: ImageOrSvgSrc | undefined;
 }
 
 const DeFiAvatarWithBadge: React.FC<DeFiAvatarWithBadgeProps> = ({
@@ -21,15 +20,26 @@ const DeFiAvatarWithBadge: React.FC<DeFiAvatarWithBadgeProps> = ({
   networkIconAvatar,
 }: DeFiAvatarWithBadgeProps) => (
   <BadgeWrapper
-    badgePosition={BadgePosition.BottomRight}
-    badgeElement={
-      <Badge variant={BadgeVariant.Network} imageSource={networkIconAvatar} />
+    position={BadgeWrapperPosition.BottomRight}
+    badge={
+      networkIconAvatar ? (
+        <BadgeNetwork
+          src={networkIconAvatar}
+          twClassName="h-5 w-5 "
+          imageOrSvgProps={{
+            imageProps: { testID: 'network-avatar-image' },
+          }}
+        />
+      ) : undefined
     }
   >
     <AvatarToken
       name={avatarName}
-      imageSource={{ uri: avatarIconUrl }}
-      size={AvatarSize.Lg}
+      src={{ uri: avatarIconUrl }}
+      size={AvatarTokenSize.Lg}
+      imageOrSvgProps={{
+        imageProps: { testID: 'token-avatar-image' },
+      }}
     />
   </BadgeWrapper>
 );

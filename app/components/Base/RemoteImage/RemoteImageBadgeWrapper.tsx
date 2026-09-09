@@ -1,8 +1,9 @@
-import React, { PropsWithChildren, useCallback } from 'react';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
+import React, { PropsWithChildren, useCallback, useMemo } from 'react';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPositionAnchorShape,
+} from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../selectors/networkController';
 import {
@@ -14,17 +15,12 @@ import {
 } from '../../../util/networks';
 import images from 'images/image-icons';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-
-import { BadgeAnchorElementShape } from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { toHex } from '@metamask/controller-utils';
 import {
   CustomNetworkImgMapping,
   PopularList,
   UnpopularNetworkList,
 } from '../../../util/networks/customNetworks';
-import styleSheet from './RemoteImageBadgeWrapper.styles';
-import { useStyles } from '../../../component-library/hooks';
 
 interface RemoteImageBadgeWrapperProps {
   chainId?: number;
@@ -34,14 +30,13 @@ interface RemoteImageBadgeWrapperProps {
 const RemoteImageBadgeWrapper = (
   props: PropsWithChildren<RemoteImageBadgeWrapperProps>,
 ) => {
-  const { styles } = useStyles(styleSheet, {});
   // The chainId would be passed in props from parent for collectible media
   //TODO remove once migrated to TS and chainID is properly typed to hex
   const currentChainId = useSelector(selectChainId);
   const chainId = props.chainId ? toHex(props.chainId) : currentChainId;
   const networkName = useSelector(selectNetworkName);
 
-  const NetworkBadgeSource = useCallback(() => {
+  const networkBadgeSource = useCallback(() => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
     if (isMainNet(chainId)) return images.ETHEREUM;
@@ -68,21 +63,23 @@ const RemoteImageBadgeWrapper = (
     return undefined;
   }, [chainId]);
 
+  const networkBadgeSizeClassName = useMemo(
+    () => (props.isFullRatio ? 'h-8 w-8' : 'h-4 w-4'),
+    [props.isFullRatio],
+  );
+
   return (
     <BadgeWrapper
-      badgePosition={{
+      positionAnchorShape={BadgeWrapperPositionAnchorShape.Rectangular}
+      customPosition={{
         bottom: 5,
         right: 5,
       }}
-      style={styles.remoteImageBadgeWrapper}
-      anchorElementShape={BadgeAnchorElementShape.Rectangular}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={NetworkBadgeSource()}
+      badge={
+        <BadgeNetwork
+          src={networkBadgeSource()}
           name={networkName}
-          isScaled={false}
-          size={props.isFullRatio ? AvatarSize.Md : AvatarSize.Xs}
+          twClassName={networkBadgeSizeClassName}
         />
       }
     >

@@ -1,11 +1,10 @@
 import React from 'react';
-import BadgeNetwork from '../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import {
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeWrapper,
+  BadgeNetwork,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -30,19 +29,19 @@ const AddAssetTokenRow = ({ asset, networkName }: AddAssetTokenRowProps) => (
   >
     <Box>
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
           <BadgeNetwork
-            imageSource={NetworkBadgeSource(asset.chainId as `0x${string}`)}
-            name={networkName}
+            src={NetworkBadgeSource(asset.chainId as `0x${string}`)}
+            twClassName="h-5 w-5"
           />
         }
       >
         {asset.image && (
           <AvatarToken
             name={asset.symbol}
-            imageSource={{ uri: asset.image }}
-            size={AvatarSize.Lg}
+            src={{ uri: asset.image }}
+            size={AvatarTokenSize.Lg}
           />
         )}
       </BadgeWrapper>

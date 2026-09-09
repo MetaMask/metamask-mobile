@@ -524,10 +524,7 @@ export const TokenListItem = React.memo(
         position={BadgeWrapperPosition.BottomRight}
         badge={
           networkBadgeSource && (
-            <BadgeNetwork
-              src={networkBadgeSource}
-              twClassName="h-5 w-5 rounded-1"
-            />
+            <BadgeNetwork src={networkBadgeSource} twClassName="h-5 w-5" />
           )
         }
       >

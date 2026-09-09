@@ -1,4 +1,5 @@
-import { ImageSourcePropType } from 'react-native';
+import type { ImageOrSvgSrc } from '@metamask/design-system-react-native';
+import type { ImageSourcePropType } from 'react-native';
 import {
   CaipChainId,
   isCaipChainId,
@@ -25,29 +26,38 @@ export const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
 
 export { caipChainIdToHex };
 
+const toImageOrSvgSrc = (
+  source: ImageSourcePropType | string | undefined,
+): ImageOrSvgSrc | undefined => {
+  if (source === undefined) return undefined;
+  return source as ImageOrSvgSrc;
+};
+
 export const getNetworkBadgeSource = (
   caipChainId: CaipChainId,
-): ImageSourcePropType | undefined => {
+): ImageOrSvgSrc | undefined => {
   const hexChainId = caipChainIdToHex(caipChainId);
-  if (isTestNet(hexChainId)) return getTestNetImageByChainId(hexChainId);
+  if (isTestNet(hexChainId)) {
+    return toImageOrSvgSrc(getTestNetImageByChainId(hexChainId));
+  }
   const defaultNetwork = getDefaultNetworkByChainId(hexChainId) as
-    | { imageSource: ImageSourcePropType }
+    | { imageSource: ImageSourcePropType | string }
     | undefined;
-  if (defaultNetwork) return defaultNetwork.imageSource;
+  if (defaultNetwork) return toImageOrSvgSrc(defaultNetwork.imageSource);
   const unpopularNetwork = UnpopularNetworkList.find(
     (n) => n.chainId === hexChainId,
   );
   const popularNetwork = PopularList.find((n) => n.chainId === hexChainId);
   const network = unpopularNetwork || popularNetwork;
-  if (network) return network.rpcPrefs.imageSource;
+  if (network) return toImageOrSvgSrc(network.rpcPrefs.imageSource);
   if (
     isCaipChainId(caipChainId) &&
     parseCaipChainId(caipChainId).namespace !== KnownCaipNamespace.Eip155
   ) {
-    return getNonEvmNetworkImageSourceByChainId(caipChainId);
+    return toImageOrSvgSrc(getNonEvmNetworkImageSourceByChainId(caipChainId));
   }
   const customNetworkImg = CustomNetworkImgMapping[hexChainId];
-  if (customNetworkImg) return customNetworkImg as ImageSourcePropType;
+  if (customNetworkImg) return toImageOrSvgSrc(customNetworkImg);
   return undefined;
 };
 

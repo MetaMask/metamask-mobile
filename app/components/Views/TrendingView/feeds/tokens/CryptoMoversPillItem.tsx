@@ -8,13 +8,11 @@ import {
   getPriceChangeFieldKey,
 } from '../../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import TrendingTokenLogo from '../../../../UI/Trending/components/TrendingTokenLogo';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import {
+  BadgeNetwork,
+  BadgeWrapperPosition,
+  BadgeWrapper,
+} from '@metamask/design-system-react-native';
 import { useTrendingTokenPress } from '../../../../UI/Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { CRYPTO_MOVERS_HOME_FILTER_CONTEXT } from '../search-utils';
@@ -65,14 +63,9 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   const leading = useMemo(
     () => (
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            size={AvatarSize.Xs}
-            variant={BadgeVariant.Network}
-            imageSource={networkBadgeImageSource}
-            isScaled={false}
-          />
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          <BadgeNetwork src={networkBadgeImageSource} twClassName="h-4 w-4" />
         }
       >
         <TrendingTokenLogo
