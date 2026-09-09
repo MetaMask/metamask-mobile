@@ -211,6 +211,7 @@ const useEarnAssetCatalogue = ({
   } = useSelector(selectEarnAssetCatalogueInputs);
   const {
     apyPercent: moneyApyPercent,
+    apyDecimal: moneyApyDecimal,
     vaultApyQuery: {
       isLoading: isMoneyApyLoading,
       isError: isMoneyApyError,
@@ -570,6 +571,7 @@ const useEarnAssetCatalogue = ({
       hasError,
       errors,
       refresh,
+      moneyApyDecimal,
       moneyApyPercent,
       moneyRateStatus: createEarnRate({
         type: 'APY',
@@ -586,6 +588,7 @@ const useEarnAssetCatalogue = ({
       isLoading,
       isMoneyApyError,
       isMoneyApyLoading,
+      moneyApyDecimal,
       moneyApyPercent,
       refresh,
     ],
