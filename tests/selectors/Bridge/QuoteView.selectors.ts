@@ -40,21 +40,3 @@ export const NETWORK_TO_CHAIN_ID: Record<string, string> = {
 export function getChainIdForNetwork(network: string): string {
   return NETWORK_TO_CHAIN_ID[network] ?? '0x1';
 }
-
-export const QuoteViewSelectorIDs = {
-  TOKEN_SEARCH_INPUT: 'bridge-token-search-input',
-  TOKEN_LIST: 'bridge-token-list',
-  EXPAND_QUOTE_DETAILS: 'expand-quote-details',
-  SOURCE_TOKEN_AREA: 'source-token-area',
-  DESTINATION_TOKEN_AREA: 'dest-token-area',
-  SOURCE_TOKEN_INPUT: 'source-token-area-input',
-  DESTINATION_TOKEN_INPUT: 'dest-token-area-input',
-  SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
-  CONFIRM_BUTTON: 'bridge-confirm-button',
-  BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
-  NO_QUOTES_BANNER: 'bridge-no-quotes',
-  FEE_DISCLAIMER: 'bridge-fee-disclaimer',
-  KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
-  BACK_BUTTON: 'button-icon',
-  PRICE_IMPACT_INFO_BUTTON: 'price-impact-info-button',
-};

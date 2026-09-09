@@ -8,6 +8,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { inputStepperDescriptionRow } from './styles';
 import { InputStepperProps } from './types';
+import { InputStepperTestIds } from './InputStepper.testIds';
 
 interface InputStepperDescriptionRowProps {
   description: InputStepperProps['description'];
@@ -23,12 +24,12 @@ export const InputStepperDescriptionRow = ({
   return (
     <View
       style={inputStepperDescriptionRow.descriptionRow}
-      testID="input-stepper-description-row"
+      testID={InputStepperTestIds.DESCRIPTION_ROW}
     >
       {description.icon && (
         <View style={inputStepperDescriptionRow.iconWrapper}>
           <Icon
-            testID="input-stepper-description-icon"
+            testID={InputStepperTestIds.DESCRIPTION_ICON}
             name={description.icon.name}
             size={description.icon.size}
             color={description.icon.color}
@@ -41,7 +42,7 @@ export const InputStepperDescriptionRow = ({
           color={description.color}
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          testID="input-text-description-message"
+          testID={InputStepperTestIds.DESCRIPTION_MESSAGE}
         >
           {description.message}
         </Text>

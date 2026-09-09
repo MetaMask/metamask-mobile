@@ -8,7 +8,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import { getAssetTestId } from '../../../../../tests/selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../../AssetElement/AssetElement.testIds';
 import TagBase, {
   TagSeverity,
   TagShape,
