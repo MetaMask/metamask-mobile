@@ -2,7 +2,7 @@ import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/Wal
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import { type AppiumElement, getDriver } from '../../framework';
+import { type AppiumElement, getDriver, wrapElement } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 
@@ -70,48 +70,77 @@ export class WalletHomeScroll {
     });
   }
 
+  /**
+   * Re-query the target by its selector so swipe/scroll loops do not keep
+   * polling a stale element id after the original node is unmounted.
+   */
+  async resolveFreshWalletHomeTarget(
+    target: Promise<AppiumElement>,
+  ): Promise<AppiumElement> {
+    const located = await target;
+    const selector = await located.unwrap().selector;
+    if (typeof selector !== 'string' || selector.length === 0) {
+      return located;
+    }
+
+    return wrapElement(getDriver().$(selector));
+  }
+
   async scrollWalletHomeToElement(
     target: Promise<AppiumElement>,
     description: string,
     direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
   ): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.walletScrollView, {
+      timeout: resolveE2EWaitTimeoutMs(10_000),
+      description: `wallet-scroll-view for ${description}`,
+    });
+
     if (this.isAndroidAppium()) {
-      await Assertions.expectElementToBeVisible(this.walletScrollView, {
-        timeout: resolveE2EWaitTimeoutMs(10_000),
-        description: `wallet-scroll-view for ${description}`,
-      });
       const scrollView = (await Promise.resolve(
         this.walletScrollView,
       )) as AppiumElement;
-      await Gestures.scrollIntoView(target, {
-        scrollableElement: scrollView,
-        direction: direction === 'down' ? 'up' : 'down',
-        maxScrolls: maxAttempts,
-      });
-      await Assertions.expectElementToBeVisible(target, {
-        timeout: 5_000,
-        description,
-      });
+      await Gestures.scrollIntoView(
+        await this.resolveFreshWalletHomeTarget(target),
+        {
+          scrollableElement: scrollView,
+          direction: direction === 'down' ? 'up' : 'down',
+          maxScrolls: maxAttempts,
+        },
+      );
+      await Assertions.expectElementToBeVisible(
+        await this.resolveFreshWalletHomeTarget(target),
+        {
+          timeout: 5_000,
+          description,
+        },
+      );
       return;
     }
 
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
       try {
-        await Assertions.expectElementToBeVisible(target, {
-          timeout: 1_500,
-          description,
-        });
+        await Assertions.expectElementToBeVisible(
+          await this.resolveFreshWalletHomeTarget(target),
+          {
+            timeout: 1_500,
+            description,
+          },
+        );
         return;
       } catch {
         await this.scrollWalletHome(direction, 0.5);
       }
     }
 
-    await Assertions.expectElementToBeVisible(target, {
-      timeout: 5_000,
-      description,
-    });
+    await Assertions.expectElementToBeVisible(
+      await this.resolveFreshWalletHomeTarget(target),
+      {
+        timeout: 5_000,
+        description,
+      },
+    );
   }
 
   async tapIfAlreadyVisible(
@@ -122,11 +151,12 @@ export class WalletHomeScroll {
     const { tapTimeout = 30_000 } = options;
 
     try {
-      await Assertions.expectElementToBeVisible(target, {
+      const freshTarget = await this.resolveFreshWalletHomeTarget(target);
+      await Assertions.expectElementToBeVisible(freshTarget, {
         timeout: 2000,
         description,
       });
-      await Gestures.waitAndTap(target, {
+      await Gestures.waitAndTap(freshTarget, {
         elemDescription: description,
         timeout: tapTimeout,
       });
@@ -171,7 +201,7 @@ export class WalletHomeScroll {
         });
       }
     }
-    await Gestures.waitAndTap(target, {
+    await Gestures.waitAndTap(await this.resolveFreshWalletHomeTarget(target), {
       elemDescription: description,
       timeout: tapTimeout,
     });

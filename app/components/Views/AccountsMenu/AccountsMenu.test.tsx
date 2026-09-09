@@ -14,6 +14,7 @@ import {
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -95,6 +96,10 @@ jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => false),
 }));
 
+jest.mock('../../UI/Card/hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => null),
+}));
+
 jest.mock('../../../selectors/notifications', () => ({
   selectIsMetamaskNotificationsEnabled: jest.fn(),
   getMetamaskNotificationsUnreadCount: jest.fn(),
@@ -112,11 +117,17 @@ const mockGetBetaSupportUrl = jest.fn();
 jest.mock('./AccountsMenu.utils', () => ({
   getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
+
+const mockUseCardUkMigrationUpdateBadge = jest.mocked(
+  useCardUkMigrationUpdateBadge,
+);
+
 describe('AccountsMenu', () => {
   let mockAlert: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
     // Default to the beta branch so pre-existing tests that don't care about
     // support consent keep their prior (beta) behavior; consent tests below
     // override this to '' to exercise the non-beta branch.
@@ -182,6 +193,26 @@ describe('AccountsMenu', () => {
 
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('CardScreens');
+    });
+
+    it('shows Update badge when user is UK migration eligible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValueOnce('warning');
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides Update badge when user is not UK migration eligible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValueOnce(null);
+
+      const { queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE),
+      ).toBeNull();
     });
   });
 

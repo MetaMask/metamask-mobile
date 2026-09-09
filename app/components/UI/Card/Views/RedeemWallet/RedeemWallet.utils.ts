@@ -8,7 +8,6 @@ const CURRENCY_DISPLAY_MAP: Record<string, string> = {
 };
 
 export const DISPLAY_PRECISION = 4;
-const DISPLAY_SCALE = 10 ** DISPLAY_PRECISION;
 const ZERO = new BigNumber(0);
 
 export const formatCurrency = (raw: string): string =>
@@ -33,29 +32,16 @@ const roundFeeUpToDisplayPrecision = (fee: string | number): BigNumber => {
   return parsedFee.decimalPlaces(DISPLAY_PRECISION, BigNumber.ROUND_CEIL);
 };
 
-export const roundFeeUp = (fee: string | number): number =>
-  roundFeeUpToDisplayPrecision(fee).toNumber();
-
-export const floorToDisplayPrecision = (value: number): number => {
-  const parsedValue = safeParseBigNumber(value);
-  if (!parsedValue.isFinite() || parsedValue.lte(0)) {
-    return 0;
-  }
-  return parsedValue
-    .decimalPlaces(DISPLAY_PRECISION, BigNumber.ROUND_FLOOR)
-    .toNumber();
-};
-
-export interface CashbackWithdrawalAmounts {
+export interface RedeemWithdrawalAmounts {
   roundedFeeNum: number;
   expectedToReceiveNumber: number;
   hasInsufficientBalance: boolean;
 }
 
-export const getCashbackWithdrawalAmounts = (
+export const getRedeemWithdrawalAmounts = (
   balance: string,
   feePrice: string,
-): CashbackWithdrawalAmounts => {
+): RedeemWithdrawalAmounts => {
   const parsedBalance = safeParseBigNumber(balance);
   const safeBalance =
     parsedBalance.isFinite() && parsedBalance.gt(0) ? parsedBalance : ZERO;

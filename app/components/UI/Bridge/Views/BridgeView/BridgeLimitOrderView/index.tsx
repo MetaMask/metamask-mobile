@@ -417,6 +417,7 @@ const BridgeLimitOrderViewContent = ({
           ctaDisabled={isMissingPrice || !isQuoteActive}
           onCTAPress={handleCreateOrderPress}
           ctaLabel={strings('bridge.limit.create_order')}
+          latestSourceBalance={latestSourceBalance}
         />
 
         <SwapsKeypad
@@ -430,6 +431,8 @@ const BridgeLimitOrderViewContent = ({
               label={strings('bridge.limit.create_order')}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={isMissingPrice || !isQuoteActive}
+              loading={isMissingPrice || !isQuoteActive}
+              latestSourceBalance={latestSourceBalance}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions

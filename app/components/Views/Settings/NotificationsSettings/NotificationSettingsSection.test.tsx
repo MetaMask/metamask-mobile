@@ -97,22 +97,6 @@ jest.mock('./AccountsList.hooks', () => ({
   }),
 }));
 
-interface WalletActivitySection {
-  pushNotificationsEnabled: boolean;
-  inAppNotificationsEnabled: boolean;
-  accounts: { address: string; enabled: boolean }[];
-}
-
-// Runs the updater passed to updatePreferencesSection to get the persisted section.
-const applyWalletActivityUpdate = (
-  walletActivity: WalletActivitySection = mockPreferences.walletActivity,
-) => {
-  const [, sectionUpdate] = mockUpdatePreferencesSection.mock.calls[0];
-  return (sectionUpdate as (section: WalletActivitySection) => unknown)(
-    walletActivity,
-  );
-};
-
 const marketingDisclaimer =
   'By turning this on, you agree to receive product news and marketing updates from MetaMask.';
 
@@ -176,7 +160,7 @@ describe('NotificationSettingsSection', () => {
     expect(screen.getByText(marketingDisclaimer)).toBeOnTheScreen();
   });
 
-  it('disables both channels and tracks an ALL update when deselecting all accounts', async () => {
+  it('tracks an ALL update without touching stored preferences when deselecting all accounts', async () => {
     renderSection({
       type: 'walletActivity',
       title: 'Wallet activity',
@@ -206,19 +190,11 @@ describe('NotificationSettingsSection', () => {
           .build(),
       );
     });
-    expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);
-    expect(mockUpdatePreferencesSection).toHaveBeenCalledWith(
-      'walletActivity',
-      expect.any(Function),
-    );
-    expect(applyWalletActivityUpdate()).toStrictEqual({
-      ...mockPreferences.walletActivity,
-      pushNotificationsEnabled: false,
-      inAppNotificationsEnabled: false,
-    });
+    // Account subscriptions live in the Trigger API; no preferences blob write.
+    expect(mockUpdatePreferencesSection).not.toHaveBeenCalled();
   });
 
-  it('enables both channels and tracks an ALL update when selecting all accounts', async () => {
+  it('tracks an ALL update without touching stored preferences when selecting all accounts', async () => {
     mockHasEnabledAccount = false;
 
     renderSection({
@@ -250,52 +226,10 @@ describe('NotificationSettingsSection', () => {
           .build(),
       );
     });
-    expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);
-    expect(mockUpdatePreferencesSection).toHaveBeenCalledWith(
-      'walletActivity',
-      expect.any(Function),
-    );
-    expect(applyWalletActivityUpdate()).toStrictEqual({
-      ...mockPreferences.walletActivity,
-      pushNotificationsEnabled: true,
-      inAppNotificationsEnabled: true,
-    });
+    expect(mockUpdatePreferencesSection).not.toHaveBeenCalled();
   });
 
-  it('keeps the accounts written by the controller when flipping channels for all accounts', async () => {
-    renderSection({
-      type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
-    });
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL,
-        ),
-      );
-    });
-
-    await waitFor(() => {
-      expect(mockUpdatePreferencesSection).toHaveBeenCalledTimes(1);
-    });
-
-    // Updater must apply to the refreshed preferences, not this render's copy.
-    const refreshedWalletActivity = {
-      pushNotificationsEnabled: true,
-      inAppNotificationsEnabled: true,
-      accounts: [{ address: '0x1', enabled: false }],
-    };
-
-    expect(applyWalletActivityUpdate(refreshedWalletActivity)).toStrictEqual({
-      pushNotificationsEnabled: false,
-      inAppNotificationsEnabled: false,
-      accounts: [{ address: '0x1', enabled: false }],
-    });
-  });
-
-  it('disables the accounts section when both wallet activity channels are off', () => {
+  it('keeps the wallet activity accounts interactive when both stored channel flags are off', () => {
     mockPreferences.walletActivity.pushNotificationsEnabled = false;
     mockPreferences.walletActivity.inAppNotificationsEnabled = false;
 
@@ -312,27 +246,8 @@ describe('NotificationSettingsSection', () => {
       .UNSAFE_getAllByType(Text)
       .find((node) => node.props.children === 'Deselect all');
 
-    expect(selectAll).toBeDisabled();
-    expect(deselectAllLabel?.props.color).toBe(TextColor.TextMuted);
-  });
-
-  it('keeps the accounts section interactive when at least one channel is on', () => {
-    mockPreferences.walletActivity.pushNotificationsEnabled = true;
-    mockPreferences.walletActivity.inAppNotificationsEnabled = false;
-
-    renderSection({
-      type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
-    });
-
-    const selectAll = screen.getByTestId(
-      NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL,
-    );
-    const deselectAllLabel = screen
-      .UNSAFE_getAllByType(Text)
-      .find((node) => node.props.children === 'Deselect all');
-
+    // Wallet activity has no channel toggles; stale stored flags must not
+    // grey out the only remaining settings surface.
     expect(selectAll).not.toBeDisabled();
     expect(deselectAllLabel?.props.color).toBe(TextColor.PrimaryDefault);
   });
@@ -479,9 +394,9 @@ describe('NotificationSettingsSection', () => {
       }),
     );
     renderSection({
-      type: 'walletActivity',
-      title: 'Wallet activity',
-      description: 'Buy, sells, transfers, swaps',
+      type: 'perps',
+      title: 'Trading Activity',
+      description: 'Perps position changes',
     });
 
     const pushToggle = screen.getByTestId(
@@ -499,7 +414,7 @@ describe('NotificationSettingsSection', () => {
       expect(inAppToggle.props.disabled).not.toBe(true);
     });
     expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
-      'walletActivity',
+      'perps',
       'pushNotificationsEnabled',
       false,
     );
@@ -519,9 +434,9 @@ describe('NotificationSettingsSection', () => {
       )
       .mockResolvedValueOnce(undefined);
     renderSection({
-      type: 'walletActivity',
-      title: 'Wallet activity',
-      description: 'Buy, sells, transfers, and swaps',
+      type: 'perps',
+      title: 'Trading Activity',
+      description: 'Perps position changes',
     });
 
     await act(async () => {
@@ -569,13 +484,13 @@ describe('NotificationSettingsSection', () => {
     });
     expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
       1,
-      'walletActivity',
+      'perps',
       'pushNotificationsEnabled',
       false,
     );
     expect(mockUpdateSectionChannel).toHaveBeenNthCalledWith(
       2,
-      'walletActivity',
+      'perps',
       'pushNotificationsEnabled',
       true,
     );
