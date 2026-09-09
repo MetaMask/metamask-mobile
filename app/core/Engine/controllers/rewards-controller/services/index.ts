@@ -20,6 +20,7 @@ export type {
   RewardsDataServiceGetVIPDashboardAction,
   RewardsDataServiceGetVipRefereeDashboardAction,
   RewardsDataServiceGetVipFeesAction,
+  RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
   RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
   RewardsDataServiceGetPredictThePitchPositionsAction,

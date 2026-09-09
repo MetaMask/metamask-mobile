@@ -152,6 +152,8 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
+  NeoBankServiceActions,
+  NeoBankServiceEvents,
   TransakService,
   TransakServiceActions,
   TransakServiceEvents,
@@ -364,6 +366,12 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
+import type {
+  UiSlotsControllerActions,
+  UiSlotsControllerEvents,
+  UiSlotsControllerState,
+} from './controllers/ui-slots-controller/types';
 import { PredictNextController } from '../../components/UI/PredictNext/controller/PredictNextController';
 import type {
   PredictMarketDataServiceActions,
@@ -673,6 +681,7 @@ export type GlobalActions =
   | PredictControllerActions
   | PredictMarketDataServiceActions
   | CardControllerActions
+  | UiSlotsControllerActions
   | QrSyncControllerActions
   | QrSyncProvisioningServiceActions
   | ClientControllerActions
@@ -697,6 +706,7 @@ export type GlobalActions =
   | ProofOfOwnershipServiceActions
   | RampsControllerActions
   | RampsServiceActions
+  | NeoBankServiceActions
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
@@ -787,6 +797,7 @@ export type GlobalEvents =
   | PredictControllerEvents
   | PredictMarketDataServiceEvents
   | CardControllerEvents
+  | UiSlotsControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
   | RewardsControllerEvents
@@ -802,6 +813,7 @@ export type GlobalEvents =
   | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
+  | NeoBankServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
@@ -941,6 +953,7 @@ export type MessengerClients = {
   PredictController: PredictController;
   PredictNextController: PredictNextController;
   CardController: CardController;
+  UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
   QrSyncProvisioningService: QrSyncProvisioningService;
   ClientController: ClientController;
@@ -1039,6 +1052,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
@@ -1143,6 +1157,7 @@ export type MessengerClientsToInitialize =
   | 'PredictController'
   | 'PredictNextController'
   | 'CardController'
+  | 'UiSlotsController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'
   | 'ClientController'

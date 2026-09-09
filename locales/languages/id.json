@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Keanggotaan Pro Anda",
     "manage": "Kelola langganan",
-    "manage_plan": "Kelola paket",
-    "earned_with_pro": "Diperoleh dengan Pro",
-    "saved_with_pro": "Hemat dengan Pro",
-    "next_payment": "Pembayaran berikutnya senilai {{amount}} akan tiba pada {{date}}.",
     "member_pricing": {
       "title": "Harga anggota pada perdagangan",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "Keanggotaan Anda",
       "plan": "Keanggotaan",
       "earned_this_month": "Diperoleh bulan ini",
-      "saved_this_month": "Disimpan bulan ini",
       "payment_details": "Detail pembayaran",
       "total": "Total",
       "paying_with": "Membayar dengan",
