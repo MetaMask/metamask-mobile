@@ -171,7 +171,6 @@ import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
-import { configRegistryControllerInit } from './controllers/config-registry-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
@@ -189,7 +188,6 @@ import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
-import { configRegistryApiServiceInit } from './controllers/config-registry-api-service-init.ts';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
@@ -388,8 +386,6 @@ export class Engine {
         DelegationController: DelegationControllerInit,
         NetworkConnectionBannerController:
           networkConnectionBannerControllerInit,
-        ConfigRegistryController: configRegistryControllerInit,
-        ConfigRegistryApiService: configRegistryApiServiceInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
@@ -462,6 +458,12 @@ export class Engine {
     const subscriptionService = this.#wallet.getInstance('SubscriptionService');
     const shieldController = this.#wallet.getInstance('ShieldController');
     const claimsController = this.#wallet.getInstance('ClaimsController');
+    const configRegistryController = this.#wallet.getInstance(
+      'ConfigRegistryController',
+    );
+    const configRegistryApiService = this.#wallet.getInstance(
+      'ConfigRegistryApiService',
+    );
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
@@ -593,8 +595,8 @@ export class Engine {
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
       NetworkConnectionBannerController: networkConnectionBannerController,
-      ConfigRegistryController: messengerClientsByName.ConfigRegistryController,
-      ConfigRegistryApiService: messengerClientsByName.ConfigRegistryApiService,
+      ConfigRegistryController: configRegistryController,
+      ConfigRegistryApiService: configRegistryApiService,
       SentinelApiService: messengerClientsByName.SentinelApiService,
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
@@ -963,6 +965,30 @@ export class Engine {
       previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
       syncWithBasicFunctionality(currentBasicFunctionalityEnabled);
     });
+
+    // Force-refresh flags when a canonical profile id first becomes available
+    let previousCanonicalProfileId =
+      Object.entries(
+        this.controllerMessenger.call('AuthenticationController:getState')
+          .srpSessionData ?? {},
+      )?.[0]?.[1]?.profile?.canonicalProfileId ?? '';
+
+    this.controllerMessenger.subscribe(
+      'AuthenticationController:stateChange',
+      ({ srpSessionData }) => {
+        const canonicalProfileId =
+          Object.entries(srpSessionData ?? {})?.[0]?.[1]?.profile
+            ?.canonicalProfileId ?? '';
+        if (canonicalProfileId === previousCanonicalProfileId) {
+          return;
+        }
+
+        previousCanonicalProfileId = canonicalProfileId;
+        remoteFeatureFlagController
+          .updateRemoteFeatureFlags(true)
+          .catch((error) => Logger.log('Feature flags update failed: ', error));
+      },
+    );
 
     Engine.instance = this;
   }
@@ -1352,6 +1378,7 @@ export class Engine {
       methodData: {},
       transactions: [],
       transactionBatches: [],
+      batchTransactionCounts: {},
       lastFetchedBlockNumbers: {},
       submitHistory: [],
       swapsTransactions: {},

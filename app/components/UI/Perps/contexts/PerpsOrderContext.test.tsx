@@ -46,6 +46,7 @@ describe('PerpsOrderContext', () => {
     setTriggerPrice: jest.fn(),
     resetPriceInputInteraction: jest.fn(),
     setOrderType: jest.fn(),
+    pendingReduceOnly: undefined,
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
@@ -323,6 +324,7 @@ describe('PerpsOrderContext', () => {
       expect(contextResult).toHaveProperty('setStopLossPrice');
       expect(contextResult).toHaveProperty('setLimitPrice');
       expect(contextResult).toHaveProperty('setOrderType');
+      expect(contextResult).toHaveProperty('pendingReduceOnly');
       expect(contextResult).toHaveProperty('handlePercentageAmount');
       expect(contextResult).toHaveProperty('handleMaxAmount');
       expect(contextResult).toHaveProperty('handleMinAmount');

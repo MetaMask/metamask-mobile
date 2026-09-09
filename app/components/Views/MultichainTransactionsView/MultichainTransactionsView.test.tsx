@@ -18,6 +18,7 @@ import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListIt
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import Routes from '../../../constants/navigation/Routes';
+import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 
 jest.mock('../../../util/analytics/externalLinkTracking', () => ({
   ...jest.requireActual('../../../util/analytics/externalLinkTracking'),
@@ -244,6 +245,10 @@ describe('MultichainTransactionsView', () => {
         }),
       }),
       undefined,
+    );
+    expect(useMultichainTransactionDisplay).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'tx-123' }),
+      SolScope.Mainnet,
     );
     expect(
       jest.mocked(ActivityListItemRow).mock.calls[0][0],
@@ -503,8 +508,8 @@ describe('MultichainTransactionsView', () => {
     expect(ActivityListItemRow).toHaveBeenCalledWith(
       expect.objectContaining({
         item: expect.objectContaining({
+          hash: '0xbase-source-hash',
           type: 'bridge',
-          raw: expect.objectContaining({ type: 'localTransaction' }),
         }),
       }),
       undefined,
@@ -580,7 +585,7 @@ describe('MultichainTransactionsView', () => {
 
     expect(bridgeRows).toHaveLength(1);
     // The surviving row is the arrival (the EVM source tx), not the fill.
-    expect(bridgeRows[0][0].item.raw?.type).toBe('localTransaction');
+    expect(bridgeRows[0][0].item.hash).toBe('0xbase-source-hash');
   });
 
   it('navigates to ActivityDetails when a bridge arrival is tapped', async () => {

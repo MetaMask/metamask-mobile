@@ -12,6 +12,7 @@ import EngineService from '../../../../core/EngineService';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
+import { decodeErc20Transfer } from '../../../../util/transactions/erc20-transfer';
 import { strings } from '../../../../../locales/i18n';
 import { store } from '../../../../store';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
@@ -41,33 +42,6 @@ import {
 } from './useMoneyAccount';
 
 const TELLER_INTERFACE = new ethers.utils.Interface(TELLER_ABI);
-const ERC20_TRANSFER_INTERFACE = new ethers.utils.Interface([
-  'function transfer(address to, uint256 amount)',
-]);
-
-interface DecodedErc20Transfer {
-  recipient: string;
-  amount: bigint;
-}
-
-function decodeErc20Transfer(
-  data: string | undefined,
-): DecodedErc20Transfer | undefined {
-  if (!data) return undefined;
-  try {
-    const [to, amount] = ERC20_TRANSFER_INTERFACE.decodeFunctionData(
-      'transfer',
-      data,
-    );
-    return { recipient: to as string, amount: BigInt(amount.toString()) };
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'useMoneyTransactionStatus: failed to decode erc20 transfer calldata',
-    );
-    return undefined;
-  }
-}
 
 function resolveWithdrawDestination(
   recipient: string | undefined,
@@ -327,9 +301,10 @@ export const useMoneyTransactionStatus = () => {
         const transfer = decodeErc20Transfer(
           nestedTxWithType(transactionMeta, TransactionType.tokenMethodTransfer)
             ?.data,
+          TransactionType.tokenMethodTransfer,
         );
         const amountFiat = transfer
-          ? formatMusdAmountForToast(transfer.amount)
+          ? formatMusdAmountForToast(BigInt(transfer.amount))
           : undefined;
         const destination =
           resolveWithdrawDestination(transfer?.recipient) ??

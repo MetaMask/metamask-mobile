@@ -17,26 +17,22 @@ export const createStyles = (params: { theme: Theme; vars: StyleVars }) => {
       flexDirection: 'row',
       height: 40,
       marginVertical: -16,
-      zIndex: 1,
-      elevation: 1,
+      zIndex: 10,
+      elevation: 10,
+      overflow: 'visible',
     },
     arrowCircle: {
       position: 'relative',
+      zIndex: 2,
+      elevation: 2,
+    },
+    cutoutOverlay: {
+      position: 'absolute',
+      top: -40,
+      left: '50%',
+      marginLeft: -80,
       zIndex: 1,
       elevation: 1,
-    },
-    cutoutWing: {
-      position: 'absolute',
-      top: 1.5,
-    },
-    leftCutoutWing: {
-      right: '50%',
-      marginRight: 10,
-    },
-    rightCutoutWing: {
-      left: '50%',
-      marginLeft: 10,
-      transform: [{ scaleX: -1 }],
     },
     button: {
       alignItems: 'center',
