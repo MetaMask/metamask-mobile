@@ -102,6 +102,7 @@ import CardHomeFooter from './components/CardHomeFooter';
 import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
+import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
 import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
@@ -191,6 +192,8 @@ const CardHome = () => {
         : getCardSupportEmail(registrationSettings, userLocation),
     [isImmersve, registrationSettings, userLocation],
   );
+  // Undefined while the flag is off, which leaves the footer on `mailto:`.
+  const handleContactIntercomSupport = useCardIntercomSupport();
 
   // --- Extracted hooks ---
   const actions = useCardHomeActions({
@@ -864,6 +867,7 @@ const CardHome = () => {
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
           supportEmail={supportEmail}
+          onContactSupport={handleContactIntercomSupport}
           legalDocuments={
             isImmersve && immersveLegalDocuments.length > 0
               ? immersveLegalDocuments

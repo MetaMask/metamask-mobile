@@ -9,6 +9,7 @@ import {
   selectCardForgotPasswordFeatureEnabled,
   selectImmersveOnboardingEnabled,
   selectCardTransactionHistoryEnabled,
+  selectCardIntercomSupportEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -1008,5 +1009,82 @@ describe('selectCardTransactionHistoryEnabled', () => {
 
     // resultFunc bypasses createSelector memoization after env changes.
     expect(selectCardTransactionHistoryEnabled.resultFunc({})).toBe(true);
+  });
+});
+
+describe('selectCardIntercomSupportEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  const stateWithFlags = (remoteFeatureFlags: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags,
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any;
+
+  beforeEach(() => {
+    delete process.env.MM_CARD_INTERCOM_SUPPORT_ENABLED;
+  });
+
+  it('returns true when the flag is enabled and the version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    const result = selectCardIntercomSupportEnabled(
+      stateWithFlags({
+        cardIntercomSupport: { enabled: true, minimumVersion: '7.0.0' },
+      }),
+    );
+
+    expect(result).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when the flag is disabled, routing support back to email', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    expect(
+      selectCardIntercomSupportEnabled(
+        stateWithFlags({
+          cardIntercomSupport: { enabled: false, minimumVersion: '7.0.0' },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when the flag is absent and env is unset', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    expect(selectCardIntercomSupportEnabled(mockedEmptyFlagsState)).toBe(false);
+  });
+
+  it('falls back to env when the remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+    process.env.MM_CARD_INTERCOM_SUPPORT_ENABLED = 'true';
+
+    // resultFunc bypasses createSelector memoization after env changes.
+    expect(selectCardIntercomSupportEnabled.resultFunc({})).toBe(true);
+  });
+
+  it('lets the remote flag win over the env override', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+    process.env.MM_CARD_INTERCOM_SUPPORT_ENABLED = 'true';
+
+    expect(
+      selectCardIntercomSupportEnabled.resultFunc({
+        cardIntercomSupport: { enabled: false, minimumVersion: '7.0.0' },
+      }),
+    ).toBe(false);
   });
 });
