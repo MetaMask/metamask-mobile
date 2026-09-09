@@ -36,7 +36,7 @@ import {
   createHeldEarnAsset,
   getAssetEarnId,
   getEarnAssetMetadata,
-  getEarnStrategyExperiences,
+  getEarnInputExperiences,
 } from '../utils/earnAssets';
 import { MIN_EARN_DEPOSIT_BALANCE } from '../utils/earnAssets/earnAssetBalance';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
@@ -551,7 +551,7 @@ const useEarnAssetCatalogue = ({
   const assets = useMemo(
     () =>
       catalogueAssets.filter(
-        ({ experiences }) => getEarnStrategyExperiences(experiences).length > 0,
+        ({ experiences }) => getEarnInputExperiences(experiences).length > 0,
       ),
     [catalogueAssets],
   );

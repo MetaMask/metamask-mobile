@@ -26,8 +26,11 @@ export type EarnAssetRole = 'funding' | 'underlying' | 'output';
 
 export type EarnExperienceUnavailableReason =
   | 'output_asset'
+  // The asset is discoverable, but is not held by the selected account.
   | 'asset_not_held'
+  // The asset is held, but its balance or fiat valuation is unavailable.
   | 'balance_unavailable'
+  // The balance is known, but is below the minimum required deposit amount.
   | 'insufficient_balance';
 
 export type EarnExperienceAvailability =

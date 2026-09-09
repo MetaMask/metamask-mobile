@@ -5,7 +5,7 @@ import type {
 } from '../../types/earnAssets';
 import {
   getEarnAssetFiatNumber,
-  getEarnStrategyExperiences,
+  getEarnInputExperiences,
   hasEarnAssetBalance,
 } from '../earnAssets';
 import { getHighestReadyRateEntry } from '../earnRate';
@@ -86,13 +86,13 @@ export const rankEarnAssets = (
   assets: readonly EarnAsset[],
 ): EarnSectionRankedAsset[] => {
   const rankedAssets = assets.map((asset): EarnSectionRankedAsset => {
-    const strategies = getEarnStrategyExperiences(asset.experiences);
+    const inputExperiences = getEarnInputExperiences(asset.experiences);
 
     return {
       ...asset,
-      highestRatePercent: getHighestRatePercent(strategies),
-      highestRateExperience: getHighestRateExperience(strategies),
-      rateStatus: getRateStatus(strategies),
+      highestRatePercent: getHighestRatePercent(inputExperiences),
+      highestRateExperience: getHighestRateExperience(inputExperiences),
+      rateStatus: getRateStatus(inputExperiences),
     };
   });
 

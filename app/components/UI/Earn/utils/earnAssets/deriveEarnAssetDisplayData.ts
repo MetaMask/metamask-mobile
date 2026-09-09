@@ -2,7 +2,7 @@ import type { EarnAssetMetadata } from '../../types/earnAssets';
 import {
   getEarnAssetFiatDisplay,
   getEarnAssetMetadata,
-  getAvailableEarnStrategyExperiences,
+  getAvailableEarnDepositExperiences,
   hasEarnAssetSubsidizedFee,
 } from '.';
 import { getEarnAssetHighestRateCopy } from '../earnSection/getEarnAssetHighestRateCopy';
@@ -37,7 +37,7 @@ export const deriveEarnAssetDisplayData = (
     metadata: getEarnAssetMetadata(asset),
     fiatBalance,
     hasMinDepositAmount:
-      getAvailableEarnStrategyExperiences(asset.experiences).length > 0,
+      getAvailableEarnDepositExperiences(asset.experiences).length > 0,
     hasSubsidizedFee: hasEarnAssetSubsidizedFee(asset),
     highestRateCopy: getEarnAssetHighestRateCopy({ asset }),
   };

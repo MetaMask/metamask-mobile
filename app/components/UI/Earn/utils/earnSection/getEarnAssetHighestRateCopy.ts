@@ -1,6 +1,6 @@
 import { strings } from '../../../../../../locales/i18n';
 import { truncateNumber } from '../../utils';
-import { getAvailableEarnStrategyExperiences } from '../earnAssets';
+import { getAvailableEarnDepositExperiences } from '../earnAssets';
 import type { EarnSectionRankedAsset } from './rankEarnSectionAssets';
 
 /**
@@ -15,7 +15,7 @@ export const getEarnAssetHighestRateCopy = ({
   asset: EarnSectionRankedAsset;
 }): string => {
   const hasAvailableExperience =
-    getAvailableEarnStrategyExperiences(asset.experiences).length > 0;
+    getAvailableEarnDepositExperiences(asset.experiences).length > 0;
 
   if (asset.highestRatePercent === undefined) {
     return strings('earn_module.rate_unavailable');
