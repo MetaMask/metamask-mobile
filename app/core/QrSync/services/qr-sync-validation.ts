@@ -5,10 +5,13 @@ import type {
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
 
-import { QrSyncProvisioningStatuses } from '../constants';
+import {
+  QrSyncProvisioningStatuses,
+  QrSyncActionTypes,
+  QrSyncMessageVersion,
+} from '../constants';
 
 import { isUUID } from '../../SDKConnect/utils/isUUID';
-import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import type {
   QrSyncConnectionRequest,
   QrSyncError,
@@ -253,10 +256,10 @@ export function validateQrSyncPayloadForOnboarding(
   return { valid: true };
 }
 
-export type QrSyncSecretImportPreconditions = {
+export interface QrSyncSecretImportPreconditions {
   provisioningStatus: string | null;
   pendingSecretImports: AccountTreePayload | null;
-};
+}
 
 /**
  * Returns true when the controller is ready for Phase B secret import:
