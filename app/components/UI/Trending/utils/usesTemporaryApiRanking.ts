@@ -1,12 +1,12 @@
 const TEMPORARY_API_RANKED_SEARCH_TERM = 'laptop';
-const MINIMUM_SEARCH_PREFIX_LENGTH = 4;
+const MINIMUM_SEARCH_PREFIX_LENGTH = 1;
 
 /**
  * TEMPORARY: Remove after the LAPTOP launch.
  *
  * Returns whether token search should preserve API ranking for the LAPTOP
  * launch. An optional ticker-style "$" prefix is ignored, and prefixes from
- * "lapt" onward are included to avoid changing order on the final keystroke.
+ * "l" onward are included to avoid changing order on the final keystroke.
  *
  * @param query - Token search query.
  * @param isEnabled - Remote kill switch. Defaults to true.
