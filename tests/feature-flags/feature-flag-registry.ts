@@ -6825,6 +6825,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  uiSlots: {
+    name: 'uiSlots',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictFeedBanner: {
     name: 'predictFeedBanner',
     type: FeatureFlagType.Remote,
@@ -7417,27 +7428,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  uiSlots: {
-    name: 'uiSlots',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  predictFeedBanner: {
-    name: 'predictFeedBanner',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   earnMoneyCardFlipAnimationEnabled: {
     name: 'earnMoneyCardFlipAnimationEnabled',
     type: FeatureFlagType.Remote,
@@ -7920,17 +7910,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: [],
-    status: FeatureFlagStatus.Active,
-  },
-
-  uiSlots: {
-    name: 'uiSlots',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
     status: FeatureFlagStatus.Active,
   },
 };
