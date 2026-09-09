@@ -1,9 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
+  incrementBridgeBalanceRefreshKey,
+  resetBridgeTokenInputs,
   selectBridgeBalanceRefreshKey,
   selectDestToken,
   selectSourceToken,
@@ -19,6 +22,7 @@ import {
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
@@ -44,6 +48,9 @@ export const RecurringConfirmOrderSheetScreen = () => {
     try {
       await autoUpgradeEIP7702Account();
       await submitRecurringOrder();
+      dispatch(resetBridgeTokenInputs());
+      Engine.context.BridgeController?.resetState?.();
+      dispatch(incrementBridgeBalanceRefreshKey());
       navigation.goBack();
     } catch (error) {
       showRecurringAutoUpgradeError(error);
@@ -51,7 +58,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [autoUpgradeEIP7702Account, navigation]);
+  }, [autoUpgradeEIP7702Account, dispatch, navigation]);
 
   const handleEditSlippagePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
