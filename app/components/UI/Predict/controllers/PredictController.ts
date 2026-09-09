@@ -111,7 +111,6 @@ import {
   PredictMarketListResponse,
   PredictOrderErrorStage,
   PredictPosition,
-  PredictPositionStatus,
   PredictPriceHistoryPoint,
   PredictTradeAnalyticsProperties,
   PredictWithdraw,
@@ -137,6 +136,7 @@ import {
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
 import { generateOrderId } from '../utils/orders';
+import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
@@ -2537,6 +2537,16 @@ export class PredictController extends BaseController<
         );
       }
 
+      const accountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+
+      const isDepositWallet = accountState.walletType === 'deposit-wallet';
+
+      const gasFeeToken = isDepositWallet
+        ? undefined
+        : (MATIC_CONTRACTS_V2.collateral as Hex);
+
       // Add transaction batch - can fail if transaction submission fails
       const batchId = await this.submitPredictTransactionBatch({
         params: {
@@ -2546,9 +2556,7 @@ export class PredictController extends BaseController<
           networkClientId,
           disableHook: true,
           disableSequential: true,
-          skipInitialGasEstimate: true,
-          // Temporarily breaking abstraction, can instead be abstracted via provider.
-          gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
+          gasFeeToken,
           transactions,
         },
         missingBatchIdError:
@@ -3992,14 +4000,9 @@ export class PredictController extends BaseController<
       return 0;
     }
 
-    return this.state.claimablePositions[matchedAddress].reduce(
-      (sum, position) =>
-        position.status === PredictPositionStatus.WON ||
-        position.status === PredictPositionStatus.REDEEMABLE
-          ? sum + position.currentValue
-          : sum,
-      0,
-    );
+    return this.state.claimablePositions[matchedAddress]
+      .filter(isActionableClaimablePosition)
+      .reduce((sum, position) => sum + position.currentValue, 0);
   }
 
   private getClaimAmountFromReceipt(

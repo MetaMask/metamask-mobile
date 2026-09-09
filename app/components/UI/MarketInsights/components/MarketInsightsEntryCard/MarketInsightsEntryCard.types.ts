@@ -10,11 +10,12 @@ export interface MarketInsightsEntryCardProps {
   onPress: () => void;
   /** Callback when the disclaimer info icon is pressed */
   onDisclaimerPress?: () => void;
-  /** The CAIP-19 asset ID, used to match the trace started by the parent.
-   * Optional, only provide this when a corresponding startTrace was initiated
-   * by the parent component (AssetOverviewContent in the token details flow).
+  /** CAIP-19 asset ID used by token-details analytics. It remains a fallback
+   * trace identifier for callers that have not supplied `traceId`.
    */
   caip19Id?: CaipAssetType;
+  /** Identifier for the entry-card time-to-content trace owned by the parent. */
+  traceId?: string;
   /** Surface from which the Market Insights feature was accessed */
   source: 'token_details' | 'perps' | 'unknown';
   /** Optional test ID */

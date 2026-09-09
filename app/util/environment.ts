@@ -1,6 +1,7 @@
 /* eslint-disable import-x/prefer-default-export */
 import type { TransactionPayFiatOptions } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
+import { hasTestOverrides, testConfig } from './test/utils';
 
 const DEV_ENVIRONMENT = 'dev';
 const RC_ENVIRONMENT = 'rc';
@@ -40,10 +41,21 @@ export const getDevAutoUnlockPassword = (): string | undefined => {
 export const getTransactionPayFiatTestOptions = ():
   | TransactionPayFiatOptions
   | undefined => {
-  const fundingSource = process.env.TRANSACTION_PAY_FIAT_TEST_FUNDING_SOURCE;
-  const amountOverride = process.env.TRANSACTION_PAY_FIAT_TEST_AMOUNT_OVERRIDE;
+  const runtimeFundingSource = hasTestOverrides
+    ? testConfig.transactionPayFiatTestFundingSource
+    : undefined;
+  const runtimeAmountOverride = hasTestOverrides
+    ? testConfig.transactionPayFiatTestAmountOverride
+    : undefined;
+  const fundingSource =
+    runtimeFundingSource ??
+    process.env.TRANSACTION_PAY_FIAT_TEST_FUNDING_SOURCE;
+  const amountOverride =
+    runtimeAmountOverride ??
+    process.env.TRANSACTION_PAY_FIAT_TEST_AMOUNT_OVERRIDE;
 
   const isEnabledBuild =
+    hasTestOverrides ||
     process.env.METAMASK_ENVIRONMENT === DEV_ENVIRONMENT ||
     process.env.METAMASK_ENVIRONMENT === RC_ENVIRONMENT ||
     process.env.METAMASK_BUILD_TYPE === FLASK_BUILD_TYPE;

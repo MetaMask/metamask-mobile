@@ -244,16 +244,6 @@ module.exports = function (baseConfig) {
                   type: 'empty',
                 };
               }
-              // MYXProvider is intentionally excluded from @metamask/perps-controller's
-              // published dist (extension-only). The dynamic import() uses webpackIgnore
-              // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
-              // to resolve it statically. Return an empty module stub.
-              if (
-                moduleName === './providers/MYXProvider' &&
-                isPerpsControllerOrigin(context)
-              ) {
-                return { type: 'empty' };
-              }
               // @metamask/perps-controller@9.2.1's CJS build (standaloneInfoClient.cjs,
               // HyperLiquidClientService.cjs) contains a leftover absolute file:// require
               // from the package's own CI build machine instead of `@nktkas/hyperliquid`
