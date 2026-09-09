@@ -2342,27 +2342,30 @@ export class PolymarketProvider implements PredictProvider {
       ownerAddress: signer.address,
     });
 
-    if (accountState.walletType !== 'deposit-wallet') {
-      return undefined;
+    if (accountState.walletType === 'deposit-wallet') {
+      DevLogger.log('PolymarketProvider: Deposit wallet claim beforeSign', {
+        operation: 'deposit_wallet_claim_before_sign',
+        walletType: 'deposit-wallet',
+        signerAddress: signer.address,
+        depositWalletAddress: accountState.address,
+        transactionId: transactionMeta.id,
+        positionCount: positions.length,
+      });
+
+      return {
+        updateTransaction: (transaction: TransactionMeta) => {
+          transaction.isExternalSign = true;
+          transaction.selectedGasFeeToken = undefined;
+          transaction.isGasFeeTokenIgnoredIfBalance = false;
+          delete transaction.txParams.nonce;
+        },
+      };
     }
 
-    DevLogger.log('PolymarketProvider: Deposit wallet claim beforeSign', {
-      operation: 'deposit_wallet_claim_before_sign',
-      walletType: 'deposit-wallet',
-      signerAddress: signer.address,
-      depositWalletAddress: accountState.address,
-      transactionId: transactionMeta.id,
-      positionCount: positions.length,
-    });
-
-    return {
-      updateTransaction: (transaction: TransactionMeta) => {
-        transaction.isExternalSign = true;
-        transaction.selectedGasFeeToken = undefined;
-        transaction.isGasFeeTokenIgnoredIfBalance = false;
-        delete transaction.txParams.nonce;
-      },
-    };
+    // Safe claims keep `isGasFeeTokenIgnoredIfBalance`, so native POL can pay
+    // when Sentinel returns an empty or mismatched `gasFeeTokens` list.
+    // Transaction-controller preflight rejects only when native is also short.
+    return undefined;
   }
 
   public async publishClaim({

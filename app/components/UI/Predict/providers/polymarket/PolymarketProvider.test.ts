@@ -1,6 +1,7 @@
 import {
   CHAIN_IDS,
   TransactionType,
+  type GasFeeToken,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -2075,11 +2076,49 @@ describe('PolymarketProvider', () => {
     expect(transactionMeta.txParams.nonce).toBeUndefined();
   });
 
-  it('passes through Safe claims before signing', async () => {
+  it('passes through Safe claims before signing when gas fee tokens are pending', async () => {
     const result = await createProvider().beforeSignClaim({
       transactionMeta: {
         id: 'claim-tx',
         txParams: { from: signer.address },
+        selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+        isGasFeeTokenIgnoredIfBalance: true,
+      } as TransactionMeta,
+      signer,
+      positions: [createClaimPosition()],
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('passes through Safe claims when the selected gas fee token is missing from gasFeeTokens', async () => {
+    const result = await createProvider().beforeSignClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        txParams: { from: signer.address },
+        selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+        isGasFeeTokenIgnoredIfBalance: true,
+        gasFeeTokens: [] as GasFeeToken[],
+      } as TransactionMeta,
+      signer,
+      positions: [createClaimPosition()],
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('passes through Safe claims when gasFeeTokens does not include the selected token', async () => {
+    const result = await createProvider().beforeSignClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        txParams: { from: signer.address },
+        selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+        isGasFeeTokenIgnoredIfBalance: true,
+        gasFeeTokens: [
+          {
+            tokenAddress: '0x1111111111111111111111111111111111111111',
+          },
+        ] as unknown as GasFeeToken[],
       } as TransactionMeta,
       signer,
       positions: [createClaimPosition()],
