@@ -12,7 +12,14 @@ import { usePerpsMarkets } from './usePerpsMarkets';
  * the view recording entirely.
  */
 export function usePerpsRecordMarketViewed(symbol?: string): void {
-  const { markets, hasResolvedInitialData } = usePerpsMarkets();
+  // The zero-volume/open-interest filters exist to keep inactive markets out of
+  // browsing lists. Here the list is only used to tell tradable symbols from
+  // delisted ones, and production defaults would drop valid but inactive
+  // markets reached from a position or deeplink.
+  const { markets, hasResolvedInitialData } = usePerpsMarkets({
+    showZeroVolume: true,
+    showZeroOpenInterest: true,
+  });
   const tradableSymbols = useMemo(
     () => new Set(markets.map((market) => market.symbol)),
     [markets],

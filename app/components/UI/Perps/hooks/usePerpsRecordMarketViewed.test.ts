@@ -104,6 +104,44 @@ describe('usePerpsRecordMarketViewed', () => {
     expect(mockRecordMarketViewed).not.toHaveBeenCalled();
   });
 
+  it('requests markets unfiltered so inactive markets stay recordable', () => {
+    renderHook(() => usePerpsRecordMarketViewed('BTC'));
+
+    expect(mockUsePerpsMarkets).toHaveBeenCalledWith(
+      expect.objectContaining({
+        showZeroVolume: true,
+        showZeroOpenInterest: true,
+      }),
+    );
+  });
+
+  it('records a market with zero volume and open interest', () => {
+    mockUsePerpsMarkets.mockReturnValue(
+      createMarketsResult({
+        markets: [
+          {
+            symbol: 'INACTIVE',
+            name: 'Inactive Market',
+            maxLeverage: '50x',
+            price: '$1',
+            change24h: '$0',
+            change24hPercent: '0%',
+            volume: '$0.00',
+            openInterest: '$0.00',
+            volumeNumber: 0,
+          },
+        ],
+      }),
+    );
+
+    renderHook(() => usePerpsRecordMarketViewed('INACTIVE'));
+
+    const focusCallback = useFocusEffect.mock.calls[0][0] as () => void;
+    focusCallback();
+
+    expect(mockRecordMarketViewed).toHaveBeenCalledWith('INACTIVE');
+  });
+
   it('does not record a delisted or unknown symbol once markets are loaded', () => {
     renderHook(() => usePerpsRecordMarketViewed('DELISTED'));
 
