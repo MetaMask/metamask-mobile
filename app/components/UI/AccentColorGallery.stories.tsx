@@ -1,3 +1,9 @@
+/**
+ * Section titles quote the hex values their components hardcode so the gallery
+ * is searchable by hex. No color is defined in this file — every swatch reads
+ * either the constant exported by the component under review or the theme.
+ */
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import React, {
   Component,
   useContext,
@@ -8,6 +14,7 @@ import React, {
 } from 'react';
 import { ScrollView, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Box,
@@ -27,7 +34,10 @@ import { configureStore } from '@reduxjs/toolkit';
 import initialRootState from '../../util/test/initial-root-state';
 import { initialState as initialRewardsState } from '../../reducers/rewards';
 import Engine from '../../core/Engine/Engine';
-import { onboardingCarouselColors } from '../../styles/common';
+import {
+  colors as importedColors,
+  onboardingCarouselColors,
+} from '../../styles/common';
 import { useTheme } from '../../util/theme';
 import RankMedal from '../Views/Homepage/Sections/TopTraders/topRank/RankMedal';
 import Toast, {
@@ -45,17 +55,31 @@ import { createDepositErrorToast } from './Predict/utils/predictErrorHandler';
 import CardImage from './Card/components/CardImage/CardImage';
 import { CardStatus, CardType } from './Card/types';
 import CardWelcome from './Card/Views/CardWelcome/CardWelcome';
+import { GRADIENT_COLORS as CARD_WELCOME_GRADIENT_COLORS } from './Card/Views/CardWelcome/CardWelcome.styles';
+import { CARD_DETAILS_CSS } from './Card/hooks/useCardDetailsToken';
 import KYCPending from './Card/components/Onboarding/KYCPending';
 import PerpsModeToggle from './Perps/components/PerpsModeToggle/PerpsModeToggle';
+import { PERPS_PRO_GRADIENT } from './Perps/components/PerpsModeToggle/PerpsProGradientLabel';
 import PerpsHeroCardView from './Perps/Views/PerpsHeroCardView/PerpsHeroCardView';
 import PreviousSeasonLevel from './Rewards/components/PreviousSeason/PreviousSeasonLevel';
 import RewardsReferralCodeTag from './Rewards/components/RewardsReferralCodeTag';
+import { WinnerFinalizedBanner } from './Rewards/components/Campaigns/CampaignOutcomeBanners';
+import { AMBIENT_NEGATIVE_COLOR } from './TokenDetails/components/abTestConfig';
+import { ONBOARDING_GRADIENT_COLORS } from '../Views/SocialLeaderboard/Onboarding/SocialLeaderboardOnboarding.styles';
 import MoneyBalanceIcon from '../../images/money-balance.svg';
+import SecurityQuizLockImage from '../../images/security-quiz-intro-lock.svg';
+import MarketOrderIcon from '../../images/perps/order-types/market.svg';
+import TakeLimitOrderIcon from '../../images/perps/order-types/take-limit.svg';
+import TakeMarketOrderIcon from '../../images/perps/order-types/take-market.svg';
+import RewardsPointsIcon from '../../images/rewards/metamask-rewards-points.svg';
+import RewardsPointsAlternativeIcon from '../../images/rewards/metamask-rewards-points-alternative.svg';
+import RewardsTrophyIcon from '../../images/rewards/trophy.svg';
 
 const scrollStyle = { paddingBottom: 96 };
 const previewFrameStyle = { height: 560, overflow: 'hidden' as const };
 const gestureRootStyle = { flex: 1 };
 const toastPreviewFrameStyle = { marginHorizontal: -16 };
+const gradientStripStyle = { height: 48, borderRadius: 12 };
 
 /**
  * Storybook never boots the Engine, but PerpsHeroCardView's rewards hooks
@@ -244,6 +268,67 @@ const Swatch: React.FC<{ label: string; color: string }> = ({
   </Box>
 );
 
+const GradientStrip: React.FC<{ label: string; colors: string[] }> = ({
+  label,
+  colors,
+}) => (
+  <Box twClassName="flex-1 gap-1">
+    <LinearGradient colors={colors} style={gradientStripStyle} />
+    <Text variant={TextVariant.BodyXs} twClassName="text-alternative">
+      {label}
+    </Text>
+  </Box>
+);
+
+const AssetRow: React.FC<{
+  label: string;
+  caption: string;
+  children: React.ReactNode;
+}> = ({ label, caption, children }) => (
+  <Box twClassName="flex-row items-center gap-3 rounded-xl bg-muted p-4">
+    {children}
+    <Box twClassName="flex-1">
+      <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+        {label}
+      </Text>
+      <Text variant={TextVariant.BodyXs} twClassName="text-alternative">
+        {caption}
+      </Text>
+    </Box>
+  </Box>
+);
+
+const CarouselSlide: React.FC<{ slide: string }> = ({ slide }) => {
+  const { background, color } = onboardingCarouselColors[slide];
+
+  return (
+    <Box
+      twClassName="flex-1 rounded-xl p-4"
+      style={{ backgroundColor: background }}
+    >
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        style={{ color }}
+      >
+        {slide}
+      </Text>
+    </Box>
+  );
+};
+
+const GroupHeading: React.FC<{ title: string; description: string }> = ({
+  title,
+  description,
+}) => (
+  <Box twClassName="gap-1 pt-2">
+    <Text variant={TextVariant.HeadingMd}>{title}</Text>
+    <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+      {description}
+    </Text>
+  </Box>
+);
+
 const PaletteRow: React.FC<{
   name: string;
   light: string;
@@ -337,7 +422,9 @@ const AccentColorGallery = () => {
             <Text variant={TextVariant.HeadingMd}>Accent colors</Text>
             <Text variant={TextVariant.BodySm} twClassName="text-alternative">
               Every component that consumes accent01–accent04, in the active
-              theme.
+              theme. Sections titled with a hex value quote the literal that
+              consumer hardcodes, so compare them against the swatches above
+              after switching theme.
             </Text>
           </Box>
 
@@ -368,12 +455,10 @@ const AccentColorGallery = () => {
             />
           </Box>
 
-          <Section
-            title="PerpsModeToggle"
-            usage="Pro label gradient, hardcoded to accent02 light → normal"
-          >
-            <ModeToggleRow />
-          </Section>
+          <GroupHeading
+            title="Theme token consumers"
+            description="These read colors.accent0x, so they follow the active theme."
+          />
 
           <Section
             title="PreviousSeason"
@@ -399,85 +484,6 @@ const AccentColorGallery = () => {
           </Section>
 
           <Section
-            title="Hardcoded #CCE7FF and #190066"
-            usage="money-balance.svg (Earn, Card, Money, Trending) and onboardingCarouselColors.three in app/styles/common.ts"
-          >
-            <Box twClassName="gap-3">
-              <Box twClassName="flex-row items-center gap-3 rounded-xl bg-muted p-4">
-                <MoneyBalanceIcon name="money-balance" width={40} height={40} />
-                <Box>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    twClassName="text-alternative"
-                  >
-                    Money balance
-                  </Text>
-                  <Text variant={TextVariant.HeadingSm}>$1,250.00</Text>
-                </Box>
-              </Box>
-              <Box
-                twClassName="rounded-xl p-4"
-                style={{
-                  backgroundColor: onboardingCarouselColors.three.background,
-                }}
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  style={{ color: onboardingCarouselColors.three.color }}
-                >
-                  Onboarding carousel slide 3
-                </Text>
-                <Text
-                  variant={TextVariant.HeadingSm}
-                  style={{ color: onboardingCarouselColors.three.color }}
-                >
-                  #CCE7FF / #190066
-                </Text>
-              </Box>
-            </Box>
-          </Section>
-
-          <Section
-            title="Hardcoded #CCE7FF"
-            usage="RankMedal rank 3 — rank-badge-3.svg ribbon fill"
-          >
-            <Box twClassName="flex-row items-center gap-3 rounded-xl bg-muted p-4">
-              <RankMedal rank={3} size={48} />
-              <Box>
-                <Text
-                  variant={TextVariant.BodySm}
-                  twClassName="text-alternative"
-                >
-                  RankMedal
-                </Text>
-                <Text variant={TextVariant.HeadingSm}>Rank 3</Text>
-              </Box>
-            </Box>
-          </Section>
-
-          <Section
-            title="CardImage"
-            usage="Virtual card art hardcoded to accent01 normal / light / dark; Metal uses accent02.dark"
-          >
-            <Box twClassName="gap-3">
-              <CardImage type={CardType.VIRTUAL} status={CardStatus.ACTIVE} />
-              <CardImage type={CardType.METAL} status={CardStatus.ACTIVE} />
-              <CardImage type={CardType.VIRTUAL} status={CardStatus.FROZEN} />
-            </Box>
-          </Section>
-
-          <Section
-            title="CardWelcome"
-            usage="Title and description color hardcoded to accent02.light"
-          >
-            <View style={previewFrameStyle}>
-              <PreviewErrorBoundary>
-                <CardWelcome />
-              </PreviewErrorBoundary>
-            </View>
-          </Section>
-
-          <Section
             title="KYCPending"
             usage="Full-screen background bg-accent04-dark"
           >
@@ -487,6 +493,219 @@ const AccentColorGallery = () => {
               </PreviewErrorBoundary>
             </View>
           </Section>
+
+          <GroupHeading
+            title="Hardcoded hex values"
+            description="These bypass the theme, so they render the same color in light and dark."
+          />
+
+          <Section
+            title="Hardcoded #BAF24A"
+            usage="Perps order-type icons (dark exports; the -light exports use #457A39), the rewards toast trophy, and TradingViewChart.html up-candles, wicks and take-profit lines"
+          >
+            <Box twClassName="gap-3">
+              <AssetRow
+                label="Market order"
+                caption="perps/order-types/market.svg"
+              >
+                <MarketOrderIcon name="market-order" width={32} height={32} />
+              </AssetRow>
+              <AssetRow
+                label="Take profit limit"
+                caption="perps/order-types/take-limit.svg"
+              >
+                <TakeLimitOrderIcon
+                  name="take-limit-order"
+                  width={32}
+                  height={32}
+                />
+              </AssetRow>
+              <AssetRow
+                label="Take profit market"
+                caption="perps/order-types/take-market.svg"
+              >
+                <TakeMarketOrderIcon
+                  name="take-market-order"
+                  width={32}
+                  height={32}
+                />
+              </AssetRow>
+              <AssetRow
+                label="Rewards toast trophy"
+                caption="rewards/trophy.svg — baked-in fill and stroke override useRewardsToast's color prop"
+              >
+                <RewardsTrophyIcon name="trophy" width={24} height={24} />
+              </AssetRow>
+            </Box>
+          </Section>
+
+          <Section
+            title="Hardcoded #FF5C16"
+            usage="Rewards points marks, the card-details orange (CardImageSection plus the CARD_DETAILS_CSS payload sent to the card provider), and AMBIENT_NEGATIVE_COLOR for negative price charts"
+          >
+            <Box twClassName="gap-3">
+              <AssetRow
+                label="Rewards points"
+                caption="rewards/metamask-rewards-points.svg"
+              >
+                <RewardsPointsIcon
+                  name="rewards-points"
+                  width={24}
+                  height={24}
+                />
+              </AssetRow>
+              <AssetRow
+                label="Rewards points (alternative)"
+                caption="PreviousSeasonBalance, AddRewardsAccount"
+              >
+                <RewardsPointsAlternativeIcon
+                  name="rewards-points-alternative"
+                  width={24}
+                  height={24}
+                />
+              </AssetRow>
+              <Box twClassName="flex-row gap-2">
+                <Swatch
+                  label="AMBIENT_NEGATIVE_COLOR"
+                  color={AMBIENT_NEGATIVE_COLOR}
+                />
+                <Swatch
+                  label="CARD_DETAILS_CSS virtual"
+                  color={CARD_DETAILS_CSS[CardType.VIRTUAL].cardBackgroundColor}
+                />
+              </Box>
+            </Box>
+          </Section>
+
+          <Section
+            title="Hardcoded #D075FF"
+            usage="security-quiz-intro-lock.svg (RevealSRP) and the campaign banner border, which sweeps #D075FF → #FF5C16"
+          >
+            <Box twClassName="gap-3">
+              <AssetRow
+                label="SRP quiz lock"
+                caption="images/security-quiz-intro-lock.svg"
+              >
+                <SecurityQuizLockImage
+                  name="security-quiz-lock"
+                  width={38}
+                  height={40}
+                />
+              </AssetRow>
+              <WinnerFinalizedBanner />
+            </Box>
+          </Section>
+
+          <Section
+            title="Hardcoded #EAC2FF and #D075FF"
+            usage="PerpsProGradientLabel's Pro gradient and its solid mask color — accent02 light → normal. app/styles/common.ts also defines gettingStartedPageBackgroundColor as #EAC2FF, which no screen reads today."
+          >
+            <Box twClassName="gap-3">
+              <ModeToggleRow />
+              <GradientStrip
+                label="PERPS_PRO_GRADIENT"
+                colors={[...PERPS_PRO_GRADIENT]}
+              />
+            </Box>
+          </Section>
+
+          <Section
+            title="Hardcoded #FF5C16, #FFA680, #661800 and #3D065F"
+            usage="CardImage draws the card art from accent01 normal / light / dark; the metal card swaps the base fill for accent02.dark"
+          >
+            <Box twClassName="gap-3">
+              <CardImage type={CardType.VIRTUAL} status={CardStatus.ACTIVE} />
+              <CardImage type={CardType.METAL} status={CardStatus.ACTIVE} />
+              <CardImage type={CardType.VIRTUAL} status={CardStatus.FROZEN} />
+            </Box>
+          </Section>
+
+          <Section
+            title="Hardcoded #3D065F"
+            usage="CardWelcome and SocialLeaderboard onboarding backdrops, gettingStartedTextColor in app/styles/common.ts, and the physical / metal CARD_DETAILS_CSS payload. CardWelcome's own title copy already reads theme accent02.light."
+          >
+            <Box twClassName="gap-3">
+              <Box twClassName="flex-row gap-2">
+                <GradientStrip
+                  label="CardWelcome"
+                  colors={CARD_WELCOME_GRADIENT_COLORS}
+                />
+                <GradientStrip
+                  label="SocialLeaderboard"
+                  colors={ONBOARDING_GRADIENT_COLORS}
+                />
+              </Box>
+              <Box twClassName="flex-row gap-2">
+                <Swatch
+                  label="gettingStartedTextColor"
+                  color={importedColors.gettingStartedTextColor}
+                />
+                <Swatch
+                  label="CARD_DETAILS_CSS physical"
+                  color={
+                    CARD_DETAILS_CSS[CardType.PHYSICAL].cardBackgroundColor
+                  }
+                />
+              </Box>
+              <View style={previewFrameStyle}>
+                <PreviewErrorBoundary>
+                  <CardWelcome />
+                </PreviewErrorBoundary>
+              </View>
+            </Box>
+          </Section>
+
+          <Section
+            title="Hardcoded #CCE7FF and #190066"
+            usage="money-balance.svg card fill and glyph — rendered by Earn, Card, Money and Trending"
+          >
+            <AssetRow
+              label="Money balance"
+              caption="app/images/money-balance.svg"
+            >
+              <MoneyBalanceIcon name="money-balance" width={40} height={40} />
+            </AssetRow>
+          </Section>
+
+          <Section
+            title="Hardcoded #89B0FF, #CCE7FF and #FFA680"
+            usage="rank-badge-3.svg — ribbon, ribbon fold and medallion fills. RankMedal renders the Figma export verbatim, so props cannot retheme them."
+          >
+            <AssetRow
+              label="RankMedal rank 3"
+              caption="TopTraders podium badge"
+            >
+              <RankMedal rank={3} size={48} />
+            </AssetRow>
+          </Section>
+
+          <Section
+            title="Hardcoded #E5FFC3, #FFA680 and #CCE7FF"
+            usage="onboardingCarouselColors slide backgrounds in app/styles/common.ts, with #190066 and #3D065F copy. The map is currently unreferenced by production screens."
+          >
+            <Box twClassName="flex-row gap-2">
+              <CarouselSlide slide="one" />
+              <CarouselSlide slide="two" />
+              <CarouselSlide slide="three" />
+            </Box>
+          </Section>
+
+          <Section
+            title="Hardcoded #013330"
+            usage="No hardcoded usages — accent03.dark only reaches the UI through the theme token, as in the Perps close-all success toast below"
+          >
+            <Box twClassName="flex-row gap-2">
+              <Swatch
+                label="colors.accent03.dark"
+                color={colors.accent03.dark}
+              />
+            </Box>
+          </Section>
+
+          <GroupHeading
+            title="Toasts"
+            description="Theme token consumers, kept together at the end because each preview needs its own fixed-height frame."
+          />
 
           <Section
             title="Perps close-all success toast"
