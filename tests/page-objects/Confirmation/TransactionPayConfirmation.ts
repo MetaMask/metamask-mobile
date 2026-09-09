@@ -1,6 +1,8 @@
 import {
   ConfirmationRowComponentIDs,
   PayWithBottomSheetIDs,
+  PerpsAccountPickerSelectorsIDs,
+  PredictAccountPickerSelectorsIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
@@ -20,6 +22,7 @@ import {
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
 const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
 const ARBITRUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0xa4b1');
+const MONEY_ACCOUNT_WITHDRAW_BALANCE_TEST_ID = 'money-account-withdraw-balance';
 
 export function getKeypadKeyTestId(key: string): string {
   return key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
@@ -109,6 +112,10 @@ class TransactionPayConfirmation {
 
   get availableBalance(): Promise<AppiumElement> {
     return Matchers.getElementByText('Available balance');
+  }
+
+  get withdrawBalance(): Promise<AppiumElement> {
+    return Matchers.getElementByID(MONEY_ACCOUNT_WITHDRAW_BALANCE_TEST_ID);
   }
 
   get transactionFee(): Promise<AppiumElement> {
@@ -427,6 +434,35 @@ class TransactionPayConfirmation {
   async verifyAvailableBalanceVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.availableBalance, {
       description: 'Available balance row should be visible',
+      timeout: 15000,
+    });
+  }
+
+  async verifyWithdrawBalanceVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.withdrawBalance, {
+      description: 'Money account withdraw balance should be visible',
+      timeout: 15000,
+    });
+  }
+
+  get perpsAccountPickerRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsAccountPickerSelectorsIDs.ROW);
+  }
+
+  get predictAccountPickerRow(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PredictAccountPickerSelectorsIDs.ROW);
+  }
+
+  async verifyPerpsAccountPickerRowVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.perpsAccountPickerRow, {
+      description: 'Perps account picker row should be visible',
+      timeout: 15000,
+    });
+  }
+
+  async verifyPredictAccountPickerRowVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.predictAccountPickerRow, {
+      description: 'Predict account picker row should be visible',
       timeout: 15000,
     });
   }
