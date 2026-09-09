@@ -120,7 +120,7 @@ jobs:
       # ("Couldn't find the node_modules state file"). build.yml gets this from its
       # setup-dependencies job; this workflow has no such job, so it installs inline.
       - name: Install dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: ./.github/actions/retry-command
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -129,7 +129,7 @@ jobs:
 
       # JS-only setup: no pods, no Gradle. Same flags the BrowserStack repack path uses.
       - name: Setup project with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: ./.github/actions/retry-command
         with:
           timeout_minutes: 20
           max_attempts: 3

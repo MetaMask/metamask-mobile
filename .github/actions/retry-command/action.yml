@@ -1,0 +1,137 @@
+name: 'Retry command'
+description: >
+  Runs a shell command, retrying it on failure with a wait between attempts.
+  This is a first-party, pure-bash replacement for the third-party
+  nick-fields/retry action: it declares no `runs.using: nodeXX` at all, so it
+  is immune to both GitHub's Node runtime deprecations and to the org's
+  third-party Actions allow-list only recognizing specific pinned SHAs of
+  nick-fields/retry (see chore/9827_bump-actions-node24 / PR #35913 for why
+  that matters). It implements the subset of nick-fields/retry's interface
+  actually used in this repo (command, timeout_minutes, max_attempts,
+  retry_wait_seconds, retry_on, on_retry_command), so it's a drop-in
+  replacement for `uses: nick-fields/retry@...`.
+  Portable across the Linux and macOS GitHub-hosted runners used in this
+  repo: timeouts are implemented with a bash background watcher instead of
+  the GNU-coreutils-only `timeout` binary, which macOS runners don't ship.
+inputs:
+  command:
+    description: 'The command to run.'
+    required: true
+  timeout_minutes:
+    description: 'Timeout, in minutes, for each individual attempt.'
+    required: true
+  max_attempts:
+    description: 'Maximum number of attempts before failing the step.'
+    required: true
+  retry_wait_seconds:
+    description: 'Number of seconds to wait before the next attempt.'
+    required: false
+    default: '10'
+  retry_on:
+    description: >
+      Which failures should trigger a retry: 'any' (default), 'error'
+      (retry on non-zero exit, fail immediately on timeout), or 'timeout'
+      (retry only on timeout, fail immediately on other errors).
+    required: false
+    default: 'any'
+  on_retry_command:
+    description: >
+      Optional command to run before a retry (e.g. cleanup). A failure in
+      this command is only surfaced as a warning, it never fails the step.
+    required: false
+    default: ''
+outputs:
+  total_attempts:
+    description: 'The number of attempts made.'
+    value: ${{ steps.run-with-retry.outputs.total_attempts }}
+runs:
+  using: composite
+  steps:
+    - name: Run with retry
+      id: run-with-retry
+      shell: bash
+      env:
+        RETRY_COMMAND: ${{ inputs.command }}
+        RETRY_TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
+        RETRY_MAX_ATTEMPTS: ${{ inputs.max_attempts }}
+        RETRY_WAIT_SECONDS: ${{ inputs.retry_wait_seconds }}
+        RETRY_ON: ${{ inputs.retry_on }}
+        RETRY_ON_RETRY_COMMAND: ${{ inputs.on_retry_command }}
+      run: |
+        set -uo pipefail
+
+        timeout_seconds=$(( RETRY_TIMEOUT_MINUTES * 60 ))
+        attempt=1
+
+        while :; do
+          echo "::group::Attempt ${attempt}/${RETRY_MAX_ATTEMPTS}: ${RETRY_COMMAND}"
+
+          timed_out_marker="$(mktemp)"
+          rm -f "$timed_out_marker"
+
+          set +e
+          bash -c "$RETRY_COMMAND" &
+          cmd_pid=$!
+
+          (
+            sleep "$timeout_seconds"
+            if kill -0 "$cmd_pid" 2>/dev/null; then
+              touch "$timed_out_marker"
+              kill -TERM "$cmd_pid" 2>/dev/null
+              sleep 5
+              kill -KILL "$cmd_pid" 2>/dev/null
+            fi
+          ) &
+          watcher_pid=$!
+
+          wait "$cmd_pid"
+          exit_code=$?
+
+          # Stop the watcher if the command finished on its own.
+          kill "$watcher_pid" 2>/dev/null
+          wait "$watcher_pid" 2>/dev/null
+          set -e
+
+          echo "::endgroup::"
+
+          if [ "$exit_code" -eq 0 ]; then
+            echo "Command succeeded on attempt ${attempt}."
+            echo "total_attempts=${attempt}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -f "$timed_out_marker" ]; then
+            failure_kind="timeout"
+          else
+            failure_kind="error"
+          fi
+          rm -f "$timed_out_marker"
+
+          if [ "$RETRY_ON" = "error" ] && [ "$failure_kind" = "timeout" ]; then
+            echo "::error::Attempt ${attempt} timed out after ${RETRY_TIMEOUT_MINUTES}m and retry_on=error; not retrying."
+            echo "total_attempts=${attempt}" >> "$GITHUB_OUTPUT"
+            exit "$exit_code"
+          fi
+          if [ "$RETRY_ON" = "timeout" ] && [ "$failure_kind" = "error" ]; then
+            echo "::error::Attempt ${attempt} failed (exit ${exit_code}) and retry_on=timeout; not retrying."
+            echo "total_attempts=${attempt}" >> "$GITHUB_OUTPUT"
+            exit "$exit_code"
+          fi
+
+          if [ "$attempt" -ge "$RETRY_MAX_ATTEMPTS" ]; then
+            echo "::error::All ${RETRY_MAX_ATTEMPTS} attempts failed (${failure_kind} on last attempt, exit ${exit_code})."
+            echo "total_attempts=${attempt}" >> "$GITHUB_OUTPUT"
+            exit "$exit_code"
+          fi
+
+          echo "::warning::Attempt ${attempt} failed (${failure_kind}, exit ${exit_code}). Retrying in ${RETRY_WAIT_SECONDS}s..."
+
+          if [ -n "$RETRY_ON_RETRY_COMMAND" ]; then
+            if ! bash -c "$RETRY_ON_RETRY_COMMAND"; then
+              echo "::warning::on_retry_command failed; continuing anyway."
+            fi
+          fi
+
+          sleep "$RETRY_WAIT_SECONDS"
+          attempt=$((attempt + 1))
+        done
