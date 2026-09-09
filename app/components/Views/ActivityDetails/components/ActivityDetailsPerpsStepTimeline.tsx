@@ -6,11 +6,20 @@ import {
   getPerpsStepLabels,
   type PerpsDepositWithdrawalStatus,
 } from './ActivityDetailsPerps.utils';
+import type {
+  PayFundsFailedLeg,
+  PayFundsFailure,
+} from '../hooks/usePayFundsFailure';
 import {
   ActivityDetailsStepTimeline,
   type ActivityDetailsStep,
   type ActivityDetailsStepExplorerTarget,
 } from './ActivityDetailsStepTimeline';
+
+const DEPOSIT_FAILED_STEP_BY_LEG: Record<PayFundsFailedLeg, number> = {
+  approval: 0,
+  relay: 1,
+};
 
 function formatStepTimestamp(timestamp: number): string {
   const date = new Date(timestamp);
@@ -46,7 +55,7 @@ function getStepSummary({
   if (status === 'failed') {
     return strings('perps.transactions.steps.title_failed', {
       completed: completedCount,
-      failed: totalSteps - completedCount,
+      failed: 1,
     });
   }
 
@@ -58,22 +67,30 @@ function getStepSummary({
 
 export function ActivityDetailsPerpsStepTimeline({
   explorerTarget,
+  failure,
   status,
   timestamp,
   type,
 }: {
   explorerTarget?: ActivityDetailsStepExplorerTarget;
+  failure?: PayFundsFailure;
   status: PerpsDepositWithdrawalStatus;
   timestamp: number;
   type: 'deposit' | 'withdrawal';
 }) {
   const labels = getPerpsStepLabels(type);
-  const completedCount = getPerpsCompletedStepCount({
-    status,
-    totalSteps: labels.length,
-  });
+  const legIndex =
+    type === 'deposit' && failure?.failedLeg
+      ? DEPOSIT_FAILED_STEP_BY_LEG[failure.failedLeg]
+      : undefined;
+  const failedIndex =
+    status === 'failed' ? (legIndex ?? labels.length - 1) : undefined;
+  const completedCount =
+    failedIndex !== undefined
+      ? failedIndex
+      : getPerpsCompletedStepCount({ status, totalSteps: labels.length });
   const steps: ActivityDetailsStep[] = labels.map((label, index) => {
-    const isFailed = status === 'failed' && index === completedCount;
+    const isFailed = index === failedIndex;
     const isPending =
       status !== 'completed' && status !== 'failed' && index === completedCount;
     const isComplete = index < completedCount && !isFailed;
@@ -88,6 +105,12 @@ export function ActivityDetailsPerpsStepTimeline({
     return {
       label,
       subtext,
+      ...(isFailed
+        ? {
+            failureMessage: failure?.message,
+            failureExplorerTarget: failure?.explorerTarget,
+          }
+        : {}),
       status: isFailed
         ? 'failed'
         : isPending

@@ -5,6 +5,7 @@ import {
   getPredictFundsStepLabels,
 } from './PredictDetails.types';
 import type { ActivityDetailsStep } from '../../components';
+import type { PayFundsFailure } from '../../hooks/usePayFundsFailure';
 
 const POLYMARKET_BASE_URL = 'https://polymarket.com';
 
@@ -27,6 +28,7 @@ export function getPolymarketActivityUrl(activity?: {
 export function getPredictFundsSteps(
   status: ActivityListItem['status'],
   timestamp: number,
+  failure?: PayFundsFailure,
 ): ActivityDetailsStep[] {
   const labels = getPredictFundsStepLabels();
   const completedTimestamp = formatPredictDate(timestamp);
@@ -39,7 +41,26 @@ export function getPredictFundsSteps(
     }));
   }
 
+  const failedIndex =
+    status === 'failed' ? (failure?.failedLeg ? 0 : labels.length - 1) : undefined;
+
   return labels.map((label, index) => {
+    if (index === failedIndex) {
+      return {
+        label,
+        subtext: strings('transaction.failed'),
+        status: 'failed',
+        failureMessage: failure?.message,
+        failureExplorerTarget: failure?.explorerTarget,
+      };
+    }
+
+    if (failedIndex !== undefined) {
+      return index < failedIndex
+        ? { label, subtext: completedTimestamp, status: 'completed' }
+        : { label, status: 'upcoming' };
+    }
+
     const isTerminal = index === labels.length - 1;
     if (!isTerminal) {
       return { label, subtext: completedTimestamp, status: 'completed' };
@@ -47,11 +68,8 @@ export function getPredictFundsSteps(
 
     return {
       label,
-      subtext:
-        status === 'failed'
-          ? strings('transaction.failed')
-          : strings('transaction.pending'),
-      status: status === 'failed' ? 'failed' : 'pending',
+      subtext: strings('transaction.pending'),
+      status: 'pending',
     };
   });
 }
@@ -70,7 +88,7 @@ export function getPredictFundsStepTitle(
   if (status === 'failed') {
     return strings('predict.transactions.steps.title_failed', {
       completed: completedCount,
-      failed: totalSteps - completedCount,
+      failed: 1,
     });
   }
 

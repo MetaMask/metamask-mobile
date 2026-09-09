@@ -1,1 +1,6 @@
-export { StepConnector, StepDot, type StepDotStatus } from './StepTimeline';
+export {
+  StepConnector,
+  StepDot,
+  StepFailureIcon,
+  type StepDotStatus,
+} from './StepTimeline';

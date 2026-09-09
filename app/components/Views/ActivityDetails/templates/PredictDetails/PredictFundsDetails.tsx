@@ -16,6 +16,7 @@ import {
   useActivityPayFiat,
   useFormatActivityTokenAmount,
 } from '../../components';
+import { usePayFundsFailure } from '../../hooks/usePayFundsFailure';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import {
   getPredictFundsCtaLabel,
@@ -69,12 +70,15 @@ export function PredictFundsDetails({
   const isDeposit = item.type === 'predictionsAddFunds';
   const amount = formatActivityTokenAmount(item.data.token);
 
+  const pay = useActivityPayFiat(item);
+  const failure = usePayFundsFailure(item, { skip: !isDeposit });
+
   const steps =
     isDeposit && item.status !== 'cancelled'
-      ? getPredictFundsSteps(item.status, item.timestamp)
+      ? getPredictFundsSteps(item.status, item.timestamp, failure)
       : undefined;
-  const completedCount = item.status === 'success' ? 2 : 1;
-  const pay = useActivityPayFiat(item);
+  const completedCount =
+    steps?.filter((step) => step.status === 'completed').length ?? 0;
   const showPaySection = isDeposit && Boolean(pay);
   const showDetails = showPaySection || Boolean(steps);
 
