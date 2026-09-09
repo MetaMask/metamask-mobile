@@ -170,6 +170,44 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsAbtestButtonColor: {
+    name: 'perpsAbtestButtonColor',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: 'monochrome',
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsLighterProviderEnabled: {
+    name: 'perpsLighterProviderEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsMarketAboutEnabled: {
+    name: 'perpsMarketAboutEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsTAT3597AbtestPerpsSectionPriority: {
+    name: 'perpsTAT3597AbtestPerpsSectionPriority',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [],
+    status: FeatureFlagStatus.Active,
+  },
+
   socialAiTSA531AbtestWhatsHappeningExplore: {
     name: 'socialAiTSA531AbtestWhatsHappeningExplore',
     type: FeatureFlagType.Remote,
@@ -4124,7 +4162,30 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'perpsTAT1937AbtestButtonColor',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: 'control',
+    productionDefault: {
+      versions: {
+        '8.3.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'control (white) — 50%',
+            thresholdVersion: 2,
+            value: 'control',
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'colors (green/red) — 50%',
+            thresholdVersion: 2,
+            value: 'colors',
+          },
+        ],
+      },
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -4164,10 +4225,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsProModeEnabled: {
     name: 'perpsProModeEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '7.0.0',
+      enabled: true,
+      minimumVersion: '8.8.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4175,10 +4236,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsProTriggeredOrdersEnabled: {
     name: 'perpsProTriggeredOrdersEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.8.0',
+      minimumVersion: '8.3.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4186,7 +4247,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsMobileScale: {
     name: 'perpsMobileScale',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '8.10.0',
@@ -4197,7 +4258,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsPositionModifyPreviewEnabled: {
     name: 'perpsPositionModifyPreviewEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '8.11.0',
@@ -4208,7 +4269,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsMobileTwap: {
     name: 'perpsMobileTwap',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '8.10.0',
@@ -4219,7 +4280,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsMobileChase: {
     name: 'perpsMobileChase',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '8.10.0',
@@ -4279,10 +4340,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsShowFullAssetNames: {
     name: 'perpsShowFullAssetNames',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.2.0',
+      enabled: true,
+      minimumVersion: '8.3.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6578,8 +6639,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '7.0.0',
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.3.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6633,8 +6694,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '7.0.0',
+      enabled: true,
+      minimumVersion: '8.3.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6642,10 +6703,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsRecentlyAddedEnabled: {
     name: 'perpsRecentlyAddedEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.3.0',
+      enabled: true,
+      minimumVersion: '8.5.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6653,10 +6714,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsRecentlyViewedEnabled: {
     name: 'perpsRecentlyViewedEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.4.0',
+      enabled: true,
+      minimumVersion: '8.10.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6664,9 +6725,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsClosePositionLimitOrderEnabled: {
     name: 'perpsClosePositionLimitOrderEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
+      enabled: true,
       minimumVersion: '8.3.0',
     },
     status: FeatureFlagStatus.Active,
