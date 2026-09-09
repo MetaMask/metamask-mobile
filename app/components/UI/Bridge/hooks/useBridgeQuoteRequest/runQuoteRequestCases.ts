@@ -469,8 +469,8 @@ export const runQuoteRequestCases = ({
 
     it('skips update when source token is missing', async () => {
       swapQuoteFetchTrace.start({
-        sourceToken: mockBridgeReducerState.sourceToken,
-        destToken: mockBridgeReducerState.destToken,
+        srcChainId: mockBridgeReducerState.sourceToken?.chainId,
+        destChainId: mockBridgeReducerState.destToken?.chainId,
         isRefresh: false,
       });
       const leftoverTraceId = mockTrace.mock.calls[0][0].id as string;
@@ -693,8 +693,8 @@ export const runQuoteRequestCases = ({
 
     it('converts "." source amount to srcTokenAmount "0"', async () => {
       swapQuoteFetchTrace.start({
-        sourceToken: mockBridgeReducerState.sourceToken,
-        destToken: mockBridgeReducerState.destToken,
+        srcChainId: mockBridgeReducerState.sourceToken?.chainId,
+        destChainId: mockBridgeReducerState.destToken?.chainId,
         isRefresh: false,
       });
       const leftoverTraceId = mockTrace.mock.calls[0][0].id as string;

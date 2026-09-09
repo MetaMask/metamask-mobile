@@ -36,6 +36,7 @@ import type {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
+  PerpsTradingCampaignPrizePoolDto,
   PerpsTradingCampaignParticipantOutcomeDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchLeaderboardPositionDto,
@@ -297,6 +298,11 @@ export interface RewardsDataServiceGetPerpsTradingCampaignVolumeAction {
   type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignVolume`;
   handler: RewardsDataService['getPerpsTradingCampaignVolume'];
 }
+
+export interface RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction {
+  type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignPrizePool`;
+  handler: RewardsDataService['getPerpsTradingCampaignPrizePool'];
+}
 export interface RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction {
   type: `${typeof SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`;
   handler: RewardsDataService['getPerpsTradingCampaignParticipantOutcome'];
@@ -469,6 +475,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction
   | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction
   | RewardsDataServiceGetPredictThePitchLeaderboardAction
   | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
@@ -661,6 +668,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPerpsTradingCampaignVolume`,
       this.getPerpsTradingCampaignVolume.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getPerpsTradingCampaignPrizePool`,
+      this.getPerpsTradingCampaignPrizePool.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`,
@@ -2154,6 +2165,23 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as PerpsTradingCampaignVolumeDto;
+  }
+
+  async getPerpsTradingCampaignPrizePool(
+    campaignId: string,
+  ): Promise<PerpsTradingCampaignPrizePoolDto> {
+    const response = await this.makeRequest(
+      `/perps-trading/${campaignId}/prize-pool`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get perps trading campaign prize pool failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as PerpsTradingCampaignPrizePoolDto;
   }
 
   async getPerpsTradingCampaignParticipantOutcome(
