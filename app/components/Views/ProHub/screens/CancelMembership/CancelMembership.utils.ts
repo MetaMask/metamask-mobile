@@ -16,7 +16,8 @@ export const shuffleCancelReasons = (
   const shuffled = [...rest];
 
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    // Display-order randomization only — no security or fairness guarantee needed.
+    const j = Math.floor(Math.random() * (i + 1)); // NOSONAR
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
 
