@@ -5964,6 +5964,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  exploreLaptopSearchApiRanking: {
+    name: 'exploreLaptopSearchApiRanking',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.12.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   exploreSectionsOrder: {
     name: 'exploreSectionsOrder',
     type: FeatureFlagType.Remote,
