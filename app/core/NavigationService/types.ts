@@ -1027,6 +1027,7 @@ export type RootStackParamList = {
   TraderPositionView: TraderPositionViewParams;
   SocialLeaderboardOnboarding: undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
+  SocialBundleV1Home: undefined;
 
   // Misc routes
   LockScreen: undefined;

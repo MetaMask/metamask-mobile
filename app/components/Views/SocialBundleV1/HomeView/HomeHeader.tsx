@@ -8,7 +8,6 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
-  ButtonIconVariant,
   IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -28,7 +27,7 @@ const HomeHeader: React.FC = () => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.SpaceBetween}
+      justifyContent={BoxJustifyContent.Between}
       style={tw.style('px-4 pt-3 pb-2 gap-2 bg-background-default')}
     >
       <Pressable onPress={noop} hitSlop={6}>
@@ -42,16 +41,15 @@ const HomeHeader: React.FC = () => {
         alignItems={BoxAlignItems.Center}
         style={tw.style('gap-2')}
       >
+        {/* Heart is not in the RN MMDS icon asset map; Star is the closest shipped glyph. */}
         <ButtonIcon
-          iconName={IconName.Heart}
+          iconName={IconName.Star}
           size={ButtonIconSize.Md}
-          variant={ButtonIconVariant.Secondary}
           onPress={noop}
         />
         <ButtonIcon
           iconName={IconName.Add}
           size={ButtonIconSize.Md}
-          variant={ButtonIconVariant.Secondary}
           onPress={noop}
         />
       </Box>

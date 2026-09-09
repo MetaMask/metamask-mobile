@@ -40,7 +40,8 @@ const TabBar: React.FC<TabBarProps> = ({ activeTab, onChange }) => {
           >
             <Box style={tw.style('pb-2 gap-1 items-center')}>
               <Text
-                variant={isActive ? TextVariant.BodyMdBold : TextVariant.BodyMd}
+                variant={TextVariant.BodyMd}
+                fontWeight={isActive ? FontWeight.Bold : FontWeight.Regular}
                 color={
                   isActive ? TextColor.TextDefault : TextColor.TextAlternative
                 }

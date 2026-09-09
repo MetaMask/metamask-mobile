@@ -59,11 +59,7 @@ const FeedCardFooter: React.FC<FeedCardFooterProps> = ({ footer }) => {
       alignItems={BoxAlignItems.Center}
       style={tw.style('gap-6 pt-3')}
     >
-      <CounterButton
-        icon={IconName.Heart}
-        count={footer.likes}
-        onPress={noop}
-      />
+      <CounterButton icon={IconName.Star} count={footer.likes} onPress={noop} />
       <CounterButton
         icon={IconName.Messages}
         count={footer.comments}

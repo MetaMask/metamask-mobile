@@ -4,7 +4,6 @@ import {
   BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
-  ButtonIconVariant,
   IconName,
   Text,
   FontWeight,
@@ -85,7 +84,6 @@ const FilterPills: React.FC<FilterPillsProps> = ({ audience, onChange }) => {
       <ButtonIcon
         iconName={IconName.Filter}
         size={ButtonIconSize.Md}
-        variant={ButtonIconVariant.Secondary}
         onPress={noop}
       />
     </Box>

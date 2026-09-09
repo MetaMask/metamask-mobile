@@ -4,6 +4,7 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectAiSocialBundleV1Enabled } from '../../../../selectors/featureFlagController/socialBundleV1';
 
 /**
  * Params forwarded to the leaderboard when onboarding is not shown. Mirrors the
@@ -56,6 +57,16 @@ export const navigateToSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
+  // TSA-1121 prototype takes precedence for every Follow Trading entry
+  // (homepage Top traders section, Traders action button, deeplink).
+  const isSocialBundleV1Enabled = selectAiSocialBundleV1Enabled(
+    ReduxService.store.getState(),
+  );
+  if (isSocialBundleV1Enabled) {
+    navigate(Routes.SOCIAL_BUNDLE_V1.HOME);
+    return;
+  }
+
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(Routes.SOCIAL_LEADERBOARD.ONBOARDING);
     return;

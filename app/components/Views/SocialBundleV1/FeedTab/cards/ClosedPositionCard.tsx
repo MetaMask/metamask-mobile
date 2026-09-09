@@ -27,7 +27,7 @@ const Row: React.FC<{ label: string; value: React.ReactNode }> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.SpaceBetween}
+      justifyContent={BoxJustifyContent.Between}
       style={tw.style('gap-4')}
     >
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>

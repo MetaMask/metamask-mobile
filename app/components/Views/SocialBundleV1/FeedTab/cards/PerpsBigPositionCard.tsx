@@ -6,10 +6,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
   FontWeight,
   TextColor,
@@ -35,7 +32,7 @@ const Row: React.FC<{ label: string; value: string; muted?: boolean }> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.SpaceBetween}
+      justifyContent={BoxJustifyContent.Between}
       style={tw.style('gap-4')}
     >
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
