@@ -84,6 +84,8 @@ const newOverrides = [
       'app/components/UI/Perps/adapters/mobileInfrastructure.test.ts',
       'app/components/UI/Predict/providers/polymarket/protocol/definitions.ts',
       'app/components/UI/Predict/providers/polymarket/protocol/definitions.test.ts',
+      'app/components/UI/Predict/controllers/PredictController.ts',
+      'app/components/UI/Predict/controllers/PredictController.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
       'tests/framework/playwrightLogger.ts',

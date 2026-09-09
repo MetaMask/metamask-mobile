@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Ваша подписка Pro",
     "manage": "Управление подпиской",
-    "manage_plan": "Управление планом",
-    "earned_with_pro": "Заработано с Pro",
-    "saved_with_pro": "Сэкономлено с Pro",
-    "next_payment": "Ваш следующий платеж на сумму {{amount}} ожидается {{date}}.",
     "member_pricing": {
       "title": "Цены для участников на сделки",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "Ваша подписка",
       "plan": "Подписка",
       "earned_this_month": "Заработано в этом месяце",
-      "saved_this_month": "Сэкономлено в этом месяце",
       "payment_details": "Детали платежа",
       "total": "Итого",
       "paying_with": "Оплата с помощью",

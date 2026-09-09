@@ -88,6 +88,10 @@ export class EmulatorConfigBuilder {
     const androidMjpegServerPort = readOptionalPort(
       'ANDROID_MJPEG_SERVER_PORT',
     );
+    // Pool workers each run their own adb server. Without this the single
+    // Appium process would drive every session through the default 5037
+    // server, so one server fault would kill UiAutomator2 on all emulators.
+    const androidAdbPort = readOptionalPort('ANDROID_ADB_SERVER_PORT');
     const iosWdaLocalPort =
       platformName === Platform.IOS
         ? readOptionalPort('IOS_WDA_LOCAL_PORT')
@@ -127,6 +131,9 @@ export class EmulatorConfigBuilder {
               ...(androidMjpegServerPort === undefined
                 ? {}
                 : { 'appium:mjpegServerPort': androidMjpegServerPort }),
+              ...(androidAdbPort === undefined
+                ? {}
+                : { 'appium:adbPort': androidAdbPort }),
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,

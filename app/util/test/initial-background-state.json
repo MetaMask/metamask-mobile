@@ -598,7 +598,8 @@
   },
   "AuthenticationController": {
     "isSignedIn": false,
-    "needsProfilePairing": true
+    "needsProfilePairing": true,
+    "needsSocialPairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -773,6 +774,11 @@
     "lastUnauthenticatedReason": null,
     "redeemWithdrawal": null
   },
+  "UiSlotsController": {
+    "enabled": false,
+    "screenConfigurations": {},
+    "activeConfigurations": {}
+  },
   "ConfigRegistryController": {
     "configs": {
       "networks": {}
@@ -894,6 +900,7 @@
   },
   "PredictController": {
     "eligibility": {
+      "status": "checking",
       "eligible": false
     },
     "lastError": null,
@@ -919,6 +926,7 @@
   },
   "AiDigestController": {},
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],

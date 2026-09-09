@@ -6,8 +6,7 @@ import {
   selectSourceToken,
   selectBridgeControllerState,
 } from '../../../../../../core/redux/slices/bridge';
-import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
+import type { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   Box,
   BoxAlignItems,
@@ -20,17 +19,18 @@ interface Props {
   onCTAPress: () => void;
   ctaDisabled?: boolean;
   ctaLabel: string;
+  latestSourceBalance?: ReturnType<typeof useLatestBalance>;
 }
 
 export const BridgeLimitOrderFooterView = ({
   onCTAPress,
   ctaLabel,
   ctaDisabled,
+  latestSourceBalance,
 }: Props) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
-  const { activeQuote, isLoading, needsNewQuote } = useBridgeQuoteDataContext();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
 
   const isValidSourceAmount =
@@ -57,6 +57,7 @@ export const BridgeLimitOrderFooterView = ({
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
         disabled={ctaDisabled}
         loading={ctaDisabled}
+        latestSourceBalance={latestSourceBalance}
       />
     </Box>
   );

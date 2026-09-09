@@ -4138,6 +4138,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsPositionModifyPreviewEnabled: {
+    name: 'perpsPositionModifyPreviewEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.11.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsMobileTwap: {
     name: 'perpsMobileTwap',
     type: FeatureFlagType.Remote,
@@ -5160,7 +5171,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'withBadge',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5492,7 +5503,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'grayIcons',
         scope: {
-          value: 1,
+          value: 0,
           type: 'percentage_rollout',
         },
       },
@@ -5500,7 +5511,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'colorIcons',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5523,14 +5534,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'row1Top',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
       {
         name: 'row2Top',
         scope: {
           type: 'percentage_rollout',
-          value: 1,
+          value: 0,
         },
       },
     ],
@@ -5953,6 +5964,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  exploreLaptopSearchApiRanking: {
+    name: 'exploreLaptopSearchApiRanking',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.12.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   exploreSectionsOrder: {
     name: 'exploreSectionsOrder',
     type: FeatureFlagType.Remote,
@@ -5984,6 +6006,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   predictHomeRedesign: {
     name: 'predictHomeRedesign',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  uiSlots: {
+    name: 'uiSlots',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
@@ -6234,7 +6267,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'postOnboardingSteps',
         scope: {
-          value: 1,
+          value: 0,
           type: 'percentage_rollout',
         },
       },
