@@ -56,34 +56,24 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
         currentDeviceDetails,
         { restartDevice: false },
         async () => {
-          await navigateFromBrowserToSnapSettings();
-          await SnapSettingsView.selectSnap('Dialog Example Snap');
-          await SnapSettingsView.setEnabled(true);
-          await navigateFromSnapSettingsToBrowser();
-
-          // Re-tap until the enabled dialog is visible. Probe first on retries
-          // so a slow prior tap does not queue a second snap_dialog.
-          let firstAttempt = true;
+          // Switch can read on before SnapController finishes enable. Settle the
+          // toggle, then re-enter settings once if Send Alert still hits disabled.
           await Utilities.executeWithRetry(
             async () => {
-              if (!firstAttempt) {
-                try {
-                  await TestSnaps.expectEnabledSnapAlert(1_000);
-                  return; // prior tap succeeded — dialog on screen
-                } catch {
-                  /* not yet — re-tap */
-                }
-              }
-              firstAttempt = false;
-              await TestSnaps.tapButton('sendAlertButton');
-              await TestSnaps.expectEnabledSnapAlert(8_000);
+              await navigateFromBrowserToSnapSettings();
+              await SnapSettingsView.selectSnap('Dialog Example Snap');
+              await SnapSettingsView.setEnabled(true);
+              await navigateFromSnapSettingsToBrowser();
+              await TestSnaps.tapSendAlertAndExpectEnabled({
+                timeout: 45_000,
+              });
             },
             {
-              timeout: 45_000,
-              interval: 500,
-              maxRetries: 5,
-              elemDescription: 'Send Alert button / enabled Snap alert dialog',
-              description: 'Send enabled Snap alert until dialog is visible',
+              timeout: 150_000,
+              interval: 1_000,
+              maxRetries: 2,
+              description:
+                'Enable Dialog Snap and show enabled alert dialog',
             },
           );
           await TestSnaps.tapOkButton();
