@@ -311,7 +311,7 @@ export class QrSyncController extends BaseController<
       state.syncFlow = this.getIsOnboardingCompleted()
         ? QrSyncSyncFlows.EXISTING_USER
         : QrSyncSyncFlows.NEW_USER;
-      state.pendingSecretImports = pendingPayload;
+      state.pendingSecretImports = snapshot.stripMetadata().serialize();
       state.provisioningMetadata = snapshot.stripSecrets().serialize();
       state.provisioningStatus = QrSyncProvisioningStatuses.AWAITING_PASSWORD;
       state.phase = QrSyncPhases.REVIEWING_IMPORT;
@@ -384,7 +384,7 @@ export class QrSyncController extends BaseController<
 
       await this.messenger.call(
         'AccountTreeController:importState',
-        snapshot.stripMetadata(),
+        snapshot,
       );
     } catch (error) {
       reportQrSyncFailure(error, {
@@ -518,10 +518,8 @@ export class QrSyncController extends BaseController<
       if (wirePayload) {
         const snapshot = await AccountTreeSnapshot.deserialize(wirePayload);
         this.update((state) => {
-          state.pendingSecretImports = wirePayload;
-          state.provisioningMetadata = snapshot
-            .stripSecrets()
-            .serialize() as AccountTreePayload;
+          state.pendingSecretImports = snapshot.stripMetadata().serialize();
+          state.provisioningMetadata = snapshot.stripSecrets().serialize();
           state.provisioningStatus =
             QrSyncProvisioningStatuses.AWAITING_PASSWORD;
         });

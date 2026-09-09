@@ -35,18 +35,33 @@ jest.mock('@metamask/account-tree-controller', () => {
     AccountTreeSnapshot: {
       ...actual.AccountTreeSnapshot,
       deserialize: jest.fn((payload: unknown) => {
-        const strippedWallets = (
-          payload as { wallets?: { value?: unknown }[] }
-        ).wallets?.map(({ value: _v, ...rest }) => rest);
-        const stripped = { ...(payload as object), wallets: strippedWallets };
+        const typedPayload = payload as {
+          version?: number;
+          wallets?: { value?: unknown; metadata?: unknown; groups?: { metadata?: unknown }[] }[];
+        };
+        const secretsStrippedWallets = typedPayload.wallets?.map(
+          ({ value: _v, ...rest }) => rest,
+        );
+        const metadataStrippedWallets = typedPayload.wallets?.map(
+          ({ metadata: _m, groups, ...rest }) => ({
+            ...rest,
+            groups: groups?.map(({ metadata: _gm, ...g }) => g),
+          }),
+        );
+        const secretsStripped = { ...typedPayload, wallets: secretsStrippedWallets };
+        const metadataStripped = { ...typedPayload, wallets: metadataStrippedWallets };
         const snapshot = {
           ...(payload as object),
           stripSecrets: jest.fn().mockReturnValue({
-            ...stripped,
-            serialize: jest.fn().mockReturnValue(stripped),
+            ...secretsStripped,
+            serialize: jest.fn().mockReturnValue(secretsStripped),
           }),
-          stripMetadata: jest.fn().mockReturnThis(),
+          stripMetadata: jest.fn().mockReturnValue({
+            ...metadataStripped,
+            serialize: jest.fn().mockReturnValue(metadataStripped),
+          }),
           filterWallets: jest.fn().mockReturnThis(),
+          serialize: jest.fn().mockReturnValue(payload),
         };
         return Promise.resolve(snapshot);
       }),
@@ -492,11 +507,15 @@ describe('QrSyncController', () => {
           {
             type: AccountWalletPayloadType.Mnemonic,
             value: expect.any(Array),
-            metadata: { name: 'Wallet 1' },
-            groups: [{ groupIndex: 0, metadata: { name: 'Account 1' } }],
           },
         ],
       });
+      expect(
+        controller.state.pendingSecretImports?.wallets[0],
+      ).not.toHaveProperty('metadata');
+      expect(
+        controller.state.pendingSecretImports?.wallets[0].groups?.[0],
+      ).not.toHaveProperty('metadata');
       expect(controller.state.provisioningMetadata).toMatchObject({
         version: 1,
         wallets: [{ type: AccountWalletPayloadType.Mnemonic }],
@@ -748,7 +767,7 @@ describe('QrSyncController', () => {
       );
     });
 
-    it('importRemainingSecrets sets SECRETS_IMPORTED, calls importState with stripMetadata result, and clears pendingSecretImports', async () => {
+    it('importRemainingSecrets sets SECRETS_IMPORTED, calls importState, and clears pendingSecretImports', async () => {
       const mockImportState = jest.fn().mockResolvedValue(undefined);
       const messenger = buildMessengerWithImportState(mockImportState);
       const controller = new QrSyncController({
@@ -775,9 +794,8 @@ describe('QrSyncController', () => {
       );
       expect(controller.state.pendingSecretImports).toBeNull();
       expect(mockImportState).toHaveBeenCalledTimes(1);
-      // snapshot.stripMetadata() is called; the mock returns `this` (the snapshot itself)
       expect(mockImportState).toHaveBeenCalledWith(
-        expect.objectContaining({ stripMetadata: expect.any(Function) }),
+        expect.objectContaining({ serialize: expect.any(Function) }),
       );
     });
 

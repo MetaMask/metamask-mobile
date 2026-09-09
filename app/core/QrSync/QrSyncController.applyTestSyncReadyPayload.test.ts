@@ -69,18 +69,17 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     expect(controller.state.provisioningStatus).toBe(
       QrSyncProvisioningStatuses.AWAITING_PASSWORD,
     );
-    // pendingSecretImports: full payload with secret value
+    // pendingSecretImports: metadata-stripped — secrets present, wallet/group metadata absent
     expect(controller.state.pendingSecretImports).toMatchObject({
       version: 1,
-      wallets: [
-        {
-          type: AccountWalletPayloadType.Mnemonic,
-          value: expect.any(Array),
-          metadata: { name: 'Extension Wallet' },
-          groups: [{ groupIndex: 0, metadata: { name: 'Synced Account' } }],
-        },
-      ],
+      wallets: [{ type: AccountWalletPayloadType.Mnemonic, value: expect.anything() }],
     });
+    expect(
+      controller.state.pendingSecretImports?.wallets[0],
+    ).not.toHaveProperty('metadata');
+    expect(
+      controller.state.pendingSecretImports?.wallets[0].groups?.[0],
+    ).not.toHaveProperty('metadata');
     // provisioningMetadata: secrets stripped, no value
     expect(controller.state.provisioningMetadata).toMatchObject({
       version: 1,
@@ -105,11 +104,12 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
 
     expect(controller.state.syncFlow).toBe(QrSyncSyncFlows.EXISTING_USER);
     expect(controller.state.pendingSecretImports?.wallets[0]).toMatchObject({
-      type: 'mnemonic',
-      value: expect.any(Array),
-      metadata: { name: 'Extension Wallet' },
-      groups: [{ groupIndex: 0, metadata: { name: 'Account 1' } }],
+      type: AccountWalletPayloadType.Mnemonic,
+      value: expect.anything(),
     });
+    expect(
+      controller.state.pendingSecretImports?.wallets[0],
+    ).not.toHaveProperty('metadata');
   });
 
   it('rejects onboarding payloads without a primary mnemonic value', async () => {
