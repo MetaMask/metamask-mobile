@@ -67,14 +67,20 @@ async function tapProfilerControl(testId: string): Promise<void> {
       );
     });
   }
-  const control = await appiumDriver.$(`~${testId}`);
+  let control: WebdriverIO.Element | undefined;
   await appiumDriver.waitUntil(
-    async () => control.isExisting().catch(() => false),
+    async () => {
+      control = await appiumDriver.$(`~${testId}`);
+      return control.isExisting().catch(() => false);
+    },
     {
       timeout: RECORDING_TIMEOUT_MS,
       timeoutMsg: `Profiler control not found: ${testId}`,
     },
   );
+  if (!control) {
+    throw new Error(`Profiler control was not resolved: ${testId}`);
+  }
   // Prefer a11y click; fall back to coordinate tap if RN onPress is not delivered.
   try {
     await control.click();
