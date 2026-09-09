@@ -25,6 +25,7 @@ import {
   PredictFeedCarouselSchema,
 } from '../../schemas';
 import { isAllowedPredictDeeplink } from '../../utils/isAllowedPredictDeeplink';
+import { selectLinkMetamaskComEnabled } from '../../../../../selectors/featureFlagController/linkMetamaskCom';
 
 /**
  * Selector for Predict trading feature enablement
@@ -211,7 +212,8 @@ export const selectPredictFeedBannerConfig = createSelector(
 
 export const selectPredictFeedCarouselConfig = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): PredictFeedCarouselConfig => {
+  selectLinkMetamaskComEnabled,
+  (remoteFeatureFlags, includeCom): PredictFeedCarouselConfig => {
     const parsedFlag = parse(
       unwrapRemoteFeatureFlag<PredictFeedCarouselConfig>(
         remoteFeatureFlags?.predictFeedCarousel,
@@ -247,7 +249,7 @@ export const selectPredictFeedCarouselConfig = createSelector(
     const title = parsedFlag.title?.trim() || undefined;
     const deeplink = parsedFlag.deeplink?.trim() || undefined;
 
-    if (deeplink && !isAllowedPredictDeeplink(deeplink)) {
+    if (deeplink && !isAllowedPredictDeeplink(deeplink, includeCom)) {
       return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
     }
 

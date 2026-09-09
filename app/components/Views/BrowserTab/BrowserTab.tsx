@@ -74,6 +74,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useNavigateToPerpsHome } from '../../UI/Perps/utils/perpsModeSwitch';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import { selectLinkMetamaskComEnabled } from '../../../selectors/featureFlagController/linkMetamaskCom';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
@@ -248,6 +249,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       | undefined
     >(undefined);
     const searchEngine = useSelector(selectSearchEngine);
+    const includeCom = useSelector(selectLinkMetamaskComEnabled);
 
     const webSharePolyfillScript = useMemo(
       () => buildWebSharePolyfillScript(Device.isAndroid()),
@@ -917,7 +919,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         }
 
         // Check if this is an internal MetaMask deeplink that should be handled within the app
-        if (isInternalDeepLink(urlToLoad)) {
+        if (isInternalDeepLink(urlToLoad, includeCom)) {
           // Handle the deeplink internally instead of passing to OS
           SharedDeeplinkManager.getInstance()
             .parse(urlToLoad, {
@@ -980,6 +982,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         setIpfsBannerVisible,
         isTabActive,
         navigateWebViewToUrl,
+        includeCom,
       ],
     );
 

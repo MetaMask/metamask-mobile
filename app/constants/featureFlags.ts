@@ -21,6 +21,7 @@ export enum FeatureFlagNames {
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
+  linkMetamaskComEnabled = 'linkMetamaskComEnabled',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -45,6 +46,10 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.ledgerDmk]: {
     enabled: false,
     minimumVersion: null,
+  },
+  [FeatureFlagNames.linkMetamaskComEnabled]: {
+    enabled: false,
+    minimumVersion: '0.0.0',
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
 };

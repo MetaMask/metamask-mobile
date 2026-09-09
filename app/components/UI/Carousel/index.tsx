@@ -24,6 +24,7 @@ import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { selectDismissedBanners } from '../../../selectors/banner';
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
+import { selectLinkMetamaskComEnabled } from '../../../selectors/featureFlagController/linkMetamaskCom';
 import {
   fetchCarouselSlidesFromContentful,
   isActive,
@@ -180,6 +181,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const appNavigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const dismissedBanners = useSelector(selectDismissedBanners);
+  const includeCom = useSelector(selectLinkMetamaskComEnabled);
   const isZeroBalance = !hasBalance;
 
   const applyLocalNavigation = useCallback(
@@ -331,30 +333,32 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     nextCardBgOpacity,
   ]);
 
-  const openUrl =
+  const openUrl = useCallback(
     (href: string): (() => Promise<boolean>) =>
-    () => {
-      // Check if this is an internal MetaMask deeplink
-      if (isInternalDeepLink(href)) {
-        // Handle internal deeplinks through SharedDeeplinkManager
-        return SharedDeeplinkManager.getInstance()
-          .parse(href, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
-          })
+      () => {
+        // Check if this is an internal MetaMask deeplink
+        if (isInternalDeepLink(href, includeCom)) {
+          // Handle internal deeplinks through SharedDeeplinkManager
+          return SharedDeeplinkManager.getInstance()
+            .parse(href, {
+              origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+            })
+            .catch((error) => {
+              console.error('Failed to handle internal deeplink:', error);
+              return false;
+            });
+        }
+
+        // For external URLs, use the OS linking system
+        return Linking.openURL(href)
+          .then(() => true)
           .catch((error) => {
-            console.error('Failed to handle internal deeplink:', error);
+            console.error('Failed to open external URL:', error);
             return false;
           });
-      }
-
-      // For external URLs, use the OS linking system
-      return Linking.openURL(href)
-        .then(() => true)
-        .catch((error) => {
-          console.error('Failed to open external URL:', error);
-          return false;
-        });
-    };
+      },
+    [includeCom],
+  );
 
   const handleSlideClick = useCallback(
     (slide: CarouselSlide) => {
@@ -383,7 +387,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         return navigateWithDetails(appNavigation, [navigation.route]);
       }
     },
-    [trackEvent, createEventBuilder, appNavigation],
+    [trackEvent, createEventBuilder, appNavigation, openUrl],
   );
 
   const handleTransitionToNextCard = useCallback(

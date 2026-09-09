@@ -33,6 +33,8 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { isMetaMaskUniversalLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
+import { useSelector } from 'react-redux';
+import { selectLinkMetamaskComEnabled } from '../../../selectors/featureFlagController/linkMetamaskCom';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -106,6 +108,7 @@ const QRScanner = ({
   shouldDismissOnScan?: boolean;
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const includeCom = useSelector(selectLinkMetamaskComEnabled);
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
@@ -371,7 +374,7 @@ const QRScanner = ({
       // than isInternalDeepLink here, because custom-scheme URLs (ethereum:,
       // dapp:, metamask:) have their own dedicated handling paths below that
       // include wallet-lock verification and URL redirect confirmation.
-      if (isMetaMaskUniversalLink(content)) {
+      if (isMetaMaskUniversalLink(content, includeCom)) {
         shouldReadBarCodeRef.current = false;
 
         const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
@@ -790,6 +793,7 @@ const QRScanner = ({
       navigateToSendPage,
       trackEvent,
       createEventBuilder,
+      includeCom,
     ],
   );
 

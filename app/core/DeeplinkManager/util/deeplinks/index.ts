@@ -7,6 +7,7 @@ const {
   MM_UNIVERSAL_LINK_TEST_APP_HOST,
   MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
   MM_IO_UNIVERSAL_LINK_HOST,
+  MM_COM_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
 
@@ -22,6 +23,23 @@ export const METAMASK_DEEPLINK_HOSTS: readonly string[] = [
     ].filter(Boolean),
   ),
 ];
+
+/**
+ * Returns the always-on MetaMask universal-link hosts and, when enabled, the
+ * `link.metamask.com` migration host.
+ *
+ * @param includeCom - Whether to include the `.com` universal-link host.
+ * @returns MetaMask universal-link hosts.
+ */
+export const getMetaMaskDeeplinkHosts = (
+  includeCom = false,
+): readonly string[] => {
+  if (!includeCom) {
+    return METAMASK_DEEPLINK_HOSTS;
+  }
+
+  return [...new Set([...METAMASK_DEEPLINK_HOSTS, MM_COM_UNIVERSAL_LINK_HOST])];
+};
 
 export const METAMASK_SDK_DEEPLINK_ACTIONS = [
   ACTIONS.ANDROID_SDK,
@@ -55,16 +73,18 @@ const isSDKServiceDeeplinkAction = (
  * be opened by the OS (e.g. to prevent iOS from bouncing to Safari).
  *
  * @param url - The URL to check
+ * @param includeCom - Whether to recognize `link.metamask.com`.
  * @returns true if the URL is a MetaMask universal link
  */
 export const isMetaMaskUniversalLink = (
   url: string | null | undefined,
+  includeCom = false,
 ): boolean => {
   if (!url) return false;
 
   try {
     const urlObj = new URL(url);
-    return METAMASK_DEEPLINK_HOSTS.includes(urlObj.hostname);
+    return getMetaMaskDeeplinkHosts(includeCom).includes(urlObj.hostname);
   } catch {
     return false;
   }
@@ -79,6 +99,7 @@ export const isMetaMaskUniversalLink = (
  */
 export const isSDKServiceDeeplink = (
   url: string | null | undefined,
+  includeCom = false,
 ): boolean => {
   if (!url) return false;
 
@@ -96,7 +117,7 @@ export const isSDKServiceDeeplink = (
 
     if (
       (protocol === PROTOCOLS.HTTP || protocol === PROTOCOLS.HTTPS) &&
-      METAMASK_DEEPLINK_HOSTS.includes(urlObj.hostname)
+      getMetaMaskDeeplinkHosts(includeCom).includes(urlObj.hostname)
     ) {
       const action = urlObj.pathname.split('/').filter(Boolean)[0] ?? '';
       return isSDKServiceDeeplinkAction(action);
@@ -116,9 +137,13 @@ export const isSDKServiceDeeplink = (
  * MetaMask universal link hosts (metamask.app.link, link.metamask.io, etc.).
  *
  * @param url - The URL to check
+ * @param includeCom - Whether to recognize `link.metamask.com`.
  * @returns true if the URL is a MetaMask internal deeplink
  */
-export const isInternalDeepLink = (url: string | null | undefined): boolean => {
+export const isInternalDeepLink = (
+  url: string | null | undefined,
+  includeCom = false,
+): boolean => {
   if (!url) return false;
 
   // Check custom schemes first (more efficient for these cases)
@@ -127,7 +152,7 @@ export const isInternalDeepLink = (url: string | null | undefined): boolean => {
     return true;
   }
 
-  return isMetaMaskUniversalLink(url);
+  return isMetaMaskUniversalLink(url, includeCom);
 };
 
 /**
@@ -135,7 +160,10 @@ export const isInternalDeepLink = (url: string | null | undefined): boolean => {
  * This is the inverse of isInternalDeepLink but kept separate for clarity.
  *
  * @param url - The URL to check
+ * @param includeCom - Whether to recognize `link.metamask.com`.
  * @returns true if the URL should be opened externally
  */
-export const shouldOpenExternally = (url: string): boolean =>
-  !isInternalDeepLink(url);
+export const shouldOpenExternally = (
+  url: string,
+  includeCom = false,
+): boolean => !isInternalDeepLink(url, includeCom);

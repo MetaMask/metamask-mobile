@@ -12,6 +12,7 @@ jest.mock('../../../core/AppConstants', () => ({
     MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE:
       'metamask-alternate.test-app.link',
     MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
+    MM_COM_UNIVERSAL_LINK_HOST: 'link.metamask.com',
     MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   },
 }));
@@ -97,6 +98,22 @@ describe('isAllowedBrazeDeeplink', () => {
       expect(isAllowedBrazeDeeplink('https://link.metamask.io/home')).toBe(
         true,
       );
+    });
+
+    it('rejects link.metamask.com when includeCom is false', () => {
+      const url = 'https://link.metamask.com/home';
+
+      const result = isAllowedBrazeDeeplink(url);
+
+      expect(result).toBe(false);
+    });
+
+    it('allows link.metamask.com when includeCom is true', () => {
+      const url = 'https://link.metamask.com/home';
+
+      const result = isAllowedBrazeDeeplink(url, true);
+
+      expect(result).toBe(true);
     });
 
     it('allows link-test.metamask.io', () => {

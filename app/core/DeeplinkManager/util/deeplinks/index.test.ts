@@ -42,6 +42,22 @@ describe('deeplinks utils', () => {
       expect(isMetaMaskUniversalLink('https://uniswap.org')).toBe(false);
     });
 
+    it('rejects link.metamask.com when includeCom is false', () => {
+      const url = 'https://link.metamask.com/swap';
+
+      const result = isMetaMaskUniversalLink(url);
+
+      expect(result).toBe(false);
+    });
+
+    it('identifies link.metamask.com when includeCom is true', () => {
+      const url = 'https://link.metamask.com/swap';
+
+      const result = isMetaMaskUniversalLink(url, true);
+
+      expect(result).toBe(true);
+    });
+
     it('handles edge cases gracefully', () => {
       expect(isMetaMaskUniversalLink('')).toBe(false);
       expect(isMetaMaskUniversalLink(null)).toBe(false);
@@ -109,6 +125,22 @@ describe('deeplinks utils', () => {
       expect(isInternalDeepLink('https://uniswap.org')).toBe(false);
       expect(isInternalDeepLink('https://portfolio.metamask.io')).toBe(false);
       expect(isInternalDeepLink('http://example.com')).toBe(false);
+    });
+
+    it('rejects link.metamask.com internal links when includeCom is false', () => {
+      const url = 'https://link.metamask.com/swap';
+
+      const result = isInternalDeepLink(url);
+
+      expect(result).toBe(false);
+    });
+
+    it('identifies link.metamask.com internal links when includeCom is true', () => {
+      const url = 'https://link.metamask.com/swap';
+
+      const result = isInternalDeepLink(url, true);
+
+      expect(result).toBe(true);
     });
 
     it('does not identify other protocols as internal', () => {
@@ -184,6 +216,22 @@ describe('deeplinks utils', () => {
       'not-a-valid-url',
     ])('returns false for %s', (deeplink) => {
       expect(isSDKServiceDeeplink(deeplink)).toBe(false);
+    });
+
+    it('rejects link.metamask.com SDK actions when includeCom is false', () => {
+      const deeplink = 'https://link.metamask.com/connect?channelId=test';
+
+      const result = isSDKServiceDeeplink(deeplink);
+
+      expect(result).toBe(false);
+    });
+
+    it('identifies link.metamask.com SDK actions when includeCom is true', () => {
+      const deeplink = 'https://link.metamask.com/connect?channelId=test';
+
+      const result = isSDKServiceDeeplink(deeplink, true);
+
+      expect(result).toBe(true);
     });
   });
 });

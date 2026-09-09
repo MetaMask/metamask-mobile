@@ -7,6 +7,7 @@ import WC2Manager from '../../../WalletConnect/WalletConnectV2';
 import { DeeplinkManager } from '../../DeeplinkManager';
 import extractURLParams from '../../utils/extractURLParams';
 import handleUniversalLink from '../handleUniversalLink';
+import { selectLinkMetamaskComEnabled } from '../../../../selectors/featureFlagController/linkMetamaskCom';
 import handleDeepLinkModalDisplay from '../../utils/handleDeepLinkModalDisplay';
 import handleBrowserUrl from '../intent/handleBrowserUrl';
 import { createDappDeeplinkIntent } from '../intent/handleDappUrl';
@@ -87,6 +88,12 @@ jest.mock('../../../redux', () => ({
     },
   },
 }));
+jest.mock(
+  '../../../../selectors/featureFlagController/linkMetamaskCom',
+  () => ({
+    selectLinkMetamaskComEnabled: jest.fn(() => false),
+  }),
+);
 jest.mock('react-native-quick-crypto', () => ({
   webcrypto: {
     subtle: {
@@ -171,6 +178,7 @@ describe('handleUniversalLink', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectLinkMetamaskComEnabled).mockReturnValue(false);
 
     // `handleMetaMaskDeeplink` is async and its returned promise is
     // `.catch`ed by the call site. The auto-mock returns `undefined`, so
@@ -3225,6 +3233,72 @@ describe('handleUniversalLink', () => {
         // regressed to awaiting Branch (which would push this >=500 ms).
         expect(elapsed).toBeLessThan(200);
       });
+    });
+  });
+
+  describe('link.metamask.com host', () => {
+    it('returns null in resolve mode when the flag is off', async () => {
+      const { createSwapDeeplinkIntent } = jest.requireMock(
+        '../intent/handleSwapUrl',
+      ) as {
+        createSwapDeeplinkIntent: jest.Mock;
+      };
+      const comUrl = `https://link.metamask.com/${ACTIONS.SWAP}`;
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: extractURLParams(comUrl).urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: comUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBeNull();
+      expect(handled).toHaveBeenCalled();
+      expect(createSwapDeeplinkIntent).not.toHaveBeenCalled();
+    });
+
+    it('routes link.metamask.com to the action resolver when the flag is on', async () => {
+      jest.mocked(selectLinkMetamaskComEnabled).mockReturnValue(true);
+      const { createSwapDeeplinkIntent } = jest.requireMock(
+        '../intent/handleSwapUrl',
+      ) as {
+        createSwapDeeplinkIntent: jest.Mock;
+      };
+      const comUrl = `https://link.metamask.com/${ACTIONS.SWAP}`;
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: extractURLParams(comUrl).urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: comUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(createSwapDeeplinkIntent).toHaveBeenCalled();
+    });
+
+    it('rewrites SDK connect URLs to metamask:// when the flag is on', async () => {
+      jest.mocked(selectLinkMetamaskComEnabled).mockReturnValue(true);
+      const comUrl = `https://link.metamask.com/${ACTIONS.CONNECT}?channelId=test123&scheme=testapp`;
+
+      await handleUniversalLink({
+        instance,
+        handled: jest.fn(),
+        urlObj: extractURLParams(comUrl).urlObj,
+        url: comUrl,
+        source: 'test',
+      });
+
+      expect(handleMetaMaskDeeplink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: `metamask://${ACTIONS.CONNECT}?channelId=test123&scheme=testapp`,
+        }),
+      );
     });
   });
 });
