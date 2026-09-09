@@ -57,7 +57,7 @@ const TabBarFloatingItem = ({
         fontWeight={isActive ? FontWeight.Medium : FontWeight.Regular}
         color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
         numberOfLines={1}
-        twClassName="mt-1 text-center"
+        twClassName="mt-0.5 text-center"
         // The variant's own 12/20 ramp is too tall for the bar; only the size
         // is overridden so weight and colour still come from the design system.
         style={{

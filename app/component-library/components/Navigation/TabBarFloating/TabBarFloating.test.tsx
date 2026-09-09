@@ -92,26 +92,6 @@ const descriptors: Record<string, TestTabDescriptor> = {
   },
 };
 
-const barElement = (
-  overrides: Partial<Record<string, TestTabDescriptor>> = {},
-  onHeightChange?: (height: number) => void,
-  activeIndex = 0,
-) => (
-  <TabBarFloating
-    state={
-      { ...state, index: activeIndex } as TabNavigationState<ParamListBase>
-    }
-    descriptors={
-      { ...descriptors, ...overrides } as Record<
-        string,
-        ExtendedBottomTabDescriptor
-      >
-    }
-    navigation={navigation}
-    onHeightChange={onHeightChange}
-  />
-);
-
 const renderBar = (
   overrides: Partial<Record<string, TestTabDescriptor>> = {},
   onHeightChange?: (height: number) => void,

@@ -33,33 +33,20 @@ export const FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY: Partial<
 };
 
 /** Trimmed off the bottom safe-area inset so the pill sits closer to the edge. */
-export const TAB_BAR_FLOATING_INSET_REDUCTION = 10;
+export const TAB_BAR_FLOATING_INSET_REDUCTION = 12;
 
 /** Floor for the bottom gap, for devices reporting little or no bottom inset. */
 export const TAB_BAR_FLOATING_MIN_BOTTOM_PADDING = 16;
 
-/*
- * Proportions below are measured from Apple's iOS 26 Photos tab bar, which
- * publishes no numbers. Apple fits two tabs at ~95pt in a 62pt bar; the
- * treatment fits four at ~72pt, so matching Apple's height would leave each tab
- * close to square. The height is scaled to hold the per-tab aspect instead.
- */
-
-/** Height of the pill, and the diameter of the search circle beside it. */
-export const TAB_BAR_FLOATING_HEIGHT = 52;
+/** Matches Apple's iOS 26 tab bar; also the diameter of the search circle. */
+export const TAB_BAR_FLOATING_HEIGHT = 62;
 
 /** Gap between the pill and the search circle. */
 export const TAB_BAR_FLOATING_GAP = 14;
 
-/** Vertical padding inside a tab item, and the icon-to-label gap. */
-export const TAB_BAR_FLOATING_ITEM_PADDING = 4;
-
-/**
- * Label type ramp. Set explicitly because the smallest design-system body
- * variant is 12/20, whose line height alone would overrun a 52pt bar.
- */
-export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 10;
-export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 12;
+/** Smallest design-system body variant is 12/20, which overruns the bar. */
+export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 11;
+export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 14;
 
 /** Strength of the system material used below iOS 26. */
 export const TAB_BAR_FLOATING_BLUR_INTENSITY = 60;
