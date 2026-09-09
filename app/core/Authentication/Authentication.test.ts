@@ -1472,7 +1472,7 @@ describe('Authentication', () => {
         expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
       });
 
-      it('calls importRemainingSecrets after primary vault restore when isQrSync is true', async () => {
+      it('imports remaining QR sync secrets after primary vault restore', async () => {
         const Engine = jest.requireMock('../Engine');
 
         await Authentication.newWalletAndRestore(
@@ -1488,7 +1488,7 @@ describe('Authentication', () => {
         ).toHaveBeenCalledWith();
       });
 
-      it('does not call importRemainingSecrets when isQrSync is false', async () => {
+      it('does not import remaining QR sync secrets when isQrSync is false', async () => {
         const Engine = jest.requireMock('../Engine');
 
         await Authentication.newWalletAndRestore(

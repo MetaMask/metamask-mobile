@@ -324,7 +324,7 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    const pendingPayload = {
+    const pendingSecretImports = {
       version: 1 as const,
       wallets: [
         {
@@ -343,10 +343,10 @@ describe('AddDeviceToWallet', () => {
       ],
     };
 
-    it('navigates to import when awaiting password with pending payload', async () => {
+    it('navigates to import when awaiting password with pending secrets', async () => {
       renderComponent({
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingSecretImports: pendingPayload,
+        pendingSecretImports,
       });
 
       await waitFor(() => {
@@ -361,11 +361,11 @@ describe('AddDeviceToWallet', () => {
       });
     });
 
-    it('navigates to import after sync completes while payload is still pending', async () => {
+    it('navigates to import after sync completes while secrets are still pending', async () => {
       renderComponent({
         phase: QrSyncPhases.COMPLETED,
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingSecretImports: pendingPayload,
+        pendingSecretImports,
       });
 
       await waitFor(() => {
@@ -380,10 +380,10 @@ describe('AddDeviceToWallet', () => {
       });
     });
 
-    it('does not navigate to import when sync failed with stale payload data', async () => {
+    it('does not navigate to import when sync failed with stale secret data', async () => {
       renderComponent({
         phase: QrSyncPhases.FAILED,
-        pendingSecretImports: pendingPayload,
+        pendingSecretImports,
         error: {
           code: 'SYNC_FAILED',
           message: 'Sync failed',
