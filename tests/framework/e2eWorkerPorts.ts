@@ -41,6 +41,25 @@ export function hostListenPortForDevicePort(
   return devicePort + resolveE2eWorkerIndex(env) * DAPP_HOST_PORT_STRIDE;
 }
 
+/**
+ * URL the in-app browser should open for a local dapp served via
+ * {@link hostListenPortForDevicePort}.
+ *
+ * Android: keep the device-facing port — `adb reverse` maps it to the worker
+ * host listen port. iOS: simulators share the host network and reverse is a
+ * no-op, so navigate to the worker's host listen port directly (worker 1 →
+ * devicePort + 100).
+ */
+export function localDappBrowserUrl(
+  devicePort: number,
+  env: Record<string, string | undefined> = process.env,
+): string {
+  if (isIosAppiumSmokeEnv(env)) {
+    return `http://localhost:${hostListenPortForDevicePort(devicePort, env)}`;
+  }
+  return `http://localhost:${devicePort}`;
+}
+
 export function chromeCdpForwardPort(
   env: Record<string, string | undefined> = process.env,
 ): number {

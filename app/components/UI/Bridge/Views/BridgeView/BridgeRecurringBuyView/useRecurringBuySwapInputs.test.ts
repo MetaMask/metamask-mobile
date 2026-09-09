@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import type { CaipChainId } from '@metamask/utils';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import {
   selectDestToken,
@@ -321,6 +322,7 @@ describe('useRecurringBuySwapInputs', () => {
           type: TokenSelectorType.Source,
           enabledChainIds: ENABLED_CHAIN_IDS,
           excludeRwaTokens: true,
+          featureId: FeatureId.RECURRING_BUY,
         }),
       );
     });
@@ -343,6 +345,7 @@ describe('useRecurringBuySwapInputs', () => {
           type: TokenSelectorType.Dest,
           enabledChainIds: ENABLED_CHAIN_IDS,
           excludeRwaTokens: true,
+          featureId: FeatureId.RECURRING_BUY,
         }),
       );
     });

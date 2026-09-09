@@ -68,9 +68,119 @@ export interface SyncResult {
   hasDrift: boolean;
 }
 
+const PINNABLE_SCOPE_TYPES = new Set(['threshold', 'percentage_rollout']);
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function getVariantName(variant: Record<string, unknown>): string | undefined {
+  if (typeof variant.name === 'string') {
+    return variant.name;
+  }
+  if (typeof variant.thresholdName === 'string') {
+    return variant.thresholdName;
+  }
+  return undefined;
+}
+
+function getScopeValue(scope: Record<string, unknown>): number | undefined {
+  return typeof scope.value === 'number' ? scope.value : undefined;
+}
+
+function isScopedVariantArray(
+  value: unknown,
+): value is Record<string, unknown>[] {
+  return (
+    Array.isArray(value) &&
+    value.every((item) => isPlainObject(item) && isPlainObject(item.scope))
+  );
+}
+
+function pickDefaultVariantIndex(variants: Record<string, unknown>[]): number {
+  const controlIndex = variants.findIndex(
+    (variant) => getVariantName(variant) === 'control',
+  );
+  if (controlIndex !== -1) {
+    return controlIndex;
+  }
+  if (variants.length === 1) {
+    return 0;
+  }
+
+  const sorted = variants
+    .map((variant, index) => ({
+      index,
+      value: getScopeValue(variant.scope as Record<string, unknown>) ?? 0,
+    }))
+    .sort((a, b) => a.value - b.value);
+
+  let previous = 0;
+  let bestWidth = -1;
+  let bestIndex = sorted[0]?.index ?? 0;
+  for (const entry of sorted) {
+    const width = entry.value - previous;
+    if (width > bestWidth) {
+      bestWidth = width;
+      bestIndex = entry.index;
+    }
+    previous = entry.value;
+  }
+  return bestIndex;
+}
+
+/**
+ * Pins scoped variant arrays so CI/E2E always resolve one winner.
+ * Prefer `control`; otherwise the widest bucket (most users); then a single entry.
+ * Empty arrays and non-variant values are unchanged.
+ *
+ * @param value - Production flag value
+ * @returns Value with pinnable scopes rewritten to default=1, others=0
+ */
+export function pinScopedVariantsToDefault(value: unknown): unknown {
+  if (isScopedVariantArray(value)) {
+    if (value.length === 0) {
+      return value;
+    }
+
+    const defaultIndex = pickDefaultVariantIndex(value);
+    return value.map((variant, index) => {
+      const scope = variant.scope as Record<string, unknown>;
+      if (
+        typeof scope.type !== 'string' ||
+        !PINNABLE_SCOPE_TYPES.has(scope.type)
+      ) {
+        return variant;
+      }
+      return {
+        ...variant,
+        scope: {
+          ...scope,
+          value: index === defaultIndex ? 1 : 0,
+        },
+      };
+    });
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(pinScopedVariantsToDefault);
+  }
+
+  if (isPlainObject(value)) {
+    const pinned: Record<string, unknown> = {};
+    for (const [key, nested] of Object.entries(value)) {
+      pinned[key] = pinScopedVariantsToDefault(nested);
+    }
+    return pinned;
+  }
+
+  return value;
+}
+
 /**
  * Parses the production API response (array of single-key objects) into a flat map.
  * Skips and warns for unexpected formats (multi-key or empty objects).
+ * Pins A/B and rollout scopes so the registry stays deterministic for CI.
  *
  * @param response - Raw API response array
  * @returns Flat map of flag name to value
@@ -83,7 +193,7 @@ function parseProductionResponse(
     if (item && typeof item === 'object') {
       const keys = Object.keys(item);
       if (keys.length === 1) {
-        map[keys[0]] = item[keys[0]];
+        map[keys[0]] = pinScopedVariantsToDefault(item[keys[0]]);
       } else if (keys.length > 1) {
         console.warn(
           `[sync] Skipping unexpected multi-key object (expected single-key): ${JSON.stringify(item)}`,
