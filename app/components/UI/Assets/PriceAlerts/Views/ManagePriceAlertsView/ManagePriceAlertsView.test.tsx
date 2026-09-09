@@ -958,7 +958,7 @@ describe('ManagePriceAlertsView', () => {
 
       await waitFor(() =>
         expect(toast).toHaveBeenCalledWith({
-          title: 'Failed to update price alert. Please try again.',
+          title: 'Failed to update price alert. Try again.',
           severity: ToastSeverity.Danger,
           hasNoTimeout: false,
           showCloseButton: false,
