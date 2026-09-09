@@ -859,7 +859,7 @@ describe('RevealPrivateCredential', () => {
 
       // Validate specific unknown error message
       expect(
-        getByText("Couldn't unlock your account. Please try again."),
+        getByText("Couldn't unlock your account. Try again."),
       ).toBeOnTheScreen();
     });
 

@@ -169,7 +169,7 @@ describe('useAlertSaveFlow', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockPop).not.toHaveBeenCalled();
     expect(toast).toHaveBeenCalledWith({
-      title: 'Failed to save price alert. Please try again.',
+      title: 'Failed to save price alert. Try again.',
       severity: ToastSeverity.Danger,
       hasNoTimeout: false,
       showCloseButton: false,
