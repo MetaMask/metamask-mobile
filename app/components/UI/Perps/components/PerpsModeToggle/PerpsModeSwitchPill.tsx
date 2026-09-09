@@ -242,12 +242,7 @@ const PerpsModeSwitchPill = ({
         twClassName={(pressed) =>
           `h-8 rounded-lg border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
         }
-        style={borderStyle}
-        style={{
-          borderColor: BORDER_COLOR,
-          borderWidth: BORDER_WIDTH,
-          minWidth: MIN_WIDTH,
-        }}
+        style={[borderStyle, { minWidth: MIN_WIDTH }]}
         onPress={handlePress}
         disabled={isShimmering}
         accessibilityLabel={accessibilityLabel}
