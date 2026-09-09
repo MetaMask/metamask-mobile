@@ -3,14 +3,16 @@ import reducer, {
   setLastKnownMoneyBalance,
   clearLastKnownMoneyBalance,
   setMoneyAccountRedeemableRaw,
-  setLastLocalMoneyFlowConfirmedAt,
+  setLastLocalMoneyFlow,
   selectLastKnownMoneyBalance,
-  selectLastLocalMoneyFlowConfirmedAt,
+  selectLastLocalMoneyFlow,
   selectMoneyAccountRedeemable,
   getUsableMoneyAccountRedeemableRaw,
+  getUsableLastLocalFlowConfirmedAt,
   isPersistedMoneyBalanceUsable,
   PersistedMoneyBalance,
   PersistedRedeemableRaw,
+  PersistedLocalMoneyFlow,
   MoneyBalanceSliceState,
 } from '.';
 import { RootState } from '../../../../reducers';
@@ -26,6 +28,13 @@ const redeemable: PersistedRedeemableRaw = {
   address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
   raw: '15019083',
 };
+
+const localFlow: PersistedLocalMoneyFlow = {
+  address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
+  confirmedAt: 1700000000000,
+};
+
+const OTHER_ADDRESS = '0x1234567890123456789012345678901234567890';
 
 describe('moneyBalance slice', () => {
   it('returns the initial state', () => {
@@ -64,29 +73,26 @@ describe('moneyBalance slice', () => {
     expect(cleared.redeemable).toBeNull();
   });
 
-  it('setLastLocalMoneyFlowConfirmedAt stores the confirmation time', () => {
-    const state = reducer(
-      initialState,
-      setLastLocalMoneyFlowConfirmedAt(1700000000000),
-    );
+  it('setLastLocalMoneyFlow stores the account and confirmation time', () => {
+    const state = reducer(initialState, setLastLocalMoneyFlow(localFlow));
 
-    expect(state.lastLocalFlowConfirmedAt).toBe(1700000000000);
+    expect(state.lastLocalFlowConfirmedAt).toEqual(localFlow);
   });
 
-  it('selectLastLocalMoneyFlowConfirmedAt returns the stored time', () => {
+  it('selectLastLocalMoneyFlow returns the stored marker', () => {
     const state = {
-      moneyBalance: { lastLocalFlowConfirmedAt: 1700000000000 },
+      moneyBalance: { lastLocalFlowConfirmedAt: localFlow },
     } as unknown as RootState;
 
-    expect(selectLastLocalMoneyFlowConfirmedAt(state)).toBe(1700000000000);
+    expect(selectLastLocalMoneyFlow(state)).toEqual(localFlow);
   });
 
-  it('selectLastLocalMoneyFlowConfirmedAt returns null for state persisted before the field existed', () => {
+  it('selectLastLocalMoneyFlow returns null for state persisted before the field existed', () => {
     const state = {
       moneyBalance: { lastKnownBalance: null, redeemable: null },
     } as unknown as RootState;
 
-    expect(selectLastLocalMoneyFlowConfirmedAt(state)).toBeNull();
+    expect(selectLastLocalMoneyFlow(state)).toBeNull();
   });
 
   it('selectLastKnownMoneyBalance returns the stored balance', () => {
@@ -127,6 +133,41 @@ describe('moneyBalance slice', () => {
     it('returns undefined when no active address is provided', () => {
       expect(
         getUsableMoneyAccountRedeemableRaw(redeemable, undefined),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('getUsableLastLocalFlowConfirmedAt', () => {
+    it('returns the confirmation time when the address matches', () => {
+      expect(
+        getUsableLastLocalFlowConfirmedAt(localFlow, localFlow.address),
+      ).toBe(1700000000000);
+    });
+
+    it('returns undefined when the marker belongs to another account', () => {
+      expect(
+        getUsableLastLocalFlowConfirmedAt(localFlow, OTHER_ADDRESS),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined for the bare-timestamp shape persisted by older builds', () => {
+      expect(
+        getUsableLastLocalFlowConfirmedAt(1700000000000, localFlow.address),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when no marker has been recorded', () => {
+      expect(
+        getUsableLastLocalFlowConfirmedAt(null, localFlow.address),
+      ).toBeUndefined();
+      expect(
+        getUsableLastLocalFlowConfirmedAt(undefined, localFlow.address),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when there is no active Money account', () => {
+      expect(
+        getUsableLastLocalFlowConfirmedAt(localFlow, undefined),
       ).toBeUndefined();
     });
   });

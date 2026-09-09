@@ -1,5 +1,9 @@
 import { useSelector } from 'react-redux';
-import { selectLastLocalMoneyFlowConfirmedAt } from '../../../../core/redux/slices/moneyBalance';
+import {
+  getUsableLastLocalFlowConfirmedAt,
+  selectLastLocalMoneyFlow,
+} from '../../../../core/redux/slices/moneyBalance';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 
 /**
  * How long a locally-confirmed Money Account transaction may sit ahead of the
@@ -50,8 +54,15 @@ export const isFlowAheadOfIngest = (
 export const useMoneyAccountSweepstakesIngestLag = (
   dataAsOf?: string | null,
 ): { isIngestLagging: boolean } => {
-  const confirmedAt = useSelector(selectLastLocalMoneyFlowConfirmedAt);
-  return { isIngestLagging: isFlowAheadOfIngest(confirmedAt, dataAsOf) };
+  const lastLocalFlow = useSelector(selectLastLocalMoneyFlow);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const confirmedAt = getUsableLastLocalFlowConfirmedAt(
+    lastLocalFlow,
+    primaryMoneyAccount?.address,
+  );
+  return {
+    isIngestLagging: isFlowAheadOfIngest(confirmedAt ?? null, dataAsOf),
+  };
 };
 
 export default useMoneyAccountSweepstakesIngestLag;

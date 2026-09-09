@@ -12,7 +12,7 @@ import ReactQueryService from '../../../../core/ReactQueryService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { invalidateMoneyAccountBalanceCaches } from '../utils/invalidateMoneyAccountBalanceCaches';
 import { store } from '../../../../store';
-import { setLastLocalMoneyFlowConfirmedAt } from '../../../../core/redux/slices/moneyBalance';
+import { setLastLocalMoneyFlow } from '../../../../core/redux/slices/moneyBalance';
 import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
 
 jest.mock('../../../../core/Engine');
@@ -305,7 +305,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       getConfirmedHandler()(makeTx(type));
 
       expect(mockDispatch).toHaveBeenCalledWith(
-        setLastLocalMoneyFlowConfirmedAt(1_700_000_000_000),
+        setLastLocalMoneyFlow({
+          address: MOCK_ADDRESS,
+          confirmedAt: 1_700_000_000_000,
+        }),
       );
     });
 
