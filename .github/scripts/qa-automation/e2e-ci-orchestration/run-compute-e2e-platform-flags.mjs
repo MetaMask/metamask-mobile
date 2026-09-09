@@ -73,6 +73,8 @@ const flags = resolveE2EPlatformRequirements({
   labelOverrideInput,
   skipSmartSelection,
   e2eSmokeInfraCount,
+  githubRef: process.env.GITHUB_REF || '',
+  mainCommitCount: readInt(process.env.MAIN_COMMIT_COUNT),
 });
 
 let blockMerge = false;

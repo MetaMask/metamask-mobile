@@ -247,6 +247,55 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(stdout).not.toContain('iOS build disabled for PRs into main');
     });
 
+    it('skips iOS on a main push when MAIN_COMMIT_COUNT is not a multiple of 3', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        GITHUB_REF: 'refs/heads/main',
+        MAIN_COMMIT_COUNT: '4',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'true',
+        ios_final: 'false',
+        e2e_needed: 'true',
+      });
+      expect(stdout).toContain('iOS skipped');
+    });
+
+    it('keeps iOS on a main push when MAIN_COMMIT_COUNT is a multiple of 3', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        GITHUB_REF: 'refs/heads/main',
+        MAIN_COMMIT_COUNT: '6',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'true',
+        ios_final: 'true',
+        e2e_needed: 'true',
+      });
+      expect(stdout).toContain('iOS sampled');
+    });
+
+    it('keeps iOS for iOS-only main pushes when MAIN_COMMIT_COUNT is not a multiple of 3', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        GITHUB_REF: 'refs/heads/main',
+        MAIN_COMMIT_COUNT: '4',
+        ...bothPlatformsPR,
+        ANDROID_COUNT: '0',
+        ANDROID_OR_IGNORABLE_COUNT: '0',
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'true',
+        e2e_needed: 'true',
+      });
+    });
+
     it('skips ignorable-only pushes to main or release/*', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',

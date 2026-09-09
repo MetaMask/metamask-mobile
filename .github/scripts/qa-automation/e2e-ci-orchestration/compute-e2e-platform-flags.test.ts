@@ -1,6 +1,7 @@
 import {
   computeE2EPlatformFlags,
   applyE2ELabelOverrides,
+  applyMainPushIosSampling,
   resolveE2EPlatformRequirements,
 } from './compute-e2e-platform-flags.mjs';
 
@@ -290,6 +291,103 @@ describe('computeE2EPlatformFlags', () => {
     });
 
     expect(result.android).toBe(true);
+    expect(result.ios).toBe(true);
+  });
+});
+
+describe('applyMainPushIosSampling', () => {
+  const bothPlatforms = {
+    android: true,
+    ios: true,
+    e2eNeeded: true,
+    useMainBuildsForTestOnlyPrs: false,
+    runSmartE2ESelection: false,
+    message: 'E2E for both platforms',
+    changedSpecFiles: '',
+  };
+
+  const mainPush = {
+    githubEventName: 'push',
+    githubRef: 'refs/heads/main',
+  };
+
+  it('skips iOS on a main push when the commit count is not a multiple of 3', () => {
+    const result = applyMainPushIosSampling(bothPlatforms, {
+      ...mainPush,
+      mainCommitCount: 4,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: false,
+      e2eNeeded: true,
+    });
+    expect(result.message).toContain('iOS skipped');
+  });
+
+  it('keeps iOS on a main push when the commit count is a multiple of 3', () => {
+    const result = applyMainPushIosSampling(bothPlatforms, {
+      ...mainPush,
+      mainCommitCount: 9,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+    });
+    expect(result.message).toContain('iOS sampled');
+  });
+
+  it('keeps iOS for iOS-only main pushes regardless of commit count', () => {
+    const result = applyMainPushIosSampling(
+      {
+        ...bothPlatforms,
+        android: false,
+        message: 'E2E iOS only',
+      },
+      {
+        ...mainPush,
+        mainCommitCount: 4,
+      },
+    );
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: true,
+      e2eNeeded: true,
+    });
+    expect(result.message).toBe('E2E iOS only');
+  });
+
+  it('keeps iOS when the main commit count is unknown', () => {
+    const result = applyMainPushIosSampling(bothPlatforms, {
+      ...mainPush,
+      mainCommitCount: 0,
+    });
+
+    expect(result.ios).toBe(true);
+    expect(result.message).toContain('unknown main commit count');
+  });
+
+  it('does not sample iOS on release branch pushes', () => {
+    const result = applyMainPushIosSampling(bothPlatforms, {
+      githubEventName: 'push',
+      githubRef: 'refs/heads/release/7.0.0',
+      mainCommitCount: 4,
+    });
+
+    expect(result.ios).toBe(true);
+    expect(result.message).toBe('E2E for both platforms');
+  });
+
+  it('does not sample iOS on scheduled runs', () => {
+    const result = applyMainPushIosSampling(bothPlatforms, {
+      githubEventName: 'schedule',
+      githubRef: 'refs/heads/main',
+      mainCommitCount: 4,
+    });
+
     expect(result.ios).toBe(true);
   });
 });
@@ -628,6 +726,35 @@ describe('resolveE2EPlatformRequirements', () => {
       android: true,
       ios: false,
     });
+  });
+
+  it('samples iOS off on a both-platform main push when the commit is not a multiple of 3', () => {
+    const result = resolveE2EPlatformRequirements({
+      pathFilterInput: {
+        githubEventName: 'push',
+        isFork: false,
+        shouldSkipE2E: false,
+        allChangesCount: 1,
+        ignorableCount: 0,
+        e2eTestFilesCount: 0,
+        e2eTestOrIgnorableCount: 0,
+        e2eWorkflowsCount: 0,
+        androidCount: 1,
+        iosCount: 1,
+        androidOrIgnorableCount: 1,
+        iosOrIgnorableCount: 1,
+      },
+      labelOverrideInput: eligibleLabelInput,
+      githubRef: 'refs/heads/main',
+      mainCommitCount: 4,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: false,
+      e2eNeeded: true,
+    });
+    expect(result.message).toContain('iOS skipped');
   });
 
   it('does not revive E2E when skip-smart-e2e-selection is applied to an ignorable-only PR', () => {
