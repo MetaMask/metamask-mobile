@@ -35,6 +35,7 @@ jobs:
       environment: exp
       testflight_group: 'MetaMask BETA & Release Candidates'
       distribute_external: true
+      build_attribution: nightly
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -47,6 +48,7 @@ jobs:
       environment: rc
       testflight_group: 'MetaMask BETA & Release Candidates'
       distribute_external: true
+      build_attribution: nightly
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -62,6 +64,7 @@ jobs:
       platform: android
       source_branch: main
       build_number: ${{ needs.android-exp-generate.outputs.build-version }}
+      build_attribution: nightly
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -78,6 +81,7 @@ jobs:
       platform: android
       source_branch: main
       build_number: ${{ needs.android-rc-generate.outputs.build-version }}
+      build_attribution: nightly
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 

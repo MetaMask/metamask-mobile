@@ -67,6 +67,9 @@ import rewardsReducer, {
   setPredictThePitchPrizePool,
   setPredictThePitchPrizePoolLoading,
   setPredictThePitchPrizePoolError,
+  setPerpsTradingCampaignPrizePool,
+  setPerpsTradingCampaignPrizePoolLoading,
+  setPerpsTradingCampaignPrizePoolError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -106,6 +109,7 @@ import {
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
   PredictThePitchPrizePoolDto,
+  PerpsTradingCampaignPrizePoolDto,
   VipDashboardState,
   VipTransactionDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
@@ -2150,6 +2154,7 @@ describe('rewardsReducer', () => {
         perpsTradingCampaignLeaderboards: {},
         perpsTradingCampaignLeaderboardPositions: {},
         perpsTradingCampaignVolumes: {},
+        perpsTradingCampaignPrizePools: {},
         predictThePitchLeaderboards: {},
         predictThePitchLeaderboardPositions: {},
         predictThePitchPositions: {},
@@ -2301,6 +2306,7 @@ describe('rewardsReducer', () => {
         perpsTradingCampaignLeaderboards: {},
         perpsTradingCampaignLeaderboardPositions: {},
         perpsTradingCampaignVolumes: {},
+        perpsTradingCampaignPrizePools: {},
         predictThePitchLeaderboards: {},
         predictThePitchLeaderboardPositions: {},
         predictThePitchPositions: {},
@@ -6782,6 +6788,87 @@ describe('predict the pitch reducers', () => {
     );
     expect(
       withError.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].data,
+    ).toBeNull();
+  });
+});
+
+describe('perpsTradingCampaignPrizePools', () => {
+  const PERPS_CAMPAIGN_ID = 'perps-c-1';
+  const mockPerpsPrizePool: PerpsTradingCampaignPrizePoolDto = {
+    totalVolumeUsd: 7_500_000,
+    unlockedPoolUsd: 15_000,
+    thresholdsUsd: [0, 5_000_000],
+    poolScheduleUsd: [10_000, 15_000],
+    computedAt: '2026-07-15T00:00:00.000Z',
+  };
+
+  it('sets and removes prize-pool data', () => {
+    let state = rewardsReducer(
+      {
+        ...initialState,
+        perpsTradingCampaignPrizePools: {
+          [PERPS_CAMPAIGN_ID]: { data: null, loading: false, error: true },
+        },
+      },
+      setPerpsTradingCampaignPrizePool({
+        campaignId: PERPS_CAMPAIGN_ID,
+        prizePool: mockPerpsPrizePool,
+      }),
+    );
+
+    expect(
+      state.perpsTradingCampaignPrizePools[PERPS_CAMPAIGN_ID].data,
+    ).toEqual(mockPerpsPrizePool);
+    expect(state.perpsTradingCampaignPrizePools[PERPS_CAMPAIGN_ID].error).toBe(
+      false,
+    );
+
+    state = rewardsReducer(
+      state,
+      setPerpsTradingCampaignPrizePool({
+        campaignId: PERPS_CAMPAIGN_ID,
+        prizePool: null,
+      }),
+    );
+
+    expect(
+      state.perpsTradingCampaignPrizePools[PERPS_CAMPAIGN_ID].data,
+    ).toBeNull();
+  });
+
+  it('toggles prize-pool loading and errors per campaign', () => {
+    const withLoading = rewardsReducer(
+      initialState,
+      setPerpsTradingCampaignPrizePoolLoading({
+        campaignId: PERPS_CAMPAIGN_ID,
+        loading: true,
+      }),
+    );
+    expect(
+      withLoading.perpsTradingCampaignPrizePools[PERPS_CAMPAIGN_ID].loading,
+    ).toBe(true);
+
+    const withError = rewardsReducer(
+      {
+        ...initialState,
+        perpsTradingCampaignPrizePools: {
+          [PERPS_CAMPAIGN_ID]: {
+            data: mockPerpsPrizePool,
+            loading: false,
+            error: false,
+          },
+        },
+      },
+      setPerpsTradingCampaignPrizePoolError({
+        campaignId: PERPS_CAMPAIGN_ID,
+        error: true,
+      }),
+    );
+    expect(
+      withError.perpsTradingCampaignPrizePools[PERPS_CAMPAIGN_ID].error,
+    ).toBe(true);
+    expect(
+      withError.perpsTradingCampaignPrizePools[PERPS_CAMPAIGN_ID].data,
     ).toBeNull();
   });
 });
