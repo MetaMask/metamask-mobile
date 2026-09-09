@@ -11345,10 +11345,6 @@
     "title": "MetaMask Pro",
     "subtitle": "Ihre Pro-Mitgliedschaft",
     "manage": "Abonnement verwalten",
-    "manage_plan": "Plan verwalten",
-    "earned_with_pro": "Mit Pro verdient",
-    "saved_with_pro": "Mit Pro gespart",
-    "next_payment": "Ihre nächste Zahlung in Höhe von {{amount}} ist am {{date}} fällig.",
     "member_pricing": {
       "title": "Mitgliederpreise auf Trades",
       "allowance_currency": "${{amount}}",
@@ -11389,7 +11385,6 @@
       "title": "Ihre Mitgliedschaft",
       "plan": "Mitgliedschaft",
       "earned_this_month": "In diesem Monat verdient",
-      "saved_this_month": "In diesem Monat gespart",
       "payment_details": "Zahlungsdetails",
       "total": "Insgesamt",
       "paying_with": "Bezahlen mit",

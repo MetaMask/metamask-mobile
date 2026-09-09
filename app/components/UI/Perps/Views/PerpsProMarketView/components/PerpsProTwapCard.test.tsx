@@ -4,12 +4,12 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
+  getPerpsProTwapMarketSelector,
   getPerpsProTwapTerminateSelector,
   getPerpsProTwapValueSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import { formatProOrderCardTimestamp } from '../../../utils/formatUtils';
-import { getTwapOrderProviderId } from '../../../utils/twapOrderUtils';
 import PerpsProTwapCard from './PerpsProTwapCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -87,6 +87,9 @@ describe('PerpsProTwapCard', () => {
     render(<PerpsProTwapCard twapOrder={buildTwapOrder()} />);
 
     // Assert
+    expect(
+      screen.getByTestId(getPerpsProTwapMarketSelector('BTC')),
+    ).toHaveTextContent('BTC');
     expect(
       screen.getByTestId(getDefaultValueTestID(ids.TWAP_MARKET)),
     ).toHaveTextContent('BTC');
@@ -347,22 +350,10 @@ describe('PerpsProTwapCard', () => {
     expect(onTerminate).toHaveBeenCalledTimes(1);
     expect(onTerminate).toHaveBeenCalledWith(secondOrder);
     expect(
-      screen.getByTestId(
-        getPerpsProTwapValueSelector(
-          ids.TWAP_MARKET,
-          getTwapOrderProviderId(firstOrder),
-          firstOrder.orderId,
-        ),
-      ),
+      screen.getByTestId(getPerpsProTwapMarketSelector('BTC')),
     ).toHaveTextContent('BTC');
     expect(
-      screen.getByTestId(
-        getPerpsProTwapValueSelector(
-          ids.TWAP_MARKET,
-          getTwapOrderProviderId(secondOrder),
-          secondOrder.orderId,
-        ),
-      ),
+      screen.getByTestId(getPerpsProTwapMarketSelector('ETH')),
     ).toHaveTextContent('ETH');
   });
 

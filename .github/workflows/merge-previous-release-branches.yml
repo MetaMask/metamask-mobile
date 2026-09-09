@@ -13,8 +13,7 @@ jobs:
   validate-branch:
     name: Validate release branch format
     runs-on: ubuntu-latest
-    # Only run for branch creation (not tags)
-    if: github.event.ref_type == 'branch'
+    if: github.event.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/release/')
     outputs:
       is-valid: ${{ steps.check.outputs.is-valid }}
     steps:

@@ -162,7 +162,7 @@ export const driverFixture = {
       }
 
       if (recordVideoOnFailure) {
-        recordingBackend = await startFailureRecording(drv, platform);
+        recordingBackend = await startFailureRecording(drv, testInfo, platform);
       }
 
       await use(drv);
