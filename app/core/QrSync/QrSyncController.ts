@@ -339,7 +339,7 @@ export class QrSyncController extends BaseController<
    * Called from two entry points:
    * - **New-user**: `Authentication.newWalletAndRestore` after vault creation.
    * - **Existing-user**: `finishExistingUserSyncWithoutMnemonic` in the
-   *   add-device flow, before `startExistingUserQrMetadataProvisioning` (Phase C).
+   * add-device flow, before `startExistingUserQrMetadataProvisioning` (Phase C).
    *
    * Calls `AccountTreeController:importState` with the metadata-stripped snapshot.
    * For new users the primary mnemonic is also filtered out (account tree not yet
