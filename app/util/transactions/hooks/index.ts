@@ -18,6 +18,7 @@ import {
 import { Hex } from '@metamask/utils';
 
 import type { RootState } from '../../../reducers';
+import { isHardwareAccount } from '../../address';
 import {
   getSmartTransactionsFeatureFlagsForChain,
   selectShouldUseSmartTransaction,
@@ -39,6 +40,7 @@ import {
   type SubmitSmartTransactionRequest,
 } from '../../smart-transactions/smart-publish-hook';
 import { getTransactionById } from '..';
+import { isRelaySupported } from '../transaction-relay';
 import { accountSupports7702 } from '../account-supports-7702';
 import { isSendBundleSupported } from '../sentinel-api';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
@@ -66,6 +68,8 @@ export function getTransactionControllerHooks(
   request: TransactionControllerHookRequest,
 ): TransactionControllerOptions['hooks'] {
   return {
+    isSponsored: isSponsoredHook(request),
+    shouldSign: shouldSignHook(request),
     beforePublish: beforePublishHook(request),
     beforeSign: beforeSignHook(request),
     // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
@@ -85,6 +89,87 @@ async function getNextNonce(
   );
   nonceLock.releaseLock();
   return toHex(nonceLock.nextNonce);
+}
+
+type TransactionApprovalDecision = {
+  signingMode: 'local' | 'external';
+  sponsorshipEnabled: boolean;
+};
+
+async function getTransactionApprovalDecision(
+  { getState }: TransactionControllerHookRequest,
+  transactionMeta: TransactionMeta,
+): Promise<TransactionApprovalDecision> {
+  const state = getState();
+  const { chainId, txParams } = transactionMeta;
+
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
+    state,
+    chainId,
+  );
+  const sendBundleSupport = await isSendBundleSupported(chainId);
+  const isSmartTransactionAndBundleSupported = Boolean(
+    shouldUseSmartTransaction && sendBundleSupport,
+  );
+
+  const fromAddress = txParams?.from;
+  const isHardwareWallet = Boolean(fromAddress && isHardwareAccount(fromAddress));
+
+  const shouldCheck7702Eligibility =
+    !isHardwareWallet && !isSmartTransactionAndBundleSupported;
+
+  const is7702Supported = Boolean(
+    !isHardwareWallet &&
+      shouldCheck7702Eligibility &&
+      (await isRelaySupported(chainId)) &&
+      txParams?.to !== undefined,
+  );
+
+  const requiresExternalSigning =
+    Boolean(transactionMeta.selectedGasFeeToken) &&
+    !transactionMeta.isGasFeeTokenIgnoredIfBalance &&
+    !isHardwareWallet &&
+    !isSmartTransactionAndBundleSupported;
+
+  const sponsorshipEnabled =
+    Boolean(transactionMeta.isGasFeeSponsored) &&
+    (isSmartTransactionAndBundleSupported || is7702Supported);
+
+  const signingMode: 'local' | 'external' = requiresExternalSigning
+    ? 'external'
+    : 'local';
+
+  return {
+    signingMode,
+    sponsorshipEnabled,
+  };
+}
+
+function isSponsoredHook(request: TransactionControllerHookRequest) {
+  return async ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+    const { sponsorshipEnabled } = await getTransactionApprovalDecision(
+      request,
+      transactionMeta,
+    );
+
+    return sponsorshipEnabled;
+  };
+}
+
+function shouldSignHook(request: TransactionControllerHookRequest) {
+  return async ({
+    transactionMeta,
+  }: {
+    transactionMeta: TransactionMeta;
+    isSponsored: boolean;
+  }) => {
+    const { signingMode } = await getTransactionApprovalDecision(
+      request,
+      transactionMeta,
+    );
+
+    return signingMode === 'local';
+  };
 }
 
 function beforePublishHook({
