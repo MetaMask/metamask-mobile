@@ -42,6 +42,7 @@ export function getAccountTreeControllerMessenger(
       'AuthenticationController:getSessionProfile',
       'MultichainAccountService:createMultichainAccountGroup',
       'MultichainAccountService:createMultichainAccountGroups',
+      // account-tree-controller ^8.0.0: required for :{import,export}State
       'MultichainAccountService:createMultichainAccountWallet',
       'SnapController:getSnap',
       'KeyringController:getState',
