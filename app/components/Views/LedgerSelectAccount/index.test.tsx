@@ -437,7 +437,7 @@ describe('LedgerSelectAccount', () => {
         fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.NEXT_BUTTON));
       });
 
-      expect(queryByText('Please wait')).toBeOnTheScreen();
+      expect(queryByText('Wait')).toBeOnTheScreen();
 
       await act(async () => {
         resolvePromise?.(mockAccounts);
@@ -576,7 +576,7 @@ describe('LedgerSelectAccount', () => {
       });
 
       await waitFor(() => {
-        expect(queryByText('Please wait')).toBeOnTheScreen();
+        expect(queryByText('Wait')).toBeOnTheScreen();
       });
     });
   });
@@ -806,7 +806,7 @@ describe('LedgerSelectAccount', () => {
       });
 
       await waitFor(() => {
-        expect(queryByText('Please wait')).toBeOnTheScreen();
+        expect(queryByText('Wait')).toBeOnTheScreen();
       });
     });
   });
@@ -819,7 +819,7 @@ describe('LedgerSelectAccount', () => {
         fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
       });
 
-      expect(queryByText('Please wait')).toBeOnTheScreen();
+      expect(queryByText('Wait')).toBeOnTheScreen();
     });
   });
 
@@ -944,7 +944,7 @@ describe('LedgerSelectAccount', () => {
       await waitFor(() => {
         expect(queryByText('Device readiness check failed')).toBeOnTheScreen();
       });
-      expect(queryByText('Please wait')).not.toBeOnTheScreen();
+      expect(queryByText('Wait')).not.toBeOnTheScreen();
     });
 
     it('shows inline error when ensureDeviceReady throws during prevPage without blocking modal', async () => {
@@ -963,7 +963,7 @@ describe('LedgerSelectAccount', () => {
       await waitFor(() => {
         expect(queryByText('Bluetooth adapter unavailable')).toBeOnTheScreen();
       });
-      expect(queryByText('Please wait')).not.toBeOnTheScreen();
+      expect(queryByText('Wait')).not.toBeOnTheScreen();
     });
 
     it('does not show blocking modal when ensureDeviceReady returns false on nextPage', async () => {
@@ -981,7 +981,7 @@ describe('LedgerSelectAccount', () => {
         expect(mockEnsureDeviceReady).toHaveBeenCalled();
       });
 
-      expect(queryByText('Please wait')).not.toBeOnTheScreen();
+      expect(queryByText('Wait')).not.toBeOnTheScreen();
     });
   });
 });
