@@ -32,10 +32,21 @@ describe('useBlurMaterial', () => {
     Platform.OS = originalOS;
   });
 
-  it('allows a system blur on iOS', () => {
+  it('allows a system blur on iOS once the transparency setting is known', async () => {
     const { result } = renderHook(() => useBlurMaterial());
 
-    expect(result.current.isBlurAvailable).toBe(true);
+    await waitFor(() => expect(result.current.isBlurAvailable).toBe(true));
+  });
+
+  it('does not draw a blur before the transparency setting has been read', () => {
+    // A promise that never settles stands in for the read still being in flight.
+    jest
+      .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
+      .mockReturnValue(new Promise(() => undefined));
+
+    const { result } = renderHook(() => useBlurMaterial());
+
+    expect(result.current.isBlurAvailable).toBe(false);
   });
 
   it('stays opaque when the binary predates the blur module', () => {
@@ -65,14 +76,18 @@ describe('useBlurMaterial', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('drops the blur when the user has turned Reduce Transparency on', async () => {
+  it('stays opaque when the user has turned Reduce Transparency on', async () => {
     jest
       .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
       .mockResolvedValue(true);
 
     const { result } = renderHook(() => useBlurMaterial());
 
-    await waitFor(() => expect(result.current.isBlurAvailable).toBe(false));
+    // Wait for the read to land, then confirm it never enabled the blur.
+    await waitFor(() =>
+      expect(AccessibilityInfo.isReduceTransparencyEnabled).toHaveBeenCalled(),
+    );
+    expect(result.current.isBlurAvailable).toBe(false);
   });
 
   it('takes its appearance from the app theme, not the system one', () => {

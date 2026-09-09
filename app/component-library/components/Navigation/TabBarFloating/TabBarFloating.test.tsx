@@ -208,6 +208,12 @@ describe('TabBarFloating', () => {
     });
   });
 
+  it('pins the label size so a fixed-height bar cannot clip scaled text', () => {
+    const { getByText } = renderBar();
+
+    expect(getByText('Home').props.maxFontSizeMultiplier).toBe(1);
+  });
+
   it('reports its measured height so scenes can pad for the overlay', () => {
     const onHeightChange = jest.fn();
     const { getByTestId } = renderBar({}, onHeightChange);

@@ -17,8 +17,9 @@ export interface UseBlurMaterialResult {
 
 export const useBlurMaterial = (): UseBlurMaterialResult => {
   const { themeAppearance } = useTheme();
-  const [prefersReducedTransparency, setPrefersReducedTransparency] =
-    useState(false);
+  const [prefersReducedTransparency, setPrefersReducedTransparency] = useState<
+    boolean | undefined
+  >(undefined);
 
   const [isModuleLinked] = useState(isBlurModuleLinked);
   const isSupportedPlatform = Platform.OS === 'ios' && isModuleLinked;
@@ -47,7 +48,8 @@ export const useBlurMaterial = (): UseBlurMaterialResult => {
   }, [isSupportedPlatform]);
 
   return {
-    isBlurAvailable: isSupportedPlatform && !prefersReducedTransparency,
+    isBlurAvailable:
+      isSupportedPlatform && prefersReducedTransparency === false,
     colorScheme: themeAppearance === AppThemeKey.dark ? 'dark' : 'light',
   };
 };

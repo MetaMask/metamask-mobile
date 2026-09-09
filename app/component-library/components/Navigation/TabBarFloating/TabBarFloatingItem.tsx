@@ -64,6 +64,7 @@ const TabBarFloatingItem = ({
           fontSize: TAB_BAR_FLOATING_LABEL_FONT_SIZE,
           lineHeight: TAB_BAR_FLOATING_LABEL_LINE_HEIGHT,
         }}
+        maxFontSizeMultiplier={1}
       >
         {label}
       </Text>
