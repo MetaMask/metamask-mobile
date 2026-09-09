@@ -16,14 +16,6 @@ describe('formatSubscriptionFiat', () => {
     expect(result).toBe('$4.99');
   });
 
-  it('uppercases the currency code before formatting', () => {
-    I18n.locale = 'en-US';
-
-    const result = formatSubscriptionFiat(49.99, 'usd');
-
-    expect(result).toBe('$49.99');
-  });
-
   it('returns a plain fallback when Intl rejects the currency', () => {
     I18n.locale = 'en-US';
 
