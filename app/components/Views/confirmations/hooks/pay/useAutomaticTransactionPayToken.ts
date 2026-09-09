@@ -19,6 +19,7 @@ import {
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import {
+  getPayTransactionType,
   getPostQuoteTransactionType,
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
@@ -95,13 +96,11 @@ export function useAutomaticTransactionPayToken({
     () =>
       getPreferredTokensForTransactionType(
         payTokensFlags.preferredTokens,
-        postQuoteTransactionType ?? transactionMeta.type,
+        postQuoteTransactionType ??
+          getPayTransactionType(transactionMeta) ??
+          transactionMeta.type,
       ),
-    [
-      transactionMeta.type,
-      postQuoteTransactionType,
-      payTokensFlags.preferredTokens,
-    ],
+    [transactionMeta, postQuoteTransactionType, payTokensFlags.preferredTokens],
   );
 
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
