@@ -14,6 +14,7 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
 import TabBarFloating from './TabBarFloating';
 import {
+  TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
@@ -90,26 +91,6 @@ const descriptors: Record<string, TestTabDescriptor> = {
     },
   },
 };
-
-const barElement = (
-  overrides: Partial<Record<string, TestTabDescriptor>> = {},
-  onHeightChange?: (height: number) => void,
-  activeIndex = 0,
-) => (
-  <TabBarFloating
-    state={
-      { ...state, index: activeIndex } as TabNavigationState<ParamListBase>
-    }
-    descriptors={
-      { ...descriptors, ...overrides } as Record<
-        string,
-        ExtendedBottomTabDescriptor
-      >
-    }
-    navigation={navigation}
-    onHeightChange={onHeightChange}
-  />
-);
 
 const renderBar = (
   overrides: Partial<Record<string, TestTabDescriptor>> = {},
@@ -199,17 +180,18 @@ describe('TabBarFloating', () => {
     expect(backgroundOf(onMoney, TabBarIconKey.Wallet)).not.toBe(active);
   });
 
-  it('sizes the search button to a circle matching the pill height', () => {
+  it('holds the pill to the measured bar height', () => {
     const { getByTestId } = renderBar();
 
-    fireEvent(getByTestId(TAB_BAR_FLOATING_TEST_IDS.PILL), 'layout', {
-      nativeEvent: { layout: { height: 60, width: 300, x: 0, y: 0 } },
+    expect(getByTestId(TAB_BAR_FLOATING_TEST_IDS.PILL)).toHaveStyle({
+      height: TAB_BAR_FLOATING_HEIGHT,
     });
+  });
 
-    expect(getByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON)).toHaveStyle({
-      height: 60,
-      width: 60,
-    });
+  it('pins the label size so a fixed-height bar cannot clip scaled text', () => {
+    const { getByText } = renderBar();
+
+    expect(getByText('Home').props.maxFontSizeMultiplier).toBe(1);
   });
 
   it('reports its measured height so scenes can pad for the overlay', () => {

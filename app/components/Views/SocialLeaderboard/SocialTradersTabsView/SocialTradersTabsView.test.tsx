@@ -261,12 +261,15 @@ describe('SocialTradersTabsView', () => {
     });
   });
 
-  it('renders the tabbed screen title from the feed i18n key', () => {
+  it('renders the tabbed screen title from the homepage Top Traders i18n key', () => {
     renderWithProvider(<SocialTradersTabsView />);
 
     expect(
       screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TITLE),
-    ).toHaveTextContent('social_leaderboard.feed.title');
+    ).toHaveTextContent('homepage.sections.top_traders');
+    expect(
+      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.HEADER_TITLE),
+    ).toHaveTextContent('homepage.sections.top_traders');
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -292,7 +295,7 @@ describe('SocialTradersTabsView', () => {
 
       expect(
         screen.getByTestId(SocialTradersTabsViewSelectorsIDs.HEADER_TITLE),
-      ).toHaveTextContent('social_leaderboard.feed.title');
+      ).toHaveTextContent('homepage.sections.top_traders');
       for (const absent of [
         SocialTradersTabsViewSelectorsIDs.BACK_BUTTON,
         SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON,

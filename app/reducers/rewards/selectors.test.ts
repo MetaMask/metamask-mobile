@@ -87,6 +87,9 @@ import {
   selectPredictThePitchPrizePoolByCampaignId,
   selectPredictThePitchPrizePoolLoadingByCampaignId,
   selectPredictThePitchPrizePoolErrorByCampaignId,
+  selectPerpsTradingCampaignPrizePoolByCampaignId,
+  selectPerpsTradingCampaignPrizePoolLoadingByCampaignId,
+  selectPerpsTradingCampaignPrizePoolErrorByCampaignId,
   selectDismissedCampaignOutcomeToasts,
   selectSubscribedCampaignReminders,
   selectIsCampaignOutcomeToastDismissed,
@@ -4422,6 +4425,58 @@ describe('Rewards selectors', () => {
           state,
         ),
       ).toBe(true);
+    });
+
+    it('selects the perps trading prize pool and status flags', () => {
+      const PERPS_CAMPAIGN_ID = 'perps-c-1';
+      const mockPerpsPrizePool = {
+        totalVolumeUsd: 7_500_000,
+        unlockedPoolUsd: 15_000,
+        thresholdsUsd: [0, 5_000_000],
+        poolScheduleUsd: [10_000, 15_000],
+        computedAt: '2026-07-15T00:00:00.000Z',
+      };
+      const state = createMockRootState({
+        perpsTradingCampaignPrizePools: {
+          [PERPS_CAMPAIGN_ID]: {
+            data: mockPerpsPrizePool,
+            loading: true,
+            error: true,
+          },
+        },
+      });
+
+      expect(
+        selectPerpsTradingCampaignPrizePoolByCampaignId(PERPS_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toEqual(mockPerpsPrizePool);
+      expect(
+        selectPerpsTradingCampaignPrizePoolLoadingByCampaignId(
+          PERPS_CAMPAIGN_ID,
+        )(state),
+      ).toBe(true);
+      expect(
+        selectPerpsTradingCampaignPrizePoolErrorByCampaignId(PERPS_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBe(true);
+    });
+
+    it('returns null and false for the perps prize pool when no campaign id is given', () => {
+      const state = createMockRootState({});
+
+      expect(
+        selectPerpsTradingCampaignPrizePoolByCampaignId(undefined)(state),
+      ).toBeNull();
+      expect(
+        selectPerpsTradingCampaignPrizePoolLoadingByCampaignId(undefined)(
+          state,
+        ),
+      ).toBe(false);
+      expect(
+        selectPerpsTradingCampaignPrizePoolErrorByCampaignId(undefined)(state),
+      ).toBe(false);
     });
   });
 

@@ -420,6 +420,7 @@ const SocialTradersTabsView: React.FC = () => {
   }, [navigation]);
 
   const isPushedScreen = route.name !== Routes.SOCIAL_LEADERBOARD.TAB;
+  const title = strings('homepage.sections.top_traders');
 
   const notificationButtonProps = useMemo(
     () => ({
@@ -442,7 +443,7 @@ const SocialTradersTabsView: React.FC = () => {
             color={TextColor.TextDefault}
             testID={SocialTradersTabsViewSelectorsIDs.TITLE}
           >
-            {strings('social_leaderboard.feed.title')}
+            {title}
           </Text>
         </Box>
       ) : null}
@@ -515,7 +516,7 @@ const SocialTradersTabsView: React.FC = () => {
           includesTopInset
           scrollY={scrollY}
           titleSectionHeight={titleHeightSv}
-          title={strings('social_leaderboard.feed.title')}
+          title={title}
           titleProps={{
             testID: SocialTradersTabsViewSelectorsIDs.HEADER_TITLE,
           }}
@@ -535,7 +536,7 @@ const SocialTradersTabsView: React.FC = () => {
             variant={TextVariant.HeadingLg}
             testID={SocialTradersTabsViewSelectorsIDs.HEADER_TITLE}
           >
-            {strings('social_leaderboard.feed.title')}
+            {title}
           </Text>
         </HeaderRoot>
       )}

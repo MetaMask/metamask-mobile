@@ -103,15 +103,80 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         android_final: 'true',
         ios_final: 'false',
         e2e_needed: 'true',
-        native_build_needed: 'true',
-        run_appium_ios: 'false',
+        use_main_builds_for_test_only_prs: 'false',
       });
-      expect(stdout).toContain('iOS not requested for a PR into main');
-      expect(stdout).toContain(
-        '-> RUN_APPIUM_IOS=false — iOS not requested for this PR into main.',
-      );
-      // The log must never contradict the emitted output.
-      expect(stdout).not.toContain('RUN_APPIUM_IOS=true');
+      expect(stdout).toContain('iOS not requested for this PR');
+    });
+
+    it('skips fork PRs', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        IS_FORK: 'true',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'false',
+        e2e_needed: 'false',
+        run_smart_e2e_selection: 'false',
+      });
+      expect(stdout).toContain('Skipping E2E (fork PR)');
+    });
+
+    it('skips hard E2E signals', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        SHOULD_SKIP_E2E: 'true',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'false',
+        e2e_needed: 'false',
+        run_smart_e2e_selection: 'false',
+      });
+      expect(stdout).toContain('Skipping E2E (skip signal)');
+    });
+
+    it('emits merge blocking for non-ignorable readiness labels', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        LABEL_BLOCKS_MERGE: 'true',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs.block_merge).toBe('true');
+    });
+
+    it('does not block merge for ignorable-only changes', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        LABEL_BLOCKS_MERGE: 'true',
+        ...bothPlatformsPR,
+        IGNORABLE_COUNT: '1',
+        E2E_TEST_FILES_COUNT: '0',
+        E2E_TEST_OR_IGNORABLE_COUNT: '1',
+      });
+
+      expect(outputs.block_merge).toBe('false');
+      expect(stdout).toContain('BLOCK_MERGE bypassed');
+    });
+
+    it('emits run_performance for the performance label', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        RUN_PERFORMANCE_LABEL: 'true',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs.run_performance).toBe('true');
     });
 
     it('builds iOS and runs Appium iOS when run-appium-ios-tests is applied', () => {
@@ -126,15 +191,12 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(outputs).toMatchObject({
         android_final: 'true',
         ios_final: 'true',
-        run_appium_ios: 'true',
-        native_build_needed: 'true',
+        use_main_builds_for_test_only_prs: 'false',
       });
-      expect(stdout).toContain(
-        "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR",
-      );
+      expect(stdout).toContain('run-appium-ios-tests label');
     });
 
-    it('builds iOS and runs Appium iOS when skip-smart-e2e-selection is applied and paths require iOS', () => {
+    it('builds both platforms and runs Appium iOS with skip-smart-e2e-selection', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',
         PR_BASE_REF: 'main',
@@ -145,14 +207,11 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(outputs).toMatchObject({
         android_final: 'true',
         ios_final: 'true',
-        run_appium_ios: 'true',
       });
-      expect(stdout).toContain(
-        "-> RUN_APPIUM_IOS=true due to 'skip-smart-e2e-selection' label on PR (iOS already required by path filters)",
-      );
+      expect(stdout).toContain('skip-smart-e2e-selection label');
     });
 
-    it('keeps skip-smart-e2e-selection non-widening on an Android-only PR', () => {
+    it('widens skip-smart-e2e-selection to both platforms on an Android-only PR', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',
         PR_BASE_REF: 'main',
@@ -162,13 +221,11 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
 
       expect(outputs).toMatchObject({
         android_final: 'true',
-        ios_final: 'false',
-        run_appium_ios: 'false',
+        ios_final: 'true',
       });
-      expect(stdout).not.toContain('RUN_APPIUM_IOS=true');
     });
 
-    it('does not claim an Appium iOS run for smoke-infra changes', () => {
+    it('enables iOS for smoke-infrastructure changes on main', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',
         PR_BASE_REF: 'main',
@@ -176,9 +233,8 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         ...androidOnlyPR,
       });
 
-      expect(outputs.run_appium_ios).toBe('false');
-      expect(outputs.ios_final).toBe('false');
-      expect(stdout).not.toContain('RUN_APPIUM_IOS=true');
+      expect(outputs.ios_final).toBe('true');
+      expect(stdout).toContain('e2e smoke infrastructure changes');
     });
 
     it('leaves no E2E to run for an iOS-only PR', () => {
@@ -194,15 +250,14 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         android_final: 'false',
         ios_final: 'false',
         e2e_needed: 'false',
-        native_build_needed: 'false',
+        use_main_builds_for_test_only_prs: 'false',
         run_smart_e2e_selection: 'false',
-        run_appium_ios: 'false',
       });
     });
   });
 
   describe('pull requests targeting release/*', () => {
-    it('still opts into iOS and Appium iOS via run-appium-ios-tests', () => {
+    it('opts into iOS via run-appium-ios-tests', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',
         PR_BASE_REF: 'release/1.0.0',
@@ -213,35 +268,57 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(outputs).toMatchObject({
         android_final: 'true',
         ios_final: 'true',
-        run_appium_ios: 'true',
       });
-      expect(stdout).toContain(
-        "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR",
-      );
+      expect(stdout).toContain('run-appium-ios-tests label');
       expect(stdout).not.toContain('iOS build disabled for PRs into main');
     });
 
-    it('still enables Appium iOS via skip-smart-e2e-selection when paths require iOS', () => {
+    it('suppresses iOS without an explicit request on release/* PRs', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',
         PR_BASE_REF: 'release/1.0.0',
-        SKIP_SMART_SELECTION: 'true',
         ...bothPlatformsPR,
       });
 
       expect(outputs).toMatchObject({
         android_final: 'true',
-        ios_final: 'true',
-        run_appium_ios: 'true',
+        ios_final: 'false',
       });
-      expect(stdout).toContain(
-        "-> RUN_APPIUM_IOS=true due to 'skip-smart-e2e-selection' label on PR (iOS already required by path filters)",
-      );
+      expect(stdout).not.toContain('e2e smoke infrastructure changes');
+    });
+
+    it('does not apply the smoke-infrastructure exception on release/* PRs', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'release/1.0.0',
+        E2E_SMOKE_INFRA_COUNT: '3',
+        ...androidOnlyPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'true',
+        ios_final: 'false',
+      });
+      expect(stdout).not.toContain('e2e smoke infrastructure changes');
     });
   });
 
   describe('non-pull-request events', () => {
-    it('builds both platforms on a push and emits no main-PR suppression log', () => {
+    it('skips E2E for merge queue events', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'merge_group',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'false',
+        e2e_needed: 'false',
+      });
+      expect(stdout).toContain('Skipping E2E (merge queue)');
+    });
+
+    it('builds both platforms for a shared app push', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
         ...bothPlatformsPR,
@@ -251,10 +328,25 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         android_final: 'true',
         ios_final: 'true',
         e2e_needed: 'true',
-        run_appium_ios: 'false',
       });
       expect(stdout).not.toContain('iOS build disabled for PRs into main');
-      expect(stdout).not.toContain('RUN_APPIUM_IOS=true');
+    });
+
+    it('skips ignorable-only pushes to main or release/*', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'push',
+        ...bothPlatformsPR,
+        IGNORABLE_COUNT: '1',
+        E2E_TEST_FILES_COUNT: '0',
+        E2E_TEST_OR_IGNORABLE_COUNT: '1',
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'false',
+        e2e_needed: 'false',
+      });
+      expect(stdout).toContain('ignorable-only changes');
     });
   });
 });

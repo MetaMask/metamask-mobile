@@ -2026,7 +2026,7 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   },
   takeProfitCanceled: {
     id: 'activity-cv-perps-order-tp-canceled',
-    title: 'Take profit limit close short',
+    title: 'Take limit close short',
     orderType: 'take_profit_limit',
     executionType: 'limit',
     limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
@@ -2039,7 +2039,7 @@ const ACTIVITY_CV_PERPS_ORDER_SPECS: Record<
   },
   takeProfitFilled: {
     id: 'activity-cv-perps-order-tp-filled',
-    title: 'Take profit limit close short',
+    title: 'Take limit close short',
     orderType: 'take_profit_limit',
     executionType: 'limit',
     limitPrice: ACTIVITY_CV_PERPS_TRADE_PRICE,
