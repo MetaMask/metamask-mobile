@@ -10,7 +10,7 @@ import {
   getPerpsPriceLabel,
   getPerpsPriceValue,
   getPerpsStepLabels,
-  getPerpsTransaction,
+  findPerpsTransaction,
   shouldShowPerpsPnl,
   type PerpsTransaction,
 } from './ActivityDetailsPerps.utils';
@@ -21,22 +21,21 @@ const fill = (overrides: Partial<Fill>): PerpsTransaction['fill'] =>
   overrides as Fill;
 
 describe('ActivityDetailsPerps.utils', () => {
-  describe('getPerpsTransaction', () => {
-    it('returns the perps data when raw is a perps transaction', () => {
-      const data = { id: 'x' } as PerpsTransaction;
-      const item = {
-        raw: { type: 'perpsTransaction', data },
-      } as ActivityListItem;
-      expect(getPerpsTransaction(item)).toBe(data);
+  describe('findPerpsTransaction', () => {
+    const trade = { id: 'fill-1' } as PerpsTransaction;
+    const deposit = {
+      id: 'wallet-1',
+      depositWithdrawal: { txHash: '0xabc' },
+    } as PerpsTransaction;
+
+    it('matches by transaction id or deposit tx hash', () => {
+      expect(findPerpsTransaction([trade, deposit], 'FILL-1')).toBe(trade);
+      expect(findPerpsTransaction([trade, deposit], '0xABC')).toBe(deposit);
     });
 
-    it('returns undefined for non-perps raw or missing raw', () => {
-      expect(
-        getPerpsTransaction({
-          raw: { type: 'predictActivity', data: {} },
-        } as unknown as ActivityListItem),
-      ).toBeUndefined();
-      expect(getPerpsTransaction({} as ActivityListItem)).toBeUndefined();
+    it('returns undefined when nothing matches', () => {
+      expect(findPerpsTransaction([trade], 'missing')).toBeUndefined();
+      expect(findPerpsTransaction([trade], undefined)).toBeUndefined();
     });
   });
 

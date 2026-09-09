@@ -283,48 +283,8 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(local);
   });
 
-  it('recovers a live local item via preloaded meta id after a hash mismatch', () => {
-    const live = makeItem({
-      type: 'send',
-      hash: '0xnewhash',
-      status: 'pending',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-2', hash: '0xnewhash' },
-          initialTransaction: { id: 'meta-2' },
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    const preloaded = makeItem({
-      type: 'send',
-      hash: '0xoldhash',
-      status: 'pending',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-2', hash: '0xoldhash' },
-          initialTransaction: { id: 'meta-2' },
-        },
-      },
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [
-          { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
-        ],
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({ local: [live] });
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('0xoldhash', 'eip155:1', preloaded),
-    );
-    expect(result.current).toBe(live);
-  });
-
-  it('falls back to a preloaded local snapshot when live lookup misses', () => {
-    const preloaded = makeItem({
+  it('falls back to an extra local item when live lookup misses', () => {
+    const extra = makeItem({
       type: 'send',
       hash: '0xorphan',
       raw: {
@@ -338,48 +298,12 @@ describe('useActivityDetailsItem', () => {
     setSources({});
 
     const { result } = renderHook(() =>
-      useActivityDetailsItem('meta-orphan', 'eip155:1', preloaded),
+      useActivityDetailsItem('meta-orphan', 'eip155:1', [extra]),
     );
-    expect(result.current).toBe(preloaded);
+    expect(result.current).toBe(extra);
   });
 
-  it('prefers a preloaded local gas-token fee over a native-only API copy when live local misses', () => {
-    const api = makeItem({
-      type: 'send',
-      hash: '0xshared',
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    const preloaded = makeItem({
-      type: 'send',
-      hash: '0xshared',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-gas', hash: '0xshared' },
-          initialTransaction: { id: 'meta-gas' },
-        },
-      },
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [
-          { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
-        ],
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({ confirmed: [api] });
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('meta-gas', 'eip155:1', preloaded),
-    );
-    expect(result.current).toBe(preloaded);
-  });
-
-  it('prefers the API copy over a preloaded local when the snapshot has no richer fees', () => {
+  it('prefers a confirmed API copy over a leftover extra local item', () => {
     const api = makeItem({
       type: 'send',
       hash: '0xshared2',
@@ -389,7 +313,7 @@ describe('useActivityDetailsItem', () => {
         fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
       },
     } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    const preloaded = makeItem({
+    const extra = makeItem({
       type: 'send',
       hash: '0xshared2',
       raw: {
@@ -399,16 +323,11 @@ describe('useActivityDetailsItem', () => {
           initialTransaction: { id: 'meta-plain' },
         },
       },
-      data: {
-        from: '0xfrom',
-        to: '0xto',
-        fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
-      },
     } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
     setSources({ confirmed: [api] });
 
     const { result } = renderHook(() =>
-      useActivityDetailsItem('meta-plain', 'eip155:1', preloaded),
+      useActivityDetailsItem('meta-plain', 'eip155:1', [extra]),
     );
     expect(result.current).toBe(api);
   });
@@ -462,8 +381,8 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(ramp);
   });
 
-  it('resolves a preloaded domain item by hash without reading provider-backed sources', () => {
-    const preloaded = makeItem({
+  it('resolves a provider-backed extra item by hash', () => {
+    const extra = makeItem({
       type: 'perpsOpenLong',
       chainId: 'eip155:42161',
       hash: 'perps-fill-1',
@@ -483,19 +402,19 @@ describe('useActivityDetailsItem', () => {
     setSources({});
 
     const { result } = renderHook(() =>
-      useActivityDetailsItem('perps-fill-1', 'eip155:42161', preloaded),
+      useActivityDetailsItem('perps-fill-1', 'eip155:42161', [extra]),
     );
 
-    expect(result.current).toBe(preloaded);
+    expect(result.current).toBe(extra);
   });
 
-  it('prefers a matching preloaded domain item over a local hash collision', () => {
+  it('prefers a matching extra domain item over a local hash collision', () => {
     const local = makeItem({
       type: 'send',
       chainId: 'eip155:42161',
       hash: '0xshared',
     });
-    const preloaded = makeItem({
+    const extra = makeItem({
       type: 'perpsAddFunds',
       chainId: 'eip155:42161',
       hash: '0xshared',
@@ -524,9 +443,9 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local] });
 
     const { result } = renderHook(() =>
-      useActivityDetailsItem('0xshared', 'eip155:42161', preloaded),
+      useActivityDetailsItem('0xshared', 'eip155:42161', [extra]),
     );
 
-    expect(result.current).toBe(preloaded);
+    expect(result.current).toBe(extra);
   });
 });

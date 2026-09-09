@@ -7,8 +7,6 @@ import ActivityDetails from './ActivityDetails';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
 import { useParams } from '../../../util/navigation/navUtils';
-// eslint-disable-next-line import-x/no-restricted-paths -- test asserts the activity-list store hand-off
-import { getPreloadedActivityItem } from '../ActivityList/preloadedActivityItemStore';
 // eslint-disable-next-line import-x/no-restricted-paths -- test controls the shared speed-up/cancel actions hook
 import { useUnifiedTxActions } from '../ActivityList/useUnifiedTxActions';
 
@@ -47,16 +45,19 @@ jest.mock('./templates/TemplateLoader', () => {
   };
 });
 
-jest.mock('../ActivityList/preloadedActivityItemStore', () => ({
-  getPreloadedActivityItem: jest.fn(),
-  stashPreloadedActivityItem: jest.fn(),
-}));
-
 // Speed-up / cancel pull in the hardware-wallet + navigation chain; the screen
 // test controls the hook per-test. Behaviour is covered in the hook + banner
 // tests.
 jest.mock('../ActivityList/useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(),
+}));
+
+jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsEnabledFlag: () => false,
+}));
+
+jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
+  selectPredictEnabledFlag: () => false,
 }));
 
 // Expose the modal's onConfirm so a test can simulate the user confirming a
@@ -75,7 +76,6 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
 
 const useParamsMock = jest.mocked(useParams);
 const useActivityDetailsItemMock = jest.mocked(useActivityDetailsItem);
-const getPreloadedActivityItemMock = jest.mocked(getPreloadedActivityItem);
 const useUnifiedTxActionsMock = jest.mocked(useUnifiedTxActions);
 
 const buildTxActions = (
@@ -231,31 +231,18 @@ describe('ActivityDetails screen', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('captures the preloaded row once and reuses it across re-renders', () => {
-    const perpsItem = {
-      ...sendItem,
-      type: 'perpsOpenLong',
-    } as ActivityListItem;
-    getPreloadedActivityItemMock.mockReturnValue(perpsItem);
+  it('rematches from live sources with the route identifier', () => {
     useParamsMock.mockReturnValue({
       chainId: 'eip155:1',
       txIdentifier: '0xhash',
-      preloadKey: 'k1',
     });
-    // Echo the preloaded arg back so a blanked capture would surface as
-    // "not found" instead of the template.
-    useActivityDetailsItemMock.mockImplementation(
-      (_id, _chain, preloaded) => preloaded,
+
+    renderWithProvider(<ActivityDetails />);
+
+    expect(useActivityDetailsItemMock).toHaveBeenCalledWith(
+      '0xhash',
+      'eip155:1',
+      [],
     );
-
-    const { rerender, getByTestId } = renderWithProvider(<ActivityDetails />);
-    rerender(<ActivityDetails />);
-
-    // Store is read once (on mount, keyed by preloadKey), then held in the ref —
-    // a later eviction can't blank the still-mounted screen.
-    expect(getPreloadedActivityItemMock).toHaveBeenCalledTimes(1);
-    expect(getPreloadedActivityItemMock).toHaveBeenCalledWith('k1');
-    expect(useActivityDetailsItemMock.mock.calls.at(-1)?.[2]).toBe(perpsItem);
-    expect(getByTestId('mock-template-loader')).toBeOnTheScreen();
   });
 });

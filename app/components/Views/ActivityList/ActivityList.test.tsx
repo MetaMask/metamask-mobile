@@ -12,7 +12,6 @@ import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import ActivityList, { type ActivityListHandle } from './ActivityList';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
-import { getPreloadedActivityItem } from './preloadedActivityItemStore';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
@@ -1850,21 +1849,17 @@ describe('ActivityList', () => {
     render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
     fireEvent.press(screen.getByTestId('row-perps-fill-2'));
 
-    // Params stay serializable; the row is handed off via the store by key.
+    // Params stay serializable; details rematch the row from live sources.
     const call = mockNavigate.mock.calls.find(
       ([route]) => route === Routes.ACTIVITY_DETAILS,
     );
     const params = call?.[1] as
-      | { chainId: string; txIdentifier: string; preloadKey?: string }
+      | { chainId: string; txIdentifier: string }
       | undefined;
     expect(params).toEqual({
       chainId: 'eip155:42161',
       txIdentifier: 'perps-fill-2',
-      preloadKey: expect.any(String),
     });
-    expect(getPreloadedActivityItem(params?.preloadKey)).toEqual(
-      perpsRedesignItem,
-    );
     expect(mockNavigate).not.toHaveBeenCalledWith(
       'PerpsPositionTransaction',
       expect.anything(),
@@ -1902,16 +1897,12 @@ describe('ActivityList', () => {
       ([route]) => route === Routes.ACTIVITY_DETAILS,
     );
     const params = call?.[1] as
-      | { chainId: string; txIdentifier: string; preloadKey?: string }
+      | { chainId: string; txIdentifier: string }
       | undefined;
     expect(params).toEqual({
       chainId: 'eip155:137',
       txIdentifier: 'predict-1',
-      preloadKey: expect.any(String),
     });
-    expect(getPreloadedActivityItem(params?.preloadKey)).toEqual(
-      predictListItem,
-    );
   });
 
   it('renders non-EVM swap/bridge rows through ActivityListItemRow', () => {

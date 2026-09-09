@@ -44,12 +44,12 @@ import {
   getPerpsPositionSize,
   getPerpsPriceLabel,
   getPerpsPriceValue,
-  getPerpsTransaction,
   shouldShowPerpsPnl,
   type PerpsActivityListItem,
   type PerpsDepositWithdrawalStatus,
   type PerpsTransaction,
 } from '../components/ActivityDetailsPerps.utils';
+import { usePerpsDetailsTransaction } from '../hooks/usePerpsDetailsTransaction';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import {
@@ -501,9 +501,9 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
   );
 }
 
-export function PerpsDetails({ item }: { item: ActivityListItem }) {
+function PerpsDetailsBody({ item }: { item: ActivityListItem }) {
   const perpsItem = asPerpsActivityItem(item);
-  const transaction = getPerpsTransaction(item);
+  const transaction = usePerpsDetailsTransaction(item.hash);
 
   if (!transaction) {
     if (item.type === 'perpsAddFunds' || item.type === 'perpsWithdraw') {
@@ -517,13 +517,7 @@ export function PerpsDetails({ item }: { item: ActivityListItem }) {
   }
 
   if (transaction.type === 'order') {
-    return (
-      <PerpsConnectionProvider suppressErrorView>
-        <PerpsStreamProvider>
-          <OrderDetails item={perpsItem} transaction={transaction} />
-        </PerpsStreamProvider>
-      </PerpsConnectionProvider>
-    );
+    return <OrderDetails item={perpsItem} transaction={transaction} />;
   }
 
   if (transaction.type === 'funding') {
@@ -535,4 +529,14 @@ export function PerpsDetails({ item }: { item: ActivityListItem }) {
   }
 
   return null;
+}
+
+export function PerpsDetails({ item }: { item: ActivityListItem }) {
+  return (
+    <PerpsConnectionProvider suppressErrorView>
+      <PerpsStreamProvider>
+        <PerpsDetailsBody item={item} />
+      </PerpsStreamProvider>
+    </PerpsConnectionProvider>
+  );
 }

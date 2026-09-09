@@ -1,7 +1,6 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import { getActivityDetailsRoute } from './getActivityDetailsRoute';
-import { getPreloadedActivityItem } from './preloadedActivityItemStore';
 
 const baseItem = (
   overrides: Partial<ActivityListItem> = {},
@@ -29,7 +28,7 @@ describe('getActivityDetailsRoute', () => {
     expect(getActivityDetailsRoute(baseItem({ hash: undefined }))).toBeNull();
   });
 
-  it('routes a pending EVM local tx by stable meta id and stashes a preload', () => {
+  it('routes a pending EVM local tx by stable meta id', () => {
     const pendingItem = baseItem({
       status: 'pending',
       raw: {
@@ -40,17 +39,13 @@ describe('getActivityDetailsRoute', () => {
       },
     } as unknown as Partial<ActivityListItem>);
 
-    const route = getActivityDetailsRoute(pendingItem);
-
-    expect(route).toEqual({
+    expect(getActivityDetailsRoute(pendingItem)).toEqual({
       chainId: 'eip155:1',
       txIdentifier: 'meta-pending-1',
-      preloadKey: expect.any(String),
     });
-    expect(getPreloadedActivityItem(route?.preloadKey)).toBe(pendingItem);
   });
 
-  it('routes a confirmed local tx by stable meta id and stashes a preload', () => {
+  it('routes a confirmed local tx by stable meta id', () => {
     const confirmedItem = baseItem({
       status: 'success',
       raw: {
@@ -61,14 +56,10 @@ describe('getActivityDetailsRoute', () => {
       },
     } as unknown as Partial<ActivityListItem>);
 
-    const route = getActivityDetailsRoute(confirmedItem);
-
-    expect(route).toEqual({
+    expect(getActivityDetailsRoute(confirmedItem)).toEqual({
       chainId: 'eip155:1',
       txIdentifier: 'meta-confirmed-1',
-      preloadKey: expect.any(String),
     });
-    expect(getPreloadedActivityItem(route?.preloadKey)).toBe(confirmedItem);
   });
 
   it('falls back to hash when a local tx has no meta id', () => {
@@ -79,13 +70,10 @@ describe('getActivityDetailsRoute', () => {
       },
     } as unknown as Partial<ActivityListItem>);
 
-    const route = getActivityDetailsRoute(localWithoutId);
-
-    expect(route?.txIdentifier).toBe('0xabc');
-    expect(route?.preloadKey).toBeDefined();
+    expect(getActivityDetailsRoute(localWithoutId)?.txIdentifier).toBe('0xabc');
   });
 
-  it('routes a bridge local transaction to ActivityDetails (BridgeDetails template)', () => {
+  it('routes a bridge local transaction to ActivityDetails', () => {
     const bridgeItem = baseItem({
       raw: {
         type: 'localTransaction',
@@ -98,39 +86,27 @@ describe('getActivityDetailsRoute', () => {
       },
     } as unknown as Partial<ActivityListItem>);
 
-    // Bridges used to be excluded in favour of the legacy bridge-status
-    // screen, which predates the BridgeDetails template.
     expect(getActivityDetailsRoute(bridgeItem)).toEqual(
       expect.objectContaining({ txIdentifier: 'bridge-meta-1' }),
     );
   });
 
-  it('does not stash a preload key for plain API EVM rows', () => {
-    const route = getActivityDetailsRoute(baseItem());
-    expect(route?.preloadKey).toBeUndefined();
-  });
-
-  it('stashes provider-backed rows (Perps) and returns the preload key', () => {
-    const perpsItem = baseItem({
-      type: 'perpsOpenLong',
-      raw: { type: 'perpsTransaction', data: { id: 'perps-1' } },
-    } as unknown as Partial<ActivityListItem>);
-
-    const route = getActivityDetailsRoute(perpsItem);
-
-    expect(route?.preloadKey).toBeDefined();
-    expect(getPreloadedActivityItem(route?.preloadKey)).toBe(perpsItem);
-  });
-
-  it('stashes provider-backed rows (Predict) and returns the preload key', () => {
-    const predictItem = baseItem({
-      type: 'predictionPlaced',
-      raw: { type: 'predictActivity', data: { id: 'predict-1' } },
-    } as unknown as Partial<ActivityListItem>);
-
-    const route = getActivityDetailsRoute(predictItem);
-
-    expect(route?.preloadKey).toBeDefined();
-    expect(getPreloadedActivityItem(route?.preloadKey)).toBe(predictItem);
+  it('routes perps and predict rows by hash', () => {
+    expect(
+      getActivityDetailsRoute(
+        baseItem({
+          type: 'perpsOpenLong',
+          raw: { type: 'perpsTransaction', data: { id: 'perps-1' } },
+        } as unknown as Partial<ActivityListItem>),
+      )?.txIdentifier,
+    ).toBe('0xabc');
+    expect(
+      getActivityDetailsRoute(
+        baseItem({
+          type: 'predictionPlaced',
+          raw: { type: 'predictActivity', data: { id: 'predict-1' } },
+        } as unknown as Partial<ActivityListItem>),
+      )?.txIdentifier,
+    ).toBe('0xabc');
   });
 });

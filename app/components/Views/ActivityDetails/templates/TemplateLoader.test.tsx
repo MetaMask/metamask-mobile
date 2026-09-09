@@ -63,6 +63,8 @@ jest.mock('../../../UI/Perps/hooks', () => ({
     isLoading: false,
     hasError: false,
   }),
+  usePerpsConnection: () => ({ isConnected: false }),
+  usePerpsTransactionHistory: () => ({ transactions: [] }),
 }));
 
 const RAMP_DETAILS_STUB_TEST_ID = 'ramp-details-stub';
@@ -502,7 +504,7 @@ describe('TemplateLoader', () => {
     expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('falls back to DefaultDetails for a non-ramp buy (no total row)', () => {
+  it('routes a buy without ramp raw to RampDetails', () => {
     const buyItem = {
       type: 'buy',
       chainId: 'eip155:1',
@@ -514,14 +516,11 @@ describe('TemplateLoader', () => {
       },
     } as ActivityListItem;
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <TemplateLoader item={buyItem} />,
     );
 
-    expect(
-      getByTestId(ActivityDetailsSelectorsIDs.AMOUNT_HEADER),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW)).toBeNull();
+    expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders the SmartAccountUpgradeDetails template (fee, no total) for upgrades', () => {

@@ -20,10 +20,18 @@ export function asPredictActivityItem(
   return item as PredictActivityListItem;
 }
 
-export function getPredictActivity(
-  item: ActivityListItem,
+export function findPredictActivity(
+  activities: PredictActivity[],
+  identifier: string | undefined,
 ): PredictActivity | undefined {
-  return item.raw?.type === 'predictActivity' ? item.raw.data : undefined;
+  const normalized = identifier?.toLowerCase();
+  if (!normalized) {
+    return undefined;
+  }
+
+  return activities.find(
+    (activity) => activity.id.toLowerCase() === normalized,
+  );
 }
 
 export function formatPredictDate(timestamp: number): string {

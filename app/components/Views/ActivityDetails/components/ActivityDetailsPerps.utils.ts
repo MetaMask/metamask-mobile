@@ -44,10 +44,21 @@ export type PerpsActivityListItem = ActivityListItem & {
   type: PerpsActivityType;
 };
 
-export function getPerpsTransaction(
-  item: ActivityListItem,
+export function findPerpsTransaction(
+  transactions: PerpsTransaction[],
+  identifier: string | undefined,
 ): PerpsTransaction | undefined {
-  return item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
+  const normalized = identifier?.toLowerCase();
+  if (!normalized) {
+    return undefined;
+  }
+
+  return transactions.find((transaction) => {
+    if (transaction.id.toLowerCase() === normalized) {
+      return true;
+    }
+    return transaction.depositWithdrawal?.txHash?.toLowerCase() === normalized;
+  });
 }
 
 export {

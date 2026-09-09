@@ -31,7 +31,6 @@ import {
   formatPositiveFiat,
   getPerpsPositionSize,
   getPerpsPriceValue,
-  getPerpsTransaction,
 } from './components/ActivityDetailsPerps.utils';
 import {
   ActivityDetailsSelectorsIDs,
@@ -77,6 +76,10 @@ const {
   BLOCK_EXPLORER_BUTTON,
   DO_IT_AGAIN_BUTTON,
 } = ActivityDetailsSelectorsIDs;
+
+function getPerpsFixtureTransaction(item: ActivityListItem) {
+  return item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
+}
 
 const renderPerpsDetails = (item: ActivityListItem) => {
   const state = initialStateActivityWithPerpsDetails([
@@ -520,7 +523,7 @@ describeForPlatforms('ActivityDetails — Perps trades', () => {
     priceLabel: string;
     pnl?: { amount: string; color: TextColor };
   }) => {
-    const transaction = getPerpsTransaction(item);
+    const transaction = getPerpsFixtureTransaction(item);
     const fill = transaction?.fill;
 
     const { findByTestId, getByTestId, queryByTestId, UNSAFE_getAllByType } =
@@ -683,7 +686,7 @@ describeForPlatforms('ActivityDetails — Perps orders', () => {
     statusColor: TextColor;
     showTryAgain: boolean;
   }) => {
-    const order = getPerpsTransaction(item)?.order;
+    const order = getPerpsFixtureTransaction(item)?.order;
 
     const {
       findByTestId,
@@ -924,7 +927,7 @@ describeForPlatforms('ActivityDetails — Perps funding', () => {
 
   it('shows received funding fees with a green fee and explorer', async () => {
     const item = buildActivityCvPerpsFundingItem('received');
-    const funding = getPerpsTransaction(item)?.fundingAmount;
+    const funding = getPerpsFixtureTransaction(item)?.fundingAmount;
 
     await expectFundingDetails({
       item,
@@ -940,7 +943,7 @@ describeForPlatforms('ActivityDetails — Perps funding', () => {
 
   it('shows paid funding fees with a default fee and explorer', async () => {
     const item = buildActivityCvPerpsFundingItem('paid');
-    const funding = getPerpsTransaction(item)?.fundingAmount;
+    const funding = getPerpsFixtureTransaction(item)?.fundingAmount;
 
     await expectFundingDetails({
       item,

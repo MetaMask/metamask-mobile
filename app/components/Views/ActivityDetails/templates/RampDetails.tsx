@@ -1,30 +1,16 @@
 import React from 'react';
-import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import type { RampsOrder } from '@metamask/ramps-controller';
 import {
   isRampFiatOrder,
   isRampRampsOrder,
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
-import {
-  RampFiatOrderDetails,
-  type RampFiatActivityListItem,
-} from './RampFiatOrderDetails';
-import {
-  RampRampsOrderDetails,
-  type RampRampsActivityListItem,
-} from './RampRampsOrderDetails';
+import { useRampsDetailsOrder } from '../hooks/useRampsDetailsOrder';
+import { RampFiatOrderDetails } from './RampFiatOrderDetails';
+import { RampRampsOrderDetails } from './RampRampsOrderDetails';
 
 export type RampActivityListItem = ActivityListItem & {
-  type: 'buy' | 'sell';
-  raw: { type: 'rampOrder'; data: FiatOrder | RampsOrder };
+  type: 'buy' | 'sell' | 'rampBuy' | 'rampSell';
 };
-
-export function isRampActivityListItem(
-  item: ActivityListItem,
-): item is RampActivityListItem {
-  return item.raw?.type === 'rampOrder';
-}
 
 /**
  * Dispatches to FiatOrder or RampsOrder details. Branch only on data shape —
@@ -33,14 +19,18 @@ export function isRampActivityListItem(
 export function RampDetails({
   item,
 }: Readonly<{ item: RampActivityListItem }>) {
-  const { data } = item.raw;
+  const order = useRampsDetailsOrder(item.hash);
 
-  if (isRampRampsOrder(data)) {
-    return <RampRampsOrderDetails item={item as RampRampsActivityListItem} />;
+  if (!order) {
+    return null;
   }
 
-  if (isRampFiatOrder(data)) {
-    return <RampFiatOrderDetails item={item as RampFiatActivityListItem} />;
+  if (isRampRampsOrder(order)) {
+    return <RampRampsOrderDetails item={item} order={order} />;
+  }
+
+  if (isRampFiatOrder(order)) {
+    return <RampFiatOrderDetails item={item} order={order} />;
   }
 
   return null;

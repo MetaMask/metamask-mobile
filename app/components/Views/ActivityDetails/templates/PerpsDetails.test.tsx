@@ -11,6 +11,7 @@ import {
   type PerpsTransaction,
 } from '../../../UI/Perps/types/transactionHistory';
 import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
+import { usePerpsDetailsTransaction } from '../hooks/usePerpsDetailsTransaction';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { PerpsDetails } from './PerpsDetails';
 
@@ -56,7 +57,15 @@ jest.mock('../../../UI/Perps/hooks', () => ({
     isLoading: false,
     hasError: false,
   })),
+  usePerpsConnection: () => ({ isConnected: true }),
+  usePerpsTransactionHistory: () => ({ transactions: [] }),
 }));
+
+jest.mock('../hooks/usePerpsDetailsTransaction', () => ({
+  usePerpsDetailsTransaction: jest.fn(),
+}));
+
+const usePerpsDetailsTransactionMock = jest.mocked(usePerpsDetailsTransaction);
 
 const mockUsePerpsRecordedOrderFees =
   usePerpsRecordedOrderFees as jest.MockedFunction<
@@ -153,6 +162,7 @@ function perpsItem(
   transaction: PerpsTransaction,
   status: ActivityListItem['status'] = 'success',
 ): ActivityListItem {
+  usePerpsDetailsTransactionMock.mockReturnValue(transaction);
   return {
     type,
     chainId: 'eip155:42161',
@@ -243,6 +253,7 @@ function localPerpsFundsItem(
 describe('PerpsDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    usePerpsDetailsTransactionMock.mockReturnValue(undefined);
   });
 
   it.each(orderRowCases)('renders the $orderType price rows', (orderCase) => {
@@ -365,8 +376,8 @@ describe('PerpsDetails', () => {
       <PerpsDetails item={perpsItem('perpsCloseShort', transaction)} />,
     );
 
-    expect(mockPerpsConnectionProvider).not.toHaveBeenCalled();
-    expect(mockPerpsStreamProvider).not.toHaveBeenCalled();
+    expect(mockPerpsConnectionProvider).toHaveBeenCalled();
+    expect(mockPerpsStreamProvider).toHaveBeenCalled();
   });
 
   it('renders canceled order rows and try-again CTA', () => {

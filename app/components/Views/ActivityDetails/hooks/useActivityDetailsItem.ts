@@ -31,8 +31,8 @@ import {
  *
  * Local gasless/STX rows may temporarily change their displayed hash while the
  * meta `id` stays stable. Lookup therefore indexes local rows by meta id and
- * both primary/initial hashes. A stashed preloaded local row bridges route
- * params that still hold a superseded hash to the live meta by id.
+ * both primary/initial hashes. Provider-backed extras (perps / predict) win
+ * hash collisions so details rematch the live domain row.
  *
  * When a `chainId` is provided, candidates are restricted to that chain first,
  * so a hash that collides across chains resolves to the correct transaction.
@@ -153,7 +153,7 @@ function getPreferredApiItem(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
-  preloadedItem?: ActivityListItem,
+  extraItems: ActivityListItem[] = [],
 ): ActivityListItem | undefined {
   const localActivityItems = useLocalActivityItems();
   const rampActivityItems = useRampActivityItems();
@@ -198,12 +198,9 @@ export function useActivityDetailsItem(
     () => buildItemsByHash(filterByChain(nonEvmItems, chainId)),
     [nonEvmItems, chainId],
   );
-  const preloadedByIdentifier = useMemo(
-    () =>
-      buildItemsByIdentifier(
-        filterByChain(preloadedItem ? [preloadedItem] : [], chainId),
-      ),
-    [preloadedItem, chainId],
+  const extraByIdentifier = useMemo(
+    () => buildItemsByIdentifier(filterByChain(extraItems, chainId)),
+    [extraItems, chainId],
   );
   const rampByIdentifier = useMemo(
     () => buildItemsByIdentifier(filterByChain(rampActivityItems, chainId)),
@@ -216,29 +213,13 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
-    const preloadedResolvedItem = preloadedByIdentifier.get(id);
-
-    // Provider-backed rows can't be re-resolved from list sources — honor the
-    // hand-off first (also wins hash collisions with unrelated local txs).
-    if (preloadedResolvedItem && isProviderBackedItem(preloadedResolvedItem)) {
-      return preloadedResolvedItem;
+    const extraItem = extraByIdentifier.get(id);
+    if (extraItem && isProviderBackedItem(extraItem)) {
+      return extraItem;
     }
 
-    const preloadedMetaId =
-      preloadedResolvedItem?.raw?.type === 'localTransaction'
-        ? preloadedResolvedItem.raw.data.primaryTransaction.id?.toLowerCase()
-        : undefined;
-    const localFromPreloadMeta = preloadedMetaId
-      ? localByLookupKey.get(preloadedMetaId)
-      : undefined;
-
-    const localItem = localByLookupKey.get(id) ?? localFromPreloadMeta;
-    const apiItem = getPreferredApiItem(
-      apiByHash,
-      id,
-      localItem,
-      preloadedResolvedItem,
-    );
+    const localItem = localByLookupKey.get(id);
+    const apiItem = getPreferredApiItem(apiByHash, id, localItem, extraItem);
     const nonEvmItem = nonEvmByHash.get(id);
     const rampItem = rampByIdentifier.get(id);
 
@@ -250,14 +231,6 @@ export function useActivityDetailsItem(
       return preferLocalOrApiActivityItem(localItem, apiItem);
     }
 
-    // Live local missed (STX hash flip / TC prune) but we still have the
-    // stashed local snapshot from navigation — apply the same API preference
-    // so a gas-token (or richer spending-cap) fee is not discarded for a
-    // native-only API copy.
-    if (preloadedResolvedItem?.raw?.type === 'localTransaction') {
-      return preferLocalOrApiActivityItem(preloadedResolvedItem, apiItem);
-    }
-
     if (nonEvmItem) {
       return nonEvmItem;
     }
@@ -266,13 +239,13 @@ export function useActivityDetailsItem(
       return apiItem;
     }
 
-    return preloadedResolvedItem;
+    return extraItem;
   }, [
     txIdentifier,
     localByLookupKey,
     apiByHash,
     nonEvmByHash,
-    preloadedByIdentifier,
+    extraByIdentifier,
     rampByIdentifier,
   ]);
 }

@@ -3,7 +3,7 @@ import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import {
   asPredictActivityItem,
   formatPredictDate,
-  getPredictActivity,
+  findPredictActivity,
   getPredictFundsCtaLabel,
   getPredictFundsStepLabels,
 } from './PredictDetails.types';
@@ -16,22 +16,16 @@ describe('PredictDetails.types', () => {
     });
   });
 
-  describe('getPredictActivity', () => {
-    it('returns the predict data when raw is a predict activity', () => {
-      const data = { id: 'p1' };
-      const item = {
-        raw: { type: 'predictActivity', data },
-      } as unknown as ActivityListItem;
-      expect(getPredictActivity(item)).toBe(data);
+  describe('findPredictActivity', () => {
+    const activity = { id: 'p1' };
+
+    it('matches by activity id', () => {
+      expect(findPredictActivity([activity], 'P1')).toBe(activity);
     });
 
-    it('returns undefined for non-predict raw or missing raw', () => {
-      expect(
-        getPredictActivity({
-          raw: { type: 'perpsTransaction', data: {} },
-        } as unknown as ActivityListItem),
-      ).toBeUndefined();
-      expect(getPredictActivity({} as ActivityListItem)).toBeUndefined();
+    it('returns undefined when nothing matches', () => {
+      expect(findPredictActivity([activity], 'missing')).toBeUndefined();
+      expect(findPredictActivity([activity], undefined)).toBeUndefined();
     });
   });
 

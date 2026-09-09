@@ -6,13 +6,21 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import Routes from '../../../../constants/navigation/Routes';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+import { usePredictDetailsActivity } from '../hooks/usePredictDetailsActivity';
 import { PredictDetails } from './PredictDetails';
+import type { PredictActivity } from '../../../UI/Predict/types';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
+
+jest.mock('../hooks/usePredictDetailsActivity', () => ({
+  usePredictDetailsActivity: jest.fn(),
+}));
+
+const usePredictDetailsActivityMock = jest.mocked(usePredictDetailsActivity);
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -35,7 +43,7 @@ jest.mock(
  * @returns A Predict row, on the injected Polygon chain id.
  */
 function predictItem(overrides: Partial<ActivityListItem>): ActivityListItem {
-  return {
+  const item = {
     type: 'predictionPlaced',
     chainId: 'eip155:137',
     status: 'success',
@@ -44,6 +52,12 @@ function predictItem(overrides: Partial<ActivityListItem>): ActivityListItem {
     data: { token: { amount: '100', symbol: 'USDC', direction: 'out' } },
     ...overrides,
   } as ActivityListItem;
+  if (item.raw?.type === 'predictActivity') {
+    usePredictDetailsActivityMock.mockReturnValue(
+      item.raw.data as PredictActivity,
+    );
+  }
+  return item;
 }
 
 /** Real network configurations, so chain ids resolve to display names. */
@@ -73,7 +87,10 @@ function stateWithPayOnLocalTx(
 }
 
 describe('PredictDetails', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    usePredictDetailsActivityMock.mockReturnValue(undefined);
+  });
 
   it('renders placed prediction rows and CTA', () => {
     const { getByText, getAllByText } = renderWithProvider(

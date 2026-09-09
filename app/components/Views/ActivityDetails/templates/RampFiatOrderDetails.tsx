@@ -24,15 +24,14 @@ import {
 } from './rampDetailsUtils';
 
 export type RampFiatActivityListItem = ActivityListItem & {
-  type: 'buy' | 'sell';
-  raw: { type: 'rampOrder'; data: FiatOrder };
+  type: 'buy' | 'sell' | 'rampBuy' | 'rampSell';
 };
 
 /** Legacy FiatOrder ActivityDetails template — extract of prior RampDetails. */
 export function RampFiatOrderDetails({
   item,
-}: Readonly<{ item: RampFiatActivityListItem }>) {
-  const order = item.raw.data;
+  order,
+}: Readonly<{ item: RampFiatActivityListItem; order: FiatOrder }>) {
   const isSell = isRampSellOrder(order);
   const transactionHash = getRampActivityTransactionHash(order);
   const chainId = getRampActivityExplorerChainId(order.network);
