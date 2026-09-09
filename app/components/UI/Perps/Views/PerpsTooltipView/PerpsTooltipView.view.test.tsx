@@ -7,6 +7,7 @@ import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { renderPerpsTooltipView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { PerpsTooltipViewSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsTooltipView', () => {
   beforeEach(() => {
@@ -52,24 +53,19 @@ describe('PerpsTooltipView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('closes the sheet when Got It is pressed', async () => {
+  it('pressing Got It fires without error', async () => {
     renderPerpsTooltipView({ contentKey: 'leverage' });
 
-    const gotIt = await screen.findByText(
-      strings('perps.tooltips.got_it_button'),
-    );
-    expect(gotIt).toBeOnTheScreen();
-    fireEvent.press(gotIt);
-    // BottomSheet handles the close animation; pressing Got It should not throw
-    expect(gotIt).toBeOnTheScreen();
+    const gotIt = await screen.findByText(strings('perps.tooltips.got_it_button'));
+    expect(() => fireEvent.press(gotIt)).not.toThrow();
   });
 
   it('renders no header for market_hours content key (custom renderer path)', async () => {
     renderPerpsTooltipView({ contentKey: 'market_hours' });
 
-    await screen.findByTestId('perps-tooltip-bottom-sheet');
+    await screen.findByTestId(PerpsTooltipViewSelectorsIDs.BOTTOM_SHEET);
     expect(
-      screen.queryByTestId('perps-tooltip-bottom-sheet-header'),
+      screen.queryByTestId(PerpsTooltipViewSelectorsIDs.HEADER),
     ).not.toBeOnTheScreen();
   });
 
@@ -77,7 +73,7 @@ describe('PerpsTooltipView', () => {
     renderPerpsTooltipView({ contentKey: 'leverage' });
 
     expect(
-      await screen.findByTestId('perps-tooltip-bottom-sheet-header'),
+      await screen.findByTestId(PerpsTooltipViewSelectorsIDs.HEADER),
     ).toBeOnTheScreen();
   });
 });

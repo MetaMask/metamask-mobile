@@ -1281,6 +1281,18 @@ export const PerpsModeSelectionBottomSheetSelectorsIDs = {
   SELECTED_INDICATOR: 'perps-mode-selection-selected-indicator',
 } as const;
 
+export const PerpsSelectProviderViewSelectorsIDs = {
+  SHEET: 'perps-select-provider-sheet',
+  CLOSE_BUTTON: 'perps-select-provider-sheet-close-button',
+} as const;
+
+export const PerpsTooltipViewSelectorsIDs = {
+  BOTTOM_SHEET: 'perps-tooltip-bottom-sheet',
+  HEADER: 'perps-tooltip-bottom-sheet-header',
+  FOOTER: 'perps-tooltip-bottom-sheet-footer',
+  GOT_IT_BUTTON: 'perps-tooltip-bottom-sheet-footer-got-it-button',
+} as const;
+
 // ========================================
 // PERPS MODE FLASH SELECTORS
 // ========================================

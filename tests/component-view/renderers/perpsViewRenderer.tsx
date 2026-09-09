@@ -438,6 +438,8 @@ interface RenderPerpsViewOptions {
   extraRoutes?: PerpsExtraRoute[];
   /** Selects the matching Perps state preset. */
   mode?: 'lite' | 'pro';
+  /** Override the PerpsConnectionContext value. Useful for views that behave differently when disconnected or connecting. */
+  connectionValue?: PerpsConnectionContextValue;
 }
 
 const DefaultRouteProbe =
@@ -456,7 +458,7 @@ export function renderPerpsView(
   routeName: string,
   options: RenderPerpsViewOptions = {},
 ) {
-  const { overrides, initialParams, streamOverrides, extraRoutes, mode } =
+  const { overrides, initialParams, streamOverrides, extraRoutes, mode, connectionValue } =
     options;
   const builder = mode === 'pro' ? initialStatePerpsPro() : initialStatePerps();
   if (overrides) {
@@ -472,6 +474,7 @@ export function renderPerpsView(
     <PerpsTestProviders
       queryClient={queryClient}
       streamManager={testStreamManager}
+      connectionValue={connectionValue}
     >
       <Component {...props} />
     </PerpsTestProviders>
@@ -899,7 +902,7 @@ export function renderPerpsTPSLView(
 }
 
 /** Minimal order for PerpsOrderDetailsView. */
-const defaultOrderDetailsOrder = {
+export const defaultOrderDetailsOrder = {
   orderId: 'order_1',
   symbol: 'ETH',
   side: 'buy' as const,
