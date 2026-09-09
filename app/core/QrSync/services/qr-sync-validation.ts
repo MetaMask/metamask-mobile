@@ -273,7 +273,7 @@ export function isQrSyncReadyForSecretImport(
   const { provisioningStatus, pendingSecretImports } = preconditions;
   return (
     provisioningStatus === QrSyncProvisioningStatuses.AWAITING_PASSWORD &&
-    pendingSecretImports !== null
+    Boolean(pendingSecretImports?.wallets?.length)
   );
 }
 
