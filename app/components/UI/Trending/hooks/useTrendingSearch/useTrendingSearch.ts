@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { CaipChainId } from '@metamask/utils';
 import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
@@ -151,15 +151,18 @@ export const useTrendingSearch = (opts?: {
     includeStocks,
   ]);
 
-  // Loading state: show loading while waiting for results
-  const prevDebouncedQuery = useRef(debouncedQuery);
+  // Loading state: show loading while waiting for results. The processed query
+  // is state rather than a ref because it is read during render: on the render
+  // where debouncedQuery changes, requestedQuery still holds the old value, so
+  // the check covers the one-frame gap before the search request goes out.
+  const [requestedQuery, setRequestedQuery] = useState(debouncedQuery);
   useEffect(() => {
-    prevDebouncedQuery.current = debouncedQuery;
-  });
+    setRequestedQuery(debouncedQuery);
+  }, [debouncedQuery]);
 
   const isLoading = debouncedQuery?.trim()
     ? searchQuery !== debouncedQuery ||
-      prevDebouncedQuery.current !== debouncedQuery ||
+      requestedQuery !== debouncedQuery ||
       isSearchLoading
     : isTrendingLoading;
 
