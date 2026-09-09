@@ -40,6 +40,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { BlurView } from 'expo-blur';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PerpsMode } from '@metamask/perps-controller';
 import {
@@ -51,7 +52,18 @@ import { useSelector } from 'react-redux';
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
+import {
+  BLUR_INTENSITY,
+  useBlurMaterial,
+} from '../../../component-library/hooks/useBlurMaterial';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
+import { useABTest } from '../../../hooks/useABTest';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog. */
+import {
+  HEADER_NAV_BAR_AB_KEY,
+  HEADER_NAV_BAR_VARIANTS,
+} from '../Homepage/abTestConfig';
+/* eslint-enable import-x/no-restricted-paths */
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
@@ -61,6 +73,7 @@ import {
   selectSelectedInternalAccountAddress,
 } from '../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../util/address';
+import { colorWithOpacity } from '../../../util/colors';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
@@ -94,6 +107,8 @@ import { EarnRate } from '../../UI/Earn/types/earnAssets';
 import { truncateNumber } from '../../UI/Earn/utils/number';
 
 const bottomMaskHeight = 35;
+/** The trade-focused sheet sits on a system blur, so its backdrop dims half as much. */
+const TRADE_FOCUSED_BACKDROP_OPACITY = 0.5;
 const animationDuration = AnimationDuration.Fast;
 
 const batchSellIconStyle = {
@@ -109,11 +124,17 @@ export interface TradeWalletActionsParams {
     width: number;
     height: number;
   };
+  /** Whether the sheet dips into a peak above the opening button. The floating bar's trailing "+" opens a plain rounded sheet instead. */
+  hasBottomNotch?: boolean;
 }
 
 function TradeWalletActions() {
   const { navigate } = useNavigation();
-  const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
+  const {
+    onDismiss,
+    buttonLayout,
+    hasBottomNotch = true,
+  } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
   const postCallback = useRef<(() => void | Promise<void>) | undefined>(
@@ -128,6 +149,17 @@ function TradeWalletActions() {
   const tw = useTailwind();
   const surfaceClass = 'bg-elevated1';
   const { colors } = useTheme();
+  // Assignment-only read: exposure is tracked where the experiment surface is
+  // owned, the wallet header and the tab bar, so this must not emit it again.
+  const { variant: headerNavBarVariant } = useABTest(
+    HEADER_NAV_BAR_AB_KEY,
+    HEADER_NAV_BAR_VARIANTS,
+    { trackExposure: false },
+  );
+  const isTradeFocusedArm =
+    headerNavBarVariant.trailingNavBarAction === 'trade';
+  const { isBlurAvailable, tint } = useBlurMaterial();
+  const isTranslucentSheet = isTradeFocusedArm && isBlurAvailable;
 
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -141,12 +173,12 @@ function TradeWalletActions() {
   }));
 
   useEffect(() => {
-    backdropOpacity.value = withTiming(1, {
-      duration: animationDuration,
-      easing: Easing.linear,
-    });
+    backdropOpacity.value = withTiming(
+      isTradeFocusedArm ? TRADE_FOCUSED_BACKDROP_OPACITY : 1,
+      { duration: animationDuration, easing: Easing.linear },
+    );
     sheetProgress.value = withTiming(1, { duration: animationDuration });
-  }, [backdropOpacity, sheetProgress]);
+  }, [backdropOpacity, isTradeFocusedArm, sheetProgress]);
 
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -334,10 +366,8 @@ function TradeWalletActions() {
   // Svg fill/stroke take color strings, not classes, so resolve the surface
   // class to its color value.
   const elevatedSurfaceColor = tw.color(surfaceClass);
-  const layout = buttonLayout as NonNullable<
-    TradeWalletActionsParams['buttonLayout']
-  >;
-  const bottomShapeMaskWidth = layout.width * 2;
+
+  const bottomShapeMaskWidth = buttonLayout ? buttonLayout.width * 2 : 0;
 
   const actionList = (
     <>
@@ -452,61 +482,81 @@ function TradeWalletActions() {
       )}
     </>
   );
-
   const sheetContent = (
     <Animated.View style={sheetAnimatedStyle}>
       <View style={tw.style('px-4')}>
-        <View
-          testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
-          style={tw.style(
-            `${surfaceClass} p-4 rounded-t-2xl px-0`,
-            'border-t border-l border-r border-alternative',
-          )}
-        >
-          {actionList}
-        </View>
-        <View
-          style={tw.style('flex-row mt-[-1px]', { height: bottomMaskHeight })}
-        >
-          <View
-            style={tw.style(
-              `${surfaceClass} flex-1 rounded-bl-2xl`,
-              'border-l border-b border-alternative',
-            )}
-          />
-          <BottomShape
-            width={bottomShapeMaskWidth}
-            height={bottomMaskHeight}
-            peakHeight={16}
-            peakBezierLength={25}
-            baseBezierLength={55}
-            fill={elevatedSurfaceColor}
-          />
-          <View
-            style={tw.style(
-              `${surfaceClass} flex-1 rounded-br-2xl`,
-              'border-r border-b border-alternative',
-            )}
-          />
-          <View
-            pointerEvents="none"
-            style={tw.style('absolute bottom-0 inset-x-0 items-center')}
-            testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
+        {isTranslucentSheet && !hasBottomNotch ? (
+          <BlurView
+            testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+            tint={tint}
+            intensity={BLUR_INTENSITY}
+            style={[
+              tw.style('p-4 px-0 rounded-2xl mb-4 overflow-hidden'),
+              {
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: colorWithOpacity(colors.border.muted, 0.5),
+              },
+            ]}
           >
+            {actionList}
+          </BlurView>
+        ) : (
+          <View
+            testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+            style={tw.style(
+              `${surfaceClass} p-4 px-0 border-alternative`,
+              hasBottomNotch
+                ? 'rounded-t-2xl border-t border-l border-r'
+                : 'rounded-2xl border mb-4',
+            )}
+          >
+            {actionList}
+          </View>
+        )}
+        {hasBottomNotch && (
+          <View
+            style={tw.style('flex-row mt-[-1px]', { height: bottomMaskHeight })}
+          >
+            <View
+              style={tw.style(
+                `${surfaceClass} flex-1 rounded-bl-2xl`,
+                'border-l border-b border-alternative',
+              )}
+            />
             <BottomShape
-              width={bottomShapeMaskWidth + 4}
+              width={bottomShapeMaskWidth}
               height={bottomMaskHeight}
               peakHeight={16}
               peakBezierLength={25}
               baseBezierLength={55}
-              strokeOnly
-              pathProps={{
-                stroke: colors.border.alternative,
-                strokeWidth: 2,
-              }}
+              fill={elevatedSurfaceColor}
             />
+            <View
+              style={tw.style(
+                `${surfaceClass} flex-1 rounded-br-2xl`,
+                'border-r border-b border-alternative',
+              )}
+            />
+            <View
+              pointerEvents="none"
+              style={tw.style('absolute bottom-0 inset-x-0 items-center')}
+              testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
+            >
+              <BottomShape
+                width={bottomShapeMaskWidth + 4}
+                height={bottomMaskHeight}
+                peakHeight={16}
+                peakBezierLength={25}
+                baseBezierLength={55}
+                strokeOnly
+                pathProps={{
+                  stroke: colors.border.alternative,
+                  strokeWidth: 2,
+                }}
+              />
+            </View>
           </View>
-        </View>
+        )}
       </View>
     </Animated.View>
   );
@@ -515,14 +565,23 @@ function TradeWalletActions() {
     <View style={tw.style('flex-1 justify-end')}>
       <Animated.View style={[StyleSheet.absoluteFill, backdropAnimatedStyle]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleNavigateBack}>
-          <OverlayWithHole
-            width={windowWidth}
-            height={windowHeight + insetsTop}
-            circleSize={layout.width - 1}
-            circleX={layout.x + layout.width / 2}
-            circleY={layout.y + layout.height / 2 + insetsTop}
-            fill={colors.overlay.default}
-          />
+          {buttonLayout ? (
+            <OverlayWithHole
+              width={windowWidth}
+              height={windowHeight + insetsTop}
+              circleSize={buttonLayout.width - 1}
+              circleX={buttonLayout.x + buttonLayout.width / 2}
+              circleY={buttonLayout.y + buttonLayout.height / 2 + insetsTop}
+              fill={colors.overlay.default}
+            />
+          ) : (
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: colors.overlay.default },
+              ]}
+            />
+          )}
         </Pressable>
       </Animated.View>
 
@@ -533,7 +592,7 @@ function TradeWalletActions() {
       )}
       <View
         style={tw.style('pointer-events-none', {
-          height: screenHeight - layout.y - insetsTop,
+          height: buttonLayout ? screenHeight - buttonLayout.y - insetsTop : 0,
         })}
       />
     </View>

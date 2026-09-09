@@ -818,6 +818,7 @@ const HomeTabs = () => {
           descriptors={descriptors}
           navigation={navigation}
           onHeightChange={setFloatingTabBarHeight}
+          trailingAction={headerNavBarVariant.trailingNavBarAction}
         />
       ) : (
         <TabBar
