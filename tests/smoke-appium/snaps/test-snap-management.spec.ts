@@ -11,7 +11,8 @@ import {
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Enable path may re-enter settings once when SnapController lags the Switch.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 200_000 });
 
   appiumTest(
     'can connect to the Dialog Snap',
