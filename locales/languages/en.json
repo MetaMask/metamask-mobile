@@ -6056,7 +6056,7 @@
     "address": "public address",
     "sign_messages": "Sign messages",
     "on_your_behalf": "on your behalf",
-    "warning": "By clicking connect, you allow this site to view your public address. This is an important security step to protect your data from potential phishing risks."
+    "warning": "By tapping connect, you allow this site to view your public address. This is an important security step to protect your data from potential phishing risks."
   },
   "import_private_key": {
     "title": "Import account",
