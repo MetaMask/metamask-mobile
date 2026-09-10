@@ -27,9 +27,9 @@ const mockedSelectIsBasicFunctionalityConsolidationEnabled = jest.mocked(
   selectIsBasicFunctionalityConsolidationEnabled,
 );
 
-function getInitRequestMock(
-  getState: () => RootState = jest.fn(),
-): jest.Mocked<MessengerClientInitRequest<AuthenticationControllerMessenger>> {
+function getInitRequestMock(): jest.Mocked<
+  MessengerClientInitRequest<AuthenticationControllerMessenger>
+> {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -38,7 +38,6 @@ function getInitRequestMock(
     ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getAuthenticationControllerMessenger(baseMessenger),
     initMessenger: undefined,
-    getState,
   };
 
   return requestMock;
@@ -80,10 +79,10 @@ describe('AuthenticationControllerInit', () => {
   });
 
   it('does not evaluate isSocialPairingEnabled at init', () => {
-    const getState = jest.fn();
-    authenticationControllerInit(getInitRequestMock(getState));
+    const requestMock = getInitRequestMock();
+    authenticationControllerInit(requestMock);
 
-    expect(getState).not.toHaveBeenCalled();
+    expect(requestMock.getState).not.toHaveBeenCalled();
     expect(
       mockedSelectIsBasicFunctionalityConsolidationEnabled,
     ).not.toHaveBeenCalled();
@@ -92,13 +91,14 @@ describe('AuthenticationControllerInit', () => {
 
   it('returns the consolidation selector value when the callback is invoked', () => {
     const rootState = {} as RootState;
-    const getState = jest.fn(() => rootState);
+    const requestMock = getInitRequestMock();
+    requestMock.getState.mockReturnValue(rootState);
     mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(true);
 
-    authenticationControllerInit(getInitRequestMock(getState));
+    authenticationControllerInit(requestMock);
 
     expect(getIsSocialPairingEnabled()?.()).toBe(true);
-    expect(getState).toHaveBeenCalledTimes(1);
+    expect(requestMock.getState).toHaveBeenCalledTimes(1);
     expect(
       mockedSelectIsBasicFunctionalityConsolidationEnabled,
     ).toHaveBeenCalledWith(rootState);
