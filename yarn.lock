@@ -11310,9 +11310,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^16.1.0":
-  version: 16.1.0
-  resolution: "@metamask/perps-controller@npm:16.1.0"
+"@metamask/perps-controller@npm:^16.2.0":
+  version: 16.2.0
+  resolution: "@metamask/perps-controller@npm:16.2.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -11324,7 +11324,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/e28bc78339c140ae2d714f14c72480a782212e391be7f57bb5485d4528737c638f2d8dea6d16b90a0c599edf11c811815ebef397bd37a9e407e086633832f779
+  checksum: 10/ca1b4389e8ff92bed3fcdaa66272ebc96b5e554d987a30b47f964b2ac05ab31c957131161d7a03aada4dd7d638bfd37c48b14fa420740323e1883c135d929ed3
   languageName: node
   linkType: hard
 
@@ -39723,7 +39723,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^27.0.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^16.1.0"
+    "@metamask/perps-controller": "npm:^16.2.0"
     "@metamask/phishing-controller": "npm:^17.3.1"
     "@metamask/platform-api-docs": "npm:^0.1.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
@@ -40041,7 +40041,7 @@ __metadata:
     react-native-nitro-fetch: "patch:react-native-nitro-fetch@npm%3A1.5.1#~/.yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch"
     react-native-nitro-modules: "npm:0.35.10"
     react-native-nitro-text-decoder: "npm:^0.2.0"
-    react-native-nitro-websockets: "npm:^1.0.3"
+    react-native-nitro-websockets: "patch:react-native-nitro-websockets@npm%3A1.0.3#~/.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
     react-native-pager-view: "npm:8.0.4"
     react-native-performance: "patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch"
@@ -40102,7 +40102,7 @@ __metadata:
     ts-loader: "npm:^9.5.0"
     ts-node: "npm:^10.9.2"
     tsx: "npm:^4.21.0"
-    typescript: "npm:~5.4.5"
+    typescript: "npm:~5.8.3"
     unicode-confusables: "npm:^0.1.1"
     uri-js: "npm:^4.4.1"
     url: "npm:0.11.0"
@@ -46180,7 +46180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-websockets@npm:^1.0.3":
+"react-native-nitro-websockets@npm:1.0.3":
   version: 1.0.3
   resolution: "react-native-nitro-websockets@npm:1.0.3"
   peerDependencies:
@@ -46193,6 +46193,22 @@ __metadata:
     react-native-nitro-fetch:
       optional: true
   checksum: 10/aa53b4f40d62e79294dcc609f38e1426dfe08ca87deafbe8b90bbb64ec5b958742421f6f26e7a497e642189855dfd6c682cb4de1beabab8dd96595538ed93556
+  languageName: node
+  linkType: hard
+
+"react-native-nitro-websockets@patch:react-native-nitro-websockets@npm%3A1.0.3#~/.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch":
+  version: 1.0.3
+  resolution: "react-native-nitro-websockets@patch:react-native-nitro-websockets@npm%3A1.0.3#~/.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch::version=1.0.3&hash=cef141"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-fetch: "*"
+    react-native-nitro-modules: "*"
+    react-native-nitro-text-decoder: ">=0.1.0"
+  peerDependenciesMeta:
+    react-native-nitro-fetch:
+      optional: true
+  checksum: 10/b06c685cfc2ba9fac15d59d1067754783abc362e95a0fabf02cf7d5470b65b31a16b0be378d5c2774572e5fc62cb9a3f822d9cec9ee9187471d499749fdcf2be
   languageName: node
   linkType: hard
 
@@ -51638,7 +51654,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.2.2":
+"typescript@npm:^5.2.2, typescript@npm:~5.8.3":
   version: 5.8.3
   resolution: "typescript@npm:5.8.3"
   bin:
@@ -51648,33 +51664,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~5.4.5":
-  version: 5.4.5
-  resolution: "typescript@npm:5.4.5"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/d04a9e27e6d83861f2126665aa8d84847e8ebabcea9125b9ebc30370b98cb38b5dff2508d74e2326a744938191a83a69aa9fddab41f193ffa43eabfdf3f190a5
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.8.3#optional!builtin<compat/typescript>":
   version: 5.8.3
   resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/b9b1e73dabac5dc730c041325dbd9c99467c1b0d239f1b74ec3b90d831384af3e2ba973946232df670519147eb51a2c20f6f96163cea2b359f03de1e2091cc4f
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A~5.4.5#optional!builtin<compat/typescript>":
-  version: 5.4.5
-  resolution: "typescript@patch:typescript@npm%3A5.4.5#optional!builtin<compat/typescript>::version=5.4.5&hash=5adc0c"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/760f7d92fb383dbf7dee2443bf902f4365db2117f96f875cf809167f6103d55064de973db9f78fe8f31ec08fff52b2c969aee0d310939c0a3798ec75d0bca2e1
   languageName: node
   linkType: hard
 
