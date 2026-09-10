@@ -17,6 +17,7 @@ import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { multiplyAmountByCount } from '../../utils/recurringConfirmTotals';
+import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -103,6 +104,7 @@ const INSUFFICIENT_SOURCE_BALANCE = {
 };
 
 function renderSheet({
+  delegationFee = { status: 'ready', fee: '$1.23' },
   goBack = jest.fn(),
   isSubmitting = false,
   onConfirm = jest.fn(),
@@ -111,6 +113,7 @@ function renderSheet({
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
+  delegationFee?: EIP7702UpgradeFee;
   goBack?: () => void;
   isSubmitting?: boolean;
   onConfirm?: () => void;
@@ -123,6 +126,7 @@ function renderSheet({
 } = {}) {
   return renderWithProvider(
     <RecurringConfirmOrderSheet
+      delegationFee={delegationFee}
       isSubmitting={isSubmitting}
       latestSourceBalance={latestSourceBalance}
       onConfirm={onConfirm}
@@ -511,36 +515,80 @@ describe('RecurringConfirmOrderSheet', () => {
     expect(onEditSlippagePress).toHaveBeenCalledTimes(1);
   });
 
-  it('shows a placeholder for the one-time delegation fee', () => {
-    const { getByTestId } = renderSheet();
+  it('shows the estimated one-time delegation fee and native token', () => {
+    const { getByTestId, queryByTestId } = renderSheet();
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.delegation_fee_one_time')}--`,
+      `${strings('bridge.recurring.delegation_fee_one_time')}$1.23`,
     );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
-  it('keeps the delegation fee placeholder while a quote is loading', () => {
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        isLoading: true,
-        destTokenAmount: '24.44',
-        formattedQuoteData: {
-          ...mockUseBridgeQuoteData.formattedQuoteData,
-          networkFee: '$1.23',
-        },
-      }));
+  it('shows a skeleton and disables Confirm while estimating delegation fee', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      delegationFee: { status: 'loading' },
+      onConfirm,
+    });
 
-    const { getByTestId } = renderSheet();
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('hides the delegation fee row when an upgrade is not required', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId, queryByTestId } = renderSheet({
+      delegationFee: { status: 'not-required' },
+      onConfirm,
+    });
+
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).not.toBeOnTheScreen();
+    fireEvent.press(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON),
+    );
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a placeholder and disables Confirm when estimation fails', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      delegationFee: { status: 'error' },
+      onConfirm,
+    });
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
     ).toHaveTextContent(
       `${strings('bridge.recurring.delegation_fee_one_time')}--`,
     );
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('calls the delegation fee info handler from the info control', () => {

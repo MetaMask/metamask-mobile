@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { createBridgeTestState } from '../../testUtils';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
+import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import {
   showRecurringAutoUpgradeError,
   submitRecurringOrder,
@@ -44,6 +45,10 @@ jest.mock('../../hooks/useAutoUpgradeEIP7702Account', () => ({
   useAutoUpgradeEIP7702Account: jest.fn(),
 }));
 
+jest.mock('../../hooks/useEIP7702UpgradeFee', () => ({
+  useEIP7702UpgradeFee: jest.fn(),
+}));
+
 jest.mock('./RecurringConfirmOrderSheet.utils', () => ({
   showRecurringAutoUpgradeError: jest.fn(),
   submitRecurringOrder: jest.fn(),
@@ -52,12 +57,14 @@ jest.mock('./RecurringConfirmOrderSheet.utils', () => ({
 jest.mock('./RecurringConfirmOrderSheet', () => ({
   __esModule: true,
   default: ({
+    delegationFee,
     isSubmitting,
     onConfirm,
     onEditSlippagePress,
     onDelegationFeeInfoPress,
     goBack,
   }: {
+    delegationFee: { status: string };
     isSubmitting: boolean;
     onConfirm: () => void;
     onEditSlippagePress: () => void;
@@ -71,6 +78,11 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     return ReactModule.createElement(
       ReactModule.Fragment,
       null,
+      ReactModule.createElement(
+        Text,
+        { testID: 'delegation-fee-status' },
+        delegationFee.status,
+      ),
       ReactModule.createElement(
         Pressable,
         { testID: 'confirm-order', onPress: onConfirm },
@@ -151,6 +163,9 @@ function renderScreen(
 describe('RecurringConfirmOrderSheetScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useEIP7702UpgradeFee).mockReturnValue({
+      status: 'not-required',
+    });
     jest
       .mocked(useAutoUpgradeEIP7702Account)
       .mockReturnValue(mockAutoUpgradeEIP7702Account);
@@ -180,6 +195,17 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.RECURRING_DELEGATION_FEE_INFO_MODAL,
     });
+  });
+
+  it('passes the delegation fee estimate to the confirmation sheet', () => {
+    jest.mocked(useEIP7702UpgradeFee).mockReturnValue({
+      status: 'ready',
+      fee: '$1.23',
+    });
+
+    const { getByTestId } = renderScreen();
+
+    expect(getByTestId('delegation-fee-status')).toHaveTextContent('ready');
   });
 
   it('passes modal navigation dismissal to the confirmation sheet', () => {

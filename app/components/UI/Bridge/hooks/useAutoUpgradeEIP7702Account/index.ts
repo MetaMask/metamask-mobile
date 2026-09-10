@@ -10,8 +10,8 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
-import { accountSupports7702 } from '../../../../../util/transactions/account-supports-7702';
 import { useEIP7702Accounts } from '../../../../Views/confirmations/hooks/7702/useEIP7702Accounts';
+import { getEIP7702AccountUpgradeStatus } from '../../utils/eip7702AccountUpgrade';
 
 export function useAutoUpgradeEIP7702Account() {
   const address = useSelector(selectSourceWalletAddress);
@@ -28,51 +28,22 @@ export function useAutoUpgradeEIP7702Account() {
   });
 
   return useCallback(async (): Promise<void> => {
-    if (!isStrictHexString(address)) {
-      throw new Error('A valid source wallet address is required');
-    }
-
-    if (!networkConfiguration) {
-      throw new Error('Network configuration is required for account upgrade');
-    }
-
-    const supports7702 = await accountSupports7702(
+    const upgradeStatus = await getEIP7702AccountUpgradeStatus(
       address,
-      Engine.context.KeyringController,
+      networkConfiguration,
     );
-    if (!supports7702) {
-      throw new Error('Account does not support EIP-7702');
-    }
-
-    const [networkSupport] =
-      await Engine.context.TransactionController.isAtomicBatchSupported({
-        address,
-        chainIds: [networkConfiguration.chainId],
-      });
-
-    if (!networkSupport) {
-      throw new Error('Network does not support EIP-7702');
-    }
-
-    if (networkSupport.isSupported) {
+    if (!upgradeStatus.isUpgradeRequired) {
       return;
-    }
-
-    if (networkSupport.delegationAddress) {
-      throw new Error(
-        'Account is delegated to an unsupported smart account implementation',
-      );
-    }
-
-    const { upgradeContractAddress } = networkSupport;
-    if (!upgradeContractAddress) {
-      throw new Error('EIP-7702 upgrade contract address is unavailable');
     }
 
     await awaitTransactionConfirmed({
       messenger:
         Engine.controllerMessenger as unknown as AwaitTransactionConfirmedMessenger,
-      submit: () => upgradeAccount(address, upgradeContractAddress),
+      submit: () =>
+        upgradeAccount(
+          upgradeStatus.address,
+          upgradeStatus.upgradeContractAddress,
+        ),
     });
   }, [address, networkConfiguration, upgradeAccount]);
 }

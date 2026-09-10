@@ -158,6 +158,23 @@ describe('useAutoUpgradeEIP7702Account', () => {
     expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS, UPGRADE_ADDRESS);
   });
 
+  it('re-checks upgrade eligibility before each submission', async () => {
+    const autoUpgradeAccount = runHook();
+
+    await autoUpgradeAccount();
+    mockIsAtomicBatchSupported.mockResolvedValue([
+      {
+        chainId: NETWORK.chainId,
+        delegationAddress: UPGRADE_ADDRESS,
+        isSupported: true,
+      },
+    ]);
+    await autoUpgradeAccount();
+
+    expect(mockIsAtomicBatchSupported).toHaveBeenCalledTimes(2);
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects accounts that do not support EIP-7702', async () => {
     mockAccountSupports7702.mockResolvedValue(false);
 

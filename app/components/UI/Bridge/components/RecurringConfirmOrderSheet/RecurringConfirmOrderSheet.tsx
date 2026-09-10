@@ -177,6 +177,7 @@ function formatTokenAmountValue(
 }
 
 const RecurringConfirmOrderSheet = ({
+  delegationFee,
   isSubmitting,
   latestSourceBalance,
   onConfirm,
@@ -199,7 +200,10 @@ const RecurringConfirmOrderSheet = ({
   });
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientGas = !hasSufficientGas;
-  const isConfirmDisabled = hasInsufficientBalance || hasInsufficientGas;
+  const isDelegationFeeReady =
+    delegationFee.status === 'ready' || delegationFee.status === 'not-required';
+  const isConfirmDisabled =
+    hasInsufficientBalance || hasInsufficientGas || !isDelegationFeeReady;
   const confirmLabel = hasInsufficientBalance
     ? strings('bridge.insufficient_funds')
     : hasInsufficientGas
@@ -359,24 +363,48 @@ const RecurringConfirmOrderSheet = ({
             ) : undefined
           }
         />
-        <Box twClassName="mx-4 my-2 h-px bg-muted" />
-        <ConfirmOrderRow
-          label={strings('bridge.recurring.delegation_fee_one_time')}
-          value="--"
-          testID={RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE}
-          labelAccessory={
-            <ButtonIcon
-              iconName={IconName.Info}
-              iconProps={{ color: IconColor.IconAlternative }}
-              size={ButtonIconSize.Sm}
-              onPress={onDelegationFeeInfoPress}
-              testID={RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO}
-              accessibilityLabel={strings(
-                'bridge.recurring.delegation_fee_info_title',
-              )}
+        {delegationFee.status !== 'not-required' ? (
+          <>
+            <Box twClassName="mx-4 my-2 h-px bg-muted" />
+            <ConfirmOrderRow
+              label={strings('bridge.recurring.delegation_fee_one_time')}
+              value={
+                delegationFee.status === 'ready' ? delegationFee.fee : '--'
+              }
+              testID={RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE}
+              isLoading={delegationFee.status === 'loading'}
+              skeletonTestID={
+                RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON
+              }
+              labelAccessory={
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  iconProps={{ color: IconColor.IconAlternative }}
+                  size={ButtonIconSize.Sm}
+                  onPress={onDelegationFeeInfoPress}
+                  testID={
+                    RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO
+                  }
+                  accessibilityLabel={strings(
+                    'bridge.recurring.delegation_fee_info_title',
+                  )}
+                />
+              }
+              trailing={
+                delegationFee.status === 'ready' && nativeToken ? (
+                  <AvatarToken
+                    name={nativeToken.symbol}
+                    src={nativeTokenImageSource}
+                    size={AvatarTokenSize.Xs}
+                    testID={
+                      RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN
+                    }
+                  />
+                ) : undefined
+              }
             />
-          }
-        />
+          </>
+        ) : null}
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{

@@ -17,6 +17,8 @@ export const RecurringConfirmOrderSheetSelectorsIDs = {
   NETWORK_FEE: 'recurring-confirm-network-fee',
   NETWORK_FEE_SKELETON: 'recurring-confirm-network-fee-skeleton',
   DELEGATION_FEE: 'recurring-confirm-delegation-fee',
+  DELEGATION_FEE_SKELETON: 'recurring-confirm-delegation-fee-skeleton',
   DELEGATION_FEE_INFO: 'recurring-confirm-delegation-fee-info',
+  DELEGATION_FEE_TOKEN: 'recurring-confirm-delegation-fee-token',
   FEE_DISCLAIMER: 'recurring-confirm-fee-disclaimer',
 } as const;

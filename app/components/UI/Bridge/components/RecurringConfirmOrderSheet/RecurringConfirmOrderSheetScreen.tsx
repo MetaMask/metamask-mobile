@@ -13,6 +13,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeQuoteDataProvider } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
+import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import {
@@ -27,6 +28,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const destToken = useSelector(selectDestToken);
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
   const autoUpgradeEIP7702Account = useAutoUpgradeEIP7702Account();
+  const delegationFee = useEIP7702UpgradeFee();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const latestSourceBalance = useLatestBalance({
@@ -81,6 +83,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
       latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
     >
       <RecurringConfirmOrderSheet
+        delegationFee={delegationFee}
         isSubmitting={isSubmitting}
         latestSourceBalance={latestSourceBalance}
         onConfirm={handleConfirm}
