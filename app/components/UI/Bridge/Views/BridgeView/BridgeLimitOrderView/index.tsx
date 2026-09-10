@@ -378,8 +378,6 @@ const BridgeLimitOrderViewContent = ({
                 onExpirationPress={handleExpirationPress}
                 slippage={slippageLabel}
                 onPricePress={handleSlippagePress}
-                networkFee={networkFee}
-                feeToken={sourceToken}
               />
             </Box>
 

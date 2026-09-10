@@ -1,5 +1,3 @@
-import type { BridgeToken } from '../../types';
-
 export interface LimitOrderDetailsProps {
   /**
    * Human-readable expiration, e.g. "1 week".
