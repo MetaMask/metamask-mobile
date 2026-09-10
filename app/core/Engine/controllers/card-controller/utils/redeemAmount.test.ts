@@ -50,4 +50,16 @@ describe('capRedeemAmount', () => {
   it('accepts a number input with excess precision', () => {
     expect(capRedeemAmount(10.12345)).toBe('10.1234');
   });
+
+  it('does not leak scientific notation from number inputs', () => {
+    expect(capRedeemAmount(1e-7)).toBe('0');
+    expect(capRedeemAmount(1e-6)).toBe('0');
+    expect(capRedeemAmount(1e21)).toBe('1000000000000000000000');
+  });
+
+  it('does not leak scientific notation from string inputs', () => {
+    expect(capRedeemAmount('1e-7')).toBe('0');
+    expect(capRedeemAmount('1E-6')).toBe('0');
+    expect(capRedeemAmount('1.23456e2')).toBe('123.456');
+  });
 });
