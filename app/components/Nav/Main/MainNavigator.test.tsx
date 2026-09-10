@@ -1343,104 +1343,23 @@ describe('MainNavigator', () => {
         )
         .map((child) => child.props.name);
 
+    const renderHomeTabs = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): ReactTestInstance => {
+      const HomeTabs = container.root.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+      )[0]?.props?.component;
+      return renderWithProvider(<HomeTabs route={{ params: {} }} />, { state })
+        .root;
+    };
+
     const homeTabNames = (
       container: { root: ReactTestInstance },
       state: ReturnType<typeof stateForArm>,
-    ): string[] => {
-      const HomeTabs = container.root.findAll(
-        (node: ReactTestInstance) =>
-          node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
-      )[0]?.props?.component;
-      const { root } = renderWithProvider(<HomeTabs route={{ params: {} }} />, {
-        state,
-      });
-      return root
-        .findAll(
-          (node: ReactTestInstance) => node.type?.toString?.() === 'TabScreen',
-        )
-        .map((node) => node.props.name);
-    };
-
-    it('pushes Rewards onto the root stack in treatment, where it is no longer a tab', () => {
-      const state = stateForArm('searchFocused');
-      const container = renderWithProvider(<MainNavigator />, { state });
-
-      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
-
-      const tabs = homeTabNames(container, state);
-      expect(tabs).toContain(Routes.SOCIAL.TAB);
-      expect(tabs).not.toContain(Routes.REWARDS_VIEW);
-      expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
-    });
-
-    it('keeps the root-stack fallback in control, where the nearer tab wins', () => {
-      const state = stateForArm('control');
-      const container = renderWithProvider(<MainNavigator />, { state });
-
-      // Registered in both arms so the route always resolves. Control also has
-      // the tab, and the tab navigator is nearer the caller, so it takes it.
-      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
-
-      const tabs = homeTabNames(container, state);
-      expect(tabs).toContain(Routes.REWARDS_VIEW);
-      expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
-      expect(tabs).not.toContain(Routes.SOCIAL.TAB);
-    });
-  });
-
-  describe('Rewards route placement across the Header & NavBar arms', () => {
-    const stateForArm = (headerNavBarVariant?: string) => ({
-      ...initialRootState,
-      engine: {
-        ...initialRootState.engine,
-        backgroundState: {
-          ...initialRootState.engine.backgroundState,
-          RemoteFeatureFlagController: {
-            ...initialRootState.engine.backgroundState
-              .RemoteFeatureFlagController,
-            remoteFeatureFlags: {
-              ...initialRootState.engine.backgroundState
-                .RemoteFeatureFlagController.remoteFeatureFlags,
-              aiSocialLeaderboardEnabled: {
-                enabled: true,
-                minimumVersion: '0.0.1',
-              },
-              ...(headerNavBarVariant
-                ? { homeTMCU1276AbtestHeaderNavBar: headerNavBarVariant }
-                : {}),
-            },
-          },
-        },
-      },
-    });
-
-    const rootStackScreenNames = (container: {
-      root: ReactTestInstance;
-    }): string[] =>
-      container.root.children
-        .filter(
-          (child): child is ReactTestInstance =>
-            typeof child === 'object' &&
-            'type' in child &&
-            'props' in child &&
-            child.type?.toString() === 'Screen',
-        )
-        .map((child) => child.props.name);
-
-    const renderHomeTabs = (state: ReturnType<typeof stateForArm>) => {
-      const container = renderWithProvider(<MainNavigator />, { state });
-      const HomeTabs = container.root.findAll(
-        (node: ReactTestInstance) =>
-          node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
-      )[0]?.props?.component;
-      const { root } = renderWithProvider(<HomeTabs route={{ params: {} }} />, {
-        state,
-      });
-      return { container, root };
-    };
-
-    const tabNames = (root: ReactTestInstance): string[] =>
-      root
+    ): string[] =>
+      renderHomeTabs(container, state)
         .findAll(
           (node: ReactTestInstance) => node.type?.toString?.() === 'TabScreen',
         )
@@ -1463,28 +1382,30 @@ describe('MainNavigator', () => {
     it.each(['searchFocused', 'tradeFocused'])(
       'pushes Rewards onto the root stack in %s, where it is no longer a tab',
       (arm) => {
-        const { container, root } = renderHomeTabs(stateForArm(arm));
+        const state = stateForArm(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
 
         expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
 
-        const tabs = tabNames(root);
-        expect(tabs).toContain(Routes.SOCIAL_LEADERBOARD.TAB);
+        const tabs = homeTabNames(container, state);
+        expect(tabs).toContain(Routes.SOCIAL.TAB);
         expect(tabs).not.toContain(Routes.REWARDS_VIEW);
         expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
       },
     );
 
     it('keeps the root-stack fallback in control, where the nearer tab wins', () => {
-      const { container, root } = renderHomeTabs(stateForArm('control'));
+      const state = stateForArm('control');
+      const container = renderWithProvider(<MainNavigator />, { state });
 
       // Registered in both arms so the route always resolves. Control also has
       // the tab, and the tab navigator is nearer the caller, so it takes it.
       expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
 
-      const tabs = tabNames(root);
+      const tabs = homeTabNames(container, state);
       expect(tabs).toContain(Routes.REWARDS_VIEW);
       expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
-      expect(tabs).not.toContain(Routes.SOCIAL_LEADERBOARD.TAB);
+      expect(tabs).not.toContain(Routes.SOCIAL.TAB);
     });
 
     it.each([
@@ -1493,13 +1414,15 @@ describe('MainNavigator', () => {
     ])(
       'hands the %s arm trailing action to the floating bar',
       (arm, trailingAction) => {
-        const { root } = renderHomeTabs(stateForArm(arm));
+        const state = stateForArm(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
 
-        expect(renderedTabBar(root).props.trailingAction).toBe(trailingAction);
+        expect(
+          renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+        ).toBe(trailingAction);
       },
     );
   });
-
   describe('Inner navigator component rendering', () => {
     const getScreenComponent = (
       root: ReactTestInstance,
