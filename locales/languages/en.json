@@ -1,10 +1,4 @@
 {
-  "predict_next": {
-    "balance_unavailable": {
-      "title": "Balance unavailable",
-      "description": "Unable to load your available balance."
-    }
-  },
   "sample_feature": {
     "title": "Sample feature",
     "description": "This is a screen demonstrating how to build a sample feature end-to-end in MetaMask.",
@@ -2983,6 +2977,12 @@
       "additional_feedback_placeholder": "How can we improve?",
       "characters_remaining": "{{count}} characters remaining",
       "submit": "Submit"
+    }
+  },
+  "predict_next": {
+    "balance_unavailable": {
+      "title": "Balance unavailable",
+      "description": "Unable to load your available balance."
     }
   },
   "predict": {

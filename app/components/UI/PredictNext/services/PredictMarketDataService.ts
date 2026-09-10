@@ -185,14 +185,24 @@ export class PredictMarketDataService extends BaseDataService<
   ): Promise<GetBalanceResult> {
     this.#assertVenue(venueId);
     const descriptor = portfolioQueries.getBalance(venueId);
-    return this.fetchQuery({
-      queryKey: descriptor.queryKey,
-      staleTime: descriptor.staleTime,
-      queryFn: ({ signal }) =>
-        this.#portfolio.fetchBalance({
-          signal: options?.signal ?? signal,
-        }) as Promise<Json & GetBalanceResult>,
-    });
+    // Account-scoped: trace timing and outcome only, never the amount.
+    return withPredictNextTrace(
+      {
+        method: 'getBalance',
+        name: TraceName.PredictNextGetBalance,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId },
+      },
+      () =>
+        this.fetchQuery({
+          queryKey: descriptor.queryKey,
+          staleTime: descriptor.staleTime,
+          queryFn: ({ signal }) =>
+            this.#portfolio.fetchBalance({
+              signal: options?.signal ?? signal,
+            }) as Promise<Json & GetBalanceResult>,
+        }),
+    );
   }
 
   async getVenueStatus(

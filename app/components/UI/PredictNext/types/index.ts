@@ -6,7 +6,10 @@ export type PredictFeedId = string & { readonly __brand: 'PredictFeedId' };
 export type PredictTimestamp = string & {
   readonly __brand: 'PredictTimestamp';
 };
+/** Decimal string in [0, 1], used for prices and probabilities. */
 export type PredictDecimal = string & { readonly __brand: 'PredictDecimal' };
+/** Non-negative decimal string with no upper bound, used for money amounts. */
+export type PredictAmount = string & { readonly __brand: 'PredictAmount' };
 export type PredictHttpsUrl = string & { readonly __brand: 'PredictHttpsUrl' };
 export type PredictHexColor = string & { readonly __brand: 'PredictHexColor' };
 
@@ -180,7 +183,7 @@ export interface PredictVenueStatus {
 export interface PredictBalance {
   venueId: PredictVenueId;
   currency: 'USD';
-  available: PredictDecimal;
+  available: PredictAmount;
 }
 
 export interface PredictReadOptions {

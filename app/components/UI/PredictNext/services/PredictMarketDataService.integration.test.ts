@@ -101,6 +101,38 @@ describe('PredictNext public market data', () => {
         }),
       }),
     );
+    harness.destroy();
+  });
+
+  it('maps a rejected Balance request to UNAUTHENTICATED without retrying', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({ status: 401 }));
+
+    await expect(
+      harness.messenger.call(
+        'PredictMarketDataService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+
+    expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    harness.destroy();
+  });
+
+  it('treats a failing bearer token provider as UNAUTHENTICATED before HTTP', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: { venueId: 'kalshi', currency: 'USD', available: '1' },
+    }));
+    harness.getBearerTokenMock.mockRejectedValue(new Error('not signed in'));
+
+    await expect(
+      harness.messenger.call(
+        'PredictMarketDataService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+
+    expect(harness.fetchMock).not.toHaveBeenCalled();
+    harness.destroy();
   });
 
   it('reads venue status through the real controller-to-transport chain', async () => {

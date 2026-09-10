@@ -20,7 +20,7 @@ export const getPredictNextControllerMessenger = (
   new Messenger({
     namespace: 'PredictMarketDataService',
     parent: rootMessenger,
-  }) as PredictNextControllerMessenger;
+  });
 
 export type PredictNextControllerInitMessenger = Messenger<
   'PredictNextControllerInit',

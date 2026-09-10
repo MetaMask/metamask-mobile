@@ -66,7 +66,7 @@ export class PredictNextController {
 
     const adapter = new KalshiRemoteAdapter(client);
     this.#marketDataService = new PredictMarketDataService({
-      messenger: this.#options.messenger as PredictMarketDataServiceMessenger,
+      messenger: this.#options.messenger,
       marketData: adapter.marketData,
       portfolio: adapter.portfolio,
       venueId: adapter.venueId,

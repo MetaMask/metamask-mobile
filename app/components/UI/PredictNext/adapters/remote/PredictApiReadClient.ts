@@ -133,7 +133,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     segments: readonly string[],
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    const token = await this.#getBearerToken?.();
+    // A missing or failing token provider is an authentication failure, not a
+    // malformed response. Never let the provider's error text escape.
+    const token = await this.#getBearerToken?.().catch(() => undefined);
     if (!token?.trim()) {
       throw new PredictHttpError(401);
     }

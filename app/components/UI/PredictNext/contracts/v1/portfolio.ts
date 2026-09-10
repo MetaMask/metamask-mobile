@@ -1,10 +1,7 @@
-import { literal, mask, object, refine, string } from '@metamask/superstruct';
+import { literal, mask, object } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type { PredictBalance } from '../../types';
-
-const amount = refine(string(), 'PredictAmount', (value) =>
-  /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value),
-);
+import { amount } from './primitives';
 
 const balanceSchema = object({
   venueId: literal('kalshi'),
