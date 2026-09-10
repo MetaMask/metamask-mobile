@@ -1,85 +1,46 @@
 /**
- * Maps the perps domain's already-merged transaction history into the shared
- * `ActivityListItem` shape for the unified Activity list.
+ * Maps perps history from the Activity infinite query into `ActivityListItem`s.
  *
- * Source of truth is `usePerpsTransactionHistory`, which already merges
- * HyperLiquid fills/funding/user-history with the wallet's local
- * `perpsDeposit`/`perpsWithdraw` txs and dedupes deposits/withdrawals by
- * txHash. This hook does not re-fetch or re-merge — it only normalizes each
- * `PerpsTransaction` through `mapPerpsTransaction`.
- *
- * Open orders and unrecognized trades map to `null` and are dropped, so the
- * unified feed only surfaces executed history.
- *
- * Requires the consuming screen to be wrapped in `PerpsConnectionProvider` +
- * `PerpsStreamProvider`, since `usePerpsTransactionHistory` subscribes to the
- * live-fills stream and the perps connection.
+ * Open orders and unrecognized trades map to `null` and are dropped.
  */
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { formatAccountToCaipAccountId } from '@metamask/perps-controller';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { InitializationState } from '@metamask/perps-controller';
+import { selectSelectedAccountCaipId } from '../../../../selectors/activity';
+import type { RootState } from '../../../../reducers';
+import {
+  selectPerpsInitializationState,
+  selectPerpsNetwork,
+} from '../../../UI/Perps/selectors/perpsController';
 import {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
-import {
-  usePerpsConnection,
-  usePerpsNetwork,
-  usePerpsTransactionHistory,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-} from '../../../UI/Perps/hooks';
+// eslint-disable-next-line import-x/no-restricted-paths
+import { usePerpsActivityQuery } from '../../ActivityDetails/hooks/usePerpsActivityQuery';
 
-export interface UsePerpsActivityItemsResult {
-  items: ActivityListItem[];
-  isLoading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-  /**
-   * Loads older funding history. Trades and deposits/withdrawals are fetched in
-   * full up front; only HyperLiquid funding is windowed, so this is the only
-   * paginated part of perps history.
-   */
-  loadMore: () => Promise<void>;
-  /** Whether more funding history is available to load. */
-  hasMore: boolean;
-  /** Whether a load-more request is currently in flight. */
-  isFetchingMore: boolean;
-}
-
-export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
-  const { isConnected } = usePerpsConnection();
+export function usePerpsActivityItems({
+  enabled = true,
+}: { enabled?: boolean } = {}) {
   const { chainId, collateralAssetId } = getPerpsActivityMappingIds(
-    usePerpsNetwork() === 'testnet',
+    useSelector(selectPerpsNetwork) === 'testnet',
   );
-
-  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
-  const selectedAddress = evmAccount?.address;
-
-  // HyperLiquid is keyed by the EOA address and settles on Arbitrum mainnet or
-  // Sepolia, so build the CAIP account id with that chain rather than the
-  // user's currently-selected chain.
-  const accountId = useMemo(() => {
-    if (!selectedAddress) {
-      return undefined;
-    }
-    return formatAccountToCaipAccountId(selectedAddress, chainId) ?? undefined;
-  }, [chainId, selectedAddress]);
-
+  const accountId = useSelector((state: RootState) =>
+    selectSelectedAccountCaipId(state, chainId),
+  );
+  const isInitialized =
+    useSelector(selectPerpsInitializationState) ===
+    InitializationState.Initialized;
   const {
-    transactions,
-    isLoading,
     error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
     refetch,
-    loadMoreFunding,
-    hasFundingMore,
-    isFetchingMoreFunding,
-  } = usePerpsTransactionHistory({
-    accountId,
-    skipInitialFetch: !isConnected,
-  });
+    transactions,
+  } = usePerpsActivityQuery(accountId, enabled && isInitialized);
 
   const items = useMemo(() => {
     const result: ActivityListItem[] = [];
@@ -97,17 +58,19 @@ export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
   }, [chainId, collateralAssetId, transactions]);
 
   const loadMore = useCallback(async () => {
-    if (!hasFundingMore || isFetchingMoreFunding) return;
-    await loadMoreFunding();
-  }, [loadMoreFunding, hasFundingMore, isFetchingMoreFunding]);
+    if (!hasNextPage || isFetchingNextPage) {
+      return;
+    }
+    await fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return {
     items,
-    isLoading,
-    error,
+    isLoading: (enabled && !isInitialized) || isLoading,
+    error: error ? error.message : null,
     refetch,
     loadMore,
-    hasMore: hasFundingMore,
-    isFetchingMore: isFetchingMoreFunding,
+    hasMore: Boolean(hasNextPage),
+    isFetchingMore: isFetchingNextPage,
   };
 }

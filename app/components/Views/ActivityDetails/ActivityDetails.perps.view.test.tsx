@@ -24,7 +24,7 @@ import { renderActivityDetailsView } from '../../../../tests/component-view/rend
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
-import { usePerpsTransactionHistory } from '../../UI/Perps/hooks/usePerpsTransactionHistory';
+import { usePerpsActivityQuery } from './hooks/usePerpsActivityQuery';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import {
   formatPerpsOrderFee,
@@ -40,15 +40,15 @@ import {
   getActivityDetailsStepTestId,
 } from './ActivityDetails.testIds';
 
-// eslint-disable-next-line no-restricted-syntax -- Perps history is hook state, not Engine.
-jest.mock('../../UI/Perps/hooks/usePerpsTransactionHistory', () => ({
-  usePerpsTransactionHistory: jest.fn(() => ({
-    transactions: [],
-    isLoading: false,
+// eslint-disable-next-line no-restricted-syntax
+jest.mock('./hooks/usePerpsActivityQuery', () => ({
+  usePerpsActivityQuery: jest.fn(() => ({
+    data: undefined,
+    isFetching: false,
   })),
 }));
 
-const usePerpsTransactionHistoryMock = jest.mocked(usePerpsTransactionHistory);
+const usePerpsActivityQueryMock = jest.mocked(usePerpsActivityQuery);
 
 const findAmountTextColor = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,10 +95,10 @@ function getPerpsTransaction(item: ActivityListItem) {
 
 function seedPerpsHistory(item: ActivityListItem) {
   const transaction = getPerpsTransaction(item);
-  usePerpsTransactionHistoryMock.mockReturnValue({
+  usePerpsActivityQueryMock.mockReturnValue({
     transactions: transaction ? [transaction] : [],
-    isLoading: false,
-  } as ReturnType<typeof usePerpsTransactionHistory>);
+    isFetching: false,
+  } as ReturnType<typeof usePerpsActivityQuery>);
 }
 
 function payStatusForItem(item: ActivityListItem) {

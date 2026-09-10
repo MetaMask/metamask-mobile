@@ -1,19 +1,18 @@
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   ARBITRUM_MAINNET_CAIP_CHAIN_ID as arbitrumMainnetCaipChainId,
   ARBITRUM_TESTNET_CAIP_CHAIN_ID as arbitrumTestnetCaipChainId,
-  formatAccountToCaipAccountId,
 } from '@metamask/perps-controller';
 import { type CaipChainId } from '@metamask/utils';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedAccountCaipId } from '../../../../../selectors/activity';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,
 } from '../../../../../util/activity-adapters';
-import { usePerpsTransactionHistory } from '../../../../UI/Perps/hooks';
-import { PerpsConnectionContext } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
+import { usePerpsActivityQuery } from '../../hooks/usePerpsActivityQuery';
+import type { RootState } from '../../../../../reducers';
 import { type PerpsTransaction } from '../../components/ActivityDetailsPerps.utils';
 import { equalsIgnoreCase } from '../../../../../util/string';
 
@@ -45,16 +44,13 @@ export function usePerpsDetailsItem(
   const { collateralAssetId } = getPerpsActivityMappingIds(
     chainId === arbitrumTestnetCaipChainId,
   );
-  const isConnected = useContext(PerpsConnectionContext)?.isConnected ?? false;
-  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
-  const accountId = evmAccount?.address
-    ? (formatAccountToCaipAccountId(evmAccount.address, chainId) ?? undefined)
-    : undefined;
-  const { transactions, isLoading } = usePerpsTransactionHistory({
-    accountId: shouldResolve ? accountId : undefined,
-    skipInitialFetch: !shouldResolve || !isConnected,
-  });
-
+  const accountId = useSelector((state: RootState) =>
+    selectSelectedAccountCaipId(state, chainId),
+  );
+  const { isFetching, transactions } = usePerpsActivityQuery(
+    shouldResolve ? accountId : undefined,
+    false,
+  );
   const transaction = useMemo(
     () =>
       getPerpsTransaction(transactions, shouldResolve ? identifier : undefined),
@@ -77,6 +73,6 @@ export function usePerpsDetailsItem(
   return {
     item,
     transaction,
-    isLoading: shouldResolve && !item && (isLoading || !isConnected),
+    isLoading: shouldResolve && !item && isFetching,
   };
 }

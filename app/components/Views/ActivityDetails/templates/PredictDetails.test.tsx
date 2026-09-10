@@ -38,6 +38,10 @@ jest.mock(
   },
 );
 
+/**
+ * @param overrides - Fields to replace on the base row.
+ * @returns A Predict row, on the injected Polygon chain id.
+ */
 function predictItem(
   overrides: Partial<ActivityListItem> = {},
   activity?: PredictActivity,

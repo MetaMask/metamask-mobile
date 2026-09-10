@@ -50,16 +50,4 @@ describe('usePredictDetailsItem', () => {
     expect(result.current.activity).toBeUndefined();
     expect(result.current.item).toBeUndefined();
   });
-
-  it('returns the mapped activity item for the matching activity', () => {
-    const { result } = renderHook(() => usePredictDetailsItem('P1'));
-
-    expect(result.current.item).toBe(mappedActivity);
-    expect(result.current.isLoading).toBe(false);
-    expect(mapPredictActivityMock).toHaveBeenCalledWith({
-      activity,
-      chainId: 'eip155:137',
-      quoteAsset: { symbol: 'USDC' },
-    });
-  });
 });

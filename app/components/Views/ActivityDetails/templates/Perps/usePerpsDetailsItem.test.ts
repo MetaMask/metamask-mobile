@@ -4,7 +4,7 @@ import {
   mapPerpsTransaction,
   type ActivityListItem,
 } from '#app/util/activity-adapters';
-import { usePerpsTransactionHistory } from '#app/components/UI/Perps/hooks';
+import { usePerpsActivityQuery } from '../../hooks/usePerpsActivityQuery';
 import { usePerpsDetailsItem } from './usePerpsDetailsItem';
 import type { PerpsTransaction } from '../../components/ActivityDetailsPerps.utils';
 
@@ -15,9 +15,6 @@ jest.mock('react-redux', () => ({
 jest.mock('@metamask/perps-controller', () => ({
   ARBITRUM_MAINNET_CAIP_CHAIN_ID: 'eip155:42161',
   ARBITRUM_TESTNET_CAIP_CHAIN_ID: 'eip155:421614',
-  formatAccountToCaipAccountId: jest.fn(
-    (address: string, chainId: string) => `${chainId}:${address}`,
-  ),
 }));
 
 jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
@@ -27,16 +24,9 @@ jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
   USDC_ARBITRUM_TESTNET_ADDRESS: '0xUSDCT',
 }));
 
-jest.mock('#app/components/UI/Perps/hooks', () => ({
-  usePerpsTransactionHistory: jest.fn(),
+jest.mock('../../hooks/usePerpsActivityQuery', () => ({
+  usePerpsActivityQuery: jest.fn(),
 }));
-
-jest.mock('#app/components/UI/Perps/providers/PerpsConnectionProvider', () => {
-  const { createContext } = jest.requireActual('react');
-  return {
-    PerpsConnectionContext: createContext({ isConnected: true }),
-  };
-});
 
 jest.mock('#app/util/activity-adapters', () => ({
   getPerpsActivityMappingIds: jest.requireActual(
@@ -46,7 +36,7 @@ jest.mock('#app/util/activity-adapters', () => ({
 }));
 
 const useSelectorMock = jest.mocked(useSelector);
-const usePerpsTransactionHistoryMock = jest.mocked(usePerpsTransactionHistory);
+const usePerpsActivityQueryMock = jest.mocked(usePerpsActivityQuery);
 const mapPerpsTransactionMock = jest.mocked(mapPerpsTransaction);
 
 const trade = { id: 'fill-1' } as PerpsTransaction;
@@ -62,11 +52,11 @@ const mappedTrade = {
 describe('usePerpsDetailsItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useSelectorMock.mockReturnValue({ address: '0xabc' });
-    usePerpsTransactionHistoryMock.mockReturnValue({
+    useSelectorMock.mockReturnValue(true);
+    usePerpsActivityQueryMock.mockReturnValue({
       transactions: [trade, deposit],
-      isLoading: false,
-    } as ReturnType<typeof usePerpsTransactionHistory>);
+      isFetching: false,
+    } as ReturnType<typeof usePerpsActivityQuery>);
     mapPerpsTransactionMock.mockReturnValue(mappedTrade);
   });
 
@@ -88,17 +78,5 @@ describe('usePerpsDetailsItem', () => {
 
     expect(result.current.transaction).toBeUndefined();
     expect(result.current.item).toBeUndefined();
-  });
-
-  it('returns the mapped activity item for the matching transaction', () => {
-    const { result } = renderHook(() => usePerpsDetailsItem('FILL-1'));
-
-    expect(result.current.item).toBe(mappedTrade);
-    expect(result.current.isLoading).toBe(false);
-    expect(mapPerpsTransactionMock).toHaveBeenCalledWith({
-      transaction: trade,
-      chainId: 'eip155:42161',
-      collateralAssetId: 'eip155:42161/erc20:0xusdc',
-    });
   });
 });

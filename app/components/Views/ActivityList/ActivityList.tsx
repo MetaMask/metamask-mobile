@@ -108,11 +108,7 @@ import {
 } from './utils/resolveRampOrderTarget';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
-import {
-  INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
-  PerpsActivitySource,
-  type PerpsActivitySourceState,
-} from './hooks/PerpsActivitySource';
+import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
 import {
   INITIAL_PREDICT_ACTIVITY_SOURCE_STATE,
   PredictActivitySource,
@@ -239,10 +235,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const { goToBuy } = useRampNavigation();
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-    const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
-      INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
-    );
-    const [hasPerpsSourceReported, setHasPerpsSourceReported] = useState(false);
+    const perps = usePerpsActivityItems({
+      enabled:
+        isPerpsEnabled &&
+        (typeFilter === ActivityTypeFilter.Perps ||
+          typeFilter === ActivityTypeFilter.All),
+    });
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const [predictSource, setPredictSource] =
       useState<PredictActivitySourceState>(
@@ -250,14 +248,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       );
     const [hasPredictSourceReported, setHasPredictSourceReported] =
       useState(false);
-
-    const handlePerpsSourceChange = useCallback(
-      (state: PerpsActivitySourceState) => {
-        setHasPerpsSourceReported(true);
-        setPerpsSource(state);
-      },
-      [],
-    );
 
     const handlePredictSourceChange = useCallback(
       (state: PredictActivitySourceState) => {
@@ -531,7 +521,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         localItems,
         confirmedEvmItems,
         nonEvmItems,
-        isPerpsEnabled ? perpsSource.items : [],
+        isPerpsEnabled ? perps.items : [],
         isPredictEnabled ? predictSource.items : [],
         rampActivityItems,
       );
@@ -561,7 +551,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       subFilterKinds,
       networkFilter,
       isPerpsEnabled,
-      perpsSource.items,
+      perps.items,
       isPredictEnabled,
       predictSource.items,
       rampActivityItems,
@@ -715,22 +705,14 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter === ActivityTypeFilter.All ||
       typeFilter === ActivityTypeFilter.Predictions;
 
-    const perpsFilterActive =
-      typeFilter === ActivityTypeFilter.Perps ||
-      typeFilter === ActivityTypeFilter.All;
     const predictFilterActive =
       typeFilter === ActivityTypeFilter.Predictions ||
       typeFilter === ActivityTypeFilter.All;
 
-    const perpsActivatedRef = useRef(false);
     const predictActivatedRef = useRef(false);
-    if (isPerpsEnabled && perpsFilterActive) {
-      perpsActivatedRef.current = true;
-    }
     if (isPredictEnabled && predictFilterActive) {
       predictActivatedRef.current = true;
     }
-    const shouldMountPerpsSource = isPerpsEnabled && perpsActivatedRef.current;
     const shouldMountPredictSource =
       isPredictEnabled && predictActivatedRef.current;
 
@@ -738,7 +720,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       isFetchingNextPage ||
       (isPerpsEnabled &&
         perpsRelevantForFilter &&
-        Boolean(perpsSource.isFetchingMore)) ||
+        Boolean(perps.isFetchingMore)) ||
       (isPredictEnabled &&
         predictRelevantForFilter &&
         Boolean(predictSource.isFetchingMore));
@@ -813,7 +795,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       cancelUnsignedQRTransaction,
     } = useUnifiedTxActions();
 
-    const perpsRefetch = perpsSource.refetch;
+    const perpsRefetch = perps.refetch;
     const predictRefetch = predictSource.refetch;
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
@@ -925,10 +907,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (
           isPerpsEnabled &&
           perpsRelevantForFilter &&
-          perpsSource.hasMore &&
-          !perpsSource.isFetchingMore
+          perps.hasMore &&
+          !perps.isFetchingMore
         ) {
-          perpsSource.loadMore?.();
+          perps.loadMore();
         }
         if (
           isPredictEnabled &&
@@ -948,7 +930,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         groupedData.length,
         isPerpsEnabled,
         perpsRelevantForFilter,
-        perpsSource,
+        perps,
         isPredictEnabled,
         predictRelevantForFilter,
         predictSource,
@@ -964,9 +946,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       [tabBarHeight, bottomInset],
     );
 
-    const isPerpsLoading =
-      shouldMountPerpsSource &&
-      (!hasPerpsSourceReported || perpsSource.isLoading);
+    const isPerpsLoading = perps.isLoading;
     const isPredictLoading =
       shouldMountPredictSource &&
       (!hasPredictSourceReported || predictSource.isLoading);
@@ -1039,7 +1019,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter === ActivityTypeFilter.Perps &&
       Boolean(subFilterKinds) &&
       isPerpsEnabled &&
-      perpsSource.items.length > 0;
+      perps.items.length > 0;
 
     const renderEmptyList = () => (
       <View style={styles.emptyList}>
@@ -1066,15 +1046,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const haveRelevantSourcesReported = (() => {
       switch (typeFilter) {
         case ActivityTypeFilter.Perps:
-          return !isPerpsEnabled || hasPerpsSourceReported;
+          return true;
         case ActivityTypeFilter.Predictions:
           return !isPredictEnabled || hasPredictSourceReported;
         case undefined:
         case ActivityTypeFilter.All:
-          return (
-            (!isPerpsEnabled || hasPerpsSourceReported) &&
-            (!isPredictEnabled || hasPredictSourceReported)
-          );
+          return !isPredictEnabled || hasPredictSourceReported;
         default:
           return true;
       }
@@ -1170,9 +1147,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               />
             )}
           </PriceChartContext.Consumer>
-          {shouldMountPerpsSource ? (
-            <PerpsActivitySource onChange={handlePerpsSourceChange} />
-          ) : null}
           {shouldMountPredictSource ? (
             <PredictActivitySource onChange={handlePredictSourceChange} />
           ) : null}

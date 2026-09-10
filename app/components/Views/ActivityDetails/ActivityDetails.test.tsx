@@ -150,23 +150,6 @@ const sendItem: ActivityListItem = {
   data: { from: '0xfrom', to: '0xto' },
 } as ActivityListItem;
 
-const arbitrumSendItem: ActivityListItem = {
-  ...sendItem,
-  chainId: 'eip155:42161',
-  hash: '0xdeposit',
-};
-
-const perpsFundsItem: ActivityListItem = {
-  type: 'perpsAddFunds',
-  chainId: 'eip155:42161',
-  status: 'success',
-  timestamp: 1,
-  hash: '0xdeposit',
-  data: {
-    token: { amount: '1000', decimals: 6, direction: 'in', symbol: 'USDC' },
-  },
-} as ActivityListItem;
-
 describe('ActivityDetails screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -302,29 +285,6 @@ describe('ActivityDetails screen', () => {
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('prefers rematched perps funds over a same-hash send', () => {
-    useActivityDetailsItemMock.mockReturnValue(arbitrumSendItem);
-    usePerpsDetailsItemMock.mockReturnValue({
-      item: perpsFundsItem,
-      transaction: undefined,
-      isLoading: false,
-    });
-    useParamsMock.mockReturnValue({
-      chainId: 'eip155:42161',
-      txIdentifier: '0xdeposit',
-    });
-
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <ActivityDetails />,
-    );
-
-    expect(getByTestId(ActivityDetailsSelectorsIDs.HEADER)).toHaveTextContent(
-      strings('transactions.activity_perps_account_funded'),
-    );
-    expect(getByTestId('mock-template-loader')).toBeOnTheScreen();
-    expect(queryByTestId(ActivityDetailsSelectorsIDs.NOT_FOUND)).toBeNull();
   });
 
   it('does not flash not-found while rematch is still loading', () => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, ReactNode } from 'react';
+import React, { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';

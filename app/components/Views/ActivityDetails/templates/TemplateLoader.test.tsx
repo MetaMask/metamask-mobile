@@ -67,6 +67,14 @@ jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsTransactionHistory: () => ({ transactions: [] }),
 }));
 
+jest.mock('./Perps/usePerpsDetailsItem', () => ({
+  usePerpsDetailsItem: jest.fn(() => ({
+    item: undefined,
+    transaction: undefined,
+    isLoading: false,
+  })),
+}));
+
 const RAMP_DETAILS_STUB_TEST_ID = 'ramp-details-stub';
 jest.mock('./RampDetails', () => {
   const actual = jest.requireActual('./RampDetails');

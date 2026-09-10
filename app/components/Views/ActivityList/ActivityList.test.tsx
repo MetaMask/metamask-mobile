@@ -16,6 +16,7 @@ import { ActivityListSelectorsIDs } from './ActivityList.testIds';
 import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
+import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import Engine from '../../../core/Engine';
@@ -541,37 +542,12 @@ let mockPerpsSourceState: {
   hasMore?: boolean;
   isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
-let mockDeferPerpsSourceReport = false;
-let mockPerpsSourceOnChange:
-  | ((state: typeof mockPerpsSourceState) => void)
-  | undefined;
 
-jest.mock('./hooks/PerpsActivitySource', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    INITIAL_PERPS_ACTIVITY_SOURCE_STATE: {
-      items: [],
-      isLoading: false,
-      error: null,
-    },
-    PerpsActivitySource: ({
-      onChange,
-    }: {
-      onChange: (state: unknown) => void;
-    }) => {
-      mockPerpsSourceOnChange = onChange;
-      ReactActual.useEffect(() => {
-        if (!mockDeferPerpsSourceReport) {
-          onChange(mockPerpsSourceState);
-        }
-      }, [onChange]);
-      return ReactActual.createElement(View, {
-        testID: 'perps-source-mounted',
-      });
-    },
-  };
-});
+jest.mock('./hooks/usePerpsActivityItems', () => ({
+  usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
+}));
+
+const usePerpsActivityItemsMock = jest.mocked(usePerpsActivityItems);
 
 const mockUseActivityScreenViewed = jest.fn();
 jest.mock('../ActivityScreen/hooks/useActivityScreenViewed', () => ({
@@ -712,9 +688,7 @@ describe('ActivityList', () => {
     selectorValues.predictEnabled = false;
     mockPerpsSourceState = { items: [], isLoading: false, error: null };
     mockPredictSourceState = { items: [], isLoading: false, error: null };
-    mockDeferPerpsSourceReport = false;
     mockDeferPredictSourceReport = false;
-    mockPerpsSourceOnChange = undefined;
     mockPredictSourceOnChange = undefined;
     selectorValues.selectedGroupAccounts = [
       { address: '0xevm', type: 'eip155:eoa' },
@@ -752,7 +726,7 @@ describe('ActivityList', () => {
   describe('Activity Screen Viewed settling', () => {
     it('does not report the Perps list as settled before its source has loaded', () => {
       selectorValues.perpsEnabled = true;
-      mockPerpsSourceState = { items: [], isLoading: false, error: null };
+      mockPerpsSourceState = { items: [], isLoading: true, error: null };
 
       render(
         <ActivityList
@@ -1576,16 +1550,8 @@ describe('ActivityList', () => {
   it('keeps All loading until every enabled domain source reports', () => {
     selectorValues.perpsEnabled = true;
     selectorValues.predictEnabled = true;
-    mockDeferPerpsSourceReport = true;
     mockDeferPredictSourceReport = true;
     render(<ActivityList typeFilter={ActivityTypeFilter.All} />);
-
-    expect(
-      screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
-    expect(screen.queryByTestId('row-0xconfirmed')).not.toBeOnTheScreen();
-
-    act(() => mockPerpsSourceOnChange?.(mockPerpsSourceState));
 
     expect(
       screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
@@ -1603,12 +1569,10 @@ describe('ActivityList', () => {
   it('does not auto-scroll when All settles after initial domain reports', async () => {
     selectorValues.perpsEnabled = true;
     selectorValues.predictEnabled = true;
-    mockDeferPerpsSourceReport = true;
     mockDeferPredictSourceReport = true;
     render(<ActivityList typeFilter={ActivityTypeFilter.All} />);
 
     act(() => {
-      mockPerpsSourceOnChange?.(mockPerpsSourceState);
       mockPredictSourceOnChange?.(mockPredictSourceState);
     });
     await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
@@ -1786,24 +1750,26 @@ describe('ActivityList', () => {
     expect(screen.queryByTestId('predict-source-mounted')).toBeNull();
   });
 
-  it('does NOT mount the perps source on the Transactions tab', () => {
+  it('does not enable the perps query on the Transactions tab', () => {
     selectorValues.perpsEnabled = true;
 
     render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
 
-    expect(screen.queryByTestId('perps-source-mounted')).toBeNull();
+    expect(usePerpsActivityItemsMock).toHaveBeenCalledWith({ enabled: false });
   });
 
-  it('keeps the perps source mounted after switching away from Perps (no refetch churn)', () => {
+  it('disables the perps query on the Transactions tab after leaving Perps', () => {
     selectorValues.perpsEnabled = true;
 
     const { rerender } = render(
       <ActivityList typeFilter={ActivityTypeFilter.Perps} />,
     );
-    expect(screen.getByTestId('perps-source-mounted')).toBeOnTheScreen();
+    expect(usePerpsActivityItemsMock).toHaveBeenCalledWith({ enabled: true });
 
     rerender(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
-    expect(screen.getByTestId('perps-source-mounted')).toBeOnTheScreen();
+    expect(usePerpsActivityItemsMock).toHaveBeenLastCalledWith({
+      enabled: false,
+    });
   });
 
   it('does not render predict items when the predict flag is disabled', () => {
