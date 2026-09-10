@@ -109,7 +109,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(getSubnavPillTestId('following')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getSubnavPillTestId('memecoins')),
+      screen.getByTestId(getSubnavPillTestId('topGainers')),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(getSubnavPillTestId('topTraders')),
@@ -134,6 +134,14 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('renders a filter icon button on the tabs row', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('omits the header back button', () => {

@@ -1,14 +1,10 @@
 export type SocialShellTab = 'feed' | 'liveTrades' | 'leaderboard';
 
-export type FeedSubnavId = 'trending' | 'following';
+export type FeedSubnavId = 'following' | 'trending' | 'hotRightNow' | 'pumping';
 
-export type LiveTradesSubnavId = 'memecoins' | 'perps' | 'stocks' | 'whales';
+export type LiveTradesSubnavId = 'topGainers' | 'topLosers' | 'newMarkets';
 
-export type LeaderboardSubnavId =
-  | 'topTraders'
-  | 'topPerps'
-  | 'kols'
-  | 'topTokens';
+export type LeaderboardSubnavId = 'topTraders' | 'kols';
 
 export type SocialShellSubnavId =
   | FeedSubnavId

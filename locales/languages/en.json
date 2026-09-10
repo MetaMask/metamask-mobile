@@ -1222,14 +1222,58 @@
     "shell": {
       "subnav": {
         "trending": "Trending",
-        "memecoins": "Memecoins",
-        "perps": "Perps",
-        "stocks": "Stocks",
-        "whales": "Only",
+        "hot_right_now": "Hot right now",
+        "pumping": "Pumping",
+        "top_gainers": "Top gainers",
+        "top_losers": "Top losers",
+        "new_markets": "New markets",
         "top_traders": "Top traders",
-        "top_perps": "Top perps",
-        "kols": "KOLs",
-        "top_tokens": "Top tokens"
+        "kols": "KOLs"
+      },
+      "filters": {
+        "title": "Filters",
+        "show_results": "Show results",
+        "section": {
+          "type": "Type",
+          "trader_cohort": "Trader cohort",
+          "timeframe": "Time frame",
+          "network": "Network",
+          "market_cap": "Market cap",
+          "volume_24h": "24h volume"
+        },
+        "type": {
+          "all": "All",
+          "tokens": "Tokens",
+          "perps": "Perps",
+          "predictions": "Predictions"
+        },
+        "trader_cohort": {
+          "all": "All",
+          "following": "Following",
+          "shrimp": "Shrimp",
+          "dolphin": "Dolphin",
+          "whale": "Whale",
+          "kol": "KOL"
+        },
+        "timeframe": {
+          "1h": "1H",
+          "24h": "24H",
+          "7d": "7D",
+          "30d": "30D"
+        },
+        "network": {
+          "all": "All",
+          "robinhood": "Robinhood",
+          "bnb": "BNB",
+          "solana": "Solana",
+          "base": "Base"
+        },
+        "range": {
+          "market_cap_min": "$0",
+          "market_cap_max": "$1000B",
+          "volume_24h_min": "$0",
+          "volume_24h_max": "$100M"
+        }
       }
     },
     "onboarding": {

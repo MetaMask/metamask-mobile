@@ -18,17 +18,21 @@ describe('LiveTradesView', () => {
       screen.getByTestId(LiveTradesViewSelectorsIDs.SCROLL_VIEW),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getSubnavPillTestId('memecoins')),
+      screen.getByTestId(getSubnavPillTestId('topGainers')),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId(getSubnavPillTestId('perps'))).toBeOnTheScreen();
-    expect(screen.getByTestId(getSubnavPillTestId('stocks'))).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getSubnavPillTestId('topLosers')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getSubnavPillTestId('newMarkets')),
+    ).toBeOnTheScreen();
   });
 
   it('selects a Live trades category pill', () => {
     const { UNSAFE_getByType } = renderWithProvider(<LiveTradesView />);
 
-    fireEvent.press(screen.getByTestId(getSubnavPillTestId('stocks')));
+    fireEvent.press(screen.getByTestId(getSubnavPillTestId('newMarkets')));
 
-    expect(UNSAFE_getByType(FilterButtonGroup).props.value).toBe('stocks');
+    expect(UNSAFE_getByType(FilterButtonGroup).props.value).toBe('newMarkets');
   });
 });
