@@ -274,88 +274,85 @@ export const runQuoteRequestCases = ({
       });
     });
 
-    if (name === 'useBridgeQuoteRequest') {
-      it('preserves a no-quote result when an unused hook instance unmounts', async () => {
-        const owner = renderUseBridgeQuoteRequest();
-        const unused = renderUseBridgeQuoteRequest();
+    it('preserves a no-quote result when an unused hook instance unmounts', async () => {
+      const owner = renderUseBridgeQuoteRequest();
+      const unused = renderUseBridgeQuoteRequest();
 
-        await act(async () => {
-          owner.result.current();
-          await owner.result.current.flush?.();
-        });
-        const startedTraceId = mockTrace.mock.calls[0][0].id;
-        unused.unmount();
-        swapQuoteFetchTrace.finish(
-          'no_quotes',
-          undefined,
-          QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
-        );
+      await act(async () => {
+        owner.result.current();
+        await owner.result.current.flush?.();
+      });
+      const startedTraceId = mockTrace.mock.calls[0][0].id;
+      unused.unmount();
+      swapQuoteFetchTrace.finish(
+        'no_quotes',
+        undefined,
+        QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+      );
 
-        expect(mockEndTrace).toHaveBeenCalledTimes(1);
-        expect(mockEndTrace).toHaveBeenCalledWith(
-          expect.objectContaining({
-            id: startedTraceId,
-            data: {
-              result: 'no_quotes',
-              no_quote_reason: QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
-            },
-          }),
-        );
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: startedTraceId,
+          data: {
+            result: 'no_quotes',
+            no_quote_reason: QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+          },
+        }),
+      );
+    });
+
+    it('cancels a dispatched quote trace when its owner unmounts', async () => {
+      const { result, unmount } = renderUseBridgeQuoteRequest();
+
+      await act(async () => {
+        result.current();
+        await result.current.flush?.();
       });
 
-      it('cancels a dispatched quote trace when its owner unmounts', async () => {
-        const { result, unmount } = renderUseBridgeQuoteRequest();
+      const startedTraceId = mockTrace.mock.calls[0][0].id;
+      mockEndTrace.mockClear();
+      unmount();
 
-        await act(async () => {
-          result.current();
-          await result.current.flush?.();
-        });
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: startedTraceId,
+          data: { result: 'cancelled' },
+        }),
+      );
+    });
 
-        const startedTraceId = mockTrace.mock.calls[0][0].id;
-        mockEndTrace.mockClear();
-        unmount();
-
-        expect(mockEndTrace).toHaveBeenCalledWith(
-          expect.objectContaining({
-            id: startedTraceId,
-            data: { result: 'cancelled' },
-          }),
-        );
+    it('preserves a dispatched trace across callback recreation and caller cleanup', async () => {
+      const { result, rerender } = renderUseBridgeQuoteRequest();
+      const previousRequest = result.current;
+      await act(async () => {
+        result.current();
+        await result.current.flush?.();
       });
+      const startedTraceId = mockTrace.mock.calls[0][0].id;
 
-      it('preserves a dispatched trace across callback recreation and caller cleanup', async () => {
-        const { result, rerender } = renderUseBridgeQuoteRequest();
-        const previousRequest = result.current;
-        await act(async () => {
-          result.current();
-          await result.current.flush?.();
-        });
-        const startedTraceId = mockTrace.mock.calls[0][0].id;
+      jest.spyOn(bridgeSlice, 'selectSlippage').mockReturnValue('2');
+      rerender?.(undefined);
+      // BridgeMarketView also cancels the previous callback in effect cleanup.
+      previousRequest.cancel?.();
+      swapQuoteFetchTrace.finish(
+        'no_quotes',
+        undefined,
+        QuoteStreamCompleteReason.SLIPPAGE_TOO_LOW,
+      );
 
-        jest.spyOn(bridgeSlice, 'selectSlippage').mockReturnValue('2');
-        rerender?.(undefined);
-        // BridgeMarketView also cancels the previous callback in effect cleanup.
-        previousRequest.cancel?.();
-        swapQuoteFetchTrace.finish(
-          'no_quotes',
-          undefined,
-          QuoteStreamCompleteReason.SLIPPAGE_TOO_LOW,
-        );
-
-        expect(result.current).not.toBe(previousRequest);
-        expect(mockEndTrace).toHaveBeenCalledTimes(1);
-        expect(mockEndTrace).toHaveBeenCalledWith(
-          expect.objectContaining({
-            id: startedTraceId,
-            data: {
-              result: 'no_quotes',
-              no_quote_reason: QuoteStreamCompleteReason.SLIPPAGE_TOO_LOW,
-            },
-          }),
-        );
-      });
-    }
-
+      expect(result.current).not.toBe(previousRequest);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: startedTraceId,
+          data: {
+            result: 'no_quotes',
+            no_quote_reason: QuoteStreamCompleteReason.SLIPPAGE_TOO_LOW,
+          },
+        }),
+      );
+    });
     it('marks manually requested quote refreshes in the quote trace', async () => {
       const { result } = renderUseBridgeQuoteRequest();
 
@@ -574,16 +571,7 @@ export const runQuoteRequestCases = ({
 
       expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
       expect(mockTrace).toHaveBeenCalledTimes(1);
-      if (name === 'useBridgeQuoteRequest') {
-        expect(mockEndTrace).not.toHaveBeenCalled();
-      } else {
-        expect(mockEndTrace).toHaveBeenCalledWith({
-          name: TraceName.SwapQuoteFetch,
-          id: leftoverTraceId,
-          timestamp: cancelledAt,
-          data: { result: 'cancelled' },
-        });
-      }
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
     it('skips update when destination token is missing', async () => {
@@ -809,16 +797,7 @@ export const runQuoteRequestCases = ({
         1,
       );
       expect(mockTrace).toHaveBeenCalledTimes(1);
-      if (name === 'useBridgeQuoteRequest') {
-        expect(mockEndTrace).not.toHaveBeenCalled();
-      } else {
-        expect(mockEndTrace).toHaveBeenCalledWith({
-          name: TraceName.SwapQuoteFetch,
-          id: leftoverTraceId,
-          timestamp: cancelledAt,
-          data: { result: 'cancelled' },
-        });
-      }
+      expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
     it('converts source amount to srcTokenAmount "0" when token decimals are missing', async () => {
