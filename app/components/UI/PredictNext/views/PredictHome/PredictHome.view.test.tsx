@@ -91,6 +91,47 @@ describe('PredictHome', () => {
     ).toHaveTextContent('$5.00');
   });
 
+  it('keeps cached Balance visible when a later refetch fails', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    messengerCall.mockImplementation(
+      (action: string, _venueId: string, id: string) => {
+        if (action === 'PredictMarketDataService:getBalance') {
+          return Promise.reject(new Error('Balance refetch failed'));
+        }
+        if (action === 'PredictMarketDataService:getFeed') {
+          return Promise.resolve({
+            venueId: 'kalshi',
+            id,
+            title: 'Games',
+            events: id === NFL_GAMES_FEED_ID ? nflEvents : ncaaEvents,
+          });
+        }
+        return Promise.resolve(undefined);
+      },
+    );
+
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+
+    await waitFor(() =>
+      expect(
+        messengerCall.mock.calls.filter(
+          ([action]) => action === 'PredictMarketDataService:getBalance',
+        ),
+      ).toHaveLength(2),
+    );
+    expect(
+      view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.BALANCE_ERROR),
+    ).not.toBeOnTheScreen();
+  });
+
   it('loads the first two backend-ordered Games for both previews', async () => {
     configurePredictNextFeeds({
       nfl: [...nflEvents, makePredictNextEvent('nfl-3', 'Hidden NFL Game')],

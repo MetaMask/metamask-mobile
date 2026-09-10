@@ -57,7 +57,7 @@ export const BalanceSummary = ({
             onPress={onRetry}
             testID={PredictHomeTestIds.BALANCE_RETRY}
           >
-            {strings('predict.balance_error.retry')}
+            {strings('predict_next.balance_unavailable.retry')}
           </Button>
         </Box>
       </Box>

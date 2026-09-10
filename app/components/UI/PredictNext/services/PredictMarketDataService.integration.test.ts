@@ -118,6 +118,50 @@ describe('PredictNext public market data', () => {
     harness.destroy();
   });
 
+  it('keeps Feeds working when Balance failures exhaust their own policy', async () => {
+    const harness = buildPredictNextIntegrationHarness((url) =>
+      String(url).endsWith('/balance')
+        ? { status: 503 }
+        : {
+            body: {
+              venueId: 'kalshi',
+              id: feedId,
+              title: 'NFL Games',
+              events: [event],
+            },
+          },
+    );
+
+    // One exhausted Balance read (three attempts) opens the dedicated
+    // portfolio circuit.
+    await expect(
+      harness.messenger.call(
+        'PredictMarketDataService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+
+    // Balance now fails fast on its own open circuit without new requests.
+    await expect(
+      harness.messenger.call(
+        'PredictMarketDataService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'UNKNOWN' });
+    expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+
+    // The shared market-data circuit never saw a Balance failure.
+    const feed = await harness.messenger.call(
+      'PredictMarketDataService:getFeed',
+      KALSHI_VENUE_ID,
+      feedId,
+      {},
+    );
+    expect(feed.events).toHaveLength(1);
+    harness.destroy();
+  });
+
   it('treats a failing bearer token provider as UNAUTHENTICATED before HTTP', async () => {
     const harness = buildPredictNextIntegrationHarness(() => ({
       body: { venueId: 'kalshi', currency: 'USD', available: '1' },

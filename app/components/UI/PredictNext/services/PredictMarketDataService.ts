@@ -1,8 +1,10 @@
 import {
   BaseDataService,
+  createServicePolicy,
   type DataServiceCacheUpdatedEvent,
   type DataServiceGranularCacheUpdatedEvent,
   type DataServiceInvalidateQueriesAction,
+  type ServicePolicy,
 } from '@metamask/base-data-service';
 import {
   handleWhen,
@@ -116,6 +118,27 @@ const RETRYABLE_CODES = new Set([
 export const isRetryablePredictError = (error: unknown): boolean =>
   error instanceof PredictError && RETRYABLE_CODES.has(error.code);
 
+/**
+ * Wraps a Balance failure that has already completed the dedicated portfolio
+ * policy. It is deliberately not a PredictError, so the shared market-data
+ * policy neither retries it again nor counts it toward the circuit that Feeds
+ * share: Balance failures stay local to Balance.
+ */
+export class PortfolioFailureError extends Error {
+  readonly code: PredictErrorCode;
+
+  constructor(error: unknown) {
+    super(
+      error instanceof Error && error.message
+        ? error.message
+        : 'Balance is unavailable.',
+    );
+    this.name = 'PortfolioFailureError';
+    this.code =
+      error instanceof PredictError ? error.code : PredictErrorCode.UNKNOWN;
+  }
+}
+
 export interface PredictMarketDataServiceOptions {
   messenger: PredictMarketDataServiceMessenger;
   marketData: VenueMarketDataAdapter;
@@ -134,6 +157,7 @@ export class PredictMarketDataService extends BaseDataService<
 > {
   readonly #marketData: VenueMarketDataAdapter;
   readonly #portfolio: VenuePortfolioAdapter;
+  readonly #portfolioPolicy: ServicePolicy;
   readonly #venueId: PredictVenueId;
 
   constructor({
@@ -155,6 +179,12 @@ export class PredictMarketDataService extends BaseDataService<
     });
     this.#marketData = marketData;
     this.#portfolio = portfolio;
+    this.#portfolioPolicy = createServicePolicy({
+      ...policyOptions,
+      maxRetries: 2,
+      retryFilterPolicy: handleWhen(isRetryablePredictError),
+      isServiceFailure: isRetryablePredictError,
+    });
     this.#venueId = venueId;
 
     messenger.registerActionHandler(
@@ -197,10 +227,20 @@ export class PredictMarketDataService extends BaseDataService<
         this.fetchQuery({
           queryKey: descriptor.queryKey,
           staleTime: descriptor.staleTime,
-          queryFn: ({ signal }) =>
-            this.#portfolio.fetchBalance({
-              signal: options?.signal ?? signal,
-            }) as Promise<Json & GetBalanceResult>,
+          queryFn: async ({ signal }) => {
+            try {
+              return (await this.#portfolioPolicy.execute(() =>
+                this.#portfolio.fetchBalance({
+                  signal: options?.signal ?? signal,
+                }),
+              )) as Json & GetBalanceResult;
+            } catch (error) {
+              if (error instanceof Error && error.name === 'AbortError') {
+                throw error;
+              }
+              throw new PortfolioFailureError(error);
+            }
+          },
         }),
     );
   }

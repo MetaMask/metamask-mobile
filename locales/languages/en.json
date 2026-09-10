@@ -2982,7 +2982,8 @@
   "predict_next": {
     "balance_unavailable": {
       "title": "Balance unavailable",
-      "description": "Unable to load your available balance."
+      "description": "Unable to load your available balance.",
+      "retry": "Try again"
     }
   },
   "predict": {
