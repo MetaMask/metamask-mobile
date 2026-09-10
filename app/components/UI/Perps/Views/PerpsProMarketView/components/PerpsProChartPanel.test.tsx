@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   Box,
+  ButtonIcon,
   ButtonIconSize,
   FilterButtonVariant,
   TextVariant,
@@ -448,14 +449,19 @@ describe('PerpsProChartPanel', () => {
 
     const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
 
+    const fullscreenButton = screen
+      .UNSAFE_getAllByType(ButtonIcon)
+      .find(
+        (button) =>
+          button.props.testID ===
+          PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      );
+
     expect(selector.props.filterVariant).toBe(FilterButtonVariant.Secondary);
     expect(selector.props.periodButtonTwClassName).toBe('h-8 rounded px-1');
     expect(selector.props.moreButtonTwClassName).toBe('h-8 rounded px-1');
     expect(selector.props.textVariant).toBe(TextVariant.BodySm);
-    expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON)
-        .props.size,
-    ).toBe(ButtonIconSize.Md);
+    expect(fullscreenButton?.props.size).toBe(ButtonIconSize.Md);
   });
 
   it('forwards a selected Pro candle period', () => {
