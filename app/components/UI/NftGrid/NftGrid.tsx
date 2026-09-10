@@ -330,7 +330,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           additionalButtons={
             <ButtonIcon
               testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-              size={ButtonIconSizes.Lg}
+              size={ButtonIconSizes.Md}
               onPress={goToAddCollectible}
               iconName={IconName.Add}
             />
