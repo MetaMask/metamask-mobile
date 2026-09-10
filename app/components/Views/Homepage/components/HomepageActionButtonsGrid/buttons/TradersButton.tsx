@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectSocialLeaderboardEnabled } from '../../../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectAiSocialBundleV1Enabled } from '../../../../../../selectors/featureFlagController/socialBundleV1';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -26,6 +27,7 @@ const TradersButton = ({
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const isSocialBundleV1Enabled = useSelector(selectAiSocialBundleV1Enabled);
   const label = strings('homepage.action_buttons.traders');
 
   const handlePress = useCallback(() => {
@@ -36,6 +38,8 @@ const TradersButton = ({
       location: ActionLocation.HOME,
     });
 
+    // V1 prototype vs shipped Follow Trading is decided inside
+    // `navigateToSocialLeaderboard` (same path as the Top traders section).
     navigateToSocialLeaderboard(navigation.navigate, {
       source: 'home_carousel',
     });
@@ -45,7 +49,7 @@ const TradersButton = ({
     <HomepageActionButton
       allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.People}
-      isDisabled={!isSocialLeaderboardEnabled}
+      isDisabled={!(isSocialLeaderboardEnabled || isSocialBundleV1Enabled)}
       label={label}
       onPress={handlePress}
       testID={HomepageActionButtonsGridTestIds.TRADERS_BUTTON}

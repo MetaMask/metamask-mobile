@@ -432,6 +432,10 @@ const Routes = {
     ONBOARDING: 'SocialLeaderboardOnboarding',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
+  SOCIAL_BUNDLE_V1: {
+    ROOT: 'SocialBundleV1',
+    HOME: 'SocialBundleV1Home',
+  },
   PREDICT: {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',

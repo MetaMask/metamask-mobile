@@ -4,6 +4,7 @@ import type { RootState } from '../../../../reducers';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectAiSocialBundleV1Enabled } from '../../../../selectors/featureFlagController/socialBundleV1';
 import {
   hasSeenSocialLeaderboardOnboarding,
   navigateToSocialLeaderboard,
@@ -28,18 +29,24 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../selectors/featureFlagController/socialBundleV1', () => ({
+  selectAiSocialBundleV1Enabled: jest.fn(),
+}));
+
 const mockGetState = jest.mocked(ReduxService.store.getState);
 const mockGetItemSync = jest.mocked(StorageWrapper.getItemSync);
 const mockRemoveItem = jest.mocked(StorageWrapper.removeItem);
 const mockOnboardingEnabled = jest.mocked(
   selectAiSocialLeaderboardOnboardingEnabled,
 );
+const mockBundleV1Enabled = jest.mocked(selectAiSocialBundleV1Enabled);
 
 describe('socialLeaderboardOnboardingNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetState.mockReturnValue({} as unknown as RootState);
     mockOnboardingEnabled.mockReturnValue(true);
+    mockBundleV1Enabled.mockReturnValue(false);
     mockGetItemSync.mockReturnValue(null);
   });
 
@@ -65,6 +72,18 @@ describe('socialLeaderboardOnboardingNavigation', () => {
   });
 
   describe('navigateToSocialLeaderboard', () => {
+    it('navigates to Social Bundle V1 when that flag is on, skipping onboarding', () => {
+      mockBundleV1Enabled.mockReturnValue(true);
+      mockGetItemSync.mockReturnValue(null);
+      const navigate = jest.fn();
+
+      navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL_BUNDLE_V1.HOME);
+      expect(mockGetItemSync).not.toHaveBeenCalled();
+    });
+
     it('navigates to the onboarding for a first-time user', () => {
       mockGetItemSync.mockReturnValue(null);
       const navigate = jest.fn();

@@ -164,6 +164,8 @@ import {
   TradingSignalsSetupBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
+import { SocialBundleV1HomeView } from '../../Views/SocialBundleV1';
+import { selectAiSocialBundleV1Enabled } from '../../../selectors/featureFlagController/socialBundleV1';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -1035,6 +1037,7 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const isSocialBundleV1Enabled = useSelector(selectAiSocialBundleV1Enabled);
 
   return (
     <NativeStack.Navigator
@@ -1475,6 +1478,13 @@ const MainNavigator = () => {
             ...clearNativeStackNavigatorOptions,
             ...transparentModalScreenOptions,
           }}
+        />
+      )}
+      {isSocialBundleV1Enabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL_BUNDLE_V1.HOME}
+          component={SocialBundleV1HomeView}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       <>
