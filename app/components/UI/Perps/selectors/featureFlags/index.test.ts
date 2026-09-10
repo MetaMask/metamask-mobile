@@ -5,6 +5,7 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsLighterProviderEnabledFlag,
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsRecentlyViewedEnabledFlag,
@@ -684,6 +685,113 @@ describe('Perps Feature Flag Selectors', () => {
         );
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('selectPerpsLighterProviderEnabledFlag', () => {
+    const createEmptyFlagsState = () =>
+      ({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      }) as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+    it('returns false when neither the remote flag nor the local env var is set', () => {
+      delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+      expect(
+        selectPerpsLighterProviderEnabledFlag(createEmptyFlagsState()),
+      ).toBe(false);
+    });
+
+    it('falls back to the local env var when the remote flag is absent', () => {
+      // The POC must stay switchable on a dev machine with no LaunchDarkly entry.
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+      expect(
+        selectPerpsLighterProviderEnabledFlag(createEmptyFlagsState()),
+      ).toBe(true);
+    });
+
+    it('lets a valid remote flag win over the local env var', () => {
+      // A disabled remote flag must not be overridden by a stale dev env var.
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsLighterProviderEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+      expect(selectPerpsLighterProviderEnabledFlag(state)).toBe(false);
+    });
+
+    it('enables the provider when the remote flag is enabled and the version gate passes', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsLighterProviderEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+      expect(selectPerpsLighterProviderEnabledFlag(state)).toBe(true);
+    });
+
+    it('stays disabled when the remote flag is enabled but the version gate fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsLighterProviderEnabled: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+      expect(selectPerpsLighterProviderEnabledFlag(state)).toBe(false);
     });
   });
 

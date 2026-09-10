@@ -515,3 +515,26 @@ export const selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag =
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
   });
+
+/**
+ * Selector for the Lighter venue provider (TAT-3766 POC).
+ * Controls whether Lighter appears in the provider/network selector.
+ *
+ * Remote flag wins when valid; falls back to the local env gate so the POC
+ * stays switchable on a dev machine without a LaunchDarkly entry.
+ *
+ * LaunchDarkly key (kebab-case): `perps-lighter-provider-enabled`.
+ *
+ * @returns boolean - true if the Lighter provider should be selectable
+ */
+export const selectPerpsLighterProviderEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsLighterProviderEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);

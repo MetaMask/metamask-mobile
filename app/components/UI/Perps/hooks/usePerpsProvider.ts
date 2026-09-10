@@ -19,6 +19,7 @@ import {
   PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { selectPerpsLighterProviderEnabledFlag } from '../selectors/featureFlags';
 
 interface OrderCapabilitiesState {
   requestKey?: string;
@@ -52,6 +53,9 @@ export function usePerpsProvider(
   const activeProvider = useSelector(selectPerpsProvider);
   const perpsNetwork = useSelector(selectPerpsNetwork);
   const initializationState = useSelector(selectPerpsInitializationState);
+  const isLighterProviderEnabled = useSelector(
+    selectPerpsLighterProviderEnabledFlag,
+  );
 
   /**
    * Get list of available providers based on feature flags
@@ -59,8 +63,9 @@ export function usePerpsProvider(
   const availableProviders = useMemo((): PerpsActiveProviderMode[] => {
     const providers: PerpsActiveProviderMode[] = ['hyperliquid'];
 
-    // Lighter POC (TAT-3766): local env gate only; babel inlines the env read.
-    if (process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true') {
+    // Lighter POC (TAT-3766): remote-flag gated, with a local env fallback so
+    // the POC stays switchable on a dev machine without a LaunchDarkly entry.
+    if (isLighterProviderEnabled) {
       providers.push('lighter');
       if (!providers.includes('aggregated')) {
         providers.push('aggregated');
@@ -68,7 +73,7 @@ export function usePerpsProvider(
     }
 
     return providers;
-  }, []);
+  }, [isLighterProviderEnabled]);
 
   /**
    * Switch to a different provider
