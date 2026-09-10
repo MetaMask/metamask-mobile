@@ -118,7 +118,7 @@ const FoxLoaderAnimation = ({
   }, [riveRef]);
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || isCompleteRef.current) return;
     riveHandlers.onPlay();
     isPlayingRef.current = true;
     startAnimation();
@@ -165,11 +165,44 @@ const FoxLoaderAnimation = ({
     return () => clearTimeout(timeout);
   }, [completeAnimation]);
 
+  // If the wallet is ready before Rive can start, there is nothing to exit
+  // from — so reveal immediately rather than paying for an exit animation the
+  // user never saw begin.
+  //
+  // Measured on a Galaxy A14 (production release, 5/5 cold starts):
+  // `appServicesReady` flipped ~216ms BEFORE Rive became playable, and
+  // `stopAnimation()` then fired just ~10ms after `startAnimation()`. The
+  // authored `Buildup` was cut off almost immediately, so the only thing that
+  // ever rendered was the *exit* of an animation that never played — for
+  // ~880ms, on top of the wait for the 182KB `.riv` to finish loading.
+  //
+  // The static fox is already on screen at full opacity here (the cross-fade
+  // to Rive lives in the effect above, which is now skipped), so it stays
+  // visible and `ControllersGate` fades the whole overlay out. No blank frame.
+  //
+  // When Rive *does* start first — a slower cold start, where the animation
+  // genuinely plays and loops — `isPlayingRef` is already set and this is a
+  // no-op, leaving the authored exit below to run exactly as before.
+  useEffect(() => {
+    if (!appServicesReady || isCompleteRef.current || isPlayingRef.current) {
+      return;
+    }
+    completeAnimation();
+  }, [appServicesReady, completeAnimation]);
+
   // Once app is ready and the fox is playing, fire the exit trigger and
   // complete on a timer. Legacy observed `onStateChanged`/`ExitState`;
   // Nitro exposes neither signal, so completion is timed instead.
   useEffect(() => {
-    if (!appServicesReady || !isPlaying || exitTriggered.current) {
+    // `isCompleteRef` matters here: if the reveal already happened because the
+    // wallet was ready first, Rive may still finish loading afterwards, and
+    // triggering an exit on an overlay that is gone is pure dead work.
+    if (
+      !appServicesReady ||
+      !isPlaying ||
+      exitTriggered.current ||
+      isCompleteRef.current
+    ) {
       return undefined;
     }
     stopAnimation();

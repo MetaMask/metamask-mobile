@@ -186,6 +186,70 @@ describe('FoxLoader', () => {
     expect(mockTriggerInput).not.toHaveBeenCalledWith('Start');
   });
 
+  it('reveals immediately, without starting the animation, when the wallet is ready before Rive', () => {
+    // Measured on a Galaxy A14: in 5/5 cold starts `appServicesReady` flipped
+    // ~216ms BEFORE Rive became playable, so `Start` and `Stop` fired ~10ms
+    // apart and the authored `Buildup` never ran. There is nothing to exit
+    // from, so paying `EXIT_ANIMATION_MS` shows the user nothing.
+    mockRiveViewReady = false;
+    const onAnimationComplete = jest.fn();
+
+    renderFoxLoader({ appServicesReady: true, onAnimationComplete });
+
+    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+    // Neither trigger should fire — the animation is skipped, not started and
+    // immediately stopped.
+    expect(mockTriggerInput).not.toHaveBeenCalled();
+  });
+
+  it('does not start the animation after revealing, even once Rive becomes ready', () => {
+    mockRiveViewReady = false;
+    const onAnimationComplete = jest.fn();
+    const { rerender } = renderFoxLoader({
+      appServicesReady: true,
+      onAnimationComplete,
+    });
+
+    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+
+    // Rive finishes loading after we already revealed — it must stay quiet
+    // rather than animating over live UI.
+    mockRiveViewReady = true;
+    rerender(
+      <FoxLoader appServicesReady onAnimationComplete={onAnimationComplete} />,
+    );
+
+    expect(mockTriggerInput).not.toHaveBeenCalled();
+  });
+
+  it('still plays the authored exit when Rive starts before the wallet is ready', () => {
+    // The slow-cold-start path, unchanged: the animation genuinely plays, so
+    // the exit must run exactly as before.
+    jest.useFakeTimers();
+    mockRiveViewReady = true;
+    const onAnimationComplete = jest.fn();
+    const { rerender } = renderFoxLoader({
+      appServicesReady: false,
+      onAnimationComplete,
+    });
+
+    expect(mockTriggerInput).toHaveBeenCalledWith('Start');
+    expect(onAnimationComplete).not.toHaveBeenCalled();
+
+    rerender(
+      <FoxLoader appServicesReady onAnimationComplete={onAnimationComplete} />,
+    );
+
+    expect(mockTriggerInput).toHaveBeenCalledWith('Stop');
+    expect(onAnimationComplete).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(800);
+    });
+    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
   it('fires Stop and completes after the exit animation delay when app services are ready', () => {
     jest.useFakeTimers();
     mockRiveViewReady = true;
