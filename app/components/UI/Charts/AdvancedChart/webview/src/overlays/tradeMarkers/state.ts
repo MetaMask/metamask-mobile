@@ -24,8 +24,12 @@ interface TradeMarkerState {
   markers: TradeMarker[] | null;
   /** Bumped on every placement round; stale createShape resolves discard on mismatch. */
   placementGeneration: number;
-  /** Bumped on every pulse; a newer pulse cancels the previous animation loop. */
-  pulseGeneration: number;
+  /**
+   * Per-marker pulse counter (marker.id → generation). A newer pulse cancels
+   * the previous animation loop for the SAME marker only, so pulses on other
+   * markers run to completion and reset themselves to base size.
+   */
+  pulseGenerations: Map<string, number>;
 }
 
 const state: TradeMarkerState = {
@@ -33,7 +37,7 @@ const state: TradeMarkerState = {
   shapesByMarkerId: new Map(),
   markers: null,
   placementGeneration: 0,
-  pulseGeneration: 0,
+  pulseGenerations: new Map(),
 };
 
 export function getShapeIds(): TVShapeId[] {
@@ -47,6 +51,8 @@ export function pushShapeId(id: TVShapeId): void {
 export function clearShapes(): void {
   state.shapeIds = [];
   state.shapesByMarkerId = new Map();
+  // Drop stale per-marker pulse counters so a rebuild starts clean.
+  state.pulseGenerations = new Map();
 }
 
 export function getShapesByMarkerId(): Map<string, MarkerShapePair> {
@@ -74,13 +80,14 @@ export function getPlacementGeneration(): number {
   return state.placementGeneration;
 }
 
-export function bumpPulseGeneration(): number {
-  state.pulseGeneration += 1;
-  return state.pulseGeneration;
+export function bumpPulseGeneration(markerId: string): number {
+  const next = (state.pulseGenerations.get(markerId) ?? 0) + 1;
+  state.pulseGenerations.set(markerId, next);
+  return next;
 }
 
-export function getPulseGeneration(): number {
-  return state.pulseGeneration;
+export function getPulseGeneration(markerId: string): number {
+  return state.pulseGenerations.get(markerId) ?? 0;
 }
 
 /** Test-only: reset every slice between test cases. */
@@ -89,5 +96,5 @@ export function __resetTradeMarkerStateForTests(): void {
   state.shapesByMarkerId = new Map();
   state.markers = null;
   state.placementGeneration = 0;
-  state.pulseGeneration = 0;
+  state.pulseGenerations = new Map();
 }
