@@ -77,10 +77,8 @@ async function findProbeElement(
   for (const attempt of attempts) {
     try {
       const el = await attempt();
-      // Force a presence check when the driver returns a lazy ref.
-      if (typeof el.isDisplayed === 'function') {
-        await el.isDisplayed().catch(() => undefined);
-      }
+      // Presence is enough — probes are near-invisible, so skip isDisplayed.
+      // AppiumElement exposes isVisible, not isDisplayed (TS2339 in lint:tsc).
       return el;
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
