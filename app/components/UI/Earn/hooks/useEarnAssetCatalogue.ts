@@ -675,8 +675,6 @@ const useEarnAssetCatalogue = ({
       errors,
       hasError,
       isLoading,
-      isMoneyApyError,
-      isMoneyApyLoading,
       moneyApyDecimal,
       moneyApyPercent,
       moneyRate,
