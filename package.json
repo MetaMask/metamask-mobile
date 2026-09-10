@@ -177,6 +177,12 @@
     "docs:platform-api:build": "platform-api-docs --build --project-label Mobile --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'",
     "docs:platform-api:serve": "platform-api-docs --serve --project-label Mobile --site-base-url / --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'"
   },
+  "previewBuilds": {
+    "@metamask/perps-controller": {
+      "type": "breaking",
+      "previewVersion": "17.0.0-preview-b3db565c8"
+    }
+  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write",

@@ -1,4 +1,43 @@
+const fs = require('fs');
+const path = require('path');
+
 process.env.TZ = 'America/Toronto';
+
+/**
+ * Build a jest moduleNameMapper *value* for a file inside the
+ * `@metamask/perps-controller` package.
+ *
+ * Different releases of the controller ship different distribution shapes:
+ * - 16.x → dual CJS/ESM (`dist/*.cjs` and `dist/*.js`)
+ * - 17.x (and current previews) → ESM-only (`dist/*.js`)
+ *
+ * We probe the on-disk shape at config load time so tests keep working no
+ * matter which version is installed (production or preview).
+ *
+ * @param {string} relativePath Path relative to the `dist/` directory,
+ *   without extension. Empty string maps to `dist/index`.
+ *   May include `$1`/`$2` placeholders for regex captures — these are
+ *   ignored by the disk check and passed through untouched to jest.
+ * @returns {string} An absolute filepath jest can rewrite the import to.
+ */
+function resolvePerpsControllerEntry(relativePath) {
+  const base = path.join(
+    __dirname,
+    'node_modules',
+    '@metamask',
+    'perps-controller',
+    'dist',
+    relativePath || 'index',
+  );
+  // If the caller passed a regex-substituted path with capture groups,
+  // we can't check the exact file on disk. Prefer .js in that case, as
+  // that's the format used by 16.x + 17.x.
+  if (base.includes('$')) {
+    return `${base}.js`;
+  }
+  return fs.existsSync(`${base}.cjs`) ? `${base}.cjs` : `${base}.js`;
+}
+
 
 // Unit tests need a test-like environment before Babel transforms app modules.
 process.env.METAMASK_ENVIRONMENT ??= 'test';
@@ -38,7 +77,13 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk|@sumsub/react-native-mobilesdk-module|@braze/react-native-sdk|uuid))',
+    // NOTE: @metamask/base-controller, @metamask/controller-utils, and
+    // @metamask/abi-utils are transitive deps of @metamask/perps-controller.
+    // 17.x ships them ESM-only under a nested node_modules; each nested
+    // `node_modules/` in the path causes the outer negative lookahead to
+    // re-evaluate, so they must appear as top-level allow-list entries
+    // (not scoped under perps-controller) to be transformed.
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/perps-controller|@metamask/base-controller|@metamask/controller-utils|@metamask/abi-utils|@metamask/messenger|@metamask/superstruct|@metamask/utils|lodash-es|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk|@sumsub/react-native-mobilesdk-module|@braze/react-native-sdk|uuid))',
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
@@ -94,14 +139,17 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
-    '^@metamask/perps-controller$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.cjs',
+    // NOTE: @metamask/perps-controller 16.x shipped a dual CJS/ESM build
+    // (dist/*.cjs and dist/*.js). 17.x (and current previews) ship
+    // ESM-only under dist/*.js. To stay compatible with either shape,
+    // resolve the file dynamically at config load time and prefer .cjs
+    // when it exists, falling back to .js.
+    '^@metamask/perps-controller$': resolvePerpsControllerEntry(''),
     '^@metamask/perps-controller/(constants|types|utils)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.cjs',
+      resolvePerpsControllerEntry('$1/index'),
     '^@metamask/perps-controller/(constants|types|utils)/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.cjs',
-    '^@metamask/perps-controller/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
+      resolvePerpsControllerEntry('$1/$2'),
+    '^@metamask/perps-controller/(.*)$': resolvePerpsControllerEntry('$1'),
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
     // @metamask/perps-controller@9.1.0+ ships a broken CJS build whose
     // bundler baked in a CI-only absolute path (a file:// URL left over from
