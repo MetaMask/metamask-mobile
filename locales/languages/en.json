@@ -8597,7 +8597,7 @@
     "title": "We've noticed multiple requests"
   },
   "common": {
-    "please_wait": "Wait",
+    "please_wait": "Please wait",
     "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
     "disconnect": "Disconnect"
   },
