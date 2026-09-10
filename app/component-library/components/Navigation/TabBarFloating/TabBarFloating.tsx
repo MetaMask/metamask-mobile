@@ -1,19 +1,10 @@
 /* eslint-disable react/prop-types */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { LayoutChangeEvent, View } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { LayoutChangeEvent, View, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
   IconColor,
@@ -29,9 +20,13 @@ import { trackExploreSearchOpened } from '../../../../components/Views/TrendingV
 import { TabBarProps } from '../TabBar/TabBar.types';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
+import TabBarFloatingSurface from './TabBarFloatingSurface';
+import { useBlurMaterial } from '../../../hooks/useBlurMaterial';
 import {
   FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   FLOATING_ICON_BY_TAB_BAR_ICON_KEY,
+  TAB_BAR_FLOATING_GAP,
+  TAB_BAR_FLOATING_HEIGHT,
   TAB_BAR_FLOATING_INSET_REDUCTION,
   TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   TAB_BAR_FLOATING_TEST_IDS,
@@ -47,6 +42,13 @@ export interface TabBarFloatingProps extends TabBarProps {
 }
 
 type TabBarFloatingRoute = TabBarProps['state']['routes'][number];
+
+/** Lays the pill and the search circle side by side. */
+const ROW_STYLE: ViewStyle = {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: TAB_BAR_FLOATING_GAP,
+};
 
 /**
  * Treatment bottom navigation for the Header & NavBar refresh experiment
@@ -86,13 +88,7 @@ const TabBarFloating = ({
 
   useEffect(() => () => onHeightChange?.(0), [onHeightChange]);
 
-  // The search button is a circle matching the pill's height. Measured rather
-  // than hardcoded so it tracks the pill's padding and font sizes.
-  const [pillHeight, setPillHeight] = useState(0);
-
-  const handlePillLayout = useCallback((event: LayoutChangeEvent) => {
-    setPillHeight(Math.round(event.nativeEvent.layout.height));
-  }, []);
+  const { isBlurAvailable, colorScheme } = useBlurMaterial();
 
   const handleSearchPress = useCallback(() => {
     trackExploreSearchOpened('nav_bar');
@@ -150,8 +146,8 @@ const TabBarFloating = ({
           case Routes.MONEY.HOME:
             navigateToMoneyHome();
             break;
-          case Routes.SOCIAL_LEADERBOARD.TAB:
-            navigation.navigate(Routes.SOCIAL_LEADERBOARD.TAB);
+          case Routes.SOCIAL.TAB:
+            navigation.navigate(Routes.SOCIAL.TAB);
             break;
           case Routes.REWARDS_VIEW:
             navigation.navigate(Routes.REWARDS_VIEW);
@@ -189,34 +185,38 @@ const TabBarFloating = ({
       testID={TAB_BAR_FLOATING_TEST_IDS.CONTAINER}
       onLayout={handleLayout}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-3"
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 rounded-full border border-muted bg-section p-1"
+      <View style={ROW_STYLE}>
+        <TabBarFloatingSurface
+          isBlurAvailable={isBlurAvailable}
+          colorScheme={colorScheme}
+          twClassName="flex-1 flex-row items-center rounded-full p-1"
+          style={{ height: TAB_BAR_FLOATING_HEIGHT }}
           testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
-          onLayout={handlePillLayout}
         >
           {state.routes.map((route: TabBarFloatingRoute, index: number) =>
             renderTabBarItem(route, index),
           )}
-        </Box>
-        <ButtonIcon
-          iconName={IconName.Search}
-          iconProps={{ color: IconColor.IconDefault }}
-          size={ButtonIconSize.Lg}
-          onPress={handleSearchPress}
-          testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
-          accessibilityLabel={strings('wallet.search_accessibility_label')}
-          twClassName={`rounded-full border border-muted bg-section ${
-            pillHeight ? `h-[${pillHeight}px] w-[${pillHeight}px]` : 'h-14 w-14'
-          }`}
-        />
-      </Box>
+        </TabBarFloatingSurface>
+        <TabBarFloatingSurface
+          isBlurAvailable={isBlurAvailable}
+          colorScheme={colorScheme}
+          twClassName="items-center justify-center rounded-full"
+          style={{
+            height: TAB_BAR_FLOATING_HEIGHT,
+            width: TAB_BAR_FLOATING_HEIGHT,
+          }}
+        >
+          <ButtonIcon
+            iconName={IconName.Search}
+            iconProps={{ color: IconColor.IconDefault }}
+            size={ButtonIconSize.Md}
+            onPress={handleSearchPress}
+            testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
+            accessibilityLabel={strings('wallet.search_accessibility_label')}
+            twClassName="h-full w-full rounded-full bg-transparent"
+          />
+        </TabBarFloatingSurface>
+      </View>
     </View>
   );
 };

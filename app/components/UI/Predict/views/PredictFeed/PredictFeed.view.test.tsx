@@ -861,6 +861,15 @@ describe('PredictFeed', () => {
 
       const { findByTestId, findByText } = renderPredictFeedViewWithRoutes({
         extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
+        overrides: {
+          engine: {
+            backgroundState: {
+              PredictController: {
+                eligibility: { status: 'ineligible' as const, country: 'US' },
+              },
+            },
+          },
+        },
       });
 
       await findByTestId(PredictBalanceSelectorsIDs.BALANCE_CARD);

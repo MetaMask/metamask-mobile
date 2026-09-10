@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useRef, type ReactNode } from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   AvatarToken,
   AvatarTokenSize,
   BadgeWrapper,
   BadgeWrapperPosition,
+  BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
@@ -23,8 +23,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { DiscountType } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   selectDestToken,
@@ -37,6 +35,8 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import type { BridgeToken } from '../../types';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { getTokenImageSource } from '../../utils';
@@ -49,7 +49,6 @@ import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
-import RecurringBottomSheet from '../RecurringBottomSheet';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
 
@@ -167,11 +166,11 @@ function formatTokenAmountValue(
 }
 
 const RecurringConfirmOrderSheet = ({
-  isVisible,
-  onClose,
+  latestSourceBalance,
+  onEditSlippagePress,
+  goBack,
 }: RecurringConfirmOrderSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation<AppNavigationProp>();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -179,6 +178,19 @@ const RecurringConfirmOrderSheet = ({
   const slippage = useSelector(selectSlippage);
   const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
     useBridgeQuoteDataContext();
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas = !hasSufficientGas;
+  const isConfirmDisabled = hasInsufficientBalance || hasInsufficientGas;
+  const confirmLabel = hasInsufficientBalance
+    ? strings('bridge.insufficient_funds')
+    : hasInsufficientGas
+      ? strings('bridge.insufficient_gas')
+      : strings('bridge.recurring.confirm');
   const { discountBadge, infoText, infoSuffix, baseFeePercentage } =
     useFeeDisclaimer({ activeQuote });
   const showQuoteSkeletons = isLoading;
@@ -228,25 +240,11 @@ const RecurringConfirmOrderSheet = ({
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleSlippagePress = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: sourceToken?.chainId,
-        destChainId: destToken?.chainId,
-      },
-    });
-  }, [destToken?.chainId, navigation, sourceToken?.chainId]);
-
-  if (!isVisible) {
-    return null;
-  }
-
   return (
-    <RecurringBottomSheet
+    <BottomSheet
       ref={sheetRef}
       testID={RecurringConfirmOrderSheetSelectorsIDs.SHEET}
-      onClose={onClose}
+      goBack={goBack}
     >
       <BottomSheetHeader
         onClose={closeSheet}
@@ -324,7 +322,7 @@ const RecurringConfirmOrderSheet = ({
             <ButtonIcon
               iconName={IconName.Edit}
               size={ButtonIconSize.Sm}
-              onPress={handleSlippagePress}
+              onPress={onEditSlippagePress}
               testID={RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE_EDIT}
             />
           }
@@ -350,8 +348,9 @@ const RecurringConfirmOrderSheet = ({
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
-          children: strings('bridge.recurring.confirm'),
+          children: confirmLabel,
           onPress: closeSheet,
+          isDisabled: isConfirmDisabled,
           testID: RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />
@@ -400,7 +399,7 @@ const RecurringConfirmOrderSheet = ({
           ) : null}
         </Box>
       ) : null}
-    </RecurringBottomSheet>
+    </BottomSheet>
   );
 };
 

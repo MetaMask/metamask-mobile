@@ -71,12 +71,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await OnboardingView.tapCreateNewWalletButton();
       await AppiumAssertions.expectElementToBeVisible(
-        OnboardingSheet.importSeedButton,
+        await OnboardingSheet.importSeedButton,
       );
       test.setTimeout(10 * 60 * 1000);
       await OnboardingSheet.tapImportSeedButton();
       await AppiumAssertions.expectElementToBeVisible(
-        CreatePasswordView.newPasswordInput,
+        await CreatePasswordView.newPasswordInput,
       );
       await CreatePasswordView.enterPassword(
         getPasswordForScenario('onboarding') ?? '',

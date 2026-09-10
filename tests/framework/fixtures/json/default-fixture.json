@@ -161,6 +161,7 @@
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
           "providerUserId": null,
+          "redeemWithdrawal": null,
           "selectedCountry": null
         },
         "ClaimsController": {
@@ -671,10 +672,6 @@
             "socialAiTSA531AbtestWhatsHappeningExplore": "control",
             "socialAiTSA612AbtestQuickBuy": "control",
             "socialAiTSA901AbtestTopTradersBuyAction": "treatment",
-            "stxMigrationBatchStatus": "sentinel on",
-            "stxMigrationCancel": "sentinel on",
-            "stxMigrationGetFees": "sentinel on",
-            "stxMigrationSubmitTransactions": "sentinel on",
             "swapsSWAPS4825AbtestChainValueOrder": "control",
             "tokenDetailsV2AbTest": "Control is OFF",
             "trendingTokens": "feature is ON"
@@ -732,6 +729,11 @@
           "methodData": {},
           "swapsTransactions": {},
           "transactions": []
+        },
+        "UiSlotsController": {
+          "activeConfigurations": {},
+          "enabled": false,
+          "screenConfigurations": {}
         },
         "UserStorageController": {}
       }
@@ -796,6 +798,7 @@
       "networkId": "1"
     },
     "legalNotices": {
+      "arcUsageNoticeShown": true,
       "isPna25Acknowledged": true,
       "newPrivacyPolicyToastClickedOrClosed": true,
       "newPrivacyPolicyToastShownDate": 1684232000000
@@ -809,6 +812,7 @@
     },
     "moneyBalance": {
       "lastKnownBalance": null,
+      "lastLocalFlowConfirmedAt": null,
       "redeemable": null
     },
     "navigation": {
@@ -931,6 +935,7 @@
       },
       "perpsTradingCampaignLeaderboardPositions": {},
       "perpsTradingCampaignLeaderboards": {},
+      "perpsTradingCampaignPrizePools": {},
       "perpsTradingCampaignVolumes": {},
       "pointsEvents": null,
       "predictThePitchLeaderboardPositions": {},

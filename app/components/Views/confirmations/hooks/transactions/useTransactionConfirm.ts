@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import useApprovalRequest from '../useApprovalRequest';
@@ -15,6 +15,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
 import {
+  ConfirmationLaunchSource,
   ConfirmationParams,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
@@ -56,7 +57,7 @@ export function useTransactionConfirm() {
   const navigateToPerpsHome = useNavigateToPerpsHome();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
-  const { payWithOption } = useParams<ConfirmationParams>({});
+  const { launchedFrom, payWithOption } = useParams<ConfirmationParams>({});
 
   const { isSupported: isGaslessSupportedSTX, isSmartTransaction } =
     useGaslessSupportedSmartTransactions();
@@ -107,8 +108,101 @@ export function useTransactionConfirm() {
     [isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken],
   );
 
+  const navigateOnConfirm = useCallback(() => {
+    if (!transactionMetadata) {
+      return;
+    }
+
+    // Perps deposit-and-order: caller handles navigation (e.g. order flow)
+    if (type === TransactionType.perpsDepositAndOrder) {
+      return;
+    } else if (type === TransactionType.perpsDeposit) {
+      if (payWithOption === PayWithOption.MoneyAccount) {
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+      } else {
+        navigateToPerpsHome();
+      }
+    } else if (type === TransactionType.predictDeposit) {
+      if (payWithOption === PayWithOption.MoneyAccount) {
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+      } else {
+        navigation.goBack();
+      }
+    } else if (
+      hasTransactionType(transactionMetadata, [
+        TransactionType.moneyAccountDeposit,
+      ])
+    ) {
+      if (launchedFrom === ConfirmationLaunchSource.RewardsMoneyHome) {
+        // The deposit started from a Money home that is already on the stack
+        // beneath this confirmation, so popping back to it returns the user
+        // there with the Rewards campaign still underneath. Replacing would
+        // leave a second Money home stacked on the first.
+        navigation.goBack();
+      } else if (launchedFrom === ConfirmationLaunchSource.Rewards) {
+        // Replacing this confirmation — rather than switching to the Money tab
+        // — keeps the Rewards stack that opened the deposit underneath, so
+        // Money home's back button returns to the campaign.
+        navigation.dispatch(
+          StackActions.replace(Routes.MONEY.ROOT, {
+            screen: Routes.MONEY.HOME,
+            params: {
+              showBackButton: true,
+              // Marks this Money home as Rewards-originated so a further
+              // deposit started from it lands back here, not on the Money tab.
+              launchedFrom: ConfirmationLaunchSource.Rewards,
+            },
+          }),
+        );
+      } else {
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+      }
+    } else if (
+      isFullScreenConfirmation &&
+      !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+    ) {
+      navigateToActivityAfterConfirmation(navigation);
+    } else {
+      navigation.goBack();
+    }
+
+    tryEnableEvmNetwork(chainId);
+  }, [
+    chainId,
+    isFullScreenConfirmation,
+    launchedFrom,
+    navigateToPerpsHome,
+    navigation,
+    payWithOption,
+    transactionMetadata,
+    tryEnableEvmNetwork,
+    type,
+  ]);
+
   const onConfirm = useCallback(
     async (options?: {
+      deferNavigation?: boolean;
       onError?: (error: unknown) => void;
       waitForResult?: boolean;
       existingOrderId?: string;
@@ -169,83 +263,28 @@ export function useTransactionConfirm() {
         options?.onError?.(error);
       }
 
-      // Perps deposit-and-order: caller handles navigation (e.g. order flow)
-      if (type === TransactionType.perpsDepositAndOrder) {
-        return;
-      } else if (type === TransactionType.perpsDeposit) {
-        if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(
-            Routes.HOME_TABS,
-            {
-              screen: Routes.MONEY.ROOT,
-              params: { screen: Routes.MONEY.HOME },
-            },
-            { pop: true },
-          );
-        } else {
-          navigateToPerpsHome();
-        }
-      } else if (type === TransactionType.predictDeposit) {
-        if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(
-            Routes.HOME_TABS,
-            {
-              screen: Routes.MONEY.ROOT,
-              params: { screen: Routes.MONEY.HOME },
-            },
-            { pop: true },
-          );
-        } else {
-          navigation.goBack();
-        }
-      } else if (
-        hasTransactionType(transactionMetadata, [
-          TransactionType.moneyAccountDeposit,
-        ])
-      ) {
-        navigation.navigate(
-          Routes.HOME_TABS,
-          {
-            screen: Routes.MONEY.ROOT,
-            params: { screen: Routes.MONEY.HOME },
-          },
-          { pop: true },
-        );
-      } else if (
-        isFullScreenConfirmation &&
-        !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
-      ) {
-        navigateToActivityAfterConfirmation(navigation);
-      } else {
-        navigation.goBack();
+      if (!options?.deferNavigation) {
+        navigateOnConfirm();
       }
-
-      tryEnableEvmNetwork(chainId);
     },
     [
-      chainId,
       handleGasless7702,
       shouldDeferHwSend,
       deferHwSend,
       handleSmartTransaction,
       isFiatPaymentSelected,
-      isFullScreenConfirmation,
       isGaslessSupported,
       isGaslessSupportedSTX,
-      navigation,
-      navigateToPerpsHome,
+      navigateOnConfirm,
       onFiatConfirm,
       onRequestConfirm,
       orderId,
-      payWithOption,
       selectedGasFeeToken,
       transactionMetadata,
-      tryEnableEvmNetwork,
-      type,
       waitForResult,
       isSignerHardwareWallet,
     ],
   );
 
-  return { onConfirm };
+  return { navigateOnConfirm, onConfirm };
 }

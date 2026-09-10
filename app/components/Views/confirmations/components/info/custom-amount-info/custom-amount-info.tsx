@@ -23,6 +23,7 @@ import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
+import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
 import {
   CustomAmountStage,
@@ -154,30 +155,28 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       amountFiat,
       amountFiatDebounced,
       amountHuman,
+      depositPrefillStatus,
       hasInput,
       hasPrefetchedQuote,
-      isDepositPrefillEnabled,
-      isDepositPrefilled,
-      isDepositPrefillLoading,
       isInputChanged,
       isPrefillPending,
       updatePendingAmount,
       updatePendingAmountPercentage,
       updateTokenAmount,
-    } = useTransactionCustomAmount({ currency });
+    } = useTransactionCustomAmount({ autoSelectFiatPayment, currency });
 
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
-
-    // Fiat was selected (explicitly or because no crypto tokens are available)
-    // with no crypto pay token — deposit prefill has nothing to prefill from.
-    const isFiatPrefillSkip =
-      Boolean(autoSelectFiatPayment) ||
-      (Boolean(selectedFiatPaymentMethodId) && !payToken);
+    const isDepositPrefillEnabled =
+      depositPrefillStatus !== DepositPrefillStatus.Disabled;
+    const isDepositPrefilled =
+      depositPrefillStatus === DepositPrefillStatus.Prefilled;
+    const isDepositPrefillLoading =
+      depositPrefillStatus === DepositPrefillStatus.Loading;
     const skipDepositPrefill =
-      isFiatPrefillSkip || (!hasAvailableTokens && !payToken);
+      depositPrefillStatus === DepositPrefillStatus.Skipped;
 
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
@@ -395,7 +394,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={hasAlert}
             isLoading={
               !hasAccountNoFunds &&
-              !isFiatPrefillSkip &&
               (isPrefillPending || isDepositPrefillLoading)
             }
             onPress={

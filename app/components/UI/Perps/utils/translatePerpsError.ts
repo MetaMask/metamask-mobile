@@ -29,6 +29,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.bridgeContractNotFound',
   [PERPS_ERROR_CODES.WITHDRAW_FAILED]: 'perps.errors.withdrawFailed',
   [PERPS_ERROR_CODES.POSITIONS_FAILED]: 'perps.errors.positionsFailed',
+  [PERPS_ERROR_CODES.POSITION_NOT_FOUND]: 'perps.errors.position_not_found',
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
@@ -73,6 +74,14 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.ORDER_SIZE_MIN]: 'perps.order.validation.minimum_amount',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID]:
     'perps.order.validation.invalid_leverage',
+  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_INVALID]:
+    'perps.errors.orderValidation.marginModeInvalid',
+  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_UNSUPPORTED]:
+    'perps.errors.orderValidation.marginModeUnsupported',
+  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_POSITION_OPEN]:
+    'perps.errors.orderValidation.marginModePositionOpen',
+  [PERPS_ERROR_CODES.ORDER_MARGIN_MODE_ORDER_OPEN]:
+    'perps.errors.orderValidation.marginModeOrderOpen',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION]:
     'perps.order.validation.leverage_below_position',
   [PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED]:
@@ -375,6 +384,23 @@ export function isPerpsErrorCode(
   }
 
   return error === code;
+}
+
+/** HyperLiquid phrasing for a close/TP-SL aimed at a position it no longer holds. */
+const NO_POSITION_FOUND_PATTERN = /No position found/i;
+
+/**
+ * True when the venue rejected the request because the position was already
+ * filled, closed, or liquidated — a stale-state race, not a user-side failure.
+ */
+export function isNoPositionFoundError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : '';
+  return NO_POSITION_FOUND_PATTERN.test(message);
 }
 
 /**

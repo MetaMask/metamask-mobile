@@ -13,6 +13,7 @@ import { useTheme } from '../../../../util/theme';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
+import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
@@ -60,23 +61,27 @@ const DeveloperOptions = () => {
   }, [navigation]);
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={styles.wrapper}
+      testID={DeveloperOptionsSelectorsIDs.CONTAINER}
+    >
       <HeaderStandard
         title={strings('app_settings.developer_options.title')}
         titleProps={{ color: TextColor.PrimaryDefault }}
         onBack={isFullScreenModal ? undefined : handleBack}
         onClose={isFullScreenModal ? handleClose : undefined}
         includesTopInset
-        testID="developer-options-header"
+        testID={DeveloperOptionsSelectorsIDs.HEADER}
         {...(isFullScreenModal
           ? {
               closeButtonProps: {
-                testID: 'developer-options-close-button',
+                testID: DeveloperOptionsSelectorsIDs.CLOSE_BUTTON,
               },
             }
           : {
               backButtonProps: {
-                testID: 'developer-options-back-button',
+                testID: DeveloperOptionsSelectorsIDs.BACK_BUTTON,
               },
             })}
       />

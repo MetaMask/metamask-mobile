@@ -48,6 +48,7 @@ import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
   resolvePerpsOrderStatusLabel,
+  resolvePerpsTriggerOrderTitle,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
 
@@ -320,7 +321,12 @@ function resolveFallbackTitle(item: ActivityListItem): string {
     strings('transactions.interaction');
 
   if (isPerpsOrderKind(item.type)) {
-    return base;
+    return item.data.perpsTriggerOrderType
+      ? resolvePerpsTriggerOrderTitle(
+          item.type,
+          item.data.perpsTriggerOrderType,
+        )
+      : base;
   }
   return withDomainStatusSuffix(base, item.status);
 }

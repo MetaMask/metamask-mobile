@@ -62,10 +62,10 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import {
-  cancelHomepageReadyTrace,
-  startHomepageReadyTrace,
-  type HomepageReadyTraceToken,
-} from '../../../core/Performance/HomepageReady';
+  cancelUnlockTraces,
+  startUnlockTraces,
+  type UnlockTraceTokens,
+} from '../../../core/Performance/unlockTraces';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getLoginAppStartType } from '../Login/loginPerformanceTags';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -77,6 +77,8 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -85,6 +87,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
@@ -165,11 +168,30 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     () => loading || isDeletingInProgress,
     [loading, isDeletingInProgress],
   );
+
+  useOnboardingLoadingStallTracker({
+    isLoading: finalLoading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.REHYDRATION,
+    properties: {
+      account_type: accountType,
+    },
+    saveOnboardingEvent,
+  });
+
   const navigation = useNavigation<AppNavigationProp>();
 
   useNavigationPerformance({
     destinationScreenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
     destinationReady: true,
+  });
+
+  // TTC only — do not pass finalLoading as isLoading. That flag is password
+  // submit / delete-in-progress, not an initial data-fetch cycle, and would
+  // emit misleading OnboardingScreenDataFetch success/unmount spans.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
+    contentReady: true,
+    isEmpty: false,
   });
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
@@ -566,13 +588,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       account_type: accountType,
       biometrics: biometryChoice,
     });
-    let homepageReadyTraceToken: HomepageReadyTraceToken | null = null;
+    let unlockTraceTokens: UnlockTraceTokens | null = null;
 
     try {
       if (finalLoading) return;
 
-      homepageReadyTraceToken = startHomepageReadyTrace({
-        source: 'unlock',
+      unlockTraceTokens = startUnlockTraces({
         appStartType: getLoginAppStartType(),
       });
       setLoading(true);
@@ -650,10 +671,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
-      });
+      if (unlockTraceTokens) {
+        cancelUnlockTraces(unlockTraceTokens);
+      }
       await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
       if (passwordLoginAttemptTraceCtxRef.current) {
         endTrace({
@@ -678,13 +698,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
-    let homepageReadyTraceToken: HomepageReadyTraceToken | null = null;
+    let unlockTraceTokens: UnlockTraceTokens | null = null;
 
     try {
       if (finalLoading) return;
 
-      homepageReadyTraceToken = startHomepageReadyTrace({
-        source: 'unlock',
+      unlockTraceTokens = startUnlockTraces({
         appStartType: getLoginAppStartType(),
       });
       setLoading(true);
@@ -720,10 +739,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
-      });
+      if (unlockTraceTokens) {
+        cancelUnlockTraces(unlockTraceTokens);
+      }
       await handleLoginError(
         ensureError(loginErr, 'Global password login failed'),
       );

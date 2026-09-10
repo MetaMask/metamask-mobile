@@ -347,6 +347,7 @@ const Routes = {
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
+    RECURRING_JOB_DETAILS: 'RecurringJobDetails',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -374,6 +375,11 @@ const Routes = {
         'BatchSellMinimumReceivedInfoModal',
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
       SWAPS_LIMIT_ORDER_EXPIRATION_MODAL: 'SwapsLimitOrderExpirationModal',
+      LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
+      RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
+      RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
+      RECURRING_PRICE_RANGE_MODAL: 'RecurringPriceRangeModal',
+      RECURRING_CONFIRM_ORDER_MODAL: 'RecurringConfirmOrderModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -418,13 +424,14 @@ const Routes = {
     ROOT: 'MarketInsights',
     VIEW: 'MarketInsightsView',
   },
-  SOCIAL_LEADERBOARD: {
-    ROOT: 'SocialLeaderboard',
-    VIEW: 'TopTradersView',
+  SOCIAL: {
+    ROOT: 'Social',
     TAB: 'SocialLeaderboardTab',
+    V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
+    V1: 'SocialV1View',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {

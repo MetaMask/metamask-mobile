@@ -25,6 +25,20 @@ export interface TokenHolding extends PredefinedToken {
   account?: string;
 }
 
+/**
+ * Default Anvil / Localhost (`0x539`) native ETH holding for confirmation and
+ * other local-node E2E fixtures when `assetsUnifyState` is ON.
+ */
+export const ANVIL_LOCAL_ETH_HOLDING: TokenHolding = {
+  symbol: 'ETH',
+  address: NATIVE_ADDRESS,
+  decimals: 18,
+  chainId: '0x539',
+  isNative: true,
+  usdValue: 1,
+  amount: '100',
+};
+
 const ETHEREUM_CHAIN_ID = '0x1';
 const POLYGON_CHAIN_ID = '0x89';
 const ARBITRUM_CHAIN_ID = '0xa4b1';

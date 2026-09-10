@@ -16,11 +16,6 @@ export const PROVIDER_DISPLAY_INFO: Record<
     name: 'HyperLiquid',
     description: 'High-performance L1 perps',
   },
-  myx: {
-    id: 'myx',
-    name: 'MYX',
-    description: 'BNB Chain perps (Beta)',
-  },
   lighter: {
     id: 'lighter',
     name: 'Lighter',
@@ -68,21 +63,5 @@ export const PROVIDER_NETWORK_OPTIONS: ProviderNetworkOption[] = [
     name: 'HyperLiquid',
     network: 'Testnet',
     description: 'High-performance L1 perps',
-  },
-  {
-    id: 'myx-mainnet',
-    providerId: 'myx',
-    isTestnet: false,
-    name: 'MYX',
-    network: 'Mainnet',
-    description: 'BNB Chain perps (Beta)',
-  },
-  {
-    id: 'myx-testnet',
-    providerId: 'myx',
-    isTestnet: true,
-    name: 'MYX',
-    network: 'Testnet',
-    description: 'Linea Sepolia perps (Beta)',
   },
 ];

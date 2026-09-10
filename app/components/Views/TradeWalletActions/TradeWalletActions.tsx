@@ -59,19 +59,11 @@ import {
   selectCanSignTransactions,
   selectSelectedInternalAccountAddress,
 } from '../../../selectors/accountsController';
-import { earnSelectors } from '../../../selectors/earnController';
-import { selectChainId } from '../../../selectors/networkController';
 import { isHardwareAccount } from '../../../util/address';
-import { getDecimalChainId } from '../../../util/networks';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import { usePerpsMode } from '../../UI/Perps/hooks';
@@ -83,15 +75,12 @@ import { openPerpsModeSelection } from '../../UI/Perps/utils/openPerpsModeSelect
 import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSelectionStorage';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
-import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
+import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -148,16 +137,11 @@ function TradeWalletActions() {
     sheetProgress.value = withTiming(1, { duration: animationDuration });
   }, [backdropOpacity, sheetProgress]);
 
-  const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
   );
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
-
-  const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -176,23 +160,6 @@ function TradeWalletActions() {
   const perpsModeBadge =
     perpsMode === PerpsMode.Pro ? PerpsMode.Pro : PerpsMode.Lite;
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
-
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
-  );
-  const { earnTokens } = useSelector(earnSelectors.selectEarnTokens);
-
-  const isEarnWalletActionEnabled = useMemo(() => {
-    if (
-      !isStablecoinLendingEnabled ||
-      (earnTokens.length <= 1 &&
-        earnTokens[0]?.isETH &&
-        !isPooledStakingEnabled)
-    ) {
-      return false;
-    }
-    return true;
-  }, [isStablecoinLendingEnabled, earnTokens, isPooledStakingEnabled]);
 
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
@@ -214,6 +181,14 @@ function TradeWalletActions() {
     onDismiss?.();
     setIsVisible(false);
   }, [onDismiss]);
+
+  const onActionSelected = useCallback(
+    (callback: () => void | Promise<void>) => {
+      postCallback.current = callback;
+      handleNavigateBack();
+    },
+    [handleNavigateBack],
+  );
 
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
@@ -275,34 +250,6 @@ function TradeWalletActions() {
     };
     handleNavigateBack();
   }, [handleNavigateBack, navigate]);
-
-  const onEarn = useCallback(async () => {
-    postCallback.current = () => {
-      navigate('StakeModals', {
-        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
-        params: {
-          tokenFilter: {
-            includeNativeTokens: true,
-            includeStakingTokens: false,
-            includeLendingTokens: true,
-            includeReceiptTokens: false,
-          },
-          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
-        },
-      });
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Earn',
-            location: STAKE_EVENT_LOCATIONS.WALLET_ACTIONS_BOTTOM_SHEET,
-            chain_id_destination: getDecimalChainId(chainId),
-          })
-          .build(),
-      );
-    };
-    handleNavigateBack();
-  }, [handleNavigateBack, navigate, trackEvent, createEventBuilder, chainId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -431,16 +378,10 @@ function TradeWalletActions() {
           isDisabled={!canSignTransactions}
         />
       )}
-      {isEarnWalletActionEnabled && isEarnEligible && (
-        <ActionListItem
-          label={strings('asset_overview.earn_button')}
-          description={strings('asset_overview.earn_description')}
-          iconName={IconName.Stake}
-          onPress={onEarn}
-          testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
-          isDisabled={!canSignTransactions}
-        />
-      )}
+      <EarnTradeMenuRow
+        onActionSelected={onActionSelected}
+        isDisabled={!canSignTransactions}
+      />
     </>
   );
 
