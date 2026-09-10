@@ -639,6 +639,46 @@ describe('useDeviceEventHandlers', () => {
       expect(mockRefs.isConnectingRef.current).toBe(false);
     });
 
+    it('Connected events do not transition when the flow is inactive', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.Connected,
+          deviceId: 'device-456',
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Connecting);
+      expect(mockSetters.setDeviceId).not.toHaveBeenCalled();
+      expect(mockRefs.isConnectingRef.current).toBe(false);
+    });
+
+    it('AppOpened events do not transition when the flow is inactive', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.AppOpened,
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Connecting);
+    });
+
+    it('AppNotOpen events do not transition when the flow is inactive', () => {
+      const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.AppNotOpen,
+          currentAppName: 'BOLOS',
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.Connecting);
+    });
+
     it('Disconnected events still transition when the flow is inactive', () => {
       const { result } = createHook(HardwareWalletType.Ledger, isFlowActive);
 
