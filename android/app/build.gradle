@@ -321,6 +321,8 @@ android {
         }
         release {
             manifestPlaceholders.isDebug = false
+            // E2E profiles are extracted from the app-private cache with adb.
+            debuggable System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)

@@ -62,4 +62,9 @@ export interface TestLevelFixtures {
    * Appium smoke phase timer. Auto-fixture; attaches JSON timings.
    */
   phaseTimer: PhaseTimer;
+
+  /**
+   * Captures a Hermes CPU profile when APPIUM_CAPTURE_PROFILER is enabled.
+   */
+  profiler: null;
 }

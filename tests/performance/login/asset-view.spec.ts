@@ -5,6 +5,11 @@ import { AppiumAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
+  pullBrowserStackProfiler,
+  startBrowserStackProfiler,
+  stopBrowserStackProfiler,
+} from '../../framework/services/appium/BrowserStackProfiler';
+import {
   Performance,
   PerformanceLogin,
   PerformanceAssetLoading,
@@ -29,19 +34,42 @@ perfTest.describe(
           currentDeviceDetails.platform,
         );
 
+        const profilingEnabled = currentDeviceDetails.platform === 'android';
+        if (profilingEnabled) {
+          await startBrowserStackProfiler(
+            driver,
+            currentDeviceDetails.platform,
+          );
+        }
+
         await WalletView.tapOnTokensSection();
-        await WalletView.tapOnToken('ETH');
 
-        await assetViewScreen.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(
-            TokenOverview.priceChartContainer,
-          );
-          await AppiumAssertions.expectElementToBeVisible(
-            TokenOverview.container,
-          );
-        });
+        try {
+          await WalletView.tapOnToken('ETH');
+          await assetViewScreen.measure(async () => {
+            await AppiumAssertions.expectElementToBeVisible(
+              TokenOverview.priceChartContainer,
+            );
+            await AppiumAssertions.expectElementToBeVisible(
+              TokenOverview.container,
+            );
+          });
 
-        performanceTracker.addTimer(assetViewScreen);
+          performanceTracker.addTimer(assetViewScreen);
+        } finally {
+          if (profilingEnabled) {
+            const profileFileName = await stopBrowserStackProfiler(
+              driver,
+              currentDeviceDetails.platform,
+            );
+            await pullBrowserStackProfiler(
+              driver,
+              testInfo,
+              currentDeviceDetails.platform,
+              profileFileName,
+            );
+          }
+        }
       },
     );
   },
