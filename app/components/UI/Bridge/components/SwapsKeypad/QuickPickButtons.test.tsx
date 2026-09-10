@@ -324,6 +324,18 @@ describe('QuickPickButtons', () => {
         });
       });
     });
+
+    it('applies the fully rounded pill shape', () => {
+      const { getAllByRole } = render(
+        <QuickPickButtons options={defaultOptions} show />,
+      );
+
+      getAllByRole('button').forEach((button) => {
+        expect(StyleSheet.flatten(button.props.style)).toMatchObject({
+          borderRadius: 999,
+        });
+      });
+    });
   });
 
   describe('re-rendering behavior', () => {
