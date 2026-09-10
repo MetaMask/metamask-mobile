@@ -152,9 +152,8 @@ describe('PerpsModeSelectionBottomSheet', () => {
 
   it('outlines the selected card and keeps the unselected border transparent', () => {
     const { result } = renderHook(() => useTailwind());
-    const borderDefault = (
-      result.current.style('border-default') as ViewStyle
-    ).borderColor;
+    const borderDefault = (result.current.style('border-default') as ViewStyle)
+      .borderColor;
     const borderTransparent = (
       result.current.style('border-transparent') as ViewStyle
     ).borderColor;
@@ -170,9 +169,7 @@ describe('PerpsModeSelectionBottomSheet', () => {
       screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION),
     ).toHaveStyle({ borderColor: borderDefault });
     expect(
-      screen.getByTestId(
-        PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION,
-      ),
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION),
     ).toHaveStyle({ borderColor: borderTransparent });
   });
 
