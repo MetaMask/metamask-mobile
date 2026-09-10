@@ -44,3 +44,57 @@ export const BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
   validVariants: Object.values(ButtonColorVariant),
   eventNames: [EVENT_NAME.PERPS_SCREEN_VIEWED, EVENT_NAME.PERPS_UI_INTERACTION],
 };
+
+/**
+ * TAT-3938: Perps bottom-sheet rollout
+ *
+ * One experiment for every full-page → bottom-sheet conversion (Close Position
+ * TAT-3552 and later tickets). Assignment is independent of Lite/Pro mode:
+ * treatment users get that mode's new sheets; control users keep full-page
+ * flows in both modes.
+ *
+ * LaunchDarkly: JSON threshold array, default 0% treatment (`control` served
+ * to 100%) until product signs off. See `docs/perps/perps-ab-testing.md`.
+ *
+ * Consume via `usePerpsBottomSheetAbTest()` — do not call `useABTest` with
+ * this flag from conversion tickets.
+ */
+export const PERPS_BOTTOM_SHEET_AB_TEST_KEY = 'perpsTAT3938AbtestBottomSheets';
+
+export enum BottomSheetVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export type PerpsFlowPresentation = 'fullPage' | 'bottomSheet';
+
+export interface BottomSheetVariantConfig {
+  presentation: PerpsFlowPresentation;
+}
+
+export const BOTTOM_SHEET_VARIANTS: Record<
+  BottomSheetVariant,
+  BottomSheetVariantConfig
+> = {
+  [BottomSheetVariant.Control]: { presentation: 'fullPage' },
+  [BottomSheetVariant.Treatment]: { presentation: 'bottomSheet' },
+};
+
+export const BOTTOM_SHEET_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Bottom Sheet Rollout',
+  variationNames: {
+    control: 'Full-page flows',
+    treatment: 'Bottom-sheet flows',
+  },
+} as const;
+
+export const BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
+  flagKey: PERPS_BOTTOM_SHEET_AB_TEST_KEY,
+  validVariants: Object.values(BottomSheetVariant),
+  eventNames: [
+    EVENT_NAME.PERPS_SCREEN_VIEWED,
+    EVENT_NAME.PERPS_UI_INTERACTION,
+    EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
+    EVENT_NAME.PERPS_TRADE_TRANSACTION,
+  ],
+};
