@@ -2,7 +2,8 @@
  * Invisible Appium controls for Hermes CPU profiling on performance-test APKs.
  *
  * Appium taps start/stop Pressables (same pattern as the PoC in #34727). Status
- * hooks expose recording/result readiness and the on-device `.cpuprofile` path.
+ * hooks expose recording/result readiness, the on-device `.cpuprofile` path, and
+ * whether the session was lost because the app process was terminated mid-test.
  * Only mounts when `IS_PERFORMANCE_TEST=true` — no deeplinks (those hit MetaMask's
  * unsupported-link / 404 UI).
  *
@@ -27,6 +28,7 @@ export const PERFORMANCE_PROFILER_STATUS_TEST_IDS = {
   stopAck: 'performance-profiler-stop-ack',
   recordingReady: 'performance-profiler-recording-ready',
   resultReady: 'performance-profiler-result-ready',
+  sessionLost: 'performance-profiler-session-lost',
   error: 'performance-profiler-error',
 } as const;
 
@@ -65,15 +67,20 @@ const styles = StyleSheet.create({
     top: 104,
     left: 52,
   },
-  error: {
+  sessionLost: {
     top: 156,
     left: 0,
+  },
+  error: {
+    top: 156,
+    left: 52,
   },
 });
 
 const PerformanceProfilerStatus: React.FC = () => {
   const [status, setStatus] = useState<AppProfilingStatus>({
     isRecording: false,
+    isSessionLost: false,
     lastProfilePath: null,
     lastError: null,
   });
@@ -90,22 +97,14 @@ const PerformanceProfilerStatus: React.FC = () => {
   const handleStart = useCallback(() => {
     setStartAcked(true);
     setStopAcked(false);
-    // Yield to the event loop so setStartAcked renders before startProfiling()
-    // runs — startProfiling() is synchronous and can block the JS thread on
-    // cold start, which would otherwise delay the start-ack element appearing.
-    setTimeout(() => {
-      startAppProfiling().catch(() => {
-        // Errors are published via subscribeAppProfilingStatus (error hook).
-      });
-    }, 0);
+    startAppProfiling().catch(() => {
+      // Errors are published via subscribeAppProfilingStatus (error hook).
+    });
   }, []);
 
   const handleStop = useCallback(() => {
     setStopAcked(true);
-    // The test flow can relaunch the app between Start and Stop. Force the
-    // native stop so the JS-side recording state reset does not lose the
-    // active Hermes session.
-    stopAppProfiling(undefined, true).catch(() => {
+    stopAppProfiling().catch(() => {
       // Errors are published via subscribeAppProfilingStatus (error hook).
     });
   }, []);
@@ -178,6 +177,17 @@ const PerformanceProfilerStatus: React.FC = () => {
           collapsable={false}
           onPress={() => undefined}
           style={[styles.hook, styles.resultReady]}
+        />
+      )}
+      {status.isSessionLost && (
+        <Pressable
+          testID={PERFORMANCE_PROFILER_STATUS_TEST_IDS.sessionLost}
+          accessibilityLabel={PERFORMANCE_PROFILER_STATUS_TEST_IDS.sessionLost}
+          accessible
+          importantForAccessibility="yes"
+          collapsable={false}
+          onPress={() => undefined}
+          style={[styles.hook, styles.sessionLost]}
         />
       )}
       {status.lastError && (

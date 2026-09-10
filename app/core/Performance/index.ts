@@ -5,6 +5,7 @@ export {
   getLastAppProfilePath,
   getLastAppProfilingError,
   isAppProfilingRecording,
+  isAppProfilingSessionLost,
   isPerformanceProfilingEnabled,
   startAppProfiling,
   stopAppProfiling,

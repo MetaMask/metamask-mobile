@@ -4,35 +4,35 @@ import PerformanceProfilerStatus, {
   PERFORMANCE_PROFILER_STATUS_TEST_IDS,
 } from './PerformanceProfilerStatus';
 
+interface MockProfilingStatus {
+  isRecording: boolean;
+  isSessionLost: boolean;
+  lastProfilePath: string | null;
+  lastError: string | null;
+}
+
+const IDLE_STATUS: MockProfilingStatus = {
+  isRecording: false,
+  isSessionLost: false,
+  lastProfilePath: null,
+  lastError: null,
+};
+
 const mockStartAppProfiling = jest.fn().mockResolvedValue(true);
 const mockStopAppProfiling = jest
   .fn()
   .mockResolvedValue('/tmp/profile.cpuprofile');
-let statusListener:
-  | ((status: {
-      isRecording: boolean;
-      lastProfilePath: string | null;
-      lastError: string | null;
-    }) => void)
-  | null = null;
+let statusListener: ((status: MockProfilingStatus) => void) | null = null;
 
 jest.mock('../../../core/Performance/appProfiling', () => ({
   isPerformanceProfilingEnabled: true,
   startAppProfiling: (...args: unknown[]) => mockStartAppProfiling(...args),
   stopAppProfiling: (...args: unknown[]) => mockStopAppProfiling(...args),
   subscribeAppProfilingStatus: (
-    listener: (status: {
-      isRecording: boolean;
-      lastProfilePath: string | null;
-      lastError: string | null;
-    }) => void,
+    listener: (status: MockProfilingStatus) => void,
   ) => {
     statusListener = listener;
-    listener({
-      isRecording: false,
-      lastProfilePath: null,
-      lastError: null,
-    });
+    listener(IDLE_STATUS);
     return () => {
       statusListener = null;
     };
@@ -44,12 +44,8 @@ describe('PerformanceProfilerStatus', () => {
     jest.clearAllMocks();
     statusListener = null;
   });
-  afterEach(() => {
-    jest.useRealTimers();
-  });
 
   it('renders start/stop controls and acks presses', () => {
-    jest.useFakeTimers();
     const { getByTestId, queryByTestId } = render(
       <PerformanceProfilerStatus />,
     );
@@ -65,9 +61,6 @@ describe('PerformanceProfilerStatus', () => {
     ).toBeNull();
 
     fireEvent.press(getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.start));
-    act(() => {
-      jest.runOnlyPendingTimers();
-    });
 
     expect(mockStartAppProfiling).toHaveBeenCalledTimes(1);
     expect(
@@ -82,6 +75,14 @@ describe('PerformanceProfilerStatus', () => {
     ).toBeOnTheScreen();
   });
 
+  it('stops profiling without forcing a dump', () => {
+    const { getByTestId } = render(<PerformanceProfilerStatus />);
+
+    fireEvent.press(getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.stop));
+
+    expect(mockStopAppProfiling).toHaveBeenCalledWith();
+  });
+
   it('exposes recording and result hooks from profiling status', () => {
     const { getByTestId, queryByTestId } = render(
       <PerformanceProfilerStatus />,
@@ -92,11 +93,7 @@ describe('PerformanceProfilerStatus', () => {
     ).toBeNull();
 
     act(() => {
-      statusListener?.({
-        isRecording: true,
-        lastProfilePath: null,
-        lastError: null,
-      });
+      statusListener?.({ ...IDLE_STATUS, isRecording: true });
     });
 
     expect(
@@ -105,15 +102,35 @@ describe('PerformanceProfilerStatus', () => {
 
     act(() => {
       statusListener?.({
-        isRecording: false,
+        ...IDLE_STATUS,
         lastProfilePath:
-          '/sdcard/Android/data/io.metamask/files/Documents/profile.cpuprofile',
-        lastError: null,
+          '/sdcard/Android/data/io.metamask/files/Documents/metamask-performance.cpuprofile',
       });
     });
 
     expect(
       getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.resultReady),
     ).toBeOnTheScreen();
+  });
+
+  it('exposes a session-lost hook when the app process was terminated', () => {
+    const { getByTestId, queryByTestId } = render(
+      <PerformanceProfilerStatus />,
+    );
+
+    expect(
+      queryByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.sessionLost),
+    ).toBeNull();
+
+    act(() => {
+      statusListener?.({ ...IDLE_STATUS, isSessionLost: true });
+    });
+
+    expect(
+      getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.sessionLost),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.resultReady),
+    ).toBeNull();
   });
 });
