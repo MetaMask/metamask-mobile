@@ -60,9 +60,7 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
  * @param entropySourceId - Stable entropy source ID returned by {@link HdKeyring.toEntropySourceId()}.
  * @returns The portable wallet payload ID.
  */
-function toWalletPayloadId(
-  entropySourceId: string,
-): AccountWalletPayloadId {
+function toWalletPayloadId(entropySourceId: string): AccountWalletPayloadId {
   return `wallet:${entropySourceId}`;
 }
 
