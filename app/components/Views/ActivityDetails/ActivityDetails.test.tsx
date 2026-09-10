@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import type { ActivityListItem } from '../../../util/activity-adapters';
+import { strings } from '../../../../locales/i18n';
 import ActivityDetails from './ActivityDetails';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
@@ -112,6 +113,7 @@ const useActivityDetailsItemMock = jest.mocked(useActivityDetailsItem);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const useUnifiedTxActionsMock = jest.mocked(useUnifiedTxActions);
 const selectPerpsEnabledFlagMock = jest.mocked(selectPerpsEnabledFlag);
+const usePerpsDetailsItemMock = jest.mocked(usePerpsDetailsItem);
 
 const buildTxActions = (
   overrides: Partial<ReturnType<typeof useUnifiedTxActions>> = {},
@@ -143,6 +145,23 @@ const sendItem: ActivityListItem = {
   timestamp: 1,
   hash: '0xhash',
   data: { from: '0xfrom', to: '0xto' },
+} as ActivityListItem;
+
+const arbitrumSendItem: ActivityListItem = {
+  ...sendItem,
+  chainId: 'eip155:42161',
+  hash: '0xdeposit',
+};
+
+const perpsFundsItem: ActivityListItem = {
+  type: 'perpsAddFunds',
+  chainId: 'eip155:42161',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xdeposit',
+  data: {
+    token: { amount: '1000', decimals: 6, direction: 'in', symbol: 'USDC' },
+  },
 } as ActivityListItem;
 
 describe('ActivityDetails screen', () => {
@@ -270,6 +289,29 @@ describe('ActivityDetails screen', () => {
     rerender(<ActivityDetails />);
 
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('prefers rematched perps funds over a same-hash send', () => {
+    selectPerpsEnabledFlagMock.mockReturnValue(true);
+    useActivityDetailsItemMock.mockReturnValue(arbitrumSendItem);
+    usePerpsDetailsItemMock.mockReturnValue({
+      item: perpsFundsItem,
+      isLoading: false,
+    });
+    useParamsMock.mockReturnValue({
+      chainId: 'eip155:42161',
+      txIdentifier: '0xdeposit',
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityDetails />,
+    );
+
+    expect(getByTestId(ActivityDetailsSelectorsIDs.HEADER)).toHaveTextContent(
+      strings('transactions.activity_perps_account_funded'),
+    );
+    expect(getByTestId('mock-template-loader')).toBeOnTheScreen();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.NOT_FOUND)).toBeNull();
   });
 
   it('does not flash not-found while rematch is still loading', () => {

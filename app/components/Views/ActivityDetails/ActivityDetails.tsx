@@ -203,11 +203,19 @@ function ActivityDetailsScreen({
 
 function PerpsDetailsByIdentifier({
   txIdentifier,
+  chainId,
 }: {
   txIdentifier: string | undefined;
+  chainId: CaipChainId;
 }) {
-  const { item, isLoading } = usePerpsDetailsItem(txIdentifier);
-  return <ActivityDetailsScreen item={item} isLoading={isLoading} />;
+  const localOrApiItem = useActivityDetailsItem(txIdentifier, chainId);
+  const { item: perpsItem, isLoading } = usePerpsDetailsItem(txIdentifier);
+  return (
+    <ActivityDetailsScreen
+      item={perpsItem ?? localOrApiItem}
+      isLoading={isLoading && !perpsItem && !localOrApiItem}
+    />
+  );
 }
 
 function PredictDetailsByIdentifier({
@@ -232,16 +240,19 @@ const ActivityDetails = () => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
-  if (item) {
-    return <ActivityDetailsScreen item={item} />;
-  }
-
   if (isPerpsEnabled && chainId === perpsActivityChainId) {
     return (
       <PerpsDetailsProviders>
-        <PerpsDetailsByIdentifier txIdentifier={txIdentifier} />
+        <PerpsDetailsByIdentifier
+          txIdentifier={txIdentifier}
+          chainId={chainId}
+        />
       </PerpsDetailsProviders>
     );
+  }
+
+  if (item) {
+    return <ActivityDetailsScreen item={item} />;
   }
 
   if (isPredictEnabled && chainId === predictActivityChainId) {
