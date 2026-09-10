@@ -426,9 +426,13 @@ describe('BridgeLimitOrderView', () => {
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
         .accessibilityState?.disabled,
     ).toBeFalsy();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.busy,
+    ).not.toBe(true);
   });
 
-  it('disables the keypad confirm button when a traded asset has no price data', () => {
+  it('disables the keypad confirm button without a loading state when a traded asset has no price data', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
     jest.mocked(useHasMissingAssetsPriceData).mockReturnValue(true);
@@ -439,6 +443,13 @@ describe('BridgeLimitOrderView', () => {
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.busy,
+    ).not.toBe(true);
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toHaveTextContent(strings('bridge.limit.create_order'));
   });
 
   it('disables the keypad confirm button for a hardware wallet account', () => {
