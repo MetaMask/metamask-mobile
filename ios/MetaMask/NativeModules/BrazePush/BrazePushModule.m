@@ -52,9 +52,7 @@ RCT_REMAP_METHOD(
   }
 
   [braze.notifications unregisterPushWithCompletion:^(NSError *error) {
-    if (error == nil ||
-        [error.localizedDescription rangeOfString:@"no push token"
-                                           options:NSCaseInsensitiveSearch].location != NSNotFound) {
+    if (error == nil) {
       resolve(@{@"success": @YES});
       return;
     }
