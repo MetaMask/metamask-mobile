@@ -26,7 +26,7 @@ const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
 const mockConsolidateAction = jest.fn();
 const mockDismissAction = { type: 'DISMISS_BFT_MIGRATION' };
-const mockSelectorValues = new Map();
+let mockSelectorValues = new Map<unknown, unknown>();
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) =>
@@ -106,7 +106,7 @@ function setSelectorValues({
 describe('useBasicFunctionalityConsolidation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectorValues.clear();
+    mockSelectorValues = new Map();
   });
 
   it('runs the one-time migration for an eligible wallet', () => {

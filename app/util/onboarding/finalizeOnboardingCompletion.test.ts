@@ -239,6 +239,7 @@ describe('finalizeOnboardingCompletion', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+    loggerSpy.mockRestore();
   });
 
   it('logs discoverAccounts failures with the provided context', async () => {
@@ -262,6 +263,7 @@ describe('finalizeOnboardingCompletion', () => {
       expect.any(Error),
       'OnboardingSuccess: discoverAccounts failed',
     );
+    loggerSpy.mockRestore();
   });
 
   it('marks consolidated Basic Functionality cohort when remote flag is enabled', () => {
