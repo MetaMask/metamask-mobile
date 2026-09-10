@@ -8,6 +8,7 @@ import {
 } from '@metamask/perps-controller';
 import PerpsPositionCard from './PerpsPositionCard';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -251,11 +252,53 @@ describe('PerpsPositionCard', () => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
+        return true;
+      }
       if (selector === selectPrivacyMode) {
         return false;
       }
       return undefined;
     });
+  });
+
+  it('falls back to the isolated presentation when the Cross margin flag is off', () => {
+    // Arrange - eligible and privacy off, but the Cross margin flag is off
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
+        return false;
+      }
+      if (selector === selectPrivacyMode) {
+        return false;
+      }
+      return undefined;
+    });
+    const cross = {
+      ...mockPosition,
+      leverage: { type: 'cross' as const, value: 3 },
+      liquidationPrice: null,
+    };
+
+    // Act
+    render(<PerpsPositionCard position={cross} onMarginPress={jest.fn()} />);
+
+    // Assert - no Cross affordances, and margin editing is restored
+    expect(
+      screen.queryByTestId('cross-margin-tag-lite-ETH'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('cross-liquidation-info-lite-ETH'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+    ).toBeOnTheScreen();
   });
 
   it.each([null, '1800'])(

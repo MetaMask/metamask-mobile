@@ -9,6 +9,7 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   usePerpsTrading,
   usePerpsTPSLUpdate,
@@ -204,6 +205,9 @@ describe('PerpsPositionsView', () => {
     ).selectPerpsEligibility;
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
         return true;
       }
       if (selector === selectPrivacyMode) {
@@ -584,6 +588,7 @@ describe('PerpsPositionsView', () => {
       ).selectPerpsEligibility;
       useSelector.mockImplementation((selector: unknown) => {
         if (selector === mockSelectPerpsEligibility) return true;
+        if (selector === selectPerpsCrossMarginEnabledFlag) return true;
         if (selector === selectPrivacyMode) return true;
         return undefined;
       });

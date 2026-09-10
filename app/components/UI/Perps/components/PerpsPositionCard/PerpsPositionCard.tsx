@@ -35,6 +35,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
@@ -114,7 +115,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 }) => {
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
   const privacyMode = useSelector(selectPrivacyMode);
-  const isCross = position.leverage.type === 'cross';
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
+  const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
   const marginPress = isCross ? undefined : onMarginPress;
 
   // Determine if position is long or short based on size

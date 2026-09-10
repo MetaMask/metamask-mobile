@@ -35,6 +35,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfoButton';
+import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
 import {
   formatPerpsFiat,
   formatPositionTriggerSummary,
@@ -173,7 +174,8 @@ const PerpsProPositionCard = ({
   isEditMarginDisabled = false,
 }: PerpsProPositionCardProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
-  const isCross = position.leverage.type === 'cross';
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
+  const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
   const {
     displaySymbol,
     absoluteSize,
