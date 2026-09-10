@@ -9,6 +9,7 @@ import {
   type MoneyAccountPlusClaim,
   type ProductType,
   type Subscription,
+  type SubscriptionBenefitsState,
   type SubscriptionControllerState,
 } from '@metamask/subscription-controller';
 import { RootState } from '../reducers';
@@ -195,3 +196,27 @@ export const selectHasAnyMoneyAccountPlusEntitlement = createSelector(
       Boolean(claim?.entitlements?.[feature]),
     ),
 );
+
+/**
+ * Selects persisted Money Account Plus benefit usage for the current billing
+ * period. Undefined until `getBenefits()` has stored a snapshot.
+ *
+ * @param state - The root Redux state.
+ * @returns The benefits snapshot, or undefined when it has not been fetched.
+ */
+export const selectSubscriptionBenefits = createSelector(
+  selectSubscriptionControllerState,
+  (subscriptionControllerState): SubscriptionBenefitsState | undefined =>
+    subscriptionControllerState?.benefits,
+);
+
+/**
+ * Selects the current Money Account Plus subscription, if any.
+ *
+ * @param state - The root Redux state.
+ * @returns The Plus subscription, or undefined when none exists.
+ */
+export const selectMoneyAccountPlusSubscription = (
+  state: RootState,
+): Subscription | undefined =>
+  selectSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
