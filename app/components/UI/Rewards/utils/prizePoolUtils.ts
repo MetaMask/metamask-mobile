@@ -47,3 +47,30 @@ export function computePrizePoolProgress<T extends { prize: number }>(
     isMaxTier: false,
   };
 }
+
+/**
+ * Whether a prize pool section has anything to say — data to show, a load in
+ * progress, or an error to report.
+ *
+ * Parent views use this to drop their section heading in step with the prize
+ * pool itself: a lone "Prize pool" title above an empty space is worse than no
+ * section at all. It lives here rather than on the component so a view can ask
+ * without importing (and having to mock) the component itself.
+ *
+ * @param params - Whether data is present, plus the loading and error flags.
+ * @param params.hasData - Whether prize pool data has been resolved.
+ * @param params.isLoading - Whether a fetch is in flight.
+ * @param params.hasError - Whether the last fetch failed.
+ * @returns Whether the prize pool section will render anything.
+ */
+export function hasPrizePoolContent({
+  hasData,
+  isLoading,
+  hasError,
+}: {
+  hasData: boolean;
+  isLoading: boolean;
+  hasError: boolean;
+}): boolean {
+  return hasData || isLoading || hasError;
+}

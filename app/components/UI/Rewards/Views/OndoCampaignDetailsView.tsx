@@ -44,6 +44,7 @@ import OndoCampaignEndedStats from '../components/Campaigns/OndoCampaignEndedSta
 import OndoNotEligibleSheet from '../components/Campaigns/OndoNotEligibleSheet';
 import OndoCampaignStatsSummary from '../components/Campaigns/OndoCampaignStatsSummary';
 import OndoPrizePool from '../components/Campaigns/OndoPrizePool';
+import { hasPrizePoolContent } from '../utils/prizePoolUtils';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
@@ -480,22 +481,27 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {getCampaignStatus(campaign) !== 'upcoming' && (
-                <>
-                  <Box twClassName="my-1 border-b border-border-muted" />
-                  <Box twClassName="p-4">
-                    <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
-                      {strings('rewards.campaign_prize_pool.title')}
-                    </Text>
-                    <OndoPrizePool
-                      totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
-                      isLoading={isDepositsLoading}
-                      hasError={hasDepositsError}
-                      refetch={refetchDeposits}
-                    />
-                  </Box>
-                </>
-              )}
+              {getCampaignStatus(campaign) !== 'upcoming' &&
+                hasPrizePoolContent({
+                  hasData: deposits?.totalUsdDeposited != null,
+                  isLoading: isDepositsLoading,
+                  hasError: hasDepositsError,
+                }) && (
+                  <>
+                    <Box twClassName="my-1 border-b border-border-muted" />
+                    <Box twClassName="p-4">
+                      <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
+                        {strings('rewards.campaign_prize_pool.title')}
+                      </Text>
+                      <OndoPrizePool
+                        totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
+                        isLoading={isDepositsLoading}
+                        hasError={hasDepositsError}
+                        refetch={refetchDeposits}
+                      />
+                    </Box>
+                  </>
+                )}
 
               {showLeaderboardSection && (
                 <>

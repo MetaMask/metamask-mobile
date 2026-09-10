@@ -4,6 +4,7 @@ import CampaignPrizePool, {
   CAMPAIGN_PRIZE_POOL_TEST_IDS,
   type CampaignPrizePoolSchedule,
 } from './CampaignPrizePool';
+import { hasPrizePoolContent } from '../../utils/prizePoolUtils';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -301,6 +302,70 @@ describe('CampaignPrizePool', () => {
     expect(queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeNull();
     expect(queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.PROGRESS_BAR)).toBeNull();
     expect(queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeNull();
+  });
+
+  describe('hasPrizePoolContent', () => {
+    it('reports content whenever data, a load, or an error is present', () => {
+      expect(
+        hasPrizePoolContent({
+          hasData: true,
+          isLoading: false,
+          hasError: false,
+        }),
+      ).toBe(true);
+      expect(
+        hasPrizePoolContent({
+          hasData: false,
+          isLoading: true,
+          hasError: false,
+        }),
+      ).toBe(true);
+      expect(
+        hasPrizePoolContent({
+          hasData: false,
+          isLoading: false,
+          hasError: true,
+        }),
+      ).toBe(true);
+    });
+
+    it('reports no content only when there is nothing to show or await', () => {
+      expect(
+        hasPrizePoolContent({
+          hasData: false,
+          isLoading: false,
+          hasError: false,
+        }),
+      ).toBe(false);
+    });
+
+    it('agrees with what the component actually renders', () => {
+      // The predicate exists so parents can drop their section heading in step
+      // with the component; they must not be able to disagree.
+      const cases = [
+        { prizePool, isLoading: false, hasError: false },
+        { prizePool: null, isLoading: true, hasError: false },
+        { prizePool: null, isLoading: false, hasError: true },
+        { prizePool: null, isLoading: false, hasError: false },
+      ];
+
+      cases.forEach((props) => {
+        const { queryByTestId, unmount } = render(
+          <CampaignPrizePool {...props} refetch={mockRefetch} />,
+        );
+        const rendered =
+          queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.CONTAINER) !== null;
+
+        expect(rendered).toBe(
+          hasPrizePoolContent({
+            hasData: props.prizePool != null,
+            isLoading: props.isLoading,
+            hasError: props.hasError,
+          }),
+        );
+        unmount();
+      });
+    });
   });
 
   it('prefers existing data over a loading state (stale-while-revalidate)', () => {

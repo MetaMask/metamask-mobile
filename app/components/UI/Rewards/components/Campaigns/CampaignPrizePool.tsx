@@ -14,7 +14,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { formatCompactUsd, formatUsd } from '../../utils/formatUtils';
-import { computePrizePoolProgress } from '../../utils/prizePoolUtils';
+import {
+  computePrizePoolProgress,
+  hasPrizePoolContent,
+} from '../../utils/prizePoolUtils';
 
 export const CAMPAIGN_PRIZE_POOL_TEST_IDS = {
   CONTAINER: 'campaign-prize-pool-container',
@@ -128,7 +131,9 @@ const CampaignPrizePool: React.FC<CampaignPrizePoolProps> = ({
   // No data, and nothing in flight or failed to explain its absence. Rendering
   // the ladder here would state a $0 prize pool as fact, which is a claim about
   // the campaign rather than a missing value.
-  if (prizePool == null) {
+  if (
+    !hasPrizePoolContent({ hasData: prizePool != null, isLoading, hasError })
+  ) {
     return null;
   }
 

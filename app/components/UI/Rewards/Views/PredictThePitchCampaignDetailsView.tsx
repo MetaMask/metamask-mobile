@@ -48,6 +48,7 @@ import { useGetPredictThePitchPrizePool } from '../hooks/useGetPredictThePitchPr
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
+import { hasPrizePoolContent } from '../utils/prizePoolUtils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -493,26 +494,31 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                 </Box>
               )}
 
-              {showPrizePoolSection && (
-                <>
-                  <Box twClassName="my-1 border-b border-border-muted" />
-                  <Box twClassName="p-4">
-                    <Text
-                      variant={TextVariant.HeadingMd}
-                      fontWeight={FontWeight.Bold}
-                      twClassName="mb-1"
-                    >
-                      {strings('rewards.campaign_prize_pool.title')}
-                    </Text>
-                    <CampaignPrizePool
-                      prizePool={prizePool}
-                      isLoading={isPrizePoolLoading}
-                      hasError={hasPrizePoolError}
-                      refetch={refetchPrizePool}
-                    />
-                  </Box>
-                </>
-              )}
+              {showPrizePoolSection &&
+                hasPrizePoolContent({
+                  hasData: prizePool != null,
+                  isLoading: isPrizePoolLoading,
+                  hasError: hasPrizePoolError,
+                }) && (
+                  <>
+                    <Box twClassName="my-1 border-b border-border-muted" />
+                    <Box twClassName="p-4">
+                      <Text
+                        variant={TextVariant.HeadingMd}
+                        fontWeight={FontWeight.Bold}
+                        twClassName="mb-1"
+                      >
+                        {strings('rewards.campaign_prize_pool.title')}
+                      </Text>
+                      <CampaignPrizePool
+                        prizePool={prizePool}
+                        isLoading={isPrizePoolLoading}
+                        hasError={hasPrizePoolError}
+                        refetch={refetchPrizePool}
+                      />
+                    </Box>
+                  </>
+                )}
 
               {showLeaderboardSection && (
                 <>
