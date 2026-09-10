@@ -427,6 +427,7 @@ export type RootModalFlowParamList = {
   ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   BasicFunctionality: { caller?: string } | undefined;
+  BasicFunctionalityMigration: undefined;
   ConfirmTurnOnBackupAndSync:
     | ConfirmTurnOnBackupAndSyncModalNavigateParams
     | undefined;
@@ -791,6 +792,7 @@ export type RootStackParamList = {
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: { caller?: string } | undefined;
+  BasicFunctionalityMigration: undefined;
   ConfirmTurnOnBackupAndSync:
     | ConfirmTurnOnBackupAndSyncModalNavigateParams
     | undefined;
@@ -996,7 +998,7 @@ export type RootStackParamList = {
   PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
 
   // Social Leaderboard routes
-  TopTradersView:
+  SocialV0View:
     | {
         /** Analytics entry-point that opened the leaderboard. Narrowed at the
          * receiver to LeaderboardScreenViewedSource. */
@@ -1011,6 +1013,12 @@ export type RootStackParamList = {
         landingTab?: 'leaderboard' | 'feed';
         /** Audience preselected on the Feed tab when `landingTab` is `feed`. */
         landingFeedAudience?: 'all' | 'following';
+      }
+    | undefined;
+  SocialV1View:
+    | {
+        source?: string;
+        showNotificationsBanner?: boolean;
       }
     | undefined;
   TraderProfileView: {
