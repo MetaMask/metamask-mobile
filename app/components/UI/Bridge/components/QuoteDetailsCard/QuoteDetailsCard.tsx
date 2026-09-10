@@ -328,7 +328,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        {relayerFee?.length > 0 && (
+        {Boolean(relayerFee?.length) && (
           <KeyValueRow
             field={{
               label: {
