@@ -26,7 +26,9 @@ import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
-import MoneyHeader from '../../components/MoneyHeader';
+import MoneyHeader, {
+  type MoneyHeaderProps,
+} from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
@@ -401,6 +403,21 @@ const MoneyHomeView = () => {
     },
     [setTitleSectionHeight],
   );
+
+  // Built as a whole object so each arm matches one side of the header's
+  // props union; spreading a partial would widen both arms to optional.
+  const headerProps: MoneyHeaderProps = isPushed
+    ? {
+        onMenuPress: handleMenuPress,
+        onGetProPress: handleGetProPress,
+        onBack: handleBackPress,
+        scrollY,
+        titleSectionHeight: titleSectionHeightSv,
+      }
+    : {
+        onMenuPress: handleMenuPress,
+        onGetProPress: handleGetProPress,
+      };
 
   const handleAddPress = useCallback(
     ({
@@ -915,17 +932,7 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader
-        onMenuPress={handleMenuPress}
-        onGetProPress={handleGetProPress}
-        {...(isPushed
-          ? {
-              onBack: handleBackPress,
-              scrollY,
-              titleSectionHeight: titleSectionHeightSv,
-            }
-          : {})}
-      />
+      <MoneyHeader {...headerProps} />
       <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}

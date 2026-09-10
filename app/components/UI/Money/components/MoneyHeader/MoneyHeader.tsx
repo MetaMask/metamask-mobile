@@ -44,7 +44,7 @@ interface MoneyHeaderTabProps {
   titleSectionHeight?: never;
 }
 
-type MoneyHeaderProps = MoneyHeaderCommonProps &
+export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
