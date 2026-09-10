@@ -33,6 +33,7 @@ const AddAssetTokenRow = ({ asset, networkName }: AddAssetTokenRowProps) => (
         badge={
           <BadgeNetwork
             src={NetworkBadgeSource(asset.chainId as `0x${string}`)}
+            name={networkName}
             twClassName="h-5 w-5"
           />
         }
