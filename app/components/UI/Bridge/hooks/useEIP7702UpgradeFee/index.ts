@@ -40,17 +40,16 @@ interface FeeCalculationInputs {
   shouldUseEIP1559FeeLogic: boolean;
 }
 
-type FeeEstimateState =
-  | { status: 'loading' }
-  | { status: 'not-required' }
-  | { status: 'ready'; inputs: FeeCalculationInputs }
-  | { status: 'error' };
+type FeeState<ReadyState extends object> =
+  | { status: 'loading' | 'not-required' | 'error' }
+  | ({ status: 'ready' } & ReadyState);
 
-export type EIP7702UpgradeFee =
-  | { status: 'loading' }
-  | { status: 'not-required' }
-  | { status: 'ready'; fee: string }
-  | { status: 'error' };
+type FeeEstimateState = FeeState<{ inputs: FeeCalculationInputs }>;
+
+export type EIP7702UpgradeFee = FeeState<{
+  displayFee: string;
+  preciseNativeFeeInHex: Hex;
+}>;
 
 function getNetworkClientId(
   networkConfiguration: NetworkConfiguration | undefined,
@@ -238,10 +237,14 @@ export function useEIP7702UpgradeFee(): EIP7702UpgradeFee {
           shouldHideFiat,
         }),
     });
+    if (!isStrictHexString(fees.preciseNativeFeeInHex)) {
+      return { status: 'error' };
+    }
 
     return {
       status: 'ready',
-      fee: fees.currentCurrencyFee ?? fees.nativeCurrencyFee ?? '--',
+      displayFee: fees.currentCurrencyFee ?? fees.nativeCurrencyFee ?? '--',
+      preciseNativeFeeInHex: fees.preciseNativeFeeInHex,
     };
   }, [
     feeEstimateState,

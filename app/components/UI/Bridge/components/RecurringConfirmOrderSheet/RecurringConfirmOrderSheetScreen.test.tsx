@@ -200,7 +200,8 @@ describe('RecurringConfirmOrderSheetScreen', () => {
   it('passes the delegation fee estimate to the confirmation sheet', () => {
     jest.mocked(useEIP7702UpgradeFee).mockReturnValue({
       status: 'ready',
-      fee: '$1.23',
+      displayFee: '$1.23',
+      preciseNativeFeeInHex: '0x1',
     });
 
     const { getByTestId } = renderScreen();

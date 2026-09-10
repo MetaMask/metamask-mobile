@@ -198,7 +198,13 @@ const RecurringConfirmOrderSheet = ({
     token: sourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
-  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasSufficientGas = useHasSufficientGas({
+    additionalGasFeeInHex:
+      delegationFee.status === 'ready'
+        ? delegationFee.preciseNativeFeeInHex
+        : undefined,
+    quote: activeQuote,
+  });
   const hasInsufficientGas = !hasSufficientGas;
   const isDelegationFeeReady =
     delegationFee.status === 'ready' || delegationFee.status === 'not-required';
@@ -369,7 +375,9 @@ const RecurringConfirmOrderSheet = ({
             <ConfirmOrderRow
               label={strings('bridge.recurring.delegation_fee_one_time')}
               value={
-                delegationFee.status === 'ready' ? delegationFee.fee : '--'
+                delegationFee.status === 'ready'
+                  ? delegationFee.displayFee
+                  : '--'
               }
               testID={RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE}
               isLoading={delegationFee.status === 'loading'}

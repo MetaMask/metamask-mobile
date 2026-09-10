@@ -8,6 +8,7 @@ import {
   getNativeAssetForChainId,
   toBridgeAssetV2,
 } from '@metamask/bridge-controller';
+import type { Hex } from '@metamask/utils';
 import { BigNumber } from 'ethers';
 
 // Mock dependencies
@@ -93,6 +94,66 @@ describe('useHasSufficientGas', () => {
       );
 
       expect(result.current).toBe(true);
+    });
+  });
+
+  describe('when an additional gas fee is required', () => {
+    const mockQuote = {
+      chainId: 'eip155:1',
+      quote: {
+        gasIncluded: false,
+        gasIncluded7702: false,
+        feeData: {
+          network: [
+            {
+              normalizedAmount: '0.001',
+              asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+            },
+          ],
+        },
+      },
+    } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+
+    it('includes the additional fee in the required gas balance', () => {
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '0.0015',
+        atomicBalance: BigNumber.from('1500000000000000'),
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useHasSufficientGas({
+            additionalGasFeeInHex: '0x38d7ea4c68000' as Hex,
+            quote: mockQuote,
+          }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('checks the additional fee when quote gas is included', () => {
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '0.0005',
+        atomicBalance: BigNumber.from('500000000000000'),
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useHasSufficientGas({
+            additionalGasFeeInHex: '0x38d7ea4c68000' as Hex,
+            quote: {
+              ...mockQuote,
+              quote: {
+                ...mockQuote?.quote,
+                gasIncluded: true,
+              },
+            } as ReturnType<typeof useBridgeQuoteData>['activeQuote'],
+          }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(false);
     });
   });
 

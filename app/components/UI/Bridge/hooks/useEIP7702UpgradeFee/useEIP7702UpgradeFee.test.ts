@@ -221,7 +221,11 @@ describe('useEIP7702UpgradeFee', () => {
     const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
 
     await waitFor(() => {
-      expect(result.current).toEqual({ status: 'ready', fee: '$0.50' });
+      expect(result.current).toEqual({
+        status: 'ready',
+        displayFee: '$0.50',
+        preciseNativeFeeInHex: '0xe531527bc000',
+      });
     });
   });
 
@@ -230,7 +234,11 @@ describe('useEIP7702UpgradeFee', () => {
     const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
 
     await waitFor(() => {
-      expect(result.current).toEqual({ status: 'ready', fee: '$0.70' });
+      expect(result.current).toEqual({
+        status: 'ready',
+        displayFee: '$0.70',
+        preciseNativeFeeInHex: '0x1402462f60000',
+      });
     });
   });
 
@@ -247,7 +255,11 @@ describe('useEIP7702UpgradeFee', () => {
     const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
 
     await waitFor(() => {
-      expect(result.current).toEqual({ status: 'ready', fee: '$0.42' });
+      expect(result.current).toEqual({
+        status: 'ready',
+        displayFee: '$0.42',
+        preciseNativeFeeInHex: '0xbefe6f672000',
+      });
     });
   });
 
@@ -256,7 +268,11 @@ describe('useEIP7702UpgradeFee', () => {
     const { result } = renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
 
     await waitFor(() => {
-      expect(result.current).toEqual({ status: 'ready', fee: '0.0003' });
+      expect(result.current).toEqual({
+        status: 'ready',
+        displayFee: '0.0003',
+        preciseNativeFeeInHex: '0xe531527bc000',
+      });
     });
   });
 

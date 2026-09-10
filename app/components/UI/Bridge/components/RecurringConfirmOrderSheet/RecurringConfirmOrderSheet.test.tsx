@@ -104,7 +104,11 @@ const INSUFFICIENT_SOURCE_BALANCE = {
 };
 
 function renderSheet({
-  delegationFee = { status: 'ready', fee: '$1.23' },
+  delegationFee = {
+    status: 'ready',
+    displayFee: '$1.23',
+    preciseNativeFeeInHex: '0x1',
+  },
   goBack = jest.fn(),
   isSubmitting = false,
   onConfirm = jest.fn(),
@@ -531,6 +535,21 @@ describe('RecurringConfirmOrderSheet', () => {
         RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON,
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  it('includes the delegation fee in the gas balance check', () => {
+    renderSheet({
+      delegationFee: {
+        status: 'ready',
+        displayFee: '$1.23',
+        preciseNativeFeeInHex: '0x123',
+      },
+    });
+
+    expect(useHasSufficientGas).toHaveBeenCalledWith({
+      additionalGasFeeInHex: '0x123',
+      quote: mockUseBridgeQuoteData.activeQuote,
+    });
   });
 
   it('shows a skeleton and disables Confirm while estimating delegation fee', () => {
