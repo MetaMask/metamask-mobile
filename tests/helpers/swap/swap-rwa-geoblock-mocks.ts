@@ -31,10 +31,6 @@ const BRIDGE_CONFIG_V2_WITH_SSE = {
 export const RWA_GEO_BLOCK_REMOTE_FEATURE_FLAG_OVERRIDES = {
   bridgeConfigV2: BRIDGE_CONFIG_V2_WITH_SSE,
   rwaTokensEnabled: true,
-  stxMigrationBatchStatus: false,
-  stxMigrationCancel: false,
-  stxMigrationGetFees: false,
-  stxMigrationSubmitTransactions: false,
 };
 
 const USDC_TO_GOOGLON_QUOTE_STREAM_PATTERN = new RegExp(

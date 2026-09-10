@@ -1245,7 +1245,7 @@ describe('MainNavigator', () => {
     });
   });
 
-  it('includes SocialTradersTabsView screen when Social Leaderboard remote flag is enabled', () => {
+  it('includes SocialV0View screen when Social Leaderboard remote flag is enabled', () => {
     const stateWithSocialLeaderboard = {
       ...initialRootState,
       engine: {
@@ -1290,11 +1290,18 @@ describe('MainNavigator', () => {
       }));
 
     const topTradersScreen = screenProps?.find(
-      (screen) => screen?.name === Routes.SOCIAL_LEADERBOARD.VIEW,
+      (screen) => screen?.name === Routes.SOCIAL.V0,
     );
 
     expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('SocialTradersTabsView');
+    expect(topTradersScreen?.component.name).toBe('SocialV0View');
+
+    const bundleV1Screen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.V1,
+    );
+
+    expect(bundleV1Screen).toBeDefined();
+    expect(bundleV1Screen?.component.name).toBe('SocialV1View');
   });
 
   describe('Rewards route placement across the Header & NavBar arms', () => {
