@@ -121,6 +121,8 @@ const Routes = {
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
   REWARDS_VIP_TRANSACTIONS_VIEW: 'RewardsVipTransactionsView',
+  REWARDS_MONEY_VIEW: 'RewardsMoneyView',
+  REWARDS_MONEY_EARNINGS_VIEW: 'RewardsMoneyEarningsView',
   REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
   REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
@@ -191,6 +193,7 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    REWARDS_MONEY_CLAIM_SHEET: 'RewardsMoneyClaimSheet',
     SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {

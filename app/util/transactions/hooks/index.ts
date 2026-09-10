@@ -299,6 +299,21 @@ function validateRequiredQuote(
     return;
   }
 
+  // A quote-required type (currently only `moneyAccountDeposit`) that
+  // declares no `requiredAssets` is not asking MetaMask Pay to source
+  // anything, so there is nothing to quote for. This is the Rewards Money
+  // claim's deposit leg: its own EIP-3009 authorization delivers the mUSD
+  // earlier in the same batch (see `useClaimEarnings.ts`), so the batch never
+  // engages MM Pay. A regular Money Account deposit always declares
+  // `requiredAssets` — even a placeholder `0x0` amount before the user picks
+  // one (see `useMoneyAccount.ts`) — so this cannot silently exempt that flow.
+  const isSelfFundedDeposit =
+    isQuoteRequiredType && !transactionMeta.requiredAssets?.length;
+
+  if (isSelfFundedDeposit) {
+    return;
+  }
+
   throw new Error('MetaMask Pay: Cannot submit without quote');
 }
 

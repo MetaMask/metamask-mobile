@@ -257,6 +257,17 @@ export default {
     UAT: 'https://rewards.uat-api.cx.metamask.io',
     PRD: 'https://rewards.api.cx.metamask.io',
   },
+  // Rewards Money: no builds.yml entry yet, so the env override is the local
+  // escape hatch. UAT has no namespace deployed, hence DEV/PRD only.
+  // These hosts do not resolve yet — they point ahead to the renamed ingress
+  // Infra provisions under INFRA-3921. Until that lands, neither branch
+  // answers, so use REWARDS_MONEY_API_URL to target a local backend. The
+  // service's former `referral-program.*` ingress is what currently serves,
+  // and is deliberately not used here so nothing has to be unpicked at cutover.
+  REWARDS_MONEY_API_URL: {
+    DEV: 'https://rewards-money.dev-api.cx.metamask.io',
+    PRD: 'https://rewards-money.api.cx.metamask.io',
+  },
   BAANX_API_URL: {
     DEV: 'https://foxdev2-ag.foxcard.io',
     UAT: 'https://dev.api.baanx.com',
