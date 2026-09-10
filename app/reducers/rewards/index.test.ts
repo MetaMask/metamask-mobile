@@ -1375,6 +1375,71 @@ describe('rewardsReducer', () => {
         expect(state.referralDetails).toEqual({});
         expect(state.seasonId).toBe('season-x');
       });
+
+      it('replaces legacy array-shaped boosts, points, unlocked rewards, and benefits with empty maps', () => {
+        const persisted = {
+          ...initialState,
+          activeBoosts: [{ id: 'boost-1' }],
+          pointsEvents: [{ id: 'event-1' }],
+          unlockedRewards: [{ id: 'reward-1' }],
+          benefits: [{ id: 'benefit-1' }],
+        };
+
+        const state = rewardsReducer(initialState, {
+          type: 'persist/REHYDRATE',
+          payload: { rewards: persisted as unknown as RewardsState },
+        });
+
+        expect(state.activeBoosts).toEqual({});
+        expect(state.pointsEvents).toEqual({});
+        expect(state.unlockedRewards).toEqual({});
+        expect(state.benefits).toEqual({});
+      });
+
+      it('drops vip dashboard entries that are raw DTOs instead of cache entries', () => {
+        const persisted = {
+          ...initialState,
+          vipDashboard: {
+            [TEST_SUBSCRIPTION_ID]: { lastFetched: 1 },
+          },
+          vipRefereeDashboard: {
+            [TEST_SUBSCRIPTION_ID]: { lastFetched: 2 },
+          },
+        };
+
+        const state = rewardsReducer(initialState, {
+          type: 'persist/REHYDRATE',
+          payload: { rewards: persisted as unknown as RewardsState },
+        });
+
+        expect(state.vipDashboard).toEqual({});
+        expect(state.vipRefereeDashboard).toEqual({});
+      });
+
+      it('keeps vip dashboard cache entries and drops campaign-id-only money account stats keys', () => {
+        const compositeKey = `${TEST_SUBSCRIPTION_ID}:campaign-1`;
+        const cacheEntry = { data: null, loading: false, error: false };
+        const persisted = {
+          ...initialState,
+          vipDashboard: {
+            [TEST_SUBSCRIPTION_ID]: cacheEntry,
+          },
+          moneyAccountSweepstakesStats: {
+            'campaign-1': cacheEntry,
+            [compositeKey]: cacheEntry,
+          },
+        };
+
+        const state = rewardsReducer(initialState, {
+          type: 'persist/REHYDRATE',
+          payload: { rewards: persisted as unknown as RewardsState },
+        });
+
+        expect(state.vipDashboard[TEST_SUBSCRIPTION_ID]).toEqual(cacheEntry);
+        expect(state.moneyAccountSweepstakesStats).toEqual({
+          [compositeKey]: cacheEntry,
+        });
+      });
     });
 
     describe('unknown actions', () => {

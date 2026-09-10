@@ -556,6 +556,61 @@ interface RehydrateAction extends Action<'persist/REHYDRATE'> {
   };
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Persisted maps that used to be arrays (boosts, points, unlocked rewards,
+ * benefits) must not be restored as-is: reducers write string keys onto the
+ * value, and JSON.stringify drops those keys on the next persist.
+ */
+function rehydrateKeyedMap<T>(value: unknown): Record<string, T> {
+  if (!isPlainRecord(value)) {
+    return {};
+  }
+  return value as Record<string, T>;
+}
+
+function isCampaignResourceCacheEntry(
+  value: unknown,
+): value is CampaignResourceCacheEntry<unknown> {
+  return (
+    isPlainRecord(value) &&
+    'data' in value &&
+    'loading' in value &&
+    'error' in value
+  );
+}
+
+function rehydrateCampaignResourceCacheMap<T>(
+  value: unknown,
+): Record<string, CampaignResourceCacheEntry<T>> {
+  if (!isPlainRecord(value)) {
+    return {};
+  }
+  const next: Record<string, CampaignResourceCacheEntry<T>> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (isCampaignResourceCacheEntry(entry)) {
+      next[key] = entry as CampaignResourceCacheEntry<T>;
+    }
+  }
+  return next;
+}
+
+function rehydrateSubscriptionCampaignCacheMap<T>(
+  value: unknown,
+): Record<string, CampaignResourceCacheEntry<T>> {
+  const map = rehydrateCampaignResourceCacheMap<T>(value);
+  const next: Record<string, CampaignResourceCacheEntry<T>> = {};
+  for (const [key, entry] of Object.entries(map)) {
+    if (key.includes(':')) {
+      next[key] = entry;
+    }
+  }
+  return next;
+}
+
 const rewardsSlice = createSlice({
   name: 'rewards',
   initialState,
@@ -1911,38 +1966,64 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.seasonActivityTypes ?? [],
               seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn ?? [],
 
-              // Keyed maps — restore if present; legacy flat fields are dropped
-              seasonUserStatuses:
-                action.payload.rewards.seasonUserStatuses ?? {},
-              referralDetails: action.payload.rewards.referralDetails ?? {},
-              activeBoosts: action.payload.rewards.activeBoosts ?? {},
-              pointsEvents: action.payload.rewards.pointsEvents ?? {},
-              unlockedRewards: action.payload.rewards.unlockedRewards ?? {},
-              benefits: action.payload.rewards.benefits ?? {},
+              // Keyed maps — restore if present and already the new shape;
+              // legacy flat fields and same-name old types (arrays, DTO maps,
+              // campaignId-only stats) are dropped.
+              seasonUserStatuses: rehydrateKeyedMap(
+                action.payload.rewards.seasonUserStatuses,
+              ),
+              referralDetails: rehydrateKeyedMap(
+                action.payload.rewards.referralDetails,
+              ),
+              activeBoosts: rehydrateKeyedMap(
+                action.payload.rewards.activeBoosts,
+              ),
+              pointsEvents: rehydrateKeyedMap(
+                action.payload.rewards.pointsEvents,
+              ),
+              unlockedRewards: rehydrateKeyedMap(
+                action.payload.rewards.unlockedRewards,
+              ),
+              benefits: rehydrateKeyedMap(action.payload.rewards.benefits),
 
               campaigns: action.payload.rewards.campaigns ?? [],
-              vipDashboard: action.payload.rewards.vipDashboard ?? {},
-              vipRefereeDashboard:
-                action.payload.rewards.vipRefereeDashboard ?? {},
-              vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
-              vipRefereeSplashAccepted:
-                action.payload.rewards.vipRefereeSplashAccepted ?? {},
-              vipTransactions: action.payload.rewards.vipTransactions ?? {},
-              campaignParticipantStatuses:
-                action.payload.rewards.campaignParticipantStatuses ?? {},
-              ondoCampaignLeaderboardPositions:
-                action.payload.rewards.ondoCampaignLeaderboardPositions ?? {},
-              ondoCampaignPortfolio:
-                action.payload.rewards.ondoCampaignPortfolio ?? {},
-              ondoCampaignActivity:
-                action.payload.rewards.ondoCampaignActivity ?? {},
-              predictThePitchLeaderboardPositions:
-                action.payload.rewards.predictThePitchLeaderboardPositions ??
-                {},
-              predictThePitchPositions:
-                action.payload.rewards.predictThePitchPositions ?? {},
+              vipDashboard: rehydrateCampaignResourceCacheMap(
+                action.payload.rewards.vipDashboard,
+              ),
+              vipRefereeDashboard: rehydrateCampaignResourceCacheMap(
+                action.payload.rewards.vipRefereeDashboard,
+              ),
+              vipSplashAccepted: rehydrateKeyedMap(
+                action.payload.rewards.vipSplashAccepted,
+              ),
+              vipRefereeSplashAccepted: rehydrateKeyedMap(
+                action.payload.rewards.vipRefereeSplashAccepted,
+              ),
+              vipTransactions: rehydrateKeyedMap(
+                action.payload.rewards.vipTransactions,
+              ),
+              campaignParticipantStatuses: rehydrateKeyedMap(
+                action.payload.rewards.campaignParticipantStatuses,
+              ),
+              ondoCampaignLeaderboardPositions: rehydrateKeyedMap(
+                action.payload.rewards.ondoCampaignLeaderboardPositions,
+              ),
+              ondoCampaignPortfolio: rehydrateKeyedMap(
+                action.payload.rewards.ondoCampaignPortfolio,
+              ),
+              ondoCampaignActivity: rehydrateKeyedMap(
+                action.payload.rewards.ondoCampaignActivity,
+              ),
+              predictThePitchLeaderboardPositions: rehydrateKeyedMap(
+                action.payload.rewards.predictThePitchLeaderboardPositions,
+              ),
+              predictThePitchPositions: rehydrateKeyedMap(
+                action.payload.rewards.predictThePitchPositions,
+              ),
               moneyAccountSweepstakesStats:
-                action.payload.rewards.moneyAccountSweepstakesStats ?? {},
+                rehydrateSubscriptionCampaignCacheMap(
+                  action.payload.rewards.moneyAccountSweepstakesStats,
+                ),
               hideUnlinkedAccountsBanner:
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
