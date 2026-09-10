@@ -515,3 +515,31 @@ export const selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag =
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
   });
+
+/**
+ * Client-config / Redux key for the Cross margin feature flag.
+ * LaunchDarkly key (kebab-case): `perps-cross-margin-enabled`.
+ */
+export const PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY =
+  'perpsCrossMarginEnabled' as const;
+
+/**
+ * Selector for Cross margin support on existing positions.
+ * When enabled: Cross positions show the Cross badge, the shared-collateral
+ * liquidation explanation and a non-editable "Margin used" label.
+ * When disabled: Cross positions fall back to the isolated presentation.
+ * Defaults to false so Cross margin can be rolled out and rolled back
+ * independently of Pro mode.
+ *
+ * @returns boolean - true if Cross margin display is enabled, false otherwise
+ */
+export const selectPerpsCrossMarginEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
