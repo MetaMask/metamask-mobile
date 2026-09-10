@@ -90,6 +90,13 @@ export const useDeviceEventHandlers = ({
     (payload: DeviceEventPayload) => {
       switch (payload.event) {
         case DeviceEvent.Connected: {
+          // When no flow is active, late connect events (e.g. in-flight
+          // adapter retry loops completing after the flow closed) must not
+          // re-open the bottom sheet over the app.
+          if (isFlowActive?.() === false) {
+            refs.isConnectingRef.current = false;
+            break;
+          }
           const connectedDeviceId =
             payload.deviceId ??
             refs.adapterRef.current?.getConnectedDeviceId() ??
@@ -111,6 +118,11 @@ export const useDeviceEventHandlers = ({
           break;
 
         case DeviceEvent.AppOpened:
+          // When no flow is active, a late app-opened event must not
+          // re-open the bottom sheet over the app.
+          if (isFlowActive?.() === false) {
+            break;
+          }
           updateConnectionState({
             status: ConnectionStatus.Connected,
             deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
@@ -118,6 +130,12 @@ export const useDeviceEventHandlers = ({
           break;
 
         case DeviceEvent.AppNotOpen:
+          // When no flow is active, a late app-not-open event (e.g. from
+          // in-flight wrong-app recovery after the flow closed) must not
+          // re-open the bottom sheet over the app.
+          if (isFlowActive?.() === false) {
+            break;
+          }
           updateConnectionState({
             status: ConnectionStatus.AwaitingApp,
             deviceId: refs.adapterRef.current?.getConnectedDeviceId() ?? '',
