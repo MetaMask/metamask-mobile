@@ -3,6 +3,7 @@ import {
   LIGHTER_SIGNER_TIMEOUT_MS,
   lighterSignerBridge,
   resetLighterBridge,
+  reviveLighterBridge,
   setLighterBridgeUnavailable,
 } from './lighterSignerBridge';
 import QuickCrypto from 'react-native-quick-crypto';
@@ -38,6 +39,7 @@ describe('lighterSignerBridge', () => {
   });
 
   afterEach(() => {
+    reviveLighterBridge();
     resetLighterBridge();
     jest.useRealTimers();
   });
@@ -141,6 +143,38 @@ describe('lighterSignerBridge', () => {
 
     await expect(pending).rejects.toThrow('Lighter signer unavailable');
     expect(zombieExecutor).not.toHaveBeenCalled();
+  });
+
+  it('keeps failing fast when reset follows terminal unavailability', async () => {
+    // Regression: reset() cleared unavailableError and re-armed readiness, so a
+    // controller reset after exhaustion left callers waiting on a signer page
+    // that never remounts — they hung until the 90s deadline instead of
+    // failing immediately.
+    setLighterBridgeUnavailable('Lighter signer unavailable');
+    resetLighterBridge();
+
+    await expect(
+      lighterSignerBridge.execute({
+        function: '_createAuthToken',
+        params: [28, 7],
+      }),
+    ).rejects.toThrow('Lighter signer unavailable');
+  });
+
+  it('serves calls again after an explicit revive', async () => {
+    // Only a real host remount may revive the bridge.
+    setLighterBridgeUnavailable('Lighter signer unavailable');
+    reviveLighterBridge();
+
+    const executor = jest.fn().mockResolvedValue({ token: 'ok', deadline: 1 });
+    connectLighterExecutor(executor);
+
+    await expect(
+      lighterSignerBridge.execute({
+        function: '_createAuthToken',
+        params: [28, 7],
+      }),
+    ).resolves.toStrictEqual({ token: 'ok', deadline: 1 });
   });
 
   it('persists a generated key and keeps it inside createClient transport params', async () => {

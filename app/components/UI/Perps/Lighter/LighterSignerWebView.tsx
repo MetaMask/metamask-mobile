@@ -12,6 +12,7 @@ import type {
 import lighterSdkHtml from './wasm-wrapper.standalone.html';
 import {
   connectLighterExecutor,
+  reviveLighterBridge,
   resetLighterBridge,
   setLighterBridgeUnavailable,
   type LighterExecutorCall,
@@ -231,6 +232,10 @@ export const LighterSignerWebView = () => {
 
   useEffect(() => {
     isMountedRef.current = true;
+    // A previous host instance may have exhausted its reloads and left the
+    // bridge terminally unavailable. This mount is a real remount, so the
+    // signer can serve calls again.
+    reviveLighterBridge();
     return () => {
       isMountedRef.current = false;
       if (reloadTimerRef.current) {
@@ -258,6 +263,11 @@ export const LighterSignerWebView = () => {
           return;
         }
         DevLogger.log('[LighterSignerWebView] WASM signer ready');
+        // The threshold counts CONSECUTIVE failed reloads. Without this reset
+        // the counter climbs for the whole WebView lifetime, so a handful of
+        // transient content-process deaths spread across a long session — each
+        // one fully recovered — would eventually trip terminal unavailability.
+        reloadAttemptsRef.current = 0;
         const execute: LighterExecutor = (call, timeoutMs) => {
           const webview = webviewRef.current;
           if (!webview) {
