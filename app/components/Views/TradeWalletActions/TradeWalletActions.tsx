@@ -33,7 +33,6 @@ import {
   BoxFlexDirection,
   FontWeight,
   IconName,
-  IconSize,
   Tag,
   TagSeverity,
   Text,
@@ -65,8 +64,6 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
-import { getEarnRateCopy } from '../../UI/Earn/utils/earnRate';
-import useEarnHighestRate from '../../UI/Earn/hooks/useEarnHighestRate';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import { usePerpsMode } from '../../UI/Perps/hooks';
@@ -83,15 +80,7 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
-import { selectIsEarnSectionEligible } from '../../UI/Earn/selectors/eligibility';
-import { useEarnAnalytics } from '../../UI/Earn/hooks/useEarnAnalytics';
-import {
-  EARN_MODULE_COMPONENT_NAMES,
-  EARN_MODULE_REDIRECT_TARGETS,
-  EARN_MODULE_ENTRY_POINTS,
-} from '../../UI/Earn/constants/earnModuleEvents';
-import { EarnRate } from '../../UI/Earn/types/earnAssets';
-import { truncateNumber } from '../../UI/Earn/utils/number';
+import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
@@ -172,14 +161,6 @@ function TradeWalletActions() {
     perpsMode === PerpsMode.Pro ? PerpsMode.Pro : PerpsMode.Lite;
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
-  const { highestRate } = useEarnHighestRate();
-
-  const isEarnWalletActionEnabled = useSelector(selectIsEarnSectionEligible);
-
-  const { trackSurfaceClicked: trackEarnSurfaceClicked } = useEarnAnalytics({
-    entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
-  });
-
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
@@ -200,6 +181,14 @@ function TradeWalletActions() {
     onDismiss?.();
     setIsVisible(false);
   }, [onDismiss]);
+
+  const onActionSelected = useCallback(
+    (callback: () => void | Promise<void>) => {
+      postCallback.current = callback;
+      handleNavigateBack();
+    },
+    [handleNavigateBack],
+  );
 
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
@@ -261,32 +250,6 @@ function TradeWalletActions() {
     };
     handleNavigateBack();
   }, [handleNavigateBack, navigate]);
-
-  const onEarn = useCallback(async () => {
-    trackEarnSurfaceClicked({
-      component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
-      redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
-      ...(highestRate?.type && {
-        rate_type: highestRate.type.toLowerCase() as Lowercase<
-          EarnRate['type']
-        >,
-      }),
-      ...(highestRate?.status === 'ready' && {
-        rate_percentage: Number(truncateNumber(highestRate.percentage)),
-      }),
-    });
-    postCallback.current = () => {
-      navigation.navigate(Routes.EARN.ROOT, {
-        screen: Routes.EARN.SEARCH_LIST,
-        params: {
-          analyticsContext: {
-            entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
-          },
-        },
-      });
-    };
-    handleNavigateBack();
-  }, [trackEarnSurfaceClicked, handleNavigateBack, navigation, highestRate]);
 
   useFocusEffect(
     useCallback(() => {
@@ -415,41 +378,10 @@ function TradeWalletActions() {
           isDisabled={!canSignTransactions}
         />
       )}
-      {isEarnWalletActionEnabled && (
-        <ActionListItem
-          label={
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-            >
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('asset_overview.earn_button')}
-              </Text>
-              {highestRate?.status === 'ready' && (
-                <Tag
-                  startIconName={IconName.Sparkle}
-                  startIconProps={{
-                    size: IconSize.Sm,
-                  }}
-                  severity={TagSeverity.Success}
-                  testID={WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG}
-                >
-                  {getEarnRateCopy({
-                    percentage: highestRate.percentage,
-                    rateType: highestRate.type,
-                  })}
-                </Tag>
-              )}
-            </Box>
-          }
-          description={strings('asset_overview.earn_description')}
-          iconName={IconName.Plant}
-          onPress={onEarn}
-          testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
-          isDisabled={!canSignTransactions}
-        />
-      )}
+      <EarnTradeMenuRow
+        onActionSelected={onActionSelected}
+        isDisabled={!canSignTransactions}
+      />
     </>
   );
 
