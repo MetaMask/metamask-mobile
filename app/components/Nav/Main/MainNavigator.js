@@ -710,7 +710,7 @@ const HomeTabs = () => {
     },
     social: {
       tabBarIconKey: TabBarIconKey.Social,
-      rootScreenName: Routes.SOCIAL_LEADERBOARD.TAB,
+      rootScreenName: Routes.SOCIAL.TAB,
       freezeOnBlur: false,
     },
     trending: {
@@ -885,9 +885,9 @@ const HomeTabs = () => {
 
             {showSocialTab ? (
               <Tab.Screen
-                name={Routes.SOCIAL_LEADERBOARD.TAB}
+                name={Routes.SOCIAL.TAB}
                 options={options.social}
-                component={SocialTradersTabsView}
+                component={SocialV0View}
               />
             ) : (
               <Tab.Screen
