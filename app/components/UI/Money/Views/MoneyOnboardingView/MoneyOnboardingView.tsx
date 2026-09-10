@@ -101,11 +101,24 @@ const TOTAL_ONBOARDING_STEPS = FINAL_STEP_INDEX + 1;
  * authored transition instead.
  */
 const STEP_TRANSITION_MS = 300;
+/**
+ * The authored Coins-to-Fox transition is 188 frames at 60 fps (~3.13 s).
+ * Round up slightly and keep completion timing separate so Money Home is not
+ * shown before the final animation has finished.
+ */
+const FINAL_STEP_ANIMATION_MS = 3200;
+/**
+ * Keep Rive input disabled until each transition is complete because Nitro
+ * does not expose a transition-complete callback. Backward transitions are
+ * authored at roughly half the duration of forward transitions.
+ */
+const FORWARD_NAVIGATION_INPUT_LOCK_MS = 3200;
+const BACKWARD_NAVIGATION_INPUT_LOCK_MS = 1600;
 const OVERLAY_FADE_DURATION_MS = 200;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
 const HEADER_TOP_OFFSET = 60;
-const FOOTER_BOTTOM_OFFSET = 100;
+const FOOTER_BOTTOM_OFFSET = 75;
 const OVERLAY_TEXT_PRESETS = {
   small: {
     title: { fontSize: 18, lineHeight: 25, paddingHorizontal: 42 },
@@ -153,6 +166,7 @@ const styles = StyleSheet.create({
   footer: {
     opacity: 0.7,
     paddingHorizontal: 16,
+    paddingTop: 16,
     textAlign: 'center',
   },
 });
@@ -271,8 +285,31 @@ const MoneyOnboardingView = () => {
   });
 
   const stepRef = useRef(0);
+  const stepTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const finalStepAnimationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const navigationLockTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isTransitioningRef = useRef(false);
+  const [isRiveInputDisabled, setIsRiveInputDisabled] = useState(false);
   const [overlayStep, setOverlayStep] = useState(0);
   const overlayOpacity = useSharedValue(0);
+
+  const clearStepTimers = useCallback(() => {
+    if (stepTimerRef.current) {
+      clearTimeout(stepTimerRef.current);
+      stepTimerRef.current = null;
+    }
+    if (finalStepAnimationTimerRef.current) {
+      clearTimeout(finalStepAnimationTimerRef.current);
+      finalStepAnimationTimerRef.current = null;
+    }
+    if (navigationLockTimerRef.current) {
+      clearTimeout(navigationLockTimerRef.current);
+      navigationLockTimerRef.current = null;
+    }
+    isTransitioningRef.current = false;
+  }, []);
+
+  useEffect(() => clearStepTimers, [clearStepTimers]);
 
   const { setValue: setButtonText } = useRiveString('button', instance);
   const { setValue: setTransitionSpeed } = useRiveNumber(
@@ -400,6 +437,8 @@ const MoneyOnboardingView = () => {
 
   const handleClose = useCallback(
     async (stepIndex: number) => {
+      clearStepTimers();
+      setIsRiveInputDisabled(false);
       playImpact(ImpactMoment.PageNavigation);
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
@@ -413,9 +452,11 @@ const MoneyOnboardingView = () => {
       await navigateToPostOnboardingDestination();
     },
     [
+      clearStepTimers,
       dispatch,
       navigateToPostOnboardingDestination,
       postOnboardingRedirectTarget,
+      setIsRiveInputDisabled,
       stepTitlesEnglish,
       trackOnboardingEvent,
     ],
@@ -471,25 +512,38 @@ const MoneyOnboardingView = () => {
   // index. The overlay fades out immediately (as the authored transition
   // starts) and the copy swap / VIEWED tracking / completion fire once the
   // transition has had time to finish.
-  const stepTimerRef = useRef<NodeJS.Timeout | null>(null);
-  useEffect(
-    () => () => {
-      if (stepTimerRef.current) clearTimeout(stepTimerRef.current);
-    },
-    [],
-  );
-
   const goToStep = useCallback(
     (nextStep: number) => {
+      if (isTransitioningRef.current) return;
+
+      clearStepTimers();
+      isTransitioningRef.current = true;
+      setIsRiveInputDisabled(true);
+      const isForwardNavigation = nextStep > stepRef.current;
+      const navigationInputLockMs = isForwardNavigation
+        ? FORWARD_NAVIGATION_INPUT_LOCK_MS
+        : BACKWARD_NAVIGATION_INPUT_LOCK_MS;
       stepRef.current = nextStep;
+      navigationLockTimerRef.current = setTimeout(() => {
+        navigationLockTimerRef.current = null;
+        isTransitioningRef.current = false;
+        setIsRiveInputDisabled(false);
+      }, navigationInputLockMs);
       playImpact(ImpactMoment.PageNavigation);
       overlayOpacity.set(
         withTiming(0, {
           duration: OVERLAY_FADE_DURATION_MS,
         }),
       );
-      if (stepTimerRef.current) clearTimeout(stepTimerRef.current);
+      if (nextStep === FINAL_STEP_INDEX) {
+        finalStepAnimationTimerRef.current = setTimeout(() => {
+          finalStepAnimationTimerRef.current = null;
+          handleComplete(nextStep);
+        }, FINAL_STEP_ANIMATION_MS);
+      }
+
       stepTimerRef.current = setTimeout(() => {
+        stepTimerRef.current = null;
         if (stepContent[nextStep]) {
           setOverlayStep(nextStep);
           overlayOpacity.set(
@@ -500,13 +554,16 @@ const MoneyOnboardingView = () => {
         }
 
         handleStepViewed(nextStep);
-
-        if (nextStep === FINAL_STEP_INDEX) {
-          handleComplete(nextStep);
-        }
       }, STEP_TRANSITION_MS);
     },
-    [handleStepViewed, handleComplete, overlayOpacity, stepContent],
+    [
+      clearStepTimers,
+      handleStepViewed,
+      handleComplete,
+      overlayOpacity,
+      setIsRiveInputDisabled,
+      stepContent,
+    ],
   );
 
   const handleContinue = useCallback(() => {
@@ -545,18 +602,25 @@ const MoneyOnboardingView = () => {
   return (
     <View style={styles.root}>
       {riveFile && instance && (
-        <RiveView
-          file={riveFile}
-          artboardName={RIVE_ARTBOARD_NAME}
-          stateMachineName={RIVE_STATE_MACHINE_NAME}
-          dataBind={instance}
-          autoPlay
-          fit={Fit.Layout}
-          layoutScaleFactor={PixelRatio.get()}
-          onError={handleError}
+        <View
+          collapsable={false}
+          pointerEvents={isRiveInputDisabled ? 'none' : 'auto'}
           style={StyleSheet.absoluteFill}
-          testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
-        />
+          testID={MoneyOnboardingViewTestIds.RIVE_INPUT_CONTAINER}
+        >
+          <RiveView
+            file={riveFile}
+            artboardName={RIVE_ARTBOARD_NAME}
+            stateMachineName={RIVE_STATE_MACHINE_NAME}
+            dataBind={instance}
+            autoPlay
+            fit={Fit.Layout}
+            layoutScaleFactor={PixelRatio.get()}
+            onError={handleError}
+            style={StyleSheet.absoluteFill}
+            testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
+          />
+        </View>
       )}
       <MoneyOnboardingTextOverlay
         content={stepContent[overlayStep]}
