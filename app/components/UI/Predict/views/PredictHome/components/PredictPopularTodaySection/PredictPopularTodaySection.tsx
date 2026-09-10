@@ -227,7 +227,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
                     onPress={() => handleChipPress(option)}
                     accessibilityRole="button"
                     accessibilityLabel={label}
-                    style={tw.style('rounded-xl bg-muted px-4 py-2')}
+                    style={tw.style('rounded-full bg-muted px-4 py-2')}
                   >
                     <Text
                       variant={TextVariant.BodySm}
