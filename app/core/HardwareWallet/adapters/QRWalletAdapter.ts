@@ -129,7 +129,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
     return this.#flowComplete;
   }
 
-  resetFlowState(): void {
+  async resetFlowState(): Promise<void> {
     DevLogger.log('[QRWalletAdapter] Resetting flow state');
     this.#flowComplete = false;
   }

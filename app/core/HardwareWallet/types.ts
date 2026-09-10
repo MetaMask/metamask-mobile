@@ -92,7 +92,7 @@ export interface HardwareWalletAdapter {
    * Should be called before starting new operations that may fail
    * (e.g., unlocking accounts after initial connection).
    */
-  resetFlowState(): void;
+  resetFlowState(): Promise<void>;
 
   // ============ Device Discovery Methods ============
 

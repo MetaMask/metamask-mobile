@@ -399,7 +399,7 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
    * are surfaced again. To fully reset state (including the session), use
    * {@link reset} instead.
    */
-  resetFlowState(): void {
+  async resetFlowState(): Promise<void> {
     this.#flowComplete = false;
   }
 
@@ -608,17 +608,6 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
           event: DeviceEvent.DeviceLocked,
           error: toError(error),
         });
-      }
-
-      if (isLedgerTimeoutError(error)) {
-        // Device stalled during the app check (typically mid app-switch after
-        // the user tapped Continue). Return to the "open the app" modal
-        // instead of surfacing a fatal error screen.
-        this.#emitEvent({
-          event: DeviceEvent.AppNotOpen,
-          currentAppName: REQUIRED_APP_NAME,
-        });
-        return false;
       }
 
       throw error;

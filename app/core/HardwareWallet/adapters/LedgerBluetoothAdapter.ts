@@ -211,10 +211,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     return this.#flowComplete;
   }
 
-  resetFlowState(): void {
+  async resetFlowState(): Promise<void> {
     DevLogger.log('[LedgerBluetoothAdapter] Resetting flow state');
     this.#flowComplete = false;
-    void this.#closeTransport();
+    await this.#closeTransport();
   }
 
   getConnectedDeviceId(): string | null {
@@ -370,7 +370,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           attempt < MAX_DISCONNECT_RETRIES
         ) {
           DevLogger.log(
-            `[LedgerBluetoothAdapter] Transient BLE error during check (attempt ${attempt}/${MAX_DISCONNECT_RETRIES}), retrying...`,
+            `[LedgerBluetoothAdapter] Retryable error during check (attempt ${attempt}/${MAX_DISCONNECT_RETRIES}), retrying...`,
           );
           await this.#closeTransport();
           await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
@@ -389,21 +389,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   async #doEnsureDeviceReady(deviceId: string): Promise<boolean> {
     if (!this.isConnected() || this.#deviceId !== deviceId) {
       DevLogger.log('[LedgerBluetoothAdapter] Connecting first...');
-      try {
-        await this.connect(deviceId);
-      } catch (error) {
-        if (isLedgerTimeoutError(error)) {
-          // Connect-phase stall (device mid app-switch or showing the
-          // open-app prompt). Return to the "open the app" modal rather
-          // than a fatal error screen.
-          this.#emitEvent({
-            event: DeviceEvent.AppNotOpen,
-            currentAppName: REQUIRED_APP_NAME,
-          });
-          return false;
-        }
-        throw error;
-      }
+      await this.connect(deviceId);
     }
 
     if (!this.#transport) {
@@ -448,17 +434,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         });
       }
 
-      if (isLedgerTimeoutError(error)) {
-        // Device stalled during the app check (typically mid app-switch after
-        // the user tapped Continue). Return to the "open the app" modal
-        // instead of surfacing a fatal error screen.
-        this.#emitEvent({
-          event: DeviceEvent.AppNotOpen,
-          currentAppName: REQUIRED_APP_NAME,
-        });
-        return false;
-      }
-
       throw error;
     }
   }
@@ -496,7 +471,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         verifyError,
       );
 
-      if (this.#isTransientBleError(verifyError)) {
+      if (
+        this.#isTransientBleError(verifyError) ||
+        isLedgerTimeoutError(verifyError)
+      ) {
         throw verifyError;
       }
 
@@ -508,14 +486,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         });
       }
 
-      if (isLedgerTimeoutError(verifyError)) {
-        // Device stalled mid verification (e.g. the user was switching apps).
-        // Return to the "open the app" modal instead of a silent spinner.
-        this.#emitEvent({
-          event: DeviceEvent.AppNotOpen,
-          currentAppName: REQUIRED_APP_NAME,
-        });
-      }
       return false;
     }
   }

@@ -740,7 +740,7 @@ describe('LedgerBluetoothDMKAdapter', () => {
         expectEmitted(DeviceEvent.DeviceLocked);
       });
 
-      it('returns false, emits AppNotOpen, and closes the session when address verification stalls', async () => {
+      it('throws a timeout without emitting AppNotOpen and closes the session when address verification stalls', async () => {
         jest.useFakeTimers();
         try {
           mockConnectLedgerHardware.mockResolvedValueOnce('Ethereum');
@@ -752,8 +752,12 @@ describe('LedgerBluetoothDMKAdapter', () => {
           pending.catch(() => undefined);
           await jest.advanceTimersByTimeAsync(OPERATION_TIMEOUT_MS);
 
-          await expect(pending).resolves.toBe(false);
-          expectEmitted(DeviceEvent.AppNotOpen);
+          await expect(pending).rejects.toMatchObject({
+            name: 'LedgerTimeoutError',
+          });
+          expect(onDeviceEvent).not.toHaveBeenCalledWith(
+            expect.objectContaining({ event: DeviceEvent.AppNotOpen }),
+          );
           expect(adapter.isConnected()).toBe(false);
           expect(mockDisconnectLedgerDmkSession).toHaveBeenCalled();
         } finally {
@@ -761,13 +765,17 @@ describe('LedgerBluetoothDMKAdapter', () => {
         }
       });
 
-      it('returns false and emits AppNotOpen when the app check fails with a timeout error', async () => {
+      it('throws without emitting AppNotOpen when the app check fails with a timeout error', async () => {
         const timeoutError = new Error('Device unresponsive');
         timeoutError.name = 'LedgerTimeoutError';
         mockConnectLedgerHardware.mockRejectedValueOnce(timeoutError);
 
-        await expect(adapter.ensureDeviceReady(DEVICE_ID)).resolves.toBe(false);
-        expectEmitted(DeviceEvent.AppNotOpen);
+        await expect(adapter.ensureDeviceReady(DEVICE_ID)).rejects.toBe(
+          timeoutError,
+        );
+        expect(onDeviceEvent).not.toHaveBeenCalledWith(
+          expect.objectContaining({ event: DeviceEvent.AppNotOpen }),
+        );
       });
 
       it('opens the Ethereum app from the BOLOS screen and returns false', async () => {

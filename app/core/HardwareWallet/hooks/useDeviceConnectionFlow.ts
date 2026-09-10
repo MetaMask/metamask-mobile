@@ -177,8 +177,8 @@ export const useDeviceConnectionFlow = ({
       refs.isConnectingRef.current = true;
       updateConnectionState({ status: ConnectionStatus.Connecting });
 
+      const adapter = refs.adapterRef.current;
       try {
-        const adapter = refs.adapterRef.current;
         if (!adapter) {
           throw createHardwareWalletError(
             ErrorCode.DeviceNotReady,
@@ -238,7 +238,6 @@ export const useDeviceConnectionFlow = ({
       );
 
       onFlowStart?.();
-      flowActiveRef.current = true;
 
       if (pendingReadyResolveRef.current) {
         DevLogger.log(
@@ -252,6 +251,7 @@ export const useDeviceConnectionFlow = ({
           resolvePending(false);
         }
       }
+      flowActiveRef.current = true;
 
       const targetType =
         refs.targetWalletTypeRef.current ??
@@ -409,7 +409,7 @@ export const useDeviceConnectionFlow = ({
   const retryEnsureDeviceReady = useCallback(async (): Promise<void> => {
     const adapter = refs.adapterRef.current;
     if (adapter?.resetFlowState) {
-      adapter.resetFlowState();
+      await adapter.resetFlowState();
     }
 
     if (adapter && !(await adapter.ensurePermissions())) {
@@ -448,9 +448,9 @@ export const useDeviceConnectionFlow = ({
     if (resolvePending) {
       pendingReadyResolveRef.current = null;
       connectionSuccessCallbackRef.current = null;
-      flowActiveRef.current = false;
       resolvePending(false);
     }
+    flowActiveRef.current = false;
     setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [setters, updateConnectionState, flowActiveRef]);

@@ -220,6 +220,7 @@ describe('useDeviceConnectionFlow', () => {
       );
 
       await expect(firstPromise).resolves.toBe(false);
+      expect(options.flowActiveRef.current).toBe(true);
 
       await act(async () => {
         result.current.closeFlow();
@@ -828,6 +829,36 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
+    it('surfaces a Ledger connect timeout as an error', async () => {
+      const timeoutError = new Error('Device unresponsive while connecting');
+      timeoutError.name = 'LedgerTimeoutError';
+      const mockAdapter = createMockAdapter({
+        connect: jest.fn().mockRejectedValue(timeoutError),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({ refs });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(() =>
+        result.current.ensureDeviceReady(),
+      );
+
+      await act(async () => {
+        await result.current.connect('device-123');
+      });
+
+      expect(options.handleError).toHaveBeenCalledWith(timeoutError);
+      expect(options.setters.setDeviceId).not.toHaveBeenCalledWith('device-123');
+      expect(refs.isConnectingRef.current).toBe(false);
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+
     it('handles readiness check error after connect', async () => {
       const mockAdapter = createMockAdapter({
         ensureDeviceReady: jest
@@ -871,6 +902,60 @@ describe('useDeviceConnectionFlow', () => {
       });
 
       expect(mockAdapter.resetFlowState).toHaveBeenCalled();
+    });
+
+    it('awaits resetFlowState before starting retry flow', async () => {
+      let resolveReset!: () => void;
+      const mockAdapter = createMockAdapter({
+        resetFlowState: jest.fn(
+          () =>
+            new Promise<void>((resolve) => {
+              resolveReset = resolve;
+            }),
+        ),
+        ensureDeviceReady: jest.fn().mockResolvedValue(true),
+      });
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({
+        refs,
+        deviceId: 'device-123',
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const retryPromise = result.current.retryEnsureDeviceReady();
+      await Promise.resolve();
+      expect(mockAdapter.ensureDeviceReady).not.toHaveBeenCalled();
+
+      resolveReset();
+      await act(async () => {
+        await retryPromise;
+      });
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith('device-123');
+    });
+
+    it('resets the connection before retrying from awaiting app', async () => {
+      const mockAdapter = createMockAdapter();
+      const refs = createMockRefs();
+      refs.adapterRef.current = mockAdapter;
+      const options = createDefaultOptions({
+        refs,
+        deviceId: 'device-123',
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      await act(async () => {
+        await result.current.retryEnsureDeviceReady();
+      });
+
+      expect(mockAdapter.resetFlowState).toHaveBeenCalled();
+      expect(mockAdapter.ensureDeviceReady).toHaveBeenCalledWith('device-123');
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Ready,
+        deviceId: 'device-123',
+      });
     });
 
     it('returns early when permissions denied', async () => {
@@ -991,6 +1076,7 @@ describe('useDeviceConnectionFlow', () => {
   describe('closeFlow', () => {
     it('clears targetWalletType and disconnects', () => {
       const options = createDefaultOptions();
+      options.flowActiveRef.current = true;
       const { result } = renderHook(() => useDeviceConnectionFlow(options));
 
       act(() => {
@@ -1001,6 +1087,7 @@ describe('useDeviceConnectionFlow', () => {
       expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Disconnected,
       });
+      expect(options.flowActiveRef.current).toBe(false);
     });
 
     it('resolves pending promise with false', async () => {

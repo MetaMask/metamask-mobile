@@ -49,7 +49,7 @@ export class NonHardwareAdapter implements HardwareWalletAdapter {
     return true;
   }
 
-  resetFlowState(): void {}
+  async resetFlowState(): Promise<void> {}
 
   startDeviceDiscovery(
     _onDeviceFound: (device: DiscoveredDevice) => void,
