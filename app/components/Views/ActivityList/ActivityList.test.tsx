@@ -1945,6 +1945,29 @@ describe('ActivityList', () => {
     });
   });
 
+  it('includes bridge transactions for configured destination chains without duplicate rows', () => {
+    selectorValues.enabledNonEvm = [];
+    selectorValues.nonEvmState = {
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaCross', from: [], to: [] },
+        { chain: 'solana:mainnet', id: 'solanaCross', from: [], to: [] },
+      ],
+    };
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+    (useLocalActivityItems as jest.Mock).mockReturnValue([]);
+
+    render(<ActivityList header={<></>} />);
+
+    expect(screen.getAllByTestId('row-solanaCross')).toHaveLength(1);
+  });
+
   it('routes non-EVM cross-chain bridge taps to ActivityDetails', () => {
     selectorValues.enabledNonEvm = ['solana:mainnet'];
     selectorValues.nonEvmState = {

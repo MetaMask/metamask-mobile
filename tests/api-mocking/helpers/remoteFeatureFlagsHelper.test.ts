@@ -111,6 +111,43 @@ describe('Remote Feature Flags Helper', () => {
       }
     });
 
+    it('replaces versioned registry flags when a flat RC override is provided', () => {
+      const baseline = createRemoteFeatureFlagsMock();
+      const baselineResponse = baseline.response as Record<string, unknown>[];
+      const baselinePayExtended = baselineResponse.find(
+        (obj: Record<string, unknown>) => 'confirmations_pay_extended' in obj,
+      );
+      const baselineValue = (
+        baselinePayExtended as Record<string, Record<string, unknown>>
+      )?.confirmations_pay_extended;
+
+      // Registry sync may ship versioned pay_extended; pay smoke fixtures use a
+      // flat RC object. Deep-merging would keep newer version keys and break UI.
+      expect(baselineValue).toEqual(
+        expect.objectContaining({ versions: expect.any(Object) }),
+      );
+
+      const flatOverride = {
+        enableDepositWalletWithdraw: true,
+        name: 'rc-fixture',
+        payStrategies: { relay: { gaslessEnabled: true } },
+      };
+
+      const result = createRemoteFeatureFlagsMock({
+        confirmations_pay_extended: flatOverride,
+      });
+      const response = result.response as Record<string, unknown>[];
+      const payExtendedObj = response.find(
+        (obj: Record<string, unknown>) => 'confirmations_pay_extended' in obj,
+      );
+      const payExtended = (
+        payExtendedObj as Record<string, Record<string, unknown>>
+      ).confirmations_pay_extended;
+
+      expect(payExtended).toEqual(flatOverride);
+      expect(payExtended).not.toHaveProperty('versions');
+    });
+
     it('preserves and overrides deeply nested objects', () => {
       // Test behavior: partial override should preserve other nested properties
       const result = createRemoteFeatureFlagsMock({

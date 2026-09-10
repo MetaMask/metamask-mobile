@@ -5,6 +5,7 @@
 
 import { appendFileSync } from 'node:fs';
 import {
+  classifyE2EChanges,
   resolveE2EPlatformRequirements,
 } from './compute-e2e-platform-flags.mjs';
 
@@ -25,18 +26,20 @@ if (!githubOutputPath) {
 
 const allChangesCount = readInt(process.env.ALL_CHANGES_COUNT);
 const ignorableCount = readInt(process.env.IGNORABLE_COUNT);
+const e2eTestFilesCount = readInt(process.env.E2E_TEST_FILES_COUNT);
+const e2eTestOrIgnorableCount = readInt(
+  process.env.E2E_TEST_OR_IGNORABLE_COUNT,
+);
 const e2eWorkflowsCount = readInt(process.env.E2E_WORKFLOWS_COUNT);
+const e2eSmokeInfraCount = readInt(process.env.E2E_SMOKE_INFRA_COUNT);
 
-const ignorableOnly =
-  allChangesCount > 0 &&
-  ignorableCount === allChangesCount &&
-  e2eWorkflowsCount === 0;
-
-const testOnlyChanges =
-  allChangesCount > 0 &&
-  readInt(process.env.E2E_TEST_OR_IGNORABLE_COUNT) >= allChangesCount &&
-  readInt(process.env.E2E_TEST_FILES_COUNT) > 0 &&
-  e2eWorkflowsCount === 0;
+const { ignorableOnly, testOnlyChanges } = classifyE2EChanges({
+  allChangesCount,
+  ignorableCount,
+  e2eTestFilesCount,
+  e2eTestOrIgnorableCount,
+  e2eWorkflowsCount,
+});
 
 const skipSmartSelection = readBool(process.env.SKIP_SMART_SELECTION);
 
@@ -58,8 +61,8 @@ const flags = resolveE2EPlatformRequirements({
     shouldSkipE2E: readBool(process.env.SHOULD_SKIP_E2E),
     allChangesCount,
     ignorableCount,
-    e2eTestFilesCount: readInt(process.env.E2E_TEST_FILES_COUNT),
-    e2eTestOrIgnorableCount: readInt(process.env.E2E_TEST_OR_IGNORABLE_COUNT),
+    e2eTestFilesCount,
+    e2eTestOrIgnorableCount,
     e2eWorkflowsCount,
     androidCount: readInt(process.env.ANDROID_COUNT),
     iosCount: readInt(process.env.IOS_COUNT),
@@ -69,35 +72,8 @@ const flags = resolveE2EPlatformRequirements({
   },
   labelOverrideInput,
   skipSmartSelection,
-  e2eSmokeInfraCount: readInt(process.env.E2E_SMOKE_INFRA_COUNT),
+  e2eSmokeInfraCount,
 });
-
-const runAppiumIos = flags.runAppiumIos;
-
-// Only explain a run that is actually happening — flags.runAppiumIos is the
-// resolved value, and it is always false for PRs into main.
-if (!runAppiumIos) {
-  if (
-    labelOverrideInput.githubEventName === 'pull_request' &&
-    labelOverrideInput.prBaseRef === 'main'
-  ) {
-    console.log(
-      '-> RUN_APPIUM_IOS=false — iOS not requested for this PR into main. Add run-appium-ios-tests, or skip-smart-e2e-selection when path filters already require iOS.',
-    );
-  }
-} else if (labelOverrideInput.runAppiumIosLabel) {
-  console.log(
-    "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR",
-  );
-} else if (skipSmartSelection && flags.ios) {
-  console.log(
-    "-> RUN_APPIUM_IOS=true due to 'skip-smart-e2e-selection' label on PR (iOS already required by path filters)",
-  );
-} else if (readInt(process.env.E2E_SMOKE_INFRA_COUNT) > 0) {
-  console.log(
-    '-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators/framework/smoke-appium)',
-  );
-}
 
 let blockMerge = false;
 if (readBool(process.env.LABEL_BLOCKS_MERGE) && !ignorableOnly) {
@@ -124,11 +100,10 @@ const outputLines = [
   `android_final=${flags.android}`,
   `ios_final=${flags.ios}`,
   `e2e_needed=${flags.e2eNeeded}`,
-  `native_build_needed=${flags.nativeBuildNeeded}`,
+  `use_main_builds_for_test_only_prs=${flags.useMainBuildsForTestOnlyPrs}`,
   `run_smart_e2e_selection=${flags.runSmartE2ESelection}`,
   `block_merge=${blockMerge}`,
   `run_performance=${runPerformance}`,
-  `run_appium_ios=${runAppiumIos}`,
   `changed_spec_files<<GH_EOF`,
   flags.changedSpecFiles,
   'GH_EOF',

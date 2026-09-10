@@ -11,6 +11,9 @@ import { ethToken1Address } from '../../../_mocks_/initialState';
 import { createBridgeTestState, createMockToken } from '../../../testUtils';
 import type { RootState } from '../../../../../../reducers';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+import { strings } from '../../../../../../../locales/i18n';
+import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
+import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 
 const pricedDestToken = createMockToken({
@@ -33,6 +36,15 @@ jest.mock('../../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
+}));
+
+jest.mock('../../../hooks/useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => false),
+}));
+
+jest.mock('../../../hooks/useHasSufficientGas', () => ({
+  useHasSufficientGas: jest.fn(() => true),
 }));
 
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
@@ -98,6 +110,8 @@ function renderFooter(
 describe('BridgeLimitOrderFooterView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
+    jest.mocked(useHasSufficientGas).mockReturnValue(true);
   });
 
   it('renders nothing when source amount is missing', () => {
@@ -152,5 +166,38 @@ describe('BridgeLimitOrderFooterView', () => {
     fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
 
     expect(onCTAPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the confirm button and shows insufficient funds when source balance is too low', () => {
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
+
+    const onCTAPress = jest.fn();
+    const { getByTestId } = renderFooter(buildActiveQuoteState(), {
+      onCTAPress,
+    });
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent(strings('bridge.insufficient_funds'));
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+    expect(onCTAPress).not.toHaveBeenCalled();
+  });
+
+  it('disables the confirm button and shows insufficient gas when gas token balance is too low', () => {
+    jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent(strings('bridge.insufficient_gas'));
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
   });
 });

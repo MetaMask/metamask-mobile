@@ -15,6 +15,7 @@ import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../AppConstants';
 import handleEthereumUrl from '../handlers/handleEthereumUrl';
+import handleSolanaUrl from '../handlers/handleSolanaUrl';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import {
   cancelDeeplinkProcessedTrace,
@@ -130,6 +131,19 @@ async function parseDeeplink({
           origin,
         }).catch((err) => {
           Logger.error(err, 'Error handling ethereum url');
+        });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
+        break;
+      case PROTOCOLS.SOLANA:
+        if (mode === 'resolve') {
+          return null;
+        }
+        handled();
+        handleSolanaUrl({ url }).catch((err) => {
+          Logger.error(err, 'Error handling solana url');
         });
         endDeeplinkProcessedTrace({
           seam: 'handler_finished',

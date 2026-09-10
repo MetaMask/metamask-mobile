@@ -42,6 +42,8 @@ import {
 } from '../../../selectors/notifications';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { getBetaSupportUrl } from './AccountsMenu.utils';
+import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
+import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -60,6 +62,7 @@ const AccountsMenu = () => {
     getMetamaskNotificationsUnreadCount,
   );
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -294,6 +297,22 @@ const AccountsMenu = () => {
     tw,
   ]);
 
+  const cardUpdateBadge = cardUpdateBadgeSeverity ? (
+    <CardUkMigrationUpdateBadge
+      severity={cardUpdateBadgeSeverity}
+      testID={AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE}
+    />
+  ) : null;
+
+  const cardRowEndAccessory = cardUpdateBadge ? (
+    <Box twClassName="flex-row items-center gap-2">
+      {cardUpdateBadge}
+      {arrowRightIcon}
+    </Box>
+  ) : (
+    arrowRightIcon
+  );
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -348,7 +367,7 @@ const AccountsMenu = () => {
           startAccessory={<Icon name={IconName.Card} size={IconSize.Lg} />}
           label={strings('accounts_menu.card_title')}
           onPress={onPressManageWallet}
-          endAccessory={arrowRightIcon}
+          endAccessory={cardRowEndAccessory}
           testID={AccountsMenuSelectorsIDs.MANAGE_CARD}
         />
 

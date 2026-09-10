@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { FeatureId, formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
@@ -88,6 +89,7 @@ export const useLimitOrderSwapInputs = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
+    featureId: FeatureId.LIMIT_ORDER,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
@@ -173,16 +175,20 @@ export const useLimitOrderSwapInputs = ({
       type: TokenSelectorType.Source,
       enabledChainIds,
       excludeRwaTokens: true,
+      featureId: FeatureId.LIMIT_ORDER,
     });
   }, [enabledChainIds, navigation]);
 
   const handleDestTokenPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Dest,
-      enabledChainIds,
+      enabledChainIds: sourceToken?.chainId
+        ? [formatChainIdToCaip(sourceToken.chainId)]
+        : [],
       excludeRwaTokens: true,
+      featureId: FeatureId.LIMIT_ORDER,
     });
-  }, [enabledChainIds, navigation]);
+  }, [navigation, sourceToken?.chainId]);
 
   return {
     enabledChainIds,

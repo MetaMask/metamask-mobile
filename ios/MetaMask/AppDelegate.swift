@@ -270,22 +270,51 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 // MARK: - BrazeDelegate
 
 extension AppDelegate: BrazeDelegate {
-  // Route Braze deep link URLs ourselves instead of letting BrazeKit open them
-  // via UIApplication.open (which would cause a duplicate delivery — once from
-  // the Braze RN bridge JS event and once from the system URL handler).
+  // Route Braze URLs instead of always letting BrazeKit call UIApplication.open.
   //
   // Universal links (Branch domains) are forwarded to Branch for proper routing.
-  // All other URLs are suppressed here; they are handled exclusively through
-  // the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE.
+  // Push notification URLs are suppressed here; they are handled exclusively
+  // through the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE, to avoid
+  // duplicate delivery (native open + JS event).
+  //
+  // In-app messages, Content Cards, and Banners have no JS open-URL listener.
+  // Returning false for those channels swallows the CTA (iOS-only; Android lets
+  // the Braze SDK open the URI). HTML in-app messages default to Braze's in-app
+  // webview (`context.useWebView == true`); `target="_blank"` does not leave the
+  // app. Open http(s) URLs with UIApplication.open so Safari / the system
+  // browser launches outside MetaMask. Custom schemes still go through Braze.
   func braze(_ braze: Braze, shouldOpenURL context: Braze.URLContext) -> Bool {
-    if let host = context.url.host,
-       host.contains("app.link") ||
-       host.contains("test-app.link") ||
-       host.contains("link.metamask.io") ||
-       host.contains("link-test.metamask.io") {
+    if isBrazeUniversalLinkHost(context.url.host) {
       Branch.getInstance().handleDeepLink(context.url)
       return false
     }
-    return false
+
+    // Push taps are delivered to JS via PUSH_NOTIFICATION_EVENT. Opening them
+    // here would double-handle the same URL.
+    if context.channel == .notification {
+      return false
+    }
+
+    if isWebURL(context.url) {
+      UIApplication.shared.open(context.url)
+      return false
+    }
+
+    return true
+  }
+
+  /// MetaMask-owned universal-link hosts that Braze campaigns may point at.
+  /// These must go through Branch rather than `UIApplication.open`.
+  private func isBrazeUniversalLinkHost(_ host: String?) -> Bool {
+    guard let host else { return false }
+    return host.contains("app.link") ||
+      host.contains("test-app.link") ||
+      host.contains("link.metamask.io") ||
+      host.contains("link-test.metamask.io")
+  }
+
+  private func isWebURL(_ url: URL) -> Bool {
+    let scheme = url.scheme?.lowercased()
+    return scheme == "http" || scheme == "https"
   }
 }

@@ -129,7 +129,7 @@
     },
     "headless_buy_error": {
       "title": "Fiat purchase failed",
-      "message": "Something went wrong with your fiat purchase. Please try again."
+      "message": "Something went wrong with your fiat purchase. Try again."
     },
     "mmpay_hardware_account": {
       "title": "Wallet not supported",
@@ -219,7 +219,7 @@
     "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
     "setup_complete": "Set up complete",
     "setup_failed": "We could not finish setting up the security alerts. Check your internet connection and try again.",
-    "setup_multiple_failures": "Your internet connection isn’t stable right now, so we couldn’t set up security alerts. Please try again when your connection is restored.",
+    "setup_multiple_failures": "Your internet connection isn't stable right now, so we couldn't set up security alerts. Try again when your connection is restored.",
     "setup_complete_description": "Security alerts are ready to go. You can close this page and start exploring your wallet",
     "continue": "Continue",
     "cancel": "Cancel",
@@ -314,7 +314,7 @@
     "new_to_metamask": "New to MetaMask?",
     "already_have_wallet": "Already have a wallet?",
     "optin_back_title": "Heads up!",
-    "optin_back_desc": "Please agree or disagree to the usage of data analytics.  You can also update this option in settings.",
+    "optin_back_desc": "Agree or disagree to the usage of data analytics. You can also update this option in settings.",
     "warning_title": "Warning",
     "warning_text_1": "Your current wallet and accounts will be",
     "warning_text_2": "removed",
@@ -516,7 +516,7 @@
     "wrong_password_error": "Error: Decrypt failed",
     "wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "Error: Cannot unlock without a previous vault.",
-    "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase.",
+    "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "seedless_password_outdated": "Your password was changed recently.",
     "seedless_password_outdated_modal_title": "Your password was changed",
     "seedless_password_outdated_modal_content": "Your password was recently changed, so you need to enter your new password to stay logged into MetaMask.",
@@ -527,8 +527,8 @@
     "seedless_controller_error_prompt_primary_button_label": "Log in",
     "security_alert_title": "Security alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
-    "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
-    "biometric_too_many_attempts": "Too many attempts, please enter your password.",
+    "too_many_attempts": "Too many attempts. Try again in {{remainingTime}}",
+    "biometric_too_many_attempts": "Too many attempts. Enter your password.",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use a different login method",
@@ -548,10 +548,10 @@
     "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information.",
     "biometric_authentication_cancelled": "Biometric authentication cancelled",
     "biometric_authentication_cancelled_title": "Biometric Setup Failed",
-    "biometric_authentication_cancelled_description": "Please re-setup biometric authentication from the settings.",
+    "biometric_authentication_cancelled_description": "Set up biometric authentication again from the settings.",
     "biometric_authentication_cancelled_button": "Confirm",
     "biometric_changed": "Biometric Changed",
-    "biometric_changed_alert_desc": "Your biometric has been changed. Please re-enable biometric from settings.",
+    "biometric_changed_alert_desc": "Your biometric has been changed. Re-enable biometric from settings.",
     "biometric_changed_alert_confirm": "Confirm"
   },
   "connect_hardware": {
@@ -561,7 +561,7 @@
   },
   "enter_password": {
     "title": "Enter your password",
-    "desc": "Please enter your password in order to continue",
+    "desc": "Enter your password to continue",
     "password": "Password",
     "confirm_button": "Confirm",
     "error": "Error"
@@ -652,7 +652,7 @@
     "changing_password_subtitle": "This shouldn’t take long",
     "checkbox_forgot_password": "If I forget this password, I’ll lose access to my wallet permanently. MetaMask can’t reset it for me.",
     "seedless_change_password_error_modal_title": "Change password failed",
-    "seedless_change_password_error_modal_content": "We were unable to change your password. Please try again.",
+    "seedless_change_password_error_modal_content": "We were unable to change your password. Try again.",
     "seedless_change_password_error_modal_confirm": "Try again"
   },
   "import_from_seed": {
@@ -748,7 +748,7 @@
     "units": "units",
     "next": "Next",
     "title": "Send",
-    "deeplink_failure": "Something went wrong. Please try again",
+    "deeplink_failure": "Something went wrong. Try again",
     "warn_network_change": "Network changed to ",
     "send_to": "Send to",
     "amount": "Amount",
@@ -769,7 +769,7 @@
     "no_tokens_available": "No tokens available",
     "sign": "Sign",
     "network_not_found_title": "Network not found",
-    "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Please add the network first.",
+    "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Add the network first.",
     "network_missing_id": "Missing chain ID.",
     "search_tokens": "Search tokens",
     "search_tokens_and_nfts": "Search tokens and NFTs",
@@ -812,7 +812,7 @@
       "kycFormsFetchError": "Failed to fetch KYC forms.",
       "title": "Buy",
       "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",
-      "limitError": "Failed to check your deposit limits. Please try again later."
+      "limitError": "Failed to check your deposit limits. Try again later."
     },
     "token_modal": {
       "select_a_token": "Select a token",
@@ -821,7 +821,7 @@
       "no_tokens_found": "No tokens match \"{{searchString}}\"",
       "unsupported_token_title": "Not available",
       "unsupported_token_description": "This token may not be available in your region or supported by any local payment providers",
-      "error_loading_tokens": "Unable to load tokens. Please try again later."
+      "error_loading_tokens": "Unable to load tokens. Try again later."
     },
     "networks_filter_bar": {
       "all_networks": "All networks"
@@ -913,7 +913,7 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "Send email",
       "loading": "Sending email...",
-      "validation_error": "Please enter a valid email address",
+      "validation_error": "Enter a valid email address",
       "error": "An error occurred while sending the email"
     },
     "otp_code": {
@@ -923,7 +923,7 @@
       "submit_button": "Submit",
       "loading": "Verifying code...",
       "invalid_code_error": "Invalid code",
-      "validation_error": "Please enter a valid code",
+      "validation_error": "Enter a valid code",
       "need_help": "Need help?",
       "resend_code_description": "Didn't receive the code?",
       "resend_code_error": "Error resending code.",
@@ -968,13 +968,13 @@
       "enter_phone_number": "Enter phone number",
       "select_region": "Select region",
       "first_name_required": "First name is required",
-      "first_name_invalid": "Please enter a valid first name",
+      "first_name_invalid": "Enter a valid first name",
       "last_name_required": "Last name is required",
-      "last_name_invalid": "Please enter a valid last name",
+      "last_name_invalid": "Enter a valid last name",
       "mobile_number_required": "Phone number is required",
-      "mobile_number_invalid": "Please enter a valid phone number",
+      "mobile_number_invalid": "Enter a valid phone number",
       "dob_required": "Date of birth is required",
-      "dob_invalid": "Please enter a valid date of birth",
+      "dob_invalid": "Enter a valid date of birth",
       "ssn_required": "Social security number is required",
       "unexpected_error": "An unexpected error occurred. Please try again.",
       "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
@@ -993,14 +993,14 @@
       "country": "Country",
       "select_state": "Select state",
       "address_line_1_required": "Address line 1 is required",
-      "address_line_1_invalid": "Please enter a valid address",
-      "address_line_2_invalid": "Please enter a valid address",
+      "address_line_1_invalid": "Enter a valid address",
+      "address_line_2_invalid": "Enter a valid address",
       "city_required": "City is required",
-      "city_invalid": "Please enter a valid city",
+      "city_invalid": "Enter a valid city",
       "state_required": "State/Region is required",
-      "state_invalid": "Please enter a valid state",
+      "state_invalid": "Enter a valid state",
       "postal_code_required": "Postal code is required",
-      "postal_code_invalid": "Please enter a valid postal code",
+      "postal_code_invalid": "Enter a valid postal code",
       "unexpected_error": "Unexpected error."
     },
     "privacy_section": {
@@ -2263,7 +2263,11 @@
         "chaseLimitReached": "Too many chase orders are already running",
         "chaseAbandoned": "Chase order was cancelled because the connection dropped",
         "chaseTouchUnavailable": "No market price is available to place this chase order",
-        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range"
+        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range",
+        "marginModeInvalid": "Margin mode is invalid",
+        "marginModeUnsupported": "This margin mode isn't available on this market",
+        "marginModePositionOpen": "Can't change margin mode while a position is open",
+        "marginModeOrderOpen": "Can't change margin mode while an order is open"
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",
@@ -3509,7 +3513,7 @@
       "unavailable_description": "For urgent assistance, please contact Customer Service.",
       "unavailable_got_it": "Got it",
       "error_title": "Something went wrong",
-      "error_description": "Failed to proceed with withdraw",
+      "error_description": "Failed to proceed with withdrawal",
       "try_again": "Try again"
     },
     "fee_summary": {
@@ -4228,6 +4232,7 @@
     "resources": "Resources",
     "permissions": "Permissions",
     "card_title": "MetaMask Card",
+    "card_update_badge": "Update",
     "settings": "Settings",
     "networks": "Networks",
     "log_out": "Log out",
@@ -4342,7 +4347,8 @@
       "select_all": "Select all",
       "deselect_all": "Deselect all",
       "select_accounts_title": "Accounts",
-      "select_accounts_desc": "Choose which accounts you'd like to get notifications for.",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
+      "accounts_load_error": "We couldn't load your account notification settings. Try again later.",
       "wallet_activity_title": "Wallet activity",
       "wallet_activity_desc": "Buy, sells, transfers, swaps",
       "perps_title": "Trading activity",
@@ -4628,7 +4634,7 @@
     "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
     "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.",
     "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
-    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to a malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snaps",
       "description": "Overview and manage your snaps",
@@ -5818,7 +5824,7 @@
     "status_submitting_description": "Estimated completion {{timeLeft}}",
     "status_success_header": "Your transaction is complete",
     "status_submitting_past_estimated_deadline_header": "Sorry for the wait",
-    "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged for gas.",
+    "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged a network fee.",
     "status_cancelled_header": "Your transaction was canceled",
     "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary network fees.",
     "status_failed_header": "Your transaction failed",
@@ -7240,7 +7246,11 @@
   },
   "deeplink": {
     "invalid": "Invalid deeplink",
-    "not_supported": "Deeplink not supported"
+    "not_supported": "Deeplink not supported",
+    "solana_pay_transaction_request_not_supported": "This Solana Pay QR uses a transaction request, which is not supported yet.",
+    "solana_pay_reference_not_supported": "This Solana Pay QR includes a payment reference, which is not supported yet.",
+    "solana_pay_memo_not_supported": "This Solana Pay QR includes a memo, which is not supported yet.",
+    "solana_pay_token_not_supported": "This Solana Pay QR uses a token that could not be recognized. The payment was not started."
   },
   "error_screen": {
     "title": "An error occurred",
@@ -7745,7 +7755,7 @@
   },
   "show_display_nft_media": {
     "show_display_nft_media_title": "Display NFT media",
-    "show_display_nft_media_content_1": "To see an NFT, you need turn on",
+    "show_display_nft_media_content_1": "To see an NFT, you need to turn on",
     "show_display_nft_media_content_2": "Display NFT media.",
     "show_display_nft_media_content_3": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
@@ -7753,7 +7763,7 @@
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
-    "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
+    "ipfs_gateway_banner_content1": "This is an IPFS website. To see this site, you need to turn on",
     "ipfs_gateway_banner_content2": "IPFS gateway",
     "ipfs_gateway_banner_content3": "in",
     "ipfs_gateway_banner_content4": "Settings."
@@ -8568,7 +8578,7 @@
     "drawer_assets_desc": "Autodetect tokens in your wallet, display NFTs, and get batched account balance updates",
     "drawer_security_title": "Security",
     "drawer_security_desc": "Reduce your chances of joining unsafe networks and protect your accounts",
-    "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
+    "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to a malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
@@ -8932,9 +8942,9 @@
         "exchange_rate": "Exchange rate",
         "min_token_price": "Min {{symbol}} price",
         "max_token_price": "Max {{symbol}} price",
-        "min_placeholder": "Min price",
-        "max_placeholder": "Max price",
-        "clear_all": "Clear all",
+        "min_placeholder": "Market price",
+        "max_placeholder": "Market price",
+        "clear": "Clear",
         "token_price": "1 {{symbol}} = {{price}}",
         "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
       },
@@ -8960,10 +8970,29 @@
         "month": "Month"
       },
       "pair": "{{source}} → {{dest}}",
-      "schedule_summary": "{{interval}} / {{count}} orders",
+      "schedule_summary": "{{interval}} × {{count}} orders",
       "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
-      "filled": "Filled"
+      "completed": "Completed",
+      "you_sent": "You sent",
+      "you_receive": "You receive",
+      "filled_progress": "{{percent}}%",
+      "interval": "Interval",
+      "size_per_order": "Size per order",
+      "total_received": "Total received",
+      "average_execution_price": "Avg. execution price",
+      "start_date": "Start date",
+      "end_date": "End date",
+      "history": "History",
+      "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} filled",
+      "not_enough_gas": "Not enough gas",
+      "out_of_price_range": "Out of price range",
+      "failed": "Failed",
+      "filled": "Filled",
+      "order_not_found": "Order not found",
+      "cancel_order": "Cancel order",
+      "duplicate_order": "Duplicate order",
+      "cancel_confirmation_body": "Do you really want to cancel your order?"
     },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
@@ -9006,6 +9035,8 @@
     "robinhood_banner_subtitle": "Explore trending tokens",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
+    "no_watchlist_tokens_found": "No assets in watchlist",
+    "no_watchlist_tokens_found_description": "Tap the star icon on any asset to add it to your watchlist.",
     "select_network": "Select network",
     "all_networks": "All networks",
     "num_networks": "{{numNetworks}} networks",
@@ -9152,8 +9183,8 @@
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
     "confirm": "Confirm",
-    "exceeding_upper_slippage_warning": "High slippage, this may result in a unfavourable swap",
-    "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
     "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
     "custom": "Custom",
@@ -9173,7 +9204,6 @@
     "dest_asset_require_activate_warning_message": "This swap may fail. On {{network}} your account can't receive {{token}} until the token is activated in your wallet.",
     "dest_asset_require_activate_warning_message_different_account": "This swap may fail. On {{network}} {{account}} can't receive {{token}} until you switch to that account and activate the token.",
     "dest_asset_require_activate_warning_title": "Activate {{token}} on {{network}} first",
-
     "token_warning_suspicious_banner": "{{token}} is a suspicious token.",
     "token_warning_malicious_banner": "{{token}} is a malicious token. Be cautious interacting with this token.",
     "token_warning_modal_suspicious_title": "Suspicious token",
@@ -9610,6 +9640,7 @@
     "uk_migration_bottom_sheet": {
       "title": "Update your MetaMask Card",
       "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "description_no_deadline": "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       "steps": {
         "reverify_identity": "Re-verify your identity",
         "get_new_card_number": "Get your new card number",
@@ -9617,6 +9648,17 @@
       },
       "get_started": "Get started",
       "remind_me_later": "Remind me later"
+    },
+    "uk_migration_soft": {
+      "title": "Update your MetaMask Card",
+      "description": "Set up by {{deadline}} to avoid interruptions.",
+      "description_no_deadline": "Set up your card to avoid interruptions.",
+      "confirm_button_label": "Set up card"
+    },
+    "uk_migration_required": {
+      "title": "Update required to continue",
+      "description": "Complete your MetaMask Card update to keep using your card.",
+      "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
       "load_error": "Failed to load payment page. Please try again.",
@@ -10331,7 +10373,7 @@
       "description": "The MetaMask Metal Card is subject to eligibility and isn't available in all regions. If you don't qualify, you'll receive an exclusive premium merch reward instead.",
       "contact_info": "Share your contact info and you'll hear back within 2 weeks from @MidwitMilhouse on Telegram or christian.montoya@consensys.net.",
       "email_label": "Email",
-      "email_validation_error": "Please enter a valid email address",
+      "email_validation_error": "Enter a valid email address",
       "telegram_label": "Telegram handle",
       "telegram_placeholder": "Optional"
     },
@@ -11422,12 +11464,26 @@
   },
   "pro_hub": {
     "title": "MetaMask Pro",
-    "subtitle": "Your Pro membership",
     "manage": "Manage subscription",
-    "manage_plan": "Manage plan",
-    "earned_with_pro": "Earned with Pro",
-    "saved_with_pro": "Saved with Pro",
-    "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
+    "manage_membership": "Manage membership",
+    "also_included": {
+      "title": "Also included",
+      "transaction_protection": {
+        "title": "Transaction protection",
+        "badge": "Extension",
+        "subtitle": "Up to $10,000 in on-chain protection"
+      },
+      "priority_support": {
+        "title": "Priority support",
+        "subtitle": "Real human support, around the clock"
+      },
+      "disclaimer": "Allowances reset monthly. APY is variable and not guaranteed. Benefits and card availability vary by region."
+    },
+    "membership_brand": "METAMASK",
+    "membership_label": "Pro",
+    "lifetime_earnings": "Lifetime earnings",
+    "money_balance": "Money balance",
+    "musd_back": "3% mUSD back",
     "member_pricing": {
       "title": "Member pricing on trades",
       "allowance_currency": "${{amount}}",
@@ -11447,9 +11503,8 @@
       }
     },
     "physical_card": {
-      "title": "Get your physical card.",
-      "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
-      "cta": "Get card"
+      "title": "Get your free MetaMask Card",
+      "description": "Earn 3% mUSD back on purchases"
     },
     "earned": {
       "total_label": "Earned since joining Pro",
@@ -11463,17 +11518,16 @@
       "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
       "add_money": "Add money"
     },
-    "explore_benefits": "Explore benefits",
     "membership": {
       "title": "Your membership",
       "plan": "Membership",
       "earned_this_month": "Earned this month",
-      "saved_this_month": "Saved this month",
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
       "renews_on": "Renews on",
       "manage": "Manage",
+      "invoices": "Invoices",
       "contact_support": "Contact support",
       "cancel_membership": "Cancel membership",
       "earned_info": {

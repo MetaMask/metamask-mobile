@@ -99,14 +99,6 @@ describe('Membership', () => {
         toRegex(MOCK_MEMBERSHIP_STATS.earnedThisMonth),
       );
     });
-
-    it('renders the saved this month row with mock value', () => {
-      const { getByTestId } = renderMembership();
-
-      expect(getByTestId(MembershipTestIds.SAVED_ROW)).toHaveTextContent(
-        toRegex(MOCK_MEMBERSHIP_STATS.savedThisMonth),
-      );
-    });
   });
 
   // ── Payment details section ────────────────────────────────────────────────
@@ -172,6 +164,14 @@ describe('Membership', () => {
       expect(getByText(strings('pro_hub.membership.manage'))).toBeOnTheScreen();
     });
 
+    it('renders the invoices row with correct label', () => {
+      const { getByTestId } = renderMembership();
+
+      expect(getByTestId(MembershipTestIds.INVOICES_ROW)).toHaveTextContent(
+        strings('pro_hub.membership.invoices'),
+      );
+    });
+
     it('renders the contact support row with correct label', () => {
       const { getByTestId } = renderMembership();
 
@@ -226,14 +226,6 @@ describe('Membership', () => {
       expect(getByTestId(MembershipTestIds.STAT_INFO_SHEET)).toBeOnTheScreen();
     });
 
-    it('opens when the Saved this month row is pressed', () => {
-      const { getByTestId } = renderMembership();
-
-      fireEvent.press(getByTestId(MembershipTestIds.SAVED_ROW));
-
-      expect(getByTestId(MembershipTestIds.STAT_INFO_SHEET)).toBeOnTheScreen();
-    });
-
     it('shows the earned info title and description when earned row is pressed', () => {
       const { getByTestId } = renderMembership();
 
@@ -247,19 +239,6 @@ describe('Membership', () => {
       ).toHaveTextContent(
         strings('pro_hub.membership.earned_info.description'),
       );
-    });
-
-    it('shows the saved info title and description when saved row is pressed', () => {
-      const { getByTestId } = renderMembership();
-
-      fireEvent.press(getByTestId(MembershipTestIds.SAVED_ROW));
-
-      expect(
-        getByTestId(MembershipTestIds.STAT_INFO_SHEET_TITLE),
-      ).toHaveTextContent(strings('pro_hub.membership.saved_info.title'));
-      expect(
-        getByTestId(MembershipTestIds.STAT_INFO_SHEET_DESCRIPTION),
-      ).toHaveTextContent(strings('pro_hub.membership.saved_info.description'));
     });
 
     it('closes the sheet when onClose is fired', () => {
