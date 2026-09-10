@@ -18,18 +18,6 @@ export interface LimitOrderDetailsProps {
    */
   onPricePress: () => void;
   /**
-   * Formatted estimated network fee, e.g. "$1.69".
-   */
-  networkFee: string;
-  /**
-   * Token whose avatar and network badge are shown on the fee row.
-   */
-  feeToken?: BridgeToken;
-  /**
-   * Press handler for the network fee row. When omitted the row is not interactive.
-   */
-  onNetworkFeePress?: () => void;
-  /**
    * Optional test ID for the root element.
    */
   testID?: string;

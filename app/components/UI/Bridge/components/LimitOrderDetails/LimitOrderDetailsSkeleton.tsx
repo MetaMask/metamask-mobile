@@ -11,7 +11,6 @@ import { LimitOrderDetailsSelectorsIDs } from './testIds';
 const ROWS: readonly (readonly [string, string])[] = [
   ['35%', '42%'],
   ['28%', '24%'],
-  ['30%', '18%'],
 ];
 
 const LimitOrderDetailsSkeleton = () => (

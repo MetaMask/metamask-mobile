@@ -3,14 +3,10 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import {
-  createBridgeTestState,
-  createMockTokenWithBalance,
-} from '../../testUtils';
+import { createBridgeTestState } from '../../testUtils';
 import LimitOrderDetails from './index';
 import { LimitOrderDetailsSelectorsIDs } from './testIds';
 import { ExpirationRowSelectorsIDs } from './ExpirationRow/testIds';
-import { NetworkFeeRowSelectorsIDs } from './NetworkFeeRow/testIds';
 import { PriceRowSelectorsIDs } from './PriceRow/testIds';
 import type { LimitOrderDetailsProps } from './types';
 
@@ -25,18 +21,11 @@ jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
 
 type QuoteContextValue = ReturnType<typeof useBridgeQuoteDataContext>;
 
-const mockFeeToken = createMockTokenWithBalance({
-  symbol: 'ETH',
-  name: 'Ether',
-});
-
 const defaultProps: LimitOrderDetailsProps = {
   expiration: '1 hour',
   onExpirationPress: jest.fn(),
   slippage: '2%',
   onPricePress: jest.fn(),
-  networkFee: '$1.69',
-  feeToken: mockFeeToken,
 };
 
 const setQuoteData = (overrides: Partial<QuoteContextValue> = {}) => {
@@ -68,7 +57,7 @@ describe('LimitOrderDetails', () => {
     setQuoteData();
   });
 
-  it('renders expiration, slippage, and network fee rows when an active quote exists', () => {
+  it('renders expiration and slippage rows when an active quote exists', () => {
     const { getByTestId } = renderLimitOrderDetails();
 
     expect(
@@ -76,7 +65,6 @@ describe('LimitOrderDetails', () => {
     ).toBeOnTheScreen();
     expect(getByTestId(ExpirationRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(PriceRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId(NetworkFeeRowSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
   it('applies a custom testID when provided', () => {
@@ -116,7 +104,7 @@ describe('LimitOrderDetails', () => {
     expect(queryByTestId(LimitOrderDetailsSelectorsIDs.SKELETON)).toBeNull();
   });
 
-  it('renders a three-row loading skeleton when quotes are still loading', () => {
+  it('renders a two-row loading skeleton when quotes are still loading', () => {
     setQuoteData({
       activeQuote: undefined,
       isLoading: true,
@@ -133,7 +121,7 @@ describe('LimitOrderDetails', () => {
     ).toBeOnTheScreen();
     expect(
       getAllByTestId(LimitOrderDetailsSelectorsIDs.SKELETON_ROW),
-    ).toHaveLength(3);
+    ).toHaveLength(2);
     expect(queryByTestId(LimitOrderDetailsSelectorsIDs.CONTAINER)).toBeNull();
   });
 
@@ -222,14 +210,5 @@ describe('LimitOrderDetails', () => {
     fireEvent.press(getByTestId(PriceRowSelectorsIDs.CONTAINER));
 
     expect(defaultProps.onPricePress).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onNetworkFeePress when the network fee row is pressed', () => {
-    const onNetworkFeePress = jest.fn();
-    const { getByTestId } = renderLimitOrderDetails({}, { onNetworkFeePress });
-
-    fireEvent.press(getByTestId(NetworkFeeRowSelectorsIDs.CONTAINER));
-
-    expect(onNetworkFeePress).toHaveBeenCalledTimes(1);
   });
 });
