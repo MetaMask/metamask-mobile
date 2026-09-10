@@ -281,9 +281,7 @@ describe('TabBarFloating', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
 
-    expect(navigation.navigate).toHaveBeenCalledWith(
-      Routes.SOCIAL.TAB,
-    );
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB);
   });
 
   it('routes Money through the money navigation hook', () => {
