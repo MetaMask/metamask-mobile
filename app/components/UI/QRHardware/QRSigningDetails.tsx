@@ -231,7 +231,10 @@ const QRSigningDetails = ({
   return (
     <Fragment>
       {pendingScanRequest?.request && (
-        <ScrollView contentContainerStyle={styles.wrapper}>
+        <ScrollView
+          contentContainerStyle={styles.wrapper}
+          testID="qr-signing-details-wrapper"
+        >
           <ActionView
             confirmDisabled={false}
             showCancelButton={showCancelButton}

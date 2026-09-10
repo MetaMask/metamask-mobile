@@ -221,10 +221,10 @@ android {
 
 	  signingConfigs {
       mainProd {
-        storeFile file('../keystores/release.keystore')
-        storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
-        keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
-        keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+        storeFile file(System.getenv("ANDROID_KEYSTORE_PATH") ?: '../keystores/release.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD") ?: (project.hasProperty('disableMinify') ? 'android' : null)
+        keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS") ?: (project.hasProperty('disableMinify') ? 'androiddebugkey' : null)
+        keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD") ?: (project.hasProperty('disableMinify') ? 'android' : null)
       }
       mainBeta {
         storeFile file('../keystores/rc.keystore')
@@ -294,7 +294,7 @@ android {
         }
         release {
             manifestPlaceholders.isDebug = false
-            minifyEnabled enableProguardInReleaseBuilds
+            minifyEnabled (project.hasProperty('disableMinify') ? false : enableProguardInReleaseBuilds)
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
             testProguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"

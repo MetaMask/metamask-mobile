@@ -398,7 +398,13 @@ export default class TestHelpers {
     // Non-debug configs (CI, release) use standard launch.
     // Speculos debug builds also need the deep link to auto-connect to Metro
     // after app restart, preventing Detox disconnect from the DevLauncher server picker.
-    if (config.configurationName.endsWith('debug')) {
+    // Skip the deep link when DETOX_SKIP_DEVLAUNCHER is set — the DevLauncher
+    // intercepts the launch intent and strips Detox's WebSocket launchArgs,
+    // preventing Detox from connecting. Without the deep link, Detox's
+    // device.launchApp() targets MainActivity directly, and the RN dev server
+    // auto-connects to Metro via the adb-reverse'd port.
+    const skipDevLauncher = process.env.DETOX_SKIP_DEVLAUNCHER === '1';
+    if (config.configurationName.endsWith('debug') && !skipDevLauncher) {
       return this.launchAppForDebugBuild(platform, launchOptions);
     }
 

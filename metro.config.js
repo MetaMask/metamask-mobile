@@ -74,6 +74,12 @@ module.exports = function (baseConfig) {
 
   const e2eAllowsSeedlessOAuthMetroMocks = hasTestOverrides || isE2EMockOAuth;
 
+  // Thin-seam QR E2E mock: swaps `react-native-vision-camera` for a mock that
+  // auto-replays a deterministic BC-UR account-UR fragment sequence into
+  // `onCodeScanned`, bypassing the camera + ML Kit barcode pipeline.
+  // See `tests/module-mocking/vision-camera/qr-thin-seam.ts`.
+  const isQrThinSeam = process.env.QR_E2E_THIN_SEAM === 'true';
+
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
   // Also forces maxWorkers value to be no less than 2, ensuring
@@ -188,6 +194,15 @@ module.exports = function (baseConfig) {
                 ),
               };
             }
+          }
+          if (isQrThinSeam && moduleName === 'react-native-vision-camera') {
+            return {
+              type: 'sourceFile',
+              filePath: path.resolve(
+                __dirname,
+                'tests/module-mocking/vision-camera/qr-thin-seam.ts',
+              ),
+            };
           }
           if (e2eAllowsSeedlessOAuthMetroMocks) {
             if (

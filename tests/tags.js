@@ -82,6 +82,11 @@ const smokeTags = {
     description:
       'Tests the in-app browser (BrowserTab/BrowserUrlBar WebView). Covers browser navigation: visiting invalid URLs and returning home, ENS domain resolution via mocked IPFS gateway, and cross-origin redirect URL bar updates. Tests browser security: camera permission prompts within WebView and history disclosure prevention. Tests file download handling from web pages. Tests phishing detection via mocked dapp-scanning API responses. Browser tests use local HTML fixture servers (DappServer) and testSpecificMock for API mocking rather than live external websites. When changes touch BrowserTab, BrowserUrlBar, WebView configuration, or dapp-scanning integration, select this tag. Related to SmokeWalletPlatform for Trending browser navigation integration.',
   },
+  smokeQr: {
+    tag: 'SmokeQr:',
+    description:
+      'Tests QR-based air-gapped hardware wallet (Keystone-class) integration via camera-injection E2E. Covers the QR account import flow: navigating to hardware wallet selection, selecting the Keystone/QR hardware option, opening the animated QR scanner, decoding an injected (emulated) account UR via the camera feed with NO react-native-vision-camera mock, and verifying the imported account appears. Uses @metamask/hw-emulator QrEmulator to render the account UR (transport-agnostic: PNG/Y4M). Gated on QR_E2E=1 environment variable. Related to SmokeLedger (shared @metamask/hw-emulator source) and SmokeAccounts for account import.',
+  },
   smokeSnaps: {
     tag: 'SmokeSnaps:',
     description:
@@ -156,6 +161,7 @@ const {
   SmokeSeedlessOnboarding,
   SmokeBrowser,
   SmokeSnaps,
+  SmokeQr,
 } = createSmokeDescribeFunctions(smokeTags);
 
 const {
@@ -202,6 +208,7 @@ export {
   RegressionTrade,
   RegressionSampleFeature,
   SmokeSnaps,
+  SmokeQr,
   SmokePerformance,
   FixtureValidation,
 };
