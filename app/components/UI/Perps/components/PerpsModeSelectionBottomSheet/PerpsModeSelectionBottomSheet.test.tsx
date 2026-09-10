@@ -1,8 +1,15 @@
 import { IconName } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { brandColor, darkTheme, lightTheme } from '@metamask/design-tokens';
 import { PerpsMode } from '@metamask/perps-controller';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  renderHook,
+  screen,
+} from '@testing-library/react-native';
 import React from 'react';
+import { type ViewStyle } from 'react-native';
 import { ThemeContext } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
@@ -141,6 +148,32 @@ describe('PerpsModeSelectionBottomSheet', () => {
     ).toHaveStyle({
       backgroundColor: lightTheme.colors.background.section,
     });
+  });
+
+  it('outlines the selected card and keeps the unselected border transparent', () => {
+    const { result } = renderHook(() => useTailwind());
+    const borderDefault = (
+      result.current.style('border-default') as ViewStyle
+    ).borderColor;
+    const borderTransparent = (
+      result.current.style('border-transparent') as ViewStyle
+    ).borderColor;
+
+    render(
+      <PerpsModeSelectionBottomSheet
+        {...defaultProps}
+        selectedMode={PerpsMode.Pro}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION),
+    ).toHaveStyle({ borderColor: borderDefault });
+    expect(
+      screen.getByTestId(
+        PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION,
+      ),
+    ).toHaveStyle({ borderColor: borderTransparent });
   });
 
   it('sizes card titles and descriptions to the spec typography', () => {
