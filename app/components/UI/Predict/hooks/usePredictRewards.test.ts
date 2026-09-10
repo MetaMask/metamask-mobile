@@ -1,7 +1,11 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { usePredictRewards } from './usePredictRewards';
-import utils, { type CaipAccountId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  toCaipAccountId,
+  type CaipAccountId,
+} from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
@@ -85,11 +89,11 @@ describe('usePredictRewards', () => {
   const mockLoggerError = Logger.error as jest.MockedFunction<
     typeof Logger.error
   >;
-  const mockParseCaipChainId = utils.parseCaipChainId as jest.MockedFunction<
-    typeof utils.parseCaipChainId
+  const mockParseCaipChainId = parseCaipChainId as jest.MockedFunction<
+    typeof parseCaipChainId
   >;
-  const mockToCaipAccountId = utils.toCaipAccountId as jest.MockedFunction<
-    typeof utils.toCaipAccountId
+  const mockToCaipAccountId = toCaipAccountId as jest.MockedFunction<
+    typeof toCaipAccountId
   >;
   const mockGetFormattedAddressFromInternalAccount =
     getFormattedAddressFromInternalAccount as jest.MockedFunction<

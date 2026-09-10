@@ -6,7 +6,7 @@
  * 2) Split across TOTAL_SPLITS via LPT bin-pack when e2e_test_times exist,
  *    otherwise equal-count alphabetical slicing
  * 3) On workflow re-runs, skip passed specs (Playwright JSON / shard-status)
- * 4) On PRs, duplicate changed specs (*-retry-1.spec.*) for flakiness detection
+ * 4) On PRs targeting main, duplicate changed specs (*-retry-1.spec.*) for flakiness detection
  * 5) Write SPEC_FILES to GITHUB_OUTPUT for Playwright
  *
  * Also: `node e2e-split-tags-shards.mjs --write-shard-status [prevDir] [report] [out]`
@@ -15,7 +15,7 @@
  * Env (select mode):
  *   PLATFORM, TEST_SUITE_TAG, SPLIT_NUMBER, TOTAL_SPLITS, BASE_DIR
  *   E2E_TIMINGS_PATH, GITHUB_TOKEN, REPOSITORY
- *   PR_NUMBER, CHANGED_SPEC_FILES, RUN_ATTEMPT, PREVIOUS_RESULTS_PATH
+ *   PR_NUMBER, PR_BASE_REF, CHANGED_SPEC_FILES, RUN_ATTEMPT, PREVIOUS_RESULTS_PATH
  */
 
 import fs from 'node:fs';
@@ -36,6 +36,7 @@ const env = {
   SPLIT_NUMBER: Number(process.env.SPLIT_NUMBER || '1'),
   TOTAL_SPLITS: Number(process.env.TOTAL_SPLITS || '1'),
   PR_NUMBER: process.env.PR_NUMBER || '',
+  PR_BASE_REF: process.env.PR_BASE_REF || '',
   REPOSITORY: process.env.REPOSITORY || 'MetaMask/metamask-mobile',
   GITHUB_TOKEN: process.env.GITHUB_TOKEN || '',
   CHANGED_SPEC_FILES: process.env.CHANGED_SPEC_FILES || '',
@@ -199,11 +200,12 @@ async function githubGraphql(query, variables = {}) {
 }
 
 /**
- * Skip PR flakiness detection when unlabeled / non-PR / API failure / skip label.
+ * Skip flakiness detection for non-main PRs, non-PR runs, API failures, or the
+ * skip label.
  * @returns {Promise<boolean>}
  */
 async function shouldSkipFlakinessDetection() {
-  if (!env.PR_NUMBER) {
+  if (!env.PR_NUMBER || env.PR_BASE_REF !== 'main') {
     return true;
   }
 

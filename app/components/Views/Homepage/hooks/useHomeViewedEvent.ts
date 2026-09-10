@@ -40,6 +40,8 @@ interface UseHomeViewedEventParams {
    * E.g. for Tokens: number of token rows. For NFTs in empty state: 0.
    */
   itemCount: number;
+  /** Optional callback invoked once when this section is recorded as viewed. */
+  onSectionViewed?: () => void;
   /** Optional shared viewport state. When provided, skip this hook's own measurement. */
   isVisible?: boolean;
   /**
@@ -73,6 +75,7 @@ const useHomeViewedEvent = ({
   totalSectionsLoaded,
   isEmpty,
   itemCount,
+  onSectionViewed,
   isVisible,
   fireImmediateWhenNoView = true,
 }: UseHomeViewedEventParams) => {
@@ -102,6 +105,7 @@ const useHomeViewedEvent = ({
     // not included in enabledSections. Don't fire the event in that case.
     if (sectionIndex < 0) return;
     hasFiredRef.current = true;
+    onSectionViewed?.();
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
@@ -136,6 +140,7 @@ const useHomeViewedEvent = ({
     createEventBuilder,
     notifySectionViewed,
     sectionRef,
+    onSectionViewed,
   ]);
 
   // Reset on each homepage visit so the event re-fires.
