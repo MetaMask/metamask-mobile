@@ -7,6 +7,8 @@ import { ReactTestInstance } from 'react-test-renderer';
 import { mockTheme } from '../../../util/theme';
 import AddBookmark from '../../Views/AddBookmark';
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
+import NftDetails from '../../Views/NftDetails';
+import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -1306,6 +1308,90 @@ describe('MainNavigator', () => {
     expect(bundleV1Screen?.component.name).toBe('SocialV1View');
   });
 
+  describe('Rewards route placement across the Header & NavBar arms', () => {
+    const stateForArm = (headerNavBarVariant?: string) => ({
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialRootState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.1',
+              },
+              ...(headerNavBarVariant
+                ? { homeTMCU1276AbtestHeaderNavBar: headerNavBarVariant }
+                : {}),
+            },
+          },
+        },
+      },
+    });
+
+    const rootStackScreenNames = (container: {
+      root: ReactTestInstance;
+    }): string[] =>
+      container.root.children
+        .filter(
+          (child): child is ReactTestInstance =>
+            typeof child === 'object' &&
+            'type' in child &&
+            'props' in child &&
+            child.type?.toString() === 'Screen',
+        )
+        .map((child) => child.props.name);
+
+    const homeTabNames = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): string[] => {
+      const HomeTabs = container.root.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
+      )[0]?.props?.component;
+      const { root } = renderWithProvider(<HomeTabs route={{ params: {} }} />, {
+        state,
+      });
+      return root
+        .findAll(
+          (node: ReactTestInstance) => node.type?.toString?.() === 'TabScreen',
+        )
+        .map((node) => node.props.name);
+    };
+
+    it('pushes Rewards onto the root stack in treatment, where it is no longer a tab', () => {
+      const state = stateForArm('searchFocused');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+
+      const tabs = homeTabNames(container, state);
+      expect(tabs).toContain(Routes.SOCIAL.TAB);
+      expect(tabs).not.toContain(Routes.REWARDS_VIEW);
+      expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+    });
+
+    it('keeps the root-stack fallback in control, where the nearer tab wins', () => {
+      const state = stateForArm('control');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      // Registered in both arms so the route always resolves. Control also has
+      // the tab, and the tab navigator is nearer the caller, so it takes it.
+      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+
+      const tabs = homeTabNames(container, state);
+      expect(tabs).toContain(Routes.REWARDS_VIEW);
+      expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+    });
+  });
+
   describe('Inner navigator component rendering', () => {
     const getScreenComponent = (
       root: ReactTestInstance,
@@ -1383,20 +1469,20 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders NftDetailsModeView navigator', () => {
+      it('points the NftDetails route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'NftDetails');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'NftDetails')).toBe(NftDetails);
       });
 
-      it('renders NftDetailsFullImageModeView navigator', () => {
+      it('points the NftDetailsFullImage route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'NftDetailsFullImage');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'NftDetailsFullImage')).toBe(
+          NftDetailsFullImage,
+        );
       });
 
       it('renders SetPasswordFlow navigator', () => {
@@ -1775,6 +1861,22 @@ describe('MainNavigator', () => {
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).not.toContain(Routes.MONEY.ROOT);
+      });
+
+      it('gives the Money slot to Activity in regions without Money', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).toContain(Routes.TRANSACTIONS_VIEW);
+      });
+
+      it('keeps Activity out of the tab set when Money is available', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).not.toContain(Routes.TRANSACTIONS_VIEW);
       });
     });
   });
