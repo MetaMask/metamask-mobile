@@ -22,7 +22,10 @@ import { isMonadMainnetChainId } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import {
+  ConfirmationLoader,
+  type ConfirmationLaunchSource,
+} from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 import { ensureError } from '../../../../util/errorUtils';
@@ -50,6 +53,11 @@ export interface InitiateDepositOptions {
   intent?: MoneyAccountDepositIntent;
   autoSelectFiatPayment?: boolean;
   replaceConfirmation?: boolean;
+  /**
+   * Where the deposit was started from. Carried to the confirmation so it can
+   * land somewhere other than the Money tab — see `navigateOnConfirm`.
+   */
+  launchedFrom?: ConfirmationLaunchSource;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -155,6 +163,7 @@ export function useMoneyAccountDeposit() {
           : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
+        launchedFrom: options?.launchedFrom,
       };
 
       // Navigate early for better UX; recover on failure below.
