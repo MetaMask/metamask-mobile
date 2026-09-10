@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { useUnlockedRewards } from './useUnlockedRewards';
 import Engine from '../../../../core/Engine';
 import {
@@ -153,10 +153,9 @@ describe('useUnlockedRewards', () => {
   it('should fetch unlocked rewards successfully', async () => {
     mockEngineCall.mockResolvedValue(mockUnlockedRewards);
 
-    renderHook(() => useUnlockedRewards());
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      renderHook(() => useUnlockedRewards());
+    });
 
     expect(mockDispatch).toHaveBeenCalledWith(
       setUnlockedRewardLoading({
@@ -197,10 +196,9 @@ describe('useUnlockedRewards', () => {
     const mockError = new Error('Network error');
     mockEngineCall.mockRejectedValue(mockError);
 
-    renderHook(() => useUnlockedRewards());
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      renderHook(() => useUnlockedRewards());
+    });
 
     expect(mockDispatch).toHaveBeenCalledWith(
       setUnlockedRewardLoading({
@@ -241,10 +239,9 @@ describe('useUnlockedRewards', () => {
   it('should handle empty rewards array', async () => {
     mockEngineCall.mockResolvedValue([]);
 
-    renderHook(() => useUnlockedRewards());
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      renderHook(() => useUnlockedRewards());
+    });
 
     expect(mockDispatch).toHaveBeenCalledWith(
       setUnlockedRewardLoading({
@@ -272,10 +269,9 @@ describe('useUnlockedRewards', () => {
   it('should handle null response from controller', async () => {
     mockEngineCall.mockResolvedValue(null);
 
-    renderHook(() => useUnlockedRewards());
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      renderHook(() => useUnlockedRewards());
+    });
 
     expect(mockDispatch).toHaveBeenCalledWith(
       setUnlockedRewardLoading({
@@ -303,10 +299,9 @@ describe('useUnlockedRewards', () => {
   it('should handle undefined response from controller', async () => {
     mockEngineCall.mockResolvedValue(undefined);
 
-    renderHook(() => useUnlockedRewards());
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      renderHook(() => useUnlockedRewards());
+    });
 
     expect(mockDispatch).toHaveBeenCalledWith(
       setUnlockedRewardLoading({
@@ -335,9 +330,10 @@ describe('useUnlockedRewards', () => {
   it('should set loading state correctly during fetch lifecycle', async () => {
     mockEngineCall.mockResolvedValue(mockUnlockedRewards);
 
-    renderHook(() => useUnlockedRewards());
+    await act(async () => {
+      renderHook(() => useUnlockedRewards());
+    });
 
-    // Check that loading is set to true immediately
     expect(mockDispatch).toHaveBeenCalledWith(
       setUnlockedRewardLoading({
         subscriptionId: 'test-subscription-id',
@@ -345,11 +341,6 @@ describe('useUnlockedRewards', () => {
         loading: true,
       }),
     );
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    // Check that loading is set to false after completion
     expect(mockDispatch).toHaveBeenCalledWith(
       setUnlockedRewardLoading({
         subscriptionId: 'test-subscription-id',
@@ -380,10 +371,9 @@ describe('useUnlockedRewards', () => {
 
     mockEngineCall.mockResolvedValue(mockUnlockedRewards);
 
-    renderHook(() => useUnlockedRewards());
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      renderHook(() => useUnlockedRewards());
+    });
 
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsController:getUnlockedRewards',

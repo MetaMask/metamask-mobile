@@ -82,11 +82,12 @@ describe('useSeasonStatus', () => {
 
   const mockSubscriptionId = 'test-subscription-id';
   const mockSeasonId = 'test-season-id';
+  const FIXED_NOW = new Date('2025-01-01T12:00:00.000Z').getTime();
   const mockSeasonMetadata: SeasonDtoState = {
     id: mockSeasonId,
     name: 'Test Season',
-    startDate: Date.now() - 86400000,
-    endDate: Date.now() + 86400000,
+    startDate: FIXED_NOW - 86400000,
+    endDate: FIXED_NOW + 86400000,
     tiers: [],
     activityTypes: [],
     waysToEarn: [],
@@ -96,15 +97,15 @@ describe('useSeasonStatus', () => {
     season: {
       id: mockSeasonId,
       name: 'Test Season',
-      startDate: Date.now() - 86400000,
-      endDate: Date.now() + 86400000,
+      startDate: FIXED_NOW - 86400000,
+      endDate: FIXED_NOW + 86400000,
       tiers: [],
       activityTypes: [],
       waysToEarn: [],
     },
     balance: {
       total: 1000,
-      updatedAt: Date.now(),
+      updatedAt: FIXED_NOW,
     },
     tier: {
       currentTier: {

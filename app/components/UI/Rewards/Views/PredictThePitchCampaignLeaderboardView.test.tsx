@@ -326,53 +326,61 @@ describe('PredictThePitchCampaignLeaderboardView', () => {
     );
   });
 
-  it('passes isCampaignComplete to stats header and leaderboard when campaign ended', () => {
-    const completedCampaign = {
-      ...mockCampaign,
-      startDate: '2024-01-01T00:00:00Z',
-      endDate: '2025-01-01T00:00:00Z',
-    };
-    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) => {
-      if (selector === selectReferralCode) {
-        return 'REFCODE99';
-      }
-      return selector({
-        rewards: {
-          campaigns: [completedCampaign],
+  describe('when campaign is complete', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('passes isCampaignComplete to stats header and leaderboard when campaign ended', () => {
+      const completedCampaign = {
+        ...mockCampaign,
+        startDate: '2024-01-01T00:00:00Z',
+        endDate: '2025-01-01T00:00:00Z',
+      };
+      mockUseSelector.mockImplementation(
+        (selector: (s: unknown) => unknown) => {
+          if (selector === selectReferralCode) {
+            return 'REFCODE99';
+          }
+          return selector({
+            rewards: {
+              campaigns: [completedCampaign],
+            },
+          });
         },
+      );
+      mockUseGetParticipant.mockReturnValue({
+        status: { optedIn: true, participantCount: 10 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
       });
+      mockUseGetPosition.mockReturnValue({
+        position: basePosition,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+
+      render(<PredictThePitchCampaignLeaderboardView />);
+
+      expect(mockPredictStatsHeader).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isCampaignComplete: true,
+        }),
+      );
+      expect(mockPredictLeaderboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isCampaignComplete: true,
+        }),
+      );
     });
-    mockUseGetParticipant.mockReturnValue({
-      status: { optedIn: true, participantCount: 10 },
-      isLoading: false,
-      hasError: false,
-      refetch: jest.fn(),
-    });
-    mockUseGetPosition.mockReturnValue({
-      position: basePosition,
-      isLoading: false,
-      hasError: false,
-      hasFetched: true,
-      refetch: jest.fn(),
-    });
-
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
-
-    render(<PredictThePitchCampaignLeaderboardView />);
-
-    expect(mockPredictStatsHeader).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isCampaignComplete: true,
-      }),
-    );
-    expect(mockPredictLeaderboard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isCampaignComplete: true,
-      }),
-    );
-
-    jest.useRealTimers();
   });
 
   it('passes leaderboard data and referral code to PredictThePitchLeaderboard', () => {
