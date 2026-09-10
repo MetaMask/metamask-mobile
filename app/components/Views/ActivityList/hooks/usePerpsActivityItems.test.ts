@@ -24,6 +24,7 @@ jest.mock(
 
 jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsConnection: jest.fn(),
+  usePerpsNetwork: jest.fn(() => 'mainnet'),
   usePerpsTransactionHistory: jest.fn(),
 }));
 

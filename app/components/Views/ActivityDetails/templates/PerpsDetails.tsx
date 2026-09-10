@@ -508,7 +508,10 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
 
 function PerpsDetailsBody({ item }: { item: ActivityListItem }) {
   const perpsItem = item as PerpsActivityListItem;
-  const { transaction, isLoading } = usePerpsDetailsItem(item.hash);
+  const { transaction, isLoading } = usePerpsDetailsItem(
+    item.hash,
+    item.chainId,
+  );
 
   if (!transaction) {
     if (isLoading) {

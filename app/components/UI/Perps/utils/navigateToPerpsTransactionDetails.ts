@@ -4,25 +4,11 @@ import {
   USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_ARBITRUM_TESTNET_ADDRESS,
 } from '@metamask/perps-controller/constants/hyperLiquidConfig';
-import type { CaipChainId } from '@metamask/utils';
+import { parseCaipChainId, toCaipAssetType, type CaipChainId } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import { mapPerpsTransaction } from '../../../../util/activity-adapters';
 import { getActivityDetailsRoute } from '../../../Views/ActivityList/getActivityDetailsRoute';
 import type { PerpsTransaction } from '../types/transactionHistory';
-
-function getPerpsActivityMappingIds(isTestnet: boolean): {
-  chainId: CaipChainId;
-  collateralAssetId: string;
-} {
-  const chainId = getCaipChainId(isTestnet) as CaipChainId;
-  const usdcAddress = (
-    isTestnet ? USDC_ARBITRUM_TESTNET_ADDRESS : USDC_ARBITRUM_MAINNET_ADDRESS
-  ).toLowerCase();
-  return {
-    chainId,
-    collateralAssetId: `${chainId}/erc20:${usdcAddress}`,
-  };
-}
 
 /**
  * Opens Activity details for a mapped Perps history row when
@@ -37,7 +23,17 @@ export function navigateToPerpsTransactionDetails(
   transaction: PerpsTransaction,
   isTestnet: boolean,
 ): void {
-  const { chainId, collateralAssetId } = getPerpsActivityMappingIds(isTestnet);
+  const chainId = getCaipChainId(isTestnet) as CaipChainId;
+  const { namespace, reference } = parseCaipChainId(chainId);
+  const collateralAssetId = toCaipAssetType(
+    namespace,
+    reference,
+    'erc20',
+    (isTestnet
+      ? USDC_ARBITRUM_TESTNET_ADDRESS
+      : USDC_ARBITRUM_MAINNET_ADDRESS
+    ).toLowerCase(),
+  );
   const item = mapPerpsTransaction({
     transaction,
     chainId,

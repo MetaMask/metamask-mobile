@@ -4,7 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
-import { ARBITRUM_MAINNET_CAIP_CHAIN_ID as arbitrumMainnetCaipChainId } from '@metamask/perps-controller';
+import {
+  ARBITRUM_MAINNET_CAIP_CHAIN_ID as arbitrumMainnetCaipChainId,
+  ARBITRUM_TESTNET_CAIP_CHAIN_ID as arbitrumTestnetCaipChainId,
+} from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -45,7 +48,6 @@ import { useTransactionsQuery } from '../ActivityList/useTransactionsQuery';
 import { ActivityDetailsPendingBanner } from './components/ActivityDetailsPendingBanner';
 import { TemplateLoader } from './templates/TemplateLoader';
 
-const perpsActivityChainId = arbitrumMainnetCaipChainId as CaipChainId;
 const predictActivityChainId = 'eip155:137' as CaipChainId;
 
 function ActivityDetailsScreen({
@@ -209,11 +211,14 @@ function PerpsDetailsByIdentifier({
   chainId: CaipChainId;
 }) {
   const localOrApiItem = useActivityDetailsItem(txIdentifier, chainId);
-  const { item: perpsItem, isLoading } = usePerpsDetailsItem(txIdentifier);
+  const { item: perpsItem, isLoading } = usePerpsDetailsItem(
+    txIdentifier,
+    chainId,
+  );
   return (
     <ActivityDetailsScreen
-      item={perpsItem ?? localOrApiItem}
-      isLoading={isLoading && !perpsItem && !localOrApiItem}
+      item={perpsItem ?? (isLoading ? undefined : localOrApiItem)}
+      isLoading={isLoading && !perpsItem}
     />
   );
 }
@@ -240,7 +245,11 @@ const ActivityDetails = () => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
-  if (isPerpsEnabled && chainId === perpsActivityChainId) {
+  if (
+    isPerpsEnabled &&
+    (chainId === arbitrumMainnetCaipChainId ||
+      chainId === arbitrumTestnetCaipChainId)
+  ) {
     return (
       <PerpsDetailsProviders>
         <PerpsDetailsByIdentifier

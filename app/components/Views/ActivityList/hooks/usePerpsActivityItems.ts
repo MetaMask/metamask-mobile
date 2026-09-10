@@ -20,10 +20,18 @@ import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
   ARBITRUM_MAINNET_CAIP_CHAIN_ID,
+  ARBITRUM_TESTNET_CAIP_CHAIN_ID as arbitrumTestnetCaipChainId,
   formatAccountToCaipAccountId,
 } from '@metamask/perps-controller';
-import { USDC_ARBITRUM_MAINNET_ADDRESS } from '@metamask/perps-controller/constants/hyperLiquidConfig';
-import type { CaipChainId } from '@metamask/utils';
+import {
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_ARBITRUM_TESTNET_ADDRESS as usdcArbitrumTestnetAddress,
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
+import {
+  parseCaipChainId,
+  toCaipAssetType,
+  type CaipChainId,
+} from '@metamask/utils';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   mapPerpsTransaction,
@@ -31,18 +39,10 @@ import {
 } from '../../../../util/activity-adapters';
 import {
   usePerpsConnection,
+  usePerpsNetwork,
   usePerpsTransactionHistory,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../../UI/Perps/hooks';
-
-/**
- * HyperLiquid settles on Arbitrum; the perps adapter has no public CAIP-2 of
- * its own, so the bridge chain is injected as the activity chainId.
- */
-const PERPS_ACTIVITY_CHAIN_ID = ARBITRUM_MAINNET_CAIP_CHAIN_ID as CaipChainId;
-
-/** HyperLiquid collateral (Arbitrum USDC) — lets rows render the token icon. */
-const PERPS_COLLATERAL_ASSET_ID = `${PERPS_ACTIVITY_CHAIN_ID}/erc20:${USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()}`;
 
 export interface UsePerpsActivityItemsResult {
   items: ActivityListItem[];
@@ -63,23 +63,35 @@ export interface UsePerpsActivityItemsResult {
 
 export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
   const { isConnected } = usePerpsConnection();
+  const isTestnet = usePerpsNetwork() === 'testnet';
+  const chainId = (
+    isTestnet ? arbitrumTestnetCaipChainId : ARBITRUM_MAINNET_CAIP_CHAIN_ID
+  ) as CaipChainId;
+  const { namespace, reference } = parseCaipChainId(chainId);
+  const collateralAssetId = toCaipAssetType(
+    namespace,
+    reference,
+    'erc20',
+    (isTestnet
+      ? usdcArbitrumTestnetAddress
+      : USDC_ARBITRUM_MAINNET_ADDRESS
+    ).toLowerCase(),
+  );
 
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
 
-  // HyperLiquid is keyed by the EOA address and always settles on Arbitrum, so
-  // build the CAIP account id with the fixed perps chain rather than the user's
-  // currently-selected chain (which doesn't scope perps data and was sourced
-  // from the deprecated `selectChainId`).
+  // HyperLiquid is keyed by the EOA address and settles on Arbitrum mainnet or
+  // Sepolia, so build the CAIP account id with that chain rather than the
+  // user's currently-selected chain.
   const accountId = useMemo(() => {
     if (!selectedAddress) {
       return undefined;
     }
     return (
-      formatAccountToCaipAccountId(selectedAddress, PERPS_ACTIVITY_CHAIN_ID) ??
-      undefined
+      formatAccountToCaipAccountId(selectedAddress, chainId) ?? undefined
     );
-  }, [selectedAddress]);
+  }, [chainId, selectedAddress]);
 
   const {
     transactions,
@@ -99,15 +111,15 @@ export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
     for (const transaction of transactions) {
       const item = mapPerpsTransaction({
         transaction,
-        chainId: PERPS_ACTIVITY_CHAIN_ID,
-        collateralAssetId: PERPS_COLLATERAL_ASSET_ID,
+        chainId,
+        collateralAssetId,
       });
       if (item) {
         result.push(item);
       }
     }
     return result;
-  }, [transactions]);
+  }, [chainId, collateralAssetId, transactions]);
 
   const loadMore = useCallback(async () => {
     if (!hasFundingMore || isFetchingMoreFunding) return;

@@ -2,20 +2,22 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   ARBITRUM_MAINNET_CAIP_CHAIN_ID as arbitrumMainnetCaipChainId,
+  ARBITRUM_TESTNET_CAIP_CHAIN_ID as arbitrumTestnetCaipChainId,
   formatAccountToCaipAccountId,
 } from '@metamask/perps-controller';
-import { USDC_ARBITRUM_MAINNET_ADDRESS as usdcArbitrumMainnetAddress } from '@metamask/perps-controller/constants/hyperLiquidConfig';
-import type { CaipChainId } from '@metamask/utils';
+import {
+  USDC_ARBITRUM_MAINNET_ADDRESS as usdcArbitrumMainnetAddress,
+  USDC_ARBITRUM_TESTNET_ADDRESS as usdcArbitrumTestnetAddress,
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
+import { parseCaipChainId, toCaipAssetType, type CaipChainId } from '@metamask/utils';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { mapPerpsTransaction } from '../../../../../util/activity-adapters';
 import {
   usePerpsConnection,
+  usePerpsNetwork,
   usePerpsTransactionHistory,
 } from '../../../../UI/Perps/hooks';
 import { type PerpsTransaction } from '../../components/ActivityDetailsPerps.utils';
-
-const perpsActivityChainId = arbitrumMainnetCaipChainId as CaipChainId;
-const perpsCollateralAssetId = `${perpsActivityChainId}/erc20:${usdcArbitrumMainnetAddress.toLowerCase()}`;
 
 function getPerpsTransaction(
   transactions: PerpsTransaction[],
@@ -35,14 +37,25 @@ function getPerpsTransaction(
 }
 
 export function usePerpsDetailsItem(identifier: string | undefined) {
+  const isTestnet = usePerpsNetwork() === 'testnet';
+  const chainId = (
+    isTestnet ? arbitrumTestnetCaipChainId : arbitrumMainnetCaipChainId
+  ) as CaipChainId;
   const shouldResolve = Boolean(identifier);
+  const { namespace, reference } = parseCaipChainId(chainId);
+  const collateralAssetId = toCaipAssetType(
+    namespace,
+    reference,
+    'erc20',
+    (isTestnet
+      ? usdcArbitrumTestnetAddress
+      : usdcArbitrumMainnetAddress
+    ).toLowerCase(),
+  );
   const { isConnected } = usePerpsConnection();
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const accountId = evmAccount?.address
-    ? (formatAccountToCaipAccountId(
-        evmAccount.address,
-        arbitrumMainnetCaipChainId,
-      ) ?? undefined)
+    ? (formatAccountToCaipAccountId(evmAccount.address, chainId) ?? undefined)
     : undefined;
   const { transactions, isLoading } = usePerpsTransactionHistory({
     accountId: shouldResolve ? accountId : undefined,
@@ -62,11 +75,11 @@ export function usePerpsDetailsItem(identifier: string | undefined) {
     return (
       mapPerpsTransaction({
         transaction,
-        chainId: perpsActivityChainId,
-        collateralAssetId: perpsCollateralAssetId,
+        chainId,
+        collateralAssetId,
       }) ?? undefined
     );
-  }, [transaction]);
+  }, [chainId, collateralAssetId, transaction]);
 
   return {
     item,
