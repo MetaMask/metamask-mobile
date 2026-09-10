@@ -9939,7 +9939,7 @@
         },
         "no_card": {
           "title": "You need to enable your card",
-          "description": "Please enable your card to start spending"
+          "description": "Please enable your card to start spending."
         },
         "frozen": {
           "title": "Your card is frozen",
