@@ -40,8 +40,10 @@ describe('ScreenTtcProbeHost', () => {
 
     expect(probe.props.accessibilityLabel).toBe('ttc:onboarding_landing:123:1');
     expect(probe.props.accessible).toBe(true);
+    expect(probe.props.collapsable).toBe(false);
     expect(probe.props.importantForAccessibility).toBe('yes');
     expect(probe.props.pointerEvents).toBe('none');
+    expect(probe.props.nativeID).toBe('perf-ttc-onboarding_landing');
   });
 
   it('updates probes when new TTC values are recorded', () => {

@@ -9,12 +9,19 @@ import {
   type ScreenTtcRecord,
 } from './screenTtcRegistry';
 
+/**
+ * Must stay in the Android accessibility / UiAutomator tree.
+ * opacity:0 + 1×1 + collapsible Views are dropped by Appium on BrowserStack.
+ */
 const styles = StyleSheet.create({
   probe: {
     position: 'absolute',
-    width: 1,
-    height: 1,
-    opacity: 0,
+    left: 0,
+    bottom: 0,
+    width: 48,
+    height: 48,
+    opacity: 0.011,
+    zIndex: 9999,
   },
 });
 
@@ -46,9 +53,12 @@ const ScreenTtcProbeHost = () => {
       {records.map((record) => (
         <View
           key={`${record.screenId}-${record.generation}`}
+          collapsable={false}
           testID={screenTtcTestId(record.screenId)}
+          nativeID={screenTtcTestId(record.screenId)}
           accessible
           accessibilityLabel={formatScreenTtcAccessibilityLabel(record)}
+          accessibilityRole="text"
           importantForAccessibility="yes"
           pointerEvents="none"
           style={styles.probe}

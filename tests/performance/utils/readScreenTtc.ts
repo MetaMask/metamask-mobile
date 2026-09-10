@@ -1,4 +1,5 @@
 import Matchers from '../../framework/Matchers';
+import AppiumMatchers from '../../framework/AppiumMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   parseScreenTtcAccessibilityLabel,
@@ -9,18 +10,91 @@ import TimerHelper, {
   type PlatformThreshold,
 } from '../../framework/TimerHelper';
 import type { PerformanceTracker } from '../../reporters/PerformanceTracker';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
-const DEFAULT_TIMEOUT_MS = 15_000;
-const POLL_MS = 200;
+const DEFAULT_TIMEOUT_MS = 20_000;
+const POLL_MS = 250;
 
-async function readProbeLabel(screenId: OnboardingScreenId): Promise<string> {
-  const el = await Matchers.getElementByID(screenTtcTestId(screenId));
+async function readAttribute(el: AppiumElement, name: string): Promise<string> {
+  try {
+    return (await el.getAttribute(name)) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+async function labelFromElement(el: AppiumElement): Promise<string> {
   if (PlatformDetector.isAndroid()) {
-    return (await el.getAttribute('content-desc')) ?? '';
+    return (
+      (await readAttribute(el, 'contentDescription')) ||
+      (await readAttribute(el, 'content-desc')) ||
+      (await readAttribute(el, 'text')) ||
+      ''
+    );
   }
   return (
-    (await el.getAttribute('label')) ?? (await el.getAttribute('name')) ?? ''
+    (await readAttribute(el, 'label')) ||
+    (await readAttribute(el, 'name')) ||
+    (await readAttribute(el, 'value')) ||
+    ''
   );
+}
+
+/**
+ * Resolve the probe using several strategies — Android resource-ids are often
+ * package-qualified (`io.metamask…:id/perf-ttc-…`), and content-desc may be
+ * easier to match than resource-id for accessibility Views.
+ */
+async function findProbeElement(
+  screenId: OnboardingScreenId,
+): Promise<AppiumElement> {
+  const testId = screenTtcTestId(screenId);
+  const errors: string[] = [];
+
+  const attempts: (() => Promise<AppiumElement>)[] = [
+    // Suffix match handles package-qualified Android resource ids.
+    () => Matchers.getElementByID(new RegExp(`${testId}$`)),
+    () => Matchers.getElementByID(testId),
+  ];
+
+  if (PlatformDetector.isAndroid()) {
+    attempts.push(() =>
+      AppiumMatchers.getElementByAndroidUIAutomator(
+        `.descriptionStartsWith("ttc:${screenId}:")`,
+      ),
+    );
+    attempts.push(() =>
+      AppiumMatchers.getElementById(testId, { exact: false }),
+    );
+  } else {
+    attempts.push(() =>
+      AppiumMatchers.getElementByIOSPredicate(
+        `label BEGINSWITH "ttc:${screenId}:" OR name == "${testId}"`,
+      ),
+    );
+  }
+
+  for (const attempt of attempts) {
+    try {
+      const el = await attempt();
+      // Force a presence check when the driver returns a lazy ref.
+      if (typeof el.isDisplayed === 'function') {
+        await el.isDisplayed().catch(() => undefined);
+      }
+      return el;
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  throw new Error(
+    `TTC probe not found for [${screenId}] (tried ${attempts.length} strategies): ${errors.join(' | ')}`,
+  );
+}
+
+async function readProbeLabel(screenId: OnboardingScreenId): Promise<string> {
+  const el = await findProbeElement(screenId);
+  return labelFromElement(el);
 }
 
 /**
@@ -35,6 +109,7 @@ export async function waitForAppScreenTtc(
   const minGeneration = options?.minGeneration ?? 1;
   const deadline = Date.now() + timeoutMs;
   let lastLabel = '';
+  let lastError = '';
 
   while (Date.now() < deadline) {
     try {
@@ -47,14 +122,14 @@ export async function waitForAppScreenTtc(
       ) {
         return parsed.durationMs;
       }
-    } catch {
-      // Probe not mounted yet.
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
     }
     await new Promise((resolve) => setTimeout(resolve, POLL_MS));
   }
 
   throw new Error(
-    `Timed out waiting for in-app TTC probe for [${screenId}] within ${timeoutMs}ms (last label: "${lastLabel}")`,
+    `Timed out waiting for in-app TTC probe for [${screenId}] within ${timeoutMs}ms (last label: "${lastLabel}"; last error: ${lastError})`,
   );
 }
 

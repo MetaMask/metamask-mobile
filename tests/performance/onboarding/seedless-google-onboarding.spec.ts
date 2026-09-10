@@ -58,6 +58,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       await timers.sheetNav.measure(async () => {
         await waitForOnboardingSheetContent('google');
       });
+      performanceTracker.addTimer(timers.sheetNav);
       await addAppScreenTtcTimer({
         performanceTracker,
         screenId: 'onboarding_sheet',
@@ -73,6 +74,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         'Google',
         platform,
       );
+      performanceTracker.addTimer(timers.postOauthFlow);
       await addAppScreenTtcTimer({
         performanceTracker,
         screenId: postOauthContent,
@@ -86,6 +88,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await timers.choosePasswordNav.measure(async () => {
           await waitForChoosePasswordContent();
         });
+        performanceTracker.addTimer(timers.choosePasswordNav);
         await addAppScreenTtcTimer({
           performanceTracker,
           screenId: 'choose_pw',
@@ -105,6 +108,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         }
         await CreatePasswordView.tapCreatePasswordButton();
         await measureCreatePasswordToOnboardingSuccess(timers.createWalletFlow);
+        performanceTracker.addTimer(timers.createWalletFlow);
         await addAppScreenTtcTimer({
           performanceTracker,
           screenId: 'onboarding_success',
@@ -123,22 +127,13 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             },
           );
         });
-
-        const registered = [
-          timers.sheetNav,
-          timers.postOauthFlow,
-          timers.createWalletFlow,
-          timers.walletChromeFlow,
-        ];
-        if (platform === 'ios') {
-          registered.splice(2, 0, timers.choosePasswordNav);
-        }
-        performanceTracker.addTimers(...registered);
+        performanceTracker.addTimer(timers.walletChromeFlow);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();
         await timers.rehydrateNav.measure(async () => {
           await waitForSocialRehydrateContent();
         });
+        performanceTracker.addTimer(timers.rehydrateNav);
         await addAppScreenTtcTimer({
           performanceTracker,
           screenId: 'social_rehydrate',
@@ -157,13 +152,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             },
           );
         });
-
-        performanceTracker.addTimers(
-          timers.sheetNav,
-          timers.postOauthFlow,
-          timers.rehydrateNav,
-          timers.existingWalletFlow,
-        );
+        performanceTracker.addTimer(timers.existingWalletFlow);
       }
     },
   );
