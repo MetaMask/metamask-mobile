@@ -21,7 +21,6 @@ import { TabBarProps } from '../TabBar/TabBar.types';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
 import TabBarFloatingSurface from './TabBarFloatingSurface';
-import TabBarFloatingTradeButton from './TabBarFloatingTradeButton';
 import { useBlurMaterial } from '../../../hooks/useBlurMaterial';
 import {
   FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
@@ -33,9 +32,6 @@ import {
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
 
-/** What the circular button beside the pill does. */
-export type TabBarFloatingTrailingAction = 'search' | 'trade';
-
 export interface TabBarFloatingProps extends TabBarProps {
   /**
    * Measured height of the bar, so the navigator can pad tab scenes by the
@@ -43,8 +39,6 @@ export interface TabBarFloatingProps extends TabBarProps {
    * cases (browser, keyboard open) avoid leaving a dead gap.
    */
   onHeightChange?: (height: number) => void;
-  /** `search` opens Explore search; `trade` opens the trade tray. */
-  trailingAction?: TabBarFloatingTrailingAction;
 }
 
 type TabBarFloatingRoute = TabBarProps['state']['routes'][number];
@@ -67,7 +61,6 @@ const TabBarFloating = ({
   descriptors,
   navigation,
   onHeightChange,
-  trailingAction = 'search',
 }: TabBarFloatingProps) => {
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -153,8 +146,8 @@ const TabBarFloating = ({
           case Routes.MONEY.HOME:
             navigateToMoneyHome();
             break;
-          case Routes.SOCIAL_LEADERBOARD.TAB:
-            navigation.navigate(Routes.SOCIAL_LEADERBOARD.TAB);
+          case Routes.SOCIAL.TAB:
+            navigation.navigate(Routes.SOCIAL.TAB);
             break;
           case Routes.REWARDS_VIEW:
             navigation.navigate(Routes.REWARDS_VIEW);
@@ -213,21 +206,15 @@ const TabBarFloating = ({
             width: TAB_BAR_FLOATING_HEIGHT,
           }}
         >
-          {trailingAction === 'trade' ? (
-            <TabBarFloatingTradeButton
-              testID={TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON}
-            />
-          ) : (
-            <ButtonIcon
-              iconName={IconName.Search}
-              iconProps={{ color: IconColor.IconDefault }}
-              size={ButtonIconSize.Md}
-              onPress={handleSearchPress}
-              testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
-              accessibilityLabel={strings('wallet.search_accessibility_label')}
-              twClassName="h-full w-full rounded-full bg-transparent"
-            />
-          )}
+          <ButtonIcon
+            iconName={IconName.Search}
+            iconProps={{ color: IconColor.IconDefault }}
+            size={ButtonIconSize.Md}
+            onPress={handleSearchPress}
+            testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
+            accessibilityLabel={strings('wallet.search_accessibility_label')}
+            twClassName="h-full w-full rounded-full bg-transparent"
+          />
         </TabBarFloatingSurface>
       </View>
     </View>

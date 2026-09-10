@@ -1,28 +1,12 @@
-import { createElement, type ReactNode } from 'react';
 import { AccessibilityInfo, Platform } from 'react-native';
 import { renderHook, waitFor } from '@testing-library/react-native';
 
-import { ThemeContext } from '../../util/theme';
 import { AppThemeKey } from '../../util/theme/models';
 import { useBlurMaterial } from './useBlurMaterial';
 
-// `useTheme` reads `ThemeContext` and falls back to a light theme, so the
-// appearance is driven through the real provider rather than a module mock.
-const renderBlurMaterial = (appearance: AppThemeKey = AppThemeKey.dark) =>
-  renderHook(() => useBlurMaterial(), {
-    wrapper: ({ children }: { children: ReactNode }) =>
-      createElement(
-        ThemeContext.Provider,
-        { value: { themeAppearance: appearance } },
-        children,
-      ),
-  });
-
-let mockRemembered: boolean | undefined;
-const mockRemember = jest.fn();
-jest.mock('./reduceTransparencyMemory', () => ({
-  getRememberedReduceTransparency: () => mockRemembered,
-  rememberReduceTransparency: (enabled: boolean) => mockRemember(enabled),
+const mockTheme = { appearance: AppThemeKey.dark };
+jest.mock('../../util/theme', () => ({
+  useTheme: () => ({ themeAppearance: mockTheme.appearance }),
 }));
 
 const mockRequireOptionalNativeModule = jest.fn();
@@ -37,7 +21,7 @@ describe('useBlurMaterial', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Platform.OS = 'ios';
-    mockRemembered = undefined;
+    mockTheme.appearance = AppThemeKey.dark;
     mockRequireOptionalNativeModule.mockReturnValue({});
     jest
       .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
@@ -49,7 +33,7 @@ describe('useBlurMaterial', () => {
   });
 
   it('allows a system blur on iOS once the transparency setting is known', async () => {
-    const { result } = renderBlurMaterial();
+    const { result } = renderHook(() => useBlurMaterial());
 
     await waitFor(() => expect(result.current.isBlurAvailable).toBe(true));
   });
@@ -60,37 +44,15 @@ describe('useBlurMaterial', () => {
       .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
       .mockReturnValue(new Promise(() => undefined));
 
-    const { result } = renderBlurMaterial();
+    const { result } = renderHook(() => useBlurMaterial());
 
     expect(result.current.isBlurAvailable).toBe(false);
-  });
-
-  it('draws the blur on the first frame when the setting is already known', () => {
-    mockRemembered = false;
-
-    const { result } = renderBlurMaterial();
-
-    expect(result.current.isBlurAvailable).toBe(true);
-  });
-
-  it('starts opaque when the setting was remembered as on', () => {
-    mockRemembered = true;
-
-    const { result } = renderBlurMaterial();
-
-    expect(result.current.isBlurAvailable).toBe(false);
-  });
-
-  it('remembers the setting once it has been read', async () => {
-    renderBlurMaterial();
-
-    await waitFor(() => expect(mockRemember).toHaveBeenCalledWith(false));
   });
 
   it('stays opaque when the binary predates the blur module', () => {
     mockRequireOptionalNativeModule.mockReturnValue(null);
 
-    const { result } = renderBlurMaterial();
+    const { result } = renderHook(() => useBlurMaterial());
 
     expect(result.current.isBlurAvailable).toBe(false);
     expect(mockRequireOptionalNativeModule).toHaveBeenCalledWith('ExpoBlur');
@@ -99,7 +61,7 @@ describe('useBlurMaterial', () => {
   it('stays opaque on Android, which has no equivalent chrome material', () => {
     Platform.OS = 'android';
 
-    const { result } = renderBlurMaterial();
+    const { result } = renderHook(() => useBlurMaterial());
 
     expect(result.current.isBlurAvailable).toBe(false);
   });
@@ -107,7 +69,7 @@ describe('useBlurMaterial', () => {
   it('does not read the accessibility setting on an unsupported platform', () => {
     Platform.OS = 'android';
 
-    renderBlurMaterial();
+    renderHook(() => useBlurMaterial());
 
     expect(
       AccessibilityInfo.isReduceTransparencyEnabled,
@@ -119,7 +81,7 @@ describe('useBlurMaterial', () => {
       .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
       .mockResolvedValue(true);
 
-    const { result } = renderBlurMaterial();
+    const { result } = renderHook(() => useBlurMaterial());
 
     // Wait for the read to land, then confirm it never enabled the blur.
     await waitFor(() =>
@@ -129,15 +91,10 @@ describe('useBlurMaterial', () => {
   });
 
   it('takes its appearance from the app theme, not the system one', () => {
-    const { result } = renderBlurMaterial(AppThemeKey.light);
+    mockTheme.appearance = AppThemeKey.light;
+
+    const { result } = renderHook(() => useBlurMaterial());
 
     expect(result.current.colorScheme).toBe('light');
-    expect(result.current.tint).toBe('systemChromeMaterialLight');
-  });
-
-  it('offers the dark chrome material for the dark theme', () => {
-    const { result } = renderBlurMaterial();
-
-    expect(result.current.tint).toBe('systemChromeMaterialDark');
   });
 });

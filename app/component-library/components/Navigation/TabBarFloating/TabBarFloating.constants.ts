@@ -48,7 +48,7 @@ export const TAB_BAR_FLOATING_GAP = 14;
 export const TAB_BAR_FLOATING_LABEL_FONT_SIZE = 11;
 export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 14;
 
-/** Shared with the trade tray so every blurred surface reads as one material. */
+/** Strength of the system material used below iOS 26. */
 export const TAB_BAR_FLOATING_BLUR_INTENSITY = 60;
 
 export const TAB_BAR_FLOATING_TEST_IDS = {
@@ -56,5 +56,4 @@ export const TAB_BAR_FLOATING_TEST_IDS = {
 
   PILL: 'tab-bar-floating-pill',
   SEARCH_BUTTON: 'tab-bar-floating-search-button',
-  TRADE_BUTTON: 'tab-bar-floating-trade-button',
 } as const;

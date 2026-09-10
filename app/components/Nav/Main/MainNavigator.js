@@ -166,7 +166,8 @@ import {
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  SocialTradersTabsView,
+  SocialV0View,
+  SocialV1View,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -721,7 +722,7 @@ const HomeTabs = () => {
     },
     social: {
       tabBarIconKey: TabBarIconKey.Social,
-      rootScreenName: Routes.SOCIAL_LEADERBOARD.TAB,
+      rootScreenName: Routes.SOCIAL.TAB,
       freezeOnBlur: false,
     },
     trending: {
@@ -818,7 +819,6 @@ const HomeTabs = () => {
           descriptors={descriptors}
           navigation={navigation}
           onHeightChange={setFloatingTabBarHeight}
-          trailingAction={headerNavBarVariant.trailingNavBarAction}
         />
       ) : (
         <TabBar
@@ -909,9 +909,9 @@ const HomeTabs = () => {
 
             {showSocialTab ? (
               <Tab.Screen
-                name={Routes.SOCIAL_LEADERBOARD.TAB}
+                name={Routes.SOCIAL.TAB}
                 options={options.social}
-                component={SocialTradersTabsView}
+                component={SocialV0View}
               />
             ) : (
               <Tab.Screen
@@ -1494,35 +1494,42 @@ const MainNavigator = () => {
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={SocialTradersTabsView}
+          name={Routes.SOCIAL.V0}
+          component={SocialV0View}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.PROFILE}
+          name={Routes.SOCIAL.V1}
+          component={SocialV1View}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL.PROFILE}
           component={TraderProfileView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.POSITION}
+          name={Routes.SOCIAL.POSITION}
           component={TraderPositionView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.ONBOARDING}
+          name={Routes.SOCIAL.ONBOARDING}
           component={SocialLeaderboardOnboarding}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP}
+          name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
           component={TradingSignalsSetupBottomSheet}
           options={{
             ...clearNativeStackNavigatorOptions,
