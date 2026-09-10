@@ -708,10 +708,6 @@
             "socialAiTSA531AbtestWhatsHappeningExplore": "control",
             "socialAiTSA612AbtestQuickBuy": "control",
             "socialAiTSA901AbtestTopTradersBuyAction": "treatment",
-            "stxMigrationBatchStatus": "sentinel on",
-            "stxMigrationCancel": "sentinel on",
-            "stxMigrationGetFees": "sentinel on",
-            "stxMigrationSubmitTransactions": "sentinel on",
             "swapsSWAPS4825AbtestChainValueOrder": "control",
             "tokenDetailsV2AbTest": "Control is OFF",
             "trendingTokens": "feature is ON"
@@ -852,6 +848,7 @@
     },
     "moneyBalance": {
       "lastKnownBalance": null,
+      "lastLocalFlowConfirmedAt": null,
       "redeemable": null
     },
     "navigation": {
