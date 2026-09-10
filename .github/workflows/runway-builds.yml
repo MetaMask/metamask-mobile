@@ -1,21 +1,32 @@
 ##############################################################################################
 #
-# Runway Production Builds
+# Runway Builds
 #
-# Triggered from Runway to build the production iOS + Android binaries in one run.
+# Triggered from Runway to build iOS + Android binaries for RC or production in one run.
 # Generates the build number once, then dispatches build.yml with platform: both so iOS and Android
-# apply the same number locally at build time (no version-bump commit). Finishes by uploading the
-# iOS IPA to TestFlight.
+# apply the same number locally at build time (no version-bump commit). Uploads the iOS IPA to
+# TestFlight and posts a Slack notification with the resulting build numbers.
 #
 # This workflow only produces fresh native binaries — OTA updates are handled by the separate
-# runway-ota-production.yml workflow.
+# runway-ota.yml workflow.
+#
+# NOTE: Runway dispatches this workflow by filename. The Runway config for both the RC and
+# production build actions must target runway-builds.yml and pass build_type accordingly.
 #
 ##############################################################################################
-name: Runway Production Builds
+name: Runway Builds
+run-name: "Runway ${{ inputs.build_type == 'rc' && 'RC' || 'Production' }} Builds"
 
 on:
   workflow_dispatch:
     inputs:
+      build_type:
+        description: 'Build type: rc or production'
+        required: true
+        type: choice
+        options:
+          - rc
+          - production
       source_branch:
         description: >-
           Optional branch, tag, or SHA (Build workflow source_branch).
@@ -44,11 +55,11 @@ jobs:
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
-    name: Build iOS + Android (main-prod)
+    name: Build iOS + Android (${{ inputs.build_type == 'rc' && 'main-rc' || 'main-prod' }})
     needs: generate-build-version
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-prod
+      build_name: ${{ inputs.build_type == 'rc' && 'main-rc' || 'main-prod' }}
       platform: both
       # Prefer an explicit input; otherwise pin to the dispatch SHA so iOS and
       # Android do not race a moving branch tip under one build number.
@@ -63,17 +74,18 @@ jobs:
     needs: build
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
-      environment: prod
+      environment: ${{ inputs.build_type == 'rc' && 'rc' || 'prod' }}
       source_branch: ${{ inputs.source_branch || github.ref_name }}
-      build_name: main-prod
+      build_name: ${{ inputs.build_type == 'rc' && 'main-rc' || 'main-prod' }}
       build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
+      distribute_external: ${{ inputs.build_type == 'rc' }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   slack-notification:
-    name: Slack Production Notification
+    name: Slack ${{ inputs.build_type == 'rc' && 'RC' || 'Production' }} Notification
     needs: build
     if: success()
     uses: ./.github/workflows/slack-rc-notification.yml
@@ -82,5 +94,5 @@ jobs:
       semver: ${{ needs.build.outputs.semantic_version }}
       ios_build_number: ${{ needs.build.outputs.ios_version_code }}
       android_build_number: ${{ needs.build.outputs.android_version_code }}
-      build_kind: production
+      build_kind: ${{ inputs.build_type }}
     secrets: inherit
