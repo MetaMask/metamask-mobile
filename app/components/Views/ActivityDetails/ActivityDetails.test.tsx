@@ -80,7 +80,11 @@ jest.mock(
 jest.mock(
   '#app/components/Views/ActivityDetails/templates/Perps/usePerpsDetailsItem',
   () => ({
-    usePerpsDetailsItem: jest.fn(() => ({ item: undefined, isLoading: false })),
+    usePerpsDetailsItem: jest.fn(() => ({
+      item: undefined,
+      transaction: undefined,
+      isLoading: false,
+    })),
   }),
 );
 
@@ -296,6 +300,7 @@ describe('ActivityDetails screen', () => {
     useActivityDetailsItemMock.mockReturnValue(arbitrumSendItem);
     usePerpsDetailsItemMock.mockReturnValue({
       item: perpsFundsItem,
+      transaction: undefined,
       isLoading: false,
     });
     useParamsMock.mockReturnValue({
