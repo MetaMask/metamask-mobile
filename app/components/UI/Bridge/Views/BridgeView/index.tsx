@@ -245,6 +245,7 @@ const BridgeView = () => {
       <HeaderStandard
         title={headerTitle}
         onBack={handleBack}
+        backButtonProps={{ testID: BridgeViewSelectorsIDs.BACK_BUTTON }}
         endButtonIconProps={endButtonIconProps}
         includesTopInset
       />
