@@ -176,7 +176,6 @@ interface PredictCryptoUpDownMarketCardProps {
    * output isn't displayed.
    */
   isCarousel?: boolean;
-  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
@@ -1115,7 +1114,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
-  cardPressDisabled,
   onCardPress,
   onBuyButtonPress,
   predictFeedTab,
@@ -1247,10 +1245,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
       : undefined;
 
   const handleCardPress = useCallback(() => {
-    if (cardPressDisabled) {
-      return;
-    }
-
     onCardPress?.();
     navigateToMarketDetails(
       {
@@ -1266,7 +1260,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
       { throughRoot: true },
     );
   }, [
-    cardPressDisabled,
     cardTitle,
     imageUrl,
     navigateToMarketDetails,
@@ -1289,15 +1282,11 @@ const PredictCryptoUpDownMarketCard: React.FC<
         return;
       }
 
-      const handledExternally =
-        onBuyButtonPress?.({
-          market: selectedMarket,
-          outcome: selectedOutcome,
-          outcomeToken: token,
-        }) === true;
-      if (handledExternally) {
-        return;
-      }
+      onBuyButtonPress?.({
+        market: selectedMarket,
+        outcome: selectedOutcome,
+        outcomeToken: token,
+      });
 
       executeGuardedAction(
         () => {

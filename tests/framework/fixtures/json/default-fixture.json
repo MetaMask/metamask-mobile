@@ -900,15 +900,6 @@
       "candidateSubscriptionId": "pending",
       "currentTier": null,
       "dismissedCampaignOutcomeToasts": {},
-      "firstPredictionOnUsInteraction": {
-        "marketId": null,
-        "offerViewed": false,
-        "orderStatus": null,
-        "outcome": null,
-        "predictAccountAddress": null,
-        "skipped": false,
-        "transactionHash": null
-      },
       "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
       "hideUnlinkedAccountsBanner": false,
