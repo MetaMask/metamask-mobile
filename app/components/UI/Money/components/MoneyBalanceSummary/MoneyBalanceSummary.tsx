@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, type LayoutChangeEvent } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -43,12 +43,11 @@ interface MoneyBalanceSummaryProps {
    */
   onBalancePress?: () => void;
   /**
-   * Passed by the pushed Money screen only. It moves the title out of the
-   * header and into a `TitleHub` here, and reports that section's height so
-   * the header knows when to swap in its compact title. The Money tab leaves
-   * this unset and keeps its title in the header.
+   * Set by the pushed Money screen, which moves the title out of the header
+   * and into a `TitleHub` here so it can collapse on scroll. The Money tab
+   * leaves this unset and keeps its title in the header.
    */
-  onTitleSectionLayout?: (event: LayoutChangeEvent) => void;
+  showTitle?: boolean;
 }
 
 const MoneyBalanceSummary = ({
@@ -57,7 +56,7 @@ const MoneyBalanceSummary = ({
   onApyInfoPress,
   privacyMode = false,
   onBalancePress,
-  onTitleSectionLayout,
+  showTitle = false,
 }: MoneyBalanceSummaryProps) => {
   // APY + mUSD label stays visible alongside the balance and in the
   // unavailable states (dash / last known figure).
@@ -160,7 +159,7 @@ const MoneyBalanceSummary = ({
     }
   };
 
-  if (onTitleSectionLayout) {
+  if (showTitle) {
     return (
       <TitleHub
         testID={MoneyBalanceSummaryTestIds.CONTAINER}
@@ -170,7 +169,6 @@ const MoneyBalanceSummary = ({
         amount={renderBalanceSlot()}
         bottomLabel={apyLabel}
         bottomLabelEndAccessory={apyInfoButton}
-        onLayout={onTitleSectionLayout}
       />
     );
   }

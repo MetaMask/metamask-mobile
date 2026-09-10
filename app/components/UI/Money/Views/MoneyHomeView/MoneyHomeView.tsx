@@ -948,27 +948,35 @@ const MoneyHomeView = () => {
           />
         }
       >
-        {showBalanceUnavailableBanner && (
-          <Box twClassName="px-4 pt-2">
-            <BannerAlert
-              severity={BannerAlertSeverity.Warning}
-              title={strings('money.balance_unavailable')}
-              description={strings(
-                'money.balance_unavailable_banner_description',
-              )}
-              style={styles.balanceUnavailableBanner}
-              testID={MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER}
-            />
-          </Box>
-        )}
-        <MoneyBalanceSummary
-          apy={apyPercent}
-          displayState={displayState}
-          onApyInfoPress={handleApyInfoPress}
-          privacyMode={privacyMode}
-          onBalancePress={handleBalancePress}
-          onTitleSectionLayout={isPushed ? handleTitleSectionLayout : undefined}
-        />
+        {/* Everything above the action buttons is measured as one block: the
+            header's compact title should only appear once the large title has
+            scrolled away, which the banner pushes further down when shown. */}
+        <Box
+          testID={MoneyHomeViewTestIds.TITLE_SECTION}
+          onLayout={isPushed ? handleTitleSectionLayout : undefined}
+        >
+          {showBalanceUnavailableBanner && (
+            <Box twClassName="px-4 pt-2">
+              <BannerAlert
+                severity={BannerAlertSeverity.Warning}
+                title={strings('money.balance_unavailable')}
+                description={strings(
+                  'money.balance_unavailable_banner_description',
+                )}
+                style={styles.balanceUnavailableBanner}
+                testID={MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER}
+              />
+            </Box>
+          )}
+          <MoneyBalanceSummary
+            apy={apyPercent}
+            displayState={displayState}
+            onApyInfoPress={handleApyInfoPress}
+            privacyMode={privacyMode}
+            onBalancePress={handleBalancePress}
+            showTitle={isPushed}
+          />
+        </Box>
         <MoneyActionButtonRow
           add={{
             onPress: () =>

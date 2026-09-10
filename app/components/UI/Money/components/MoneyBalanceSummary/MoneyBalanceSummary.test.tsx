@@ -301,7 +301,7 @@ describe('MoneyBalanceSummary', () => {
         <MoneyBalanceSummary
           apy={4}
           displayState={balanceState('$123.45')}
-          onTitleSectionLayout={jest.fn()}
+          showTitle
         />,
       );
 
@@ -316,7 +316,7 @@ describe('MoneyBalanceSummary', () => {
           apy={5.5}
           displayState={balanceState('$123.45')}
           onApyInfoPress={jest.fn()}
-          onTitleSectionLayout={jest.fn()}
+          showTitle
         />,
       );
 
@@ -329,23 +329,6 @@ describe('MoneyBalanceSummary', () => {
       expect(
         getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
       ).toBeOnTheScreen();
-    });
-
-    it('reports its height so the header can time the compact title', () => {
-      const mockTitleSectionLayout = jest.fn();
-      const { getByTestId } = render(
-        <MoneyBalanceSummary
-          apy={4}
-          displayState={balanceState('$123.45')}
-          onTitleSectionLayout={mockTitleSectionLayout}
-        />,
-      );
-
-      fireEvent(getByTestId(MoneyBalanceSummaryTestIds.CONTAINER), 'layout', {
-        nativeEvent: { layout: { height: 120 } },
-      });
-
-      expect(mockTitleSectionLayout).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -33,7 +33,7 @@ interface MoneyHeaderPushedProps {
   onBack: () => void;
   /** Scroll offset of the page's animated ScrollView. */
   scrollY: SharedValue<number>;
-  /** Measured height of the page's title section (its `TitleHub`). */
+  /** Measured height of the page's leading section, title included. */
   titleSectionHeight: SharedValue<number>;
 }
 

@@ -1246,6 +1246,25 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('$2,384.34');
     });
 
+    it('measures the banner as part of the collapsing title section', () => {
+      mockRouteParams = { showBackButton: true };
+      mockUseMoneyAccountBalance.mockReturnValue(unavailableMock('$2,384.34'));
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      const titleSection = within(
+        getByTestId(MoneyHomeViewTestIds.TITLE_SECTION),
+      );
+      expect(
+        titleSection.getByTestId(
+          MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        titleSection.getByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).toBeOnTheScreen();
+    });
+
     it('hides the banner when the balance loads successfully', () => {
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1376,6 +1395,22 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
       ).not.toBeOnTheScreen();
+    });
+
+    it('measures the title section only when the stack was pushed', () => {
+      mockRouteParams = { showBackButton: true };
+      const pushed = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        pushed.getByTestId(MoneyHomeViewTestIds.TITLE_SECTION).props.onLayout,
+      ).toBeDefined();
+
+      mockRouteParams = undefined;
+      const tab = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        tab.getByTestId(MoneyHomeViewTestIds.TITLE_SECTION).props.onLayout,
+      ).toBeUndefined();
     });
   });
 
