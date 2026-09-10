@@ -295,6 +295,70 @@ describe('MoneyBalanceSummary', () => {
     });
   });
 
+  describe('on the pushed Money screen', () => {
+    it('renders the Money title, which the tab leaves in the header', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={balanceState('$123.45')}
+          onTitleSectionLayout={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toHaveTextContent(
+        strings('money.title'),
+      );
+    });
+
+    it('keeps the balance and the APY line under that title', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={5.5}
+          displayState={balanceState('$123.45')}
+          onApyInfoPress={jest.fn()}
+          onTitleSectionLayout={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
+        '$123.45',
+      );
+      expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toHaveTextContent(
+        '5.5% APY • mUSD',
+      );
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('reports its height so the header can time the compact title', () => {
+      const mockTitleSectionLayout = jest.fn();
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={balanceState('$123.45')}
+          onTitleSectionLayout={mockTitleSectionLayout}
+        />,
+      );
+
+      fireEvent(getByTestId(MoneyBalanceSummaryTestIds.CONTAINER), 'layout', {
+        nativeEvent: { layout: { height: 120 } },
+      });
+
+      expect(mockTitleSectionLayout).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('renders no title as the Money tab, which has one in its header', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+    ).not.toBeOnTheScreen();
+  });
+
   it('sits flush under the header, matching the Home page balance', () => {
     const { getByTestId } = render(
       <MoneyBalanceSummary apy={4} displayState={balanceState()} />,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, type LayoutChangeEvent } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -15,6 +15,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  TitleHub,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import TextShimmer from '../TextShimmer';
@@ -41,6 +42,13 @@ interface MoneyBalanceSummaryProps {
    * balance is not pressable.
    */
   onBalancePress?: () => void;
+  /**
+   * Passed by the pushed Money screen only. It moves the title out of the
+   * header and into a `TitleHub` here, and reports that section's height so
+   * the header knows when to swap in its compact title. The Money tab leaves
+   * this unset and keeps its title in the header.
+   */
+  onTitleSectionLayout?: (event: LayoutChangeEvent) => void;
 }
 
 const MoneyBalanceSummary = ({
@@ -49,54 +57,51 @@ const MoneyBalanceSummary = ({
   onApyInfoPress,
   privacyMode = false,
   onBalancePress,
+  onTitleSectionLayout,
 }: MoneyBalanceSummaryProps) => {
   // APY + mUSD label stays visible alongside the balance and in the
   // unavailable states (dash / last known figure).
   const showApy =
     displayState.kind === 'balance' || displayState.kind === 'unavailable';
+  const hasApy = showApy && isPositiveNumberOrZero(apy);
 
-  const renderApySlot = () => {
-    if (!showApy || !isPositiveNumberOrZero(apy)) {
-      return null;
-    }
-    return (
-      <>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          testID={MoneyBalanceSummaryTestIds.APY}
+  const apyLabel = hasApy ? (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      testID={MoneyBalanceSummaryTestIds.APY}
+    >
+      <TextShimmer>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+          numberOfLines={1}
         >
-          <TextShimmer>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-              numberOfLines={1}
-            >
-              {strings('money.apy_label', { percentage: apy })}
-            </Text>
-          </TextShimmer>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {strings('money.apy_currency_suffix')}
-          </Text>
-        </Box>
-        {onApyInfoPress && (
-          <ButtonIcon
-            iconName={IconName.Info}
-            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-            size={ButtonIconSize.Sm}
-            onPress={onApyInfoPress}
-            accessibilityLabel={strings('money.apy_info_label')}
-            testID={MoneyBalanceSummaryTestIds.APY_INFO_BUTTON}
-          />
-        )}
-      </>
-    );
-  };
+          {strings('money.apy_label', { percentage: apy })}
+        </Text>
+      </TextShimmer>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
+        {strings('money.apy_currency_suffix')}
+      </Text>
+    </Box>
+  ) : undefined;
+
+  const apyInfoButton =
+    hasApy && onApyInfoPress ? (
+      <ButtonIcon
+        iconName={IconName.Info}
+        iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
+        size={ButtonIconSize.Sm}
+        onPress={onApyInfoPress}
+        accessibilityLabel={strings('money.apy_info_label')}
+        testID={MoneyBalanceSummaryTestIds.APY_INFO_BUTTON}
+      />
+    ) : undefined;
 
   const wrapPressable = (content: React.ReactNode) =>
     onBalancePress ? (
@@ -155,6 +160,21 @@ const MoneyBalanceSummary = ({
     }
   };
 
+  if (onTitleSectionLayout) {
+    return (
+      <TitleHub
+        testID={MoneyBalanceSummaryTestIds.CONTAINER}
+        twClassName="px-4 pb-3"
+        title={strings('money.title')}
+        titleProps={{ testID: MoneyBalanceSummaryTestIds.TITLE }}
+        amount={renderBalanceSlot()}
+        bottomLabel={apyLabel}
+        bottomLabelEndAccessory={apyInfoButton}
+        onLayout={onTitleSectionLayout}
+      />
+    );
+  }
+
   return (
     <Box twClassName="px-4 gap-1" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
       {renderBalanceSlot()}
@@ -163,7 +183,8 @@ const MoneyBalanceSummary = ({
         alignItems={BoxAlignItems.Center}
         twClassName="gap-1"
       >
-        {renderApySlot()}
+        {apyLabel}
+        {apyInfoButton}
       </Box>
     </Box>
   );

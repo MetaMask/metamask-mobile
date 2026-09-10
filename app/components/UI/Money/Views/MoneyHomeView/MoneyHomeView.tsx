@@ -5,9 +5,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import Animated from 'react-native-reanimated';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   navigateWithDetails,
@@ -19,6 +20,7 @@ import {
   Box,
   BannerAlert,
   BannerAlertSeverity,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -112,6 +114,12 @@ const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
+  // Pushed over another stack (e.g. a Rewards campaign funding flow) rather
+  // than rooted in the tab bar, which is the only case that gets a back
+  // affordance and the title that collapses into the header on scroll.
+  const isPushed = Boolean(showBackButton);
+  const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
+    useHeaderStandardAnimated();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
@@ -386,6 +394,13 @@ const MoneyHomeView = () => {
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleTitleSectionLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTitleSectionHeight(event.nativeEvent.layout.height);
+    },
+    [setTitleSectionHeight],
+  );
 
   const handleAddPress = useCallback(
     ({
@@ -903,12 +918,20 @@ const MoneyHomeView = () => {
       <MoneyHeader
         onMenuPress={handleMenuPress}
         onGetProPress={handleGetProPress}
-        onBack={showBackButton ? handleBackPress : undefined}
+        {...(isPushed
+          ? {
+              onBack: handleBackPress,
+              scrollY,
+              titleSectionHeight: titleSectionHeightSv,
+            }
+          : {})}
       />
-      <ScrollView
+      <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -937,6 +960,7 @@ const MoneyHomeView = () => {
           onApyInfoPress={handleApyInfoPress}
           privacyMode={privacyMode}
           onBalancePress={handleBalancePress}
+          onTitleSectionLayout={isPushed ? handleTitleSectionLayout : undefined}
         />
         <MoneyActionButtonRow
           add={{
@@ -961,7 +985,7 @@ const MoneyHomeView = () => {
             {section.node}
           </React.Fragment>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     </Box>
   );
 };

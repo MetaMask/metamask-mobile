@@ -1361,6 +1361,24 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  describe('collapsing title', () => {
+    it('moves the title into the content when the stack was pushed', () => {
+      mockRouteParams = { showBackButton: true };
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
+    });
+
+    it('keeps the title in the header as the Money tab', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   it('opens the More sheet when menu button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

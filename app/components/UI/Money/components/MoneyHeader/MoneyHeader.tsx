@@ -1,21 +1,19 @@
 import React from 'react';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonIcon,
   ButtonSize,
   HeaderRoot,
+  HeaderStandardAnimated,
   IconName,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
+import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
 
-interface MoneyHeaderProps {
+interface MoneyHeaderCommonProps {
   /**
    * Handler for the options menu button
    */
@@ -25,72 +23,95 @@ interface MoneyHeaderProps {
    * Only fired when the Pro subscription flow flag is enabled.
    */
   onGetProPress: () => void;
-  /**
-   * Handler for the back button. Omit it — as the Money tab does — to render
-   * the plain title with no back affordance.
-   */
-  onBack?: () => void;
 }
 
-const MoneyHeader = ({
-  onMenuPress,
-  onGetProPress,
-  onBack,
-}: MoneyHeaderProps) => {
+/**
+ * The pushed Money screen, which carries a back affordance and a title that
+ * collapses into the header as the page scrolls.
+ */
+interface MoneyHeaderPushedProps {
+  onBack: () => void;
+  /** Scroll offset of the page's animated ScrollView. */
+  scrollY: SharedValue<number>;
+  /** Measured height of the page's title section (its `TitleHub`). */
+  titleSectionHeight: SharedValue<number>;
+}
+
+/** The Money tab, which is rooted in the tab bar and has nothing to go back to. */
+interface MoneyHeaderTabProps {
+  onBack?: never;
+  scrollY?: never;
+  titleSectionHeight?: never;
+}
+
+type MoneyHeaderProps = MoneyHeaderCommonProps &
+  (MoneyHeaderPushedProps | MoneyHeaderTabProps);
+
+const MoneyHeader = (props: MoneyHeaderProps) => {
+  const { onMenuPress, onGetProPress } = props;
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+
+  const menuButtonProps = {
+    iconName: IconName.MoreVertical,
+    onPress: onMenuPress,
+    accessibilityLabel: 'Menu',
+    testID: MoneyHeaderTestIds.MENU_BUTTON,
+  };
+
+  // "Get Pro" is a text button, so it can only go in the end accessory, which
+  // takes the menu with it — the header slots the two ButtonIcon paths and the
+  // accessory as alternatives rather than siblings.
+  const endAccessory = isProSubscriptionEnabled ? (
+    <Box twClassName="flex-row items-center gap-1">
+      <Button
+        size={ButtonSize.Md}
+        onPress={onGetProPress}
+        testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
+        accessibilityLabel={strings('pro_subscription.join_pro')}
+      >
+        {strings('pro_subscription.join_pro')}
+      </Button>
+      <ButtonIcon {...menuButtonProps} />
+    </Box>
+  ) : undefined;
+
+  if (props.onBack) {
+    return (
+      <HeaderStandardAnimated
+        testID={MoneyHeaderTestIds.CONTAINER}
+        title={strings('money.title')}
+        titleProps={{
+          testID: MoneyHeaderTestIds.TITLE,
+        }}
+        scrollY={props.scrollY}
+        titleSectionHeight={props.titleSectionHeight}
+        onBack={props.onBack}
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+          testID: MoneyHeaderTestIds.BACK_BUTTON,
+        }}
+        endAccessory={endAccessory}
+        endButtonIconProps={[menuButtonProps]}
+      />
+    );
+  }
 
   return (
     <HeaderRoot
       testID={MoneyHeaderTestIds.CONTAINER}
-      twClassName={onBack ? 'pl-1 pr-3' : 'pl-4 pr-3'}
+      twClassName="pl-4 pr-3"
       title={strings('money.title')}
       titleProps={{
         testID: MoneyHeaderTestIds.TITLE,
       }}
       endAccessory={
-        <Box twClassName="flex-row items-center gap-1">
-          {isProSubscriptionEnabled && (
-            <Button
-              size={ButtonSize.Md}
-              onPress={onGetProPress}
-              testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-              accessibilityLabel={strings('pro_subscription.join_pro')}
-            >
-              {strings('pro_subscription.join_pro')}
-            </Button>
-          )}
-          <ButtonIcon
-            iconName={IconName.MoreVertical}
-            onPress={onMenuPress}
-            accessibilityLabel="Menu"
-            testID={MoneyHeaderTestIds.MENU_BUTTON}
-          />
-        </Box>
+        endAccessory ?? (
+          <Box twClassName="flex-row items-center gap-1">
+            <ButtonIcon {...menuButtonProps} />
+          </Box>
+        )
       }
-    >
-      {/* `HeaderRoot` renders children in place of the title row, so this is
-          undefined without a back handler to leave the title path untouched. */}
-      {onBack ? (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 gap-1"
-        >
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={onBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={MoneyHeaderTestIds.BACK_BUTTON}
-          />
-          <Text
-            variant={TextVariant.HeadingLg}
-            testID={MoneyHeaderTestIds.TITLE}
-          >
-            {strings('money.title')}
-          </Text>
-        </Box>
-      ) : undefined}
-    </HeaderRoot>
+    />
   );
 };
 
