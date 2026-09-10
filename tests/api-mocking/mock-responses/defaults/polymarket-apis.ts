@@ -38,6 +38,13 @@ export const POLYMARKET_API_MOCKS = {
       responseCode: 200,
       response: { events: [], next_cursor: null },
     },
+    // gamma-api: public-search — consumer reads `data?.events`
+    {
+      urlEndpoint:
+        /^https:\/\/gamma-api\.polymarket\.com\/public-search(\?.*)?$/,
+      responseCode: 200,
+      response: { events: [] },
+    },
     // gamma-api: related tags for PredictHome Popular Today / feed chips
     {
       urlEndpoint:
