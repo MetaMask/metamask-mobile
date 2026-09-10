@@ -11,6 +11,7 @@ import {
   CampaignType,
   type PerpsTradingCampaignLeaderboardPositionDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 
 const mockGoBack = jest.fn();
 const mockPerpsLeaderboard = jest.fn();
@@ -184,7 +185,6 @@ const mockCampaign = {
 
 const mockState = {
   rewards: {
-    referralCode: 'REFCODE99',
     campaigns: [mockCampaign],
   },
 };
@@ -192,9 +192,12 @@ const mockState = {
 describe('PerpsTradingCampaignLeaderboardView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
-      selector(mockState),
-    );
+    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) => {
+      if (selector === selectReferralCode) {
+        return 'REFCODE99';
+      }
+      return selector(mockState);
+    });
     mockUseGetParticipant.mockReturnValue({
       status: { optedIn: false, participantCount: 0 },
       isLoading: false,
@@ -343,14 +346,16 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
       startDate: '2024-01-01T00:00:00Z',
       endDate: '2025-01-01T00:00:00Z',
     };
-    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
-      selector({
+    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) => {
+      if (selector === selectReferralCode) {
+        return 'REFCODE99';
+      }
+      return selector({
         rewards: {
-          referralCode: 'REFCODE99',
           campaigns: [completedCampaign],
         },
-      }),
-    );
+      });
+    });
     mockUseGetParticipant.mockReturnValue({
       status: { optedIn: true, participantCount: 10 },
       isLoading: false,
