@@ -176,4 +176,95 @@ describe('lighterSignerBridge', () => {
       expect.any(Number),
     );
   });
+  it('reuses a valid stored key instead of generating a new one', async () => {
+    const storedKey = 'a'.repeat(64);
+    mockSecureKeychain.getSecureItem.mockResolvedValue({
+      value: storedKey,
+    } as Awaited<ReturnType<typeof SecureKeychain.getSecureItem>>);
+    const executor = jest.fn().mockResolvedValue({
+      pubKeySuccess: true,
+      body: 'change-key-body',
+    });
+    connectLighterExecutor(executor);
+
+    await lighterSignerBridge.createClient({
+      chainId: 300,
+      accountIndex: 28,
+      nonce: 9,
+      apiKeyIndex: 7,
+    });
+
+    expect(QuickCrypto.randomBytes).not.toHaveBeenCalled();
+    expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    expect(executor).toHaveBeenCalledWith(
+      {
+        function: '_createClient',
+        params: [storedKey, 300, 28, 9, 7],
+      },
+      expect.any(Number),
+    );
+  });
+
+  it('rejects a stored key that is not a 64-character hex string', async () => {
+    // A corrupted or truncated keychain entry must fail loudly rather than
+    // reach the WASM signer, where it would produce invalid signatures.
+    mockSecureKeychain.getSecureItem.mockResolvedValue({
+      value: 'not-a-valid-key',
+    } as Awaited<ReturnType<typeof SecureKeychain.getSecureItem>>);
+    connectLighterExecutor(jest.fn());
+
+    await expect(
+      lighterSignerBridge.createClient({
+        chainId: 300,
+        accountIndex: 28,
+        nonce: 9,
+        apiKeyIndex: 7,
+      }),
+    ).rejects.toThrow('Stored Lighter signer key is invalid');
+  });
+
+  it('surfaces a keychain write failure instead of returning an unpersisted key', async () => {
+    // setSecureItem returning false means the key never reached the keychain;
+    // continuing would sign with a key that cannot be recovered next launch.
+    mockSecureKeychain.setSecureItem.mockResolvedValue(
+      false as unknown as Awaited<
+        ReturnType<typeof SecureKeychain.setSecureItem>
+      >,
+    );
+    connectLighterExecutor(jest.fn());
+
+    await expect(
+      lighterSignerBridge.createClient({
+        chainId: 300,
+        accountIndex: 28,
+        nonce: 9,
+        apiKeyIndex: 7,
+      }),
+    ).rejects.toThrow('Unable to persist Lighter signer key');
+  });
+
+  it('notifies reset listeners and stops after unsubscribe', () => {
+    const listener = jest.fn();
+    const unsubscribe = lighterSignerBridge.onReset(listener);
+
+    resetLighterBridge();
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+    resetLighterBridge();
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps notifying remaining listeners when one throws', () => {
+    // A misbehaving listener must not abort bridge recovery for the others.
+    const failing = jest.fn(() => {
+      throw new Error('listener boom');
+    });
+    const healthy = jest.fn();
+    lighterSignerBridge.onReset(failing);
+    lighterSignerBridge.onReset(healthy);
+
+    expect(() => resetLighterBridge()).not.toThrow();
+    expect(healthy).toHaveBeenCalledTimes(1);
+  });
 });

@@ -60,6 +60,12 @@ const executePromises: Record<
   | undefined
 > = {};
 
+// Correlates a `execute` message with its `executeResult`/`executeError`
+// reply. A module-scoped counter is collision-free by construction, so it
+// needs no randomness — and keeps this off the security-review surface for
+// a file that drives a signer.
+let nextExecuteSequence = 0;
+
 /**
  * Reject and drop every in-flight call. Must run whenever the WebView
  * reloads (crash recovery, content-process loss): the page-side WASM state
@@ -260,9 +266,8 @@ export const LighterSignerWebView = () => {
             );
           }
           return new Promise((resolve, reject) => {
-            const executeId = `${call.function}_${Date.now()}_${Math.random()
-              .toString(36)
-              .slice(2)}`;
+            nextExecuteSequence += 1;
+            const executeId = `${call.function}_${nextExecuteSequence}`;
             const timer = setTimeout(() => {
               delete executePromises[executeId];
               reject(

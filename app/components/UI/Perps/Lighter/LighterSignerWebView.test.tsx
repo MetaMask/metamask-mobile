@@ -95,6 +95,33 @@ describe('LighterSignerWebView', () => {
     expect(parseLighterPageMessage('not-json')).toBeNull();
   });
 
+  it('parses console forwarding messages only when the payload is string-shaped', () => {
+    // The page forwards console output as either a single string or an array
+    // of strings; anything else is a malformed frame and must be dropped.
+    expect(
+      parseLighterPageMessage('{"type":"log","message":"hello"}'),
+    ).toStrictEqual({
+      type: 'log',
+      message: 'hello',
+    });
+    expect(
+      parseLighterPageMessage('{"type":"warn","message":["a","b"]}'),
+    ).toStrictEqual({ type: 'warn', message: ['a', 'b'] });
+    expect(
+      parseLighterPageMessage('{"type":"error","message":"boom"}'),
+    ).toStrictEqual({ type: 'error', message: 'boom' });
+    expect(
+      parseLighterPageMessage('{"type":"log","message":[1,2]}'),
+    ).toBeNull();
+    expect(parseLighterPageMessage('{"type":"log","message":{}}')).toBeNull();
+  });
+
+  it('drops messages with an unknown or non-string discriminant', () => {
+    expect(parseLighterPageMessage('{"type":"unsupported"}')).toBeNull();
+    expect(parseLighterPageMessage('{"type":7}')).toBeNull();
+    expect(parseLighterPageMessage('[]')).toBeNull();
+  });
+
   it('validates function-specific signer result shapes', () => {
     expect(
       isValidLighterSignerResult('_createClient', {
