@@ -233,11 +233,20 @@ const channelsDisabledPreferences = {
 describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseABTest.mockImplementation((_flagKey, variants) => ({
-      variant: variants.control,
-      variantName: 'control',
-      isActive: false,
-    }));
+    mockUseABTest.mockImplementation((flagKey, variants) => {
+      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+        return {
+          variant: variants.control,
+          variantName: 'control',
+          isActive: false,
+        };
+      }
+      return {
+        variant: variants.control,
+        variantName: 'control',
+        isActive: false,
+      };
+    });
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
     mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
     mockIsMasterNotificationsEnabled = true;
@@ -487,11 +496,20 @@ describe('TopTradersSection', () => {
   });
 
   it('lands the section header on the Feed tab with the All audience for the treatment variant', () => {
-    mockUseABTest.mockImplementation((_flagKey, variants) => ({
-      variant: variants.treatment,
-      variantName: 'treatment',
-      isActive: true,
-    }));
+    mockUseABTest.mockImplementation((flagKey, variants) => {
+      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+        return {
+          variant: variants.control,
+          variantName: 'control',
+          isActive: false,
+        };
+      }
+      return {
+        variant: variants.treatment,
+        variantName: 'treatment',
+        isActive: true,
+      };
+    });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     fireEvent.press(screen.getByText('Top traders'));
@@ -507,11 +525,20 @@ describe('TopTradersSection', () => {
   });
 
   it('lands the view-more card on the Feed tab with the All audience for the treatment variant', () => {
-    mockUseABTest.mockImplementation((_flagKey, variants) => ({
-      variant: variants.treatment,
-      variantName: 'treatment',
-      isActive: true,
-    }));
+    mockUseABTest.mockImplementation((flagKey, variants) => {
+      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+        return {
+          variant: variants.control,
+          variantName: 'control',
+          isActive: false,
+        };
+      }
+      return {
+        variant: variants.treatment,
+        variantName: 'treatment',
+        isActive: true,
+      };
+    });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     fireEvent.press(screen.getByTestId('top-traders-view-more-card'));
@@ -526,21 +553,45 @@ describe('TopTradersSection', () => {
     );
   });
 
+  it('opens Social Bundle V1 without TSA-1042 landing params for the treatment variant', () => {
+    mockUseABTest.mockImplementation((flagKey, variants) => {
+      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+        return {
+          variant: variants.treatment,
+          variantName: 'treatment',
+          isActive: true,
+        };
+      }
+      return {
+        variant: variants.control,
+        variantName: 'control',
+        isActive: false,
+      };
+    });
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Top traders'));
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        source: 'home_carousel',
+      },
+    );
+  });
+
   it('navigates to the trader profile with correct params when a card is tapped', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
-      {
-        traderId: 'trader-1',
-        traderName: 'alice',
-        traderAddress: '0x0000000000000000000000000000000000000001',
-        source: 'home_carousel',
-        traderRank: 1,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
+      traderId: 'trader-1',
+      traderName: 'alice',
+      traderAddress: '0x0000000000000000000000000000000000000001',
+      source: 'home_carousel',
+      traderRank: 1,
+    });
   });
 
   it('calls toggleFollow with the correct analytics context when the follow button is pressed', async () => {
@@ -595,7 +646,7 @@ describe('TopTradersSection', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.objectContaining({ onSetupComplete: expect.any(Function) }),
     );
   });
@@ -693,7 +744,7 @@ describe('TopTradersSection', () => {
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.anything(),
     );
   });
@@ -719,7 +770,7 @@ describe('TopTradersSection', () => {
     expect(mockToggleFollow).not.toHaveBeenCalled();
 
     const setupCall = mockNavigate.mock.calls.find(
-      ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      ([route]) => route === Routes.SOCIAL.TRADING_SIGNALS_SETUP,
     );
     const { onSetupComplete } = setupCall?.[1] ?? {};
 
