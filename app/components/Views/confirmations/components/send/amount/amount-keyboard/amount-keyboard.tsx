@@ -53,9 +53,7 @@ export const AmountKeyboard = ({
   validateNonEvmAmountAsync: () => Promise<string | undefined>;
 }) => {
   const { gotToSendScreen } = useSendScreenNavigation();
-  const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount({
-    deferGasPolling: true,
-  });
+  const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
   const { asset, updateValue, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const { isNonEvmSendType } = useSendType();

@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { TouchableOpacity, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -92,6 +92,8 @@ export const Amount = () => {
     useAmountSelectionMetrics();
   const { isLoading: isNftLoading } = useRouteParams();
   const hasSeededPredefinedAmountRef = useRef(false);
+  const reduceMotion = useReducedMotion();
+  const amountLayout = reduceMotion ? undefined : NUMERIC_LAYOUT_TRANSITION;
 
   useEffect(() => {
     if (predefinedAmount) {
@@ -220,10 +222,10 @@ export const Amount = () => {
             {/* The amount row changes width as digits are typed, which shifts
                 everything after it; the shared transition keeps the cursor and
                 ticker sliding on the same curve instead of snapping. */}
-            <Animated.View layout={NUMERIC_LAYOUT_TRANSITION}>
-              <AnimatedCursor />
+            <Animated.View layout={amountLayout}>
+              <AnimatedCursor animated={!reduceMotion} />
             </Animated.View>
-            <Animated.View layout={NUMERIC_LAYOUT_TRANSITION}>
+            <Animated.View layout={amountLayout}>
               <Text
                 style={styles.inputText}
                 color={
@@ -242,7 +244,6 @@ export const Amount = () => {
             <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
               <AnimatedNumericText
                 color={TextColor.TextAlternative}
-                deferRolling
                 testID="send_amount_alternate"
                 value={alternateDisplayValue}
               />
@@ -259,7 +260,6 @@ export const Amount = () => {
           <AnimatedNumericText
             color={TextColor.TextAlternative}
             containerStyle={styles.balanceText}
-            deferRolling
             testID="send_balance"
             value={balanceDisplayValue}
           />

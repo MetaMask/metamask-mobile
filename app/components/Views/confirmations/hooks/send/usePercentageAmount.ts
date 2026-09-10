@@ -1,7 +1,7 @@
 import BN from 'bnjs4';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 
 import { hexToBN } from '../../../../../util/number';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
@@ -18,11 +18,6 @@ export interface GasFeeEstimatesType {
   medium: {
     suggestedMaxFeePerGas: number;
   };
-}
-
-interface IdleCallbackGlobals {
-  requestIdleCallback?: (callback: () => void) => number;
-  cancelIdleCallback?: (handle: number) => void;
 }
 
 const NATIVE_TRANSFER_GAS_LIMIT = 21000;
@@ -82,43 +77,17 @@ export const getPercentageValueFn = ({
   return fromBNWithDecimals(percentageValue, asset.decimals);
 };
 
-export const usePercentageAmount = ({
-  deferGasPolling = false,
-}: { deferGasPolling?: boolean } = {}) => {
+export const usePercentageAmount = () => {
   const { asset, chainId, from, value } = useSendContext();
   const { isEvmNativeSendType, isNonEvmNativeSendType } = useSendType();
   const { rawBalanceBN } = useBalance();
-  const [gasPollingEnabled, setGasPollingEnabled] = useState(!deferGasPolling);
-  const { gasFeeEstimates } = useGasFeeEstimatesForSend(gasPollingEnabled);
+  const { gasFeeEstimates } = useGasFeeEstimatesForSend();
   const isHardwareWallet = Boolean(from && isHardwareAccount(from));
   const isNetworkGasSponsored = useIsNetworkGasSponsored(chainId);
   const isGasSponsored = Boolean(isNetworkGasSponsored && !isHardwareWallet);
 
-  useEffect(() => {
-    if (!deferGasPolling) {
-      setGasPollingEnabled(true);
-      return;
-    }
-
-    const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
-    if (idleGlobals.requestIdleCallback) {
-      const handle = idleGlobals.requestIdleCallback(() =>
-        setGasPollingEnabled(true),
-      );
-      return () => idleGlobals.cancelIdleCallback?.(handle);
-    }
-
-    const timeout = setTimeout(() => setGasPollingEnabled(true), 100);
-    return () => clearTimeout(timeout);
-  }, [deferGasPolling]);
-
   const { value: layer1GasFee } = useAsyncResult(async () => {
-    if (
-      !gasPollingEnabled ||
-      !isEvmNativeSendType ||
-      asset?.chainId === CHAIN_IDS.MAINNET ||
-      !from
-    ) {
+    if (!isEvmNativeSendType || asset?.chainId === CHAIN_IDS.MAINNET || !from) {
       return '0x0';
     }
     return (await getLayer1GasFeeForSend({
@@ -127,7 +96,7 @@ export const usePercentageAmount = ({
       from: from as Hex,
       value: (value ?? '0') as string,
     })) as Hex;
-  }, [asset, chainId, from, gasPollingEnabled, value]);
+  }, [asset, chainId, from, value]);
 
   const getPercentageAmount = useCallback(
     (percentage: number) => {

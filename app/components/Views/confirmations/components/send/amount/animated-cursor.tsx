@@ -19,12 +19,17 @@ const styleSheet = (params: { theme: Theme; vars: Record<string, never> }) => {
   });
 };
 
-export const AnimatedCursor = () => {
+export const AnimatedCursor = ({ animated = true }: { animated?: boolean }) => {
   const cursorOpacity = useRef(new Animated.Value(0.6)).current;
 
   const { styles } = useStyles(styleSheet, STYLE_VARS);
 
   useEffect(() => {
+    if (!animated) {
+      cursorOpacity.setValue(1);
+      return undefined;
+    }
+
     const blinkAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(cursorOpacity, {
@@ -44,7 +49,7 @@ export const AnimatedCursor = () => {
 
     blinkAnimation.start();
     return () => blinkAnimation.stop();
-  }, [cursorOpacity]);
+  }, [animated, cursorOpacity]);
 
   return (
     <AnimatedView style={[styles.amountCursor, { opacity: cursorOpacity }]} />
