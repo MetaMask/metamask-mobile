@@ -157,8 +157,8 @@ import {
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  SocialTradersTabsView,
-  SocialBundleV1View,
+  SocialV0View,
+  SocialV1View,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -1442,15 +1442,15 @@ const MainNavigator = () => {
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={SocialTradersTabsView}
+          name={Routes.SOCIAL_LEADERBOARD.V0}
+          component={SocialV0View}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.BUNDLE_V1}
-          component={SocialBundleV1View}
+          name={Routes.SOCIAL_LEADERBOARD.V1}
+          component={SocialV1View}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}

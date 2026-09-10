@@ -175,7 +175,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   onVisibleLeaderboardSettled,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
   const tw = useTailwind();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();

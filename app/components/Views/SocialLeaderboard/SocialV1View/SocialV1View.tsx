@@ -46,20 +46,20 @@ import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
-import { SocialBundleV1ViewSelectorsIDs } from './SocialBundleV1View.testIds';
+import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
-  SOCIAL_BUNDLE_V1_AB_KEY,
-  SOCIAL_BUNDLE_V1_EXPOSURE_METADATA,
-  SOCIAL_BUNDLE_V1_VARIANTS,
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_EXPOSURE_METADATA,
+  SOCIAL_V1_VARIANTS,
 } from './abTestConfig';
 import EmptyShellTabPage from '../shell/EmptyShellTabPage';
 import {
-  SOCIAL_BUNDLE_TAB_ORDER,
+  SOCIAL_V1_TAB_ORDER,
   SOCIAL_SHELL_TAB_CONFIG,
 } from '../shell/tabConfig';
 import type { SocialShellTab } from '../shell/types';
-import superheroAvatar from '../../../../images/socialBundleV1/superhero.png';
+import superheroAvatar from '../../../../images/socialV1/superhero.png';
 
 const LANDING_INDEX = 0;
 
@@ -72,19 +72,19 @@ const PAGE_TEST_IDS: Record<
   }
 > = {
   feed: {
-    page: SocialBundleV1ViewSelectorsIDs.FEED_PAGE,
-    container: `${SocialBundleV1ViewSelectorsIDs.FEED_PAGE}-content`,
-    scroll: `${SocialBundleV1ViewSelectorsIDs.FEED_PAGE}-scroll`,
+    page: SocialV1ViewSelectorsIDs.FEED_PAGE,
+    container: `${SocialV1ViewSelectorsIDs.FEED_PAGE}-content`,
+    scroll: `${SocialV1ViewSelectorsIDs.FEED_PAGE}-scroll`,
   },
   liveTrades: {
-    page: SocialBundleV1ViewSelectorsIDs.LIVE_TRADES_PAGE,
-    container: `${SocialBundleV1ViewSelectorsIDs.LIVE_TRADES_PAGE}-content`,
-    scroll: `${SocialBundleV1ViewSelectorsIDs.LIVE_TRADES_PAGE}-scroll`,
+    page: SocialV1ViewSelectorsIDs.LIVE_TRADES_PAGE,
+    container: `${SocialV1ViewSelectorsIDs.LIVE_TRADES_PAGE}-content`,
+    scroll: `${SocialV1ViewSelectorsIDs.LIVE_TRADES_PAGE}-scroll`,
   },
   leaderboard: {
-    page: SocialBundleV1ViewSelectorsIDs.LEADERBOARD_PAGE,
-    container: `${SocialBundleV1ViewSelectorsIDs.LEADERBOARD_PAGE}-content`,
-    scroll: `${SocialBundleV1ViewSelectorsIDs.LEADERBOARD_PAGE}-scroll`,
+    page: SocialV1ViewSelectorsIDs.LEADERBOARD_PAGE,
+    container: `${SocialV1ViewSelectorsIDs.LEADERBOARD_PAGE}-content`,
+    scroll: `${SocialV1ViewSelectorsIDs.LEADERBOARD_PAGE}-scroll`,
   },
 };
 
@@ -110,19 +110,15 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
  * Social Bundle V1 Follow Trading home: Feed | Live trades | Leaderboard
  * under a collapsing header. Opened only for TSA-1122 treatment.
  */
-const SocialBundleV1View: React.FC = () => {
+const SocialV1View: React.FC = () => {
   const tw = useTailwind();
-  const route = useRoute<RouteProp<RootStackParamList, 'SocialBundleV1View'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'SocialV1View'>>();
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
 
-  useABTest(
-    SOCIAL_BUNDLE_V1_AB_KEY,
-    SOCIAL_BUNDLE_V1_VARIANTS,
-    SOCIAL_BUNDLE_V1_EXPOSURE_METADATA,
-  );
-  const tabOrder = SOCIAL_BUNDLE_TAB_ORDER;
+  useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
+  const tabOrder = SOCIAL_V1_TAB_ORDER;
   const feedIndex = tabOrder.indexOf('feed');
   const liveTradesIndex = tabOrder.indexOf('liveTrades');
   // The landing tab is the first one, so the surface always opens on index 0.
@@ -385,7 +381,7 @@ const SocialBundleV1View: React.FC = () => {
     <SafeAreaView
       edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
       style={tw.style('flex-1 bg-default')}
-      testID={SocialBundleV1ViewSelectorsIDs.CONTAINER}
+      testID={SocialV1ViewSelectorsIDs.CONTAINER}
     >
       <HeaderStandardAnimated
         includesTopInset
@@ -393,12 +389,12 @@ const SocialBundleV1View: React.FC = () => {
         titleSectionHeight={titleHeightSv}
         title={title}
         titleProps={{
-          testID: SocialBundleV1ViewSelectorsIDs.HEADER_TITLE,
+          testID: SocialV1ViewSelectorsIDs.HEADER_TITLE,
         }}
         startAccessory={
           <Pressable
             onPress={handlePlaceholderHeaderAction}
-            testID={SocialBundleV1ViewSelectorsIDs.AVATAR_BUTTON}
+            testID={SocialV1ViewSelectorsIDs.AVATAR_BUTTON}
             accessibilityRole="button"
           >
             <Image
@@ -417,17 +413,17 @@ const SocialBundleV1View: React.FC = () => {
               iconName={IconName.Star}
               size={ButtonIconSize.Md}
               onPress={handlePlaceholderHeaderAction}
-              testID={SocialBundleV1ViewSelectorsIDs.HEART_BUTTON}
+              testID={SocialV1ViewSelectorsIDs.HEART_BUTTON}
             />
             <ButtonIcon
               iconName={IconName.Add}
               size={ButtonIconSize.Md}
               onPress={handlePlaceholderHeaderAction}
-              testID={SocialBundleV1ViewSelectorsIDs.PLUS_BUTTON}
+              testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
             />
           </Box>
         }
-        testID={SocialBundleV1ViewSelectorsIDs.HEADER}
+        testID={SocialV1ViewSelectorsIDs.HEADER}
       />
 
       {showNotificationsBanner && (
@@ -442,7 +438,7 @@ const SocialBundleV1View: React.FC = () => {
             )}
             actionButtonOnPress={handleOpenNotificationSettings}
             onClose={handleDismissNotificationsBanner}
-            testID={SocialBundleV1ViewSelectorsIDs.NOTIFICATIONS_BANNER}
+            testID={SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER}
           />
         </Box>
       )}
@@ -462,7 +458,7 @@ const SocialBundleV1View: React.FC = () => {
               tabs={tabs}
               activeIndex={activeIndex}
               onTabPress={handleTabPress}
-              testID={SocialBundleV1ViewSelectorsIDs.TABS}
+              testID={SocialV1ViewSelectorsIDs.TABS}
             />
           </Box>
 
@@ -473,7 +469,7 @@ const SocialBundleV1View: React.FC = () => {
             style={tw.style('flex-1 mt-4')}
             initialPage={LANDING_INDEX}
             onPageSelected={handlePageSelected}
-            testID={SocialBundleV1ViewSelectorsIDs.PAGER}
+            testID={SocialV1ViewSelectorsIDs.PAGER}
           >
             {tabOrder.map((tab) => {
               const testIds = PAGE_TEST_IDS[tab];
@@ -507,4 +503,4 @@ const SocialBundleV1View: React.FC = () => {
   );
 };
 
-export default SocialBundleV1View;
+export default SocialV1View;

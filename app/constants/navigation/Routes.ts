@@ -426,11 +426,11 @@ const Routes = {
   },
   SOCIAL_LEADERBOARD: {
     ROOT: 'SocialLeaderboard',
-    VIEW: 'TopTradersView',
+    V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
-    BUNDLE_V1: 'SocialBundleV1View',
+    V1: 'SocialV1View',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {

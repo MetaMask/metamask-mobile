@@ -64,7 +64,7 @@ export const SOCIAL_SHELL_TAB_CONFIG = {
   leaderboard: LEADERBOARD_CONFIG,
 } as const;
 
-export const SOCIAL_BUNDLE_TAB_ORDER = [
+export const SOCIAL_V1_TAB_ORDER = [
   'feed',
   'liveTrades',
   'leaderboard',

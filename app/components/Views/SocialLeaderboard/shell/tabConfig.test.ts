@@ -1,12 +1,8 @@
-import { SOCIAL_BUNDLE_TAB_ORDER, SOCIAL_SHELL_TAB_CONFIG } from './tabConfig';
+import { SOCIAL_V1_TAB_ORDER, SOCIAL_SHELL_TAB_CONFIG } from './tabConfig';
 
 describe('SOCIAL_SHELL_TAB_CONFIG', () => {
   it('orders the Social Bundle tabs as Feed, Live trades, and Leaderboard', () => {
-    expect(SOCIAL_BUNDLE_TAB_ORDER).toEqual([
-      'feed',
-      'liveTrades',
-      'leaderboard',
-    ]);
+    expect(SOCIAL_V1_TAB_ORDER).toEqual(['feed', 'liveTrades', 'leaderboard']);
   });
 
   it.each([

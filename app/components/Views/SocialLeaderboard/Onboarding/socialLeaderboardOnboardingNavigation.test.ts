@@ -8,7 +8,7 @@ import { resolveABTestAssignment } from '../../../../util/abTest';
 import {
   getFollowTradingHomeRoute,
   hasSeenSocialLeaderboardOnboarding,
-  isSocialBundleV1Treatment,
+  isSocialV1Treatment,
   navigateToSocialLeaderboard,
   resetSocialLeaderboardOnboardingSeen,
   shouldShowSocialLeaderboardOnboarding,
@@ -104,7 +104,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
 
       expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW, {
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.V0, {
         source: 'home_carousel',
       });
     });
@@ -116,12 +116,12 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       navigateToSocialLeaderboard(navigate);
 
       expect(navigate).toHaveBeenCalledWith(
-        Routes.SOCIAL_LEADERBOARD.VIEW,
+        Routes.SOCIAL_LEADERBOARD.V0,
         undefined,
       );
     });
 
-    it('navigates to the Social Bundle V1 route for the TSA-1122 treatment', () => {
+    it('navigates to the Social V1 route for the TSA-1122 treatment', () => {
       mockGetItemSync.mockReturnValue('true');
       mockResolveABTestAssignment.mockReturnValue({
         variantName: 'treatment',
@@ -135,16 +135,15 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         landingFeedAudience: 'all',
       });
 
-      expect(navigate).toHaveBeenCalledWith(
-        Routes.SOCIAL_LEADERBOARD.BUNDLE_V1,
-        { source: 'home_carousel' },
-      );
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.V1, {
+        source: 'home_carousel',
+      });
     });
   });
 
   describe('getFollowTradingHomeRoute', () => {
     it('returns the legacy home route for control', () => {
-      expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL_LEADERBOARD.VIEW);
+      expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL_LEADERBOARD.V0);
     });
 
     it('returns the v1 home route for treatment', () => {
@@ -153,10 +152,8 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         isActive: true,
       });
 
-      expect(getFollowTradingHomeRoute()).toBe(
-        Routes.SOCIAL_LEADERBOARD.BUNDLE_V1,
-      );
-      expect(isSocialBundleV1Treatment()).toBe(true);
+      expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL_LEADERBOARD.V1);
+      expect(isSocialV1Treatment()).toBe(true);
     });
   });
 

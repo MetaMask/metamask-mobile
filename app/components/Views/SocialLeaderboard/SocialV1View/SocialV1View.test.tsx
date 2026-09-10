@@ -3,9 +3,9 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getSubnavPillTestId } from '../shell/SubnavPills';
-import SocialBundleV1View from './SocialBundleV1View';
-import { SocialBundleV1ViewSelectorsIDs } from './SocialBundleV1View.testIds';
-import { SOCIAL_BUNDLE_V1_AB_KEY } from './abTestConfig';
+import SocialV1View from './SocialV1View';
+import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
+import { SOCIAL_V1_AB_KEY } from './abTestConfig';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
@@ -18,7 +18,7 @@ jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => {
     mockUseABTest(...args);
     return {
-      variant: { useSocialBundleV1: true },
+      variant: { useSocialV1: true },
       variantName: 'treatment',
       isActive: true,
     };
@@ -71,7 +71,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: () => ({ navigate: mockNavigate }),
-    useRoute: () => ({ params: mockRouteParams, name: 'SocialBundleV1View' }),
+    useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
   };
 });
 
@@ -79,28 +79,28 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-describe('SocialBundleV1View', () => {
+describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
   });
 
   it('renders Feed, Live trades, and Leaderboard tabs', () => {
-    renderWithProvider(<SocialBundleV1View />);
+    renderWithProvider(<SocialV1View />);
 
     expect(
-      screen.getByTestId(`${SocialBundleV1ViewSelectorsIDs.TABS}-tab-0-label`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.feed');
     expect(
-      screen.getByTestId(`${SocialBundleV1ViewSelectorsIDs.TABS}-tab-1-label`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.live_trades');
     expect(
-      screen.getByTestId(`${SocialBundleV1ViewSelectorsIDs.TABS}-tab-2-label`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
   });
 
   it('renders each tab subnav over an empty scroll surface', () => {
-    renderWithProvider(<SocialBundleV1View />);
+    renderWithProvider(<SocialV1View />);
 
     expect(
       screen.getByTestId(getSubnavPillTestId('trending')),
@@ -117,44 +117,36 @@ describe('SocialBundleV1View', () => {
   });
 
   it('emits TSA-1122 exposure when the v1 home opens', () => {
-    renderWithProvider(<SocialBundleV1View />);
+    renderWithProvider(<SocialV1View />);
 
     expect(mockUseABTest).toHaveBeenCalledWith(
-      SOCIAL_BUNDLE_V1_AB_KEY,
+      SOCIAL_V1_AB_KEY,
       expect.anything(),
-      expect.objectContaining({ experimentName: 'Social Bundle V1' }),
+      expect.objectContaining({ experimentName: 'Social V1' }),
     );
   });
 
   it('renders placeholder header actions that do not navigate', () => {
-    renderWithProvider(<SocialBundleV1View />);
+    renderWithProvider(<SocialV1View />);
 
-    fireEvent.press(
-      screen.getByTestId(SocialBundleV1ViewSelectorsIDs.AVATAR_BUTTON),
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialBundleV1ViewSelectorsIDs.HEART_BUTTON),
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialBundleV1ViewSelectorsIDs.PLUS_BUTTON),
-    );
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.HEART_BUTTON));
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('omits the header back button', () => {
-    renderWithProvider(<SocialBundleV1View />);
+    renderWithProvider(<SocialV1View />);
 
-    expect(
-      screen.queryByTestId('social-bundle-v1-view-back-button'),
-    ).toBeNull();
+    expect(screen.queryByTestId('social-v1-view-back-button')).toBeNull();
   });
 
   it('tracks Live trades tab selection', () => {
-    renderWithProvider(<SocialBundleV1View />);
+    renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialBundleV1ViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
     );
 
     expect(mockTrack).toHaveBeenCalledWith(

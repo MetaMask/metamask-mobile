@@ -10,13 +10,13 @@ import {
 } from '../../../../selectors/featureFlagController';
 import { resolveABTestAssignment } from '../../../../util/abTest';
 import {
-  SOCIAL_BUNDLE_V1_AB_KEY,
-  SocialBundleV1Variant,
-} from '../SocialBundleV1View/abTestConfig';
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../SocialV1View/abTestConfig';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
- * `landingTab` is only meaningful on the legacy `TopTradersView` (TSA-1042).
+ * `landingTab` is only meaningful on the legacy `SocialV0View` (TSA-1042).
  */
 interface SocialLeaderboardViewParams {
   source?: string;
@@ -53,23 +53,23 @@ export const shouldShowSocialLeaderboardOnboarding = (): boolean => {
   );
 };
 
-export const isSocialBundleV1Treatment = (): boolean => {
+export const isSocialV1Treatment = (): boolean => {
   const state = ReduxService.store.getState();
   const { variantName } = resolveABTestAssignment(
     selectRemoteFeatureFlags(state),
-    SOCIAL_BUNDLE_V1_AB_KEY,
-    Object.values(SocialBundleV1Variant),
+    SOCIAL_V1_AB_KEY,
+    Object.values(SocialV1Variant),
     selectFeatureFlagThresholdGroups(state),
   );
-  return variantName === SocialBundleV1Variant.Treatment;
+  return variantName === SocialV1Variant.Treatment;
 };
 
 export const getFollowTradingHomeRoute = ():
-  | typeof Routes.SOCIAL_LEADERBOARD.BUNDLE_V1
-  | typeof Routes.SOCIAL_LEADERBOARD.VIEW =>
-  isSocialBundleV1Treatment()
-    ? Routes.SOCIAL_LEADERBOARD.BUNDLE_V1
-    : Routes.SOCIAL_LEADERBOARD.VIEW;
+  | typeof Routes.SOCIAL_LEADERBOARD.V1
+  | typeof Routes.SOCIAL_LEADERBOARD.V0 =>
+  isSocialV1Treatment()
+    ? Routes.SOCIAL_LEADERBOARD.V1
+    : Routes.SOCIAL_LEADERBOARD.V0;
 
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,
@@ -77,7 +77,7 @@ const toHomeRouteParams = (
   if (!params) {
     return undefined;
   }
-  if (isSocialBundleV1Treatment()) {
+  if (isSocialV1Treatment()) {
     return {
       source: params.source,
       showNotificationsBanner: params.showNotificationsBanner,
@@ -89,7 +89,7 @@ const toHomeRouteParams = (
 /**
  * Entry point into the Social Leaderboard feature. Routes a first-time user
  * straight to the onboarding (so no leaderboard/loading frame is shown first),
- * otherwise opens Follow Trading home (legacy or Social Bundle V1) with the
+ * otherwise opens Follow Trading home (legacy or Social V1) with the
  * caller's `source`.
  *
  * @param navigate - The caller's navigate function (React or deeplink).

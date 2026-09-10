@@ -33,7 +33,7 @@ jest.mock('../../../../../util/analytics/analytics', () => ({
 jest.mock(
   '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
   () => ({
-    getFollowTradingHomeRoute: () => 'TopTradersView',
+    getFollowTradingHomeRoute: () => 'SocialV0View',
   }),
 );
 
@@ -149,7 +149,7 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.VIEW,
+      Routes.SOCIAL_LEADERBOARD.V0,
       undefined,
       { pop: true },
     );
@@ -159,7 +159,7 @@ describe('handleSocialTraderPositionUrl', () => {
     handleSocialTraderPositionUrl({ actionPath: '' });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.VIEW,
+      Routes.SOCIAL_LEADERBOARD.V0,
       undefined,
       { pop: true },
     );
@@ -174,7 +174,7 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.VIEW,
+      Routes.SOCIAL_LEADERBOARD.V0,
       undefined,
       { pop: true },
     );
@@ -212,7 +212,7 @@ describe('handleSocialTraderPositionUrl', () => {
 
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.VIEW,
+      Routes.SOCIAL_LEADERBOARD.V0,
       undefined,
       { pop: true },
     );
@@ -225,7 +225,7 @@ describe('handleSocialTraderPositionUrl', () => {
 
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.VIEW,
+      Routes.SOCIAL_LEADERBOARD.V0,
       undefined,
       { pop: true },
     );
@@ -304,7 +304,7 @@ describe('handleSocialTraderPositionUrl', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(2);
     expect(mockNavigate).toHaveBeenLastCalledWith(
-      Routes.SOCIAL_LEADERBOARD.VIEW,
+      Routes.SOCIAL_LEADERBOARD.V0,
       undefined,
       { pop: true },
     );
