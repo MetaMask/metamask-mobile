@@ -60,6 +60,7 @@ import {
 } from './RedeemWallet.utils';
 import { REDEEM_CONFIG } from './RedeemWallet.config';
 import { CardRedeemWithdrawalInProgressError } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { capRedeemAmount } from '../../../../../core/Engine/controllers/card-controller/utils/redeemAmount';
 
 interface RedeemWalletProps {
   mode: RedeemableWalletMode;
@@ -96,7 +97,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     resetWithdraw,
   } = useRedeemableWallet(mode);
 
-  const balance = wallet?.balance ?? '0';
+  const balance = capRedeemAmount(wallet?.balance ?? '0');
   const currency = formatCurrency(wallet?.currency ?? '');
   const isWithdrawable = wallet?.isWithdrawable ?? false;
 

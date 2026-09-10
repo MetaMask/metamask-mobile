@@ -793,6 +793,52 @@ describe('Cashback Component', () => {
       });
     });
 
+    it('caps excess-precision balances before claiming and displaying', async () => {
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '17.96660759',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+
+      render();
+
+      expect(screen.getByText(/17\.9666/)).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      await waitFor(() => {
+        expect(mockWithdraw).toHaveBeenCalledWith('17.9666');
+      });
+    });
+
+    it('disables withdraw when the capped balance is dust below 4 decimals', () => {
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '0.00009',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0',
+      };
+
+      render();
+
+      expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+      expect(mockWithdraw).not.toHaveBeenCalled();
+    });
+
     it('tracks analytics event on withdraw', () => {
       mockHookReturn.wallet = {
         id: 'w1',

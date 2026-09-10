@@ -4422,6 +4422,29 @@ describe('CardController — data pass-throughs', () => {
       });
     });
 
+    it('caps excess-precision amounts before submitting to the provider', async () => {
+      const mockWithdraw = jest.fn().mockResolvedValue({ txHash: '0xcap' });
+      const provider = buildMockProvider({
+        withdrawCashback: mockWithdraw,
+        getCashbackWithdrawEstimation: jest.fn().mockResolvedValue({
+          wei: '1',
+          eth: '0.001',
+          price: '0.5',
+          network: 'linea',
+        }),
+      });
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
+      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+      await controller.withdrawCashback({ amount: '17.96660759' });
+
+      expect(mockWithdraw).toHaveBeenCalledWith(
+        { amount: '17.9666' },
+        mockTokenSet,
+      );
+    });
+
     it('throws when unsupported', async () => {
       const provider = buildMockProvider({
         withdrawCashback: undefined,

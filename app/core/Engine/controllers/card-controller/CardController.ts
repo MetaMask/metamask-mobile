@@ -96,6 +96,7 @@ import {
   ExternalTransactionRevertedError,
 } from './utils/awaitExternalTransactionReceipt';
 import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
+import { capRedeemAmount } from './utils/redeemAmount';
 import {
   MONEY_ACCOUNT_DELEGATION_NETWORK,
   MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
@@ -2172,7 +2173,8 @@ export class CardController extends BaseController<
     mode: RedeemWalletMode;
     amount: string;
   }): Promise<CreditWithdrawResponse | CashbackWithdrawResponse> {
-    const { mode, amount } = params;
+    const { mode } = params;
+    const amount = capRedeemAmount(params.amount);
     const existing = this.#getRedeemWithdrawal();
     // Terminal states are stale once the user leaves the redeem UI — allow a
     // fresh submit. The view keeps the button locked through `success` while
