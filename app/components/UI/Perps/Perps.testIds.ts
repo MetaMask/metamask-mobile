@@ -487,6 +487,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_OHLCV: 'perps-pro-market-chart-ohlcv',
   CHART_SKELETON: 'perps-pro-market-chart-skeleton',
   CHART_LIGHTWEIGHT: 'perps-pro-market-chart-lightweight',
+  CHART_NAV: 'perps-pro-market-chart-nav',
   CHART_PERIOD_SELECTOR: 'perps-pro-market-chart-period-selector',
   CHART_MORE_PERIODS_SHEET: 'perps-pro-market-chart-more-periods-sheet',
   CHART_FULLSCREEN_BUTTON: 'perps-pro-market-chart-fullscreen-button',

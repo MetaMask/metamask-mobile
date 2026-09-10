@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   Box,
@@ -436,12 +437,26 @@ describe('PerpsProChartPanel', () => {
     expect(screen.getByText('1d')).toBeOnTheScreen();
   });
 
-  it('left-aligns the configured Pro candle periods', () => {
+  it('spreads the configured Pro candle periods across the chart nav width', () => {
     renderChartPanel();
 
-    expect(
-      screen.UNSAFE_getByType(PerpsCandlePeriodSelector).props.groupTwClassName,
-    ).toBe('gap-2 justify-start');
+    const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
+
+    expect(selector.props.groupTwClassName).toBe('grow gap-2');
+    expect(selector.props.periodButtonTwClassName).toContain('flex-1');
+  });
+
+  it('separates the candle periods from the fullscreen button by 24px', () => {
+    renderChartPanel();
+
+    const chartNavRow = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.CHART_NAV,
+    );
+
+    expect(StyleSheet.flatten(chartNavRow?.props.style)).toMatchObject({
+      flexDirection: 'row',
+      gap: 24,
+    });
   });
 
   it('uses the Figma candle-period appearance', () => {
@@ -458,8 +473,10 @@ describe('PerpsProChartPanel', () => {
       );
 
     expect(selector.props.filterVariant).toBe(FilterButtonVariant.Secondary);
-    expect(selector.props.periodButtonTwClassName).toBe('h-8 rounded px-1');
-    expect(selector.props.moreButtonTwClassName).toBe('h-8 rounded px-1');
+    expect(selector.props.periodButtonTwClassName).toBe(
+      'h-8 flex-1 rounded-lg px-1',
+    );
+    expect(selector.props.moreButtonTwClassName).toBe('h-8 rounded-lg px-1');
     expect(selector.props.textVariant).toBe(TextVariant.BodySm);
     expect(fullscreenButton?.props.size).toBe(ButtonIconSize.Md);
   });
