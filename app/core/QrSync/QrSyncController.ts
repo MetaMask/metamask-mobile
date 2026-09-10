@@ -511,15 +511,25 @@ export class QrSyncController extends BaseController<
       }
     }
 
-    this.handleSessionServiceEvent(routedMessage.event);
-
-    if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
+    // Deserialize before transitioning to the next phase. Since deserializing the
+    // account tree snapshot can be an asynchronous operation, we do it here to
+    // ensure that the snapshot is ready when needed in the subsequent phase.
+    const isSyncReady = routedMessage.event.type === QrSyncActionTypes.SYNC_READY;
+    let syncReadySnapshot: AccountTreeSnapshot | null = null;
+    if (isSyncReady) {
       const { pendingPayload: wirePayload } = routedMessage;
       if (wirePayload) {
-        const snapshot = await AccountTreeSnapshot.deserialize(wirePayload);
+        syncReadySnapshot = await AccountTreeSnapshot.deserialize(wirePayload);
+      }
+    }
+
+    this.handleSessionServiceEvent(routedMessage.event);
+
+    if (isSyncReady) {
+      if (syncReadySnapshot) {
         this.update((state) => {
-          state.pendingSecretImports = snapshot.stripMetadata().serialize();
-          state.provisioningMetadata = snapshot.stripSecrets().serialize();
+          state.pendingSecretImports = syncReadySnapshot.stripMetadata().serialize();
+          state.provisioningMetadata = syncReadySnapshot.stripSecrets().serialize();
           state.provisioningStatus =
             QrSyncProvisioningStatuses.AWAITING_PASSWORD;
         });
