@@ -19,6 +19,7 @@ import {
 import { RootState } from '../../../../reducers';
 import { MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME } from '../../../../lib/Money/feature-flags';
 import { strings } from '../../../../../locales/i18n';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 
 enum MoneyAccountFlagStatus {
   Enabled = 'enabled',
@@ -100,63 +101,93 @@ const getMoneyAccountFlagStatus = (
     : MoneyAccountFlagStatus.Disabled;
 };
 
-const navigateToDeeplinkModal = (title: string, description: string) =>
-  NavigationService.navigation.navigate(Routes.MONEY.MODALS.DEEPLINK_MODAL, {
-    title,
-    description,
-  });
+export const createMoneyDeeplinkIntent = (
+  state: RootState = ReduxService.store.getState(),
+): DeeplinkIntent => {
+  const moneyAccountFlagStatus = getMoneyAccountFlagStatus(state);
+
+  if (moneyAccountFlagStatus === MoneyAccountFlagStatus.Disabled) {
+    return {
+      target: {
+        type: 'main-stack',
+        routeName: Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        params: {
+          title: strings('money.deeplink_modal.money_account_disabled.title'),
+          description: strings(
+            'money.deeplink_modal.money_account_disabled.description',
+          ),
+        },
+      },
+    };
+  }
+
+  if (moneyAccountFlagStatus === MoneyAccountFlagStatus.NotInRollout) {
+    return {
+      target: {
+        type: 'main-stack',
+        routeName: Routes.MONEY.MODALS.DEEPLINK_MODAL,
+        params: {
+          title: strings(
+            'money.deeplink_modal.excluded_from_gradual_rollout.title',
+          ),
+          description: strings(
+            'money.deeplink_modal.excluded_from_gradual_rollout.description',
+          ),
+        },
+      },
+    };
+  }
+
+  if (!selectIsMoneyAccountGeoEligible(state)) {
+    return {
+      target: {
+        type: 'main-stack',
+        routeName: Routes.MONEY.MODALS.ROOT,
+        params: { screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET },
+      },
+    };
+  }
+
+  if (
+    !selectMoneyOnboardingSeen(state) &&
+    selectMoneyOnboardingStepperAnimationEnabled(state)
+  ) {
+    return {
+      target: {
+        type: 'main-stack',
+        routeName: Routes.MONEY.ONBOARDING,
+      },
+    };
+  }
+
+  return {
+    target: {
+      type: 'home-tab',
+      routeName: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    },
+  };
+};
 
 export const handleMoney = () => {
   DevLogger.log('[handleMoney] Starting deeplink handling');
 
   try {
-    const state = ReduxService.store.getState();
-    const isMoneyAccountGeoEligible = selectIsMoneyAccountGeoEligible(state);
-    const hasSeenMoneyOnboarding = selectMoneyOnboardingSeen(state);
-    const isOnboardingEnabled =
-      selectMoneyOnboardingStepperAnimationEnabled(state);
-
-    const moneyAccountFlagStatus = getMoneyAccountFlagStatus(state);
-
-    if (moneyAccountFlagStatus === MoneyAccountFlagStatus.Disabled) {
-      navigateToDeeplinkModal(
-        strings('money.deeplink_modal.money_account_disabled.title'),
-        strings('money.deeplink_modal.money_account_disabled.description'),
+    const { target } = createMoneyDeeplinkIntent();
+    if (target.type === 'home-tab') {
+      NavigationService.navigation.navigate(
+        Routes.HOME_TABS,
+        {
+          screen: target.routeName,
+          params: target.params,
+        },
+        { pop: true },
       );
-      return;
+    } else if (target.params) {
+      NavigationService.navigation.navigate(target.routeName, target.params);
+    } else {
+      NavigationService.navigation.navigate(target.routeName);
     }
-
-    // User not part of gradual rollout cohort yet.
-    if (moneyAccountFlagStatus === MoneyAccountFlagStatus.NotInRollout) {
-      navigateToDeeplinkModal(
-        strings('money.deeplink_modal.excluded_from_gradual_rollout.title'),
-        strings(
-          'money.deeplink_modal.excluded_from_gradual_rollout.description',
-        ),
-      );
-      return;
-    }
-
-    if (!isMoneyAccountGeoEligible) {
-      NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-      });
-      return;
-    }
-
-    if (!hasSeenMoneyOnboarding && isOnboardingEnabled) {
-      NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
-      return;
-    }
-
-    NavigationService.navigation.navigate(
-      Routes.HOME_TABS,
-      {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      },
-      { pop: true },
-    );
   } catch (error) {
     DevLogger.log('[handleMoney] Failed to handle deeplink:', error);
     Logger.error(error as Error, '[handleMoney] Error handling money deeplink');

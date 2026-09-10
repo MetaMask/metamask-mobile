@@ -165,6 +165,7 @@ export default {
     ORIGIN_IN_APP_BROWSER: 'in-app-browser',
     ORIGIN_PUSH_NOTIFICATION: 'push-notification',
     ORIGIN_BRAZE: 'braze',
+    ORIGIN_IOS_QUICK_ACTION: 'ios-quick-action',
   },
   WALLET_CONNECT: {
     //One day in hours

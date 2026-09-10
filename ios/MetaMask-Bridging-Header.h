@@ -4,6 +4,7 @@
 
 #import <React/RCTBridgeModule.h>
 #import <NitroFetch/NitroAutoPrefetcher.h>
+#import "MetaMask/NativeModules/RCTQuickActions/RCTQuickActions.h"
 
 // Firebase Messaging — exposes FIRMessaging to Swift (see AppDelegate.swift willPresent).
 #import <FirebaseMessaging/FirebaseMessaging.h>

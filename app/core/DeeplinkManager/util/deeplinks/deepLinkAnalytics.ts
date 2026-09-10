@@ -488,6 +488,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.SDK_MMSDK]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
   [DeepLinkRoute.MONEY]: extractInvalidProperties,
+  [DeepLinkRoute.QUICK_ACTION]: extractInvalidProperties,
   [DeepLinkRoute.PRIVACY]: extractInvalidProperties,
 };
 
@@ -644,6 +645,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SDK_MMSDK;
     case ACTIONS.MONEY:
       return DeepLinkRoute.MONEY;
+    case ACTIONS.QUICK_ACTION:
+      return DeepLinkRoute.QUICK_ACTION;
     case ACTIONS.PRIVACY:
       return DeepLinkRoute.PRIVACY;
     default:
@@ -664,6 +667,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
     switch (route) {
       case 'swap':
         return DeepLinkRoute.SWAP;
+      case 'quick-action':
+        return DeepLinkRoute.QUICK_ACTION;
       case 'batch-sell':
         return DeepLinkRoute.BATCH_SELL;
       case 'perps':
