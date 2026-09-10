@@ -28,7 +28,7 @@ import {
 import { strings } from '../../../locales/i18n';
 import useThunkDispatch from './useThunkDispatch';
 
-const selectCompletedOnboardingSafely = (state: RootState) =>
+export const selectCompletedOnboardingSafely = (state: RootState) =>
   state.onboarding?.completedOnboarding === true;
 
 export function useBasicFunctionalityConsolidation(): void {
@@ -54,12 +54,24 @@ export function useBasicFunctionalityConsolidation(): void {
     selectShouldShowBasicFunctionalityMigrationToast,
   );
 
+  // `completedOnboarding` flips to true while the wallet is still being created
+  // (Authentication.dispatchLogin), long before finalizeOnboardingCompletion
+  // enrols the new wallet in the cohort. App renders under PersistGate, so an
+  // existing wallet never reads false here; latching a false read marks this as
+  // an onboarding session and keeps the newly created wallet off the
+  // existing-wallet migration path, which would otherwise show it a notice.
+  const isOnboardingSession = useRef(false);
+  if (!completedOnboarding) {
+    isOnboardingSession.current = true;
+  }
+
   useEffect(() => {
     if (
       !isFlagEnabled ||
       isConsolidated ||
       !isUnlocked ||
       !completedOnboarding ||
+      isOnboardingSession.current ||
       isRunning.current
     ) {
       return;

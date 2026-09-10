@@ -18,7 +18,10 @@ import {
   consolidateBasicFunctionality,
   dismissBasicFunctionalityMigrationNotification,
 } from '../../actions/settings';
-import { useBasicFunctionalityConsolidation } from './useBasicFunctionalityConsolidation';
+import {
+  selectCompletedOnboardingSafely,
+  useBasicFunctionalityConsolidation,
+} from './useBasicFunctionalityConsolidation';
 
 const mockDispatch = jest.fn(() => Promise.resolve());
 const mockNavigate = jest.fn();
@@ -70,6 +73,7 @@ function setSelectorValues({
   isConsolidated = true,
   isUnlocked = true,
   basicFunctionalityEnabled = true,
+  completedOnboarding = true,
   shouldShowBottomSheet = false,
   shouldShowToast = false,
 }: {
@@ -77,6 +81,7 @@ function setSelectorValues({
   isConsolidated?: boolean;
   isUnlocked?: boolean;
   basicFunctionalityEnabled?: boolean;
+  completedOnboarding?: boolean;
   shouldShowBottomSheet?: boolean;
   shouldShowToast?: boolean;
 } = {}) {
@@ -89,6 +94,7 @@ function setSelectorValues({
     isConsolidated,
   );
   mockSelectorValues.set(selectIsUnlocked, isUnlocked);
+  mockSelectorValues.set(selectCompletedOnboardingSafely, completedOnboarding);
   mockSelectorValues.set(
     selectBasicFunctionalityEnabled,
     basicFunctionalityEnabled,
@@ -116,6 +122,23 @@ describe('useBasicFunctionalityConsolidation', () => {
 
     expect(consolidateBasicFunctionality).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(mockConsolidateAction);
+  });
+
+  it('skips the migration for a wallet created during this session', () => {
+    // Wallet creation flips `completedOnboarding` before the cohort is enrolled,
+    // so a session that started pre-onboarding must never migrate.
+    setSelectorValues({ isConsolidated: false, completedOnboarding: false });
+
+    const { rerender } = renderHook(
+      () => useBasicFunctionalityConsolidation(),
+      { wrapper },
+    );
+
+    setSelectorValues({ isConsolidated: false, completedOnboarding: true });
+    rerender(undefined);
+
+    expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('opens the migration bottom sheet when scheduled', () => {
