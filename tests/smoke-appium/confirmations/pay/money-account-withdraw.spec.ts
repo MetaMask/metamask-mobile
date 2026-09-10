@@ -133,6 +133,9 @@ appiumTest.describe(
             );
             await TransactionPayConfirmation.clearAmount();
             await TransactionPayConfirmation.typeAmount('50');
+            // Wait for the amount to be accepted (Done button appears) before
+            // asserting the text, so the amount re-renders settle first.
+            await TransactionPayConfirmation.verifyPercentageApplied();
             await TransactionPayConfirmation.verifyCustomAmount(
               '50',
               'Regular withdraw amount should be $50',

@@ -78,7 +78,11 @@ export function moneyAccountWithdrawFlags(): Record<string, unknown> {
     confirmations_pay_post_quote: {
       default: { enabled: false },
       overrides: {
-        moneyAccountWithdraw: { enabled: false },
+        // Explicitly enabled to mirror production: the flag mock helper no
+        // longer deep-merges base `versions` into scenario overrides, so
+        // without this the withdraw confirmation hides its pay-with row
+        // (canSelectWithdrawToken=false → disablePay) and no quote can start.
+        moneyAccountWithdraw: { enabled: true },
       },
     },
     moneyAccountVaultConfig: {
