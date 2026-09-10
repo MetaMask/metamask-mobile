@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { View } from 'react-native';
+import { BottomSheetHeader } from '@metamask/design-system-react-native';
 
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import BottomSheet, {
@@ -13,8 +14,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -172,14 +171,9 @@ const GasImpactModal = () => {
       <View style={styles.container}>
         <BottomSheetHeader
           onClose={handleClose}
-          closeButtonProps={{
-            size: ButtonIconSizes.Md,
-            testID: GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID,
-          }}
+          closeButtonProps={{ testID: GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID }}
         >
-          <Text variant={TextVariant.HeadingSM}>
-            {strings('stake.gas_cost_impact')}
-          </Text>
+          {strings('stake.gas_cost_impact')}
         </BottomSheetHeader>
         <Text style={styles.content}>
           {strings('stake.gas_cost_impact_warning', { percentOverDeposit: 30 })}

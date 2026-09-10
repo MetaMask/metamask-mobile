@@ -114,8 +114,7 @@ describe('GasImpactModal', () => {
     expect(getByText(strings('stake.gas_cost_impact'))).toHaveStyle({
       fontSize: mockTheme.typography.sHeadingSM.fontSize,
     });
-    // Md keeps the close button in step with the design-system sheet default,
-    // which the legacy BottomSheetHeader would otherwise render one size up.
+    // The legacy BottomSheetHeader hardcoded this one size up.
     expect(getByTestId(GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID)).toHaveStyle({
       height: 32,
       width: 32,
