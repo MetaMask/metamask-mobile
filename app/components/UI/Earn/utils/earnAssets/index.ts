@@ -1,10 +1,9 @@
 export {
-  createDiscoveryEarnAsset,
-  createHeldEarnAsset,
+  createTrackedEarnAsset,
+  createUntrackedEarnAsset,
   earnAssetToBridgeToken,
   earnAssetToToken,
   getAssetEarnId,
-  getEarnAssetMetadata,
 } from './assetAdapters';
 export { buildEarnAssets } from './buildEarnAssets';
 export {
@@ -21,3 +20,4 @@ export {
   getNonMoneyEarnStrategyExperiences,
 } from './earnExperience';
 export { getMoneyDepositPaymentToken } from './getMoneyDepositPaymentToken';
+export { requireTrackedEarnAsset } from './requireTrackedEarnAsset';

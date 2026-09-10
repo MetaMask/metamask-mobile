@@ -14,27 +14,27 @@ const isMoneyDepositAsset = (asset: Asset): asset is MoneyDepositAsset =>
  * Extracts Money deposit assets from the shared Earn catalogue.
  *
  * The catalogue owns membership, deposit availability, and ordering.
- * Discovery assets and assets without an available Money experience are
+ * Untracked assets and assets without an available Money experience are
  * excluded.
  *
  * @param assets - Earn catalogue assets.
- * @returns Held EVM assets eligible for Money deposits, in catalogue order.
+ * @returns Tracked EVM assets eligible for Money deposits, in catalogue order.
  */
 export const deriveMoneyDepositAssets = (
   assets: readonly EarnAsset[],
 ): MoneyDepositAsset[] =>
   assets.flatMap((earnAsset) => {
     if (
-      earnAsset.kind !== 'held' ||
+      earnAsset.wallet.status !== 'tracked' ||
       !earnAsset.experiences.some(
         ({ availability, type }) =>
           type === 'MONEY_ACCOUNT_DEPOSIT' &&
           availability.status === 'available',
       ) ||
-      !isMoneyDepositAsset(earnAsset.asset)
+      !isMoneyDepositAsset(earnAsset.wallet.asset)
     ) {
       return [];
     }
 
-    return [earnAsset.asset];
+    return [earnAsset.wallet.asset];
   });

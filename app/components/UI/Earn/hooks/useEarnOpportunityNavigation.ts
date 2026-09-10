@@ -3,23 +3,18 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { TokenDetailsSource } from '../../TokenDetails/constants/constants';
-import type {
-  EarnAsset,
-  EarnExperience,
-  HeldEarnAsset,
-} from '../types/earnAssets';
+import type { EarnAsset, EarnExperience } from '../types/earnAssets';
 import {
   earnAssetToToken,
   getAvailableEarnDepositExperiences,
   getEarnInputExperiences,
   getMoneyDepositPaymentToken,
+  requireTrackedEarnAsset,
 } from '../utils/earnAssets';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../../core/Engine';
 import useStakingChain from '../../Stake/hooks/useStakingChain';
-import { useMoneyOnboardingNavigation } from '../../Money/hooks/useMoneyNavigation';
-import { MoneyPostOnboardingRedirectType } from '../../Money/types/navigation';
 import { useMoneyAccountDeposit } from '../../Money/hooks/useMoneyAccount';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import Logger from '../../../../util/Logger';
@@ -180,7 +175,6 @@ const useEarnOpportunityNavigation = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, EarnToastOptions } = useEarnToasts();
   const { isStakingSupportedChain } = useStakingChain();
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const {
     resolveEarnAssetAcquisitionRoute,
@@ -193,7 +187,9 @@ const useEarnOpportunityNavigation = () => {
       experience: EarnExperience,
     ): EarnDepositNavigationRoute | undefined => {
       if (
-        earnAsset.kind === 'discovery' &&
+        experience.availability.status === 'unavailable' &&
+        (experience.availability.reason === 'insufficient_balance' ||
+          experience.availability.reason === 'asset_not_tracked') &&
         experience.type === 'MONEY_ACCOUNT_DEPOSIT'
       ) {
         return {
@@ -223,7 +219,7 @@ const useEarnOpportunityNavigation = () => {
    * Used for pooled-staking and stablecoin lending experiences.
    */
   const navigateToLegacyEarnDeposit = useCallback(
-    (earnAsset: HeldEarnAsset) => {
+    (earnAsset: EarnAsset) => {
       const token = earnAssetToToken(earnAsset);
 
       navigation.navigate('StakeScreens', {
@@ -237,10 +233,13 @@ const useEarnOpportunityNavigation = () => {
   );
 
   const navigateToStablecoinLending = useCallback(
-    async (earnAsset: HeldEarnAsset) => {
-      const { asset } = earnAsset;
+    async (earnAsset: EarnAsset) => {
+      const asset = requireTrackedEarnAsset(
+        earnAsset,
+        'Stablecoin lending redirect',
+      );
 
-      if (!asset?.chainId) {
+      if (!asset.chainId) {
         throw new Error(
           `${LOG_PREFIX} Stablecoin lending redirect failed: chainId is required`,
         );
@@ -265,7 +264,7 @@ const useEarnOpportunityNavigation = () => {
   );
 
   const navigateToPooledStaking = useCallback(
-    async (earnAsset: HeldEarnAsset) => {
+    async (earnAsset: EarnAsset) => {
       if (!isStakingSupportedChain) {
         await Engine.context.MultichainNetworkController.setActiveNetwork(
           'mainnet',
@@ -278,19 +277,8 @@ const useEarnOpportunityNavigation = () => {
   );
 
   const navigateToMoneyDeposit = useCallback(
-    async (earnAsset: HeldEarnAsset) => {
+    async (earnAsset: EarnAsset) => {
       const preferredPaymentToken = getMoneyDepositPaymentToken(earnAsset);
-
-      const redirectedToOnboarding = redirectToOnboardingIfNeeded({
-        postOnboardingRedirect: {
-          type: MoneyPostOnboardingRedirectType.DEPOSIT,
-          preferredPaymentToken,
-        },
-      });
-
-      if (redirectedToOnboarding) {
-        return;
-      }
 
       try {
         await initiateDeposit({
@@ -311,7 +299,6 @@ const useEarnOpportunityNavigation = () => {
     [
       EarnToastOptions.earnStrategySelection.navigationToDeposit,
       initiateDeposit,
-      redirectToOnboardingIfNeeded,
       showToast,
     ],
   );
@@ -334,6 +321,10 @@ const useEarnOpportunityNavigation = () => {
               await initiateDeposit({
                 autoSelectFiatPayment: true,
                 intent: 'card',
+                onDepositSetupFailure: () =>
+                  showToast(
+                    EarnToastOptions.earnStrategySelection.navigationToDeposit,
+                  ),
               });
             } catch (error) {
               if (
@@ -358,9 +349,9 @@ const useEarnOpportunityNavigation = () => {
         return;
       }
 
-      if (earnAsset.kind !== 'held') {
+      if (earnAsset.wallet.status !== 'tracked') {
         throw new Error(
-          `${LOG_PREFIX} Deposit redirect is only supported for held assets`,
+          `${LOG_PREFIX} Deposit redirect requires wallet-tracked asset: ${earnAsset.assetId}`,
         );
       }
 
@@ -392,6 +383,8 @@ const useEarnOpportunityNavigation = () => {
       initiateDeposit,
       navigateToEarnAssetAcquisitionRoute,
       resolveEarnDepositNavigationRoute,
+      showToast,
+      EarnToastOptions.earnStrategySelection.navigationToDeposit,
     ],
   );
 

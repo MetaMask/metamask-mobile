@@ -42,10 +42,7 @@ import {
   isNonMoneyAccountExperience,
   truncateNumber,
 } from '../../utils';
-import {
-  getEarnAssetMetadata,
-  getEarnInputExperiences,
-} from '../../utils/earnAssets';
+import { getEarnInputExperiences } from '../../utils/earnAssets';
 import useEarnOpportunityNavigation, {
   getSelectedEarnStrategyRedirectTarget,
   type EarnDepositNavigationRoute,
@@ -146,7 +143,7 @@ const renderNonMoneyStrategyCard = (
 ) => {
   const assetSymbol =
     strategy.type === EARN_EXPERIENCES.STABLECOIN_LENDING
-      ? getEarnAssetMetadata(earnAsset).symbol
+      ? earnAsset.metadata.symbol
       : undefined;
 
   const title = strings(

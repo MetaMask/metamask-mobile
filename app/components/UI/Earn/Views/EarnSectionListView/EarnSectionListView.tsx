@@ -276,9 +276,9 @@ const EarnSectionListView = () => {
     () =>
       new Map<Asset, boolean>(
         assets.flatMap((asset) =>
-          asset.kind === 'held' &&
+          asset.wallet.status === 'tracked' &&
           asset.experiences.some(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT')
-            ? [[asset.asset, hasEarnAssetSubsidizedFee(asset)]]
+            ? [[asset.wallet.asset, hasEarnAssetSubsidizedFee(asset)]]
             : [],
         ),
       ),

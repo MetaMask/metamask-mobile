@@ -32,10 +32,9 @@ import type {
 } from '../types/earnAssets';
 import {
   buildEarnAssets,
-  createDiscoveryEarnAsset,
-  createHeldEarnAsset,
+  createTrackedEarnAsset,
+  createUntrackedEarnAsset,
   getAssetEarnId,
-  getEarnAssetMetadata,
   getEarnInputExperiences,
 } from '../utils/earnAssets';
 import { MIN_EARN_DEPOSIT_BALANCE } from '../utils/earnAssets/earnAssetBalance';
@@ -57,11 +56,11 @@ interface UseEarnAssetCatalogueOptions {
 }
 
 /**
- * Provides pooled-staking discovery when the EVM token selector has no
- * selected account or mainnet configuration. In normal wallet state the held
- * ETH candidate is emitted first and keeps its metadata during deduplication.
+ * Provides pooled-staking metadata when the EVM token selector has no selected
+ * account or mainnet configuration. A tracked ETH candidate owns metadata
+ * during deduplication regardless of insertion order.
  */
-const createEthDiscoveryMetadata = (): EarnAssetMetadata => ({
+const createEthUntrackedMetadata = (): EarnAssetMetadata => ({
   address: getNativeTokenAddress(CHAIN_IDS.MAINNET),
   decimals: 18,
   image: '',
@@ -76,10 +75,10 @@ const createEthDiscoveryMetadata = (): EarnAssetMetadata => ({
 });
 
 /**
- * Provides TRX-staking discovery while asynchronous Snap account provisioning
- * has not yet populated the multichain token selector.
+ * Provides TRX-staking metadata while asynchronous Snap account provisioning
+ * has not yet populated wallet tracking state.
  */
-const createTrxDiscoveryMetadata = (): EarnAssetMetadata => ({
+const createTrxUntrackedMetadata = (): EarnAssetMetadata => ({
   address: TRX_NATIVE_TOKEN_ADDRESS,
   decimals: 6,
   image: '',
@@ -137,15 +136,15 @@ const getMoneyDepositAvailability = (
   asset: EarnAsset,
   eligibleAssetIds: ReadonlySet<string>,
 ): EarnExperienceAvailability => {
+  if (asset.wallet.status === 'untracked') {
+    return { status: 'unavailable', reason: 'asset_not_tracked' };
+  }
+
   if (eligibleAssetIds.has(asset.assetId.toLowerCase())) {
     return { status: 'available' };
   }
 
-  if (asset.kind === 'discovery') {
-    return { status: 'unavailable', reason: 'asset_not_held' };
-  }
-
-  const fiatBalance = asset.asset.fiat?.balance;
+  const fiatBalance = asset.wallet.asset.fiat?.balance;
   return fiatBalance === undefined ||
     fiatBalance === null ||
     !Number.isFinite(Number(fiatBalance))
@@ -153,7 +152,7 @@ const getMoneyDepositAvailability = (
     : { status: 'unavailable', reason: 'insufficient_balance' };
 };
 
-const getHeldEarnExperiences = ({
+const getTrackedEarnExperiences = ({
   token,
   assetId,
   role,
@@ -295,7 +294,7 @@ const useEarnAssetCatalogue = ({
     [walletAssets],
   );
 
-  const discoveryLendingAssetIds = useMemo(
+  const untrackedLendingAssetIds = useMemo(
     () =>
       isStablecoinLendingEnabled && isEarnEligible
         ? [
@@ -321,13 +320,19 @@ const useEarnAssetCatalogue = ({
     isSettled: isLendingMetadataSettled,
     error: lendingMetadataError,
     refresh: refreshLendingMetadata,
-  } = useEarnSectionTokenMetadata(discoveryLendingAssetIds, enabled);
+  } = useEarnSectionTokenMetadata(untrackedLendingAssetIds, enabled);
 
   const trxRatePercent = parseRatePercent(trxApyPercent);
   const ethRatePercent = parseRatePercent(mainnetVaultApy?.apyPercentString);
 
-  const candidates = useMemo(() => {
+  const {
+    candidates,
+    hasInvalidEarnAssetIdentity,
+    hasUnresolvedTrackedEarnAsset,
+  } = useMemo(() => {
     const nextCandidates: EarnAsset[] = [];
+    let nextHasInvalidEarnAssetIdentity = false;
+    let nextHasUnresolvedTrackedEarnAsset = false;
     const trxRate = createEarnRate({
       type: 'APR',
       percentage: trxRatePercent,
@@ -337,19 +342,18 @@ const useEarnAssetCatalogue = ({
       isError: trxFetchStatus === FetchStatus.Error,
     });
 
-    /**
-     * Held candidates are added before discovery candidates so buildEarnAssets
-     * preserves held metadata, balances, and rates for matching CAIP-19 IDs.
-     */
     if (isEarnEligible) {
-      const addHeldEarnAssets = (
+      const addTrackedEarnAssets = (
         tokens: typeof earnTokens,
         role: Exclude<EarnAssetRole, 'funding'>,
       ) => {
         tokens.forEach((token) => {
           const assetId = getTokenAssetId(token);
-          if (!assetId) return;
-          const experiences = getHeldEarnExperiences({
+          if (!assetId) {
+            nextHasInvalidEarnAssetIdentity = true;
+            return;
+          }
+          const experiences = getTrackedEarnExperiences({
             token,
             assetId,
             role,
@@ -360,19 +364,22 @@ const useEarnAssetCatalogue = ({
           });
           if (experiences.length === 0) return;
           const walletAsset = walletAssetsById.get(assetId.toLowerCase());
-          if (!walletAsset) return;
+          if (!walletAsset) {
+            nextHasUnresolvedTrackedEarnAsset = true;
+            return;
+          }
 
           nextCandidates.push(
-            createHeldEarnAsset(walletAsset, assetId, experiences),
+            createTrackedEarnAsset(walletAsset, assetId, experiences),
           );
         });
       };
 
-      addHeldEarnAssets(earnTokens, 'underlying');
-      addHeldEarnAssets(earnOutputTokens, 'output');
+      addTrackedEarnAssets(earnTokens, 'underlying');
+      addTrackedEarnAssets(earnOutputTokens, 'output');
     }
 
-    // Add unheld lending assets for strategy discovery.
+    // Add untracked lending assets for strategy discovery.
     if (isStablecoinLendingEnabled && isEarnEligible) {
       lendingMarkets.forEach((market) => {
         const chainId = toHex(market.chainId) as Hex;
@@ -387,7 +394,7 @@ const useEarnAssetCatalogue = ({
           role: 'underlying' as const,
           availability: {
             status: 'unavailable' as const,
-            reason: 'asset_not_held' as const,
+            reason: 'asset_not_tracked' as const,
           },
           rate: createEarnRate({
             type: 'APY',
@@ -401,7 +408,7 @@ const useEarnAssetCatalogue = ({
         if (!metadata || metadata.decimals === undefined) return;
 
         nextCandidates.push(
-          createDiscoveryEarnAsset(
+          createUntrackedEarnAsset(
             assetId,
             {
               address,
@@ -424,9 +431,9 @@ const useEarnAssetCatalogue = ({
 
     if (isPooledStakingEnabled && isEarnEligible) {
       nextCandidates.push(
-        createDiscoveryEarnAsset(
+        createUntrackedEarnAsset(
           ETH_MAINNET_ASSET_ID,
-          createEthDiscoveryMetadata(),
+          createEthUntrackedMetadata(),
           [
             {
               id: `pooled:${ETH_MAINNET_ASSET_ID}`,
@@ -434,7 +441,7 @@ const useEarnAssetCatalogue = ({
               role: 'underlying',
               availability: {
                 status: 'unavailable',
-                reason: 'asset_not_held',
+                reason: 'asset_not_tracked',
               },
               rate: createEarnRate({
                 type: 'APR',
@@ -449,9 +456,9 @@ const useEarnAssetCatalogue = ({
 
     if (isTrxStakingEnabled && isEarnEligible) {
       nextCandidates.push(
-        createDiscoveryEarnAsset(
+        createUntrackedEarnAsset(
           TRX_NATIVE_TOKEN_ADDRESS,
-          createTrxDiscoveryMetadata(),
+          createTrxUntrackedMetadata(),
           [
             {
               id: `trx-staking:${TRX_NATIVE_TOKEN_ADDRESS}`,
@@ -459,7 +466,7 @@ const useEarnAssetCatalogue = ({
               role: 'underlying',
               availability: {
                 status: 'unavailable',
-                reason: 'asset_not_held',
+                reason: 'asset_not_tracked',
               },
               rate: trxRate,
               isFeeSubsidized: false,
@@ -469,7 +476,11 @@ const useEarnAssetCatalogue = ({
       );
     }
 
-    return nextCandidates;
+    return {
+      candidates: nextCandidates,
+      hasInvalidEarnAssetIdentity: nextHasInvalidEarnAssetIdentity,
+      hasUnresolvedTrackedEarnAsset: nextHasUnresolvedTrackedEarnAsset,
+    };
   }, [
     earnOutputTokens,
     earnTokens,
@@ -512,7 +523,7 @@ const useEarnAssetCatalogue = ({
         return asset;
       }
 
-      const metadata = getEarnAssetMetadata(asset);
+      const { metadata } = asset;
       if (!isMoneyDepositSupportedToken(metadata, moneyDepositBlockedTokens)) {
         return asset;
       }
@@ -555,33 +566,21 @@ const useEarnAssetCatalogue = ({
       ),
     [catalogueAssets],
   );
-  const assetsById = useMemo<Readonly<Partial<Record<string, EarnAsset>>>>(
-    () =>
-      Object.fromEntries(
-        catalogueAssets.map((asset) => [asset.assetId.toLowerCase(), asset]),
-      ),
-    [catalogueAssets],
-  );
+
   const hasMissingLendingMetadata =
     isLendingMetadataSettled &&
-    discoveryLendingAssetIds.some(
+    untrackedLendingAssetIds.some(
       (assetId) => lendingMetadata[assetId]?.decimals === undefined,
     );
   const hasUnresolvedMoneyAsset =
     isMoneyAccountVisible &&
     moneyDepositAssets.some((token) => !getAssetEarnId(token));
-  const hasUnresolvedHeldEarnAsset =
-    isEarnEligible &&
-    earnTokens.some((token) => {
-      const assetId = getTokenAssetId(token);
-      return assetId !== undefined && !walletAssetsById.has(assetId);
-    });
   const isLendingLoading =
     enabled &&
     isStablecoinLendingEnabled &&
     isEarnEligible &&
     ((isLendingMarketsLoading && lendingMarkets.length === 0) ||
-      (isLendingMetadataLoading && discoveryLendingAssetIds.length > 0));
+      (isLendingMetadataLoading && untrackedLendingAssetIds.length > 0));
   const isLoading =
     (enabled && isMoneyAccountVisible && isMoneyApyLoading) ||
     isLendingLoading ||
@@ -601,8 +600,13 @@ const useEarnAssetCatalogue = ({
         hasUnresolvedMoneyAsset
           ? new Error('Money deposit asset has no valid CAIP-19 identity')
           : null,
-        hasUnresolvedHeldEarnAsset
-          ? new Error('Held Earn token has no matching AssetsController asset')
+        hasInvalidEarnAssetIdentity
+          ? new Error('Earn token has no valid CAIP-19 identity')
+          : null,
+        hasUnresolvedTrackedEarnAsset
+          ? new Error(
+              'Tracked Earn token has no matching AssetsController asset',
+            )
           : null,
         isMoneyAccountVisible &&
         isMoneyApyError &&
@@ -617,7 +621,8 @@ const useEarnAssetCatalogue = ({
       ].filter((error): error is Error => error instanceof Error),
     [
       hasMissingLendingMetadata,
-      hasUnresolvedHeldEarnAsset,
+      hasInvalidEarnAssetIdentity,
+      hasUnresolvedTrackedEarnAsset,
       hasUnresolvedMoneyAsset,
       isMoneyAccountVisible,
       isMoneyApyError,
@@ -660,7 +665,6 @@ const useEarnAssetCatalogue = ({
   return useMemo(
     () => ({
       assets,
-      assetsById,
       isLoading,
       hasError,
       errors,
@@ -671,7 +675,6 @@ const useEarnAssetCatalogue = ({
     }),
     [
       assets,
-      assetsById,
       errors,
       hasError,
       isLoading,

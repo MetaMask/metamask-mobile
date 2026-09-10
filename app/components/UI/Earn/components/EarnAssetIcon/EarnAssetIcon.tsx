@@ -7,7 +7,6 @@ import {
 import { getNetworkImageSource } from '../../../../../util/networks';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import type { EarnAsset } from '../../types/earnAssets';
-import { earnAssetToToken } from '../../utils/earnAssets';
 
 /**
  * Renders an Earn asset logo with its network badge.
@@ -15,23 +14,23 @@ import { earnAssetToToken } from '../../utils/earnAssets';
  * @param asset - Earn asset whose logo and network should be displayed.
  */
 const EarnAssetIcon = ({ asset }: { asset: EarnAsset }) => {
-  const token = earnAssetToToken(asset);
-  const networkImageSource = token.chainId
-    ? getNetworkImageSource({ chainId: token.chainId })
-    : undefined;
+  const { metadata } = asset;
+  const networkImageSource = getNetworkImageSource({
+    chainId: metadata.chainId,
+  });
 
   return (
     <BadgeWrapper
       position={BadgeWrapperPosition.BottomRight}
       badge={
         <BadgeNetwork
-          name={token.chainId ?? ''}
+          name={metadata.chainId}
           src={networkImageSource}
           twClassName="rounded-1"
         />
       }
     >
-      <AssetLogo asset={token} />
+      <AssetLogo asset={metadata} />
     </BadgeWrapper>
   );
 };

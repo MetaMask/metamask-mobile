@@ -7,7 +7,6 @@ import {
   getEarnAssetFiatNumber,
   getEarnInputExperiences,
   hasEarnAssetBalance,
-  getEarnAssetMetadata,
 } from '../earnAssets';
 import { getHighestReadyRateEntry } from '../earnRate';
 
@@ -25,7 +24,7 @@ const STABLECOIN_SYMBOL_PRIORITY: Record<string, number> = {
 };
 const MAINNET_ETH_PRIORITY = 3;
 
-type UnheldTieBreakKey = readonly [
+type NoPositiveBalanceTieBreakKey = readonly [
   group: number,
   chainId: string,
   tokenPriority: number,
@@ -97,10 +96,10 @@ const compareByKey = (
  * - Tron TRX
  * - Unknown assets
  */
-const getUnheldTieBreakKey = (
+const getNoPositiveBalanceTieBreakKey = (
   asset: EarnSectionRankedAsset,
-): UnheldTieBreakKey => {
-  const metadata = getEarnAssetMetadata(asset);
+): NoPositiveBalanceTieBreakKey => {
+  const { metadata } = asset;
   const symbol = metadata.symbol.toUpperCase();
   const chainId = metadata.chainId.toLowerCase();
   const stablecoinPriority = STABLECOIN_SYMBOL_PRIORITY[symbol];
@@ -126,14 +125,14 @@ const getUnheldTieBreakKey = (
   return [3, chainId, UNKNOWN_ASSET_PRIORITY];
 };
 
-const compareUnheldTieBreak = (
+const compareNoPositiveBalanceTieBreak = (
   first: EarnSectionRankedAsset,
   second: EarnSectionRankedAsset,
 ) => {
   const [firstGroup, firstChainId, firstSymbolPriority] =
-    getUnheldTieBreakKey(first);
+    getNoPositiveBalanceTieBreakKey(first);
   const [secondGroup, secondChainId, secondSymbolPriority] =
-    getUnheldTieBreakKey(second);
+    getNoPositiveBalanceTieBreakKey(second);
 
   return (
     firstGroup - secondGroup ||
@@ -144,7 +143,7 @@ const compareUnheldTieBreak = (
 };
 
 /**
- * Enriches and sorts all earn assets held-first, then by highest rate.
+ * Enriches and sorts assets with positive balances first, then by highest rate.
  * Returns every asset without padding or truncation.
  *
  * Rates are compared as displayed numeric percentages; APR and APY values are
@@ -167,7 +166,7 @@ export const rankEarnAssets = (
     };
   });
 
-  const held = rankedAssets
+  const positiveBalanceAssets = rankedAssets
     .filter(hasEarnAssetBalance)
     .sort(
       (first, second) =>
@@ -177,23 +176,23 @@ export const rankEarnAssets = (
         ) || compareByKey(first, second),
     );
 
-  const unheld = rankedAssets
+  const noPositiveBalanceAssets = rankedAssets
     .filter((asset) => !hasEarnAssetBalance(asset))
     .sort(
       (first, second) =>
         compareKnownNumbersDescending(
           first.highestRatePercent,
           second.highestRatePercent,
-        ) || compareUnheldTieBreak(first, second),
+        ) || compareNoPositiveBalanceTieBreak(first, second),
     );
 
-  return [...held, ...unheld];
+  return [...positiveBalanceAssets, ...noPositiveBalanceAssets];
 };
 
 /**
  * Projects the CAIP-19-deduplicated catalogue produced by buildEarnAssets into
- * fixed homepage slots. Held assets rank before discovery assets, and missing
- * assets are padded so the section always renders five slots by default.
+ * fixed homepage slots. Positive-balance assets rank first, and missing assets
+ * are padded so the section always renders five slots by default.
  *
  * @param assets - Earn catalogue assets to place into section slots.
  * @param limit - Maximum number of asset slots to return.

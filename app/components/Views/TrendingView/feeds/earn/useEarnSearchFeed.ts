@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import useEarnAssetCatalogue from '../../../../UI/Earn/hooks/useEarnAssetCatalogue';
-import { getEarnAssetMetadata } from '../../../../UI/Earn/utils/earnAssets';
 import { rankEarnAssets } from '../../../../UI/Earn/utils/earnSection';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { selectIsMoneyAccountVisible } from '../../../../UI/Money/selectors/visibility';
@@ -65,16 +64,13 @@ export const useEarnSearchFeed = ({
   const [isRetrying, setIsRetrying] = useState(false);
 
   const normalizedQuery = query.trim().toLowerCase();
-  const rankedAssets = useMemo(
-    () => rankEarnAssets(assets),
-    [assets],
-  );
+  const rankedAssets = useMemo(() => rankEarnAssets(assets), [assets]);
 
   const matchingAssets = useMemo(
     () =>
       rankedAssets.filter((asset) => {
         if (!normalizedQuery) return true;
-        const metadata = getEarnAssetMetadata(asset);
+        const { metadata } = asset;
         return (
           matchesNameAtWordBoundary(metadata.name, normalizedQuery) ||
           [metadata.ticker, metadata.symbol].some((value) =>

@@ -24,7 +24,7 @@ import type {
 import { earnAssetToBridgeToken } from '../utils/earnAssets';
 
 const ACQUISITION_REASONS = new Set<EarnExperienceUnavailableReason>([
-  'asset_not_held',
+  'asset_not_tracked',
   'insufficient_balance',
   'balance_unavailable',
 ]);

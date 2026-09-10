@@ -6,6 +6,7 @@ import type {
   EarnModuleEventLocation,
 } from '../types/earnModuleEvents.types';
 import { formatChainIdForAnalytics } from './analytics';
+import { hasEarnAssetBalance } from './earnAssets';
 import { getEarnInputExperiences } from './earnAssets/earnExperience';
 import { truncateNumber } from './number';
 
@@ -14,15 +15,7 @@ export const getEarnModuleAssetProperties = (
   position?: number,
   assetsInList?: number,
 ): EarnModuleAssetProperties => {
-  const metadata =
-    earnAsset.kind === 'held'
-      ? {
-          chainId: earnAsset.asset.chainId,
-          symbol: earnAsset.asset.symbol,
-          ticker: earnAsset.asset.symbol,
-          name: earnAsset.asset.name,
-        }
-      : earnAsset.metadata;
+  const { metadata } = earnAsset;
 
   const inputExperiences = getEarnInputExperiences(earnAsset.experiences);
   const earnAssetSupportsSingleExperience = inputExperiences.length === 1;
@@ -36,8 +29,7 @@ export const getEarnModuleAssetProperties = (
     eligible_strategy_types: inputExperiences.map(
       ({ type }) => type.toLowerCase() as Lowercase<EARN_MODULE_STRATEGY_TYPES>,
     ),
-    asset_has_balance:
-      earnAsset.kind === 'held' && earnAsset.asset.balance !== '0',
+    asset_has_balance: hasEarnAssetBalance(earnAsset),
     // Only attach rate when we know the experience being used. We don't want an ambiguous rate property.
     ...(earnAssetSupportsSingleExperience &&
     inputExperiences[0]?.rate?.status === 'ready'
