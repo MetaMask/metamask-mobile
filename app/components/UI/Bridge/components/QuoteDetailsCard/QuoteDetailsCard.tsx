@@ -150,7 +150,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const relayerFee = activeQuote?.quote?.feeData?.relayer;
   const formattedRelayerFee = useMemo(() => {
-    if (!relayerFee) {
+    if (!relayerFee?.length) {
       return '-';
     }
 
@@ -328,7 +328,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        {relayerFee && (
+        {relayerFee?.length > 0 && (
           <KeyValueRow
             field={{
               label: {
