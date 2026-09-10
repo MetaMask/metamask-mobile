@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   Box,
+  ButtonIconSize,
   FilterButtonVariant,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -442,15 +443,19 @@ describe('PerpsProChartPanel', () => {
     ).toBe('gap-2 justify-start');
   });
 
-  it('uses the Figma compact candle-period appearance', () => {
+  it('uses the Figma candle-period appearance', () => {
     renderChartPanel();
 
     const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
 
     expect(selector.props.filterVariant).toBe(FilterButtonVariant.Secondary);
-    expect(selector.props.periodButtonTwClassName).toBe('h-7 rounded px-1');
-    expect(selector.props.moreButtonTwClassName).toBe('h-7 rounded px-1');
-    expect(selector.props.textVariant).toBe(TextVariant.BodyXs);
+    expect(selector.props.periodButtonTwClassName).toBe('h-8 rounded px-1');
+    expect(selector.props.moreButtonTwClassName).toBe('h-8 rounded px-1');
+    expect(selector.props.textVariant).toBe(TextVariant.BodySm);
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON)
+        .props.size,
+    ).toBe(ButtonIconSize.Md);
   });
 
   it('forwards a selected Pro candle period', () => {

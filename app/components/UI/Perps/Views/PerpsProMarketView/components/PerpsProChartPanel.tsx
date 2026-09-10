@@ -403,14 +403,14 @@ const PerpsProChartPanel = ({
                   twClassName="flex-1 py-0"
                   groupTwClassName="gap-2 justify-start"
                   filterVariant={FilterButtonVariant.Secondary}
-                  periodButtonTwClassName="h-7 rounded px-1"
-                  moreButtonTwClassName="h-7 rounded px-1"
-                  textVariant={TextVariant.BodyXs}
+                  periodButtonTwClassName="h-8 rounded px-1"
+                  moreButtonTwClassName="h-8 rounded px-1"
+                  textVariant={TextVariant.BodySm}
                   testID={PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR}
                 />
                 <ButtonIcon
                   iconName={IconName.Expand}
-                  size={ButtonIconSize.Sm}
+                  size={ButtonIconSize.Md}
                   onPress={handleFullscreenChartOpen}
                   testID={
                     PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON
