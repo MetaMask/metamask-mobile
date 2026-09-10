@@ -13,9 +13,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarketSingle from './';
 import Routes from '../../../../../constants/navigation/Routes';
 
-// Mock Alert
 const mockAlert = jest.fn();
-jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -125,6 +123,7 @@ const initialState = {
 describe('PredictMarketSingle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
     // Default mock implementation - user is eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: true,
@@ -137,7 +136,7 @@ describe('PredictMarketSingle', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
     mockAlert.mockClear();
     mockPlaceBuyOrder.mockClear();
     mockNavigate.mockClear();

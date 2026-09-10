@@ -117,6 +117,7 @@ describe('PredictMarketMultiple', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
     mockNavigate.mockClear();
   });
 
@@ -125,11 +126,9 @@ describe('PredictMarketMultiple', () => {
       jest.requireActual<typeof import('../../utils/format')>(
         '../../utils/format',
       );
-    const spy = jest
-      .spyOn(formatModule, 'formatPercentage')
-      .mockImplementation(() => {
-        throw new Error('format failure');
-      });
+    jest.spyOn(formatModule, 'formatPercentage').mockImplementation(() => {
+      throw new Error('format failure');
+    });
 
     const { getByText } = renderWithProvider(
       <PredictMarketMultiple market={mockMarket} />,
@@ -137,7 +136,6 @@ describe('PredictMarketMultiple', () => {
     );
 
     expect(getByText('0')).toBeOnTheScreen();
-    spy.mockRestore();
   });
 
   it('render market information correctly', () => {

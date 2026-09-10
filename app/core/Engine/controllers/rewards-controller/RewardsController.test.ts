@@ -398,6 +398,7 @@ describe('RewardsController', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.resetAllMocks();
     jest.restoreAllMocks();
   });

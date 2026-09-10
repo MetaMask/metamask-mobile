@@ -287,6 +287,8 @@ describe('PredictCryptoUpDownMarketCard', () => {
   const mockUseCryptoTargetPrice = useCryptoTargetPrice as jest.Mock;
 
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-06-01T12:00:00.000Z'));
     jest.clearAllMocks();
     __resetCardClockForTest();
     const liveMarket = createMarket();
@@ -332,6 +334,8 @@ describe('PredictCryptoUpDownMarketCard', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockOpenBuySheet.mockClear();
+    __resetCardClockForTest();
+    jest.useRealTimers();
   });
 
   it('renders the live series card with buttons, reset copy, and sparkline', () => {
@@ -357,8 +361,10 @@ describe('PredictCryptoUpDownMarketCard', () => {
     );
     const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][2];
     expect(chartOptions.historicalWindow.endDate).toBeUndefined();
+    // Frozen clock — same Date.now() the component used at render time.
+    const now = Date.now();
     const requestAgeMs =
-      Math.floor(Date.now() / (60 * 1000)) * 60 * 1000 -
+      Math.floor(now / (60 * 1000)) * 60 * 1000 -
       new Date(chartOptions.historicalWindow.startDate).getTime();
     expect(requestAgeMs).toBe(5 * 60 * 1000);
     expect(mockUsePredictSeries).toHaveBeenCalledWith(
@@ -423,8 +429,9 @@ describe('PredictCryptoUpDownMarketCard', () => {
 
       const chartOptions = mockUseCryptoUpDownChartData.mock.calls[0][2];
       const bucketMs = Math.max(60_000, Math.floor(displayDurationMs / 12));
+      const now = Date.now();
       const requestAgeMs =
-        Math.floor(Date.now() / bucketMs) * bucketMs -
+        Math.floor(now / bucketMs) * bucketMs -
         new Date(chartOptions.historicalWindow.startDate).getTime();
       expect(requestAgeMs).toBe(sourceDurationMs);
     },
@@ -451,8 +458,9 @@ describe('PredictCryptoUpDownMarketCard', () => {
     expect(chartOptions.historicalWindow.endDate).toBeUndefined();
     const dailyDisplayMs = 24 * 60 * 60 * 1000;
     const dailyBucketMs = Math.max(60_000, Math.floor(dailyDisplayMs / 12));
+    const now = Date.now();
     const requestAgeMs =
-      Math.floor(Date.now() / dailyBucketMs) * dailyBucketMs -
+      Math.floor(now / dailyBucketMs) * dailyBucketMs -
       new Date(chartOptions.historicalWindow.startDate).getTime();
     expect(requestAgeMs).toBe(24 * 60 * 60 * 1000);
   });
