@@ -3909,7 +3909,7 @@
       "search_link": "Enable it from Settings.",
       "custom_warning_desc": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
       "custom_warning_link": "scams and security risks.",
-      "custom_info_desc": "Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about ",
+      "custom_info_desc": "Token detection is not available on this network yet. Please import the token manually and make sure you trust it. Learn about ",
       "custom_info_link": "token scams and security risks.",
       "custom_security_tips": "Security tips"
     }
