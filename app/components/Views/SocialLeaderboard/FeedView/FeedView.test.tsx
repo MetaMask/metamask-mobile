@@ -405,7 +405,7 @@ describe('FeedView', () => {
     fireEvent.press(screen.getByTestId(getFeedTraderTestId('feed-1')));
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      Routes.SOCIAL.PROFILE,
       expect.objectContaining({
         traderId: 'trader-1',
         traderName: 'dutchiono',
@@ -467,16 +467,13 @@ describe('FeedView', () => {
 
     fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-1')));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        positionId: 'pos-feed-1',
-        traderId: 'trader-1',
-        traderAddress: '0x1111111111111111111111111111111111111111',
-        source: 'trader_feed',
-        originalEntryPoint: 'trader_feed',
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      positionId: 'pos-feed-1',
+      traderId: 'trader-1',
+      traderAddress: '0x1111111111111111111111111111111111111111',
+      source: 'trader_feed',
+      originalEntryPoint: 'trader_feed',
+    });
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
@@ -486,16 +483,13 @@ describe('FeedView', () => {
 
     fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-2')));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        positionId: 'pos-feed-2',
-        traderId: 'trader-2',
-        traderAddress: '0x2222222222222222222222222222222222222222',
-        source: 'trader_feed',
-        originalEntryPoint: 'trader_feed',
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      positionId: 'pos-feed-2',
+      traderId: 'trader-2',
+      traderAddress: '0x2222222222222222222222222222222222222222',
+      source: 'trader_feed',
+      originalEntryPoint: 'trader_feed',
+    });
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
