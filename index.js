@@ -17,7 +17,7 @@ import 'expo-asset';
 
 // Root entry is plain JS; TypeScript import resolver does not resolve expo here.
 // eslint-disable-next-line import-x/no-unresolved -- expo-splash-screen is a runtime dependency (see package.json)
-import { preventAutoHideAsync } from 'expo-splash-screen';
+import { hideAsync, preventAutoHideAsync } from 'expo-splash-screen';
 
 // Keep the native splash visible until we explicitly hide it in FoxLoader
 // This prevents the white flash between native splash and first RN render
@@ -114,16 +114,21 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 }
 
 /* Uncomment and comment regular registration below */
-// import Storybook from './.storybook';
-// AppRegistry.registerComponent(name, () => Storybook);
+import Storybook from './.storybook';
+// Storybook does not render FoxLoader, which is what normally hides the
+// native splash — hide it here or Storybook stays behind the splash.
+hideAsync().catch(() => {
+  // Non-fatal — the splash may already be hidden
+});
+AppRegistry.registerComponent(name, () => Storybook);
 
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () =>
-  // Disable Sentry for E2E tests
-  hasTestOverrides ? Root : Sentry.wrap(Root),
-);
+// AppRegistry.registerComponent(name, () =>
+//   // Disable Sentry for E2E tests
+//   hasTestOverrides ? Root : Sentry.wrap(Root),
+// );
 
 function setupGlobalErrorHandler() {
   const reactNativeDefaultHandler = global.ErrorUtils.getGlobalHandler();
