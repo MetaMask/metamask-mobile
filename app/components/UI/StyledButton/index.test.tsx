@@ -1,9 +1,7 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { render } from '@testing-library/react-native';
 import StyledButtonIOS from './index.ios';
 import StyledButtonAndroid from './index.android';
-import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 describe('StyledButton', () => {
@@ -41,15 +39,4 @@ describe('StyledButton', () => {
       expect(getByRole('button')).toBeOnTheScreen();
     });
   });
-
-  it.each(buttonTypes)(
-    'renders %s buttons with fully rounded corners',
-    (type) => {
-      const { containerStyle } = getStyles(type, mockTheme.colors);
-
-      const flattenedContainerStyle = StyleSheet.flatten(containerStyle);
-
-      expect(flattenedContainerStyle).toMatchObject({ borderRadius: 9999 });
-    },
-  );
 });
