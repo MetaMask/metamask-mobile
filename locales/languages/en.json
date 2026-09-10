@@ -11499,6 +11499,28 @@
       "load_error": "Couldn't load your allowances.",
       "retry": "Try again"
     },
+    "benefit_detail": {
+      "status": {
+        "available": "Included and available",
+        "exhausted": "Included but exhausted",
+        "unavailable": "Temporarily unavailable",
+        "not_included": "Not included"
+      },
+      "used": "Used {{used}}",
+      "remaining": "Remaining {{remaining}}",
+      "limit": "Limit {{limit}}",
+      "fee": "{{percent}} MetaMask fee after the allowance",
+      "apy": "{{apy}} APY on Money balance",
+      "cta": {
+        "swaps": "Swap",
+        "perps": "Perps",
+        "predict": "Predict",
+        "earn": "Earn",
+        "card": "Get card"
+      },
+      "accessibility": "{{title}}, {{status}}, {{used}} of {{limit}}",
+      "accessibility_status_only": "{{title}}, {{status}}"
+    },
     "physical_card": {
       "title": "Get your free MetaMask Card",
       "description": "Earn 3% mUSD back on purchases"

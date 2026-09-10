@@ -5,6 +5,7 @@ import {
   PAYMENT_TYPES,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
+  ShieldFeature,
   SUBSCRIPTION_STATUSES,
   type MoneyAccountEntitlements,
   type PricingCryptoPaymentMethod,
@@ -17,6 +18,7 @@ import type { RootState } from '../reducers';
 import {
   selectHasAnyMoneyAccountPlusEntitlement,
   selectHasMoneyAccountPlusEntitlement,
+  selectHasShieldEntitlement,
   selectIsMoneyAccountPlusSubscriber,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
@@ -598,6 +600,52 @@ describe('subscriptionController selectors', () => {
           selectHasMoneyAccountPlusEntitlement(
             createState(),
             MoneyAccountFeature.PremiumApy,
+          ),
+        ).toBe(false);
+      });
+    });
+
+    describe('selectHasShieldEntitlement', () => {
+      const createShieldState = (
+        shieldClaim: boolean,
+        prioritySupport: boolean,
+      ) =>
+        createState({
+          subscriptions: [],
+          trialedProducts: [],
+          productEntitlements: {
+            [PRODUCT_TYPES.SHIELD]: {
+              entitlements: {
+                shieldClaim,
+                prioritySupport,
+              },
+            },
+          },
+        });
+
+      it('returns true when the Shield claim is entitled', () => {
+        expect(
+          selectHasShieldEntitlement(
+            createShieldState(true, false),
+            ShieldFeature.ShieldClaim,
+          ),
+        ).toBe(true);
+      });
+
+      it('returns false when the Shield claim is not entitled', () => {
+        expect(
+          selectHasShieldEntitlement(
+            createShieldState(false, true),
+            ShieldFeature.ShieldClaim,
+          ),
+        ).toBe(false);
+      });
+
+      it('fails closed when the controller is absent', () => {
+        expect(
+          selectHasShieldEntitlement(
+            createState(),
+            ShieldFeature.PrioritySupport,
           ),
         ).toBe(false);
       });

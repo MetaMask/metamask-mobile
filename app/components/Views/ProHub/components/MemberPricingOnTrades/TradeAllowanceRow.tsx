@@ -1,10 +1,15 @@
 import React, { useMemo } from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -15,6 +20,7 @@ import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
 
 interface TradeAllowanceRowProps {
   item: TradeAllowanceItem;
+  onPress?: (id: TradeAllowanceItem['id']) => void;
 }
 
 const formatCurrencyAmount = (amount: number): string =>
@@ -55,7 +61,7 @@ const calculateProgress = (item: TradeAllowanceItem): number => {
   return Math.min(item.used / item.allowance, 1);
 };
 
-const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
+const TradeAllowanceRow = ({ item, onPress }: TradeAllowanceRowProps) => {
   const progressPercent = useMemo(
     () => Math.round(calculateProgress(item) * 100),
     [item],
@@ -64,11 +70,8 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
   const footnoteKey = `pro_hub.member_pricing.${item.id}.footnote`;
   const label = strings(labelKey);
 
-  return (
-    <Box
-      twClassName="gap-y-3"
-      testID={MemberPricingOnTradesTestIds.ROW(item.id)}
-    >
+  const content = (
+    <Box twClassName="gap-y-3">
       <Box twClassName="gap-y-2">
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -78,20 +81,33 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
           <Text variant={TextVariant.BodyLg} color={TextColor.TextDefault}>
             {label}
           </Text>
-          <Box flexDirection={BoxFlexDirection.Row}>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {formatUsedValue(item)}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {` / ${formatAllowanceValue(item)}`}
-            </Text>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-x-2"
+          >
+            <Box flexDirection={BoxFlexDirection.Row}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {formatUsedValue(item)}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {` / ${formatAllowanceValue(item)}`}
+              </Text>
+            </Box>
+            {onPress ? (
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            ) : null}
           </Box>
         </Box>
 
@@ -119,6 +135,23 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
         {strings(footnoteKey)}
       </Text>
     </Box>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        onPress={() => onPress(item.id)}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        testID={MemberPricingOnTradesTestIds.ROW(item.id)}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <Box testID={MemberPricingOnTradesTestIds.ROW(item.id)}>{content}</Box>
   );
 };
 

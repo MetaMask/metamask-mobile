@@ -5,6 +5,7 @@ import {
   PRODUCT_TYPES,
   selectHasEntitlement,
   selectIsActiveSubscriber,
+  ShieldFeature,
   type CachedLastSelectedPaymentMethod,
   type MoneyAccountPlusClaim,
   type ProductType,
@@ -220,3 +221,21 @@ export const selectMoneyAccountPlusSubscription = (
   state: RootState,
 ): Subscription | undefined =>
   selectSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+
+/**
+ * Selects whether a single Shield feature is entitled. Not memoized because
+ * the feature argument varies per call site.
+ *
+ * @param state - The root Redux state.
+ * @param feature - The Shield feature to check.
+ * @returns Whether the feature entitlement is granted.
+ */
+export const selectHasShieldEntitlement = (
+  state: RootState,
+  feature: ShieldFeature,
+): boolean =>
+  selectHasEntitlement(
+    selectSubscriptionControllerState(state) ?? DEFAULT_CONTROLLER_STATE,
+    PRODUCT_TYPES.SHIELD,
+    feature,
+  );

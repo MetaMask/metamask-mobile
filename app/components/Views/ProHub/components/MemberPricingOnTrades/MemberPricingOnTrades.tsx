@@ -15,8 +15,13 @@ import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from '../../../../../hooks/useMoneyAccountPlusBenefits';
+import type { TradeAllowanceItem } from '../../ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
 import TradeAllowanceRow from './TradeAllowanceRow';
+
+interface MemberPricingOnTradesProps {
+  onItemPress: (id: TradeAllowanceItem['id']) => void;
+}
 
 const LoadingSkeletons = () => (
   <Box
@@ -29,7 +34,7 @@ const LoadingSkeletons = () => (
   </Box>
 );
 
-const MemberPricingOnTrades = () => {
+const MemberPricingOnTrades = ({ onItemPress }: MemberPricingOnTradesProps) => {
   const { status, items, resetsOn, retry } = useMoneyAccountPlusBenefits();
 
   const showError = status === MoneyAccountPlusBenefitsStatus.Failed;
@@ -70,7 +75,11 @@ const MemberPricingOnTrades = () => {
       {showRows ? (
         <Box twClassName="gap-y-6">
           {items.map((item) => (
-            <TradeAllowanceRow key={item.id} item={item} />
+            <TradeAllowanceRow
+              key={item.id}
+              item={item}
+              onPress={onItemPress}
+            />
           ))}
         </Box>
       ) : null}
