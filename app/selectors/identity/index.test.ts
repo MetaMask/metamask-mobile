@@ -6,6 +6,7 @@ import {
   selectIsSignedIn,
   selectCanonicalProfileId,
   selectNeedsProfilePairing,
+  selectNeedsSocialPairing,
 } from './index';
 import { RootState } from '../../reducers';
 
@@ -107,5 +108,24 @@ describe('Notification Selectors', () => {
     } as unknown as RootState;
 
     expect(selectNeedsProfilePairing(stateWithoutField)).toBe(true);
+  });
+
+  it('selectNeedsSocialPairing returns the persisted value when present', () => {
+    const stateWithField = {
+      engine: {
+        backgroundState: {
+          AuthenticationController: {
+            isSignedIn: true,
+            needsSocialPairing: false,
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(selectNeedsSocialPairing(stateWithField)).toBe(false);
+  });
+
+  it('selectNeedsSocialPairing defaults to true when the field is absent', () => {
+    expect(selectNeedsSocialPairing(mockState)).toBe(true);
   });
 });
