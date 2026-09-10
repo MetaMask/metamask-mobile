@@ -1321,6 +1321,8 @@ export type PredictThePitchCampaignDetails = CampaignDetails;
 export type MoneyAccountSweepstakesLocalizedTextDto = {
   eligibleBalanceTitle: string;
   eligibleBalanceDescription: string;
+  eligibleBalancePendingTitle: string;
+  eligibleBalancePendingDescription: string;
   entriesTitle: string;
   entriesDescription: string;
   entriesCountValue: string;

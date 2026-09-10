@@ -996,7 +996,7 @@ export type RootStackParamList = {
   PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
 
   // Social Leaderboard routes
-  TopTradersView:
+  SocialV0View:
     | {
         /** Analytics entry-point that opened the leaderboard. Narrowed at the
          * receiver to LeaderboardScreenViewedSource. */
@@ -1013,7 +1013,14 @@ export type RootStackParamList = {
         landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
-  SocialLeaderboardTab: RootStackParamList['TopTradersView'];
+  /** The same screen mounted as the Social tab root (SOCIAL.TAB). */
+  SocialLeaderboardTab: RootStackParamList['SocialV0View'];
+  SocialV1View:
+    | {
+        source?: string;
+        showNotificationsBanner?: boolean;
+      }
+    | undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;
