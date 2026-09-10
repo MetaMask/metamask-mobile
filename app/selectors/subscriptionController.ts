@@ -19,11 +19,11 @@ const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
  * `ACTIVE_SUBSCRIPTION_STATUSES`, which is not part of the package's public
  * exports.
  */
-const ACTIVE_SUBSCRIPTION_STATUSES: SubscriptionStatus[] = [
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
   SUBSCRIPTION_STATUSES.active,
   SUBSCRIPTION_STATUSES.trialing,
   SUBSCRIPTION_STATUSES.provisional,
-];
+]);
 
 const hasProduct = (
   subscription: Subscription,
@@ -102,7 +102,7 @@ export const selectIsMoneyAccountPlusSubscriber = createSelector(
   (subscriptions) =>
     subscriptions.some(
       (subscription) =>
-        ACTIVE_SUBSCRIPTION_STATUSES.includes(subscription.status) &&
+        ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
     ),
 );
