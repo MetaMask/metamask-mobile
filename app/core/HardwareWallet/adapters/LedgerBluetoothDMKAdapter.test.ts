@@ -770,6 +770,16 @@ describe('LedgerBluetoothDMKAdapter', () => {
         expectEmitted(DeviceEvent.AppNotOpen);
       });
 
+      it('returns false and emits AppNotOpen when the app check fails with a DMK unresponsive error', async () => {
+        const unresponsiveError = new Error(
+          'Device action ended without completion',
+        );
+        mockConnectLedgerHardware.mockRejectedValueOnce(unresponsiveError);
+
+        await expect(adapter.ensureDeviceReady(DEVICE_ID)).resolves.toBe(false);
+        expectEmitted(DeviceEvent.AppNotOpen);
+      });
+
       it('opens the Ethereum app from the BOLOS screen and returns false', async () => {
         mockConnectLedgerHardware.mockResolvedValueOnce('BOLOS');
         mockOpenEthereumAppOnLedger.mockResolvedValueOnce(undefined);

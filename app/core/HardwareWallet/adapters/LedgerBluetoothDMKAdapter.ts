@@ -44,6 +44,7 @@ import {
   TRANSIENT_BLE_ERROR_NAMES,
   TRANSIENT_DMK_TAGS,
   isDeviceLockedError,
+  isDeviceUnresponsiveError,
   isLedgerTimeoutError,
   hasTransientBleMessage,
   toError,
@@ -610,9 +611,10 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         });
       }
 
-      if (isLedgerTimeoutError(error)) {
+      if (isLedgerTimeoutError(error) || isDeviceUnresponsiveError(error)) {
         // Device stalled during the app check (typically mid app-switch after
-        // the user tapped Continue). Return to the "open the app" modal
+        // the user tapped Continue) — either our operation timeout or DMK's
+        // own unresponsiveness error. Return to the "open the app" modal
         // instead of surfacing a fatal error screen.
         this.#emitEvent({
           event: DeviceEvent.AppNotOpen,

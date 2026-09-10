@@ -57,6 +57,27 @@ export function isLedgerTimeoutError(error: unknown): boolean {
 }
 
 /**
+ * Whether an error indicates the device stalled without completing an
+ * operation — DMK's own unresponsiveness errors (e.g. "Device action ended
+ * without completion") or any unresponsive-flavored message. These are not
+ * `LedgerTimeoutError`s (different error name), but during the app check
+ * they should behave the same: return to the awaiting-app modal instead of
+ * a fatal, unrecoverable error screen.
+ */
+export function isDeviceUnresponsiveError(error: unknown): boolean {
+  if (error === null || typeof error !== 'object' || !('message' in error)) {
+    return false;
+  }
+  const message = String(
+    (error as { message?: unknown }).message,
+  ).toLowerCase();
+  return (
+    message.includes('device action ended without completion') ||
+    message.includes('unresponsive')
+  );
+}
+
+/**
  * Normalize an unknown value to an `Error` for event/callback payloads.
  *
  * @param value - The value thrown or passed in.
