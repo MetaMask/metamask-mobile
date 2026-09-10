@@ -166,11 +166,13 @@ export function usePerpsOrderForm(
   const defaultAmount = Math.max(networkDefaultAmount, minimumOrderAmount);
   const fallbackAmount = fallbackAmountParam ?? defaultAmount.toString();
 
-  // A restored amount can predate the venue minimum (a saved $10 HyperLiquid
-  // default replayed onto Lighter): seeding it would render a form whose
-  // place button is disabled by validation, and the save-on-unmount snapshot
-  // would re-persist the invalid amount forever. Seeds are floored at the
-  // venue minimum; live user edits stay untouched (validation covers those).
+  // A restored draft amount can predate the venue minimum (a saved $10
+  // HyperLiquid default replayed onto Lighter): seeding it would render a form
+  // whose place button is disabled by validation, and the save-on-unmount
+  // snapshot would re-persist the invalid amount forever. Only the restored
+  // draft is floored at the venue minimum — an explicit navigation `amount`
+  // param is caller intent and must reach validation unchanged, as do live
+  // user edits (validation covers both).
   const clampSeedToVenueMinimum = useCallback(
     (value: string): string => {
       const numeric = Number.parseFloat(value);
@@ -208,7 +210,7 @@ export function usePerpsOrderForm(
   const initialAmountValue = useMemo(() => {
     // If we have a pending config with amount, use it (unless overridden by navigation param)
     if (initialAmount) {
-      return clampSeedToVenueMinimum(initialAmount);
+      return initialAmount;
     }
 
     if (pendingConfig?.amount) {

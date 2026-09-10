@@ -522,6 +522,36 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('130');
     });
 
+    it('keeps a navigation amount below the venue minimum so validation can surface it', () => {
+      // Regression: clamping the navigation param silently rewrote an
+      // explicitly requested below-minimum amount up to the minimum, hiding
+      // the "Minimum order size" error and enabling the place button. Only a
+      // restored draft is floored; caller intent must reach validation.
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 6,
+          name: 'BTC',
+          maxLeverage: 10,
+          marginTableId: 1,
+          minimumOrderSize: 130,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialAmount: '5',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      expect(result.current.orderForm.amount).toBe('5');
+    });
+
     it('clamps a restored leverage above the market maximum down to the maximum', () => {
       // Regression: a 40x leverage saved while trading a 50x-max venue
       // replayed onto a market whose max is 25x (trade configurations are
