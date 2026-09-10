@@ -976,7 +976,7 @@
       "dob_required": "Date of birth is required",
       "dob_invalid": "Enter a valid date of birth",
       "ssn_required": "Social security number is required",
-      "unexpected_error": "An unexpected error occurred. Please try again.",
+      "unexpected_error": "An unexpected error occurred. Try again.",
       "phone_already_registered": "This phone number is already in use by {{email}}. Log in using this email to continue.",
       "login_with_email": "Log in with email"
     },
@@ -1073,14 +1073,14 @@
       "beneficiary_address": "Beneficiary address",
       "bank_address": "Bank address",
       "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
-      "error_message": "We were unable to confirm your bank transfer. Please try again.",
-      "cancel_order_error": "We were unable to cancel your order. Please try again."
+      "error_message": "We were unable to confirm your bank transfer. Try again.",
+      "cancel_order_error": "We were unable to cancel your order. Try again."
     },
     "webview_modal": {
       "error": "Webview received error: {{code}}"
     },
     "notifications": {
-      "deposit_failed_title": "Deposit of {{currency}} has failed. Please try again, sorry for the inconvenience.",
+      "deposit_failed_title": "Deposit of {{currency}} has failed. Try again, sorry for the inconvenience.",
       "deposit_failed_description": "Verify your payment method and card support",
       "deposit_cancelled_title": "Your deposit was cancelled",
       "deposit_cancelled_description": "You requested a cancellation of your deposit.",
@@ -1091,7 +1091,7 @@
     },
     "error_view": {
       "title": "There was an error",
-      "description": "There was an error processing your deposit. Please contact support if the problem continues.",
+      "description": "There was an error processing your deposit. Contact support if the problem continues.",
       "try_again": "Try again"
     },
     "errors": {
@@ -1484,10 +1484,10 @@
         "bridging": "Moving USDC to Arbitrum network...",
         "depositing": "Transferring USDC to your HyperLiquid account...",
         "success": "Successfully deposited {{amount}} USDC to your HyperLiquid account",
-        "error": "Something went wrong during the deposit process. Please try again."
+        "error": "Something went wrong during the deposit process. Try again."
       },
-      "quote_fetch_error": "Failed to fetch deposit quote. Please try again.",
-      "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
+      "quote_fetch_error": "Failed to fetch deposit quote. Try again.",
+      "bridge_quote_timeout": "Unable to fetch bridge quote. Try again or select a different token.",
       "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
       "success": {
         "title": "Deposit successful",
@@ -1518,7 +1518,7 @@
     },
     "one_click_trade": {
       "tx_creation_failed_title": "Could not open position",
-      "tx_creation_failed_description": "Transaction creation failed. Please try again."
+      "tx_creation_failed_description": "Transaction creation failed. Try again."
     },
     "withdrawal": {
       "title": "Withdraw",
@@ -1548,7 +1548,7 @@
       "success_toast_description": "You'll receive {{amount}} {{symbol}} on {{networkName}} within 5 minutes",
       "bridge_info": "HyperLiquid validators are processing your withdrawal",
       "error_generic": "An error occurred during withdrawal",
-      "invalid_amount": "Please enter a valid amount",
+      "invalid_amount": "Enter a valid amount",
       "max": "Max",
       "percentage_10": "10%",
       "percentage_25": "25%",
@@ -1597,7 +1597,7 @@
       "keyboard_previous": "Previous field",
       "keyboard_next": "Next field",
       "keyboard_done": "Done",
-      "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
+      "price_unavailable": "Market price is unavailable. Wait for price data before placing an order.",
       "scale": {
         "start_price": "Start (USD)",
         "end_price": "End (USD)",
@@ -1786,9 +1786,9 @@
         "invalid_take_profit": "Take profit must be {{direction}} current price for {{positionType}} positions",
         "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
         "liquidation_warning": "Position is close to liquidation price",
-        "limit_price_required": "Please set a limit price for limit orders",
+        "limit_price_required": "Set a limit price for limit orders",
         "price_required": "Price is required",
-        "please_set_a_limit_price": "Please set a limit price",
+        "please_set_a_limit_price": "Set a limit price",
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
         "limit_price_far_warning": "Limit price is far from current market price",
@@ -1803,7 +1803,7 @@
         "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
         "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
         "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
-        "please_set_a_trigger_price": "Please set a trigger price",
+        "please_set_a_trigger_price": "Set a trigger price",
         "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",
         "chase_limit": "You can run up to {{count}} active Chase orders at a time.",
         "chase_max_distance_usd": "Max chase distance must be greater than $0 and less than the current price.",
@@ -2019,7 +2019,7 @@
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
       "order_cancelled_success": "{{detailedOrderType}} order cancelled",
       "pay_with_token_required": "Token selection required",
-      "select_token_to_pay_with": "Please select a token to pay with before placing your order",
+      "select_token_to_pay_with": "Select a token to pay with before placing your order",
       "initializing": "Initializing order...",
       "updating_your_order": "Updating your order",
       "order_updated": "Order updated",
@@ -2107,11 +2107,11 @@
       "your_position_is_still_active": "Your position is still active",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
-      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Close 100% instead.",
       "must_close_full_below_minimum": "Position value is below $10. You must close 100% of the position.",
       "negative_receive_amount": "The fees exceed your position value",
       "negative_receive_warning": "Closing this position will cost you ${{amount}} due to fees and losses.",
-      "no_amount_selected": "Please select an amount to close",
+      "no_amount_selected": "Select an amount to close",
       "order_type_reverted_to_market_order": "Changed to market order",
       "you_need_set_price_limit_order": "You need to set a price for a limit order.",
       "your_pnl_is": "Your P&L is"
@@ -2198,7 +2198,7 @@
       "exchangeClientNotAvailable": "ExchangeClient not available after initialization",
       "exchangeAccountNotFound": "Add funds to your account before placing an order",
       "exchangeMultiSigRequired": "This account needs its multi-signature signers to trade",
-      "exchangeInvalidNonce": "Something went wrong. Please try again.",
+      "exchangeInvalidNonce": "Something went wrong. Try again.",
       "infoClientNotAvailable": "InfoClient not available after initialization",
       "subscriptionClientNotAvailable": "SubscriptionClient not available after initialization",
       "subscriptionClientNotInitialized": "SubscriptionClient is not initialized",
@@ -2282,14 +2282,14 @@
       "depositFailed": "Deposit failed",
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
       "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
-      "connectionTimeout": "Connection timed out. Please check your network and try again.",
-      "clientReinitializing": "Service is reinitializing. Please wait a moment and try again.",
-      "transferFailed": "Unable to transfer funds. Please try again.",
-      "swapFailed": "Unable to swap tokens. Please try again.",
+      "connectionTimeout": "Connection timed out. Check your network and try again.",
+      "clientReinitializing": "Service is reinitializing. Wait a moment and try again.",
+      "transferFailed": "Unable to transfer funds. Try again.",
+      "swapFailed": "Unable to swap tokens. Try again.",
       "spotPairNotFound": "Trading pair is not available at this time.",
-      "priceUnavailable": "Price data is unavailable. Please refresh and try again.",
-      "batchCancelFailed": "Some orders couldn't be cancelled. Please try again.",
-      "batchCloseFailed": "Some positions couldn't be closed. Please try again.",
+      "priceUnavailable": "Price data is unavailable. Refresh and try again.",
+      "batchCancelFailed": "Some orders couldn't be cancelled. Try again.",
+      "batchCloseFailed": "Some positions couldn't be closed. Try again.",
       "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
       "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
       "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
@@ -6660,9 +6660,9 @@
     "buying_via": "Buying via {{providerName}}.",
     "change_provider": "Change provider.",
     "circuit_breaker_open": "This service is temporarily unavailable. Please try again in about 30 minutes.",
-    "payment_error": "Something went wrong. Please try again.",
+    "payment_error": "Something went wrong. Try again.",
     "no_payment_methods_available": "No payment methods are available.",
-    "error_fetching_quotes": "Something went wrong. Please try again.",
+    "error_fetching_quotes": "Something went wrong. Try again.",
     "no_quotes_available": "No providers available.",
     "quote_unavailable": "Quote unavailable.",
     "providers": "Providers",
@@ -7663,7 +7663,7 @@
     "ledger_disconnected": "Your device got disconnected",
     "ledger_disconnected_error": "The connection to your device has been lost. Please try again.",
     "unknown_error": "Unexpected error occurred.",
-    "unknown_error_message": "An unexpected error occurred. Please try again.",
+    "unknown_error_message": "An unexpected error occurred. Try again.",
     "error_occured": "An error occurred",
     "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
@@ -9583,7 +9583,7 @@
       "invalid_pin_error": "That PIN can't be used. Choose a different one.",
       "repeating_pin_error": "That PIN can't be used. Choose a different one.",
       "forbidden_error": "You can't set a PIN on this card right now.",
-      "network_error": "Something went wrong. Please try again.",
+      "network_error": "Something went wrong. Try again.",
       "success_title": "Your PIN is set",
       "success_description": "Make sure you keep it safe. You won't be able to view it in the app."
     },
@@ -11130,7 +11130,7 @@
     },
     "show_internal_error": {
       "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "description": "An unexpected error occurred. Try again."
     },
     "agentic_cli_dashboard_webview": {
       "title": "Select project",
