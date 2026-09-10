@@ -31,6 +31,10 @@ export function buildTypeMapping(
   isDev: boolean,
   isQaChannel: boolean,
 ): BUILD_TYPE {
+  if (process.env.DEV_OAUTH_CONFIG === 'true' && isDev) {
+    return BUILD_TYPE.development;
+  }
+
   switch (buildType) {
     case 'qa':
       return BUILD_TYPE.main_uat;
