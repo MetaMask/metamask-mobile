@@ -4,26 +4,25 @@ import type { MessengerClientInitFunction } from '../../types';
 
 /**
  * Env-keyed KYC API host when `KYC_API_URL` is not inlined (e.g. E2E repack).
- * Always returns a real host: `KycService` throws without one, and it is
- * constructed during Engine init.
+ * Mirrors ramps `getRampsEnvironment`: production-like builds hit PRD, `dev`
+ * hits DEV, and every other / unknown env (including missing) hits UAT so
+ * Engine init never constructs `KycService` without a host.
  */
 const getDefaultKycApiBaseUrlForMetaMaskEnv = (
   metaMaskEnv: string | undefined,
 ): string => {
   switch (metaMaskEnv) {
-    case 'dev':
-    case 'test':
-    case 'e2e':
-    case 'local':
-      return AppConstants.KYC_API_URL.DEV;
-    case 'exp':
-      return AppConstants.KYC_API_URL.UAT;
     case 'production':
     case 'beta':
     case 'rc':
-    case 'pre-release':
-    default:
       return AppConstants.KYC_API_URL.PRD;
+    case 'dev':
+      return AppConstants.KYC_API_URL.DEV;
+    case 'exp':
+    case 'test':
+    case 'e2e':
+    default:
+      return AppConstants.KYC_API_URL.UAT;
   }
 };
 

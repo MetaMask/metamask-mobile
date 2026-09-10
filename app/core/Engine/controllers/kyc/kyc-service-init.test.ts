@@ -60,8 +60,19 @@ describe('kycServiceInit', () => {
     });
   });
 
-  it.each(['dev', 'test', 'e2e', 'local'] as const)(
-    'falls back to the dev host when KYC_API_URL is unset in the %s environment',
+  it('falls back to the dev host when KYC_API_URL is unset in the dev environment', () => {
+    delete process.env.KYC_API_URL;
+    process.env.METAMASK_ENVIRONMENT = 'dev';
+
+    const { controller } = kycServiceInit(getInitRequestMock());
+
+    expect(controller).toMatchObject({
+      baseUrl: AppConstants.KYC_API_URL.DEV,
+    });
+  });
+
+  it.each(['exp', 'test', 'e2e'] as const)(
+    'falls back to the UAT host when KYC_API_URL is unset in the %s environment',
     (metaMaskEnv) => {
       delete process.env.KYC_API_URL;
       process.env.METAMASK_ENVIRONMENT = metaMaskEnv;
@@ -69,23 +80,12 @@ describe('kycServiceInit', () => {
       const { controller } = kycServiceInit(getInitRequestMock());
 
       expect(controller).toMatchObject({
-        baseUrl: AppConstants.KYC_API_URL.DEV,
+        baseUrl: AppConstants.KYC_API_URL.UAT,
       });
     },
   );
 
-  it('falls back to the UAT host when KYC_API_URL is unset in the exp environment', () => {
-    delete process.env.KYC_API_URL;
-    process.env.METAMASK_ENVIRONMENT = 'exp';
-
-    const { controller } = kycServiceInit(getInitRequestMock());
-
-    expect(controller).toMatchObject({
-      baseUrl: AppConstants.KYC_API_URL.UAT,
-    });
-  });
-
-  it.each(['production', 'beta', 'rc', 'pre-release'] as const)(
+  it.each(['production', 'beta', 'rc'] as const)(
     'falls back to the production host when KYC_API_URL is unset in the %s environment',
     (metaMaskEnv) => {
       delete process.env.KYC_API_URL;
@@ -99,8 +99,8 @@ describe('kycServiceInit', () => {
     },
   );
 
-  it.each([undefined, 'some-unknown-env'] as const)(
-    'falls back to the production host when KYC_API_URL is unset for %s',
+  it.each([undefined, 'some-unknown-env', 'local', 'pre-release'] as const)(
+    'falls back to the UAT host when KYC_API_URL is unset for %s',
     (metaMaskEnv) => {
       delete process.env.KYC_API_URL;
       if (metaMaskEnv === undefined) {
@@ -112,7 +112,7 @@ describe('kycServiceInit', () => {
       const { controller } = kycServiceInit(getInitRequestMock());
 
       expect(controller).toMatchObject({
-        baseUrl: AppConstants.KYC_API_URL.PRD,
+        baseUrl: AppConstants.KYC_API_URL.UAT,
       });
     },
   );
