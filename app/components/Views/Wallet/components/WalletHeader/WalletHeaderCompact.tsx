@@ -21,7 +21,7 @@ import {
   getAvatarAccountVariant,
   type AccountAvatarVariant,
 } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
-import { useHasUnreadNotifications } from '../../../../hooks/useHasUnreadNotifications';
+import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 
 interface TouchAreaSlop {
@@ -52,7 +52,7 @@ const WalletHeaderCompact = ({
   scrollY,
   titleSectionHeight,
 }: WalletHeaderCompactProps) => {
-  const hasUnreadNotifications = useHasUnreadNotifications();
+  const hasAccountsMenuAttention = useAccountsMenuAttention();
 
   return (
     <HeaderStandardAnimated
@@ -73,8 +73,13 @@ const WalletHeaderCompact = ({
             position={BadgeWrapperPosition.BottomRight}
             positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
             badge={
-              hasUnreadNotifications ? (
-                <BadgeStatus status={BadgeStatusStatus.Attention} />
+              hasAccountsMenuAttention ? (
+                <BadgeStatus
+                  status={BadgeStatusStatus.Attention}
+                  testID={
+                    WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON_BADGE
+                  }
+                />
               ) : null
             }
           >
