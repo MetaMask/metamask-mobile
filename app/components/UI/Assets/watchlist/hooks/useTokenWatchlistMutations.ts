@@ -113,10 +113,16 @@ export const tokenWatchlistBatcher = createAsyncBatcher<WatchlistOp>(
       (acc, op) => applyOp(acc, op),
       [...current.assets],
     );
+    console.log(
+      '[useTokenWatchlistUpdateListMutation] Calling writeToTokenWatchList...',
+    );
     await writeToTokenWatchList({
       ...current,
       assets: nextAssets,
     });
+    console.log(
+      '[useTokenWatchlistUpdateListMutation] FINISHED calling writeToTokenWatchList',
+    );
     // Soft-fail mirror — never rolls back a successful real-watchlist write.
     await syncPriceAlertsWatchlistMirror(current.assets, nextAssets);
   },

@@ -259,6 +259,16 @@
     "@metamask/profile-sync-controller": "^30.0.0",
     "@metamask/account-tree-controller": "^9.0.0"
   },
+  "previewBuilds": {
+    "@metamask/base-data-service": {
+      "type": "non-breaking",
+      "previewVersion": "1.0.0-preview-8bfa290fb"
+    },
+    "@metamask/authenticated-user-storage": {
+      "type": "non-breaking",
+      "previewVersion": "3.0.2-preview-8bfa290fb"
+    }
+  },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
     "@consensys/on-ramp-sdk": "2.1.12",
