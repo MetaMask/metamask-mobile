@@ -467,7 +467,7 @@ describe('getNotificationDetails', () => {
         "description": "Verify your payment method and card support",
         "duration": 5000,
         "status": "error",
-        "title": "Purchase of ETH failed. Please try again momentarily.",
+        "title": "Purchase of ETH failed. Try again momentarily.",
       }
     `);
 

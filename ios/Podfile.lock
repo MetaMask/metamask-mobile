@@ -3,11 +3,11 @@ PODS:
   - BEMCheckBox (1.4.1)
   - boost (1.84.0)
   - Branch (1.43.2)
-  - braze-react-native-sdk (19.1.0):
+  - braze-react-native-sdk (23.0.0):
     - boost
-    - BrazeKit (~> 14.0.1)
-    - BrazeLocation (~> 14.0.1)
-    - BrazeUI (~> 14.0.1)
+    - BrazeKit (~> 18.2.0)
+    - BrazeLocation (~> 18.2.0)
+    - BrazeUI (~> 18.2.0)
     - DoubleConversion
     - fast_float
     - fmt
@@ -34,11 +34,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - BrazeKit (14.0.4)
-  - BrazeLocation (14.0.4):
-    - BrazeKit (= 14.0.4)
-  - BrazeUI (14.0.4):
-    - BrazeKit (= 14.0.4)
+  - BrazeKit (18.2.0)
+  - BrazeLocation (18.2.0):
+    - BrazeKit (= 18.2.0)
+  - BrazeUI (18.2.0):
+    - BrazeKit (= 18.2.0)
   - BVLinearGradient (2.8.3):
     - React-Core
   - CocoaAsyncSocket (7.6.5)
@@ -264,6 +264,8 @@ PODS:
   - ExpoAppleAuthentication (55.0.13):
     - ExpoModulesCore
   - ExpoAsset (55.0.17):
+    - ExpoModulesCore
+  - ExpoBlur (55.0.18):
     - ExpoModulesCore
   - ExpoCrypto (55.0.15):
     - ExpoModulesCore
@@ -2748,7 +2750,7 @@ PODS:
     - Yoga
   - react-native-in-app-review (4.3.3):
     - React-Core
-  - react-native-keyboard-controller (1.20.7):
+  - react-native-keyboard-controller (1.21.6):
     - boost
     - DoubleConversion
     - fast_float
@@ -2766,7 +2768,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-keyboard-controller/common (= 1.20.7)
+    - react-native-keyboard-controller/common (= 1.21.6)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2777,7 +2779,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-keyboard-controller/common (1.20.7):
+  - react-native-keyboard-controller/common (1.21.6):
     - boost
     - DoubleConversion
     - fast_float
@@ -4552,6 +4554,7 @@ DEPENDENCIES:
   - expo-dev-menu-interface (from `../node_modules/expo-dev-menu-interface/ios`)
   - ExpoAppleAuthentication (from `../node_modules/expo-apple-authentication/ios`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoBlur (from `../node_modules/expo-blur/ios`)
   - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
@@ -4797,6 +4800,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-apple-authentication/ios"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoBlur:
+    :path: "../node_modules/expo-blur/ios"
   ExpoCrypto:
     :path: "../node_modules/expo-crypto/ios"
   ExpoDomWebView:
@@ -5132,10 +5137,10 @@ SPEC CHECKSUMS:
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
-  braze-react-native-sdk: 81f97f9dd9aae9e89e8ff4083e473e6cb8930cd7
-  BrazeKit: ba951d2299c1d16b541cf35cdd7250d03e28a0fb
-  BrazeLocation: d6938a737f123bb9e6632246d1abea40eeb12768
-  BrazeUI: 1d733e1dea4d81f95f261b52cc6e4b91a0eccca8
+  braze-react-native-sdk: 7de8df8f0f0b32a2bea8a1f5c61fe7056d394283
+  BrazeKit: 7096d0fedf79e7263bb055b986ade1cc52ad1897
+  BrazeLocation: 992159c8dc5d2a5f9e4a168d2e2780cf9c4aa6dd
+  BrazeUI: 98385f0fde85fa70dafc27f893cb34d7abbf7d7b
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
@@ -5151,6 +5156,7 @@ SPEC CHECKSUMS:
   expo-dev-menu-interface: 833795f4c98a674d36cbc12b11b21756c38e01e8
   ExpoAppleAuthentication: 08b3d0e502f46731abdf4c59203769fb685f66c8
   ExpoAsset: 7721c5c4ae2a7c3c8147a046727ac6c020b05648
+  ExpoBlur: 03f1181f123d3e1a8b87f9bad22ebb7bbeba4fcf
   ExpoCrypto: e7f4a14eaa6d6a6a2196cd7391d171c84be0b1aa
   ExpoDomWebView: b2e9d601f9cb77d3c97da73234e175b64be91928
   ExpoFileSystem: 61e663d0bbd1a973d324530d1d6ee559a5e5192c
@@ -5251,7 +5257,7 @@ SPEC CHECKSUMS:
   react-native-get-random-values: e2acf4070fe4b7325705a05af047449637a27a21
   react-native-gzip: ac876c009a2a75f72e82b84fb3f721933c173ab8
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
-  react-native-keyboard-controller: dbf568b5d029cdc5b26667a7c2323b160c25dc00
+  react-native-keyboard-controller: 686d5aa0d02bfe7f83d733b98dd17de76463b01d
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ac7507625cd74bac0eb5333604a7cd7b08fe9e3e
   react-native-mobilesdk-module: cbf8b811c658f02325e0e41240a32af40a6fa791
@@ -5346,6 +5352,6 @@ SPEC CHECKSUMS:
   Yoga: cf2a67aa1c8a225f0cb98a5f531d6f305d3f12e5
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
-PODFILE CHECKSUM: c0e2bd0b5e822b365920a9b9ed8779e20bd2536c
+PODFILE CHECKSUM: 009cd56e219cc088a05117661b3b661c3a196d15
 
 COCOAPODS: 1.16.2

@@ -424,12 +424,15 @@ const Routes = {
     ROOT: 'MarketInsights',
     VIEW: 'MarketInsightsView',
   },
-  SOCIAL_LEADERBOARD: {
-    ROOT: 'SocialLeaderboard',
-    VIEW: 'TopTradersView',
+  SOCIAL: {
+    ROOT: 'Social',
+    /** Root of the Social tab in the floating nav bar's treatment arms. */
+    TAB: 'SocialLeaderboardTab',
+    V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
+    V1: 'SocialV1View',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
