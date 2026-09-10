@@ -10,6 +10,9 @@ import {
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import NetworkMultiSelector from './NetworkMultiSelector';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
 
@@ -58,6 +61,10 @@ jest.mock('../../hooks/useAddPopularNetwork', () => ({
 
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: jest.fn(),
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -113,6 +120,8 @@ describe('NetworkMultiSelector', () => {
     typeof useNetworkEnablement
   >;
   const mockUseSelector = jest.mocked(useSelector);
+  const mockTrackEvent = jest.fn();
+  let capturedProperties: Record<string, unknown> = {};
 
   const createMockNetwork = (
     name: string,
@@ -185,6 +194,34 @@ describe('NetworkMultiSelector', () => {
     } as unknown as ReturnType<typeof useNetworkEnablement>);
 
     mockUseSelector.mockReturnValue([]);
+
+    capturedProperties = {};
+    const mockAddProperties = jest.fn((props: Record<string, unknown>) => {
+      capturedProperties = { ...capturedProperties, ...props };
+      return {
+        addProperties: mockAddProperties,
+        build: () => ({
+          event: MetaMetricsEvents.NETWORK_SWITCHED,
+          properties: capturedProperties,
+        }),
+      };
+    });
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: jest.fn(() => ({
+          addProperties: mockAddProperties,
+          addSensitiveProperties: jest.fn().mockReturnThis(),
+          removeProperties: jest.fn().mockReturnThis(),
+          removeSensitiveProperties: jest.fn().mockReturnThis(),
+          build: () => ({
+            name: 'Network Switched',
+            properties: capturedProperties,
+            sensitiveProperties: {},
+          }),
+        })),
+      }),
+    );
   });
 
   describe('basic functionality', () => {
@@ -502,6 +539,172 @@ describe('NetworkMultiSelector', () => {
       expect(() =>
         customNetworkProps.showNetworkModal(mockNetwork),
       ).not.toThrow();
+    });
+  });
+
+  describe('NETWORK_SWITCHED event tracking', () => {
+    const mockBase = createMockNetwork('Base', 'eip155:8453', false);
+    const mockSolana = createMockNetwork(
+      'Solana',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      false,
+    );
+    const mockBitcoin = createMockNetwork(
+      'Bitcoin',
+      'bip122:000000000019d6689c085ae165831e93',
+      false,
+    );
+
+    const renderSelector = (localSelectedChainIds: CaipChainId[] | null) => {
+      mockUseNetworksToUse.mockReturnValue({
+        networksToUse: [
+          mockEthereum,
+          mockPolygon,
+          mockBase,
+          mockSolana,
+          mockBitcoin,
+        ],
+        evmNetworks: [mockEthereum, mockPolygon, mockBase],
+        solanaNetworks: [mockSolana],
+        bitcoinNetworks: [mockBitcoin],
+        tronNetworks: [],
+        stellarNetworks: [],
+        selectedEvmAccount: null,
+        selectedSolanaAccount: null,
+        selectedBitcoinAccount: null,
+        selectedTronAccount: null,
+        selectedStellarAccount: null,
+        areAllNetworksSelectedCombined: localSelectedChainIds == null,
+        areAllEvmNetworksSelected: false,
+        areAllSolanaNetworksSelected: false,
+        areAllBitcoinNetworksSelected: false,
+        areAllTronNetworksSelected: false,
+        areAllStellarNetworksSelected: false,
+      });
+
+      return renderWithProvider(
+        <NetworkMultiSelector
+          {...defaultRenderProps}
+          localSelectedChainIds={localSelectedChainIds}
+        />,
+      );
+    };
+
+    it('tracks NETWORK_SWITCHED when switching between EVM networks', () => {
+      const { getByTestId } = renderSelector(['eip155:1']);
+
+      getByTestId('mock-network-multi-selector-list').props.onSelectNetwork(
+        'eip155:8453',
+      );
+
+      expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+        chain_id: '8453',
+        from_network: 'Ethereum Mainnet',
+        to_network: 'Base',
+        source: 'Network Filter',
+      });
+    });
+
+    it('uses the locally selected network as from_network, not Ethereum', () => {
+      const { getByTestId } = renderSelector(['eip155:8453']);
+
+      getByTestId('mock-network-multi-selector-list').props.onSelectNetwork(
+        'eip155:137',
+      );
+
+      expect(mockTrackEvent.mock.calls[0][0].properties.from_network).toBe(
+        'Base',
+      );
+      expect(mockTrackEvent.mock.calls[0][0].properties.from_network).not.toBe(
+        'Ethereum Mainnet',
+      );
+    });
+
+    it('tracks NETWORK_SWITCHED when switching between non-EVM networks', () => {
+      const bitcoinChainId = 'bip122:000000000019d6689c085ae165831e93';
+      const { getByTestId } = renderSelector([
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      ]);
+
+      getByTestId('mock-network-multi-selector-list').props.onSelectNetwork(
+        bitcoinChainId,
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            chain_id: bitcoinChainId,
+            from_network: 'Solana',
+            to_network: 'Bitcoin',
+            source: 'Network Filter',
+          }),
+        }),
+      );
+    });
+
+    it('uses the locally selected non-EVM network as from_network when switching to EVM', () => {
+      const { getByTestId } = renderSelector([
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      ]);
+
+      getByTestId('mock-network-multi-selector-list').props.onSelectNetwork(
+        'eip155:1',
+      );
+
+      expect(mockTrackEvent.mock.calls[0][0].properties.from_network).toBe(
+        'Solana',
+      );
+      expect(mockTrackEvent.mock.calls[0][0].properties.from_network).not.toBe(
+        'Ethereum Mainnet',
+      );
+    });
+
+    it('tracks NETWORK_SWITCHED when switching from all popular networks to a specific network', () => {
+      const { getByTestId } = renderSelector(null);
+
+      getByTestId('mock-network-multi-selector-list').props.onSelectNetwork(
+        'eip155:1',
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            chain_id: '1',
+            from_network: 'networks.all_popular_networks',
+            to_network: 'Ethereum Mainnet',
+            source: 'Network Filter',
+          }),
+        }),
+      );
+    });
+
+    it('tracks NETWORK_SWITCHED when switching from a specific network to all popular networks', () => {
+      const { getByTestId } = renderSelector(['eip155:1']);
+
+      getByTestId(
+        'mock-network-multi-selector-list',
+      ).props.selectAllNetworksComponent.props.onPress();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            chain_id: '1',
+            from_network: 'Ethereum Mainnet',
+            to_network: 'networks.all_popular_networks',
+            source: 'Network Filter',
+          }),
+        }),
+      );
+    });
+
+    it('does not track NETWORK_SWITCHED when selecting the same network', () => {
+      const { getByTestId } = renderSelector(['eip155:1']);
+
+      getByTestId('mock-network-multi-selector-list').props.onSelectNetwork(
+        'eip155:1',
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 

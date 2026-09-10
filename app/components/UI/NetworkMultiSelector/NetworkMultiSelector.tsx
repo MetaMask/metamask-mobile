@@ -1,6 +1,11 @@
 // third party dependencies
 import React, { useCallback, useState, useMemo, memo } from 'react';
-import { CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -14,6 +19,9 @@ import { Box } from '@metamask/design-system-react-native';
 import { ExtendedNetwork } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import CustomNetwork from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { strings } from '../../../../locales/i18n';
+import { getDecimalChainId } from '../../../util/networks';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
 import {
   useNetworksByNamespace,
@@ -48,6 +56,14 @@ const initialModalState: ModalState = {
   showWarningModal: false,
 };
 
+const toAnalyticsChainId = (caipChainId: CaipChainId): string => {
+  const { namespace, reference } = parseCaipChainId(caipChainId);
+  if (namespace === KnownCaipNamespace.Eip155) {
+    return getDecimalChainId(toHex(reference));
+  }
+  return caipChainId;
+};
+
 const CUSTOM_NETWORK_PROPS = {
   switchTab: undefined,
   shouldNetworkSwitchPopToWallet: false,
@@ -68,6 +84,7 @@ const NetworkMultiSelector = ({
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { styles } = useStyles(stylesheet, { theme });
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
@@ -95,6 +112,49 @@ const NetworkMultiSelector = ({
   );
 
   const displayAreAllNetworksSelected = localSelectedChainIds == null;
+
+  const trackNetworkFilterSwitch = useCallback(
+    (toChainIds: CaipChainId[] | null) => {
+      const fromChainId = localSelectedChainIds?.[0];
+      const toChainId = toChainIds?.[0];
+      const fromAll = localSelectedChainIds == null;
+      const toAll = toChainIds == null;
+
+      if (fromAll === toAll && fromChainId === toChainId) {
+        return;
+      }
+
+      const unknownNetwork = strings('network_information.unknown_network');
+      const allPopular = strings('networks.all_popular_networks');
+      const nameFor = (caipChainId?: CaipChainId) =>
+        networksToUse.find((network) => network.caipChainId === caipChainId)
+          ?.name ?? unknownNetwork;
+
+      const fromNetwork = fromAll ? allPopular : nameFor(fromChainId);
+      const toNetwork = toAll ? allPopular : nameFor(toChainId);
+
+      if (fromNetwork === unknownNetwork || toNetwork === unknownNetwork) {
+        return;
+      }
+
+      const analyticsChainId = toAll ? fromChainId : toChainId;
+      if (!analyticsChainId) {
+        return;
+      }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+          .addProperties({
+            chain_id: toAnalyticsChainId(analyticsChainId),
+            from_network: fromNetwork,
+            to_network: toNetwork,
+            source: 'Network Filter',
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, localSelectedChainIds, networksToUse, trackEvent],
+  );
 
   const { addPopularNetwork } = useAddPopularNetwork();
   const { enableAllPopularNetworks } = useNetworkEnablement();
@@ -204,16 +264,18 @@ const NetworkMultiSelector = ({
 
   const onSelectNetwork = useCallback(
     (caipChainId: CaipChainId) => {
+      trackNetworkFilterSwitch([caipChainId]);
       onLocalNetworkSelect([caipChainId]);
       dismissModal?.();
     },
-    [onLocalNetworkSelect, dismissModal],
+    [dismissModal, onLocalNetworkSelect, trackNetworkFilterSwitch],
   );
 
   const onSelectAllPopularNetworks = useCallback(() => {
+    trackNetworkFilterSwitch(null);
     onLocalNetworkSelect(null);
     dismissModal?.();
-  }, [onLocalNetworkSelect, dismissModal]);
+  }, [dismissModal, onLocalNetworkSelect, trackNetworkFilterSwitch]);
 
   const selectAllNetworksComponent = useMemo(
     () => (
