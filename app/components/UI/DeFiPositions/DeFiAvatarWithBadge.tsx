@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ImageSourcePropType } from 'react-native';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -11,7 +12,7 @@ import {
 interface DeFiAvatarWithBadgeProps {
   avatarName: string;
   avatarIconUrl: string;
-  networkIconAvatar: ImageOrSvgSrc | undefined;
+  networkIconAvatar: ImageSourcePropType | undefined;
 }
 
 const DeFiAvatarWithBadge: React.FC<DeFiAvatarWithBadgeProps> = ({
@@ -24,7 +25,7 @@ const DeFiAvatarWithBadge: React.FC<DeFiAvatarWithBadgeProps> = ({
     badge={
       networkIconAvatar ? (
         <BadgeNetwork
-          src={networkIconAvatar}
+          src={networkIconAvatar as ImageOrSvgSrc}
           twClassName="h-5 w-5 "
           imageOrSvgProps={{
             imageProps: { testID: 'network-avatar-image' },

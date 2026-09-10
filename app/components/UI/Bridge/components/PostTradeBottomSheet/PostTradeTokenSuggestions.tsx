@@ -125,7 +125,9 @@ export const PostTradeTokenSuggestions = ({
       return (
         <PostTradeSuggestionPill
           token={token}
-          networkBadgeImageSource={networkBadgeImageSource}
+          networkBadgeImageSource={
+            networkBadgeImageSource as ImageSourcePropType | undefined
+          }
           onPress={onTokenPress}
         />
       );
