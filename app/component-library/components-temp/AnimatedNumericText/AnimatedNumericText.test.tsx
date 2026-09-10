@@ -1,14 +1,26 @@
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { Laminar } from 'react-native-laminar';
 
 import AnimatedNumericText from './AnimatedNumericText';
+
+jest.mock('react-native-reanimated', () => ({
+  ...jest.requireActual('react-native-reanimated/mock'),
+  useReducedMotion: jest.fn(() => false),
+}));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: () => ({}) }),
 }));
 
+const mockUseReducedMotion = jest.mocked(useReducedMotion);
+
 describe('AnimatedNumericText', () => {
+  beforeEach(() => {
+    mockUseReducedMotion.mockReturnValue(false);
+  });
+
   it('renders the numeric string', () => {
     const { getByTestId } = render(
       <AnimatedNumericText value="12.0" testID="animated-numeric-text" />,
@@ -39,7 +51,7 @@ describe('AnimatedNumericText', () => {
   });
 
   it('renders a currency symbol and trailing label around the number', () => {
-    const { getByTestId, UNSAFE_getAllByType } = render(
+    const { getByTestId, UNSAFE_getByType } = render(
       <AnimatedNumericText
         value="$ 250.00 available"
         testID="animated-numeric-text"
@@ -49,15 +61,16 @@ describe('AnimatedNumericText', () => {
     expect(getByTestId('animated-numeric-text')).toHaveTextContent(
       '$ 250.00 available',
     );
-    expect(UNSAFE_getAllByType(Laminar)).toHaveLength(1);
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('250.00');
   });
 
   it('keeps a ticker containing digits as static text', () => {
-    const { getByTestId } = render(
+    const { getByTestId, UNSAFE_getByType } = render(
       <AnimatedNumericText value="5 1INCH" testID="animated-numeric-text" />,
     );
 
     expect(getByTestId('animated-numeric-text')).toHaveTextContent('5 1INCH');
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('5');
   });
 
   it('renders the same content with digit rolling turned off', () => {
@@ -105,22 +118,19 @@ describe('AnimatedNumericText', () => {
     expect(UNSAFE_getByType(Laminar).props.text).toBe(value);
   });
 
-  it('defers mounting Laminar until the JS thread is idle', () => {
-    const mockRequestIdleCallback = jest.fn();
-    const originalRequestIdleCallback = globalThis.requestIdleCallback;
-    globalThis.requestIdleCallback = mockRequestIdleCallback;
+  it('renders plain text when reduced motion is enabled', () => {
+    mockUseReducedMotion.mockReturnValue(true);
 
-    const { UNSAFE_queryAllByType } = render(
-      <AnimatedNumericText value="250.00" deferRolling />,
+    const { getByTestId, UNSAFE_queryAllByType } = render(
+      <AnimatedNumericText
+        value="$ 250.00 available"
+        testID="animated-numeric-text"
+      />,
     );
 
+    expect(getByTestId('animated-numeric-text')).toHaveTextContent(
+      '$ 250.00 available',
+    );
     expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
-
-    act(() => {
-      mockRequestIdleCallback.mock.calls[0][0]();
-    });
-
-    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(1);
-    globalThis.requestIdleCallback = originalRequestIdleCallback;
   });
 });

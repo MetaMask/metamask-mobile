@@ -36,4 +36,12 @@ describe('AnimatedCursor', () => {
 
     expect(blinkAnimation.stop).toHaveBeenCalledTimes(1);
   });
+
+  it('does not blink when animation is disabled', () => {
+    const timingSpy = jest.spyOn(Animated, 'timing');
+
+    renderWithProvider(<AnimatedCursor animated={false} />);
+
+    expect(timingSpy).not.toHaveBeenCalled();
+  });
 });

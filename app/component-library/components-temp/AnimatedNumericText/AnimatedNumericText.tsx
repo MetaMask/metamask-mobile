@@ -22,10 +22,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Laminar } from 'react-native-laminar';
 
 import {
+  NUMERIC_ANIMATION_DURATION,
   NUMERIC_LAYOUT_TRANSITION,
   NUMERIC_SLOT_ENTERING,
   NUMERIC_SLOT_EXITING,
-  NUMERIC_SLOT_TIMING,
 } from './AnimatedNumericText.constants';
 import { splitNumericString } from './splitNumericString';
 
@@ -43,13 +43,6 @@ export interface AnimatedNumericTextProps {
    * @default true
    */
   rollDigits?: boolean;
-  /**
-   * Render plain text until the JS thread is idle before mounting Laminar.
-   * Useful for secondary values on screens opened during app startup.
-   *
-   * @default false
-   */
-  deferRolling?: boolean;
   variant?: TextVariant;
   color?: TextColor;
   fontWeight?: FontWeight;
@@ -94,11 +87,6 @@ const NumericSlot = memo(
 
 NumericSlot.displayName = 'NumericSlot';
 
-interface IdleCallbackGlobals {
-  requestIdleCallback?: (callback: () => void) => number;
-  cancelIdleCallback?: (handle: number) => void;
-}
-
 const FONT_WEIGHT_SUFFIX: Record<FontWeight, string> = {
   [FontWeight.Regular]: 'regular',
   [FontWeight.Medium]: 'medium',
@@ -107,8 +95,8 @@ const FONT_WEIGHT_SUFFIX: Record<FontWeight, string> = {
 
 /**
  * Default weight per variant. Mirrors the design system's own variant/weight
- * mapping, which it does not export; Number Flow needs a resolved style object
- * so the font family cannot be delegated to `Text`.
+ * mapping, which it does not export; Laminar needs a resolved style object so
+ * the font family cannot be delegated to `Text`.
  */
 const VARIANT_FONT_WEIGHT: Record<TextVariant, FontWeight> = {
   [TextVariant.DisplayLg]: FontWeight.Bold,
@@ -127,6 +115,89 @@ const VARIANT_FONT_WEIGHT: Record<TextVariant, FontWeight> = {
   [TextVariant.AmountDisplayLg]: FontWeight.Bold,
 };
 
+interface RollingNumericTextProps {
+  textStyle: TextStyle;
+  value: string;
+}
+
+/**
+ * Keeps the reduced-motion subscription out of the keypad's append-only path.
+ * Laminar is memoised internally, and stable props let it skip unrelated parent
+ * renders without rebuilding its digit reels.
+ */
+const RollingNumericText = memo(
+  ({ textStyle, value }: RollingNumericTextProps) => {
+    const { prefix, numeric, suffix } = useMemo(
+      () => splitNumericString(value),
+      [value],
+    );
+
+    if (!numeric) {
+      return <Text style={textStyle}>{value}</Text>;
+    }
+
+    return (
+      <>
+        {prefix ? <Text style={textStyle}>{prefix}</Text> : null}
+        <Laminar
+          text={numeric}
+          variant="slots"
+          autoSize={false}
+          clipToBounds
+          animationPreset="snappy"
+          animationDuration={NUMERIC_ANIMATION_DURATION}
+          stagger={0}
+          style={textStyle}
+        />
+        {suffix ? <Text style={textStyle}>{suffix}</Text> : null}
+      </>
+    );
+  },
+);
+
+RollingNumericText.displayName = 'RollingNumericText';
+
+interface AppendOnlyNumericTextProps {
+  textStyle: TextStyle;
+  value: string;
+}
+
+const AppendOnlyNumericText = memo(
+  ({ textStyle, value }: AppendOnlyNumericTextProps) => {
+    const hasMountedRef = useRef(false);
+    const { prefix, numeric, suffix } = useMemo(
+      () => splitNumericString(value),
+      [value],
+    );
+
+    useEffect(() => {
+      hasMountedRef.current = true;
+    }, []);
+
+    const entering = hasMountedRef.current ? NUMERIC_SLOT_ENTERING : undefined;
+
+    return (
+      <>
+        {prefix ? <Text style={textStyle}>{prefix}</Text> : null}
+        {numeric.split('').map((character, index) => (
+          <NumericSlot
+            // Index identity is intentional: keypad edits append/remove only.
+            // eslint-disable-next-line react/no-array-index-key
+            key={index}
+            character={character}
+            textStyle={textStyle}
+            entering={entering}
+            exiting={NUMERIC_SLOT_EXITING}
+          />
+        ))}
+        {suffix ? <Text style={textStyle}>{suffix}</Text> : null}
+      </>
+    );
+  },
+);
+
+AppendOnlyNumericText.displayName = 'AppendOnlyNumericText';
+
 /**
  * Renders a numeric string without converting it to a JavaScript number, so
  * token balances retain their full precision.
@@ -138,7 +209,6 @@ const VARIANT_FONT_WEIGHT: Record<TextVariant, FontWeight> = {
 const AnimatedNumericText = ({
   value,
   rollDigits = true,
-  deferRolling = false,
   variant = TextVariant.BodyMd,
   color = TextColor.TextDefault,
   fontWeight,
@@ -149,31 +219,7 @@ const AnimatedNumericText = ({
   animated = true,
 }: AnimatedNumericTextProps) => {
   const tw = useTailwind();
-  const hasMountedRef = useRef(false);
-  const [rollingReady, setRollingReady] = React.useState(!deferRolling);
   const reduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    hasMountedRef.current = true;
-  }, []);
-
-  useEffect(() => {
-    if (!deferRolling) {
-      setRollingReady(true);
-      return;
-    }
-
-    const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
-    if (idleGlobals.requestIdleCallback) {
-      const handle = idleGlobals.requestIdleCallback(() =>
-        setRollingReady(true),
-      );
-      return () => idleGlobals.cancelIdleCallback?.(handle);
-    }
-
-    const timeout = setTimeout(() => setRollingReady(true), 100);
-    return () => clearTimeout(timeout);
-  }, [deferRolling]);
 
   const textStyle = useMemo(() => {
     const weight = fontWeight ?? VARIANT_FONT_WEIGHT[variant];
@@ -195,24 +241,8 @@ const AnimatedNumericText = ({
     [containerStyle],
   );
 
-  const { prefix, numeric, suffix } = useMemo(
-    () => splitNumericString(value),
-    [value],
-  );
-
-  const characters = useMemo(() => numeric.split(''), [numeric]);
-
-  // Slots present on the first render are already on screen, so only later
-  // appends animate in.
-  const entering =
-    animated && hasMountedRef.current ? NUMERIC_SLOT_ENTERING : undefined;
-  const exiting = animated ? NUMERIC_SLOT_EXITING : undefined;
-  const layout = animated ? NUMERIC_LAYOUT_TRANSITION : undefined;
-  // An append-only row never reflows internally, so per-slot transitions would
-  // only fire when the caller restyles (a font size step) and animate every
-  // character sliding to its new size at once.
-  const shouldRenderLaminar =
-    rollDigits && rollingReady && animated && !reduceMotion;
+  const motionEnabled = animated && !reduceMotion;
+  const layout = motionEnabled ? NUMERIC_LAYOUT_TRANSITION : undefined;
 
   return (
     <Animated.View
@@ -223,46 +253,17 @@ const AnimatedNumericText = ({
       layout={layout}
       style={rowStyle}
     >
-      {shouldRenderLaminar ? (
-        <Laminar
-          text={value}
-          variant="slots"
-          autoSize={false}
-          clipToBounds
-          animationPreset="snappy"
-          animationDuration={NUMERIC_SLOT_TIMING.duration}
-          style={textStyle}
-        />
+      {!motionEnabled ? (
+        <Text style={textStyle}>{value}</Text>
       ) : rollDigits ? (
-        <Animated.Text layout={layout} style={textStyle}>
-          {value}
-        </Animated.Text>
+        <RollingNumericText textStyle={textStyle} value={value} />
       ) : (
-        <>
-          {prefix ? (
-            <Animated.Text layout={layout} style={textStyle}>
-              {prefix}
-            </Animated.Text>
-          ) : null}
-          {characters.map((character, index) => (
-            <NumericSlot
-              // eslint-disable-next-line react/no-array-index-key
-              key={index}
-              character={character}
-              textStyle={textStyle}
-              entering={entering}
-              exiting={exiting}
-            />
-          ))}
-          {suffix ? (
-            <Animated.Text layout={layout} style={textStyle}>
-              {suffix}
-            </Animated.Text>
-          ) : null}
-        </>
+        <AppendOnlyNumericText textStyle={textStyle} value={value} />
       )}
     </Animated.View>
   );
 };
 
-export default AnimatedNumericText;
+AnimatedNumericText.displayName = 'AnimatedNumericText';
+
+export default memo(AnimatedNumericText);

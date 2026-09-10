@@ -15,9 +15,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 const mockState = {
   state: evmSendStateMock,
 };
-const { useGasFeeEstimates: mockUseGasFeeEstimates } = jest.requireMock(
-  '../gas/useGasFeeEstimates',
-) as { useGasFeeEstimates: jest.Mock };
 
 describe('useGasFeeEstimatesForSend', () => {
   it('returns gas estimates', () => {
@@ -27,11 +24,5 @@ describe('useGasFeeEstimatesForSend', () => {
     );
 
     expect(result.current.gasFeeEstimates).toBeDefined();
-  });
-
-  it('does not start gas polling while disabled', () => {
-    renderHookWithProvider(() => useGasFeeEstimatesForSend(false), mockState);
-
-    expect(mockUseGasFeeEstimates).toHaveBeenCalledWith('');
   });
 });

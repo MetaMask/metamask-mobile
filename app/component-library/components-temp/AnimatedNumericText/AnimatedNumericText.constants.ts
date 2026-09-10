@@ -18,11 +18,8 @@ const EASING = Easing.out(Easing.cubic);
 /** Slide distance for a slot entering or leaving, in points. */
 const SLOT_TRAVEL = 8;
 
-/** Timing handed to Number Flow's own spin/transform/opacity animations. */
-export const NUMERIC_SLOT_TIMING = {
-  duration: DURATION,
-  easing: EASING,
-};
+/** Duration shared by Laminar and the surrounding layout transition. */
+export const NUMERIC_ANIMATION_DURATION = DURATION;
 
 /**
  * Layout transition for the slots and the row itself, so appending a character
