@@ -433,9 +433,14 @@ async function handleUniversalLink({
               op: TraceOperation.DeeplinkPerformance,
               parentContext: processedTraceContext,
             },
-            () => verifyDeeplinkSignature(validatedUrl),
+            () =>
+              verifyDeeplinkSignature(validatedUrl, {
+                rewriteComOrigin: includeCom,
+              }),
           )
-        : await verifyDeeplinkSignature(validatedUrl);
+        : await verifyDeeplinkSignature(validatedUrl, {
+            rewriteComOrigin: includeCom,
+          });
       switch (signatureResult) {
         case VALID:
           DevLogger.log(

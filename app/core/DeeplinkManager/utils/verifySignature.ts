@@ -31,7 +31,23 @@ function getKeyData() {
   };
 }
 
-function canonicalize(url: URL): string {
+/** Options that control deeplink signature canonicalization. */
+export interface VerifyDeeplinkSignatureOptions {
+  rewriteComOrigin?: boolean;
+}
+
+function getSigningOrigin(url: URL, rewriteComOrigin: boolean): string {
+  if (
+    rewriteComOrigin &&
+    url.hostname === AppConstants.MM_COM_UNIVERSAL_LINK_HOST
+  ) {
+    return `${url.protocol}//${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}`;
+  }
+
+  return url.origin;
+}
+
+function canonicalize(url: URL, rewriteComOrigin = false): string {
   const sigParams = url.searchParams.get('sig_params');
 
   let params;
@@ -71,7 +87,9 @@ function canonicalize(url: URL): string {
     .join('&');
 
   const result =
-    url.origin + url.pathname + (queryString ? `?${queryString}` : '');
+    getSigningOrigin(url, rewriteComOrigin) +
+    url.pathname +
+    (queryString ? `?${queryString}` : '');
   return result;
 }
 
@@ -116,6 +134,7 @@ async function lazyGetTools() {
 
 export const verifyDeeplinkSignature = async (
   url: URL,
+  options: VerifyDeeplinkSignatureOptions = {},
 ): Promise<VerificationResult> => {
   const signatureStr = url.searchParams.get('sig');
   if (!signatureStr) {
@@ -133,7 +152,7 @@ export const verifyDeeplinkSignature = async (
 
     const { algorithm, encoder, key } = await lazyGetTools();
 
-    const canonicalUrl = canonicalize(url);
+    const canonicalUrl = canonicalize(url, options.rewriteComOrigin);
 
     const data = encoder.encode(canonicalUrl);
 
