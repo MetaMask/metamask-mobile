@@ -370,39 +370,37 @@ export class QrSyncController extends BaseController<
     }
     const { pendingSecretImports } = this.state;
 
+    let snapshot = await AccountTreeSnapshot.deserialize(pendingSecretImports);
+
+    // For new users only: filter out the primary HD wallet by stable entropy
+    // source ID before calling importState. The primary SRP was just imported
+    // into the vault during onboarding, so importing it again would be a
+    // no-op at best; and for new users the account tree is not yet
+    // initialized, so filtering it out by ID avoids that dependency.
+    // For existing users the account tree is already initialized, so
+    // importState can safely match the primary by entropy source ID itself.
+    const isNewUser = this.state.syncFlow !== QrSyncSyncFlows.EXISTING_USER;
+    if (isNewUser) {
+      const primaryWalletId = await this.messenger.call(
+        'KeyringController:withKeyringV2',
+        { type: KeyringType.Hd },
+        async ({ keyring }) =>
+          toWalletPayloadId(await (keyring as HdKeyring).toEntropySourceId()),
+      );
+      snapshot = snapshot.filterWallets(
+        (wallet) => wallet.id !== primaryWalletId,
+      );
+    }
+
+    // NOTE: We need to initialize the account tree before importing any state. Since
+    // `:importState` needs to read the account-tree to check if wallets already
+    // exist. Also, worth noting that initializing the account-tree multiple times
+    // is safe and idempotent.
+    await AccountTreeInitService.initializeAccountTree();
+
+    await this.messenger.call('AccountTreeController:importState', snapshot);
+
     try {
-      const isNewUser = this.state.syncFlow !== QrSyncSyncFlows.EXISTING_USER;
-
-      let snapshot =
-        await AccountTreeSnapshot.deserialize(pendingSecretImports);
-
-      // For new users only: filter out the primary HD wallet by stable entropy
-      // source ID before calling importState. The primary SRP was just imported
-      // into the vault during onboarding, so importing it again would be a
-      // no-op at best; and for new users the account tree is not yet
-      // initialized, so filtering it out by ID avoids that dependency.
-      // For existing users the account tree is already initialized, so
-      // importState can safely match the primary by entropy source ID itself.
-      if (isNewUser) {
-        const primaryWalletId = await this.messenger.call(
-          'KeyringController:withKeyringV2',
-          { type: KeyringType.Hd },
-          async ({ keyring }) =>
-            toWalletPayloadId(await (keyring as HdKeyring).toEntropySourceId()),
-        );
-        snapshot = snapshot.filterWallets(
-          (wallet) => wallet.id !== primaryWalletId,
-        );
-      }
-
-      // NOTE: We need to initialize the account tree before importing any state. Since
-      // `:importState` needs to read the account-tree to check if wallets already
-      // exist. Also, worth noting that initializing the account-tree multiple times
-      // is safe and idempotent.
-      await AccountTreeInitService.initializeAccountTree();
-
-      await this.messenger.call('AccountTreeController:importState', snapshot);
-
       this.finalizeSecretImport();
     } catch (error) {
       reportQrSyncFailure(error, {

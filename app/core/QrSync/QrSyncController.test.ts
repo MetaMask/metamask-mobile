@@ -872,7 +872,9 @@ describe('QrSyncController', () => {
       walletClient.emit('message', createSyncReadyWireMessage());
       await flushPromises();
 
-      await controller.importRemainingSecrets();
+      await expect(controller.importRemainingSecrets()).rejects.toThrow(
+        'vault locked',
+      );
 
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.AWAITING_PASSWORD,
