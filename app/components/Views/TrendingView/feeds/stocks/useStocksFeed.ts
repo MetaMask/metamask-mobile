@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { CaipChainId } from '@metamask/utils';
 import { NetworkToCaipChainId } from '../../../../UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import { useRwaTokens } from '../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
+import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 
@@ -50,6 +52,9 @@ export const useStocksFeed = ({
 }: UseStocksFeedOptions = {}): UseStocksFeedResult => {
   const trimmedQuery = query?.trim();
   const hasQuery = Boolean(trimmedQuery);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const {
     data,
     isLoading,
@@ -62,6 +67,7 @@ export const useStocksFeed = ({
     searchQuery: hasQuery ? trimmedQuery : undefined,
     chainIds: hasQuery ? undefined : STOCKS_FEED_RWA_CHAIN_IDS,
     pageSize,
+    includeTokenSecurityData: hasQuery && isBasicFunctionalityEnabled,
   });
 
   const filteredData = useMemo(() => {

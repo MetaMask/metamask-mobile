@@ -58,13 +58,18 @@ import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
-import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
+import { SocialV0ViewSelectorsIDs } from './SocialV0View.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   LEADERBOARD_LANDING_FEED_AB_KEY,
   LEADERBOARD_LANDING_FEED_EXPOSURE_METADATA,
   LEADERBOARD_LANDING_FEED_VARIANTS,
 } from './abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_EXPOSURE_METADATA,
+  SOCIAL_V1_VARIANTS,
+} from '../SocialV1View/abTestConfig';
 
 type SocialTradersTab = 'leaderboard' | 'feed';
 
@@ -99,10 +104,10 @@ const getTabAnalyticsValue = (tab: SocialTradersTab) =>
  * surface opens on is always the leftmost one. Indices are therefore derived
  * from `tabOrder` rather than hardcoded.
  */
-const SocialTradersTabsView: React.FC = () => {
+const SocialV0View: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
   const { track } = useSocialLeaderboardAnalytics();
   // Wait until the visible leaderboard query settles before warming feed
   // pages, so those requests never contend with the landing list fetch.
@@ -121,6 +126,7 @@ const SocialTradersTabsView: React.FC = () => {
   // `landingTab` (nav tab, deeplink, notification, onboarding hand-off) never
   // count as exposed and keep the leaderboard landing.
   const landingTab = route.params?.landingTab;
+  useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
   useABTest(
     LEADERBOARD_LANDING_FEED_AB_KEY,
     LEADERBOARD_LANDING_FEED_VARIANTS,
@@ -423,7 +429,7 @@ const SocialTradersTabsView: React.FC = () => {
     <SafeAreaView
       edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
       style={tw.style('flex-1 bg-default')}
-      testID={SocialTradersTabsViewSelectorsIDs.CONTAINER}
+      testID={SocialV0ViewSelectorsIDs.CONTAINER}
     >
       <HeaderStandardAnimated
         includesTopInset
@@ -431,20 +437,20 @@ const SocialTradersTabsView: React.FC = () => {
         titleSectionHeight={titleHeightSv}
         title={title}
         titleProps={{
-          testID: SocialTradersTabsViewSelectorsIDs.HEADER_TITLE,
+          testID: SocialV0ViewSelectorsIDs.HEADER_TITLE,
         }}
         onBack={handleBack}
         backButtonProps={{
-          testID: SocialTradersTabsViewSelectorsIDs.BACK_BUTTON,
+          testID: SocialV0ViewSelectorsIDs.BACK_BUTTON,
         }}
         endButtonIconProps={[
           {
             iconName: IconName.Notification,
             onPress: openNotificationPreferences,
-            testID: SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON,
+            testID: SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON,
           },
         ]}
-        testID={SocialTradersTabsViewSelectorsIDs.HEADER}
+        testID={SocialV0ViewSelectorsIDs.HEADER}
       />
 
       {showNotificationsBanner && (
@@ -459,7 +465,7 @@ const SocialTradersTabsView: React.FC = () => {
             )}
             actionButtonOnPress={handleOpenNotificationSettings}
             onClose={handleDismissNotificationsBanner}
-            testID={SocialTradersTabsViewSelectorsIDs.NOTIFICATIONS_BANNER}
+            testID={SocialV0ViewSelectorsIDs.NOTIFICATIONS_BANNER}
           />
         </Box>
       )}
@@ -481,7 +487,7 @@ const SocialTradersTabsView: React.FC = () => {
             <Text
               variant={TextVariant.HeadingLg}
               color={TextColor.TextDefault}
-              testID={SocialTradersTabsViewSelectorsIDs.TITLE}
+              testID={SocialV0ViewSelectorsIDs.TITLE}
             >
               {title}
             </Text>
@@ -492,7 +498,7 @@ const SocialTradersTabsView: React.FC = () => {
               tabs={tabs}
               activeIndex={activeIndex}
               onTabPress={handleTabPress}
-              testID={SocialTradersTabsViewSelectorsIDs.TABS}
+              testID={SocialV0ViewSelectorsIDs.TABS}
             />
           </Box>
 
@@ -503,7 +509,7 @@ const SocialTradersTabsView: React.FC = () => {
             style={tw.style('flex-1')}
             initialPage={LANDING_INDEX}
             onPageSelected={handlePageSelected}
-            testID={SocialTradersTabsViewSelectorsIDs.PAGER}
+            testID={SocialV0ViewSelectorsIDs.PAGER}
           >
             {tabOrder.map((tab) =>
               tab === 'leaderboard' ? (
@@ -511,7 +517,7 @@ const SocialTradersTabsView: React.FC = () => {
                   key="leaderboard"
                   style={tw.style('flex-1')}
                   collapsable={false}
-                  testID={SocialTradersTabsViewSelectorsIDs.LEADERBOARD_PAGE}
+                  testID={SocialV0ViewSelectorsIDs.LEADERBOARD_PAGE}
                 >
                   <TopTradersView
                     onScroll={leaderboardScrollHandler}
@@ -526,7 +532,7 @@ const SocialTradersTabsView: React.FC = () => {
                   key="feed"
                   style={tw.style('flex-1')}
                   collapsable={false}
-                  testID={SocialTradersTabsViewSelectorsIDs.FEED_PAGE}
+                  testID={SocialV0ViewSelectorsIDs.FEED_PAGE}
                 >
                   <FeedView
                     isActive={activeIndex === feedIndex}
@@ -553,4 +559,4 @@ const SocialTradersTabsView: React.FC = () => {
   );
 };
 
-export default SocialTradersTabsView;
+export default SocialV0View;

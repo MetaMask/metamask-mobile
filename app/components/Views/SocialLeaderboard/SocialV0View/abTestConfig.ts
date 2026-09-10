@@ -14,7 +14,7 @@ import type { FeedAudience } from '../FeedView/types';
 // (All | Following).
 //
 // The homepage resolves the assignment without emitting exposure and forwards
-// the landing target as route params; `SocialTradersTabsView` emits exposure
+// the landing target as route params; `SocialV0View` emits exposure
 // when it receives those params, so only users who actually opened the surface
 // from the homepage carousel are counted (nav-tab, deeplink, and notification
 // entries never resolve this experiment).
@@ -28,10 +28,10 @@ export enum LeaderboardLandingFeedVariant {
 }
 
 /** Tab the Follow Trading surface opens on. */
-export type SocialTradersLandingTab = 'leaderboard' | 'feed';
+export type SocialV0LandingTab = 'leaderboard' | 'feed';
 
 interface LeaderboardLandingFeedVariantConfig {
-  landingTab: SocialTradersLandingTab;
+  landingTab: SocialV0LandingTab;
   /** Audience preselected on the Feed tab. Omitted for leaderboard landings. */
   landingFeedAudience?: FeedAudience;
 }
