@@ -693,6 +693,20 @@ const Wallet = ({
     toastRef,
   ]);
 
+  // POC: temporary homepage toast to validate Toast component usage
+  useEffect(() => {
+    const toast = toastRef?.current;
+    toast?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: 'this is a test',
+          isBold: false,
+        },
+      ],
+    });
+  }, [toastRef]);
+
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
