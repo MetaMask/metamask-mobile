@@ -15,7 +15,7 @@ export { hasEarnAssetSubsidizedFee } from './earnAssetFee';
 export { deriveEarnAssetDisplayData } from './deriveEarnAssetDisplayData';
 export { deriveMoneyDepositAssets } from './deriveMoneyDepositAssets';
 export {
-  getAvailableEarnDepositExperiences,
+  getReadyEarnDepositExperiences,
   getEarnInputExperiences,
   getNonMoneyEarnStrategyExperiences,
 } from './earnExperience';

@@ -16,6 +16,7 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -142,6 +143,7 @@ const renderAssetSecondaryText = ({
   return (
     <SensitiveText
       variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
       isHidden={privacyMode}
       length={SensitiveTextLength.Medium}
     >
@@ -405,6 +407,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       return (
         <SensitiveText
           variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           isHidden={privacyMode}
           length={SensitiveTextLength.Medium}
         >

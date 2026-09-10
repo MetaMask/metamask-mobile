@@ -258,10 +258,7 @@ const EarnSectionListView = () => {
     navigation.goBack();
   }, [navigation, trackEarnButtonClicked]);
 
-  const rankedAssets = useMemo(
-    () => rankEarnAssets(assets),
-    [assets],
-  );
+  const rankedAssets = useMemo(() => rankEarnAssets(assets), [assets]);
   const moneyAssets = useMemo(
     () => deriveMoneyDepositAssets(rankedAssets),
     [rankedAssets],

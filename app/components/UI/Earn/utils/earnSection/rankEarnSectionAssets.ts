@@ -14,7 +14,7 @@ import { getHighestReadyRateEntry } from '../earnRate';
 export const EARN_SECTION_ASSET_LIMIT = 5;
 
 const MAINNET_CHAIN_ID = '0x1';
-const TRON_MAINNET_CHAIN_ID = 'tron:0x2b6653dc';
+const TRON_MAINNET_CHAIN_ID = 'tron:728126428';
 const UNKNOWN_ASSET_PRIORITY = Number.MAX_SAFE_INTEGER;
 
 const STABLECOIN_SYMBOL_PRIORITY: Record<string, number> = {

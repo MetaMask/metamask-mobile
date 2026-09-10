@@ -27,7 +27,7 @@ import type {
   EarnAssetMetadata,
   EarnAssetRole,
   EarnExperience,
-  EarnExperienceAvailability,
+  EarnExperienceDepositReadiness,
   EarnRate,
 } from '../types/earnAssets';
 import {
@@ -132,24 +132,48 @@ const getLendingAssetId = (chainId: number, address: string): EarnAssetId =>
     toHex(chainId) as Hex,
   ).toLowerCase() as EarnAssetId;
 
-const getMoneyDepositAvailability = (
+const getMoneyDepositReadiness = (
   asset: EarnAsset,
   eligibleAssetIds: ReadonlySet<string>,
-): EarnExperienceAvailability => {
+): EarnExperienceDepositReadiness => {
   if (asset.wallet.status === 'untracked') {
-    return { status: 'unavailable', reason: 'asset_not_tracked' };
+    return { status: 'not_ready', reason: 'asset_not_tracked' };
   }
 
   if (eligibleAssetIds.has(asset.assetId.toLowerCase())) {
-    return { status: 'available' };
+    return { status: 'ready' };
   }
 
   const fiatBalance = asset.wallet.asset.fiat?.balance;
   return fiatBalance === undefined ||
     fiatBalance === null ||
     !Number.isFinite(Number(fiatBalance))
-    ? { status: 'unavailable', reason: 'balance_unavailable' }
-    : { status: 'unavailable', reason: 'insufficient_balance' };
+    ? { status: 'not_ready', reason: 'balance_unavailable' }
+    : { status: 'not_ready', reason: 'insufficient_balance' };
+};
+
+const getTrackedEarnDepositReadiness = ({
+  role,
+  isBalanceFiatAvailable,
+  balanceFiatNumber,
+}: {
+  role: EarnAssetRole;
+  isBalanceFiatAvailable: boolean | undefined;
+  balanceFiatNumber: number;
+}): EarnExperienceDepositReadiness => {
+  if (role === 'output') {
+    return { status: 'not_ready', reason: 'output_asset' };
+  }
+
+  if (!isBalanceFiatAvailable || !Number.isFinite(balanceFiatNumber)) {
+    return { status: 'not_ready', reason: 'balance_unavailable' };
+  }
+
+  if (balanceFiatNumber < MIN_EARN_DEPOSIT_BALANCE) {
+    return { status: 'not_ready', reason: 'insufficient_balance' };
+  }
+
+  return { status: 'ready' };
 };
 
 const getTrackedEarnExperiences = ({
@@ -215,16 +239,11 @@ const getTrackedEarnExperiences = ({
             : `pooled:${assetId}`,
         type: experience.type,
         role,
-        // TODO: Breakout this nested ternary into a separate function.
-        availability:
-          role === 'output'
-            ? { status: 'unavailable', reason: 'output_asset' }
-            : !token.isBalanceFiatAvailable ||
-                !Number.isFinite(token.balanceFiatNumber)
-              ? { status: 'unavailable', reason: 'balance_unavailable' }
-              : token.balanceFiatNumber < MIN_EARN_DEPOSIT_BALANCE
-                ? { status: 'unavailable', reason: 'insufficient_balance' }
-                : { status: 'available' },
+        depositReadiness: getTrackedEarnDepositReadiness({
+          role,
+          isBalanceFiatAvailable: token.isBalanceFiatAvailable,
+          balanceFiatNumber: token.balanceFiatNumber,
+        }),
         rate,
         isFeeSubsidized: false,
         market,
@@ -392,8 +411,8 @@ const useEarnAssetCatalogue = ({
           id: experienceId,
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying' as const,
-          availability: {
-            status: 'unavailable' as const,
+          depositReadiness: {
+            status: 'not_ready' as const,
             reason: 'asset_not_tracked' as const,
           },
           rate: createEarnRate({
@@ -439,8 +458,8 @@ const useEarnAssetCatalogue = ({
               id: `pooled:${ETH_MAINNET_ASSET_ID}`,
               type: EARN_EXPERIENCES.POOLED_STAKING,
               role: 'underlying',
-              availability: {
-                status: 'unavailable',
+              depositReadiness: {
+                status: 'not_ready',
                 reason: 'asset_not_tracked',
               },
               rate: createEarnRate({
@@ -464,8 +483,8 @@ const useEarnAssetCatalogue = ({
               id: `trx-staking:${TRX_NATIVE_TOKEN_ADDRESS}`,
               type: EARN_EXPERIENCES.TRX_STAKING,
               role: 'underlying',
-              availability: {
-                status: 'unavailable',
+              depositReadiness: {
+                status: 'not_ready',
                 reason: 'asset_not_tracked',
               },
               rate: trxRate,
@@ -535,7 +554,7 @@ const useEarnAssetCatalogue = ({
             id: `money:${asset.assetId}`,
             type: 'MONEY_ACCOUNT_DEPOSIT' as const,
             role: 'funding' as const,
-            availability: getMoneyDepositAvailability(
+            depositReadiness: getMoneyDepositReadiness(
               asset,
               moneyDepositEligibleAssetIds,
             ),

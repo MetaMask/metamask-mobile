@@ -24,7 +24,7 @@ export type EarnExperienceType = EARN_EXPERIENCES | 'MONEY_ACCOUNT_DEPOSIT';
 
 export type EarnAssetRole = 'funding' | 'underlying' | 'output';
 
-export type EarnExperienceUnavailableReason =
+export type EarnExperienceDepositNotReadyReason =
   | 'output_asset'
   // The asset is not tracked by the selected account wallet.
   | 'asset_not_tracked'
@@ -33,20 +33,20 @@ export type EarnExperienceUnavailableReason =
   // The balance is known, but is below the minimum required deposit amount.
   | 'insufficient_balance';
 
-export type EarnExperienceAvailability =
+export type EarnExperienceDepositReadiness =
   | {
-      status: 'available';
+      status: 'ready';
     }
   | {
-      status: 'unavailable';
-      reason: EarnExperienceUnavailableReason;
+      status: 'not_ready';
+      reason: EarnExperienceDepositNotReadyReason;
     };
 
 export interface EarnExperience {
   id: string;
   type: EarnExperienceType;
   role: EarnAssetRole;
-  availability: EarnExperienceAvailability;
+  depositReadiness: EarnExperienceDepositReadiness;
   rate: EarnRate;
   isFeeSubsidized: boolean;
   market?: LendingMarket;

@@ -13,10 +13,7 @@ export const getEarnAssetFiatNumber = (asset: EarnAsset) =>
     : undefined;
 
 export const getEarnAssetFiatDisplay = (earnAsset: EarnAsset) => {
-  if (
-    earnAsset.wallet.status !== 'tracked' ||
-    !earnAsset.wallet.asset.fiat
-  ) {
+  if (earnAsset.wallet.status !== 'tracked' || !earnAsset.wallet.asset.fiat) {
     return undefined;
   }
 
@@ -27,15 +24,3 @@ export const getEarnAssetFiatDisplay = (earnAsset: EarnAsset) => {
 };
 
 export const MIN_EARN_DEPOSIT_BALANCE = 0.01;
-
-export const isEarnAssetBalanceBelowMinDepositAmount = (
-  earnAsset: EarnAsset,
-) => {
-  if (earnAsset.wallet.status !== 'tracked') {
-    return true;
-  }
-
-  return new BigNumber(earnAsset.wallet.asset.fiat?.balance ?? 0).isLessThan(
-    MIN_EARN_DEPOSIT_BALANCE,
-  );
-};

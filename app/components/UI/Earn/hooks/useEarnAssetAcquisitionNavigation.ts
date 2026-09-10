@@ -19,11 +19,11 @@ import type {
   EarnAsset,
   EarnAssetId,
   EarnExperience,
-  EarnExperienceUnavailableReason,
+  EarnExperienceDepositNotReadyReason,
 } from '../types/earnAssets';
 import { earnAssetToBridgeToken } from '../utils/earnAssets';
 
-const ACQUISITION_REASONS = new Set<EarnExperienceUnavailableReason>([
+const ACQUISITION_REASONS = new Set<EarnExperienceDepositNotReadyReason>([
   'asset_not_tracked',
   'insufficient_balance',
   'balance_unavailable',
@@ -43,7 +43,7 @@ export type EarnAssetAcquisitionRoute =
     };
 
 /**
- * Determines whether an unavailable Earn experience needs an acquisition flow.
+ * Determines whether a not-ready Earn experience needs an acquisition flow.
  *
  * @param experience - Selected Earn experience.
  * @returns Whether the user needs to acquire more of the selected asset.
@@ -51,11 +51,11 @@ export type EarnAssetAcquisitionRoute =
 export const isEarnAssetAcquisitionRequired = (
   experience: EarnExperience,
 ): boolean =>
-  experience.availability.status === 'unavailable' &&
-  ACQUISITION_REASONS.has(experience.availability.reason);
+  experience.depositReadiness.status === 'not_ready' &&
+  ACQUISITION_REASONS.has(experience.depositReadiness.reason);
 
 /**
- * Resolves and executes Swap or Buy navigation for unavailable Earn assets.
+ * Resolves and executes Swap or Buy navigation for not-ready Earn assets.
  */
 const useEarnAssetAcquisitionNavigation = () => {
   const store = useStore<RootState>();
@@ -89,10 +89,7 @@ const useEarnAssetAcquisitionNavigation = () => {
             destinationToken.chainId,
             destinationToken.address,
             (asset) =>
-              !areAddressesEqual(
-                asset.assetId,
-                destinationToken.address,
-              ) &&
+              !areAddressesEqual(asset.assetId, destinationToken.address) &&
               isBridgeEnabledSource(asset.chainId as Hex | CaipChainId),
           )
         : null;

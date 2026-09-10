@@ -6,7 +6,7 @@ import { TokenDetailsSource } from '../../TokenDetails/constants/constants';
 import type { EarnAsset, EarnExperience } from '../types/earnAssets';
 import {
   earnAssetToToken,
-  getAvailableEarnDepositExperiences,
+  getReadyEarnDepositExperiences,
   getEarnInputExperiences,
   getMoneyDepositPaymentToken,
   requireTrackedEarnAsset,
@@ -85,7 +85,7 @@ export const getEarnOpportunityDestination = (
   earnAsset: EarnAsset,
 ): EarnOpportunityDestination => {
   const inputExperiences = getEarnInputExperiences(earnAsset.experiences);
-  const availableDepositExperiences = getAvailableEarnDepositExperiences(
+  const readyDepositExperiences = getReadyEarnDepositExperiences(
     earnAsset.experiences,
   );
 
@@ -94,7 +94,7 @@ export const getEarnOpportunityDestination = (
   }
 
   if (
-    availableDepositExperiences.length !== inputExperiences.length ||
+    readyDepositExperiences.length !== inputExperiences.length ||
     inputExperiences.length > 1
   ) {
     return EARN_MODULE_REDIRECT_TARGETS.STRATEGY_SELECTION_BOTTOM_SHEET;
@@ -157,7 +157,7 @@ export const getSelectedEarnStrategyRedirectTarget = (
   depositNavigationRoute: EarnDepositNavigationRoute | undefined,
 ): EarnOpportunityRedirectTarget | undefined =>
   depositNavigationRoute?.redirectTarget ??
-  (experience.availability.status === 'unavailable'
+  (experience.depositReadiness.status === 'not_ready'
     ? EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS
     : getEarnExperienceRedirectTarget(
         experience,
@@ -186,10 +186,15 @@ const useEarnOpportunityNavigation = () => {
       earnAsset: EarnAsset,
       experience: EarnExperience,
     ): EarnDepositNavigationRoute | undefined => {
+      const notReadyReasons = [
+        'insufficient_balance',
+        'asset_not_tracked',
+        'balance_unavailable',
+      ];
+
       if (
-        experience.availability.status === 'unavailable' &&
-        (experience.availability.reason === 'insufficient_balance' ||
-          experience.availability.reason === 'asset_not_tracked') &&
+        experience.depositReadiness.status === 'not_ready' &&
+        notReadyReasons.includes(experience.depositReadiness.reason) &&
         experience.type === 'MONEY_ACCOUNT_DEPOSIT'
       ) {
         return {
@@ -310,7 +315,7 @@ const useEarnOpportunityNavigation = () => {
       tokenDetailsSource?: TokenDetailsSource,
       depositNavigationRoute?: EarnDepositNavigationRoute,
     ) => {
-      if (experience.availability.status === 'unavailable') {
+      if (experience.depositReadiness.status === 'not_ready') {
         const resolvedDepositNavigationRoute =
           depositNavigationRoute ??
           resolveEarnDepositNavigationRoute(earnAsset, experience);

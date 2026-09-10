@@ -17,11 +17,11 @@ export const getEarnInputExperiences = (
 /**
  * Returns deposit experiences that can currently accept a deposit.
  */
-export const getAvailableEarnDepositExperiences = (
+export const getReadyEarnDepositExperiences = (
   experiences: readonly EarnExperience[],
 ): EarnExperience[] =>
   getEarnInputExperiences(experiences).filter(
-    ({ availability }) => availability.status === 'available',
+    ({ depositReadiness }) => depositReadiness.status === 'ready',
   );
 
 /**

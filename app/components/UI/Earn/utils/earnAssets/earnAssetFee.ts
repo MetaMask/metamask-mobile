@@ -8,6 +8,6 @@ import type { EarnAsset } from '../../types/earnAssets';
  */
 export const hasEarnAssetSubsidizedFee = (asset: EarnAsset): boolean =>
   asset.experiences.some(
-    ({ availability, isFeeSubsidized }) =>
-      availability.status === 'available' && isFeeSubsidized,
+    ({ depositReadiness, isFeeSubsidized }) =>
+      depositReadiness.status === 'ready' && isFeeSubsidized,
   );

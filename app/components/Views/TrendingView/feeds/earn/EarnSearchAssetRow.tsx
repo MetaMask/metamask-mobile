@@ -4,6 +4,7 @@ import {
   ListItem,
   SensitiveText,
   SensitiveTextLength,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -39,6 +40,7 @@ const EarnSearchAssetRow = ({
   const description = hasMinDepositAmount ? (
     <SensitiveText
       variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
       isHidden={privacyMode}
       length={SensitiveTextLength.Medium}
       testID={EarnSearchAssetRowTestIds.BALANCE}
@@ -46,7 +48,9 @@ const EarnSearchAssetRow = ({
       {fiatBalance}
     </SensitiveText>
   ) : (
-    metadata.symbol
+    <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+      {metadata.symbol}
+    </Text>
   );
 
   return (
@@ -70,7 +74,7 @@ const EarnSearchAssetRow = ({
         color: TextColor.SuccessDefault,
         numberOfLines: 1,
         variant: TextVariant.BodyMd,
-        fontWeight: FontWeight.Regular,
+        fontWeight: FontWeight.Medium,
       }}
       twClassName="py-2 min-h-0"
     />

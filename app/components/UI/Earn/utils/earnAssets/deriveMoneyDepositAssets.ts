@@ -13,7 +13,7 @@ const isMoneyDepositAsset = (asset: Asset): asset is MoneyDepositAsset =>
 /**
  * Extracts Money deposit assets from the shared Earn catalogue.
  *
- * The catalogue owns membership, deposit availability, and ordering.
+ * The catalogue owns membership, deposit readiness, and ordering.
  * Untracked assets and assets without an available Money experience are
  * excluded.
  *
@@ -27,9 +27,9 @@ export const deriveMoneyDepositAssets = (
     if (
       earnAsset.wallet.status !== 'tracked' ||
       !earnAsset.experiences.some(
-        ({ availability, type }) =>
+        ({ depositReadiness, type }) =>
           type === 'MONEY_ACCOUNT_DEPOSIT' &&
-          availability.status === 'available',
+          depositReadiness.status === 'ready',
       ) ||
       !isMoneyDepositAsset(earnAsset.wallet.asset)
     ) {
