@@ -61,7 +61,7 @@ Use `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`, and
 `count()`:
 
 ```text
-span.description:"Market Insights Fetch" success:true
+span.description:"Market Insights Fetch" result:success
 ```
 
 ```text
@@ -119,7 +119,7 @@ restriction.
 | Widget                     | Visualization | Query                                                                                                                                             | Fields / grouping                                                                                                                    |
 | -------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Journey latency            | Table         | `feature:market_insights result:success span.description:["Market Insights Fetch","Market Insights Entry Card Load","Market Insights View Load"]` | Group by `span.description`, `source`; show `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`, `count()`              |
-| Fetch duration             | Time series   | `span.description:"Market Insights Fetch" success:true`                                                                                           | `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`; group by `source`                                                  |
+| Fetch duration             | Time series   | `span.description:"Market Insights Fetch" result:success`                                                                                         | `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`; group by `source`                                                  |
 | Entry-card TTC             | Time series   | `span.description:"Market Insights Entry Card Load" result:success`                                                                               | `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`; group by `source`                                                  |
 | Full-view TTC              | Time series   | `span.description:"Market Insights View Load" result:success`                                                                                     | `p50(span.duration)`, `p75(span.duration)`, `p95(span.duration)`; group by `source`                                                  |
 | Journey outcomes           | Table         | `feature:market_insights span.op:[market_insights.fetch,market_insights.load]`                                                                    | Group by `span.description`, `result`, `source`; show `count()`                                                                      |
