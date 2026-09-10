@@ -4559,18 +4559,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: [
       {
+        name: 'control',
         scope: {
           type: 'percentage_rollout',
           value: 1,
         },
-        name: 'control',
       },
       {
+        name: 'treatment',
         scope: {
           type: 'percentage_rollout',
           value: 0,
         },
-        name: 'treatment',
       },
     ],
     status: FeatureFlagStatus.Active,
@@ -4895,7 +4895,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'rewardsFirstPredictOnUsEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.8.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
