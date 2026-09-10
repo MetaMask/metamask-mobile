@@ -56,7 +56,9 @@ describe('PerpsTooltipView', () => {
   it('pressing Got It fires without error', async () => {
     renderPerpsTooltipView({ contentKey: 'leverage' });
 
-    const gotIt = await screen.findByText(strings('perps.tooltips.got_it_button'));
+    const gotIt = await screen.findByText(
+      strings('perps.tooltips.got_it_button'),
+    );
     expect(() => fireEvent.press(gotIt)).not.toThrow();
   });
 

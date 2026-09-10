@@ -51,7 +51,9 @@ describe('PerpsPositionsView', () => {
     });
 
     expect(
-      await screen.findByTestId(PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION),
+      await screen.findByTestId(
+        PerpsPositionsViewSelectorsIDs.POSITIONS_SECTION,
+      ),
     ).toBeOnTheScreen();
   });
 

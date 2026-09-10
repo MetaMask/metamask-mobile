@@ -6,9 +6,7 @@ import '../../../../../../tests/component-view/mocks';
 
 import { screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  renderPerpsSelectModifyActionView,
-} from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { renderPerpsSelectModifyActionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
 
 describe('PerpsSelectModifyActionView', () => {
