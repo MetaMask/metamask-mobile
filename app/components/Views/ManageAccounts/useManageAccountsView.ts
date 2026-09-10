@@ -31,7 +31,6 @@ interface UseManageAccountsViewDeps {
  */
 const HARDWARE_KEYRING_TYPES = new Set<string>([
   ExtendedKeyringTypes.qr,
-  ExtendedKeyringTypes.oneKey,
   ExtendedKeyringTypes.ledger,
 ]);
 
@@ -72,7 +71,7 @@ const getWalletRowVariant = (
     case AccountWalletType.Entropy:
       return ManageAccountRowVariant.Hide;
     case AccountWalletType.Snap:
-      return ManageAccountRowVariant.None;
+      return ManageAccountRowVariant.Hide;
     case AccountWalletType.Keyring:
       if (
         (wallet.metadata.keyring.type as string) === ExtendedKeyringTypes.hd
