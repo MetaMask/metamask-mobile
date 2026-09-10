@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import AlsoIncludedRow from './AlsoIncludedRow';
 import { AlsoIncludedRowTestIds } from './AlsoIncludedRow.testIds';
@@ -54,5 +54,17 @@ describe('AlsoIncludedRow', () => {
     const row = getByTestId(AlsoIncludedRowTestIds.ROW(itemWithBadge.id));
 
     expect(row.props.accessibilityRole).not.toBe('button');
+  });
+
+  it('sets accessibilityRole button and invokes onPress with the row id', () => {
+    const onPress = jest.fn();
+
+    const { getByTestId } = render(
+      <AlsoIncludedRow item={itemWithBadge} onPress={onPress} />,
+    );
+
+    fireEvent.press(getByTestId(AlsoIncludedRowTestIds.ROW(itemWithBadge.id)));
+
+    expect(onPress).toHaveBeenCalledWith(itemWithBadge.id);
   });
 });

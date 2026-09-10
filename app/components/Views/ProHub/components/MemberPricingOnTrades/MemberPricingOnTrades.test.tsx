@@ -28,7 +28,9 @@ const mockUseMoneyAccountPlusBenefits = jest.mocked(
   useMoneyAccountPlusBenefits,
 );
 
-const renderMemberPricingOnTrades = () => render(<MemberPricingOnTrades />);
+const renderMemberPricingOnTrades = (
+  onItemPress: (id: TradeAllowanceItem['id']) => void = jest.fn(),
+) => render(<MemberPricingOnTrades onItemPress={onItemPress} />);
 
 const renderTradeAllowanceRow = (item: TradeAllowanceItem) =>
   render(<TradeAllowanceRow item={item} />);
@@ -49,6 +51,7 @@ describe('MemberPricingOnTrades', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Ready,
       items: MOCK_TRADE_ALLOWANCES,
+      benefits: undefined,
       resetsOn: 'Sep 15',
       isRefreshing: false,
       hasError: false,
@@ -95,6 +98,7 @@ describe('MemberPricingOnTrades', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
+      benefits: undefined,
       resetsOn: undefined,
       isRefreshing: true,
       hasError: false,
@@ -117,6 +121,7 @@ describe('MemberPricingOnTrades', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Failed,
       items: [],
+      benefits: undefined,
       resetsOn: undefined,
       isRefreshing: false,
       hasError: true,
@@ -141,6 +146,7 @@ describe('MemberPricingOnTrades', () => {
     mockUseMoneyAccountPlusBenefits.mockReturnValue({
       status: MoneyAccountPlusBenefitsStatus.Incomplete,
       items: MOCK_TRADE_ALLOWANCES.filter((item) => item.id !== 'predict'),
+      benefits: undefined,
       resetsOn: 'Sep 15',
       isRefreshing: false,
       hasError: false,
@@ -155,6 +161,16 @@ describe('MemberPricingOnTrades', () => {
     expect(
       queryByTestId(MemberPricingOnTradesTestIds.ROW('predict')),
     ).not.toBeOnTheScreen();
+  });
+
+  it('invokes onItemPress with the row id when a trade allowance is pressed', () => {
+    const onItemPress = jest.fn();
+
+    const { getByTestId } = renderMemberPricingOnTrades(onItemPress);
+
+    fireEvent.press(getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')));
+
+    expect(onItemPress).toHaveBeenCalledWith('swaps');
   });
 });
 
