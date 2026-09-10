@@ -11,6 +11,7 @@ const EXCLUDE_PATTERNS = [
   /\.view\.test\./,
   /\.integration\.test\./,
   /^tests\/smoke\//,
+  /^tests\/smoke-appium\//,
 ];
 
 export function isFlakyWorkflowUnitTestPath(path: string): boolean {

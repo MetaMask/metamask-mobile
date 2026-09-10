@@ -16,7 +16,9 @@ export type PatternGateResult = { ok: true } | { ok: false; reason: string };
 
 const WAIT_FOR = /waitFor\s*\(/;
 const FAKE_TIMERS = /useFakeTimers\s*\(|setSystemTime\s*\(/;
-const REAL_TIMER = /setTimeout\s*\(|setInterval\s*\(|\bsleep\s*\(/;
+// jest.setTimeout only changes the test timeout; it is not a real-timer barrier.
+const REAL_TIMER =
+  /(?<!jest\.)setTimeout\s*\(|(?<!jest\.)setInterval\s*\(|\bsleep\s*\(/;
 const SPY_ON = /spyOn\s*\(/;
 
 export function findingHasRequiredConstruct(

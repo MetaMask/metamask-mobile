@@ -109,6 +109,33 @@ describe('findingHasRequiredConstruct', () => {
     });
   });
 
+  it('drops J6 when the snippet is only jest.setTimeout', () => {
+    const snippet = 'jest.setTimeout(10000);';
+
+    const result = findingHasRequiredConstruct({
+      patternId: 'J6',
+      snippet,
+      source: snippet,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      reason: 'J6 snippet does not contain setTimeout/setInterval/sleep',
+    });
+  });
+
+  it('keeps J6 when the snippet uses global.setTimeout', () => {
+    const snippet = 'await new Promise((r) => global.setTimeout(r, 50));';
+
+    const result = findingHasRequiredConstruct({
+      patternId: 'J6',
+      snippet,
+      source: snippet,
+    });
+
+    expect(result).toEqual({ ok: true });
+  });
+
   it('keeps J10 when the snippet contains spyOn', () => {
     const snippet = 'const spy = jest.spyOn(Date, "now");';
 

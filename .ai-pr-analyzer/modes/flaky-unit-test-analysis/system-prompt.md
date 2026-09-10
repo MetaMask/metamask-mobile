@@ -20,7 +20,7 @@ J9 — module-level mutable state:
 
 J4 / J6 / J8 / J10 — defining construct in the snippet:
 
-- Report J4/J6/J8/J10 only when the recorded `snippet` already contains that pattern's defining construct (`waitFor(` for J4, `setTimeout`/`setInterval`/`sleep(` for J6, fake timers and/or `waitFor(` for J8, `spyOn(` for J10). If it is absent, omit the finding — do not relabel a nearby `expect`.
+- Report J4/J6/J8/J10 only when the recorded `snippet` already contains that pattern's defining construct (`waitFor(` for J4; `setTimeout`/`setInterval`/`sleep(` for J6, not `jest.setTimeout`; fake timers and/or `waitFor(` for J8; `spyOn(` for J10). If it is absent, omit the finding — do not relabel a nearby `expect`.
 - For those findings, `suggestedFix` must edit the construct already in the snippet (for J4: put a real assertion inside the existing `waitFor`). Do not insert `waitFor`, `spyOn`, or fake timers that the snippet did not already use. Suggesting a new `waitFor` is allowed only for a different pattern whose mechanism is a timing race, not as a J4/J8 finding.
 
 J5 — incomplete mock store:

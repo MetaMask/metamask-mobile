@@ -25,9 +25,17 @@ describe('isFlakyWorkflowUnitTestPath', () => {
     expect(result).toBe(false);
   });
 
-  it('rejects an Appium smoke spec path', () => {
+  it('rejects a legacy tests/smoke spec path', () => {
     const result = isFlakyWorkflowUnitTestPath(
       'tests/smoke/specs/login.spec.ts',
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('rejects an Appium smoke spec path', () => {
+    const result = isFlakyWorkflowUnitTestPath(
+      'tests/smoke-appium/accounts/create-wallet-account.spec.ts',
     );
 
     expect(result).toBe(false);
