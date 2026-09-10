@@ -427,7 +427,6 @@ const Routes = {
   },
   SOCIAL: {
     ROOT: 'Social',
-    /** Root of the Social tab in the floating nav bar's treatment arms. */
     TAB: 'SocialLeaderboardTab',
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
