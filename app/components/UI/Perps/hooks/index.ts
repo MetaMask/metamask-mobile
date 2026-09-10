@@ -110,7 +110,7 @@ export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
-export { usePerpsBottomSheetAbTest } from './usePerpsBottomSheetAbTest';
+export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 export { usePerpsHomeSectionTracking } from './usePerpsHomeSectionTracking';
 export { usePerpsMarketAboutTracking } from './usePerpsMarketAboutTracking';
 

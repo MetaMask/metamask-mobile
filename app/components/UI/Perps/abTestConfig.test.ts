@@ -1,13 +1,13 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import {
-  BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
-  BOTTOM_SHEET_VARIANTS,
-  BottomSheetVariant,
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
   BUTTON_COLOR_VARIANTS,
   ButtonColorVariant,
-  PERPS_BOTTOM_SHEET_AB_TEST_KEY,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
+  PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+  SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
+  SCREEN_VS_BOTTOM_SHEET_VARIANTS,
+  ScreenVsBottomSheetVariant,
 } from './abTestConfig';
 
 describe('Perps abTestConfig', () => {
@@ -64,56 +64,54 @@ describe('Perps abTestConfig', () => {
     });
   });
 
-  describe('PERPS_BOTTOM_SHEET_AB_TEST_KEY', () => {
-    it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
-      expect(PERPS_BOTTOM_SHEET_AB_TEST_KEY).toBe(
-        'perpsTAT3938AbtestBottomSheets',
-      );
-      expect(PERPS_BOTTOM_SHEET_AB_TEST_KEY).toMatch(
-        /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,
+  describe('PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY', () => {
+    it('names the experiment by the compared experiences', () => {
+      expect(PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY).toBe(
+        'perpsAbtestScreenVsBottomSheet',
       );
     });
   });
 
-  describe('BOTTOM_SHEET_VARIANTS', () => {
+  describe('SCREEN_VS_BOTTOM_SHEET_VARIANTS', () => {
     it('includes a control variant', () => {
-      expect(BOTTOM_SHEET_VARIANTS).toHaveProperty(BottomSheetVariant.Control);
+      expect(SCREEN_VS_BOTTOM_SHEET_VARIANTS).toHaveProperty(
+        ScreenVsBottomSheetVariant.Control,
+      );
     });
 
-    it('maps control to full-page presentation', () => {
-      expect(BOTTOM_SHEET_VARIANTS[BottomSheetVariant.Control]).toEqual({
-        presentation: 'fullPage',
-      });
+    it('maps control to the screen presentation', () => {
+      expect(
+        SCREEN_VS_BOTTOM_SHEET_VARIANTS[ScreenVsBottomSheetVariant.Control],
+      ).toEqual({ useBottomSheet: false });
     });
 
-    it('maps treatment to bottom-sheet presentation', () => {
-      expect(BOTTOM_SHEET_VARIANTS[BottomSheetVariant.Treatment]).toEqual({
-        presentation: 'bottomSheet',
-      });
+    it('maps the bottom-sheet experience to bottom-sheet presentation', () => {
+      expect(
+        SCREEN_VS_BOTTOM_SHEET_VARIANTS[ScreenVsBottomSheetVariant.Treatment],
+      ).toEqual({ useBottomSheet: true });
     });
   });
 
-  describe('BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING', () => {
-    it('references the bottom-sheet flag key', () => {
-      expect(BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING.flagKey).toBe(
-        PERPS_BOTTOM_SHEET_AB_TEST_KEY,
+  describe('SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING', () => {
+    it('references the screen-vs-bottom-sheet flag key', () => {
+      expect(SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING.flagKey).toBe(
+        PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
       );
     });
 
     it('declares control and treatment as valid variants', () => {
-      expect(BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING.validVariants).toEqual([
-        BottomSheetVariant.Control,
-        BottomSheetVariant.Treatment,
+      expect(
+        SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING.validVariants,
+      ).toEqual([
+        ScreenVsBottomSheetVariant.Control,
+        ScreenVsBottomSheetVariant.Treatment,
       ]);
     });
 
-    it('registers conversion and interaction events', () => {
-      expect(BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING.eventNames).toEqual([
-        EVENT_NAME.PERPS_SCREEN_VIEWED,
-        EVENT_NAME.PERPS_UI_INTERACTION,
-        EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
-        EVENT_NAME.PERPS_TRADE_TRANSACTION,
-      ]);
+    it('registers the close-position conversion event', () => {
+      expect(
+        SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING.eventNames,
+      ).toEqual([EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION]);
     });
   });
 });
