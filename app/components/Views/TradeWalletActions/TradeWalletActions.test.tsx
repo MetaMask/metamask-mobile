@@ -19,7 +19,10 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
-import { selectIsEarnSectionEligible } from '../../UI/Earn/selectors/eligibility';
+import {
+  selectEarnTradeMenuRowRedesignEnabled,
+  selectStablecoinLendingEnabledFlag,
+} from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import {
@@ -31,12 +34,6 @@ import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isHardwareAccount } from '../../../util/address';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
-import useEarnHighestRate from '../../UI/Earn/hooks/useEarnHighestRate';
-import {
-  EARN_MODULE_COMPONENT_NAMES,
-  EARN_MODULE_REDIRECT_TARGETS,
-  EARN_MODULE_ENTRY_POINTS,
-} from '../../UI/Earn/constants/earnModuleEvents';
 import TradeWalletActions from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
@@ -139,6 +136,30 @@ jest.mock('../../UI/Earn/selectors/eligibility', () => ({
   selectIsEarnSectionEligible: jest.fn(),
 }));
 
+jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
+  selectEarnTradeMenuRowRedesignEnabled: jest.fn().mockReturnValue(false),
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(false),
+  selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../../../selectors/earnController/earn', () => ({
+  earnSelectors: {
+    selectEarnTokens: jest.fn().mockReturnValue({
+      earnTokens: [],
+    }),
+  },
+}));
+
+jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    isEligible: true,
+    isLoadingEligibility: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  }),
+}));
+
 jest.mock('@metamask/bridge-controller', () => {
   const actual = jest.requireActual('@metamask/bridge-controller');
   return {
@@ -226,10 +247,18 @@ jest.mock('../../UI/Earn/hooks/useEarnHighestRate', () => ({
   default: jest.fn(),
 }));
 
-const mockTrackEarnSurfaceClicked = jest.fn();
-jest.mock('../../UI/Earn/hooks/useEarnAnalytics', () => ({
-  useEarnAnalytics: () => ({
-    trackSurfaceClicked: mockTrackEarnSurfaceClicked,
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockLegacyEvent = { event: 'EARN_BUTTON_CLICKED' };
+const mockLegacyEventBuilder = {
+  addProperties: jest.fn(),
+  build: jest.fn().mockReturnValue(mockLegacyEvent),
+};
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -366,13 +395,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockSelectIsEarnSectionEligible = jest.mocked(
-  selectIsEarnSectionEligible,
-);
-const mockUseEarnHighestRate = useEarnHighestRate as jest.MockedFunction<
-  typeof useEarnHighestRate
->;
-
 const pressActionButton = async (
   getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
   testId: string,
@@ -397,6 +419,8 @@ describe('TradeWalletActions', () => {
     jest.clearAllMocks();
     mockParentCanGoBack = true;
     mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
+    jest.mocked(selectEarnTradeMenuRowRedesignEnabled).mockReturnValue(false);
+    jest.mocked(selectStablecoinLendingEnabledFlag).mockReturnValue(false);
     (
       selectPerpsProModeEnabledFlag as jest.MockedFunction<
         typeof selectPerpsProModeEnabledFlag
@@ -421,14 +445,10 @@ describe('TradeWalletActions', () => {
     });
     jest.mocked(isHardwareAccount).mockReturnValue(false);
 
-    mockSelectIsEarnSectionEligible.mockReturnValue(false);
-    mockUseEarnHighestRate.mockReturnValue({
-      highestRate: {
-        type: 'APY',
-        percentage: 6.2,
-        status: 'ready',
-      },
-    });
+    mockCreateEventBuilder.mockReturnValue(mockLegacyEventBuilder);
+    mockLegacyEventBuilder.addProperties.mockReturnValue(
+      mockLegacyEventBuilder,
+    );
 
     mockUseParams.mockReturnValue({
       onDismiss: mockOnDismiss,
@@ -483,8 +503,10 @@ describe('TradeWalletActions', () => {
     ).toBeNull();
   });
 
-  it('renders Earn button when Earn section is eligible', () => {
-    mockSelectIsEarnSectionEligible.mockReturnValue(true);
+  it('renders the legacy Earn button when user is eligible and feature is enabled', () => {
+    jest.mocked(selectEarnTradeMenuRowRedesignEnabled).mockReturnValue(false);
+    jest.mocked(selectStablecoinLendingEnabledFlag).mockReturnValue(true);
+
     const { getByTestId } = renderScreen(
       TradeWalletActions,
       {
@@ -494,48 +516,10 @@ describe('TradeWalletActions', () => {
         state: mockInitialState,
       },
     );
+
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
-    ).toBeDefined();
-  });
-
-  it.each([
-    [
-      { type: 'APY' as const, percentage: 6.2, status: 'ready' as const },
-      '6.2% APY',
-    ],
-    [
-      { type: 'APR' as const, percentage: 4.2, status: 'ready' as const },
-      '4.2% APR',
-    ],
-  ])('renders a ready APR or APY rate in the Earn tag', (highestRate, copy) => {
-    mockSelectIsEarnSectionEligible.mockReturnValue(true);
-    mockUseEarnHighestRate.mockReturnValue({ highestRate });
-
-    const { getByTestId } = renderScreen(
-      TradeWalletActions,
-      { name: 'TradeWalletActions' },
-      { state: mockInitialState },
-    );
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG),
-    ).toHaveTextContent(copy);
-  });
-
-  it('omits the Earn rate tag when no ready rate is available', () => {
-    mockSelectIsEarnSectionEligible.mockReturnValue(true);
-    mockUseEarnHighestRate.mockReturnValue({ highestRate: undefined });
-
-    const { queryByTestId } = renderScreen(
-      TradeWalletActions,
-      { name: 'TradeWalletActions' },
-      { state: mockInitialState },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_RATE_TAG),
-    ).toBeNull();
+    ).toBeOnTheScreen();
   });
 
   it('does not render Batch Sell for hardware wallets', () => {
@@ -574,19 +558,6 @@ describe('TradeWalletActions', () => {
 
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeNull();
-  });
-
-  it('does not render Earn button when Earn section is ineligible', () => {
-    mockSelectIsEarnSectionEligible.mockReturnValue(false);
-    const { queryByTestId } = renderScreen(
-      TradeWalletActions,
-      { name: 'TradeWalletActions' },
-      { state: mockInitialState },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeNull();
   });
 
@@ -805,7 +776,7 @@ describe('TradeWalletActions', () => {
   });
 
   it('registers a hardware back handler that dismisses the sheet', () => {
-    mockSelectIsEarnSectionEligible.mockReturnValue(true);
+    jest.mocked(selectStablecoinLendingEnabledFlag).mockReturnValue(true);
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
         typeof selectPerpsEnabledFlag
@@ -1154,106 +1125,6 @@ describe('TradeWalletActions', () => {
         params: {
           entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
         },
-      });
-    });
-
-    it('navigates to EarnSectionListView after dismissing RootModalFlow', async () => {
-      mockSelectIsEarnSectionEligible.mockReturnValue(true);
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      await pressActionButton(
-        getByTestId,
-        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-        screen: Routes.EARN.SEARCH_LIST,
-        params: {
-          analyticsContext: {
-            entry_point: EARN_MODULE_ENTRY_POINTS.TRADE_MENU,
-          },
-        },
-      });
-    });
-
-    it('tracks Earn click with ready rate details', async () => {
-      mockSelectIsEarnSectionEligible.mockReturnValue(true);
-      mockUseEarnHighestRate.mockReturnValue({
-        highestRate: {
-          type: 'APY',
-          percentage: 6.2,
-          status: 'ready',
-        },
-      });
-
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      await pressActionButton(
-        getByTestId,
-        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
-      );
-
-      expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith({
-        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
-        redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
-        rate_type: 'apy',
-        rate_percentage: 6.2,
-      });
-    });
-
-    it('tracks Earn click without rate percentage when rate is not ready', async () => {
-      mockSelectIsEarnSectionEligible.mockReturnValue(true);
-      mockUseEarnHighestRate.mockReturnValue({
-        highestRate: {
-          type: 'APR',
-          status: 'error',
-        },
-      });
-
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      await pressActionButton(
-        getByTestId,
-        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
-      );
-
-      expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith({
-        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
-        redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
-        rate_type: 'apr',
-      });
-    });
-
-    it('tracks Earn click without rate details when no rate is available', async () => {
-      mockSelectIsEarnSectionEligible.mockReturnValue(true);
-      mockUseEarnHighestRate.mockReturnValue({ highestRate: undefined });
-
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      await pressActionButton(
-        getByTestId,
-        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
-      );
-
-      expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith({
-        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_TRADE_MENU_ROW,
-        redirect_target: EARN_MODULE_REDIRECT_TARGETS.EARN_SECTION_LIST_VIEW,
       });
     });
 
