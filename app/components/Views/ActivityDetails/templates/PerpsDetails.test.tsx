@@ -390,32 +390,6 @@ describe('PerpsDetails', () => {
     ).toBeOnTheScreen();
   });
 
-  it('provides connection and stream contexts for order details', () => {
-    const transaction: PerpsTransaction = {
-      ...baseTransaction,
-      id: 'provider-backed-order',
-      type: 'order',
-      category: 'limit_order',
-      title: 'Limit order',
-      order: {
-        orderId: 'provider-backed-order',
-        text: PerpsOrderTransactionStatus.Filled,
-        statusType: PerpsOrderTransactionStatusType.Filled,
-        type: 'limit',
-        size: '10',
-        limitPrice: '98023',
-        filled: '100%',
-      },
-    };
-
-    renderWithProvider(
-      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
-    );
-
-    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
-    expect(mockPerpsStreamProvider).toHaveBeenCalledTimes(1);
-  });
-
   it('renders the recorded fee for a partially filled canceled order', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,

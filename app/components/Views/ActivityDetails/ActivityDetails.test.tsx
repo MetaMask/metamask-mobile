@@ -1,9 +1,11 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
+import { usePerpsDetailsItem } from '#app/components/Views/ActivityDetails/templates/Perps/usePerpsDetailsItem';
+import { usePredictDetailsItem } from '#app/components/Views/ActivityDetails/templates/PredictDetails/usePredictDetailsItem';
+import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import type { ActivityListItem } from '../../../util/activity-adapters';
-import { strings } from '../../../../locales/i18n';
 import ActivityDetails from './ActivityDetails';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
@@ -12,8 +14,6 @@ import { useTransactionsQuery } from '../ActivityList/useTransactionsQuery';
 import { useParams } from '../../../util/navigation/navUtils';
 // eslint-disable-next-line import-x/no-restricted-paths -- test controls the shared speed-up/cancel actions hook
 import { useUnifiedTxActions } from '../ActivityList/useUnifiedTxActions';
-import { selectPerpsEnabledFlag } from '#app/components/UI/Perps/selectors/featureFlags';
-import { usePerpsDetailsItem } from '#app/components/Views/ActivityDetails/templates/Perps/usePerpsDetailsItem';
 
 const mockGoBack = jest.fn();
 const mockIsFocused = jest.fn(() => true);
@@ -65,17 +65,15 @@ jest.mock('../ActivityList/useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(),
 }));
 
-jest.mock('#app/components/UI/Perps/selectors/featureFlags', () => ({
-  selectPerpsEnabledFlag: jest.fn(() => false),
+jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
 }));
 
-jest.mock(
-  '#app/components/Views/ActivityDetails/templates/PerpsDetails',
-  () => ({
-    PerpsDetailsProviders: ({ children }: { children: React.ReactNode }) =>
-      children,
-  }),
-);
+jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
 
 jest.mock(
   '#app/components/Views/ActivityDetails/templates/Perps/usePerpsDetailsItem',
@@ -93,6 +91,7 @@ jest.mock(
   () => ({
     usePredictDetailsItem: jest.fn(() => ({
       item: undefined,
+      activity: undefined,
       isLoading: false,
     })),
   }),
@@ -116,8 +115,8 @@ const useParamsMock = jest.mocked(useParams);
 const useActivityDetailsItemMock = jest.mocked(useActivityDetailsItem);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const useUnifiedTxActionsMock = jest.mocked(useUnifiedTxActions);
-const selectPerpsEnabledFlagMock = jest.mocked(selectPerpsEnabledFlag);
 const usePerpsDetailsItemMock = jest.mocked(usePerpsDetailsItem);
+const usePredictDetailsItemMock = jest.mocked(usePredictDetailsItem);
 
 const buildTxActions = (
   overrides: Partial<ReturnType<typeof useUnifiedTxActions>> = {},
@@ -182,7 +181,17 @@ describe('ActivityDetails screen', () => {
       txIdentifier: '0xhash',
     });
     useUnifiedTxActionsMock.mockReturnValue(buildTxActions());
-    selectPerpsEnabledFlagMock.mockReturnValue(false);
+    useActivityDetailsItemMock.mockReturnValue(undefined);
+    usePerpsDetailsItemMock.mockReturnValue({
+      item: undefined,
+      transaction: undefined,
+      isLoading: false,
+    });
+    usePredictDetailsItemMock.mockReturnValue({
+      item: undefined,
+      activity: undefined,
+      isLoading: false,
+    });
   });
 
   it('renders the template when the transaction resolves', () => {
@@ -296,7 +305,6 @@ describe('ActivityDetails screen', () => {
   });
 
   it('prefers rematched perps funds over a same-hash send', () => {
-    selectPerpsEnabledFlagMock.mockReturnValue(true);
     useActivityDetailsItemMock.mockReturnValue(arbitrumSendItem);
     usePerpsDetailsItemMock.mockReturnValue({
       item: perpsFundsItem,

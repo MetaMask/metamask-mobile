@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
@@ -57,8 +57,6 @@ import {
   resolvePerpsTransactionOrderType,
 } from '../../../UI/Perps/utils/orderUtils';
 import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
-import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
-import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 
 /**
  * The local row's activity status in the terms the step timeline speaks. A
@@ -506,7 +504,7 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
   );
 }
 
-function PerpsDetailsBody({ item }: { item: ActivityListItem }) {
+export function PerpsDetails({ item }: { item: ActivityListItem }) {
   const perpsItem = item as PerpsActivityListItem;
   const { transaction, isLoading } = usePerpsDetailsItem(
     item.hash,
@@ -540,29 +538,4 @@ function PerpsDetailsBody({ item }: { item: ActivityListItem }) {
   }
 
   return null;
-}
-
-const perpsDetailsProvidersActive = createContext(false);
-
-export function PerpsDetailsProviders({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <perpsDetailsProvidersActive.Provider value>
-      <PerpsConnectionProvider suppressErrorView>
-        <PerpsStreamProvider>{children}</PerpsStreamProvider>
-      </PerpsConnectionProvider>
-    </perpsDetailsProvidersActive.Provider>
-  );
-}
-
-export function PerpsDetails({ item }: { item: ActivityListItem }) {
-  const hasProviders = useContext(perpsDetailsProvidersActive);
-  const body = <PerpsDetailsBody item={item} />;
-  if (hasProviders) {
-    return body;
-  }
-  return <PerpsDetailsProviders>{body}</PerpsDetailsProviders>;
 }

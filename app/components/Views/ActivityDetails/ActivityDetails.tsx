@@ -1,13 +1,7 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, ReactNode } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
-import type { CaipChainId } from '@metamask/utils';
-import {
-  ARBITRUM_MAINNET_CAIP_CHAIN_ID as arbitrumMainnetCaipChainId,
-  ARBITRUM_TESTNET_CAIP_CHAIN_ID as arbitrumTestnetCaipChainId,
-} from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -33,12 +27,10 @@ import {
   type SpeedUpCancelParams,
 } from '../ActivityList/useUnifiedTxActions';
 /* eslint-enable import-x/no-restricted-paths */
-import { selectPerpsEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
-import type { ActivityListItem } from '../../../util/activity-adapters';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { usePerpsDetailsItem } from './templates/Perps/usePerpsDetailsItem';
 import { usePredictDetailsItem } from './templates/PredictDetails/usePredictDetailsItem';
-import { PerpsDetailsProviders } from './templates/PerpsDetails';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
@@ -48,15 +40,25 @@ import { useTransactionsQuery } from '../ActivityList/useTransactionsQuery';
 import { ActivityDetailsPendingBanner } from './components/ActivityDetailsPendingBanner';
 import { TemplateLoader } from './templates/TemplateLoader';
 
-const predictActivityChainId = 'eip155:137' as CaipChainId;
+function ActivityDetailsProviders({ children }: { children: ReactNode }) {
+  return (
+    <PerpsConnectionProvider suppressErrorView>
+      <PerpsStreamProvider>{children}</PerpsStreamProvider>
+    </PerpsConnectionProvider>
+  );
+}
 
-function ActivityDetailsScreen({
-  item,
-  isLoading = false,
-}: {
-  item?: ActivityListItem;
-  isLoading?: boolean;
-}) {
+function ActivityDetailsScreen() {
+  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
+  const activityItem = useActivityDetailsItem(txIdentifier, chainId);
+  const { item: perpsItem, isLoading: isPerpsLoading } = usePerpsDetailsItem(
+    txIdentifier,
+    chainId,
+  );
+  const { item: predictItem, isLoading: isPredictLoading } =
+    usePredictDetailsItem(activityItem ? undefined : txIdentifier, chainId);
+  const item = perpsItem ?? activityItem ?? predictItem;
+  const isLoading = isPerpsLoading || isPredictLoading;
   const {
     data: evmTransactions,
     isPending,
@@ -203,72 +205,10 @@ function ActivityDetailsScreen({
   );
 }
 
-function PerpsDetailsByIdentifier({
-  txIdentifier,
-  chainId,
-}: {
-  txIdentifier: string | undefined;
-  chainId: CaipChainId;
-}) {
-  const localOrApiItem = useActivityDetailsItem(txIdentifier, chainId);
-  const { item: perpsItem, isLoading } = usePerpsDetailsItem(
-    txIdentifier,
-    chainId,
-  );
-  return (
-    <ActivityDetailsScreen
-      item={perpsItem ?? (isLoading ? undefined : localOrApiItem)}
-      isLoading={isLoading && !perpsItem}
-    />
-  );
-}
-
-function PredictDetailsByIdentifier({
-  txIdentifier,
-}: {
-  txIdentifier: string | undefined;
-}) {
-  const { item, isLoading } = usePredictDetailsItem(txIdentifier);
-  return <ActivityDetailsScreen item={item} isLoading={isLoading} />;
-}
-
-/**
- * Redesigned activity details screen. Re-resolves the {@link ActivityListItem}
- * from the `{ chainId, txIdentifier }` route params (mirroring the extension's
- * `ui/pages/details` flow), then dispatches to a per-type template via
- * `TemplateLoader`. Gated behind `selectIsTransactionsRedesignEnabled` at the
- * navigation call site.
- */
-const ActivityDetails = () => {
-  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
-  const item = useActivityDetailsItem(txIdentifier, chainId);
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-
-  if (
-    isPerpsEnabled &&
-    (chainId === arbitrumMainnetCaipChainId ||
-      chainId === arbitrumTestnetCaipChainId)
-  ) {
-    return (
-      <PerpsDetailsProviders>
-        <PerpsDetailsByIdentifier
-          txIdentifier={txIdentifier}
-          chainId={chainId}
-        />
-      </PerpsDetailsProviders>
-    );
-  }
-
-  if (item) {
-    return <ActivityDetailsScreen item={item} />;
-  }
-
-  if (isPredictEnabled && chainId === predictActivityChainId) {
-    return <PredictDetailsByIdentifier txIdentifier={txIdentifier} />;
-  }
-
-  return <ActivityDetailsScreen />;
-};
+const ActivityDetails = () => (
+  <ActivityDetailsProviders>
+    <ActivityDetailsScreen />
+  </ActivityDetailsProviders>
+);
 
 export default ActivityDetails;

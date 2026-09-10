@@ -9,33 +9,35 @@ import {
   mapRampOrderType,
 } from '../../../../../util/activity-adapters/adapters/ramp-order-helpers';
 import { getRampsOrderTransactionHash } from '../../../../../util/activity-adapters/adapters/ramps-order-helpers';
+import { equalsIgnoreCase } from '../../../../../util/string';
 
 function matchesLegacyOrder(order: FiatOrder, identifier: string) {
-  if (order.id.toLowerCase() === identifier) {
+  if (equalsIgnoreCase(order.id, identifier)) {
     return true;
   }
 
   const kind = mapRampOrderType(order.orderType);
   if (kind) {
-    return (
-      getRampOrderTransactionHash(order, kind)?.toLowerCase() === identifier
+    return equalsIgnoreCase(
+      getRampOrderTransactionHash(order, kind),
+      identifier,
     );
   }
 
   return (
-    getRampOrderTransactionHash(order, 'buy')?.toLowerCase() === identifier ||
-    getRampOrderTransactionHash(order, 'sell')?.toLowerCase() === identifier
+    equalsIgnoreCase(getRampOrderTransactionHash(order, 'buy'), identifier) ||
+    equalsIgnoreCase(getRampOrderTransactionHash(order, 'sell'), identifier)
   );
 }
 
 function matchesRampsOrder(order: RampsOrder, identifier: string) {
-  if (order.id?.toLowerCase() === identifier) {
+  if (equalsIgnoreCase(order.id, identifier)) {
     return true;
   }
-  if (order.providerOrderId?.toLowerCase() === identifier) {
+  if (equalsIgnoreCase(order.providerOrderId, identifier)) {
     return true;
   }
-  return getRampsOrderTransactionHash(order)?.toLowerCase() === identifier;
+  return equalsIgnoreCase(getRampsOrderTransactionHash(order), identifier);
 }
 
 export function useRampsDetailsOrder(txIdentifier: string | undefined) {
@@ -47,15 +49,14 @@ export function useRampsDetailsOrder(txIdentifier: string | undefined) {
       return undefined;
     }
 
-    const identifier = txIdentifier.toLowerCase();
     const byId = getOrderById(txIdentifier);
     if (byId) {
       return byId;
     }
 
     return (
-      orders.find((order) => matchesRampsOrder(order, identifier)) ??
-      legacyOrders.find((order) => matchesLegacyOrder(order, identifier))
+      orders.find((order) => matchesRampsOrder(order, txIdentifier)) ??
+      legacyOrders.find((order) => matchesLegacyOrder(order, txIdentifier))
     );
   }, [getOrderById, legacyOrders, orders, txIdentifier]);
 }

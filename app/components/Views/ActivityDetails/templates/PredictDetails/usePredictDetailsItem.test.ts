@@ -6,6 +6,10 @@ import {
 import { usePredictActivity } from '#app/components/UI/Predict/hooks/usePredictActivity';
 import { usePredictDetailsItem } from './usePredictDetailsItem';
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => true),
+}));
+
 jest.mock('#app/components/UI/Predict/hooks/usePredictActivity', () => ({
   usePredictActivity: jest.fn(),
 }));

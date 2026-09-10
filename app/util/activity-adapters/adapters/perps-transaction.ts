@@ -16,8 +16,8 @@ import {
 import { isTriggerOrderType } from '@metamask/perps-controller';
 import {
   getCaipChainId,
-  USDC_ARBITRUM_MAINNET_ADDRESS as usdcArbitrumMainnetAddress,
-  USDC_ARBITRUM_TESTNET_ADDRESS as usdcArbitrumTestnetAddress,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_ARBITRUM_TESTNET_ADDRESS,
 } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import {
   FillType,
@@ -55,10 +55,7 @@ interface MapPerpsTransactionArgs {
 
 const DEFAULT_QUOTE: QuoteAsset = { symbol: 'USD' };
 
-export function getPerpsActivityMappingIds(isTestnet: boolean): {
-  chainId: CaipChainId;
-  collateralAssetId: string;
-} {
+export function getPerpsActivityMappingIds(isTestnet: boolean) {
   const chainId = getCaipChainId(isTestnet) as CaipChainId;
   const { namespace, reference } = parseCaipChainId(chainId);
   return {
@@ -68,8 +65,8 @@ export function getPerpsActivityMappingIds(isTestnet: boolean): {
       reference,
       'erc20',
       (isTestnet
-        ? usdcArbitrumTestnetAddress
-        : usdcArbitrumMainnetAddress
+        ? USDC_ARBITRUM_TESTNET_ADDRESS
+        : USDC_ARBITRUM_MAINNET_ADDRESS
       ).toLowerCase(),
     ),
   };

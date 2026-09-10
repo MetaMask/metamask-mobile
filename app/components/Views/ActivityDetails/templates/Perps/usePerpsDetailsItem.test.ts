@@ -4,10 +4,7 @@ import {
   mapPerpsTransaction,
   type ActivityListItem,
 } from '#app/util/activity-adapters';
-import {
-  usePerpsConnection,
-  usePerpsTransactionHistory,
-} from '#app/components/UI/Perps/hooks';
+import { usePerpsTransactionHistory } from '#app/components/UI/Perps/hooks';
 import { usePerpsDetailsItem } from './usePerpsDetailsItem';
 import type { PerpsTransaction } from '../../components/ActivityDetailsPerps.utils';
 
@@ -31,9 +28,15 @@ jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
 }));
 
 jest.mock('#app/components/UI/Perps/hooks', () => ({
-  usePerpsConnection: jest.fn(),
   usePerpsTransactionHistory: jest.fn(),
 }));
+
+jest.mock('#app/components/UI/Perps/providers/PerpsConnectionProvider', () => {
+  const { createContext } = jest.requireActual('react');
+  return {
+    PerpsConnectionContext: createContext({ isConnected: true }),
+  };
+});
 
 jest.mock('#app/util/activity-adapters', () => ({
   getPerpsActivityMappingIds: jest.requireActual(
@@ -43,7 +46,6 @@ jest.mock('#app/util/activity-adapters', () => ({
 }));
 
 const useSelectorMock = jest.mocked(useSelector);
-const usePerpsConnectionMock = jest.mocked(usePerpsConnection);
 const usePerpsTransactionHistoryMock = jest.mocked(usePerpsTransactionHistory);
 const mapPerpsTransactionMock = jest.mocked(mapPerpsTransaction);
 
@@ -61,9 +63,6 @@ describe('usePerpsDetailsItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     useSelectorMock.mockReturnValue({ address: '0xabc' });
-    usePerpsConnectionMock.mockReturnValue({
-      isConnected: true,
-    } as ReturnType<typeof usePerpsConnection>);
     usePerpsTransactionHistoryMock.mockReturnValue({
       transactions: [trade, deposit],
       isLoading: false,
