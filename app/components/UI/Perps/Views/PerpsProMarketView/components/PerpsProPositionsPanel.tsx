@@ -1307,6 +1307,7 @@ const PerpsProPositionsPanel = ({
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
           endIconName={IconName.ArrowDown}
+          twClassName="rounded-full"
           onPress={() => setIsSideFilterSheetOpen(true)}
           testID={
             isChaseTab
@@ -1318,7 +1319,7 @@ const PerpsProPositionsPanel = ({
         >
           {strings(getProPositionSideFilterButtonLabelKey(activeSideFilter))}
         </Button>
-        <Box twClassName="bg-muted rounded-lg px-2 py-1">
+        <Box twClassName="bg-muted rounded-full px-2 py-1">
           {renderTickerOnlyCheckbox()}
         </Box>
         {isChaseTab && chaseActivityFilter === 'history' ? (
