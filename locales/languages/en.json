@@ -9947,7 +9947,7 @@
         },
         "blocked": {
           "title": "Your card is blocked",
-          "description": "Please contact support to unblock your card"
+          "description": "Please contact support to unblock your card."
         },
         "kyc_pending": {
           "title": "Verification in progress",
