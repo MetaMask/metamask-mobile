@@ -9,6 +9,7 @@ import { uniq } from 'lodash';
 import { Hex } from '@metamask/utils';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
+import { decodeErc20Transfer } from '../transactions/erc20-transfer';
 
 export const PAY_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -42,31 +43,26 @@ export const isFromOrToSelectedAddress = (
   return false;
 };
 
-const ERC20_TRANSFER_SELECTOR = '0xa9059cbb';
-const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
-
 /**
- * Returns the recipient encoded by an ERC-20 transfer call.
+ * Returns the recipients encoded by ERC-20 transfer calls.
  *
  * The transaction-level `to` address is the token contract, so it cannot be
  * used to decide whether the selected account received the transfer.
  */
-export const getTokenTransferRecipient = (
-  tx: TransactionMeta,
-): string | undefined => {
-  const calldataCandidates = [
-    tx.txParams.data,
-    ...(tx.nestedTransactions ?? []).map(({ data }) => data),
+export const getTokenTransferRecipients = (tx: TransactionMeta): string[] => {
+  const transferCalls = [
+    { data: tx.txParams.data, type: tx.type },
+    ...(tx.nestedTransactions ?? []).map(({ data, type }) => ({ data, type })),
   ];
-  const transferData = calldataCandidates.find(
-    (data) =>
-      data?.toLowerCase().startsWith(ERC20_TRANSFER_SELECTOR) &&
-      data.length >= ERC20_TRANSFER_CALLDATA_LENGTH,
-  );
 
-  return transferData
-    ? `0x${transferData.slice(34, 74).toLowerCase()}`
-    : undefined;
+  return [
+    ...new Set(
+      transferCalls.flatMap(({ data, type }) => {
+        const transfer = decodeErc20Transfer(data, type);
+        return transfer ? [transfer.recipient] : [];
+      }),
+    ),
+  ];
 };
 
 const isTransactionFromOrToSelectedAddress = (
@@ -74,13 +70,12 @@ const isTransactionFromOrToSelectedAddress = (
   selectedAddress: string,
 ): boolean => {
   const { from, to } = tx.txParams;
-  const tokenTransferRecipient = getTokenTransferRecipient(tx);
+  const tokenTransferRecipients = getTokenTransferRecipients(tx);
 
   return (
     isFromOrToSelectedAddress(from, to ?? '', selectedAddress) ||
-    Boolean(
-      tokenTransferRecipient &&
-        areAddressesEqual(tokenTransferRecipient, selectedAddress),
+    tokenTransferRecipients.some((recipient) =>
+      areAddressesEqual(recipient, selectedAddress),
     )
   );
 };

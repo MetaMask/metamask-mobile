@@ -12,7 +12,7 @@ import {
   isTransactionOnChains,
   isTrustedAddress,
   buildTrustedAddressSet,
-  getTokenTransferRecipient,
+  getTokenTransferRecipients,
 } from '.';
 import { Token } from '@metamask/assets-controllers';
 import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
@@ -113,7 +113,7 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
   });
 });
 
-describe('Activity utils :: getTokenTransferRecipient', () => {
+describe('Activity utils :: getTokenTransferRecipients', () => {
   it('decodes the recipient from ERC-20 transfer calldata', () => {
     const data =
       `0xa9059cbb${TEST_ADDRESS_TWO.slice(2).padStart(64, '0')}` +
@@ -126,9 +126,54 @@ describe('Activity utils :: getTokenTransferRecipient', () => {
       },
     } as DeepPartial<TransactionMeta> as TransactionMeta;
 
-    expect(getTokenTransferRecipient(transaction)).toBe(
+    expect(getTokenTransferRecipients(transaction)).toEqual([
       TEST_ADDRESS_TWO.toLowerCase(),
-    );
+    ]);
+  });
+
+  it('decodes the recipient from ERC-20 transferFrom calldata', () => {
+    const data =
+      `0x23b872dd${TEST_ADDRESS_ONE.slice(2).padStart(64, '0')}` +
+      `${TEST_ADDRESS_TWO.slice(2).padStart(64, '0')}` +
+      '1'.padStart(64, '0');
+    const transaction = {
+      type: TransactionType.tokenMethodTransferFrom,
+      txParams: {
+        from: TEST_ADDRESS_THREE,
+        to: TEST_ADDRESS_THREE,
+        data,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    expect(getTokenTransferRecipients(transaction)).toEqual([
+      TEST_ADDRESS_TWO.toLowerCase(),
+    ]);
+  });
+
+  it('decodes every recipient from a nested transfer batch', () => {
+    const transferTo = (recipient: string) =>
+      `0xa9059cbb${recipient.slice(2).padStart(64, '0')}${'1'.padStart(64, '0')}`;
+    const transaction = {
+      txParams: {
+        from: TEST_ADDRESS_THREE,
+        to: TEST_ADDRESS_THREE,
+      },
+      nestedTransactions: [
+        {
+          type: TransactionType.tokenMethodTransfer,
+          data: transferTo(TEST_ADDRESS_ONE),
+        },
+        {
+          type: TransactionType.tokenMethodTransfer,
+          data: transferTo(TEST_ADDRESS_TWO),
+        },
+      ],
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    expect(getTokenTransferRecipients(transaction)).toEqual([
+      TEST_ADDRESS_ONE.toLowerCase(),
+      TEST_ADDRESS_TWO.toLowerCase(),
+    ]);
   });
 });
 
@@ -288,6 +333,46 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
     const result = filterByAddressAndNetwork(
       transaction,
       tokens,
+      TEST_ADDRESS_TWO,
+      { '0x1': true },
+      [],
+      {},
+      {},
+      [TEST_ADDRESS_ONE, TEST_ADDRESS_TWO],
+    );
+
+    expect(result).toEqual(true);
+  });
+
+  it('returns true when the selected account is a later recipient in a nested batch', () => {
+    const transferTo = (recipient: string) =>
+      `0xa9059cbb${recipient.slice(2).padStart(64, '0')}${'1'.padStart(64, '0')}`;
+    const transaction = {
+      chainId: '0x1',
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_THREE,
+      },
+      nestedTransactions: [
+        {
+          type: TransactionType.tokenMethodTransfer,
+          data: transferTo(TEST_ADDRESS_THREE),
+        },
+        {
+          type: TransactionType.tokenMethodTransfer,
+          data: transferTo(TEST_ADDRESS_TWO),
+        },
+      ],
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      [{ address: TEST_ADDRESS_THREE }],
       TEST_ADDRESS_TWO,
       { '0x1': true },
       [],

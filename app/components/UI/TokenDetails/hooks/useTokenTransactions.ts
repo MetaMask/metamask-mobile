@@ -12,7 +12,7 @@ import {
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../constants/bridge';
 import { selectTokens } from '../../../../selectors/tokensController';
 import {
-  getTokenTransferRecipient,
+  getTokenTransferRecipients,
   sortTransactions,
 } from '../../../../util/activity';
 import {
@@ -509,7 +509,7 @@ export const useTokenTransactions = (
         isTransfer,
         transferInformation,
       } = tx;
-      const tokenTransferRecipient = getTokenTransferRecipient(tx);
+      const tokenTransferRecipients = getTokenTransferRecipients(tx);
 
       if (checkIsMusdClaimForCurrentView(tx)) {
         return true;
@@ -522,9 +522,8 @@ export const useTokenTransactions = (
       if (
         (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
           areAddressesEqual(to ?? '', selectedAddress ?? '') ||
-          areAddressesEqual(
-            tokenTransferRecipient ?? '',
-            selectedAddress ?? '',
+          tokenTransferRecipients.some((recipient) =>
+            areAddressesEqual(recipient, selectedAddress ?? ''),
           )) &&
         (chainId === tx.chainId ||
           (!tx.chainId && networkId === tx.networkID)) &&
