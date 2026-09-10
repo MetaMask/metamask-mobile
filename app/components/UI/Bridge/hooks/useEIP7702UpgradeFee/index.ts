@@ -156,30 +156,32 @@ export function useEIP7702UpgradeFee(): EIP7702UpgradeFee {
           upgradeStatus.address,
           upgradeStatus.upgradeContractAddress,
         );
-        const [
-          gasEstimate,
-          gasFeeEstimate,
-          layer1GasFee,
-          gasFeeControllerEstimate,
-        ] = await Promise.all([
-          Engine.context.TransactionController.estimateGas(
-            transactionParams,
-            networkClientId,
-          ),
-          Engine.context.TransactionController.estimateGasFee({
-            transactionParams,
+        const [gasEstimate, gasFeeEstimate, gasFeeControllerEstimate] =
+          await Promise.all([
+            Engine.context.TransactionController.estimateGas(
+              transactionParams,
+              networkClientId,
+            ),
+            Engine.context.TransactionController.estimateGasFee({
+              transactionParams,
+              chainId: networkConfiguration.chainId,
+              networkClientId,
+            }),
+            Engine.context.GasFeeController.fetchGasFeeEstimates({
+              networkClientId,
+            }),
+          ]);
+        if (!isActive) return;
+
+        const layer1GasFee =
+          await Engine.context.TransactionController.getLayer1GasFee({
+            transactionParams: {
+              ...transactionParams,
+              gas: gasEstimate.gas,
+            },
             chainId: networkConfiguration.chainId,
             networkClientId,
-          }),
-          Engine.context.TransactionController.getLayer1GasFee({
-            transactionParams,
-            chainId: networkConfiguration.chainId,
-            networkClientId,
-          }),
-          Engine.context.GasFeeController.fetchGasFeeEstimates({
-            networkClientId,
-          }),
-        ]);
+          });
         const gasValues = getGasValues(
           gasFeeEstimate.estimates,
           shouldUseEIP1559FeeLogic,

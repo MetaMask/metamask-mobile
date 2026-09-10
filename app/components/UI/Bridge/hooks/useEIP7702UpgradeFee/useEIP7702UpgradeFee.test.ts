@@ -192,10 +192,28 @@ describe('useEIP7702UpgradeFee', () => {
           from: ADDRESS,
           to: ADDRESS,
           type: TransactionEnvelopeType.setCode,
+          gas: '0x5208',
         },
         chainId: NETWORK.chainId,
         networkClientId: 'mainnet',
       });
+    });
+  });
+
+  it('passes the estimated gas into the layer 1 fee request', async () => {
+    mockEstimateGas.mockResolvedValue({
+      gas: '0xabc',
+      simulationFails: undefined,
+    });
+
+    renderHookWithProvider(() => useEIP7702UpgradeFee(), {});
+
+    await waitFor(() => {
+      expect(mockGetLayer1GasFee).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactionParams: expect.objectContaining({ gas: '0xabc' }),
+        }),
+      );
     });
   });
 
