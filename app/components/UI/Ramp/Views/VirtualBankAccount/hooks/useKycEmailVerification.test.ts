@@ -1,8 +1,11 @@
 import { Alert } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
-import { MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN } from '../constants';
-import { launchSumSubSdk } from '../launchSumSubSdk';
+import {
+  VBA_KYC_COUNTRY_CODE,
+  VBA_KYC_PRODUCT,
+  VBA_KYC_VENDOR,
+} from '../constants';
 import { useKycEmailVerification } from './useKycEmailVerification';
 
 const mockGoBack = jest.fn();
@@ -13,17 +16,23 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const mockKycControllerState = {
+  error: null as string | null,
+  vendorDisclaimers: [{ id: 'tc-1' }] as { id: string }[],
+  sumsub: { status: 'complete' as string },
+};
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
-      state: { error: null },
+      get state() {
+        return mockKycControllerState;
+      },
       createVendorCustomer: jest.fn(),
+      fetchSessionDisclaimers: jest.fn(),
+      acceptTermsAndStartSession: jest.fn(),
     },
   },
-}));
-
-jest.mock('../launchSumSubSdk', () => ({
-  launchSumSubSdk: jest.fn(),
 }));
 
 jest.mock('../../../../../../util/Logger', () => ({
@@ -35,10 +44,29 @@ jest.mock('../../../../../../util/Logger', () => ({
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
-  state: { error: string | null };
   createVendorCustomer: jest.Mock<Promise<void>, [unknown]>;
+  fetchSessionDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
+  acceptTermsAndStartSession: jest.Mock<Promise<void>, [unknown]>;
 };
-const mockLaunchSumSubSdk = jest.mocked(launchSumSubSdk);
+
+const catalog = {
+  idOS: [
+    {
+      key: 'idos-privacy',
+      version: '1',
+      title: 'idOS Privacy Policy',
+      url: 'https://idos.example/privacy',
+    },
+  ],
+  kycProvider: [
+    {
+      key: 'sumsub-terms',
+      version: '2',
+      title: 'Sumsub T&C',
+      url: 'https://sumsub.example/terms',
+    },
+  ],
+};
 
 const enterEmailAndStart = async (
   result: { current: ReturnType<typeof useKycEmailVerification> },
@@ -51,12 +79,12 @@ const enterEmailAndStart = async (
 describe('useKycEmailVerification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockKycController.state.error = null;
+    mockKycControllerState.error = null;
+    mockKycControllerState.vendorDisclaimers = [{ id: 'tc-1' }];
+    mockKycControllerState.sumsub.status = 'complete';
     mockKycController.createVendorCustomer.mockResolvedValue(undefined);
-    mockLaunchSumSubSdk.mockResolvedValue({
-      success: true,
-      status: 'Approved',
-    });
+    mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
+    mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
   });
 
   afterEach(() => {
@@ -75,34 +103,27 @@ describe('useKycEmailVerification', () => {
     expect(result.current.isContinueDisabled).toBe(false);
   });
 
-  it('creates the customer with the trimmed email and launches the Sumsub SDK', async () => {
+  it('creates the customer then starts the session with catalog consents', async () => {
     const { result } = renderHook(() => useKycEmailVerification());
 
     await enterEmailAndStart(result, '  user@example.com  ');
 
     expect(mockKycController.createVendorCustomer).toHaveBeenCalledWith({
-      vendor: 'iron',
+      vendor: VBA_KYC_VENDOR,
       email: 'user@example.com',
     });
-    expect(mockLaunchSumSubSdk).toHaveBeenCalledWith({
-      accessToken: MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-      onTokenExpired: expect.any(Function),
+    expect(mockKycController.fetchSessionDisclaimers).toHaveBeenCalledWith({
+      country: VBA_KYC_COUNTRY_CODE,
+    });
+    expect(mockKycController.acceptTermsAndStartSession).toHaveBeenCalledWith({
+      email: 'user@example.com',
+      product: VBA_KYC_PRODUCT,
+      providerDisclaimersAccepted: [{ key: 'sumsub-terms', version: '2' }],
+      idosDisclaimersAccepted: [{ key: 'idos-privacy', version: '1' }],
     });
   });
 
-  it('returns the mock applicant token when the SDK asks to refresh', async () => {
-    const { result } = renderHook(() => useKycEmailVerification());
-
-    await enterEmailAndStart(result);
-
-    const { onTokenExpired } = mockLaunchSumSubSdk.mock.calls[0][0];
-
-    await expect(onTokenExpired?.()).resolves.toBe(
-      MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-    );
-  });
-
-  it('alerts without reaching Sumsub when customer creation rejects', async () => {
+  it('alerts without starting the session when customer creation rejects', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
     mockKycController.createVendorCustomer.mockRejectedValue(
       new Error('Customer creation failed.'),
@@ -115,13 +136,13 @@ describe('useKycEmailVerification', () => {
       'Identity verification',
       'Customer creation failed.',
     );
-    expect(mockLaunchSumSubSdk).not.toHaveBeenCalled();
+    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
   });
 
-  it('alerts without reaching Sumsub when the controller records an error on state', async () => {
+  it('alerts without starting the session when the controller records an error on state', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
     mockKycController.createVendorCustomer.mockImplementation(async () => {
-      mockKycController.state.error = 'Customer creation failed.';
+      mockKycControllerState.error = 'Customer creation failed.';
     });
     const { result } = renderHook(() => useKycEmailVerification());
 
@@ -131,20 +152,52 @@ describe('useKycEmailVerification', () => {
       'Identity verification',
       'Customer creation failed.',
     );
-    expect(mockLaunchSumSubSdk).not.toHaveBeenCalled();
+    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
   });
 
-  it('alerts when the Sumsub SDK launch fails', async () => {
+  it('alerts when vendor terms have not been loaded', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockLaunchSumSubSdk.mockRejectedValueOnce(new Error('launch failed'));
+    mockKycControllerState.vendorDisclaimers = [];
     const { result } = renderHook(() => useKycEmailVerification());
 
     await enterEmailAndStart(result);
 
     expect(alertSpy).toHaveBeenCalledWith(
       'Identity verification',
-      'launch failed',
+      'Terms are not loaded yet. Go back to Get your Pix Key and try again.',
     );
+    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
+  });
+
+  it('alerts when acceptTermsAndStartSession records an error on state', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockKycController.acceptTermsAndStartSession.mockImplementation(
+      async () => {
+        mockKycControllerState.error = 'Iron session failed: consents.';
+      },
+    );
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    await enterEmailAndStart(result);
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Identity verification',
+      'Iron session failed: consents.',
+    );
+  });
+
+  it('does not alert when the applicant abandons Sumsub', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockKycController.acceptTermsAndStartSession.mockImplementation(
+      async () => {
+        mockKycControllerState.sumsub.status = 'abandoned';
+      },
+    );
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    await enterEmailAndStart(result);
+
+    expect(alertSpy).not.toHaveBeenCalled();
     expect(result.current.isVerifying).toBe(false);
   });
 
@@ -156,7 +209,7 @@ describe('useKycEmailVerification', () => {
     });
 
     expect(mockKycController.createVendorCustomer).not.toHaveBeenCalled();
-    expect(mockLaunchSumSubSdk).not.toHaveBeenCalled();
+    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
   });
 
   it('navigates back from goBack', () => {

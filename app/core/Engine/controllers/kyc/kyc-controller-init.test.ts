@@ -3,6 +3,7 @@ import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { getKycControllerMessenger } from '../../messengers/kyc/kyc-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
 import { kycControllerInit } from './kyc-controller-init';
+import { sumSubLauncher } from './sumSubLauncher';
 import {
   KycController,
   type KycControllerMessenger,
@@ -89,5 +90,11 @@ describe('kycControllerInit', () => {
     kycControllerInit(getInitRequestMock());
 
     expect(getLastConstructorArgs()?.state).toBeUndefined();
+  });
+
+  it('injects the SumSub launcher', () => {
+    kycControllerInit(getInitRequestMock());
+
+    expect(getLastConstructorArgs()?.sumsubLauncher).toBe(sumSubLauncher);
   });
 });

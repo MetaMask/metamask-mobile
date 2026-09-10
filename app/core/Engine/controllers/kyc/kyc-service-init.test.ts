@@ -30,6 +30,8 @@ function getInitRequestMock(): jest.Mocked<
 
 describe('kycServiceInit', () => {
   const originalKycApiUrl = process.env.KYC_API_URL;
+  const originalIdosEnclaveUrl = process.env.IDOS_ENCLAVE_URL;
+  const originalIdosRelayUrl = process.env.IDOS_RELAY_URL;
   const originalMetaMaskEnv = process.env.METAMASK_ENVIRONMENT;
 
   beforeEach(() => {
@@ -38,6 +40,8 @@ describe('kycServiceInit', () => {
 
   afterEach(() => {
     process.env.KYC_API_URL = originalKycApiUrl;
+    process.env.IDOS_ENCLAVE_URL = originalIdosEnclaveUrl;
+    process.env.IDOS_RELAY_URL = originalIdosRelayUrl;
     process.env.METAMASK_ENVIRONMENT = originalMetaMaskEnv;
   });
 
@@ -57,6 +61,31 @@ describe('kycServiceInit', () => {
       messenger: requestMock.controllerMessenger,
       fetch,
       baseUrl: 'https://kyc-api.example.com',
+    });
+  });
+
+  it('passes the configured idOS enclave and relay JWKS hosts', () => {
+    process.env.IDOS_ENCLAVE_URL = 'https://enclave.example.com';
+    process.env.IDOS_RELAY_URL = 'https://relay.example.com';
+
+    const { controller } = kycServiceInit(getInitRequestMock());
+
+    expect(controller).toMatchObject({
+      idosEnclaveBaseUrl: 'https://enclave.example.com',
+      idosRelayBaseUrl: 'https://relay.example.com',
+    });
+  });
+
+  it('falls back to env-keyed idOS hosts when the env vars are unset', () => {
+    delete process.env.IDOS_ENCLAVE_URL;
+    delete process.env.IDOS_RELAY_URL;
+    process.env.METAMASK_ENVIRONMENT = 'dev';
+
+    const { controller } = kycServiceInit(getInitRequestMock());
+
+    expect(controller).toMatchObject({
+      idosEnclaveBaseUrl: AppConstants.IDOS_ENCLAVE_URL.DEV,
+      idosRelayBaseUrl: AppConstants.IDOS_RELAY_URL.DEV,
     });
   });
 
