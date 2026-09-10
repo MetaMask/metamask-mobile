@@ -375,7 +375,7 @@ describe('useManageAccountsView', () => {
           isLocked: false,
           showsAddAccountFooter: false,
           rowVariantByGroupId: {
-            'snap:foo/0': ManageAccountRowVariant.None,
+            'snap:foo/0': ManageAccountRowVariant.Hide,
           },
         },
       },
