@@ -6,6 +6,7 @@ import {
   formatPlusPeriodEnd,
   mapPlusBenefitsToTradeAllowances,
 } from '../components/Views/ProHub/components/MemberPricingOnTrades/mapPlusBenefitsToTradeAllowances';
+import type { SubscriptionBenefitsState } from '@metamask/subscription-controller';
 import type { TradeAllowanceItem } from '../components/Views/ProHub/ProHub.constants';
 import {
   ensureResolved,
@@ -39,6 +40,7 @@ export enum MoneyAccountPlusBenefitsStatus {
 export interface MoneyAccountPlusBenefits {
   status: MoneyAccountPlusBenefitsStatus;
   items: TradeAllowanceItem[];
+  benefits: SubscriptionBenefitsState | undefined;
   resetsOn: string | undefined;
   isRefreshing: boolean;
   hasError: boolean;
@@ -111,6 +113,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     return {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
+      benefits: undefined,
       resetsOn: undefined,
       isRefreshing: false,
       hasError: false,
@@ -122,6 +125,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     return {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
+      benefits: undefined,
       resetsOn: undefined,
       isRefreshing: true,
       hasError: false,
@@ -133,6 +137,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     return {
       status: MoneyAccountPlusBenefitsStatus.Failed,
       items: [],
+      benefits: undefined,
       resetsOn: undefined,
       isRefreshing: false,
       hasError: true,
@@ -144,6 +149,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     return {
       status: MoneyAccountPlusBenefitsStatus.Empty,
       items: [],
+      benefits,
       resetsOn,
       isRefreshing: isUnresolved,
       hasError: resolutionStatus === 'error',
@@ -157,6 +163,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
         ? MoneyAccountPlusBenefitsStatus.Incomplete
         : MoneyAccountPlusBenefitsStatus.Ready,
     items,
+    benefits,
     resetsOn,
     isRefreshing: isUnresolved,
     hasError: resolutionStatus === 'error',
