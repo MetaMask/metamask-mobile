@@ -397,6 +397,12 @@ export class QrSyncController extends BaseController<
         );
       }
 
+      // NOTE: We need to initialize the account tree before importing any state. Since
+      // `:importState` needs to read the account-tree to check if wallets already
+      // exist. Also, worth noting that initializing the account-tree multiple times
+      // is safe and idempotent.
+      await AccountTreeInitService.initializeAccountTree();
+
       await this.messenger.call('AccountTreeController:importState', snapshot);
 
       this.finalizeSecretImport();
