@@ -62,23 +62,51 @@ re-adding equivalent local probes. The `HomepageReady` Sentry CUF already covers
 unlock → homepage window in production and is the durable place to watch this number, though it is
 not yet dashboarded.
 
-## The fix: pin the edge, don't patch the source
+## The fix: make the root pin the version the floating ranges already want
 
-Two targeted entries in `package.json` `resolutions`:
+One line in `package.json`:
 
-```json
-"@scure/bip32/@noble/curves": "1.9.6",
-"@metamask/key-tree/@noble/curves": "1.9.6",
+```diff
+-"@noble/curves": "1.9.6",
++"@noble/curves": "1.9.7",
 ```
 
-This dedupes exactly those two edges onto the root copy that `shimPerf.js` already patches. Nothing
-else in the tree moves — the other `@noble/curves` copies (`1.2.0` through `1.9.7`, spread across
-Ledger, Trezor, WalletConnect, Solana, viem and others) are untouched, which is deliberate: those
-packages have not been validated against the native implementation.
+`1.9.7` was already the highest published `1.x`, so every floating range in the tree resolved there
+while the root's exact pin stayed behind. Moving the root forward makes `~1.9.0` and `^1.8.1`
+converge on it naturally — no `resolutions` entries, no patch files, and the change is a net
+deletion in the lockfile.
 
-Patching package sources with `yarn patch` was considered and rejected. It would have carried two
-patch files and a `require('@metamask/native-utils')` inside third-party code, to achieve what a
-resolution pin achieves declaratively.
+Two alternatives were tried and rejected:
+
+- **Pinning the two edges down to 1.9.6** via `resolutions`. Works, and was the original approach,
+  but it leaves the rest of the tree fragmented and adds two entries that have to be kept in step
+  with the root pin forever.
+- **Patching sources with `yarn patch`.** Would carry two patch files and a
+  `require('@metamask/native-utils')` inside third-party code, to achieve what a version bump does
+  declaratively.
+
+### What this widens
+
+Deduplication drops `@noble/curves` from **25 copies (58.6 MB) to 12 (25.4 MB)** and puts 15
+packages on the patched copy, up from 3. Of the newcomers, only three actually call the patched
+`getPublicKey` — `@solana/web3.js` (7 call sites), `ripple-keypairs` (2) and
+`@metamask/toprf-secure-backup` (2). The rest import `@noble/curves/secp256k1` for signing, point
+arithmetic or modular utilities, or use ed25519/p256, none of which `shimPerf.js` touches.
+
+Seven consumers keep their own copies because they pin exact versions: `ethers` (`1.2.0`),
+`ethereum-cryptography` (`1.4.2` and `1.9.0`), `@walletconnect/relay-auth` (`1.8.0`),
+`@walletconnect/utils@2.19.x` (`1.8.1`), `ox@0.9.3` (`1.9.1`) and `viem` (`1.9.2`). Forcing those
+would mean overriding exact pins across seven minor versions of internal API churn, for no startup
+benefit. Don't.
+
+### Why 1.9.6 -> 1.9.7 is safe for the packages that move
+
+`secp256k1.js` and `abstract/weierstrass.js` — the entire secp256k1 implementation — are
+**byte-identical** between the two versions. The only differences anywhere are an ed25519 method
+rename (`toMontgomeryPriv` -> `toMontgomerySecret`) and re-export plumbing in
+`abstract/utils.js`, which drops three underscore-prefixed internals (`_abool2`, `_abytes2`,
+`_validateObject`). Nothing in the tree references any of them; the sole tree-wide hit is a
+self-bundled snap that resolves no dependencies of its own.
 
 ## Guarding it
 
@@ -92,8 +120,9 @@ Note the guard is a **resolution** check, not a runtime one. A runtime variant (
 assert `HDKey` observes it) was written and rejected: it passes even with the nested copies present,
 verified by reinstalling the drifted tree. It could not detect the regression it existed to catch.
 
-The resolution checks were verified in both directions — they fail on the drifted tree, naming the
-offending nested path, and pass once the edges are pinned.
+The resolution checks were verified in both directions — they fail on a drifted tree, naming the
+offending nested path, and pass once the versions converge. They assert _sameness with the root_,
+not a specific version, so they keep working across future bumps.
 
 Correctness was additionally verified **on device** against 13 vectors (4 private keys × compressed
 and uncompressed, the BIP-32 master fingerprint, three derivation paths, and `key-tree`'s
@@ -103,7 +132,8 @@ uncompressed output): `pass=13 fail=0`, with 5/5 cold unlocks reaching a usable 
 
 1. Run `yarn jest shimPerf.test.js`. If it fails, a new nested `@noble/curves` appeared on the
    unlock path.
-2. Fix it by pinning the edge in `resolutions`, not by patching sources.
+2. Prefer moving the root pin to the version the floating ranges already resolve to. Pin an
+   individual edge in `resolutions` only when that is impossible, and never patch sources.
 3. If a _new_ package needs to join the patched set, validate its output against the native
    implementation before pinning it — native and pure-JS must be byte-identical, for both
    compressed (33-byte) and uncompressed (65-byte) public keys.
