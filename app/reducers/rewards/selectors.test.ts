@@ -131,9 +131,9 @@ describe('Rewards selectors', () => {
   const TEST_SEASON_ID = 'test-season-id';
 
   const createMockRootState = (
-    rewardsState: Partial<RewardsState> & Record<string, unknown> = {},
+    rewardsState: Record<string, unknown> = {},
   ): RootState => {
-    const flat = rewardsState as Record<string, unknown>;
+    const flat = rewardsState;
     const hasSeasonIdKey = Object.prototype.hasOwnProperty.call(
       flat,
       'seasonId',
@@ -387,15 +387,25 @@ describe('Rewards selectors', () => {
     } as RootState;
   };
 
-  const normalizeRootState = (state: {
-    rewards?: Partial<RewardsState> & Record<string, unknown>;
-    engine?: { backgroundState?: unknown };
-  }): RootState => {
+  const normalizeRootState = (
+    state:
+      | {
+          rewards?: Record<string, unknown> | RewardsState;
+          engine?: { backgroundState?: unknown };
+        }
+      | RootState,
+  ): RootState => {
     // Already a createMockRootState result — avoid double-migration.
-    if (state.engine?.backgroundState !== undefined && state.rewards) {
-      return state as RootState;
+    if (
+      'engine' in state &&
+      state.engine?.backgroundState !== undefined &&
+      state.rewards
+    ) {
+      return state as unknown as RootState;
     }
-    return createMockRootState(state.rewards ?? {});
+    return createMockRootState(
+      (state.rewards ?? {}) as Record<string, unknown>,
+    );
   };
 
   beforeEach(() => {
@@ -404,7 +414,9 @@ describe('Rewards selectors', () => {
 
   describe('selectActiveTab', () => {
     it('returns null when activeTab is null', () => {
-      const mockState = { rewards: { activeTab: null } };
+      const mockState = {
+        rewards: { activeTab: null },
+      };
       mockedUseSelector.mockImplementation((selector) =>
         selector(normalizeRootState(mockState)),
       );
@@ -555,56 +567,24 @@ describe('Rewards selectors', () => {
   describe('selectIsVipReferee', () => {
     it('returns true when the referee is a VIP', () => {
       const state = createMockRootState({ isVipReferee: true });
-      expect(
-        selectIsVipReferee(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe(true);
+      expect(selectIsVipReferee(state)).toBe(true);
     });
 
     it('returns false when the referee is not a VIP', () => {
       const state = createMockRootState({ isVipReferee: false });
-      expect(
-        selectIsVipReferee(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe(false);
+      expect(selectIsVipReferee(state)).toBe(false);
     });
   });
 
   describe('selectReferredByVipCode', () => {
     it('returns the VIP referral code when referred by one', () => {
       const state = createMockRootState({ referredByVipCode: 'VIPCODE' });
-      expect(
-        selectReferredByVipCode(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe('VIPCODE');
+      expect(selectReferredByVipCode(state)).toBe('VIPCODE');
     });
 
     it('returns null when not referred by a VIP code', () => {
       const state = createMockRootState({ referredByVipCode: null });
-      expect(
-        selectReferredByVipCode(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBeNull();
+      expect(selectReferredByVipCode(state)).toBeNull();
     });
   });
 
@@ -1943,140 +1923,60 @@ describe('Rewards selectors', () => {
     describe('selectActiveTab direct calls', () => {
       it('returns correct active tab directly', () => {
         const state = createMockRootState({ activeTab: 'activity' });
-        expect(
-          selectActiveTab(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe('activity');
+        expect(selectActiveTab(state)).toBe('activity');
       });
     });
 
     describe('selectBalanceTotal direct calls', () => {
       it('returns correct balance total directly', () => {
         const state = createMockRootState({ balanceTotal: 2500 });
-        expect(
-          selectBalanceTotal(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(2500);
+        expect(selectBalanceTotal(state)).toBe(2500);
       });
 
       it('returns null when balance is null directly', () => {
         const state = createMockRootState({ balanceTotal: null });
-        expect(
-          selectBalanceTotal(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBeNull();
+        expect(selectBalanceTotal(state)).toBeNull();
       });
 
       it('handles negative balance correctly', () => {
         const state = createMockRootState({ balanceTotal: -100 });
-        expect(
-          selectBalanceTotal(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(-100);
+        expect(selectBalanceTotal(state)).toBe(-100);
       });
     });
 
     describe('selectReferralCount direct calls', () => {
       it('returns correct referral count directly', () => {
         const state = createMockRootState({ refereeCount: 42 });
-        expect(
-          selectReferralCount(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(42);
+        expect(selectReferralCount(state)).toBe(42);
       });
 
       it('handles zero referrals correctly', () => {
         const state = createMockRootState({ refereeCount: 0 });
-        expect(
-          selectReferralCount(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(0);
+        expect(selectReferralCount(state)).toBe(0);
       });
 
       it('handles large referral counts correctly', () => {
         const state = createMockRootState({ refereeCount: 9999 });
-        expect(
-          selectReferralCount(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(9999);
+        expect(selectReferralCount(state)).toBe(9999);
       });
     });
 
     describe('selectReferredByCode direct calls', () => {
       it('returns null when referred by code is null', () => {
         const state = createMockRootState({ referredByCode: null });
-        expect(
-          selectReferredByCode(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBeNull();
+        expect(selectReferredByCode(state)).toBeNull();
       });
 
       it('returns referred by code when set', () => {
         const state = createMockRootState({ referredByCode: 'REFERRER456' });
-        expect(
-          selectReferredByCode(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe('REFERRER456');
+        expect(selectReferredByCode(state)).toBe('REFERRER456');
       });
     });
 
     describe('selectSeasonTiers direct calls', () => {
       it('returns empty array when no tiers', () => {
         const state = createMockRootState({ seasonTiers: [] });
-        expect(
-          selectSeasonTiers(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual([]);
+        expect(selectSeasonTiers(state)).toEqual([]);
       });
 
       it('returns single tier correctly', () => {
@@ -2092,15 +1992,7 @@ describe('Rewards selectors', () => {
           rewards: [],
         };
         const state = createMockRootState({ seasonTiers: [tier] });
-        expect(
-          selectSeasonTiers(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual([tier]);
+        expect(selectSeasonTiers(state)).toEqual([tier]);
       });
 
       it('preserves tier order', () => {
@@ -2151,33 +2043,9 @@ describe('Rewards selectors', () => {
           },
         ];
         const state = createMockRootState({ seasonTiers: tiers });
-        expect(
-          selectSeasonTiers(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual(tiers);
-        expect(
-          selectSeasonTiers(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          )[0].name,
-        ).toBe('Bronze');
-        expect(
-          selectSeasonTiers(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          )[3].name,
-        ).toBe('Platinum');
+        expect(selectSeasonTiers(state)).toEqual(tiers);
+        expect(selectSeasonTiers(state)[0].name).toBe('Bronze');
+        expect(selectSeasonTiers(state)[3].name).toBe('Platinum');
       });
     });
 
@@ -2186,84 +2054,38 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({
           candidateSubscriptionId: 'pending',
         });
-        expect(
-          selectCandidateSubscriptionId(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe('pending');
+        expect(selectCandidateSubscriptionId(state)).toBe('pending');
       });
 
       it('returns error state correctly', () => {
         const state = createMockRootState({ candidateSubscriptionId: 'error' });
-        expect(
-          selectCandidateSubscriptionId(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe('error');
+        expect(selectCandidateSubscriptionId(state)).toBe('error');
       });
 
       it('returns actual subscription ID correctly', () => {
         const state = createMockRootState({
           candidateSubscriptionId: 'subscription-uuid-12345',
         });
-        expect(
-          selectCandidateSubscriptionId(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe('subscription-uuid-12345');
+        expect(selectCandidateSubscriptionId(state)).toBe(
+          'subscription-uuid-12345',
+        );
       });
 
       it('returns null correctly', () => {
         const state = createMockRootState({ candidateSubscriptionId: null });
-        expect(
-          selectCandidateSubscriptionId(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBeNull();
+        expect(selectCandidateSubscriptionId(state)).toBeNull();
       });
     });
 
     describe('selectActiveBoostsError direct calls', () => {
       it('returns false when no error', () => {
         const state = createMockRootState({ activeBoostsError: false });
-        expect(
-          selectActiveBoostsError(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(false);
+        expect(selectActiveBoostsError(state)).toBe(false);
       });
 
       it('returns true when error occurs', () => {
         const state = createMockRootState({ activeBoostsError: true });
-        expect(
-          selectActiveBoostsError(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(true);
+        expect(selectActiveBoostsError(state)).toBe(true);
       });
     });
 
@@ -2272,15 +2094,9 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({
           hideCurrentAccountNotOptedInBanner: [],
         });
-        expect(
-          selectHideCurrentAccountNotOptedInBannerArray(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual([]);
+        expect(selectHideCurrentAccountNotOptedInBannerArray(state)).toEqual(
+          [],
+        );
       });
 
       it('returns account configurations when set', () => {
@@ -2297,23 +2113,11 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({
           hideCurrentAccountNotOptedInBanner: accountConfigs,
         });
+        expect(selectHideCurrentAccountNotOptedInBannerArray(state)).toEqual(
+          accountConfigs,
+        );
         expect(
-          selectHideCurrentAccountNotOptedInBannerArray(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual(accountConfigs);
-        expect(
-          selectHideCurrentAccountNotOptedInBannerArray(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
+          selectHideCurrentAccountNotOptedInBannerArray(state),
         ).toHaveLength(2);
       });
 
@@ -2326,20 +2130,8 @@ describe('Rewards selectors', () => {
           hideCurrentAccountNotOptedInBanner: [accountConfig],
         });
 
-        const result1 = selectHideCurrentAccountNotOptedInBannerArray(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        );
-        const result2 = selectHideCurrentAccountNotOptedInBannerArray(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        );
+        const result1 = selectHideCurrentAccountNotOptedInBannerArray(state);
+        const result2 = selectHideCurrentAccountNotOptedInBannerArray(state);
 
         expect(result1).toBe(result2); // Same reference
         expect(result1).toEqual(result2); // Same value
@@ -2360,13 +2152,7 @@ describe('Rewards selectors', () => {
           hideCurrentAccountNotOptedInBanner: largeAccountConfigs,
         });
 
-        const result = selectHideCurrentAccountNotOptedInBannerArray(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        );
+        const result = selectHideCurrentAccountNotOptedInBannerArray(state);
         expect(result).toHaveLength(50);
         expect(result.filter((config) => config.hide)).toHaveLength(25);
         expect(result.filter((config) => !config.hide)).toHaveLength(25);
@@ -2404,33 +2190,9 @@ describe('Rewards selectors', () => {
           seasonEndDate: new Date('invalid-date'),
         });
 
-        expect(
-          selectBalanceUpdatedAt(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBeInstanceOf(Date);
-        expect(
-          selectSeasonStartDate(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBeInstanceOf(Date);
-        expect(
-          selectSeasonEndDate(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBeInstanceOf(Date);
+        expect(selectBalanceUpdatedAt(state)).toBeInstanceOf(Date);
+        expect(selectSeasonStartDate(state)).toBeInstanceOf(Date);
+        expect(selectSeasonEndDate(state)).toBeInstanceOf(Date);
       });
 
       it('handles null dates correctly', () => {
@@ -2440,33 +2202,9 @@ describe('Rewards selectors', () => {
           seasonEndDate: null,
         });
 
-        expect(
-          selectBalanceUpdatedAt(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBeNull();
-        expect(
-          selectSeasonStartDate(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBeNull();
-        expect(
-          selectSeasonEndDate(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBeNull();
+        expect(selectBalanceUpdatedAt(state)).toBeNull();
+        expect(selectSeasonStartDate(state)).toBeNull();
+        expect(selectSeasonEndDate(state)).toBeNull();
       });
 
       it('handles epoch dates correctly', () => {
@@ -2477,33 +2215,9 @@ describe('Rewards selectors', () => {
           seasonEndDate: epochDate,
         });
 
-        expect(
-          selectBalanceUpdatedAt(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual(epochDate);
-        expect(
-          selectSeasonStartDate(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual(epochDate);
-        expect(
-          selectSeasonEndDate(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual(epochDate);
+        expect(selectBalanceUpdatedAt(state)).toEqual(epochDate);
+        expect(selectSeasonStartDate(state)).toEqual(epochDate);
+        expect(selectSeasonEndDate(state)).toEqual(epochDate);
       });
     });
 
@@ -2515,33 +2229,9 @@ describe('Rewards selectors', () => {
           nextTierPointsNeeded: 0,
         });
 
-        expect(
-          selectBalanceTotal(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(0);
-        expect(
-          selectReferralCount(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(0);
-        expect(
-          selectNextTierPointsNeeded(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(0);
+        expect(selectBalanceTotal(state)).toBe(0);
+        expect(selectReferralCount(state)).toBe(0);
+        expect(selectNextTierPointsNeeded(state)).toBe(0);
       });
 
       it('handles negative values correctly', () => {
@@ -2551,33 +2241,9 @@ describe('Rewards selectors', () => {
           nextTierPointsNeeded: -10,
         });
 
-        expect(
-          selectBalanceTotal(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(-100);
-        expect(
-          selectReferralCount(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(-1);
-        expect(
-          selectNextTierPointsNeeded(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(-10);
+        expect(selectBalanceTotal(state)).toBe(-100);
+        expect(selectReferralCount(state)).toBe(-1);
+        expect(selectNextTierPointsNeeded(state)).toBe(-10);
       });
 
       it('handles very large numbers correctly', () => {
@@ -2587,33 +2253,9 @@ describe('Rewards selectors', () => {
           nextTierPointsNeeded: Number.MAX_SAFE_INTEGER,
         });
 
-        expect(
-          selectBalanceTotal(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(Number.MAX_SAFE_INTEGER);
-        expect(
-          selectReferralCount(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(1000000);
-        expect(
-          selectNextTierPointsNeeded(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(Number.MAX_SAFE_INTEGER);
+        expect(selectBalanceTotal(state)).toBe(Number.MAX_SAFE_INTEGER);
+        expect(selectReferralCount(state)).toBe(1000000);
+        expect(selectNextTierPointsNeeded(state)).toBe(Number.MAX_SAFE_INTEGER);
       });
 
       it('handles floating point numbers correctly', () => {
@@ -2621,15 +2263,7 @@ describe('Rewards selectors', () => {
           balanceTotal: 123.456789,
         });
 
-        expect(
-          selectBalanceTotal(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(123.456789);
+        expect(selectBalanceTotal(state)).toBe(123.456789);
       });
     });
 
@@ -2658,33 +2292,9 @@ describe('Rewards selectors', () => {
           geoLocation: longString,
         });
 
-        expect(
-          selectReferralCode(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(longString);
-        expect(
-          selectSeasonName(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(longString);
-        expect(
-          selectGeoLocation(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(longString);
+        expect(selectReferralCode(state)).toBe(longString);
+        expect(selectSeasonName(state)).toBe(longString);
+        expect(selectGeoLocation(state)).toBe(longString);
       });
 
       it('handles strings with special characters correctly', () => {
@@ -2696,33 +2306,9 @@ describe('Rewards selectors', () => {
           geoLocation: 'en-US',
         });
 
-        expect(
-          selectReferralCode(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(specialString);
-        expect(
-          selectSeasonName(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(unicodeString);
-        expect(
-          selectGeoLocation(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe('en-US');
+        expect(selectReferralCode(state)).toBe(specialString);
+        expect(selectSeasonName(state)).toBe(unicodeString);
+        expect(selectGeoLocation(state)).toBe('en-US');
       });
     });
 
@@ -2738,33 +2324,9 @@ describe('Rewards selectors', () => {
           seasonTiers: [incompleteTier],
         });
 
-        expect(
-          selectCurrentTier(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual(incompleteTier);
-        expect(
-          selectNextTier(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual(incompleteTier);
-        expect(
-          selectSeasonTiers(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual([incompleteTier]);
+        expect(selectCurrentTier(state)).toEqual(incompleteTier);
+        expect(selectNextTier(state)).toEqual(incompleteTier);
+        expect(selectSeasonTiers(state)).toEqual([incompleteTier]);
       });
 
       it('handles tiers with extra properties', () => {
@@ -2781,24 +2343,8 @@ describe('Rewards selectors', () => {
           nextTier: extendedTier,
         });
 
-        expect(
-          selectCurrentTier(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual(extendedTier);
-        expect(
-          selectNextTier(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual(extendedTier);
+        expect(selectCurrentTier(state)).toEqual(extendedTier);
+        expect(selectNextTier(state)).toEqual(extendedTier);
       });
     });
   });
@@ -2820,20 +2366,8 @@ describe('Rewards selectors', () => {
         };
         const state = createMockRootState({ currentTier: tier });
 
-        const result1 = selectCurrentTier(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        );
-        const result2 = selectCurrentTier(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        );
+        const result1 = selectCurrentTier(state);
+        const result2 = selectCurrentTier(state);
 
         expect(result1).toBe(result2); // Same reference
         expect(result1).toEqual(result2); // Same value
@@ -3575,20 +3109,8 @@ describe('Rewards selectors', () => {
       ];
       const state = createMockRootState({ pointsEvents: events });
 
-      const result1 = selectPointsEvents(
-        normalizeRootState(
-          state as {
-            rewards?: Partial<RewardsState> & Record<string, unknown>;
-          },
-        ),
-      );
-      const result2 = selectPointsEvents(
-        normalizeRootState(
-          state as {
-            rewards?: Partial<RewardsState> & Record<string, unknown>;
-          },
-        ),
-      );
+      const result1 = selectPointsEvents(state);
+      const result2 = selectPointsEvents(state);
 
       expect(result1).toBe(result2); // Same reference
       expect(result1).toEqual(result2); // Same value
@@ -3656,15 +3178,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: 'sub-123',
           },
         });
-        expect(
-          selectBulkLinkState(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual({
+        expect(selectBulkLinkState(state)).toEqual({
           isRunning: true,
           totalAccounts: 8,
           linkedAccounts: 4,
@@ -3727,15 +3241,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: 'sub-123',
           },
         });
-        expect(
-          selectBulkLinkIsRunning(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(true);
+        expect(selectBulkLinkIsRunning(state)).toBe(true);
       });
 
       it('returns false when not running', () => {
@@ -3749,15 +3255,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: null,
           },
         });
-        expect(
-          selectBulkLinkIsRunning(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(false);
+        expect(selectBulkLinkIsRunning(state)).toBe(false);
       });
     });
   });
@@ -3817,15 +3315,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: 'sub-123',
           },
         });
-        expect(
-          selectBulkLinkTotalAccounts(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(20);
+        expect(selectBulkLinkTotalAccounts(state)).toBe(20);
       });
     });
   });
@@ -3885,15 +3375,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: 'sub-123',
           },
         });
-        expect(
-          selectBulkLinkLinkedAccounts(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(5);
+        expect(selectBulkLinkLinkedAccounts(state)).toBe(5);
       });
     });
   });
@@ -3953,15 +3435,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: 'sub-123',
           },
         });
-        expect(
-          selectBulkLinkFailedAccounts(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(2);
+        expect(selectBulkLinkFailedAccounts(state)).toBe(2);
       });
     });
   });
@@ -4109,15 +3583,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: 'sub-123',
           },
         });
-        expect(
-          selectBulkLinkWasInterrupted(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(true);
+        expect(selectBulkLinkWasInterrupted(state)).toBe(true);
       });
 
       it('returns false when wasInterrupted is false', () => {
@@ -4131,15 +3597,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: null,
           },
         });
-        expect(
-          selectBulkLinkWasInterrupted(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(false);
+        expect(selectBulkLinkWasInterrupted(state)).toBe(false);
       });
 
       it('returns false for initial bulk link state', () => {
@@ -4153,15 +3611,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: null,
           },
         });
-        expect(
-          selectBulkLinkWasInterrupted(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(false);
+        expect(selectBulkLinkWasInterrupted(state)).toBe(false);
       });
     });
   });
@@ -4266,15 +3716,7 @@ describe('Rewards selectors', () => {
             initialSubscriptionId: null,
           },
         });
-        expect(
-          selectBulkLinkAccountProgress(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(0);
+        expect(selectBulkLinkAccountProgress(state)).toBe(0);
       });
 
       it('returns correct progress percentage', () => {
@@ -4289,15 +3731,7 @@ describe('Rewards selectors', () => {
           },
         });
         // (4 + 2) / 8 = 0.75
-        expect(
-          selectBulkLinkAccountProgress(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(0.75);
+        expect(selectBulkLinkAccountProgress(state)).toBe(0.75);
       });
 
       it('returns 1.0 when all accounts are processed', () => {
@@ -4312,15 +3746,7 @@ describe('Rewards selectors', () => {
           },
         });
         // (3 + 2) / 5 = 1.0
-        expect(
-          selectBulkLinkAccountProgress(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(1.0);
+        expect(selectBulkLinkAccountProgress(state)).toBe(1.0);
       });
     });
   });
@@ -4360,28 +3786,12 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         benefits: undefined as unknown as SubscriptionBenefitDto[],
       });
-      expect(
-        selectBenefits(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual([]);
+      expect(selectBenefits(state)).toEqual([]);
     });
 
     it('returns benefits when they exist', () => {
       const state = createMockRootState({ benefits: [mockBenefit] });
-      expect(
-        selectBenefits(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual([mockBenefit]);
+      expect(selectBenefits(state)).toEqual([mockBenefit]);
     });
   });
 
@@ -4512,15 +3922,7 @@ describe('Rewards selectors', () => {
         vipDashboardLoading: true,
       });
 
-      expect(
-        selectVipDashboardLoading(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe(true);
+      expect(selectVipDashboardLoading(state)).toBe(true);
     });
 
     it('returns error state', () => {
@@ -4528,15 +3930,7 @@ describe('Rewards selectors', () => {
         vipDashboardError: true,
       });
 
-      expect(
-        selectVipDashboardError(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe(true);
+      expect(selectVipDashboardError(state)).toBe(true);
     });
 
     it('returns false when VIP invite acceptance has no subscription id', () => {
@@ -4600,43 +3994,19 @@ describe('Rewards selectors', () => {
     describe('Direct selector calls', () => {
       it('returns empty array when campaigns is empty', () => {
         const state = createMockRootState({ campaigns: [] });
-        expect(
-          selectCampaigns(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual([]);
+        expect(selectCampaigns(state)).toEqual([]);
       });
 
       it('returns empty array when campaigns is undefined', () => {
         const state = createMockRootState({
           campaigns: undefined as unknown as CampaignDto[],
         });
-        expect(
-          selectCampaigns(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual([]);
+        expect(selectCampaigns(state)).toEqual([]);
       });
 
       it('returns campaigns when they exist', () => {
         const state = createMockRootState({ campaigns: [mockCampaign] });
-        expect(
-          selectCampaigns(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toEqual([mockCampaign]);
+        expect(selectCampaigns(state)).toEqual([mockCampaign]);
       });
     });
   });
@@ -4665,28 +4035,12 @@ describe('Rewards selectors', () => {
     describe('Direct selector calls', () => {
       it('returns false when campaignsLoading is false', () => {
         const state = createMockRootState({ campaignsLoading: false });
-        expect(
-          selectCampaignsLoading(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(false);
+        expect(selectCampaignsLoading(state)).toBe(false);
       });
 
       it('returns true when campaignsLoading is true', () => {
         const state = createMockRootState({ campaignsLoading: true });
-        expect(
-          selectCampaignsLoading(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(true);
+        expect(selectCampaignsLoading(state)).toBe(true);
       });
     });
   });
@@ -4715,28 +4069,12 @@ describe('Rewards selectors', () => {
     describe('Direct selector calls', () => {
       it('returns false when campaignsError is false', () => {
         const state = createMockRootState({ campaignsError: false });
-        expect(
-          selectCampaignsError(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(false);
+        expect(selectCampaignsError(state)).toBe(false);
       });
 
       it('returns true when campaignsError is true', () => {
         const state = createMockRootState({ campaignsError: true });
-        expect(
-          selectCampaignsError(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(true);
+        expect(selectCampaignsError(state)).toBe(true);
       });
     });
   });
@@ -4746,15 +4084,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: {},
       });
-      expect(
-        selectCampaignParticipantStatuses(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual({});
+      expect(selectCampaignParticipantStatuses(state)).toEqual({});
     });
 
     it('returns all participant statuses', () => {
@@ -4765,15 +4095,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         campaignParticipantStatuses: statuses,
       });
-      expect(
-        selectCampaignParticipantStatuses(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual(statuses);
+      expect(selectCampaignParticipantStatuses(state)).toEqual(statuses);
     });
   });
 
@@ -4924,95 +4246,39 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         versionGuardMinimumMobileVersion: '7.30.0',
       });
-      expect(
-        selectVersionGuardMinimumMobileVersion(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe('7.30.0');
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBe('7.30.0');
     });
 
     it('selectVersionGuardMinimumMobileVersion returns null when not set', () => {
       const state = createMockRootState({
         versionGuardMinimumMobileVersion: null,
       });
-      expect(
-        selectVersionGuardMinimumMobileVersion(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBeNull();
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
     });
 
     it('selectVersionGuardMinimumMobileVersion falls back to null when missing from older state', () => {
       const state = createMockRootState({});
-      expect(
-        selectVersionGuardMinimumMobileVersion(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBeNull();
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
     });
 
     it('selectVersionGuardLoading returns loading state', () => {
       const state = createMockRootState({ versionGuardLoading: true });
-      expect(
-        selectVersionGuardLoading(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe(true);
+      expect(selectVersionGuardLoading(state)).toBe(true);
     });
 
     it('selectVersionGuardLoading falls back to false when missing from older state', () => {
       const state = createMockRootState({});
-      expect(
-        selectVersionGuardLoading(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe(false);
+      expect(selectVersionGuardLoading(state)).toBe(false);
     });
 
     it('selectVersionGuardError returns error state', () => {
       const state = createMockRootState({ versionGuardError: true });
-      expect(
-        selectVersionGuardError(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe(true);
+      expect(selectVersionGuardError(state)).toBe(true);
     });
 
     it('selectVersionGuardError falls back to false when missing from older state', () => {
       const state = createMockRootState({});
-      expect(
-        selectVersionGuardError(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toBe(false);
+      expect(selectVersionGuardError(state)).toBe(false);
     });
 
     describe('selectIsRewardsVersionBlocked', () => {
@@ -5033,15 +4299,7 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({
           versionGuardMinimumMobileVersion: null,
         });
-        expect(
-          selectIsRewardsVersionBlocked(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(false);
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
       });
 
       it('returns false when current version meets minimum', () => {
@@ -5049,15 +4307,7 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({
           versionGuardMinimumMobileVersion: '7.50.0',
         });
-        expect(
-          selectIsRewardsVersionBlocked(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(false);
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
       });
 
       it('returns true when current version is below minimum', () => {
@@ -5065,15 +4315,7 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({
           versionGuardMinimumMobileVersion: '99.0.0',
         });
-        expect(
-          selectIsRewardsVersionBlocked(
-            normalizeRootState(
-              state as {
-                rewards?: Partial<RewardsState> & Record<string, unknown>;
-              },
-            ),
-          ),
-        ).toBe(true);
+        expect(selectIsRewardsVersionBlocked(state)).toBe(true);
       });
     });
   });
@@ -5486,15 +4728,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         ondoCampaignLeaderboardPositions: {},
       });
-      expect(
-        selectOndoCampaignLeaderboardPositions(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual({});
+      expect(selectOndoCampaignLeaderboardPositions(state)).toEqual({});
     });
 
     it('returns positions when set', () => {
@@ -5502,15 +4736,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         ondoCampaignLeaderboardPositions: positions,
       });
-      expect(
-        selectOndoCampaignLeaderboardPositions(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual(positions);
+      expect(selectOndoCampaignLeaderboardPositions(state)).toEqual(positions);
     });
   });
 
@@ -5560,15 +4786,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         ondoCampaignPortfolio: {},
       });
-      expect(
-        selectOndoCampaignPortfolio(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual({});
+      expect(selectOndoCampaignPortfolio(state)).toEqual({});
     });
 
     it('returns portfolios when set', () => {
@@ -5576,15 +4794,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         ondoCampaignPortfolio: portfolios,
       });
-      expect(
-        selectOndoCampaignPortfolio(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual(portfolios);
+      expect(selectOndoCampaignPortfolio(state)).toEqual(portfolios);
     });
   });
 
@@ -5893,15 +5103,7 @@ describe('Rewards selectors', () => {
   describe('selectDismissedCampaignOutcomeToasts', () => {
     it('returns empty object when no toasts have been dismissed', () => {
       const state = createMockRootState({ dismissedCampaignOutcomeToasts: {} });
-      expect(
-        selectDismissedCampaignOutcomeToasts(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual({});
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual({});
     });
 
     it('returns empty object when dismissed toasts are undefined', () => {
@@ -5911,15 +5113,7 @@ describe('Rewards selectors', () => {
           boolean
         >,
       });
-      expect(
-        selectDismissedCampaignOutcomeToasts(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual({});
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual({});
     });
 
     it('returns the dismissed toasts map', () => {
@@ -5930,15 +5124,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: dismissed,
       });
-      expect(
-        selectDismissedCampaignOutcomeToasts(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual(dismissed);
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual(dismissed);
     });
 
     it('returns true for a dismissed toast key', () => {
@@ -5947,13 +5133,7 @@ describe('Rewards selectors', () => {
           'campaign-1:sub-1:winner': true,
         },
       });
-      const result = selectDismissedCampaignOutcomeToasts(
-        normalizeRootState(
-          state as {
-            rewards?: Partial<RewardsState> & Record<string, unknown>;
-          },
-        ),
-      );
+      const result = selectDismissedCampaignOutcomeToasts(state);
       expect(result['campaign-1:sub-1:winner']).toBe(true);
     });
 
@@ -5961,13 +5141,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         dismissedCampaignOutcomeToasts: {},
       });
-      const result = selectDismissedCampaignOutcomeToasts(
-        normalizeRootState(
-          state as {
-            rewards?: Partial<RewardsState> & Record<string, unknown>;
-          },
-        ),
-      );
+      const result = selectDismissedCampaignOutcomeToasts(state);
       expect(result['campaign-1:sub-1:winner']).toBeUndefined();
     });
   });
@@ -6014,15 +5188,7 @@ describe('Rewards selectors', () => {
   describe('selectSubscribedCampaignReminders', () => {
     it('returns empty object when no reminders have been subscribed', () => {
       const state = createMockRootState({ subscribedCampaignReminders: {} });
-      expect(
-        selectSubscribedCampaignReminders(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual({});
+      expect(selectSubscribedCampaignReminders(state)).toEqual({});
     });
 
     it('returns empty object when subscribed reminders are undefined', () => {
@@ -6032,15 +5198,7 @@ describe('Rewards selectors', () => {
           boolean
         >,
       });
-      expect(
-        selectSubscribedCampaignReminders(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual({});
+      expect(selectSubscribedCampaignReminders(state)).toEqual({});
     });
 
     it('returns the subscribed reminders map', () => {
@@ -6051,15 +5209,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         subscribedCampaignReminders: subscribed,
       });
-      expect(
-        selectSubscribedCampaignReminders(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual(subscribed);
+      expect(selectSubscribedCampaignReminders(state)).toEqual(subscribed);
     });
   });
 
@@ -6071,15 +5221,7 @@ describe('Rewards selectors', () => {
           subscriptionId: null,
         },
       });
-      expect(
-        selectPendingMasSeriesOptIn(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual({
+      expect(selectPendingMasSeriesOptIn(state)).toEqual({
         needsRetry: false,
         subscriptionId: null,
       });
@@ -6093,15 +5235,7 @@ describe('Rewards selectors', () => {
       const state = createMockRootState({
         pendingMasSeriesOptIn: pending,
       });
-      expect(
-        selectPendingMasSeriesOptIn(
-          normalizeRootState(
-            state as {
-              rewards?: Partial<RewardsState> & Record<string, unknown>;
-            },
-          ),
-        ),
-      ).toEqual(pending);
+      expect(selectPendingMasSeriesOptIn(state)).toEqual(pending);
     });
   });
 });

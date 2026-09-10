@@ -55,9 +55,7 @@ describe('useBenefits', () => {
   const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
     typeof useFocusEffect
   >;
-  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
-    typeof Engine.controllerMessenger.call
-  >;
+  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
   const mockSetBenefits = setBenefits as jest.MockedFunction<
     typeof setBenefits
   >;

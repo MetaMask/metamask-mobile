@@ -68,9 +68,7 @@ describe('useVipRefereeDashboard', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
-    typeof Engine.controllerMessenger.call
-  >;
+  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
   const mockSetVipRefereeDashboard =
     setVipRefereeDashboard as jest.MockedFunction<
       typeof setVipRefereeDashboard

@@ -126,6 +126,30 @@ const seasonUserKey = (
   subscriptionId = TEST_SUBSCRIPTION_ID,
 ) => `${seasonId}:${subscriptionId}`;
 
+const preservedReferralDetails = (referralCode: string) => ({
+  [TEST_SUBSCRIPTION_ID]: {
+    referralCode,
+    refereeCount: 0,
+    referredByCode: null as string | null,
+    isVipReferee: false,
+    referredByVipCode: null as string | null,
+    loading: false,
+    error: false,
+  },
+});
+
+const preservedSeasonUserStatuses = (balanceTotal: number) => ({
+  [seasonUserKey('season-1')]: {
+    balanceTotal,
+    balanceUpdatedAt: null as Date | null,
+    currentTier: null,
+    nextTier: null,
+    nextTierPointsNeeded: null as number | null,
+    loading: false,
+    error: null as string | null,
+  },
+});
+
 describe('rewardsReducer', () => {
   it('returns the initial state', () => {
     // Arrange & Act
@@ -561,8 +585,8 @@ describe('rewardsReducer', () => {
         ...initialState,
         onboardingActiveStep: OnboardingStep.STEP_4,
         onboardingReferralCode: 'REF456',
-        referralCode: 'KEEP123',
-        balanceTotal: 1500,
+        referralDetails: preservedReferralDetails('KEEP123'),
+        seasonUserStatuses: preservedSeasonUserStatuses(1500),
       };
       const action = resetOnboarding();
 
@@ -572,8 +596,12 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
       expect(state.onboardingReferralCode).toBeNull();
-      expect(state.referralCode).toBe('KEEP123');
-      expect(state.balanceTotal).toBe(1500);
+      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+        'KEEP123',
+      );
+      expect(
+        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
+      ).toBe(1500);
     });
   });
 
@@ -624,8 +652,8 @@ describe('rewardsReducer', () => {
       const stateWithData = {
         ...initialState,
         onboardingActiveStep: OnboardingStep.STEP_2,
-        referralCode: 'KEEP123',
-        balanceTotal: 1500,
+        referralDetails: preservedReferralDetails('KEEP123'),
+        seasonUserStatuses: preservedSeasonUserStatuses(1500),
       };
       const action = setOnboardingReferralCode('REF789');
 
@@ -635,8 +663,12 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.onboardingReferralCode).toBe('REF789');
       expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_2);
-      expect(state.referralCode).toBe('KEEP123');
-      expect(state.balanceTotal).toBe(1500);
+      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+        'KEEP123',
+      );
+      expect(
+        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
+      ).toBe(1500);
     });
   });
 
@@ -1041,8 +1073,8 @@ describe('rewardsReducer', () => {
         const stateWithData = {
           ...initialState,
           hideUnlinkedAccountsBanner: false,
-          referralCode: 'KEEP123',
-          balanceTotal: 1500,
+          referralDetails: preservedReferralDetails('KEEP123'),
+          seasonUserStatuses: preservedSeasonUserStatuses(1500),
         };
         const action = setHideUnlinkedAccountsBanner(true);
 
@@ -1051,8 +1083,12 @@ describe('rewardsReducer', () => {
 
         // Assert
         expect(state.hideUnlinkedAccountsBanner).toBe(true);
-        expect(state.referralCode).toBe('KEEP123');
-        expect(state.balanceTotal).toBe(1500);
+        expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+          'KEEP123',
+        );
+        expect(
+          state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
+        ).toBe(1500);
       });
     });
 
@@ -1181,7 +1217,7 @@ describe('rewardsReducer', () => {
         const stateWithData = {
           ...initialState,
           activeTab: 'activity' as const,
-          referralCode: 'TEST123',
+          referralDetails: preservedReferralDetails('TEST123'),
           hideUnlinkedAccountsBanner: true,
         };
         const accountGroupId: AccountGroupId = 'keyring:wallet1/1';
@@ -1196,7 +1232,9 @@ describe('rewardsReducer', () => {
         // Assert
         expect(state.hideCurrentAccountNotOptedInBanner).toHaveLength(1);
         expect(state.activeTab).toBe('activity');
-        expect(state.referralCode).toBe('TEST123');
+        expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+          'TEST123',
+        );
         expect(state.hideUnlinkedAccountsBanner).toBe(true);
       });
     });
@@ -1344,8 +1382,8 @@ describe('rewardsReducer', () => {
         // Arrange
         const stateWithData = {
           ...initialState,
-          referralCode: 'SOME_CODE',
-          balanceTotal: 1000,
+          referralDetails: preservedReferralDetails('SOME_CODE'),
+          seasonUserStatuses: preservedSeasonUserStatuses(1000),
           activeTab: 'activity' as const,
         };
         const unknownAction = { type: 'UNKNOWN_ACTION', payload: 'some data' };
@@ -1596,8 +1634,8 @@ describe('rewardsReducer', () => {
       const stateWithData = {
         ...initialState,
         activeTab: 'activity' as const,
-        referralCode: 'TEST123',
-        balanceTotal: 1000,
+        referralDetails: preservedReferralDetails('TEST123'),
+        seasonUserStatuses: preservedSeasonUserStatuses(1000),
       };
       const action = bulkLinkStarted({
         totalAccounts: 5,
@@ -1612,8 +1650,12 @@ describe('rewardsReducer', () => {
       expect(state.bulkLink.totalAccounts).toBe(5);
       expect(state.bulkLink.initialSubscriptionId).toBe('test-sub');
       expect(state.activeTab).toBe('activity');
-      expect(state.referralCode).toBe('TEST123');
-      expect(state.balanceTotal).toBe(1000);
+      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+        'TEST123',
+      );
+      expect(
+        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
+      ).toBe(1000);
     });
   });
 
@@ -1720,7 +1762,7 @@ describe('rewardsReducer', () => {
       const stateWithData = {
         ...initialState,
         activeTab: 'activity' as const,
-        referralCode: 'TEST456',
+        referralDetails: preservedReferralDetails('TEST456'),
         bulkLink: {
           isRunning: true,
           totalAccounts: 5,
@@ -1738,7 +1780,9 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.bulkLink.linkedAccounts).toBe(3);
       expect(state.activeTab).toBe('activity');
-      expect(state.referralCode).toBe('TEST456');
+      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+        'TEST456',
+      );
     });
   });
 
@@ -1798,7 +1842,7 @@ describe('rewardsReducer', () => {
       const stateWithData = {
         ...initialState,
         activeTab: 'overview' as const,
-        balanceTotal: 500,
+        seasonUserStatuses: preservedSeasonUserStatuses(500),
         bulkLink: {
           isRunning: true,
           totalAccounts: 3,
@@ -1816,7 +1860,9 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.bulkLink.isRunning).toBe(false);
       expect(state.activeTab).toBe('overview');
-      expect(state.balanceTotal).toBe(500);
+      expect(
+        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
+      ).toBe(500);
     });
   });
 
@@ -1875,7 +1921,7 @@ describe('rewardsReducer', () => {
       // Arrange
       const stateWithData = {
         ...initialState,
-        referralCode: 'CANCEL_TEST',
+        referralDetails: preservedReferralDetails('CANCEL_TEST'),
         bulkLink: {
           isRunning: true,
           totalAccounts: 4,
@@ -1892,7 +1938,9 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.bulkLink.isRunning).toBe(false);
-      expect(state.referralCode).toBe('CANCEL_TEST');
+      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+        'CANCEL_TEST',
+      );
     });
   });
 
@@ -1952,7 +2000,7 @@ describe('rewardsReducer', () => {
       const stateWithData = {
         ...initialState,
         activeTab: 'activity' as const,
-        balanceTotal: 2000,
+        seasonUserStatuses: preservedSeasonUserStatuses(2000),
         bulkLink: {
           isRunning: true,
           totalAccounts: 6,
@@ -1977,7 +2025,9 @@ describe('rewardsReducer', () => {
         initialSubscriptionId: null,
       });
       expect(state.activeTab).toBe('activity');
-      expect(state.balanceTotal).toBe(2000);
+      expect(
+        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
+      ).toBe(2000);
     });
   });
 
@@ -2036,7 +2086,7 @@ describe('rewardsReducer', () => {
       // Arrange
       const stateWithData = {
         ...initialState,
-        referralCode: 'CANCEL_EXTRA_TEST',
+        referralDetails: preservedReferralDetails('CANCEL_EXTRA_TEST'),
         bulkLink: {
           isRunning: true,
           totalAccounts: 4,
@@ -2053,7 +2103,9 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.bulkLink.isRunning).toBe(false);
-      expect(state.referralCode).toBe('CANCEL_EXTRA_TEST');
+      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+        'CANCEL_EXTRA_TEST',
+      );
     });
   });
 
@@ -2114,8 +2166,8 @@ describe('rewardsReducer', () => {
       // Arrange
       const stateWithData = {
         ...initialState,
-        referralCode: 'SUB_CHANGED_TEST',
-        balanceTotal: 5000,
+        referralDetails: preservedReferralDetails('SUB_CHANGED_TEST'),
+        seasonUserStatuses: preservedSeasonUserStatuses(5000),
         bulkLink: {
           isRunning: true,
           totalAccounts: 6,
@@ -2134,8 +2186,12 @@ describe('rewardsReducer', () => {
       expect(state.bulkLink.isRunning).toBe(false);
       expect(state.bulkLink.wasInterrupted).toBe(false);
       expect(state.bulkLink.initialSubscriptionId).toBeNull();
-      expect(state.referralCode).toBe('SUB_CHANGED_TEST');
-      expect(state.balanceTotal).toBe(5000);
+      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+        'SUB_CHANGED_TEST',
+      );
+      expect(
+        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
+      ).toBe(5000);
     });
 
     it('clears pendingMasSeriesOptIn when subscription changes', () => {
@@ -2236,8 +2292,8 @@ describe('rewardsReducer', () => {
       // Arrange
       const stateWithData = {
         ...initialState,
-        referralCode: 'RESUME_TEST',
-        balanceTotal: 3000,
+        referralDetails: preservedReferralDetails('RESUME_TEST'),
+        seasonUserStatuses: preservedSeasonUserStatuses(3000),
         bulkLink: {
           isRunning: false,
           totalAccounts: 5,
@@ -2255,8 +2311,12 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state.bulkLink.isRunning).toBe(true);
       expect(state.bulkLink.wasInterrupted).toBe(false);
-      expect(state.referralCode).toBe('RESUME_TEST');
-      expect(state.balanceTotal).toBe(3000);
+      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+        'RESUME_TEST',
+      );
+      expect(
+        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
+      ).toBe(3000);
     });
   });
 
@@ -5074,8 +5134,8 @@ describe('rewardsReducer', () => {
     it('does not affect other state properties', () => {
       const stateWithData = {
         ...initialState,
-        referralCode: 'KEEP_ME',
-        balanceTotal: 42,
+        referralDetails: preservedReferralDetails('KEEP_ME'),
+        seasonUserStatuses: preservedSeasonUserStatuses(42),
       };
       const action = setPendingMasSeriesOptIn({
         needsRetry: true,
@@ -5085,8 +5145,12 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(stateWithData, action);
 
       expect(state.pendingMasSeriesOptIn.needsRetry).toBe(true);
-      expect(state.referralCode).toBe('KEEP_ME');
-      expect(state.balanceTotal).toBe(42);
+      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
+        'KEEP_ME',
+      );
+      expect(
+        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
+      ).toBe(42);
     });
   });
 

@@ -48,9 +48,7 @@ describe('useReferralDetails', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
-    typeof Engine.controllerMessenger.call
-  >;
+  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;

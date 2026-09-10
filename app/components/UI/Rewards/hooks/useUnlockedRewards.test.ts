@@ -62,9 +62,7 @@ describe('useUnlockedRewards', () => {
     typeof useSelector
   >;
 
-  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
-    typeof Engine.controllerMessenger.call
-  >;
+  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
 
   const mockUnlockedRewards = [
     {
@@ -321,7 +319,8 @@ describe('useUnlockedRewards', () => {
       setUnlockedRewards({
         subscriptionId: 'test-subscription-id',
         seasonId: 'test-season-id',
-        rewards: undefined,
+        // Controller may return undefined; action payload type is null | RewardDto[]
+        rewards: undefined as unknown as null,
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(

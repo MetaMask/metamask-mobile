@@ -67,9 +67,7 @@ describe('useSeasonStatus', () => {
   const mockUseDispatch = useDispatch as jest.MockedFunction<
     typeof useDispatch
   >;
-  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
-    typeof Engine.controllerMessenger.call
-  >;
+  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
   const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
     typeof useFocusEffect
   >;
