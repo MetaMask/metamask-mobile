@@ -998,6 +998,8 @@
     "settings": {
       "avatarAccountType": "Maskicon",
       "basicFunctionalityEnabled": true,
+      "basicFunctionalityMigrationNotification": null,
+      "basicFunctionalityMigrationNotificationDismissed": false,
       "isBasicFunctionalityConsolidatedEnabled": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
