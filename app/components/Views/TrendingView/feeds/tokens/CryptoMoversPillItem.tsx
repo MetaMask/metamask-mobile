@@ -4,7 +4,7 @@ import { isCaipChainId } from '@metamask/utils';
 import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import {
   getCaipChainIdFromAssetId,
-  getNetworkBadgeSource,
+  getNetworkBadgeSrc,
   getPriceChangeFieldKey,
 } from '../../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import TrendingTokenLogo from '../../../../UI/Trending/components/TrendingTokenLogo';
@@ -52,7 +52,7 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   const networkBadgeImageSource = useMemo(() => {
     const caipChainId = getCaipChainIdFromAssetId(token.assetId);
     if (!isCaipChainId(caipChainId)) return undefined;
-    return getNetworkBadgeSource(caipChainId);
+    return getNetworkBadgeSrc(caipChainId);
   }, [token.assetId]);
 
   const { changeLabel, changeTextColor } = useMemo(() => {

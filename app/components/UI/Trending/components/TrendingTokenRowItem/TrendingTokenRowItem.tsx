@@ -23,7 +23,7 @@ import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils'
 import {
   caipChainIdToHex,
   getCaipChainIdFromAssetId,
-  getNetworkBadgeSource,
+  getNetworkBadgeSrc,
   formatMarketStats,
   getPriceChangeFieldKey,
 } from './utils';
@@ -150,7 +150,7 @@ const TrendingTokenRowItem = ({
   );
 
   const networkBadgeImageSource = useMemo(
-    () => getNetworkBadgeSource(caipChainId),
+    () => getNetworkBadgeSrc(caipChainId),
     [caipChainId],
   );
 

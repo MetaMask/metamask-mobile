@@ -26,40 +26,37 @@ export const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
 
 export { caipChainIdToHex };
 
-const toImageOrSvgSrc = (
-  source: ImageSourcePropType | string | undefined,
-): ImageOrSvgSrc | undefined => {
-  if (source === undefined) return undefined;
-  return source as ImageOrSvgSrc;
-};
-
 export const getNetworkBadgeSource = (
   caipChainId: CaipChainId,
-): ImageOrSvgSrc | undefined => {
+): ImageSourcePropType | undefined => {
   const hexChainId = caipChainIdToHex(caipChainId);
-  if (isTestNet(hexChainId)) {
-    return toImageOrSvgSrc(getTestNetImageByChainId(hexChainId));
-  }
+  if (isTestNet(hexChainId)) return getTestNetImageByChainId(hexChainId);
   const defaultNetwork = getDefaultNetworkByChainId(hexChainId) as
-    | { imageSource: ImageSourcePropType | string }
+    | { imageSource: ImageSourcePropType }
     | undefined;
-  if (defaultNetwork) return toImageOrSvgSrc(defaultNetwork.imageSource);
+  if (defaultNetwork) return defaultNetwork.imageSource;
   const unpopularNetwork = UnpopularNetworkList.find(
     (n) => n.chainId === hexChainId,
   );
   const popularNetwork = PopularList.find((n) => n.chainId === hexChainId);
   const network = unpopularNetwork || popularNetwork;
-  if (network) return toImageOrSvgSrc(network.rpcPrefs.imageSource);
+  if (network) return network.rpcPrefs.imageSource;
   if (
     isCaipChainId(caipChainId) &&
     parseCaipChainId(caipChainId).namespace !== KnownCaipNamespace.Eip155
   ) {
-    return toImageOrSvgSrc(getNonEvmNetworkImageSourceByChainId(caipChainId));
+    return getNonEvmNetworkImageSourceByChainId(caipChainId);
   }
   const customNetworkImg = CustomNetworkImgMapping[hexChainId];
-  if (customNetworkImg) return toImageOrSvgSrc(customNetworkImg);
+  if (customNetworkImg) return customNetworkImg as ImageSourcePropType;
   return undefined;
 };
+
+/** Same lookup as `getNetworkBadgeSource`, typed for design-system `BadgeNetwork`. */
+export const getNetworkBadgeSrc = (
+  caipChainId: CaipChainId,
+): ImageOrSvgSrc | undefined =>
+  getNetworkBadgeSource(caipChainId) as ImageOrSvgSrc | undefined;
 
 /**
  * Formats a number as compact currency string with magnitude abbreviations
