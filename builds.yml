@@ -72,7 +72,7 @@ _main_dev_env: &main_dev_env
   MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
   # TODO: Decouple configuration, profile, and build type
   PROFILE: 'development'
-  DEV_OAUTH_CONFIG: 'true'
+  DEV_OAUTH_CONFIG: 'false'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -493,7 +493,8 @@ builds:
       CONFIGURATION: 'Debug'
       # TODO: Decouple configuration, profile, and build type
       PROFILE: 'development'
-      DEV_OAUTH_CONFIG: 'true'
+      # false → main_dev OAuth (mm-google-dev-*). true forces legacy development/byoa-server.
+      DEV_OAUTH_CONFIG: 'false'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
@@ -584,6 +585,7 @@ builds:
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       IS_SIM_BUILD: 'true'
       CONFIGURATION: 'Debug'
-      DEV_OAUTH_CONFIG: 'true'
+      # false → flask_dev OAuth. true forces legacy development/byoa-server.
+      DEV_OAUTH_CONFIG: 'false'
     secrets: *secrets
     code_fencing: *code_fencing_flask

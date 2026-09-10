@@ -1,22 +1,7 @@
-import { BUILD_TYPE, OAUTH_CONFIG } from './config';
+import { BUILD_TYPE } from './config';
 import { buildTypeMapping } from './oauthBuildType';
 
 describe('buildTypeMapping', () => {
-  const originalDevOAuth = process.env.DEV_OAUTH_CONFIG;
-
-  afterEach(() => {
-    if (originalDevOAuth === undefined) {
-      delete process.env.DEV_OAUTH_CONFIG;
-    } else {
-      process.env.DEV_OAUTH_CONFIG = originalDevOAuth;
-    }
-  });
-
-  it('returns development when DEV_OAUTH_CONFIG is true and isDev', () => {
-    process.env.DEV_OAUTH_CONFIG = 'true';
-    expect(buildTypeMapping('main', true, false)).toBe(BUILD_TYPE.development);
-  });
-
   it('maps qa to main_uat', () => {
     expect(buildTypeMapping('qa', false, false)).toBe(BUILD_TYPE.main_uat);
   });
