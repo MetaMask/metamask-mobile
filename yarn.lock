@@ -2098,17 +2098,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@braze/react-native-sdk@npm:19.1.0":
-  version: 19.1.0
-  resolution: "@braze/react-native-sdk@npm:19.1.0"
-  checksum: 10/2d279c2e40783eb73bd8d508e00cd36afec7da4bab3e0d34a0a5ef32cfd75badc2443428d37405b8e46f6d9eb959e1b9dd7e7ec6e555364b2e9c685f7ce2a63f
-  languageName: node
-  linkType: hard
-
-"@braze/react-native-sdk@patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch":
-  version: 19.1.0
-  resolution: "@braze/react-native-sdk@patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch::version=19.1.0&hash=04a867"
-  checksum: 10/b7295724be9840081daccc26c380a52a3cce12b9898ad0bfff8e3eb2b89b82b0bb60a80b546ad099922978155c86eaff935a57bedee4eda32e5d718d25af54f9
+"@braze/react-native-sdk@npm:23.0.0":
+  version: 23.0.0
+  resolution: "@braze/react-native-sdk@npm:23.0.0"
+  checksum: 10/a4023bbaebd9373fe80fce33a63939cd6c96ce68bac8ce81954a8b83e456f10081421239d902a279855307f74515ad03f72f9be6d2c9af0760f7eb105f966df1
   languageName: node
   linkType: hard
 
@@ -9922,15 +9915,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:0.44.0":
-  version: 0.44.0
-  resolution: "@metamask/design-system-react-native@npm:0.44.0"
+"@metamask/design-system-react-native@npm:0.45.0":
+  version: 0.45.0
+  resolution: "@metamask/design-system-react-native@npm:0.45.0"
   dependencies:
     "@metamask/design-system-shared": "npm:^0.36.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
-    "@metamask/design-system-twrnc-preset": ^0.10.0
-    "@metamask/design-tokens": ^10.0.0
+    "@metamask/design-system-twrnc-preset": ^0.11.0
+    "@metamask/design-tokens": ^11.0.0
     "@metamask/utils": ^11.12.1
     expo-image: ">=3.0.0"
     lodash: ^4.17.21
@@ -9940,19 +9933,19 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/4ea74f47e08de6fb7185ce6b897e660e79c9392897d5b9b8f6a1cb2e1907169b1da47d6bfcb842b28455b9834bb003de6b3bbbf75b9a0d46659a845e693c807f
+  checksum: 10/c1c11e00846664f198ec568d0c2c07baf83496acf44f321795b18db7fffd0fba9c6e09864afff6ff8c2b90ce642381744b99070e2e8ada2df429fdf3d914111f
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.44.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.44.0-3e4fb4613c.patch":
-  version: 0.44.0
-  resolution: "@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.44.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.44.0-3e4fb4613c.patch::version=0.44.0&hash=e6b237"
+"@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.45.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.45.0-811299fc50.patch":
+  version: 0.45.0
+  resolution: "@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.45.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.45.0-811299fc50.patch::version=0.45.0&hash=e6b237"
   dependencies:
     "@metamask/design-system-shared": "npm:^0.36.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
-    "@metamask/design-system-twrnc-preset": ^0.10.0
-    "@metamask/design-tokens": ^10.0.0
+    "@metamask/design-system-twrnc-preset": ^0.11.0
+    "@metamask/design-tokens": ^11.0.0
     "@metamask/utils": ^11.12.1
     expo-image: ">=3.0.0"
     lodash: ^4.17.21
@@ -9962,7 +9955,7 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/f227b8da109cceca7f5a292936143a12cc7212f3ae763da797bfc2d89843ebdc0aad1747234acb74819d60e582e6f2e865c27b20d652551b17a79d9960c71db3
+  checksum: 10/4b7839413efbef1548824c197d06259d17efb8552decd19e2229442566576aad61534b788d7beeaa17f3c49264c73bc240eed2fd38b9962b882bbc75bf6ce055
   languageName: node
   linkType: hard
 
@@ -9977,22 +9970,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-twrnc-preset@npm:^0.10.0":
-  version: 0.10.0
-  resolution: "@metamask/design-system-twrnc-preset@npm:0.10.0"
+"@metamask/design-system-twrnc-preset@npm:^0.11.0":
+  version: 0.11.0
+  resolution: "@metamask/design-system-twrnc-preset@npm:0.11.0"
   dependencies:
     twrnc: "npm:^4.5.1"
   peerDependencies:
-    "@metamask/design-tokens": ^10.0.0
+    "@metamask/design-tokens": ^11.0.0
     react: ">=18.2.0"
-  checksum: 10/c5937694289f27077eb8d1f64992ea4ddf1b68658deef1dac8b28336d88d48668079a52211cbab3acf58665ccd8989693ddd6e8845d2411805a2f63186d63e55
+  checksum: 10/eedd80b392604dbf1a727e5fd0e7519d51852a98671c7f82fe15c122d039d21064dcafda5ae70d506cd52611a82a914dee8f4fd4ac17df604e36090729dde3d6
   languageName: node
   linkType: hard
 
-"@metamask/design-tokens@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@metamask/design-tokens@npm:10.0.0"
-  checksum: 10/3c531c0851366fc01a301dc9546016d8acb3677b07a8b30fb68454b6326ef35bb4e40290eec38cb624724d9aec65c1be02b3b08b9ac01877f7ad1f35fe8cf2ec
+"@metamask/design-tokens@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "@metamask/design-tokens@npm:11.0.0"
+  checksum: 10/3c7f6954eff6afa062eae156c6f48ec75fb114da6a767364ab30d12b4bc6dfe67f1527681e7a4d1db2a5f0c9a4a0e98b604d0154938fb6fd2d9cbe4ff76b9801
   languageName: node
   linkType: hard
 
@@ -10137,26 +10130,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-json-rpc-middleware@npm:^23.1.3":
-  version: 23.1.3
-  resolution: "@metamask/eth-json-rpc-middleware@npm:23.1.3"
-  dependencies:
-    "@metamask/eth-block-tracker": "npm:^15.0.1"
-    "@metamask/eth-json-rpc-provider": "npm:^6.0.1"
-    "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/json-rpc-engine": "npm:^10.2.4"
-    "@metamask/message-manager": "npm:^14.1.1"
-    "@metamask/rpc-errors": "npm:^7.0.2"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-    klona: "npm:^2.0.6"
-    pify: "npm:^5.0.0"
-    safe-stable-stringify: "npm:^2.4.3"
-  checksum: 10/aee4866afa78cb21aed9daa1211ee9a3515cb9549d9b325d5904b8769fb54790296224b58ec3555eb34a7125d2fd5180d6cba915bb1ca8dc3f04bf75e502c6b0
-  languageName: node
-  linkType: hard
-
-"@metamask/eth-json-rpc-middleware@npm:^24.0.2":
+"@metamask/eth-json-rpc-middleware@npm:^24.0.1, @metamask/eth-json-rpc-middleware@npm:^24.0.2":
   version: 24.0.2
   resolution: "@metamask/eth-json-rpc-middleware@npm:24.0.2"
   dependencies:
@@ -10721,7 +10695,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/message-manager@npm:^14.1.1, @metamask/message-manager@npm:^14.1.2":
+"@metamask/message-manager@npm:^14.1.2":
   version: 14.1.2
   resolution: "@metamask/message-manager@npm:14.1.2"
   dependencies:
@@ -11024,22 +10998,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-controller@npm:35.0.0":
-  version: 35.0.0
-  resolution: "@metamask/network-controller@npm:35.0.0"
+"@metamask/network-controller@npm:36.0.0":
+  version: 36.0.0
+  resolution: "@metamask/network-controller@npm:36.0.0"
   dependencies:
     "@metamask/analytics-controller": "npm:^2.0.0"
     "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/config-registry-controller": "npm:^3.1.0"
     "@metamask/connectivity-controller": "npm:^0.3.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/eth-block-tracker": "npm:^15.0.1"
     "@metamask/eth-json-rpc-infura": "npm:^10.3.0"
-    "@metamask/eth-json-rpc-middleware": "npm:^23.1.3"
+    "@metamask/eth-json-rpc-middleware": "npm:^24.0.1"
     "@metamask/eth-json-rpc-provider": "npm:^6.0.1"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/json-rpc-engine": "npm:^10.5.0"
     "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^5.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^6.0.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/swappable-obj-proxy": "npm:^2.3.0"
     "@metamask/utils": "npm:^11.11.0"
@@ -11049,7 +11024,7 @@ __metadata:
     reselect: "npm:^5.1.1"
     uri-js: "npm:^4.4.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/6f5d247052844505b7877439d52434c25bc1fc0a6130cdae87ce34705953f7cdac6813adf275f40af7f630ce570b86788ef84a7c43a42c7fe68f093304f69ad6
+  checksum: 10/bdc6fa528a5c48c4121ef4c67807c40d835260b58ce2f19958668b1d55a9f99275f5fef61a414c7a3fcfd3d4b7fd0d55fd2708c280394c35342215a3384bbdc5
   languageName: node
   linkType: hard
 
@@ -11209,9 +11184,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^16.1.0":
-  version: 16.1.0
-  resolution: "@metamask/perps-controller@npm:16.1.0"
+"@metamask/perps-controller@npm:^16.2.0":
+  version: 16.2.0
+  resolution: "@metamask/perps-controller@npm:16.2.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -11223,7 +11198,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/e28bc78339c140ae2d714f14c72480a782212e391be7f57bb5485d4528737c638f2d8dea6d16b90a0c599edf11c811815ebef397bd37a9e407e086633832f779
+  checksum: 10/ca1b4389e8ff92bed3fcdaa66272ebc96b5e554d987a30b47f964b2ac05ab31c957131161d7a03aada4dd7d638bfd37c48b14fa420740323e1883c135d929ed3
   languageName: node
   linkType: hard
 
@@ -39420,7 +39395,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.25.3"
     "@babel/register": "npm:^7.24.6"
     "@babel/runtime": "npm:^7.25.0"
-    "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch"
+    "@braze/react-native-sdk": "npm:23.0.0"
     "@consensys/on-ramp-sdk": "npm:2.1.12"
     "@craftzdog/react-native-buffer": "npm:^6.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -39481,9 +39456,9 @@ __metadata:
     "@metamask/core-backend": "npm:^9.1.1"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^2.0.0"
-    "@metamask/design-system-react-native": "patch:@metamask/design-system-react-native@npm%3A0.44.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.44.0-3e4fb4613c.patch"
-    "@metamask/design-system-twrnc-preset": "npm:^0.10.0"
-    "@metamask/design-tokens": "npm:^10.0.0"
+    "@metamask/design-system-react-native": "patch:@metamask/design-system-react-native@npm%3A0.45.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.45.0-811299fc50.patch"
+    "@metamask/design-system-twrnc-preset": "npm:^0.11.0"
+    "@metamask/design-tokens": "npm:^11.0.0"
     "@metamask/device-mcp": "npm:^0.3.3"
     "@metamask/earn-controller": "npm:^12.2.5"
     "@metamask/eip-5792-middleware": "npm:^3.0.4"
@@ -39538,12 +39513,12 @@ __metadata:
     "@metamask/multichain-transactions-controller": "npm:^7.1.2"
     "@metamask/native-utils": "npm:^0.8.0"
     "@metamask/network-connection-banner-controller": "npm:^0.2.0"
-    "@metamask/network-controller": "npm:^35.0.0"
+    "@metamask/network-controller": "npm:^36.0.0"
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
     "@metamask/notification-services-controller": "npm:^27.0.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^16.1.0"
+    "@metamask/perps-controller": "npm:^16.2.0"
     "@metamask/phishing-controller": "npm:^17.3.1"
     "@metamask/platform-api-docs": "npm:^0.1.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
@@ -39861,7 +39836,7 @@ __metadata:
     react-native-nitro-fetch: "patch:react-native-nitro-fetch@npm%3A1.5.1#~/.yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch"
     react-native-nitro-modules: "npm:0.35.10"
     react-native-nitro-text-decoder: "npm:^0.2.0"
-    react-native-nitro-websockets: "npm:^1.0.3"
+    react-native-nitro-websockets: "patch:react-native-nitro-websockets@npm%3A1.0.3#~/.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
     react-native-pager-view: "npm:8.0.4"
     react-native-performance: "patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch"
@@ -46014,7 +45989,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-websockets@npm:^1.0.3":
+"react-native-nitro-websockets@npm:1.0.3":
   version: 1.0.3
   resolution: "react-native-nitro-websockets@npm:1.0.3"
   peerDependencies:
@@ -46027,6 +46002,22 @@ __metadata:
     react-native-nitro-fetch:
       optional: true
   checksum: 10/aa53b4f40d62e79294dcc609f38e1426dfe08ca87deafbe8b90bbb64ec5b958742421f6f26e7a497e642189855dfd6c682cb4de1beabab8dd96595538ed93556
+  languageName: node
+  linkType: hard
+
+"react-native-nitro-websockets@patch:react-native-nitro-websockets@npm%3A1.0.3#~/.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch":
+  version: 1.0.3
+  resolution: "react-native-nitro-websockets@patch:react-native-nitro-websockets@npm%3A1.0.3#~/.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch::version=1.0.3&hash=cef141"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-fetch: "*"
+    react-native-nitro-modules: "*"
+    react-native-nitro-text-decoder: ">=0.1.0"
+  peerDependenciesMeta:
+    react-native-nitro-fetch:
+      optional: true
+  checksum: 10/b06c685cfc2ba9fac15d59d1067754783abc362e95a0fabf02cf7d5470b65b31a16b0be378d5c2774572e5fc62cb9a3f822d9cec9ee9187471d499749fdcf2be
   languageName: node
   linkType: hard
 

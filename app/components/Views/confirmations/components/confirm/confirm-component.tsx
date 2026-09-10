@@ -72,8 +72,28 @@ export enum PayWithOption {
   MoneyAccount = 'money_account',
 }
 
+/**
+ * The surface a confirmation was opened from, for the cases where the
+ * post-confirmation landing has to differ from the default for that
+ * transaction type.
+ */
+export enum ConfirmationLaunchSource {
+  /**
+   * A Rewards campaign. The pushed Rewards stack sits underneath the
+   * confirmation, so the landing preserves it rather than switching tabs.
+   */
+  Rewards = 'rewards',
+  /**
+   * Money home, itself already pushed over a Rewards campaign by an earlier
+   * deposit. That screen is still on the stack underneath the confirmation, so
+   * the landing returns to it instead of stacking a second copy on top.
+   */
+  RewardsMoneyHome = 'rewards-money-home',
+}
+
 export interface ConfirmationParams {
   autoSelectFiatPayment?: boolean;
+  launchedFrom?: ConfirmationLaunchSource;
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;

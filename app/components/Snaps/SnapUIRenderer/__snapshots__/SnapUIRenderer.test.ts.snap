@@ -77,7 +77,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
                 [
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Inter-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -94,7 +94,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Inter-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -252,7 +252,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Medium",
+                "fontFamily": "Inter-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -423,7 +423,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#131416",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Inter-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -601,7 +601,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#131416",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Inter-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -696,7 +696,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#131416",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Inter-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -873,7 +873,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#131416",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Inter-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -967,7 +967,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#131416",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Inter-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -1070,7 +1070,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
                 [
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Inter-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1087,7 +1087,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Inter-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1246,7 +1246,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Inter-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1280,7 +1280,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       style={
                         {
                           "color": "#babbbe",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1294,7 +1294,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       style={
                         {
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1409,7 +1409,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       style={
                         {
                           "color": "#131416",
-                          "fontFamily": "Geist-Medium",
+                          "fontFamily": "Inter-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1424,7 +1424,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       style={
                         {
                           "color": "#66676a",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -1452,7 +1452,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Inter-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1468,7 +1468,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#66676a",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Inter-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1624,7 +1624,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Medium",
+                "fontFamily": "Inter-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1775,7 +1775,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Inter-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1790,7 +1790,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
+                  "fontFamily": "Inter-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -1802,7 +1802,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 style={
                   [
                     {
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Inter-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -1905,7 +1905,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 [
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Inter-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -1922,7 +1922,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Inter-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -2079,7 +2079,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Medium",
+                "fontFamily": "Inter-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2230,7 +2230,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Inter-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2245,7 +2245,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
+                  "fontFamily": "Inter-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -2257,7 +2257,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 style={
                   [
                     {
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Inter-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -2392,7 +2392,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Geist-Medium",
+                        "fontFamily": "Inter-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -2563,7 +2563,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#131416",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
                           "height": 46,
@@ -2626,7 +2626,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           [
                             {
                               "color": "#4459ff",
-                              "fontFamily": "Geist-Medium",
+                              "fontFamily": "Inter-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
                               "lineHeight": 24,
@@ -2807,7 +2807,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#131416",
-                        "fontFamily": "Geist-Regular",
+                        "fontFamily": "Inter-Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 46,
@@ -2910,7 +2910,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 [
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Inter-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -2927,7 +2927,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Inter-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -3084,7 +3084,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             style={
               {
                 "color": "#131416",
-                "fontFamily": "Geist-Medium",
+                "fontFamily": "Inter-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -3235,7 +3235,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 style={
                   {
                     "color": "#131416",
-                    "fontFamily": "Geist-Regular",
+                    "fontFamily": "Inter-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
@@ -3250,7 +3250,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "Geist-Medium",
+                  "fontFamily": "Inter-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -3262,7 +3262,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 style={
                   [
                     {
-                      "fontFamily": "Geist-Regular",
+                      "fontFamily": "Inter-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
