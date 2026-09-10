@@ -8,12 +8,13 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { flushPromises } from '../../../../../util/test/utils';
+import { mockTheme } from '../../../../../util/theme';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { GasImpactModalRouteParams } from './GasImpactModal.types';
-import GasImpactModal from './index';
+import GasImpactModal, { GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID } from './index';
 
 const MOCK_SELECTED_INTERNAL_ACCOUNT = {
   address: '0x123',
@@ -105,6 +106,27 @@ describe('GasImpactModal', () => {
 
     expect(getByText(strings('stake.cancel'))).toBeOnTheScreen();
     expect(getByText(strings('stake.proceed_anyway'))).toBeOnTheScreen();
+  });
+
+  it('uses the standard sheet title size and centers the warning', () => {
+    const { getByText, getByTestId } = renderGasImpactModal();
+
+    expect(getByText(strings('stake.gas_cost_impact'))).toHaveStyle({
+      fontSize: mockTheme.typography.sHeadingSM.fontSize,
+    });
+    // Md keeps the close button in step with the design-system sheet default,
+    // which the legacy BottomSheetHeader would otherwise render one size up.
+    expect(getByTestId(GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID)).toHaveStyle({
+      height: 32,
+      width: 32,
+    });
+    expect(
+      getByText(
+        strings('stake.gas_cost_impact_warning', {
+          percentOverDeposit: 30,
+        }),
+      ),
+    ).toHaveStyle({ textAlign: 'center' });
   });
 
   it('closes gas impact modal on cancel', () => {

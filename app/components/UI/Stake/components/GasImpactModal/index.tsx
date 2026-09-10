@@ -14,6 +14,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -32,6 +33,9 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
+
+export const GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID =
+  'gas-impact-modal-close-button';
 
 const GasImpactModal = () => {
   const route =
@@ -166,8 +170,14 @@ const GasImpactModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
-        <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{
+            size: ButtonIconSizes.Md,
+            testID: GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID,
+          }}
+        >
+          <Text variant={TextVariant.HeadingSM}>
             {strings('stake.gas_cost_impact')}
           </Text>
         </BottomSheetHeader>
