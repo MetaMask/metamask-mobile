@@ -87,6 +87,6 @@ export function usePerpsDetailsItem(
   return {
     item,
     transaction,
-    isLoading: shouldResolve && isLoading && !item,
+    isLoading: shouldResolve && !item && (isLoading || !isConnected),
   };
 }
