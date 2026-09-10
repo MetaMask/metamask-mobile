@@ -9,7 +9,11 @@ import {
   selectShouldShowBasicFunctionalityMigrationToast,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { selectIsUnlocked } from '../../selectors/keyringController';
-import { selectIsBasicFunctionalityConsolidatedEnabled } from '../../selectors/settings';
+import {
+  selectBasicFunctionalityEnabled,
+  selectIsBasicFunctionalityConsolidatedEnabled,
+} from '../../selectors/settings';
+import { strings } from '../../../locales/i18n';
 import {
   consolidateBasicFunctionality,
   dismissBasicFunctionalityMigrationNotification,
@@ -64,11 +68,15 @@ const wrapper = ({ children }: PropsWithChildren) => (
 function setSelectorValues({
   isFlagEnabled = true,
   isConsolidated = true,
+  isUnlocked = true,
+  basicFunctionalityEnabled = true,
   shouldShowBottomSheet = false,
   shouldShowToast = false,
 }: {
   isFlagEnabled?: boolean;
   isConsolidated?: boolean;
+  isUnlocked?: boolean;
+  basicFunctionalityEnabled?: boolean;
   shouldShowBottomSheet?: boolean;
   shouldShowToast?: boolean;
 } = {}) {
@@ -80,7 +88,11 @@ function setSelectorValues({
     selectIsBasicFunctionalityConsolidatedEnabled,
     isConsolidated,
   );
-  mockSelectorValues.set(selectIsUnlocked, true);
+  mockSelectorValues.set(selectIsUnlocked, isUnlocked);
+  mockSelectorValues.set(
+    selectBasicFunctionalityEnabled,
+    basicFunctionalityEnabled,
+  );
   mockSelectorValues.set(
     selectShouldShowBasicFunctionalityMigrationBottomSheet,
     shouldShowBottomSheet,
@@ -131,6 +143,63 @@ describe('useBasicFunctionalityConsolidation', () => {
     expect(mockCloseToast).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.SECURITY_SETTINGS,
+    });
+  });
+
+  it('describes Basic Functionality as enabled when the wallet lands on', () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation(), { wrapper });
+
+    expect(mockShowToast.mock.calls[0][0].descriptionOptions.description).toBe(
+      strings('basic_functionality_migration.toast_description'),
+    );
+  });
+
+  it('describes Basic Functionality as disabled when the wallet lands off', () => {
+    setSelectorValues({
+      shouldShowToast: true,
+      basicFunctionalityEnabled: false,
+    });
+
+    renderHook(() => useBasicFunctionalityConsolidation(), { wrapper });
+
+    expect(mockShowToast.mock.calls[0][0].descriptionOptions.description).toBe(
+      strings('basic_functionality_migration.toast_description_disabled'),
+    );
+  });
+
+  it('withholds the toast while locked and presents it after unlock', () => {
+    setSelectorValues({ shouldShowToast: true, isUnlocked: false });
+
+    const { rerender } = renderHook(
+      () => useBasicFunctionalityConsolidation(),
+      { wrapper },
+    );
+
+    expect(mockShowToast).not.toHaveBeenCalled();
+
+    setSelectorValues({ shouldShowToast: true, isUnlocked: true });
+    rerender(undefined);
+
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('withholds the bottom sheet while locked and presents it after unlock', () => {
+    setSelectorValues({ shouldShowBottomSheet: true, isUnlocked: false });
+
+    const { rerender } = renderHook(
+      () => useBasicFunctionalityConsolidation(),
+      { wrapper },
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    setSelectorValues({ shouldShowBottomSheet: true, isUnlocked: true });
+    rerender(undefined);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY_MIGRATION,
     });
   });
 });

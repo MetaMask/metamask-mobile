@@ -21,7 +21,10 @@ import {
   selectShouldShowBasicFunctionalityMigrationBottomSheet,
   selectShouldShowBasicFunctionalityMigrationToast,
 } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
-import { selectIsBasicFunctionalityConsolidatedEnabled } from '../../selectors/settings';
+import {
+  selectBasicFunctionalityEnabled,
+  selectIsBasicFunctionalityConsolidatedEnabled,
+} from '../../selectors/settings';
 import { strings } from '../../../locales/i18n';
 import useThunkDispatch from './useThunkDispatch';
 
@@ -40,6 +43,9 @@ export function useBasicFunctionalityConsolidation(): void {
     selectIsBasicFunctionalityConsolidatedEnabled,
   );
   const isUnlocked = useSelector(selectIsUnlocked);
+  const basicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
   const completedOnboarding = useSelector(selectCompletedOnboardingSafely);
   const shouldShowBottomSheet = useSelector(
     selectShouldShowBasicFunctionalityMigrationBottomSheet,
@@ -78,8 +84,10 @@ export function useBasicFunctionalityConsolidation(): void {
     isUnlocked,
   ]);
 
+  // Gating on `isUnlocked` keeps the notice off the lock screen. Clearing the
+  // presented ref while locked lets it present once the wallet is unlocked.
   useEffect(() => {
-    if (!shouldShowBottomSheet) {
+    if (!shouldShowBottomSheet || !isUnlocked) {
       hasPresentedBottomSheet.current = false;
       return;
     }
@@ -91,10 +99,10 @@ export function useBasicFunctionalityConsolidation(): void {
     NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY_MIGRATION,
     });
-  }, [shouldShowBottomSheet]);
+  }, [isUnlocked, shouldShowBottomSheet]);
 
   useEffect(() => {
-    if (!shouldShowToast) {
+    if (!shouldShowToast || !isUnlocked) {
       hasPresentedToast.current = false;
       return;
     }
@@ -118,7 +126,11 @@ export function useBasicFunctionalityConsolidation(): void {
         },
       ],
       descriptionOptions: {
-        description: strings('basic_functionality_migration.toast_description'),
+        // The migration has already persisted the landing state by the time the
+        // toast presents, so the copy must follow it rather than assume "on".
+        description: basicFunctionalityEnabled
+          ? strings('basic_functionality_migration.toast_description')
+          : strings('basic_functionality_migration.toast_description_disabled'),
       },
       closeButtonOptions: {
         variant: ButtonIconVariant.Icon,
@@ -135,5 +147,11 @@ export function useBasicFunctionalityConsolidation(): void {
         },
       },
     });
-  }, [dispatch, shouldShowToast, toastRef]);
+  }, [
+    basicFunctionalityEnabled,
+    dispatch,
+    isUnlocked,
+    shouldShowToast,
+    toastRef,
+  ]);
 }

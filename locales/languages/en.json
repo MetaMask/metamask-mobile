@@ -3992,6 +3992,7 @@
     "blog_post_link": "blog post",
     "privacy_notice_link": "Privacy Notice",
     "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
+    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
     "settings_link": "Settings > Privacy",
     "accept_and_close": "Accept and close"
   },
