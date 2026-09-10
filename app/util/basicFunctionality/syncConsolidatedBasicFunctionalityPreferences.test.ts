@@ -49,10 +49,10 @@ describe('syncConsolidatedBasicFunctionalityPreferences', () => {
       Engine.context.PreferencesController.setUseSafeChainsListValidation,
     ).toHaveBeenCalledWith(true);
     expect(
-      Engine.context.PreferencesController.setDisplayNftMedia.mock
+      jest.mocked(Engine.context.PreferencesController.setDisplayNftMedia).mock
         .invocationCallOrder[0],
     ).toBeLessThan(
-      Engine.context.PreferencesController.setUseNftDetection.mock
+      jest.mocked(Engine.context.PreferencesController.setUseNftDetection).mock
         .invocationCallOrder[0],
     );
   });
@@ -85,10 +85,10 @@ describe('syncConsolidatedBasicFunctionalityPreferences', () => {
       Engine.context.PreferencesController.setDisplayNftMedia,
     ).toHaveBeenCalledWith(false);
     expect(
-      Engine.context.PreferencesController.setUseNftDetection.mock
+      jest.mocked(Engine.context.PreferencesController.setUseNftDetection).mock
         .invocationCallOrder[0],
     ).toBeLessThan(
-      Engine.context.PreferencesController.setDisplayNftMedia.mock
+      jest.mocked(Engine.context.PreferencesController.setDisplayNftMedia).mock
         .invocationCallOrder[0],
     );
   });
