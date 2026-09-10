@@ -9,7 +9,7 @@ import {
 
 type TestMarket = Pick<
   PerpsMarketData,
-  'isHip3' | 'isNewMarket' | 'marketType'
+  'isHip3' | 'isNewMarket' | 'marketType' | 'tags'
 > & { symbol: string };
 
 const buildMarket = (overrides: Partial<TestMarket>): TestMarket => ({
@@ -17,12 +17,13 @@ const buildMarket = (overrides: Partial<TestMarket>): TestMarket => ({
   isHip3: false,
   isNewMarket: false,
   marketType: undefined,
+  tags: undefined,
   ...overrides,
 });
 
 describe('marketCategoryMapping', () => {
   describe('HIP3_FILTER_KEYS', () => {
-    it('contains exactly the 6 HIP-3 filter keys', () => {
+    it('contains only real HIP-3 marketType keys (excludes crypto and derived memecoin)', () => {
       expect([...HIP3_FILTER_KEYS].sort()).toEqual([
         'commodity',
         'etf',
@@ -33,8 +34,8 @@ describe('marketCategoryMapping', () => {
       ]);
     });
 
-    it.each(['all', 'crypto', 'new'] as const)(
-      'does not contain UI-only key "%s"',
+    it.each(['all', 'crypto', 'new', 'memecoin'] as const)(
+      'does not contain UI-only or derived key "%s"',
       (key) => {
         expect(HIP3_FILTER_KEYS.has(key)).toBe(false);
       },
@@ -49,7 +50,7 @@ describe('marketCategoryMapping', () => {
       },
     );
 
-    it.each([undefined, '', 'crypto', 'all', 'new', 'unknown'])(
+    it.each([undefined, '', 'crypto', 'all', 'new', 'memecoin', 'unknown'])(
       'returns false for %s',
       (key) => {
         expect(isHip3Filter(key)).toBe(false);
@@ -76,6 +77,16 @@ describe('marketCategoryMapping', () => {
     const markets: TestMarket[] = [
       buildMarket({ symbol: 'BTC', isHip3: false }),
       buildMarket({ symbol: 'ETH', isHip3: false }),
+      buildMarket({
+        symbol: 'DOGE',
+        isHip3: false,
+        tags: ['memecoin'],
+      }),
+      buildMarket({
+        symbol: 'PEPE',
+        isHip3: false,
+        tags: ['memecoin', 'top-100'],
+      }),
       buildMarket({ symbol: 'AAPL', isHip3: true, marketType: 'stock' }),
       buildMarket({ symbol: 'GOLD', isHip3: true, marketType: 'commodity' }),
       buildMarket({
@@ -90,10 +101,31 @@ describe('marketCategoryMapping', () => {
       expect(filterMarketsByCategory(markets, 'all')).toEqual(markets);
     });
 
-    it('returns only non-HIP3 markets for "crypto"', () => {
+    it('returns only non-HIP3 markets for "crypto" (memecoins still included)', () => {
       expect(
         filterMarketsByCategory(markets, 'crypto').map((m) => m.symbol),
-      ).toEqual(['BTC', 'ETH']);
+      ).toEqual(['BTC', 'ETH', 'DOGE', 'PEPE']);
+    });
+
+    it('returns only non-HIP3 markets carrying the memecoin tag for "memecoin"', () => {
+      expect(
+        filterMarketsByCategory(markets, 'memecoin').map((m) => m.symbol),
+      ).toEqual(['DOGE', 'PEPE']);
+    });
+
+    it('does not include HIP-3 markets carrying the memecoin tag under "memecoin"', () => {
+      const withHip3Meme: TestMarket[] = [
+        ...markets,
+        buildMarket({
+          symbol: 'FAKE',
+          isHip3: true,
+          marketType: 'stock',
+          tags: ['memecoin'],
+        }),
+      ];
+      expect(
+        filterMarketsByCategory(withHip3Meme, 'memecoin').map((m) => m.symbol),
+      ).toEqual(['DOGE', 'PEPE']);
     });
 
     it('returns only markets flagged as new for "new"', () => {
@@ -118,7 +150,7 @@ describe('marketCategoryMapping', () => {
     it('preserves input order', () => {
       expect(
         filterMarketsByCategory(markets, 'crypto').map((m) => m.symbol),
-      ).toEqual(['BTC', 'ETH']);
+      ).toEqual(['BTC', 'ETH', 'DOGE', 'PEPE']);
     });
   });
 
@@ -126,6 +158,7 @@ describe('marketCategoryMapping', () => {
     it('has the expected order', () => {
       expect(CATEGORY_DISPLAY_ORDER).toEqual([
         'crypto',
+        'memecoin',
         'stock',
         'pre-ipo',
         'forex',

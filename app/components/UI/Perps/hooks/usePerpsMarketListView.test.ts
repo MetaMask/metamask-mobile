@@ -661,6 +661,7 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 3,
+        memecoin: 0,
         stock: 0,
         'pre-ipo': 0,
         index: 0,
@@ -760,6 +761,7 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 2,
+        memecoin: 0,
         stock: 2,
         'pre-ipo': 0,
         index: 0,
@@ -790,6 +792,7 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 0,
+        memecoin: 0,
         stock: 0,
         'pre-ipo': 0,
         index: 0,
@@ -857,6 +860,52 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts.crypto).toBe(1);
       expect(result.current.marketCounts.stock).toBe(1);
+    });
+
+    it('counts non-HIP-3 memecoin-tagged markets under both crypto and memecoin', () => {
+      const markets = [
+        { ...createMockMarket('BTC', '$1B'), isHip3: false },
+        {
+          ...createMockMarket('DOGE', '$500M'),
+          isHip3: false,
+          tags: ['memecoin'],
+        },
+        {
+          ...createMockMarket('PEPE', '$200M'),
+          isHip3: false,
+          tags: ['memecoin', 'top-100'],
+        },
+        {
+          ...createMockMarket('FAKE', '$100M'),
+          isHip3: true,
+          marketType: 'stock' as const,
+          tags: ['memecoin'],
+        },
+      ];
+
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: markets as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        filteredMarkets: markets,
+        clearSearch: jest.fn(),
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      // DOGE + PEPE are non-HIP-3 crypto with memecoin tag; FAKE is HIP-3
+      // and must not count under memecoin.
+      expect(result.current.marketCounts.crypto).toBe(3);
+      expect(result.current.marketCounts.memecoin).toBe(2);
     });
   });
 

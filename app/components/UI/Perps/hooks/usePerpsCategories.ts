@@ -26,7 +26,9 @@ export const NEW_CATEGORY: PerpsCategory = {
 
 /**
  * Derives unique market categories with localised labels from the current
- * markets list.  Non-HIP-3 markets are bucketed under `'crypto'`.
+ * markets list.  Non-HIP-3 markets are bucketed under `'crypto'`; non-HIP-3
+ * markets that also carry the `'memecoin'` tag additionally surface the
+ * `'memecoin'` pill (overlapping with `'crypto'` by design).
  *
  * IDs use the `MarketTypeFilter` form (e.g. `"stock"`, `"commodity"`) so
  * they can be passed directly to navigation params, filter state, and
@@ -39,6 +41,15 @@ export const usePerpsCategories = (): PerpsCategory[] => {
     const seen = new Set<Exclude<MarketTypeFilter, 'all'>>();
     const result: PerpsCategory[] = [];
 
+    const pushCategory = (id: Exclude<MarketTypeFilter, 'all'>) => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      result.push({
+        id,
+        label: strings(`perps.home.tabs.${normalizeFilterKey(id)}`),
+      });
+    };
+
     for (const market of markets) {
       const id: Exclude<MarketTypeFilter, 'all'> | undefined = !market.isHip3
         ? 'crypto'
@@ -46,13 +57,14 @@ export const usePerpsCategories = (): PerpsCategory[] => {
           ? market.marketType
           : undefined;
 
-      if (!id || seen.has(id)) continue;
-      seen.add(id);
+      if (id) pushCategory(id);
 
-      result.push({
-        id,
-        label: strings(`perps.home.tabs.${normalizeFilterKey(id)}`),
-      });
+      // Memecoin is a derived category: a non-HIP-3 (main-DEX) market that
+      // carries the 'memecoin' tag. Surface the pill in addition to the
+      // 'crypto' one so users can drill into it independently.
+      if (!market.isHip3 && market.tags?.includes('memecoin')) {
+        pushCategory('memecoin');
+      }
     }
 
     const orderIndex = new Map(

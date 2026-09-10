@@ -375,10 +375,18 @@ export const usePerpsMarketListView = ({
     [favoritesFilteredMarkets, sortingHook.sortBy, sortingHook.direction],
   );
 
-  // Calculate market counts per category (for hiding empty pills/tabs)
+  // Calculate market counts per category (for hiding empty pills/tabs).
+  // 'memecoin' and 'new' are seeded explicitly so counting works regardless
+  // of whether the installed @metamask/perps-controller lists 'memecoin' in
+  // MARKET_CATEGORIES yet. The Set dedupes once the dep is bumped.
   const marketCounts = useMemo(() => {
+    const seededKeys = [
+      ...MARKET_CATEGORIES,
+      'memecoin' as const,
+      'new' as const,
+    ];
     const counts = Object.fromEntries(
-      [...MARKET_CATEGORIES, 'new' as const].map((category) => [category, 0]),
+      [...new Set(seededKeys)].map((category) => [category, 0]),
     ) as Record<Exclude<MarketTypeFilter, 'all'>, number>;
 
     allMarkets.forEach((market) => {
@@ -387,6 +395,11 @@ export const usePerpsMarketListView = ({
       }
       if (!market.isHip3) {
         counts.crypto++;
+        // Memecoin overlaps with crypto — count independently so its pill
+        // is not hidden when memecoin-tagged markets are present.
+        if (market.tags?.includes('memecoin')) {
+          counts.memecoin++;
+        }
       } else if (market.marketType) {
         if (isHip3Filter(market.marketType) && market.marketType in counts) {
           counts[market.marketType]++;

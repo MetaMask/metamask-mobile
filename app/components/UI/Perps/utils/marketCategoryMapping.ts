@@ -6,21 +6,34 @@ import {
 } from '@metamask/perps-controller';
 
 /**
- * HIP-3 filter keys (everything except the UI-only 'all', 'crypto', 'new').
- * Derived from the controller's MARKET_CATEGORIES constant so it stays in
- * sync when new categories are added upstream.
+ * HIP-3 filter keys — data-model categories that map 1:1 to a HIP-3
+ * `marketType` value. Derived from the controller's MARKET_CATEGORIES
+ * constant so it stays in sync when new categories are added upstream.
+ *
+ * Excludes 'crypto' (main DEX, not HIP-3) and 'memecoin' (a derived
+ * category — see `filterMarketsByCategory`).
  */
 export const HIP3_FILTER_KEYS: ReadonlySet<MarketTypeFilter> = new Set(
-  MARKET_CATEGORIES.filter((c) => c !== MarketCategory.CryptoCurrency),
+  MARKET_CATEGORIES.filter(
+    (c) =>
+      c !== MarketCategory.CryptoCurrency &&
+      c !== ('memecoin' as MarketTypeFilter),
+  ),
 );
 
 /**
  * Preferred display order for product categories.
  * Categories present in market data but missing from this list are
  * appended at the end in discovery order.
+ *
+ * NOTE: `memecoin` is cast because older versions of
+ * `@metamask/perps-controller` (< 17.1.0) do not include it in
+ * `MarketTypeFilter`. Once the mobile dep is bumped to a version that
+ * ships `MarketCategory.Memecoin`, the cast can be dropped.
  */
 export const CATEGORY_DISPLAY_ORDER: Exclude<MarketTypeFilter, 'all'>[] = [
   'crypto',
+  'memecoin' as MarketTypeFilter as Exclude<MarketTypeFilter, 'all'>,
   'stock',
   'pre-ipo',
   'forex',
@@ -52,11 +65,16 @@ export function normalizeFilterKey(filter: string): string {
  *
  * - `'all'`: no filtering.
  * - `'crypto'`: non-HIP3 markets (main DEX).
+ * - `'memecoin'`: non-HIP3 markets carrying the `'memecoin'` tag. Overlaps
+ * with `'crypto'` by design — memecoins appear under both pills.
  * - `'new'`: uncategorized HIP-3 markets flagged as new.
  * - Any other {@link MarketTypeFilter}: HIP-3 markets whose `marketType` matches the filter exactly.
  */
 export function filterMarketsByCategory<
-  T extends Pick<PerpsMarketData, 'isHip3' | 'isNewMarket' | 'marketType'>,
+  T extends Pick<
+    PerpsMarketData,
+    'isHip3' | 'isNewMarket' | 'marketType' | 'tags'
+  >,
 >(markets: T[], filter: MarketTypeFilter): T[] {
   if (filter === 'all') {
     return markets;
@@ -64,6 +82,12 @@ export function filterMarketsByCategory<
 
   if (filter === 'crypto') {
     return markets.filter((market) => !market.isHip3);
+  }
+
+  if ((filter as string) === 'memecoin') {
+    return markets.filter(
+      (market) => !market.isHip3 && !!market.tags?.includes('memecoin'),
+    );
   }
 
   if (filter === 'new') {
