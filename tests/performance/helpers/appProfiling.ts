@@ -6,6 +6,11 @@
  *
  * Does not use deeplinks — MetaMask's router shows the unsupported-link UI for
  * unknown `metamask://e2e/profiler/*` paths.
+ *
+ * A Hermes profiling session cannot outlive the app process that opened it.
+ * Specs that call `terminateApp` therefore surface the `session-lost` hook on
+ * stop, and collection is skipped for them instead of asking Hermes to dump a
+ * sampler it no longer has running.
  */
 
 /* eslint-disable import-x/no-nodejs-modules */
@@ -25,10 +30,13 @@ const START_ACK_TEST_ID = 'performance-profiler-start-ack';
 const STOP_ACK_TEST_ID = 'performance-profiler-stop-ack';
 const RECORDING_READY_TEST_ID = 'performance-profiler-recording-ready';
 const RESULT_READY_TEST_ID = 'performance-profiler-result-ready';
+const SESSION_LOST_TEST_ID = 'performance-profiler-session-lost';
 const ERROR_TEST_ID = 'performance-profiler-error';
 const RECORDING_TIMEOUT_MS = 60_000;
 const RESULT_TIMEOUT_MS = 60_000;
-const PROFILE_FILE_TIMEOUT_MS = 120_000;
+// The native stop resolves only after Hermes has written a non-empty trace, so
+// this budget only covers `pullFile` transfer flakiness on BrowserStack.
+const PROFILE_FILE_TIMEOUT_MS = 30_000;
 const PROFILE_FILE_POLL_INTERVAL_MS = 2_000;
 
 type PullFileDriver = WebdriverIO.Browser & {
@@ -86,6 +94,9 @@ async function tapProfilerControl(testId: string): Promise<void> {
         return true;
       }
 
+      // Foreground the app again if it drifted to the background. Never
+      // relaunch here: killing the process would discard the Hermes session
+      // this helper is trying to control.
       if (
         typeof packageCandidate === 'string' &&
         Date.now() - lastRecoveryAt >= 10_000
@@ -94,11 +105,6 @@ async function tapProfilerControl(testId: string): Promise<void> {
         await appiumDriver.activateApp(packageCandidate).catch((error) => {
           logger.warn(
             `Could not reactivate profiler app while waiting for ${testId}: ${String(error)}`,
-          );
-        });
-        await appiumDriver.launchApp().catch((error) => {
-          logger.warn(
-            `Could not relaunch profiler app while waiting for ${testId}: ${String(error)}`,
           );
         });
       }
@@ -129,30 +135,44 @@ async function tapProfilerControl(testId: string): Promise<void> {
   }
 }
 
+/**
+ * Waits until one of `readyTestIds` appears, or the profiler publishes an error.
+ * Resolves with the id that appeared so callers can branch on it.
+ */
 async function waitForProfilerSignal(
   appiumDriver: WebdriverIO.Browser,
   {
-    readyTestId,
+    readyTestIds,
     timeoutMs,
     timeoutMsg,
   }: {
-    readyTestId: string;
+    readyTestIds: string[];
     timeoutMs: number;
     timeoutMsg: string;
   },
-): Promise<void> {
+): Promise<string> {
+  let observedTestId: string | undefined;
+
   await appiumDriver.waitUntil(
     async () => {
-      const [ready, error] = await Promise.all([
-        elementExists(appiumDriver, readyTestId),
+      const [readyFlags, error] = await Promise.all([
+        Promise.all(
+          readyTestIds.map((testId) => elementExists(appiumDriver, testId)),
+        ),
         elementExists(appiumDriver, ERROR_TEST_ID),
       ]);
-      return ready || error;
+
+      const readyIndex = readyFlags.findIndex(Boolean);
+      if (readyIndex !== -1) {
+        observedTestId = readyTestIds[readyIndex];
+        return true;
+      }
+      return error;
     },
     { timeout: timeoutMs, timeoutMsg },
   );
 
-  if (await elementExists(appiumDriver, ERROR_TEST_ID)) {
+  if (!observedTestId) {
     const profilerError = await appiumDriver.$(
       profilerSelector(appiumDriver, ERROR_TEST_ID),
     );
@@ -162,6 +182,8 @@ async function waitForProfilerSignal(
       'unknown profiler error';
     throw new Error(`Profiler failed on device: ${errorLabel}`);
   }
+
+  return observedTestId;
 }
 
 export async function startAppProfilingFromTest(): Promise<void> {
@@ -173,13 +195,13 @@ export async function startAppProfilingFromTest(): Promise<void> {
   await tapProfilerControl(START_TEST_ID);
 
   await waitForProfilerSignal(appiumDriver, {
-    readyTestId: START_ACK_TEST_ID,
+    readyTestIds: [START_ACK_TEST_ID],
     timeoutMs: RECORDING_TIMEOUT_MS,
     timeoutMsg: `Profiler start onPress was not delivered within ${RECORDING_TIMEOUT_MS}ms (start-ack missing)`,
   });
 
   await waitForProfilerSignal(appiumDriver, {
-    readyTestId: RECORDING_READY_TEST_ID,
+    readyTestIds: [RECORDING_READY_TEST_ID],
     timeoutMs: RECORDING_TIMEOUT_MS,
     timeoutMsg: `Profiler did not start within ${RECORDING_TIMEOUT_MS}ms`,
   });
@@ -194,7 +216,7 @@ export async function stopAppProfilingFromTest(): Promise<void> {
   await tapProfilerControl(STOP_TEST_ID);
 
   await waitForProfilerSignal(appiumDriver, {
-    readyTestId: STOP_ACK_TEST_ID,
+    readyTestIds: [STOP_ACK_TEST_ID],
     timeoutMs: RECORDING_TIMEOUT_MS,
     timeoutMsg: `Profiler stop onPress was not delivered within ${RECORDING_TIMEOUT_MS}ms (stop-ack missing)`,
   });
@@ -216,14 +238,22 @@ function toAndroidPullPath(profilePath: string): string {
   );
 }
 
+/**
+ * Resolves the on-device `.cpuprofile` path, or `null` when the app process
+ * that owned the profiling session was killed during the test.
+ */
 async function waitForProfilerResultPath(
   appiumDriver: WebdriverIO.Browser,
-): Promise<string> {
-  await waitForProfilerSignal(appiumDriver, {
-    readyTestId: RESULT_READY_TEST_ID,
+): Promise<string | null> {
+  const observedTestId = await waitForProfilerSignal(appiumDriver, {
+    readyTestIds: [RESULT_READY_TEST_ID, SESSION_LOST_TEST_ID],
     timeoutMs: RESULT_TIMEOUT_MS,
     timeoutMsg: `Profiler result not ready after ${RESULT_TIMEOUT_MS}ms`,
   });
+
+  if (observedTestId === SESSION_LOST_TEST_ID) {
+    return null;
+  }
 
   const resultReady = await appiumDriver.$(
     profilerSelector(appiumDriver, RESULT_READY_TEST_ID),
@@ -287,7 +317,8 @@ async function pullValidProfilerFile(
  * saves it under `tests/reporters/reports/hermes-cpuprofiles/` (CI upload path),
  * and attaches it to the Playwright report.
  *
- * Returns `null` on iOS — profile export/pull is Android-only for now.
+ * Returns `null` on iOS (export/pull is Android-only for now) and when the
+ * profiling session did not survive to the end of the test.
  */
 export async function pullAndAttachAppProfiling(
   testInfo: TestInfo,
@@ -295,13 +326,19 @@ export async function pullAndAttachAppProfiling(
 ): Promise<string | null> {
   if (platform !== 'android') {
     logger.info(
-      'Skipping Hermes cpuprofile pull on iOS (Android Downloads path only)',
+      'Skipping Hermes cpuprofile pull on iOS (app-scoped export is Android-only)',
     );
     return null;
   }
 
   const appiumDriver = getDriver() as PullFileDriver;
   const profilePath = await waitForProfilerResultPath(appiumDriver);
+  if (!profilePath) {
+    logger.info(
+      'Skipping Hermes cpuprofile pull: the app process that started profiling was terminated during this test',
+    );
+    return null;
+  }
   const remotePath = toAndroidPullPath(profilePath);
 
   logger.info(`Polling Hermes profile from ${remotePath}`);
