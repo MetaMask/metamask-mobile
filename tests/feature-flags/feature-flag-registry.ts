@@ -5193,6 +5193,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  socialAiTSA1122AbtestSocialBundleV1: {
+    name: 'socialAiTSA1122AbtestSocialBundleV1',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 1,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   socialAiTSA612AbtestQuickBuy: {
     name: 'socialAiTSA612AbtestQuickBuy',
     type: FeatureFlagType.Remote,

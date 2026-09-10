@@ -1169,7 +1169,8 @@
       "title": "Top traders",
       "tabs": {
         "leaderboard": "Leaderboard",
-        "feed": "Feed"
+        "feed": "Feed",
+        "live_trades": "Live trades"
       },
       "following": "Following",
       "all": "All",
@@ -1217,6 +1218,19 @@
         "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
       },
       "no_data": "No data"
+    },
+    "shell": {
+      "subnav": {
+        "trending": "Trending",
+        "memecoins": "Memecoins",
+        "perps": "Perps",
+        "stocks": "Stocks",
+        "whales": "Only",
+        "top_traders": "Top traders",
+        "top_perps": "Top perps",
+        "kols": "KOLs",
+        "top_tokens": "Top tokens"
+      }
     },
     "onboarding": {
       "slide_trade": {

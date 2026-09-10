@@ -160,7 +160,7 @@ const SocialAINotificationPreferencesContent = ({
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
       });
