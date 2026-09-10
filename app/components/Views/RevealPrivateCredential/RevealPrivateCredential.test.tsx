@@ -754,7 +754,7 @@ describe('RevealPrivateCredential', () => {
       });
 
       // Validate specific warning message for incorrect password
-      expect(getByText('Incorrect password')).toBeOnTheScreen();
+      expect(getByText('Incorrect password. Try again.')).toBeOnTheScreen();
     });
 
     it('accepts text input in password field and triggers tryUnlock on submit editing', async () => {

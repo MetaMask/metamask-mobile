@@ -172,7 +172,7 @@ describe('PasswordBottomSheet', () => {
     fireEvent.press(confirmButton);
 
     await waitFor(() => {
-      expect(getByText('Incorrect password. Please try again.')).toBeTruthy();
+      expect(getByText('Incorrect password. Try again.')).toBeTruthy();
     });
 
     expect(mockReauthenticate).toHaveBeenCalledWith('wrongpassword');

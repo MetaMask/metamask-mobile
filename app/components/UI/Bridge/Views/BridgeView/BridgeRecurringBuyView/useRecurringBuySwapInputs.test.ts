@@ -327,7 +327,7 @@ describe('useRecurringBuySwapInputs', () => {
       );
     });
 
-    it('opens the destination picker scoped to the enabled chains and without RWAs', () => {
+    it("opens the destination picker scoped to the source token's chain and without RWAs", () => {
       const { result } = renderRecurringBuySwapInputsHook(
         {
           sourceToken: getNativeSourceToken('eip155:1'),
@@ -343,7 +343,53 @@ describe('useRecurringBuySwapInputs', () => {
         Routes.BRIDGE.TOKEN_SELECTOR,
         expect.objectContaining({
           type: TokenSelectorType.Dest,
-          enabledChainIds: ENABLED_CHAIN_IDS,
+          enabledChainIds: ['eip155:1'],
+          excludeRwaTokens: true,
+          featureId: FeatureId.RECURRING_BUY,
+        }),
+      );
+    });
+
+    it('scopes the destination picker to the CAIP form of a hex source chain id', () => {
+      const { result } = renderRecurringBuySwapInputsHook(
+        {
+          sourceToken: createMockToken({ chainId: '0x38' }),
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleDestTokenPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.TOKEN_SELECTOR,
+        expect.objectContaining({
+          type: TokenSelectorType.Dest,
+          enabledChainIds: ['eip155:56'],
+          excludeRwaTokens: true,
+          featureId: FeatureId.RECURRING_BUY,
+        }),
+      );
+    });
+
+    it('opens the destination picker with no enabled chains when there is no source token', () => {
+      const { result } = renderRecurringBuySwapInputsHook(
+        {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+      );
+
+      result.current.handleDestTokenPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.TOKEN_SELECTOR,
+        expect.objectContaining({
+          type: TokenSelectorType.Dest,
+          enabledChainIds: [],
           excludeRwaTokens: true,
           featureId: FeatureId.RECURRING_BUY,
         }),
