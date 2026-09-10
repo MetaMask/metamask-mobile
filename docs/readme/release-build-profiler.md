@@ -41,13 +41,24 @@ await startAppProfiling();
 const path = await stopAppProfiling();
 ```
 
-Outside performance APKs these functions no-op. On Android performance APKs,
-`stopProfilingToExternalFiles()` writes the `.cpuprofile` to app-scoped external
-storage. `PerformanceProfilerStatus` mounts
-Appium Pressables (`performance-profiler-start` / `performance-profiler-stop`)
-and exposes the path via `performance-profiler-result-ready` so tests can wait
-and `pullFile`. Do **not** use deeplinks — unknown `metamask://e2e/profiler/*`
-URLs show MetaMask’s unsupported-link UI.
+Outside performance APKs these functions no-op.
+
+On Android they go through `MetaMaskHermesProfiler`, a native module in
+`android/app/src/main/java/io/metamask/nativeModules/HermesProfiler/` that is
+only registered when `BuildConfig.IS_PERFORMANCE_TEST` is true. It runs the same
+stop sequence as the shake flow above — `dumpSampledTraceToFile` then `disable`,
+on the native modules thread — against the prebuilt `hermes-android` artifact
+from Maven, so no React Native or Hermes patches are involved. The only
+difference from the shake flow is the destination: the shake flow copies to the
+shared Downloads collection through `MediaStore`, which Appium cannot read back
+on a non-rooted device, so the module writes to app-scoped external storage
+(`getExternalFilesDir(DIRECTORY_DOCUMENTS)`) instead.
+
+`PerformanceProfilerStatus` mounts Appium Pressables
+(`performance-profiler-start` / `performance-profiler-stop`) and exposes the path
+via `performance-profiler-result-ready` so tests can wait and `pullFile`. Do
+**not** use deeplinks — unknown `metamask://e2e/profiler/*` URLs show MetaMask's
+unsupported-link UI.
 
 Appium scenarios:
 
@@ -60,6 +71,20 @@ await stopAndCollectAppProfiling(testInfo, platform);
 On Android this waits for the result hook, pulls the profile into
 `tests/reporters/reports/hermes-cpuprofiles/`, and attaches it to Playwright.
 On iOS it stops profiling only (pull not implemented).
+
+#### One session per app process
+
+A Hermes profiling session cannot outlive the process that opened it. This is
+not a limitation we work around — asking Hermes to dump a sampler that is no
+longer running is what makes the native stop call hang.
+
+BrowserStack satisfies this by default: `fullReset: true` plus disabled session
+reuse means each performance spec runs against a freshly installed app. Specs
+that deliberately kill the app mid-test (`AppiumGestures.terminateApp`, used by
+the cold-start launch-time specs) reload the JS bundle, so the stop control
+publishes `performance-profiler-session-lost` and collection is skipped for that
+spec rather than attempting a dump. Profile those journeys as separate specs if
+you need a trace across the restart.
 
 ### 3) Convert and view in Chrome tracing
 
