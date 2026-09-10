@@ -112,9 +112,13 @@ describe('BridgeLimitOrderFooterView', () => {
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBeFalsy();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.busy,
+    ).not.toBe(true);
   });
 
-  it('disables the confirm button when ctaDisabled is true', () => {
+  it('disables the confirm button without a loading state when ctaDisabled is true', () => {
     const { getByTestId } = renderFooter(buildFooterState(), {
       ctaDisabled: true,
     });
@@ -123,6 +127,13 @@ describe('BridgeLimitOrderFooterView', () => {
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.busy,
+    ).not.toBe(true);
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent('Create Order');
   });
 
   it('calls onCTAPress when the confirm button is pressed', () => {
