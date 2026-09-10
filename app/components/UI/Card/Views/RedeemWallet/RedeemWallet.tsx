@@ -37,13 +37,8 @@ import useRedeemableWallet, {
 } from '../../hooks/useRedeemableWallet';
 import useRedeemDestination from '../../hooks/useRedeemDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  selectCardHomeDataStatus,
-  selectCardActiveProviderId,
-} from '../../../../../selectors/cardController';
-import { withCardProvider } from '../../util/metrics';
+import { selectCardHomeDataStatus } from '../../../../../selectors/cardController';
+import { useRedeemWalletAnalytics } from './hooks/useRedeemWalletAnalytics';
 import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import {
@@ -78,8 +73,6 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const headerHandlers = useCardHeaderHandlers('back');
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder } = useAnalytics();
-  const activeProviderId = useSelector(selectCardActiveProviderId);
 
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -93,6 +86,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     error,
     estimation,
     isEstimating,
+    estimationError,
     fetchEstimation,
     withdraw,
     isWithdrawing,
@@ -204,6 +198,20 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const showSetupBanner =
     needsSetup && (!useMoneyAccountFlow || canLinkMoneyAccount);
 
+  const { trackRedeemButton } = useRedeemWalletAnalytics({
+    mode,
+    isWalletLoading: isLoading,
+    isFundingStatusLoading,
+    hasLoadingError: showLoadingError,
+    hasEstimation: !!estimation,
+    hasEstimationError: !!estimationError,
+    isDestinationResolved: destination.isResolved,
+    isMoneyAccountDestination: destination.isMoneyAccountDestination,
+    isWithdrawable,
+    needsSetup,
+    hasInsufficientBalance,
+  });
+
   // Fetch when wallet data becomes available (including late loads while focused).
   useEffect(() => {
     if (wallet) {
@@ -282,16 +290,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
       return;
     }
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(activeProviderId, {
-            action: config.analyticsAction,
-            type: 'withdraw',
-          }),
-        )
-        .build(),
-    );
+    trackRedeemButton('withdraw');
 
     try {
       await fetchEstimation();
@@ -304,14 +303,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     balance,
     withdraw,
     fetchEstimation,
-    trackEvent,
-    createEventBuilder,
-    activeProviderId,
+    trackRedeemButton,
     needsSetup,
     isFundingStatusUnavailable,
     isWithdrawing,
     monitoringStatus,
-    config,
   ]);
 
   const handleNavigateToSpendingLimit = useCallback(() => {
@@ -324,12 +320,14 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   }, [navigation, destination.delegationToken]);
 
   const handleSetupPress = useCallback(() => {
+    trackRedeemButton('setup');
     if (useMoneyAccountFlow) {
       startLinkFlow(config.moneyAccountOrigin);
       return;
     }
     handleNavigateToSpendingLimit();
   }, [
+    trackRedeemButton,
     useMoneyAccountFlow,
     startLinkFlow,
     handleNavigateToSpendingLimit,
@@ -337,11 +335,12 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   ]);
 
   const handleOpenRefundInfo = useCallback(() => {
+    trackRedeemButton('refund_info');
     navigation.navigate(Routes.CARD.MODALS.ID, {
       screen: Routes.CARD.MODALS.CREDIT_REFUND_TOOLTIP,
       params: { isMoneyAccount: destination.isMoneyAccountDestination },
     });
-  }, [navigation, destination.isMoneyAccountDestination]);
+  }, [trackRedeemButton, navigation, destination.isMoneyAccountDestination]);
 
   // Keep the button locked through success until resetWithdraw/goBack run —
   // otherwise it briefly re-enables between monitor completion and navigation.

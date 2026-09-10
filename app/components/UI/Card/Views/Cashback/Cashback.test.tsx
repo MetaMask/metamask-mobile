@@ -33,6 +33,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
+    CARD_VIEWED: 'CARD_VIEWED',
   },
 }));
 
@@ -818,6 +819,96 @@ describe('Cashback Component', () => {
         action: 'CASHBACK_BUTTON',
         type: 'withdraw',
         provider: 'baanx',
+      });
+    });
+  });
+
+  describe('funnel analytics', () => {
+    const withdrawableWallet = {
+      id: 'w1',
+      balance: '10.00',
+      currency: 'musd',
+      isWithdrawable: true,
+      type: 'reward',
+    };
+    const settledEstimation = {
+      wei: '100000',
+      eth: '0.0001',
+      price: '0.50',
+      network: 'linea',
+    };
+
+    const viewedCalls = () =>
+      mockCreateEventBuilder.mock.calls.filter(
+        ([name]) => name === 'CARD_VIEWED',
+      );
+
+    it('reports the view once the estimation settles', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+      mockHookReturn.estimation = settledEstimation;
+
+      render();
+
+      expect(viewedCalls()).toHaveLength(1);
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: 'CASHBACK',
+        destination: 'wallet',
+        is_withdrawable: true,
+        needs_setup: false,
+        has_insufficient_balance: false,
+        has_loading_error: false,
+      });
+    });
+
+    it('holds the view until the estimation settles', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+
+      render();
+
+      expect(viewedCalls()).toHaveLength(0);
+    });
+
+    it('reports the view with an unresolved destination when the estimation fails', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+      mockHookReturn.estimationError = new Error('estimation unavailable');
+
+      render({ destination: { isResolved: false } });
+
+      expect(viewedCalls()).toHaveLength(1);
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          screen: 'CASHBACK',
+          destination: 'unresolved',
+        }),
+      );
+    });
+
+    it('reports the view as blocked when funding setup is missing', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+      mockHookReturn.estimation = settledEstimation;
+
+      render({ destination: { hasApprovedDestination: false } });
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          screen: 'CASHBACK',
+          needs_setup: true,
+        }),
+      );
+    });
+
+    it('tracks the setup CTA press', () => {
+      mockHookReturn.wallet = withdrawableWallet;
+      mockHookReturn.estimation = settledEstimation;
+
+      render({ destination: { hasApprovedDestination: false } });
+      fireEvent.press(screen.getByText('Set up funding'));
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: 'CASHBACK_BUTTON',
+        type: 'setup',
       });
     });
   });
