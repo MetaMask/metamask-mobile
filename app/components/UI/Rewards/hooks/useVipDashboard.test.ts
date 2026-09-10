@@ -201,12 +201,18 @@ describe('useVipDashboard', () => {
       'RewardsController:getVIPDashboard',
       'test-subscription-id',
     );
-    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith(true);
+    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: true,
+    });
     expect(mockSetVipDashboard).toHaveBeenCalledWith({
       subscriptionId: 'test-subscription-id',
       dashboard: vipDashboard,
     });
-    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith(false);
+    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 
   it('clears state and skips fetch when subscription is not VIP enabled', async () => {
@@ -238,8 +244,14 @@ describe('useVipDashboard', () => {
       subscriptionId: 'test-subscription-id',
       dashboard: null,
     });
-    expect(mockSetVipDashboardError).toHaveBeenCalledWith(false);
-    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith(false);
+    expect(mockSetVipDashboardError).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      error: false,
+    });
+    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 
   it('sets error state when fetching VIP dashboard fails', async () => {
@@ -249,8 +261,14 @@ describe('useVipDashboard', () => {
 
     await result.current.fetchVipDashboard();
 
-    expect(mockSetVipDashboardError).toHaveBeenCalledWith(true);
-    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith(false);
+    expect(mockSetVipDashboardError).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      error: true,
+    });
+    expect(mockSetVipDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 
   it('registers the focus refresh callback', () => {

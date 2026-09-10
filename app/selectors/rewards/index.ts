@@ -14,7 +14,7 @@ import { defaultRewardsControllerState } from '../../core/Engine/controllers/rew
 export const selectRewardsControllerState = (
   state: RootState,
 ): RewardsControllerState =>
-  state.engine.backgroundState.RewardsController ??
+  state.engine?.backgroundState?.RewardsController ??
   defaultRewardsControllerState;
 
 export const selectRewardsActiveAccountSubscriptionId = createSelector(

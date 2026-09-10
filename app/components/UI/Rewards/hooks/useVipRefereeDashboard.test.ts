@@ -123,12 +123,18 @@ describe('useVipRefereeDashboard', () => {
       'RewardsController:getVipRefereeDashboard',
       'test-subscription-id',
     );
-    expect(mockSetVipRefereeDashboardLoading).toHaveBeenCalledWith(true);
+    expect(mockSetVipRefereeDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: true,
+    });
     expect(mockSetVipRefereeDashboard).toHaveBeenCalledWith({
       subscriptionId: 'test-subscription-id',
       dashboard: refereeDashboard,
     });
-    expect(mockSetVipRefereeDashboardLoading).toHaveBeenCalledWith(false);
+    expect(mockSetVipRefereeDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 
   it('clears state and skips fetch when the user is not a referee', async () => {
@@ -146,8 +152,14 @@ describe('useVipRefereeDashboard', () => {
       subscriptionId: 'test-subscription-id',
       dashboard: null,
     });
-    expect(mockSetVipRefereeDashboardError).toHaveBeenCalledWith(false);
-    expect(mockSetVipRefereeDashboardLoading).toHaveBeenCalledWith(false);
+    expect(mockSetVipRefereeDashboardError).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      error: false,
+    });
+    expect(mockSetVipRefereeDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 
   it('sets error state when fetching the referee dashboard fails', async () => {
@@ -157,8 +169,14 @@ describe('useVipRefereeDashboard', () => {
 
     await result.current.fetchVipRefereeDashboard();
 
-    expect(mockSetVipRefereeDashboardError).toHaveBeenCalledWith(true);
-    expect(mockSetVipRefereeDashboardLoading).toHaveBeenCalledWith(false);
+    expect(mockSetVipRefereeDashboardError).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      error: true,
+    });
+    expect(mockSetVipRefereeDashboardLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 
   it('registers the focus refresh callback that refetches', async () => {
