@@ -285,18 +285,31 @@ describe('SocialV0View', () => {
       mockRouteName = 'SocialV0View';
     });
 
-    it('renders a bare header with only the surface title', () => {
+    it('renders the surface title and notification bell, with no back button', () => {
       renderWithProvider(<SocialV0View />);
 
       expect(
         screen.getByTestId(SocialV0ViewSelectorsIDs.HEADER_TITLE),
       ).toHaveTextContent('homepage.sections.top_traders');
-      for (const absent of [
-        SocialV0ViewSelectorsIDs.BACK_BUTTON,
-        SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON,
-      ]) {
-        expect(screen.queryByTestId(absent)).not.toBeOnTheScreen();
-      }
+      expect(
+        screen.getByTestId(SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(SocialV0ViewSelectorsIDs.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens notification settings from the bell, same as the pushed screen', () => {
+      mockHasNotificationPreferences.mockReturnValue(false);
+
+      renderWithProvider(<SocialV0View />);
+      fireEvent.press(
+        screen.getByTestId(SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.NOTIFICATIONS,
+      });
     });
 
     it('drops the in-content title so it is not shown twice', () => {

@@ -534,7 +534,11 @@ const SocialV0View: React.FC = () => {
           testID={SocialV0ViewSelectorsIDs.HEADER}
         />
       ) : (
-        <HeaderRoot includesTopInset testID={SocialV0ViewSelectorsIDs.HEADER}>
+        <HeaderRoot
+          includesTopInset
+          endButtonIconProps={[notificationButtonProps]}
+          testID={SocialV0ViewSelectorsIDs.HEADER}
+        >
           <Text
             variant={TextVariant.HeadingLg}
             testID={SocialV0ViewSelectorsIDs.HEADER_TITLE}
