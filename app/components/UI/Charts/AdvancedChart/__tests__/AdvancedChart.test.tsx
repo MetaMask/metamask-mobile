@@ -1034,6 +1034,30 @@ describe('AdvancedChart', () => {
     });
   });
 
+  it('calls onTradeMarkerPress when WebView posts TRADE_MARKER_PRESSED', () => {
+    const onTradeMarkerPress = jest.fn();
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onTradeMarkerPress={onTradeMarkerPress}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'TRADE_MARKER_PRESSED',
+            payload: { id: 'tx1' },
+          }),
+        },
+      });
+    });
+
+    expect(onTradeMarkerPress).toHaveBeenCalledWith('tx1');
+  });
+
   it('opens browser and fires analytics when WebView onOpenWindow fires', async () => {
     jest.mocked(Date.now).mockReturnValue(10000);
     const onChartTradingViewClicked = jest.fn();
