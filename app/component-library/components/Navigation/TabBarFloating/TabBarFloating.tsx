@@ -15,10 +15,19 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  BottomNavName,
+  buildBottomNavClickedProperties,
+} from '../../../../core/Analytics/events/navigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
 import { TabBarProps } from '../TabBar/TabBar.types';
-import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
+import {
+  BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY,
+  LABEL_BY_TAB_BAR_ICON_KEY,
+} from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
 import TabBarFloatingSurface from './TabBarFloatingSurface';
 import { useBlurMaterial } from '../../../hooks/useBlurMaterial';
@@ -73,6 +82,18 @@ const TabBarFloating = ({
     TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   );
   const { navigateToMoneyHome } = useMoneyNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const trackBottomNavClicked = useCallback(
+    (name: BottomNavName) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NAVIGATION_DRAWER)
+          .addProperties(buildBottomNavClickedProperties(name))
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
 
   const lastReportedHeight = useRef<number>(0);
   const handleLayout = useCallback(
@@ -91,9 +112,10 @@ const TabBarFloating = ({
   const { isBlurAvailable, colorScheme } = useBlurMaterial();
 
   const handleSearchPress = useCallback(() => {
+    trackBottomNavClicked(BottomNavName.Search);
     trackExploreSearchOpened('nav_bar');
     navigation.navigate(Routes.EXPLORE_SEARCH);
-  }, [navigation]);
+  }, [navigation, trackBottomNavClicked]);
 
   // Tabs that stay mounted on blur (Explore) can only clean up via `onLeave`,
   // so the bar has to fire it — see the matching block in `TabBar`.
@@ -128,6 +150,9 @@ const TabBarFloating = ({
           previousTabIndexRef.current = index;
         }
         options.callback?.();
+        trackBottomNavClicked(
+          BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY[tabBarIconKey],
+        );
         switch (options.rootScreenName) {
           case Routes.WALLET_VIEW:
             navigation.navigate(Routes.WALLET.HOME, {
@@ -173,6 +198,7 @@ const TabBarFloating = ({
       state.routes,
       navigation,
       navigateToMoneyHome,
+      trackBottomNavClicked,
     ],
   );
 

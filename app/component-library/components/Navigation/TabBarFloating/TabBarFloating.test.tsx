@@ -12,6 +12,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import TabBarFloating from './TabBarFloating';
 import {
   TAB_BAR_FLOATING_HEIGHT,
@@ -31,6 +32,19 @@ const mockNavigateToMoneyHome = jest.fn();
 jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
+  }),
+}));
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: jest.fn(() => ({})),
+}));
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
 }));
 
@@ -255,6 +269,38 @@ describe('TabBarFloating', () => {
     expect(
       queryByTestId(`tab-bar-item-${TabBarIconKey.Trade}`),
     ).not.toBeOnTheScreen();
+  });
+
+  it('reports each tab press as a bottom nav click on the Navigation Drawer event', () => {
+    mockAddProperties.mockClear();
+    const { getByTestId } = renderBar();
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NAVIGATION_DRAWER,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action: 'bottom_nav_clicked',
+      name: 'home',
+    });
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action: 'bottom_nav_clicked',
+      name: 'social',
+    });
+  });
+
+  it('reports the search button as a bottom nav click too', () => {
+    mockAddProperties.mockClear();
+    const { getByTestId } = renderBar();
+
+    fireEvent.press(getByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON));
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      action: 'bottom_nav_clicked',
+      name: 'search',
+    });
   });
 
   it('opens explore search from the search button', () => {

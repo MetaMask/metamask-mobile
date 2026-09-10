@@ -219,6 +219,8 @@ enum EVENT_NAME {
 
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
+  ACCOUNT_LIST_VIEWED = 'Account List Viewed',
+  SEARCH_INTERACTED = 'Search Interacted',
 
   // Browser
   BROWSER_OPENED = 'Browser Opened',
@@ -1143,6 +1145,11 @@ const events = {
   ),
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
+  ACCOUNT_LIST_VIEWED: generateOpt(EVENT_NAME.ACCOUNT_LIST_VIEWED),
+  SEARCH_INTERACTED: generateOpt(EVENT_NAME.SEARCH_INTERACTED),
+  // Bare form, for callers that supply `action` and `name` themselves; the
+  // legacy NAVIGATION_TAPS_* entries below bake in the old drawer values.
+  NAVIGATION_DRAWER: generateOpt(EVENT_NAME.NAVIGATION_DRAWER),
   BROWSER_OPENED: generateOpt(EVENT_NAME.BROWSER_OPENED),
   BROWSER_SEARCH_USED: generateOpt(EVENT_NAME.BROWSER_SEARCH_USED),
   BROWSER_NEW_TAB: generateOpt(EVENT_NAME.BROWSER_NEW_TAB),
