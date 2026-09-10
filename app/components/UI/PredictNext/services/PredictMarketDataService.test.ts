@@ -42,6 +42,7 @@ const createService = (marketData: VenueMarketDataAdapter) => {
   return new PredictMarketDataService({
     messenger,
     marketData,
+    portfolio: { fetchBalance: jest.fn() },
     venueId: KALSHI_VENUE_ID,
     policyOptions: { backoff: new ConstantBackoff(0) },
   });

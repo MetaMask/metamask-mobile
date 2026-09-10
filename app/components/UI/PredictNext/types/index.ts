@@ -177,6 +177,12 @@ export interface PredictVenueStatus {
   checkedAt: PredictTimestamp;
 }
 
+export interface PredictBalance {
+  venueId: PredictVenueId;
+  currency: 'USD';
+  available: PredictDecimal;
+}
+
 export interface PredictReadOptions {
   signal?: AbortSignal;
 }

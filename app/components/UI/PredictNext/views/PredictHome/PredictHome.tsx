@@ -15,6 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useFeed } from '../../hooks/useFeed';
+import { useBalance } from '../../hooks/useBalance';
 import {
   FEED_SCREENS,
   NCAA_FEED_SCREEN_ID,
@@ -27,6 +28,7 @@ import type { PredictNextStackParamList } from '../../navigation/types';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
 import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
+import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 
@@ -44,6 +46,7 @@ export const PredictHome = () => {
   const route =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextHome'>>();
   const entryPoint = route.params?.entryPoint;
+  const balanceQuery = useBalance(KALSHI_VENUE_ID);
   const nflQuery = useFeed(KALSHI_VENUE_ID, NFL_GAMES_FEED_ID, {
     limit: PREVIEW_LIMIT,
   });
@@ -110,6 +113,12 @@ export const PredictHome = () => {
       <ScrollView testID={PredictHomeTestIds.SCROLL}>
         <Box twClassName="gap-6 px-4 pb-8">
           <Text variant={TextVariant.HeadingLg}>Predictions</Text>
+          <BalanceSummary
+            balance={balanceQuery.data}
+            isLoading={balanceQuery.isLoading}
+            isError={balanceQuery.isError}
+            onRetry={() => balanceQuery.refetch()}
+          />
           <FeedPreviewSection
             feedScreenId={NFL_FEED_SCREEN_ID}
             title={FEED_SCREENS[NFL_FEED_SCREEN_ID].selectionLabel}

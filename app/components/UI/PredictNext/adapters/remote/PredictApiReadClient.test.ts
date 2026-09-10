@@ -57,6 +57,34 @@ describe('PredictApiReadClient', () => {
     );
   });
 
+  it('authenticates Balance requests without retaining identity in the URL', async () => {
+    fetchMock.mockResolvedValue(createResponse());
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+    });
+
+    await client.fetchBalance(venueId);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/balance',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer secret-token',
+        }),
+      }),
+    );
+  });
+
+  it('fails Balance requests before HTTP when no bearer token is available', async () => {
+    await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+      status: 401,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('encodes event-list query parameters', async () => {
     fetchMock.mockResolvedValue(createResponse());
 

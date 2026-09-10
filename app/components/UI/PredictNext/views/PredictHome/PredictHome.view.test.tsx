@@ -30,6 +30,67 @@ describe('PredictHome', () => {
     configurePredictNextFeeds();
   });
 
+  it('loads and rounds the available Balance without blocking Feeds', async () => {
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+    ).toHaveTextContent('$123.13');
+    expect(view.getByText('Available balance')).toBeOnTheScreen();
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).toBeOnTheScreen();
+  });
+
+  it('masks Balance when privacy mode is enabled', async () => {
+    const view = renderPredictNext(undefined, true);
+
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    expect(view.queryByText('$123.13')).not.toBeOnTheScreen();
+    expect(view.getByText('Available balance')).toBeOnTheScreen();
+  });
+
+  it('keeps Balance failure isolated and retries it', async () => {
+    let balanceFails = true;
+    messengerCall.mockImplementation(
+      (action: string, _venueId: string, id: string) => {
+        if (action === 'PredictMarketDataService:getBalance') {
+          return balanceFails
+            ? Promise.reject(new Error('Balance failed'))
+            : Promise.resolve({
+                venueId: 'kalshi',
+                currency: 'USD',
+                available: '5',
+              });
+        }
+        if (action === 'PredictMarketDataService:getFeed') {
+          return Promise.resolve({
+            venueId: 'kalshi',
+            id,
+            title: 'Games',
+            events: id === NFL_GAMES_FEED_ID ? nflEvents : ncaaEvents,
+          });
+        }
+        return Promise.resolve(undefined);
+      },
+    );
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.BALANCE_ERROR),
+    ).toBeOnTheScreen();
+    expect(view.getByText('Balance unavailable')).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).toBeOnTheScreen();
+
+    balanceFails = false;
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.BALANCE_RETRY));
+    expect(
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+    ).toHaveTextContent('$5.00');
+  });
+
   it('loads the first two backend-ordered Games for both previews', async () => {
     configurePredictNextFeeds({
       nfl: [...nflEvents, makePredictNextEvent('nfl-3', 'Hidden NFL Game')],

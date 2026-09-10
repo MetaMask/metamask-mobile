@@ -12,7 +12,10 @@ import type {
   PredictNextHomeParams,
 } from '../../../app/components/UI/PredictNext/navigation/types';
 
-export const renderPredictNext = (initialParams?: PredictNextHomeParams) =>
+export const renderPredictNext = (
+  initialParams?: PredictNextHomeParams,
+  privacyMode = false,
+) =>
   renderScreenWithRoutes(
     PredictHome as unknown as React.ComponentType,
     { name: PredictNextRoutes.HOME },
@@ -26,7 +29,7 @@ export const renderPredictNext = (initialParams?: PredictNextHomeParams) =>
         Component: PredictEventScreen as unknown as React.ComponentType<object>,
       },
     ],
-    { state: initialStatePredictNext().build() },
+    { state: initialStatePredictNext(privacyMode).build() },
     initialParams ? { ...initialParams } : undefined,
   );
 

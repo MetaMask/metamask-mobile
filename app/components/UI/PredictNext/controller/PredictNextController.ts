@@ -16,6 +16,7 @@ export interface PredictNextControllerOptions {
   baseUrl?: string;
   clientVersion: string;
   fetch?: typeof fetch;
+  getBearerToken?: () => Promise<string | undefined>;
   policyOptions?: Pick<
     CreateServicePolicyOptions,
     'backoff' | 'circuitBreakDuration' | 'maxConsecutiveFailures'
@@ -25,7 +26,7 @@ export interface PredictNextControllerOptions {
 /** Composes and owns the PredictNext service graph. */
 export class PredictNextController {
   readonly #options: PredictNextControllerOptions;
-  #service?: PredictMarketDataService;
+  #marketDataService?: PredictMarketDataService;
   #destroyed = false;
 
   constructor(options: PredictNextControllerOptions) {
@@ -33,7 +34,7 @@ export class PredictNextController {
   }
 
   initialize(): void {
-    if (this.#service || this.#destroyed) {
+    if (this.#marketDataService || this.#destroyed) {
       return;
     }
     if (!this.#options.baseUrl) {
@@ -52,6 +53,7 @@ export class PredictNextController {
         baseUrl: this.#options.baseUrl,
         clientVersion: this.#options.clientVersion,
         fetch: this.#options.fetch,
+        getBearerToken: this.#options.getBearerToken,
       });
     } catch (error) {
       Logger.error(
@@ -63,9 +65,10 @@ export class PredictNextController {
     }
 
     const adapter = new KalshiRemoteAdapter(client);
-    this.#service = new PredictMarketDataService({
-      messenger: this.#options.messenger,
+    this.#marketDataService = new PredictMarketDataService({
+      messenger: this.#options.messenger as PredictMarketDataServiceMessenger,
       marketData: adapter.marketData,
+      portfolio: adapter.portfolio,
       venueId: adapter.venueId,
       policyOptions: this.#options.policyOptions,
     });
@@ -76,7 +79,7 @@ export class PredictNextController {
       return;
     }
     this.#destroyed = true;
-    this.#service?.destroy();
-    this.#service = undefined;
+    this.#marketDataService?.destroy();
+    this.#marketDataService = undefined;
   }
 }

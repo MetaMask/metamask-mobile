@@ -76,6 +76,33 @@ describe('PredictNext public market data', () => {
     harnesses.splice(0).forEach((harness) => harness.destroy());
   });
 
+  it('reads Balance through the authenticated controller-to-transport chain', async () => {
+    const balance = {
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '123.125',
+    };
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: balance,
+    }));
+
+    const result = await harness.messenger.call(
+      'PredictMarketDataService:getBalance',
+      KALSHI_VENUE_ID,
+    );
+
+    expect(result).toEqual(balance);
+    expect(harness.getBearerTokenMock).toHaveBeenCalledTimes(1);
+    expect(harness.fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/v1/venues/kalshi/balance',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test-bearer-token',
+        }),
+      }),
+    );
+  });
+
   it('reads venue status through the real controller-to-transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness(() => ({
       body: status,

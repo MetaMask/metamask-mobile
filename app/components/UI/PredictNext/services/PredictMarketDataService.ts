@@ -11,7 +11,10 @@ import {
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
-import type { VenueMarketDataAdapter } from '../adapters/types';
+import type {
+  VenueMarketDataAdapter,
+  VenuePortfolioAdapter,
+} from '../adapters/types';
 import { PredictError, PredictErrorCode } from '../errors';
 import {
   marketDataQueries,
@@ -21,6 +24,10 @@ import {
   type GetMarketHistoryResult,
   type GetVenueStatusResult,
 } from '../queries/marketDataQueries';
+import {
+  portfolioQueries,
+  type GetBalanceResult,
+} from '../queries/portfolioQueries';
 import type {
   PredictEntityId,
   PredictFeedId,
@@ -32,6 +39,14 @@ import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_MARKET_DATA_SERVICE_NAME =
   'PredictMarketDataService' as const;
+
+export interface PredictMarketDataServiceGetBalanceAction {
+  type: 'PredictMarketDataService:getBalance';
+  handler: (
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ) => Promise<GetBalanceResult>;
+}
 
 export interface PredictMarketDataServiceGetVenueStatusAction {
   type: 'PredictMarketDataService:getVenueStatus';
@@ -72,6 +87,7 @@ export interface PredictMarketDataServiceGetMarketHistoryAction {
 }
 
 export type PredictMarketDataServiceActions =
+  | PredictMarketDataServiceGetBalanceAction
   | PredictMarketDataServiceGetVenueStatusAction
   | PredictMarketDataServiceGetFeedAction
   | PredictMarketDataServiceGetEventAction
@@ -103,6 +119,7 @@ export const isRetryablePredictError = (error: unknown): boolean =>
 export interface PredictMarketDataServiceOptions {
   messenger: PredictMarketDataServiceMessenger;
   marketData: VenueMarketDataAdapter;
+  portfolio: VenuePortfolioAdapter;
   venueId: PredictVenueId;
   policyOptions?: Pick<
     CreateServicePolicyOptions,
@@ -116,11 +133,13 @@ export class PredictMarketDataService extends BaseDataService<
   PredictMarketDataServiceMessenger
 > {
   readonly #marketData: VenueMarketDataAdapter;
+  readonly #portfolio: VenuePortfolioAdapter;
   readonly #venueId: PredictVenueId;
 
   constructor({
     messenger,
     marketData,
+    portfolio,
     venueId,
     policyOptions,
   }: PredictMarketDataServiceOptions) {
@@ -135,8 +154,13 @@ export class PredictMarketDataService extends BaseDataService<
       },
     });
     this.#marketData = marketData;
+    this.#portfolio = portfolio;
     this.#venueId = venueId;
 
+    messenger.registerActionHandler(
+      'PredictMarketDataService:getBalance',
+      this.getBalance.bind(this),
+    );
     messenger.registerActionHandler(
       'PredictMarketDataService:getVenueStatus',
       this.getVenueStatus.bind(this),
@@ -153,6 +177,22 @@ export class PredictMarketDataService extends BaseDataService<
       'PredictMarketDataService:getMarketHistory',
       this.getMarketHistory.bind(this),
     );
+  }
+
+  async getBalance(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<GetBalanceResult> {
+    this.#assertVenue(venueId);
+    const descriptor = portfolioQueries.getBalance(venueId);
+    return this.fetchQuery({
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
+      queryFn: ({ signal }) =>
+        this.#portfolio.fetchBalance({
+          signal: options?.signal ?? signal,
+        }) as Promise<Json & GetBalanceResult>,
+    });
   }
 
   async getVenueStatus(

@@ -31,6 +31,7 @@ export interface PredictNextIntegrationHarness {
   controller: PredictNextController;
   messenger: PredictNextControllerMessenger;
   fetchMock: jest.MockedFunction<typeof fetch>;
+  getBearerTokenMock: jest.MockedFunction<() => Promise<string | undefined>>;
   destroy: () => void;
 }
 
@@ -52,11 +53,13 @@ export const buildPredictNextIntegrationHarness = (
   const fetchMock = jest.fn(async (input, init) =>
     jsonResponse(await responder(String(input), init)),
   ) as jest.MockedFunction<typeof fetch>;
+  const getBearerTokenMock = jest.fn(async () => 'test-bearer-token');
   const controller = new PredictNextController({
     messenger,
     baseUrl: 'https://predict.example/',
     clientVersion: '1.0.0',
     fetch: fetchMock,
+    getBearerToken: getBearerTokenMock,
     policyOptions: {
       backoff: new ConstantBackoff(0),
       maxConsecutiveFailures: 3,
@@ -69,6 +72,7 @@ export const buildPredictNextIntegrationHarness = (
     controller,
     messenger,
     fetchMock,
+    getBearerTokenMock,
     destroy: () => controller.destroy(),
   };
 };
