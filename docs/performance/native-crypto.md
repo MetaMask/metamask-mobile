@@ -53,6 +53,15 @@ No other stage moved: controller rehydration 88 → 79 ms, `Engine.init` 778 →
 1,102 → 1,069 ms, navigator module-eval 24 → 23 ms, splash reveal tax 1,752 → 1,785 ms — all within
 run-to-run noise.
 
+**How these were obtained, and why they are not reproducible from this repo alone.** The per-stage
+numbers came from throwaway local instrumentation that logged stage marks through
+`global.nativeLoggingHook` (the one log channel `transform-remove-console` does not strip from
+release builds), driven over `adb`. That instrumentation was deliberately **not** merged — it is
+measurement code, and this repo ships product code. Reproducing the table therefore means
+re-adding equivalent local probes. The `HomepageReady` Sentry CUF already covers the
+unlock → homepage window in production and is the durable place to watch this number, though it is
+not yet dashboarded.
+
 ## The fix: pin the edge, don't patch the source
 
 Two targeted entries in `package.json` `resolutions`:
@@ -101,7 +110,6 @@ uncompressed output): `pass=13 fail=0`, with 5/5 cold unlocks reaching a usable 
 
 ## Related
 
-- [startup-instrumentation.md](./startup-instrumentation.md) — how to measure a cold start
 - `shimPerf.js` — the patch site
 - `app/core/Engine/wallet-init/keyrings.ts` — where native `pbkdf2Sha512`/`hmacSha512` are injected
   into the HD keyring via `CryptographicFunctions`
