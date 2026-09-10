@@ -190,7 +190,7 @@ describe('Amount', () => {
 
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+    expect(getByTestId('send_amount')).toHaveTextContent('25.515000');
     expect(mockUpdateValue).toHaveBeenCalledWith('25.515000');
   });
 
@@ -209,7 +209,7 @@ describe('Amount', () => {
 
     const { getByTestId } = renderComponent();
 
-    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+    expect(getByTestId('send_amount')).toHaveTextContent('25.515000');
 
     // Clear every digit until the keypad reports an empty value.
     const deleteButton = getByTestId('keypad-delete-button');
@@ -217,7 +217,7 @@ describe('Amount', () => {
       fireEvent.press(deleteButton);
     }
 
-    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    expect(getByTestId('send_amount')).toHaveTextContent('0');
     expect(
       mockAmountSelectionMetrics.setAmountInputTypeToken,
     ).toHaveBeenCalledTimes(1);
