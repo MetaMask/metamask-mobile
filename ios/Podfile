@@ -196,12 +196,6 @@ post_install do |installer|
 
     target.build_configurations.each do |config|
       config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
-
-      ldflags = Array(config.build_settings['OTHER_LDFLAGS'] || '$(inherited)').flatten
-      next if ldflags.join(' ').include?('SystemConfiguration')
-
-      ldflags.concat(['-framework', 'SystemConfiguration'])
-      config.build_settings['OTHER_LDFLAGS'] = ldflags
     end
   end
 
