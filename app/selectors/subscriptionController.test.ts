@@ -298,20 +298,23 @@ describe('subscriptionController selectors', () => {
       SUBSCRIPTION_STATUSES.active,
       SUBSCRIPTION_STATUSES.trialing,
       SUBSCRIPTION_STATUSES.provisional,
-    ])('treats a %s Money Account Plus subscription as subscribed', (status) => {
-      const state = createState({
-        subscriptions: [
-          createSubscription({
-            id: 'sub-money-account-plus',
-            products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
-            status,
-          }),
-        ],
-        trialedProducts: [],
-      });
+    ])(
+      'treats a %s Money Account Plus subscription as subscribed',
+      (status) => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-money-account-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status,
+            }),
+          ],
+          trialedProducts: [],
+        });
 
-      expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(true);
-    });
+        expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(true);
+      },
+    );
 
     it.each([
       SUBSCRIPTION_STATUSES.canceled,
