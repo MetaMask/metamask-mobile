@@ -1,0 +1,321 @@
+##############################################################################################
+#
+# TEMPORARY: Slack RC notification setup benchmark.
+# Branch-scoped to ci/slim-slack-rc-notification. Delete before merge.
+# Does not call Slack, release, build, comment, or notification workflows.
+# Does not use repository secrets. Uploads only dry-run test outputs.
+#
+##############################################################################################
+name: Slack RC Notification Benchmark
+
+on:
+  push:
+    branches:
+      - ci/slim-slack-rc-notification
+
+# contents: read for checkout. actions: write is only for uploading dry-run
+# payload/timing files used by the compare job. No contents: write.
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: slack-rc-notification-benchmark-${{ github.sha }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+env:
+  FIXTURE_SEMVER: 0.0.0-ci-dry-run
+  FIXTURE_IOS_BUILD_NUMBER: '100'
+  FIXTURE_ANDROID_BUILD_NUMBER: '100'
+  FIXTURE_PR_NUMBER: '1'
+  FIXTURE_PIPELINE_URL: https://github.com/MetaMask/metamask-mobile/actions
+  FIXTURE_ANDROID_PUBLIC_URL: https://example.invalid/android-ci-dry-run
+  FIXTURE_IOS_PUBLIC_URL: https://example.invalid/ios-ci-dry-run
+  SLACK_RC_NOTIFICATION_DRY_RUN: 'true'
+
+jobs:
+  baseline:
+    name: Baseline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record setup start
+        run: echo "SETUP_START_NS=$(date +%s%N)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download Android Play Store check report (optional)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: android-play-store-check-slack
+          path: android-play-store-check-out
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Capture RC, OTA, and production dry-run payloads
+        run: |
+          set -euo pipefail
+          unset SLACK_BOT_TOKEN || true
+          mkdir -p benchmark-out
+          extract_payload() {
+            local stdout_file="$1"
+            local json_file="$2"
+            python3 - "$stdout_file" "$json_file" <<'PY'
+          import pathlib, sys
+          text = pathlib.Path(sys.argv[1]).read_text()
+          start = text.index("--- Slack payload (dry run) ---\n")
+          rest = text[start + len("--- Slack payload (dry run) ---\n"):]
+          end = rest.index("\n--- end dry run ---")
+          payload = rest[:end].lstrip("\n")
+          pathlib.Path(sys.argv[2]).write_text(payload)
+          PY
+          }
+
+          common_env=(
+            "SLACK_RC_NOTIFICATION_DRY_RUN=true"
+            "BUILD_PIPELINE_URL=${FIXTURE_PIPELINE_URL}"
+            "ANDROID_PUBLIC_URL=${FIXTURE_ANDROID_PUBLIC_URL}"
+            "IOS_PUBLIC_URL=${FIXTURE_IOS_PUBLIC_URL}"
+          )
+
+          echo "::group::RC explicit metadata"
+          env "${common_env[@]}" \
+            SEMVER="${FIXTURE_SEMVER}" \
+            IOS_BUILD_NUMBER="${FIXTURE_IOS_BUILD_NUMBER}" \
+            ANDROID_BUILD_NUMBER="${FIXTURE_ANDROID_BUILD_NUMBER}" \
+            PR_NUMBER="${FIXTURE_PR_NUMBER}" \
+            BUILD_KIND=rc \
+            node ./scripts/slack-rc-notification.mjs | tee benchmark-out/rc.stdout.txt
+          extract_payload benchmark-out/rc.stdout.txt benchmark-out/rc.json
+          echo "::endgroup::"
+
+          echo "::group::OTA-style metadata fallback"
+          GITHUB_OUTPUT="${PWD}/benchmark-out/ota-github-output.txt"
+          : > "${GITHUB_OUTPUT}"
+          GITHUB_OUTPUT="${GITHUB_OUTPUT}" ./scripts/get-build-metadata.sh --ci
+          ota_ios=$(sed -n 's/^ios_version_code=//p' "${GITHUB_OUTPUT}" | tail -n 1)
+          ota_android=$(sed -n 's/^android_version_code=//p' "${GITHUB_OUTPUT}" | tail -n 1)
+          if [[ -z "${ota_ios}" || -z "${ota_android}" ]]; then
+            echo "::error::OTA metadata fallback did not emit native build numbers"
+            exit 1
+          fi
+          env "${common_env[@]}" \
+            SEMVER="${FIXTURE_SEMVER}" \
+            IOS_BUILD_NUMBER="${ota_ios}" \
+            ANDROID_BUILD_NUMBER="${ota_android}" \
+            BUILD_KIND=rc \
+            node ./scripts/slack-rc-notification.mjs | tee benchmark-out/ota.stdout.txt
+          extract_payload benchmark-out/ota.stdout.txt benchmark-out/ota.json
+          echo "::endgroup::"
+
+          echo "::group::Production explicit metadata"
+          env "${common_env[@]}" \
+            SEMVER="${FIXTURE_SEMVER}" \
+            IOS_BUILD_NUMBER="${FIXTURE_IOS_BUILD_NUMBER}" \
+            ANDROID_BUILD_NUMBER="${FIXTURE_ANDROID_BUILD_NUMBER}" \
+            BUILD_KIND=production \
+            node ./scripts/slack-rc-notification.mjs | tee benchmark-out/production.stdout.txt
+          extract_payload benchmark-out/production.stdout.txt benchmark-out/production.json
+          echo "::endgroup::"
+
+      - name: Record setup-to-payload duration
+        run: |
+          end_ns=$(date +%s%N)
+          python3 - "$SETUP_START_NS" "$end_ns" baseline <<'PY'
+          import os, pathlib, sys
+          start_ns = int(sys.argv[1])
+          end_ns = int(sys.argv[2])
+          mode = sys.argv[3]
+          elapsed_ms = (end_ns - start_ns) // 1_000_000
+          out = pathlib.Path("benchmark-out")
+          out.mkdir(exist_ok=True)
+          (out / "timing-ms.txt").write_text(f"{elapsed_ms}\n")
+          minutes, ms = divmod(elapsed_ms, 60_000)
+          seconds, millis = divmod(ms, 1000)
+          summary = f"{mode} setup-to-payload: {elapsed_ms} ms ({minutes}m {seconds}s {millis}ms)\n"
+          with pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a") as handle:
+              handle.write(summary)
+          print(summary, end="")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slack-rc-benchmark-baseline
+          path: benchmark-out/
+          if-no-files-found: error
+          retention-days: 7
+
+  candidate:
+    name: Candidate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record setup start
+        run: echo "SETUP_START_NS=$(date +%s%N)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Download Android Play Store check report (optional)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: android-play-store-check-slack
+          path: android-play-store-check-out
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Capture RC, OTA, and production dry-run payloads
+        run: |
+          set -euo pipefail
+          unset SLACK_BOT_TOKEN || true
+          mkdir -p benchmark-out
+          extract_payload() {
+            local stdout_file="$1"
+            local json_file="$2"
+            python3 - "$stdout_file" "$json_file" <<'PY'
+          import pathlib, sys
+          text = pathlib.Path(sys.argv[1]).read_text()
+          start = text.index("--- Slack payload (dry run) ---\n")
+          rest = text[start + len("--- Slack payload (dry run) ---\n"):]
+          end = rest.index("\n--- end dry run ---")
+          payload = rest[:end].lstrip("\n")
+          pathlib.Path(sys.argv[2]).write_text(payload)
+          PY
+          }
+
+          common_env=(
+            "SLACK_RC_NOTIFICATION_DRY_RUN=true"
+            "BUILD_PIPELINE_URL=${FIXTURE_PIPELINE_URL}"
+            "ANDROID_PUBLIC_URL=${FIXTURE_ANDROID_PUBLIC_URL}"
+            "IOS_PUBLIC_URL=${FIXTURE_IOS_PUBLIC_URL}"
+          )
+
+          echo "::group::RC explicit metadata"
+          env "${common_env[@]}" \
+            SEMVER="${FIXTURE_SEMVER}" \
+            IOS_BUILD_NUMBER="${FIXTURE_IOS_BUILD_NUMBER}" \
+            ANDROID_BUILD_NUMBER="${FIXTURE_ANDROID_BUILD_NUMBER}" \
+            PR_NUMBER="${FIXTURE_PR_NUMBER}" \
+            BUILD_KIND=rc \
+            node ./scripts/slack-rc-notification.mjs | tee benchmark-out/rc.stdout.txt
+          extract_payload benchmark-out/rc.stdout.txt benchmark-out/rc.json
+          echo "::endgroup::"
+
+          echo "::group::OTA-style metadata fallback"
+          GITHUB_OUTPUT="${PWD}/benchmark-out/ota-github-output.txt"
+          : > "${GITHUB_OUTPUT}"
+          GITHUB_OUTPUT="${GITHUB_OUTPUT}" ./scripts/get-build-metadata.sh --ci
+          ota_ios=$(sed -n 's/^ios_version_code=//p' "${GITHUB_OUTPUT}" | tail -n 1)
+          ota_android=$(sed -n 's/^android_version_code=//p' "${GITHUB_OUTPUT}" | tail -n 1)
+          if [[ -z "${ota_ios}" || -z "${ota_android}" ]]; then
+            echo "::error::OTA metadata fallback did not emit native build numbers"
+            exit 1
+          fi
+          env "${common_env[@]}" \
+            SEMVER="${FIXTURE_SEMVER}" \
+            IOS_BUILD_NUMBER="${ota_ios}" \
+            ANDROID_BUILD_NUMBER="${ota_android}" \
+            BUILD_KIND=rc \
+            node ./scripts/slack-rc-notification.mjs | tee benchmark-out/ota.stdout.txt
+          extract_payload benchmark-out/ota.stdout.txt benchmark-out/ota.json
+          echo "::endgroup::"
+
+          echo "::group::Production explicit metadata"
+          env "${common_env[@]}" \
+            SEMVER="${FIXTURE_SEMVER}" \
+            IOS_BUILD_NUMBER="${FIXTURE_IOS_BUILD_NUMBER}" \
+            ANDROID_BUILD_NUMBER="${FIXTURE_ANDROID_BUILD_NUMBER}" \
+            BUILD_KIND=production \
+            node ./scripts/slack-rc-notification.mjs | tee benchmark-out/production.stdout.txt
+          extract_payload benchmark-out/production.stdout.txt benchmark-out/production.json
+          echo "::endgroup::"
+
+      - name: Record setup-to-payload duration
+        run: |
+          end_ns=$(date +%s%N)
+          python3 - "$SETUP_START_NS" "$end_ns" candidate <<'PY'
+          import os, pathlib, sys
+          start_ns = int(sys.argv[1])
+          end_ns = int(sys.argv[2])
+          mode = sys.argv[3]
+          elapsed_ms = (end_ns - start_ns) // 1_000_000
+          out = pathlib.Path("benchmark-out")
+          out.mkdir(exist_ok=True)
+          (out / "timing-ms.txt").write_text(f"{elapsed_ms}\n")
+          minutes, ms = divmod(elapsed_ms, 60_000)
+          seconds, millis = divmod(ms, 1000)
+          summary = f"{mode} setup-to-payload: {elapsed_ms} ms ({minutes}m {seconds}s {millis}ms)\n"
+          with pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a") as handle:
+              handle.write(summary)
+          print(summary, end="")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slack-rc-benchmark-candidate
+          path: benchmark-out/
+          if-no-files-found: error
+          retention-days: 7
+
+  compare:
+    name: Compare payloads
+    needs: [baseline, candidate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: slack-rc-benchmark-baseline
+          path: baseline-out
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: slack-rc-benchmark-candidate
+          path: candidate-out
+
+      - name: Compare dry-run payloads byte-for-byte
+        run: |
+          set -euo pipefail
+          failed=0
+          for name in rc.json ota.json production.json; do
+            echo "::group::diff ${name}"
+            if cmp -s "baseline-out/${name}" "candidate-out/${name}"; then
+              echo "OK ${name} identical ($(wc -c < "baseline-out/${name}") bytes)"
+            else
+              echo "::error::Payload mismatch for ${name}"
+              diff -u "baseline-out/${name}" "candidate-out/${name}" || true
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+          baseline_ms=$(tr -d '[:space:]' < baseline-out/timing-ms.txt)
+          candidate_ms=$(tr -d '[:space:]' < candidate-out/timing-ms.txt)
+          {
+            echo "## Slack RC notification benchmark"
+            echo ""
+            echo "| Mode | setup-to-payload (ms) |"
+            echo "| --- | ---: |"
+            echo "| baseline | ${baseline_ms} |"
+            echo "| candidate | ${candidate_ms} |"
+            echo ""
+            echo "Payloads compared: rc.json, ota.json, production.json"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=Benchmark timings::baseline_ms=${baseline_ms} candidate_ms=${candidate_ms}"
+          if [[ "${failed}" -ne 0 ]]; then
+            exit 1
+          fi
