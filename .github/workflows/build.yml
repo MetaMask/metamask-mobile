@@ -33,6 +33,16 @@ on:
         required: false
         type: boolean
         default: false
+      build_attribution:
+        description: >-
+          Optional analytics build attribution, exported as METAMASK_BUILD_ATTRIBUTION and
+          inlined into the JS bundle. Set to 'nightly' by nightly-build.yml so
+          getAnalyticsAppVersion reports `-rc-nightly` / `-exp-nightly` instead of the
+          `-release-candidate` / `-experimental` suffixes that Runway builds use. Any other
+          value keeps the default suffixes. Distinct from builds.yml build names (main-rc, etc.).
+        required: false
+        type: string
+        default: ''
       runner_provider:
         description: >-
           Runner provider forwarded from the caller. Leave empty to defer to the repo
@@ -98,6 +108,11 @@ on:
         required: false
         type: boolean
         default: false
+      build_attribution:
+        description: "Analytics build attribution (METAMASK_BUILD_ATTRIBUTION). Use 'nightly' to report -rc-nightly / -exp-nightly; leave empty for the default suffixes"
+        required: false
+        type: string
+        default: ''
       runner_provider:
         description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: false
@@ -559,6 +574,9 @@ jobs:
           # builds.yml entry (e.g. main-e2e-bs-with-srp), not generic main-e2e (sim-only).
           BUILD_CONFIG_NAME: ${{ inputs.build_name }}
           GIT_BRANCH: ${{ inputs.source_branch }}
+          # Deliberately absent from builds.yml: build.sh's loadBuildConfig re-evals the
+          # builds.yml exports, so a name defined there would overwrite this value.
+          METAMASK_BUILD_ATTRIBUTION: ${{ inputs.build_attribution }}
           # React Native 0.81's ReactAndroid/build.gradle.kts requests CMake 3.30.5
           # via `System.getenv("CMAKE_VERSION") ?: "3.30.5"`. The self-hosted runner
           # only ships CMake 3.22.1 in /opt/android-sdk/cmake/ and AGP cannot auto-
