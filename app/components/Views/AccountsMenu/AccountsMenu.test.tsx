@@ -142,15 +142,15 @@ const mockUseCardUkMigrationUpdateBadge = jest.mocked(
   useCardUkMigrationUpdateBadge,
 );
 const mockUseCardUkMigrationState = jest.mocked(useCardUkMigrationState);
-const mockSelectCardActiveProviderId = jest.mocked(selectCardActiveProviderId);
 
 describe('AccountsMenu', () => {
   let mockAlert: jest.SpyInstance;
+  let mockActiveProviderId: ReturnType<typeof selectCardActiveProviderId>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
-    mockSelectCardActiveProviderId.mockReturnValue('baanx');
+    mockActiveProviderId = 'baanx';
     mockUseCardUkMigrationState.mockReturnValue({
       state: {
         phase: 'soft',
@@ -169,7 +169,7 @@ describe('AccountsMenu', () => {
     // Setup useSelector to return different values based on the selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectCardActiveProviderId) {
-        return mockSelectCardActiveProviderId();
+        return mockActiveProviderId;
       }
 
       const mockState = {
