@@ -1,6 +1,20 @@
 import { renderHook } from '@testing-library/react-native';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { runQuickBuyQuotesCases } from './runQuickBuyQuotesCases';
+import Engine from '../../../../core/Engine';
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        fetchQuotes: jest.fn(),
+      },
+    },
+  },
+}));
+const fetchQuotesMock = Engine.context.BridgeController
+  .fetchQuotes as jest.Mock;
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -56,6 +70,17 @@ jest.mock('../utils/streamQuickBuyQuotes', () => ({
   streamQuickBuyQuotes: jest.fn(),
 }));
 
+jest.mock('../../Bridge/hooks/useSwapQuotes/utils', () => {
+  const actual = jest.requireActual('../../Bridge/hooks/useSwapQuotes/utils');
+
+  return {
+    ...actual,
+    buildGenericQuoteRequest: jest.fn((...args: unknown[]) =>
+      actual.buildGenericQuoteRequest(...args),
+    ),
+  };
+});
+
 jest.mock('../../../Views/SocialLeaderboard/analytics', () => {
   const actual = jest.requireActual(
     '../../../Views/SocialLeaderboard/analytics',
@@ -87,4 +112,5 @@ runQuickBuyQuotesCases({
     renderHook((hookParams) => useQuickBuyQuotes(hookParams), {
       initialProps: params,
     }),
+  fetchQuotesMock,
 });
