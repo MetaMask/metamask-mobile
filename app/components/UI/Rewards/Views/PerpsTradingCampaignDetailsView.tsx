@@ -31,7 +31,7 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import PerpsTradingCampaignLeaderboard, {
   PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from '../components/Campaigns/PerpsTradingCampaignLeaderboard';
-import CampaignPrizePool from '../components/Campaigns/CampaignPrizePool';
+import CampaignPrizePoolSection from '../components/Campaigns/CampaignPrizePoolSection';
 import PerpsTradingCampaignCTA from '../components/Campaigns/PerpsTradingCampaignCTA';
 import PerpsCampaignStatsSummary from '../components/Campaigns/PerpsCampaignStatsSummary';
 import PerpsTradingCampaignEndedStats from '../components/Campaigns/PerpsTradingCampaignEndedStats';
@@ -54,7 +54,6 @@ import {
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
-import { hasPrizePoolContent } from '../utils/prizePoolUtils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -360,31 +359,14 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                 </Box>
               )}
 
-              {showPrizePoolSection &&
-                hasPrizePoolContent({
-                  hasData: prizePool != null,
-                  isLoading: isPrizePoolLoading,
-                  hasError: hasPrizePoolError,
-                }) && (
-                  <>
-                    <Box twClassName="my-1 border-b border-border-muted" />
-                    <Box twClassName="p-4">
-                      <Text
-                        variant={TextVariant.HeadingMd}
-                        fontWeight={FontWeight.Bold}
-                        twClassName="mb-1"
-                      >
-                        {strings('rewards.campaign_prize_pool.title')}
-                      </Text>
-                      <CampaignPrizePool
-                        prizePool={prizePool}
-                        isLoading={isPrizePoolLoading}
-                        hasError={hasPrizePoolError}
-                        refetch={refetchPrizePool}
-                      />
-                    </Box>
-                  </>
-                )}
+              {showPrizePoolSection && (
+                <CampaignPrizePoolSection
+                  prizePool={prizePool}
+                  isLoading={isPrizePoolLoading}
+                  hasError={hasPrizePoolError}
+                  refetch={refetchPrizePool}
+                />
+              )}
 
               {showLeaderboardSection && (
                 <>

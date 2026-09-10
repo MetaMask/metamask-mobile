@@ -35,7 +35,7 @@ import PredictThePitchLeaderboard, {
   PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS,
 } from '../components/Campaigns/PredictThePitchLeaderboard';
 import PredictThePitchPortfolio from '../components/Campaigns/PredictThePitchPortfolio';
-import CampaignPrizePool from '../components/Campaigns/CampaignPrizePool';
+import CampaignPrizePoolSection from '../components/Campaigns/CampaignPrizePoolSection';
 import PredictThePitchStatsSummary from '../components/Campaigns/PredictThePitchStatsSummary';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -48,7 +48,6 @@ import { useGetPredictThePitchPrizePool } from '../hooks/useGetPredictThePitchPr
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
-import { hasPrizePoolContent } from '../utils/prizePoolUtils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -494,31 +493,14 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                 </Box>
               )}
 
-              {showPrizePoolSection &&
-                hasPrizePoolContent({
-                  hasData: prizePool != null,
-                  isLoading: isPrizePoolLoading,
-                  hasError: hasPrizePoolError,
-                }) && (
-                  <>
-                    <Box twClassName="my-1 border-b border-border-muted" />
-                    <Box twClassName="p-4">
-                      <Text
-                        variant={TextVariant.HeadingMd}
-                        fontWeight={FontWeight.Bold}
-                        twClassName="mb-1"
-                      >
-                        {strings('rewards.campaign_prize_pool.title')}
-                      </Text>
-                      <CampaignPrizePool
-                        prizePool={prizePool}
-                        isLoading={isPrizePoolLoading}
-                        hasError={hasPrizePoolError}
-                        refetch={refetchPrizePool}
-                      />
-                    </Box>
-                  </>
-                )}
+              {showPrizePoolSection && (
+                <CampaignPrizePoolSection
+                  prizePool={prizePool}
+                  isLoading={isPrizePoolLoading}
+                  hasError={hasPrizePoolError}
+                  refetch={refetchPrizePool}
+                />
+              )}
 
               {showLeaderboardSection && (
                 <>
