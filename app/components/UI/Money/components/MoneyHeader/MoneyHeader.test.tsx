@@ -4,10 +4,13 @@ import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
+import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
 
 jest.mock('../../../../../hooks/useProSubscriptionEnabled');
+jest.mock('../../../../../hooks/useIsProSubscriber');
 
 const mockUseProSubscriptionEnabled = jest.mocked(useProSubscriptionEnabled);
+const mockUseIsProSubscriber = jest.mocked(useIsProSubscriber);
 
 describe('MoneyHeader', () => {
   beforeEach(() => {
@@ -16,6 +19,7 @@ describe('MoneyHeader', () => {
       variantName: 'control',
       isActive: false,
     });
+    mockUseIsProSubscriber.mockReturnValue(false);
   });
 
   it('renders the menu button', () => {
@@ -60,7 +64,7 @@ describe('MoneyHeader', () => {
     });
   });
 
-  describe('"Get Pro" button', () => {
+  describe('Pro button', () => {
     it('is not shown when the Pro subscription flag is disabled', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: false,
@@ -91,20 +95,42 @@ describe('MoneyHeader', () => {
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toBeOnTheScreen();
     });
 
-    it('displays the correct label when shown', () => {
+    it('invites the user to join when they are not subscribed', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
         variantName: 'treatment',
         isActive: true,
       });
+      mockUseIsProSubscriber.mockReturnValue(false);
 
-      const { getByTestId } = render(
+      const { getByTestId, getByLabelText } = render(
         <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
       );
 
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
         strings('pro_subscription.join_pro'),
       );
+      expect(
+        getByLabelText(strings('pro_subscription.join_pro')),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the Pro label when the user is already subscribed', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUseIsProSubscriber.mockReturnValue(true);
+
+      const { getByTestId, getByLabelText } = render(
+        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.pro'),
+      );
+      expect(getByLabelText(strings('pro_subscription.pro'))).toBeOnTheScreen();
     });
 
     it('calls onGetProPress when pressed', () => {

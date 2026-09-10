@@ -11559,6 +11559,7 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "pro": "Pro",
     "pricing": {
       "loading": "Loading plans...",
       "error": "We couldn't load plan prices. Try again.",

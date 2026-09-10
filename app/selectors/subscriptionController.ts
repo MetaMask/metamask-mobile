@@ -1,15 +1,29 @@
 import { createSelector } from 'reselect';
-import type {
-  CachedLastSelectedPaymentMethod,
-  ProductType,
-  Subscription,
-  SubscriptionControllerState,
+import {
+  PRODUCT_TYPES,
+  SUBSCRIPTION_STATUSES,
+  type CachedLastSelectedPaymentMethod,
+  type ProductType,
+  type Subscription,
+  type SubscriptionControllerState,
+  type SubscriptionStatus,
 } from '@metamask/subscription-controller';
 import { RootState } from '../reducers';
 import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/screens/Benefits/utils/mapMoneyAccountPlusPricing';
 
 const EMPTY_SUBSCRIPTIONS: Subscription[] = [];
 const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
+
+/**
+ * Statuses that grant subscription benefits. Mirrors Core's
+ * `ACTIVE_SUBSCRIPTION_STATUSES`, which is not part of the package's public
+ * exports.
+ */
+const ACTIVE_SUBSCRIPTION_STATUSES: SubscriptionStatus[] = [
+  SUBSCRIPTION_STATUSES.active,
+  SUBSCRIPTION_STATUSES.trialing,
+  SUBSCRIPTION_STATUSES.provisional,
+];
 
 const hasProduct = (
   subscription: Subscription,
@@ -74,6 +88,23 @@ export const selectTrialedSubscriptionProducts = createSelector(
   selectSubscriptionControllerState,
   (subscriptionControllerState) =>
     subscriptionControllerState?.trialedProducts ?? EMPTY_TRIALED_PRODUCTS,
+);
+
+/**
+ * Selects whether the user has an active Money Account Plus (Pro)
+ * subscription. Active covers `active`, `trialing`, and `provisional`.
+ *
+ * @param state - The root Redux state.
+ * @returns True when a subscription grants Money Account Plus.
+ */
+export const selectIsMoneyAccountPlusSubscriber = createSelector(
+  selectSubscriptions,
+  (subscriptions) =>
+    subscriptions.some(
+      (subscription) =>
+        ACTIVE_SUBSCRIPTION_STATUSES.includes(subscription.status) &&
+        hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
+    ),
 );
 
 /**
