@@ -58,10 +58,6 @@ const ModeCard = ({
     () => ({ backgroundColor: proIconTileColor }),
     [proIconTileColor],
   );
-  const proIconStyle = useMemo(
-    () => ({ color: proCandlestickColor }),
-    [proCandlestickColor],
-  );
   const isLite = mode === PerpsMode.Lite;
   const optionTestID = isLite
     ? PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION
@@ -122,7 +118,7 @@ const ModeCard = ({
                 // Gold is outside IconColor, so override `currentColor` (and
                 // the Svg `fill`) instead of using WarningDefault.
                 fill={proCandlestickColor}
-                style={proIconStyle}
+                style={tw.style({ color: proCandlestickColor })}
                 testID={PerpsModeSelectionBottomSheetSelectorsIDs.PRO_ICON}
               />
             )}
