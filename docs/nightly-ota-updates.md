@@ -90,6 +90,10 @@ Once the PR is ready:
    - **`pr_number`**: The PR number for `chore/temp-ota-updates-nightly` → `chore/temp-nightly`.
    - **`base_branch`**: `chore/temp-nightly`
      (this is the baseline used for Expo fingerprint comparison).
+   - **`build_attribution`**: `nightly` — **required for nightly pushes**. An OTA update rebuilds the
+     JS bundle, so this value is re-inlined as `METAMASK_BUILD_ATTRIBUTION`. Leaving it empty makes
+     the update report its analytics App Version as `X.Y.Z-release-candidate` instead of
+     `X.Y.Z-rc-nightly`, mixing nightly data in with the Runway release candidates.
 
 6. Click **“Run workflow”**.
 

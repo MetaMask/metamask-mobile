@@ -14,6 +14,7 @@ import { storeArcUsageNoticeShown } from '../../../../actions/legalNotices';
 import { selectShouldShowArcUsageNotice } from '../../../../selectors/legalNotices';
 
 const ARC_CAIP_CHAIN_ID = 'eip155:5042';
+const ARC_NETWORK_NAME = 'arc';
 
 export const useArcUsageNoticeToast = (): void => {
   const { toastRef } = useContext(ToastContext);
@@ -29,8 +30,11 @@ export const useArcUsageNoticeToast = (): void => {
     const toast = toastRef?.current;
     dispatch(storeArcUsageNoticeShown());
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.ARC_USAGE_NOTICE_TOAST_VIEWED)
-        .addProperties({ chain_id_caip: ARC_CAIP_CHAIN_ID })
+      createEventBuilder(MetaMetricsEvents.NETWORK_USAGE_NOTICE_TOAST_VIEWED)
+        .addProperties({
+          network_name: ARC_NETWORK_NAME,
+          chain_id_caip: ARC_CAIP_CHAIN_ID,
+        })
         .build(),
     );
     toast?.showToast({
@@ -47,9 +51,13 @@ export const useArcUsageNoticeToast = (): void => {
         onPress: () => {
           trackEvent(
             createEventBuilder(
-              MetaMetricsEvents.ARC_USAGE_NOTICE_TOAST_DISMISSED,
+              MetaMetricsEvents.NETWORK_USAGE_NOTICE_TOAST_INTERACTED,
             )
-              .addProperties({ chain_id_caip: ARC_CAIP_CHAIN_ID })
+              .addProperties({
+                network_name: ARC_NETWORK_NAME,
+                interaction_type: 'dismissed',
+                chain_id_caip: ARC_CAIP_CHAIN_ID,
+              })
               .build(),
           );
           toast?.closeToast();

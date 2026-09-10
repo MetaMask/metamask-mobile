@@ -5772,6 +5772,43 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getPerpsTradingCampaignPrizePool', () => {
+    const mockCampaignId = 'perps-campaign-api-4';
+    const mockPrizePool = {
+      totalVolumeUsd: 7500000,
+      unlockedPoolUsd: 15000,
+      thresholdsUsd: [0, 5000000],
+      poolScheduleUsd: [10000, 15000],
+      computedAt: '2026-07-15T00:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPrizePool),
+      } as unknown as Response);
+    });
+
+    it('calls the public prize pool endpoint with GET and returns data', async () => {
+      const result =
+        await service.getPerpsTradingCampaignPrizePool(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/perps-trading/${mockCampaignId}/prize-pool`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(mockPrizePool);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getPerpsTradingCampaignPrizePool(mockCampaignId),
+      ).rejects.toThrow('Get perps trading campaign prize pool failed: 404');
+    });
+  });
+
   describe('Predict The Pitch endpoints', () => {
     const mockCampaignId = 'predict-campaign-1';
     const mockSubscriptionId = 'sub-predict-1';

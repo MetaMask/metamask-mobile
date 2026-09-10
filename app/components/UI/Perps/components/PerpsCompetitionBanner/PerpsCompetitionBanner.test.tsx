@@ -3,9 +3,14 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsCompetitionBanner from './PerpsCompetitionBanner';
 import { selectPerpsCompetitionBannerEnabledFlag } from '../../selectors/featureFlags';
 import StorageWrapper from '../../../../../store/storage-wrapper';
-import { PERPS_COMPETITION_BANNER_DISMISSED } from '../../../../../constants/storage';
+import { perpsCompetitionBannerDismissedKey } from '../../../../../constants/storage';
 import Routes from '../../../../../constants/navigation/Routes';
 import { setPendingDeeplink } from '../../../../../reducers/rewards';
+import { selectCampaigns } from '../../../../../reducers/rewards/selectors';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
@@ -45,10 +50,28 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 
 const { useSelector } = jest.requireMock('react-redux');
 
-const setupSelector = (enabled: boolean) => {
+const buildCampaign = (overrides: Partial<CampaignDto> = {}): CampaignDto => ({
+  id: 'perps-campaign-1',
+  type: CampaignType.PERPS_TRADING,
+  name: 'Perps Competition',
+  // Wide window so the campaign is active regardless of when the suite runs.
+  startDate: '2020-01-01T00:00:00.000Z',
+  endDate: '2099-01-01T00:00:00.000Z',
+  termsAndConditions: null,
+  excludedRegions: [],
+  details: null,
+  featured: true,
+  showUpcomingDate: false,
+  ...overrides,
+});
+
+const setupSelector = (enabled: boolean, campaigns: CampaignDto[] = []) => {
   useSelector.mockImplementation((selector: unknown) => {
     if (selector === selectPerpsCompetitionBannerEnabledFlag) {
       return enabled;
+    }
+    if (selector === selectCampaigns) {
+      return campaigns;
     }
     return undefined;
   });
@@ -71,7 +94,7 @@ describe('PerpsCompetitionBanner', () => {
   });
 
   it('renders banner when flag is enabled and not dismissed', async () => {
-    setupSelector(true);
+    setupSelector(true, [buildCampaign()]);
 
     const { getByTestId } = render(<PerpsCompetitionBanner />);
 
@@ -81,7 +104,7 @@ describe('PerpsCompetitionBanner', () => {
   });
 
   it('renders nothing when banner was previously dismissed', async () => {
-    setupSelector(true);
+    setupSelector(true, [buildCampaign()]);
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue('true');
 
     const { queryByTestId } = render(<PerpsCompetitionBanner />);
@@ -92,7 +115,7 @@ describe('PerpsCompetitionBanner', () => {
   });
 
   it('displays competition title and description', async () => {
-    setupSelector(true);
+    setupSelector(true, [buildCampaign()]);
 
     const { getByText } = render(<PerpsCompetitionBanner />);
 
@@ -104,8 +127,8 @@ describe('PerpsCompetitionBanner', () => {
     });
   });
 
-  it('dismisses banner and persists state when close button is pressed', async () => {
-    setupSelector(true);
+  it('dismisses banner and persists state under the resolved campaign key', async () => {
+    setupSelector(true, [buildCampaign({ id: 'perps-campaign-1' })]);
 
     const { getByTestId, queryByTestId } = render(<PerpsCompetitionBanner />);
 
@@ -117,15 +140,96 @@ describe('PerpsCompetitionBanner', () => {
 
     await waitFor(() => {
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        PERPS_COMPETITION_BANNER_DISMISSED,
+        perpsCompetitionBannerDismissedKey('perps-campaign-1'),
         'true',
       );
       expect(queryByTestId('perps-competition-banner')).toBeNull();
     });
   });
 
+  it('reads the dismissal flag under the resolved campaign key', async () => {
+    setupSelector(true, [buildCampaign({ id: 'perps-campaign-2' })]);
+
+    render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        perpsCompetitionBannerDismissedKey('perps-campaign-2'),
+      );
+    });
+  });
+
+  it('still shows the banner for a second campaign after the first was dismissed', async () => {
+    const dismissedKey = perpsCompetitionBannerDismissedKey('perps-campaign-1');
+    (StorageWrapper.getItem as jest.Mock).mockImplementation(
+      async (key: string) => (key === dismissedKey ? 'true' : null),
+    );
+    setupSelector(true, [buildCampaign({ id: 'perps-campaign-2' })]);
+
+    const { getByTestId } = render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+  });
+
+  it('falls back to the unresolved key when no perps campaign is available', async () => {
+    setupSelector(true, []);
+
+    render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        perpsCompetitionBannerDismissedKey('unknown'),
+      );
+    });
+  });
+
+  it('stays dismissed when campaigns arrive after the user closed the banner', async () => {
+    setupSelector(true, []);
+
+    const { getByTestId, queryByTestId, rerender } = render(
+      <PerpsCompetitionBanner />,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('perps-competition-banner-close'));
+
+    await waitFor(() => {
+      expect(queryByTestId('perps-competition-banner')).not.toBeOnTheScreen();
+    });
+
+    setupSelector(true, [buildCampaign({ id: 'perps-campaign-late' })]);
+    rerender(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(queryByTestId('perps-competition-banner')).not.toBeOnTheScreen();
+    });
+  });
+
+  it('ignores a completed perps campaign when building the storage key', async () => {
+    setupSelector(true, [
+      buildCampaign({
+        id: 'perps-campaign-past',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2020-02-01T00:00:00.000Z',
+      }),
+    ]);
+
+    render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        perpsCompetitionBannerDismissedKey('unknown'),
+      );
+    });
+  });
+
   it('does not navigate when close button is pressed', async () => {
-    setupSelector(true);
+    setupSelector(true, [buildCampaign()]);
 
     const { getByTestId } = render(<PerpsCompetitionBanner />);
 
@@ -139,7 +243,7 @@ describe('PerpsCompetitionBanner', () => {
   });
 
   it('navigates to rewards view when banner is tapped', async () => {
-    setupSelector(true);
+    setupSelector(true, [buildCampaign()]);
 
     const { getByTestId } = render(<PerpsCompetitionBanner />);
 
@@ -156,7 +260,7 @@ describe('PerpsCompetitionBanner', () => {
   });
 
   it('stays hidden for this session when storage write fails on dismiss', async () => {
-    setupSelector(true);
+    setupSelector(true, [buildCampaign()]);
     (StorageWrapper.setItem as jest.Mock).mockRejectedValue(
       new Error('storage write failed'),
     );
@@ -175,7 +279,7 @@ describe('PerpsCompetitionBanner', () => {
   });
 
   it('uses custom testID when provided', async () => {
-    setupSelector(true);
+    setupSelector(true, [buildCampaign()]);
 
     const { getByTestId } = render(
       <PerpsCompetitionBanner testID="custom-banner" />,
@@ -187,7 +291,7 @@ describe('PerpsCompetitionBanner', () => {
   });
 
   it('tracks PERPS_UI_INTERACTION with engage payload when banner is tapped', async () => {
-    setupSelector(true);
+    setupSelector(true, [buildCampaign()]);
 
     const { getByTestId } = render(<PerpsCompetitionBanner />);
 
@@ -211,7 +315,7 @@ describe('PerpsCompetitionBanner', () => {
   });
 
   it('tracks PERPS_UI_INTERACTION with close payload when close button is pressed', async () => {
-    setupSelector(true);
+    setupSelector(true, [buildCampaign()]);
 
     const { getByTestId } = render(<PerpsCompetitionBanner />);
 

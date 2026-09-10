@@ -1,5 +1,9 @@
 import { NetworkToCaipChainId } from '../../NetworkMultiSelector/NetworkMultiSelector.constants';
-import { TRENDING_NETWORKS_LIST } from './trendingNetworksList';
+import {
+  RWA_CHAIN_IDS,
+  RWA_NETWORKS_LIST,
+  TRENDING_NETWORKS_LIST,
+} from './trendingNetworksList';
 
 jest.mock('../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(({ chainId }) => ({
@@ -17,5 +21,20 @@ describe('TRENDING_NETWORKS_LIST', () => {
         }),
       ]),
     );
+  });
+});
+
+describe('RWA networks', () => {
+  it('supports Ethereum, BNB Chain, and Robinhood Chain', () => {
+    expect(RWA_CHAIN_IDS).toEqual([
+      NetworkToCaipChainId.ETHEREUM,
+      NetworkToCaipChainId.BNB,
+      NetworkToCaipChainId.ROBINHOOD,
+    ]);
+    expect(RWA_NETWORKS_LIST.map((network) => network.name)).toEqual([
+      'Ethereum',
+      'BNB Chain',
+      'Robinhood Chain',
+    ]);
   });
 });
