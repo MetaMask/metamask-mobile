@@ -24,6 +24,7 @@ import {
   renderActivityDetailsView,
   getActivityDetailsViewParams,
 } from '../../../../tests/component-view/renderers/activity';
+import Engine from '../../../core/Engine';
 import { mapPredictActivity } from '../../../util/activity-adapters';
 import type { PredictActivity } from '../../UI/Predict/types';
 import { formatPredictDate } from './templates/PredictDetails/PredictDetails.types';
@@ -94,6 +95,9 @@ function renderPredictProviderDetails(activity: PredictActivity) {
   }
 
   const params = getActivityDetailsViewParams(item);
+  jest
+    .mocked(Engine.context.PredictController.getActivity)
+    .mockResolvedValue([activity]);
 
   const state = initialStateActivity()
     .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)
@@ -137,6 +141,12 @@ function expectPayFeeRows(
 }
 
 describeForPlatforms('ActivityDetails — Predict', () => {
+  afterEach(() => {
+    jest
+      .mocked(Engine.context.PredictController.getActivity)
+      .mockResolvedValue([]);
+  });
+
   describe('Predict account funding', () => {
     it('shows confirmed Account funded with fees, completed steps, and Fund again', async () => {
       const deposit = buildConfirmedLocalPredictDepositWithPayTransaction();

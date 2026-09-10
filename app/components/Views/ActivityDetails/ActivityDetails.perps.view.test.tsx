@@ -40,6 +40,7 @@ import {
   getActivityDetailsStepTestId,
 } from './ActivityDetails.testIds';
 
+// eslint-disable-next-line no-restricted-syntax -- Perps history is hook state, not Engine.
 jest.mock('../../UI/Perps/hooks/usePerpsTransactionHistory', () => ({
   usePerpsTransactionHistory: jest.fn(() => ({
     transactions: [],
