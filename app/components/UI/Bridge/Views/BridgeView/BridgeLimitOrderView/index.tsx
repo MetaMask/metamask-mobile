@@ -407,7 +407,6 @@ const BridgeLimitOrderViewContent = ({
               label={strings('bridge.limit.create_order')}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={isMissingPrice || isHardwareWallet}
-              loading={isMissingPrice}
               latestSourceBalance={latestSourceBalance}
             />
           ) : isAmountFocused ? (
