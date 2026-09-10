@@ -829,12 +829,14 @@ describe('RewardsDashboard', () => {
     // into the corresponding rewards sub-page, then clears it so it does not
     // re-fire. navigateToRewardsRoute (not mocked) forwards through the
     // REWARDS_FLOW host, so mockNavigate receives that wrapper shape.
-    const renderWithPendingDeeplink = (
+    interface DeeplinkSelectorOverrides {
+      subscriptionId?: string | null;
+      campaignsFetching?: boolean;
+    }
+
+    const setDeeplinkSelectors = (
       pendingDeeplink: Record<string, unknown> | null,
-      selectorOverrides: {
-        subscriptionId?: string | null;
-        campaignsFetching?: boolean;
-      } = {},
+      selectorOverrides: DeeplinkSelectorOverrides = {},
     ) => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectPendingDeeplink) return pendingDeeplink;
@@ -857,7 +859,36 @@ describe('RewardsDashboard', () => {
         if (selector === mockHasAcceptedVipInviteSelector) return false;
         return undefined;
       });
+    };
+
+    const renderWithPendingDeeplink = (
+      pendingDeeplink: Record<string, unknown> | null,
+      selectorOverrides: DeeplinkSelectorOverrides = {},
+    ) => {
+      setDeeplinkSelectors(pendingDeeplink, selectorOverrides);
       return render(<RewardsDashboard />);
+    };
+
+    /**
+     * Renders through the real fetch sequence: the focus effect starts a
+     * campaigns fetch, then it settles. Deeplink resolution deliberately waits
+     * for a fetch to have been observed, so a single static render can never
+     * resolve one — a plain render only ever reproduces the pre-fetch commit.
+     */
+    const renderAfterSettledFetch = (
+      pendingDeeplink: Record<string, unknown> | null,
+      selectorOverrides: DeeplinkSelectorOverrides = {},
+    ) => {
+      const view = renderWithPendingDeeplink(pendingDeeplink, {
+        ...selectorOverrides,
+        campaignsFetching: true,
+      });
+      setDeeplinkSelectors(pendingDeeplink, {
+        ...selectorOverrides,
+        campaignsFetching: false,
+      });
+      view.rerender(<RewardsDashboard />);
+      return view;
     };
 
     const activeMoneyCampaign: CampaignDto = {
@@ -977,7 +1008,7 @@ describe('RewardsDashboard', () => {
           buildPerpsCampaign({ id: 'perps-active' }),
         ]);
 
-        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+        renderAfterSettledFetch({ campaign: 'perps-comp' });
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
           screen: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
@@ -995,7 +1026,7 @@ describe('RewardsDashboard', () => {
           }),
         ]);
 
-        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+        renderAfterSettledFetch({ campaign: 'perps-comp' });
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
@@ -1010,7 +1041,7 @@ describe('RewardsDashboard', () => {
           }),
         ]);
 
-        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+        renderAfterSettledFetch({ campaign: 'perps-comp' });
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
@@ -1029,6 +1060,28 @@ describe('RewardsDashboard', () => {
         mockCampaigns([], { hasError: true });
 
         renderWithPendingDeeplink({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('keeps the deeplink pending on the commit before a fetch starts', () => {
+        // The focus effect dispatches campaignsFetching, so it is not readable
+        // until the next render. On the first commit after a remount the
+        // campaigns list in Redux is whatever the previous fetch left behind —
+        // resolving against it here would drop the deeplink for good.
+        mockCampaigns([
+          buildPerpsCampaign({
+            id: 'perps-past',
+            startDate: '2020-01-01T00:00:00.000Z',
+            endDate: '2020-02-01T00:00:00.000Z',
+          }),
+        ]);
+
+        renderWithPendingDeeplink(
+          { campaign: 'perps-comp' },
+          { campaignsFetching: false },
+        );
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));

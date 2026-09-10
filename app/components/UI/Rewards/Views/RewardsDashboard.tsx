@@ -96,6 +96,17 @@ const RewardsDashboard: React.FC = () => {
     isLoading: isCampaignsLoading,
   } = useRewardCampaigns();
   const isCampaignsFetching = useSelector(selectCampaignsFetching);
+  // `campaignsFetching` is dispatched by the focus effect, so it only becomes
+  // readable one render later — on the first commit after a (re)mount the
+  // deeplink effect below always sees `false`, even though a fetch is already
+  // under way. Waiting until a fetch has actually been *observed* closes that
+  // window without depending on the order the two effects happen to run in.
+  const hasObservedCampaignsFetchRef = useRef(false);
+  useEffect(() => {
+    if (isCampaignsFetching) {
+      hasObservedCampaignsFetchRef.current = true;
+    }
+  }, [isCampaignsFetching]);
   const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
   const {
     optedInAny: moneyAccountOptedInAny,
@@ -149,11 +160,15 @@ const RewardsDashboard: React.FC = () => {
       //  - no subscription yet: fetchCampaigns short-circuits to an empty list
       //    and still marks it loaded, so "no campaigns" means "not signed in",
       //    not "no campaigns exist".
+      //  - no fetch observed yet this mount: the list in Redux survives the
+      //    tab unmounting, so it can be a previous fetch's result that the
+      //    in-flight refresh has not replaced yet.
       //  - a fetch is in flight: campaignsLoading is suppressed once campaigns
       //    exist, so only campaignsFetching catches a refresh over a stale list.
       //  - never loaded, or failed/in-flight with nothing cached.
       const waitingForCampaigns =
         !subscriptionId ||
+        !hasObservedCampaignsFetchRef.current ||
         isCampaignsFetching ||
         !campaignsHasLoaded ||
         (campaigns.length === 0 && (campaignsHasError || isCampaignsLoading));
