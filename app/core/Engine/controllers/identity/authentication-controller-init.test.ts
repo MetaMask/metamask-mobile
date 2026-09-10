@@ -9,15 +9,27 @@ import {
 } from '@metamask/profile-sync-controller/auth';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { getVersion } from 'react-native-device-info';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { RootState } from '../../../../reducers';
 
 jest.mock('@metamask/profile-sync-controller/auth');
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.42.0'),
 }));
+jest.mock(
+  '../../../../selectors/featureFlagController/basicFunctionalityConsolidation',
+  () => ({
+    selectIsBasicFunctionalityConsolidationEnabled: jest.fn(() => false),
+  }),
+);
 
-function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<AuthenticationControllerMessenger>
-> {
+const mockedSelectIsBasicFunctionalityConsolidationEnabled = jest.mocked(
+  selectIsBasicFunctionalityConsolidationEnabled,
+);
+
+function getInitRequestMock(
+  getState: () => RootState = jest.fn(),
+): jest.Mocked<MessengerClientInitRequest<AuthenticationControllerMessenger>> {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -26,12 +38,23 @@ function getInitRequestMock(): jest.Mocked<
     ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getAuthenticationControllerMessenger(baseMessenger),
     initMessenger: undefined,
+    getState,
   };
 
   return requestMock;
 }
 
+function getIsSocialPairingEnabled() {
+  return jest.mocked(AuthenticationController).mock.calls[0][0].config
+    ?.isSocialPairingEnabled;
+}
+
 describe('AuthenticationControllerInit', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
+  });
+
   it('initializes the controller', () => {
     const { controller } = authenticationControllerInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(AuthenticationController);
@@ -44,13 +67,45 @@ describe('AuthenticationControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       state: undefined,
-      config: { env: 'prd' },
+      config: {
+        env: 'prd',
+        isSocialPairingEnabled: expect.any(Function),
+      },
       metametrics: {
         agent: 'mobile',
         getMetaMetricsId: expect.any(Function),
         getAppVersion: expect.any(Function),
       },
     });
+  });
+
+  it('does not evaluate isSocialPairingEnabled at init', () => {
+    const getState = jest.fn();
+    authenticationControllerInit(getInitRequestMock(getState));
+
+    expect(getState).not.toHaveBeenCalled();
+    expect(
+      mockedSelectIsBasicFunctionalityConsolidationEnabled,
+    ).not.toHaveBeenCalled();
+    expect(getIsSocialPairingEnabled()).toEqual(expect.any(Function));
+  });
+
+  it('returns the consolidation selector value when the callback is invoked', () => {
+    const rootState = {} as RootState;
+    const getState = jest.fn(() => rootState);
+    mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(true);
+
+    authenticationControllerInit(getInitRequestMock(getState));
+
+    expect(getIsSocialPairingEnabled()?.()).toBe(true);
+    expect(getState).toHaveBeenCalledTimes(1);
+    expect(
+      mockedSelectIsBasicFunctionalityConsolidationEnabled,
+    ).toHaveBeenCalledWith(rootState);
+
+    mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
+
+    expect(getIsSocialPairingEnabled()?.()).toBe(false);
   });
 
   it('wires getAppVersion to react-native-device-info getVersion()', () => {
@@ -77,7 +132,9 @@ describe('AuthenticationControllerInit', () => {
       authenticationControllerInit(getInitRequestMock());
 
       expect(jest.mocked(AuthenticationController)).toHaveBeenCalledWith(
-        expect.objectContaining({ config: { env: 'dev' } }),
+        expect.objectContaining({
+          config: expect.objectContaining({ env: 'dev' }),
+        }),
       );
     });
   });
