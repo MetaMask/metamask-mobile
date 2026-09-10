@@ -4,7 +4,11 @@ import {
   USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_ARBITRUM_TESTNET_ADDRESS,
 } from '@metamask/perps-controller/constants/hyperLiquidConfig';
-import { parseCaipChainId, toCaipAssetType, type CaipChainId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  toCaipAssetType,
+  type CaipChainId,
+} from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import { mapPerpsTransaction } from '../../../../util/activity-adapters';
 import { getActivityDetailsRoute } from '../../../Views/ActivityList/getActivityDetailsRoute';

@@ -88,9 +88,7 @@ export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
     if (!selectedAddress) {
       return undefined;
     }
-    return (
-      formatAccountToCaipAccountId(selectedAddress, chainId) ?? undefined
-    );
+    return formatAccountToCaipAccountId(selectedAddress, chainId) ?? undefined;
   }, [chainId, selectedAddress]);
 
   const {
