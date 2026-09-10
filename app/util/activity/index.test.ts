@@ -12,6 +12,7 @@ import {
   isTransactionOnChains,
   isTrustedAddress,
   buildTrustedAddressSet,
+  getTokenTransferRecipient,
 } from '.';
 import { Token } from '@metamask/assets-controllers';
 import { TX_SUBMITTED, TX_UNAPPROVED } from '../../constants/transaction';
@@ -109,6 +110,25 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
     const selectedAddress = '';
     const result = isFromOrToSelectedAddress(from, to, selectedAddress);
     expect(result).toEqual(false);
+  });
+});
+
+describe('Activity utils :: getTokenTransferRecipient', () => {
+  it('decodes the recipient from ERC-20 transfer calldata', () => {
+    const data =
+      `0xa9059cbb${TEST_ADDRESS_TWO.slice(2).padStart(64, '0')}` +
+      '1'.padStart(64, '0');
+    const transaction = {
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_THREE,
+        data,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+
+    expect(getTokenTransferRecipient(transaction)).toBe(
+      TEST_ADDRESS_TWO.toLowerCase(),
+    );
   });
 });
 
@@ -242,6 +262,40 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       TEST_ADDRESS_ONE,
       { '0x1': true },
     );
+    expect(result).toEqual(true);
+  });
+
+  it('returns true for an ERC-20 transfer sent to the selected internal account', () => {
+    const chainId = '0x1';
+    const data =
+      `0xa9059cbb${TEST_ADDRESS_TWO.slice(2).padStart(64, '0')}` +
+      '1'.padStart(64, '0');
+    const transaction = {
+      chainId,
+      status: TX_SUBMITTED,
+      txParams: {
+        from: TEST_ADDRESS_ONE,
+        to: TEST_ADDRESS_THREE,
+        data,
+      },
+      isTransfer: true,
+      transferInformation: {
+        contractAddress: TEST_ADDRESS_THREE,
+      },
+    } as DeepPartial<TransactionMeta> as TransactionMeta;
+    const tokens = [{ address: TEST_ADDRESS_THREE }];
+
+    const result = filterByAddressAndNetwork(
+      transaction,
+      tokens,
+      TEST_ADDRESS_TWO,
+      { '0x1': true },
+      [],
+      {},
+      {},
+      [TEST_ADDRESS_ONE, TEST_ADDRESS_TWO],
+    );
+
     expect(result).toEqual(true);
   });
 

@@ -42,6 +42,49 @@ export const isFromOrToSelectedAddress = (
   return false;
 };
 
+const ERC20_TRANSFER_SELECTOR = '0xa9059cbb';
+const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
+
+/**
+ * Returns the recipient encoded by an ERC-20 transfer call.
+ *
+ * The transaction-level `to` address is the token contract, so it cannot be
+ * used to decide whether the selected account received the transfer.
+ */
+export const getTokenTransferRecipient = (
+  tx: TransactionMeta,
+): string | undefined => {
+  const calldataCandidates = [
+    tx.txParams.data,
+    ...(tx.nestedTransactions ?? []).map(({ data }) => data),
+  ];
+  const transferData = calldataCandidates.find(
+    (data) =>
+      data?.toLowerCase().startsWith(ERC20_TRANSFER_SELECTOR) &&
+      data.length >= ERC20_TRANSFER_CALLDATA_LENGTH,
+  );
+
+  return transferData
+    ? `0x${transferData.slice(34, 74).toLowerCase()}`
+    : undefined;
+};
+
+const isTransactionFromOrToSelectedAddress = (
+  tx: TransactionMeta,
+  selectedAddress: string,
+): boolean => {
+  const { from, to } = tx.txParams;
+  const tokenTransferRecipient = getTokenTransferRecipient(tx);
+
+  return (
+    isFromOrToSelectedAddress(from, to ?? '', selectedAddress) ||
+    Boolean(
+      tokenTransferRecipient &&
+        areAddressesEqual(tokenTransferRecipient, selectedAddress),
+    )
+  );
+};
+
 /**
  * Builds a normalized Set of trusted addresses for O(1) lookup.
  * Includes all of the user's own account addresses and every entry in
@@ -222,7 +265,7 @@ export const filterByAddressAndNetwork = (
   const {
     isTransfer,
     transferInformation,
-    txParams: { from, to },
+    txParams: { from },
   } = tx;
 
   if (isFilteredByMetaMaskPay(tx, allTransactions ?? [], bridgeHistory)) {
@@ -238,7 +281,7 @@ export const filterByAddressAndNetwork = (
   );
 
   if (
-    isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
+    isTransactionFromOrToSelectedAddress(tx, selectedAddress) &&
     condition &&
     tx.status !== TX_UNAPPROVED
   ) {
@@ -273,7 +316,7 @@ export const filterByAddress = (
   const {
     isTransfer,
     transferInformation,
-    txParams: { from, to },
+    txParams: { from },
   } = tx;
 
   if (isFilteredByMetaMaskPay(tx, allTransactions ?? [], bridgeHistory)) {
@@ -281,7 +324,7 @@ export const filterByAddress = (
   }
 
   if (
-    isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
+    isTransactionFromOrToSelectedAddress(tx, selectedAddress) &&
     tx.status !== TX_UNAPPROVED
   ) {
     if (isIncomingNativeTransfer(tx, selectedAddress)) {
