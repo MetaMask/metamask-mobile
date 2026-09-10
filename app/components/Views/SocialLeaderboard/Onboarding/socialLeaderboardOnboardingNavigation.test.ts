@@ -92,9 +92,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
 
       expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(
-        Routes.SOCIAL_LEADERBOARD.ONBOARDING,
-      );
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING);
     });
 
     it('navigates to the leaderboard with the source when onboarding is not due', () => {
@@ -104,7 +102,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
 
       expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.V0, {
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, {
         source: 'home_carousel',
       });
     });
@@ -115,10 +113,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
 
       navigateToSocialLeaderboard(navigate);
 
-      expect(navigate).toHaveBeenCalledWith(
-        Routes.SOCIAL_LEADERBOARD.V0,
-        undefined,
-      );
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, undefined);
     });
 
     it('navigates to the Social V1 route for the TSA-1122 treatment', () => {
@@ -135,7 +130,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         landingFeedAudience: 'all',
       });
 
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.V1, {
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V1, {
         source: 'home_carousel',
       });
     });
@@ -143,7 +138,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
 
   describe('getFollowTradingHomeRoute', () => {
     it('returns the legacy home route for control', () => {
-      expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL_LEADERBOARD.V0);
+      expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL.V0);
     });
 
     it('returns the v1 home route for treatment', () => {
@@ -152,7 +147,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         isActive: true,
       });
 
-      expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL_LEADERBOARD.V1);
+      expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL.V1);
       expect(isSocialV1Treatment()).toBe(true);
     });
   });

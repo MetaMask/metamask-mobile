@@ -252,7 +252,7 @@ const TopTradersSection = forwardRef<
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
         traderAddress: trader?.address,

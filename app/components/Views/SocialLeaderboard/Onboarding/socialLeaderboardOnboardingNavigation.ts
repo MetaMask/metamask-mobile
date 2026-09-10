@@ -65,11 +65,9 @@ export const isSocialV1Treatment = (): boolean => {
 };
 
 export const getFollowTradingHomeRoute = ():
-  | typeof Routes.SOCIAL_LEADERBOARD.V1
-  | typeof Routes.SOCIAL_LEADERBOARD.V0 =>
-  isSocialV1Treatment()
-    ? Routes.SOCIAL_LEADERBOARD.V1
-    : Routes.SOCIAL_LEADERBOARD.V0;
+  | typeof Routes.SOCIAL.V1
+  | typeof Routes.SOCIAL.V0 =>
+  isSocialV1Treatment() ? Routes.SOCIAL.V1 : Routes.SOCIAL.V0;
 
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,
@@ -100,7 +98,7 @@ export const navigateToSocialLeaderboard = (
   params?: SocialLeaderboardViewParams,
 ): void => {
   if (shouldShowSocialLeaderboardOnboarding()) {
-    navigate(Routes.SOCIAL_LEADERBOARD.ONBOARDING);
+    navigate(Routes.SOCIAL.ONBOARDING);
     return;
   }
   navigate(getFollowTradingHomeRoute(), toHomeRouteParams(params));

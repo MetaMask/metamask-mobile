@@ -121,7 +121,7 @@ export const handleSocialTraderPositionUrl = ({
       analytics.trackEvent(event);
     }
 
-    NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
+    NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
       positionId,
       traderId,
       source: 'notification',

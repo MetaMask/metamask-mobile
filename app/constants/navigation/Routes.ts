@@ -424,8 +424,8 @@ const Routes = {
     ROOT: 'MarketInsights',
     VIEW: 'MarketInsightsView',
   },
-  SOCIAL_LEADERBOARD: {
-    ROOT: 'SocialLeaderboard',
+  SOCIAL: {
+    ROOT: 'Social',
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',

@@ -466,7 +466,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           [SocialLeaderboardEventProperties.CHAIN_FILTER]: activeTab,
         });
       }
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
         traderAddress: trader?.address,

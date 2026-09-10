@@ -153,7 +153,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
   // `'SocialV0View'` is the *route* name for the whole Follow Trading surface
-  // (`Routes.SOCIAL_LEADERBOARD.V0`), not the sibling component of the same
+  // (`Routes.SOCIAL.V0`), not the sibling component of the same
   // name — the feed renders inside it via `SocialV0View`, so this is
   // the enclosing route's param list even though the names look mismatched.
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
@@ -372,7 +372,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   const handleTraderPress = useCallback(
     (item: FeedItem) => {
       playSelection().catch(() => undefined);
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId: item.traderId,
         traderName: item.username,
         traderAddress: item.traderAddress,
@@ -385,7 +385,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   const handlePositionPress = useCallback(
     (item: FeedItem) => {
       playSelection().catch(() => undefined);
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
+      navigation.navigate(Routes.SOCIAL.POSITION, {
         positionId: item.tokenAvatar.positionId,
         traderId: item.traderId,
         traderAddress: item.traderAddress,

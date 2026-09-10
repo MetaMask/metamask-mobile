@@ -585,16 +585,13 @@ describe('TopTradersSection', () => {
 
     fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
-      {
-        traderId: 'trader-1',
-        traderName: 'alice',
-        traderAddress: '0x0000000000000000000000000000000000000001',
-        source: 'home_carousel',
-        traderRank: 1,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
+      traderId: 'trader-1',
+      traderName: 'alice',
+      traderAddress: '0x0000000000000000000000000000000000000001',
+      source: 'home_carousel',
+      traderRank: 1,
+    });
   });
 
   it('calls toggleFollow with the correct analytics context when the follow button is pressed', async () => {
@@ -649,7 +646,7 @@ describe('TopTradersSection', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.objectContaining({ onSetupComplete: expect.any(Function) }),
     );
   });
@@ -747,7 +744,7 @@ describe('TopTradersSection', () => {
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.anything(),
     );
   });
@@ -773,7 +770,7 @@ describe('TopTradersSection', () => {
     expect(mockToggleFollow).not.toHaveBeenCalled();
 
     const setupCall = mockNavigate.mock.calls.find(
-      ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      ([route]) => route === Routes.SOCIAL.TRADING_SIGNALS_SETUP,
     );
     const { onSetupComplete } = setupCall?.[1] ?? {};
 

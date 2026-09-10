@@ -41,7 +41,7 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
 
   const handlePrimaryAction = useCallback(() => {
     if (traderId) {
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName: traderName ?? '',
       });

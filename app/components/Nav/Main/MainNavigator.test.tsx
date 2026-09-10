@@ -1290,14 +1290,14 @@ describe('MainNavigator', () => {
       }));
 
     const topTradersScreen = screenProps?.find(
-      (screen) => screen?.name === Routes.SOCIAL_LEADERBOARD.V0,
+      (screen) => screen?.name === Routes.SOCIAL.V0,
     );
 
     expect(topTradersScreen).toBeDefined();
     expect(topTradersScreen?.component.name).toBe('SocialV0View');
 
     const bundleV1Screen = screenProps?.find(
-      (screen) => screen?.name === Routes.SOCIAL_LEADERBOARD.V1,
+      (screen) => screen?.name === Routes.SOCIAL.V1,
     );
 
     expect(bundleV1Screen).toBeDefined();

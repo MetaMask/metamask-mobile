@@ -66,17 +66,14 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        positionId: '92d9001b-8b64-4b13-9c1b-ba9292a6099a',
-        traderId: 'trader-1',
-        source: 'notification',
-        originalEntryPoint: 'notification',
-        notificationSubtype: 'follow_newtrade_buy',
-        notificationTemplateVariant: undefined,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      positionId: '92d9001b-8b64-4b13-9c1b-ba9292a6099a',
+      traderId: 'trader-1',
+      source: 'notification',
+      originalEntryPoint: 'notification',
+      notificationSubtype: 'follow_newtrade_buy',
+      notificationTemplateVariant: undefined,
+    });
   });
 
   it('navigates with only positionId and traderId when no subtype is present', () => {
@@ -85,17 +82,14 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        positionId: 'position-1',
-        traderId: 'trader-1',
-        source: 'notification',
-        originalEntryPoint: 'notification',
-        notificationSubtype: undefined,
-        notificationTemplateVariant: undefined,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      positionId: 'position-1',
+      traderId: 'trader-1',
+      source: 'notification',
+      originalEntryPoint: 'notification',
+      notificationSubtype: undefined,
+      notificationTemplateVariant: undefined,
+    });
   });
 
   it('decodes encoded positionId, traderId, and subtype values', () => {
@@ -104,17 +98,14 @@ describe('handleSocialTraderPositionUrl', () => {
         '?positionId=position%20id%2Fwith%20reserved%3Fchars&traderId=trader%20id%2Fwith%20reserved%3Fchars&deduplication_id=dedup%20id%2Fwith%20reserved%3Fchars&notification_subtype=follow%20newtrade%2Fbuy',
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        positionId: 'position id/with reserved?chars',
-        traderId: 'trader id/with reserved?chars',
-        source: 'notification',
-        originalEntryPoint: 'notification',
-        notificationSubtype: 'follow newtrade/buy',
-        notificationTemplateVariant: undefined,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      positionId: 'position id/with reserved?chars',
+      traderId: 'trader id/with reserved?chars',
+      source: 'notification',
+      originalEntryPoint: 'notification',
+      notificationSubtype: 'follow newtrade/buy',
+      notificationTemplateVariant: undefined,
+    });
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialTraderPositionUrl] Parsed navigation parameters:',
       {
@@ -138,7 +129,7 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
+      Routes.SOCIAL.POSITION,
       expect.objectContaining({ notificationSubtype: subtype }),
     );
   });
@@ -148,21 +139,17 @@ describe('handleSocialTraderPositionUrl', () => {
       actionPath: '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a',
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.V0,
-      undefined,
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, undefined, {
+      pop: true,
+    });
   });
 
   it('falls back to social leaderboard when positionId is missing', () => {
     handleSocialTraderPositionUrl({ actionPath: '' });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.V0,
-      undefined,
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, undefined, {
+      pop: true,
+    });
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialTraderPositionUrl] Missing positionId or traderId, falling back to social leaderboard',
     );
@@ -173,11 +160,9 @@ describe('handleSocialTraderPositionUrl', () => {
       actionPath: '?positionId=%20%20&traderId=trader-1',
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.V0,
-      undefined,
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, undefined, {
+      pop: true,
+    });
   });
 
   it('invalidates open and closed position queries before navigating', () => {
@@ -211,11 +196,9 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.V0,
-      undefined,
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, undefined, {
+      pop: true,
+    });
   });
 
   it('does not invalidate queries when positionId is missing', () => {
@@ -224,11 +207,9 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.V0,
-      undefined,
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, undefined, {
+      pop: true,
+    });
   });
 
   it('still navigates when invalidation throws', () => {
@@ -240,17 +221,14 @@ describe('handleSocialTraderPositionUrl', () => {
       actionPath: '?positionId=position-1&traderId=trader-1',
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        positionId: 'position-1',
-        traderId: 'trader-1',
-        source: 'notification',
-        originalEntryPoint: 'notification',
-        notificationSubtype: undefined,
-        notificationTemplateVariant: undefined,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      positionId: 'position-1',
+      traderId: 'trader-1',
+      source: 'notification',
+      originalEntryPoint: 'notification',
+      notificationSubtype: undefined,
+      notificationTemplateVariant: undefined,
+    });
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
       expect.any(Error),
@@ -264,7 +242,7 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
+      Routes.SOCIAL.POSITION,
       expect.objectContaining({ notificationTemplateVariant: 'urgency' }),
     );
   });
@@ -303,10 +281,8 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenLastCalledWith(
-      Routes.SOCIAL_LEADERBOARD.V0,
-      undefined,
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenLastCalledWith(Routes.SOCIAL.V0, undefined, {
+      pop: true,
+    });
   });
 });
