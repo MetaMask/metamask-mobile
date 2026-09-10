@@ -216,14 +216,11 @@ describe('BrowserBottomBar', () => {
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'AddBookmarkView',
-        expect.objectContaining({
-          title: expect.any(String),
-          url: expect.any(String),
-          onAddBookmark: expect.any(Function),
-        }),
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('AddBookmarkView', {
+        title: 'Example Site',
+        url: 'https://example.com',
+        onAddBookmark: expect.any(Function),
+      });
     });
 
     it('renders bookmark button for bookmarked page', () => {
@@ -648,14 +645,11 @@ describe('BrowserBottomBar', () => {
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'AddBookmarkView',
-        expect.objectContaining({
-          title: expect.any(String),
-          url: expect.any(String),
-          onAddBookmark: expect.any(Function),
-        }),
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('AddBookmarkView', {
+        title: 'Example Site',
+        url: 'https://new-site.com',
+        onAddBookmark: expect.any(Function),
+      });
     });
 
     it('does not navigate when bookmark exists for URL', () => {
@@ -723,14 +717,11 @@ describe('BrowserBottomBar', () => {
 
       fireEvent.press(getByTestId(BrowserViewSelectorsIDs.BOOKMARK_BUTTON));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'AddBookmarkView',
-        expect.objectContaining({
-          title: expect.any(String),
-          url: expect.any(String),
-          onAddBookmark: expect.any(Function),
-        }),
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('AddBookmarkView', {
+        title: 'Example Site',
+        url: 'https://example.com',
+        onAddBookmark: expect.any(Function),
+      });
     });
 
     it('uses empty string for title when title prop is empty', () => {
