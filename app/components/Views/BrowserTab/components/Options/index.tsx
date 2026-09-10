@@ -97,36 +97,33 @@ const Options = ({
   const navigateToAddBookmark = () => {
     toggleOptionsIfNeeded();
     navigation.navigate('AddBookmarkView', {
-      screen: 'AddBookmark',
-      params: {
-        title: title.current || '',
-        url: getMaskedUrl(activeUrl, sessionENSNames),
-        onAddBookmark: async ({
-          name,
-          url: urlToAdd,
-        }: {
-          name: string;
-          url: string;
-        }) => {
-          dispatch(addBookmark({ name, url: urlToAdd }));
-          if (Device.isIos()) {
-            const item = {
-              uniqueIdentifier: activeUrl,
-              title: name || getMaskedUrl(urlToAdd, sessionENSNames),
-              contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
-              keywords: [name.split(' '), urlToAdd, 'dapp'],
-              thumbnail: {
-                uri: icon.current || favicon,
-              },
-            };
-            try {
-              SearchApi.indexSpotlightItem(item);
-            } catch (e: unknown) {
-              const searchApiError = e as Error;
-              Logger.error(searchApiError, 'Error adding to spotlight');
-            }
+      title: title.current || '',
+      url: getMaskedUrl(activeUrl, sessionENSNames),
+      onAddBookmark: async ({
+        name,
+        url: urlToAdd,
+      }: {
+        name: string;
+        url: string;
+      }) => {
+        dispatch(addBookmark({ name, url: urlToAdd }));
+        if (Device.isIos()) {
+          const item = {
+            uniqueIdentifier: activeUrl,
+            title: name || getMaskedUrl(urlToAdd, sessionENSNames),
+            contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
+            keywords: [name.split(' '), urlToAdd, 'dapp'],
+            thumbnail: {
+              uri: icon.current || favicon,
+            },
+          };
+          try {
+            SearchApi.indexSpotlightItem(item);
+          } catch (e: unknown) {
+            const searchApiError = e as Error;
+            Logger.error(searchApiError, 'Error adding to spotlight');
           }
-        },
+        }
       },
     });
     trackAddToFavoritesEvent();

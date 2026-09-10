@@ -294,15 +294,11 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-/** Add bookmark screen params (nested under AddBookmarkView). */
+/** Add bookmark screen params. */
 interface AddBookmarkParams {
   title: string;
   url: string;
   onAddBookmark: (params: { name: string; url: string }) => Promise<void>;
-}
-
-interface AddBookmarkViewParamList {
-  AddBookmark: AddBookmarkParams;
 }
 
 interface OnboardingSuccessFlowParamList {
@@ -481,7 +477,7 @@ export type RootStackParamList = {
   WalletView: undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   BrowserView: BrowserParams | undefined;
-  AddBookmarkView: NavigatorScreenParams<AddBookmarkViewParamList> | undefined;
+  AddBookmarkView: AddBookmarkParams;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   AccountHubView: undefined;
   DeprecatedNetworkDetails: undefined;
