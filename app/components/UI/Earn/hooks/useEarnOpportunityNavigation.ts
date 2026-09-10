@@ -21,6 +21,7 @@ import useStakingChain from '../../Stake/hooks/useStakingChain';
 import { useMoneyOnboardingNavigation } from '../../Money/hooks/useMoneyNavigation';
 import { MoneyPostOnboardingRedirectType } from '../../Money/types/navigation';
 import { useMoneyAccountDeposit } from '../../Money/hooks/useMoneyAccount';
+import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import Logger from '../../../../util/Logger';
 import useEarnToasts from './useEarnToasts';
 import { EARN_MODULE_REDIRECT_TARGETS } from '../constants/earnModuleEvents';
@@ -44,6 +45,13 @@ export type EarnOpportunityRedirectTarget =
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.SWAP
   | EARN_MODULE_REDIRECT_TARGETS.BUY;
+
+export type EarnDepositNavigationRoute =
+  | {
+      type: 'money-fiat';
+      redirectTarget: EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT;
+    }
+  | EarnAssetAcquisitionRoute;
 
 type EarnExperienceDepositDestination = Exclude<
   EarnOpportunityDestination,
@@ -151,9 +159,9 @@ export const getEarnExperienceRedirectTarget = (
 export const getSelectedEarnStrategyRedirectTarget = (
   experience: EarnExperience,
   isMoneyOnboardingRedirectNeeded: boolean,
-  acquisitionRoute: EarnAssetAcquisitionRoute | undefined,
+  depositNavigationRoute: EarnDepositNavigationRoute | undefined,
 ): EarnOpportunityRedirectTarget | undefined =>
-  acquisitionRoute?.redirectTarget ??
+  depositNavigationRoute?.redirectTarget ??
   (experience.availability.status === 'unavailable'
     ? EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS
     : getEarnExperienceRedirectTarget(
@@ -178,6 +186,26 @@ const useEarnOpportunityNavigation = () => {
     resolveEarnAssetAcquisitionRoute,
     navigateToEarnAssetAcquisitionRoute,
   } = useEarnAssetAcquisitionNavigation();
+
+  const resolveEarnDepositNavigationRoute = useCallback(
+    (
+      earnAsset: EarnAsset,
+      experience: EarnExperience,
+    ): EarnDepositNavigationRoute | undefined => {
+      if (
+        earnAsset.kind === 'discovery' &&
+        experience.type === 'MONEY_ACCOUNT_DEPOSIT'
+      ) {
+        return {
+          type: 'money-fiat',
+          redirectTarget: EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
+        };
+      }
+
+      return resolveEarnAssetAcquisitionRoute(earnAsset, experience);
+    },
+    [resolveEarnAssetAcquisitionRoute],
+  );
 
   const navigateToAssetOverview = useCallback(
     (earnAsset: EarnAsset, tokenDetailsSource?: TokenDetailsSource) => {
@@ -293,15 +321,36 @@ const useEarnOpportunityNavigation = () => {
       earnAsset: EarnAsset,
       experience: EarnExperience,
       tokenDetailsSource?: TokenDetailsSource,
-      acquisitionRoute?: EarnAssetAcquisitionRoute,
+      depositNavigationRoute?: EarnDepositNavigationRoute,
     ) => {
       if (experience.availability.status === 'unavailable') {
-        const resolvedAcquisitionRoute =
-          acquisitionRoute ??
-          resolveEarnAssetAcquisitionRoute(earnAsset, experience);
+        const resolvedDepositNavigationRoute =
+          depositNavigationRoute ??
+          resolveEarnDepositNavigationRoute(earnAsset, experience);
 
-        if (resolvedAcquisitionRoute) {
-          await navigateToEarnAssetAcquisitionRoute(resolvedAcquisitionRoute);
+        if (resolvedDepositNavigationRoute) {
+          if (resolvedDepositNavigationRoute.type === 'money-fiat') {
+            try {
+              await initiateDeposit({
+                autoSelectFiatPayment: true,
+                intent: 'card',
+              });
+            } catch (error) {
+              if (
+                !isUserRejectedError(
+                  error,
+                  `${LOG_PREFIX} Money deposit cancelled`,
+                )
+              ) {
+                throw error;
+              }
+            }
+            return;
+          }
+
+          await navigateToEarnAssetAcquisitionRoute(
+            resolvedDepositNavigationRoute,
+          );
           return;
         }
 
@@ -340,8 +389,9 @@ const useEarnOpportunityNavigation = () => {
       navigateToStablecoinLending,
       navigateToLegacyEarnDeposit,
       navigateToAssetOverview,
+      initiateDeposit,
       navigateToEarnAssetAcquisitionRoute,
-      resolveEarnAssetAcquisitionRoute,
+      resolveEarnDepositNavigationRoute,
     ],
   );
 
@@ -415,7 +465,7 @@ const useEarnOpportunityNavigation = () => {
   return {
     navigateFromEarnAsset,
     navigateToDepositForExperience,
-    resolveEarnAssetAcquisitionRoute,
+    resolveEarnDepositNavigationRoute,
   };
 };
 

@@ -48,8 +48,8 @@ import {
 } from '../../utils/earnAssets';
 import useEarnOpportunityNavigation, {
   getSelectedEarnStrategyRedirectTarget,
+  type EarnDepositNavigationRoute,
 } from '../../hooks/useEarnOpportunityNavigation';
-import type { EarnAssetAcquisitionRoute } from '../../hooks/useEarnAssetAcquisitionNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -178,8 +178,8 @@ const renderNonMoneyStrategyCard = (
 const EarnStrategySelectionModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const isNavigatingToDepositRef = useRef(false);
-  const pendingAcquisitionRouteRef = useRef<
-    EarnAssetAcquisitionRoute | undefined
+  const pendingDepositNavigationRouteRef = useRef<
+    EarnDepositNavigationRoute | undefined
   >(undefined);
   const [isNavigatingToDeposit, setIsNavigatingToDeposit] = useState(false);
   const { showToast, EarnToastOptions } = useEarnToasts();
@@ -190,7 +190,7 @@ const EarnStrategySelectionModal = () => {
   const { isOnboardingRedirectNeeded } = useMoneyNavigation();
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
-  const { navigateToDepositForExperience, resolveEarnAssetAcquisitionRoute } =
+  const { navigateToDepositForExperience, resolveEarnDepositNavigationRoute } =
     useEarnOpportunityNavigation();
   const { trackBottomSheetViewed, trackButtonClicked, trackSurfaceClicked } =
     useEarnAnalytics({
@@ -262,12 +262,12 @@ const EarnStrategySelectionModal = () => {
         earnAsset,
         selectedStrategy,
         params.tokenDetailsSource,
-        pendingAcquisitionRouteRef.current,
+        pendingDepositNavigationRouteRef.current,
       );
     } catch (error) {
       handleNavigationError(error);
     } finally {
-      pendingAcquisitionRouteRef.current = undefined;
+      pendingDepositNavigationRouteRef.current = undefined;
       setIsNavigatingToDeposit(false);
     }
   }, [
@@ -291,10 +291,8 @@ const EarnStrategySelectionModal = () => {
       selectedStrategy.type as EARN_MODULE_STRATEGY_TYPES;
 
     try {
-      pendingAcquisitionRouteRef.current = resolveEarnAssetAcquisitionRoute(
-        earnAsset,
-        selectedStrategy,
-      );
+      pendingDepositNavigationRouteRef.current =
+        resolveEarnDepositNavigationRoute(earnAsset, selectedStrategy);
     } catch (error) {
       handleNavigationError(error);
       return;
@@ -326,7 +324,7 @@ const EarnStrategySelectionModal = () => {
       redirect_target: getSelectedEarnStrategyRedirectTarget(
         selectedStrategy,
         isOnboardingRedirectNeeded,
-        pendingAcquisitionRouteRef.current,
+        pendingDepositNavigationRouteRef.current,
       ),
     });
     isNavigatingToDepositRef.current = true;
@@ -339,7 +337,7 @@ const EarnStrategySelectionModal = () => {
     isOnboardingRedirectNeeded,
     params.analyticsContext?.asset_position,
     params.analyticsContext?.assets_in_list,
-    resolveEarnAssetAcquisitionRoute,
+    resolveEarnDepositNavigationRoute,
     selectedStrategy,
     strategies,
     trackButtonClicked,

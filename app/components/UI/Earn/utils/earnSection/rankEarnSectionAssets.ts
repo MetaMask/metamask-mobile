@@ -7,11 +7,29 @@ import {
   getEarnAssetFiatNumber,
   getEarnInputExperiences,
   hasEarnAssetBalance,
+  getEarnAssetMetadata,
 } from '../earnAssets';
 import { getHighestReadyRateEntry } from '../earnRate';
 
 /** Maximum number of assets displayed in the horizontal Earn section. */
 export const EARN_SECTION_ASSET_LIMIT = 5;
+
+const MAINNET_CHAIN_ID = '0x1';
+const TRON_MAINNET_CHAIN_ID = 'tron:0x2b6653dc';
+const UNKNOWN_ASSET_PRIORITY = Number.MAX_SAFE_INTEGER;
+
+const STABLECOIN_SYMBOL_PRIORITY: Record<string, number> = {
+  USDT: 0,
+  USDC: 1,
+  DAI: 2,
+};
+const MAINNET_ETH_PRIORITY = 3;
+
+type UnheldTieBreakKey = readonly [
+  group: number,
+  chainId: string,
+  tokenPriority: number,
+];
 
 /** Earn asset enriched with aggregate rate information for display and sorting. */
 export type EarnSectionRankedAsset = EarnAsset & {
@@ -73,6 +91,59 @@ const compareByKey = (
 ) => first.assetId.localeCompare(second.assetId);
 
 /**
+ * Returns tie-break key:
+ * - Mainnet USDT → USDC → DAI → ETH
+ * - Other chains: chain ID, then USDT → USDC → DAI
+ * - Tron TRX
+ * - Unknown assets
+ */
+const getUnheldTieBreakKey = (
+  asset: EarnSectionRankedAsset,
+): UnheldTieBreakKey => {
+  const metadata = getEarnAssetMetadata(asset);
+  const symbol = metadata.symbol.toUpperCase();
+  const chainId = metadata.chainId.toLowerCase();
+  const stablecoinPriority = STABLECOIN_SYMBOL_PRIORITY[symbol];
+
+  if (chainId === MAINNET_CHAIN_ID) {
+    if (stablecoinPriority !== undefined) {
+      return [0, '', stablecoinPriority];
+    }
+
+    if (metadata.isETH) {
+      return [0, '', MAINNET_ETH_PRIORITY];
+    }
+  }
+
+  if (stablecoinPriority !== undefined) {
+    return [1, chainId, stablecoinPriority];
+  }
+
+  if (chainId === TRON_MAINNET_CHAIN_ID && symbol === 'TRX') {
+    return [2, '', 0];
+  }
+
+  return [3, chainId, UNKNOWN_ASSET_PRIORITY];
+};
+
+const compareUnheldTieBreak = (
+  first: EarnSectionRankedAsset,
+  second: EarnSectionRankedAsset,
+) => {
+  const [firstGroup, firstChainId, firstSymbolPriority] =
+    getUnheldTieBreakKey(first);
+  const [secondGroup, secondChainId, secondSymbolPriority] =
+    getUnheldTieBreakKey(second);
+
+  return (
+    firstGroup - secondGroup ||
+    firstChainId.localeCompare(secondChainId) ||
+    firstSymbolPriority - secondSymbolPriority ||
+    compareByKey(first, second)
+  );
+};
+
+/**
  * Enriches and sorts all earn assets held-first, then by highest rate.
  * Returns every asset without padding or truncation.
  *
@@ -113,7 +184,7 @@ export const rankEarnAssets = (
         compareKnownNumbersDescending(
           first.highestRatePercent,
           second.highestRatePercent,
-        ) || compareByKey(first, second),
+        ) || compareUnheldTieBreak(first, second),
     );
 
   return [...held, ...unheld];

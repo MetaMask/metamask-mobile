@@ -56,10 +56,27 @@ jest.mock('../../Money/hooks/useMoneyNavigation', () => ({
   __esModule: true,
   useMoneyOnboardingNavigation: jest.fn(),
 }));
+jest.mock('./useEarnAssetAcquisitionNavigation', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    resolveEarnAssetAcquisitionRoute: jest.fn(),
+    navigateToEarnAssetAcquisitionRoute: jest.fn(),
+  })),
+}));
 
 jest.mock('../utils/earnAssets', () => ({
   __esModule: true,
   earnAssetToToken: jest.fn(),
+  getEarnInputExperiences: (
+    experiences: readonly EarnExperience[],
+  ): EarnExperience[] =>
+    experiences.filter((experience) => experience.role !== 'output'),
+  getAvailableEarnDepositExperiences: (
+    experiences: readonly EarnExperience[],
+  ): EarnExperience[] =>
+    experiences.filter(
+      (experience) => experience.availability?.status === 'available',
+    ),
   getMoneyDepositPaymentToken: (earnAsset: HeldEarnAsset) => {
     const asset = earnAsset.asset;
 
@@ -136,6 +153,7 @@ const createExperience = (
   id,
   type,
   role: 'underlying',
+  availability: { status: 'available' },
   rate: {
     type: 'APY',
     status: 'ready',
@@ -501,6 +519,54 @@ describe('useEarnOpportunityNavigation', () => {
       intent: 'convert',
       onDepositSetupFailure: expect.any(Function),
     });
+  });
+
+  it('starts a fiat Money deposit for an unheld Money experience', async () => {
+    const earnAsset = createDiscoveryEarnAsset();
+    const experience = {
+      ...createExperience('MONEY_ACCOUNT_DEPOSIT'),
+      availability: {
+        status: 'unavailable' as const,
+        reason: 'asset_not_held' as const,
+      },
+    };
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    await act(async () => {
+      await result.current.navigateToDepositForExperience(
+        earnAsset,
+        experience,
+      );
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      autoSelectFiatPayment: true,
+      intent: 'card',
+    });
+  });
+
+  it('does not show an Earn navigation error when an unheld Money deposit is rejected', async () => {
+    mockInitiateDeposit.mockRejectedValue(
+      new Error('User rejected the request'),
+    );
+    const earnAsset = createDiscoveryEarnAsset();
+    const experience = {
+      ...createExperience('MONEY_ACCOUNT_DEPOSIT'),
+      availability: {
+        status: 'unavailable' as const,
+        reason: 'asset_not_held' as const,
+      },
+    };
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    await act(async () => {
+      await result.current.navigateToDepositForExperience(
+        earnAsset,
+        experience,
+      );
+    });
+
+    expect(showToast).not.toHaveBeenCalled();
   });
 
   it('stops Money deposit navigation when onboarding is required', async () => {

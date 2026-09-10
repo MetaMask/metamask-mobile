@@ -13,37 +13,51 @@ import {
   rankEarnSectionAssets,
 } from './rankEarnSectionAssets';
 
+interface CreateAssetOptions {
+  chainId?: string;
+  isETH?: boolean;
+}
+
+const createExperience = (percentage = 3): EarnExperience => ({
+  id: 'lending:1:aave:test',
+  type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+  role: 'underlying',
+  rate: {
+    type: 'APR',
+    percentage,
+    status: 'ready',
+  },
+  isFeeSubsidized: false,
+});
+
 const createAsset = (
   symbol: string,
-  experiences?: readonly EarnExperience[],
-): EarnAsset => ({
-  kind: 'discovery',
-  assetId:
-    `eip155:1/erc20:0x${symbol.toLowerCase().padEnd(40, '0')}` as EarnAssetId,
-  metadata: {
-    address: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
-    chainId: '0x1',
-    decimals: 6,
-    image: `${symbol}.png`,
-    name: symbol,
-    symbol,
-    logo: `${symbol}.png`,
-    isETH: false,
-  },
-  experiences: experiences ?? [
-    {
-      id: `lending:1:aave:${symbol}`,
-      type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-      role: 'underlying',
-      rate: {
-        type: 'APR',
-        percentage: 3,
-        status: 'ready',
-      },
-      isFeeSubsidized: false,
+  experiences: readonly EarnExperience[] = [createExperience()],
+  options: CreateAssetOptions = {},
+): EarnAsset => {
+  const { chainId = '0x1', isETH = false } = options;
+
+  return {
+    kind: 'discovery',
+    assetId: `${chainId}/${symbol.toLowerCase()}` as EarnAssetId,
+    metadata: {
+      address: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
+      chainId,
+      decimals: 6,
+      image: `${symbol}.png`,
+      name: symbol,
+      symbol,
+      logo: `${symbol}.png`,
+      isETH,
     },
-  ],
-});
+    experiences,
+  };
+};
+
+const getAssetLabel = (asset: EarnAsset) => {
+  const metadata = getEarnAssetMetadata(asset);
+  return `${metadata.chainId}:${metadata.symbol}`;
+};
 
 const createHeldAsset = (symbol: string, fiatBalance: number): EarnAsset => {
   const discovery = createAsset(symbol);
@@ -175,6 +189,51 @@ describe('rankEarnSectionAssets', () => {
 });
 
 describe('rankEarnAssets', () => {
+  it('groups equal-rate unheld assets by Mainnet and chain priorities', () => {
+    const result = rankEarnAssets([
+      createAsset('TRX', undefined, { chainId: 'tron:0x2b6653dc' }),
+      createAsset('DAI', undefined, { chainId: '0xe708' }),
+      createAsset('USDT', undefined, { chainId: '0x1' }),
+      createAsset('ETH', undefined, { isETH: true }),
+      createAsset('USDC', undefined, { chainId: '0xe708' }),
+      createAsset('USDC'),
+      createAsset('DAI'),
+      createAsset('USDT', undefined, { chainId: '0xe708' }),
+      createAsset('USDC', undefined, { chainId: '0xa4b1' }),
+      createAsset('USDT', undefined, { chainId: '0xa4b1' }),
+      createAsset('DAI', undefined, { chainId: '0xa4b1' }),
+    ]);
+
+    expect(result.map(getAssetLabel)).toEqual([
+      '0x1:USDT',
+      '0x1:USDC',
+      '0x1:DAI',
+      '0x1:ETH',
+      '0xa4b1:USDT',
+      '0xa4b1:USDC',
+      '0xa4b1:DAI',
+      '0xe708:USDT',
+      '0xe708:USDC',
+      '0xe708:DAI',
+      'tron:0x2b6653dc:TRX',
+    ]);
+  });
+
+  it('prioritizes rate over equal-rate tie grouping', () => {
+    const higherRateAsset = createAsset('MUSD', [createExperience(6)]);
+    const preferredTieAsset = createAsset('USDT', [createExperience(5)]);
+
+    const result = rankEarnAssets([preferredTieAsset, higherRateAsset]);
+
+    expect(result.map(getAssetLabel)).toEqual(['0x1:MUSD', '0x1:USDT']);
+  });
+
+  it('uses asset ID ordering for unrecognized equal-rate assets', () => {
+    const result = rankEarnAssets([createAsset('MUSD'), createAsset('MATIC')]);
+
+    expect(result.map(getAssetLabel)).toEqual(['0x1:MATIC', '0x1:MUSD']);
+  });
+
   it('returns every enriched asset without padding', () => {
     const result = rankEarnAssets([
       createAsset('USDT'),
