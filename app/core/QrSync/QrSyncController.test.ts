@@ -82,6 +82,11 @@ jest.mock('@metamask/account-tree-controller', () => {
 
 jest.mock('./services/create-qr-sync-wallet-client');
 
+jest.mock('../../multichain-accounts/AccountTreeInitService', () => ({
+  __esModule: true,
+  default: { initializeAccountTree: jest.fn().mockResolvedValue(undefined) },
+}));
+
 const mockCreateQrSyncWalletClient =
   createQrSyncWalletClient as jest.MockedFunction<
     typeof createQrSyncWalletClient
