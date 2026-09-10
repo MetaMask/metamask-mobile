@@ -70,6 +70,12 @@ export const RecurringConfirmOrderSheetScreen = () => {
     });
   }, [destToken?.chainId, navigation, sourceToken?.chainId]);
 
+  const handleDelegationFeeInfoPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_DELEGATION_FEE_INFO_MODAL,
+    });
+  }, [navigation]);
+
   return (
     <BridgeQuoteDataProvider
       latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
@@ -79,6 +85,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
         latestSourceBalance={latestSourceBalance}
         onConfirm={handleConfirm}
         onEditSlippagePress={handleEditSlippagePress}
+        onDelegationFeeInfoPress={handleDelegationFeeInfoPress}
         goBack={navigation.goBack}
       />
     </BridgeQuoteDataProvider>

@@ -5,5 +5,6 @@ export interface RecurringConfirmOrderSheetProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   onConfirm: () => void;
   onEditSlippagePress: () => void;
+  onDelegationFeeInfoPress: () => void;
   goBack: () => void;
 }

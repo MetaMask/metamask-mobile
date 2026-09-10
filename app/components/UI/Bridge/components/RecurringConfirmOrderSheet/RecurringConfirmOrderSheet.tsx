@@ -15,6 +15,7 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
+  IconColor,
   IconName,
   Text,
   TextColor,
@@ -104,6 +105,7 @@ function ConfirmOrderRow({
   value,
   testID,
   trailing,
+  labelAccessory,
   isLoading,
   skeletonTestID,
 }: {
@@ -111,6 +113,7 @@ function ConfirmOrderRow({
   value: string;
   testID: string;
   trailing?: ReactNode;
+  labelAccessory?: ReactNode;
   isLoading?: boolean;
   skeletonTestID?: string;
 }) {
@@ -124,9 +127,17 @@ function ConfirmOrderRow({
       paddingVertical={2}
       testID={testID}
     >
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="shrink"
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        {labelAccessory}
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -170,6 +181,7 @@ const RecurringConfirmOrderSheet = ({
   latestSourceBalance,
   onConfirm,
   onEditSlippagePress,
+  onDelegationFeeInfoPress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -345,6 +357,24 @@ const RecurringConfirmOrderSheet = ({
                 size={AvatarTokenSize.Xs}
               />
             ) : undefined
+          }
+        />
+        <Box twClassName="mx-4 my-2 h-px bg-muted" />
+        <ConfirmOrderRow
+          label={strings('bridge.recurring.delegation_fee_one_time')}
+          value="--"
+          testID={RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE}
+          labelAccessory={
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{ color: IconColor.IconAlternative }}
+              size={ButtonIconSize.Sm}
+              onPress={onDelegationFeeInfoPress}
+              testID={RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO}
+              accessibilityLabel={strings(
+                'bridge.recurring.delegation_fee_info_title',
+              )}
+            />
           }
         />
       </Box>

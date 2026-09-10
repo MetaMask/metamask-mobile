@@ -380,6 +380,7 @@ const Routes = {
       RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
       RECURRING_PRICE_RANGE_MODAL: 'RecurringPriceRangeModal',
       RECURRING_CONFIRM_ORDER_MODAL: 'RecurringConfirmOrderModal',
+      RECURRING_DELEGATION_FEE_INFO_MODAL: 'RecurringDelegationFeeInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },

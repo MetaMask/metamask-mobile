@@ -77,6 +77,7 @@ export type BridgeModalsNavigationParamList = {
   RecurringRepeatInfoModal: undefined;
   RecurringPriceRangeModal: undefined;
   RecurringConfirmOrderModal: undefined;
+  RecurringDelegationFeeInfoModal: undefined;
 };
 
 /**

@@ -55,11 +55,13 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     isSubmitting,
     onConfirm,
     onEditSlippagePress,
+    onDelegationFeeInfoPress,
     goBack,
   }: {
     isSubmitting: boolean;
     onConfirm: () => void;
     onEditSlippagePress: () => void;
+    onDelegationFeeInfoPress: () => void;
     goBack: () => void;
   }) => {
     const ReactModule = jest.requireActual<typeof React>('react');
@@ -82,6 +84,14 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
         Pressable,
         { testID: 'edit-slippage', onPress: onEditSlippagePress },
         ReactModule.createElement(Text, null, 'Edit slippage'),
+      ),
+      ReactModule.createElement(
+        Pressable,
+        {
+          testID: 'delegation-fee-info',
+          onPress: onDelegationFeeInfoPress,
+        },
+        ReactModule.createElement(Text, null, 'Delegation fee info'),
       ),
       ReactModule.createElement(
         Pressable,
@@ -159,6 +169,16 @@ describe('RecurringConfirmOrderSheetScreen', () => {
         sourceChainId: sourceToken.chainId,
         destChainId: destToken.chainId,
       },
+    });
+  });
+
+  it('opens the delegation fee info modal above the confirmation modal', () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId('delegation-fee-info'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_DELEGATION_FEE_INFO_MODAL,
     });
   });
 

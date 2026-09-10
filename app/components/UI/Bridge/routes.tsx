@@ -39,6 +39,7 @@ import { RecurringIntervalSheetScreen } from './components/RecurringIntervalShee
 import { RecurringRepeatInfoSheetScreen } from './components/RecurringRepeatInfoSheet/RecurringRepeatInfoSheetScreen';
 import { PriceRangeSheetScreen } from './components/PriceRangeSheet/PriceRangeSheetScreen';
 import { RecurringConfirmOrderSheetScreen } from './components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheetScreen';
+import { RecurringDelegationFeeInfoSheetScreen } from './components/RecurringDelegationFeeInfoSheet/RecurringDelegationFeeInfoSheetScreen';
 import type {
   BridgeModalsNavigationParamList,
   BridgeScreensStackParamList,
@@ -199,6 +200,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL}
       component={RecurringConfirmOrderSheetScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.RECURRING_DELEGATION_FEE_INFO_MODAL}
+      component={RecurringDelegationFeeInfoSheetScreen}
     />
   </ModalStack.Navigator>
 );

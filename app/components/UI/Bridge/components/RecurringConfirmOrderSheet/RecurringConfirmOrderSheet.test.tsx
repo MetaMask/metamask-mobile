@@ -107,6 +107,7 @@ function renderSheet({
   isSubmitting = false,
   onConfirm = jest.fn(),
   onEditSlippagePress = jest.fn(),
+  onDelegationFeeInfoPress = jest.fn(),
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
@@ -114,6 +115,7 @@ function renderSheet({
   isSubmitting?: boolean;
   onConfirm?: () => void;
   onEditSlippagePress?: () => void;
+  onDelegationFeeInfoPress?: () => void;
   state?: DeepPartial<RootState>;
   latestSourceBalance?:
     | { displayBalance: string; atomicBalance: BigNumber }
@@ -125,6 +127,7 @@ function renderSheet({
       latestSourceBalance={latestSourceBalance}
       onConfirm={onConfirm}
       onEditSlippagePress={onEditSlippagePress}
+      onDelegationFeeInfoPress={onDelegationFeeInfoPress}
       goBack={goBack}
     />,
     { state },
@@ -506,6 +509,49 @@ describe('RecurringConfirmOrderSheet', () => {
     );
 
     expect(onEditSlippagePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a placeholder for the one-time delegation fee', () => {
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.delegation_fee_one_time')}--`,
+    );
+  });
+
+  it('keeps the delegation fee placeholder while a quote is loading', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: true,
+        destTokenAmount: '24.44',
+        formattedQuoteData: {
+          ...mockUseBridgeQuoteData.formattedQuoteData,
+          networkFee: '$1.23',
+        },
+      }));
+
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.delegation_fee_one_time')}--`,
+    );
+  });
+
+  it('calls the delegation fee info handler from the info control', () => {
+    const onDelegationFeeInfoPress = jest.fn();
+    const { getByTestId } = renderSheet({ onDelegationFeeInfoPress });
+
+    fireEvent.press(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO),
+    );
+
+    expect(onDelegationFeeInfoPress).toHaveBeenCalledTimes(1);
   });
 
   it('calls the confirm handler when Confirm is pressed', () => {
