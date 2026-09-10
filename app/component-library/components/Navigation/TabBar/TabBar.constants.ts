@@ -15,6 +15,7 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxOutline,
   [TabBarIconKey.Trending]: IconName.TrendUp,
   [TabBarIconKey.Money]: IconName.Musd,
+  [TabBarIconKey.Social]: IconName.UserCheck,
 };
 
 export const LABEL_BY_TAB_BAR_ICON_KEY = {
@@ -27,6 +28,7 @@ export const LABEL_BY_TAB_BAR_ICON_KEY = {
   [TabBarIconKey.Setting]: 'bottom_nav.settings',
   [TabBarIconKey.Rewards]: 'bottom_nav.rewards',
   [TabBarIconKey.Money]: 'bottom_nav.money',
+  [TabBarIconKey.Social]: 'bottom_nav.social',
 } as const;
 
 export const TAB_BAR_HEIGHT = 54; // 22px text line height + 20px icon height + 12px padding top
