@@ -5,6 +5,7 @@ import {
   type AccountWalletPayloadId,
   type AccountGroupPayloadId,
 } from '@metamask/account-tree-controller';
+import { KeyringType } from '@metamask/keyring-api/v2';
 import { decodeMnemonicWords, toEntropySourceId } from '@metamask/keyring-sdk';
 import { mnemonicToSeed } from '@metamask/scure-bip39';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
@@ -49,6 +50,21 @@ import {
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';
+import { HdKeyring } from '@metamask/eth-hd-keyring/v2';
+import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+
+// TODO: Export this in @metamask/account-tree-controller and import it from there.
+/**
+ * Constructs an {@link AccountWalletPayloadId} from an entropy source ID.
+ *
+ * @param entropySourceId - Stable entropy source ID returned by {@link HdKeyring.toEntropySourceId()}.
+ * @returns The portable wallet payload ID.
+ */
+function toWalletPayloadId(
+  entropySourceId: string,
+): AccountWalletPayloadId {
+  return `wallet:${entropySourceId}`;
+}
 
 /**
  * Computes the deterministic wallet payload ID for a BIP-39 mnemonic.
@@ -76,7 +92,7 @@ async function computeWalletPayloadId(
   mnemonic: string,
 ): Promise<AccountWalletPayloadId> {
   const seed = await mnemonicToSeed(mnemonic, wordlist);
-  return `wallet:${await toEntropySourceId('mnemonic', seed)}` as AccountWalletPayloadId;
+  return toWalletPayloadId(await toEntropySourceId('mnemonic', seed));
 }
 
 const metadata: StateMetadata<QrSyncControllerState> = {
@@ -362,27 +378,23 @@ export class QrSyncController extends BaseController<
       let snapshot =
         await AccountTreeSnapshot.deserialize(pendingSecretImports);
 
-      // For new users only: strip the primary mnemonic wallet (first mnemonic
-      // entry) before calling importState. Two reasons:
-      //   1. It was just imported into the vault during onboarding, so passing
-      //      it to importState would be a no-op at best.
-      //   2. importState resolves wallets by entropy source ID against the
-      //      account tree. For new users the account tree is not yet initialized
-      //      at this point, so filtering out the primary avoids that dependency.
-      // For existing users the account tree is already initialized, so importState
-      // can safely match the primary by entropy source ID and skip it itself.
+      // For new users only: filter out the primary HD wallet by stable entropy
+      // source ID before calling importState. The primary SRP was just imported
+      // into the vault during onboarding, so importing it again would be a
+      // no-op at best; and for new users the account tree is not yet
+      // initialized, so filtering it out by ID avoids that dependency.
+      // For existing users the account tree is already initialized, so
+      // importState can safely match the primary by entropy source ID itself.
       if (isNewUser) {
-        let primarySkipped = false;
-        snapshot = snapshot.filterWallets((wallet) => {
-          if (
-            wallet.type === AccountWalletPayloadType.Mnemonic &&
-            !primarySkipped
-          ) {
-            primarySkipped = true;
-            return false;
-          }
-          return true;
-        });
+        const primaryWalletId = await this.messenger.call(
+          'KeyringController:withKeyringV2',
+          { type: KeyringType.Hd },
+          async ({ keyring }) =>
+            toWalletPayloadId(await (keyring as HdKeyring).toEntropySourceId()),
+        );
+        snapshot = snapshot.filterWallets(
+          (wallet) => wallet.id !== primaryWalletId,
+        );
       }
 
       await this.messenger.call('AccountTreeController:importState', snapshot);
@@ -514,7 +526,8 @@ export class QrSyncController extends BaseController<
     // Deserialize before transitioning to the next phase. Since deserializing the
     // account tree snapshot can be an asynchronous operation, we do it here to
     // ensure that the snapshot is ready when needed in the subsequent phase.
-    const isSyncReady = routedMessage.event.type === QrSyncActionTypes.SYNC_READY;
+    const isSyncReady =
+      routedMessage.event.type === QrSyncActionTypes.SYNC_READY;
     let syncReadySnapshot: AccountTreeSnapshot | null = null;
     if (isSyncReady) {
       const { pendingPayload: wirePayload } = routedMessage;
@@ -528,8 +541,12 @@ export class QrSyncController extends BaseController<
     if (isSyncReady) {
       if (syncReadySnapshot) {
         this.update((state) => {
-          state.pendingSecretImports = syncReadySnapshot.stripMetadata().serialize();
-          state.provisioningMetadata = syncReadySnapshot.stripSecrets().serialize();
+          state.pendingSecretImports = syncReadySnapshot
+            .stripMetadata()
+            .serialize();
+          state.provisioningMetadata = syncReadySnapshot
+            .stripSecrets()
+            .serialize();
           state.provisioningStatus =
             QrSyncProvisioningStatuses.AWAITING_PASSWORD;
         });

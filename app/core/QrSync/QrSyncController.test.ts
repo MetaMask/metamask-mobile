@@ -2,6 +2,7 @@ import {
   AccountWalletPayloadType,
   type AccountTreeControllerImportStateAction,
 } from '@metamask/account-tree-controller';
+import type { KeyringControllerWithKeyringV2Action } from '@metamask/keyring-controller';
 import type {
   IKeyManager,
   SessionRequest,
@@ -187,12 +188,23 @@ const buildMessenger = (): QrSyncControllerMessenger =>
 
 const buildMessengerWithImportState = (
   mockImportState: jest.Mock,
+  mockWithKeyringV2: jest.Mock = jest.fn().mockResolvedValue(undefined),
 ): QrSyncControllerMessenger => {
-  // AccountTreeController:importState lives in the AccountTreeController namespace.
-  // Build a parent messenger for that namespace, register the handler, then create
-  // a QrSyncController child with the action delegated down.
-  const atcMessenger = new Messenger({
+  // Wire up both AccountTreeController:importState and KeyringController:withKeyringV2
+  // via a shared root messenger so the QrSyncController child can call both.
+  const rootMessenger = new Messenger({
+    namespace: 'root',
+  }) as unknown as Messenger<
+    'root',
+    | AccountTreeControllerImportStateAction
+    | KeyringControllerWithKeyringV2Action,
+    never
+  >;
+
+  const atcMessenger = rootMessenger.buildChild({
     namespace: 'AccountTreeController',
+    actions: [],
+    events: [],
   }) as unknown as Messenger<
     'AccountTreeController',
     AccountTreeControllerImportStateAction,
@@ -202,9 +214,27 @@ const buildMessengerWithImportState = (
     'AccountTreeController:importState',
     mockImportState,
   );
-  return atcMessenger.buildChild({
+
+  const kcMessenger = rootMessenger.buildChild({
+    namespace: 'KeyringController',
+    actions: [],
+    events: [],
+  }) as unknown as Messenger<
+    'KeyringController',
+    KeyringControllerWithKeyringV2Action,
+    never
+  >;
+  kcMessenger.registerActionHandler(
+    'KeyringController:withKeyringV2',
+    mockWithKeyringV2,
+  );
+
+  return rootMessenger.buildChild({
     namespace: QR_SYNC_CONTROLLER_NAME,
-    actions: ['AccountTreeController:importState'],
+    actions: [
+      'AccountTreeController:importState',
+      'KeyringController:withKeyringV2',
+    ],
     events: [],
   }) as unknown as QrSyncControllerMessenger;
 };
@@ -779,7 +809,13 @@ describe('QrSyncController', () => {
 
     it('importRemainingSecrets sets SECRETS_IMPORTED, calls importState, and clears pendingSecretImports', async () => {
       const mockImportState = jest.fn().mockResolvedValue(undefined);
-      const messenger = buildMessengerWithImportState(mockImportState);
+      // For new users (onboarding not completed), withKeyringV2 is called to get
+      // the primary wallet ID. Return a different ID so the test wallet is kept.
+      const mockWithKeyringV2 = jest.fn().mockResolvedValue('wallet:other');
+      const messenger = buildMessengerWithImportState(
+        mockImportState,
+        mockWithKeyringV2,
+      );
       const controller = new QrSyncController({
         messenger,
         keyManager: {} as IKeyManager,
@@ -799,6 +835,7 @@ describe('QrSyncController', () => {
 
       await controller.importRemainingSecrets();
 
+      expect(mockWithKeyringV2).toHaveBeenCalledTimes(1);
       expect(controller.state.provisioningStatus).toBe(
         QrSyncProvisioningStatuses.SECRETS_IMPORTED,
       );
@@ -810,8 +847,14 @@ describe('QrSyncController', () => {
     });
 
     it('importRemainingSecrets leaves state in AWAITING_PASSWORD when importState throws', async () => {
-      const mockImportState = jest.fn().mockRejectedValue(new Error('vault locked'));
-      const messenger = buildMessengerWithImportState(mockImportState);
+      const mockImportState = jest
+        .fn()
+        .mockRejectedValue(new Error('vault locked'));
+      const mockWithKeyringV2 = jest.fn().mockResolvedValue('wallet:other');
+      const messenger = buildMessengerWithImportState(
+        mockImportState,
+        mockWithKeyringV2,
+      );
       const controller = new QrSyncController({
         messenger,
         keyManager: {} as IKeyManager,

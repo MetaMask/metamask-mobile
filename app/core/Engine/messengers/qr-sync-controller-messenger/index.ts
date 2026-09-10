@@ -28,7 +28,10 @@ export function getQrSyncControllerMessenger(
 
   rootMessenger.delegate({
     messenger,
-    actions: ['AccountTreeController:importState'],
+    actions: [
+      'AccountTreeController:importState',
+      'KeyringController:withKeyringV2',
+    ],
   });
 
   return messenger;

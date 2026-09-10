@@ -8,6 +8,7 @@ import type {
   AccountTreeControllerImportStateAction,
   AccountTreePayload,
 } from '@metamask/account-tree-controller';
+import type { KeyringControllerWithKeyringV2Action } from '@metamask/keyring-controller';
 
 import type {
   QrSyncConnectionStatus,
@@ -92,7 +93,9 @@ export type QrSyncControllerEvents = ControllerStateChangeEvent<
   QrSyncControllerState
 >;
 
-type AllowedActions = AccountTreeControllerImportStateAction;
+type AllowedActions =
+  | AccountTreeControllerImportStateAction
+  | KeyringControllerWithKeyringV2Action;
 
 export type QrSyncControllerMessenger = Messenger<
   typeof QR_SYNC_CONTROLLER_NAME,
