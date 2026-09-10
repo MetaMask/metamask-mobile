@@ -136,6 +136,8 @@ const mockEarnSection = jest.fn(
     showDividers?: boolean;
     tokenDetailsSource?: string;
     enabled?: boolean;
+    // TODO: Can we not use the actual type here? Why do we need unknown?
+    analyticsContext?: unknown;
   }) =>
     React.createElement('View', {
       testID: 'explore-earn-section',
@@ -151,6 +153,7 @@ jest.mock('../../../UI/Earn/components/EarnSection', () => ({
     showDividers?: boolean;
     tokenDetailsSource?: string;
     enabled?: boolean;
+    analyticsContext?: unknown;
   }) => mockEarnSection(props),
 }));
 
@@ -234,6 +237,11 @@ import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import Routes from '../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_SCREEN_NAMES,
+} from '../../../UI/Earn/constants/earnModuleEvents';
 
 const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
 const mockUseStocksFeed = jest.mocked(useStocksFeed);
@@ -715,6 +723,11 @@ describe('NowTab — Earn section', () => {
       enabled: true,
       refresh: { trigger: 0, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_NOW_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_NOW_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
     });
   });
 
@@ -733,6 +746,11 @@ describe('NowTab — Earn section', () => {
       enabled: true,
       refresh: { trigger: 1, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_NOW_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_NOW_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
     });
   });
 

@@ -29,7 +29,7 @@ on:
         type: string
         default: '["ALL"]'
       changed_spec_files:
-        description: 'Space-separated changed E2E specs for PR flakiness detection'
+        description: 'Space-separated changed E2E specs for main-target PR flakiness detection'
         required: false
         type: string
         default: ''
@@ -66,7 +66,7 @@ on:
         type: string
         default: '["ALL"]'
       changed_spec_files:
-        description: 'Space-separated changed E2E specs for PR flakiness detection'
+        description: 'Space-separated changed E2E specs for main-target PR flakiness detection'
         required: false
         type: string
         default: ''

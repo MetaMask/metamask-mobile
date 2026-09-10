@@ -734,6 +734,11 @@
           "swapsTransactions": {},
           "transactions": []
         },
+        "UiSlotsController": {
+          "activeConfigurations": {},
+          "enabled": false,
+          "screenConfigurations": {}
+        },
         "UserStorageController": {}
       }
     },
@@ -811,6 +816,7 @@
     },
     "moneyBalance": {
       "lastKnownBalance": null,
+      "lastLocalFlowConfirmedAt": null,
       "redeemable": null
     },
     "navigation": {
@@ -933,6 +939,7 @@
       },
       "perpsTradingCampaignLeaderboardPositions": {},
       "perpsTradingCampaignLeaderboards": {},
+      "perpsTradingCampaignPrizePools": {},
       "perpsTradingCampaignVolumes": {},
       "pointsEvents": null,
       "predictThePitchLeaderboardPositions": {},

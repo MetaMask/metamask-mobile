@@ -1,5 +1,6 @@
 export enum SCREEN_NAMES {
   WALLET_HOME = 'wallet_home',
+  EXPLORE = 'explore',
   TOKENS_SECTION_FULL_VIEW = 'tokens_section_full_view',
   ASSET_DETAIL = 'asset_detail',
   MONEY_HOME = 'money_home',
@@ -14,6 +15,7 @@ export enum SCREEN_NAMES {
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
   VBA_GET_PIX_KEY = 'vba_get_pix_key',
+  EARN_SECTION_LIST_VIEW = 'earn_section_list_view',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -106,4 +108,12 @@ export enum COMPONENT_NAMES {
 
   // — How It Works / FAQ —
   FAQ_ITEM = 'money_faq_item',
+
+  // — EarnSection —
+  HOMEPAGE_EARN_SECTION = 'homepage_earn_section',
+  EXPLORE_EARN_SECTION = 'explore_earn_section',
+  EARN_SECTION_MONEY_CARD = 'earn_section_money_card',
+
+  // — EarnSectionListView —
+  MONEY_ACCOUNT_ROW = 'money_account_row',
 }

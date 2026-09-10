@@ -25,6 +25,7 @@ const DEFAULT_AREA_THRESHOLD = 0.5;
  *
  * @param onVisible - Callback fired once when visibility threshold is met.
  * @param areaThreshold - Fraction of the component height that must be visible.
+ * @param context - Bounded source/stage tags. Set `emitTrace: false` to keep visibility callbacks without Market Insights viewport Sentry spans.
  * @returns A ref and onLayout callback to attach to the tracked view.
  */
 export const useViewportTracking = (
@@ -33,8 +34,10 @@ export const useViewportTracking = (
   context: {
     source: MarketInsightsSource;
     stage: MarketInsightsStage;
+    emitTrace?: boolean;
   } = { source: 'unknown', stage: 'entry_card' },
 ) => {
+  const emitTrace = context.emitTrace !== false;
   const ref = useRef<View>(null);
   const hasFired = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -71,35 +74,39 @@ export const useViewportTracking = (
           intervalRef.current = null;
         }
 
-        endTrace({
-          name: TraceName.MarketInsightsViewportTracking,
-          data: {
-            measure_calls: measureCountRef.current,
-            resolved_by: 'visibility_threshold',
-            result: 'success',
-            success: true,
-            source: context.source,
-            stage: context.stage,
-          },
-        });
+        if (emitTrace) {
+          endTrace({
+            name: TraceName.MarketInsightsViewportTracking,
+            data: {
+              measure_calls: measureCountRef.current,
+              resolved_by: 'visibility_threshold',
+              result: 'success',
+              success: true,
+              source: context.source,
+              stage: context.stage,
+            },
+          });
+        }
 
         onVisibleRef.current();
       }
     });
-  }, [areaThreshold, context.source, context.stage]);
+  }, [areaThreshold, context.source, context.stage, emitTrace]);
 
   const onLayout = useCallback(() => {
     if (!traceStartedRef.current) {
       traceStartedRef.current = true;
-      trace({
-        name: TraceName.MarketInsightsViewportTracking,
-        op: TraceOperation.MarketInsightsViewportTracking,
-        tags: {
-          feature: 'market_insights',
-          source: context.source,
-          stage: context.stage,
-        },
-      });
+      if (emitTrace) {
+        trace({
+          name: TraceName.MarketInsightsViewportTracking,
+          op: TraceOperation.MarketInsightsViewportTracking,
+          tags: {
+            feature: 'market_insights',
+            source: context.source,
+            stage: context.stage,
+          },
+        });
+      }
     }
 
     checkVisibility();
@@ -107,7 +114,7 @@ export const useViewportTracking = (
     if (!hasFired.current && !intervalRef.current) {
       intervalRef.current = setInterval(checkVisibility, POLL_INTERVAL_MS);
     }
-  }, [checkVisibility, context.source, context.stage]);
+  }, [checkVisibility, context.source, context.stage, emitTrace]);
 
   useEffect(
     () => () => {
@@ -116,7 +123,7 @@ export const useViewportTracking = (
         intervalRef.current = null;
       }
 
-      if (traceStartedRef.current && !hasFired.current) {
+      if (emitTrace && traceStartedRef.current && !hasFired.current) {
         endTrace({
           name: TraceName.MarketInsightsViewportTracking,
           data: {
@@ -131,7 +138,7 @@ export const useViewportTracking = (
         });
       }
     },
-    [context.source, context.stage],
+    [context.source, context.stage, emitTrace],
   );
 
   return { ref, onLayout };
