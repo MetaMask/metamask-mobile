@@ -69,6 +69,7 @@ import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { useCardTransactionHistoryDestination } from '../../hooks/useCardTransactionHistoryDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import useCreditBalance from '../../hooks/useCreditBalance';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
@@ -110,6 +111,7 @@ import {
   CardEntryPoint,
   CardFlow,
   CardScreens,
+  buildCardMigrationBadgeReasons,
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 } from '../../util/metrics';
@@ -161,6 +163,7 @@ const CardHome = () => {
   const isImmersve = activeProviderId === CardProviderIds.Immersve;
   const { state: ukMigrationState, refresh: refreshUkMigrationState } =
     useCardUkMigrationState();
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
   // Baanx UK migration uses account.countryOfResidence; Immersve regionCode is
   // irrelevant because Immersve users are never eligible.
   const migrationRegionCode =
@@ -446,6 +449,9 @@ const CardHome = () => {
     const migrationPhase = mapUkMigrationPhaseToAnalytics(
       ukMigrationState.phase,
     );
+    const badgeReasons = buildCardMigrationBadgeReasons(
+      Boolean(cardUpdateBadgeSeverity),
+    );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties(
@@ -453,6 +459,7 @@ const CardHome = () => {
             action: CardActions.MIGRATION_ATTENTION_SET_UP_CARD_BUTTON,
             flow: CardFlow.MIGRATION,
             ...(migrationPhase ? { migration_phase: migrationPhase } : {}),
+            ...(badgeReasons ? { badge_reasons: badgeReasons } : {}),
           }),
         )
         .build(),
@@ -460,6 +467,7 @@ const CardHome = () => {
     handleOpenUkMigrationSheet();
   }, [
     activeProviderId,
+    cardUpdateBadgeSeverity,
     createEventBuilder,
     handleOpenUkMigrationSheet,
     trackEvent,

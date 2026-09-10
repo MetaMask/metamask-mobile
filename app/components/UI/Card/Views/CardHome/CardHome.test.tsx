@@ -105,6 +105,7 @@ import {
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
@@ -508,6 +509,10 @@ jest.mock('../../hooks/useCardUkMigrationState', () => ({
     },
     refresh: jest.fn(),
   })),
+}));
+
+jest.mock('../../hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => null),
 }));
 
 // Mock bridge actions
@@ -7151,6 +7156,7 @@ describe('CardHome Component', () => {
         cardDetails: { type: CardType.VIRTUAL },
         countryOfResidence: 'GB',
       });
+      jest.mocked(useCardUkMigrationUpdateBadge).mockReturnValue('danger');
 
       render();
       mockNavigate.mockClear();
@@ -7171,6 +7177,7 @@ describe('CardHome Component', () => {
         action: 'MIGRATION_ATTENTION_SET_UP_CARD_BUTTON',
         flow: 'migration',
         migration_phase: 'post_cutoff',
+        badge_reasons: ['card_migration'],
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });

@@ -1,4 +1,7 @@
-import { mapUkMigrationPhaseToAnalytics } from './metrics';
+import {
+  buildCardMigrationBadgeReasons,
+  mapUkMigrationPhaseToAnalytics,
+} from './metrics';
 
 describe('mapUkMigrationPhaseToAnalytics', () => {
   it('maps soft to grace_window', () => {
@@ -15,4 +18,14 @@ describe('mapUkMigrationPhaseToAnalytics', () => {
       expect(mapUkMigrationPhaseToAnalytics(phase)).toBeUndefined();
     },
   );
+});
+
+describe('buildCardMigrationBadgeReasons', () => {
+  it('returns card_migration when the Update badge is visible', () => {
+    expect(buildCardMigrationBadgeReasons(true)).toEqual(['card_migration']);
+  });
+
+  it('omits badge_reasons when the Update badge is hidden', () => {
+    expect(buildCardMigrationBadgeReasons(false)).toBeUndefined();
+  });
 });

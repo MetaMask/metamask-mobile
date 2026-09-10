@@ -37,6 +37,10 @@ jest.mock('../../hooks/useCardUkMigrationState', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => 'warning'),
+}));
+
 const mockUseCardUkMigrationState = jest.mocked(useCardUkMigrationState);
 
 jest.mock('@react-navigation/native', () => {
@@ -194,6 +198,7 @@ describe('UkMigrationBottomSheet', () => {
       provider: 'baanx',
       flow: CardFlow.MIGRATION,
       migration_phase: 'grace_window',
+      badge_reasons: ['card_migration'],
       screen: CardScreens.MIGRATION_UPDATE_SHEET,
     });
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -221,6 +226,7 @@ describe('UkMigrationBottomSheet', () => {
       provider: 'baanx',
       flow: CardFlow.MIGRATION,
       migration_phase: 'grace_window',
+      badge_reasons: ['card_migration'],
       action: CardActions.MIGRATION_SHEET_GET_STARTED_BUTTON,
     });
   });
@@ -240,6 +246,7 @@ describe('UkMigrationBottomSheet', () => {
       provider: 'baanx',
       flow: CardFlow.MIGRATION,
       migration_phase: 'grace_window',
+      badge_reasons: ['card_migration'],
       action: CardActions.MIGRATION_SHEET_REMIND_ME_LATER_BUTTON,
     });
   });
@@ -256,6 +263,7 @@ describe('UkMigrationBottomSheet', () => {
       provider: 'baanx',
       flow: CardFlow.MIGRATION,
       migration_phase: 'grace_window',
+      badge_reasons: ['card_migration'],
       action: CardActions.MIGRATION_SHEET_CLOSE_BUTTON,
     });
   });

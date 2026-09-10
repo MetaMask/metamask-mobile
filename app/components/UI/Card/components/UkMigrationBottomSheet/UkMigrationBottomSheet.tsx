@@ -22,7 +22,9 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import {
+  buildCardMigrationBadgeReasons,
   CardActions,
   CardFlow,
   CardScreens,
@@ -57,15 +59,20 @@ const UkMigrationBottomSheet = () => {
   const {
     state: { deadline, phase },
   } = useCardUkMigrationState();
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
   const migrationPhase = mapUkMigrationPhaseToAnalytics(phase);
+  const badgeReasons = buildCardMigrationBadgeReasons(
+    Boolean(cardUpdateBadgeSeverity),
+  );
 
   const migrationEventProperties = useMemo(
     () =>
       withCardProvider(CardProviderIds.Baanx, {
         flow: CardFlow.MIGRATION,
         ...(migrationPhase ? { migration_phase: migrationPhase } : {}),
+        ...(badgeReasons ? { badge_reasons: badgeReasons } : {}),
       }),
-    [migrationPhase],
+    [badgeReasons, migrationPhase],
   );
 
   const description = useMemo(() => {

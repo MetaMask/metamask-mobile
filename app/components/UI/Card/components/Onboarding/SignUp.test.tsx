@@ -190,6 +190,10 @@ jest.mock('../../hooks/useCardUkMigrationState', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => 'warning'),
+}));
+
 // Mock utility functions
 jest.mock('../../../Ramp/utils/depositUtils');
 jest.mock('../../util/validatePassword');
@@ -1487,6 +1491,7 @@ describe('SignUp Component', () => {
           screen: CardScreens.SIGN_UP,
           flow: CardFlow.MIGRATION,
           migration_phase: 'grace_window',
+          badge_reasons: ['card_migration'],
         });
       });
     });
@@ -1522,6 +1527,7 @@ describe('SignUp Component', () => {
         action: CardActions.SIGN_UP_BUTTON,
         flow: CardFlow.MIGRATION,
         migration_phase: 'grace_window',
+        badge_reasons: ['card_migration'],
         country_of_residence: 'GB',
         phone_number_country_code: '44',
       });

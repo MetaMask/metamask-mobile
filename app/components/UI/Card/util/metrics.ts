@@ -127,6 +127,8 @@ enum CardFlow {
 
 type CardUkMigrationAnalyticsPhase = 'grace_window' | 'post_cutoff';
 
+type CardBadgeReason = 'card_migration';
+
 /**
  * Maps mobile UK migration schedule phase to Segment `migration_phase`.
  * `off` (and unknown) omit the property.
@@ -142,6 +144,16 @@ const mapUkMigrationPhaseToAnalytics = (
   }
   return undefined;
 };
+
+/**
+ * Builds Segment `badge_reasons` when the Card UK migration entry badge
+ * (Accounts menu Update label / wallet attention for card migration) is shown.
+ * Omits the property when the badge is not visible.
+ */
+const buildCardMigrationBadgeReasons = (
+  updateBadgeVisible: boolean,
+): CardBadgeReason[] | undefined =>
+  updateBadgeVisible ? ['card_migration'] : undefined;
 
 enum CardLinkingFailureReason {
   PRECONDITION_FAILED = 'PRECONDITION_FAILED',
@@ -187,8 +199,9 @@ export {
   CardEntryPoint,
   CardFlow,
   CardLinkingFailureReason,
+  buildCardMigrationBadgeReasons,
   deriveCardState,
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 };
-export type { CardState, CardUkMigrationAnalyticsPhase };
+export type { CardState, CardUkMigrationAnalyticsPhase, CardBadgeReason };

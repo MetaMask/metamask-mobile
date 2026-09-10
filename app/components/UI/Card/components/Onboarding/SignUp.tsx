@@ -50,6 +50,7 @@ import {
   CardEntryPoint,
   CardFlow,
   CardScreens,
+  buildCardMigrationBadgeReasons,
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 } from '../../util/metrics';
@@ -71,6 +72,7 @@ import {
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import ImmersveLegalClickwrap from './ImmersveLegalClickwrap';
 import type { CardOnboardingStackParamList } from '../../types/navigation';
@@ -140,16 +142,21 @@ const SignUp = () => {
   const {
     state: { phase: ukMigrationPhase },
   } = useCardUkMigrationState();
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
   const migrationAnalyticsProps = useMemo(() => {
     if (!fromMigration) {
       return {};
     }
     const migrationPhase = mapUkMigrationPhaseToAnalytics(ukMigrationPhase);
+    const badgeReasons = buildCardMigrationBadgeReasons(
+      Boolean(cardUpdateBadgeSeverity),
+    );
     return {
       flow: CardFlow.MIGRATION,
       ...(migrationPhase ? { migration_phase: migrationPhase } : {}),
+      ...(badgeReasons ? { badge_reasons: badgeReasons } : {}),
     };
-  }, [fromMigration, ukMigrationPhase]);
+  }, [cardUpdateBadgeSeverity, fromMigration, ukMigrationPhase]);
   const {
     allRegions,
     getRegionByCode,
