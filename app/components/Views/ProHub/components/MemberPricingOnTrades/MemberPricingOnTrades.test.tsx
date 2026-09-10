@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import MemberPricingOnTrades from './MemberPricingOnTrades';
 import TradeAllowanceRow from './TradeAllowanceRow';
 import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
@@ -8,12 +8,25 @@ import {
   type TradeAllowanceItem,
 } from '../../ProHub.constants';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  MoneyAccountPlusBenefitsStatus,
+  useMoneyAccountPlusBenefits,
+} from '../../../../../hooks/useMoneyAccountPlusBenefits';
+
+jest.mock('../../../../../hooks/useMoneyAccountPlusBenefits', () => ({
+  ...jest.requireActual('../../../../../hooks/useMoneyAccountPlusBenefits'),
+  useMoneyAccountPlusBenefits: jest.fn(),
+}));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: (..._args: unknown[]) => ({}),
   }),
 }));
+
+const mockUseMoneyAccountPlusBenefits = jest.mocked(
+  useMoneyAccountPlusBenefits,
+);
 
 const renderMemberPricingOnTrades = () => render(<MemberPricingOnTrades />);
 
@@ -32,6 +45,17 @@ const getFlattenedStyle = (style: unknown) => {
 };
 
 describe('MemberPricingOnTrades', () => {
+  beforeEach(() => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Ready,
+      items: MOCK_TRADE_ALLOWANCES,
+      resetsOn: 'Sep 15',
+      isRefreshing: false,
+      hasError: false,
+      retry: jest.fn(),
+    });
+  });
+
   it('renders the section title from i18n', () => {
     const { getByTestId } = renderMemberPricingOnTrades();
 
@@ -40,7 +64,7 @@ describe('MemberPricingOnTrades', () => {
     expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
   });
 
-  it('renders a row and progress bar for each mock trade allowance', () => {
+  it('renders a row and progress bar for each trade allowance', () => {
     const { getByTestId } = renderMemberPricingOnTrades();
 
     MOCK_TRADE_ALLOWANCES.forEach((item) => {
@@ -55,6 +79,82 @@ describe('MemberPricingOnTrades', () => {
         toRegex(strings(`pro_hub.member_pricing.${item.id}.label`)),
       );
     });
+  });
+
+  it('renders the shared reset date under the rows', () => {
+    const { getByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.RESETS_ON),
+    ).toHaveTextContent(
+      strings('pro_hub.member_pricing.resets_on', { date: 'Sep 15' }),
+    );
+  });
+
+  it('renders skeletons instead of rows while benefits load', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Loading,
+      items: [],
+      resetsOn: undefined,
+      isRefreshing: true,
+      hasError: false,
+      retry: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.LOADING_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).not.toBeOnTheScreen();
+    expect(getByTestId(MemberPricingOnTradesTestIds.TITLE)).toBeOnTheScreen();
+  });
+
+  it('renders an error with retry when benefits cannot be loaded', () => {
+    const retry = jest.fn();
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Failed,
+      items: [],
+      resetsOn: undefined,
+      isRefreshing: false,
+      hasError: true,
+      retry,
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(getByTestId(MemberPricingOnTradesTestIds.ERROR)).toHaveTextContent(
+      toRegex(strings('pro_hub.member_pricing.load_error')),
+    );
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MemberPricingOnTradesTestIds.RETRY_BUTTON));
+
+    expect(retry).toHaveBeenCalledTimes(1);
+  });
+
+  it('omits a product that was not mapped from benefits', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Incomplete,
+      items: MOCK_TRADE_ALLOWANCES.filter((item) => item.id !== 'predict'),
+      resetsOn: 'Sep 15',
+      isRefreshing: false,
+      hasError: false,
+      retry: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.ROW('predict')),
+    ).not.toBeOnTheScreen();
   });
 });
 
@@ -177,5 +277,25 @@ describe('TradeAllowanceRow', () => {
       max: 500,
       now: 500,
     });
+  });
+
+  it('fills the bar completely when the meter is exhausted with zero used', () => {
+    const exhaustedItem: TradeAllowanceItem = {
+      id: 'swaps',
+      used: 0,
+      allowance: 500,
+      kind: 'currency',
+      exhausted: true,
+    };
+
+    const { getByTestId } = renderTradeAllowanceRow(exhaustedItem);
+
+    const fill = getByTestId(
+      MemberPricingOnTradesTestIds.PROGRESS_FILL('swaps'),
+    );
+
+    expect(getFlattenedStyle(fill.props.style)).toEqual(
+      expect.objectContaining({ width: '100%' }),
+    );
   });
 });
