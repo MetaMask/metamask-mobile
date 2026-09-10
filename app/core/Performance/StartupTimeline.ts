@@ -21,19 +21,26 @@
  * ## Cost when disabled
  *
  * `process.env.MM_STARTUP_TIMELINE` is inlined at build time by
- * `transform-inline-environment-variables`, so in a normal build `ENABLED` is a
+ * `transform-inline-environment-variables` (see {@link ./StartupTimelineFlags},
+ * which exists so the flag stays inlinable *and* mockable in tests), so in a
+ * normal build `ENABLED` is a
  * literal `false` and every function below collapses to an empty body that a
  * minifier can drop.
  *
  * Read the output with `adb logcat -s ReactNativeJS | grep MM_STARTUP`.
  */
 
+import {
+  PROFILE_ENABLED as PROFILE_ENABLED_FLAG,
+  TIMELINE_ENABLED,
+} from './StartupTimelineFlags';
+
 /** Log level passed to `nativeLoggingHook`; 3 === error, which is never filtered out. */
 const LOG_LEVEL_ERROR = 3;
 
 const LOG_PREFIX = 'MM_STARTUP';
 
-export const ENABLED = process.env.MM_STARTUP_TIMELINE === 'true';
+export const ENABLED = TIMELINE_ENABLED;
 
 /**
  * Records a Hermes sampling profile across cold start, stopped at
@@ -57,7 +64,7 @@ export const ENABLED = process.env.MM_STARTUP_TIMELINE === 'true';
  * `adb pull /sdcard/Download/<name>.cpuprofile`, then symbolicate via
  * `npx react-native-release-profiler --local <trace>`.
  */
-export const PROFILE_ENABLED = process.env.MM_STARTUP_PROFILE === 'true';
+export const PROFILE_ENABLED = PROFILE_ENABLED_FLAG;
 
 let profileStarted = false;
 
