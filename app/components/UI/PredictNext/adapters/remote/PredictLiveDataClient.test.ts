@@ -72,7 +72,7 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('forwards game frames and disconnects after the last unsubscribe', () => {
+  it('forwards game and game_snapshot frames and disconnects after the last unsubscribe', () => {
     const onGameUpdate = jest.fn();
     const client = new PredictLiveDataClient({
       baseUrl: 'https://predict.example',
@@ -83,16 +83,19 @@ describe('PredictLiveDataClient', () => {
     const socket = MockWebSocket.instances[0];
     socket.open();
     socket.message(welcomeFrame);
-    const update = {
+    const game = {
       venueId,
       eventId,
-      game: { type: 'football_game', details: { home_points: 7 } },
+      type: 'football_game',
+      details: { home_points: 7 },
     };
 
-    socket.message({ type: 'game', update });
+    socket.message({ type: 'game', game });
+    socket.message({ type: 'game_snapshot', game });
     client.unsubscribe(venueId, [eventId]);
 
-    expect(onGameUpdate).toHaveBeenCalledWith(update);
+    expect(onGameUpdate).toHaveBeenNthCalledWith(1, game);
+    expect(onGameUpdate).toHaveBeenNthCalledWith(2, game);
     expect(socket.send).toHaveBeenLastCalledWith(
       JSON.stringify({
         type: 'unsubscribe',
@@ -115,7 +118,7 @@ describe('PredictLiveDataClient', () => {
     const socket = MockWebSocket.instances[0];
     socket.open();
 
-    socket.message({ type: 'game', update: { eventId } });
+    socket.message({ type: 'game', game: { eventId } });
 
     expect(onGameUpdate).not.toHaveBeenCalled();
   });

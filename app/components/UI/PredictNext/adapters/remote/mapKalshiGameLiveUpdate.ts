@@ -45,7 +45,7 @@ const readTimestamp = (value: unknown): PredictTimestamp | undefined => {
 
 export const mapKalshiGameLiveUpdate = (
   current: PredictGame,
-  live: PredictGameLive,
+  live: Pick<PredictGameLive, 'type' | 'details'>,
 ): PredictGame | undefined => {
   if (live.type !== 'football_game') {
     return undefined;

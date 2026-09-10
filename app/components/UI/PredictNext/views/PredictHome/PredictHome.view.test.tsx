@@ -117,10 +117,11 @@ describe('PredictHome', () => {
 
   it('renders live game updates received for a Home Event', async () => {
     let onGameUpdate:
-      | ((update: {
+      | ((game: {
           venueId: string;
           eventId: string;
-          game: { type: string; details: Record<string, unknown> };
+          type: string;
+          details: Record<string, unknown>;
         }) => void)
       | undefined;
     (
@@ -140,15 +141,13 @@ describe('PredictHome', () => {
       onGameUpdate?.({
         venueId: 'kalshi',
         eventId: 'nfl-1',
-        game: {
-          type: 'football_game',
-          details: {
-            status: 'live',
-            away_points: 28,
-            home_points: 24,
-            quarter: 4,
-            clock: '01:12',
-          },
+        type: 'football_game',
+        details: {
+          status: 'live',
+          away_points: 28,
+          home_points: 24,
+          quarter: 4,
+          clock: '01:12',
         },
       });
     });

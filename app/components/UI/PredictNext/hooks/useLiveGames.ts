@@ -5,12 +5,6 @@ import type { PredictGameLive } from '../contracts/v1/liveData';
 import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
 import type { PredictEntityId, PredictEvent, PredictVenueId } from '../types';
 
-interface GameLiveUpdatePayload {
-  venueId: PredictVenueId;
-  eventId: PredictEntityId;
-  game: PredictGameLive;
-}
-
 export const useLiveGames = (
   venueId: PredictVenueId,
   events: readonly PredictEvent[],
@@ -27,13 +21,13 @@ export const useLiveGames = (
     const eventIds = eventIdsKey.split(',') as PredictEntityId[];
     const eventIdSet = new Set(eventIds);
 
-    const onUpdate = (update: GameLiveUpdatePayload) => {
-      if (update.venueId !== venueId || !eventIdSet.has(update.eventId)) {
+    const onUpdate = (live: PredictGameLive) => {
+      if (live.venueId !== venueId || !eventIdSet.has(live.eventId)) {
         return;
       }
       setUpdates((current) => {
         const next = new Map(current);
-        next.set(update.eventId, update.game);
+        next.set(live.eventId, live);
         return next;
       });
     };

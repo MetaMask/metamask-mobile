@@ -1,9 +1,6 @@
 import type { Messenger } from '@metamask/messenger';
 import type { PredictLiveDataTransport } from '../adapters/remote/PredictLiveDataClient';
-import type {
-  PredictGameLive,
-  PredictGameLiveUpdate,
-} from '../contracts/v1/liveData';
+import type { PredictGameLive } from '../contracts/v1/liveData';
 import { PredictError, PredictErrorCode } from '../errors';
 import type { PredictEntityId, PredictVenueId } from '../types';
 
@@ -27,13 +24,7 @@ export interface PredictLiveDataServiceUnwatchGamesAction {
 
 export interface PredictLiveDataServiceGameLiveUpdatedEvent {
   type: 'PredictLiveDataService:gameLiveUpdated';
-  payload: [
-    {
-      venueId: PredictVenueId;
-      eventId: PredictEntityId;
-      game: PredictGameLive;
-    },
-  ];
+  payload: [PredictGameLive];
 }
 
 export type PredictLiveDataServiceActions =
@@ -91,15 +82,11 @@ export class PredictLiveDataService {
     this.#client.unsubscribe(venueId, eventIds);
   }
 
-  onGameUpdate({ venueId, eventId, game }: PredictGameLiveUpdate): void {
-    if (venueId !== this.#venueId) {
+  onGameUpdate(game: PredictGameLive): void {
+    if (game.venueId !== this.#venueId) {
       return;
     }
-    this.#messenger.publish('PredictLiveDataService:gameLiveUpdated', {
-      venueId,
-      eventId,
-      game,
-    });
+    this.#messenger.publish('PredictLiveDataService:gameLiveUpdated', game);
   }
 
   destroy(): void {

@@ -16,14 +16,10 @@ import type {
 } from '../../types';
 
 export interface PredictGameLive {
-  type: string;
-  details: Record<string, unknown>;
-}
-
-export interface PredictGameLiveUpdate {
   venueId: PredictVenueId;
   eventId: PredictEntityId;
-  game: PredictGameLive;
+  type: string;
+  details: Record<string, unknown>;
 }
 
 export type PredictLiveDataServerFrame =
@@ -33,7 +29,7 @@ export type PredictLiveDataServerFrame =
     }
   | {
       type: 'game_snapshot' | 'game';
-      update: PredictGameLiveUpdate;
+      game: PredictGameLive;
     }
   | {
       type: 'subscribed' | 'unsubscribed';
@@ -50,13 +46,11 @@ export type PredictLiveDataServerFrame =
 // The server sends more fields than mobile reads (`welcome` carries heartbeat
 // and limits, for example). `mask` does not strip unknown keys inside a union,
 // so these must tolerate extra properties rather than reject the frame.
-const gameLiveUpdate = structType({
+const gameLive = structType({
   venueId: string(),
   eventId: string(),
-  game: structType({
-    type: string(),
-    details: record(string(), unknown()),
-  }),
+  type: string(),
+  details: record(string(), unknown()),
 });
 
 const serverFrame = union([
@@ -66,7 +60,7 @@ const serverFrame = union([
   }),
   structType({
     type: enums(['game_snapshot', 'game'] as const),
-    update: gameLiveUpdate,
+    game: gameLive,
   }),
   structType({
     type: enums(['subscribed', 'unsubscribed'] as const),

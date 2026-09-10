@@ -1,6 +1,6 @@
 import {
   parsePredictLiveDataServerFrame,
-  type PredictGameLiveUpdate,
+  type PredictGameLive,
   type PredictLiveDataServerFrame,
 } from '../../contracts/v1/liveData';
 import type { PredictEntityId, PredictVenueId } from '../../types';
@@ -13,7 +13,7 @@ type WebSocketConstructor = typeof WebSocket;
 export interface PredictLiveDataClientOptions {
   baseUrl: string;
   WebSocket?: WebSocketConstructor;
-  onGameUpdate: (update: PredictGameLiveUpdate) => void;
+  onGameUpdate: (game: PredictGameLive) => void;
 }
 
 /** Subscription surface the live-data service depends on. */
@@ -32,7 +32,7 @@ export interface PredictLiveDataTransport {
 export class PredictLiveDataClient implements PredictLiveDataTransport {
   readonly #url: string;
   readonly #WebSocket: WebSocketConstructor;
-  readonly #onGameUpdate: (update: PredictGameLiveUpdate) => void;
+  readonly #onGameUpdate: (game: PredictGameLive) => void;
   readonly #eventIds = new Set<PredictEntityId>();
   #socket?: WebSocket;
   #welcomed = false;
@@ -138,7 +138,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     }
 
     if (frame.type === 'game' || frame.type === 'game_snapshot') {
-      this.#onGameUpdate(frame.update);
+      this.#onGameUpdate(frame.game);
     }
   }
 

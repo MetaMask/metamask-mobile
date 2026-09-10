@@ -54,15 +54,16 @@ describe('PredictLiveDataService', () => {
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
       listener,
     );
-    const update = {
+    const game = {
       venueId,
       eventId,
-      game: { type: 'football_game', details: { status: 'live' } },
+      type: 'football_game',
+      details: { status: 'live' },
     };
 
-    service.onGameUpdate(update);
+    service.onGameUpdate(game);
 
-    expect(listener).toHaveBeenCalledWith(update);
+    expect(listener).toHaveBeenCalledWith(game);
     service.destroy();
   });
 });

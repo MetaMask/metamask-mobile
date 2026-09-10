@@ -30,7 +30,8 @@ describe('getPredictLiveDataServiceMessenger', () => {
     const update = {
       venueId: KALSHI_VENUE_ID,
       eventId: 'event-1' as PredictEntityId,
-      game: { type: 'football_game', details: { status: 'live' } },
+      type: 'football_game',
+      details: { status: 'live' },
     };
     rootMessenger.subscribe(
       'PredictLiveDataService:gameLiveUpdated',
