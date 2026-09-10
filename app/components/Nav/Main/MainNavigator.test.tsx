@@ -1493,7 +1493,7 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders AssetNavigator', () => {
+      it('renders AssetStackFlow under the Asset route', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
@@ -1788,18 +1788,19 @@ describe('MainNavigator', () => {
         expect(RevealPrivateCredential).toBeTruthy();
       });
 
-      it('renders AssetStackFlow inside AssetNavigator', () => {
+      it('registers the asset detail screens directly under the Asset route', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const AssetNavigator = getScreenComponent(mainRoot, 'Asset');
-        const { root: assetNavRoot } = renderInner(AssetNavigator);
+        // AssetStackFlow sits on the Asset route itself. There is no
+        // intermediate AssetStackFlow route to hop through.
+        const AssetStackFlow = getScreenComponent(mainRoot, 'Asset');
+        const { root: assetStackRoot } = renderInner(AssetStackFlow);
 
-        const AssetStackFlow = getScreenComponent(
-          assetNavRoot,
-          'AssetStackFlow',
-        );
-        expect(renderInner(AssetStackFlow).toJSON()).toBeTruthy();
+        expect(getScreenComponent(assetStackRoot, 'Asset')).toBeTruthy();
+        expect(
+          getScreenComponent(assetStackRoot, Routes.SECURITY_TRUST),
+        ).toBeTruthy();
       });
 
       it('renders SnapsSettingsStack inside SettingsFlow', () => {
