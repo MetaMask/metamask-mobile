@@ -271,18 +271,6 @@ const AssetStackFlow = (props) => (
   </NativeStack.Navigator>
 );
 
-const AssetNavigator = (props) => (
-  <NativeStack.Navigator
-    initialRouteName={'AssetStackFlow'}
-    screenOptions={clearNativeStackNavigatorOptions}
-  >
-    <NativeStack.Screen
-      name={'AssetStackFlow'}
-      component={AssetStackFlow}
-      initialParams={props.route.params}
-    />
-  </NativeStack.Navigator>
-);
 /* eslint-enable react/prop-types */
 
 const WalletTabStackFlow = () => {
@@ -1161,7 +1149,7 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name="Asset"
-        component={AssetNavigator}
+        component={AssetStackFlow}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen

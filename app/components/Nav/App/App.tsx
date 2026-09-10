@@ -532,20 +532,6 @@ const VaultRecoveryFlow = () => {
   );
 };
 
-const AddNetworkFlow = () => {
-  const route = useRoute();
-
-  return (
-    <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-      <NativeStack.Screen
-        name="AddNetwork"
-        component={NetworkDetailsView}
-        initialParams={route?.params}
-      />
-    </NativeStack.Navigator>
-  );
-};
-
 interface RootModalFlowProps {
   route: {
     params: Record<string, unknown>;
@@ -1390,7 +1376,7 @@ const AppFlow = () => {
       />
       <NativeStack.Screen
         name={Routes.ADD_NETWORK}
-        component={AddNetworkFlow}
+        component={NetworkDetailsView}
         options={{
           animation: 'slide_from_right',
           contentStyle: {
@@ -1403,7 +1389,7 @@ const AppFlow = () => {
       {isNetworkUiRedesignEnabled() ? (
         <NativeStack.Screen
           name={Routes.EDIT_NETWORK}
-          component={AddNetworkFlow}
+          component={NetworkDetailsView}
           options={{
             animation: 'slide_from_right',
             contentStyle: {
