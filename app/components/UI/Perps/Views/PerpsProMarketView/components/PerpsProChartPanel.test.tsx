@@ -442,8 +442,8 @@ describe('PerpsProChartPanel', () => {
 
     const selector = screen.UNSAFE_getByType(PerpsCandlePeriodSelector);
 
-    expect(selector.props.groupTwClassName).toBe('grow gap-2');
-    expect(selector.props.periodButtonTwClassName).toContain('flex-1');
+    expect(selector.props.fillWidth).toBe(true);
+    expect(selector.props.groupTwClassName).toBe('gap-2');
   });
 
   it('separates the candle periods from the fullscreen button by 24px', () => {
@@ -473,9 +473,7 @@ describe('PerpsProChartPanel', () => {
       );
 
     expect(selector.props.filterVariant).toBe(FilterButtonVariant.Secondary);
-    expect(selector.props.periodButtonTwClassName).toBe(
-      'h-8 flex-1 rounded-lg px-1',
-    );
+    expect(selector.props.periodButtonTwClassName).toBe('h-8 rounded-lg px-1');
     expect(selector.props.moreButtonTwClassName).toBe('h-8 rounded-lg px-1');
     expect(selector.props.textVariant).toBe(TextVariant.BodySm);
     expect(fullscreenButton?.props.size).toBe(ButtonIconSize.Md);
