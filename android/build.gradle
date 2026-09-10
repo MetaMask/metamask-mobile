@@ -89,8 +89,9 @@ subprojects { subproject ->
 // Hermes 0.83's Android sampling profiler uses pthread_kill with stale
 // pthread_t handles. Android's Bionic libc aborts in that case instead of
 // returning ESRCH, which can leave the profiler dump stuck or crash the
-// hermes-sampling thread. Patch the extracted Hermes source after unzipHermes
-// (the task re-extracts the source and would otherwise overwrite the change).
+// hermes-sampling thread. Performance APKs patch the extracted Hermes source
+// after unzipHermes; all other Android variants keep the standard dependency.
+if (System.getenv('IS_PERFORMANCE_TEST') == 'true') {
 subprojects { subproject ->
 	if (subproject.name != 'hermes-engine') return
 
@@ -156,4 +157,5 @@ subprojects { subproject ->
 			profilerFile.writeText(source, 'UTF-8')
 		}
 	}
+}
 }

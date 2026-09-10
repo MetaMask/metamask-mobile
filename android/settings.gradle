@@ -46,22 +46,23 @@ dependencyResolutionManagement {
 include ':app'
 includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile())
 includeBuild('../node_modules/@react-native') {}
-// Build React Native and Hermes from the patched local sources. Without this
-// substitution Gradle resolves prebuilt Maven artifacts, so Hermes' source
-// patches (JNI disable binding and Android signal delivery) never reach the APK.
-includeBuild('../node_modules/react-native') {
-    dependencySubstitution {
-        substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
-        substitute(module("com.facebook.react:react-native")).using(project(":packages:react-native:ReactAndroid"))
-        substitute(module("com.facebook.react:hermes-android")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
-        substitute(module("com.facebook.react:hermes-engine")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+def isPerformanceBuild = System.getenv('IS_PERFORMANCE_TEST') == 'true'
+if (isPerformanceBuild) {
+    // Performance APKs build React Native and Hermes from the patched local
+    // sources. Other Android variants continue using prebuilt Maven artifacts.
+    includeBuild('../node_modules/react-native') {
+        dependencySubstitution {
+            substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
+            substitute(module("com.facebook.react:react-native")).using(project(":packages:react-native:ReactAndroid"))
+            substitute(module("com.facebook.react:hermes-android")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+            substitute(module("com.facebook.react:hermes-engine")).using(project(":packages:react-native:ReactAndroid:hermes-engine"))
+        }
     }
 }
 include ':react-native-gesture-handler'
 project(':react-native-gesture-handler').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gesture-handler/android')
 
-// React Native and Hermes are intentionally built from the patched local source
-// above for this performance branch.
+// React Native and Hermes source builds are enabled only for performance APKs.
 
 // MMQA-2230: Detox `:detox` include (node_modules/detox/android/detox) removed.
 // Appium smoke owns E2E; keeping the include without the npm package breaks
