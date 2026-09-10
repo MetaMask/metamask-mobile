@@ -176,9 +176,7 @@ describe('usePayWithNoFeeToken', () => {
     expect(result.current.noFeeToken).toBeUndefined();
     expect(result.current.isNoFeeToken('0xAAA', '0x1')).toBe(false);
     expect(result.current.renderNoFeeTag(token)).toBeNull();
-    expect(
-      result.current.renderNoFeeTagForToken('0xAAA', '0x1'),
-    ).toBeNull();
+    expect(result.current.renderNoFeeTagForToken('0xAAA', '0x1')).toBeNull();
   });
 
   it('excludes the specified token from results', () => {
