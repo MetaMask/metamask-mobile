@@ -9,6 +9,7 @@ import { IconName } from '@metamask/design-system-react-native';
  */
 export const BADGE_CATEGORY_ICON_MAP: Record<string, IconName> = {
   crypto: IconName.Ethereum,
+  memecoin: IconName.Sparkle,
   stock: IconName.Diagram,
   forex: IconName.Exchange,
   commodity: IconName.Tint,
