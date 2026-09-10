@@ -6675,7 +6675,7 @@
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
-    "switch_network": "Please switch to Mainnet",
+    "switch_network": "Switch to Mainnet",
     "switch": "Switch",
     "purchases": "Purchases",
     "purchase_method": "Purchase method",
