@@ -9752,12 +9752,12 @@
       },
       "verifying_veriff_kyc": {
         "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "description": "Our partner needs to verify your identity to approve your application.",
         "helper_text": "This usually takes a few seconds. Please do not close the app."
       },
       "immersve_kyc_processing": {
         "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "description": "Our partner needs to verify your identity to approve your application.",
         "helper_text": "This usually takes a few seconds. Please do not close the app.",
         "incomplete_title": "Finish verifying your identity",
         "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
@@ -9801,7 +9801,7 @@
       },
       "kyc_pending": {
         "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "description": "Our partner needs to verify your identity to approve your application.",
         "footer_text": "Approvals usually take around 12 hours.\nWe'll notify you when a decision is made.",
         "got_it_button": "Got it"
       },
