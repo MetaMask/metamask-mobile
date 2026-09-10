@@ -487,6 +487,7 @@
     "expo-apple-authentication": "~55.0.13",
     "expo-asset": "~55.0.17",
     "expo-auth-session": "~55.0.16",
+    "expo-blur": "~55.0.14",
     "expo-build-properties": "~55.0.14",
     "expo-dev-client": "~55.0.35",
     "expo-file-system": "~55.0.22",
