@@ -283,19 +283,73 @@ describe('LedgerBluetoothAdapter', () => {
         connectPromise.catch(() => undefined);
         await jest.advanceTimersByTimeAsync(11000);
 
+        // Rejection surfaces via ensureDeviceReady (routed to AppNotOpen);
+        // a bare connect() only rejects and cleans up.
         await expect(connectPromise).rejects.toMatchObject({
           name: 'LedgerTimeoutError',
           message: 'Device unresponsive while connecting',
         });
-        expect(onDeviceEvent).toHaveBeenCalledWith(
-          expect.objectContaining({ event: DeviceEvent.ConnectionFailed }),
-        );
         expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
           'device-123',
         );
       } finally {
         jest.useRealTimers();
       }
+    });
+
+    it('serializes the connect-timeout cleanup disconnect before the next open', async () => {
+      jest.useFakeTimers();
+      try {
+        mockedTransportBLE.open.mockImplementationOnce(
+          // eslint-disable-next-line no-empty-function
+          () => new Promise(() => {}),
+        );
+
+        // The timeout cleanup's disconnect is deferred: the next connect
+        // must serialize behind it instead of racing it.
+        let resolveCleanupDisconnect!: () => void;
+        mockedTransportBLE.disconnectDevice.mockReturnValueOnce(
+          new Promise<void>((resolve) => {
+            resolveCleanupDisconnect = resolve;
+          }),
+        );
+
+        const firstConnect = adapter.connect('device-123');
+        firstConnect.catch(() => undefined);
+        await jest.advanceTimersByTimeAsync(11000);
+
+        // Timeout fired and queued the (still pending) cleanup disconnect.
+        mockedTransportBLE.open.mockClear();
+        const secondConnect = adapter.connect('device-123');
+
+        // Flush microtasks so #doConnect reaches the pending-close await.
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(mockedTransportBLE.open).not.toHaveBeenCalled();
+
+        resolveCleanupDisconnect();
+        await expect(firstConnect).rejects.toMatchObject({
+          name: 'LedgerTimeoutError',
+        });
+        await secondConnect;
+
+        expect(mockedTransportBLE.open).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('emits ConnectionFailed when connect fails with a non-timeout error', async () => {
+      const error = new Error('BLE connection failed');
+      mockedTransportBLE.open.mockRejectedValueOnce(error);
+
+      await expect(adapter.connect('device-123')).rejects.toThrow(error);
+
+      expect(onDeviceEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ event: DeviceEvent.ConnectionFailed }),
+      );
     });
 
     it('ignores transport error event when flow is complete', async () => {
@@ -732,6 +786,69 @@ describe('LedgerBluetoothAdapter', () => {
           event: DeviceEvent.DeviceLocked,
         }),
       );
+    });
+
+    it('returns false and emits AppNotOpen (not ConnectionFailed) when the connect phase times out', async () => {
+      jest.useFakeTimers();
+      try {
+        mockedTransportBLE.open.mockImplementation(
+          // eslint-disable-next-line no-empty-function
+          () => new Promise(() => {}),
+        );
+
+        const resultPromise = adapter.ensureDeviceReady('device-123');
+        await jest.advanceTimersByTimeAsync(11000);
+
+        await expect(resultPromise).resolves.toBe(false);
+        expect(onDeviceEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            event: DeviceEvent.AppNotOpen,
+            currentAppName: 'Ethereum',
+          }),
+        );
+        expect(onDeviceEvent).not.toHaveBeenCalledWith(
+          expect.objectContaining({ event: DeviceEvent.ConnectionFailed }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('recovers with a successful ensureDeviceReady after a connect timeout', async () => {
+      jest.useFakeTimers();
+      try {
+        // First attempt: open never resolves (device stuck on the open-app
+        // prompt) — connect times out and routes to AwaitingApp.
+        mockedTransportBLE.open.mockImplementationOnce(
+          // eslint-disable-next-line no-empty-function
+          () => new Promise(() => {}),
+        );
+
+        const firstAttempt = adapter.ensureDeviceReady('device-123');
+        await jest.advanceTimersByTimeAsync(11000);
+
+        await expect(firstAttempt).resolves.toBe(false);
+        expect(onDeviceEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            event: DeviceEvent.AppNotOpen,
+            currentAppName: 'Ethereum',
+          }),
+        );
+
+        // Second attempt (user opened the ETH app): full success.
+        onDeviceEvent.mockClear();
+        await expect(adapter.ensureDeviceReady('device-123')).resolves.toBe(
+          true,
+        );
+        expect(onDeviceEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            event: DeviceEvent.AppOpened,
+            currentAppName: 'Ethereum',
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('returns false and emits AppNotOpen when device unresponsive during app check', async () => {
