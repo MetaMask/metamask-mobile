@@ -1,10 +1,9 @@
 import { useMemo } from 'react';
-import type { CaipChainId } from '@metamask/utils';
 import { mapPredictActivity } from '../../../../../util/activity-adapters';
 import { usePredictActivity } from '../../../../UI/Predict/hooks/usePredictActivity';
+import { POLYGON_MAINNET_CAIP_CHAIN_ID } from '../../../../UI/Predict/providers/polymarket/constants';
 import type { PredictActivity } from '../../../../UI/Predict/types';
 
-const predictActivityChainId = 'eip155:137' as CaipChainId;
 const predictQuoteAsset = { symbol: 'USDC' };
 
 function getPredictActivity(
@@ -39,7 +38,7 @@ export function usePredictDetailsItem(identifier: string | undefined) {
     return (
       mapPredictActivity({
         activity: matched,
-        chainId: predictActivityChainId,
+        chainId: POLYGON_MAINNET_CAIP_CHAIN_ID,
         quoteAsset: predictQuoteAsset,
       }) ?? undefined
     );

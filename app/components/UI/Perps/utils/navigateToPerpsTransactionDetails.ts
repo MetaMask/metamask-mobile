@@ -1,16 +1,9 @@
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
-import {
-  getCaipChainId,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-  USDC_ARBITRUM_TESTNET_ADDRESS,
-} from '@metamask/perps-controller/constants/hyperLiquidConfig';
-import {
-  parseCaipChainId,
-  toCaipAssetType,
-  type CaipChainId,
-} from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
-import { mapPerpsTransaction } from '../../../../util/activity-adapters';
+import {
+  getPerpsActivityMappingIds,
+  mapPerpsTransaction,
+} from '../../../../util/activity-adapters';
 import { getActivityDetailsRoute } from '../../../Views/ActivityList/getActivityDetailsRoute';
 import type { PerpsTransaction } from '../types/transactionHistory';
 
@@ -27,17 +20,7 @@ export function navigateToPerpsTransactionDetails(
   transaction: PerpsTransaction,
   isTestnet: boolean,
 ): void {
-  const chainId = getCaipChainId(isTestnet) as CaipChainId;
-  const { namespace, reference } = parseCaipChainId(chainId);
-  const collateralAssetId = toCaipAssetType(
-    namespace,
-    reference,
-    'erc20',
-    (isTestnet
-      ? USDC_ARBITRUM_TESTNET_ADDRESS
-      : USDC_ARBITRUM_MAINNET_ADDRESS
-    ).toLowerCase(),
-  );
+  const { chainId, collateralAssetId } = getPerpsActivityMappingIds(isTestnet);
   const item = mapPerpsTransaction({
     transaction,
     chainId,

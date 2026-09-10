@@ -8,8 +8,17 @@
  * pass Arbitrum); open `order` entries are dropped (executed history only).
  * See TMCU-860 for pending product confirmation of the display defaults.
  */
-import type { CaipChainId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  toCaipAssetType,
+  type CaipChainId,
+} from '@metamask/utils';
 import { isTriggerOrderType } from '@metamask/perps-controller';
+import {
+  getCaipChainId,
+  USDC_ARBITRUM_MAINNET_ADDRESS as usdcArbitrumMainnetAddress,
+  USDC_ARBITRUM_TESTNET_ADDRESS as usdcArbitrumTestnetAddress,
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import {
   FillType,
   PerpsOrderTransactionStatus,
@@ -45,6 +54,26 @@ interface MapPerpsTransactionArgs {
 }
 
 const DEFAULT_QUOTE: QuoteAsset = { symbol: 'USD' };
+
+export function getPerpsActivityMappingIds(isTestnet: boolean): {
+  chainId: CaipChainId;
+  collateralAssetId: string;
+} {
+  const chainId = getCaipChainId(isTestnet) as CaipChainId;
+  const { namespace, reference } = parseCaipChainId(chainId);
+  return {
+    chainId,
+    collateralAssetId: toCaipAssetType(
+      namespace,
+      reference,
+      'erc20',
+      (isTestnet
+        ? usdcArbitrumTestnetAddress
+        : usdcArbitrumMainnetAddress
+      ).toLowerCase(),
+    ),
+  };
+}
 
 function toToken(
   amount: number,

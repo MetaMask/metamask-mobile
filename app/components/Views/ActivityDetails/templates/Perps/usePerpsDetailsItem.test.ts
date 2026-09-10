@@ -17,13 +17,17 @@ jest.mock('react-redux', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   ARBITRUM_MAINNET_CAIP_CHAIN_ID: 'eip155:42161',
+  ARBITRUM_TESTNET_CAIP_CHAIN_ID: 'eip155:421614',
   formatAccountToCaipAccountId: jest.fn(
     (address: string, chainId: string) => `${chainId}:${address}`,
   ),
 }));
 
 jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
+  getCaipChainId: (isTestnet: boolean) =>
+    isTestnet ? 'eip155:421614' : 'eip155:42161',
   USDC_ARBITRUM_MAINNET_ADDRESS: '0xUSDC',
+  USDC_ARBITRUM_TESTNET_ADDRESS: '0xUSDCT',
 }));
 
 jest.mock('#app/components/UI/Perps/hooks', () => ({
@@ -32,6 +36,9 @@ jest.mock('#app/components/UI/Perps/hooks', () => ({
 }));
 
 jest.mock('#app/util/activity-adapters', () => ({
+  getPerpsActivityMappingIds: jest.requireActual(
+    '#app/util/activity-adapters/adapters/perps-transaction',
+  ).getPerpsActivityMappingIds,
   mapPerpsTransaction: jest.fn(),
 }));
 

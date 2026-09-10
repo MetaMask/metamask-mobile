@@ -18,22 +18,10 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import {
-  ARBITRUM_MAINNET_CAIP_CHAIN_ID,
-  ARBITRUM_TESTNET_CAIP_CHAIN_ID as arbitrumTestnetCaipChainId,
-  formatAccountToCaipAccountId,
-} from '@metamask/perps-controller';
-import {
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-  USDC_ARBITRUM_TESTNET_ADDRESS as usdcArbitrumTestnetAddress,
-} from '@metamask/perps-controller/constants/hyperLiquidConfig';
-import {
-  parseCaipChainId,
-  toCaipAssetType,
-  type CaipChainId,
-} from '@metamask/utils';
+import { formatAccountToCaipAccountId } from '@metamask/perps-controller';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
+  getPerpsActivityMappingIds,
   mapPerpsTransaction,
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
@@ -63,19 +51,8 @@ export interface UsePerpsActivityItemsResult {
 
 export function usePerpsActivityItems(): UsePerpsActivityItemsResult {
   const { isConnected } = usePerpsConnection();
-  const isTestnet = usePerpsNetwork() === 'testnet';
-  const chainId = (
-    isTestnet ? arbitrumTestnetCaipChainId : ARBITRUM_MAINNET_CAIP_CHAIN_ID
-  ) as CaipChainId;
-  const { namespace, reference } = parseCaipChainId(chainId);
-  const collateralAssetId = toCaipAssetType(
-    namespace,
-    reference,
-    'erc20',
-    (isTestnet
-      ? usdcArbitrumTestnetAddress
-      : USDC_ARBITRUM_MAINNET_ADDRESS
-    ).toLowerCase(),
+  const { chainId, collateralAssetId } = getPerpsActivityMappingIds(
+    usePerpsNetwork() === 'testnet',
   );
 
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);

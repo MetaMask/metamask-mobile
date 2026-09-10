@@ -5,17 +5,12 @@ import {
   ARBITRUM_TESTNET_CAIP_CHAIN_ID as arbitrumTestnetCaipChainId,
   formatAccountToCaipAccountId,
 } from '@metamask/perps-controller';
-import {
-  USDC_ARBITRUM_MAINNET_ADDRESS as usdcArbitrumMainnetAddress,
-  USDC_ARBITRUM_TESTNET_ADDRESS as usdcArbitrumTestnetAddress,
-} from '@metamask/perps-controller/constants/hyperLiquidConfig';
-import {
-  parseCaipChainId,
-  toCaipAssetType,
-  type CaipChainId,
-} from '@metamask/utils';
+import { type CaipChainId } from '@metamask/utils';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { mapPerpsTransaction } from '../../../../../util/activity-adapters';
+import {
+  getPerpsActivityMappingIds,
+  mapPerpsTransaction,
+} from '../../../../../util/activity-adapters';
 import {
   usePerpsConnection,
   usePerpsTransactionHistory,
@@ -43,17 +38,9 @@ export function usePerpsDetailsItem(
   identifier: string | undefined,
   chainId: CaipChainId = arbitrumMainnetCaipChainId as CaipChainId,
 ) {
-  const isTestnet = chainId === arbitrumTestnetCaipChainId;
   const shouldResolve = Boolean(identifier);
-  const { namespace, reference } = parseCaipChainId(chainId);
-  const collateralAssetId = toCaipAssetType(
-    namespace,
-    reference,
-    'erc20',
-    (isTestnet
-      ? usdcArbitrumTestnetAddress
-      : usdcArbitrumMainnetAddress
-    ).toLowerCase(),
+  const { collateralAssetId } = getPerpsActivityMappingIds(
+    chainId === arbitrumTestnetCaipChainId,
   );
   const { isConnected } = usePerpsConnection();
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);

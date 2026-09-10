@@ -36,7 +36,10 @@ jest.mock('@metamask/perps-controller', () => ({
 }));
 
 jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
+  getCaipChainId: (isTestnet: boolean) =>
+    isTestnet ? 'eip155:421614' : 'eip155:42161',
   USDC_ARBITRUM_MAINNET_ADDRESS: '0xUSDC',
+  USDC_ARBITRUM_TESTNET_ADDRESS: '0xUSDCT',
 }));
 
 const address = '0x1234567890123456789012345678901234567890';
