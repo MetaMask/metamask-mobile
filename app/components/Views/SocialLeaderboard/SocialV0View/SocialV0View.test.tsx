@@ -3,8 +3,8 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
-import SocialTradersTabsView from './SocialTradersTabsView';
-import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
+import SocialV0View from './SocialV0View';
+import { SocialV0ViewSelectorsIDs } from './SocialV0View.testIds';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 
@@ -82,7 +82,7 @@ jest.mock('@react-navigation/native', () => {
       }
       return navigation;
     },
-    useRoute: () => ({ params: mockRouteParams, name: 'TopTradersView' }),
+    useRoute: () => ({ params: mockRouteParams, name: 'SocialV0View' }),
   };
 });
 
@@ -205,7 +205,7 @@ jest.mock('../FeedView/components/FeedSpotBuyAction', () => {
   };
 });
 
-describe('SocialTradersTabsView', () => {
+describe('SocialV0View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasSpotItem = true;
@@ -218,16 +218,14 @@ describe('SocialTradersTabsView', () => {
   });
 
   it('renders the header, tabs, and both pages', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     expect(
-      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.CONTAINER),
+      screen.getByTestId(SocialV0ViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(screen.getByTestId(SocialV0ViewSelectorsIDs.TABS)).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TABS),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TITLE),
+      screen.getByTestId(SocialV0ViewSelectorsIDs.TITLE),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('mock-top-traders')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-feed')).toBeOnTheScreen();
@@ -235,40 +233,37 @@ describe('SocialTradersTabsView', () => {
 
   describe('safe area layout', () => {
     it('excludes bottom safe area so the scroll list extends to the screen edge', () => {
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(
-        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.CONTAINER).props
-          .edges,
+        screen.getByTestId(SocialV0ViewSelectorsIDs.CONTAINER).props.edges,
       ).toEqual(SCROLLABLE_SCREEN_SAFE_AREA_EDGES);
     });
 
     it('keeps the top inset on the header to prevent layout shift on push', () => {
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expectHeaderIncludesTopInset(
-        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.HEADER),
+        screen.getByTestId(SocialV0ViewSelectorsIDs.HEADER),
       );
     });
   });
 
   it('renders the tabbed screen title from the homepage Top Traders i18n key', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     expect(
-      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TITLE),
+      screen.getByTestId(SocialV0ViewSelectorsIDs.TITLE),
     ).toHaveTextContent('homepage.sections.top_traders');
     expect(
-      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.HEADER_TITLE),
+      screen.getByTestId(SocialV0ViewSelectorsIDs.HEADER_TITLE),
     ).toHaveTextContent('homepage.sections.top_traders');
   });
 
   it('calls goBack when the back button is pressed', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
-    fireEvent.press(
-      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.BACK_BUTTON),
-    );
+    fireEvent.press(screen.getByTestId(SocialV0ViewSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
@@ -276,9 +271,9 @@ describe('SocialTradersTabsView', () => {
   it('navigates to the socialAI notification settings section when the bell is pressed and preferences exist', () => {
     mockHasNotificationPreferences.mockReturnValue(true);
 
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
     fireEvent.press(
-      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON),
+      screen.getByTestId(SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
@@ -294,9 +289,9 @@ describe('SocialTradersTabsView', () => {
   it('navigates to notification settings when the bell is pressed and preferences do not exist yet', () => {
     mockHasNotificationPreferences.mockReturnValue(false);
 
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
     fireEvent.press(
-      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON),
+      screen.getByTestId(SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
@@ -306,31 +301,27 @@ describe('SocialTradersTabsView', () => {
 
   describe('notifications nudge banner', () => {
     it('is hidden by default when the route param is unset', () => {
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(
-        screen.queryByTestId(
-          SocialTradersTabsViewSelectorsIDs.NOTIFICATIONS_BANNER,
-        ),
+        screen.queryByTestId(SocialV0ViewSelectorsIDs.NOTIFICATIONS_BANNER),
       ).toBeNull();
     });
 
     it('renders when the showNotificationsBanner route param is set', () => {
       mockRouteParams = { showNotificationsBanner: true };
 
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(
-        screen.getByTestId(
-          SocialTradersTabsViewSelectorsIDs.NOTIFICATIONS_BANNER,
-        ),
+        screen.getByTestId(SocialV0ViewSelectorsIDs.NOTIFICATIONS_BANNER),
       ).toBeOnTheScreen();
     });
 
     it('opens system settings and dismisses when the CTA is pressed', () => {
       mockRouteParams = { showNotificationsBanner: true };
 
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
       fireEvent.press(
         screen.getByText(
           'social_leaderboard.top_traders_view.notifications_banner.open_settings',
@@ -339,23 +330,19 @@ describe('SocialTradersTabsView', () => {
 
       expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
       expect(
-        screen.queryByTestId(
-          SocialTradersTabsViewSelectorsIDs.NOTIFICATIONS_BANNER,
-        ),
+        screen.queryByTestId(SocialV0ViewSelectorsIDs.NOTIFICATIONS_BANNER),
       ).toBeNull();
     });
 
     it('dismisses when the close button is pressed', () => {
       mockRouteParams = { showNotificationsBanner: true };
 
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
       fireEvent.press(screen.getByLabelText('Close banner'));
 
       expect(mockOpenSystemSettings).not.toHaveBeenCalled();
       expect(
-        screen.queryByTestId(
-          SocialTradersTabsViewSelectorsIDs.NOTIFICATIONS_BANNER,
-        ),
+        screen.queryByTestId(SocialV0ViewSelectorsIDs.NOTIFICATIONS_BANNER),
       ).toBeNull();
     });
 
@@ -363,12 +350,10 @@ describe('SocialTradersTabsView', () => {
       jest.useFakeTimers();
       try {
         mockRouteParams = { showNotificationsBanner: true };
-        renderWithProvider(<SocialTradersTabsView />);
+        renderWithProvider(<SocialV0View />);
 
         expect(
-          screen.getByTestId(
-            SocialTradersTabsViewSelectorsIDs.NOTIFICATIONS_BANNER,
-          ),
+          screen.getByTestId(SocialV0ViewSelectorsIDs.NOTIFICATIONS_BANNER),
         ).toBeOnTheScreen();
 
         act(() => {
@@ -376,9 +361,7 @@ describe('SocialTradersTabsView', () => {
         });
 
         expect(
-          screen.queryByTestId(
-            SocialTradersTabsViewSelectorsIDs.NOTIFICATIONS_BANNER,
-          ),
+          screen.queryByTestId(SocialV0ViewSelectorsIDs.NOTIFICATIONS_BANNER),
         ).toBeNull();
       } finally {
         jest.useRealTimers();
@@ -387,27 +370,27 @@ describe('SocialTradersTabsView', () => {
   });
 
   it('plays a selection haptic when switching to a different tab', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
     );
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('does not play a haptic when pressing the already-active tab', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-0`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-0`),
     );
 
     expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
   it('passes isActive=false to FeedView while the leaderboard tab is selected', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     expect(
       screen.getByTestId('mock-feed').props.accessibilityState?.selected,
@@ -415,10 +398,10 @@ describe('SocialTradersTabsView', () => {
   });
 
   it('passes isActive=true to FeedView when the feed tab is selected', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
     );
 
     expect(
@@ -428,7 +411,7 @@ describe('SocialTradersTabsView', () => {
 
   describe('landing tab (TSA-1042 A/B test)', () => {
     it('lands on the leaderboard when no landing tab is requested', () => {
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(
         screen.getByTestId('mock-feed').props.accessibilityState?.selected,
@@ -441,7 +424,7 @@ describe('SocialTradersTabsView', () => {
     it('lands on the feed with the requested audience when the entry point asks for it', () => {
       mockRouteParams = { landingTab: 'feed', landingFeedAudience: 'all' };
 
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(
         screen.getByTestId('mock-feed').props.accessibilityState?.selected,
@@ -452,7 +435,7 @@ describe('SocialTradersTabsView', () => {
     it('lands on the leaderboard when the entry point requests the leaderboard', () => {
       mockRouteParams = { landingTab: 'leaderboard' };
 
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(
         screen.getByTestId('mock-feed').props.accessibilityState?.selected,
@@ -460,43 +443,35 @@ describe('SocialTradersTabsView', () => {
     });
 
     it('keeps Leaderboard as the leftmost tab by default', () => {
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(
-        screen.getByTestId(
-          `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-0-label`,
-        ),
+        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-0-label`),
       ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
       expect(
-        screen.getByTestId(
-          `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1-label`,
-        ),
+        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1-label`),
       ).toHaveTextContent('social_leaderboard.feed.tabs.feed');
     });
 
     it('moves Feed to the leftmost tab when the feed is the landing tab', () => {
       mockRouteParams = { landingTab: 'feed', landingFeedAudience: 'all' };
 
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(
-        screen.getByTestId(
-          `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-0-label`,
-        ),
+        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-0-label`),
       ).toHaveTextContent('social_leaderboard.feed.tabs.feed');
       expect(
-        screen.getByTestId(
-          `${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1-label`,
-        ),
+        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1-label`),
       ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
     });
 
     it('deactivates the feed when the second tab is selected in a feed-first order', () => {
       mockRouteParams = { landingTab: 'feed', landingFeedAudience: 'all' };
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       fireEvent.press(
-        screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
+        screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
       );
 
       expect(
@@ -513,7 +488,7 @@ describe('SocialTradersTabsView', () => {
 
     it('tracks exposure only for entry points that carry a landing tab', () => {
       mockRouteParams = { landingTab: 'leaderboard' };
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(mockUseABTest).toHaveBeenCalledWith(
         'socialAiTSA1042AbtestLeaderboardLandingFeed',
@@ -523,7 +498,7 @@ describe('SocialTradersTabsView', () => {
     });
 
     it('does not track exposure for entry points without a landing tab', () => {
-      renderWithProvider(<SocialTradersTabsView />);
+      renderWithProvider(<SocialV0View />);
 
       expect(mockUseABTest).toHaveBeenCalledWith(
         'socialAiTSA1042AbtestLeaderboardLandingFeed',
@@ -531,10 +506,20 @@ describe('SocialTradersTabsView', () => {
         expect.objectContaining({ trackExposure: false }),
       );
     });
+
+    it('emits TSA-1122 exposure on the legacy Follow Trading home', () => {
+      renderWithProvider(<SocialV0View />);
+
+      expect(mockUseABTest).toHaveBeenCalledWith(
+        'socialAiTSA1122AbtestSocialBundleV1',
+        expect.anything(),
+        expect.objectContaining({ experimentName: 'Social V1' }),
+      );
+    });
   });
 
   it('holds feed prefetch back until the visible leaderboard query settles', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     expect(mockUsePrefetchTraderFeeds).toHaveBeenCalledWith(false);
     expect(mockUsePrefetchTraderFeeds).not.toHaveBeenCalledWith(true);
@@ -543,13 +528,13 @@ describe('SocialTradersTabsView', () => {
   it('enables feed prefetch after the visible leaderboard query settles', () => {
     mockSettleLeaderboardOnMount = true;
 
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     expect(mockUsePrefetchTraderFeeds).toHaveBeenCalledWith(true);
   });
 
   it('mounts the spot Buy orchestrator (outside the pager) when the feed offers a spot Buy', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     expect(screen.getByTestId('mock-spot-buy-action')).toBeOnTheScreen();
   });
@@ -557,7 +542,7 @@ describe('SocialTradersTabsView', () => {
   it('does not mount the spot Buy orchestrator when the feed has no spot rows', () => {
     mockHasSpotItem = false;
 
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     expect(screen.queryByTestId('mock-spot-buy-action')).not.toBeOnTheScreen();
   });
@@ -565,7 +550,7 @@ describe('SocialTradersTabsView', () => {
   it('buffers a feed spot Buy until the orchestrator mounts', () => {
     mockHasSpotItem = false;
 
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     expect(screen.queryByTestId('mock-spot-buy-action')).not.toBeOnTheScreen();
 
@@ -576,7 +561,7 @@ describe('SocialTradersTabsView', () => {
   });
 
   it('routes a feed spot Buy request to the buy action orchestrator', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     fireEvent.press(screen.getByTestId('mock-feed-quick-buy-trigger'));
 
@@ -587,7 +572,7 @@ describe('SocialTradersTabsView', () => {
     mockDeferBuyActionRef = true;
     mockHasSpotItem = false;
 
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     fireEvent.press(screen.getByTestId('mock-feed-quick-buy-trigger'));
 
@@ -604,7 +589,7 @@ describe('SocialTradersTabsView', () => {
     mockDeferBuyActionRef = true;
     mockHasSpotItem = false;
 
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     fireEvent.press(screen.getByTestId('mock-feed-quick-buy-trigger'));
     expect(mockBuyActionOpen).not.toHaveBeenCalled();
@@ -623,10 +608,10 @@ describe('SocialTradersTabsView', () => {
   });
 
   it('tracks tab changes via Follow Trading Interaction when a different tab is pressed', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
     );
 
     expect(mockTrack).toHaveBeenCalledWith(
@@ -640,14 +625,14 @@ describe('SocialTradersTabsView', () => {
   });
 
   it('tracks swipe tab changes via Follow Trading Interaction', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-1`),
     );
     mockTrack.mockClear();
 
-    const pager = screen.getByTestId(SocialTradersTabsViewSelectorsIDs.PAGER);
+    const pager = screen.getByTestId(SocialV0ViewSelectorsIDs.PAGER);
     act(() => {
       pager.props.onPageSelected({ nativeEvent: { position: 0 } });
     });
@@ -663,15 +648,15 @@ describe('SocialTradersTabsView', () => {
   });
 
   it('does not mislabel a swipe as tap after tapping the already-active tab', () => {
-    renderWithProvider(<SocialTradersTabsView />);
+    renderWithProvider(<SocialV0View />);
 
     fireEvent.press(
-      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-0`),
+      screen.getByTestId(`${SocialV0ViewSelectorsIDs.TABS}-tab-0`),
     );
     expect(mockTrack).not.toHaveBeenCalled();
     mockTrack.mockClear();
 
-    const pager = screen.getByTestId(SocialTradersTabsViewSelectorsIDs.PAGER);
+    const pager = screen.getByTestId(SocialV0ViewSelectorsIDs.PAGER);
     act(() => {
       pager.props.onPageSelected({ nativeEvent: { position: 1 } });
     });
