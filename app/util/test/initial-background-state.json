@@ -876,6 +876,7 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "perpsTradingCampaignPrizePool": {},
     "predictThePitchLeaderboard": {},
     "predictThePitchLeaderboardPositions": {},
     "predictThePitchPositions": {},
@@ -900,6 +901,7 @@
   },
   "PredictController": {
     "eligibility": {
+      "status": "checking",
       "eligible": false
     },
     "lastError": null,

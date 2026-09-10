@@ -221,6 +221,7 @@ const EarnSectionListView = () => {
     assets,
     hasError,
     isLoading,
+    moneyApyDecimal,
     moneyApyPercent,
     moneyRateStatus,
     refresh,
@@ -277,7 +278,7 @@ const EarnSectionListView = () => {
 
   const { totalAssetsFiat, projectedAmount, currency } = useProjectedEarnings(
     moneyAssets,
-    moneyApyPercent === undefined ? undefined : moneyApyPercent / 100,
+    moneyApyDecimal,
   );
 
   const moneyFeeByToken = useMemo(
@@ -578,9 +579,7 @@ const EarnSectionListView = () => {
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={isNoFeeToken(token)}
-            apyDecimal={
-              moneyApyPercent === undefined ? 0 : moneyApyPercent / 100
-            }
+            apyDecimal={moneyApyDecimal ?? 0}
             onCardPress={() => handleTokenCardPress(token, index)}
             onButtonPress={() => handleTokenButtonPress(token, index)}
             testID={EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(index)}
@@ -635,7 +634,7 @@ const EarnSectionListView = () => {
     isNoFeeToken,
     isRetrying,
     moneyAccountItem,
-    moneyApyPercent,
+    moneyApyDecimal,
     moneyAssets,
     privacyMode,
     projectedAmount,

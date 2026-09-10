@@ -108,6 +108,77 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       expect(stdout).toContain('iOS not requested for this PR');
     });
 
+    it('skips fork PRs', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        IS_FORK: 'true',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'false',
+        e2e_needed: 'false',
+        run_smart_e2e_selection: 'false',
+      });
+      expect(stdout).toContain('Skipping E2E (fork PR)');
+    });
+
+    it('skips hard E2E signals', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        SHOULD_SKIP_E2E: 'true',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'false',
+        e2e_needed: 'false',
+        run_smart_e2e_selection: 'false',
+      });
+      expect(stdout).toContain('Skipping E2E (skip signal)');
+    });
+
+    it('emits merge blocking for non-ignorable readiness labels', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        LABEL_BLOCKS_MERGE: 'true',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs.block_merge).toBe('true');
+    });
+
+    it('does not block merge for ignorable-only changes', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        LABEL_BLOCKS_MERGE: 'true',
+        ...bothPlatformsPR,
+        IGNORABLE_COUNT: '1',
+        E2E_TEST_FILES_COUNT: '0',
+        E2E_TEST_OR_IGNORABLE_COUNT: '1',
+      });
+
+      expect(outputs.block_merge).toBe('false');
+      expect(stdout).toContain('BLOCK_MERGE bypassed');
+    });
+
+    it('emits run_performance for the performance label', () => {
+      const { outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        RUN_PERFORMANCE_LABEL: 'true',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs.run_performance).toBe('true');
+    });
+
     it('builds iOS and runs Appium iOS when run-appium-ios-tests is applied', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',
@@ -233,6 +304,20 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
   });
 
   describe('non-pull-request events', () => {
+    it('skips E2E for merge queue events', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'merge_group',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'false',
+        ios_final: 'false',
+        e2e_needed: 'false',
+      });
+      expect(stdout).toContain('Skipping E2E (merge queue)');
+    });
+
     it('builds both platforms for a shared app push', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
