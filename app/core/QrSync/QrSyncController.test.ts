@@ -809,6 +809,29 @@ describe('QrSyncController', () => {
       );
     });
 
+    it('importRemainingSecrets leaves state in AWAITING_PASSWORD when importState throws', async () => {
+      const mockImportState = jest.fn().mockRejectedValue(new Error('vault locked'));
+      const messenger = buildMessengerWithImportState(mockImportState);
+      const controller = new QrSyncController({
+        messenger,
+        keyManager: {} as IKeyManager,
+        relayUrl: TEST_RELAY_URL,
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      await controller.importRemainingSecrets();
+
+      expect(controller.state.provisioningStatus).toBe(
+        QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+      );
+      expect(controller.state.pendingSecretImports).not.toBeNull();
+    });
+
     it('importRemainingSecrets is a no-op when not in AWAITING_PASSWORD', async () => {
       const controller = buildController();
 

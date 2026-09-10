@@ -386,6 +386,8 @@ export class QrSyncController extends BaseController<
       }
 
       await this.messenger.call('AccountTreeController:importState', snapshot);
+
+      this.finalizeSecretImport();
     } catch (error) {
       reportQrSyncFailure(error, {
         surface: QrSyncSurfaces.IMPORT,
@@ -395,8 +397,6 @@ export class QrSyncController extends BaseController<
         ...(this.state.syncFlow ? { syncFlow: this.state.syncFlow } : {}),
       });
     }
-
-    this.finalizeSecretImport();
   }
 
   /**
