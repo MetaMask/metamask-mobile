@@ -10,28 +10,17 @@ import {
   type TokenHolding,
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
-import {
-  loginToAppPlaywright,
-  waitForWalletHomePlaywright,
-} from '../../../flows/wallet.flow.js';
+import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import {
   RampsRegions,
   RampsRegionsEnum,
-  resolveE2EWaitTimeoutMs,
 } from '../../../framework/Constants.js';
-import { Assertions } from '../../../framework/index.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import TransactionDetailsModal from '../../../page-objects/Transactions/TransactionDetailsModal.js';
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
 import PayWithModalTokenPicker from '../../../page-objects/Confirmation/PayWithModalTokenPicker.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
-import CommonView from '../../../page-objects/CommonView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
-import WalletView from '../../../page-objects/wallet/WalletView.js';
-import PerpsHomeView from '../../../page-objects/Perps/PerpsHomeView.js';
-import PredictMarketList from '../../../page-objects/Predict/PredictMarketList.js';
-import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView.js';
-import ActivityDetails from '../../../page-objects/Transactions/ActivityDetails.js';
 import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import MoneyTransferSheet from '../../../page-objects/Money/MoneyTransferSheet.js';
 
@@ -130,6 +119,11 @@ appiumTest.describe(
             await MoneyTransferSheet.tapBetweenAccounts();
 
             await TransactionPayConfirmation.expectKeyboardLoaded();
+            await TransactionPayConfirmation.expectPayWithRowLoaded();
+
+            await TransactionPayConfirmation.tapPayWithRow();
+            await PayWithModal.tapOtherAssets();
+            await PayWithModalTokenPicker.tapAssetOnNetwork('USDC', '0x1');
 
             await TransactionPayConfirmation.tapPercentage(25);
             await TransactionPayConfirmation.verifyPercentageApplied();
@@ -143,6 +137,20 @@ appiumTest.describe(
               '50',
               'Regular withdraw amount should be $50',
             );
+            await TransactionPayConfirmation.tapContinue();
+
+            await TransactionPayConfirmation.verifyReceiveVisible();
+            await TransactionPayConfirmation.verifyTransactionFeeVisible();
+
+            await FooterActions.tapConfirmAndExpectConfirmationUnmount();
+            await MoneyHomeView.expectMoneyHomeVisible();
+
+            await MoneyHomeView.verifyActivityItemLabelAndAmount(
+              'Sent',
+              '-$50',
+            );
+            await MoneyHomeView.tapActivityItemByLabel('Sent');
+            await TransactionDetailsModal.verifyConfirmedStatus();
           },
         );
       },
@@ -228,7 +236,7 @@ appiumTest.describe(
     );
 
     appiumTest(
-      'withdraws max $500 from Money account to Perps, confirms, and sees it in Perps activity',
+      'withdraws max $500 from Money account to Perps, confirms, and sees it in Money activity',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(
           {
@@ -302,35 +310,21 @@ appiumTest.describe(
             await TransactionPayConfirmation.verifyTransactionFeeVisible();
 
             await FooterActions.tapConfirmAndExpectConfirmationUnmount();
+            await MoneyHomeView.expectMoneyHomeVisible();
 
-            await PerpsHomeView.tapBackHomeButton();
-            await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-            await WalletView.tapActivityButton();
-
-            await ActivitiesView.tapTypeFilterChip();
-            await ActivitiesView.tapTypeFilterOption('perps');
-
-            await ActivitiesView.tapPerpsFilterChip();
-            await ActivitiesView.tapPerpsFilterOption('deposit');
-
-            await ActivitiesView.verifyActivityItemLabelAndAmount(
-              'Account funded',
-              '+$500',
+            await MoneyHomeView.verifyActivityItemLabelAndAmount(
+              'Sent',
+              '-$500',
             );
-
-            await ActivitiesView.tapOnActivityItemByLabel('Account funded');
-
-            await Assertions.expectElementToBeVisible(ActivityDetails.screen, {
-              description: 'Activity details screen should be visible',
-            });
-            await ActivityDetails.verifyStatus('Confirmed');
+            await MoneyHomeView.tapActivityItemByLabel('Sent');
+            await TransactionDetailsModal.verifyConfirmedStatus();
           },
         );
       },
     );
 
     appiumTest(
-      'withdraws max $500 from Money account to Predict, confirms, and sees it in Predict activity',
+      'withdraws max $500 from Money account to Predict, confirms, and sees it in Money activity',
       async ({ driver: _driver, currentDeviceDetails }) => {
         appiumTest.skip(
           currentDeviceDetails.platform === 'android',
@@ -389,7 +383,10 @@ appiumTest.describe(
             await TransactionPayConfirmation.expectKeyboardLoaded();
             await TransactionPayConfirmation.verifyPredictAccountPickerRowVisible();
 
-            await TransactionPayConfirmation.tapMax();
+            // The Money → Predict flow renders the Predict deposit screen,
+            // which has no Max button (unlike the Perps deposit screen), so
+            // enter the full $500 withdrawable amount manually.
+            await TransactionPayConfirmation.enterAmountAndContinue('500');
             await TransactionPayConfirmation.verifyCustomAmount(
               '500',
               'Max of $500 withdrawable should set amount to $500',
@@ -399,21 +396,14 @@ appiumTest.describe(
             await TransactionPayConfirmation.verifyTransactionFeeVisible();
 
             await FooterActions.tapConfirmAndExpectConfirmationUnmount();
+            await MoneyHomeView.expectMoneyHomeVisible();
 
-            await PredictMarketList.tapBackButton();
-            await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-            await WalletView.tapActivityButton();
-
-            await ActivitiesView.tapTypeFilterChip();
-            await ActivitiesView.tapTypeFilterOption('predictions');
-
-            await ActivitiesView.tapOnActivityItemByLabel('Account funded');
-
-            await Assertions.expectElementToBeVisible(ActivityDetails.screen, {
-              description: 'Activity details screen should be visible',
-            });
-
-            await ActivityDetails.verifyStatus('Confirmed');
+            await MoneyHomeView.verifyActivityItemLabelAndAmount(
+              'Sent',
+              '-$500',
+            );
+            await MoneyHomeView.tapActivityItemByLabel('Sent');
+            await TransactionDetailsModal.verifyConfirmedStatus();
           },
         );
       },
@@ -481,13 +471,17 @@ appiumTest.describe(
 
             await TransactionPayConfirmation.expectKeyboardLoaded();
             await TransactionPayConfirmation.verifyPerpsAccountPickerRowVisible();
-            await CommonView.tapBackButton();
+            await TransactionPayConfirmation.tapPerpsNavbarBackButton();
+            // Rejecting the confirmation returns to Money home (the transfer
+            // sheet closes when the confirmation opens), so reopen it.
+            await MoneyHomeView.expectMoneyHomeVisible();
+            await MoneyHomeView.tapTransfer();
             await MoneyTransferSheet.expectVisible();
             await MoneyTransferSheet.tapPredictionsAccount();
             await TransactionPayConfirmation.expectKeyboardLoaded();
             await TransactionPayConfirmation.verifyPredictAccountPickerRowVisible();
-            await CommonView.tapBackButton();
-            await TabBarComponent.tapMoney();
+            await TransactionPayConfirmation.tapPredictNavbarBackButton();
+            await MoneyHomeView.expectMoneyHomeVisible();
           },
         );
       },

@@ -23,6 +23,10 @@ const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
 const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
 const ARBITRUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0xa4b1');
 const MONEY_ACCOUNT_WITHDRAW_BALANCE_TEST_ID = 'money-account-withdraw-balance';
+// Money-funded deposit confirmations set their navbar title (and the navbar
+// back button testID, `<title>-navbar-back-button`) from the destination.
+const PERPS_SEND_TITLE = enContent.perps.send_to_perps;
+const PREDICT_SEND_TITLE = enContent.predict.send_to_predictions;
 
 export function getKeypadKeyTestId(key: string): string {
   return key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
@@ -465,6 +469,25 @@ class TransactionPayConfirmation {
       description: 'Predict account picker row should be visible',
       timeout: 15000,
     });
+  }
+
+  getNavbarBackButton(title: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(`${title}-navbar-back-button`);
+  }
+
+  async tapNavbarBackButton(title: string): Promise<void> {
+    await Gestures.waitAndTap(this.getNavbarBackButton(title), {
+      elemDescription: `${title} navbar back button`,
+      timeout: 15000,
+    });
+  }
+
+  async tapPerpsNavbarBackButton(): Promise<void> {
+    await this.tapNavbarBackButton(PERPS_SEND_TITLE);
+  }
+
+  async tapPredictNavbarBackButton(): Promise<void> {
+    await this.tapNavbarBackButton(PREDICT_SEND_TITLE);
   }
 
   async verifyReceive(amount: string): Promise<void> {

@@ -124,8 +124,13 @@ async function mockMainnetRpc(mockServer: Mockttp) {
     .asPriority(1001)
     .matching(async (request) => {
       const url = new URL(request.url).searchParams.get('url');
+      // Match only real Mainnet URLs. Other chains' Infura URLs contain the
+      // 'mainnet.infura.io' substring too (e.g. polygon-mainnet.infura.io)
+      // and must fall through to their own mocks — otherwise Polygon gets
+      // Mainnet responses (no EIP-1559 block data), producing type-0x4
+      // envelope errors on Predict flows.
       if (
-        !url?.includes('mainnet.infura.io') &&
+        !url?.includes('://mainnet.infura.io/') &&
         !url?.includes('eth.llamarpc.com')
       ) {
         return false;
@@ -184,7 +189,17 @@ async function mockMainnetRpc(mockServer: Mockttp) {
       } else if (method === 'eth_gasPrice') {
         result = '0x3b9aca00';
       } else if (method === 'eth_call') {
-        result = UINT256_ZERO;
+        const call = (body?.params as Record<string, string>[])?.[0];
+        const data = String(call?.data ?? '');
+        // Accountant getRate() for Money Account withdraw amount updates.
+        // Mainnet mock previously returned zero here, causing a division by
+        // zero in getSharesForWithdrawal when the withdraw confirmation
+        // resolves its provider to the Mainnet network client.
+        if (data.slice(0, 10).toLowerCase() === '0x679aefce') {
+          result = `0x${BigInt('1000000000000000000').toString(16).padStart(64, '0')}`;
+        } else {
+          result = UINT256_ZERO;
+        }
       }
 
       return {
@@ -206,6 +221,8 @@ const ERC20_BALANCE_OF_SELECTOR = '0x70a08231';
 const ERC20_ALLOWANCE_SELECTOR = '0xdd62ed3e';
 const ERC20_DECIMALS_SELECTOR = '0x313ce567';
 const MULTICALL3_AGGREGATE3_SELECTOR = '0x82ad56cb';
+const ACCOUNTANT_GET_RATE_SELECTOR = '0x679aefce';
+const VAULT_RATE_1E18 = `0x${BigInt('1000000000000000000').toString(16).padStart(64, '0')}`;
 
 function encodeAggregate3Result(callData: string): string {
   const n = parseInt(callData.slice(74, 138), 16) || 0;
@@ -303,6 +320,8 @@ function resolveMonadRpcResult(
       return toUint256Hex(fundedBaseUnits);
     }
     switch (selector) {
+      case ACCOUNTANT_GET_RATE_SELECTOR:
+        return VAULT_RATE_1E18;
       case ERC20_ALLOWANCE_SELECTOR:
         return UINT256_MAX;
       case ERC20_DECIMALS_SELECTOR:
@@ -320,8 +339,26 @@ function resolveMonadRpcResult(
   if (method === 'eth_getTransactionCount') {
     return '0x0';
   }
-  if (method === 'eth_gasPrice' || method === 'eth_estimateGas') {
+  if (method === 'eth_getBlockByNumber') {
+    return {
+      number: '0x1234568',
+      hash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      parentHash:
+        '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+      gasLimit: '0x1c9c380',
+      gasUsed: '0x94670',
+      baseFeePerGas: '0x3b9aca00',
+      timestamp: '0x68c0c0c0',
+    };
+  }
+  if (method === 'eth_gasPrice') {
     return '0x3b9aca00';
+  }
+  if (method === 'eth_estimateGas') {
+    // Gas units (not price): 300k covers the withdraw + transfer batch.
+    // Previously shared the 1-gwei gas-price value (1B units), which exceeds
+    // any block gas limit and fails publish-time validation.
+    return '0x493e0';
   }
   if (method === 'eth_blockNumber') {
     return '0x1234568';
