@@ -1,6 +1,11 @@
 import { Box } from '@metamask/design-system-react-native';
 import React, { useEffect, useState } from 'react';
 import TopTradersView from '../TopTradersView';
+import {
+  SOCIAL_V1_TRADER_ROW_HEIGHT,
+  SocialV1TraderRow,
+  SocialV1TraderRowSkeleton,
+} from '../TopTradersView/components';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import SubnavPills from './SubnavPills';
 import { SOCIAL_SHELL_TAB_CONFIG } from './tabConfig';
@@ -65,7 +70,9 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
       {hasBeenActive && (
         <TopTradersView
           pinnedTypeFilter="all"
-          rowVariant="socialV1"
+          RowComponent={SocialV1TraderRow}
+          SkeletonComponent={SocialV1TraderRowSkeleton}
+          rowHeight={SOCIAL_V1_TRADER_ROW_HEIGHT}
           onScroll={onScroll}
           pageRef={pageRef}
         />

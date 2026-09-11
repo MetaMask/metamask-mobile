@@ -3,6 +3,11 @@ import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import LeaderboardShellTabPage from './LeaderboardShellTabPage';
 import { getSubnavPillTestId } from './SubnavPills';
+import {
+  SOCIAL_V1_TRADER_ROW_HEIGHT,
+  SocialV1TraderRow,
+  SocialV1TraderRowSkeleton,
+} from '../TopTradersView/components';
 
 const TOP_TRADERS_TEST_ID = 'top-traders-view';
 
@@ -49,9 +54,20 @@ describe('LeaderboardShellTabPage', () => {
     );
 
     expect(mockTopTradersProps).toHaveBeenCalledWith(
+      expect.objectContaining({ pinnedTypeFilter: 'all' }),
+    );
+  });
+
+  it('injects the Social V1 row, skeleton, and matching row height', () => {
+    renderWithProvider(
+      <LeaderboardShellTabPage containerTestID="leaderboard-page" />,
+    );
+
+    expect(mockTopTradersProps).toHaveBeenCalledWith(
       expect.objectContaining({
-        pinnedTypeFilter: 'all',
-        rowVariant: 'socialV1',
+        RowComponent: SocialV1TraderRow,
+        SkeletonComponent: SocialV1TraderRowSkeleton,
+        rowHeight: SOCIAL_V1_TRADER_ROW_HEIGHT,
       }),
     );
   });

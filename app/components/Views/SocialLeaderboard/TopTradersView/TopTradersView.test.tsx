@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Text } from 'react-native';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import Logger from '../../../../util/Logger';
 import { loadingSet } from '../../../../actions/user';
@@ -9,7 +9,12 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hooks/useTopTraders';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import type {
+  TopTrader,
+  TraderRowProps,
+} from '../../Homepage/Sections/TopTraders/types';
+/* eslint-enable import-x/no-restricted-paths */
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
@@ -863,6 +868,63 @@ describe('TopTradersView', () => {
       screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
     ).toBeOnTheScreen();
     expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
+  });
+
+  describe('injected row components', () => {
+    it('renders the legacy follow-button row by default', () => {
+      renderWithProvider(<TopTradersView />);
+
+      expect(screen.getAllByText('Follow').length).toBeGreaterThan(0);
+    });
+
+    it('renders an injected RowComponent with the trader and ranked metric', () => {
+      const InjectedRow: React.FC<TraderRowProps> = ({ trader, metric }) => (
+        <Text testID={`injected-row-${trader.id}`}>{metric?.label}</Text>
+      );
+
+      renderWithProvider(<TopTradersView RowComponent={InjectedRow} />);
+
+      expect(screen.getByTestId('injected-row-trader-1')).toBeOnTheScreen();
+      expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
+      expect(screen.queryByText('Follow')).toBeNull();
+    });
+
+    it('renders an injected SkeletonComponent while loading', () => {
+      setTabResult(LANDING_TAB, { isLoading: true, traders: [] });
+      const InjectedSkeleton: React.FC = () => (
+        <Text testID="injected-skeleton">loading</Text>
+      );
+
+      renderWithProvider(
+        <TopTradersView SkeletonComponent={InjectedSkeleton} />,
+      );
+
+      expect(screen.getAllByTestId('injected-skeleton').length).toBeGreaterThan(
+        0,
+      );
+    });
+
+    it('sizes the skeleton count off the injected rowHeight', () => {
+      setTabResult(LANDING_TAB, { isLoading: true, traders: [] });
+      const InjectedSkeleton: React.FC = () => (
+        <Text testID="injected-skeleton">loading</Text>
+      );
+
+      const renderWithRowHeight = (rowHeight: number) => {
+        const { unmount } = renderWithProvider(
+          <TopTradersView
+            SkeletonComponent={InjectedSkeleton}
+            rowHeight={rowHeight}
+          />,
+        );
+        const count = screen.getAllByTestId('injected-skeleton').length;
+        unmount();
+        return count;
+      };
+
+      // Taller rows cover the viewport with fewer placeholders.
+      expect(renderWithRowHeight(200)).toBeLessThan(renderWithRowHeight(50));
+    });
   });
 
   describe('performance', () => {

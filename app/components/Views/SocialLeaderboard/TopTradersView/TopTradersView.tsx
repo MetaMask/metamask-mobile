@@ -51,18 +51,18 @@ import {
   TraderRow,
   TraderRowSkeleton,
 } from '../../Homepage/Sections/TopTraders/components';
-import {
-  SOCIAL_V1_TRADER_ROW_HEIGHT,
-  TRADER_ROW_HEIGHT,
-  type TraderRowMetric,
-} from '../../Homepage/Sections/TopTraders/components/TraderRow';
+import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
+import type {
+  TopTrader,
+  TraderRowMetric,
+  TraderRowProps,
+} from '../../Homepage/Sections/TopTraders/types';
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import {
   ALL_CHAINS,
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../shared/top-traders-constants';
-import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
@@ -163,8 +163,19 @@ export interface TopTradersViewProps {
    * landing list has loaded, so those requests never contend with it.
    */
   onVisibleLeaderboardSettled?: () => void;
-  /** Visual treatment used for each trader row and its loading skeleton. */
-  rowVariant?: 'default' | 'socialV1';
+  /**
+   * Row component rendered for each trader. Defaults to the legacy
+   * Follow-button row; the Social V1 leaderboard injects its metrics-first row
+   * instead. Pass `SkeletonComponent` and `rowHeight` to match.
+   */
+  RowComponent?: React.ComponentType<TraderRowProps>;
+  /** Loading placeholder matching `RowComponent`. */
+  SkeletonComponent?: React.ComponentType;
+  /**
+   * Height of a single `RowComponent`, used to size the skeleton count to the
+   * viewport. Must match the injected row or the placeholder count drifts.
+   */
+  rowHeight?: number;
   /**
    * Pins the position type to a single value and hides its filter pill, so the
    * host owns that axis. Used by the Social V1 leaderboard tab, whose subnav
@@ -182,7 +193,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   onScroll,
   pageRef,
   onVisibleLeaderboardSettled,
-  rowVariant = 'default',
+  RowComponent = TraderRow,
+  SkeletonComponent = TraderRowSkeleton,
+  rowHeight = TRADER_ROW_HEIGHT,
   pinnedTypeFilter,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -247,13 +260,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   // Render enough skeleton rows to cover the visible list area. Add a couple of
   // extras so users can see the shimmer continue past the fold while scrolling.
   const skeletonKeys = useMemo(() => {
-    const rowHeight =
-      rowVariant === 'socialV1'
-        ? SOCIAL_V1_TRADER_ROW_HEIGHT
-        : TRADER_ROW_HEIGHT;
     const count = Math.ceil(windowHeight / rowHeight) + 2;
     return Array.from({ length: count }, (_, i) => `top-trader-skeleton-${i}`);
-  }, [rowVariant, windowHeight]);
+  }, [rowHeight, windowHeight]);
 
   const allChains = isPerpsEnabled ? ALL_CHAINS : SPOT_CHAINS;
 
@@ -509,9 +518,8 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
 
   const renderTraderRow = useCallback(
     ({ item }: { item: RankedTrader }) => (
-      <TraderRow
+      <RowComponent
         trader={item}
-        variant={rowVariant}
         metric={item.displayMetric}
         onFollowPress={handleFollowPress}
         onTraderPress={handleTraderPress}
@@ -521,9 +529,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       />
     ),
     [
+      RowComponent,
       handleFollowPress,
       handleTraderPress,
-      rowVariant,
       showMuteChip,
       isChipMuted,
       onMutePress,
@@ -598,7 +606,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         >
           {listHeader}
           {skeletonKeys.map((key) => (
-            <TraderRowSkeleton key={key} variant={rowVariant} />
+            <SkeletonComponent key={key} />
           ))}
         </Animated.ScrollView>
       ) : (
