@@ -356,6 +356,61 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.android).toBe(true);
     expect(result.ios).toBe(true);
   });
+
+  it('skips iOS on a both-platform main push when the SHA is not sampled', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      githubRef: 'refs/heads/main',
+      githubSha: '00000001deadbeef',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: false,
+      e2eNeeded: true,
+    });
+    expect(result.message).toContain('iOS skipped');
+  });
+
+  it('keeps iOS on a both-platform main push when the SHA is sampled', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      githubRef: 'refs/heads/main',
+      githubSha: '00000000deadbeef',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+    });
+
+    expect(result).toMatchObject({
+      android: true,
+      ios: true,
+      e2eNeeded: true,
+    });
+    expect(result.message).not.toContain('iOS skipped');
+  });
+
+  it('keeps iOS for iOS-only main pushes when the SHA is not sampled', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      githubEventName: 'push',
+      githubRef: 'refs/heads/main',
+      githubSha: '00000001deadbeef',
+      e2eTestFilesCount: 0,
+      e2eTestOrIgnorableCount: 0,
+      iosCount: 1,
+      iosOrIgnorableCount: 1,
+    });
+
+    expect(result).toMatchObject({
+      android: false,
+      ios: true,
+      e2eNeeded: true,
+    });
+  });
 });
 
 describe('applyE2ELabelOverrides', () => {
