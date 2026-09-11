@@ -256,7 +256,7 @@ export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 
-export const PAGE_WINDOW_MS = 7 * DAY;
+export const PAGE_WINDOW_MS = 30 * DAY;
 
 export const MAX_LOOKBACK_MS = 365 * DAY;
 
