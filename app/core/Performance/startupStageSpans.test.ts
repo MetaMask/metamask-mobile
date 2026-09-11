@@ -1,9 +1,9 @@
 import { endTrace, trace, TraceName } from '../../util/trace';
 import {
-  endAppStartToUnlockInteractive,
+  endAppStartToUnlockLaidOut,
   endPostInitGap,
   resetStartupStageSpansForTesting,
-  startAppStartToUnlockInteractive,
+  startAppStartToUnlockLaidOut,
   startPostInitGap,
 } from './startupStageSpans';
 
@@ -62,15 +62,15 @@ describe('startupStageSpans', () => {
     });
   });
 
-  describe('app start to unlock interactive', () => {
+  describe('app start to unlock laid out', () => {
     it('anchors the span on the native launch timestamp', () => {
       // Anchoring on `Date.now()` would silently exclude everything before the
       // component mounted, which is most of the window being measured.
-      startAppStartToUnlockInteractive();
+      startAppStartToUnlockLaidOut();
 
       expect(mockTrace).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: TraceName.AppStartToUnlockInteractive,
+          name: TraceName.AppStartToUnlockLaidOut,
           startTime: 1_700_000_000_000,
         }),
       );
@@ -78,16 +78,16 @@ describe('startupStageSpans', () => {
 
     it('closes only on the first native layout', () => {
       // `onLayout` fires repeatedly; only the first is the moment the field
-      // became interactive.
-      startAppStartToUnlockInteractive();
-      endAppStartToUnlockInteractive();
-      endAppStartToUnlockInteractive();
-      endAppStartToUnlockInteractive();
+      // finished laying out and could accept input.
+      startAppStartToUnlockLaidOut();
+      endAppStartToUnlockLaidOut();
+      endAppStartToUnlockLaidOut();
+      endAppStartToUnlockLaidOut();
 
       expect(mockEndTrace).toHaveBeenCalledTimes(1);
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: TraceName.AppStartToUnlockInteractive,
+          name: TraceName.AppStartToUnlockLaidOut,
         }),
       );
     });

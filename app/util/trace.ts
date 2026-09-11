@@ -41,16 +41,22 @@ export enum TraceName {
    * Despite the name, this ends at `App`'s **first render** — not when startup
    * is over and not when anything is on screen. The splash still covers the UI
    * and the user cannot interact yet. Kept as-is because it has shipped
-   * history; use `AppStartToUnlockInteractive` for the full cold-start journey.
+   * history; use `AppStartToUnlockLaidOut` for the full cold-start journey.
    */
   UIStartup = 'UI Startup',
   HomepageReady = 'Homepage Ready',
   /**
-   * Process start -> the unlock screen genuinely accepts input. The app's
-   * most-executed cold path, previously untracked in production: `UIStartup`
-   * ends at `App`'s first render, before the splash reveal and unlock paint.
+   * Process start -> the unlock password field completes native layout, i.e.
+   * the first moment it would accept input. The app's most-executed cold path,
+   * previously untracked in production: `UIStartup` ends at `App`'s first
+   * render, before the splash reveal and unlock paint.
+   *
+   * **"Laid out", not "visible".** The splash can still be covering the field
+   * when this ends — measured at 1,402 ms of further wait on a Galaxy A14.
+   * Add `SplashRevealTax` to get the moment the user can actually unlock; the
+   * two are kept separate so that gap stays attributable.
    */
-  AppStartToUnlockInteractive = 'App Start To Unlock Interactive',
+  AppStartToUnlockLaidOut = 'App Start To Unlock Laid Out',
   /**
    * `appServicesReady` -> splash overlay removed. Fixed animation cost paid
    * after the UI is already rendered underneath, so it is pure perceived

@@ -10,7 +10,7 @@ import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
  */
 let postInitGapOpen = false;
 let postInitGapClosed = false;
-let unlockInteractiveClosed = false;
+let unlockLaidOutClosed = false;
 
 /**
  * Opens the window between `Engine.init()` finishing and the navigator's first
@@ -43,16 +43,16 @@ export function endPostInitGap(): void {
 }
 
 /**
- * Opens the app-start-to-unlock-interactive CUF, anchored on the native launch
+ * Opens the app-start-to-unlock-laid-out CUF, anchored on the native launch
  * timestamp so it covers the same window the user experiences.
  *
  * `UIStartup` ends at `App`'s first render, and `HomepageReady` only starts at
  * unlock submit on the locked path, so for a locked cold start — the common
  * case — nothing measures the wait before the user can even begin typing.
  */
-export function startAppStartToUnlockInteractive(): void {
+export function startAppStartToUnlockLaidOut(): void {
   trace({
-    name: TraceName.AppStartToUnlockInteractive,
+    name: TraceName.AppStartToUnlockLaidOut,
     op: TraceOperation.UIStartup,
     startTime: Performance.appLaunchTime,
   });
@@ -62,20 +62,24 @@ export function startAppStartToUnlockInteractive(): void {
  * Closes the CUF the first time the password field reports native layout.
  *
  * Anchored on layout rather than mount or an effect: those fire before the
- * field can accept input and would measure close to zero. Measured on a
- * Galaxy A14, the field became interactive 1,402 ms before it was visible.
+ * field can accept input and would measure close to zero.
+ *
+ * This is the moment the field *works*, not the moment it is *visible* — on a
+ * Galaxy A14 the splash covered it for a further 1,402 ms. That gap is
+ * deliberately left in `SplashRevealTax` rather than folded in here, so the two
+ * are separable; a single "user can unlock" number would hide it.
  */
-export function endAppStartToUnlockInteractive(): void {
-  if (unlockInteractiveClosed) {
+export function endAppStartToUnlockLaidOut(): void {
+  if (unlockLaidOutClosed) {
     return;
   }
-  unlockInteractiveClosed = true;
-  endTrace({ name: TraceName.AppStartToUnlockInteractive });
+  unlockLaidOutClosed = true;
+  endTrace({ name: TraceName.AppStartToUnlockLaidOut });
 }
 
 /** @internal Reset between tests. Do not call in production code. */
 export function resetStartupStageSpansForTesting(): void {
   postInitGapOpen = false;
   postInitGapClosed = false;
-  unlockInteractiveClosed = false;
+  unlockLaidOutClosed = false;
 }

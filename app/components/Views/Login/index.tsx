@@ -62,7 +62,7 @@ import {
   TraceOperation,
   endTrace,
 } from '../../../util/trace';
-import { endAppStartToUnlockInteractive } from '../../../core/Performance/startupStageSpans';
+import { endAppStartToUnlockLaidOut } from '../../../core/Performance/startupStageSpans';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -614,10 +614,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               <TextField
                 placeholder={strings('login.password_placeholder')}
                 // Fires on the password field's NATIVE layout — the first
-                // moment the user can actually type. A mount or effect fires
-                // before the field accepts input and would measure ~zero.
+                // moment it would accept input. A mount or effect fires before
+                // that and would measure ~zero. Note this is when the field
+                // *works*, not when it is *visible*: the splash may still be
+                // covering it, and that gap is `SplashRevealTax`.
                 // Guarded internally, so repeated layouts are harmless.
-                onLayout={endAppStartToUnlockInteractive}
+                onLayout={endAppStartToUnlockLaidOut}
                 inputRef={fieldRef}
                 onChangeText={handlePasswordChange}
                 value={password}
