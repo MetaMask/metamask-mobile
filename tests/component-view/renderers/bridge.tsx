@@ -22,14 +22,17 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Transaction } from '@metamask/keyring-api';
 import { BridgeSessionProvider } from '../../../app/components/UI/Bridge/providers/BridgeSessionProvider';
 import { BridgeQuoteDataProvider } from '../../../app/components/UI/Bridge/hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { SwapQuotesProvider } from '../../../app/components/UI/Bridge/providers/SwapQuotesProvider';
 
 export const withBridgeSession = (Component: React.ComponentType) =>
   function BridgeViewWithSession() {
     return (
       <BridgeSessionProvider>
-        <BridgeQuoteDataProvider>
-          <Component />
-        </BridgeQuoteDataProvider>
+        <SwapQuotesProvider>
+          <BridgeQuoteDataProvider>
+            <Component />
+          </BridgeQuoteDataProvider>
+        </SwapQuotesProvider>
       </BridgeSessionProvider>
     );
   };

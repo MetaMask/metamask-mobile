@@ -140,7 +140,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
       screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
       params: {
         type: PriceImpactModalType.Info,
-        token: sourceToken,
         location,
       },
     });
