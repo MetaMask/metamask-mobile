@@ -171,14 +171,15 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
+    // 17.x ships ESM-only under dist/*.js (16.x used dist/*.cjs).
     '^@metamask/perps-controller$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.js',
     '^@metamask/perps-controller/(constants|types|utils)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.js',
     '^@metamask/perps-controller/(constants|types|utils)/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.js',
     '^@metamask/perps-controller/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.js',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
     // @metamask/perps-controller@9.1.0+ ships a broken CJS build whose
     // bundler baked in a CI-only absolute path (a file:// URL left over from
