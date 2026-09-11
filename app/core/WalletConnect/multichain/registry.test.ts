@@ -22,9 +22,14 @@ import {
   getAllAdapters,
   getAllRegisteredNamespaces,
 } from './registry';
+import { solanaAdapter } from './solana';
 import { tronAdapter } from './tron';
 
 describe('multichain/registry', () => {
+  it('registers the solana adapter under the solana CAIP-2 namespace', () => {
+    expect(getAdapter('solana')).toBe(solanaAdapter);
+  });
+
   it('registers the tron adapter under the tron CAIP-2 namespace', () => {
     expect(getAdapter('tron')).toBe(tronAdapter);
   });
@@ -34,13 +39,17 @@ describe('multichain/registry', () => {
     expect(getAdapter('cosmos')).toBeUndefined();
   });
 
-  it('exposes the tron namespace via getAllRegisteredNamespaces', () => {
-    expect(getAllRegisteredNamespaces()).toContain('tron');
+  it('exposes the solana and tron namespaces via getAllRegisteredNamespaces', () => {
+    expect(getAllRegisteredNamespaces()).toEqual(
+      expect.arrayContaining(['solana', 'tron']),
+    );
   });
 
-  it('exposes the tron adapter via getAllAdapters', () => {
+  it('exposes the solana and tron adapters via getAllAdapters', () => {
     const adapters = getAllAdapters();
 
-    expect(adapters).toContain(tronAdapter);
+    expect(adapters).toEqual(
+      expect.arrayContaining([solanaAdapter, tronAdapter]),
+    );
   });
 });
