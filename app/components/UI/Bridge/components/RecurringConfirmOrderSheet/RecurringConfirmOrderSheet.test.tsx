@@ -17,6 +17,7 @@ import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { multiplyAmountByCount } from '../../utils/recurringConfirmTotals';
+import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -103,13 +104,25 @@ const INSUFFICIENT_SOURCE_BALANCE = {
 };
 
 function renderSheet({
+  delegationFee = {
+    status: 'ready',
+    displayFee: '$1.23',
+    preciseNativeFeeInHex: '0x1',
+  },
   goBack = jest.fn(),
+  isSubmitting = false,
+  onConfirm = jest.fn(),
   onEditSlippagePress = jest.fn(),
+  onDelegationFeeInfoPress = jest.fn(),
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
+  delegationFee?: EIP7702UpgradeFee;
   goBack?: () => void;
+  isSubmitting?: boolean;
+  onConfirm?: () => void;
   onEditSlippagePress?: () => void;
+  onDelegationFeeInfoPress?: () => void;
   state?: DeepPartial<RootState>;
   latestSourceBalance?:
     | { displayBalance: string; atomicBalance: BigNumber }
@@ -117,8 +130,12 @@ function renderSheet({
 } = {}) {
   return renderWithProvider(
     <RecurringConfirmOrderSheet
+      delegationFee={delegationFee}
+      isSubmitting={isSubmitting}
       latestSourceBalance={latestSourceBalance}
+      onConfirm={onConfirm}
       onEditSlippagePress={onEditSlippagePress}
+      onDelegationFeeInfoPress={onDelegationFeeInfoPress}
       goBack={goBack}
     />,
     { state },
@@ -502,16 +519,134 @@ describe('RecurringConfirmOrderSheet', () => {
     expect(onEditSlippagePress).toHaveBeenCalledTimes(1);
   });
 
-  it('goes back when Confirm is pressed', () => {
-    const goBack = jest.fn();
+  it('shows the estimated one-time delegation fee and native token', () => {
+    const { getByTestId, queryByTestId } = renderSheet();
 
-    const { getByTestId } = renderSheet({ goBack });
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.delegation_fee_one_time')}$1.23`,
+    );
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('includes the delegation fee in the gas balance check', () => {
+    renderSheet({
+      delegationFee: {
+        status: 'ready',
+        displayFee: '$1.23',
+        preciseNativeFeeInHex: '0x123',
+      },
+    });
+
+    expect(useHasSufficientGas).toHaveBeenCalledWith({
+      additionalGasFeeInHex: '0x123',
+      quote: mockUseBridgeQuoteData.activeQuote,
+    });
+  });
+
+  it('shows a skeleton and disables Confirm while estimating delegation fee', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      delegationFee: { status: 'loading' },
+      onConfirm,
+    });
+
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_SKELETON,
+      ),
+    ).toBeOnTheScreen();
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('hides the delegation fee row when an upgrade is not required', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId, queryByTestId } = renderSheet({
+      delegationFee: { status: 'not-required' },
+      onConfirm,
+    });
+
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).not.toBeOnTheScreen();
+    fireEvent.press(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON),
+    );
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a placeholder and disables Confirm when estimation fails', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      delegationFee: { status: 'error' },
+      onConfirm,
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.delegation_fee_one_time')}--`,
+    );
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('calls the delegation fee info handler from the info control', () => {
+    const onDelegationFeeInfoPress = jest.fn();
+    const { getByTestId } = renderSheet({ onDelegationFeeInfoPress });
+
+    fireEvent.press(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO),
+    );
+
+    expect(onDelegationFeeInfoPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls the confirm handler when Confirm is pressed', () => {
+    const onConfirm = jest.fn();
+
+    const { getByTestId } = renderSheet({ onConfirm });
 
     fireEvent.press(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON),
     );
 
-    expect(goBack).toHaveBeenCalledTimes(1);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows loading and disables Confirm while submitting', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      isSubmitting: true,
+      onConfirm,
+    });
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('goes back when the header close is pressed', () => {

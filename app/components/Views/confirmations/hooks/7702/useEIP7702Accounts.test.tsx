@@ -5,7 +5,11 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import * as TransactionUtil from '../../utils/transaction';
 import { EIP7702NetworkConfiguration } from './useEIP7702Networks';
 import { useEIP7702Accounts } from './useEIP7702Accounts';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  Result,
+  TransactionEnvelopeType,
+  TransactionType,
+} from '@metamask/transaction-controller';
 
 const MOCK_NETWORK = {
   chainId: '0xaa36a7',
@@ -29,9 +33,18 @@ const MOCK_NETWORK = {
 const MOCK_ADDRESS = '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477';
 const MOCK_UPGRADE_ADDRESS = '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B';
 
-function runHook() {
+const MOCK_RESULT = {
+  result: Promise.resolve('0xhash'),
+  transactionMeta: { id: '123' },
+} as Result;
+
+function runHook(requireApproval?: boolean) {
   const { result, rerender } = renderHookWithProvider(
-    () => useEIP7702Accounts(MOCK_NETWORK as unknown as NetworkConfiguration),
+    () =>
+      useEIP7702Accounts(
+        MOCK_NETWORK as unknown as NetworkConfiguration,
+        requireApproval === undefined ? undefined : { requireApproval },
+      ),
     {},
   );
   return { result: result.current, rerender };
@@ -42,25 +55,80 @@ describe('useEIP7702Accounts', () => {
     jest.clearAllMocks();
   });
 
-  it('invokes addTransaction when upgradeAccount is called', () => {
+  it('requires approval by default when upgrading an account', async () => {
     const mockAddTransaction = jest
       .spyOn(TransactionUtil, 'addMMOriginatedTransaction')
-      .mockImplementation(() =>
-        Promise.resolve({ id: '123' } as unknown as TransactionMeta),
-      );
+      .mockResolvedValue(MOCK_RESULT);
     const { result } = runHook();
-    result.upgradeAccount(MOCK_ADDRESS, MOCK_UPGRADE_ADDRESS);
-    expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+
+    await result.upgradeAccount(MOCK_ADDRESS, MOCK_UPGRADE_ADDRESS);
+
+    expect(mockAddTransaction).toHaveBeenCalledWith(
+      {
+        authorizationList: [{ address: MOCK_UPGRADE_ADDRESS }],
+        from: MOCK_ADDRESS,
+        to: MOCK_ADDRESS,
+        type: TransactionEnvelopeType.setCode,
+      },
+      {
+        networkClientId: 'sepolia',
+        requireApproval: true,
+        type: TransactionType.batch,
+      },
+    );
   });
 
-  it('invokes addTransaction when downgradeAccount is called', () => {
+  it('requires approval by default when downgrading an account', async () => {
     const mockAddTransaction = jest
       .spyOn(TransactionUtil, 'addMMOriginatedTransaction')
-      .mockImplementation(() =>
-        Promise.resolve({ id: '123' } as unknown as TransactionMeta),
-      );
+      .mockResolvedValue(MOCK_RESULT);
     const { result } = runHook();
-    result.downgradeAccount(MOCK_ADDRESS);
-    expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+
+    await result.downgradeAccount(MOCK_ADDRESS);
+
+    expect(mockAddTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: MOCK_ADDRESS,
+        to: MOCK_ADDRESS,
+        type: TransactionEnvelopeType.setCode,
+      }),
+      {
+        networkClientId: 'sepolia',
+        requireApproval: true,
+        type: TransactionType.revokeDelegation,
+      },
+    );
+  });
+
+  it.each(['upgrade', 'downgrade'] as const)(
+    'allows %s without approval',
+    async (operation) => {
+      const mockAddTransaction = jest
+        .spyOn(TransactionUtil, 'addMMOriginatedTransaction')
+        .mockResolvedValue(MOCK_RESULT);
+      const { result } = runHook(false);
+
+      if (operation === 'upgrade') {
+        await result.upgradeAccount(MOCK_ADDRESS, MOCK_UPGRADE_ADDRESS);
+      } else {
+        await result.downgradeAccount(MOCK_ADDRESS);
+      }
+
+      expect(mockAddTransaction).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({ requireApproval: false }),
+      );
+    },
+  );
+
+  it('returns the complete transaction result', async () => {
+    jest
+      .spyOn(TransactionUtil, 'addMMOriginatedTransaction')
+      .mockResolvedValue(MOCK_RESULT);
+    const { result } = runHook(false);
+
+    await expect(
+      result.upgradeAccount(MOCK_ADDRESS, MOCK_UPGRADE_ADDRESS),
+    ).resolves.toBe(MOCK_RESULT);
   });
 });
