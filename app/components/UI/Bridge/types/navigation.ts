@@ -39,9 +39,6 @@ export type BridgeScreensStackParamList = {
   RecurringJobDetails: RecurringJobDetailsRouteParams;
   HardwareWalletsSwaps: HardwareWalletsSwapsRouteParams | undefined;
   HwQrScanner: HwQrScannerRouteParams | undefined;
-  BridgeModals:
-    | NavigatorScreenParams<BridgeModalsNavigationParamList>
-    | undefined;
 };
 
 /**
