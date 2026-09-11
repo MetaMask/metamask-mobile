@@ -682,13 +682,6 @@ const HomeTabs = () => {
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       freezeOnBlur: false,
     },
@@ -701,11 +694,6 @@ const HomeTabs = () => {
     },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
-        );
-      },
       rootScreenName: Routes.REWARDS_VIEW,
       freezeOnBlur: false,
     },
@@ -717,11 +705,6 @@ const HomeTabs = () => {
     trending: {
       tabBarIconKey: TabBarIconKey.Trending,
       callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
-          ).build(),
-        );
         // Re-enable AppState listener when returning to trending tab
         // (it was disabled when leaving to prevent phantom sessions)
         TrendingFeedSessionManager.getInstance().enableAppStateListener();
@@ -741,13 +724,6 @@ const HomeTabs = () => {
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.SETTINGS_VIEW,
     },
   };
