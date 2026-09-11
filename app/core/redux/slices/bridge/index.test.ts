@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { initialState as mockRootState } from '../../../../components/UI/Bridge/_mocks_/initialState';
+import {
+  bridgeTestState,
+  initialState as mockRootState,
+} from '../../../../components/UI/Bridge/_mocks_/initialState';
 import reducer, {
   initialState,
   setSourceAmount,
@@ -668,7 +671,7 @@ describe('bridge slice', () => {
     });
 
     it('should return sourceAsset and destAsset for solana namespace', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as unknown as any;
       mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
@@ -698,7 +701,7 @@ describe('bridge slice', () => {
     });
 
     it('should return sourceAsset and destAsset for bip122 namespace', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
       mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
@@ -727,7 +730,7 @@ describe('bridge slice', () => {
     });
 
     it('should return undefined when bip44DefaultPairs is undefined', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         undefined as unknown as any;
 
@@ -737,7 +740,7 @@ describe('bridge slice', () => {
     });
 
     it('should return undefined when namespace does not exist in bip44DefaultPairs', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
         'bip122:000000000019d6689c085ae165831e93' as unknown as any;
       mockState.engine.backgroundState.MultichainNetworkController.isEvmSelected = false;
@@ -770,7 +773,7 @@ describe('bridge slice', () => {
           // missing standard property
         },
       };
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         bip44DefaultPairs as unknown as any;
 
@@ -785,7 +788,7 @@ describe('bridge slice', () => {
           standard: {},
         },
       };
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         bip44DefaultPairs as unknown as any;
 
@@ -803,7 +806,7 @@ describe('bridge slice', () => {
           },
         },
       };
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         bip44DefaultPairs as unknown as any;
 
@@ -820,7 +823,7 @@ describe('bridge slice', () => {
           },
         },
       };
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.bip44DefaultPairs =
         bip44DefaultPairs as unknown as any;
 
@@ -843,7 +846,7 @@ describe('bridge slice', () => {
     });
 
     it('returns false when bridge is not enabled as source for the chain', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       // Remove chain from chainRanking to disable it (chainRanking presence = enabled)
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking.filter(
@@ -892,7 +895,7 @@ describe('bridge slice', () => {
     });
 
     it('filters out unsupported EVM chains not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         [
           ...mockState.engine.backgroundState.RemoteFeatureFlagController
@@ -911,7 +914,7 @@ describe('bridge slice', () => {
     });
 
     it('filters out unsupported non-EVM chains not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         [
           ...mockState.engine.backgroundState.RemoteFeatureFlagController
@@ -935,7 +938,7 @@ describe('bridge slice', () => {
     });
 
     it('restricts chainRanking to enabledChainIds when provided, ignoring ALLOWED_BRIDGE_CHAIN_IDS', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         [
           { chainId: 'eip155:1', name: 'Ethereum' },
@@ -979,7 +982,7 @@ describe('bridge slice', () => {
 
   describe('selectBatchSellDestStablecoins', () => {
     it('returns configured stablecoins with local metadata', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       const ethUsdc =
         'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48' as CaipAssetType;
       const unknownStablecoin =
@@ -1012,7 +1015,7 @@ describe('bridge slice', () => {
     });
 
     it('returns configured stablecoins by chain with local metadata', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       const ethUsdc =
         'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48' as CaipAssetType;
       const baseUsdc =
@@ -1133,7 +1136,7 @@ describe('bridge slice', () => {
 
   describe('selectBatchSellQuotes', () => {
     it('uses the BridgeController quote request count', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       mockState.engine.backgroundState.BridgeController.quoteRequest = [
         { srcTokenAddress: '0x1111111111111111111111111111111111111111' },
         { srcTokenAddress: '0x2222222222222222222222222222222222222222' },
@@ -1154,7 +1157,7 @@ describe('bridge slice', () => {
     });
 
     it('updates controller fields when analytics opt-in changes', () => {
-      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      const mockState = cloneDeep(bridgeTestState) as unknown as RootState;
       mockState.engine.backgroundState.AnalyticsController = {
         ...mockState.engine.backgroundState.AnalyticsController,
         optedIn: false,
@@ -1180,7 +1183,7 @@ describe('bridge slice', () => {
     });
 
     it('does not recompute when unrelated bridge UI state changes', () => {
-      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      const mockState = cloneDeep(bridgeTestState) as unknown as RootState;
 
       selectBridgeQuotes(mockState);
       selectBatchSellQuotes(mockState);
@@ -1223,7 +1226,7 @@ describe('bridge slice', () => {
 
   describe('selectTokenSelectorNetworkFilter', () => {
     it('should return undefined when no filter is set', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = { ...initialState };
 
       const result = selectTokenSelectorNetworkFilter(
@@ -1234,7 +1237,7 @@ describe('bridge slice', () => {
     });
 
     it('should return the set chain ID', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         tokenSelectorNetworkFilter: 'eip155:10',
@@ -1250,7 +1253,7 @@ describe('bridge slice', () => {
 
   describe('selectOrdersNetworkFilter', () => {
     it('returns undefined when no filter is set', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = { ...initialState };
 
       const result = selectOrdersNetworkFilter(
@@ -1261,7 +1264,7 @@ describe('bridge slice', () => {
     });
 
     it('returns the set chain ID', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         ordersNetworkFilter: 'eip155:10',
@@ -1298,7 +1301,7 @@ describe('bridge slice', () => {
 
   describe('selectVisiblePillChainIds', () => {
     it('returns undefined when no pills are set', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = { ...initialState };
 
       const result = selectVisiblePillChainIds(
@@ -1309,7 +1312,7 @@ describe('bridge slice', () => {
     });
 
     it('returns the set chain IDs', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         visiblePillChainIds: ['eip155:1', 'eip155:10'],
@@ -1452,7 +1455,7 @@ describe('bridge slice', () => {
       destToken: BridgeToken | undefined,
       rwaEnabled: boolean,
     ) => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         sourceToken,
@@ -1550,7 +1553,7 @@ describe('bridge slice', () => {
       destToken: BridgeToken | undefined,
       rwaEnabled = true,
     ) => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = { ...initialState, sourceToken, destToken };
       (
         mockState as any
@@ -1655,7 +1658,7 @@ describe('bridge slice', () => {
       destToken: BridgeToken | undefined,
       rwaEnabled = true,
     ) => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = { ...initialState, sourceToken, destToken };
       (
         mockState as any
@@ -1701,7 +1704,7 @@ describe('bridge slice', () => {
 
   describe('selectIsBridgeEnabledSource - ALLOWED_BRIDGE_CHAIN_IDS filtering', () => {
     it('returns false for a chain in chainRanking but not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       // Add an unsupported chain to chainRanking
       mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
         [
@@ -1721,7 +1724,7 @@ describe('bridge slice', () => {
 
   describe('selectIsNonEvmSourced', () => {
     const buildState = (sourceToken: BridgeToken | undefined) => {
-      const mockState = cloneDeep(mockRootState);
+      const mockState = cloneDeep(bridgeTestState);
       (mockState as any).bridge = {
         ...initialState,
         sourceToken,
