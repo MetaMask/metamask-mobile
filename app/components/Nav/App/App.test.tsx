@@ -2058,7 +2058,7 @@ describe('App', () => {
       });
     });
 
-    it('renders the AddNetworkFlow screen', async () => {
+    it('renders the AddNetwork screen', async () => {
       const routeState = {
         index: 0,
         routes: [{ name: Routes.ADD_NETWORK }],

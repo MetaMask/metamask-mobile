@@ -24,6 +24,7 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
 export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
+export { usePerpsVisibleCandleCount } from './usePerpsVisibleCandleCount';
 export { usePerpsProOrderBookExpanded } from './usePerpsProOrderBookExpanded';
 export { usePerpsProOrderBookPosition } from './usePerpsProOrderBookPosition';
 export { usePerpsOrderBookPreferences } from './usePerpsOrderBookPreferences';
