@@ -14,13 +14,16 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { getFormattedAddressFromInternalAccount } from '../../../../../core/Multichain/utils';
-import { formatChainIdToCaip, sumAmounts } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  sumAmounts,
+  type QuoteResponse,
+} from '@metamask/bridge-controller';
 import {
   toCaipAccountId,
   parseCaipChainId,
   type CaipAccountId,
 } from '@metamask/utils';
-import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import Logger from '../../../../../util/Logger';
 import usePrevious from '../../../../hooks/usePrevious';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -60,7 +63,7 @@ export const getUsdPricePerToken = (
 };
 
 interface UseRewardsParams {
-  activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+  activeQuote?: QuoteResponse | null;
   isQuoteLoading: boolean;
 }
 
