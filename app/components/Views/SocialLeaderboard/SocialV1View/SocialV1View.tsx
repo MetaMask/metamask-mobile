@@ -8,9 +8,6 @@ import {
   ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRoute, type RouteProp } from '@react-navigation/native';
@@ -410,7 +407,7 @@ const SocialV1View: React.FC = () => {
             gap={1}
           >
             <ButtonIcon
-              iconName={IconName.Star}
+              iconName={IconName.HeartStraight}
               size={ButtonIconSize.Md}
               onPress={handlePlaceholderHeaderAction}
               testID={SocialV1ViewSelectorsIDs.HEART_BUTTON}

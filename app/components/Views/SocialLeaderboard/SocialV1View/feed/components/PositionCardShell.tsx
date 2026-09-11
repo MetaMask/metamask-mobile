@@ -9,7 +9,7 @@ export interface PositionCardShellProps {
 }
 
 const SHELL_TW_CLASS: Record<PositionCardShellTone, string> = {
-  muted: 'bg-muted rounded-2xl p-3 gap-3',
+  muted: 'bg-default rounded-2xl p-3 gap-3 border border-default',
   success: 'bg-default rounded-2xl p-3 gap-3 border border-success-default',
 };
 
