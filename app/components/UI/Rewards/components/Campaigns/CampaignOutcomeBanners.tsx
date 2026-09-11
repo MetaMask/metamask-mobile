@@ -33,9 +33,9 @@ const BORDER_TRAIL_FRACTION = 0.35;
 const GRADIENT_ID = 'campaign-outcome-banner-border-gradient';
 
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const CAMPAIGN_OUTCOME_BANNER_BORDER_GRADIENT_START = '#D075FF';
+const CAMPAIGN_OUTCOME_BANNER_BORDER_GRADIENT_START = '#C66EF5';
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const CAMPAIGN_OUTCOME_BANNER_BORDER_GRADIENT_END = '#FF5C16';
+const CAMPAIGN_OUTCOME_BANNER_BORDER_GRADIENT_END = '#FA4B00';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);

@@ -6,7 +6,7 @@ import { COMPONENT_NAMES } from '../../Money/constants/moneyEventLocations';
 
 // TODO: Update hardcoded color once we get confirmation from design leads.
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-export const AMBIENT_NEGATIVE_COLOR = '#FF5C16';
+export const AMBIENT_NEGATIVE_COLOR = '#FA4B00';
 
 export const AMBIENT_PRICE_COLOR_AB_KEY =
   'assetsASSETS3205AbtestAmbientPriceColor';
