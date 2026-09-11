@@ -61,6 +61,14 @@ jest.mock(
   }),
 );
 
+jest.mock('../../hooks/useSwapQuotes', () => ({
+  useSwapQuotes: jest.fn(() => ({
+    debouncedUpdateQuoteParams: Object.assign(jest.fn(), { cancel: jest.fn() }),
+    destTokenAmount: undefined,
+    isLoading: false,
+  })),
+}));
+
 const mockState = {
   ...initialState,
   engine: {
