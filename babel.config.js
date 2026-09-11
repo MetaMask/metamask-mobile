@@ -130,11 +130,12 @@ module.exports = {
       },
     ],
     dynamicImportToRequire,
-    // NOTE: react-native-reanimated/plugin must be listed LAST.
-    // Required by reanimated v3 to compile `'worklet'` directives; without it,
-    // gesture-handler worklets silently no-op on iOS Fabric and GestureDetector
-    // children (e.g. WebView) render at 0x0 (white screen).
-    'react-native-reanimated/plugin',
+    // NOTE: react-native-worklets/plugin must be listed LAST.
+    // Compiles `'worklet'` directives (reanimated v4 moved the babel plugin to
+    // react-native-worklets; react-native-reanimated/plugin is a deprecated
+    // alias). Without it, gesture-handler worklets silently no-op on iOS Fabric
+    // and GestureDetector children (e.g. WebView) render at 0x0 (white screen).
+    'react-native-worklets/plugin',
   ],
   overrides: [
     {

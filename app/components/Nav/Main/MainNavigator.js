@@ -166,7 +166,8 @@ import {
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  SocialTradersTabsView,
+  SocialV0View,
+  SocialV1View,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -270,18 +271,6 @@ const AssetStackFlow = (props) => (
   </NativeStack.Navigator>
 );
 
-const AssetNavigator = (props) => (
-  <NativeStack.Navigator
-    initialRouteName={'AssetStackFlow'}
-    screenOptions={clearNativeStackNavigatorOptions}
-  >
-    <NativeStack.Screen
-      name={'AssetStackFlow'}
-      component={AssetStackFlow}
-      initialParams={props.route.params}
-    />
-  </NativeStack.Navigator>
-);
 /* eslint-enable react/prop-types */
 
 const WalletTabStackFlow = () => {
@@ -721,7 +710,7 @@ const HomeTabs = () => {
     },
     social: {
       tabBarIconKey: TabBarIconKey.Social,
-      rootScreenName: Routes.SOCIAL_LEADERBOARD.TAB,
+      rootScreenName: Routes.SOCIAL.TAB,
       freezeOnBlur: false,
     },
     trending: {
@@ -908,9 +897,9 @@ const HomeTabs = () => {
 
             {showSocialTab ? (
               <Tab.Screen
-                name={Routes.SOCIAL_LEADERBOARD.TAB}
+                name={Routes.SOCIAL.TAB}
                 options={options.social}
-                component={SocialTradersTabsView}
+                component={SocialV0View}
               />
             ) : (
               <Tab.Screen
@@ -929,32 +918,6 @@ const HomeTabs = () => {
 const Webview = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
     <NativeStack.Screen name="SimpleWebview" component={SimpleWebview} />
-  </NativeStack.Navigator>
-);
-
-/* eslint-disable react/prop-types */
-const NftDetailsModeView = (props) => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name=" " // No name here because this title will be displayed in the header of the page
-      component={NftDetails}
-      initialParams={{
-        collectible: props.route.params?.collectible,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
-/* eslint-disable react/prop-types */
-const NftDetailsFullImageModeView = (props) => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name=" " // No name here because this title will be displayed in the header of the page
-      component={NftDetailsFullImage}
-      initialParams={{
-        collectible: props.route.params?.collectible,
-      }}
-    />
   </NativeStack.Navigator>
 );
 
@@ -1186,7 +1149,7 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name="Asset"
-        component={AssetNavigator}
+        component={AssetStackFlow}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
@@ -1242,12 +1205,12 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name="NftDetails"
-        component={NftDetailsModeView}
+        component={NftDetails}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
         name="NftDetailsFullImage"
-        component={NftDetailsFullImageModeView}
+        component={NftDetailsFullImage}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
@@ -1493,35 +1456,42 @@ const MainNavigator = () => {
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={SocialTradersTabsView}
+          name={Routes.SOCIAL.V0}
+          component={SocialV0View}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.PROFILE}
+          name={Routes.SOCIAL.V1}
+          component={SocialV1View}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL.PROFILE}
           component={TraderProfileView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.POSITION}
+          name={Routes.SOCIAL.POSITION}
           component={TraderPositionView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.ONBOARDING}
+          name={Routes.SOCIAL.ONBOARDING}
           component={SocialLeaderboardOnboarding}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP}
+          name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
           component={TradingSignalsSetupBottomSheet}
           options={{
             ...clearNativeStackNavigatorOptions,

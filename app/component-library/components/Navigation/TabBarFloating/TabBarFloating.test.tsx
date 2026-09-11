@@ -87,7 +87,7 @@ const descriptors: Record<string, TestTabDescriptor> = {
   '4': {
     options: {
       tabBarIconKey: TabBarIconKey.Social,
-      rootScreenName: Routes.SOCIAL_LEADERBOARD.TAB,
+      rootScreenName: Routes.SOCIAL.TAB,
     },
   },
 };
@@ -281,9 +281,7 @@ describe('TabBarFloating', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
 
-    expect(navigation.navigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TAB,
-    );
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB);
   });
 
   it('routes Money through the money navigation hook', () => {

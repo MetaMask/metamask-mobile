@@ -146,8 +146,8 @@ const TabBarFloating = ({
           case Routes.MONEY.HOME:
             navigateToMoneyHome();
             break;
-          case Routes.SOCIAL_LEADERBOARD.TAB:
-            navigation.navigate(Routes.SOCIAL_LEADERBOARD.TAB);
+          case Routes.SOCIAL.TAB:
+            navigation.navigate(Routes.SOCIAL.TAB);
             break;
           case Routes.REWARDS_VIEW:
             navigation.navigate(Routes.REWARDS_VIEW);
