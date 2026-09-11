@@ -18,11 +18,13 @@
 import { SmokeQr } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { waitForAppReady } from '../../flows/general.flow';
-import { loginToAppWithSyncDisabled } from '../../framework/fixtures/SpeculosFixtureHelper';
-import WalletView from '../../page-objects/wallet/WalletView';
-import SendView from '../../page-objects/Send/RedesignedSendView';
-import Assertions from '../../framework/Assertions';
+import {
+  loginToAppWithSyncDisabled,
+  waitForAppReadySpeculos,
+} from '../../framework/fixtures/SpeculosFixtureHelper';
+import WalletView from '../../page-objects/detox/wallet/WalletView';
+import SendView from '../../page-objects/detox/Send/RedesignedSendView';
+import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';
 import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 
@@ -73,8 +75,8 @@ describeIf(
             }`,
           );
 
-          logger.debug('Step 1: waitForAppReady + login');
-          await waitForAppReady(300000);
+          logger.debug('Step 1: waitForAppReadySpeculos + login');
+          await waitForAppReadySpeculos(300000);
           await loginToAppWithSyncDisabled();
 
           // TODO: the QR account must already be imported (or the Anvil node

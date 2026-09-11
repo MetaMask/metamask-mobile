@@ -1,6 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { execSync } from 'child_process';
 import { resolve, join } from 'path';
+import { adbDeviceArgs } from '../e2eWorkerPorts';
 import { withFixtures } from './FixtureHelper';
 import {
   type WithFixturesOptions,
@@ -8,12 +9,11 @@ import {
   LocalNodeType,
 } from '../types';
 import TestHelpers from '../../helpers';
-import { waitForAppReady } from '../../flows/general.flow';
-import WalletView from '../../page-objects/wallet/WalletView';
-import LoginView from '../../page-objects/wallet/LoginView';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import WalletView from '../../page-objects/detox/wallet/WalletView';
+import LoginView from '../../page-objects/detox/wallet/LoginView';
+import AccountListBottomSheet from '../../page-objects/detox/wallet/AccountListBottomSheet';
 import LedgerConnectView from '../../page-objects/Ledger/LedgerConnectView';
-import Assertions from '../Assertions';
+import Assertions from '../detox/Assertions';
 import { createLogger } from '../logger';
 import type ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import type { Mockttp } from 'mockttp';
@@ -488,6 +488,10 @@ export async function withSpeculosFixtures(
       'speculos-ble Control API ready — virtual BLE device advertising',
     );
 
+    // The app samples the BT adapter state at launch; make sure the adapter is
+    // up BEFORE the app starts (fresh emulators bring BT up lazily).
+    await ensureBluetoothEnabled();
+
     const withFixturesOptions: WithFixturesOptions = {
       fixture: options.fixture as WithFixturesOptions['fixture'],
       restartDevice: 'newInstance',
@@ -510,12 +514,21 @@ export async function withSpeculosFixtures(
       ];
     }
 
-    await withFixtures(withFixturesOptions, async (params) => {
-      await testSuite({
-        ...params,
-        speculos,
+    try {
+      await withFixtures(withFixturesOptions, async (params) => {
+        await testSuite({
+          ...params,
+          speculos,
+        });
       });
-    });
+    } catch (error) {
+      // TEMP DIAGNOSIS: surface the real error before teardown masks it.
+      console.error(
+        '[SPECULOS-DIAG] withFixtures threw:',
+        error instanceof Error ? `${error.message}\n${error.stack}` : error,
+      );
+      throw error;
+    }
   } finally {
     if (bleRunner) {
       logger.debug('Stopping speculos-ble runner...');
@@ -526,6 +539,56 @@ export async function withSpeculosFixtures(
       await dockerManager.stop();
     }
   }
+}
+
+/**
+ * Ensure the Android Bluetooth adapter is enabled and settled before the app
+ * launches.
+ *
+ * On a freshly booted (or freshly wiped) emulator the BT adapter initializes
+ * lazily — it can come online minutes after `sys.boot_completed`. The app's
+ * BLE layer samples the adapter state at init; if it reads POWERED_OFF it
+ * caches that state and the hardware-wallet sheet shows "Bluetooth required"
+ * even after the adapter later turns on (the state-change event does not
+ * reliably fire on emulators). Enabling explicitly and waiting for the
+ * setting avoids the race.
+ */
+async function ensureBluetoothEnabled(): Promise<void> {
+  const adbArgs = adbDeviceArgs().join(' ');
+  // NOTE: `settings get secure bluetooth_on` stays null on emulator images —
+  // dumpsys bluetooth_manager is the authoritative live state.
+  const isEnabled = (): boolean => {
+    try {
+      return execSync(`adb ${adbArgs} shell dumpsys bluetooth_manager`, {
+        stdio: ['pipe', 'pipe', 'pipe'],
+      })
+        .toString()
+        .includes('state: ON');
+    } catch {
+      return false;
+    }
+  };
+
+  try {
+    execSync(`adb ${adbArgs} shell svc bluetooth enable`, { stdio: 'pipe' });
+  } catch (error) {
+    logger.debug(`svc bluetooth enable failed: ${String(error)}`);
+  }
+
+  // Fresh/wiped emulator boots bring the netsim BT chip up lazily — observed
+  // several minutes after sys.boot_completed. Poll generously.
+  const deadline = Date.now() + 180000;
+  while (!isEnabled() && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  if (!isEnabled()) {
+    throw new Error('Bluetooth adapter did not come up within 180s');
+  }
+
+  // Settle: give the stack a moment to publish its state before the app
+  // samples it.
+  await new Promise((r) => setTimeout(r, 3000));
+  logger.debug('Bluetooth adapter enabled and settled');
 }
 
 /**
@@ -574,9 +637,86 @@ export async function loginToAppWithSyncDisabled(
   await TestHelpers.delay(5000);
 }
 
+/**
+ * Detox-native replacement for `waitForAppReady` (general.flow).
+ *
+ * The merged `general.flow.ts` routes Android through Appium probes
+ * (`isLoginScreenDisplayed` / `isWalletHomeReadyOnAndroidStable`).
+ * `PlatformDetector.isAndroid()` is platform-based, not driver-based, so
+ * those probes also run under Detox — where `getDriver()` throws
+ * `'driver is not available'` and `isTestIdDisplayed` swallows the error,
+ * returning `false` forever. The flow can therefore never detect readiness
+ * under Detox and always exhausts its timeout, regardless of app state.
+ *
+ * This variant uses the Detox page-objects with `waitFor().toExist()`
+ * (the same primitives as `loginToAppWithSyncDisabled`).
+ *
+ * @param timeout - Maximum time to wait in milliseconds.
+ * @returns `'login'` when the login screen is stable, `'wallet'` when
+ * wallet home is shown.
+ * @throws If neither screen is reached within the timeout.
+ */
+export async function waitForAppReadySpeculos(
+  timeout: number = 300000,
+): Promise<'login' | 'wallet'> {
+  const startTime = Date.now();
+  const deadline = startTime + timeout;
+
+  logger.debug('Waiting for app to reach login or wallet home (Detox)...');
+
+  const loginContainer =
+    (await LoginView.container) as Detox.IndexableNativeElement;
+  const walletContainer =
+    (await WalletView.container) as Detox.IndexableNativeElement;
+
+  const exists = async (
+    element: Detox.IndexableNativeElement,
+    timeoutMs: number,
+  ): Promise<boolean> => {
+    try {
+      await waitFor(element).toExist().withTimeout(timeoutMs);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  while (Date.now() < deadline) {
+    // Probe login first: the wallet container may exist in the native tree
+    // while the lock screen is showing (mirrors main's Android ordering).
+    if (await exists(loginContainer, 3000)) {
+      await TestHelpers.delay(500);
+      if (await exists(loginContainer, 1500)) {
+        logger.debug(
+          `App ready on login after ${Date.now() - startTime}ms (Detox)`,
+        );
+        return 'login';
+      }
+    }
+
+    if (await exists(walletContainer, 3000)) {
+      await TestHelpers.delay(500);
+      // Wallet home is only real once the lock screen is gone.
+      if (!(await exists(loginContainer, 1000))) {
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms (Detox)`,
+        );
+        return 'wallet';
+      }
+    }
+
+    await TestHelpers.delay(500);
+  }
+
+  throw new Error(
+    `App did not reach login or wallet home within ${timeout}ms (Detox). ` +
+      `This may indicate rehydration issues or state corruption.`,
+  );
+}
+
 export async function importLedgerAccount(): Promise<void> {
-  logger.debug('[importLedger] Step 1: waitForAppReady');
-  await waitForAppReady(300000);
+  logger.debug('[importLedger] Step 1: waitForAppReadySpeculos');
+  await waitForAppReadySpeculos(300000);
 
   logger.debug('[importLedger] Step 2: loginToAppWithSyncDisabled');
   await loginToAppWithSyncDisabled();

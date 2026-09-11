@@ -1,13 +1,15 @@
 import { SmokeQr } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { waitForAppReady } from '../../flows/general.flow';
-import { loginToAppWithSyncDisabled } from '../../framework/fixtures/SpeculosFixtureHelper';
-import WalletView from '../../page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import {
+  loginToAppWithSyncDisabled,
+  waitForAppReadySpeculos,
+} from '../../framework/fixtures/SpeculosFixtureHelper';
+import WalletView from '../../page-objects/detox/wallet/WalletView';
+import AccountListBottomSheet from '../../page-objects/detox/wallet/AccountListBottomSheet';
 import LedgerConnectView from '../../page-objects/Ledger/LedgerConnectView';
 import QRHardwareConnectView from '../../page-objects/QRHardware/QRHardwareConnectView';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';
 
 import { execSync } from 'child_process';
@@ -86,8 +88,8 @@ describeIf(SmokeQr('Import QR hardware account via camera injection'), () => {
           logger.debug(`Dev menu dismissal error: ${e}`);
         }
 
-        logger.debug('Step 1: waitForAppReady');
-        await waitForAppReady(300000);
+        logger.debug('Step 1: waitForAppReadySpeculos');
+        await waitForAppReadySpeculos(300000);
 
         logger.debug('Step 2: login');
         await loginToAppWithSyncDisabled();
