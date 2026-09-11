@@ -18,6 +18,10 @@ import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 interface ContactFormFieldsProps {
   address: string | null;
   addressInputRef: RefObject<TextInput | null>;
+  /**
+   * When true, the address TextField should render in error state.
+   */
+  addressIsError?: boolean;
   editable: boolean;
   isAddMode: boolean;
   memo: string | null;
@@ -35,6 +39,7 @@ interface ContactFormFieldsProps {
 export const ContactFormFields = ({
   address,
   addressInputRef,
+  addressIsError = false,
   editable,
   isAddMode,
   memo,
@@ -73,6 +78,7 @@ export const ContactFormFields = ({
         onChangeText={onChangeAddress}
         placeholder={strings('address_book.add_input_placeholder')}
         isDisabled={!isAddMode}
+        isError={addressIsError}
         inputRef={addressInputRef}
         endAccessory={
           isAddMode ? (

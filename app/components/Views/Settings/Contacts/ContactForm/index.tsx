@@ -439,6 +439,7 @@ const ContactForm = ({
           <ContactFormFields
             address={address}
             addressInputRef={addressInput}
+            addressIsError={!!addressError}
             editable={editable}
             isAddMode={isAddMode}
             memo={memo}
