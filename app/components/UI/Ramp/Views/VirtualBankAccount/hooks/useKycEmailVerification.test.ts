@@ -17,7 +17,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockKycControllerState = {
-  error: null as string | null,
   vendorDisclaimers: [{ id: 'tc-1' }] as { id: string }[],
   sumsub: { status: 'complete' as string },
 };
@@ -103,7 +102,6 @@ const enterEmailAndStart = async (
 describe('useKycEmailVerification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockKycControllerState.error = null;
     mockKycControllerState.vendorDisclaimers = [{ id: 'tc-1' }];
     mockKycControllerState.sumsub.status = 'complete';
     mockKycController.createVendorCustomer.mockResolvedValue(undefined);
@@ -196,22 +194,6 @@ describe('useKycEmailVerification', () => {
     expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
   });
 
-  it('alerts without starting the session when the controller records an error on state', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockKycController.createVendorCustomer.mockImplementation(async () => {
-      mockKycControllerState.error = 'Customer creation failed.';
-    });
-    const { result } = renderHook(() => useKycEmailVerification());
-
-    await enterEmailAndStart(result);
-
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Identity verification',
-      'Customer creation failed.',
-    );
-    expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
-  });
-
   it('alerts when vendor terms have not been loaded', async () => {
     const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
     mockKycControllerState.vendorDisclaimers = [];
@@ -224,23 +206,6 @@ describe('useKycEmailVerification', () => {
       'Terms are not loaded yet. Go back to Get your Pix Key and try again.',
     );
     expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
-  });
-
-  it('alerts when acceptTermsAndStartSession records an error on state', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
-    mockKycController.acceptTermsAndStartSession.mockImplementation(
-      async () => {
-        mockKycControllerState.error = 'Iron session failed: consents.';
-      },
-    );
-    const { result } = renderHook(() => useKycEmailVerification());
-
-    await enterEmailAndStart(result);
-
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Identity verification',
-      'Iron session failed: consents.',
-    );
   });
 
   it('does not alert when the applicant abandons Sumsub', async () => {

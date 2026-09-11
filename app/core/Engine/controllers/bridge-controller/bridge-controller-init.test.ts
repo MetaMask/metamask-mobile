@@ -23,10 +23,6 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
-import {
-  ASSETS_UNIFY_STATE_FLAG,
-  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-} from '../../../../selectors/featureFlagController/assetsUnifyState';
 
 jest.mock('@metamask/bridge-controller');
 jest.mock('../../utils/analytics');
@@ -264,24 +260,9 @@ describe('BridgeController Init', () => {
     });
 
     describe('getUseAssetsControllerForRates', () => {
-      function buildInitRequestWithCallMock(callImpl: () => unknown) {
-        return buildInitRequestMock({
-          initMessenger: {
-            call: jest.fn().mockImplementation(callImpl),
-          } as unknown as BridgeControllerInitMessenger,
-        });
-      }
-
-      it('returns true when the assets unify state feature flag is enabled', () => {
+      it('always returns true, since AssetsController is the sole rates source', () => {
         // Arrange
-        const requestMock = buildInitRequestWithCallMock(() => ({
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-        }));
+        const requestMock = buildInitRequestMock();
 
         // Act
         bridgeControllerInit(requestMock);
@@ -291,56 +272,6 @@ describe('BridgeController Init', () => {
           bridgeControllerClassMock.mock.calls[0][0];
         expect(getUseAssetsControllerForRates).toBeDefined();
         expect(getUseAssetsControllerForRates?.()).toBe(true);
-      });
-
-      it('returns false when the assets unify state feature flag is disabled', () => {
-        // Arrange
-        const requestMock = buildInitRequestWithCallMock(() => ({
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: { enabled: false, featureVersion: null },
-          },
-        }));
-
-        // Act
-        bridgeControllerInit(requestMock);
-
-        // Assert
-        const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
-        expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          false,
-        );
-      });
-
-      it('returns true when the feature flag is absent while hardcoded on for development', () => {
-        // Arrange
-        const requestMock = buildInitRequestWithCallMock(() => ({
-          remoteFeatureFlags: {},
-        }));
-
-        // Act
-        bridgeControllerInit(requestMock);
-
-        // Assert
-        const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
-        expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          false,
-        );
-      });
-
-      it('returns false when initMessenger.call throws', () => {
-        // Arrange
-        const requestMock = buildInitRequestWithCallMock(() => {
-          throw new Error('Controller not ready');
-        });
-
-        // Act
-        bridgeControllerInit(requestMock);
-
-        // Assert
-        const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
-        expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          false,
-        );
       });
     });
 

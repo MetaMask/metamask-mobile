@@ -197,6 +197,7 @@ const resolveEventForRoute = (event: PredictEvent): void => {
 
 describe('PredictEventScreen', () => {
   beforeEach(() => {
+    messengerCall.mockReset();
     jest.clearAllMocks();
   });
 
@@ -222,6 +223,12 @@ describe('PredictEventScreen', () => {
   it('renders all standard Event header fields from the immutable Event', async () => {
     resolveEvent();
     const view = renderPredictEventScreen(routeParams);
+
+    await waitFor(() =>
+      expect(
+        view.queryByTestId(PredictEventScreenTestIds.LOADING),
+      ).not.toBeOnTheScreen(),
+    );
 
     const header = await view.findByTestId(
       PredictEventScreenTestIds.STANDARD_HEADER,

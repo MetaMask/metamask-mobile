@@ -203,11 +203,20 @@ const emptyActivityStateFunded = () =>
   initialStateActivityWithAccountsApi().withOverrides({
     engine: {
       backgroundState: {
-        TokenBalancesController: {
-          tokenBalances: {
-            [ACTIVITY_CV_ACCOUNT]: {
-              '0x1': {
-                [USDC_MAINNET]: '0x5f5e100', // 100 USDC
+        AssetsController: {
+          selectedCurrency: 'usd',
+          assetsInfo: {
+            [`eip155:1/erc20:${USDC_MAINNET.toLowerCase()}`]: {
+              type: 'erc20' as const,
+              symbol: 'USDC',
+              name: 'USD Coin',
+              decimals: 6,
+            },
+          },
+          assetsBalance: {
+            'acc-1': {
+              [`eip155:1/erc20:${USDC_MAINNET.toLowerCase()}`]: {
+                amount: '100',
               },
             },
           },
