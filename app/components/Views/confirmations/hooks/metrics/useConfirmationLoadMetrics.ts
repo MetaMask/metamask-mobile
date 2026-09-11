@@ -23,30 +23,11 @@ const meansByTransactionType = new Map<
  * Records how long a transaction confirmation took to become visible, spanning
  * transaction creation to the confirmation body's first paint.
  *
- * Reports the duration twice: as the `confirmation_time_to_open_ms` metric
- * property, and as a standalone `Transaction Confirmation Load` Sentry
- * transaction.
- *
- * This is generic to every redesigned confirmation. It lives on the shared
- * `Confirm` component rather than on any feature-specific surface, so sends,
- * swaps, approvals, dapp transactions, stake, earn, predict and MetaMask Pay
- * all report the same span.
- *
  * Non-transaction confirmations (for example signature requests) have no
  * creation timestamp to anchor against and are skipped.
  *
- * Additionally logs a session-scoped running mean (`averageMs`) grouped by
- * transaction type, alongside the sample count it is drawn from, so a slow
- * type is not masked by a fast one. This is diagnostic output only — the mean
- * is never dispatched as a metric property nor attached to the Sentry trace,
- * both of which stay per-confirmation.
- *
- * A second mean (`warmAverageMs`) excludes each type's first sample. That first
- * confirmation absorbs one-off module evaluation and cache warming, so it can
- * sit hundreds of milliseconds above the steady state and drag `averageMs` with
- * it — enough to swamp the effect being measured when comparing builds. The
- * warm mean is the figure to compare; it is `undefined` until a type has at
- * least two samples.
+ * Running means are logged per transaction type for diagnostics only, and are
+ * never dispatched as metric properties.
  *
  * @returns An object with an `onFirstPaint` callback, to be passed to the root
  * confirmation container's `onLayout`.
