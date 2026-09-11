@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
@@ -32,6 +33,10 @@ import { RootState } from '../../../reducers';
 const NATIVE_DECIMALS = 18;
 const ERC20_DEFAULT_DECIMALS = 18;
 const CURRENCY_USD = 'usd';
+
+// Stable reference returned while balance changes are pending/unavailable, so
+// consumers don't see a new empty array on every render.
+const EMPTY_BALANCE_CHANGES: BalanceChange[] = [];
 
 // See https://github.com/MikeMcl/bignumber.js/issues/11#issuecomment-23053776
 function convertNumberToStringWithPrecisionWarning(value: number): string {
@@ -249,22 +254,35 @@ export default function useBalanceChanges({
   const { nativeBalanceChange, tokenBalanceChanges = [] } =
     simulationData ?? {};
 
-  const erc20TokenAddresses = tokenBalanceChanges
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .filter((tbc: any) => tbc.standard === SimulationTokenStandard.erc20)
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .map((tbc: any) => tbc.address);
+  const erc20TokenAddresses = useMemo(
+    () =>
+      tokenBalanceChanges
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .filter((tbc: any) => tbc.standard === SimulationTokenStandard.erc20)
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((tbc: any) => tbc.address),
+    [tokenBalanceChanges],
+  );
+
+  // Derive a stable string key once per address-set change so the async hooks
+  // below depend on a stable value instead of re-serializing the array on
+  // every render (previously `JSON.stringify(...)` ran up to three times each
+  // render).
+  const erc20TokenAddressesKey = useMemo(
+    () => erc20TokenAddresses.join(','),
+    [erc20TokenAddresses],
+  );
 
   const erc20Decimals = useAsyncResultOrThrow(
     () => fetchAllErc20Decimals(erc20TokenAddresses, networkClientId),
-    [JSON.stringify(erc20TokenAddresses)],
+    [erc20TokenAddressesKey],
   );
 
   const erc20FiatRates = useAsyncResultOrThrow(
     () => fetchTokenFiatRates(fiatCurrency, erc20TokenAddresses, chainId),
-    [JSON.stringify(erc20TokenAddresses), chainId, fiatCurrency],
+    [erc20TokenAddressesKey, chainId, fiatCurrency],
   );
 
   const erc20UsdRates = useAsyncResultOrThrow(
@@ -272,42 +290,51 @@ export default function useBalanceChanges({
       fiatCurrency === CURRENCY_USD
         ? (erc20FiatRates.value ?? {})
         : fetchTokenFiatRates(CURRENCY_USD, erc20TokenAddresses, chainId),
-    [
-      JSON.stringify(erc20TokenAddresses),
-      chainId,
-      fiatCurrency,
-      erc20FiatRates.value,
-    ],
+    [erc20TokenAddressesKey, chainId, fiatCurrency, erc20FiatRates.value],
   );
 
-  if (
+  const pending =
     erc20Decimals.pending ||
     erc20FiatRates.pending ||
     erc20UsdRates.pending ||
-    !simulationData
-  ) {
-    return { pending: true, value: [] };
-  }
+    !simulationData;
 
-  const nativeChange = getNativeBalanceChange(
+  // Memoize the computed balance changes so consumers get a stable array
+  // reference across renders with identical inputs. The `?? {}` fallbacks are
+  // no-ops once resolved (all three are defined when `pending` is false) but
+  // keep the types sound without relying on control-flow narrowing.
+  const value = useMemo(() => {
+    if (pending) {
+      return EMPTY_BALANCE_CHANGES;
+    }
+
+    const nativeChange = getNativeBalanceChange(
+      nativeBalanceChange,
+      nativeFiatRate,
+      nativeUsdRate,
+      chainId,
+    );
+
+    const tokenChanges = getTokenBalanceChanges(
+      tokenBalanceChanges,
+      erc20Decimals.value ?? {},
+      erc20FiatRates.value ?? {},
+      erc20UsdRates.value ?? {},
+      chainId,
+    );
+
+    return [...(nativeChange ? [nativeChange] : []), ...tokenChanges];
+  }, [
+    pending,
     nativeBalanceChange,
     nativeFiatRate,
     nativeUsdRate,
-    chainId,
-  );
-
-  const tokenChanges = getTokenBalanceChanges(
     tokenBalanceChanges,
     erc20Decimals.value,
     erc20FiatRates.value,
     erc20UsdRates.value,
     chainId,
-  );
+  ]);
 
-  const balanceChanges: BalanceChange[] = [
-    ...(nativeChange ? [nativeChange] : []),
-    ...tokenChanges,
-  ];
-
-  return { pending: false, value: balanceChanges };
+  return useMemo(() => ({ pending, value }), [pending, value]);
 }
