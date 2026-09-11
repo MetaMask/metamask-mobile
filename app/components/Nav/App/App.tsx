@@ -144,7 +144,7 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import {
   endPostInitGap,
-  startAppStartToUnlockInteractive,
+  startAppStartToUnlockLaidOut,
 } from '../../../core/Performance/startupStageSpans';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { Performance } from '../../../core/Performance';
@@ -1608,7 +1608,7 @@ const App: React.FC = () => {
   const existingUser = useSelector(selectExistingUser);
   const isUnlocked = useSelector(selectIsUnlocked);
   const hasQueuedColdHomepageReadyTrace = useRef(false);
-  const hasStartedUnlockInteractiveTrace = useRef(false);
+  const hasStartedUnlockLaidOutTrace = useRef(false);
 
   useEffect(() => {
     if (
@@ -1628,16 +1628,12 @@ const App: React.FC = () => {
   // unlock submit on this path, so the entire wait before the user can begin
   // typing was untracked.
   useEffect(() => {
-    if (
-      hasStartedUnlockInteractiveTrace.current ||
-      !existingUser ||
-      isUnlocked
-    ) {
+    if (hasStartedUnlockLaidOutTrace.current || !existingUser || isUnlocked) {
       return;
     }
 
-    hasStartedUnlockInteractiveTrace.current = true;
-    startAppStartToUnlockInteractive();
+    hasStartedUnlockLaidOutTrace.current = true;
+    startAppStartToUnlockLaidOut();
   }, [existingUser, isUnlocked]);
 
   useEffect(() => {
