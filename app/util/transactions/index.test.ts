@@ -3,7 +3,6 @@ import BN from 'bnjs4';
 
 import * as controllerUtilsModule from '@metamask/controller-utils';
 import { ERC721, ERC1155 } from '@metamask/controller-utils';
-import * as bridgeControllerModule from '@metamask/bridge-controller';
 
 import { handleMethodData } from '../../util/transaction-controller';
 
@@ -595,13 +594,10 @@ describe('Transactions utils :: isTransactionIncomplete', () => {
 
 describe('Transactions utils :: getActionKey', () => {
   beforeEach(() => {
-    jest
-      .spyOn(bridgeControllerModule, 'getSwapsContractAddress')
-      .mockImplementation(() => 'SWAPS_CONTRACT_ADDRESS');
+    spyOnQueryMethod(undefined);
   });
 
   it('should be "Sent Yourself Ether"', async () => {
-    spyOnQueryMethod(undefined);
     const tx = {
       txParams: {
         from: MOCK_ADDRESS1,
