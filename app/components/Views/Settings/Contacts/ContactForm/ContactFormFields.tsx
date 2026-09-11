@@ -19,6 +19,7 @@ interface ContactFormFieldsProps {
   address: string | null;
   addressInputRef: RefObject<TextInput | null>;
   editable: boolean;
+  hasAddressError: boolean;
   isAddMode: boolean;
   memo: string | null;
   memoInputRef: RefObject<TextInput | null>;
@@ -36,6 +37,7 @@ export const ContactFormFields = ({
   address,
   addressInputRef,
   editable,
+  hasAddressError,
   isAddMode,
   memo,
   memoInputRef,
@@ -73,6 +75,7 @@ export const ContactFormFields = ({
         onChangeText={onChangeAddress}
         placeholder={strings('address_book.add_input_placeholder')}
         isDisabled={!isAddMode}
+        isError={hasAddressError}
         inputRef={addressInputRef}
         endAccessory={
           isAddMode ? (
