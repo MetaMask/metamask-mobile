@@ -26,7 +26,7 @@ describe('usePredictDetailsItem', () => {
       isLoading: false,
       isFetching: false,
     } as ReturnType<typeof usePredictActivity>);
-    mapPredictActivityMock.mockReturnValue(undefined);
+    mapPredictActivityMock.mockReturnValue(null);
   });
 
   it('returns the activity matching the identifier', () => {

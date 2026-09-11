@@ -6,6 +6,7 @@ import {
   FIAT_ORDER_STATES as fiatOrderStates,
 } from '#app/constants/on-ramp';
 import type { FiatOrder } from '#app/reducers/fiatOrders/types';
+import { getOrders } from '#app/reducers/fiatOrders';
 import { useRampsOrders } from '#app/components/UI/Ramp/hooks/useRampsOrders';
 import { useRampsDetailsOrder } from './useRampsDetailsOrder';
 
@@ -90,16 +91,8 @@ describe('useRampsDetailsOrder', () => {
   });
 
   it('returns undefined when nothing matches', () => {
-    useRampsOrdersMock.mockReturnValue({
-      orders: [],
-      getOrderById: jest.fn(),
-    } as unknown as ReturnType<typeof useRampsOrders>);
-    useSelectorMock.mockImplementation((selector) => {
-      if (selector === getOrders) {
-        return [];
-      }
-      return undefined;
-    });
+    mockRampsOrders([]);
+    useSelectorMock.mockReturnValue([]);
 
     const { result } = renderHook(() => useRampsDetailsOrder('missing'));
 

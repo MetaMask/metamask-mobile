@@ -49,7 +49,7 @@ describe('usePerpsDetailsItem', () => {
       transactions: [trade, deposit],
       isFetching: false,
     } as ReturnType<typeof usePerpsActivityQuery>);
-    mapPerpsTransactionMock.mockReturnValue(undefined);
+    mapPerpsTransactionMock.mockReturnValue(null);
   });
 
   it('returns the transaction matching the identifier', () => {
