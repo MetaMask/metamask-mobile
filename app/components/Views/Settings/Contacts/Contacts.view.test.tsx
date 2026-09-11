@@ -251,7 +251,7 @@ describeForPlatforms('Contacts component views', () => {
       },
     });
 
-    // Edit mode opens read-only; tap Edit to enable save/delete actions (matches E2E).
+    // Edit mode opens read-only; tap the bottom Edit button to enable save/delete.
     fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
 
     const deleteButton = await findByTestId(

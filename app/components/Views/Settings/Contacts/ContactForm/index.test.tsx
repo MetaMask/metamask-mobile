@@ -167,6 +167,56 @@ describe('ContactForm', () => {
     expect(deleteButton).toBeNull();
   });
 
+  it('shows an Edit button at the bottom of a read-only contact, not in the header', async () => {
+    const { findByTestId, findByText, queryByTestId } =
+      renderContactForm({
+        mode: 'edit',
+        address: MOCK_ADDRESS,
+      });
+
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON),
+    ).toBeOnTheScreen();
+    expect(await findByText(strings('address_book.edit'))).toBeOnTheScreen();
+    expect(queryByTestId(AddContactViewSelectorsIDs.CANCEL_BUTTON)).toBeNull();
+    expect(queryByTestId(AddContactViewSelectorsIDs.DELETE_BUTTON)).toBeNull();
+  });
+
+  it('replaces Edit with Save, Cancel, and Delete when editing a contact', async () => {
+    const { findByTestId, getByText, queryByTestId } = renderContactForm({
+      mode: 'edit',
+      address: MOCK_ADDRESS,
+    });
+
+    fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
+
+    expect(getByText(strings('address_book.save'))).toBeOnTheScreen();
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.CANCEL_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.DELETE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON)).toBeNull();
+  });
+
+  it('returns to the read-only Edit button when Cancel is pressed', async () => {
+    const { findByTestId, queryByTestId } = renderContactForm({
+      mode: 'edit',
+      address: MOCK_ADDRESS,
+    });
+
+    fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
+    fireEvent.press(
+      await findByTestId(AddContactViewSelectorsIDs.CANCEL_BUTTON),
+    );
+
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(AddContactViewSelectorsIDs.CANCEL_BUTTON)).toBeNull();
+  });
+
   it('handles address changes and validates them', async () => {
     const validateAddressOrENSMock = jest.requireMock(
       '../../../../../util/address',
