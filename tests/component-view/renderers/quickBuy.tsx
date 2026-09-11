@@ -5,7 +5,10 @@ import type { RootState } from '../../../app/reducers';
 import { renderComponentViewScreen } from '../render';
 import QuickBuyRoot from '../../../app/components/UI/QuickBuy/QuickBuyRoot';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from '../../../app/components/UI/QuickBuy/features';
-import type { QuickBuyTarget } from '../../../app/components/UI/QuickBuy/types';
+import type {
+  QuickBuyAnalyticsContext,
+  QuickBuyTarget,
+} from '../../../app/components/UI/QuickBuy/types';
 import { USDC_DEST } from '../../../app/components/UI/Bridge/_mocks_/bridgeViewTestConstants';
 import { initialStateQuickBuy } from '../presets/quickBuy';
 
@@ -18,18 +21,14 @@ export const DEFAULT_QUICK_BUY_TARGET: QuickBuyTarget = {
   chain: 'eip155:1',
 };
 
-interface RenderQuickBuySheetOptions {
-  overrides?: DeepPartial<RootState>;
-  target?: QuickBuyTarget;
-  onClose?: () => void;
-}
-
 function QuickBuySheetHarness({
   target,
   onClose,
+  analyticsContext,
 }: {
   target: QuickBuyTarget;
   onClose: () => void;
+  analyticsContext?: QuickBuyAnalyticsContext;
 }) {
   return (
     <QuickBuyRoot
@@ -37,19 +36,22 @@ function QuickBuySheetHarness({
       target={target}
       onClose={onClose}
       features={TOP_TRADERS_QUICK_BUY_FEATURES}
+      analyticsContext={analyticsContext}
     />
   );
 }
 
-export function renderQuickBuySheet(
-  options: RenderQuickBuySheetOptions = {},
-): ReturnType<typeof renderComponentViewScreen> {
-  const {
-    overrides,
-    target = DEFAULT_QUICK_BUY_TARGET,
-    onClose = () => undefined,
-  } = options;
-
+export const renderQuickBuySheet = ({
+  overrides,
+  target = DEFAULT_QUICK_BUY_TARGET,
+  onClose = () => undefined,
+  analyticsContext,
+}: {
+  overrides?: DeepPartial<RootState>;
+  target?: QuickBuyTarget;
+  onClose?: () => void;
+  analyticsContext?: QuickBuyAnalyticsContext;
+} = {}): ReturnType<typeof renderComponentViewScreen> => {
   const builder = initialStateQuickBuy({ deterministicFiat: true });
   if (overrides) {
     builder.withOverrides(overrides);
@@ -57,7 +59,11 @@ export function renderQuickBuySheet(
   const state = builder.build();
 
   const Screen = () => (
-    <QuickBuySheetHarness target={target} onClose={onClose} />
+    <QuickBuySheetHarness
+      target={target}
+      onClose={onClose}
+      analyticsContext={analyticsContext}
+    />
   );
 
   return renderComponentViewScreen(
@@ -65,4 +71,4 @@ export function renderQuickBuySheet(
     { name: QUICK_BUY_SHEET_ROUTE },
     { state },
   );
-}
+};

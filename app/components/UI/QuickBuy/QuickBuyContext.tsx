@@ -53,6 +53,7 @@ interface QuickBuyProviderProps {
   children: React.ReactNode;
 }
 
+// TODO nest Swap providers here?
 export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   target,
   onClose,

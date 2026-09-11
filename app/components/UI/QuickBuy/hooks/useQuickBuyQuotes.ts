@@ -56,6 +56,7 @@ import {
 } from '../utils/streamQuickBuyQuotes';
 import { parseCaipAssetType } from '@metamask/utils';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import { buildGenericQuoteRequest } from '../../Bridge/hooks/useSwapQuotes/utils';
 
 export type QuickBuyQuote = QuoteResponse;
 
@@ -120,53 +121,6 @@ export interface UseQuickBuyQuotesResult {
   /** Imperatively trigger a new quotes fetch and reset the refresh counter. */
   refetchQuotes: () => void;
 }
-
-const buildQuoteRequest = ({
-  sourceToken,
-  destToken,
-  sourceTokenAmount,
-  slippage,
-  walletAddress,
-  destAddress,
-  gasIncluded,
-  gasIncluded7702,
-}: {
-  sourceToken: BridgeToken;
-  destToken: BridgeToken;
-  sourceTokenAmount: string;
-  slippage: string | undefined;
-  walletAddress: string;
-  destAddress: string | undefined;
-  gasIncluded: boolean;
-  gasIncluded7702: boolean;
-}): GenericQuoteRequest | null => {
-  let normalizedSourceAmount: string;
-  try {
-    normalizedSourceAmount = calcTokenValue(
-      sourceTokenAmount === '.' ? '0' : sourceTokenAmount,
-      sourceToken.decimals,
-    ).toFixed(0);
-  } catch {
-    return null;
-  }
-
-  if (normalizedSourceAmount === '0') {
-    return null;
-  }
-
-  return {
-    srcChainId: getDecimalChainId(sourceToken.chainId),
-    srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
-    destChainId: getDecimalChainId(destToken.chainId),
-    destTokenAddress: formatAddressToCaipReference(destToken.address),
-    srcTokenAmount: normalizedSourceAmount,
-    slippage: slippage ? Number(slippage) : undefined,
-    walletAddress,
-    destWalletAddress: destAddress ?? walletAddress,
-    gasIncluded,
-    gasIncluded7702,
-  };
-};
 
 // Read the app-wide controller dependencies once. selectBridgeQuotesBase needs
 // the background controller state so it can derive quote metadata (gas fees,
@@ -319,16 +273,37 @@ export function useQuickBuyQuotes({
       return;
     }
 
-    const params = buildQuoteRequest({
-      sourceToken,
-      destToken,
-      sourceTokenAmount,
-      slippage,
-      walletAddress,
-      destAddress: destAddress ?? undefined,
-      gasIncluded,
-      gasIncluded7702,
-    });
+    let normalizedSourceAmount: string | null = null;
+    try {
+      normalizedSourceAmount = calcTokenValue(
+        sourceTokenAmount === '.' ? '0' : sourceTokenAmount,
+        sourceToken.decimals,
+      ).toFixed(0);
+    } catch {}
+
+    if (normalizedSourceAmount === '0') {
+    }
+
+    const featureId = getQuickBuyFeatureId(analyticsContext?.source);
+
+    const params =
+      normalizedSourceAmount && normalizedSourceAmount !== '0'
+        ? buildGenericQuoteRequest({
+            quoteParams: {
+              srcToken: sourceToken,
+              destToken,
+              srcAmount: sourceTokenAmount,
+              slippage,
+              walletAddress,
+              destWalletAddress: destAddress ?? undefined,
+            },
+            gasIncluded,
+            gasIncluded7702,
+            insufficientBalance: false,
+            insufficientNativeReserveError: false,
+            featureId,
+          })
+        : null;
 
     if (!params) {
       resetQuotesIdle();
@@ -348,8 +323,6 @@ export function useQuickBuyQuotes({
 
     const requestedAt = Date.now();
     requestStartedAtRef.current = requestedAt;
-
-    const featureId = getQuickBuyFeatureId(analyticsContext?.source);
 
     // Shared by REQUESTED + RECEIVED. Null when analytics context is incomplete
     // — both events guard on this single value instead of duplicating the check.

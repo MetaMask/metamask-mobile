@@ -146,6 +146,7 @@ const Wrapper = ({
   quoteRequestIndex,
   quoteRequestCount,
   featureId,
+  isActive,
   ...options
 }: {
   children: React.ReactNode;
@@ -153,6 +154,7 @@ const Wrapper = ({
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
   featureId: FeatureId;
+  isActive?: boolean;
 }) => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -162,7 +164,7 @@ const Wrapper = ({
   const destAddress = useSelector(selectDestAddress);
 
   mockUseBridgeSession.mockReturnValue({
-    selectedTab: BridgeTabKey.Limit,
+    selectedTab: isActive === false ? BridgeTabKey.Market : BridgeTabKey.Limit,
     renderedTab: BridgeTabKey.Limit,
     setSelectedTab: jest.fn(),
     setRenderedTab: jest.fn(),
@@ -236,4 +238,41 @@ runQuoteDataCases({
       ),
     }),
   featureId: FeatureId.LIMIT_ORDER,
+});
+
+runQuoteRequestCases({
+  name: 'useQuickBuyRequest',
+  debounceMs: mockDebounceMs,
+  renderHook: (options) =>
+    // @ts-expect-error - this returns a defined update function
+    renderHook(
+      () => {
+        const value = useSwapQuotes();
+        return value?.debouncedUpdateQuoteParams;
+      },
+      {
+        wrapper: ({ children }) => (
+          <Wrapper {...options} featureId={FeatureId.QUICK_BUY_EXPLORE}>
+            {children}
+          </Wrapper>
+        ),
+      },
+    ),
+  featureId: FeatureId.QUICK_BUY_EXPLORE,
+});
+
+runQuoteDataCases({
+  name: 'useQuickBuyQuoteData',
+  mockDispatch,
+
+  renderHook: (options) =>
+    // @ts-expect-error - this returns quote data
+    renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <Wrapper {...options} featureId={FeatureId.QUICK_BUY_FOLLOW_TRADING}>
+          {children}
+        </Wrapper>
+      ),
+    }),
+  featureId: FeatureId.QUICK_BUY_FOLLOW_TRADING,
 });

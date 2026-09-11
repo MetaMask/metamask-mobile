@@ -13,6 +13,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
+
 interface QuickBuySubScreenHeaderProps {
   title: string;
   onBack: () => void;
@@ -34,7 +36,7 @@ const QuickBuySubScreenHeader: React.FC<QuickBuySubScreenHeaderProps> = ({
       iconName={DsIconName.ArrowLeft}
       size={ButtonIconSize.Md}
       onPress={onBack}
-      testID="quick-buy-sub-screen-back-button"
+      testID={QuickBuySheetSelectorsIDs.SUB_SCREEN_BACK}
     />
     <Text
       variant={TextVariant.HeadingSm}
@@ -47,7 +49,7 @@ const QuickBuySubScreenHeader: React.FC<QuickBuySubScreenHeaderProps> = ({
       iconName={DsIconName.Close}
       size={ButtonIconSize.Md}
       onPress={onClose}
-      testID="quick-buy-sub-screen-close-button"
+      testID={QuickBuySheetSelectorsIDs.SUB_SCREEN_CLOSE}
     />
   </Box>
 );
