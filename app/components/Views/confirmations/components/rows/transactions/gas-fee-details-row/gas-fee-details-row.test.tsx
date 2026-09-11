@@ -64,7 +64,7 @@ const GAS_FEE_TOKEN_MOCK: ReturnType<typeof useSelectedGasFeeToken> = {
   metaMaskFee: '0x0',
   metamaskFeeFiat: '$0.00',
   fee: '0x0',
-  transferTransaction: {},
+  getTransferTransaction: () => ({}),
 };
 
 const SIMULATION_DATA_MOCK: SimulationData = {
