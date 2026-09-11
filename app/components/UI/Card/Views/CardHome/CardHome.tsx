@@ -69,6 +69,7 @@ import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { useCardTransactionHistoryDestination } from '../../hooks/useCardTransactionHistoryDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
+import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import useCreditBalance from '../../hooks/useCreditBalance';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
@@ -105,7 +106,17 @@ import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
 import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
-import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardFlow,
+  CardScreens,
+  buildCardMigrationBadgeReasons,
+  mapUkMigrationPhaseToAnalytics,
+  withCardProvider,
+} from '../../util/metrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -132,6 +143,7 @@ const CardHome = () => {
     selectMetalCardCheckoutFeatureFlag,
   );
   const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
   const theme = useTheme();
@@ -151,6 +163,7 @@ const CardHome = () => {
   const isImmersve = activeProviderId === CardProviderIds.Immersve;
   const { state: ukMigrationState, refresh: refreshUkMigrationState } =
     useCardUkMigrationState();
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
   // Baanx UK migration uses account.countryOfResidence; Immersve regionCode is
   // irrelevant because Immersve users are never eligible.
   const migrationRegionCode =
@@ -428,6 +441,35 @@ const CardHome = () => {
     });
   }, [navigation]);
 
+  const handleUkMigrationBannerConfirm = useCallback(() => {
+    const migrationPhase = mapUkMigrationPhaseToAnalytics(
+      ukMigrationState.phase,
+    );
+    const badgeReasons = buildCardMigrationBadgeReasons(
+      Boolean(cardUpdateBadgeSeverity),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.MIGRATION_ATTENTION_SET_UP_CARD_BUTTON,
+            flow: CardFlow.MIGRATION,
+            ...(migrationPhase ? { migration_phase: migrationPhase } : {}),
+            ...(badgeReasons ? { badge_reasons: badgeReasons } : {}),
+          }),
+        )
+        .build(),
+    );
+    handleOpenUkMigrationSheet();
+  }, [
+    activeProviderId,
+    cardUpdateBadgeSeverity,
+    createEventBuilder,
+    handleOpenUkMigrationSheet,
+    trackEvent,
+    ukMigrationState.phase,
+  ]);
+
   const ukMigrationSoftDeadlineLabel = useMemo(() => {
     if (!ukMigrationState.deadline) {
       return null;
@@ -631,7 +673,7 @@ const CardHome = () => {
                   ? { deadline: ukMigrationSoftDeadlineLabel }
                   : undefined
               }
-              onConfirm={handleOpenUkMigrationSheet}
+              onConfirm={handleUkMigrationBannerConfirm}
               onClose={() => setIsUkMigrationSoftBannerDismissed(true)}
             />
           </Box>
@@ -644,7 +686,7 @@ const CardHome = () => {
           >
             <CardMessageBox
               messageType={CardMessageBoxType.UkMigrationRequired}
-              onConfirm={handleOpenUkMigrationSheet}
+              onConfirm={handleUkMigrationBannerConfirm}
             />
           </Box>
         )}
