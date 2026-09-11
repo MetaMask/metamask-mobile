@@ -70,6 +70,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/messenger',
   '@metamask/native-utils',
   '@metamask/react-native-acm',
+  '@metamask/react-native-button',
   '@metamask/smart-transactions-controller',
   '@tommasini/react-native-scrollable-tab-view',
   '@veriff/react-native-sdk',
