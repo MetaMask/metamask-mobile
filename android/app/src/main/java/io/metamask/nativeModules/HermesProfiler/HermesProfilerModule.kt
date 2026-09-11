@@ -21,6 +21,11 @@ import java.io.File
  * collection via MediaStore, which Appium cannot read back, so we write to
  * app-scoped external storage instead. That path is inside the app sandbox and
  * is therefore retrievable with `pullFile` on a non-rooted BrowserStack device.
+ *
+ * Each stop writes a numbered segment rather than a single fixed file. One test
+ * can profile several app processes (specs that restart the app) and background
+ * the app several times (OAuth hand-offs), and every one of those produces its
+ * own trace.
  */
 class HermesProfilerModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -40,20 +45,28 @@ class HermesProfilerModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun stopProfilingToAppStorage(promise: Promise) {
         try {
-            val documentsDirectory =
-                reactApplicationContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-                    ?: throw IllegalStateException("App-scoped external storage is unavailable")
-            documentsDirectory.mkdirs()
+            val documentsDirectory = requireDocumentsDirectory()
+            val outputFile =
+                File(documentsDirectory, segmentFileName(nextSegmentIndex(documentsDirectory)))
 
-            val outputFile = File(documentsDirectory, PROFILE_FILE_NAME)
-            outputFile.delete()
+            // Hermes streams the trace out, so a reader watching the directory
+            // can observe a partial file. Dump to a scratch name and rename it
+            // once the write is known to be complete: the test side polls for
+            // segment files and treats their presence as "safe to pull".
+            val scratchFile = File(documentsDirectory, SCRATCH_FILE_NAME)
+            scratchFile.delete()
 
-            HermesSamplingProfiler.dumpSampledTraceToFile(outputFile.absolutePath)
+            HermesSamplingProfiler.dumpSampledTraceToFile(scratchFile.absolutePath)
             HermesSamplingProfiler.disable()
 
-            if (!outputFile.isFile || outputFile.length() == 0L) {
+            if (!scratchFile.isFile || scratchFile.length() == 0L) {
                 throw IllegalStateException(
-                    "Hermes wrote no trace to ${outputFile.absolutePath}"
+                    "Hermes wrote no trace to ${scratchFile.absolutePath}"
+                )
+            }
+            if (!scratchFile.renameTo(outputFile)) {
+                throw IllegalStateException(
+                    "Could not move the trace to ${outputFile.absolutePath}"
                 )
             }
 
@@ -63,9 +76,40 @@ class HermesProfilerModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    private fun requireDocumentsDirectory(): File {
+        val directory =
+            reactApplicationContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+                ?: throw IllegalStateException("App-scoped external storage is unavailable")
+        directory.mkdirs()
+        return directory
+    }
+
+    /**
+     * Segments are numbered across app processes rather than within one. A spec
+     * that restarts the app profiles each process separately, and the restarted
+     * process must not reuse an index whose file the test has not pulled yet.
+     */
+    private fun nextSegmentIndex(directory: File): Int {
+        val highestExisting =
+            directory
+                .listFiles()
+                ?.mapNotNull {
+                    SEGMENT_FILE_PATTERN.matchEntire(it.name)?.groupValues?.get(1)?.toIntOrNull()
+                }
+                ?.maxOrNull()
+                ?: 0
+        return highestExisting + 1
+    }
+
+    private fun segmentFileName(index: Int): String =
+        "$PROFILE_FILE_PREFIX.segment-$index.cpuprofile"
+
     companion object {
         const val NAME = "MetaMaskHermesProfiler"
         private const val ERROR_CODE = "hermes_profiler_error"
-        private const val PROFILE_FILE_NAME = "metamask-performance.cpuprofile"
+        private const val PROFILE_FILE_PREFIX = "metamask-performance"
+        private const val SCRATCH_FILE_NAME = "$PROFILE_FILE_PREFIX.pending"
+        private val SEGMENT_FILE_PATTERN =
+            Regex("""metamask-performance\.segment-(\d+)\.cpuprofile""")
     }
 }
