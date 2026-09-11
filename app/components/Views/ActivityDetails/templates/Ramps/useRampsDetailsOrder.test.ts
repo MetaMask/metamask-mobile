@@ -5,7 +5,6 @@ import {
   FIAT_ORDER_PROVIDERS as fiatOrderProviders,
   FIAT_ORDER_STATES as fiatOrderStates,
 } from '#app/constants/on-ramp';
-import { getOrders } from '#app/reducers/fiatOrders';
 import type { FiatOrder } from '#app/reducers/fiatOrders/types';
 import { useRampsOrders } from '#app/components/UI/Ramp/hooks/useRampsOrders';
 import { useRampsDetailsOrder } from './useRampsDetailsOrder';
@@ -48,27 +47,23 @@ const rampsOrder = {
   txHash: '0xrampshash',
 } as unknown as ReturnType<typeof useRampsOrders>['orders'][number];
 
+function mockRampsOrders(orders = [rampsOrder], getOrderById = jest.fn()) {
+  useRampsOrdersMock.mockReturnValue({
+    orders,
+    getOrderById,
+  } as unknown as ReturnType<typeof useRampsOrders>);
+}
+
 describe('useRampsDetailsOrder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useSelectorMock.mockImplementation((selector) => {
-      if (selector === getOrders) {
-        return [legacyOrder];
-      }
-      return undefined;
-    });
-    useRampsOrdersMock.mockReturnValue({
-      orders: [rampsOrder],
-      getOrderById: jest.fn(),
-    } as unknown as ReturnType<typeof useRampsOrders>);
+    useSelectorMock.mockReturnValue([legacyOrder]);
+    mockRampsOrders();
   });
 
   it('returns a v2 order matched by id', () => {
     const getOrderById = jest.fn().mockReturnValue(rampsOrder);
-    useRampsOrdersMock.mockReturnValue({
-      orders: [rampsOrder],
-      getOrderById,
-    } as unknown as ReturnType<typeof useRampsOrders>);
+    mockRampsOrders([rampsOrder], getOrderById);
 
     const { result } = renderHook(() =>
       useRampsDetailsOrder('/providers/transak/orders/po-1'),
@@ -79,10 +74,7 @@ describe('useRampsDetailsOrder', () => {
   });
 
   it('returns a v2 order matched by transaction hash', () => {
-    useRampsOrdersMock.mockReturnValue({
-      orders: [rampsOrder],
-      getOrderById: jest.fn(),
-    } as unknown as ReturnType<typeof useRampsOrders>);
+    mockRampsOrders();
 
     const { result } = renderHook(() => useRampsDetailsOrder('0xRAMPSHASH'));
 
@@ -90,10 +82,7 @@ describe('useRampsDetailsOrder', () => {
   });
 
   it('returns a legacy FiatOrder matched by transaction hash', () => {
-    useRampsOrdersMock.mockReturnValue({
-      orders: [],
-      getOrderById: jest.fn(),
-    } as unknown as ReturnType<typeof useRampsOrders>);
+    mockRampsOrders([]);
 
     const { result } = renderHook(() => useRampsDetailsOrder('0xLEGACYHASH'));
 

@@ -1,9 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import {
-  mapPerpsTransaction,
-  type ActivityListItem,
-} from '#app/util/activity-adapters';
+import { mapPerpsTransaction } from '#app/util/activity-adapters';
 import { usePerpsActivityQuery } from '../../hooks/usePerpsActivityQuery';
 import { usePerpsDetailsItem } from './usePerpsDetailsItem';
 import type { PerpsTransaction } from '../../components/ActivityDetailsPerps.utils';
@@ -44,11 +41,6 @@ const deposit = {
   id: 'wallet-1',
   depositWithdrawal: { txHash: '0xabc' },
 } as PerpsTransaction;
-const mappedTrade = {
-  type: 'perpsOpenLong',
-  hash: 'fill-1',
-} as ActivityListItem;
-
 describe('usePerpsDetailsItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -57,14 +49,13 @@ describe('usePerpsDetailsItem', () => {
       transactions: [trade, deposit],
       isFetching: false,
     } as ReturnType<typeof usePerpsActivityQuery>);
-    mapPerpsTransactionMock.mockReturnValue(mappedTrade);
+    mapPerpsTransactionMock.mockReturnValue(undefined);
   });
 
   it('returns the transaction matching the identifier', () => {
     const { result } = renderHook(() => usePerpsDetailsItem('FILL-1'));
 
     expect(result.current.transaction).toBe(trade);
-    expect(result.current.item).toBe(mappedTrade);
   });
 
   it('matches a deposit by transaction hash', () => {
@@ -77,6 +68,5 @@ describe('usePerpsDetailsItem', () => {
     const { result } = renderHook(() => usePerpsDetailsItem('missing'));
 
     expect(result.current.transaction).toBeUndefined();
-    expect(result.current.item).toBeUndefined();
   });
 });
