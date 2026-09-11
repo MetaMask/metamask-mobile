@@ -22,13 +22,19 @@ jest.mock('../../../../../../util/theme', () => ({
   useTheme: () => ({ colors: { success: { default: 'mock-success' } } }),
 }));
 
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: () => ({}) }));
+
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: jest.fn(),
-    createEventBuilder: () => ({
-      addProperties: () => ({ build: () => ({}) }),
-      build: () => ({}),
-    }),
+    createEventBuilder: (event: unknown) => {
+      mockCreateEventBuilder(event);
+      return {
+        addProperties: mockAddProperties,
+        build: () => ({}),
+      };
+    },
   }),
 }));
 
@@ -172,6 +178,42 @@ describe('useCardHomeActions — transactionHistoryAction', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
       showAuthPrompt: true,
       postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
+    });
+  });
+});
+
+describe('useCardHomeActions — redeem entry points', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens the credit redeem screen and reports the entry click', () => {
+    const { result } = setup();
+
+    act(() => {
+      result.current.redeemCreditAction();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.CREDIT_REDEEM);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      action: 'CREDIT_BUTTON',
+      type: 'open_redeem',
+    });
+  });
+
+  it('distinguishes the cashback entry click from the withdraw press', () => {
+    const { result } = setup();
+
+    act(() => {
+      result.current.cashbackAction();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.CASHBACK);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      action: 'CASHBACK_BUTTON',
+      type: 'open_redeem',
     });
   });
 });
