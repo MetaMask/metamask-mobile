@@ -57,6 +57,8 @@ const SampleFeature = () => {
         includesTopInset
         title={strings('sample_feature.title')}
         onBack={() => navigation.goBack()}
+        testID="sample-feature-header"
+        backButtonProps={{ testID: 'sample-feature-header-back-button' }}
       />
       <KeyboardAwareScrollView
         style={[baseStyles.flexGrow, styles.content]}
