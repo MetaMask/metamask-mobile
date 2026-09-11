@@ -1,14 +1,4 @@
-import { isEvmAccountType } from '@metamask/keyring-api';
-import Engine from '../../core/Engine';
-import ReduxService from '../../core/redux';
 import Logger from '../Logger';
-import {
-  selectEvmNetworkConfigurationsByChainId,
-  selectNativeNetworkCurrencies,
-} from '../../selectors/networkController';
-import { selectSelectedAccountGroupInternalAccounts } from '../../selectors/multichainAccounts/accountTreeController';
-import { selectBalanceBySelectedAccountGroup } from '../../selectors/assets/balances';
-import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
 
 /**
  * USD buckets for the `funding_amount_range` prop on `Wallet Setup
@@ -37,162 +27,26 @@ export const getFundingAmountRange = (amount: number): FundingAmountRange => {
 };
 
 /**
- * Fetch budget. Guarantees the deferred event emission fires even if a
- * refresh task hangs; fetches slower than this omit the prop instead.
+ * Fetch budget retained for API compatibility with callers that reference
+ * it; the fetch itself is currently a no-op (see below).
  */
 export const FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS = 20000;
 
 /**
- * Refreshes and returns the funding range of the selected account group
- * (Account 1 at import time) — the same balance the wallet home displays:
- * popular EVM mainnets plus the group's non-EVM accounts, in USD.
+ * Resolves the funding range of the selected account group (Account 1 at
+ * import time) for the `funding_amount_range` prop on `Wallet Setup
+ * Completed`.
  *
- * Resolves undefined (prop omitted, "(not set)" in Mixpanel) if any refresh
- * task fails or {@link FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS} elapses, so
- * '< 0.01' always means a confirmed zero balance. Not a pure read — it warms
- * the same controller state the wallet home refreshes on mount — but it
- * never throws and never blocks the caller.
+ * Always resolves undefined (prop omitted, "(not set)" in Mixpanel):
+ * `AssetsController` refreshes its own state independently of this call, so
+ * there is no legacy controller refresh path left to trigger here. This
+ * function never throws and never blocks the caller.
  */
 export async function fetchImportedWalletFundingAmountRange(): Promise<
   FundingAmountRange | undefined
 > {
-  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
-  try {
-    const state = ReduxService.store.getState();
-    if (selectIsAssetsUnifyStateEnabled(state)) {
-      Logger.log(
-        'fundingAmountRange: assetsUnifyState is enabled — funding_amount_range omitted (legacy balance refresh path is deactivated)',
-      );
-      return undefined;
-    }
-    const evmNetworkConfigurations =
-      selectEvmNetworkConfigurationsByChainId(state);
-    const nativeCurrencies = selectNativeNetworkCurrencies(state);
-
-    const {
-      AccountTrackerController,
-      CurrencyRateController,
-      MultichainAssetsRatesController,
-      MultichainBalancesController,
-      NetworkEnablementController,
-      TokenBalancesController,
-      TokenDetectionController,
-      TokenRatesController,
-    } = Engine.context;
-
-    const chainIds =
-      NetworkEnablementController.listPopularEvmNetworks().filter(
-        (chainId) => evmNetworkConfigurations[chainId],
-      );
-    if (!chainIds.length) {
-      return undefined;
-    }
-    const chainIdSet = new Set<string>(chainIds);
-    const networkClientIds = Object.entries(evmNetworkConfigurations)
-      .filter(([chainId]) => chainIdSet.has(chainId))
-      .map(
-        ([, { defaultRpcEndpointIndex, rpcEndpoints }]) =>
-          rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId,
-      )
-      .filter((id): id is string => Boolean(id));
-
-    const pendingTasks = new Set<string>();
-    const labeled = <T>(label: string, task: () => Promise<T>): Promise<T> => {
-      pendingTasks.add(label);
-      return task().then((result) => {
-        pendingTasks.delete(label);
-        return result;
-      });
-    };
-    const runRefresh = async () => {
-      await Promise.all([
-        labeled('accountTracker', () =>
-          AccountTrackerController.refresh(networkClientIds),
-        ),
-        labeled('currencyRate', () =>
-          CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        ),
-        labeled('tokenDetection', () =>
-          TokenDetectionController.detectTokens({ chainIds }),
-        ),
-        labeled('tokenBalances', () =>
-          TokenBalancesController._executePoll({ chainIds }).catch((error) => {
-            const failedChain = /^Invalid chain ID "(?<chainId>.+)"$/.exec(
-              error instanceof Error ? error.message : '',
-            )?.groups?.chainId;
-            if (failedChain && !chainIdSet.has(failedChain)) {
-              Logger.log(
-                `fundingAmountRange: ignoring token-import failure for chain ${failedChain} — it has no NetworkController configuration and was not part of this refresh; requested-chain balances are unaffected`,
-              );
-              return undefined;
-            }
-            throw error;
-          }),
-        ),
-      ]);
-
-      await labeled('tokenRates', () =>
-        TokenRatesController._executePoll({ chainIds }),
-      );
-
-      const nonEvmAccounts = selectSelectedAccountGroupInternalAccounts(
-        ReduxService.store.getState(),
-      ).filter((account) => !isEvmAccountType(account.type));
-      if (!nonEvmAccounts.length) {
-        return;
-      }
-      await Promise.all(
-        nonEvmAccounts.map((account) =>
-          labeled(`multichainBalance:${account.id}`, () =>
-            MultichainBalancesController.updateBalance(account.id),
-          ),
-        ),
-      );
-      await labeled('multichainRates', () =>
-        MultichainAssetsRatesController.updateAssetsRates(),
-      );
-    };
-    const refreshPromise = runRefresh();
-    refreshPromise.catch(() => undefined);
-
-    await Promise.race([
-      refreshPromise,
-      new Promise((_, reject) => {
-        timeoutHandle = setTimeout(
-          () =>
-            reject(
-              new Error(
-                `Funding amount balance fetch timed out (pending: ${[
-                  ...pendingTasks,
-                ].join(', ')})`,
-              ),
-            ),
-          FUNDING_AMOUNT_BALANCE_FETCH_TIMEOUT_MS,
-        );
-      }),
-    ]);
-
-    const refreshedState = ReduxService.store.getState();
-    const groupBalance = selectBalanceBySelectedAccountGroup(
-      NetworkEnablementController.listPopularNetworks(),
-    )(refreshedState);
-    if (!groupBalance) {
-      return undefined;
-    }
-    const { totalBalanceInUserCurrency } = groupBalance;
-    if (!Number.isFinite(totalBalanceInUserCurrency)) {
-      return undefined;
-    }
-    return getFundingAmountRange(totalBalanceInUserCurrency);
-  } catch (error) {
-    Logger.log(
-      'fundingAmountRange: balance fetch failed — funding_amount_range will be omitted from Wallet Setup Completed',
-      error,
-    );
-    return undefined;
-  } finally {
-    if (timeoutHandle !== undefined) {
-      clearTimeout(timeoutHandle);
-    }
-  }
+  Logger.log(
+    'fundingAmountRange: funding_amount_range omitted (legacy balance refresh path has been removed)',
+  );
+  return undefined;
 }

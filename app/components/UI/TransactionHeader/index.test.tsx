@@ -18,17 +18,13 @@ const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      AccountTrackerController: {
-        accountsByChainId: {
-          '0x1': {
-            [MOCK_ADDRESS_1]: {
-              balance: '200',
-            },
-            [MOCK_ADDRESS_2]: {
-              balance: '200',
-            },
-          },
-        },
+      AssetsController: {
+        assetsInfo: {},
+        assetsBalance: {},
+        assetsPrice: {},
+        assetPreferences: {},
+        customAssets: {},
+        selectedCurrency: 'usd',
       },
       NetworkController: {
         ...mockNetworkState({
