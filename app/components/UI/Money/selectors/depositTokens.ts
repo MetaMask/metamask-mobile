@@ -1,6 +1,11 @@
 import type { Asset } from '@metamask/assets-controllers';
 import { TransactionType } from '@metamask/transaction-controller';
-import type { Hex } from '@metamask/utils';
+import {
+  isCaipAssetType,
+  KnownCaipNamespace,
+  parseCaipAssetType,
+  type Hex,
+} from '@metamask/utils';
 import {
   getBlockedTokensForTransactionType,
   isTokenBlocked,
@@ -25,11 +30,15 @@ export type MoneyDepositBlockedTokens = ReturnType<
   typeof getBlockedTokensForTransactionType
 >;
 
+export const isEvmCaip19AssetId = (assetId: string): boolean =>
+  isCaipAssetType(assetId) &&
+  parseCaipAssetType(assetId).chain.namespace === KnownCaipNamespace.Eip155;
+
 const hasBalance = (asset: MoneyDepositAsset) =>
   Number(asset.fiat?.balance ?? 0) > 0 ||
   (asset.rawBalance !== undefined && asset.rawBalance !== '0x0');
 
-const isEvmAsset = (asset: Asset): asset is MoneyDepositAsset =>
+export const isMoneyDepositAsset = (asset: Asset): asset is MoneyDepositAsset =>
   'address' in asset &&
   typeof asset.address === 'string' &&
   asset.address.length > 0 &&
@@ -45,7 +54,6 @@ export const isMoneyDepositSupportedToken = (
   token: MoneyDepositToken,
   blockedTokens?: MoneyDepositBlockedTokens,
 ): boolean =>
-  // TODO: Verify this startWith behaviour to ensure it's correct.
   token.chainId?.startsWith('0x') === true &&
   token.address.length > 0 &&
   !isTokenBlocked(token, blockedTokens);
@@ -68,24 +76,8 @@ export const filterMoneyDepositSupportedAssets = (
   blockedTokens: MoneyDepositBlockedTokens,
 ): MoneyDepositAsset[] =>
   assets
-    .filter(isEvmAsset)
-    .filter((asset) => isMoneyDepositSupportedToken(asset, blockedTokens));
-
-// TODO: Rename to filterMoneyDepositAssetsMeetingMinimumBalance.
-export const filterMoneyDepositEligibleAssets = (
-  assets: readonly Asset[],
-  blockedTokens: MoneyDepositBlockedTokens,
-  minimumBalance: number,
-): MoneyDepositAsset[] =>
-  filterMoneyDepositSupportedAssets(assets, blockedTokens)
-    .filter(
-      (asset) =>
-        hasBalance(asset) && meetsMinimumBalance(asset, minimumBalance),
-    )
-    .sort(
-      (first, second) =>
-        (second.fiat?.balance ?? 0) - (first.fiat?.balance ?? 0),
-    );
+    .filter(isMoneyDepositAsset)
+    .filter((asset) => !isTokenBlocked(asset, blockedTokens));
 
 export const selectMoneyDepositBlockedTokens = createDeepEqualSelector(
   [selectMetaMaskPayTokensFlags],
@@ -96,27 +88,30 @@ export const selectMoneyDepositBlockedTokens = createDeepEqualSelector(
     ),
 );
 
-// TODO: Rename to selectMoneyDepositAssetsWithoutMinimumBalance.
-export const selectMoneyDepositSupportedAssets = createDeepEqualSelector(
-  [selectAssetsBySelectedAccountGroup, selectMoneyDepositBlockedTokens],
-  (assetsByChain, blockedTokens) =>
-    filterMoneyDepositSupportedAssets(
-      Object.values(assetsByChain).flat() as Asset[],
-      blockedTokens,
-    ),
-);
-
-// TODO: Rename to selectMoneyDepositAssetsMeetingMinimumBalance.
-export const selectMoneyDepositEligibleAssets = createDeepEqualSelector(
-  [selectMoneyDepositSupportedAssets, selectMoneyDepositMinBalance],
-  (supportedAssets, minimumBalance) =>
-    supportedAssets
-      .filter(
-        (asset) =>
-          hasBalance(asset) && meetsMinimumBalance(asset, minimumBalance),
-      )
-      .sort(
-        (first, second) =>
-          (second.fiat?.balance ?? 0) - (first.fiat?.balance ?? 0),
+export const selectMoneyDepositAssetsWithoutMinimumBalance =
+  createDeepEqualSelector(
+    [selectAssetsBySelectedAccountGroup, selectMoneyDepositBlockedTokens],
+    (assetsByChain, blockedTokens) =>
+      filterMoneyDepositSupportedAssets(
+        Object.values(assetsByChain).flat() as Asset[],
+        blockedTokens,
       ),
-);
+  );
+
+export const selectMoneyDepositAssetsMeetingMinimumBalance =
+  createDeepEqualSelector(
+    [
+      selectMoneyDepositAssetsWithoutMinimumBalance,
+      selectMoneyDepositMinBalance,
+    ],
+    (supportedAssets, minimumBalance) =>
+      supportedAssets
+        .filter(
+          (asset) =>
+            hasBalance(asset) && meetsMinimumBalance(asset, minimumBalance),
+        )
+        .sort(
+          (first, second) =>
+            (second.fiat?.balance ?? 0) - (first.fiat?.balance ?? 0),
+        ),
+  );

@@ -1,7 +1,30 @@
-import type { EarnExperience } from '../../types/earnAssets';
+import type {
+  EarnExperience,
+  EarnExperienceDepositNotReadyReason,
+  EarnExperienceDepositReadiness,
+} from '../../types/earnAssets';
 
 const isMoneyExperience = (experience: EarnExperience): boolean =>
   experience.type === 'MONEY_ACCOUNT_DEPOSIT';
+
+const EARN_ASSET_ACQUISITION_REASONS =
+  new Set<EarnExperienceDepositNotReadyReason>([
+    'asset_not_tracked',
+    'insufficient_balance',
+    'balance_unavailable',
+  ]);
+
+/**
+ * Determines whether a not-ready Earn experience needs an acquisition flow.
+ *
+ * @param readiness - Deposit readiness for the selected Earn experience.
+ * @returns Whether the selected asset requires acquisition before deposit.
+ */
+export const requiresEarnAssetAcquisition = (
+  readiness: EarnExperienceDepositReadiness,
+): boolean =>
+  readiness.status === 'not_ready' &&
+  EARN_ASSET_ACQUISITION_REASONS.has(readiness.reason);
 
 /**
  * Returns experiences that present the asset as a deposit input.

@@ -9,6 +9,7 @@ import {
   getReadyEarnDepositExperiences,
   getEarnInputExperiences,
   getMoneyDepositPaymentToken,
+  requiresEarnAssetAcquisition,
   requireTrackedEarnAsset,
 } from '../utils/earnAssets';
 import { EARN_EXPERIENCES } from '../constants/experiences';
@@ -24,6 +25,8 @@ import type { EarnModuleNavigationContext } from '../types/earnModuleEvents.type
 import useEarnAssetAcquisitionNavigation, {
   type EarnAssetAcquisitionRoute,
 } from './useEarnAssetAcquisitionNavigation';
+import { MoneyPostOnboardingRedirectType } from '../../Money/types/navigation';
+import { useMoneyOnboardingNavigation } from '../../Money/hooks/useMoneyNavigation';
 
 const LOG_PREFIX = '[useEarnOpportunityNavigation]';
 
@@ -54,6 +57,10 @@ type EarnExperienceDepositDestination = Exclude<
   | EARN_MODULE_REDIRECT_TARGETS.STRATEGY_SELECTION_BOTTOM_SHEET
 >;
 
+type EarnExperienceRedirectTarget =
+  | EarnExperienceDepositDestination
+  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING;
+
 const EARN_EXPERIENCE_DESTINATIONS: Record<
   EarnExperience['type'],
   EarnExperienceDepositDestination
@@ -81,6 +88,15 @@ const getEarnExperienceDestination = (
   return destination;
 };
 
+const getMoneyOnboardingRedirectTarget = (
+  destination: EarnExperienceDepositDestination,
+  isMoneyOnboardingRedirectNeeded: boolean,
+): EarnExperienceRedirectTarget =>
+  destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
+  isMoneyOnboardingRedirectNeeded
+    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+    : destination;
+
 export const getEarnOpportunityDestination = (
   earnAsset: EarnAsset,
 ): EarnOpportunityDestination => {
@@ -105,16 +121,19 @@ export const getEarnOpportunityDestination = (
   return getEarnExperienceDestination(singleSupportedExperience.type);
 };
 
-export const getEarnOpportunityRedirectTarget = (
+/** Used to determine the redirect_target property for event tracking. */
+export const getEarnAssetEntryRedirectTarget = (
   earnAsset: EarnAsset,
   isMoneyOnboardingRedirectNeeded: boolean,
 ): EarnOpportunityRedirectTarget | undefined => {
   try {
     const destination = getEarnOpportunityDestination(earnAsset);
 
-    return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
-      isMoneyOnboardingRedirectNeeded
-      ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+    return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
+      ? getMoneyOnboardingRedirectTarget(
+          destination,
+          isMoneyOnboardingRedirectNeeded,
+        )
       : destination;
   } catch (error) {
     Logger.error(
@@ -125,23 +144,17 @@ export const getEarnOpportunityRedirectTarget = (
   }
 };
 
-export const getEarnExperienceRedirectTarget = (
+export const getEarnSelectedStrategyRedirectTarget = (
   experience: EarnExperience,
   isMoneyOnboardingRedirectNeeded: boolean,
-):
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
-  | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
-  | EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT
-  | EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT
-  | EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT
-  | undefined => {
+): EarnExperienceRedirectTarget | undefined => {
   try {
     const destination = getEarnExperienceDestination(experience.type);
 
-    return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
-      isMoneyOnboardingRedirectNeeded
-      ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
-      : destination;
+    return getMoneyOnboardingRedirectTarget(
+      destination,
+      isMoneyOnboardingRedirectNeeded,
+    );
   } catch (error) {
     Logger.error(
       error as Error,
@@ -159,7 +172,7 @@ export const getSelectedEarnStrategyRedirectTarget = (
   depositNavigationRoute?.redirectTarget ??
   (experience.depositReadiness.status === 'not_ready'
     ? EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS
-    : getEarnExperienceRedirectTarget(
+    : getEarnSelectedStrategyRedirectTarget(
         experience,
         isMoneyOnboardingRedirectNeeded,
       ));
@@ -180,21 +193,15 @@ const useEarnOpportunityNavigation = () => {
     resolveEarnAssetAcquisitionRoute,
     navigateToEarnAssetAcquisitionRoute,
   } = useEarnAssetAcquisitionNavigation();
+  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
 
   const resolveEarnDepositNavigationRoute = useCallback(
     (
       earnAsset: EarnAsset,
       experience: EarnExperience,
     ): EarnDepositNavigationRoute | undefined => {
-      const notReadyReasons = [
-        'insufficient_balance',
-        'asset_not_tracked',
-        'balance_unavailable',
-      ];
-
       if (
-        experience.depositReadiness.status === 'not_ready' &&
-        notReadyReasons.includes(experience.depositReadiness.reason) &&
+        requiresEarnAssetAcquisition(experience.depositReadiness) &&
         experience.type === 'MONEY_ACCOUNT_DEPOSIT'
       ) {
         return {
@@ -285,6 +292,17 @@ const useEarnOpportunityNavigation = () => {
     async (earnAsset: EarnAsset) => {
       const preferredPaymentToken = getMoneyDepositPaymentToken(earnAsset);
 
+      const redirectedToOnboarding = redirectToOnboardingIfNeeded({
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken,
+        },
+      });
+
+      if (redirectedToOnboarding) {
+        return;
+      }
+
       try {
         await initiateDeposit({
           preferredPaymentToken,
@@ -302,6 +320,7 @@ const useEarnOpportunityNavigation = () => {
       }
     },
     [
+      redirectToOnboardingIfNeeded,
       EarnToastOptions.earnStrategySelection.navigationToDeposit,
       initiateDeposit,
       showToast,
@@ -422,34 +441,29 @@ const useEarnOpportunityNavigation = () => {
       }
 
       if (
-        destination === EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT ||
         destination ===
-          EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT ||
-        destination === EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT ||
-        destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
+        EARN_MODULE_REDIRECT_TARGETS.STRATEGY_SELECTION_BOTTOM_SHEET
       ) {
-        navigateToDepositForExperience(asset, inputExperiences[0]).catch(
-          (error: Error) => {
-            showToast(
-              EarnToastOptions.earnStrategySelection.navigationToDeposit,
-            );
-            Logger.error(
-              error,
-              `${LOG_PREFIX} Failed to navigate to deposit screen`,
-            );
+        navigation.navigate(Routes.EARN.MODALS.ROOT, {
+          screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
+          params: {
+            earnAsset: asset,
+            tokenDetailsSource,
+            ...(analyticsContext ? { analyticsContext } : {}),
           },
-        );
+        });
         return;
       }
 
-      navigation.navigate(Routes.EARN.MODALS.ROOT, {
-        screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
-        params: {
-          earnAsset: asset,
-          tokenDetailsSource,
-          ...(analyticsContext ? { analyticsContext } : {}),
+      navigateToDepositForExperience(asset, inputExperiences[0]).catch(
+        (error: Error) => {
+          showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
+          Logger.error(
+            error,
+            `${LOG_PREFIX} Failed to navigate to deposit screen`,
+          );
         },
-      });
+      );
     },
     [
       navigation,

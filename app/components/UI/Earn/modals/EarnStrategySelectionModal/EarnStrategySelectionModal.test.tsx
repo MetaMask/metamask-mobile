@@ -45,7 +45,7 @@ const mockEarnRedirectTargets = {
   STABLECOIN_LENDING_DEPOSIT: 'stablecoin_lending_deposit',
   TRX_STAKING_DEPOSIT: 'trx_staking_deposit',
 } as const;
-const mockGetEarnExperienceRedirectTarget = jest.fn(
+const mockGetEarnSelectedStrategyRedirectTarget = jest.fn(
   (
     experience: EarnExperience,
     isOnboardingRedirectNeeded: boolean,
@@ -93,7 +93,8 @@ jest.mock('../../../../../util/Logger', () => ({
 jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   __esModule: true,
   default: jest.fn(),
-  getEarnExperienceRedirectTarget: mockGetEarnExperienceRedirectTarget,
+  getEarnSelectedStrategyRedirectTarget:
+    mockGetEarnSelectedStrategyRedirectTarget,
   getSelectedEarnStrategyRedirectTarget: jest.fn(
     (
       experience: EarnExperience,
@@ -108,7 +109,7 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
         return mockEarnRedirectTargets.TOKEN_DETAILS;
       }
 
-      return mockGetEarnExperienceRedirectTarget(
+      return mockGetEarnSelectedStrategyRedirectTarget(
         experience,
         isOnboardingRedirectNeeded,
       );

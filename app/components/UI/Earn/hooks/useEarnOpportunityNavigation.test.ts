@@ -8,6 +8,7 @@ import { TokenDetailsSource } from '../../TokenDetails/constants/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnAsset, EarnExperience } from '../types/earnAssets';
+import { MoneyPostOnboardingRedirectType } from '../../Money/types/navigation';
 import { useMoneyAccountDeposit } from '../../Money/hooks/useMoneyAccount';
 import useStakingChain from '../../Stake/hooks/useStakingChain';
 import Logger from '../../../../util/Logger';
@@ -17,9 +18,9 @@ import { moneyFormatFiat } from '../../Money/utils/moneyFormatFiat';
 import { earnAssetToToken } from '../utils/earnAssets';
 import type { EarnToastOptions } from './useEarnToasts';
 import useEarnOpportunityNavigation, {
-  getEarnExperienceRedirectTarget,
+  getEarnSelectedStrategyRedirectTarget,
   getEarnOpportunityDestination,
-  getEarnOpportunityRedirectTarget,
+  getEarnAssetEntryRedirectTarget,
 } from './useEarnOpportunityNavigation';
 import {
   EARN_MODULE_ENTRY_POINTS,
@@ -41,6 +42,7 @@ const mockNavigateToEarnAssetAcquisitionRoute = jest.fn<
   Promise<void>,
   [EarnAssetAcquisitionRoute]
 >();
+const mockRedirectToOnboardingIfNeeded = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -66,6 +68,12 @@ jest.mock('../../Money/hooks/useMoneyAccount', () => ({
   __esModule: true,
   useMoneyAccountDeposit: jest.fn(),
 }));
+jest.mock('../../Money/hooks/useMoneyNavigation', () => ({
+  __esModule: true,
+  useMoneyOnboardingNavigation: jest.fn(() => ({
+    redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
+  })),
+}));
 jest.mock('./useEarnAssetAcquisitionNavigation', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -88,6 +96,15 @@ jest.mock('../utils/earnAssets', () => ({
     experiences
       .filter((experience) => experience.role !== 'output')
       .filter((experience) => experience.depositReadiness.status === 'ready'),
+  requiresEarnAssetAcquisition: (
+    readiness: EarnExperience['depositReadiness'],
+  ) =>
+    readiness.status === 'not_ready' &&
+    [
+      'asset_not_tracked',
+      'insufficient_balance',
+      'balance_unavailable',
+    ].includes(readiness.reason),
   getMoneyDepositPaymentToken: (earnAsset: EarnAsset) => {
     if (earnAsset.wallet.status !== 'tracked') {
       throw new Error('Expected tracked wallet asset');
@@ -296,6 +313,7 @@ describe('useEarnOpportunityNavigation', () => {
     mockEngineSetActiveNetwork.mockResolvedValue(undefined);
     mockEngineSetMultichainActiveNetwork.mockResolvedValue(undefined);
     mockInitiateDeposit.mockResolvedValue(undefined);
+    mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
   });
 
   it('resolves destinations for Money account deposit strategy', () => {
@@ -306,17 +324,17 @@ describe('useEarnOpportunityNavigation', () => {
     expect(getEarnOpportunityDestination(earnAsset)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
     );
-    expect(getEarnOpportunityRedirectTarget(earnAsset, true)).toBe(
+    expect(getEarnAssetEntryRedirectTarget(earnAsset, true)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING,
     );
-    expect(getEarnOpportunityRedirectTarget(earnAsset, false)).toBe(
+    expect(getEarnAssetEntryRedirectTarget(earnAsset, false)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
     );
   });
 
   it('resolves non-Money strategy destinations to Earn deposit', () => {
     expect(
-      getEarnExperienceRedirectTarget(
+      getEarnSelectedStrategyRedirectTarget(
         createExperience(EARN_EXPERIENCES.POOLED_STAKING),
         false,
       ),
@@ -361,7 +379,7 @@ describe('useEarnOpportunityNavigation', () => {
   it('returns no redirect target when opportunity analytics data is invalid', () => {
     const earnAsset = createEarnAsset(1, []);
 
-    expect(getEarnOpportunityRedirectTarget(earnAsset, false)).toBeUndefined();
+    expect(getEarnAssetEntryRedirectTarget(earnAsset, false)).toBeUndefined();
     expect(mockLoggerError).toHaveBeenCalledWith(
       expect.objectContaining({
         message:
@@ -376,7 +394,9 @@ describe('useEarnOpportunityNavigation', () => {
       'UNSUPPORTED' as EarnExperience['type'],
     );
 
-    expect(getEarnExperienceRedirectTarget(experience, false)).toBeUndefined();
+    expect(
+      getEarnSelectedStrategyRedirectTarget(experience, false),
+    ).toBeUndefined();
     expect(mockLoggerError).toHaveBeenCalledWith(
       expect.objectContaining({
         message:
@@ -398,7 +418,7 @@ describe('useEarnOpportunityNavigation', () => {
   ] as const)(
     'resolves %s to its deposit destination',
     (experienceType, expectedDestination) => {
-      const result = getEarnExperienceRedirectTarget(
+      const result = getEarnSelectedStrategyRedirectTarget(
         createExperience(experienceType),
         false,
       );
@@ -646,6 +666,32 @@ describe('useEarnOpportunityNavigation', () => {
       intent: 'convert',
       onDepositSetupFailure: expect.any(Function),
     });
+  });
+
+  it('redirects a tracked Money deposit to onboarding', async () => {
+    const earnAsset = createEarnAsset(1, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+    mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    await act(async () => {
+      await result.current.navigateToDepositForExperience(
+        earnAsset,
+        earnAsset.experiences[0],
+      );
+    });
+
+    expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
+      postOnboardingRedirect: {
+        type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        preferredPaymentToken: {
+          address: assetAddress,
+          chainId: '0x1',
+        },
+      },
+    });
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
   it('starts a fiat Money deposit for an untracked Money experience', async () => {

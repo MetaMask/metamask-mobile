@@ -55,7 +55,7 @@ jest.mock('../../../../UI/Earn/hooks/useEarnSectionAssets');
 jest.mock('../../../../UI/Earn/hooks/useEarnOpportunityNavigation', () => ({
   __esModule: true,
   default: jest.fn(),
-  getEarnOpportunityRedirectTarget: jest.fn(() => 'stablecoin_lending_deposit'),
+  getEarnAssetEntryRedirectTarget: jest.fn(() => 'stablecoin_lending_deposit'),
 }));
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../../../../UI/Money/selectors/visibility');

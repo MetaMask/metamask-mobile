@@ -4,6 +4,7 @@ import {
   getEarnInputExperiences,
   getNonMoneyEarnStrategyExperiences,
   getReadyEarnDepositExperiences,
+  requiresEarnAssetAcquisition,
 } from './earnExperience';
 
 const createExperience = (
@@ -72,6 +73,50 @@ describe('earn experience utilities', () => {
       ]);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('requiresEarnAssetAcquisition', () => {
+    it('returns true for asset_not_tracked not-ready readiness', () => {
+      const result = requiresEarnAssetAcquisition({
+        status: 'not_ready',
+        reason: 'asset_not_tracked',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for insufficient_balance not-ready readiness', () => {
+      const result = requiresEarnAssetAcquisition({
+        status: 'not_ready',
+        reason: 'insufficient_balance',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for balance_unavailable not-ready readiness', () => {
+      const result = requiresEarnAssetAcquisition({
+        status: 'not_ready',
+        reason: 'balance_unavailable',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for ready readiness', () => {
+      const result = requiresEarnAssetAcquisition({ status: 'ready' });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for output_asset not-ready readiness', () => {
+      const result = requiresEarnAssetAcquisition({
+        status: 'not_ready',
+        reason: 'output_asset',
+      });
+
+      expect(result).toBe(false);
     });
   });
 

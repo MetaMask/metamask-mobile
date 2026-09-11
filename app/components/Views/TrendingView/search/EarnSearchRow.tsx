@@ -5,7 +5,7 @@ import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
 import useEarnOpportunityNavigation, {
-  getEarnOpportunityRedirectTarget,
+  getEarnAssetEntryRedirectTarget,
 } from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
@@ -73,7 +73,7 @@ const EarnSearchRow = ({
     trackSurfaceClicked({
       component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SEARCH_ASSET_ROW,
       ...getEarnModuleAssetProperties(item.asset, position, resultCount),
-      redirect_target: getEarnOpportunityRedirectTarget(
+      redirect_target: getEarnAssetEntryRedirectTarget(
         item.asset,
         isOnboardingRedirectNeeded,
       ),

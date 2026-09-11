@@ -6,7 +6,7 @@ import EarnSearchRow from './EarnSearchRow';
 import EarnMoneyAccountRow from '../feeds/earn/EarnMoneyAccountRow';
 import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import useEarnOpportunityNavigation, {
-  getEarnOpportunityRedirectTarget,
+  getEarnAssetEntryRedirectTarget,
 } from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
 import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
 import { useMoneyAnalytics } from '../../../UI/Money/hooks/useMoneyAnalytics';
@@ -33,7 +33,7 @@ jest.mock('../../../UI/Money/hooks/useMoneyAnalytics', () => ({
 jest.mock('../../../UI/Earn/hooks/useEarnOpportunityNavigation', () => ({
   __esModule: true,
   default: jest.fn(),
-  getEarnOpportunityRedirectTarget: jest.fn(() => 'token_details'),
+  getEarnAssetEntryRedirectTarget: jest.fn(() => 'token_details'),
 }));
 jest.mock('../../../UI/Earn/hooks/useEarnAnalytics', () => ({
   useEarnAnalytics: jest.fn(),
@@ -78,8 +78,8 @@ const mockNavigateFromEarnAsset = jest.fn();
 const mockTrackMoneySurfaceClicked = jest.fn();
 const mockTrackEarnSurfaceClicked = jest.fn();
 const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
-const mockGetEarnOpportunityRedirectTarget = jest.mocked(
-  getEarnOpportunityRedirectTarget,
+const mockGetEarnAssetEntryRedirectTarget = jest.mocked(
+  getEarnAssetEntryRedirectTarget,
 );
 
 const ASSET_ADDRESS = '0x0000000000000000000000000000000000000123';
@@ -146,7 +146,7 @@ describe('EarnSearchRow', () => {
     jest.mocked(useEarnAnalytics).mockReturnValue({
       trackSurfaceClicked: mockTrackEarnSurfaceClicked,
     } as unknown as ReturnType<typeof useEarnAnalytics>);
-    mockGetEarnOpportunityRedirectTarget.mockReturnValue(
+    mockGetEarnAssetEntryRedirectTarget.mockReturnValue(
       EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS,
     );
   });
@@ -206,7 +206,7 @@ describe('EarnSearchRow', () => {
         redirect_target: 'token_details',
       }),
     );
-    expect(mockGetEarnOpportunityRedirectTarget).toHaveBeenCalledWith(
+    expect(mockGetEarnAssetEntryRedirectTarget).toHaveBeenCalledWith(
       item.asset,
       false,
     );
@@ -228,7 +228,7 @@ describe('EarnSearchRow', () => {
   ] as const)(
     'tracks alternate asset redirect target: %s',
     (redirectTarget) => {
-      mockGetEarnOpportunityRedirectTarget.mockReturnValueOnce(redirectTarget);
+      mockGetEarnAssetEntryRedirectTarget.mockReturnValueOnce(redirectTarget);
       const asset = createEarnAsset();
       const item = {
         kind: 'asset',
@@ -242,7 +242,7 @@ describe('EarnSearchRow', () => {
 
       fireEvent.press(getByTestId('asset-row'));
 
-      expect(mockGetEarnOpportunityRedirectTarget).toHaveBeenCalledWith(
+      expect(mockGetEarnAssetEntryRedirectTarget).toHaveBeenCalledWith(
         item.asset,
         false,
       );

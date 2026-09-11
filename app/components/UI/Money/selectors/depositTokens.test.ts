@@ -6,11 +6,10 @@ import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets
 import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagController/confirmations';
 import {
   filterMoneyDepositSupportedAssets,
-  filterMoneyDepositEligibleAssets,
   type MoneyDepositAsset,
   selectMoneyDepositBlockedTokens,
-  selectMoneyDepositEligibleAssets,
-  selectMoneyDepositSupportedAssets,
+  selectMoneyDepositAssetsMeetingMinimumBalance,
+  selectMoneyDepositAssetsWithoutMinimumBalance,
 } from './depositTokens';
 import { selectMoneyDepositMinBalance } from './featureFlags';
 
@@ -48,101 +47,6 @@ const createAsset = (
   }) as MoneyDepositAsset;
 
 const emptyBlockedTokens = { chainIds: [], tokens: [] };
-
-describe('filterMoneyDepositEligibleAssets', () => {
-  it('keeps tracked EVM assets at the minimum fiat balance', () => {
-    const asset = createAsset({
-      fiat: { balance: 0.01, currency: 'usd', conversionRate: 1 },
-    });
-
-    const result = filterMoneyDepositEligibleAssets(
-      [asset],
-      emptyBlockedTokens,
-      0.01,
-    );
-
-    expect(result).toEqual([asset]);
-  });
-
-  it('excludes non-EVM assets', () => {
-    const asset = {
-      ...createAsset(),
-      accountType: SolAccountType.DataAccount,
-      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:mock-token',
-    } as unknown as Asset;
-
-    const result = filterMoneyDepositEligibleAssets(
-      [asset],
-      emptyBlockedTokens,
-      0.01,
-    );
-
-    expect(result).toEqual([]);
-  });
-
-  it('excludes assets blocked for Money deposits', () => {
-    const asset = createAsset();
-
-    const result = filterMoneyDepositEligibleAssets(
-      [asset],
-      {
-        chainIds: [],
-        tokens: [{ address: asset.address, chainId: asset.chainId as string }],
-      },
-      0.01,
-    );
-
-    expect(result).toEqual([]);
-  });
-
-  it('excludes assets below the minimum fiat balance', () => {
-    const asset = createAsset({
-      fiat: { balance: 0.009, currency: 'usd', conversionRate: 1 },
-    });
-
-    const result = filterMoneyDepositEligibleAssets(
-      [asset],
-      emptyBlockedTokens,
-      0.01,
-    );
-
-    expect(result).toEqual([]);
-  });
-
-  it('excludes assets without fiat balance', () => {
-    const asset = createAsset({ fiat: undefined });
-
-    const result = filterMoneyDepositEligibleAssets(
-      [asset],
-      emptyBlockedTokens,
-      0.01,
-    );
-
-    expect(result).toEqual([]);
-  });
-
-  it('sorts eligible assets by descending fiat balance', () => {
-    const smaller = createAsset({
-      address: '0x0000000000000000000000000000000000000001',
-      symbol: 'SMALL',
-      fiat: { balance: 1, currency: 'usd', conversionRate: 1 },
-    });
-    const larger = createAsset({
-      address: '0x0000000000000000000000000000000000000002',
-      symbol: 'LARGE',
-      fiat: { balance: 2, currency: 'usd', conversionRate: 1 },
-    });
-
-    const result = filterMoneyDepositEligibleAssets(
-      [smaller, larger],
-      emptyBlockedTokens,
-      0.01,
-    );
-
-    expect(result.map(({ symbol }) => symbol)).toEqual(['LARGE', 'SMALL']);
-  });
-});
 
 describe('filterMoneyDepositSupportedAssets', () => {
   it('keeps supported EVM assets below the minimum balance', () => {
@@ -232,7 +136,7 @@ describe('selectMoneyDepositBlockedTokens', () => {
   });
 });
 
-describe('selectMoneyDepositSupportedAssets', () => {
+describe('selectMoneyDepositAssetsWithoutMinimumBalance', () => {
   it('returns supported assets without applying the minimum balance', () => {
     const asset = createAsset({
       fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
@@ -248,13 +152,13 @@ describe('selectMoneyDepositSupportedAssets', () => {
       minimumRequiredTokenBalance: 0,
     });
 
-    const result = selectMoneyDepositSupportedAssets(state);
+    const result = selectMoneyDepositAssetsWithoutMinimumBalance(state);
 
     expect(result).toEqual([asset]);
   });
 });
 
-describe('selectMoneyDepositEligibleAssets', () => {
+describe('selectMoneyDepositAssetsMeetingMinimumBalance', () => {
   it('returns the same reference when selector inputs are unchanged', () => {
     const asset = createAsset();
     const state = {} as RootState;
@@ -268,8 +172,8 @@ describe('selectMoneyDepositEligibleAssets', () => {
     });
     mockSelectMoneyDepositMinBalance.mockReturnValue(0.01);
 
-    const first = selectMoneyDepositEligibleAssets(state);
-    const second = selectMoneyDepositEligibleAssets(state);
+    const first = selectMoneyDepositAssetsMeetingMinimumBalance(state);
+    const second = selectMoneyDepositAssetsMeetingMinimumBalance(state);
 
     expect(second).toBe(first);
   });

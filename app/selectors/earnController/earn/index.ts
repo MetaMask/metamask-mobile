@@ -37,7 +37,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
-import { selectMoneyDepositEligibleAssets } from '../../../components/UI/Money/selectors/depositTokens';
+import { selectMoneyDepositAssetsMeetingMinimumBalance } from '../../../components/UI/Money/selectors/depositTokens';
 import { selectAssetsBySelectedAccountGroup } from '../../assets/assets-list';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
@@ -534,7 +534,7 @@ export const selectEarnAssetCatalogueInputs = createSelector(
   [
     selectEarnTokens,
     selectAllLendingMarkets,
-    selectMoneyDepositEligibleAssets,
+    selectMoneyDepositAssetsMeetingMinimumBalance,
     selectAssetsBySelectedAccountGroup,
     pooledStakingSelectors.selectEligibility,
     selectPooledStakingEnabledFlag,

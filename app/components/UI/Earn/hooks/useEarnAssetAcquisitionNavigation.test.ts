@@ -22,9 +22,7 @@ import type {
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EARN_MODULE_REDIRECT_TARGETS } from '../constants/earnModuleEvents';
 import { earnAssetToBridgeToken } from '../utils/earnAssets';
-import useEarnAssetAcquisitionNavigation, {
-  isEarnAssetAcquisitionRequired,
-} from './useEarnAssetAcquisitionNavigation';
+import useEarnAssetAcquisitionNavigation from './useEarnAssetAcquisitionNavigation';
 
 const mockGetState = jest.fn<RootState, []>();
 const mockUseStore = jest.mocked(useStore);
@@ -74,6 +72,15 @@ jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
 
 jest.mock('../utils/earnAssets', () => ({
   earnAssetToBridgeToken: jest.fn(),
+  requiresEarnAssetAcquisition: (
+    readiness: EarnExperience['depositReadiness'],
+  ) =>
+    readiness.status === 'not_ready' &&
+    [
+      'asset_not_tracked',
+      'insufficient_balance',
+      'balance_unavailable',
+    ].includes(readiness.reason),
 }));
 
 const mockSelectIsBridgeEnabledSourceFactory = jest.mocked(
@@ -146,39 +153,6 @@ const createSourceAsset = (): Asset =>
     fiat: { balance: 10 },
     isNative: true,
   }) as Asset;
-
-describe('isEarnAssetAcquisitionRequired', () => {
-  it('returns false for a ready deposit', () => {
-    const experience = createExperience({ status: 'ready' });
-
-    const result = isEarnAssetAcquisitionRequired(experience);
-
-    expect(result).toBe(false);
-  });
-
-  it.each([
-    'asset_not_tracked',
-    'balance_unavailable',
-    'insufficient_balance',
-  ] as const)('returns true for a deposit blocked by %s', (reason) => {
-    const experience = createExperience({ status: 'not_ready', reason });
-
-    const result = isEarnAssetAcquisitionRequired(experience);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false for an output asset with output_asset readiness', () => {
-    const experience: EarnExperience = {
-      ...createExperience({ status: 'not_ready', reason: 'output_asset' }),
-      role: 'output',
-    };
-
-    const result = isEarnAssetAcquisitionRequired(experience);
-
-    expect(result).toBe(false);
-  });
-});
 
 describe('useEarnAssetAcquisitionNavigation', () => {
   beforeEach(() => {

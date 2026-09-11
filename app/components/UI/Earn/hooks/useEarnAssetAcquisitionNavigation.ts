@@ -19,15 +19,11 @@ import type {
   EarnAsset,
   EarnAssetId,
   EarnExperience,
-  EarnExperienceDepositNotReadyReason,
 } from '../types/earnAssets';
-import { earnAssetToBridgeToken } from '../utils/earnAssets';
-
-const ACQUISITION_REASONS = new Set<EarnExperienceDepositNotReadyReason>([
-  'asset_not_tracked',
-  'insufficient_balance',
-  'balance_unavailable',
-]);
+import {
+  earnAssetToBridgeToken,
+  requiresEarnAssetAcquisition,
+} from '../utils/earnAssets';
 
 export type EarnAssetAcquisitionRoute =
   | {
@@ -41,18 +37,6 @@ export type EarnAssetAcquisitionRoute =
       assetId: EarnAssetId;
       redirectTarget: EARN_MODULE_REDIRECT_TARGETS.BUY;
     };
-
-/**
- * Determines whether a not-ready Earn experience needs an acquisition flow.
- *
- * @param experience - Selected Earn experience.
- * @returns Whether the user needs to acquire more of the selected asset.
- */
-export const isEarnAssetAcquisitionRequired = (
-  experience: EarnExperience,
-): boolean =>
-  experience.depositReadiness.status === 'not_ready' &&
-  ACQUISITION_REASONS.has(experience.depositReadiness.reason);
 
 /**
  * Resolves and executes Swap or Buy navigation for not-ready Earn assets.
@@ -71,7 +55,7 @@ const useEarnAssetAcquisitionNavigation = () => {
       earnAsset: EarnAsset,
       experience: EarnExperience,
     ): EarnAssetAcquisitionRoute | undefined => {
-      if (!isEarnAssetAcquisitionRequired(experience)) {
+      if (!requiresEarnAssetAcquisition(experience.depositReadiness)) {
         return undefined;
       }
 

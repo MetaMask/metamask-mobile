@@ -48,7 +48,7 @@ import { truncateNumber } from '../../utils';
 import { deriveEarnAssetDisplayData } from '../../utils/earnAssets';
 import type { EarnAssetDisplayData } from '../../utils/earnAssets/deriveEarnAssetDisplayData';
 import useEarnOpportunityNavigation, {
-  getEarnOpportunityRedirectTarget,
+  getEarnAssetEntryRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -361,7 +361,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         trackEarnSurfaceClicked({
           component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ASSET_CARD,
           ...getEarnModuleAssetProperties(asset, position, assetSlots.length),
-          redirect_target: getEarnOpportunityRedirectTarget(
+          redirect_target: getEarnAssetEntryRedirectTarget(
             asset,
             isOnboardingRedirectNeeded,
           ),

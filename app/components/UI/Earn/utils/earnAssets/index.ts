@@ -18,6 +18,7 @@ export {
   getReadyEarnDepositExperiences,
   getEarnInputExperiences,
   getNonMoneyEarnStrategyExperiences,
+  requiresEarnAssetAcquisition,
 } from './earnExperience';
 export { getMoneyDepositPaymentToken } from './getMoneyDepositPaymentToken';
 export { requireTrackedEarnAsset } from './requireTrackedEarnAsset';

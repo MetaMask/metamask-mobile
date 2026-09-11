@@ -13,6 +13,7 @@ import { selectRelayFixedSpread } from '../../../../selectors/featureFlagControl
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import {
+  isEvmCaip19AssetId,
   isMoneyDepositSupportedToken,
   selectMoneyDepositBlockedTokens,
 } from '../../Money/selectors/depositTokens';
@@ -542,8 +543,11 @@ const useEarnAssetCatalogue = ({
         return asset;
       }
 
-      const { metadata } = asset;
-      if (!isMoneyDepositSupportedToken(metadata, moneyDepositBlockedTokens)) {
+      const { metadata, assetId } = asset;
+      if (
+        !isEvmCaip19AssetId(assetId) ||
+        !isMoneyDepositSupportedToken(metadata, moneyDepositBlockedTokens)
+      ) {
         return asset;
       }
 

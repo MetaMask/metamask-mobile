@@ -1,14 +1,8 @@
-import type { Asset } from '@metamask/assets-controllers';
-import type { MoneyDepositAsset } from '../../../Money/selectors/depositTokens';
+import {
+  isMoneyDepositAsset,
+  type MoneyDepositAsset,
+} from '../../../Money/selectors/depositTokens';
 import type { EarnAsset } from '../../types/earnAssets';
-
-const isMoneyDepositAsset = (asset: Asset): asset is MoneyDepositAsset =>
-  'address' in asset &&
-  typeof asset.address === 'string' &&
-  asset.address.length > 0 &&
-  typeof asset.chainId === 'string' &&
-  asset.chainId.length > 0 &&
-  asset.accountType?.startsWith('eip155:') === true;
 
 /**
  * Extracts Money deposit assets from the shared Earn catalogue.
