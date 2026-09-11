@@ -1,5 +1,5 @@
 import { AccountActivityServiceMessenger } from '@metamask/core-backend';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -10,24 +10,22 @@ import {
  * Get a messenger for the Account Activity service. This is scoped to the
  * actions and events that the Account Activity service is allowed to handle.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The AccountActivityServiceMessenger.
  */
 export function getAccountActivityServiceMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): AccountActivityServiceMessenger {
-  const messenger = new Messenger<
-    'AccountActivityService',
+  rootMessenger: RootMessenger<
     MessengerActions<AccountActivityServiceMessenger>,
-    MessengerEvents<AccountActivityServiceMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AccountActivityServiceMessenger>
+  >,
+): AccountActivityServiceMessenger {
+  const messenger: AccountActivityServiceMessenger = new Messenger({
     namespace: 'AccountActivityService',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
-      'AccountsController:getSelectedAccount',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'BackendWebSocketService:connect',
       'BackendWebSocketService:forceReconnection',
       'BackendWebSocketService:subscribe',
@@ -37,10 +35,12 @@ export function getAccountActivityServiceMessenger(
       'BackendWebSocketService:findSubscriptionsByChannelPrefix',
       'BackendWebSocketService:addChannelCallback',
       'BackendWebSocketService:removeChannelCallback',
+      'RemoteFeatureFlagController:getState',
     ],
     events: [
-      'AccountsController:selectedAccountChange',
+      'AccountTreeController:selectedAccountGroupChange',
       'BackendWebSocketService:connectionStateChanged',
+      'RemoteFeatureFlagController:stateChange',
     ],
     messenger,
   });

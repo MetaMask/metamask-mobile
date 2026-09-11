@@ -4,7 +4,7 @@ import { useDeFiPositionsForHomepage } from './useDeFiPositionsForHomepage';
 const mockSelectDefiPositionsByChainIds = jest.fn();
 
 jest.mock('../../../../../../selectors/defiPositionsController', () => ({
-  selectDefiPositionsByChainIds: (_state: unknown, _chainIds: unknown) =>
+  makeSelectDefiPositionsByChainIds: (_chainIds: unknown) => () =>
     mockSelectDefiPositionsByChainIds(),
 }));
 

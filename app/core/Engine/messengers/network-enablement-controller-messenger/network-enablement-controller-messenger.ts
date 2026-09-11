@@ -4,26 +4,25 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import { RootMessenger, RootExtendedMessenger } from '../../types';
+import { RootMessenger } from '../../types';
+
 /**
  * Get the messenger for the NetworkEnablementController.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The NetworkEnablementControllerMessenger.
  */
 export function getNetworkEnablementControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): NetworkEnablementControllerMessenger {
-  const messenger = new Messenger<
-    'NetworkEnablementController',
+  rootMessenger: RootMessenger<
     MessengerActions<NetworkEnablementControllerMessenger>,
-    MessengerEvents<NetworkEnablementControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<NetworkEnablementControllerMessenger>
+  >,
+): NetworkEnablementControllerMessenger {
+  const messenger: NetworkEnablementControllerMessenger = new Messenger({
     namespace: 'NetworkEnablementController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       'NetworkController:getState',
       'MultichainNetworkController:getState',

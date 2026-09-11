@@ -194,6 +194,21 @@ describe('PredictBetButton', () => {
       expect(screen.getByText('YES')).toBeOnTheScreen();
       expect(screen.getByText('65¢')).toBeOnTheScreen();
     });
+
+    it('keeps the inline label on one line and shrinks to fit to prevent truncation', () => {
+      const props = createDefaultProps({
+        label: 'Draw',
+        price: 100,
+        variant: 'draw',
+        layout: 'inlineNoSeparator',
+      });
+
+      renderWithProvider(<PredictBetButton {...props} />);
+
+      const label = screen.getByText('DRAW 100¢');
+      expect(label.props.numberOfLines).toBe(1);
+      expect(label.props.adjustsFontSizeToFit).toBe(true);
+    });
   });
 
   describe('edge cases', () => {

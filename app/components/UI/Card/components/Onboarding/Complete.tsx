@@ -6,6 +6,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -13,7 +14,8 @@ import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
@@ -45,7 +47,7 @@ interface CompleteRouteParams {
 }
 
 const Complete = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const [isLoading, setIsLoading] = useState(false);
@@ -57,9 +59,11 @@ const Complete = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.COMPLETE,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.COMPLETE,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -68,9 +72,11 @@ const Complete = () => {
     setIsLoading(true);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.COMPLETE_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.COMPLETE_BUTTON,
+          }),
+        )
         .build(),
     );
 
@@ -99,7 +105,9 @@ const Complete = () => {
       const token = await getCardBaanxToken();
       if (token.success && token.tokenData?.accessToken) {
         dispatch(resetOnboardingState());
-        navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
+        navigation.dispatch(
+          StackActions.replace(Routes.CARD.HOME, { fromCardOnboarding: true }),
+        );
       } else {
         dispatch(resetOnboardingState());
         navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));

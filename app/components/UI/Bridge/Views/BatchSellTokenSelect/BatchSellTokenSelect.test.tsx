@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { TextColor as DSTextColor } from '@metamask/design-system-react-native';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  BatchSellMetricsLocation,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { BridgeToken } from '../../types';
 import { BatchSellTokenSelect } from './BatchSellTokenSelect';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
@@ -21,9 +24,20 @@ import {
   TextColor as ComponentLibraryTextColor,
   TextVariant as ComponentLibraryTextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
+import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../../../selectors/multichainNetworkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import Engine from '../../../../../core/Engine';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
+const mockOnSetRpcTarget = jest.fn();
+const mockOnNonEvmNetworkChange = jest.fn();
+const mockTrackBatchSellTokenPageContinueClicked = jest.fn();
 const mockUseTokensWithBalance = jest.fn();
 let mockDestinationStablecoins: BridgeToken[] = [];
 let mockDestinationStablecoinsByChain: Partial<
@@ -39,6 +53,7 @@ let mockTokenMarketData: Record<
 let mockCurrencyRates: Record<string, { conversionRate: number }> = {};
 let mockCurrentCurrency = 'usd';
 let mockNativeCurrencyByChainId: Record<Hex, string | undefined> = {};
+let mockMultichainAssetsRates = {};
 const usdcAssetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
 
@@ -48,11 +63,39 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     setOptions: jest.fn(),
   }),
+  useRoute: () => ({
+    params: {},
+  }),
 }));
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
+
+jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
+  useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        setLocation: jest.fn(),
+      },
+    },
+  },
+}));
+
+jest.mock('../../hooks/useTrackBatchSellTokenPageViewed', () => ({
+  useTrackBatchSellTokenPageViewed: jest.fn(),
+}));
+
+jest.mock('../../hooks/useTrackBatchSellTokenPageContinueClicked', () => ({
+  useTrackBatchSellTokenPageContinueClicked: jest.fn(
+    () => mockTrackBatchSellTokenPageContinueClicked,
+  ),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -84,6 +127,26 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
+  useSwitchNetworks: jest.fn(() => ({
+    onSetRpcTarget: mockOnSetRpcTarget,
+    onNonEvmNetworkChange: mockOnNonEvmNetworkChange,
+  })),
+}));
+
+jest.mock('../../../../../selectors/selectedNetworkController', () => ({
+  useNetworkInfo: jest.fn(() => ({
+    chainId: '0x1',
+    domainIsConnectedDapp: false,
+    networkName: 'Ethereum Mainnet',
+  })),
+}));
+
+jest.mock('../../../../../selectors/multichainNetworkController', () => ({
+  selectIsEvmNetworkSelected: jest.fn(() => true),
+  selectSelectedNonEvmNetworkChainId: jest.fn(() => undefined),
+}));
+
 jest.mock('../../hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: (options?: { chainIds?: CaipChainId[] }) =>
     mockUseTokensWithBalance(options),
@@ -103,10 +166,15 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => mockCurrentCurrency),
 }));
 
+jest.mock('../../../../../selectors/multichain/multichain', () => ({
+  selectMultichainAssetsRates: jest.fn(() => mockMultichainAssetsRates),
+}));
+
 jest.mock('../../../../../selectors/networkController', () => ({
   selectNativeCurrencyByChainId: jest.fn(
     (_state: unknown, chainId: Hex) => mockNativeCurrencyByChainId[chainId],
   ),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
@@ -336,6 +404,18 @@ describe('sortBatchSellTokens', () => {
 describe('BatchSellTokenSelect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useNetworkInfo as jest.Mock).mockReturnValue({
+      chainId: '0x1' as Hex,
+      domainIsConnectedDapp: false,
+      networkName: 'Ethereum Mainnet',
+    });
+    (selectIsEvmNetworkSelected as unknown as jest.Mock).mockReturnValue(true);
+    (
+      selectSelectedNonEvmNetworkChainId as unknown as jest.Mock
+    ).mockReturnValue(undefined);
+    (
+      selectEvmNetworkConfigurationsByChainId as unknown as jest.Mock
+    ).mockReturnValue({});
     mockDestinationStablecoins = [];
     mockDestinationStablecoinsByChain = {};
     mockPricePercentChangesByAddress = {};
@@ -344,6 +424,7 @@ describe('BatchSellTokenSelect', () => {
       ETH: { conversionRate: 1 },
     };
     mockCurrentCurrency = 'usd';
+    mockMultichainAssetsRates = {};
     mockCommittedSourceTokens = [];
     mockNativeCurrencyByChainId = {
       ['0x1' as Hex]: 'ETH',
@@ -398,6 +479,9 @@ describe('BatchSellTokenSelect', () => {
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/resetBridgeState',
     });
+    expect(Engine.context.BridgeController.setLocation).toHaveBeenCalledWith(
+      BatchSellMetricsLocation.Unknown,
+    );
 
     mockDispatch.mockClear();
     unmount();
@@ -602,8 +686,14 @@ describe('BatchSellTokenSelect', () => {
     };
     mockTokenMarketData = {
       ['0x1' as Hex]: {
-        [gainToken.address as Hex]: { price: 1.17226 },
-        [lossToken.address as Hex]: { price: 0.5 },
+        [gainToken.address as Hex]: {
+          price: 1.17226,
+          pricePercentChange1d: 1.23,
+        },
+        [lossToken.address as Hex]: {
+          price: 0.5,
+          pricePercentChange1d: -4.56,
+        },
       },
     };
 
@@ -625,6 +715,67 @@ describe('BatchSellTokenSelect', () => {
       textAlign: 'right',
       paddingHorizontal: 0,
     });
+  });
+
+  it('renders EVM percentage changes when multichain percentage change is null', () => {
+    const token = createToken({
+      symbol: 'EVM',
+      name: 'EVM Token',
+      address: '0x2222222222222222222222222222222222222222',
+      tokenFiatAmount: 10,
+    });
+    mockWalletTokens = [token];
+    mockMultichainAssetsRates = {
+      [token.address]: {
+        marketData: {
+          pricePercentChange: {
+            P1D: null,
+          },
+        },
+      },
+    };
+    mockTokenMarketData = {
+      ['0x1' as Hex]: {
+        [token.address as Hex]: {
+          pricePercentChange1d: 2.34,
+        },
+      },
+    };
+
+    const { getByText } = render(<BatchSellTokenSelect />);
+
+    expect(getByText('+2.34%')).toBeOnTheScreen();
+  });
+
+  it('renders multichain percentage changes before EVM percentage changes', () => {
+    const token = createToken({
+      symbol: 'MCA',
+      name: 'Multichain Asset',
+      address: '0x2222222222222222222222222222222222222222',
+      tokenFiatAmount: 10,
+    });
+    mockWalletTokens = [token];
+    mockMultichainAssetsRates = {
+      [token.address]: {
+        marketData: {
+          pricePercentChange: {
+            P1D: 3.45,
+          },
+        },
+      },
+    };
+    mockTokenMarketData = {
+      ['0x1' as Hex]: {
+        [token.address as Hex]: {
+          pricePercentChange1d: 2.34,
+        },
+      },
+    };
+
+    const { getByText, queryByText } = render(<BatchSellTokenSelect />);
+
+    expect(getByText('+3.45%')).toBeOnTheScreen();
+    expect(queryByText('+2.34%')).not.toBeOnTheScreen();
   });
 
   it('disables TokenSelectorItem selected row styling and network icons for Batch Sell rows', () => {
@@ -830,6 +981,9 @@ describe('BatchSellTokenSelect', () => {
         destToken: BridgeTokenMetadata[stablecoinAssetId],
       },
     });
+    expect(mockTrackBatchSellTokenPageContinueClicked).toHaveBeenCalledWith([
+      selectedToken,
+    ]);
   });
 
   it('dispatches Batch Sell Redux handoff data for multi-token Continue', () => {
@@ -852,6 +1006,10 @@ describe('BatchSellTokenSelect', () => {
     mockDispatch.mockClear();
     fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
 
+    expect(mockTrackBatchSellTokenPageContinueClicked).toHaveBeenCalledWith([
+      firstToken,
+      secondToken,
+    ]);
     expect(mockDispatch).toHaveBeenNthCalledWith(1, {
       type: 'bridge/setBatchSellSourceTokens',
       payload: [firstToken, secondToken],
@@ -877,6 +1035,109 @@ describe('BatchSellTokenSelect', () => {
       },
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BATCH_SELL_REVIEW);
+  });
+
+  it('switches the wallet network to the source chain on multi-token Continue when it differs', () => {
+    const bscNetworkConfig = {
+      chainId: '0x38' as Hex,
+      rpcUrl: 'https://bsc-rpc.example',
+      ticker: 'BNB',
+      label: 'BNB Smart Chain',
+    };
+    const firstToken = createToken({
+      symbol: 'BSC1',
+      address: '0x1111111111111111111111111111111111111111',
+      chainId: '0x38' as Hex,
+      tokenFiatAmount: 20,
+    });
+    const secondToken = createToken({
+      symbol: 'BSC2',
+      address: '0x2222222222222222222222222222222222222222',
+      chainId: '0x38' as Hex,
+      tokenFiatAmount: 10,
+    });
+
+    (
+      selectEvmNetworkConfigurationsByChainId as unknown as jest.Mock
+    ).mockReturnValue({
+      ['0x38' as Hex]: bscNetworkConfig,
+    });
+    mockWalletTokens = [firstToken, secondToken];
+
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
+
+    fireEvent.press(getByText('BSC1'));
+    fireEvent.press(getByText('BSC2'));
+
+    fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
+
+    expect(mockOnSetRpcTarget).toHaveBeenCalledWith(bscNetworkConfig);
+    expect(mockOnNonEvmNetworkChange).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BATCH_SELL_REVIEW);
+  });
+
+  it('does not switch the wallet network on multi-token Continue when already on the source chain', () => {
+    const firstToken = createToken({
+      symbol: 'ONE',
+      address: '0x1111111111111111111111111111111111111111',
+      chainId: '0x1' as Hex,
+    });
+    const secondToken = createToken({
+      symbol: 'TWO',
+      address: '0x2222222222222222222222222222222222222222',
+      chainId: '0x1' as Hex,
+    });
+    mockWalletTokens = [firstToken, secondToken];
+
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
+
+    fireEvent.press(getByText('ONE'));
+    fireEvent.press(getByText('TWO'));
+
+    fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
+
+    expect(mockOnSetRpcTarget).not.toHaveBeenCalled();
+    expect(mockOnNonEvmNetworkChange).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BATCH_SELL_REVIEW);
+  });
+
+  it('does not switch the wallet network for single-token Continue', () => {
+    const selectedToken = createToken({
+      symbol: 'BSC1',
+      chainId: '0x38' as Hex,
+      tokenFiatAmount: 20,
+    });
+    mockWalletTokens = [selectedToken];
+
+    const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
+
+    fireEvent.press(getByText('BSC1'));
+    fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
+
+    expect(mockOnSetRpcTarget).not.toHaveBeenCalled();
+    expect(mockOnNonEvmNetworkChange).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL,
+      params: expect.objectContaining({
+        sourceToken: selectedToken,
+      }),
+    });
+  });
+
+  it('passes the active wallet network into useSwitchNetworks', () => {
+    (useNetworkInfo as jest.Mock).mockReturnValue({
+      chainId: '0x1' as Hex,
+      domainIsConnectedDapp: true,
+      networkName: 'Ethereum Mainnet',
+    });
+
+    render(<BatchSellTokenSelect />);
+
+    expect(useSwitchNetworks).toHaveBeenCalledWith({
+      domainIsConnectedDapp: true,
+      selectedChainId: '0x1',
+      selectedNetworkName: 'Ethereum Mainnet',
+    });
   });
 
   it('deselects tokens removed from the committed source tokens on the review page', () => {

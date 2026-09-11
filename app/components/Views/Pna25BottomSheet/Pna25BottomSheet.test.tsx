@@ -5,7 +5,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 
@@ -86,7 +86,7 @@ jest.mock(
   },
 );
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const renderComponent = (state = {}) =>
   renderWithProvider(

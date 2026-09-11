@@ -12,13 +12,25 @@ import {
   handleDeeplinkSaga,
   handleSnapsRegistry,
   parseDeeplink,
+  parseDeeplinkAfterNavReady,
+  mainNavigatorReadyStateMachine,
+  __setMainNavigatorReadyForTesting,
   __resetSDKServicesInitializationForTesting,
   requestAuthOnAppStart,
   appStateListenerTask,
 } from './';
-import { NavigationActionType } from '../../actions/navigation';
+import {
+  NavigationActionType,
+  mainNavigatorReady,
+} from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
+import {
+  markNextParseAsUnlockSession,
+  resetNextParseAppStartTypeForTesting,
+} from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
+import { resetUnlockAppStartTypeForTesting } from '../../core/Performance/unlockTraces';
+import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 import Engine from '../../core/Engine';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
@@ -30,6 +42,18 @@ import AppConstants from '../../core/AppConstants';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDevAutoUnlockPassword } from '../../util/environment';
+import { saveAttribution } from '../../core/redux/slices/attribution';
+jest.mock('../../util/analytics/persistAttributionFromPendingDeeplink', () => ({
+  getUtmAttributesFromDeeplinkUrl: jest.fn(),
+  persistUtmAttributes: jest.fn(),
+  persistAttributionFromPendingDeeplink: jest.fn(),
+}));
+
+import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
+
+const mockGetUtmAttributesFromDeeplinkUrl = jest.mocked(
+  getUtmAttributesFromDeeplinkUrl,
+);
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -54,13 +78,6 @@ jest.mock('../../core/AppStateEventListener', () => ({
     pendingDeeplink: null,
     pendingDeeplinkSource: null,
     clearPendingDeeplink: jest.fn(),
-  },
-}));
-
-jest.mock('../../core/Analytics', () => ({
-  __esModule: true,
-  MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({}),
   },
 }));
 
@@ -664,9 +681,14 @@ describe('initializeSDKServicesSaga', () => {
 describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __setMainNavigatorReadyForTesting(true);
     __resetSDKServicesInitializationForTesting();
+    resetNextParseAppStartTypeForTesting();
+    resetUnlockAppStartTypeForTesting();
+    resetLoginAppStartTypeForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
+    mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);
   });
 
   describe('without deeplink', () => {
@@ -924,10 +946,32 @@ describe('handleDeeplinkSaga', () => {
             .silentRun();
 
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(mockGetUtmAttributesFromDeeplinkUrl).not.toHaveBeenCalled();
         });
       });
 
       describe('when existing user is false', () => {
+        it('persists UTM attributes from pending deeplink before onboarding handling', async () => {
+          const onboardingLink =
+            'https://metamask.io/onboarding?utm_source=e2e&utm_campaign=test';
+          const payload = { utm_source: 'e2e', utm_campaign: 'test' };
+          AppStateEventProcessor.pendingDeeplink = onboardingLink;
+          mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(payload);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .put(saveAttribution(payload))
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(mockGetUtmAttributesFromDeeplinkUrl).toHaveBeenCalledWith(
+            onboardingLink,
+          );
+        });
+
         it('handle onboarding deeplink when completed onboarding is false', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://metamask.io/onboarding?type=google';
@@ -1041,6 +1085,32 @@ describe('handleDeeplinkSaga', () => {
           }),
         );
       });
+
+      it('passes the unlock-session appStartType when the leftover parse flag is set', async () => {
+        const testLink = 'https://link.metamask.io/buy';
+        AppStateEventProcessor.pendingDeeplink = testLink;
+        AppStateEventProcessor.pendingDeeplinkSource = null;
+        Engine.context.KeyringController.isUnlocked = jest
+          .fn()
+          .mockReturnValue(true);
+        markNextParseAsUnlockSession();
+
+        await expectSaga(handleDeeplinkSaga)
+          .withState({
+            ...defaultMockState,
+            onboarding: { completedOnboarding: true },
+          })
+          .dispatch(checkForDeeplink())
+          .silentRun();
+
+        expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+          testLink,
+          expect.objectContaining({
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            appStartType: 'cold',
+          }),
+        );
+      });
     });
   });
 });
@@ -1055,6 +1125,130 @@ describe('parseDeeplink', () => {
 
   it('parses immediately', async () => {
     await expectSaga(parseDeeplink, TEST_URL, TEST_ORIGIN).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('forwards a cold appStartType to parse', async () => {
+    await expectSaga(parseDeeplink, TEST_URL, TEST_ORIGIN, 'cold').run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+      appStartType: 'cold',
+    });
+  });
+});
+
+describe('parseDeeplinkAfterNavReady', () => {
+  const TEST_URL = 'https://link.metamask.io/buy';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __setMainNavigatorReadyForTesting(false);
+  });
+
+  it('parses immediately when MainNavigator is already mounted', async () => {
+    __setMainNavigatorReadyForTesting(true);
+
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('waits for MAIN_NAVIGATOR_READY when MainNavigator has not mounted (cold start)', async () => {
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN)
+      .dispatch(mainNavigatorReady())
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledTimes(1);
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('does not parse before MAIN_NAVIGATOR_READY is dispatched', async () => {
+    jest.useFakeTimers();
+    try {
+      // Kick off the saga with MainNavigator not ready; do NOT dispatch
+      // the ready action. Advance past the timeout-safety-net so the
+      // saga either parses (timeout branch) or times out the test itself.
+      const racePromise = expectSaga(
+        parseDeeplinkAfterNavReady,
+        TEST_URL,
+        TEST_ORIGIN,
+      ).run({ timeout: 5000, silenceTimeout: true });
+
+      // Before advancing timers, the saga must be blocked on `race` and
+      // the deeplink must not have been parsed yet.
+      expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(3100);
+      await racePromise;
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('parses anyway after the safety timeout when MainNavigator never mounts', async () => {
+    jest.useFakeTimers();
+    try {
+      const racePromise = expectSaga(
+        parseDeeplinkAfterNavReady,
+        TEST_URL,
+        TEST_ORIGIN,
+      ).run({ timeout: 5000, silenceTimeout: true });
+
+      // Advance past the 3s safety cap inside the saga's `race`.
+      jest.advanceTimersByTime(3100);
+      await racePromise;
+
+      expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+        origin: TEST_ORIGIN,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+});
+
+describe('mainNavigatorReadyStateMachine', () => {
+  const TEST_URL = 'https://link.metamask.io/buy';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __setMainNavigatorReadyForTesting(false);
+  });
+
+  it('latches readiness so a later deeplink parses immediately', async () => {
+    await expectSaga(mainNavigatorReadyStateMachine)
+      .dispatch(mainNavigatorReady())
+      .silentRun();
+
+    // With the latch set, parseDeeplinkAfterNavReady should not wait.
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('clears readiness on logout', async () => {
+    __setMainNavigatorReadyForTesting(true);
+
+    await expectSaga(mainNavigatorReadyStateMachine)
+      .dispatch({ type: UserActionType.LOGOUT })
+      .silentRun();
+
+    // Latch cleared: parse must wait for the next MAIN_NAVIGATOR_READY.
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN)
+      .dispatch(mainNavigatorReady())
+      .run();
 
     expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
       origin: TEST_ORIGIN,

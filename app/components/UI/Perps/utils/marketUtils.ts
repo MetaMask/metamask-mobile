@@ -102,7 +102,7 @@ export const getAssetIconUrls = (
 export const SUGGESTED_WATCHLIST_LIMIT = 5;
 
 /** Maximum number of markets a user can add to their watchlist. */
-export const WATCHLIST_LIMIT = 10;
+export const WATCHLIST_LIMIT = 100;
 
 /**
  * Returns suggested watchlist markets shown beneath the user's watchlist.

@@ -387,7 +387,7 @@ export interface AnalyticsEvents {
   OFFRAMP_PURCHASE_COMPLETED: OffRampPurchaseCompleted;
 
   ONRAMP_PURCHASE_FAILED: OnRampPurchaseFailed;
-  OFFRAMP_PURCHASE_FAILED: OfframpCanceled;
+  OFFRAMP_PURCHASE_FAILED: OffRampPurchaseFailed;
 
   ONRAMP_PURCHASE_CANCELLED: OnRampPurchaseCanceled;
   OFFRAMP_PURCHASE_CANCELLED: OffRampPurchaseCanceled;

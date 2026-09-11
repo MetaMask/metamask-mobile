@@ -3,11 +3,16 @@ import fs from 'fs';
 import { remote, type Browser } from 'webdriverio';
 import { BaseServiceProvider } from '../../common/base/BaseServiceProvider';
 import type { ProjectConfig } from '../../common/types';
-import { startAppiumServer, stopAppiumServer } from '../../appium';
+import {
+  shouldSkipAppiumStop,
+  startAppiumServer,
+  stopAppiumServer,
+} from '../../appium';
 import { EmulatorConfigBuilder } from './EmulatorConfigBuilder';
 import { Platform, type EmulatorConfig } from '../../../types';
 import {
   applyResolvedAndroidAdbToDevice,
+  clearAndroidAdbUdidResolutionCache,
   resolveAndroidAdbUdidForDevice,
 } from './android/resolveAndroidAdbUdid';
 import {
@@ -15,7 +20,14 @@ import {
   shouldSkipAppReinstallFromEnv,
 } from './reinstallLocalBuildFromPath';
 import {
-  startAndroidEmulator,
+  assertAndroidDevicePoolMatchesWorkers,
+  parseAndroidDevicePool,
+  resolveAndroidDevicePoolSize,
+} from './android/androidDevicePool.ts';
+import { assertIosDevicePoolMatchesWorkers } from './ios/iosDevicePool.ts';
+import {
+  startAndroidEmulatorPool,
+  ensureAndroidEmulatorReady,
   ensureIosSimulatorReady,
   getIosSimulatorUdid,
 } from '../../appium/EmulatorHelpers';
@@ -24,6 +36,9 @@ import {
  * Service provider for local emulator/simulator testing
  */
 export class EmulatorProvider extends BaseServiceProvider {
+  /** Active WDIO browser for cleanupSession when no drv arg is passed. */
+  private browser?: Browser;
+
   constructor(project: ProjectConfig) {
     super(project, 'EmulatorProvider');
   }
@@ -137,6 +152,17 @@ export class EmulatorProvider extends BaseServiceProvider {
   }
 
   /**
+   * Persist adb serial across Playwright tests and retries in the same worker.
+   */
+  private persistAndroidEmulatorSerial(
+    serial: string,
+    emulatorDevice: EmulatorConfig,
+  ): void {
+    emulatorDevice.udid = serial;
+    process.env.ANDROID_DEVICE_UDID = serial;
+  }
+
+  /**
    * Boot the configured device (emulator/simulator) if it is not already
    * running. Controlled by the SKIP_DEVICE_BOOT env var:
    *
@@ -147,20 +173,44 @@ export class EmulatorProvider extends BaseServiceProvider {
    * adb / simctl which require a running device.
    */
   private async bootDevice(): Promise<void> {
+    if (this.project.use.platform === Platform.ANDROID) {
+      assertAndroidDevicePoolMatchesWorkers();
+    } else if (this.project.use.platform === Platform.IOS) {
+      assertIosDevicePoolMatchesWorkers();
+    }
     if (process.env.SKIP_DEVICE_BOOT === 'true') {
       this.logger.info('SKIP_DEVICE_BOOT=true — skipping device boot.');
       return;
     }
 
     if (this.project.use.platform === Platform.ANDROID) {
-      const avdName = (this.project.use.device as EmulatorConfig).name;
-      if (!avdName) {
+      const emulatorDevice = this.project.use.device as EmulatorConfig;
+      const avdName = emulatorDevice.name;
+      if (!avdName && !emulatorDevice.udid) {
         throw new Error(
-          'Android device boot requires `use.device.name` (AVD name) in the project config.',
+          'Android device boot requires `use.device.name` (AVD name) or `use.device.udid` (adb serial) in the project config.',
         );
       }
-      const serial = await startAndroidEmulator(avdName);
-      (this.project.use.device as EmulatorConfig).udid = serial;
+      const poolSize = resolveAndroidDevicePoolSize();
+      if (poolSize > 1) {
+        if (!avdName) {
+          throw new Error(
+            'Android device pool boot requires `use.device.name` (AVD name).',
+          );
+        }
+        const serials = await startAndroidEmulatorPool(avdName, poolSize);
+        process.env.ANDROID_DEVICE_POOL = serials.join(',');
+        process.env.E2E_WORKERS = String(poolSize);
+        this.logger.info(
+          `Android device pool ready: ANDROID_DEVICE_POOL=${process.env.ANDROID_DEVICE_POOL}, E2E_WORKERS=${process.env.E2E_WORKERS}`,
+        );
+        return;
+      }
+      const serial = await ensureAndroidEmulatorReady(
+        avdName ?? '',
+        emulatorDevice.udid,
+      );
+      this.persistAndroidEmulatorSerial(serial, emulatorDevice);
     } else if (this.project.use.platform === Platform.IOS) {
       const deviceName = this.project.use.device?.name;
       if (!deviceName) {
@@ -229,6 +279,7 @@ export class EmulatorProvider extends BaseServiceProvider {
       this.logger.info('App is installed on the device');
     }
 
+    await startAppiumServer();
     this.logger.debug('Emulator global setup complete');
   }
 
@@ -246,6 +297,18 @@ export class EmulatorProvider extends BaseServiceProvider {
           'Android local emulator: set `use.device.name` (AVD name) or `use.device.udid` (e.g. emulator-5554).',
         );
       }
+      // Re-ensure the emulator on every session (including Playwright retries).
+      // globalSetup boots once; a failed test can leave adb offline until we wait or reboot.
+      clearAndroidAdbUdidResolutionCache();
+      const serial = await ensureAndroidEmulatorReady(
+        emulatorDevice.name ?? '',
+        emulatorDevice.udid,
+        {
+          preserveSiblingEmulators:
+            parseAndroidDevicePool(process.env.ANDROID_DEVICE_POOL).length > 1,
+        },
+      );
+      this.persistAndroidEmulatorSerial(serial, emulatorDevice);
       await applyResolvedAndroidAdbToDevice(emulatorDevice, {
         setAndroidSerialEnv: true,
       });
@@ -274,26 +337,68 @@ export class EmulatorProvider extends BaseServiceProvider {
     const configBuilder = new EmulatorConfigBuilder(this.project);
     const config = configBuilder.build();
 
+    const sessionCreationStart = Date.now();
     const browser = await remote(config);
+    this.sessionCreationDurationMs = Date.now() - sessionCreationStart;
+    this.browser = browser;
     this.sessionId = browser.sessionId;
 
     this.logger.info(
-      `Driver created for emulator with session: ${this.sessionId}`,
+      `Driver created for emulator with session: ${this.sessionId} ` +
+        `(session creation took ${this.sessionCreationDurationMs}ms)`,
     );
     return browser;
   }
 
   /**
-   * Cleanup - stop the Appium server
+   * Delete the WebDriver session. Does not stop the Appium server.
    */
-  async cleanup(): Promise<void> {
-    this.logger.debug('Cleaning up emulator provider');
+  async cleanupSession(drv?: Browser): Promise<void> {
+    const session = drv ?? this.browser;
+    if (!session) {
+      this.sessionId = undefined;
+      this.browser = undefined;
+      return;
+    }
+
+    this.logger.debug(
+      `Deleting WebDriver session ${session.sessionId ?? this.sessionId ?? 'unknown'}`,
+    );
+    try {
+      await session.deleteSession();
+      this.logger.info('WebDriver session deleted');
+    } catch (error) {
+      this.logger.error('Failed to delete WebDriver session:', error);
+      throw error;
+    } finally {
+      this.browser = undefined;
+      this.sessionId = undefined;
+    }
+  }
+
+  /**
+   * Stop the Appium server. Does not delete the WebDriver session.
+   */
+  async cleanupProvider(): Promise<void> {
+    this.logger.debug('Cleaning up emulator provider (Appium server)');
     try {
       await stopAppiumServer();
-      this.logger.info('Appium server stopped successfully');
+      this.logger.info(
+        shouldSkipAppiumStop()
+          ? 'Appium server left running for the remaining workers'
+          : 'Appium server stopped successfully',
+      );
     } catch (error) {
       this.logger.error('Failed to stop Appium server:', error);
       throw error;
     }
+  }
+
+  /**
+   * Legacy cleanup — stops Appium only (historical EmulatorProvider behavior).
+   * Callers that also need session teardown should call cleanupSession first.
+   */
+  async cleanup(): Promise<void> {
+    await this.cleanupProvider();
   }
 }

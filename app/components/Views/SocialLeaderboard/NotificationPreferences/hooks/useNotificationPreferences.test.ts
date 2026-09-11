@@ -39,6 +39,14 @@ const buildStoragePreferences = (socialAIOverrides = {}) => ({
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
+  agenticCli: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  priceAlerts: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
   socialAI: {
     pushNotificationsEnabled: true,
     inAppNotificationsEnabled: true,

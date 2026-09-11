@@ -3,6 +3,7 @@ import enContent from '../../../../locales/languages/en.json';
 export const TokenOverviewSelectorsIDs = {
   CONTAINER: 'token-asset-overview',
   TOKEN_PRICE: 'token-price',
+  PRICE_ALERT_BUTTON: 'token-price-alert-button',
   SEND_BUTTON: 'token-send-button',
   RECEIVE_BUTTON: 'token-receive-button',
   BUY_BUTTON: 'token-buy-button',

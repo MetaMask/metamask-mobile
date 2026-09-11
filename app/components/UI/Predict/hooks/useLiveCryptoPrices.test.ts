@@ -44,6 +44,17 @@ describe('useLiveCryptoPrices', () => {
       expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
         ['btc/usd'],
         expect.any(Function),
+        { twapWindowSeconds: undefined },
+      );
+    });
+
+    it('subscribes to the market TWAP window', () => {
+      renderHook(() => useLiveCryptoPrices('btc/usd', jest.fn(), 30));
+
+      expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
+        ['btc/usd'],
+        expect.any(Function),
+        { twapWindowSeconds: 30 },
       );
     });
 

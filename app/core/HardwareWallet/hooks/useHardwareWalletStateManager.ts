@@ -93,9 +93,16 @@ export const useHardwareWalletStateManager =
 
     const selectedAccount = useSelector(selectSelectedInternalAccount);
 
-    const walletType: HardwareWalletType | null = selectedAccount?.address
-      ? (getHardwareWalletTypeForAddress(selectedAccount.address) ?? null)
-      : null;
+    let walletType: HardwareWalletType | null = null;
+    if (selectedAccount?.address) {
+      try {
+        walletType = getHardwareWalletTypeForAddress(selectedAccount.address);
+      } catch {
+        // Engine not initialized (init failure / vault recovery boot):
+        // no keyring lookup is possible yet; render as non-hardware wallet.
+        walletType = null;
+      }
+    }
 
     const state = useMemo<HardwareWalletManagedState>(
       () => ({

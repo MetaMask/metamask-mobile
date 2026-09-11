@@ -9,6 +9,7 @@ import { normalizeFilterKey } from './marketCategoryMapping';
 
 export const RELATED_MARKETS_SOURCE = 'related_markets';
 export const RELATED_MARKET_CLICKED = 'related_market_clicked';
+export const RELATED_MARKETS_HEADER_TAPPED = 'related_markets_header_tapped';
 
 export const RELATED_MARKETS_EVENT_PROPERTY = {
   SOURCE_MARKET: 'source_market',
@@ -26,6 +27,30 @@ export interface RelatedMarketsResult {
   collection: RelatedMarketCollection;
   markets: PerpsMarketData[];
 }
+
+/**
+ * Whether a market belongs to a category that can show Related markets.
+ * Does not require the full markets list — `PerpsRelatedMarkets` resolves
+ * related tiles once its own `usePerpsMarkets` subscription delivers data.
+ *
+ * `getMarketTypeFilter`'s `'new'` bucket (uncategorised HIP-3 markets) is
+ * treated the same as `'all'` here: on mobile, `'new'` means "listed within
+ * the last 30 days" (see `useHasNewMarkets`/`isRecentlyListed`), a different
+ * definition than the controller's uncategorised-HIP-3 bucket. Showing a
+ * "Related markets" rail for that bucket would label it "New" and open a
+ * market list filtered by the 30-day definition, which usually would not
+ * contain the same markets.
+ */
+export const hasRelatedMarketsCategory = (
+  currentMarket: PerpsMarketData | null | undefined,
+): boolean => {
+  if (!currentMarket?.symbol) {
+    return false;
+  }
+
+  const category = getMarketTypeFilter(currentMarket);
+  return category !== 'all' && category !== 'new';
+};
 
 /**
  * Resolve the Related markets rail for a given market.
@@ -46,7 +71,10 @@ export const getRelatedMarketsForMarket = (
   }
 
   const category = getMarketTypeFilter(currentMarket);
-  if (category === 'all') {
+  // See `hasRelatedMarketsCategory` for why the controller's uncategorised-
+  // HIP-3 'new' bucket is excluded alongside 'all': mobile's "New" now means
+  // "listed within the last 30 days", not "uncategorised HIP-3 market".
+  if (category === 'all' || category === 'new') {
     return null;
   }
 

@@ -49,6 +49,9 @@ export const I18nEvents = new EventEmitter();
 // Should the app fallback to English if user locale doesn't exists
 I18n.fallbacks = true;
 I18n.defaultLocale = 'en';
+// Restrict placeholders to just "{{ }}" syntax, to avoid errors with "%{{ }}" in Turkish
+// Default is `/(?:\{\{|%\{)(.*?)(?:\}\}?)/gm`, which supports "{{ }}" and "%{ }" syntax
+I18n.placeholder = /\{\{(.*?)\}\}/gm
 // Define the supported translations
 I18n.translations = supportedTranslations;
 // If language selected get locale
@@ -96,10 +99,13 @@ export const isRTL = false; // currentLocale.indexOf('jaJp') === 0;
 
 // Set locale
 export async function setLocale(locale) {
+  const localeChanged = I18n.locale !== locale;
   I18n.locale = locale;
   // Platform.OS === 'ios' && getLocaleData(locale);
   await StorageWrapper.setItem(LANGUAGE, locale);
-  I18nEvents.emit('localeChanged', locale);
+  if (localeChanged) {
+    I18nEvents.emit('localeChanged', locale);
+  }
 }
 
 /**
@@ -139,8 +145,9 @@ export function strings(name, params = {}) {
 // Allow persist locale after app closed
 async function getUserPreferableLocale() {
   const locale = await StorageWrapper.getItem(LANGUAGE);
-  if (locale) {
+  if (locale && I18n.locale !== locale) {
     I18n.locale = locale;
+    I18nEvents.emit('localeChanged', locale);
   }
 }
 

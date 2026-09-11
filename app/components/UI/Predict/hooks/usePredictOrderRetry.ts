@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SLIPPAGE_BEST_AVAILABLE } from '../providers/polymarket/constants';
-import { PredictTradeStatus } from '../constants/eventNames';
+import {
+  PredictEventValues,
+  PredictTradeStatus,
+} from '../constants/eventNames';
 import Engine from '../../../../core/Engine';
-import type { OrderPreview, PlaceOrderParams } from '../types';
+import type {
+  OrderPreview,
+  PlaceOrderParams,
+  PredictBuyAttempt,
+} from '../types';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type {
   PredictOrderRetrySheetRef,
@@ -20,6 +27,7 @@ interface UsePredictOrderRetryParams {
    * inline buy-sheet error banner can handle the retry UX instead.
    */
   isSheetMode?: boolean;
+  attempt?: PredictBuyAttempt;
 }
 
 export function usePredictOrderRetry({
@@ -29,6 +37,7 @@ export function usePredictOrderRetry({
   isOrderNotFilled,
   resetOrderNotFilled,
   isSheetMode = false,
+  attempt,
 }: UsePredictOrderRetryParams) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retrySheetVariant, setRetrySheetVariant] =
@@ -40,17 +49,24 @@ export function usePredictOrderRetry({
     if (!preview) return;
     setIsRetrying(true);
 
-    Engine.context.PredictController.trackPredictOrderEvent({
-      status: PredictTradeStatus.RETRY_SUBMITTED,
-      analyticsProperties,
-      sharePrice: preview.sharePrice,
-    });
+    const isPredictBuy =
+      analyticsProperties?.transactionType ===
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY;
+
+    if (!isPredictBuy) {
+      Engine.context.PredictController.trackPredictOrderEvent({
+        status: PredictTradeStatus.RETRY_SUBMITTED,
+        analyticsProperties,
+        sharePrice: preview.sharePrice,
+      });
+    }
 
     try {
       const retryPreview = { ...preview, slippage: SLIPPAGE_BEST_AVAILABLE };
       const outcome = await placeOrder({
         analyticsProperties,
         preview: retryPreview,
+        attempt,
       });
 
       if (
@@ -75,6 +91,7 @@ export function usePredictOrderRetry({
     preview,
     placeOrder,
     analyticsProperties,
+    attempt,
     resetOrderNotFilled,
     isSheetMode,
   ]);
@@ -98,11 +115,16 @@ export function usePredictOrderRetry({
         retrySheetRef.current?.onOpenBottomSheet();
       }
 
-      Engine.context.PredictController.trackPredictOrderEvent({
-        status: PredictTradeStatus.RETRY_PROMPTED,
-        analyticsProperties,
-        sharePrice: preview?.sharePrice,
-      });
+      if (
+        analyticsProperties?.transactionType !==
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
+      ) {
+        Engine.context.PredictController.trackPredictOrderEvent({
+          status: PredictTradeStatus.RETRY_PROMPTED,
+          analyticsProperties,
+          sharePrice: preview?.sharePrice,
+        });
+      }
     }
 
     wasOrderNotFilledRef.current = isOrderNotFilled;

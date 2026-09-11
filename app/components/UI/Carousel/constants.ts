@@ -1,34 +1,8 @@
 import { strings } from '../../../../locales/i18n';
 import { CarouselSlide } from './types';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
-import Routes from '../../../constants/navigation/Routes';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { SolScope } from '@metamask/keyring-api';
-///: END:ONLY_INCLUDE_IF
 
 export const PREDEFINED_SLIDES: CarouselSlide[] = [
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  {
-    id: 'solana',
-    title: strings('banner.solana.title'),
-    description: strings('banner.solana.subtitle'),
-    undismissable: false,
-    navigation: {
-      type: 'function',
-      navigate: () => [
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.SHEET.ADD_ACCOUNT,
-          params: {
-            clientType: WalletClientType.Solana,
-            scope: SolScope.Mainnet,
-          },
-        },
-      ],
-    },
-  },
-  ///: END:ONLY_INCLUDE_IF
   {
     id: 'fund',
     title: strings('banner.fund.title'),

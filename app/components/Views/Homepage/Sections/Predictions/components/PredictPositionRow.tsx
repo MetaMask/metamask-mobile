@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, Image, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { Image } from 'expo-image';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import {
   Box,
@@ -16,10 +18,15 @@ import {
   TextVariant as ComponentTextVariant,
   TextColor as ComponentTextColor,
 } from '../../../../../../component-library/components/Texts/Text/Text.types';
+import { selectPredictFeeCollectionFlag } from '../../../../../UI/Predict/selectors/featureFlags';
 import {
   formatPercentage,
   formatPrice,
 } from '../../../../../UI/Predict/utils/format';
+import {
+  estimatePredictSellNetValue,
+  getPredictPositionDisplay,
+} from '../../../../../UI/Predict/utils/orders';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 import { strings } from '../../../../../../../locales/i18n';
 
@@ -36,19 +43,26 @@ interface PredictPositionRowProps {
  * Line 1: Title (e.g., "Gavin Newsom" or "Will ETF be approved?")
  * Line 2: Direction (e.g., "Yes" or "No")
  */
-export const PredictPositionRow = ({
+const PredictPositionRowBase = ({
   position,
   onPress,
   privacyMode,
 }: PredictPositionRowProps) => {
   const tw = useTailwind();
+  const feeCollection = useSelector(selectPredictFeeCollectionFlag);
 
   const handlePress = useCallback(() => {
     onPress(position);
   }, [onPress, position]);
 
-  const { title, outcome, initialValue, size, currentValue, percentPnl } =
-    position;
+  const { title, outcome, initialValue, size, currentValue } = position;
+  const { value, percentPnl } = getPredictPositionDisplay({
+    initialValue,
+    netValue: estimatePredictSellNetValue({
+      grossValue: currentValue,
+      feeCollection,
+    }),
+  });
 
   return (
     <TouchableOpacity
@@ -94,7 +108,7 @@ export const PredictPositionRow = ({
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
         >
-          {formatPrice(currentValue, { maximumDecimals: 2 })}
+          {formatPrice(value, { maximumDecimals: 2 })}
         </SensitiveText>
         <SensitiveText
           variant={ComponentTextVariant.BodySMMedium}
@@ -112,6 +126,8 @@ export const PredictPositionRow = ({
     </TouchableOpacity>
   );
 };
+
+export const PredictPositionRow = React.memo(PredictPositionRowBase);
 
 /**
  * Skeleton for a position row with shimmer effect (matches row layout)

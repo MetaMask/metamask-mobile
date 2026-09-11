@@ -20,13 +20,30 @@ import {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
+  PerpsTradingCampaignPrizePoolDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
   PredictThePitchPrizePoolDto,
+  MoneyAccountSweepstakesStatsMeDto,
+  MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesDrawProofDto,
   VipDashboardState,
   VipRefereeMeState,
+  VipTransactionDto,
+  VipTransactionType,
 } from '../../core/Engine/controllers/rewards-controller/types';
+import {
+  buildCampaignOutcomeToastCompositeKey,
+  buildSubscriptionCampaignCompositeKey,
+  buildSubscriptionVipTransactionCompositeKey,
+} from './compositeKeys';
+import {
+  type CampaignResourceCacheEntry,
+  type OndoCampaignLeaderboardCacheEntry,
+  getOrCreateCampaignResourceCacheEntry,
+  getOrCreateOndoCampaignLeaderboardCacheEntry,
+} from './campaignResourceState';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
 
@@ -66,6 +83,43 @@ export interface BulkLinkState {
    */
   initialSubscriptionId: string | null;
 }
+
+/**
+ * Deferred Money Account Sweepstakes series opt-in resume.
+ * When some active/upcoming weeks fail after immediate retries, needsRetry is
+ * set so RewardsDashboard can re-run ensureOptedIn on focus. Targets are
+ * always re-derived from series + participant status (no campaign ID list).
+ */
+export interface PendingMasSeriesOptInState {
+  needsRetry: boolean;
+  subscriptionId: string | null;
+}
+
+export type FirstPredictionOnUsOrderStatus =
+  | 'confirmed'
+  | 'executed'
+  | 'failed';
+
+export interface FirstPredictionOnUsInteraction {
+  offerViewed: boolean;
+  skipped: boolean;
+  marketId: string | null;
+  outcome: string | null;
+  orderStatus: FirstPredictionOnUsOrderStatus | null;
+  predictAccountAddress: string | null;
+  transactionHash: string | null;
+}
+
+export const initialFirstPredictionOnUsInteraction: FirstPredictionOnUsInteraction =
+  {
+    offerViewed: false,
+    skipped: false,
+    marketId: null,
+    outcome: null,
+    orderStatus: null,
+    predictAccountAddress: null,
+    transactionHash: null,
+  };
 
 export interface RewardsState {
   activeTab: 'overview' | 'campaigns' | 'activity';
@@ -132,6 +186,9 @@ export interface RewardsState {
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
 
+  // Pending Money Account Sweepstakes series opt-in (resume on dashboard focus)
+  pendingMasSeriesOptIn: PendingMasSeriesOptInState;
+
   // Benefits state
   benefits: SubscriptionBenefitDto[];
   benefitsLoading: boolean;
@@ -146,6 +203,8 @@ export interface RewardsState {
   vipRefereeDashboardError: boolean;
   vipSplashAccepted: Record<string, boolean>;
   vipRefereeSplashAccepted: Record<string, boolean>;
+  // VIP transactions (keyed by `${subscriptionId}:${type}`)
+  vipTransactions: Record<string, VipTransactionDto[] | null>;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -162,11 +221,7 @@ export interface RewardsState {
   versionGuardError: boolean;
 
   // Campaign leaderboard (keyed by campaignId)
-  ondoCampaignLeaderboard: CampaignLeaderboardDto | null;
-  ondoCampaignLeaderboardLoading: boolean;
-  ondoCampaignLeaderboardError: boolean;
-  // Currently selected tier for leaderboard display
-  ondoCampaignLeaderboardSelectedTier: string | null;
+  ondoCampaignLeaderboards: Record<string, OndoCampaignLeaderboardCacheEntry>;
 
   // Campaign leaderboard position (user's position, keyed by composite key `${subscriptionId}:${campaignId}`)
   ondoCampaignLeaderboardPositions: Record<
@@ -180,15 +235,17 @@ export interface RewardsState {
   // Ondo GM activity (keyed by composite key `${subscriptionId}:${campaignId}`)
   ondoCampaignActivity: Record<string, OndoGmActivityEntryDto[] | null>;
 
-  // Ondo campaign deposits (public, campaign-wide total)
-  ondoCampaignDeposits: OndoGmCampaignDepositsDto | null;
-  ondoCampaignDepositsLoading: boolean;
-  ondoCampaignDepositsError: boolean;
+  // Ondo campaign deposits (public, keyed by campaignId)
+  ondoCampaignDeposits: Record<
+    string,
+    CampaignResourceCacheEntry<OndoGmCampaignDepositsDto>
+  >;
 
-  // Perps Trading Campaign leaderboard
-  perpsTradingCampaignLeaderboard: PerpsTradingCampaignLeaderboardDto | null;
-  perpsTradingCampaignLeaderboardLoading: boolean;
-  perpsTradingCampaignLeaderboardError: boolean;
+  // Perps Trading Campaign leaderboard (keyed by campaignId)
+  perpsTradingCampaignLeaderboards: Record<
+    string,
+    CampaignResourceCacheEntry<PerpsTradingCampaignLeaderboardDto>
+  >;
 
   // Perps Trading Campaign leaderboard position (user's own position)
   perpsTradingCampaignLeaderboardPositions: Record<
@@ -196,15 +253,17 @@ export interface RewardsState {
     PerpsTradingCampaignLeaderboardPositionDto
   >;
 
-  // Perps Trading Campaign volume (public stats; UI derives prize-pool display from notional volume)
-  perpsTradingCampaignVolume: PerpsTradingCampaignVolumeDto | null;
-  perpsTradingCampaignVolumeLoading: boolean;
-  perpsTradingCampaignVolumeError: boolean;
+  // Perps Trading Campaign volume (keyed by campaignId)
+  perpsTradingCampaignVolumes: Record<
+    string,
+    CampaignResourceCacheEntry<PerpsTradingCampaignVolumeDto>
+  >;
 
-  // Predict The Pitch leaderboard
-  predictThePitchLeaderboard: PredictThePitchLeaderboardDto | null;
-  predictThePitchLeaderboardLoading: boolean;
-  predictThePitchLeaderboardError: boolean;
+  // Predict The Pitch leaderboard (keyed by campaignId)
+  predictThePitchLeaderboards: Record<
+    string,
+    CampaignResourceCacheEntry<PredictThePitchLeaderboardDto>
+  >;
 
   // Predict The Pitch leaderboard position (user's own position)
   predictThePitchLeaderboardPositions: Record<
@@ -215,10 +274,35 @@ export interface RewardsState {
   // Predict The Pitch portfolio positions
   predictThePitchPositions: Record<string, PredictThePitchPositionsDto>;
 
-  // Predict The Pitch prize pool
-  predictThePitchPrizePool: PredictThePitchPrizePoolDto | null;
-  predictThePitchPrizePoolLoading: boolean;
-  predictThePitchPrizePoolError: boolean;
+  // Perps Trading Campaign prize pool (keyed by campaignId)
+  perpsTradingCampaignPrizePools: Record<
+    string,
+    CampaignResourceCacheEntry<PerpsTradingCampaignPrizePoolDto>
+  >;
+
+  // Predict The Pitch prize pool (keyed by campaignId)
+  predictThePitchPrizePools: Record<
+    string,
+    CampaignResourceCacheEntry<PredictThePitchPrizePoolDto>
+  >;
+
+  // Money Account Sweepstakes stats (keyed by campaignId; auth-scoped via controller)
+  moneyAccountSweepstakesStats: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesStatsMeDto>
+  >;
+
+  // Money Account Sweepstakes prize pool (keyed by campaignId)
+  moneyAccountSweepstakesPrizePools: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesPrizePoolDto>
+  >;
+
+  // Money Account Sweepstakes draw proof (keyed by campaignId)
+  moneyAccountSweepstakesDrawProofs: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesDrawProofDto>
+  >;
 
   // Pending deeplink navigation intent, stored in Redux so it survives the
   // UnmountOnBlur remount of RewardsHome when navigating from outside the tab.
@@ -226,6 +310,15 @@ export interface RewardsState {
 
   // Dismissed outcome toasts (keyed by `${campaignId}:${subscriptionId}:${variant}`)
   dismissedCampaignOutcomeToasts: Record<string, boolean>;
+
+  // Subscribed campaign start reminders (keyed by `${subscriptionId}:${campaignId}`)
+  subscribedCampaignReminders: Record<string, boolean>;
+
+  // Customer-support trail for First Prediction On Us. Included in exported
+  // state logs so support can see whether the user viewed, skipped, or
+  // predicted — and the predict account / tx hash when a real order executes.
+  // `offerViewed` is also the one-time guard that prevents re-showing the splash.
+  firstPredictionOnUsInteraction: FirstPredictionOnUsInteraction;
 }
 
 /**
@@ -234,7 +327,7 @@ export interface RewardsState {
  */
 export interface PendingDeeplink {
   page?: 'campaigns' | 'musd' | 'benefits';
-  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch';
+  campaign?: 'ondo' | 'season1' | 'perps-comp' | 'predict-the-pitch' | 'money';
 }
 
 export const initialState: RewardsState = {
@@ -295,6 +388,11 @@ export const initialState: RewardsState = {
     initialSubscriptionId: null,
   },
 
+  pendingMasSeriesOptIn: {
+    needsRetry: false,
+    subscriptionId: null,
+  },
+
   // Benefits initial state
   benefits: [],
   benefitsLoading: false,
@@ -309,6 +407,7 @@ export const initialState: RewardsState = {
   vipRefereeDashboardError: false,
   vipSplashAccepted: {},
   vipRefereeSplashAccepted: {},
+  vipTransactions: {},
 
   // Campaigns initial state
   campaigns: [],
@@ -325,10 +424,7 @@ export const initialState: RewardsState = {
   versionGuardError: false,
 
   // Campaign leaderboard initial state
-  ondoCampaignLeaderboard: null,
-  ondoCampaignLeaderboardLoading: false,
-  ondoCampaignLeaderboardError: false,
-  ondoCampaignLeaderboardSelectedTier: null,
+  ondoCampaignLeaderboards: {},
 
   // Campaign leaderboard position initial state
   ondoCampaignLeaderboardPositions: {},
@@ -340,30 +436,28 @@ export const initialState: RewardsState = {
   ondoCampaignActivity: {},
 
   // Ondo campaign deposits initial state
-  ondoCampaignDeposits: null,
-  ondoCampaignDepositsLoading: false,
-  ondoCampaignDepositsError: false,
+  ondoCampaignDeposits: {},
 
   // Perps Trading Campaign initial state
-  perpsTradingCampaignLeaderboard: null,
-  perpsTradingCampaignLeaderboardLoading: false,
-  perpsTradingCampaignLeaderboardError: false,
+  perpsTradingCampaignLeaderboards: {},
   perpsTradingCampaignLeaderboardPositions: {},
-  perpsTradingCampaignVolume: null,
-  perpsTradingCampaignVolumeLoading: false,
-  perpsTradingCampaignVolumeError: false,
-  predictThePitchLeaderboard: null,
-  predictThePitchLeaderboardLoading: false,
-  predictThePitchLeaderboardError: false,
+  perpsTradingCampaignVolumes: {},
+  perpsTradingCampaignPrizePools: {},
+  predictThePitchLeaderboards: {},
   predictThePitchLeaderboardPositions: {},
   predictThePitchPositions: {},
-  predictThePitchPrizePool: null,
-  predictThePitchPrizePoolLoading: false,
-  predictThePitchPrizePoolError: false,
+  predictThePitchPrizePools: {},
+  moneyAccountSweepstakesStats: {},
+  moneyAccountSweepstakesPrizePools: {},
+  moneyAccountSweepstakesDrawProofs: {},
 
   pendingDeeplink: null,
 
   dismissedCampaignOutcomeToasts: {},
+
+  subscribedCampaignReminders: {},
+
+  firstPredictionOnUsInteraction: initialFirstPredictionOnUsInteraction,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -472,15 +566,22 @@ const rewardsSlice = createSlice({
 
     resetRewardsState: (state) => {
       Object.assign(state, initialState);
-      // Explicitly clear leaderboard state (also covered by initialState above)
-      state.ondoCampaignLeaderboard = null;
-      state.ondoCampaignLeaderboardSelectedTier = null;
+      // Explicitly clear campaign-scoped state (also covered by initialState above)
+      state.ondoCampaignLeaderboards = {};
       state.ondoCampaignLeaderboardPositions = {};
       state.ondoCampaignPortfolio = {};
       state.ondoCampaignActivity = {};
-      state.ondoCampaignDeposits = null;
-      state.ondoCampaignDepositsLoading = false;
-      state.ondoCampaignDepositsError = false;
+      state.ondoCampaignDeposits = {};
+      state.perpsTradingCampaignLeaderboards = {};
+      state.perpsTradingCampaignVolumes = {};
+      state.perpsTradingCampaignPrizePools = {};
+      state.predictThePitchLeaderboards = {};
+      state.predictThePitchLeaderboardPositions = {};
+      state.predictThePitchPositions = {};
+      state.predictThePitchPrizePools = {};
+      state.moneyAccountSweepstakesStats = {};
+      state.moneyAccountSweepstakesPrizePools = {};
+      state.moneyAccountSweepstakesDrawProofs = {};
       state.vipDashboard = {};
       state.vipDashboardLoading = false;
       state.vipDashboardError = false;
@@ -489,14 +590,7 @@ const rewardsSlice = createSlice({
       state.vipRefereeDashboardError = false;
       state.vipSplashAccepted = {};
       state.vipRefereeSplashAccepted = {};
-      state.predictThePitchLeaderboard = null;
-      state.predictThePitchLeaderboardLoading = false;
-      state.predictThePitchLeaderboardError = false;
-      state.predictThePitchLeaderboardPositions = {};
-      state.predictThePitchPositions = {};
-      state.predictThePitchPrizePool = null;
-      state.predictThePitchPrizePoolLoading = false;
-      state.predictThePitchPrizePoolError = false;
+      state.vipTransactions = {};
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -547,6 +641,8 @@ const rewardsSlice = createSlice({
           hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
+          subscribedCampaignReminders: state.subscribedCampaignReminders,
+          firstPredictionOnUsInteraction: state.firstPredictionOnUsInteraction,
           vipSplashAccepted: state.vipSplashAccepted,
           vipRefereeSplashAccepted: state.vipRefereeSplashAccepted,
           versionGuardMinimumMobileVersion:
@@ -672,8 +768,25 @@ const rewardsSlice = createSlice({
         status: CampaignParticipantStatusDto;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       state.campaignParticipantStatuses[key] = action.payload.status;
+    },
+
+    setPendingMasSeriesOptIn: (
+      state,
+      action: PayloadAction<PendingMasSeriesOptInState>,
+    ) => {
+      state.pendingMasSeriesOptIn = {
+        needsRetry: action.payload.needsRetry,
+        subscriptionId: action.payload.subscriptionId,
+      };
+    },
+
+    clearPendingMasSeriesOptIn: (state) => {
+      state.pendingMasSeriesOptIn = initialState.pendingMasSeriesOptIn;
     },
 
     // Version guard reducers
@@ -693,43 +806,59 @@ const rewardsSlice = createSlice({
     // Campaign leaderboard reducers
     setOndoCampaignLeaderboard: (
       state,
-      action: PayloadAction<CampaignLeaderboardDto | null>,
+      action: PayloadAction<{
+        campaignId: string;
+        leaderboard: CampaignLeaderboardDto | null;
+      }>,
     ) => {
-      state.ondoCampaignLeaderboard = action.payload;
-      state.ondoCampaignLeaderboardError = false;
-      // Set the first tier as selected if not already set, or if the current
-      // selection no longer exists in the incoming data (e.g. different campaign)
-      if (action.payload) {
-        const tierNames = Object.keys(action.payload.tiers);
+      const entry = getOrCreateOndoCampaignLeaderboardCacheEntry(
+        state.ondoCampaignLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.leaderboard;
+      entry.error = false;
+      if (action.payload.leaderboard) {
+        const tierNames = Object.keys(action.payload.leaderboard.tiers);
         if (
           tierNames.length > 0 &&
-          (!state.ondoCampaignLeaderboardSelectedTier ||
-            !tierNames.includes(state.ondoCampaignLeaderboardSelectedTier))
+          (!entry.selectedTier || !tierNames.includes(entry.selectedTier))
         ) {
-          state.ondoCampaignLeaderboardSelectedTier = tierNames[0];
+          entry.selectedTier = tierNames[0];
         }
       }
     },
     setOndoCampaignLeaderboardLoading: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
     ) => {
-      if (action.payload && state.ondoCampaignLeaderboard) {
-        return;
-      }
-      state.ondoCampaignLeaderboardLoading = action.payload;
+      const entry = getOrCreateOndoCampaignLeaderboardCacheEntry(
+        state.ondoCampaignLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
     },
     setOndoCampaignLeaderboardError: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
     ) => {
-      state.ondoCampaignLeaderboardError = action.payload;
+      const entry = getOrCreateOndoCampaignLeaderboardCacheEntry(
+        state.ondoCampaignLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
     },
     setOndoCampaignLeaderboardSelectedTier: (
       state,
-      action: PayloadAction<string>,
+      action: PayloadAction<{ campaignId: string; tier: string }>,
     ) => {
-      state.ondoCampaignLeaderboardSelectedTier = action.payload;
+      const entry = getOrCreateOndoCampaignLeaderboardCacheEntry(
+        state.ondoCampaignLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.selectedTier = action.payload.tier;
     },
 
     // Campaign leaderboard position reducers
@@ -741,7 +870,10 @@ const rewardsSlice = createSlice({
         position: CampaignLeaderboardPositionDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.position) {
         state.ondoCampaignLeaderboardPositions[key] = action.payload.position;
       } else {
@@ -757,7 +889,10 @@ const rewardsSlice = createSlice({
         portfolio: OndoGmPortfolioDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.portfolio) {
         state.ondoCampaignPortfolio[key] = action.payload.portfolio;
       } else {
@@ -839,6 +974,21 @@ const rewardsSlice = createSlice({
       state.vipRefereeSplashAccepted[action.payload.subscriptionId] = true;
     },
 
+    setVipTransactions: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        type: VipTransactionType;
+        transactions: VipTransactionDto[] | null;
+      }>,
+    ) => {
+      const key = buildSubscriptionVipTransactionCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.type,
+      );
+      state.vipTransactions[key] = action.payload.transactions;
+    },
+
     setOndoCampaignActivity: (
       state,
       action: PayloadAction<{
@@ -847,50 +997,89 @@ const rewardsSlice = createSlice({
         entries: OndoGmActivityEntryDto[] | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       state.ondoCampaignActivity[key] = action.payload.entries;
     },
 
     // Campaign deposits reducers
     setOndoCampaignDeposits: (
       state,
-      action: PayloadAction<OndoGmCampaignDepositsDto | null>,
+      action: PayloadAction<{
+        campaignId: string;
+        deposits: OndoGmCampaignDepositsDto | null;
+      }>,
     ) => {
-      state.ondoCampaignDeposits = action.payload;
-      state.ondoCampaignDepositsError = false;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.ondoCampaignDeposits,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.deposits;
+      entry.error = false;
     },
-    setOndoCampaignDepositsLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.ondoCampaignDeposits) {
-        return;
+    setOndoCampaignDepositsLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.ondoCampaignDeposits,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setOndoCampaignDepositsError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.ondoCampaignDeposits,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
       }
-      state.ondoCampaignDepositsLoading = action.payload;
-    },
-    setOndoCampaignDepositsError: (state, action: PayloadAction<boolean>) => {
-      state.ondoCampaignDepositsError = action.payload;
     },
 
     // Perps Trading Campaign leaderboard reducers
     setPerpsTradingCampaignLeaderboard: (
       state,
-      action: PayloadAction<PerpsTradingCampaignLeaderboardDto | null>,
+      action: PayloadAction<{
+        campaignId: string;
+        leaderboard: PerpsTradingCampaignLeaderboardDto | null;
+      }>,
     ) => {
-      state.perpsTradingCampaignLeaderboard = action.payload;
-      state.perpsTradingCampaignLeaderboardError = false;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.leaderboard;
+      entry.error = false;
     },
     setPerpsTradingCampaignLeaderboardLoading: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
     ) => {
-      if (action.payload && state.perpsTradingCampaignLeaderboard) {
-        return;
-      }
-      state.perpsTradingCampaignLeaderboardLoading = action.payload;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
     },
     setPerpsTradingCampaignLeaderboardError: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
     ) => {
-      state.perpsTradingCampaignLeaderboardError = action.payload;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
     },
 
     // Perps Trading Campaign leaderboard position reducers
@@ -902,7 +1091,10 @@ const rewardsSlice = createSlice({
         position: PerpsTradingCampaignLeaderboardPositionDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.position) {
         state.perpsTradingCampaignLeaderboardPositions[key] =
           action.payload.position;
@@ -914,49 +1106,79 @@ const rewardsSlice = createSlice({
     // Perps Trading Campaign volume reducers
     setPerpsTradingCampaignVolume: (
       state,
-      action: PayloadAction<RewardsState['perpsTradingCampaignVolume']>,
+      action: PayloadAction<{
+        campaignId: string;
+        volume: PerpsTradingCampaignVolumeDto | null;
+      }>,
     ) => {
-      state.perpsTradingCampaignVolume = action.payload;
-      state.perpsTradingCampaignVolumeError = false;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignVolumes,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.volume;
+      entry.error = false;
     },
     setPerpsTradingCampaignVolumeLoading: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
     ) => {
-      if (action.payload && state.perpsTradingCampaignVolume) {
-        return;
-      }
-      state.perpsTradingCampaignVolumeLoading = action.payload;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignVolumes,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
     },
     setPerpsTradingCampaignVolumeError: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
     ) => {
-      state.perpsTradingCampaignVolumeError = action.payload;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignVolumes,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
     },
 
     // Predict The Pitch leaderboard reducers
     setPredictThePitchLeaderboard: (
       state,
-      action: PayloadAction<PredictThePitchLeaderboardDto | null>,
+      action: PayloadAction<{
+        campaignId: string;
+        leaderboard: PredictThePitchLeaderboardDto | null;
+      }>,
     ) => {
-      state.predictThePitchLeaderboard = action.payload;
-      state.predictThePitchLeaderboardError = false;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.predictThePitchLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.leaderboard;
+      entry.error = false;
     },
     setPredictThePitchLeaderboardLoading: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
     ) => {
-      if (action.payload && state.predictThePitchLeaderboard) {
-        return;
-      }
-      state.predictThePitchLeaderboardLoading = action.payload;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.predictThePitchLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
     },
     setPredictThePitchLeaderboardError: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
     ) => {
-      state.predictThePitchLeaderboardError = action.payload;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.predictThePitchLeaderboards,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
     },
 
     setPredictThePitchLeaderboardPosition: (
@@ -967,7 +1189,10 @@ const rewardsSlice = createSlice({
         position: PredictThePitchLeaderboardPositionDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.position) {
         state.predictThePitchLeaderboardPositions[key] =
           action.payload.position;
@@ -984,7 +1209,10 @@ const rewardsSlice = createSlice({
         positions: PredictThePitchPositionsDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.positions) {
         state.predictThePitchPositions[key] = action.payload.positions;
       } else {
@@ -992,28 +1220,199 @@ const rewardsSlice = createSlice({
       }
     },
 
+    // Perps Trading Campaign prize pool reducers
+    setPerpsTradingCampaignPrizePool: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        prizePool: PerpsTradingCampaignPrizePoolDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignPrizePools,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.prizePool;
+      entry.error = false;
+    },
+    setPerpsTradingCampaignPrizePoolLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignPrizePools,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setPerpsTradingCampaignPrizePoolError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.perpsTradingCampaignPrizePools,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
     // Predict The Pitch prize pool reducers
     setPredictThePitchPrizePool: (
       state,
-      action: PayloadAction<PredictThePitchPrizePoolDto | null>,
+      action: PayloadAction<{
+        campaignId: string;
+        prizePool: PredictThePitchPrizePoolDto | null;
+      }>,
     ) => {
-      state.predictThePitchPrizePool = action.payload;
-      state.predictThePitchPrizePoolError = false;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.predictThePitchPrizePools,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.prizePool;
+      entry.error = false;
     },
     setPredictThePitchPrizePoolLoading: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
     ) => {
-      if (action.payload && state.predictThePitchPrizePool) {
-        return;
-      }
-      state.predictThePitchPrizePoolLoading = action.payload;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.predictThePitchPrizePools,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
     },
     setPredictThePitchPrizePoolError: (
       state,
-      action: PayloadAction<boolean>,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
     ) => {
-      state.predictThePitchPrizePoolError = action.payload;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.predictThePitchPrizePools,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
+    // Money Account Sweepstakes stats reducers
+    setMoneyAccountSweepstakesStats: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        stats: MoneyAccountSweepstakesStatsMeDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.stats;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesStatsLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesStatsError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesStats,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
+    // Money Account Sweepstakes prize pool reducers
+    setMoneyAccountSweepstakesPrizePool: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        prizePool: MoneyAccountSweepstakesPrizePoolDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.prizePool;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesPrizePoolLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesPrizePoolError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesPrizePools,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
+    // Money Account Sweepstakes draw proof reducers
+    setMoneyAccountSweepstakesDrawProof: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        drawProof: MoneyAccountSweepstakesDrawProofDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.drawProof;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesDrawProofLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesDrawProofError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesDrawProofs,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
     },
 
     // Bulk link reducers
@@ -1062,6 +1461,7 @@ const rewardsSlice = createSlice({
       state.bulkLink.isRunning = false;
       state.bulkLink.wasInterrupted = false;
       state.bulkLink.initialSubscriptionId = null;
+      state.pendingMasSeriesOptIn = initialState.pendingMasSeriesOptIn;
     },
     bulkLinkReset: (state) => {
       state.bulkLink = initialState.bulkLink;
@@ -1091,8 +1491,88 @@ const rewardsSlice = createSlice({
         variant: 'winner' | 'non_winner';
       }>,
     ) => {
-      const key = `${action.payload.campaignId}:${action.payload.subscriptionId}:${action.payload.variant}`;
+      const { campaignId, subscriptionId, variant } = action.payload;
+      const key = buildCampaignOutcomeToastCompositeKey(
+        campaignId,
+        subscriptionId,
+        variant,
+      );
       state.dismissedCampaignOutcomeToasts[key] = true;
+    },
+
+    subscribeCampaignReminder: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+      }>,
+    ) => {
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
+      state.subscribedCampaignReminders[key] = true;
+    },
+
+    markFirstPredictionOnUsOfferViewed: (state) => {
+      state.firstPredictionOnUsInteraction.offerViewed = true;
+    },
+
+    markFirstPredictionOnUsSkipped: (state) => {
+      state.firstPredictionOnUsInteraction.skipped = true;
+    },
+
+    markFirstPredictionOnUsOutcomeOpened: (
+      state,
+      action: PayloadAction<{ marketId: string; outcome: string }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = null;
+      state.firstPredictionOnUsInteraction.predictAccountAddress = null;
+      state.firstPredictionOnUsInteraction.transactionHash = null;
+    },
+
+    markFirstPredictionOnUsOrderConfirmed: (
+      state,
+      action: PayloadAction<{ marketId: string; outcome: string }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = 'confirmed';
+    },
+
+    markFirstPredictionOnUsOrderExecuted: (
+      state,
+      action: PayloadAction<{
+        marketId: string;
+        outcome: string;
+        predictAccountAddress: string;
+        transactionHash: string;
+      }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = 'executed';
+      state.firstPredictionOnUsInteraction.predictAccountAddress =
+        action.payload.predictAccountAddress;
+      state.firstPredictionOnUsInteraction.transactionHash =
+        action.payload.transactionHash;
+    },
+
+    markFirstPredictionOnUsOrderFailed: (
+      state,
+      action: PayloadAction<{ marketId: string; outcome: string }>,
+    ) => {
+      state.firstPredictionOnUsInteraction.skipped = false;
+      state.firstPredictionOnUsInteraction.marketId = action.payload.marketId;
+      state.firstPredictionOnUsInteraction.outcome = action.payload.outcome;
+      state.firstPredictionOnUsInteraction.orderStatus = 'failed';
+      state.firstPredictionOnUsInteraction.predictAccountAddress = null;
+      state.firstPredictionOnUsInteraction.transactionHash = null;
     },
   },
   extraReducers: (builder) => {
@@ -1140,6 +1620,7 @@ const rewardsSlice = createSlice({
               vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
               vipRefereeSplashAccepted:
                 action.payload.rewards.vipRefereeSplashAccepted ?? {},
+              vipTransactions: action.payload.rewards.vipTransactions ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -1148,15 +1629,11 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.ondoCampaignPortfolio ?? {},
               ondoCampaignActivity:
                 action.payload.rewards.ondoCampaignActivity ?? {},
-              predictThePitchLeaderboard:
-                action.payload.rewards.predictThePitchLeaderboard ?? null,
               predictThePitchLeaderboardPositions:
                 action.payload.rewards.predictThePitchLeaderboardPositions ??
                 {},
               predictThePitchPositions:
                 action.payload.rewards.predictThePitchPositions ?? {},
-              predictThePitchPrizePool:
-                action.payload.rewards.predictThePitchPrizePool ?? null,
               hideUnlinkedAccountsBanner:
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
@@ -1164,6 +1641,14 @@ const rewardsSlice = createSlice({
 
               dismissedCampaignOutcomeToasts:
                 action.payload.rewards.dismissedCampaignOutcomeToasts ?? {},
+
+              subscribedCampaignReminders:
+                action.payload.rewards.subscribedCampaignReminders ?? {},
+
+              firstPredictionOnUsInteraction: {
+                ...initialFirstPredictionOnUsInteraction,
+                ...action.payload.rewards.firstPredictionOnUsInteraction,
+              },
 
               // Bulk link state - preserve interrupted status for resume capability
               bulkLink: {
@@ -1180,6 +1665,11 @@ const rewardsSlice = createSlice({
                 initialSubscriptionId: wasInterrupted
                   ? (previousBulkLink?.initialSubscriptionId ?? null)
                   : null,
+              },
+
+              pendingMasSeriesOptIn: {
+                ...initialState.pendingMasSeriesOptIn,
+                ...(action.payload.rewards.pendingMasSeriesOptIn ?? {}),
               },
             } as RewardsState;
           }
@@ -1226,11 +1716,14 @@ export const {
   setVipRefereeDashboardLoading,
   acceptVipInvite,
   acceptVipRefereeInvite,
+  setVipTransactions,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
+  setPendingMasSeriesOptIn,
+  clearPendingMasSeriesOptIn,
   // Version guard actions
   setVersionGuardMinimumMobileVersion,
   setVersionGuardLoading,
@@ -1255,6 +1748,9 @@ export const {
   setPerpsTradingCampaignVolume,
   setPerpsTradingCampaignVolumeLoading,
   setPerpsTradingCampaignVolumeError,
+  setPerpsTradingCampaignPrizePool,
+  setPerpsTradingCampaignPrizePoolLoading,
+  setPerpsTradingCampaignPrizePoolError,
   setPredictThePitchLeaderboard,
   setPredictThePitchLeaderboardLoading,
   setPredictThePitchLeaderboardError,
@@ -1263,6 +1759,15 @@ export const {
   setPredictThePitchPrizePool,
   setPredictThePitchPrizePoolLoading,
   setPredictThePitchPrizePoolError,
+  setMoneyAccountSweepstakesStats,
+  setMoneyAccountSweepstakesStatsLoading,
+  setMoneyAccountSweepstakesStatsError,
+  setMoneyAccountSweepstakesPrizePool,
+  setMoneyAccountSweepstakesPrizePoolLoading,
+  setMoneyAccountSweepstakesPrizePoolError,
+  setMoneyAccountSweepstakesDrawProof,
+  setMoneyAccountSweepstakesDrawProofLoading,
+  setMoneyAccountSweepstakesDrawProofError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,
@@ -1273,6 +1778,13 @@ export const {
   bulkLinkResumed,
   setPendingDeeplink,
   dismissCampaignOutcomeToast,
+  subscribeCampaignReminder,
+  markFirstPredictionOnUsOfferViewed,
+  markFirstPredictionOnUsSkipped,
+  markFirstPredictionOnUsOutcomeOpened,
+  markFirstPredictionOnUsOrderConfirmed,
+  markFirstPredictionOnUsOrderExecuted,
+  markFirstPredictionOnUsOrderFailed,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

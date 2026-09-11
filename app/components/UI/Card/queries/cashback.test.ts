@@ -44,7 +44,7 @@ describe('cashbackWalletOptions', () => {
     const opts = cashbackWalletOptions();
 
     expect(opts.queryKey).toEqual(['card', 'cashback', 'wallet']);
-    expect(opts.staleTime).toBe(0);
+    expect(opts.staleTime).toBe(30_000);
   });
 
   it('calls Engine.context.CardController.getCashbackWallet in queryFn', async () => {
@@ -84,6 +84,7 @@ describe('cashbackWithdrawEstimationOptions', () => {
       wei: '4648201084656',
       eth: '0.000004648201084656',
       price: '0.00892136699188968037536',
+      network: 'linea',
     };
     mockGetCashbackWithdrawEstimation.mockResolvedValue(mockEstimation);
 

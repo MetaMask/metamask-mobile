@@ -1,5 +1,8 @@
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import { getRelatedMarketsForMarket } from './relatedMarkets';
+import {
+  getRelatedMarketsForMarket,
+  hasRelatedMarketsCategory,
+} from './relatedMarkets';
 
 const createMarket = (
   symbol: string,
@@ -115,8 +118,10 @@ describe('relatedMarkets utilities', () => {
     ]);
   });
 
-  it('buckets uncategorised HIP-3 markets under the controller "new" category', () => {
-    // Arrange
+  it('returns null for uncategorised HIP-3 markets (controller "new" bucket)', () => {
+    // Arrange — the controller classifies an uncategorised HIP-3 market as
+    // 'new', but mobile's "New" means "listed in the last 30 days", so this
+    // must not surface a Related markets rail.
     const current = createMarket('builder:XYZ', { isHip3: true });
 
     // Act
@@ -126,10 +131,28 @@ describe('relatedMarkets utilities', () => {
     ]);
 
     // Assert
-    expect(result?.collection).toMatchObject({ id: 'new', label: 'New' });
-    expect(result?.markets.map((market) => market.symbol)).toStrictEqual([
-      'builder:ABC',
-    ]);
+    expect(result).toBeNull();
+  });
+
+  it('hasRelatedMarketsCategory is true for categorised markets', () => {
+    expect(
+      hasRelatedMarketsCategory(
+        createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
+      ),
+    ).toBe(true);
+    expect(hasRelatedMarketsCategory(createMarket('FET'))).toBe(true);
+  });
+
+  it('hasRelatedMarketsCategory is false without a symbol or category', () => {
+    expect(hasRelatedMarketsCategory(null)).toBe(false);
+    expect(hasRelatedMarketsCategory(undefined)).toBe(false);
+    expect(hasRelatedMarketsCategory(createMarket(''))).toBe(false);
+  });
+
+  it('hasRelatedMarketsCategory is false for uncategorised HIP-3 markets (controller "new" bucket)', () => {
+    expect(
+      hasRelatedMarketsCategory(createMarket('builder:XYZ', { isHip3: true })),
+    ).toBe(false);
   });
 
   it('returns null when there are no other markets in the category', () => {

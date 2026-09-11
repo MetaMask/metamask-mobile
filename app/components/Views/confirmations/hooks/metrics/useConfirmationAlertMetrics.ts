@@ -136,6 +136,7 @@ const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
   [AlertKeys.FiatBuyAmountLimit]: 'fiat_buy_amount_limit',
+  [AlertKeys.DepositLimit]: 'deposit_limit',
 };
 
 function getAlertName(alertKey: string): string {

@@ -3,9 +3,10 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -17,13 +18,19 @@ import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
-/**
- * Mock Strategy:
- * - Only mock external dependencies (Engine, Alert, navigation, hooks with API calls)
- * - Do NOT mock: Internal components, design system, styling hooks, format utilities
- * - Navigation and order hooks are mocked because they have external side effects
- * and we're testing the component's orchestration and user interaction logic
- */
+
+jest.mock('../../selectors/featureFlags', () => {
+  const feeCollection = {
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  };
+
+  return {
+    ...jest.requireActual('../../selectors/featureFlags'),
+    selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
+  };
+});
 
 // Mock Engine for analytics tracking
 jest.mock('../../../../../core/Engine', () => ({
@@ -105,8 +112,29 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
   }),
 }));
 
-// Mock usePredictOrderPreview hook - external API dependency
-let mockPreview: {
+jest.mock('../../hooks/usePredictRewards', () => ({
+  usePredictRewards: jest.fn(() => ({
+    shouldShowRewardsRow: false,
+    accountOptedIn: false,
+    rewardsAccountScope: null,
+    estimatedPoints: null,
+    isLoading: false,
+    hasError: false,
+  })),
+}));
+
+interface MockFees {
+  metamaskFee: number;
+  providerFee: number;
+  marketFee: number;
+  totalFee: number;
+  totalFeePercentage: number;
+  collector: string;
+  executors: string[];
+  permit2Enabled: boolean;
+}
+
+interface MockPreview {
   marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
@@ -119,7 +147,22 @@ let mockPreview: {
   tickSize: number;
   minOrderSize: number;
   negRisk: boolean;
-} | null = {
+  fees?: MockFees;
+}
+
+const mockFees: MockFees = {
+  metamaskFee: 1.8,
+  providerFee: 0.6,
+  marketFee: 0.3,
+  totalFee: 2.4,
+  totalFeePercentage: 4,
+  collector: '0xCollector',
+  executors: [],
+  permit2Enabled: false,
+};
+
+// Mock usePredictOrderPreview hook - external API dependency
+let mockPreview: MockPreview | null = {
   marketId: 'market-1',
   outcomeId: 'outcome-456',
   outcomeTokenId: 'outcome-token-789',
@@ -132,6 +175,7 @@ let mockPreview: {
   tickSize: 0.01,
   minOrderSize: 1,
   negRisk: false,
+  fees: mockFees,
 };
 let mockPreviewError: string | null = null;
 let mockIsCalculating = false;
@@ -218,8 +262,11 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   goBack: mockGoBack,
   dispatch: mockDispatch,
   navigate: jest.fn(),
+  navigateDeprecated: jest.fn(),
+  preload: jest.fn(),
   reset: jest.fn(),
   setParams: jest.fn(),
+  replaceParams: jest.fn(),
   setOptions: jest.fn(),
   addListener: jest.fn(),
   removeListener: jest.fn(),
@@ -262,6 +309,7 @@ describe('PredictSellPreview', () => {
       tickSize: 0.01,
       minOrderSize: 1,
       negRisk: false,
+      fees: mockFees,
     };
     mockPreviewError = null;
     mockIsCalculating = false;
@@ -299,20 +347,20 @@ describe('PredictSellPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows current value from preview minAmountReceived', () => {
+    it('shows estimated net proceeds from the preview', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      expect(screen.getByText('$60')).toBeOnTheScreen();
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
     });
 
-    it('shows P&L percentage calculated from position data', () => {
+    it('shows P&L percentage calculated from net proceeds after fees', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
     it('shows negative P&L when minAmountReceived is less than initial value', () => {
@@ -434,11 +482,10 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // Should not show the current value when loading
       expect(screen.queryByText('$60')).toBeNull();
     });
 
-    it('falls back to position currentValue when preview has error', () => {
+    it('falls back to estimated net value when preview has error', () => {
       mockPreview = null;
       mockPreviewError = 'Failed to fetch preview';
       mockIsCalculating = false;
@@ -447,10 +494,8 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // Should display position's currentValue when preview errors
-      expect(screen.getByText('$60')).toBeOnTheScreen();
-      // Should still show PnL from position data
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      expect(screen.getByText('$57.60')).toBeOnTheScreen();
+      expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
     });
 
     it('displays preview error message when preview fails', () => {
@@ -467,7 +512,7 @@ describe('PredictSellPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('calculates PnL from position data when preview has error', () => {
+    it('calculates PnL from estimated net value when preview has error', () => {
       mockPreview = null;
       mockPreviewError = 'Preview unavailable';
       mockIsCalculating = false;
@@ -492,10 +537,8 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // Should show position's current value
-      expect(screen.getByText('$150')).toBeOnTheScreen();
-      // Should calculate PnL from position data
-      expect(screen.getByText('+$50 (50%)')).toBeOnTheScreen();
+      expect(screen.getByText('$144')).toBeOnTheScreen();
+      expect(screen.getByText('+$44 (44%)')).toBeOnTheScreen();
     });
   });
 
@@ -560,8 +603,8 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('$60')).toBeOnTheScreen();
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
+      expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
     it('hides position icon row in sheet mode', () => {
@@ -605,7 +648,103 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('$60')).toBeOnTheScreen();
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
+    });
+  });
+
+  describe('fee disclosure', () => {
+    it('renders Total row when preview has fees', () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.total')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders net proceeds as Total amount after deducting fees', () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
+    });
+
+    it('hides Total row when preview is unavailable', () => {
+      mockPreview = null;
+      mockIsCalculating = true;
+      mockPreviewError = null;
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(
+        screen.queryByText(strings('predict.fee_summary.total')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('closes Price details sheet when preview refreshes to null', async () => {
+      const { rerender } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.price_details')),
+      ).toBeOnTheScreen();
+
+      mockPreview = null;
+      mockIsCalculating = true;
+
+      await act(async () => {
+        rerender(<PredictSellPreview />);
+      });
+
+      expect(
+        screen.queryByText(strings('predict.fee_summary.price_details')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens Price details sheet when Total row is pressed', async () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.price_details')),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows MetaMask fee and exchange fee in Price details sheet', async () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.metamask_fee')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('predict.fee_summary.exchange_fee')),
+      ).toBeOnTheScreen();
     });
   });
 });

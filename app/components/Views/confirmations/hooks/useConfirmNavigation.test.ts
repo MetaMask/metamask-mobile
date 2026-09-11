@@ -8,13 +8,16 @@ import { ConfirmationLoader } from '../components/confirm/confirm-component';
 import { useConfirmNavigation } from './useConfirmNavigation';
 import { act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
+import { StackActions } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    dispatch: mockDispatch,
   }),
 }));
 
@@ -73,6 +76,43 @@ describe('useConfirmNavigation', () => {
       Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       { loader: ConfirmationLoader.CustomAmount },
     );
+  });
+
+  it('replaces stacked confirmation route when replace is enabled', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      stack: STACK_MOCK,
+      loader: ConfirmationLoader.CustomAmount,
+      replace: true,
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(STACK_MOCK, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: { loader: ConfirmationLoader.CustomAmount },
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('replaces confirmation route without stack when replace is enabled', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      loader: ConfirmationLoader.CustomAmount,
+      replace: true,
+    });
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        {
+          loader: ConfirmationLoader.CustomAmount,
+        },
+      ),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates to alternate route if headerShown is false', () => {

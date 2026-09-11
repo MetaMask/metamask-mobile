@@ -1,25 +1,12 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-  type MockAnyNamespace,
-  MOCK_ANY_NAMESPACE,
-} from '@metamask/messenger';
+import { Messenger, MOCK_ANY_NAMESPACE } from '@metamask/messenger';
 import {
   getBackendWebSocketServiceInitMessenger,
   getBackendWebSocketServiceMessenger,
 } from './backend-websocket-service-messenger';
-import { BackendWebSocketServiceMessenger } from '@metamask/core-backend';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
-
-type RootMessenger = ExtendedMessenger<
-  MockAnyNamespace,
-  MessengerActions<BackendWebSocketServiceMessenger>,
-  MessengerEvents<BackendWebSocketServiceMessenger>
->;
+import { RootMessenger } from '../../types';
 
 const getRootMessenger = (): RootMessenger =>
-  new ExtendedMessenger({
+  new Messenger({
     namespace: MOCK_ANY_NAMESPACE,
   });
 

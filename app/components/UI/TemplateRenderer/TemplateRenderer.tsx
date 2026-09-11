@@ -3,7 +3,7 @@ import { isEqual } from 'lodash';
 import { v1 as random } from 'uuid';
 import { safeComponentList } from './SafeComponentList';
 import { TemplateRendererComponent, TemplateRendererInput } from './types';
-import Text from '../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 import { isValidElementName } from '../../Views/confirmations/legacy/components/Approval/TemplateConfirmation/util';
 
 interface TemplateRendererProps {

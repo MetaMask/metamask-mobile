@@ -8,6 +8,7 @@ import type {
   UserRegion,
 } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
+import type { RampSurface } from '../types/depositAnalytics';
 
 /**
  * Public input for {@link useHeadlessBuy}'s `getQuotes`.
@@ -134,6 +135,14 @@ export interface HeadlessBuyParams {
    * `useRampAccountAddress(chainId)` — same EOA the BuildQuote screen uses.
    */
   walletAddress?: string;
+  /**
+   * Which product surface initiated this headless buy (TRAM-3623 analytics).
+   * Stored on the session so every downstream emit (auth loop, KYC, checkout,
+   * terminal events) can tag the `ramp_surface` analytics property consistently
+   * without re-deriving it. Set by the confirmations Money-deposit caller via a
+   * tx-type map; the playground passes a sensible default.
+   */
+  rampSurface?: RampSurface;
 }
 
 /**

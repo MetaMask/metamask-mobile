@@ -3,8 +3,8 @@ import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
-import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
@@ -29,6 +29,7 @@ import {
 } from './MaliciousDappIndicators';
 import { USER_INTENT } from '../../../constants/permissions';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
@@ -62,7 +63,7 @@ import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import AccountConnectCreateInitialAccount from '../../Views/MultichainAccounts/shared/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { WalletClientType } from '../../../core/SnapKeyring/types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import {
   Text as TextComponent,
@@ -112,7 +113,7 @@ const PermissionsSummary = ({
     nonTabView,
     fullNonTabView,
   });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
@@ -239,19 +240,22 @@ const PermissionsSummary = ({
               iconName={IconName.Info}
               iconColor={IconColor.Default}
               onPress={() => {
-                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                  screen: Routes.SHEET.CONNECTION_DETAILS,
-                  params: {
-                    hostInfo: {
-                      metadata: {
-                        origin:
-                          currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).origin,
+                navigateWithDetails(navigation, [
+                  Routes.MODAL.ROOT_MODAL_FLOW,
+                  {
+                    screen: Routes.SHEET.CONNECTION_DETAILS,
+                    params: {
+                      hostInfo: {
+                        metadata: {
+                          origin:
+                            currentPageInformation?.url &&
+                            new URL(currentPageInformation?.url).origin,
+                        },
                       },
+                      connectionDateTime: new Date().getTime(),
                     },
-                    connectionDateTime: new Date().getTime(),
                   },
-                });
+                ]);
               }}
               testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}
             />
@@ -688,29 +692,34 @@ const PermissionsSummary = ({
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
             <View style={styles.actionButtonsContainer}>
-              <StyledButton
-                type={'cancel'}
+              <Button
+                variant={ButtonVariant.Secondary}
                 onPress={cancel}
-                containerStyle={[styles.buttonPositioning, styles.cancelButton]}
+                size={ButtonSize.Lg}
+                twClassName="flex-1"
                 testID={CommonSelectorsIDs.CANCEL_BUTTON}
               >
                 {strings('permissions.cancel')}
-              </StyledButton>
-              <StyledButton
-                type={isMaliciousDapp ? 'danger' : 'confirm'}
+              </Button>
+              <Button
+                variant={ButtonVariant.Primary}
                 onPress={confirm}
-                disabled={
+                isDanger={isMaliciousDapp && !isNetworkSwitch}
+                startIconName={
+                  isMaliciousDapp && !isNetworkSwitch
+                    ? IconName.Danger
+                    : undefined
+                }
+                isDisabled={
                   !isNetworkSwitch &&
                   (accountAddresses.length === 0 || networkAvatars.length === 0)
                 }
-                containerStyle={[
-                  styles.buttonPositioning,
-                  styles.confirmButton,
-                ]}
+                size={ButtonSize.Lg}
+                twClassName="flex-1"
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
                 {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
-              </StyledButton>
+              </Button>
             </View>
           )}
           {isNonDappNetworkSwitch && (

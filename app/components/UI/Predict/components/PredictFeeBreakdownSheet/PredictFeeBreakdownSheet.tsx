@@ -13,7 +13,6 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import { strings } from '../../../../../../locales/i18n';
 import { formatPrice } from '../../utils/format';
 import { SLIPPAGE_BUY } from '../../providers/polymarket/constants';
-import { roundUpToCents } from '../../utils/orders';
 
 interface FeeRowProps {
   title: string;
@@ -48,6 +47,7 @@ interface PredictFeeBreakdownSheetProps {
   contractCount: number;
   betAmount: number;
   total: number;
+  slippage?: number;
   onClose?: () => void;
   fakOrdersEnabled?: boolean;
 }
@@ -65,6 +65,7 @@ const PredictFeeBreakdownSheet = forwardRef<
       contractCount,
       betAmount,
       total,
+      slippage = SLIPPAGE_BUY,
       onClose,
       fakOrdersEnabled = false,
     },
@@ -80,7 +81,7 @@ const PredictFeeBreakdownSheet = forwardRef<
             {
               count: contractCount.toFixed(2),
               price: formatPrice(sharePrice, { maximumDecimals: 2 }),
-              slippage: Math.round(SLIPPAGE_BUY * 100),
+              slippage: Math.round(slippage * 100),
             },
           )}
           amount={formatPrice(betAmount, { maximumDecimals: 2 })}
@@ -95,7 +96,7 @@ const PredictFeeBreakdownSheet = forwardRef<
         <FeeRow
           title={strings('predict.fee_summary.exchange_fee')}
           description={strings('predict.fee_summary.exchange_fee_description')}
-          amount={formatPrice(roundUpToCents(providerFee), {
+          amount={formatPrice(providerFee, {
             maximumDecimals: 2,
           })}
         />

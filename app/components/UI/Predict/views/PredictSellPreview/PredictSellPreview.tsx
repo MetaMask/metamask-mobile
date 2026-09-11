@@ -12,8 +12,11 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { ActivityIndicator, Image, View } from 'react-native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,15 +50,25 @@ import {
   formatPrice,
   getCashoutInfoText,
 } from '../../utils/format';
+import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
+import {
+  buildPredictFeeBreakdownAmounts,
+  estimatePredictSellNetValue,
+  getPredictPositionDisplay,
+  getPredictSellNetProceeds,
+} from '../../utils/orders';
+import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
+import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
 import styleSheet from './PredictSellPreview.styles';
 import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
 
 const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
-  const { goBack, dispatch } = useNavigation();
+  const { goBack, dispatch } = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
 
@@ -66,6 +79,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const onClose = isSheetMode ? props.onClose : undefined;
 
   const { icon, title, initialValue, size } = position;
+  const feeCollection = useSelector(selectPredictFeeCollectionFlag);
 
   const outcomeGroupTitle = outcome?.groupItemTitle ?? '';
   const outcomeTitle = title;
@@ -178,23 +192,49 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     }
   }, [dispatch, result, isSheetMode, onClose]);
 
-  // Use preview data if available, fallback to position data on error or when preview is unavailable
-  const currentValue = preview
-    ? preview.minAmountReceived
-    : position.currentValue;
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+
+  const handleFeesInfoPress = useCallback(
+    () => setIsFeeBreakdownVisible(true),
+    [],
+  );
+  const handleFeeBreakdownClose = useCallback(
+    () => setIsFeeBreakdownVisible(false),
+    [],
+  );
+
+  // Close the fee breakdown sheet if the preview refreshes to null while it is open
+  useEffect(() => {
+    if (!preview && isFeeBreakdownVisible) {
+      setIsFeeBreakdownVisible(false);
+    }
+  }, [preview, isFeeBreakdownVisible]);
+
+  const netValue = preview
+    ? getPredictSellNetProceeds(preview)
+    : estimatePredictSellNetValue({
+        grossValue: position.currentValue,
+        feeCollection,
+      });
+  const {
+    value: currentValue,
+    cashPnl,
+    percentPnl,
+  } = getPredictPositionDisplay({
+    initialValue,
+    netValue,
+  });
   const currentPrice = preview?.sharePrice ?? 0;
   const { avgPrice } = position;
 
-  // Recalculate PnL based on preview data
-  const cashPnl = useMemo(
-    () => currentValue - initialValue,
-    [currentValue, initialValue],
-  );
-
-  const percentPnl = useMemo(
-    () => (initialValue > 0 ? (cashPnl / initialValue) * 100 : 0),
-    [cashPnl, initialValue],
-  );
+  const metamaskFee = preview?.fees?.metamaskFee ?? 0;
+  const total = currentValue;
+  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+    side: Side.SELL,
+    order: preview?.minAmountReceived ?? 0,
+    metamaskFee,
+    total,
+  });
 
   const signal = useMemo(() => {
     if (cashPnl === 0) {
@@ -437,6 +477,13 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               )}
             </Box>
           )}
+          {/* rewardsFeeAmountUsd intentionally omitted: sell orders do not earn rewards points */}
+          <PredictFeeSummary
+            disabled={!preview}
+            loading={isPreviewLoading}
+            total={total}
+            handleFeesInfoPress={handleFeesInfoPress}
+          />
           <View style={styles.cashOutButtonContainer}>
             {renderCashOutButton()}
             <Text variant={TextVariant.BodyXs} style={styles.cashOutButtonText}>
@@ -445,6 +492,18 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           </View>
         </View>
       </View>
+      {isFeeBreakdownVisible && (
+        <PredictFeeBreakdownSheet
+          providerFee={feeBreakdown.exchangeFee}
+          metamaskFee={feeBreakdown.metamaskFee}
+          sharePrice={currentPrice}
+          contractCount={preview?.maxAmountSpent ?? 0}
+          betAmount={feeBreakdown.order}
+          total={feeBreakdown.total}
+          slippage={SLIPPAGE_SELL}
+          onClose={handleFeeBreakdownClose}
+        />
+      )}
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}

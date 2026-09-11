@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
-import { isBitcoinChainId } from '@metamask/bridge-controller';
+import {
+  isBitcoinChainId,
+  sumAmounts,
+  isStellarChainId,
+  isTronChainId,
+} from '@metamask/bridge-controller';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
 
 type ActiveQuote = ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -8,18 +13,30 @@ type ActiveQuote = ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 export const isQuoteNetworkFeeUnavailable = (
   activeQuote: ActiveQuote,
 ): boolean => {
-  const sourceChainId = activeQuote?.quote?.srcChainId;
+  const sourceChainId = activeQuote?.chainId;
 
-  if (!sourceChainId || !isBitcoinChainId(sourceChainId)) {
+  if (
+    !sourceChainId ||
+    (!isBitcoinChainId(sourceChainId) &&
+      !isTronChainId(sourceChainId) &&
+      !isStellarChainId(sourceChainId))
+  ) {
     return false;
   }
 
-  const networkFeeAmount = activeQuote.totalNetworkFee?.amount;
+  const networkFeeAmount = sumAmounts(
+    activeQuote.quote.feeData?.network,
+    activeQuote.quote.feeData?.relayer,
+  )?.normalizedAmount;
   const networkFee =
-    networkFeeAmount == null ? undefined : new BigNumber(networkFeeAmount);
+    networkFeeAmount === undefined
+      ? undefined
+      : new BigNumber(networkFeeAmount);
 
   return (
-    networkFeeAmount == null || !networkFee?.isFinite() || networkFee.lte(0)
+    networkFeeAmount === undefined ||
+    !networkFee?.isFinite() ||
+    networkFee.lte(0)
   );
 };
 

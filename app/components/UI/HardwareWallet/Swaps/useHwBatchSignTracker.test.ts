@@ -11,6 +11,7 @@ import {
   HardwareWalletsSwapsEventType,
   type HardwareWalletsSwapsEvent,
 } from './HardwareWalletsSwaps.state';
+import { Flow } from './flowStrategy';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 
@@ -125,7 +126,7 @@ interface MockTransactionMeta {
   id: string;
   type: TransactionType;
   status: TransactionStatus;
-  txParams: { from: string };
+  txParams: { from: string; to?: string };
   batchId?: string;
   chainId?: string;
 }
@@ -280,6 +281,53 @@ function mockHwOpOnce(impl: (opts: HwOpMockOpts) => Promise<boolean>) {
 
 // ---------- Tests ----------
 
+function renderWithRetry(retryGenerationRef: { current: number }) {
+  return renderHook(() =>
+    useHwBatchSignTracker({
+      fromAddress: FROM_ADDRESS,
+      isEnabled: true,
+      retryGenerationRef,
+    }),
+  );
+}
+
+const GAS_TOKEN_ADDRESS = '0x90F79bf6EB2c4f870365E785982E1f101E93b906';
+const SEND_RECIPIENT_ADDRESS = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
+
+const EXPECT_SIGNING_FEE_TRANSFER: HardwareWalletsSwapsEvent = {
+  type: HardwareWalletsSwapsEventType.Signing,
+  payload: { stepKind: HardwareWalletsSwapsStepKind.FeeTransfer },
+};
+const EXPECT_SIGNED_FEE_TRANSFER: HardwareWalletsSwapsEvent = {
+  type: HardwareWalletsSwapsEventType.Signed,
+  payload: { stepKind: HardwareWalletsSwapsStepKind.FeeTransfer },
+};
+const EXPECT_REJECTED_FEE_TRANSFER: HardwareWalletsSwapsEvent = {
+  type: HardwareWalletsSwapsEventType.Rejected,
+  payload: { stepKind: HardwareWalletsSwapsStepKind.FeeTransfer },
+};
+
+function renderSendHook(
+  opts: {
+    gasTokenAddress?: string;
+    deferredApprovalRequestId?: string;
+    expectedBatchTransactionCount?: number;
+    retryGenerationRef?: { current: number };
+  } = {},
+) {
+  return renderHook(() =>
+    useHwBatchSignTracker({
+      fromAddress: FROM_ADDRESS,
+      isEnabled: true,
+      retryGenerationRef: opts.retryGenerationRef,
+      flow: Flow.Send,
+      gasTokenAddress: opts.gasTokenAddress,
+      deferredApprovalRequestId: opts.deferredApprovalRequestId,
+      expectedBatchTransactionCount: opts.expectedBatchTransactionCount,
+    }),
+  );
+}
+
 describe('useHwBatchSignTracker', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -322,7 +370,7 @@ describe('useHwBatchSignTracker', () => {
 
     unmount();
 
-    expect(mockUnsubscribe).toHaveBeenCalledTimes(4);
+    expect(mockUnsubscribe).toHaveBeenCalledTimes(5);
   });
 
   it('does not resubscribe when re-rendered with the same props', () => {
@@ -330,7 +378,7 @@ describe('useHwBatchSignTracker', () => {
 
     rerender(undefined);
 
-    expect(mockSubscribe).toHaveBeenCalledTimes(4);
+    expect(mockSubscribe).toHaveBeenCalledTimes(5);
     expect(mockUnsubscribe).not.toHaveBeenCalled();
   });
 
@@ -436,7 +484,7 @@ describe('useHwBatchSignTracker', () => {
       txMeta({
         type: TransactionType.bridge,
         status: TransactionStatus.signed,
-        txParams: { from: '0xdifferentAddress0000000000000000000000000' },
+        txParams: { from: '0x976EA74026E726554dB657fA54763abd0C3a0aa9' },
       }),
     );
 
@@ -1644,7 +1692,7 @@ describe('useHwBatchSignTracker', () => {
           status: TransactionStatus.approved,
           batchId,
           txParams: {
-            from: '0xdifferentAddress0000000000000000000000000',
+            from: '0x976EA74026E726554dB657fA54763abd0C3a0aa9',
           },
         }),
       ]);
@@ -1719,19 +1767,63 @@ describe('useHwBatchSignTracker', () => {
       expect(mockAcceptRequest).not.toHaveBeenCalled();
     });
 
-    it('accepts pending transaction_batch approvals when matching transactions arrive later', async () => {
-      const batchId = 'batch-delayed-transaction-001';
-      const matchingTx = matchingBatchTx(batchId);
+    it('accepts transaction_batch approval when no transactions exist yet (batch hook path)', async () => {
+      const batchId = 'batch-hook-path-001';
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
+      });
+      setMockTransactions([]);
+
+      renderEnabledHook();
+
+      await waitFor(() => {
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: FROM_ADDRESS,
+            operationType: 'transaction',
+            execute: expect.any(Function),
+          }),
+        );
+      });
+      expect(mockAcceptRequest).toHaveBeenCalledWith(batchId, undefined, {
+        waitForResult: true,
+      });
+    });
+
+    it('does not accept transaction_batch approval when transactions exist from a different address', async () => {
+      const batchId = 'batch-hook-different-addr-001';
+      setMockTransactions([
+        txMeta({
+          id: 'tx-diff-addr-001',
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId,
+          txParams: {
+            from: '0x976EA74026E726554dB657fA54763abd0C3a0aa9',
+          },
+        }),
+      ]);
       setMockPendingApprovals({
         [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
       });
 
       renderEnabledHook();
 
-      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      await act(async () => {
+        await getApprovalHandler()();
+      });
 
-      setMockTransactions([matchingTx]);
-      fireTxEvent(matchingTx);
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+    });
+
+    it('accepts pending transaction_batch approvals immediately when no transactions exist yet', async () => {
+      const batchId = 'batch-delayed-transaction-001';
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
+      });
+
+      renderEnabledHook();
 
       await waitFor(() => {
         expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
@@ -2235,16 +2327,6 @@ describe('useHwBatchSignTracker', () => {
   });
 
   describe('retry generation', () => {
-    function renderWithRetry(retryGenerationRef: { current: number }) {
-      return renderHook(() =>
-        useHwBatchSignTracker({
-          fromAddress: FROM_ADDRESS,
-          isEnabled: true,
-          retryGenerationRef,
-        }),
-      );
-    }
-
     it('accepts the first approved event for a new batch after retryGenerationRef advances', () => {
       const retryGenerationRef = { current: 0 };
       const staleBatchId = 'batch-stale-before-retry';
@@ -2340,41 +2422,6 @@ describe('useHwBatchSignTracker', () => {
       expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNED_APPROVAL);
     });
 
-    it('accepts a retry approved event for the same stale batch when a matching approval is pending', () => {
-      const retryGenerationRef = { current: 0 };
-      const batchId = 'batch-retry-same-stale-batch';
-      renderWithRetry(retryGenerationRef);
-
-      fireTxEvent(
-        txMeta({
-          id: 'tx-stale-approved-before-retry',
-          type: TransactionType.bridgeApproval,
-          status: TransactionStatus.approved,
-          batchId,
-        }),
-      );
-      mockUpdateSwaps.mockClear();
-
-      retryGenerationRef.current = 1;
-      setMockTransactions([
-        matchingBatchTx(batchId, { id: 'tx-current-approved-after-retry' }),
-      ]);
-      setMockPendingApprovals({
-        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
-      });
-
-      fireTxEvent(
-        txMeta({
-          id: 'tx-current-approved-after-retry',
-          type: TransactionType.bridgeApproval,
-          status: TransactionStatus.approved,
-          batchId,
-        }),
-      );
-
-      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_APPROVAL);
-    });
-
     it('does not restore a prior generation tx as confirmationTxId after the retry tx signs', () => {
       const retryGenerationRef = { current: 0 };
       const staleTxId = 'tx-stale-confirmation-before-retry';
@@ -2414,64 +2461,6 @@ describe('useHwBatchSignTracker', () => {
       );
 
       expect(result.current.confirmationTxId).toBeUndefined();
-    });
-
-    it('does not treat a retry rejection as late-signed because a prior generation signed the same batch id', async () => {
-      const retryGenerationRef = { current: 0 };
-      const batchId = 'batch-retry-rejection-same-id';
-      const staleSignedTx = txMeta({
-        id: 'tx-stale-signed-before-retry',
-        type: TransactionType.bridgeApproval,
-        status: TransactionStatus.signed,
-        batchId,
-      });
-      const retryTx = matchingBatchTx(batchId, {
-        id: 'tx-retry-approved-same-batch',
-      });
-      renderWithRetry(retryGenerationRef);
-
-      fireTxEvent(staleSignedTx);
-
-      retryGenerationRef.current = 1;
-      setMockTransactions([staleSignedTx, retryTx]);
-      setMockPendingApprovals({
-        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
-      });
-      mockExecuteHardwareWalletOperation.mockImplementationOnce(
-        async ({ execute, onRejected }) => {
-          await execute();
-          await onRejected?.();
-          return false;
-        },
-      );
-
-      fireTxEvent(retryTx);
-      let approvalPromise = Promise.resolve();
-      act(() => {
-        approvalPromise = (getApprovalHandler() as () => Promise<void>)();
-      });
-
-      await waitFor(() => {
-        expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
-          batchId,
-          expect.any(Error),
-          { ignoreMissing: true, logErrors: false },
-        );
-      });
-      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_TX_FAILED);
-
-      broadcastTxEvent({
-        ...staleSignedTx,
-        status: TransactionStatus.dropped,
-      });
-      broadcastTxEvent({
-        ...retryTx,
-        status: TransactionStatus.dropped,
-      });
-
-      await act(async () => {
-        await approvalPromise;
-      });
     });
 
     it.each([
@@ -2638,48 +2627,556 @@ describe('useHwBatchSignTracker', () => {
         );
       });
     });
+  });
 
-    it('allows the same approval id after retryGenerationRef advances', async () => {
-      const retryGenerationRef = { current: 0 };
-      const batchId = 'batch-re-dedupe-001';
-
-      setMockTransactions([matchingBatchTx(batchId)]);
+  describe('send-mode', () => {
+    it('does not pre-consume the deferred root send approval', async () => {
+      const deferredApprovalRequestId = 'tx-sendbundle-root-approval';
+      const batchId = 'batch-sendbundle-child';
+      const rootTx = txMeta({
+        id: deferredApprovalRequestId,
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+      });
+      const childTx = txMeta({
+        id: 'tx-sendbundle-child',
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId,
+      });
+      setMockTransactions([rootTx, childTx]);
       setMockPendingApprovals({
-        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
+        [deferredApprovalRequestId]: {
+          id: deferredApprovalRequestId,
+          type: ApprovalType.Transaction,
+        },
+        [batchId]: {
+          id: batchId,
+          type: ApprovalType.TransactionBatch,
+        },
       });
 
-      renderWithRetry(retryGenerationRef);
-
-      const approvalHandler = getApprovalHandler();
+      renderSendHook({
+        gasTokenAddress: GAS_TOKEN_ADDRESS,
+        deferredApprovalRequestId,
+      });
 
       await act(async () => {
-        await approvalHandler();
+        await Promise.resolve();
+        await Promise.resolve();
       });
 
-      expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(1);
-      mockExecuteHardwareWalletOperation.mockClear();
-      mockAcceptRequest.mockClear();
-
-      retryGenerationRef.current = 1;
-      fireTxEvent(
-        txMeta({
-          type: TransactionType.bridgeApproval,
-          status: TransactionStatus.approved,
-        }),
-      );
-
-      setMockPendingApprovals({
-        [batchId]: { id: batchId, type: ApprovalType.TransactionBatch },
-      });
-
-      await act(async () => {
-        await approvalHandler();
-      });
-
-      expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(1);
+      expect(mockAcceptRequest).toHaveBeenCalledTimes(1);
       expect(mockAcceptRequest).toHaveBeenCalledWith(batchId, undefined, {
         waitForResult: true,
       });
+      expect(mockAcceptRequest).not.toHaveBeenCalledWith(
+        deferredApprovalRequestId,
+        expect.anything(),
+        expect.anything(),
+      );
+
+      mockUpdateSwaps.mockClear();
+      fireTxEvent(rootTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith({
+        payload: { stepKind: 'transaction' },
+        type: 'SIGNING',
+      });
+    });
+
+    it('does not consume or cancel unbatched root send approvals without a deferred id', async () => {
+      const rootApprovalRequestId = 'tx-send-root-missing-deferred-id';
+      const rootTx = txMeta({
+        id: rootApprovalRequestId,
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+      });
+      setMockTransactions([rootTx]);
+      setMockPendingApprovals({
+        [rootApprovalRequestId]: {
+          id: rootApprovalRequestId,
+          type: ApprovalType.Transaction,
+        },
+      });
+
+      const { result } = renderSendHook();
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+
+      fireTxEvent(rootTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith({
+        payload: { stepKind: 'transaction' },
+        type: 'SIGNING',
+      });
+
+      // The root send tx is now tracked (SIGNING dispatched). Transition it to a
+      // terminal state before cancelling so cancelCurrentBatch has no pending tx
+      // to abort — verifying the tracker does not proactively cancel an
+      // already-resolved unbatched root send approval.
+      fireTxEvent({ ...rootTx, status: TransactionStatus.confirmed });
+
+      await act(async () => {
+        await result.current.cancelCurrentBatch();
+      });
+
+      expect(mockAbortTransactionSigning).not.toHaveBeenCalledWith(
+        rootApprovalRequestId,
+      );
+      expect(mockControllerMessengerCall).not.toHaveBeenCalledWith(
+        'TransactionController:updateTransaction',
+        expect.objectContaining({ id: rootApprovalRequestId }),
+        expect.any(String),
+      );
+      expect(Engine.rejectPendingApproval).not.toHaveBeenCalledWith(
+        rootApprovalRequestId,
+        expect.any(Error),
+        expect.anything(),
+      );
+    });
+
+    it('waits for sendbundle child txs before accepting the batch approval', async () => {
+      const batchId = 'batch-sendbundle-delayed-child';
+      const gasTokenTx = txMeta({
+        id: 'tx-sendbundle-delayed-gastoken',
+        type: TransactionType.gasPayment,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: GAS_TOKEN_ADDRESS },
+        batchId,
+      });
+      const firstSendTx = txMeta({
+        id: 'tx-sendbundle-delayed-send-1',
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId,
+      });
+      const secondSendTx = txMeta({
+        id: 'tx-sendbundle-delayed-send-2',
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId,
+      });
+      setMockTransactions([]);
+      setMockPendingApprovals({
+        [batchId]: {
+          id: batchId,
+          type: ApprovalType.TransactionBatch,
+        },
+      });
+
+      renderSendHook({
+        gasTokenAddress: GAS_TOKEN_ADDRESS,
+        expectedBatchTransactionCount: 3,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+
+      setMockTransactions([gasTokenTx]);
+      fireTxEvent(gasTokenTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith({
+        type: HardwareWalletsSwapsEventType.Signing,
+        payload: {
+          stepKind: HardwareWalletsSwapsStepKind.FeeTransfer,
+          stepIndex: 2,
+        },
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+
+      setMockTransactions([gasTokenTx, firstSendTx]);
+      mockUpdateSwaps.mockClear();
+      fireTxEvent(firstSendTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith({
+        type: HardwareWalletsSwapsEventType.Signing,
+        payload: {
+          stepKind: HardwareWalletsSwapsStepKind.Transaction,
+          stepIndex: 0,
+        },
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+
+      setMockTransactions([gasTokenTx, firstSendTx, secondSendTx]);
+      mockUpdateSwaps.mockClear();
+      fireTxEvent(secondSendTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith({
+        type: HardwareWalletsSwapsEventType.Signing,
+        payload: {
+          stepKind: HardwareWalletsSwapsStepKind.Transaction,
+          stepIndex: 1,
+        },
+      });
+      await waitFor(() => {
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: FROM_ADDRESS,
+            operationType: 'transaction',
+            execute: expect.any(Function),
+          }),
+        );
+      });
+      expect(mockAcceptRequest).toHaveBeenCalledWith(batchId, undefined, {
+        waitForResult: true,
+      });
+    });
+
+    it('waits for an approved sendbundle child before accepting the batch approval', async () => {
+      const batchId = 'batch-sendbundle-delayed-approved-child';
+      const pendingGasTokenTx = txMeta({
+        id: 'tx-sendbundle-pending-gastoken',
+        type: TransactionType.gasPayment,
+        status: TransactionStatus.unapproved,
+        txParams: { from: FROM_ADDRESS, to: GAS_TOKEN_ADDRESS },
+        batchId,
+      });
+      const approvedGasTokenTx = {
+        ...pendingGasTokenTx,
+        status: TransactionStatus.approved,
+      };
+      setMockTransactions([pendingGasTokenTx]);
+      setMockPendingApprovals({
+        [batchId]: {
+          id: batchId,
+          type: ApprovalType.TransactionBatch,
+        },
+      });
+
+      renderSendHook({ gasTokenAddress: GAS_TOKEN_ADDRESS });
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+      expect(mockUpdateSwaps).not.toHaveBeenCalled();
+
+      setMockTransactions([approvedGasTokenTx]);
+      fireTxEvent(approvedGasTokenTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_FEE_TRANSFER);
+      await waitFor(() => {
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalled();
+      });
+      expect(mockAcceptRequest).toHaveBeenCalledWith(batchId, undefined, {
+        waitForResult: true,
+      });
+    });
+
+    it('resets sendbundle transaction step indexes after retry generation advances', () => {
+      const retryGenerationRef = { current: 0 };
+      renderSendHook({
+        gasTokenAddress: GAS_TOKEN_ADDRESS,
+        expectedBatchTransactionCount: 3,
+        retryGenerationRef,
+      });
+
+      const firstAttemptTx1 = txMeta({
+        id: 'tx-sendbundle-retry-attempt-1-a',
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId: 'batch-sendbundle-retry-attempt-1',
+      });
+      const firstAttemptTx2 = txMeta({
+        id: 'tx-sendbundle-retry-attempt-1-b',
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId: 'batch-sendbundle-retry-attempt-1',
+      });
+      fireTxEvent(firstAttemptTx1);
+      fireTxEvent(firstAttemptTx2);
+
+      retryGenerationRef.current = 1;
+      mockUpdateSwaps.mockClear();
+
+      const retryTx = txMeta({
+        id: 'tx-sendbundle-retry-attempt-2-a',
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId: 'batch-sendbundle-retry-attempt-2',
+      });
+      fireTxEvent(retryTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith({
+        type: HardwareWalletsSwapsEventType.Signing,
+        payload: {
+          stepKind: HardwareWalletsSwapsStepKind.Transaction,
+          stepIndex: 0,
+        },
+      });
+
+      mockUpdateSwaps.mockClear();
+      fireTxEvent({
+        ...firstAttemptTx2,
+        status: TransactionStatus.signed,
+      });
+      expect(mockUpdateSwaps).not.toHaveBeenCalled();
+
+      const secondRetryTx = txMeta({
+        id: 'tx-sendbundle-retry-attempt-2-b',
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId: 'batch-sendbundle-retry-attempt-2',
+      });
+      fireTxEvent(secondRetryTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith({
+        type: HardwareWalletsSwapsEventType.Signing,
+        payload: {
+          stepKind: HardwareWalletsSwapsStepKind.Transaction,
+          stepIndex: 1,
+        },
+      });
+    });
+
+    it('dispatches FeeTransfer Signing/Signed for the gas-token tx and Transaction for the send tx (sendbundle)', () => {
+      renderSendHook({ gasTokenAddress: GAS_TOKEN_ADDRESS });
+
+      // Gas-token tx approved first → Signing FeeTransfer. In send-mode the
+      // FeeTransfer (gas payment) is typed `gasPayment` by useGasFeeToken, so
+      // classification is type-based (the `to` address is irrelevant).
+      const gasTokenTx = txMeta({
+        id: 'tx-sendbundle-gastoken',
+        type: TransactionType.gasPayment,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: GAS_TOKEN_ADDRESS },
+        batchId: 'batch-sendbundle',
+      });
+      fireTxEvent(gasTokenTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_FEE_TRANSFER);
+
+      // Send tx approved second → Signing Transaction.
+      mockUpdateSwaps.mockClear();
+      const sendTx = txMeta({
+        id: 'tx-sendbundle-send',
+        type: TransactionType.simpleSend,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId: 'batch-sendbundle',
+      });
+      fireTxEvent(sendTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_TX);
+
+      // Gas-token tx signed → Signed FeeTransfer.
+      mockUpdateSwaps.mockClear();
+      fireTxEvent({ ...gasTokenTx, status: TransactionStatus.signed });
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNED_FEE_TRANSFER);
+
+      // Send tx signed → Signed Transaction.
+      mockUpdateSwaps.mockClear();
+      fireTxEvent({ ...sendTx, status: TransactionStatus.signed });
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNED_TX);
+    });
+
+    it('classifies send-mode txs by type, not by the gas-token `to` address', () => {
+      // Send-mode classification is type-based: a gasPayment-typed tx is a
+      // FeeTransfer even when its `to` is the send recipient, and a send-typed
+      // tx is a Transaction even when its `to` is the gas-token address. This
+      // is what lets the Send (which may itself transfer the gas token) be
+      // distinguished from the gas-payment child where address matching fails.
+      renderSendHook({ gasTokenAddress: GAS_TOKEN_ADDRESS });
+
+      // gasPayment-typed tx → FeeTransfer, regardless of `to`.
+      const gasPaymentTx = txMeta({
+        id: 'tx-sendbundle-type-based-fee',
+        type: TransactionType.gasPayment,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId: 'batch-sendbundle-type-based',
+      });
+      fireTxEvent(gasPaymentTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_FEE_TRANSFER);
+
+      // send-typed tx → Transaction, regardless of `to`.
+      mockUpdateSwaps.mockClear();
+      const sendTx = txMeta({
+        id: 'tx-sendbundle-type-based-send',
+        type: TransactionType.tokenMethodTransfer,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: GAS_TOKEN_ADDRESS },
+        batchId: 'batch-sendbundle-type-based',
+      });
+      fireTxEvent(sendTx);
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_TX);
+    });
+
+    it('dispatches Transaction for a plain native-gas send (no gasTokenAddress)', () => {
+      const txId = 'tx-plain-send';
+      renderSendHook({ deferredApprovalRequestId: txId });
+
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.approved,
+          txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        }),
+      );
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_TX);
+
+      mockUpdateSwaps.mockClear();
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.signed,
+          txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        }),
+      );
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNED_TX);
+    });
+
+    it('dispatches Rejected with Transaction stepKind for a send tx rejection', () => {
+      const txId = 'tx-send-rejected';
+      renderSendHook({ deferredApprovalRequestId: txId });
+
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.rejected,
+          txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        }),
+        undefined,
+        'rejected',
+      );
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_REJECTED_TX);
+    });
+
+    it('dispatches Rejected with FeeTransfer stepKind when the gas-token tx is rejected', () => {
+      renderSendHook({ gasTokenAddress: GAS_TOKEN_ADDRESS });
+
+      fireTxEvent(
+        txMeta({
+          id: 'tx-gastoken-rejected',
+          type: TransactionType.gasPayment,
+          status: TransactionStatus.rejected,
+          txParams: { from: FROM_ADDRESS, to: GAS_TOKEN_ADDRESS },
+          batchId: 'batch-reject-fee',
+        }),
+        undefined,
+        'rejected',
+      );
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(
+        EXPECT_REJECTED_FEE_TRANSFER,
+      );
+    });
+
+    it('dispatches TRANSACTION_FAILED for a send tx failure', () => {
+      const txId = 'tx-send-failed';
+      renderSendHook({ deferredApprovalRequestId: txId });
+
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.failed,
+          txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        }),
+        undefined,
+        'failed',
+      );
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_TX_FAILED);
+    });
+
+    it('tracks both ERC-20 tokenMethodTransfer sendbundle txs', () => {
+      // ERC-20 gas-token sendbundle: both txs carry tokenMethodTransfer.
+      renderSendHook({ gasTokenAddress: GAS_TOKEN_ADDRESS });
+
+      const gasTokenTx = txMeta({
+        id: 'tx-erc20-gastoken',
+        type: TransactionType.gasPayment,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: GAS_TOKEN_ADDRESS },
+        batchId: 'batch-erc20',
+      });
+      fireTxEvent(gasTokenTx);
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_FEE_TRANSFER);
+
+      mockUpdateSwaps.mockClear();
+      const sendTx = txMeta({
+        id: 'tx-erc20-send',
+        type: TransactionType.tokenMethodTransfer,
+        status: TransactionStatus.approved,
+        txParams: { from: FROM_ADDRESS, to: SEND_RECIPIENT_ADDRESS },
+        batchId: 'batch-erc20',
+      });
+      fireTxEvent(sendTx);
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_TX);
+    });
+
+    it('still ignores bridge/swap types in send-mode (only SEND_TYPES are tracked)', () => {
+      // send-mode filters on SEND_TYPES; a bridge-type tx must not be tracked.
+      renderSendHook({ gasTokenAddress: GAS_TOKEN_ADDRESS });
+
+      fireTxEvent(
+        txMeta({
+          id: 'tx-bridge-ignored-in-send-mode',
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.signed,
+          txParams: { from: FROM_ADDRESS, to: GAS_TOKEN_ADDRESS },
+        }),
+      );
+
+      expect(mockUpdateSwaps).not.toHaveBeenCalled();
+    });
+
+    it('ignores send-type txs from a different address', () => {
+      renderSendHook();
+
+      fireTxEvent(
+        txMeta({
+          id: 'tx-send-different-from',
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.signed,
+          txParams: {
+            from: '0x976EA74026E726554dB657fA54763abd0C3a0aa9',
+            to: SEND_RECIPIENT_ADDRESS,
+          },
+        }),
+      );
+
+      expect(mockUpdateSwaps).not.toHaveBeenCalled();
     });
   });
 });

@@ -9,6 +9,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -70,7 +71,7 @@ export const ShareAddressQR = () => {
   );
   const accountGroupName = accountGroup?.metadata.name;
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toBlockExplorer, getBlockExplorerUrl, getBlockExplorerName } =
     useBlockExplorer(chainId);

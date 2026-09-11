@@ -16,29 +16,31 @@ describe('useTransportMonitoring', () => {
 
   const createAdapter = (
     overrides: Partial<HardwareWalletAdapter> = {},
-  ): HardwareWalletAdapter => ({
-    walletType: HardwareWalletType.Ledger,
-    requiresDeviceDiscovery: false,
-    connect: jest.fn().mockResolvedValue(undefined),
-    disconnect: jest.fn().mockResolvedValue(undefined),
-    getConnectedDeviceId: jest.fn().mockReturnValue(null),
-    ensureDeviceReady: jest.fn().mockResolvedValue(true),
-    isConnected: jest.fn().mockReturnValue(false),
-    reset: jest.fn(),
-    markFlowComplete: jest.fn(),
-    isFlowComplete: jest.fn().mockReturnValue(false),
-    resetFlowState: jest.fn(),
-    startDeviceDiscovery: jest.fn(() => jest.fn()),
-    stopDeviceDiscovery: jest.fn(),
-    ensurePermissions: jest.fn().mockResolvedValue(true),
-    isTransportAvailable: jest.fn().mockResolvedValue(true),
-    onTransportStateChange: jest.fn(() => jest.fn()),
-    getRequiredAppName: jest.fn().mockReturnValue(undefined),
-    getTransportDisabledErrorCode: jest
-      .fn()
-      .mockReturnValue(ErrorCode.BluetoothDisabled),
-    ...overrides,
-  });
+  ): HardwareWalletAdapter =>
+    ({
+      walletType: HardwareWalletType.Ledger,
+      requiresDeviceDiscovery: false,
+      connect: jest.fn().mockResolvedValue(undefined),
+      disconnect: jest.fn().mockResolvedValue(undefined),
+      getConnectedDeviceId: jest.fn().mockReturnValue(null),
+      ensureDeviceReady: jest.fn().mockResolvedValue(true),
+      isConnected: jest.fn().mockReturnValue(false),
+      reset: jest.fn(),
+      markFlowComplete: jest.fn(),
+      isFlowComplete: jest.fn().mockReturnValue(false),
+      resetFlowState: jest.fn(),
+      startDeviceDiscovery: jest.fn(() => jest.fn()),
+      stopDeviceDiscovery: jest.fn(),
+      ensurePermissions: jest.fn().mockResolvedValue(true),
+      isTransportAvailable: jest.fn().mockResolvedValue(true),
+      onTransportStateChange: jest.fn(() => jest.fn()),
+      getRequiredAppName: jest.fn().mockReturnValue(undefined),
+      getTransportDisabledErrorCode: jest
+        .fn()
+        .mockReturnValue(ErrorCode.BluetoothDisabled),
+      destroy: jest.fn(),
+      ...overrides,
+    }) as HardwareWalletAdapter;
 
   const createOptions = (overrides = {}) => ({
     isTransportAvailable: true,

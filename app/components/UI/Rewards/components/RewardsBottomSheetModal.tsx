@@ -2,6 +2,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { REWARDS_VIEW_SELECTORS } from '../Views/RewardsView.constants';
 
 import {
   Text,
@@ -58,7 +60,7 @@ interface RewardsBottomSheetModalProps {
 const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [isLoading, setIsLoading] = useState(false);
   const {
     title,
@@ -268,6 +270,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
               iconProps={{
                 color: IconColor.IconDefault,
               }}
+              testID={REWARDS_VIEW_SELECTORS.BOTTOM_SHEET_CLOSE_BUTTON}
             />
           </Box>
         )}

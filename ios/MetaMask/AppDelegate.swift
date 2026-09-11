@@ -1,8 +1,9 @@
 import UIKit
-import Expo
+internal import Expo
 import React
 import ReactAppDependencyProvider
 import FirebaseCore
+import UserNotifications
 import RNBranch
 import BrazeKit
 
@@ -26,6 +27,8 @@ class AppDelegate: ExpoAppDelegate {
 
   private var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   private var reactNativeFactory: RCTReactNativeFactory?
+  private weak var displacedNotificationCenterDelegate: UNUserNotificationCenterDelegate?
+  private var isForwardingNotificationResponse = false
 
   @objc static var braze: Braze?
 
@@ -51,12 +54,20 @@ class AppDelegate: ExpoAppDelegate {
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-    bindReactNativeFactory(factory)
 
     window = UIWindow(frame: UIScreen.main.bounds)
     window?.makeKeyAndVisible()
 
-    if FirebaseApp.app() == nil {
+    // Safe Firebase configuration — validates plist before configure() to prevent
+    // FIRInstallations from throwing an uncatchable NSException on launch when
+    // GoogleService-Info.plist is missing or contains a blank/placeholder/mock API_KEY.
+    // Real Firebase API keys always start with "AIzaSy"; anything else (empty, mock-*, etc.)
+    // would cause validateAPIKey: to throw an NSException that Swift cannot catch.
+    if FirebaseApp.app() == nil,
+       let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+       let plist = NSDictionary(contentsOfFile: path),
+       let apiKey = plist["API_KEY"] as? String,
+       apiKey.hasPrefix("AIzaSy") {
       FirebaseApp.configure()
     }
 
@@ -65,6 +76,20 @@ class AppDelegate: ExpoAppDelegate {
 
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
+
+    // Seed native prefetch queue before JS loads (iOS fires it automatically via
+    // NitroBootstrap.mm on UIApplicationDidFinishLaunchingNotification).
+    // Covers first-launch since JS-side prefetchOnAppStart() only runs after first JS execution.
+    // Feature flags omitted — environment value isn't available natively;
+    // JS registers the correct URL after its first run.
+    NitroAutoPrefetcher.registerPrefetch(
+      withUrl: "https://phishing-detection.api.cx.metamask.io/v1/stalelist",
+      prefetchKey: "phishing-stalelist",
+      headers: [:])
+    NitroAutoPrefetcher.registerPrefetch(
+      withUrl: "https://client-side-detection.api.cx.metamask.io/v1/request-blocklist",
+      prefetchKey: "phishing-c2-blocklist",
+      headers: [:])
 
     // Setup Braze
     if let brazeApiKey = Bundle.main.object(forInfoDictionaryKey: "braze_api_key") as? String,
@@ -93,7 +118,31 @@ class AppDelegate: ExpoAppDelegate {
 
     let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
+    // Claim UNUserNotificationCenterDelegate AFTER all SDK initializations.
+    // Braze (push.automation=true) and Notifee both try to set themselves as delegate
+    // during startup; we must win so our willPresent forwards to Firebase and triggers
+    // messaging().onMessage() in JS. We reassert on every foreground entry (see below).
+    claimNotificationCenterDelegate()
+
     return superResult
+  }
+
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    // Re-assert our delegate on every foreground entry so Braze/Notifee cannot reclaim
+    // it asynchronously. Notifee tap forwarding is handled explicitly in didReceive
+    // (via NotifeeCoreUNUserNotificationCenter.instance()) rather than through Notifee's
+    // own delegate chain, so holding this slot does not break Notifee press events.
+    claimNotificationCenterDelegate()
+  }
+
+  private func claimNotificationCenterDelegate() {
+    let center = UNUserNotificationCenter.current()
+    if let currentDelegate = center.delegate,
+       (currentDelegate as AnyObject) !== self {
+      displacedNotificationCenterDelegate = currentDelegate
+    }
+    center.delegate = self
   }
 
   override func application(
@@ -144,25 +193,128 @@ class AppDelegate: ExpoAppDelegate {
   }
 }
 
+// MARK: - UNUserNotificationCenterDelegate
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+  // Called when a notification arrives while the app is in the foreground.
+  // Braze's push.automation would have consumed this without forwarding to
+  // Firebase, so we own the delegate and do both here.
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    let userInfo = notification.request.content.userInfo
+    // Tell Firebase about the message — this triggers messaging().onMessage() in JS.
+    Messaging.messaging().appDidReceiveMessage(userInfo)
+    // Suppress the foreground system banner for wallet_activity: in-app
+    // transaction toasts already cover it. Background/killed delivery is
+    // unaffected (willPresent only runs in the foreground).
+    if (userInfo["notification_type"] as? String) == "wallet_activity" {
+      completionHandler([.badge])
+      return
+    }
+    // Show the notification visually in the foreground.
+    completionHandler([.sound, .badge, .banner, .list])
+  }
+
+  // Called when the user taps a notification or one of its action buttons.
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    let userInfo = response.notification.request.content.userInfo
+
+    // RNFirebase/Notifee may have captured AppDelegate as their original
+    // delegate before we reclaimed the center. Stop that delegate chain when
+    // it returns here, otherwise forwarding would recurse indefinitely.
+    if isForwardingNotificationResponse {
+      completionHandler()
+      return
+    }
+
+    // Notifee-created notification: forward to Notifee so onForegroundEvent(PRESS) fires.
+    // We own the delegate (see applicationDidBecomeActive), so Notifee never receives this
+    // through its own delegate chain — explicit forwarding is required.
+    if userInfo["__notifee_notification"] != nil {
+      NotifeeCoreUNUserNotificationCenter.instance().userNotificationCenter(
+        center, didReceive: response, withCompletionHandler: completionHandler)
+      return
+    }
+
+    // Braze-originated notification: let Braze track the open and handle deep links.
+    if AppDelegate.braze?.notifications.handleUserNotification(
+      response: response, withCompletionHandler: completionHandler) == true {
+      return
+    }
+
+    let responseSelector = #selector(
+      UNUserNotificationCenterDelegate.userNotificationCenter(
+        _:didReceive:withCompletionHandler:))
+    if let delegate = displacedNotificationCenterDelegate,
+       delegate.responds(to: responseSelector) {
+      isForwardingNotificationResponse = true
+      delegate.userNotificationCenter?(
+        center,
+        didReceive: response,
+        withCompletionHandler: completionHandler)
+      isForwardingNotificationResponse = false
+      return
+    }
+
+    completionHandler()
+  }
+}
+
 // MARK: - BrazeDelegate
 
 extension AppDelegate: BrazeDelegate {
-  // Route Braze deep link URLs ourselves instead of letting BrazeKit open them
-  // via UIApplication.open (which would cause a duplicate delivery — once from
-  // the Braze RN bridge JS event and once from the system URL handler).
+  // Route Braze URLs instead of always letting BrazeKit call UIApplication.open.
   //
   // Universal links (Branch domains) are forwarded to Branch for proper routing.
-  // All other URLs are suppressed here; they are handled exclusively through
-  // the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE.
+  // Push notification URLs are suppressed here; they are handled exclusively
+  // through the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE, to avoid
+  // duplicate delivery (native open + JS event).
+  //
+  // In-app messages, Content Cards, and Banners have no JS open-URL listener.
+  // Returning false for those channels swallows the CTA (iOS-only; Android lets
+  // the Braze SDK open the URI). HTML in-app messages default to Braze's in-app
+  // webview (`context.useWebView == true`); `target="_blank"` does not leave the
+  // app. Open http(s) URLs with UIApplication.open so Safari / the system
+  // browser launches outside MetaMask. Custom schemes still go through Braze.
   func braze(_ braze: Braze, shouldOpenURL context: Braze.URLContext) -> Bool {
-    if let host = context.url.host,
-       host.contains("app.link") ||
-       host.contains("test-app.link") ||
-       host.contains("link.metamask.io") ||
-       host.contains("link-test.metamask.io") {
+    if isBrazeUniversalLinkHost(context.url.host) {
       Branch.getInstance().handleDeepLink(context.url)
       return false
     }
-    return false
+
+    // Push taps are delivered to JS via PUSH_NOTIFICATION_EVENT. Opening them
+    // here would double-handle the same URL.
+    if context.channel == .notification {
+      return false
+    }
+
+    if isWebURL(context.url) {
+      UIApplication.shared.open(context.url)
+      return false
+    }
+
+    return true
+  }
+
+  /// MetaMask-owned universal-link hosts that Braze campaigns may point at.
+  /// These must go through Branch rather than `UIApplication.open`.
+  private func isBrazeUniversalLinkHost(_ host: String?) -> Bool {
+    guard let host else { return false }
+    return host.contains("app.link") ||
+      host.contains("test-app.link") ||
+      host.contains("link.metamask.io") ||
+      host.contains("link-test.metamask.io")
+  }
+
+  private func isWebURL(_ url: URL) -> Bool {
+    let scheme = url.scheme?.lowercased()
+    return scheme == "http" || scheme == "https"
   }
 }

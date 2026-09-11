@@ -1,9 +1,12 @@
 import React, { useCallback } from 'react';
-import { GroupedDeFiPositions } from '@metamask/assets-controllers';
+import type {
+  DeFiProtocolPositionGroup,
+  GroupedDeFiPositions,
+} from '@metamask/assets-controllers';
 import { ImageSourcePropType, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, type ParamListBase } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import styleSheet from './DeFiProtocolPositionDetails.styles';
 import { useParams } from '../../../util/navigation/navUtils';
@@ -24,18 +27,21 @@ import SensitiveText, {
 import DeFiProtocolPositionGroups from './DeFiProtocolPositionGroups';
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
+import DeFiProtocolPositionDetailsV2, {
+  DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID,
+} from '../Assets/DeFiPositions/components/DeFiProtocolPositionDetailsV2';
 
-export const DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID =
-  'defi_protocol_position_details_balance';
+export { DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID };
 
-interface DeFiProtocolPositionDetailsParams {
-  protocolAggregate: GroupedDeFiPositions['protocols'][number];
+export interface DeFiProtocolPositionDetailsParams {
+  protocolAggregate?: GroupedDeFiPositions['protocols'][number];
+  protocolPositionGroup?: DeFiProtocolPositionGroup;
   networkIconAvatar: ImageSourcePropType | undefined;
 }
 
-const DeFiProtocolPositionDetails: React.FC = () => {
+const DeFiProtocolPositionDetailsV1: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
 
   const { protocolAggregate, networkIconAvatar } =
     useParams<DeFiProtocolPositionDetailsParams>();
@@ -44,6 +50,12 @@ const DeFiProtocolPositionDetails: React.FC = () => {
   const handleBack = useCallback(() => {
     navigation.pop();
   }, [navigation]);
+
+  // V1 is always opened with a protocolAggregate; guard for the shared
+  // (widened) params type.
+  if (!protocolAggregate) {
+    return null;
+  }
 
   return (
     <SafeAreaView
@@ -98,6 +110,28 @@ const DeFiProtocolPositionDetails: React.FC = () => {
       </View>
     </SafeAreaView>
   );
+};
+
+/**
+ * DeFiProtocolPositionDetails - protocol details screen.
+ *
+ * Branches on which nav param is present (not the feature flag), so a mid-
+ * session flag flip — or landing with the other shape — still renders the
+ * matching implementation. Prefers V2 when `protocolPositionGroup` is set.
+ */
+const DeFiProtocolPositionDetails: React.FC = () => {
+  const { protocolPositionGroup, protocolAggregate } =
+    useParams<DeFiProtocolPositionDetailsParams>();
+
+  if (protocolPositionGroup) {
+    return <DeFiProtocolPositionDetailsV2 />;
+  }
+
+  if (protocolAggregate) {
+    return <DeFiProtocolPositionDetailsV1 />;
+  }
+
+  return null;
 };
 
 export default DeFiProtocolPositionDetails;

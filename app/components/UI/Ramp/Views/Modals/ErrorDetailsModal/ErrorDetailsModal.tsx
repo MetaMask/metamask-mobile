@@ -1,8 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { View, ScrollView, useWindowDimensions } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import { useNavigation, type ParamListBase } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   Button,
@@ -27,7 +27,6 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
 import styleSheet from './ErrorDetailsModal.styles';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ErrorDetailsModalParams {
   errorMessage: string;
@@ -45,7 +44,7 @@ export const createErrorDetailsModalNavDetails =
 
 function ErrorDetailsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
@@ -58,7 +57,6 @@ function ErrorDetailsModal() {
     showChangeProvider,
     amount,
   } = useParams<ErrorDetailsModalParams>();
-  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -93,11 +91,7 @@ function ErrorDetailsModal() {
   }, [navigation, amount]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}

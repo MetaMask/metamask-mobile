@@ -282,5 +282,21 @@ describe('activityStyles', () => {
         ),
       ).toBe(false);
     });
+
+    it('returns true for a Perps/Predict withdraw landing in the Money account', () => {
+      expect(
+        isIncomingMoneyTransactionMeta(
+          makeTx(TransactionType.batch, {
+            nestedTransactions: [
+              { type: TransactionType.predictWithdraw } as TransactionMeta,
+            ],
+            metamaskPay: {
+              tokenAddress: MUSD_TOKEN_ADDRESS,
+              chainId: MOCK_CHAIN,
+            },
+          }),
+        ),
+      ).toBe(true);
+    });
   });
 });

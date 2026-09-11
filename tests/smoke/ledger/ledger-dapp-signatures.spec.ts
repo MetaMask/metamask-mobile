@@ -5,17 +5,17 @@ import {
   importLedgerAccount,
   type SpeculosTestSuiteParams,
 } from '../../framework/fixtures/SpeculosFixtureHelper';
-import Browser from '../../page-objects/Browser/BrowserView';
+import Browser from '../../page-objects/detox/Browser/BrowserView';
 import TestDApp from '../../page-objects/Browser/TestDApp';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import RequestTypes from '../../page-objects/Browser/Confirmations/RequestTypes';
 import HardwareWalletBottomSheet from '../../page-objects/Ledger/HardwareWalletBottomSheet';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';
 import {
   navigateToBrowserView,
   waitForTestDappToLoad,
-} from '../../flows/browser.flow';
+} from '../../flows/detox/browser.flow';
 import { DappVariants } from '../../framework/Constants';
 
 const describeIf = process.env.LEDGER_E2E === '1' ? describe : describe.skip;

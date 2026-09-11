@@ -7,9 +7,12 @@ import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
-import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
+import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -21,6 +24,7 @@ import {
   MONEY_TOOLTIP_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 const mockTrackButtonClicked = jest.fn();
 const mockTrackComponentViewed = jest.fn();
@@ -49,6 +53,10 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('../../hooks/useMoneyAccountInfo', () => ({
   __esModule: true,
@@ -70,9 +78,22 @@ jest.mock('../../../../../reducers/user/selectors', () => ({
   selectMoneyOnboardingSeen: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/onboarding', () => ({
+jest.mock('../../selectors/homePrimaryCta', () => ({
   __esModule: true,
-  selectWalletHomeOnboardingFlowVisible: jest.fn(),
+  selectHasWalletFundingPrimaryCta: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyAccount',
+  () => ({
+    __esModule: true,
+    selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
+  }),
+);
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  __esModule: true,
+  selectPrivacyMode: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -81,25 +102,52 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
-const mockSelectWalletHomeOnboardingFlowVisible = jest.mocked(
-  selectWalletHomeOnboardingFlowVisible,
+const mockSelectHasWalletFundingPrimaryCta = jest.mocked(
+  selectHasWalletFundingPrimaryCta,
 );
+const mockSelectMoneyOnboardingStepperAnimationEnabled = jest.mocked(
+  selectMoneyOnboardingStepperAnimationEnabled,
+);
+const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
-const createBalanceMock = (
-  overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
-) =>
+type BalanceMockOverrides = Partial<
+  Omit<ReturnType<typeof useMoneyAccountBalance>, 'moneyBalanceQuery'>
+> & {
+  moneyBalanceQuery?: Partial<
+    ReturnType<typeof useMoneyAccountBalance>['moneyBalanceQuery']
+  >;
+};
+
+const createBalanceMock = (overrides: BalanceMockOverrides = {}) =>
   ({
     totalFiatFormatted: '$1,000.00',
     totalFiatRaw: '1000',
     tokenTotal: undefined,
-    isAggregatedBalanceLoading: false,
+    isBalanceLoading: false,
     isBalanceFetchError: false,
-    isBalanceFetching: false,
     refetchBalance: jest.fn(),
+    ...overrides,
+    moneyBalanceQuery: {
+      data: {
+        musdBalance: '1000000000',
+        vmusdValueInMusd: '0',
+        totalBalance: '1000000000',
+      },
+      isLoading: false,
+      isFetching: false,
+      ...overrides.moneyBalanceQuery,
+    },
+  }) as ReturnType<typeof useMoneyAccountBalance>;
+
+const createApyMock = (
+  overrides: Partial<ReturnType<typeof useMoneyVaultApy>> = {},
+) =>
+  ({
     apyDecimal: 0.04,
     apyPercent: 4,
     apyPercentFormatted: '4%',
@@ -107,22 +155,8 @@ const createBalanceMock = (
       data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
       isLoading: false,
     },
-    musdBalanceQuery: {
-      data: { balance: '1000000000' },
-      isLoading: false,
-    },
-    musdEquivalentBalanceQuery: {
-      data: {
-        musdEquivalentValue: '0',
-        musdSHFvdBalance: '0',
-        exchangeRate: '1000000',
-      },
-      isLoading: false,
-    },
-    musdFiatFormatted: '$1,000.00',
-    musdSHFvdFiatFormatted: '$0.00',
     ...overrides,
-  }) as ReturnType<typeof useMoneyAccountBalance>;
+  }) as ReturnType<typeof useMoneyVaultApy>;
 
 const createInfoMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountInfo>> = {},
@@ -139,10 +173,14 @@ describe('MoneyBalanceCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceMock());
+    mockUseMoneyVaultApy.mockReturnValue(createApyMock());
     mockUseMoneyAccountInfo.mockReturnValue(createInfoMock());
     mockSelectMoneyOnboardingSeen.mockReturnValue(true);
-    mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
+    mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
+    mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
+    mockSelectPrivacyMode.mockReturnValue(false);
     mockUseMoneyNavigation.mockReturnValue({
+      isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);
@@ -195,27 +233,19 @@ describe('MoneyBalanceCard', () => {
       expect(queryByText('$0.00')).not.toBeOnTheScreen();
     });
 
-    it('renders the Add button (not the Earn upsell)', () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyBalanceCard />,
-      );
+    it('renders the Add button', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toHaveTextContent(
         strings('money.balance_card.add'),
       );
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
-      ).not.toBeOnTheScreen();
     });
 
-    it('does not render the empty or new-user container', () => {
+    it('does not render the empty container', () => {
       const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(
         queryByTestId(MoneyBalanceCardTestIds.EMPTY_CONTAINER),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
@@ -301,23 +331,18 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
-    it('renders the Earn button (not the Add button)', () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyBalanceCard />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
-      ).toHaveTextContent(strings('homepage.sections.money_empty_state.earn'));
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.ADD_BUTTON),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('routes add money when Earn is pressed', () => {
+    it('renders the Add button', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
+      expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toHaveTextContent(
+        strings('money.balance_card.add'),
+      );
+    });
+
+    it('routes add money when Add is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
       expect(mockInitiateDeposit).toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
@@ -325,15 +350,15 @@ describe('MoneyBalanceCard', () => {
       });
     });
 
-    it('tracks the Earn click with the empty-state label key', () => {
+    it('tracks the Add click with the deposit redirect target', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_key: 'homepage.sections.money_empty_state.earn',
+        label_key: 'money.balance_card.add',
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       });
     });
@@ -350,94 +375,47 @@ describe('MoneyBalanceCard', () => {
       mockSelectMoneyOnboardingSeen.mockReturnValue(false);
     });
 
-    it('renders the new-user container testID', () => {
+    it('renders the Add button', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not render the Add button', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.ADD_BUTTON),
-      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
     });
 
     describe('when the wallet-home onboarding stepper is not displayed', () => {
       beforeEach(() => {
-        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
+        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
       });
 
-      it('renders the Earn button with the earn label', () => {
+      it('renders the Add button with the add label', () => {
         const { getByTestId, queryByTestId } = renderWithProvider(
           <MoneyBalanceCard />,
         );
 
         expect(
-          getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
-        ).toHaveTextContent(
-          strings('homepage.sections.money_empty_state.earn'),
-        );
+          getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON),
+        ).toHaveTextContent(strings('money.balance_card.add'));
         expect(
           queryByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON),
         ).not.toBeOnTheScreen();
-      });
-
-      it('still renders the new-user container', () => {
-        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-        expect(
-          getByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      it('routes add money when Earn is pressed', () => {
-        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
-
-        expect(mockInitiateDeposit).toHaveBeenCalled();
-        expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
       });
     });
 
     describe('when the wallet-home onboarding stepper is displayed', () => {
       beforeEach(() => {
-        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
+        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
       });
 
-      it('renders the Earn button (never Get started) when the stepper is visible', () => {
+      it('renders the Add button (never Get started) when the stepper is visible', () => {
         const { getByTestId, queryByTestId } = renderWithProvider(
           <MoneyBalanceCard />,
         );
 
         expect(
-          getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
-        ).toHaveTextContent(
-          strings('homepage.sections.money_empty_state.earn'),
-        );
+          getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON),
+        ).toHaveTextContent(strings('money.balance_card.add'));
         expect(
           queryByTestId(MoneyBalanceCardTestIds.GET_STARTED_BUTTON),
         ).not.toBeOnTheScreen();
-      });
-
-      it('still renders the new-user container', () => {
-        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-        expect(
-          getByTestId(MoneyBalanceCardTestIds.NEW_USER_CONTAINER),
-        ).toBeOnTheScreen();
-      });
-
-      it('routes add money when Earn is pressed', () => {
-        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
-
-        expect(mockInitiateDeposit).toHaveBeenCalled();
       });
     });
   });
@@ -459,17 +437,12 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
-    it('renders the Add button with the add label and not the Earn button', () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyBalanceCard />,
-      );
+    it('renders the Add button with the add label', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toHaveTextContent(
         strings('money.balance_card.add'),
       );
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.EARN_BUTTON),
-      ).not.toBeOnTheScreen();
     });
 
     it('renders the APY tag', () => {
@@ -480,12 +453,97 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
-    it('renders the mUSD currency suffix next to the APY value', () => {
+    it('renders the mUSD currency suffix next to the balance label', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.CURRENCY_SUFFIX),
+      ).toHaveTextContent(/• mUSD/);
+    });
+
+    it('does not render the mUSD currency suffix inside the APY tag', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.APY_TAG),
+      ).not.toHaveTextContent(/• mUSD/);
+    });
+  });
+
+  describe('privacy mode', () => {
+    it('shows the real balance when privacy mode is disabled', () => {
+      mockSelectPrivacyMode.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
+        '$1,000.00',
+      );
+    });
+
+    it('masks the balance when privacy mode is enabled', () => {
+      mockSelectPrivacyMode.mockReturnValue(true);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
+        '•••••••••',
+      );
+    });
+
+    it('does not mask the APY tag when privacy mode is enabled', () => {
+      mockSelectPrivacyMode.mockReturnValue(true);
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        /• mUSD/,
+        /4% APY/,
       );
+    });
+  });
+
+  describe('Add button onboarding redirect', () => {
+    describe('when onboarding has not been seen', () => {
+      beforeEach(() => {
+        mockSelectMoneyOnboardingSeen.mockReturnValue(false);
+      });
+
+      it('navigates to Money onboarding when Add is pressed', () => {
+        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
+          postOnboardingRedirect: {
+            type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          },
+        });
+        expect(mockInitiateDeposit).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when onboarding has been seen and onboarding flag is enabled', () => {
+      it('initiates deposit when Add is pressed', () => {
+        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+        expect(mockInitiateDeposit).toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+      });
+    });
+
+    describe('when onboarding flag is disabled', () => {
+      beforeEach(() => {
+        mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(false);
+        mockSelectMoneyOnboardingSeen.mockReturnValue(false);
+      });
+
+      it('initiates deposit when Add is pressed even if onboarding not seen', () => {
+        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+        fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+        expect(mockInitiateDeposit).toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+      });
     });
   });
 
@@ -516,7 +574,7 @@ describe('MoneyBalanceCard', () => {
       });
     });
 
-    it('routes add money (and not the Money home) when Earn is pressed in empty state', () => {
+    it('routes add money (and not the Money home) when Add is pressed in empty state', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           totalFiatRaw: '0',
@@ -526,7 +584,7 @@ describe('MoneyBalanceCard', () => {
 
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.EARN_BUTTON));
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
       expect(mockInitiateDeposit).toHaveBeenCalled();
       expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
@@ -536,7 +594,7 @@ describe('MoneyBalanceCard', () => {
   describe('loading states', () => {
     it('renders balance skeleton when balance is loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({ isAggregatedBalanceLoading: true }),
+        createBalanceMock({ isBalanceLoading: true }),
       );
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -552,12 +610,12 @@ describe('MoneyBalanceCard', () => {
     });
 
     it('renders APY skeleton when APY is loading', () => {
-      mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({
+      mockUseMoneyVaultApy.mockReturnValue(
+        createApyMock({
           vaultApyQuery: {
             data: undefined,
             isLoading: true,
-          } as ReturnType<typeof useMoneyAccountBalance>['vaultApyQuery'],
+          } as ReturnType<typeof useMoneyVaultApy>['vaultApyQuery'],
         }),
       );
 
@@ -589,8 +647,8 @@ describe('MoneyBalanceCard', () => {
     });
 
     it('renders the APY tag with 0 when apyPercent is undefined', () => {
-      mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({ apyPercent: undefined }),
+      mockUseMoneyVaultApy.mockReturnValue(
+        createApyMock({ apyPercent: undefined }),
       );
 
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
@@ -639,30 +697,30 @@ describe('MoneyBalanceCard', () => {
         mockSelectMoneyOnboardingSeen.mockReturnValue(true);
       });
 
-      it('renders Earn as Secondary when the onboarding stepper is visible', () => {
-        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
+      it('renders Add as Secondary when another primary CTA is present on Home', () => {
+        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.EARN_BUTTON),
+          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Secondary);
       });
 
-      it('renders Earn as Primary when no other primary CTA is on Home', () => {
-        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
+      it('renders Add as Primary when no other primary CTA is on Home', () => {
+        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.EARN_BUTTON),
+          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Primary);
       });
     });
 
     describe('funded balance', () => {
       it('renders Add as Primary when no other primary CTA is on Home', () => {
-        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
+        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -671,8 +729,8 @@ describe('MoneyBalanceCard', () => {
         ).toBe(ButtonVariant.Primary);
       });
 
-      it('renders Add as Secondary when the onboarding stepper is visible', () => {
-        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
+      it('renders Add as Secondary when another primary CTA is present on Home', () => {
+        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -693,23 +751,23 @@ describe('MoneyBalanceCard', () => {
         mockSelectMoneyOnboardingSeen.mockReturnValue(false);
       });
 
-      it('renders Earn as Primary when no other primary CTA is on Home', () => {
-        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
+      it('renders Add as Primary when no other primary CTA is on Home', () => {
+        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.EARN_BUTTON),
+          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Primary);
       });
 
-      it('renders Earn as Secondary when the onboarding stepper is visible', () => {
-        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
+      it('renders Add as Secondary when another primary CTA is present on Home', () => {
+        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.EARN_BUTTON),
+          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Secondary);
       });
     });
@@ -720,7 +778,7 @@ describe('MoneyBalanceCard', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
-          isBalanceFetching: false,
+          moneyBalanceQuery: { isFetching: false },
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
         }),
@@ -770,7 +828,7 @@ describe('MoneyBalanceCard', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
-          isBalanceFetching: false,
+          moneyBalanceQuery: { isFetching: false },
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
           refetchBalance: mockRefetch,
@@ -790,7 +848,7 @@ describe('MoneyBalanceCard', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
-          isBalanceFetching: true,
+          moneyBalanceQuery: { isFetching: true },
           totalFiatFormatted: undefined,
           totalFiatRaw: undefined,
         }),
@@ -809,7 +867,7 @@ describe('MoneyBalanceCard', () => {
     });
   });
 
-  describe('noAccount state', () => {
+  describe('when the money account has not resolved yet', () => {
     beforeEach(() => {
       mockUseMoneyAccountInfo.mockReturnValue(
         createInfoMock({
@@ -817,14 +875,29 @@ describe('MoneyBalanceCard', () => {
           primaryMoneyAccount: undefined,
         }),
       );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          isBalanceLoading: true,
+          totalFiatFormatted: undefined,
+          totalFiatRaw: undefined,
+        }),
+      );
     });
 
-    it('renders the no-account message in the balance slot', () => {
+    it('renders the balance skeleton', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(
-        getByTestId(MoneyBalanceCardTestIds.BALANCE_NO_ACCOUNT),
-      ).toHaveTextContent(strings('money.balance_no_account'));
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the no-account message', () => {
+      const { queryByText } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByText(strings('money.balance_no_account')),
+      ).not.toBeOnTheScreen();
     });
 
     it('does not render the balance text', () => {
@@ -841,6 +914,22 @@ describe('MoneyBalanceCard', () => {
       expect(
         queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
       ).not.toBeOnTheScreen();
+    });
+
+    it('renders the balance skeleton even when the balance is not loading', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          isBalanceLoading: false,
+          totalFiatFormatted: undefined,
+          totalFiatRaw: undefined,
+        }),
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -878,6 +967,33 @@ describe('MoneyBalanceCard', () => {
       });
     });
 
+    it('tracks Add click with GO_TO_MONEY_ONBOARDING intent when onboarding has not been seen', () => {
+      mockSelectMoneyOnboardingSeen.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        label_key: 'money.balance_card.add',
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+    });
+
+    it('tracks Add click with ADD_MONEY intent when onboarding has been seen', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.balance_card.add',
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+    });
+
     it('calls trackSurfaceClicked with MONEY_ONBOARDING redirect when card is pressed and onboarding has not been seen', () => {
       mockSelectMoneyOnboardingSeen.mockReturnValue(false);
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
@@ -886,6 +1002,33 @@ describe('MoneyBalanceCard', () => {
 
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+    });
+
+    it('calls trackSurfaceClicked with MONEY_HOME redirect when card is pressed, onboarding not seen, and onboarding flag is disabled', () => {
+      mockSelectMoneyOnboardingSeen.mockReturnValue(false);
+      mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
+    });
+
+    it('tracks Add click with ADD_MONEY intent when onboarding not seen but onboarding flag is disabled', () => {
+      mockSelectMoneyOnboardingSeen.mockReturnValue(false);
+      mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.balance_card.add',
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       });
     });
 

@@ -7,6 +7,9 @@ const styleSheet = (_params: { theme: Theme }) =>
     container: {
       marginVertical: 12,
     },
+    youReceivedLabel: {
+      marginTop: 8,
+    },
   });
 
 export default styleSheet;

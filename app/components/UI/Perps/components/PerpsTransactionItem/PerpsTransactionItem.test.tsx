@@ -25,29 +25,6 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
-// Mock TagBase component
-jest.mock('../../../../../component-library/base-components/TagBase', () => ({
-  __esModule: true,
-  default: ({
-    children,
-    severity,
-  }: {
-    children: React.ReactNode;
-    severity: string;
-  }) => {
-    const { View } = jest.requireActual('react-native');
-    return <View testID={`tag-base-${severity}`}>{children}</View>;
-  },
-  TagSeverity: {
-    Default: 'default',
-    Danger: 'danger',
-    Info: 'info',
-  },
-  TagShape: {
-    Pill: 'pill',
-  },
-}));
-
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => ({
   __esModule: true,
@@ -412,7 +389,9 @@ describe('PerpsTransactionItem', () => {
       );
 
       expect(getByText('perps.transactions.order.take_profit')).toBeTruthy();
-      expect(getByTestId('tag-base-default')).toBeTruthy();
+      expect(
+        getByTestId(PerpsTransactionSelectorsIDs.FILL_TAG_TAKE_PROFIT),
+      ).toBeTruthy();
     });
 
     it('should display stop loss badge for SL fills', () => {
@@ -434,7 +413,9 @@ describe('PerpsTransactionItem', () => {
       );
 
       expect(getByText('perps.transactions.order.stop_loss')).toBeTruthy();
-      expect(getByTestId('tag-base-default')).toBeTruthy();
+      expect(
+        getByTestId(PerpsTransactionSelectorsIDs.FILL_TAG_STOP_LOSS),
+      ).toBeTruthy();
     });
 
     it('should display liquidation badge for liquidated fills', () => {
@@ -477,7 +458,9 @@ describe('PerpsTransactionItem', () => {
       );
 
       expect(getByText('perps.transactions.order.liquidated')).toBeTruthy();
-      expect(getByTestId('tag-base-danger')).toBeTruthy();
+      expect(
+        getByTestId(PerpsTransactionSelectorsIDs.FILL_TAG_LIQUIDATED),
+      ).toBeTruthy();
     });
 
     it('should display auto deleveraging badge for auto deleveraging fills', () => {
@@ -501,7 +484,9 @@ describe('PerpsTransactionItem', () => {
       expect(
         getByText('perps.transactions.order.auto_deleveraging'),
       ).toBeTruthy();
-      expect(getByTestId('tag-base-info')).toBeTruthy();
+      expect(
+        getByTestId(PerpsTransactionSelectorsIDs.FILL_TAG_ADL),
+      ).toBeTruthy();
     });
 
     it('tracks event and opens support URL when ADL tag is pressed', () => {

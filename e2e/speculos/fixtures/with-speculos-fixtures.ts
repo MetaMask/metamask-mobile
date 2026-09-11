@@ -1,5 +1,5 @@
-import type { SpeculosBleConfig, ButtonPress } from './speculos-ble-test-helper/src/types';
-import { SpeculosTestHelper } from './speculos-ble-test-helper/src/speculos-test-helper';
+import type { SpeculosBleConfig, ButtonPress } from '../speculos-ble-test-helper/src/types';
+import { SpeculosTestHelper } from '../speculos-ble-test-helper/src/speculos-test-helper';
 
 const DEFAULT_CONFIG: Partial<SpeculosBleConfig> = {
   speculosHost: '127.0.0.1',

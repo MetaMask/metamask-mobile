@@ -1,7 +1,7 @@
 import { useCallback, useState, useMemo } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 
-const MAX_FONT_SIZE = 40;
+const MAX_FONT_SIZE = 32;
 const MIN_FONT_SIZE = 20;
 
 /**

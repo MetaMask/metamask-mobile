@@ -30,12 +30,14 @@ export class BrazePlugin extends EventPlugin {
    *
    * When `undefined`, the plugin stops forwarding to Braze.
    */
-  setBrazeProfileId(profileId: string | undefined): void {
-    this.brazeProfileId = profileId;
-    if (profileId !== undefined) {
+  setBrazeProfileId(canonicalProfileId: string | undefined): void {
+    this.brazeProfileId = canonicalProfileId;
+    if (canonicalProfileId !== undefined) {
       try {
-        Braze.changeUser(profileId);
-        Logger.log('[BrazePlugin] Identified Braze user with profileId');
+        Braze.changeUser(canonicalProfileId);
+        Logger.log(
+          '[BrazePlugin] Identified Braze user with canonicalProfileId',
+        );
       } catch (error) {
         captureException(error as Error, {
           tags: {

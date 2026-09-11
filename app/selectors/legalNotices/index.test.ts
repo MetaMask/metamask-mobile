@@ -2,9 +2,11 @@ import {
   shouldShowNewPrivacyToastSelector,
   selectShouldShowPna25Notice,
   selectIsPna25Acknowledged,
+  selectShouldShowArcUsageNotice,
 } from '.';
 import { RootState } from '../../reducers';
 import { analytics } from '../../util/analytics/analytics';
+import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 
 jest.mock('../../util/analytics/analytics');
 
@@ -161,6 +163,113 @@ describe('legalNotices selectors', () => {
       const state = createMockState(false);
 
       const result = selectIsPna25Acknowledged(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectShouldShowArcUsageNotice', () => {
+    const ACCOUNT = '0x0DCD5D886577d5081B0c52e242Ef29E70Be3E7bc';
+    const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+    const ARC_ERC20 = '0x3600000000000000000000000000000000000000';
+
+    const createArcState = ({
+      arcBalances,
+      otherChainBalances,
+      arcUsageNoticeShown = false,
+    }: {
+      arcBalances?: Record<string, string>;
+      otherChainBalances?: Record<string, string>;
+      arcUsageNoticeShown?: boolean;
+    }): RootState =>
+      ({
+        legalNotices: {
+          isPna25Acknowledged: false,
+          newPrivacyPolicyToastClickedOrClosed: false,
+          newPrivacyPolicyToastShownDate: null,
+          arcUsageNoticeShown,
+        },
+        engine: {
+          backgroundState: {
+            TokenBalancesController: {
+              tokenBalances: {
+                [ACCOUNT]: {
+                  ...(arcBalances
+                    ? { [NETWORK_CHAIN_ID.ARC]: arcBalances }
+                    : {}),
+                  ...(otherChainBalances ? { '0x1': otherChainBalances } : {}),
+                },
+              },
+            },
+            AssetsController: {
+              assetsInfo: {},
+              assetsBalance: {},
+              customAssets: {},
+            },
+            AccountsController: { internalAccounts: { accounts: {} } },
+            RemoteFeatureFlagController: { remoteFeatureFlags: {} },
+          },
+        },
+      }) as unknown as RootState;
+
+    it('returns true when the native Arc balance is non-zero', () => {
+      const state = createArcState({
+        arcBalances: { [ZERO_ADDRESS]: '0xde0b6b3a7640000' },
+      });
+
+      const result = selectShouldShowArcUsageNotice(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true when an Arc token balance is non-zero and native is zero', () => {
+      const state = createArcState({
+        arcBalances: {
+          [ZERO_ADDRESS]: '0x0',
+          [ARC_ERC20]: '0xde0b6b3a7640000',
+        },
+      });
+
+      const result = selectShouldShowArcUsageNotice(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when every Arc balance is zero', () => {
+      const state = createArcState({
+        arcBalances: { [ZERO_ADDRESS]: '0x0', [ARC_ERC20]: '0x0' },
+      });
+
+      const result = selectShouldShowArcUsageNotice(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when Arc has no balances at all', () => {
+      const state = createArcState({});
+
+      const result = selectShouldShowArcUsageNotice(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the non-zero balance is on another chain', () => {
+      const state = createArcState({
+        otherChainBalances: { [ZERO_ADDRESS]: '0xde0b6b3a7640000' },
+      });
+
+      const result = selectShouldShowArcUsageNotice(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false once the notice was shown', () => {
+      const state = createArcState({
+        arcBalances: { [ZERO_ADDRESS]: '0xde0b6b3a7640000' },
+        arcUsageNoticeShown: true,
+      });
+
+      const result = selectShouldShowArcUsageNotice(state);
 
       expect(result).toBe(false);
     });

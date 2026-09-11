@@ -1,9 +1,5 @@
 import React, { ReactNode, useMemo } from 'react';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionMeta,
@@ -21,7 +17,9 @@ import {
 } from '@metamask/transaction-pay-controller';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
@@ -40,24 +38,34 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { resolveTransactionType } from '../../../utils/transaction';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const isLoading = useIsTransactionPayLoading();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
+  const sourceAmounts = useTransactionPaySourceAmounts();
   const paidByMetaMask = useIsPaidByMetaMask();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
   const { isHeadlessBuyInProgress } = useConfirmationContext();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const isFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return (
     <TransactionFeeRow
       totals={totals}
       quotes={quotes}
       transactionMeta={transactionMetadata}
+      hasSourceAmounts={Boolean(sourceAmounts?.length)}
       hasAlert={hasAlert}
       isLoading={isLoading}
+      isFiatPayment={isFiatPayment}
       paidByMetaMask={paidByMetaMask}
       tooltipDisabled={isHeadlessBuyInProgress}
       isDisabled={isHeadlessBuyInProgress}
@@ -68,18 +76,22 @@ export function BridgeFeeRow() {
 function TransactionFeeRow({
   transactionMeta,
   hasAlert,
+  hasSourceAmounts,
   quotes,
   totals,
   isLoading,
+  isFiatPayment,
   paidByMetaMask,
   tooltipDisabled,
   isDisabled,
 }: {
   transactionMeta: TransactionMeta;
   hasAlert: boolean;
+  hasSourceAmounts: boolean;
   quotes?: TransactionPayQuote<Json>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
+  isFiatPayment: boolean;
   paidByMetaMask: boolean;
   tooltipDisabled?: boolean;
   isDisabled?: boolean;
@@ -89,6 +101,14 @@ function TransactionFeeRow({
   const hasQuotes = Boolean(quotes?.length);
 
   const feeTotalUsd = useMemo(() => {
+    if (
+      transactionMeta?.isGasFeeSponsored &&
+      !hasSourceAmounts &&
+      !isFiatPayment
+    ) {
+      return formatFiat(new BigNumber(0));
+    }
+
     if (!totals?.fees) return '';
 
     const metaMask = totals.fees.metaMask.usd ?? 0;
@@ -102,22 +122,28 @@ function TransactionFeeRow({
         .plus(sourceNetwork)
         .plus(targetNetwork),
     );
-  }, [totals, formatFiat]);
+  }, [
+    totals,
+    formatFiat,
+    transactionMeta?.isGasFeeSponsored,
+    hasSourceAmounts,
+    isFiatPayment,
+  ]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
-  const labelColor = isDisabled ? TextColor.Muted : undefined;
+  const labelColor = isDisabled ? TextColor.TextMuted : undefined;
   const valueColor = isDisabled
-    ? TextColor.Muted
+    ? TextColor.TextMuted
     : hasAlert
-      ? TextColor.Error
-      : TextColor.Alternative;
+      ? TextColor.ErrorDefault
+      : TextColor.TextAlternative;
 
   return (
     <AlertRow
       testID="bridge-fee-row"
       alertField={RowAlertKey.PayWithFee}
-      label={strings('confirm.label.transaction_fee')}
+      label={strings('confirm.label.transaction_fees')}
       tooltip={
         !paidByMetaMask && hasQuotes && totals ? (
           <Tooltip transactionMeta={transactionMeta} totals={totals} />
@@ -133,7 +159,7 @@ function TransactionFeeRow({
         <PaidByLabel />
       ) : (
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           color={valueColor}
           testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
         >
@@ -153,11 +179,11 @@ function PaidByLabel() {
       testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
     >
       <Icon
-        name={IconName.Check}
+        name={IconName.CheckBold}
         color={IconColor.Success}
         size={IconSize.Sm}
       />
-      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
         {strings('transactions.paid_by_metamask')}
       </Text>
     </Box>
@@ -184,8 +210,6 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
     'confirm.tooltip.predict_withdraw.transaction_fee',
   [TransactionType.predictDeposit]:
     'confirm.tooltip.predict_deposit.transaction_fee',
-  [TransactionType.musdConversion]:
-    'confirm.tooltip.musd_conversion.transaction_fee',
   [TransactionType.moneyAccountWithdraw]:
     'confirm.tooltip.money_account_withdraw.transaction_fee',
   [TransactionType.moneyAccountDeposit]:
@@ -247,28 +271,28 @@ function FeesTooltip({
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
       >
-        <Text color={TextColor.Alternative}>
+        <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.network_fee')}
         </Text>
-        <Text color={TextColor.Alternative}>{networkFeeUsd}</Text>
+        <Text color={TextColor.TextAlternative}>{networkFeeUsd}</Text>
       </Box>
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
       >
-        <Text color={TextColor.Alternative}>
+        <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.provider_fee')}
         </Text>
-        <Text color={TextColor.Alternative}>{providerFeeUsd}</Text>
+        <Text color={TextColor.TextAlternative}>{providerFeeUsd}</Text>
       </Box>
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
       >
-        <Text color={TextColor.Alternative}>
+        <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.metamask_fee')}
         </Text>
-        <Text color={TextColor.Alternative}>{metaMaskFeeUsd}</Text>
+        <Text color={TextColor.TextAlternative}>{metaMaskFeeUsd}</Text>
       </Box>
     </Box>
   );

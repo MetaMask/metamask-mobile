@@ -3,15 +3,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { useGetPredictThePitchLeaderboard } from './useGetPredictThePitchLeaderboard';
 import {
-  selectPredictThePitchLeaderboard,
-  selectPredictThePitchLeaderboardLoading,
-  selectPredictThePitchLeaderboardError,
-} from '../../../../reducers/rewards/selectors';
-import {
   setPredictThePitchLeaderboard,
   setPredictThePitchLeaderboardLoading,
   setPredictThePitchLeaderboardError,
+  initialState,
+  type RewardsState,
 } from '../../../../reducers/rewards';
+import type { RootState } from '../../../../reducers';
 import type { PredictThePitchLeaderboardDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('react-redux', () => ({
@@ -23,26 +21,24 @@ jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: { call: jest.fn() },
 }));
 
-jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectPredictThePitchLeaderboard: jest.fn(),
-  selectPredictThePitchLeaderboardLoading: jest.fn(),
-  selectPredictThePitchLeaderboardError: jest.fn(),
-}));
-
-jest.mock('../../../../reducers/rewards', () => ({
-  setPredictThePitchLeaderboard: jest.fn((payload) => ({
-    type: 'rewards/setPredictThePitchLeaderboard',
-    payload,
-  })),
-  setPredictThePitchLeaderboardLoading: jest.fn((payload) => ({
-    type: 'rewards/setPredictThePitchLeaderboardLoading',
-    payload,
-  })),
-  setPredictThePitchLeaderboardError: jest.fn((payload) => ({
-    type: 'rewards/setPredictThePitchLeaderboardError',
-    payload,
-  })),
-}));
+jest.mock('../../../../reducers/rewards', () => {
+  const actual = jest.requireActual('../../../../reducers/rewards');
+  return {
+    ...actual,
+    setPredictThePitchLeaderboard: jest.fn((payload) => ({
+      type: 'rewards/setPredictThePitchLeaderboard',
+      payload,
+    })),
+    setPredictThePitchLeaderboardLoading: jest.fn((payload) => ({
+      type: 'rewards/setPredictThePitchLeaderboardLoading',
+      payload,
+    })),
+    setPredictThePitchLeaderboardError: jest.fn((payload) => ({
+      type: 'rewards/setPredictThePitchLeaderboardError',
+      payload,
+    })),
+  };
+});
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call
@@ -57,21 +53,30 @@ const MOCK_LEADERBOARD: PredictThePitchLeaderboardDto = {
   totalParticipants: 10,
 };
 
-function setupSelectors({
-  leaderboard = null,
-  isLoading = false,
-  hasError = false,
-}: {
-  leaderboard?: PredictThePitchLeaderboardDto | null;
-  isLoading?: boolean;
-  hasError?: boolean;
-}) {
-  mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectPredictThePitchLeaderboard) return leaderboard;
-    if (selector === selectPredictThePitchLeaderboardLoading) return isLoading;
-    if (selector === selectPredictThePitchLeaderboardError) return hasError;
-    return undefined;
-  });
+function setupSelectors(rewardsOverrides: Partial<RewardsState>) {
+  const mockRootState = {
+    rewards: { ...initialState, ...rewardsOverrides },
+  } as RootState;
+  mockUseSelector.mockImplementation((selector) => selector(mockRootState));
+}
+
+function createLeaderboardCache(
+  campaignId: string,
+  overrides: {
+    data?: PredictThePitchLeaderboardDto | null;
+    loading?: boolean;
+    error?: boolean;
+  } = {},
+): Partial<RewardsState> {
+  return {
+    predictThePitchLeaderboards: {
+      [campaignId]: {
+        data: overrides.data ?? null,
+        loading: overrides.loading ?? false,
+        error: overrides.error ?? false,
+      },
+    },
+  };
 }
 
 describe('useGetPredictThePitchLeaderboard', () => {
@@ -80,19 +85,13 @@ describe('useGetPredictThePitchLeaderboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
-    setupSelectors({});
+    setupSelectors(createLeaderboardCache(CAMPAIGN_ID));
   });
 
-  it('does not fetch without campaignId and resets loading/error state', () => {
+  it('does not fetch when campaignId is undefined', () => {
     renderHook(() => useGetPredictThePitchLeaderboard(undefined));
 
     expect(mockCall).not.toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setPredictThePitchLeaderboardLoading(false),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setPredictThePitchLeaderboardError(false),
-    );
   });
 
   it('fetches leaderboard and dispatches success action', async () => {
@@ -109,7 +108,28 @@ describe('useGetPredictThePitchLeaderboard', () => {
       CAMPAIGN_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPredictThePitchLeaderboard(MOCK_LEADERBOARD),
+      setPredictThePitchLeaderboardLoading({
+        campaignId: CAMPAIGN_ID,
+        loading: true,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setPredictThePitchLeaderboardError({
+        campaignId: CAMPAIGN_ID,
+        error: false,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setPredictThePitchLeaderboard({
+        campaignId: CAMPAIGN_ID,
+        leaderboard: MOCK_LEADERBOARD,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setPredictThePitchLeaderboardLoading({
+        campaignId: CAMPAIGN_ID,
+        loading: false,
+      }),
     );
   });
 
@@ -122,12 +142,15 @@ describe('useGetPredictThePitchLeaderboard', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setPredictThePitchLeaderboardError(true),
+      setPredictThePitchLeaderboardError({
+        campaignId: CAMPAIGN_ID,
+        error: true,
+      }),
     );
 
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
-    setupSelectors({});
+    setupSelectors(createLeaderboardCache(CAMPAIGN_ID));
     mockCall.mockRejectedValueOnce(new Error('not found: 404') as never);
 
     const { result } = renderHook(() =>
@@ -140,16 +163,21 @@ describe('useGetPredictThePitchLeaderboard', () => {
 
     expect(result.current.isLeaderboardNotYetComputed).toBe(true);
     expect(mockDispatch).not.toHaveBeenCalledWith(
-      setPredictThePitchLeaderboardError(true),
+      setPredictThePitchLeaderboardError({
+        campaignId: CAMPAIGN_ID,
+        error: true,
+      }),
     );
   });
 
   it('returns selector state and refetches', async () => {
-    setupSelectors({
-      leaderboard: MOCK_LEADERBOARD,
-      isLoading: true,
-      hasError: true,
-    });
+    setupSelectors(
+      createLeaderboardCache(CAMPAIGN_ID, {
+        data: MOCK_LEADERBOARD,
+        loading: true,
+        error: true,
+      }),
+    );
     mockCall.mockResolvedValue(MOCK_LEADERBOARD as never);
 
     const { result } = renderHook(() =>

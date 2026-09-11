@@ -19,9 +19,6 @@ import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import Engine from '../../../core/Engine';
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-import Routes from '../../../constants/navigation/Routes';
-import NavigationService from '../../../core/NavigationService';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
 
 interface UseNetworkSelectionOptions {
@@ -118,23 +115,7 @@ export const useNetworkSelection = ({
         account.scopes.includes(chainId),
       );
 
-      if (chainId.includes(KnownCaipNamespace.Bip122)) {
-        // if the network is bitcoin and there is no bitcoin account in the scope
-        // create a new bitcoin account (Bitcoin accounts are different per network)
-        if (!bitcoAccountInScope) {
-          // TODO: I cannot cancel or go back from the add account screen
-          NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.ADD_ACCOUNT,
-            params: {
-              clientType: WalletClientType.Bitcoin,
-              scope: chainId,
-            },
-          });
-
-          return;
-        }
-        // if the network is bitcoin and there is a bitcoin account in the scope
-        // set the selected address to the bitcoin account
+      if (chainId.includes(KnownCaipNamespace.Bip122) && bitcoAccountInScope) {
         Engine.setSelectedAddress(bitcoAccountInScope.address);
       }
       ///: END:ONLY_INCLUDE_IF

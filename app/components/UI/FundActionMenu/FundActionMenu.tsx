@@ -2,6 +2,7 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 // External dependencies.
 import { selectEvmChainId } from '../../../selectors/networkController';
@@ -23,6 +24,7 @@ import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../Ramp/constants/rampsBuyCufTags';
 
 // Types
 import type {
@@ -30,14 +32,11 @@ import type {
   ActionConfig,
 } from './FundActionMenu.types';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
-import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
-  const surfaceClass = useElevatedSurface();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<FundActionMenuRouteProp>();
 
   const customOnBuy = route.params?.onBuy;
@@ -48,7 +47,6 @@ const FundActionMenu = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const { goToBuy, goToSell } = useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
 
@@ -115,7 +113,7 @@ const FundActionMenu = () => {
             button_text: 'Buy',
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
-            ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY',
+            ramp_type: 'UNIFIED_BUY_2',
             region: rampGeodetectedRegion,
             is_authenticated: rampsButtonClickData.is_authenticated,
             preferred_provider: rampsButtonClickData.preferred_provider,
@@ -125,7 +123,10 @@ const FundActionMenu = () => {
             if (customOnBuy) {
               customOnBuy();
             } else {
-              goToBuy({ assetId: assetContext?.assetId });
+              goToBuy(
+                { assetId: assetContext?.assetId },
+                { surface: RAMPS_BUY_CUF_SURFACE.FUND_MENU },
+              );
             }
           },
           traceName: TraceName.LoadRampExperience,
@@ -156,7 +157,6 @@ const FundActionMenu = () => {
         },
       ] as ActionConfig[],
     [
-      isV2UnifiedEnabled,
       rampGeodetectedRegion,
       getChainIdForAsset,
       canSignTransactions,
@@ -173,7 +173,6 @@ const FundActionMenu = () => {
       ref={sheetRef}
       goBack={navigation.goBack}
       testID="fund-action-menu-bottom-sheet"
-      twClassName={surfaceClass}
     >
       <Box twClassName="py-4">
         {actionConfigs.map(

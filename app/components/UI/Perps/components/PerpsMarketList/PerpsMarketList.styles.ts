@@ -5,9 +5,7 @@ const styleSheet = () =>
     container: {
       flex: 1,
     },
-    contentContainer: {
-      paddingHorizontal: 16,
-    },
+    contentContainer: {},
     emptyContainer: {
       flex: 1,
       justifyContent: 'center',

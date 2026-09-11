@@ -1,0 +1,315 @@
+import { fireEvent, render, screen } from '@testing-library/react-native';
+import type { Position } from '@metamask/perps-controller';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import PerpsProPositionCard from './PerpsProPositionCard';
+
+jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
+describe('PerpsProPositionCard', () => {
+  const DOTS_SHORT = '•'.repeat(6);
+  const position: Position = {
+    symbol: 'ETH',
+    size: '1.5',
+    entryPrice: '2900',
+    positionValue: '4350',
+    unrealizedPnl: '150',
+    marginUsed: '1450',
+    leverage: { type: 'isolated', value: 3 },
+    liquidationPrice: '2500',
+    maxLeverage: 50,
+    returnOnEquity: '0.103',
+    cumulativeFunding: { allTime: '0', sinceOpen: '1.25', sinceChange: '0' },
+    takeProfitPrice: '3500',
+    stopLossPrice: '2000',
+    takeProfitCount: 1,
+    stopLossCount: 1,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useSelector as jest.Mock).mockReturnValue(false);
+  });
+
+  it('renders position summary metrics and action controls', () => {
+    render(<PerpsProPositionCard position={position} />);
+
+    expect(screen.getByText('ETH')).toBeOnTheScreen();
+    expect(screen.getByText('3x Long')).toBeOnTheScreen();
+    expect(screen.getByText(/1\.5 ETH/)).toBeOnTheScreen();
+    expect(screen.getByText(/^\+\$150/)).toBeOnTheScreen();
+    expect(screen.getByText('Close')).toBeOnTheScreen();
+    expect(screen.getByText('Reverse')).toBeOnTheScreen();
+    expect(screen.queryByText('Share')).toBeNull();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_SHARE),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Share')).toBeOnTheScreen();
+  });
+
+  it('renders all six summary labels', () => {
+    render(<PerpsProPositionCard position={position} />);
+
+    expect(screen.getByText('Entry price')).toBeOnTheScreen();
+    expect(screen.getByText('Mark price')).toBeOnTheScreen();
+    expect(screen.getByText('Liq. price')).toBeOnTheScreen();
+    expect(screen.getByText('Margin')).toBeOnTheScreen();
+    expect(screen.getByText('Funding')).toBeOnTheScreen();
+    expect(screen.getByText('TP / SL')).toBeOnTheScreen();
+  });
+
+  it('derives mark price and notional from positionValue', () => {
+    render(
+      <PerpsProPositionCard
+        position={{
+          ...position,
+          // Live-enriched notional at mark $3,000 → mark display + header value
+          positionValue: '4500',
+          size: '1.5',
+        }}
+      />,
+    );
+
+    expect(screen.getByText(/1\.5 ETH • \$4,500/)).toBeOnTheScreen();
+    expect(screen.getByText('$3,000')).toBeOnTheScreen();
+  });
+
+  it('appends the liquidation distance in parentheses to the liquidation price', () => {
+    // Mark 4350 / 1.5 = 2900, liq 2500 → (2900 - 2500) / 2900 = 13.79%
+    render(<PerpsProPositionCard position={position} />);
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('$2,500 (13.79%)')).toBeOnTheScreen();
+  });
+
+  it('measures the liquidation distance against the live mark price', () => {
+    // Mark moves to 5000 / 1.5 = 3333.33, liq 2500 → 25.00%
+    render(
+      <PerpsProPositionCard
+        position={{ ...position, positionValue: '5000' }}
+      />,
+    );
+
+    expect(screen.getByText('$2,500 (25.00%)')).toBeOnTheScreen();
+  });
+
+  it('reports the distance as a positive value for a short position', () => {
+    // Short: mark 4350 / 1.5 = 2900, liq 3200 → |2900 - 3200| / 2900 = 10.34%
+    render(
+      <PerpsProPositionCard
+        position={{ ...position, size: '-1.5', liquidationPrice: '3200' }}
+      />,
+    );
+
+    expect(screen.getByText('$3,200 (10.34%)')).toBeOnTheScreen();
+  });
+
+  it('renders the fallback when the position has no liquidation price', () => {
+    render(
+      <PerpsProPositionCard
+        position={{ ...position, liquidationPrice: null }}
+      />,
+    );
+
+    expect(screen.getByText('$---')).toBeOnTheScreen();
+  });
+
+  it('renders the liquidation price without a distance when size is zero', () => {
+    // No size means no derivable mark price, so no distance can be shown.
+    render(<PerpsProPositionCard position={{ ...position, size: '0' }} />);
+
+    expect(screen.getByText('$2,500')).toBeOnTheScreen();
+  });
+
+  it('renders a zero-size position with a short direction', () => {
+    render(<PerpsProPositionCard position={{ ...position, size: '0' }} />);
+
+    expect(screen.getByText('3x Short')).toBeOnTheScreen();
+  });
+
+  it('renders TP/SL edit control when handler is provided', () => {
+    const onEditTpSl = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditTpSl={onEditTpSl} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders margin edit control for isolated positions when handler is provided', () => {
+    const onEditMargin = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditMargin={onEditMargin} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN),
+    ).toBeOnTheScreen();
+  });
+
+  it('invokes edit TP/SL when the TP/SL value text is pressed', () => {
+    const onEditTpSl = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditTpSl={onEditTpSl} />,
+    );
+
+    fireEvent.press(screen.getByText(/\$3,500.*\$2,000/));
+
+    expect(onEditTpSl).toHaveBeenCalledWith(position);
+  });
+
+  it('invokes the market switch handler when the card is pressed', () => {
+    const onPress = jest.fn();
+
+    render(<PerpsProPositionCard position={position} onPress={onPress} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_ROW),
+    );
+
+    expect(onPress).toHaveBeenCalledWith(position);
+  });
+
+  it('exposes the market switch as a labelled action for screen readers', () => {
+    render(<PerpsProPositionCard position={position} onPress={jest.fn()} />);
+
+    expect(screen.getByLabelText('Switch to the ETH market')).toBeOnTheScreen();
+  });
+
+  it('keeps action buttons scoped to their own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onClose = jest.fn();
+
+    render(
+      <PerpsProPositionCard
+        position={position}
+        onPress={onPress}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_CLOSE),
+    );
+
+    expect(onClose).toHaveBeenCalledWith(position);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('keeps margin edit scoped to its own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onEditMargin = jest.fn();
+
+    render(
+      <PerpsProPositionCard
+        position={position}
+        onPress={onPress}
+        onEditMargin={onEditMargin}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('$1,450'));
+
+    expect(onEditMargin).toHaveBeenCalledWith(position);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('keeps TP/SL edit scoped to its own handler when the card is pressable', () => {
+    const onPress = jest.fn();
+    const onEditTpSl = jest.fn();
+
+    render(
+      <PerpsProPositionCard
+        position={position}
+        onPress={onPress}
+        onEditTpSl={onEditTpSl}
+      />,
+    );
+
+    fireEvent.press(screen.getByText(/\$3,500.*\$2,000/));
+
+    expect(onEditTpSl).toHaveBeenCalledWith(position);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('invokes edit margin when the margin value text is pressed', () => {
+    const onEditMargin = jest.fn();
+
+    render(
+      <PerpsProPositionCard position={position} onEditMargin={onEditMargin} />,
+    );
+
+    fireEvent.press(screen.getByText('$1,450'));
+
+    expect(onEditMargin).toHaveBeenCalledWith(position);
+  });
+
+  it('renders the take profit order count when the position carries several take profit orders', () => {
+    render(
+      <PerpsProPositionCard position={{ ...position, takeProfitCount: 3 }} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE),
+    ).toHaveTextContent('3 orders / $2,000');
+    expect(screen.queryByText(/\$3,500/)).toBeNull();
+  });
+
+  // Whether that one order closes the position fully or partially is the controller's
+  // concern: `resolvePositionTriggerSummaryPrice` returns the order's own trigger price
+  // whenever exactly one exists, partial or not (@metamask/perps-controller). The card's
+  // obligation is to show that price instead of a count of one.
+  it('renders the trigger price when the controller reports a single take profit order', () => {
+    render(
+      <PerpsProPositionCard position={{ ...position, takeProfitCount: 1 }} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE),
+    ).toHaveTextContent('$3,500 / $2,000');
+    expect(screen.queryByText(/1 order/)).toBeNull();
+  });
+
+  // Which orders belong in the tally is the controller's decision: it counts every
+  // `isTrigger && reduceOnly` order, which spans take profit market/limit and stop
+  // market/limit (@metamask/perps-controller `collectPositionTriggerOrders`). The card
+  // renders that tally verbatim rather than re-deriving it, so trigger-type coverage is
+  // asserted there, not here.
+  it('renders the controller trigger tally for both sides without recounting orders', () => {
+    render(
+      <PerpsProPositionCard
+        position={{ ...position, takeProfitCount: 2, stopLossCount: 2 }}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE),
+    ).toHaveTextContent('2 orders / 2 orders');
+  });
+
+  it('hides size, value, PnL, and key figures when privacy mode is enabled', () => {
+    (useSelector as jest.Mock).mockReturnValue(true);
+
+    render(<PerpsProPositionCard position={position} />);
+
+    expect(screen.getByText('ETH')).toBeOnTheScreen();
+    expect(screen.getByText('3x Long')).toBeOnTheScreen();
+    expect(screen.queryByText(/1\.5 ETH/)).toBeNull();
+    expect(screen.queryByText(/^\+\$150/)).toBeNull();
+    expect(screen.queryByText('$2,900')).toBeNull();
+    expect(screen.getAllByText(DOTS_SHORT).length).toBeGreaterThanOrEqual(3);
+  });
+});

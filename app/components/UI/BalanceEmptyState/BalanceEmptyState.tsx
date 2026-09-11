@@ -22,11 +22,11 @@ import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../Ramp/constants/rampsBuyCufTags';
 import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
-import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 
 /**
  * BalanceEmptyState smart component displays an empty state for wallet balance
@@ -42,10 +42,9 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
   const handleAction = () => {
-    goToBuy();
+    goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
@@ -53,7 +52,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           button_text: 'Add funds',
           location: 'BalanceEmptyState',
           chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
           is_authenticated: buttonClickData.is_authenticated,
           preferred_provider: buttonClickData.preferred_provider,

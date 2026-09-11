@@ -6,6 +6,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -34,7 +35,7 @@ import PredictThePitchLeaderboard, {
   PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS,
 } from '../components/Campaigns/PredictThePitchLeaderboard';
 import PredictThePitchPortfolio from '../components/Campaigns/PredictThePitchPortfolio';
-import PredictThePitchPrizePool from '../components/Campaigns/PredictThePitchPrizePool';
+import CampaignPrizePool from '../components/Campaigns/CampaignPrizePool';
 import PredictThePitchStatsSummary from '../components/Campaigns/PredictThePitchStatsSummary';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -74,7 +75,7 @@ export function resetPredictThePitchCampaignDetailsSessionAutoNavigationForTests
 
 const PredictThePitchCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -503,7 +504,7 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
                     >
                       {strings('rewards.campaign_prize_pool.title')}
                     </Text>
-                    <PredictThePitchPrizePool
+                    <CampaignPrizePool
                       prizePool={prizePool}
                       isLoading={isPrizePoolLoading}
                       hasError={hasPrizePoolError}

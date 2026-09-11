@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   ButtonIcon,
@@ -37,30 +38,39 @@ import {
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
+import { useResumePendingMasSeriesOptIn } from '../hooks/useMoneyAccountSweepstakesOptIn';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
+import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
+import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
+import { resolveMoneyAccountSweepstakesEntryRoute } from '../utils/moneyAccountSweepstakesSeries';
 import { navigateToRewardsRoute } from '../utils';
+import { getLatestActiveCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
+import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
-import { Image, Pressable, ScrollView } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
+import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
-import VipRefereeFoxIcon from '../../../../images/rewards/vip_splash.png';
 import Engine from '../../../../core/Engine';
+import { handleDeeplink } from '../../../../core/DeeplinkManager';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
+const MUSD_MONEY_URL = 'metamask://money';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const pendingDeeplink = useSelector(selectPendingDeeplink);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -77,10 +87,24 @@ const RewardsDashboard: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
 
+  const isMoneyCampaignDeeplink = pendingDeeplink?.campaign === 'money';
+  const {
+    campaigns,
+    hasLoaded: campaignsHasLoaded,
+    hasError: campaignsHasError,
+    isLoading: isCampaignsLoading,
+  } = useRewardCampaigns();
+  const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
+  const {
+    optedInAny: moneyAccountOptedInAny,
+    isLoading: isMoneyAccountParticipationLoading,
+  } = useMoneyAccountSweepstakesParticipation(isMoneyCampaignDeeplink);
+
   useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
   useGetPredictThePitchOutcomeToast();
+  useMoneyAccountSweepstakesOutcomeToast();
 
   // Data hooks that populate Redux for the dashboard and its pushed sub-pages.
   // The version guard and candidate-subscription fetch live one level up in
@@ -115,17 +139,77 @@ const RewardsDashboard: React.FC = () => {
         Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
       );
     } else if (pendingDeeplink.campaign === 'perps-comp') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
-      );
+      // The deeplink carries no campaign id, so it has to be resolved against
+      // the campaign list. Failed and in-flight fetches also flip
+      // campaignsHasLoaded, so an empty list is only trustworthy once a
+      // successful fetch has settled.
+      const waitingForCampaigns =
+        !campaignsHasLoaded ||
+        (campaigns.length === 0 && (campaignsHasError || isCampaignsLoading));
+
+      if (waitingForCampaigns) {
+        handled = false;
+      } else {
+        const perpsCampaign = getLatestActiveCampaignOfType(
+          campaigns,
+          CampaignType.PERPS_TRADING,
+        );
+        if (perpsCampaign) {
+          navigateToRewardsRoute(
+            navigation,
+            Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+            { campaignId: perpsCampaign.id },
+          );
+        }
+        // No running perps campaign: stay on the dashboard, which is rewards
+        // home. Navigating would surface a past campaign, or an upcoming one
+        // whose details page has nothing to show yet.
+      }
     } else if (pendingDeeplink.campaign === 'predict-the-pitch') {
       navigateToRewardsRoute(
         navigation,
         Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
       );
+    } else if (pendingDeeplink.campaign === 'money') {
+      // Only an active series can route to the tour, so that is the one case
+      // where the decision has to wait on opt-in status.
+      const waitingForParticipation =
+        moneyAccountSeries.seriesStatus === 'active' &&
+        isMoneyAccountParticipationLoading;
+      // Failed and in-flight fetches also flip campaignsHasLoaded, so an empty
+      // series is only trustworthy once a successful fetch has settled.
+      const waitingForCampaigns =
+        !campaignsHasLoaded ||
+        (moneyAccountSeries.campaigns.length === 0 &&
+          (campaignsHasError || isCampaignsLoading));
+
+      if (waitingForCampaigns || waitingForParticipation) {
+        handled = false;
+      } else {
+        const entry = resolveMoneyAccountSweepstakesEntryRoute({
+          series: moneyAccountSeries,
+          optedInAny: moneyAccountOptedInAny,
+        });
+
+        if (entry.kind === 'tour') {
+          navigateToRewardsRoute(
+            navigation,
+            Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+            {
+              campaignId: entry.campaignId,
+            },
+          );
+        } else if (entry.kind === 'details') {
+          navigateToRewardsRoute(
+            navigation,
+            Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+            { campaignId: entry.campaignId },
+          );
+        }
+        // entry.kind === 'dashboard': stay on dashboard (upcoming / empty)
+      }
     } else if (pendingDeeplink.page === 'musd') {
-      navigateToRewardsRoute(navigation, Routes.REWARDS_MUSD_CALCULATOR_VIEW);
+      handleDeeplink({ uri: MUSD_MONEY_URL });
     } else if (pendingDeeplink.page === 'benefits') {
       // Benefits full view is registered at the root MainNavigator level.
       navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
@@ -138,7 +222,18 @@ const RewardsDashboard: React.FC = () => {
     if (handled) {
       dispatch(setPendingDeeplink(null));
     }
-  }, [navigation, dispatch, pendingDeeplink]);
+  }, [
+    navigation,
+    dispatch,
+    pendingDeeplink,
+    campaigns,
+    campaignsHasLoaded,
+    campaignsHasError,
+    isCampaignsLoading,
+    moneyAccountSeries,
+    moneyAccountOptedInAny,
+    isMoneyAccountParticipationLoading,
+  ]);
 
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
@@ -176,6 +271,9 @@ const RewardsDashboard: React.FC = () => {
 
   // Use the bulk link state hook for resuming interrupted opt-in processes
   const { wasInterrupted, isRunning, resumeBulkLink } = useBulkLinkState();
+
+  // Quietly finish incomplete Money Account Sweepstakes series opt-ins
+  useResumePendingMasSeriesOptIn();
 
   const totalOptedInAccountsSelectedGroup = useMemo(
     () => optInBySelectedAccountGroup?.optedInAccounts?.length,
@@ -379,12 +477,7 @@ const RewardsDashboard: React.FC = () => {
                   style={tw.style('h-8 w-8 items-center justify-center')}
                   testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
                 >
-                  <Image
-                    source={VipRefereeFoxIcon}
-                    style={tw.style('h-6 w-6')}
-                    width={24}
-                    height={24}
-                  />
+                  <VipIcon width={24} height={24} name="VipIcon" />
                 </Pressable>
               )}
               {isVipProgramEnabled && isVipEnabled && (

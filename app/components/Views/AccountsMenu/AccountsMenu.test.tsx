@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import AccountsMenu from './AccountsMenu';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
@@ -13,6 +13,8 @@ import {
   getMetamaskNotificationsReadCount,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -49,6 +51,13 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
 jest.mock('../../../core/', () => ({
   Authentication: {
     lockApp: jest.fn(),
@@ -63,8 +72,6 @@ jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
-
-jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV2Enabled');
 
 const mockGoToBuy = jest.fn();
 jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
@@ -89,6 +96,10 @@ jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => false),
 }));
 
+jest.mock('../../UI/Card/hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => null),
+}));
+
 jest.mock('../../../selectors/notifications', () => ({
   selectIsMetamaskNotificationsEnabled: jest.fn(),
   getMetamaskNotificationsUnreadCount: jest.fn(),
@@ -99,11 +110,30 @@ jest.mock('../../../selectors/identity', () => ({
   selectIsBackupAndSyncEnabled: jest.fn(),
 }));
 
+// Mirrors the Rewards utils.ts mocking shape: mocking the helper (rather than
+// the inline `///: ONLY_INCLUDE_IF(beta)` fence) lets Jest exercise both the
+// beta and consent branches, since babel-jest leaves the fence as a comment.
+const mockGetBetaSupportUrl = jest.fn();
+jest.mock('./AccountsMenu.utils', () => ({
+  getBetaSupportUrl: () => mockGetBetaSupportUrl(),
+}));
+
+const mockUseCardUkMigrationUpdateBadge = jest.mocked(
+  useCardUkMigrationUpdateBadge,
+);
+
 describe('AccountsMenu', () => {
   let mockAlert: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
+    // Default to the beta branch so pre-existing tests that don't care about
+    // support consent keep their prior (beta) behavior; consent tests below
+    // override this to '' to exercise the non-beta branch.
+    mockGetBetaSupportUrl.mockReturnValue(
+      'https://intercom.help/internal-beta-testing/en/',
+    );
     mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Setup useSelector to return different values based on the selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
@@ -164,6 +194,26 @@ describe('AccountsMenu', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('CardScreens');
     });
+
+    it('shows Update badge when user is UK migration eligible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValueOnce('warning');
+
+      const { getByTestId } = render(<AccountsMenu />);
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides Update badge when user is not UK migration eligible', () => {
+      mockUseCardUkMigrationUpdateBadge.mockReturnValueOnce(null);
+
+      const { queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD_UPDATE_BADGE),
+      ).toBeNull();
+    });
   });
 
   describe('Buy Button', () => {
@@ -221,7 +271,7 @@ describe('AccountsMenu', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         button_text: 'Buy',
         location: 'AccountsMenu',
-        ramp_type: 'BUY',
+        ramp_type: 'UNIFIED_BUY_2',
         chain_id_destination: null,
         region: 'US',
         is_authenticated: true,
@@ -327,7 +377,6 @@ describe('AccountsMenu', () => {
       notificationEnabled = false,
       unreadCount = 0,
       readCount = 0,
-      backupSyncEnabled = false,
     } = {}) => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         const mockState = {
@@ -351,7 +400,6 @@ describe('AccountsMenu', () => {
         if (selector === getMetamaskNotificationsUnreadCount)
           return unreadCount;
         if (selector === getMetamaskNotificationsReadCount) return readCount;
-        if (selector === selectIsBackupAndSyncEnabled) return backupSyncEnabled;
 
         // Default: return false
         return false;
@@ -463,46 +511,11 @@ describe('AccountsMenu', () => {
       fireEvent.press(notificationsButton);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Menu Opened',
+        'InApp Notifications Menu Opened',
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         unread_count: 5,
         read_count: 3,
-      });
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
-
-    it('track NOTIFICATIONS_ACTIVATED event when not enabled and pressed', () => {
-      jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
-      setupNotificationMocks({
-        notificationEnabled: false,
-        backupSyncEnabled: true,
-      });
-
-      mockCreateEventBuilder.mockClear();
-      mockTrackEvent.mockClear();
-
-      const mockAddProperties = jest.fn().mockReturnThis();
-      const mockBuild = jest.fn(() => ({
-        name: 'NOTIFICATIONS_ACTIVATED',
-      }));
-
-      mockCreateEventBuilder.mockReturnValue({
-        addProperties: mockAddProperties,
-        build: mockBuild,
-      });
-
-      const { getByText } = render(<AccountsMenu />);
-      const notificationsButton = getByText('accounts_menu.notifications');
-
-      fireEvent.press(notificationsButton);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Activated',
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_type: 'started',
-        is_profile_syncing_enabled: true,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });
@@ -611,7 +624,7 @@ describe('AccountsMenu', () => {
         expect(getByTestId(AccountsMenuSelectorsIDs.SUPPORT)).toBeOnTheScreen();
       });
 
-      it('navigate to webview when Support is pressed', () => {
+      it('navigate to webview directly when beta support URL is set', () => {
         const { getByTestId } = render(<AccountsMenu />);
         const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
 
@@ -623,6 +636,63 @@ describe('AccountsMenu', () => {
             url: 'https://intercom.help/internal-beta-testing/en/',
             title: 'app_settings.contact_support',
           },
+        });
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith('Get Help');
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+      });
+
+      describe('when no beta support URL is set', () => {
+        beforeEach(() => {
+          mockGetBetaSupportUrl.mockReturnValue('');
+        });
+
+        it('open the consent flow instead of navigating directly', () => {
+          const { getByTestId } = render(<AccountsMenu />);
+          const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
+
+          fireEvent.press(supportButton);
+
+          expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+            expect.any(Function),
+            METAMASK_SUPPORT_URL,
+            expect.any(Function),
+          );
+        });
+
+        it('defer NAVIGATION_TAPS_GET_HELP tracking until the consent callback runs', () => {
+          const { getByTestId } = render(<AccountsMenu />);
+          const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
+
+          fireEvent.press(supportButton);
+
+          // Pressing Support only opens the consent sheet; tracking must wait
+          // until the user actually confirms/rejects and support opens.
+          expect(mockCreateEventBuilder).not.toHaveBeenCalledWith('Get Help');
+
+          const trackingCallback = mockOpenSupportWithConsent.mock.calls[0][2];
+          trackingCallback();
+
+          expect(mockCreateEventBuilder).toHaveBeenCalledWith('Get Help');
+          expect(mockTrackEvent).toHaveBeenCalled();
+        });
+
+        it('navigate to webview when the opener passed to the consent flow is invoked', () => {
+          const { getByTestId } = render(<AccountsMenu />);
+          const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
+
+          fireEvent.press(supportButton);
+
+          const opener = mockOpenSupportWithConsent.mock.calls[0][0];
+          opener('https://support.metamask.io/enriched');
+
+          expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+            screen: 'SimpleWebview',
+            params: {
+              url: 'https://support.metamask.io/enriched',
+              title: 'app_settings.contact_support',
+            },
+          });
         });
       });
     });
@@ -668,7 +738,9 @@ describe('AccountsMenu', () => {
         // Get the onPress callback from the OK button
         const alertCall = mockAlert.mock.calls[0];
         const okButton = alertCall[2][1]; // Second button in the array
-        await okButton.onPress();
+        await act(async () => {
+          await okButton.onPress();
+        });
 
         expect(Authentication.lockApp).toHaveBeenCalledWith({
           reset: false,
@@ -689,7 +761,9 @@ describe('AccountsMenu', () => {
         // Get the onPress callback from the OK button and execute it
         const alertCall = mockAlert.mock.calls[0];
         const okButton = alertCall[2][1]; // Second button in the array
-        await okButton.onPress();
+        await act(async () => {
+          await okButton.onPress();
+        });
 
         // Now analytics be tracked (user confirmed)
         expect(mockCreateEventBuilder).toHaveBeenCalledWith('Logout');
@@ -740,6 +814,10 @@ describe('AccountsMenu', () => {
       });
     });
 
+    // Covers the beta direct-open branch, which tracks inline on press. The
+    // consent branch (mockGetBetaSupportUrl returning '') defers tracking to
+    // the callback passed as openSupportWithConsent's 3rd arg — see the
+    // 'Support Row' > 'when no beta support URL is set' tests below.
     it('track NAVIGATION_TAPS_GET_HELP event when Support is pressed', () => {
       const { getByTestId } = render(<AccountsMenu />);
       const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);

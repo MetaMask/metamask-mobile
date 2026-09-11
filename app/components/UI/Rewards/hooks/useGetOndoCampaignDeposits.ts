@@ -1,10 +1,10 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
-  selectOndoCampaignDeposits,
-  selectOndoCampaignDepositsLoading,
-  selectOndoCampaignDepositsError,
+  selectOndoCampaignDepositsByCampaignId,
+  selectOndoCampaignDepositsLoadingByCampaignId,
+  selectOndoCampaignDepositsErrorByCampaignId,
 } from '../../../../reducers/rewards/selectors';
 import {
   setOndoCampaignDeposits,
@@ -24,29 +24,41 @@ export const useGetOndoCampaignDeposits = (
   campaignId: string | undefined,
 ): UseGetOndoCampaignDepositsResult => {
   const dispatch = useDispatch();
-  const deposits = useSelector(selectOndoCampaignDeposits);
-  const isLoading = useSelector(selectOndoCampaignDepositsLoading);
-  const hasError = useSelector(selectOndoCampaignDepositsError);
+
+  const selectDeposits = useMemo(
+    () => selectOndoCampaignDepositsByCampaignId(campaignId),
+    [campaignId],
+  );
+  const selectLoading = useMemo(
+    () => selectOndoCampaignDepositsLoadingByCampaignId(campaignId),
+    [campaignId],
+  );
+  const selectError = useMemo(
+    () => selectOndoCampaignDepositsErrorByCampaignId(campaignId),
+    [campaignId],
+  );
+
+  const deposits = useSelector(selectDeposits);
+  const isLoading = useSelector(selectLoading);
+  const hasError = useSelector(selectError);
 
   const fetchDeposits = useCallback(async (): Promise<void> => {
     if (!campaignId) {
-      dispatch(setOndoCampaignDepositsLoading(false));
-      dispatch(setOndoCampaignDepositsError(false));
       return;
     }
 
     try {
-      dispatch(setOndoCampaignDepositsLoading(true));
-      dispatch(setOndoCampaignDepositsError(false));
+      dispatch(setOndoCampaignDepositsLoading({ campaignId, loading: true }));
+      dispatch(setOndoCampaignDepositsError({ campaignId, error: false }));
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getOndoCampaignDeposits',
         campaignId,
       );
-      dispatch(setOndoCampaignDeposits(result));
+      dispatch(setOndoCampaignDeposits({ campaignId, deposits: result }));
     } catch {
-      dispatch(setOndoCampaignDepositsError(true));
+      dispatch(setOndoCampaignDepositsError({ campaignId, error: true }));
     } finally {
-      dispatch(setOndoCampaignDepositsLoading(false));
+      dispatch(setOndoCampaignDepositsLoading({ campaignId, loading: false }));
     }
   }, [dispatch, campaignId]);
 

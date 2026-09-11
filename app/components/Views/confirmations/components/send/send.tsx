@@ -11,8 +11,9 @@ import { Amount } from './amount';
 import { Asset } from './asset';
 import { Recipient } from './recipient';
 import { useEmptyNavHeaderForConfirmations } from '../../hooks/ui/useEmptyNavHeaderForConfirmations';
+import type { SendStackParamList } from './types/navigation';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<SendStackParamList>();
 
 // With native-stack, custom React headers rendered by the navigator linger on
 // screen during the push/pop animation. Each send screen instead renders its

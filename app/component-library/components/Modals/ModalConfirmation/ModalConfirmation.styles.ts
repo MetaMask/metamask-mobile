@@ -17,7 +17,9 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     screen: { justifyContent: 'center' },
     modal: {
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.elevated1,
+      borderWidth: 1,
+      borderColor: colors.border.alternative,
       borderRadius: 10,
       marginHorizontal: 16,
     },

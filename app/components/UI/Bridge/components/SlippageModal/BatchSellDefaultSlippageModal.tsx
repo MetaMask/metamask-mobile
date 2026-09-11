@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -12,7 +13,7 @@ import { BatchSellSlippageModalParams } from './types';
 import { getBatchSellSlippage } from './utils';
 
 export const BatchSellDefaultSlippageModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const { sourceChainId, destChainId, batchSellAssetId } =

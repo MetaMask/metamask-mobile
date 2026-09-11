@@ -10,6 +10,7 @@ import { TabBarIconKey } from '../../../../../component-library/components/Navig
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
 import { useSelector } from 'react-redux';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 
 /**
  * Renders nothing — exists purely to host the Money analytics hook chain so it
@@ -29,13 +30,16 @@ const MoneyTabPressTracker = ({ onRegister }: MoneyTabPressTrackerProps) => {
   });
 
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const isOnboardingEnabled = useSelector(
+    selectMoneyOnboardingStepperAnimationEnabled,
+  );
 
   useEffect(() => {
     onRegister(() => {
       let redirectTarget: SCREEN_NAMES;
       let buttonIntent: MONEY_BUTTON_INTENTS;
 
-      if (hasSeenMoneyOnboarding) {
+      if (hasSeenMoneyOnboarding || !isOnboardingEnabled) {
         redirectTarget = SCREEN_NAMES.MONEY_HOME;
         buttonIntent = MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME;
       } else {
@@ -54,7 +58,12 @@ const MoneyTabPressTracker = ({ onRegister }: MoneyTabPressTrackerProps) => {
     return () => {
       onRegister(null);
     };
-  }, [trackButtonClicked, onRegister, hasSeenMoneyOnboarding]);
+  }, [
+    trackButtonClicked,
+    onRegister,
+    hasSeenMoneyOnboarding,
+    isOnboardingEnabled,
+  ]);
 
   return null;
 };

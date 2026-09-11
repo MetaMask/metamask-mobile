@@ -1,7 +1,13 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
+import { AppState, type AppStateStatus } from 'react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
+import {
+  getPerpsLifecycleContext,
+  resetPerpsLifecycleContextForTests,
+  PERPS_LIFECYCLE_CONTEXT,
+} from '../utils/perpsLifecycleContext';
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
@@ -16,6 +22,9 @@ jest.mock('../../../../util/trace', () => ({
     PerpsPositionDetailsView: 'Perps Position Details View',
     PerpsOrderView: 'Perps Order View',
     PerpsClosePositionView: 'Perps Close Position View',
+    PerpsEntryToLiveMarketList: 'Perps Entry To Live Market List',
+    PerpsMarketDetailLive: 'Perps Market Detail Live',
+    PerpsTradePageRender: 'Perps Trade Page Render',
   },
   TraceOperation: {
     PerpsOperation: 'perps.operation',
@@ -41,8 +50,26 @@ const mockDevLogger = DevLogger.log as jest.MockedFunction<
 >;
 
 describe('usePerpsMeasurement', () => {
+  let appState: AppStateStatus;
+  let appStateListener: (state: AppStateStatus) => void;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    appState = 'active';
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      get: () => appState,
+    });
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_, listener) => {
+        appStateListener = listener;
+        return { remove: jest.fn() };
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('simple API with conditions', () => {
@@ -129,6 +156,64 @@ describe('usePerpsMeasurement', () => {
   });
 
   describe('advanced API with explicit conditions', () => {
+    it('uses a bounded reset reason and does not restart while failure persists', () => {
+      const { rerender } = renderHook(
+        ({ failed }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            endConditions: [false],
+            resetConditions: [failed],
+            resetReason: 'stats_error',
+            blockStartWhileReset: true,
+          }),
+        { initialProps: { failed: true } },
+      );
+
+      expect(mockTrace).not.toHaveBeenCalled();
+
+      rerender({ failed: false });
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+
+      rerender({ failed: true });
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'stats_error' },
+        }),
+      );
+
+      rerender({ failed: true });
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('ends the prior generation and starts a fresh trace when resetKey changes', () => {
+      const { rerender } = renderHook(
+        ({ resetKey, ready }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            resetKey,
+            endConditions: [ready],
+          }),
+        { initialProps: { resetKey: 'BTC', ready: false } },
+      );
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+
+      rerender({ resetKey: 'ETH', ready: false });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsMarketDetailLive,
+          data: { success: false, reason: 'generation_changed' },
+        }),
+      );
+      expect(mockTrace).toHaveBeenCalledTimes(2);
+
+      rerender({ resetKey: 'ETH', ready: true });
+      expect(mockEndTrace).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: { success: true } }),
+      );
+    });
+
     it('should start measurement immediately when no start conditions provided', () => {
       const { rerender } = renderHook(
         ({ endConditions }) =>
@@ -161,6 +246,46 @@ describe('usePerpsMeasurement', () => {
         expect.stringContaining('completed'),
         expect.objectContaining({
           metric: TraceName.PerpsPositionDetailsView,
+        }),
+      );
+    });
+
+    it('does not reset or restart across loading re-renders (measures mount -> ready)', () => {
+      jest.clearAllMocks();
+
+      // Simulate a CUF span: start at mount, several re-renders while the first
+      // end-condition is still false (loading), then readiness. The span must
+      // start exactly once and never end as `reset`, so its duration spans the
+      // whole mount -> ready window rather than restarting near readiness.
+      const { rerender } = renderHook(
+        ({ endConditions }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsEntryToLiveMarketList,
+            endConditions,
+            // Fresh endData ref each render (as the real views pass), which
+            // forces the effect to re-run every render.
+            endData: { variant: 'empty' },
+          }),
+        { initialProps: { endConditions: [false, false] } },
+      );
+
+      // Re-render repeatedly while still loading (new array each time).
+      rerender({ endConditions: [false, false] });
+      rerender({ endConditions: [true, false] });
+      rerender({ endConditions: [false, false] });
+
+      // Started once, never reset.
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      // Readiness: ends once as a success.
+      rerender({ endConditions: [true, true] });
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsEntryToLiveMarketList,
+          data: { success: true, variant: 'empty' },
         }),
       );
     });
@@ -333,6 +458,151 @@ describe('usePerpsMeasurement', () => {
 
       // Should only call trace once (no restart without reset)
       expect(mockTrace).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('unmount cleanup', () => {
+    it('ends an active trace once with an unmounted reason', () => {
+      const { unmount } = renderHook(() =>
+        usePerpsMeasurement({
+          traceName: TraceName.PerpsMarketDetailLive,
+          endConditions: [false],
+        }),
+      );
+      const traceId = mockTrace.mock.calls[0][0].id;
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsMarketDetailLive,
+        id: traceId,
+        data: { success: false, reason: 'unmounted' },
+      });
+    });
+
+    it('does not end a completed trace again on unmount', () => {
+      const { rerender, unmount } = renderHook(
+        ({ endConditions }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            endConditions,
+          }),
+        { initialProps: { endConditions: [false] } },
+      );
+      rerender({ endConditions: [true] });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: { success: true } }),
+      );
+    });
+
+    it('does not end a reset trace again on unmount', () => {
+      const { rerender, unmount } = renderHook(
+        ({ resetConditions }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            endConditions: [false],
+            resetConditions,
+          }),
+        { initialProps: { resetConditions: [false] } },
+      );
+      rerender({ resetConditions: [true] });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'reset' },
+        }),
+      );
+    });
+  });
+
+  describe('owner and app lifecycle', () => {
+    it('ends an active measurement when the app leaves the foreground', () => {
+      renderHook(() =>
+        usePerpsMeasurement({
+          traceName: TraceName.PerpsMarketDetailLive,
+          endConditions: [false],
+          cancelOnAppBackground: true,
+        }),
+      );
+
+      act(() => {
+        appState = 'background';
+        appStateListener('background');
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'app_backgrounded' },
+        }),
+      );
+    });
+
+    it('does not finish after its owning session is cancelled', () => {
+      const { rerender } = renderHook(
+        ({ ownerActive, ready }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            endConditions: [ready],
+            ownerActive,
+          }),
+        { initialProps: { ownerActive: true, ready: false } },
+      );
+
+      rerender({ ownerActive: false, ready: true });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'owner_cancelled' },
+        }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({ data: { success: true } }),
+      );
+    });
+  });
+
+  describe('foreground settle on entry render', () => {
+    beforeEach(() => {
+      resetPerpsLifecycleContextForTests();
+    });
+
+    it.each([
+      TraceName.PerpsEntryToLiveMarketList,
+      TraceName.PerpsMarketDetailLive,
+      TraceName.PerpsTradePageRender,
+    ])(
+      'settles the foreground when the %s entry span completes',
+      (entryTraceName) => {
+        expect(getPerpsLifecycleContext()).toBe(
+          PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+        );
+
+        // Immediate completion (no conditions) — any entry surface, no opt-in.
+        renderHook(() => usePerpsMeasurement({ traceName: entryTraceName }));
+
+        // Later in-session flows now read as warm, regardless of entry path.
+        expect(getPerpsLifecycleContext()).toBe(PERPS_LIFECYCLE_CONTEXT.WARM);
+      },
+    );
+
+    it('does not settle the foreground for non-entry spans', () => {
+      renderHook(() =>
+        usePerpsMeasurement({ traceName: TraceName.PerpsOrderView }),
+      );
+
+      expect(getPerpsLifecycleContext()).toBe(
+        PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+      );
     });
   });
 });

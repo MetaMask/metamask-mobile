@@ -17,7 +17,7 @@ import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
  */
 export const getSeedPhrase = async (password: string, keyringId: string) => {
   const { KeyringController } = Engine.context;
-  return await KeyringController.exportSeedPhrase(password, keyringId);
+  return await KeyringController.exportSeedPhrase({ password }, keyringId);
 };
 
 /**

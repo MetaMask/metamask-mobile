@@ -76,11 +76,3 @@ export const selectTokenMarketPriceData = createDeepEqualSelector(
     return marketPriceData;
   },
 );
-
-export const selectTokenMarketDataByChainId = createSelector(
-  [
-    getTokenRatesControllerMarketData,
-    (_state: RootState, chainId: Hex) => chainId,
-  ],
-  (marketData, chainId) => marketData?.[chainId] || {},
-);

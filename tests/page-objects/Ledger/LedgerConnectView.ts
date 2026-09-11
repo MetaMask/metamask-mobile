@@ -1,11 +1,10 @@
 /* global by, element, waitFor */
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';
 import {
   HardwareWalletBottomSheetSelectorsIDs,
   LedgerSelectAccountSelectorsIDs,
 } from '../../selectors/Ledger/Ledger.selectors';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
 import { AddWalletTestIds } from '../../../app/components/Views/AddWallet/AddWallet.testIds';
 import SelectHardwareTestIds from '../../../app/components/Views/ConnectHardware/SelectHardware/SelectHardware.testIds';
 import { AccountSelectorSelectorsIDs } from '../../../app/components/UI/HardwareWallet/AccountSelector/AccountSelector.testIds';

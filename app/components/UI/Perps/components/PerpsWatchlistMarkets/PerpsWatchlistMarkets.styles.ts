@@ -45,6 +45,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     suggestedSubtitle: {
       marginBottom: 4,
+      paddingHorizontal: 16,
     },
     suggestedHeader: {
       marginBottom: 4,
@@ -54,7 +55,13 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 4,
       marginBottom: 8,
     },
-    showMoreButtonContainer: {},
+    showMoreButtonContainer: {
+      paddingHorizontal: 16,
+    },
+    // Skeleton loading (rows own horizontal inset via ListItem)
+    skeletonContainer: {
+      paddingHorizontal: 16,
+    },
   });
 };
 

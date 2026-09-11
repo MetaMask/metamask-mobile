@@ -87,6 +87,7 @@ const baseControllerValue: ReturnType<typeof useRampsController> = {
   setUserRegion: jest.fn(),
   selectedProvider: null,
   setSelectedProvider: jest.fn(),
+  setSelectedProviderForAsset: jest.fn(),
   providers: mockProviders,
   providersLoading: false,
   providersError: null,
@@ -375,6 +376,7 @@ describe('useHeadlessBuy', () => {
       const setters = {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
+        setSelectedProviderForAsset: jest.fn(),
         setSelectedPaymentMethod: jest.fn(),
       };
       (useRampsController as jest.Mock).mockReturnValue({

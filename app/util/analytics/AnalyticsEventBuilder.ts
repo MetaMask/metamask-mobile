@@ -14,7 +14,6 @@ export interface AnalyticsTrackingEvent {
   readonly name: string;
   properties: AnalyticsEventProperties;
   sensitiveProperties: AnalyticsEventProperties;
-  saveDataRecording: boolean;
   get isAnonymous(): boolean;
   get hasProperties(): boolean;
 }
@@ -24,7 +23,7 @@ export interface AnalyticsTrackingEvent {
  */
 interface AnalyticsEventBuilderInterface {
   /**
-   * Add regular properties (non-sensitive) to the event.
+   * Add regular properties to the event.
    * Undefined property values are filtered out internally.
    *
    * @param properties - Properties to add (undefined values are stripped)
@@ -38,6 +37,7 @@ interface AnalyticsEventBuilderInterface {
    * Undefined property values are filtered out internally.
    *
    * @param properties - Sensitive properties to add (undefined values are stripped)
+   * @deprecated Use `addProperties` instead. When editing a leftover call site, review those fields and drop them or move them to `addProperties` when that is safe.
    */
   addSensitiveProperties: (
     properties: AnalyticsUnfilteredProperties,
@@ -52,17 +52,10 @@ interface AnalyticsEventBuilderInterface {
   /**
    * Remove one or more sensitive properties from the event
    * @param propNames - Property names to remove from the event
+   * @deprecated Use `removeProperties` instead. Sensitive properties should not be added to new events in the first place.
    */
   removeSensitiveProperties: (
     propNames: string[],
-  ) => AnalyticsEventBuilderInterface;
-
-  /**
-   * Set the saveDataRecording flag
-   * @param saveDataRecording - Whether to save data recording (default is false)
-   */
-  setSaveDataRecording: (
-    saveDataRecording: boolean,
   ) => AnalyticsEventBuilderInterface;
 
   /**
@@ -83,7 +76,6 @@ const createAnalyticsEvent = (name: string): AnalyticsTrackingEvent => {
     name,
     properties: {},
     sensitiveProperties: {},
-    saveDataRecording: false,
     get isAnonymous(): boolean {
       return (
         this.sensitiveProperties &&
@@ -164,6 +156,7 @@ const createBuilderFromEvent = (
       return createBuilderFromEvent(event);
     },
 
+    /** @deprecated Use `addProperties` instead. */
     addSensitiveProperties: (properties: AnalyticsUnfilteredProperties) => {
       event.sensitiveProperties = {
         ...event.sensitiveProperties,
@@ -177,13 +170,9 @@ const createBuilderFromEvent = (
       return createBuilderFromEvent(event);
     },
 
+    /** @deprecated Use `removeProperties` instead. */
     removeSensitiveProperties: (propNames: string[]) => {
       removePropertiesFromMap(event.sensitiveProperties, propNames);
-      return createBuilderFromEvent(event);
-    },
-
-    setSaveDataRecording: (saveDataRecording: boolean) => {
-      event.saveDataRecording = saveDataRecording;
       return createBuilderFromEvent(event);
     },
 
@@ -194,13 +183,12 @@ const createBuilderFromEvent = (
  * AnalyticsEventBuilder
  *
  * Builder for creating analytics events compatible with AnalyticsController.
- * Provides a fluent API for constructing events with properties and sensitive data.
+ * Provides a fluent API for constructing events with properties.
  *
  * Events created with this builder can be used to call AnalyticsController:trackEvent
- * via messenger. The builder handles the structure needed for proper event tracking,
- * including support for anonymous events (via sensitive properties).
+ * via messenger. The builder handles the structure needed for proper event tracking.
  *
- * Accepts the same event types as MetricsEventBuilder for easier migration:
+ * Accepts event types:
  * - string: Event name directly
  * - IMetaMetricsEvent: Legacy event with category property
  * - ITrackingEvent: New event type with name property
@@ -240,7 +228,6 @@ const createEventBuilder = (
     'name' in eventOrName &&
     'properties' in eventOrName &&
     'sensitiveProperties' in eventOrName &&
-    'saveDataRecording' in eventOrName &&
     !('category' in eventOrName)
   ) {
     const existingEvent = eventOrName as AnalyticsTrackingEvent;
@@ -251,7 +238,6 @@ const createEventBuilder = (
       name: eventName,
       properties: existingEvent.properties,
       sensitiveProperties: existingEvent.sensitiveProperties,
-      saveDataRecording: existingEvent.saveDataRecording,
       get isAnonymous(): boolean {
         return (
           this.sensitiveProperties &&

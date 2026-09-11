@@ -10,7 +10,7 @@ import {
   getErrorMessage,
   getSeverity,
   hasGasFeeTokenSelected,
-  hasTransactionType,
+  getTransactionType,
   isRevokeDelegationTransaction,
   isTransactionMarkedAsGasFeeSponsored,
   isTransactionPayWithdraw,
@@ -180,46 +180,57 @@ describe('get4ByteCode', () => {
   });
 });
 
-describe('hasTransactionType', () => {
-  it('returns true if transaction type matches', () => {
+describe('getTransactionType', () => {
+  it('returns undefined for undefined input', () => {
+    expect(getTransactionType(undefined)).toBeUndefined();
+  });
+
+  it('returns direct type for regular transactions', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
+  });
+
+  it('returns nested type when nested transactions exist', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.predictDeposit }],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.predictDeposit);
+  });
+
+  it('returns direct type when nested transactions have no type', () => {
     const txMeta = {
       type: TransactionType.simpleSend,
+      nestedTransactions: [{}],
     } as TransactionMeta;
 
-    expect(
-      hasTransactionType(txMeta, [
-        TransactionType.bridge,
-        TransactionType.simpleSend,
-      ]),
-    ).toBe(true);
+    expect(getTransactionType(txMeta)).toBe(TransactionType.simpleSend);
   });
 
-  it('returns true if nested transaction type matches', () => {
+  it('returns first nested type that has a type', () => {
     const txMeta = {
       type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.simpleSend }],
+      nestedTransactions: [
+        {},
+        { type: TransactionType.perpsWithdraw },
+        { type: TransactionType.predictWithdraw },
+      ],
     } as TransactionMeta;
 
-    expect(
-      hasTransactionType(txMeta, [
-        TransactionType.bridge,
-        TransactionType.simpleSend,
-      ]),
-    ).toBe(true);
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsWithdraw);
   });
 
-  it('returns false if neither transaction type nor nested transaction types match', () => {
+  it('returns direct type when nestedTransactions is empty', () => {
     const txMeta = {
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.bridge }],
-    } as TransactionMeta;
+      type: TransactionType.perpsDeposit,
+      nestedTransactions: [],
+    } as unknown as TransactionMeta;
 
-    expect(
-      hasTransactionType(txMeta, [
-        TransactionType.simpleSend,
-        TransactionType.cancel,
-      ]),
-    ).toBe(false);
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
   });
 });
 

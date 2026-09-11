@@ -1,13 +1,24 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import AnnouncementCtaFooter from './AnnouncementCtaFooter';
 import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
 import { createMockFeatureAnnouncementRaw } from '@metamask/notification-services-controller/notification-services/mocks';
-import { processNotification } from '@metamask/notification-services-controller/notification-services';
+import {
+  getNotificationSubtype,
+  processNotification,
+} from '@metamask/notification-services-controller/notification-services';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../../../core/DeeplinkManager/DeeplinkManager', () => {
   const mockParse = jest.fn().mockResolvedValue(true);
@@ -43,6 +54,12 @@ describe('AnnouncementCtaFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Linking.openURL as jest.Mock).mockResolvedValue(undefined);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   describe('with externalLink', () => {
@@ -78,6 +95,33 @@ describe('AnnouncementCtaFooter', () => {
       expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/test');
     });
 
+    it('tracks a cta_button detail click when pressed', () => {
+      const props = {
+        type: ModalFooterType.ANNOUNCEMENT_CTA,
+        externalLink: {
+          externalLinkUrl: 'https://metamask.io/test',
+          externalLinkText: 'Learn More',
+        },
+        notification: processNotification(createMockFeatureAnnouncementRaw()),
+      } as const;
+
+      const { getByText } = render(<AnnouncementCtaFooter {...props} />);
+      fireEvent.press(getByText('Learn More'));
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
+        )
+          .addProperties({
+            notification_id: props.notification.id,
+            notification_type: props.notification.type,
+            notification_subtype: getNotificationSubtype(props.notification),
+            clicked_item: 'cta_button',
+          })
+          .build(),
+      );
+    });
+
     it('logs error when Linking.openURL fails', async () => {
       const testError = new Error('Failed to open URL');
       (Linking.openURL as jest.Mock).mockRejectedValueOnce(testError);
@@ -95,12 +139,12 @@ describe('AnnouncementCtaFooter', () => {
       const button = getByText('Learn More');
       fireEvent.press(button);
 
-      await new Promise(process.nextTick);
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        testError,
-        'Error opening external URL',
-      );
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          testError,
+          'Error opening external URL',
+        );
+      });
     });
   });
 
@@ -139,6 +183,33 @@ describe('AnnouncementCtaFooter', () => {
         {
           origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
         },
+      );
+    });
+
+    it('tracks a cta_button detail click when pressed', () => {
+      const props = {
+        type: ModalFooterType.ANNOUNCEMENT_CTA,
+        mobileLink: {
+          mobileLinkUrl: 'metamask://swap',
+          mobileLinkText: 'Try Swap',
+        },
+        notification: processNotification(createMockFeatureAnnouncementRaw()),
+      } as const;
+
+      const { getByText } = render(<AnnouncementCtaFooter {...props} />);
+      fireEvent.press(getByText('Try Swap'));
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
+        )
+          .addProperties({
+            notification_id: props.notification.id,
+            notification_type: props.notification.type,
+            notification_subtype: getNotificationSubtype(props.notification),
+            clicked_item: 'cta_button',
+          })
+          .build(),
       );
     });
   });

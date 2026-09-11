@@ -210,5 +210,50 @@ describe('useEnsureCardNetworkExists', () => {
         expect(mockAddNetwork).not.toHaveBeenCalled();
       });
     });
+
+    describe('when chain ID is Base Sepolia (Card test-network fallback)', () => {
+      const BASE_SEPOLIA_CAIP_CHAIN_ID = 'eip155:84532';
+      const BASE_SEPOLIA_HEX_CHAIN_ID = '0x14a34';
+      const newNetworkClientId = 'base-sepolia-new';
+
+      beforeEach(() => {
+        mockAddNetwork.mockResolvedValue({
+          chainId: BASE_SEPOLIA_HEX_CHAIN_ID,
+          defaultRpcEndpointIndex: 0,
+          rpcEndpoints: [{ networkClientId: newNetworkClientId }],
+        });
+      });
+
+      it('adds it even though it is absent from PopularList', async () => {
+        const { result } = renderHook(() => useEnsureCardNetworkExists());
+
+        let networkClientId: string | undefined;
+        await act(async () => {
+          networkClientId = await result.current.ensureNetworkExists(
+            BASE_SEPOLIA_CAIP_CHAIN_ID,
+          );
+        });
+
+        expect(mockAddNetwork).toHaveBeenCalledWith({
+          chainId: BASE_SEPOLIA_HEX_CHAIN_ID,
+          blockExplorerUrls: ['https://sepolia.basescan.org'],
+          defaultRpcEndpointIndex: 0,
+          defaultBlockExplorerUrlIndex: 0,
+          name: 'Base Sepolia',
+          nativeCurrency: 'ETH',
+          rpcEndpoints: [
+            {
+              url: expect.stringContaining(
+                'https://base-sepolia.infura.io/v3/',
+              ),
+              failoverUrls: undefined,
+              name: 'Base Sepolia',
+              type: RpcEndpointType.Custom,
+            },
+          ],
+        });
+        expect(networkClientId).toBe(newNetworkClientId);
+      });
+    });
   });
 });

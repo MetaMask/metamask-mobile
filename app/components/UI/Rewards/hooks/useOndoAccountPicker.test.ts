@@ -131,6 +131,22 @@ describe('useOndoAccountPicker', () => {
     expect(mockSetSelectedAccountGroup).not.toHaveBeenCalled();
   });
 
+  it('handleGroupSelect closes picker without switching account when campaignId is missing', () => {
+    const { result } = renderHook(() => useOndoAccountPicker(undefined));
+
+    act(() => {
+      result.current.setPendingPicker(MOCK_PICKER);
+    });
+    act(() => {
+      result.current.handleGroupSelect(MOCK_GROUP);
+    });
+
+    expect(mockSetSelectedAccountGroup).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(result.current.pendingPicker).toBeNull();
+  });
+
   it('handleGroupSelect calls setSelectedAccountGroup with the group id', () => {
     const { result } = renderHook(() => useOndoAccountPicker(CAMPAIGN_ID));
 

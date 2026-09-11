@@ -4,18 +4,11 @@ import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsCon
 import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
 import { PerpsSection } from './PerpsSection';
-import type { SectionRefreshHandle, HomeSectionMode } from '../../types';
-import type { HomeSectionName } from '../../hooks/useHomeViewedEvent';
+import type { SectionRefreshHandle } from '../../types';
 
 export interface PerpsSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
-  /** @default 'default' */
-  mode?: HomeSectionMode;
-  /** Override the section name used in analytics events. */
-  sectionName?: HomeSectionName;
-  /** Override the section header title. */
-  titleOverride?: string;
   /** Empty state content rendered when there are no positions or orders. */
   emptyStateContent?: 'tiles' | 'pills';
   /** Override the section title only while rendering empty state content. */
@@ -35,9 +28,6 @@ const PerpsSectionWithProvider = forwardRef<
     {
       sectionIndex,
       totalSectionsLoaded,
-      mode = 'default',
-      sectionName,
-      titleOverride,
       emptyStateContent,
       emptyStateTitleOverride,
     },
@@ -56,9 +46,6 @@ const PerpsSectionWithProvider = forwardRef<
             ref={ref}
             sectionIndex={sectionIndex}
             totalSectionsLoaded={totalSectionsLoaded}
-            mode={mode}
-            sectionName={sectionName}
-            titleOverride={titleOverride}
             emptyStateContent={emptyStateContent}
             emptyStateTitleOverride={emptyStateTitleOverride}
           />

@@ -10,11 +10,13 @@ import { useHeadlessBuy } from '../../../../UI/Ramp/headless';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import Engine from '../../../../../core/Engine';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { getTransactionPayFiatTestOptions } from '../../../../../util/environment';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useTransactionPayData');
 jest.mock('../../../../UI/Ramp/headless');
 jest.mock('../../context/confirmation-context');
+jest.mock('../../../../../util/environment');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -48,6 +50,7 @@ describe('useFiatConfirm', () => {
     } as unknown as TransactionMeta);
 
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
+    jest.mocked(getTransactionPayFiatTestOptions).mockReturnValue(undefined);
 
     jest.mocked(useTransactionPayTotals).mockReturnValue({
       total: { fiat: '55.00', usd: '55.00' },
@@ -166,6 +169,7 @@ describe('useFiatConfirm', () => {
           amount: 52,
           paymentMethodId: 'pm-123',
           currency: 'USD',
+          walletAddress: undefined,
         },
         expect.objectContaining({
           onOrderCreated: expect.any(Function),
@@ -210,6 +214,71 @@ describe('useFiatConfirm', () => {
         updateCall as { callback: (fp: typeof fiatPaymentObj) => void }
       ).callback(fiatPaymentObj);
       expect(fiatPaymentObj.orderId).toBe('order-xyz');
+    });
+
+    it('skips headless buy and sets a synthetic orderId when fiat test funding source is configured', () => {
+      jest.mocked(getTransactionPayFiatTestOptions).mockReturnValue({
+        testFundingSource: '0x1234567890123456789012345678901234567890',
+      });
+
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).not.toHaveBeenCalled();
+      expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(undefined);
+      expect(setIsHeadlessBuyInProgressMock).toHaveBeenCalledWith(false);
+      expect(
+        Engine.context.TransactionPayController.updateFiatPayment,
+      ).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID_MOCK,
+        callback: expect.any(Function),
+      });
+
+      const updateCall = jest.mocked(
+        Engine.context.TransactionPayController.updateFiatPayment,
+      ).mock.calls[0][0];
+      const fiatPaymentObj = {} as { orderId?: string };
+      (
+        updateCall as { callback: (fp: typeof fiatPaymentObj) => void }
+      ).callback(fiatPaymentObj);
+      expect(fiatPaymentObj.orderId).toBe('fiat-test-funding-source');
+    });
+
+    it('does not set a synthetic orderId when fiat test funding source is configured without transaction metadata', () => {
+      jest.mocked(getTransactionPayFiatTestOptions).mockReturnValue({
+        testFundingSource: '0x1234567890123456789012345678901234567890',
+      });
+      jest
+        .mocked(useTransactionMetadataRequest)
+        .mockReturnValue(undefined as unknown as TransactionMeta);
+
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).not.toHaveBeenCalled();
+      expect(
+        Engine.context.TransactionPayController.updateFiatPayment,
+      ).not.toHaveBeenCalled();
     });
 
     it('does not update fiat payment when transactionMetadata is missing', () => {

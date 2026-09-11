@@ -1,4 +1,4 @@
-import Gestures from './Gestures.ts';
+import Gestures from './detox/Gestures.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
 import {

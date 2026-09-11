@@ -1,5 +1,8 @@
 import { resolveABTestAssignment } from '../abTest';
-import { selectRemoteFeatureFlags } from '../../selectors/featureFlagController';
+import {
+  selectRemoteFeatureFlags,
+  selectFeatureFlagThresholdGroups,
+} from '../../selectors/featureFlagController';
 import type { StateWithPartialEngine } from '../../selectors/featureFlagController/types';
 import { AB_TEST_ANALYTICS_MAPPINGS } from './abTestAnalyticsRegistry';
 import type { ABTestAnalyticsMapping } from './abTestAnalytics.types';
@@ -44,10 +47,13 @@ const eventMatchesPropertyRequirements = (
     return true;
   }
 
-  return Object.entries(requirements).every(
-    ([propertyKey, expectedValue]) =>
-      event.properties[propertyKey] === expectedValue,
-  );
+  return Object.entries(requirements).every(([propertyKey, expectedValue]) => {
+    const actual = event.properties[propertyKey];
+    if (Array.isArray(expectedValue)) {
+      return (expectedValue as readonly unknown[]).includes(actual);
+    }
+    return actual === expectedValue;
+  });
 };
 
 const eventMatchesInjectGate = (
@@ -58,9 +64,30 @@ const eventMatchesInjectGate = (
   if (!gate || Object.keys(gate).length === 0) {
     return true;
   }
-  return Object.entries(gate).every(
-    ([propertyKey, expected]) => properties[propertyKey] === expected,
-  );
+  return Object.entries(gate).every(([propertyKey, expected]) => {
+    const actual = properties[propertyKey];
+    if (Array.isArray(expected)) {
+      return (expected as readonly unknown[]).includes(actual);
+    }
+    return actual === expected;
+  });
+};
+
+const eventMatchesExcludeGate = (
+  properties: Record<string, unknown>,
+  mapping: ABTestAnalyticsMapping,
+): boolean => {
+  const gate = mapping.excludeWhenPropertiesMatch;
+  if (!gate || Object.keys(gate).length === 0) {
+    return false;
+  }
+  return Object.entries(gate).some(([propertyKey, excluded]) => {
+    const actual = properties[propertyKey];
+    if (Array.isArray(excluded)) {
+      return (excluded as readonly unknown[]).includes(actual);
+    }
+    return actual === excluded;
+  });
 };
 
 export const getRemoteFeatureFlagsFromState = (
@@ -68,6 +95,16 @@ export const getRemoteFeatureFlagsFromState = (
 ): Record<string, unknown> => {
   try {
     return selectRemoteFeatureFlags(state as StateWithPartialEngine);
+  } catch {
+    return {};
+  }
+};
+
+export const getFeatureFlagThresholdGroupsFromState = (
+  state: StateWithPartialEngine | null | undefined,
+): Record<string, string> => {
+  try {
+    return selectFeatureFlagThresholdGroups(state as StateWithPartialEngine);
   } catch {
     return {};
   }
@@ -81,6 +118,7 @@ export const enrichWithABTests = <
 >(
   event: T,
   featureFlags: Record<string, unknown>,
+  thresholdGroups: Record<string, string> = {},
 ): T => {
   const existingAssignments = normalizeActiveABTestAssignments(
     event.properties.active_ab_tests,
@@ -89,7 +127,8 @@ export const enrichWithABTests = <
     (mapping) =>
       hasEventName(mapping, event.name) &&
       eventMatchesPropertyRequirements(mapping, event) &&
-      eventMatchesInjectGate(event.properties, mapping),
+      eventMatchesInjectGate(event.properties, mapping) &&
+      !eventMatchesExcludeGate(event.properties, mapping),
   );
 
   if (relevantMappings.length === 0) {
@@ -105,6 +144,7 @@ export const enrichWithABTests = <
       featureFlags,
       mapping.flagKey,
       mapping.validVariants,
+      thresholdGroups,
     );
 
     return isActive

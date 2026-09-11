@@ -64,8 +64,7 @@ function cacheKeyForDevice(device: EmulatorConfig): string {
 async function runAdb(args: string[], timeoutMs: number): Promise<string> {
   const raw = await execFileAsync('adb', args, {
     timeout: timeoutMs,
-    maxBuffer: 1024 * 1024,
-  });
+    maxBuffer: 1024 * 1024 });
   // Node's real `execFile` uses a promisify symbol that resolves to `{ stdout, stderr }`.
   // Plain mocks (e.g. Jest) fall back to generic promisify and may resolve a Buffer — handle both.
   let stdout: unknown = raw;
@@ -123,6 +122,11 @@ export async function resolveAndroidAdbUdidForDevice(
 
   const promise = (async () => {
     try {
+      const envUdid = process.env.ANDROID_DEVICE_UDID?.trim();
+      if (!device.udid && envUdid) {
+        return envUdid;
+      }
+
       if (device.udid) {
         const udid = device.udid;
         if (device.name) {
@@ -216,8 +220,16 @@ export async function applyResolvedAndroidAdbToDevice(
 }
 
 /**
+ * Clears the in-process adb serial resolution cache.
+ * Call before re-resolving after Playwright retries or emulator restarts.
+ */
+export function clearAndroidAdbUdidResolutionCache(): void {
+  resolutionCache.clear();
+}
+
+/**
  * Clears the in-process resolution cache (for tests).
  */
 export function __clearAndroidAdbUdidCacheForTests(): void {
-  resolutionCache.clear();
+  clearAndroidAdbUdidResolutionCache();
 }

@@ -5,20 +5,11 @@ import {
   selectWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingStepsEligible,
   selectShouldShowWalletHomeOnboardingSteps,
-  selectWalletHomeOnboardingFlowVisible,
+  selectPushNotificationOsPromptRequested,
 } from '.';
 import { RootState } from '../../reducers';
 import { AccountType } from '../../constants/onboarding';
 import { WALLET_HOME_ONBOARDING_STEPS_INITIAL } from '../../constants/walletHomeOnboardingSteps';
-import { selectWalletHomeOnboardingStepsEnabled } from '../featureFlagController/homepage';
-
-jest.mock('../featureFlagController/homepage', () => ({
-  selectWalletHomeOnboardingStepsEnabled: jest.fn(),
-}));
-
-const mockSelectWalletHomeOnboardingStepsEnabled = jest.mocked(
-  selectWalletHomeOnboardingStepsEnabled,
-);
 
 describe('Onboarding selectors', () => {
   const mockState = {
@@ -28,7 +19,7 @@ describe('Onboarding selectors', () => {
     },
   } as RootState;
 
-  it('returns the correct value for selectCompletedOnboarding ', () => {
+  it('returns the correct value for selectCompletedOnboarding', () => {
     expect(selectCompletedOnboarding(mockState)).toEqual(
       mockState.onboarding.completedOnboarding,
     );
@@ -98,42 +89,36 @@ describe('Onboarding selectors', () => {
         }),
       ).toBe(false);
     });
-  });
 
-  describe('selectWalletHomeOnboardingFlowVisible', () => {
-    // shouldShow comes from selectShouldShowWalletHomeOnboardingSteps:
-    // eligible && steps.suppressedReason === null.
-    const stateWithShouldShow = (shouldShow: boolean) =>
-      ({
+    it('selectPushNotificationOsPromptRequested is false when onboarding slice is missing', () => {
+      const state = {} as RootState;
+      expect(selectPushNotificationOsPromptRequested(state)).toBe(false);
+    });
+
+    it('selectPushNotificationOsPromptRequested is false for legacy state without the field', () => {
+      const state = {
+        onboarding: { completedOnboarding: true },
+      } as RootState;
+      expect(selectPushNotificationOsPromptRequested(state)).toBe(false);
+    });
+
+    it('selectPushNotificationOsPromptRequested is true once the OS push request happened', () => {
+      const state = {
         onboarding: {
-          walletHomeOnboardingStepsEligible: shouldShow,
-          walletHomeOnboardingSteps: WALLET_HOME_ONBOARDING_STEPS_INITIAL,
+          completedOnboarding: true,
+          pushNotificationOsPromptRequested: true,
         },
-      }) as RootState;
-
-    beforeEach(() => {
-      mockSelectWalletHomeOnboardingStepsEnabled.mockReset();
+      } as RootState;
+      expect(selectPushNotificationOsPromptRequested(state)).toBe(true);
     });
 
-    it('is true when both inputs are true', () => {
-      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(true);
+    it('selectShouldShowWalletHomeOnboardingSteps is true when eligible and not suppressed', () => {
       expect(
-        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(true)),
+        selectShouldShowWalletHomeOnboardingSteps.resultFunc(
+          true,
+          WALLET_HOME_ONBOARDING_STEPS_INITIAL,
+        ),
       ).toBe(true);
-    });
-
-    it('is false when stepsEnabled is false', () => {
-      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(false);
-      expect(
-        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(true)),
-      ).toBe(false);
-    });
-
-    it('is false when shouldShow is false', () => {
-      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(true);
-      expect(
-        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(false)),
-      ).toBe(false);
     });
   });
 });

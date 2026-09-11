@@ -202,6 +202,25 @@ export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polymarket geoblock endpoint returning a failed / incomplete check.
+ * Used to exercise degraded-access UI that must not be described as a
+ * geo-restriction. Registered at priority 1000 so it wins over the eligible
+ * geoblock mock that POLYMARKET_COMPLETE_MOCKS registers at the default 999.
+ */
+export const POLYMARKET_GEO_UNAVAILABLE_MOCKS = async (mockServer: Mockttp) => {
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: 'https://polymarket.com/api/geoblock',
+      responseCode: 500,
+      response: { error: 'geoblock unavailable' },
+    },
+    1000,
+  );
+};
+
+/**
  * Mock for Polymarket geoblock endpoint returning eligible region.
  * Reuses POLYMARKET_GEOBLOCK_ELIGIBLE from defaults so there is a single source of truth.
  */
@@ -374,16 +393,24 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         }));
       }
 
+      // Keep test-only active winnings inside the homepage display limit,
+      // including when the request omits the redeemable parameter.
+      const activePositions = showWinningsAsActive
+        ? [...winnings, ...POLYMARKET_CURRENT_POSITIONS_RESPONSE]
+        : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
       const allPositions =
         redeemable === undefined
-          ? [
-              ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
-              ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
-              ...winnings,
-            ]
-          : showWinningsAsActive
-            ? [...POLYMARKET_CURRENT_POSITIONS_RESPONSE, ...winnings]
-            : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
+          ? showWinningsAsActive
+            ? [
+                ...activePositions,
+                ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
+              ]
+            : [
+                ...activePositions,
+                ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
+                ...winnings,
+              ]
+          : activePositions;
 
       let filteredPositions = allPositions;
       if (eventId) {
@@ -693,9 +720,20 @@ export const POLYMARKET_CLOB_MARKET_INFO_MOCKS = async (
 };
 
 /**
+ * Minimal CLOB prices-history payload for game charts.
+ * PredictGameChart treats empty series as still loading (`!hasChartData` → spinner).
+ */
+const POLYMARKET_MOCK_PRICE_HISTORY_RESPONSE = {
+  history: [
+    { t: 1_729_814_400, p: 0.55 },
+    { t: 1_729_900_800, p: 0.58 },
+    { t: 1_729_987_200, p: 0.615 },
+  ],
+};
+
+/**
  * Mock for Polymarket CLOB prices-history API
- * Returns an empty history series — sufficient for predict happy-path specs
- * that render the chart (consumer treats non-array history as empty).
+ * Returns a short history series so PredictGameChart exits the loading state.
  */
 export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
@@ -705,7 +743,7 @@ export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
       return Boolean(url?.includes('clob.polymarket.com/prices-history'));
     })
     .asPriority(PRIORITY.BASE)
-    .thenReply(200, JSON.stringify({ history: [] }), {
+    .thenReply(200, JSON.stringify(POLYMARKET_MOCK_PRICE_HISTORY_RESPONSE), {
       'content-type': 'application/json',
     });
 };
@@ -1758,7 +1796,7 @@ export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
  * - Mocks eth_getTransactionCount calls (needed for claim flow transaction construction)
  * - Returns the appropriate balance based on positionType ('claim' or 'cash-out')
  * @param mockServer - The Mockttp server instance to configure mocks on
- * @param positionType - The type of operation: 'claim' (returns 48.16 USDC) or 'cash-out' (returns 58.66 USDC)
+ * @param positionType - The type of operation: 'claim' (returns 48.16 USDC) or 'cash-out' (returns 57.44 USDC)
  */
 export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
   mockServer: Mockttp,
@@ -1768,7 +1806,7 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
   if (positionType === 'claim') {
     currentUSDCBalance = POST_CLAIM_USDC_BALANCE_WEI; // 48.16 USDC
   } else if (positionType === 'cash-out') {
-    currentUSDCBalance = POST_CASH_OUT_USDC_BALANCE_WEI; // 58.66 USDC
+    currentUSDCBalance = POST_CASH_OUT_USDC_BALANCE_WEI; // 57.44 USDC
   } else if (positionType === 'open-position') {
     currentUSDCBalance = POST_OPEN_POSITION_USDC_BALANCE_WEI; // 17.76 USDC
   } else {
@@ -1832,7 +1870,7 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
  * This mock should be triggered before tapping the cash-out button
  * - Mocks the MetaMask relayer endpoint (predict.dev-api.cx.metamask.io/order)
  * - Mocks the CLOB API (polymarket order submission) as fallback
- * - Updates global USDC balance to post-cash-out amount (58.66 USDC)
+ * - Updates global USDC balance to post-cash-out amount (57.44 USDC)
  */
 export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
   // Mock MetaMask relayer endpoint for order submission (cash-out uses SELL orders)
@@ -1935,7 +1973,7 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
   // update (cachedBalance + receivedAmount). If currentUSDCBalance is
   // updated before the optimistic update completes, a background refetch
   // can set cachedBalance to the post-cash-out value, making the optimistic
-  // update double-count: 58.66 + 30.50 = 89.16.
+  // update double-count: 57.44 + 30.50 = 87.94.
   //
   // The test must call POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'cash-out')
   // AFTER the cash-out action completes (e.g. after tapCashOutButton).

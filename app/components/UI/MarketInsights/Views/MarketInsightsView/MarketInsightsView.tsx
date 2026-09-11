@@ -27,6 +27,7 @@ const MarketInsightsBackgroundLastFrameLight = require('../../animations/market-
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MarketInsightsBackgroundLastFrameDark = require('../../animations/market-insights-background-dark-last-frame.png');
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -64,6 +65,10 @@ import {
   selectMarketInsightsPerpsEnabled,
 } from '../../../../../selectors/featureFlagController/marketInsights';
 import { endTrace, TraceName } from '../../../../../util/trace';
+import {
+  getMarketInsightsTraceEndData,
+  getMarketInsightsTraceId,
+} from '../../utils/marketInsightsPerformance';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import MarketInsightsViewSkeleton from './MarketInsightsViewSkeleton';
 import MarketInsightsViewHeader from './MarketInsightsViewHeader';
@@ -88,6 +93,7 @@ import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTrackin
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import { useStickyQuickBuy } from '../../../TokenDetails/hooks/useStickyQuickBuy';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -150,11 +156,13 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   );
 };
 
-interface MarketInsightsRouteParams {
+export interface MarketInsightsRouteParams {
   assetSymbol: string;
   /** Asset identifier: CAIP-19 ID for tokens, or a perps market symbol (e.g. "ETH") */
   assetIdentifier: string;
   tokenImageUrl?: string;
+  /** 24h price percent change forwarded from Token Details (currently unused here). */
+  pricePercentChange?: number;
   /** Full token object for the sticky footer (buy/swap actions). Passed from Token Details. */
   token?: TokenDetailsRouteParams;
   /** When true, indicates the view was opened from the Perps market details view */
@@ -169,8 +177,6 @@ interface MarketInsightsRouteParams {
   isAtOICap?: boolean;
   /** Surface from which Market Insights was accessed */
   source?: 'token_details' | 'perps' | 'unknown';
-  /** Whether the price trend is positive on the parent Token Details screen. */
-  isPricePositive?: boolean;
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
 }
@@ -187,7 +193,7 @@ interface MarketInsightsRouteParams {
  */
 const MarketInsightsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const isTokenInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
@@ -202,17 +208,27 @@ const MarketInsightsView: React.FC = () => {
     hasPerpsPosition = false,
     isAtOICap = false,
     source: routeSource = 'unknown',
-    isPricePositive,
     useAmbientColor,
   } = route.params;
 
   const isMarketInsightsEnabled = isPerps
     ? isPerpsInsightsEnabled
     : isTokenInsightsEnabled;
+  const assetType = isPerps ? 'perps' : 'token';
+  const fullViewTraceId = getMarketInsightsTraceId(
+    assetIdentifier,
+    routeSource,
+    'full_view',
+  );
 
   const { report, reportAssetId, isLoading, error } = useMarketInsights(
     assetIdentifier,
     isMarketInsightsEnabled,
+    {
+      source: routeSource,
+      stage: 'full_view',
+      assetType,
+    },
   );
 
   const isDarkMode = useColorScheme() === 'dark';
@@ -593,6 +609,7 @@ const MarketInsightsView: React.FC = () => {
           newTabUrl: url,
           timestamp: Date.now(),
           fromTrending: true,
+          fromMarketInsights: true,
         },
       });
     },
@@ -607,8 +624,6 @@ const MarketInsightsView: React.FC = () => {
     ) {
       return;
     }
-
-    endTrace({ name: TraceName.MarketInsightsViewLoad });
 
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({
@@ -629,6 +644,41 @@ const MarketInsightsView: React.FC = () => {
     createEventBuilder,
     routeSource,
   ]);
+
+  useEffect(() => {
+    if (reportAssetId !== assetIdentifier) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.MarketInsightsViewLoad,
+      id: fullViewTraceId,
+      data: getMarketInsightsTraceEndData('success'),
+    });
+  }, [assetIdentifier, fullViewTraceId, reportAssetId]);
+
+  useEffect(() => {
+    if (isLoading || report) {
+      return;
+    }
+
+    endTrace({
+      name: TraceName.MarketInsightsViewLoad,
+      id: fullViewTraceId,
+      data: getMarketInsightsTraceEndData(error ? 'error' : 'empty'),
+    });
+  }, [error, fullViewTraceId, isLoading, report]);
+
+  useEffect(
+    () => () => {
+      endTrace({
+        name: TraceName.MarketInsightsViewLoad,
+        id: fullViewTraceId,
+        data: getMarketInsightsTraceEndData('cancelled'),
+      });
+    },
+    [fullViewTraceId],
+  );
 
   if (showLoadingSkeleton && !report && !error) {
     return (
@@ -879,9 +929,8 @@ const MarketInsightsView: React.FC = () => {
               onBuyPress={handleStickyBuyPress}
               onQuickBuyPress={onQuickBuyPress}
               quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
-              sourcePage="MarketInsightsView"
-              isPricePositive={isPricePositive}
               useAmbientColor={useAmbientColor}
+              sourcePage="MarketInsightsView"
             />
           </Box>
         ) : null)}
@@ -910,12 +959,14 @@ const MarketInsightsView: React.FC = () => {
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={closeEligibilityModal}
-              contentKey="geo_block"
-              testID="market-insights-geo-block-tooltip"
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey="geo_block"
+                testID="market-insights-geo-block-tooltip"
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}

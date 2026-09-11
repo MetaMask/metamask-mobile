@@ -1,11 +1,15 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { usePerpsTrading } from './usePerpsTrading';
+import type { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import {
   PERPS_CONSTANTS,
@@ -20,6 +24,12 @@ import { RootState } from '../../../../reducers';
 import { usePerpsWithdrawConfirmation } from './usePerpsWithdrawConfirmation';
 import { useComplianceGate } from '../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import {
+  createDepositConfirmationGuard,
+  createDepositPrepSession,
+  type DepositConfirmationNavigation,
+  type DepositPrepSession,
+} from '../utils/depositConfirmationGuard';
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -47,6 +57,11 @@ export interface UsePerpsHomeActionsReturn {
   handleAddFunds: () => Promise<void>;
   /** Handler for withdraw button */
   handleWithdraw: () => Promise<void>;
+  /**
+   * Opens the geo-block eligibility modal and tracks the screen view
+   * with the supplied analytics source.
+   */
+  showEligibilityModal: (source: string) => void;
   /** Close eligibility modal */
   closeEligibilityModal: () => void;
 }
@@ -57,7 +72,7 @@ export interface UsePerpsHomeActionsReturn {
  * Handles:
  * - Eligibility checks and modal display
  * - Network validation (Arbitrum)
- * - Add funds flow with confirmation navigation
+ * - Add funds flow: haptic + skeleton immediately, then fire-and-forget deposit prep
  * - Withdraw navigation
  * - Error handling with Sentry tracking
  * - Loading state management
@@ -68,7 +83,7 @@ export interface UsePerpsHomeActionsReturn {
 export const usePerpsHomeActions = (
   options?: UsePerpsHomeActionsOptions,
 ): UsePerpsHomeActionsReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isEligible = useSelector(selectPerpsEligibility);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { depositWithConfirmation } = usePerpsTrading();
@@ -87,81 +102,108 @@ export const usePerpsHomeActions = (
 
   const { onAddFundsSuccess, onWithdrawSuccess, onError, buttonLocation } =
     options || {};
+  const depositPrepSessionRef = useRef<DepositPrepSession | null>(null);
 
-  const handleAddFunds = useCallback(
-    () =>
-      gate(async () => {
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-            PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
-          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-            buttonLocation || PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
-        });
+  const clearDepositPrepSession = useCallback(() => {
+    depositPrepSessionRef.current?.dispose();
+    depositPrepSessionRef.current = null;
+  }, []);
 
-        if (!isEligible) {
-          DevLogger.log('[usePerpsHomeActions] User not eligible for deposit');
-          // Track geo-block screen viewed
-          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON,
-          });
-          setIsEligibilityModalVisible(true);
-          return;
-        }
+  useEffect(() => clearDepositPrepSession, [clearDepositPrepSession]);
 
-        setIsProcessing(true);
-        setError(null);
-
-        DevLogger.log('[usePerpsHomeActions] Starting add funds flow');
-
-        try {
-          navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-
-          // Wait for deposit confirmation to complete before calling success callback
-          await depositWithConfirmation();
-
-          DevLogger.log(
-            '[usePerpsHomeActions] Add funds flow completed successfully',
-          );
-
-          if (onAddFundsSuccess) {
-            onAddFundsSuccess();
-          }
-        } catch (err) {
-          const errorObj = ensureError(
-            err,
-            'usePerpsHomeActions.handleAddFunds',
-          );
-          setError(errorObj);
-
-          Logger.error(errorObj, {
-            tags: {
-              feature: PERPS_CONSTANTS.FeatureName,
-            },
-          });
-
-          if (onError) {
-            onError(errorObj, 'deposit');
-          }
-        } finally {
-          setIsProcessing(false);
-        }
-      }),
-    [
-      gate,
-      isEligible,
-      navigateToConfirmation,
-      depositWithConfirmation,
-      onAddFundsSuccess,
-      onError,
-      track,
-      buttonLocation,
-    ],
+  const showEligibilityModal = useCallback(
+    (source: string) => {
+      DevLogger.log('[usePerpsHomeActions] Showing eligibility modal', {
+        source,
+      });
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]: source,
+      });
+      setIsEligibilityModalVisible(true);
+    },
+    [track],
   );
+
+  const handleAddFunds = useCallback(() => {
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+
+    return gate(async () => {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          buttonLocation || PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+      });
+
+      if (!isEligible) {
+        DevLogger.log('[usePerpsHomeActions] User not eligible for deposit');
+        showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON);
+        return;
+      }
+
+      setError(null);
+
+      DevLogger.log('[usePerpsHomeActions] Starting add funds flow');
+
+      navigateToConfirmation({
+        loader: 'customAmount' as ConfirmationLoader,
+        stack: Routes.PERPS.ROOT,
+      });
+
+      if (!depositPrepSessionRef.current) {
+        depositPrepSessionRef.current = createDepositPrepSession();
+      }
+      depositPrepSessionRef.current.attachGuard(
+        createDepositConfirmationGuard(
+          navigation as unknown as DepositConfirmationNavigation,
+        ),
+      );
+      // Yield so the confirmation skeleton can paint before deposit prep.
+      // A second tap reuses this session so stale prep cannot clear the new guard.
+      depositPrepSessionRef.current.ensureScheduled(
+        () => depositWithConfirmation(),
+        {
+          onSuccess: () => {
+            DevLogger.log(
+              '[usePerpsHomeActions] Add funds flow completed successfully',
+            );
+            depositPrepSessionRef.current = null;
+            onAddFundsSuccess?.();
+          },
+          onFailure: (err) => {
+            const errorObj = ensureError(
+              err,
+              'usePerpsHomeActions.handleAddFunds',
+            );
+            setError(errorObj);
+
+            Logger.error(errorObj, {
+              tags: {
+                feature: PERPS_CONSTANTS.FeatureName,
+              },
+            });
+
+            onError?.(errorObj, 'deposit');
+          },
+        },
+      );
+    });
+  }, [
+    gate,
+    isEligible,
+    navigation,
+    navigateToConfirmation,
+    depositWithConfirmation,
+    onAddFundsSuccess,
+    onError,
+    track,
+    buttonLocation,
+    showEligibilityModal,
+  ]);
 
   const handleWithdraw = useCallback(async () => {
     // Track withdrawal button click with geo-block status for monitoring (TAT-2337)
@@ -243,6 +285,7 @@ export const usePerpsHomeActions = (
     error,
     handleAddFunds,
     handleWithdraw,
+    showEligibilityModal,
     closeEligibilityModal,
   };
 };

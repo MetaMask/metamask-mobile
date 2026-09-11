@@ -1,6 +1,7 @@
 import {
   CHAIN_IDS,
   TransactionType,
+  type GasFeeToken,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -9,18 +10,24 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
 import type { OrderPreview } from '../types';
 import { Side, type PredictActivity, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
-import { PolymarketProvider } from './PolymarketProvider';
+import {
+  ACCOUNT_STATE_CACHE_TTL_MS,
+  ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS,
+  PolymarketProvider,
+} from './PolymarketProvider';
 import { OrderType, SignatureType } from './types';
 import {
-  deriveDepositWalletAddress,
   executeDepositWalletBatch,
   getDepositWalletRelayerTransactionId,
   requestDepositWalletCreate,
+  resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
@@ -43,20 +50,28 @@ import {
 import {
   createApiKey,
   encodeErc20Transfer,
+  fetchCarouselFromPolymarketApi,
+  fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
   fetchRelatedTagsFromPolymarketApi,
   getBalance,
   getL2Headers,
+  getMarketDetailsFromGammaApi,
   getOrderBook,
   getRawBalance,
   parsePolymarketActivity,
   parsePolymarketEvents,
   parsePolymarketPositions,
+  previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
 import { submitProtocolClobOrder } from './protocol/transport';
+import {
+  PolymarketRequestCancelledError,
+  PolymarketRequestTimeoutError,
+} from './fetchWithTimeout';
 import {
   buildClaimTransaction,
   planDepositWalletClaim,
@@ -82,7 +97,7 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../../../../util/analytics/analytics', () => ({
-  analytics: { identify: jest.fn() },
+  analytics: { identify: jest.fn(), trackEvent: jest.fn() },
 }));
 
 jest.mock('../../../../../util/transactions', () => ({
@@ -106,6 +121,7 @@ jest.mock('./utils', () => {
     createApiKey: jest.fn(),
     encodeErc20Transfer: jest.fn(),
     fetchCarouselFromPolymarketApi: jest.fn(),
+    fetchChildEventsFromGammaApi: jest.fn(),
     fetchEventsFromPolymarketApi: jest.fn(),
     fetchMarketsFromPolymarketApi: jest.fn(),
     fetchRelatedTagsFromPolymarketApi: jest.fn(),
@@ -122,12 +138,13 @@ jest.mock('./utils', () => {
       CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
       CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
-      CHAINLINK_CANDLES_ENDPOINT:
-        'https://polymarket.com/api/chainlink-candles',
+      CRYPTO_PRICE_HISTORY_ENDPOINT:
+        'https://polymarket.com/api/crypto/price-history',
     })),
     parsePolymarketActivity: jest.fn(),
     parsePolymarketEvents: jest.fn(),
     parsePolymarketPositions: jest.fn(),
+    previewMaxBuyOrder: jest.fn(),
     previewOrder: jest.fn(),
   };
 });
@@ -160,10 +177,10 @@ jest.mock('./protocol/transport', () => ({
 }));
 
 jest.mock('./depositWallet', () => ({
-  deriveDepositWalletAddress: jest.fn(),
   executeDepositWalletBatch: jest.fn(),
   getDepositWalletRelayerTransactionId: jest.fn(),
   requestDepositWalletCreate: jest.fn(),
+  resolveDepositWalletAddress: jest.fn(),
   syncDepositWalletCollateralBalanceAllowance: jest.fn(),
   toDepositWalletCalls: jest.fn(),
   waitForDepositWalletDeployed: jest.fn(),
@@ -196,9 +213,9 @@ jest.mock('./preflight/withdraw', () => ({
 }));
 
 const mockAnalyticsIdentify = jest.mocked(analytics.identify);
+const mockAnalyticsTrackEvent = jest.mocked(analytics.trackEvent);
 const mockComputeProxyAddress = jest.mocked(computeProxyAddress);
 const mockCreateApiKey = jest.mocked(createApiKey);
-const mockDeriveDepositWalletAddress = jest.mocked(deriveDepositWalletAddress);
 const mockExecuteDepositWalletBatch = jest.mocked(executeDepositWalletBatch);
 const mockGetDepositWalletRelayerTransactionId = jest.mocked(
   getDepositWalletRelayerTransactionId,
@@ -210,6 +227,12 @@ const mockEncodeErc20Transfer = jest.mocked(encodeErc20Transfer);
 const mockGenerateTransferData = jest.mocked(generateTransferData);
 const mockFetchEventsFromPolymarketApi = jest.mocked(
   fetchEventsFromPolymarketApi,
+);
+const mockFetchCarouselFromPolymarketApi = jest.mocked(
+  fetchCarouselFromPolymarketApi,
+);
+const mockFetchChildEventsFromGammaApi = jest.mocked(
+  fetchChildEventsFromGammaApi,
 );
 const mockFetchMarketsFromPolymarketApi = jest.mocked(
   fetchMarketsFromPolymarketApi,
@@ -225,6 +248,9 @@ const mockGetDeployProxyWalletTransaction = jest.mocked(
   getDeployProxyWalletTransaction,
 );
 const mockGetL2Headers = jest.mocked(getL2Headers);
+const mockGetMarketDetailsFromGammaApi = jest.mocked(
+  getMarketDetailsFromGammaApi,
+);
 const mockGetOrderBook = jest.mocked(getOrderBook);
 const mockGetRawBalance = jest.mocked(getRawBalance);
 const mockGetSafeTransferAmount = jest.mocked(getSafeTransferAmount);
@@ -234,6 +260,10 @@ const mockParsePolymarketActivity = jest.mocked(parsePolymarketActivity);
 const mockParsePolymarketEvents = jest.mocked(parsePolymarketEvents);
 const mockParsePolymarketPositions = jest.mocked(parsePolymarketPositions);
 const mockPreviewOrder = jest.mocked(previewOrder);
+const mockPreviewMaxBuyOrder = jest.mocked(previewMaxBuyOrder);
+const mockResolveDepositWalletAddress = jest.mocked(
+  resolveDepositWalletAddress,
+);
 const mockSubmitProtocolClobOrder = jest.mocked(submitProtocolClobOrder);
 const mockBuildClaimTransaction = jest.mocked(buildClaimTransaction);
 const mockPlanDepositWalletClaim = jest.mocked(planDepositWalletClaim);
@@ -352,18 +382,22 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
   liveSportsLeagues: [],
   extendedSportsMarketsLeagues: [],
+  enabledSportsMarketTypes: [],
+  nonRegTimeSportsMarketTypes: [],
   marketHighlightsFlag: {
     enabled: false,
     highlights: [],
     minimumVersion: '7.64.0',
   },
+  hiddenMarketsFlag: DEFAULT_HIDDEN_MARKETS_FLAG,
   fakOrdersEnabled: false,
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,
   predictPortfolioEnabled: false,
   predictHomeRedesignEnabled: false,
-  predictHomepageDiscoveryNbaChampionEnabled: true,
-  predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  predictSportCardLivePricesEnabled: true,
+  predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
 };
 
 function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {
@@ -400,6 +434,226 @@ describe('PolymarketProvider', () => {
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 
+    it('does not fetch child events when listing markets', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['nba'],
+        extendedSportsMarketsLeagues: ['nba'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+      });
+      const parentEvent = {
+        id: 'parent-event',
+        slug: 'nba-nyk-sas-2026-06-13',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        markets: [{ id: 'moneyline-market', sportsMarketType: 'moneyline' }],
+      };
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
+
+      mockFetchEventsFromPolymarketApi.mockResolvedValue({
+        events: [parentEvent],
+        category: 'trending',
+        nextCursor: null,
+      } as never);
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(
+        provider.getMarkets({ category: 'trending' }),
+      ).resolves.toEqual({
+        markets,
+        nextCursor: null,
+      });
+      expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        [parentEvent],
+        expect.any(Object),
+      );
+    });
+
+    it('merges child events into parent market details for extended sports leagues', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['nba'],
+        extendedSportsMarketsLeagues: ['nba'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+      });
+      const parentEvent = {
+        id: '567958',
+        slug: 'nba-nyk-sas-2026-06-13',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        teams: [
+          { abbreviation: 'nyk', league: 'nba' },
+          { abbreviation: 'sas', league: 'nba' },
+        ],
+        markets: [
+          { id: 'moneyline', active: true, sportsMarketType: 'moneyline' },
+        ],
+      };
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: parentEvent.id,
+        markets: [{ id: 'props', active: true, sportsMarketType: 'points' }],
+      };
+      const parsedMarket = { id: parentEvent.id, outcomes: [] };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      });
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce(
+        parentEvent as never,
+      );
+      mockFetchChildEventsFromGammaApi.mockResolvedValueOnce([
+        parentEvent,
+        childEvent,
+      ] as never);
+      mockParsePolymarketEvents.mockReturnValueOnce([parsedMarket] as never);
+
+      const result = await provider.getMarketDetails({
+        marketId: parentEvent.id,
+      });
+
+      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
+        parentEventId: parentEvent.id,
+      });
+      expect(result).toEqual({
+        ...parsedMarket,
+        childMarketIds: [parentEvent.id, childEvent.id],
+      });
+    });
+
+    it('keeps directly opened child events with ungroupable active markets', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['elc'],
+        extendedSportsMarketsLeagues: ['elc'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+      });
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: 'parent-event',
+        slug: 'elc-hul-mid-2026-05-23-more-markets',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        teams: [
+          { abbreviation: 'hul', league: 'elc' },
+          { abbreviation: 'mid', league: 'elc' },
+        ],
+        markets: [
+          { active: true, sportsMarketType: 'spreads' },
+          { active: true, sportsMarketType: 'total_corners' },
+        ],
+      };
+      const parsedMarket = { id: 'child-market', outcomes: [] };
+
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce(
+        childEvent as never,
+      );
+      mockParsePolymarketEvents.mockReturnValueOnce([parsedMarket] as never);
+
+      const result = await provider.getMarketDetails({
+        marketId: childEvent.id,
+      });
+
+      expect(result).toEqual(parsedMarket);
+      expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        [childEvent],
+        expect.any(Object),
+      );
+    });
+
+    it('resolves directly opened child events when every active market is groupable', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['elc'],
+        extendedSportsMarketsLeagues: ['elc'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+      });
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: 'parent-event',
+        slug: 'elc-hul-mid-2026-05-23-more-markets',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        teams: [
+          { abbreviation: 'hul', league: 'elc' },
+          { abbreviation: 'mid', league: 'elc' },
+        ],
+        markets: [
+          { active: true, sportsMarketType: 'spreads' },
+          { active: false, sportsMarketType: 'total_corners' },
+        ],
+      };
+      const parsedMarket = { id: 'child-market', outcomes: [] };
+
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce(
+        childEvent as never,
+      );
+      mockFetchChildEventsFromGammaApi.mockRejectedValueOnce(
+        new Error('Parent fetch failed'),
+      );
+      mockParsePolymarketEvents.mockReturnValueOnce([parsedMarket] as never);
+
+      const result = await provider.getMarketDetails({
+        marketId: childEvent.id,
+      });
+
+      expect(result).toEqual(parsedMarket);
+      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
+        parentEventId: childEvent.parentEventId,
+      });
+    });
+
+    it('resolves NFL child events when player props are enabled', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['nfl'],
+        extendedSportsMarketsLeagues: ['nfl'],
+        enabledSportsMarketTypes: [
+          'moneyline',
+          'spreads',
+          'totals',
+          'anytime_touchdowns',
+        ],
+      });
+      const parentEvent = {
+        id: 'parent-event',
+        slug: 'nfl-ne-den-2026-09-10',
+        tags: [
+          { id: 'games', label: 'Games', slug: 'games' },
+          { id: 'nfl', label: 'NFL', slug: 'nfl' },
+        ],
+        teams: [
+          { abbreviation: 'ne', league: 'nfl' },
+          { abbreviation: 'den', league: 'nfl' },
+        ],
+        markets: [{ active: true, sportsMarketType: 'moneyline' }],
+      };
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: parentEvent.id,
+        slug: 'nfl-ne-den-2026-09-10-player-props',
+        tags: parentEvent.tags,
+        teams: parentEvent.teams,
+        markets: [{ active: true, sportsMarketType: 'anytime_touchdowns' }],
+      };
+      const parsedMarket = { id: 'nfl-market', outcomes: [] };
+
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce(
+        childEvent as never,
+      );
+      mockFetchChildEventsFromGammaApi.mockResolvedValueOnce([
+        parentEvent,
+        childEvent,
+      ] as never);
+      mockParsePolymarketEvents.mockReturnValueOnce([parsedMarket] as never);
+
+      const result = await provider.getMarketDetails({
+        marketId: childEvent.id,
+      });
+
+      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
+        parentEventId: parentEvent.id,
+      });
+      expect(result).toEqual({
+        ...parsedMarket,
+        childMarketIds: [parentEvent.id, childEvent.id],
+      });
+    });
+
     it('lists markets from keyset events with normalized shape', async () => {
       const provider = createProvider();
       const events = [{ id: 'event-1' }];
@@ -420,16 +674,14 @@ describe('PolymarketProvider', () => {
       expect(mockFetchMarketsFromPolymarketApi).toHaveBeenCalledWith({
         order: 'liquidity',
       });
+      expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
     });
 
-    it('returns an empty list page when listing markets throws', async () => {
+    it('propagates list market failures to the query error state', async () => {
       const provider = createProvider();
       mockFetchMarketsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
 
-      await expect(provider.listMarkets({})).resolves.toEqual({
-        markets: [],
-        nextCursor: null,
-      });
+      await expect(provider.listMarkets({})).rejects.toThrow('Failed');
     });
 
     it('lists filter options from related tags, defaulting the slug to "all"', async () => {
@@ -529,16 +781,77 @@ describe('PolymarketProvider', () => {
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 
-    it('returns an empty feed page when fetching markets throws', async () => {
+    it('propagates feed failures to the query error state', async () => {
       const provider = createProvider();
       mockFetchEventsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
 
       await expect(
         provider.getMarkets({ category: 'trending' }),
-      ).resolves.toEqual({
-        markets: [],
-        nextCursor: null,
-      });
+      ).rejects.toThrow('Failed');
+    });
+
+    it('does not report expected market request timeouts to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const timeoutError = new PolymarketRequestTimeoutError(
+        new Error('The operation was aborted'),
+      );
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(timeoutError);
+
+      await expect(
+        createProvider().getMarkets({ category: 'trending' }),
+      ).rejects.toBe(timeoutError);
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Predict markets request ended by expected timeout/cancellation:',
+        timeoutError.message,
+        expect.any(Object),
+      );
+    });
+
+    it('reports unowned native market aborts to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(abortError);
+
+      await expect(
+        createProvider().getMarkets({ category: 'trending' }),
+      ).rejects.toBe(abortError);
+
+      expect(Logger.error).toHaveBeenCalledWith(abortError, expect.any(Object));
+    });
+
+    it('prefers team-to-advance outcomes for World Cup carousel markets', async () => {
+      const provider = createProvider();
+      const moneylineOutcome = {
+        id: 'moneyline',
+        sportsMarketType: 'moneyline',
+      };
+      const teamToAdvanceOutcome = {
+        id: 'team-to-advance',
+        sportsMarketType: 'soccer_team_to_advance',
+      };
+      const markets = [
+        {
+          id: 'market-1',
+          status: 'open',
+          game: { league: 'fifwc' },
+          outcomes: [moneylineOutcome, teamToAdvanceOutcome],
+        },
+      ];
+
+      mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+        { event: { id: 'event-1', ended: false } },
+      ] as never);
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(provider.getCarouselMarkets()).resolves.toEqual([
+        {
+          ...markets[0],
+          outcomes: [teamToAdvanceOutcome],
+        },
+      ]);
     });
 
     it('fetches market series from keyset endpoint', async () => {
@@ -563,6 +876,127 @@ describe('PolymarketProvider', () => {
       expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
       expect(url).toContain('series_id=series-1');
     });
+
+    it('propagates market series failures to the query error state', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+
+      await expect(
+        provider.getMarketSeries({
+          seriesId: 'series-1',
+          endDateMin: '2026-01-01',
+          endDateMax: '2026-12-31',
+        }),
+      ).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('getPrices', () => {
+    it('maps Polymarket SELL to the ask (entry.buy) and BUY to the bid (entry.sell)', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest
+          .fn()
+          .mockResolvedValue({ 'tok-1': { BUY: '0.34', SELL: '0.92' } }),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      // entry.buy = best ask (price to buy), entry.sell = best bid (price to sell)
+      expect(result.results[0].entry).toEqual({ buy: 0.92, sell: 0.34 });
+    });
+
+    it('defaults missing price data to zero on both sides', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      expect(result.results[0].entry).toEqual({ buy: 0, sell: 0 });
+    });
+
+    it('coerces malformed (non-numeric) prices to zero instead of NaN', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'tok-1': { BUY: 'not-a-number', SELL: '0.92' },
+        }),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      // Valid ask is kept; malformed bid falls back to 0 (never NaN).
+      expect(result.results[0].entry.buy).toBe(0.92);
+      expect(result.results[0].entry.sell).toBe(0);
+      expect(Number.isNaN(result.results[0].entry.sell)).toBe(false);
+    });
+
+    it('throws when queries are empty', async () => {
+      const provider = createProvider();
+      await expect(provider.getPrices({ queries: [] })).rejects.toThrow(
+        'queries parameter is required and must not be empty',
+      );
+    });
+  });
+
+  describe('getCryptoTargetPrice', () => {
+    it('requests the matching TWAP price for TWAP markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64544.60401529397 }),
+      });
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+        twapWindowSeconds: 60,
+      });
+
+      expect(result).toBe(64544.60401529397);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('twapEnabled=true');
+      expect(url).toContain('twapLookbackSeconds=60');
+    });
+
+    it('omits TWAP parameters for spot-price markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64551.57 }),
+      });
+
+      await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+      });
+
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).not.toContain('twapEnabled');
+      expect(url).not.toContain('twapLookbackSeconds');
+    });
   });
 
   beforeAll(() => {
@@ -582,7 +1016,7 @@ describe('PolymarketProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockComputeProxyAddress.mockReturnValue(legacySafeAddress);
-    mockDeriveDepositWalletAddress.mockReturnValue(depositWalletAddress);
+    mockResolveDepositWalletAddress.mockResolvedValue(depositWalletAddress);
     mockCreateApiKey.mockResolvedValue({
       apiKey: 'api-key',
       secret: 'secret',
@@ -606,6 +1040,7 @@ describe('PolymarketProvider', () => {
       },
     });
     mockPreviewOrder.mockResolvedValue(basePreview);
+    mockPreviewMaxBuyOrder.mockResolvedValue(basePreview);
     mockBuildTradeAllowancesTx.mockResolvedValue({
       to: '0x9999999999999999999999999999999999999999',
       data: '0xallowances',
@@ -677,6 +1112,101 @@ describe('PolymarketProvider', () => {
     signer.signTypedMessage.mockResolvedValue('0xsigned-order');
   });
 
+  describe('isEligible', () => {
+    const mockJson = (payload: unknown, ok = true, status = 200) => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok,
+        status,
+        json: jest.fn().mockResolvedValue(payload),
+      });
+    };
+
+    it('returns eligible for a complete unblocked response', async () => {
+      mockJson({ blocked: false, country: 'PT' });
+
+      await expect(createProvider().isEligible()).resolves.toEqual({
+        isEligible: true,
+        country: 'PT',
+      });
+    });
+
+    it('returns ineligible for a complete blocked response', async () => {
+      mockJson({ blocked: true, country: 'DE' });
+
+      await expect(createProvider().isEligible()).resolves.toEqual({
+        isEligible: false,
+        country: 'DE',
+      });
+    });
+
+    it('throws when country is missing', async () => {
+      mockJson({ blocked: false });
+
+      await expect(createProvider().isEligible()).rejects.toThrow(
+        'incomplete response',
+      );
+    });
+
+    it('throws when blocked is missing', async () => {
+      mockJson({ country: 'PT' });
+
+      await expect(createProvider().isEligible()).rejects.toThrow(
+        'incomplete response',
+      );
+    });
+
+    it('throws when the payload is malformed JSON', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockRejectedValue(new Error('Unexpected token')),
+      });
+
+      await expect(createProvider().isEligible()).rejects.toThrow(
+        'malformed JSON',
+      );
+    });
+
+    it('throws when the response is not 2xx', async () => {
+      mockJson({ blocked: false, country: 'PT' }, false, 500);
+
+      await expect(createProvider().isEligible()).rejects.toThrow('status 500');
+    });
+
+    it('propagates a request timeout', async () => {
+      const timeoutError = new PolymarketRequestTimeoutError(
+        new Error('The operation was aborted'),
+      );
+      global.fetch = jest.fn().mockRejectedValue(timeoutError);
+
+      await expect(createProvider().isEligible()).rejects.toBe(timeoutError);
+    });
+
+    it('propagates a network failure without reporting it', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const networkError = new TypeError('Network request failed');
+      global.fetch = jest.fn().mockRejectedValue(networkError);
+
+      await expect(createProvider().isEligible()).rejects.toBe(networkError);
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+
+    it('propagates expected cancellation without reporting it as a Sentry error', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const cancellationError = new PolymarketRequestCancelledError(
+        new Error('The operation was aborted'),
+      );
+      global.fetch = jest.fn().mockRejectedValue(cancellationError);
+
+      await expect(createProvider().isEligible()).rejects.toBe(
+        cancellationError,
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+  });
+
   it('exposes the Polymarket provider id', () => {
     expect(createProvider().providerId).toBe(POLYMARKET_PROVIDER_ID);
   });
@@ -694,6 +1224,9 @@ describe('PolymarketProvider', () => {
       address: depositWalletAddress,
       isDeployed: true,
       walletType: 'deposit-wallet',
+    });
+    expect(mockResolveDepositWalletAddress).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
     });
     expect(global.fetch).not.toHaveBeenCalled();
     expect(mockIsSmartContractAddress).toHaveBeenNthCalledWith(
@@ -720,7 +1253,9 @@ describe('PolymarketProvider', () => {
     });
     expect(global.fetch).toHaveBeenCalledWith(
       `https://data-api.polymarket.com/activity?user=${legacySafeAddress}&limit=1`,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
+    expect(mockResolveDepositWalletAddress).not.toHaveBeenCalled();
   });
 
   it('routes deployed legacy Safe with empty raw activity to deposit wallet', async () => {
@@ -741,6 +1276,35 @@ describe('PolymarketProvider', () => {
       isDeployed: false,
       walletType: 'deposit-wallet',
     });
+    expect(mockResolveDepositWalletAddress).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
+    });
+  });
+
+  it('keeps funded legacy Safe users when raw activity is empty', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([]),
+    });
+    mockGetRawBalance.mockImplementation(async ({ tokenAddress }) =>
+      tokenAddress === USDC_E_ADDRESS ? 100_000_000n : 0n,
+    );
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false);
+
+    const accountState = await createProvider().getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    expect(accountState).toEqual({
+      address: legacySafeAddress,
+      isDeployed: true,
+      walletType: 'safe',
+    });
+    expect(mockResolveDepositWalletAddress).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
+    });
   });
 
   it('fails closed when raw Activity API fails for a deployed legacy Safe', async () => {
@@ -752,6 +1316,74 @@ describe('PolymarketProvider', () => {
     await expect(
       createProvider().getAccountState({ ownerAddress: signer.address }),
     ).rejects.toThrow('Failed to fetch Polymarket activity');
+  });
+
+  it('serves cached account state within the TTL without refetching', async () => {
+    const provider = createProvider();
+
+    const first = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const second = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    expect(second).toEqual(first);
+    expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-fetches account state once the deployed-wallet TTL expires', async () => {
+    const provider = createProvider();
+    const start = 1_700_000_000_000;
+    // The global test setup replaces Date.now with a jest.fn — reassign (and
+    // restore) rather than spyOn, since mockRestore would wipe the global mock.
+    const originalDateNow = Date.now;
+    Date.now = jest.fn(() => start);
+
+    try {
+      await provider.getAccountState({ ownerAddress: signer.address });
+
+      Date.now = jest.fn(() => start + ACCOUNT_STATE_CACHE_TTL_MS + 1);
+      await provider.getAccountState({ ownerAddress: signer.address });
+
+      expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(2);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    } finally {
+      Date.now = originalDateNow;
+    }
+  });
+
+  it('expires not-deployed account states on the shorter TTL', async () => {
+    mockIsSmartContractAddress.mockResolvedValue(false);
+    const provider = createProvider();
+    const start = 1_700_000_000_000;
+    const originalDateNow = Date.now;
+    Date.now = jest.fn(() => start);
+
+    try {
+      const accountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+      expect(accountState.isDeployed).toBe(false);
+      expect(mockResolveDepositWalletAddress).toHaveBeenCalledTimes(1);
+
+      // Still cached within the not-deployed TTL.
+      Date.now = jest.fn(
+        () => start + ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS - 1,
+      );
+      await provider.getAccountState({ ownerAddress: signer.address });
+      expect(mockResolveDepositWalletAddress).toHaveBeenCalledTimes(1);
+
+      // Expired past the not-deployed TTL — must refetch.
+      Date.now = jest.fn(
+        () => start + ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS + 1,
+      );
+      await provider.getAccountState({ ownerAddress: signer.address });
+      expect(mockResolveDepositWalletAddress).toHaveBeenCalledTimes(2);
+    } finally {
+      Date.now = originalDateNow;
+    }
   });
 
   describe('getActivity', () => {
@@ -805,6 +1437,7 @@ describe('PolymarketProvider', () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          signal: expect.any(AbortSignal),
         },
       );
       expect(mockParsePolymarketActivity).toHaveBeenCalledWith(rawActivity);
@@ -873,6 +1506,31 @@ describe('PolymarketProvider', () => {
     expect(preview.feeRateBps).toBe('0');
     expect(mockPreviewOrder).toHaveBeenCalledWith(
       expect.objectContaining({ feeCollection: DEFAULT_FEE_COLLECTION_FLAG }),
+    );
+  });
+
+  it('previews the maximum fully fillable buy through the provider', async () => {
+    const provider = createProvider();
+
+    const preview = await provider.previewMaxBuyOrder({
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: 'token-1',
+      availableBalance: 100,
+      signer,
+    });
+
+    expect(preview).toEqual(
+      expect.objectContaining({
+        maxAmountSpent: basePreview.maxAmountSpent,
+        feeRateBps: '0',
+      }),
+    );
+    expect(mockPreviewMaxBuyOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableBalance: 100,
+        feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
+      }),
     );
   });
 
@@ -1264,6 +1922,9 @@ describe('PolymarketProvider', () => {
     });
 
     expect(result).toBe(true);
+    expect(mockResolveDepositWalletAddress).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
+    });
     expect(mockRequestDepositWalletCreate).toHaveBeenCalledWith({
       ownerAddress: signer.address,
     });
@@ -1278,6 +1939,16 @@ describe('PolymarketProvider', () => {
     expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
       [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
     });
+    const walletCreationEvent = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .find(
+        (event) =>
+          event?.properties?.transaction_type ===
+            'mm_predict_wallet_creation' &&
+          event?.properties?.status === 'succeeded',
+      );
+    expect(walletCreationEvent).toBeDefined();
+    expect(walletCreationEvent?.properties?.entry_point).toBe('background');
     expect(
       mockSyncDepositWalletCollateralBalanceAllowance,
     ).not.toHaveBeenCalled();
@@ -1300,6 +1971,64 @@ describe('PolymarketProvider', () => {
       transactionID: 'batch-1',
       requireCompletion: true,
     });
+  });
+
+  it('tracks failed wallet creation when the relayer create request fails', async () => {
+    const provider = createProvider();
+    mockIsSmartContractAddress.mockResolvedValueOnce(false);
+    mockRequestDepositWalletCreate.mockRejectedValueOnce(
+      new Error('relayer unavailable'),
+    );
+
+    await expect(
+      provider.beforePublishDepositWalletDeposit({
+        transactionMeta: createDepositTransactionMeta({
+          recipient: depositWalletAddress,
+        }),
+        getSigner: () => signer,
+      }),
+    ).rejects.toThrow('relayer unavailable');
+
+    const walletCreationEvent = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .find(
+        (event) =>
+          event?.properties?.transaction_type ===
+            'mm_predict_wallet_creation' &&
+          event?.properties?.status === 'failed',
+      );
+    expect(walletCreationEvent).toBeDefined();
+    expect(walletCreationEvent?.properties?.failure_reason).toBe(
+      'relayer unavailable',
+    );
+  });
+
+  it('does not track failed wallet creation when waiting fails after the relayer accepted', async () => {
+    const provider = createProvider();
+    mockIsSmartContractAddress.mockResolvedValueOnce(false);
+    // The relayer accepted the create request, but local polling failed
+    // afterwards — the wallet may still have been created remotely.
+    mockWaitForDepositWalletTransaction.mockRejectedValueOnce(
+      new Error('polling timed out'),
+    );
+
+    await expect(
+      provider.beforePublishDepositWalletDeposit({
+        transactionMeta: createDepositTransactionMeta({
+          recipient: depositWalletAddress,
+        }),
+        getSigner: () => signer,
+      }),
+    ).rejects.toThrow('polling timed out');
+
+    const walletCreationEvents = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .filter(
+        (event) =>
+          event?.properties?.transaction_type === 'mm_predict_wallet_creation',
+      );
+    expect(walletCreationEvents).toHaveLength(1);
+    expect(walletCreationEvents[0]?.properties?.status).toBe('succeeded');
   });
 
   it('waits for WALLET-CREATE polling before submitting allowance batch', async () => {
@@ -1341,7 +2070,7 @@ describe('PolymarketProvider', () => {
       getSigner: () => signer,
     });
 
-    await Promise.resolve();
+    await flushPromises();
 
     expect(mockRequestDepositWalletCreate).toHaveBeenCalled();
     expect(mockWaitForDepositWalletDeployed).not.toHaveBeenCalled();
@@ -1406,11 +2135,49 @@ describe('PolymarketProvider', () => {
     expect(transactionMeta.txParams.nonce).toBeUndefined();
   });
 
-  it('passes through Safe claims before signing', async () => {
+  it('passes through Safe claims before signing when gas fee tokens are pending', async () => {
     const result = await createProvider().beforeSignClaim({
       transactionMeta: {
         id: 'claim-tx',
         txParams: { from: signer.address },
+        selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+        isGasFeeTokenIgnoredIfBalance: true,
+      } as TransactionMeta,
+      signer,
+      positions: [createClaimPosition()],
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('passes through Safe claims when the selected gas fee token is missing from gasFeeTokens', async () => {
+    const result = await createProvider().beforeSignClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        txParams: { from: signer.address },
+        selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+        isGasFeeTokenIgnoredIfBalance: true,
+        gasFeeTokens: [] as GasFeeToken[],
+      } as TransactionMeta,
+      signer,
+      positions: [createClaimPosition()],
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('passes through Safe claims when gasFeeTokens does not include the selected token', async () => {
+    const result = await createProvider().beforeSignClaim({
+      transactionMeta: {
+        id: 'claim-tx',
+        txParams: { from: signer.address },
+        selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+        isGasFeeTokenIgnoredIfBalance: true,
+        gasFeeTokens: [
+          {
+            tokenAddress: '0x1111111111111111111111111111111111111111',
+          },
+        ] as unknown as GasFeeToken[],
       } as TransactionMeta,
       signer,
       positions: [createClaimPosition()],
@@ -1615,20 +2382,42 @@ describe('PolymarketProvider', () => {
         protocol: expect.objectContaining({ key: 'v2' }),
       }),
     );
-    expect(result).toEqual({ callData: '0xsignedWithdraw', amount: 1 });
+    expect(result).toEqual({
+      callData: '0xsignedWithdraw',
+      amount: 1,
+      walletType: 'safe',
+    });
   });
 
-  it('gets crypto price history from Chainlink candle closes', async () => {
+  it('leaves deposit-wallet withdrawals for external signing', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const provider = createProvider();
+    await provider.prepareWithdraw({ signer });
+
+    const result = await provider.signWithdraw?.({
+      signer,
+      callData: '0xtransfer',
+    });
+
+    expect(mockBuildWithdrawTransaction).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      callData: '0xtransfer',
+      amount: 1,
+      walletType: 'deposit-wallet',
+    });
+  });
+
+  it('gets spot crypto price history from the current Polymarket price history API', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({
-        candles: [
-          { time: 999, close: 9 },
-          { time: 1000, close: 10 },
-          { time: 1060, close: 11 },
-          { time: 1121, close: 12 },
-        ],
-      }),
+      json: jest.fn().mockResolvedValue([
+        { timestamp: 999000, value: 9 },
+        { timestamp: 1000000, value: 10 },
+        { timestamp: 1060000, value: 11 },
+        { timestamp: 'invalid', value: 12 },
+      ]),
     });
 
     const result = await createProvider().getCryptoPriceHistory({
@@ -1639,92 +2428,77 @@ describe('PolymarketProvider', () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=60',
-      { method: 'GET' },
+      'https://polymarket.com/api/crypto/price-history?symbol=BTC&eventStartTime=1000&variant=hourly&endDate=1120',
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
     );
     expect(result).toEqual([
-      { timestamp: 1000, value: 10 },
-      { timestamp: 1060, value: 11 },
+      { timestamp: 999000, value: 9 },
+      { timestamp: 1000000, value: 10 },
+      { timestamp: 1060000, value: 11 },
     ]);
   });
 
-  it('logs a development warning when every candle falls outside the requested window', async () => {
-    const { DevLogger } = jest.requireMock(
-      '../../../../../core/SDKConnect/utils/DevLogger',
-    );
-    (DevLogger.log as jest.Mock).mockClear();
-
+  it('gets TWAP price history from the current Polymarket price history API', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({
-        candles: Array.from({ length: 15 }, (_, i) => ({
-          time: 10_000 + i * 60,
-          close: 100 + i,
-        })),
-      }),
+      json: jest.fn().mockResolvedValue([
+        { timestamp: 1787158800000, value: 68449.07681200188 },
+        { timestamp: 1787158805000, value: 68450.56902128145 },
+        { timestamp: 'invalid', value: 68455 },
+      ]),
     });
-
-    const result = await createProvider().getCryptoPriceHistory({
-      symbol: 'BTC',
-      eventStartTime: '1000',
-      endDate: '1300',
+    const params = {
+      symbol: ' btc ',
+      eventStartTime: '2026-08-19T17:00:00Z',
       variant: 'fiveminute',
-    });
+      endDate: '2026-08-19T17:05:00Z',
+      twapWindowSeconds: 60 as const,
+    };
 
-    expect(result).toEqual([]);
-    expect(DevLogger.log).toHaveBeenCalledWith(
-      expect.stringContaining('every candle was filtered out'),
+    const result = await createProvider().getCryptoPriceHistory(params);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://polymarket.com/api/crypto/price-history?symbol=BTC&eventStartTime=2026-08-19T17%3A00%3A00Z&variant=fiveminute&endDate=2026-08-19T17%3A05%3A00Z&twapEnabled=true&twapLookbackSeconds=60',
       expect.objectContaining({
-        symbol: 'BTC',
-        variant: 'fiveminute',
-        interval: '1m',
-        startSeconds: 1000,
-        endSeconds: 1300,
+        method: 'GET',
+        signal: expect.any(AbortSignal),
       }),
     );
+    expect(result).toEqual([
+      { timestamp: 1787158800000, value: 68449.07681200188 },
+      { timestamp: 1787158805000, value: 68450.56902128145 },
+    ]);
   });
 
-  it('uses supported Chainlink candle intervals for crypto history variants', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue({ candles: [] }),
-    });
+  it.each(['fiveminute', 'fifteen', 'hourly', 'fourhour', 'daily'])(
+    'forwards the %s variant to the current price history API',
+    async (variant) => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      });
 
-    const provider = createProvider();
-    const eventStartTime = '1970-01-01T00:00:00.000Z';
+      const provider = createProvider();
+      const eventStartTime = '1970-01-01T00:00:00.000Z';
 
-    await provider.getCryptoPriceHistory({
-      symbol: 'BTC',
-      eventStartTime,
-      variant: 'fiveminute',
-    });
-    await provider.getCryptoPriceHistory({
-      symbol: 'BTC',
-      eventStartTime,
-      variant: 'fourhour',
-    });
-    await provider.getCryptoPriceHistory({
-      symbol: 'BTC',
-      eventStartTime,
-      variant: 'daily',
-    });
+      await provider.getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime,
+        variant,
+      });
 
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      1,
-      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1m&limit=15',
-      { method: 'GET' },
-    );
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      2,
-      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=5m&limit=60',
-      { method: 'GET' },
-    );
-    expect(global.fetch).toHaveBeenNthCalledWith(
-      3,
-      'https://polymarket.com/api/chainlink-candles?symbol=BTC&interval=1h&limit=30',
-      { method: 'GET' },
-    );
-  });
+      expect(global.fetch).toHaveBeenCalledWith(
+        `https://polymarket.com/api/crypto/price-history?symbol=BTC&eventStartTime=1970-01-01T00%3A00%3A00.000Z&variant=${variant}`,
+        expect.objectContaining({
+          method: 'GET',
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    },
+  );
 
   it('rethrows crypto price history errors after logging', async () => {
     global.fetch = jest.fn().mockResolvedValue({
@@ -1739,6 +2513,54 @@ describe('PolymarketProvider', () => {
         variant: 'hourly',
       }),
     ).rejects.toThrow('Failed to get crypto price history');
+  });
+
+  it('downgrades transient network failures to a breadcrumb instead of a Sentry error', async () => {
+    const Logger = jest.requireMock('../../../../../util/Logger').default;
+    (Logger.error as jest.Mock).mockClear();
+    (Logger.log as jest.Mock).mockClear();
+    global.fetch = jest
+      .fn()
+      .mockRejectedValue(new TypeError('Network request failed'));
+
+    await expect(
+      createProvider().getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      }),
+    ).rejects.toThrow('Network request failed');
+
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(Logger.log).toHaveBeenCalledWith(
+      'Predict crypto price history fetch failed (transient network/availability):',
+      'Network request failed',
+      expect.any(Object),
+    );
+  });
+
+  it('still reports unexpected (non-network) crypto price history errors to Sentry', async () => {
+    const Logger = jest.requireMock('../../../../../util/Logger').default;
+    (Logger.error as jest.Mock).mockClear();
+    (Logger.log as jest.Mock).mockClear();
+    const unexpectedError = new Error('Unexpected parsing failure');
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockRejectedValue(unexpectedError),
+    });
+
+    await expect(
+      createProvider().getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      }),
+    ).rejects.toThrow('Unexpected parsing failure');
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      unexpectedError,
+      expect.any(Object),
+    );
   });
 });
 

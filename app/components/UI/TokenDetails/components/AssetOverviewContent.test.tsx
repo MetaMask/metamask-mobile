@@ -52,6 +52,23 @@ jest.mock('../../MarketInsights', () => ({
     testID?: string;
   }) => <MockPressable onPress={onPress} testID={testID} />,
   useMarketInsights: (...args: unknown[]) => mockUseMarketInsights(...args),
+  useMarketInsightsEntryTrace: () =>
+    'token_details:entry_card:eip155:1/erc20:0x123',
+  getMarketInsightsTraceId: (
+    assetIdentifier: string,
+    source: string,
+    stage: string,
+  ) => `${source}:${stage}:${assetIdentifier}`,
+  getMarketInsightsTraceTags: (
+    context: { source: string; stage: string; assetType: string },
+    cacheState: string,
+  ) => ({
+    feature: 'market_insights',
+    source: context.source,
+    stage: context.stage,
+    asset_type: context.assetType,
+    cache_state: cacheState,
+  }),
   selectMarketInsightsEnabled: () => mockSelectMarketInsightsEnabled(),
 }));
 
@@ -87,19 +104,12 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart',
-  () => ({
-    selectTokenOverviewAdvancedChartEnabled: jest.fn(() => false),
-  }),
-);
-
 jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
   usePerpsPositionForAsset: (...args: unknown[]) =>
     mockUsePerpsPositionForAsset(...args),
 }));
 
-jest.mock('../../Perps/components/PerpsPositionCard', () => ({
+jest.mock('../../Perps/components/PerpsCard', () => ({
   __esModule: true,
   default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
 }));
@@ -121,13 +131,17 @@ jest.mock(
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  const actualReact = jest.requireActual('react');
   return {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
       addListener: jest.fn(() => jest.fn()),
     }),
-    useFocusEffect: jest.fn((cb: () => void) => cb()),
+    // Defer via useEffect to match real useFocusEffect timing.
+    useFocusEffect: jest.fn((cb: () => void) => {
+      actualReact.useEffect(cb, []);
+    }),
   };
 });
 
@@ -191,7 +205,6 @@ const defaultProps: AssetOverviewContentProps = {
   timePeriod: '1d',
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
-  isPerpsEnabled: true,
   currentCurrency: 'USD',
   onBuy: jest.fn(),
   onSend: jest.fn().mockResolvedValue(undefined),
@@ -241,13 +254,13 @@ const defaultMarketInsightsResult = {
   isLoading: false,
   error: null,
   timeAgo: '5m ago',
+  cacheState: 'cold',
 };
 
 describe('AssetOverviewContent', () => {
   const defaultPerpsPositionResult = {
     position: null,
     hasFundsInPerps: false,
-    accountState: null,
     isLoading: false,
   };
 
@@ -342,11 +355,15 @@ describe('AssetOverviewContent', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+        // Flush the gate().finally() microtask that releases the nav lock,
+        // so the next press below isn't blocked by it.
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.LONG_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(2);
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
@@ -363,11 +380,13 @@ describe('AssetOverviewContent', () => {
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SHORT_BUTTON));
+        await Promise.resolve();
       });
       expect(mockGate).toHaveBeenCalledTimes(2);
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
@@ -538,7 +557,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: null,
         hasFundsInPerps: false,
-        accountState: null,
         isLoading: false,
       });
     });
@@ -547,7 +565,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: { symbol: 'ETH', size: '1', side: 'long' },
         hasFundsInPerps: true,
-        accountState: null,
         isLoading: false,
       });
 
@@ -584,7 +601,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: { symbol: 'ETH', size: '1', side: 'long' },
         hasFundsInPerps: true,
-        accountState: null,
         isLoading: false,
       });
 
@@ -628,19 +644,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
     });
 
-    it('renders verified badge when securityData resultType is Verified', () => {
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewContent
-          {...defaultProps}
-          securityData={createMockSecurityData('Verified')}
-        />,
-        { state: createState(true) },
-      );
-
-      const badge = getByTestId('security-badge-verified');
-      expect(badge).toBeOnTheScreen();
-    });
-
     it('does not render badge when securityData resultType is Benign', () => {
       const { queryByTestId } = renderWithProvider(
         <AssetOverviewContent
@@ -650,7 +653,6 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(queryByTestId('security-badge-verified')).toBeNull();
       expect(queryByTestId('security-banner-warning')).toBeNull();
       expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
@@ -692,31 +694,6 @@ describe('AssetOverviewContent', () => {
 
       const banner = getByTestId('security-banner-malicious');
       expect(banner).toBeOnTheScreen();
-    });
-
-    it('navigates to security badge bottom sheet when verified badge is pressed', () => {
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewContent
-          {...defaultProps}
-          securityData={createMockSecurityData('Verified')}
-        />,
-        { state: createState(true) },
-      );
-
-      fireEvent.press(getByTestId('security-badge-verified'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
-        params: expect.objectContaining({
-          title: expect.any(String),
-          description: expect.any(String),
-          source: 'badge',
-          severity: 'Verified',
-          tokenAddress: '0x123',
-          tokenSymbol: 'ETH',
-          chainId: '0x1',
-        }),
-      });
     });
 
     it('navigates to security badge bottom sheet when warning badge is pressed', () => {
@@ -807,24 +784,22 @@ describe('AssetOverviewContent', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does not render badge when securityData is null', () => {
+    it('does not render security banners when securityData is null', () => {
       const { queryByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} securityData={null} />,
         { state: createState(true) },
       );
 
-      expect(queryByTestId('security-badge-verified')).toBeNull();
       expect(queryByTestId('security-banner-warning')).toBeNull();
       expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
 
-    it('does not render badge when securityData is undefined', () => {
+    it('does not render security banners when securityData is undefined', () => {
       const { queryByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} securityData={undefined} />,
         { state: createState(true) },
       );
 
-      expect(queryByTestId('security-badge-verified')).toBeNull();
       expect(queryByTestId('security-banner-warning')).toBeNull();
       expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
@@ -885,7 +860,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: null,
         hasFundsInPerps: false,
-        accountState: null,
         isLoading: false,
       });
       tokenDetailsActionsSpy = jest.spyOn(

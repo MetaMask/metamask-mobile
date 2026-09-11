@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { PaymentType } from '@consensys/on-ramp-sdk/dist/API';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
@@ -10,14 +11,16 @@ import {
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useFiatPaymentHighlightedActions } from '../useFiatPaymentHighlightedActions';
 import { useClearPaymentOverride } from './useClearPaymentOverride';
+import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
-export const PAY_WITH_BANK_CARD_SECTION_TEST_ID = 'pay-with-section-bank-card';
+export const PAY_WITH_BANK_CARD_SECTION_TEST_ID =
+  PayWithBottomSheetIDs.BANK_CARD_SECTION;
 
 const PAYMENT_METHOD_ICON_SIZE = 20;
 
 export function usePayWithFiatSection(): PayWithSectionConfig | null {
   const fiatItems = useFiatPaymentHighlightedActions();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const iconColor = tw.color('icon-alternative');
   const clearPaymentOverride = useClearPaymentOverride();
@@ -48,7 +51,6 @@ export function usePayWithFiatSection(): PayWithSectionConfig | null {
         title: item.name,
         subtitle: item.name_description,
         isSelected,
-        isLastUsed: false,
         trailingElement: isSelected ? 'checkmark' : 'none',
         onPress,
         testID: `pay-with-fiat-${rowKey}-row`,

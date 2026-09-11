@@ -15,6 +15,7 @@ import { useFeeCalculations } from './useFeeCalculations';
 import { updateTransactionGasFees } from '../../../../../util/transaction-controller';
 import { type GasOption } from '../../types/gas';
 import { EMPTY_VALUE_STRING } from '../../constants/gas';
+import { usePersistGasFeePreference } from './usePersistGasFeePreference';
 
 const HEX_ZERO = '0x0';
 
@@ -31,6 +32,7 @@ export const useGasFeeEstimateLevelOptions = ({
     gasFeeEstimates: GasFeeEstimates;
   };
   const { gasFeeEstimates, id, userFeeLevel } = transactionMeta;
+  const persistGasFeePreference = usePersistGasFeePreference();
 
   const transactionGasFeeEstimates =
     gasFeeEstimates as TransactionGasFeeEstimates;
@@ -48,9 +50,10 @@ export const useGasFeeEstimateLevelOptions = ({
       updateTransactionGasFees(id, {
         userFeeLevel: level,
       });
+      persistGasFeePreference(transactionMeta, { userFeeLevel: level });
       handleCloseModals();
     },
-    [id, handleCloseModals],
+    [id, transactionMeta, persistGasFeePreference, handleCloseModals],
   );
 
   const options: GasOption[] = [];

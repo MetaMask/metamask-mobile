@@ -918,4 +918,38 @@ describe('ReferredByCodeSection', () => {
       expect(queryByTestId('rewards-vip-referral-tag')).toBeNull();
     });
   });
+
+  describe('keyboard handling', () => {
+    it('calls onInputFocus when referral input is focused', () => {
+      const onInputFocus = jest.fn();
+      mockUseSelector.mockImplementation(
+        createMockSelectors({
+          referredByCode: null,
+        }),
+      );
+
+      const { getByTestId } = render(
+        <ReferredByCodeSection onInputFocus={onInputFocus} />,
+      );
+
+      fireEvent(getByTestId('referred-by-code-input-input'), 'focus');
+      expect(onInputFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onInputFocus when referral code is already linked', () => {
+      const onInputFocus = jest.fn();
+      mockUseSelector.mockImplementation(
+        createMockSelectors({
+          referredByCode: 'EXISTING',
+        }),
+      );
+
+      const { getByTestId } = render(
+        <ReferredByCodeSection onInputFocus={onInputFocus} />,
+      );
+
+      fireEvent(getByTestId('referred-by-code-input-input'), 'focus');
+      expect(onInputFocus).not.toHaveBeenCalled();
+    });
+  });
 });

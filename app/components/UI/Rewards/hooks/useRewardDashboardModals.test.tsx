@@ -276,7 +276,7 @@ describe('useRewardDashboardModals', () => {
         type: 'SET_HIDE_UNLINKED_ACCOUNTS_BANNER',
         payload: true,
       });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not show modal when bulk link is running', () => {
@@ -445,7 +445,7 @@ describe('useRewardDashboardModals', () => {
       expect(mockLinkAccountGroup).toHaveBeenCalledWith(
         mockSelectedAccountGroup.id,
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'SET_HIDE_CURRENT_ACCOUNT_NOT_OPTED_IN_BANNER',
         payload: { accountGroupId: mockSelectedAccountGroup.id, hide: true },

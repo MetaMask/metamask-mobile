@@ -80,18 +80,18 @@ export function useUpdateTokenAmount() {
       setPreviousAmountRaw(amountRaw);
 
       if (nestedCallIndex !== undefined) {
-        updateAtomicBatchData({
+        return updateAtomicBatchData({
           transactionId,
           transactionIndex: nestedCallIndex,
           transactionData: newData,
         }).catch((error) => {
+          setPreviousAmountRaw(undefined);
           Logger.error(
             error,
             'Failed to update token amount in nested transaction',
           );
+          throw error;
         });
-
-        return;
       }
 
       updateEditableParams(transactionId as string, {

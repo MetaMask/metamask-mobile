@@ -2,10 +2,15 @@ import userReducer, { userInitialState } from './index';
 import {
   UserActionType,
   type SetTokenOverviewChartTypeAction,
+  type SetTokenOverviewChartIntervalAction,
+  type SetTokenIndicatorsAction,
   type SetMoneyOnboardingSeenAction,
+  type SetMoneyEarnBannerDismissedAction,
+  type ClearMoneyEarnBannerDismissedTokensAction,
   type SetOnboardingStepperStepAction,
 } from '../../actions/user/types';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
+import { DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL } from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
 
 describe('user reducer', () => {
   describe('initial state', () => {
@@ -19,6 +24,20 @@ describe('user reducer', () => {
 
     it('has onboardingStepperProgress as empty object', () => {
       expect(userInitialState.onboardingStepperProgress).toEqual({});
+    });
+
+    it('has moneyEarnBannerDismissedTokens as empty object', () => {
+      expect(userInitialState.moneyEarnBannerDismissedTokens).toEqual({});
+    });
+
+    it('has tokenIndicators as empty array', () => {
+      expect(userInitialState.tokenIndicators).toEqual([]);
+    });
+
+    it('has default tokenOverviewChartInterval', () => {
+      expect(userInitialState.tokenOverviewChartInterval).toBe(
+        DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
+      );
     });
   });
 
@@ -63,6 +82,78 @@ describe('user reducer', () => {
 
       expect(newState.moneyOnboardingSeen).toBe(true);
       expect(newState.userLoggedIn).toBe(true);
+    });
+  });
+
+  describe('SET_MONEY_EARN_BANNER_DISMISSED', () => {
+    it('sets the dismissed key to true', () => {
+      const action: SetMoneyEarnBannerDismissedAction = {
+        type: UserActionType.SET_MONEY_EARN_BANNER_DISMISSED,
+        payload: { key: '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' },
+      };
+
+      const newState = userReducer(userInitialState, action);
+
+      expect(newState.moneyEarnBannerDismissedTokens).toEqual({
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+      });
+    });
+
+    it('merges a new key without overwriting existing ones', () => {
+      const currentState = {
+        ...userInitialState,
+        moneyEarnBannerDismissedTokens: {
+          '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+        },
+      };
+      const action: SetMoneyEarnBannerDismissedAction = {
+        type: UserActionType.SET_MONEY_EARN_BANNER_DISMISSED,
+        payload: { key: '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7' },
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.moneyEarnBannerDismissedTokens).toEqual({
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+        '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
+      });
+    });
+
+    it('does not modify other state properties', () => {
+      const currentState = {
+        ...userInitialState,
+        userLoggedIn: true,
+      };
+      const action: SetMoneyEarnBannerDismissedAction = {
+        type: UserActionType.SET_MONEY_EARN_BANNER_DISMISSED,
+        payload: { key: '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' },
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.userLoggedIn).toBe(true);
+      expect(newState.moneyEarnBannerDismissedTokens).toEqual({
+        '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+      });
+    });
+  });
+
+  describe('CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS', () => {
+    it('clears all dismissed tokens', () => {
+      const currentState = {
+        ...userInitialState,
+        moneyEarnBannerDismissedTokens: {
+          '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+          '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
+        },
+      };
+      const action: ClearMoneyEarnBannerDismissedTokensAction = {
+        type: UserActionType.CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS,
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.moneyEarnBannerDismissedTokens).toEqual({});
     });
   });
 
@@ -170,6 +261,81 @@ describe('user reducer', () => {
 
       expect(newState.userLoggedIn).toBe(true);
       expect(newState.seedphraseBackedUp).toBe(true);
+      expect(newState.tokenOverviewChartType).toBe(ChartType.Candles);
+    });
+  });
+
+  describe('SET_TOKEN_OVERVIEW_CHART_INTERVAL', () => {
+    it('updates tokenOverviewChartInterval', () => {
+      const action: SetTokenOverviewChartIntervalAction = {
+        type: UserActionType.SET_TOKEN_OVERVIEW_CHART_INTERVAL,
+        payload: { interval: '1h' },
+      };
+
+      const newState = userReducer(userInitialState, action);
+
+      expect(newState.tokenOverviewChartInterval).toBe('1h');
+    });
+  });
+
+  describe('SET_TOKEN_INDICATORS', () => {
+    it('sets tokenIndicators from empty to active indicators', () => {
+      const action: SetTokenIndicatorsAction = {
+        type: UserActionType.SET_TOKEN_INDICATORS,
+        payload: { indicators: ['RSI', 'MACD'] },
+      };
+
+      const newState = userReducer(userInitialState, action);
+
+      expect(newState.tokenIndicators).toEqual(['RSI', 'MACD']);
+    });
+
+    it('replaces existing tokenIndicators', () => {
+      const currentState = {
+        ...userInitialState,
+        tokenIndicators: ['RSI', 'MA5'],
+      };
+      const action: SetTokenIndicatorsAction = {
+        type: UserActionType.SET_TOKEN_INDICATORS,
+        payload: { indicators: ['MACD'] },
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.tokenIndicators).toEqual(['MACD']);
+    });
+
+    it('clears tokenIndicators when payload is empty', () => {
+      const currentState = {
+        ...userInitialState,
+        tokenIndicators: ['RSI'],
+      };
+      const action: SetTokenIndicatorsAction = {
+        type: UserActionType.SET_TOKEN_INDICATORS,
+        payload: { indicators: [] },
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.tokenIndicators).toEqual([]);
+    });
+
+    it('does not modify other state properties', () => {
+      const currentState = {
+        ...userInitialState,
+        userLoggedIn: true,
+        tokenOverviewChartType: ChartType.Candles,
+        tokenIndicators: ['RSI'],
+      };
+      const action: SetTokenIndicatorsAction = {
+        type: UserActionType.SET_TOKEN_INDICATORS,
+        payload: { indicators: ['MACD', 'MA20'] },
+      };
+
+      const newState = userReducer(currentState, action);
+
+      expect(newState.tokenIndicators).toEqual(['MACD', 'MA20']);
+      expect(newState.userLoggedIn).toBe(true);
       expect(newState.tokenOverviewChartType).toBe(ChartType.Candles);
     });
   });

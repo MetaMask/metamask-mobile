@@ -29,7 +29,7 @@ import {
   type Selector,
   FrameworkDetector,
   TestFramework,
-} from './index.ts';
+} from './detox/index.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import { resetDeviceInfo, setDeviceInfo } from './DeviceInfoCache.ts';
 

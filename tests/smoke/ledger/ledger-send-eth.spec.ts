@@ -6,10 +6,10 @@ import {
   LEDGER_ACCOUNT_ADDRESS,
   type SpeculosTestSuiteParams,
 } from '../../framework/fixtures/SpeculosFixtureHelper';
-import WalletView from '../../page-objects/wallet/WalletView';
-import SendView from '../../page-objects/Send/RedesignedSendView';
+import WalletView from '../../page-objects/detox/wallet/WalletView';
+import SendView from '../../page-objects/detox/Send/RedesignedSendView';
 import HardwareWalletBottomSheet from '../../page-objects/Ledger/HardwareWalletBottomSheet';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';
 import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 

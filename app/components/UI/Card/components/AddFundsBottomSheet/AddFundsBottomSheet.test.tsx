@@ -1,8 +1,8 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import AddFundsBottomSheet from './AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
+import useDepositEnabled from '../../../Ramp/hooks/useDepositEnabled';
 import { isBridgeAllowed } from '../../../Bridge/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -12,7 +12,6 @@ import { CardFundingToken, FundingStatus } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { RampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
 
@@ -21,7 +20,6 @@ const mockUseParams = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
-const mockGoToDeposit = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../Ramp/hooks/useRampNavigation');
@@ -29,7 +27,7 @@ jest.mock('../../hooks/useOpenSwaps', () => ({
   useOpenSwaps: jest.fn(),
 }));
 
-jest.mock('../../../Ramp/Deposit/hooks/useDepositEnabled', () => ({
+jest.mock('../../../Ramp/hooks/useDepositEnabled', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -84,8 +82,6 @@ const mockButtonClickData: RampsButtonClickData = {
 jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
-
-jest.mock('../../../Ramp/hooks/useRampsUnifiedV2Enabled');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -150,12 +146,7 @@ describe('AddFundsBottomSheet', () => {
 
     (useRampNavigation as jest.Mock).mockReturnValue({
       goToBuy: mockGoToBuy,
-      goToDeposit: mockGoToDeposit,
     });
-
-    // Default V2 enabled — the whole point of this migration is UB2 routing.
-    // Individual tests override to false where they need to assert V1 fallback.
-    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(true);
 
     (useDepositEnabled as jest.Mock).mockReturnValue({
       isDepositEnabled: true,
@@ -229,10 +220,12 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Swap tokens into USDC on Linea')).toBeTruthy();
   });
 
-  it('tracks analytics and trace with UNIFIED_BUY_2 ramp_type when Fund with cash is pressed', () => {
+  it('tracks analytics and trace with UNIFIED_BUY_2 ramp_type when Fund with cash is pressed', async () => {
     const { getByText } = setupComponent();
 
-    fireEvent.press(getByText('Fund with cash'));
+    await act(async () => {
+      fireEvent.press(getByText('Fund with cash'));
+    });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
@@ -257,24 +250,12 @@ describe('AddFundsBottomSheet', () => {
     });
   });
 
-  it('tags analytics with ramp_type DEPOSIT when the UB2 feature flag is disabled', () => {
-    (useRampsUnifiedV2Enabled as jest.Mock).mockReturnValue(false);
-
+  it('handles swap option press correctly', async () => {
     const { getByText } = setupComponent();
 
-    fireEvent.press(getByText('Fund with cash'));
-
-    expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ramp_type: 'DEPOSIT',
-      }),
-    );
-  });
-
-  it('handles swap option press correctly', () => {
-    const { getByText } = setupComponent();
-
-    fireEvent.press(getByText('Fund with crypto'));
+    await act(async () => {
+      fireEvent.press(getByText('Fund with crypto'));
+    });
 
     expect(mockOpenSwaps).toHaveBeenCalledWith({
       beforeNavigate: expect.any(Function),
@@ -340,33 +321,22 @@ describe('AddFundsBottomSheet', () => {
     expect(getByText('Swap tokens into ETH on Linea')).toBeTruthy();
   });
 
-  it('routes Fund with cash through goToBuy (UB2-aware) with the priority token CAIP-19 assetId', () => {
+  it('routes Fund with cash through goToBuy (UB2-aware) with the priority token CAIP-19 assetId', async () => {
     const { getByText } = setupComponent();
 
-    fireEvent.press(getByText('Fund with cash'));
-
-    // goToBuy is the smart router in useRampNavigation; when V2 is enabled
-    // (default for this suite), it dispatches to UB2 (BuildQuote). See
-    // useRampNavigation.test.ts > 'goToBuy > when unified V2 is enabled'.
-    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: `${mockPriorityToken.caipChainId}/erc20:${mockPriorityToken.address}`,
+    await act(async () => {
+      fireEvent.press(getByText('Fund with cash'));
     });
+
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      {
+        assetId: `${mockPriorityToken.caipChainId}/erc20:${mockPriorityToken.address}`,
+      },
+      { surface: 'card' },
+    );
   });
 
-  it('does NOT call the deprecated goToDeposit (UB1) when Fund with cash is pressed', () => {
-    // Regression guard: this entry point was migrated off goToDeposit (UB1)
-    // to goToBuy (UB2-aware). If someone reverts that, this test goes red.
-    const { getByText } = setupComponent();
-
-    fireEvent.press(getByText('Fund with cash'));
-
-    expect(mockGoToDeposit).not.toHaveBeenCalled();
-  });
-
-  it('falls back to goToBuy() with no intent when the priority token has no address', () => {
-    // No assetId → useRampNavigation routes UB2 to TokenSelection
-    // (see useRampNavigation.ts, 'V2: If no assetId and V2 is enabled').
+  it('falls back to goToBuy() with no intent when the priority token has no address', async () => {
     const tokenWithoutAddress: CardFundingToken = {
       ...mockPriorityToken,
       address: null,
@@ -374,10 +344,11 @@ describe('AddFundsBottomSheet', () => {
 
     const { getByText } = setupComponent(tokenWithoutAddress);
 
-    fireEvent.press(getByText('Fund with cash'));
+    await act(async () => {
+      fireEvent.press(getByText('Fund with cash'));
+    });
 
-    expect(mockGoToBuy).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith(undefined);
+    expect(mockGoToBuy).toHaveBeenCalledWith(undefined, { surface: 'card' });
   });
 
   it('renders component correctly', () => {

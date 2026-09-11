@@ -17,6 +17,7 @@ import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.test
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
 import SearchApi from '@metamask/react-native-search-api';
 import Logger from '../../../util/Logger';
@@ -99,7 +100,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const bookmarks = useSelector((state: RootState) => state.bookmarks);
   const tabCount = useSelector(selectBrowserTabCount);
 

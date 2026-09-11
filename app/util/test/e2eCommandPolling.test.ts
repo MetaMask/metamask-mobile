@@ -23,6 +23,12 @@ jest.mock('./e2ePerpsCommandHandler', () => ({
     mockDispatchPerpsCommand(...args),
 }));
 
+const mockDispatchQrSyncCommand = jest.fn();
+jest.mock('./e2eQrSyncCommandHandler', () => ({
+  dispatchQrSyncCommand: (...args: unknown[]) =>
+    mockDispatchQrSyncCommand(...args),
+}));
+
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 // Successful probe response for the initial server check
@@ -189,6 +195,30 @@ describe('e2eCommandPolling', () => {
     await flushMicrotasks();
 
     expect(mockDispatchPerpsCommand).toHaveBeenCalledWith(command);
+  });
+
+  it('dispatches apply-qr-sync-sync-ready command to QR sync handler', async () => {
+    mockHasTestOverrides = true;
+    const { startE2ECommandPolling } = loadModule();
+
+    const command = {
+      type: 'apply-qr-sync-sync-ready',
+      args: {
+        mnemonic: 'test mnemonic',
+        isPrimary: true,
+      },
+    };
+    mockedAxios.get.mockResolvedValueOnce(probeResponse).mockResolvedValueOnce({
+      status: 200,
+      data: { queue: [command] },
+    } as AxiosResponse);
+
+    await startE2ECommandPolling();
+
+    jest.advanceTimersByTime(0);
+    await flushMicrotasks();
+
+    expect(mockDispatchQrSyncCommand).toHaveBeenCalledWith(command);
   });
 
   it('dispatches force-liquidation command to perps handler', async () => {

@@ -1,10 +1,13 @@
+import type { Json } from '@metamask/utils';
+import { getVersion } from 'react-native-device-info';
 import {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsAdvancedChartEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
-  selectPerpsButtonColorTestVariant,
+  selectPerpsRecentlyViewedEnabledFlag,
   selectHip3ConfigVersion,
   selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag,
   selectPerpsFeedbackEnabledFlag,
@@ -13,8 +16,17 @@ import {
   selectPerpsTradeWithAnyTokenEnabledFlag,
   selectPerpsPayWithAnyTokenAllowlistAssets,
   selectPerpsRewardsReferralCodeEnabledFlag,
-  selectPerpsMYXProviderEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
+  selectPerpsProModeEnabledFlag,
+  selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsMobileScaleEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
+  selectPerpsRecentlyAddedEnabledFlag,
+  selectPerpsShowFullAssetNamesFlag,
+  selectPerpsClosePositionLimitOrderEnabledFlag,
+  PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY,
+  selectPerpsMobileChaseEnabledFlag,
+  selectPerpsPositionModifyPreviewEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { StateWithPartialEngine } from '../../../../../selectors/featureFlagController/types';
@@ -51,6 +63,7 @@ describe('Perps Feature Flag Selectors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
+    jest.mocked(getVersion).mockReturnValue('1.0.0');
     mockHasMinimumRequiredVersion = jest.spyOn(
       remoteFeatureFlagModule,
       'hasMinimumRequiredVersion',
@@ -61,6 +74,133 @@ describe('Perps Feature Flag Selectors', () => {
   afterEach(() => {
     process.env = originalEnv;
     mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  describe('selectPerpsMobileChaseEnabledFlag', () => {
+    const stateWithFlag = (flag?: Json): StateWithPartialEngine => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: flag ? { perpsMobileChase: flag } : {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('defaults off when the remote flag is absent', () => {
+      expect(selectPerpsMobileChaseEnabledFlag(stateWithFlag())).toBe(false);
+    });
+
+    it('returns true for an enabled flag at the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsMobileChaseEnabledFlag(state)).toBe(true);
+    });
+
+    it('returns false below the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '99.0.0',
+      });
+
+      expect(selectPerpsMobileChaseEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      const state = stateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsMobileChaseEnabledFlag(state)).toBe(false);
+    });
+
+    it.each([null, true, { enabled: 'yes' }, { minimumVersion: '1.0.0' }])(
+      'returns false for malformed flag %p',
+      (flag) => {
+        const state = stateWithFlag(flag as Json);
+
+        expect(selectPerpsMobileChaseEnabledFlag(state)).toBe(false);
+      },
+    );
+  });
+
+  describe('selectPerpsPositionModifyPreviewEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags.perpsPositionModifyPreviewEnabled = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+    };
+
+    it('returns true at the preview minimum version 8.11.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.11.0');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.11.0',
+      });
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the preview flag is disabled', () => {
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '8.11.0',
+      });
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false below the preview minimum version 8.11.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.10.9');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.11.0',
+      });
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults the preview to false when the flag is absent', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the preview flag shape is malformed', () => {
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 8.11,
+      });
+
+      const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('selectPerpsEnabledFlag', () => {
@@ -723,6 +863,428 @@ describe('Perps Feature Flag Selectors', () => {
     });
   });
 
+  describe('selectPerpsClosePositionLimitOrderEnabledFlag', () => {
+    // Helper to create fresh state objects to avoid reselect caching issues
+    const createEmptyFlagsState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    describe('default behavior (disabled by default)', () => {
+      it('returns false when remote flag is not set', () => {
+        const result = selectPerpsClosePositionLimitOrderEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('remote flag behavior', () => {
+      it('uses remote flag when valid and enabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+        const stateWithEnabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsClosePositionLimitOrderEnabled: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsClosePositionLimitOrderEnabledFlag(
+          stateWithEnabledRemoteFlag,
+        );
+        expect(result).toBe(true);
+      });
+
+      it('uses remote flag when valid but disabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+        const stateWithDisabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsClosePositionLimitOrderEnabled: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsClosePositionLimitOrderEnabledFlag(
+          stateWithDisabledRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when enabled but version check fails', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+        const stateWithVersionCheckFailure = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsClosePositionLimitOrderEnabled: {
+                    enabled: true,
+                    minimumVersion: '99.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsClosePositionLimitOrderEnabledFlag(
+          stateWithVersionCheckFailure,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when remote flag is invalid', () => {
+        const stateWithInvalidRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsClosePositionLimitOrderEnabled: {
+                    enabled: 'invalid',
+                    minimumVersion: 123,
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsClosePositionLimitOrderEnabledFlag(
+          stateWithInvalidRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when RemoteFeatureFlagController is undefined', () => {
+        const stateWithUndefinedController = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: undefined,
+            },
+          },
+        };
+
+        const result = selectPerpsClosePositionLimitOrderEnabledFlag(
+          stateWithUndefinedController,
+        );
+        expect(result).toBe(false);
+      });
+    });
+  });
+
+  describe('selectPerpsAdvancedChartEnabledFlag', () => {
+    const createEmptyFlagsState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    describe('default behavior (disabled by default)', () => {
+      it('returns false when remote flag is not set', () => {
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('remote flag behavior', () => {
+      it('uses remote flag when valid and enabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+        const stateWithEnabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabledV2: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithEnabledRemoteFlag,
+        );
+        expect(result).toBe(true);
+      });
+
+      it('uses remote flag when valid but disabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+        const stateWithDisabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabledV2: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithDisabledRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when version requirement is not met', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+        const stateWithVersionCheckFailure = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabledV2: {
+                    enabled: true,
+                    minimumVersion: '99.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithVersionCheckFailure,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when remote flag is invalid', () => {
+        const stateWithInvalidRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabledV2: {
+                    enabled: 'invalid',
+                    minimumVersion: 123,
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithInvalidRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when remote flag is null', () => {
+        const stateWithNullRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsAdvancedChartEnabledV2: null,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsAdvancedChartEnabledFlag(
+          stateWithNullRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+    });
+  });
+
+  describe('selectPerpsShowFullAssetNamesFlag', () => {
+    const createEmptyFlagsState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    describe('default behavior (disabled by default)', () => {
+      it('returns false when remote flag is not set', () => {
+        const result = selectPerpsShowFullAssetNamesFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('remote flag behavior', () => {
+      it('uses remote flag when valid and enabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+        const stateWithEnabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsShowFullAssetNamesFlag(
+          stateWithEnabledRemoteFlag,
+        );
+        expect(result).toBe(true);
+      });
+
+      it('uses remote flag when valid but disabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+        const stateWithDisabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsShowFullAssetNamesFlag(
+          stateWithDisabledRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when version requirement is not met', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+        const stateWithVersionCheckFailure = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
+                    enabled: true,
+                    minimumVersion: '99.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsShowFullAssetNamesFlag(
+          stateWithVersionCheckFailure,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when remote flag is invalid', () => {
+        const stateWithInvalidRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
+                    enabled: 'invalid',
+                    minimumVersion: 123,
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsShowFullAssetNamesFlag(
+          stateWithInvalidRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns false when remote flag is null', () => {
+        const stateWithNullRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: null,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsShowFullAssetNamesFlag(
+          stateWithNullRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+    });
+  });
+
   describe('selectPerpsRelatedMarketsEnabledFlag', () => {
     // Helper to create fresh state objects to avoid reselect caching issues
     const createEmptyFlagsState = () => ({
@@ -878,6 +1440,168 @@ describe('Perps Feature Flag Selectors', () => {
         };
 
         const result = selectPerpsRelatedMarketsEnabledFlag(
+          stateWithUndefinedController,
+        );
+        expect(result).toBe(false);
+      });
+    });
+  });
+
+  describe('selectPerpsRecentlyViewedEnabledFlag', () => {
+    // Helper to create fresh state objects to avoid reselect caching issues
+    const createEmptyFlagsState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    describe('default behavior (disabled by default)', () => {
+      it('returns false when remote flag is not set and local env var is not set', () => {
+        delete process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED;
+        const result = selectPerpsRecentlyViewedEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(false);
+      });
+
+      it('returns true when local env var is explicitly true', () => {
+        process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED = 'true';
+        const result = selectPerpsRecentlyViewedEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(true);
+      });
+
+      it('returns false when local env var is explicitly false', () => {
+        process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED = 'false';
+        const result = selectPerpsRecentlyViewedEnabledFlag(
+          createEmptyFlagsState(),
+        );
+        expect(result).toBe(false);
+      });
+    });
+
+    describe('hybrid flag behavior', () => {
+      it('uses remote flag when valid and enabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED = 'false';
+
+        const stateWithEnabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsRecentlyViewedEnabled: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsRecentlyViewedEnabledFlag(
+          stateWithEnabledRemoteFlag,
+        );
+        expect(result).toBe(true);
+      });
+
+      it('uses remote flag when valid but disabled', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED = 'true';
+
+        const stateWithDisabledRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsRecentlyViewedEnabled: {
+                    enabled: false,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsRecentlyViewedEnabledFlag(
+          stateWithDisabledRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('uses remote flag (false) when enabled but version check fails', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+        process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED = 'true';
+
+        const stateWithVersionCheckFailure = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsRecentlyViewedEnabled: {
+                    enabled: true,
+                    minimumVersion: '99.0.0',
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsRecentlyViewedEnabledFlag(
+          stateWithVersionCheckFailure,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('falls back to local flag (false by default) when remote flag is invalid', () => {
+        delete process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED;
+
+        const stateWithInvalidRemoteFlag = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsRecentlyViewedEnabled: {
+                    enabled: 'invalid',
+                    minimumVersion: 123,
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        };
+
+        const result = selectPerpsRecentlyViewedEnabledFlag(
+          stateWithInvalidRemoteFlag,
+        );
+        expect(result).toBe(false);
+      });
+
+      it('falls back to local flag when RemoteFeatureFlagController is undefined', () => {
+        delete process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED;
+
+        const stateWithUndefinedController = {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: undefined,
+            },
+          },
+        };
+
+        const result = selectPerpsRecentlyViewedEnabledFlag(
           stateWithUndefinedController,
         );
         expect(result).toBe(false);
@@ -1424,6 +2148,459 @@ describe('Perps Feature Flag Selectors', () => {
     });
   });
 
+  describe('selectPerpsProModeEnabledFlag', () => {
+    it('returns true when remote flag is valid and enabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const stateWithEnabledRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsProModeEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsProModeEnabledFlag(stateWithEnabledRemoteFlag);
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is valid but disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const stateWithDisabledRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsProModeEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsProModeEnabledFlag(stateWithDisabledRemoteFlag);
+      expect(result).toBe(false);
+    });
+
+    it('returns false when enabled but version check fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      const stateWithVersionCheckFailure = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsProModeEnabled: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsProModeEnabledFlag(
+        stateWithVersionCheckFailure,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag is missing', () => {
+      const result = selectPerpsProModeEnabledFlag({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsProTriggeredOrdersEnabledFlag', () => {
+    const createStateWithFlag = (flag: Json) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsProTriggeredOrdersEnabled: flag,
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns true when the remote flag is enabled for the app version', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+
+      const result = selectPerpsProTriggeredOrdersEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      const result = selectPerpsProTriggeredOrdersEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the app version is below the minimum', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '99.0.0',
+      });
+
+      const result = selectPerpsProTriggeredOrdersEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the remote flag is missing', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsProTriggeredOrdersEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the remote flag is malformed', () => {
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 1,
+      });
+
+      const result = selectPerpsProTriggeredOrdersEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsProTwapEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags.perpsMobileTwap = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+    };
+
+    it('returns true at the TWAP minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.10.0');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false below the TWAP minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.9.9');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the remote flag is missing', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the remote flag is malformed', () => {
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 1,
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsMobileScaleEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags.perpsMobileScale = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+    };
+
+    it('returns true at the Scale minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.10.0');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the Scale flag is disabled', () => {
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false below the Scale minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.9.9');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults Scale to false when the flag is absent', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the Scale flag shape is malformed', () => {
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 8.1,
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsRecentlyAddedEnabledFlag', () => {
+    const createEmptyFlagsState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns false when remote flag is not set', () => {
+      const result = selectPerpsRecentlyAddedEnabledFlag(
+        createEmptyFlagsState(),
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns true when remote flag is valid and enabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const stateWithEnabledRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsRecentlyAddedEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsRecentlyAddedEnabledFlag(
+        stateWithEnabledRemoteFlag,
+      );
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is valid but disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const stateWithDisabledRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsRecentlyAddedEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsRecentlyAddedEnabledFlag(
+        stateWithDisabledRemoteFlag,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when enabled but version check fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      const stateWithVersionCheckFailure = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsRecentlyAddedEnabled: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsRecentlyAddedEnabledFlag(
+        stateWithVersionCheckFailure,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag is invalid', () => {
+      const stateWithInvalidRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsRecentlyAddedEnabled: {
+                  enabled: 'invalid',
+                  minimumVersion: 123,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsRecentlyAddedEnabledFlag(
+        stateWithInvalidRemoteFlag,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag is null', () => {
+      const stateWithNullRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsRecentlyAddedEnabled: null,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsRecentlyAddedEnabledFlag(
+        stateWithNullRemoteFlag,
+      );
+      expect(result).toBe(false);
+    });
+  });
+
   describe('selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag', () => {
     const createEmptyFlagsState = () => ({
       engine: {
@@ -1585,238 +2762,6 @@ describe('Perps Feature Flag Selectors', () => {
 
       const result = selectPerpsRewardsReferralCodeEnabledFlag(state);
       expect(result).toBe(false);
-    });
-  });
-
-  describe('selectPerpsButtonColorTestVariant', () => {
-    it('returns null when remote flag is undefined', () => {
-      const stateWithUndefinedFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {},
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPerpsButtonColorTestVariant(stateWithUndefinedFlag);
-      expect(result).toBeNull();
-    });
-
-    it('returns null when remote flag is null', () => {
-      const stateWithNullFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                perpsAbtestButtonColor: null,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPerpsButtonColorTestVariant(stateWithNullFlag);
-      expect(result).toBeNull();
-    });
-
-    describe('direct string variant scenarios', () => {
-      it('returns variant string when remote flag is control', () => {
-        const stateWithControlVariant = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsAbtestButtonColor: 'control',
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsButtonColorTestVariant(
-          stateWithControlVariant,
-        );
-        expect(result).toBe('control');
-      });
-
-      it('returns variant string when remote flag is monochrome', () => {
-        const stateWithMonochromeVariant = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsAbtestButtonColor: 'monochrome',
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsButtonColorTestVariant(
-          stateWithMonochromeVariant,
-        );
-        expect(result).toBe('monochrome');
-      });
-    });
-
-    describe('version-gated flag scenarios', () => {
-      it('returns variant from version-gated object when valid', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-
-        const stateWithVersionGatedVariant = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsAbtestButtonColor: {
-                    enabled: true,
-                    minimumVersion: '1.0.0',
-                    variant: 'control',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsButtonColorTestVariant(
-          stateWithVersionGatedVariant,
-        );
-        expect(result).toBe('control');
-      });
-
-      it('returns null when version-gated object has no variant', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-
-        const stateWithNoVariant = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsAbtestButtonColor: {
-                    enabled: true,
-                    minimumVersion: '1.0.0',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsButtonColorTestVariant(stateWithNoVariant);
-        expect(result).toBeNull();
-      });
-
-      it('returns null when version-gated flag disabled', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-
-        const stateWithDisabledFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsAbtestButtonColor: {
-                    enabled: false,
-                    minimumVersion: '1.0.0',
-                    variant: 'control',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsButtonColorTestVariant(stateWithDisabledFlag);
-        expect(result).toBeNull();
-      });
-
-      it('returns null when version-gated but version check fails', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(false);
-
-        const stateWithVersionCheckFailure = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsAbtestButtonColor: {
-                    enabled: true,
-                    minimumVersion: '99.0.0',
-                    variant: 'control',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsButtonColorTestVariant(
-          stateWithVersionCheckFailure,
-        );
-        expect(result).toBeNull();
-      });
-    });
-
-    describe('edge cases', () => {
-      it('returns null when remote flag is invalid type (number)', () => {
-        const stateWithNumberFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsAbtestButtonColor: 123,
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsButtonColorTestVariant(stateWithNumberFlag);
-        expect(result).toBeNull();
-      });
-
-      it('returns null when remote flag is invalid type (boolean)', () => {
-        const stateWithBooleanFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsAbtestButtonColor: true,
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsButtonColorTestVariant(stateWithBooleanFlag);
-        expect(result).toBeNull();
-      });
-
-      it('returns null when RemoteFeatureFlagController is undefined', () => {
-        const stateWithUndefinedController = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: undefined,
-            },
-          },
-        };
-
-        const result = selectPerpsButtonColorTestVariant(
-          stateWithUndefinedController,
-        );
-        expect(result).toBeNull();
-      });
     });
   });
 
@@ -2221,241 +3166,6 @@ describe('Perps Feature Flag Selectors', () => {
         }),
       );
       expect(result).toEqual([]);
-    });
-  });
-
-  describe('selectPerpsMYXProviderEnabledFlag', () => {
-    // Helper to create fresh state objects to avoid reselect caching issues
-    const createEmptyFlagsState = () => ({
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {},
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    });
-
-    describe('default behavior (disabled by default)', () => {
-      it('returns false when remote flag is not set and local env var is not set', () => {
-        delete process.env.MM_PERPS_MYX_PROVIDER_ENABLED;
-        const result = selectPerpsMYXProviderEnabledFlag(
-          createEmptyFlagsState(),
-        );
-        expect(result).toBe(false);
-      });
-
-      it('returns true when local env var is explicitly true', () => {
-        process.env.MM_PERPS_MYX_PROVIDER_ENABLED = 'true';
-        const result = selectPerpsMYXProviderEnabledFlag(
-          createEmptyFlagsState(),
-        );
-        expect(result).toBe(true);
-      });
-
-      it('returns false when local env var is explicitly false', () => {
-        process.env.MM_PERPS_MYX_PROVIDER_ENABLED = 'false';
-        const result = selectPerpsMYXProviderEnabledFlag(
-          createEmptyFlagsState(),
-        );
-        expect(result).toBe(false);
-      });
-    });
-
-    describe('hybrid flag behavior', () => {
-      it('uses remote flag when valid and enabled', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PERPS_MYX_PROVIDER_ENABLED = 'false';
-
-        const stateWithEnabledRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsMyxProviderEnabled: {
-                    enabled: true,
-                    minimumVersion: '1.0.0',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsMYXProviderEnabledFlag(
-          stateWithEnabledRemoteFlag,
-        );
-        expect(result).toBe(true);
-      });
-
-      it('local flag overrides remote flag when local is true', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PERPS_MYX_PROVIDER_ENABLED = 'true';
-
-        const stateWithDisabledRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsMyxProviderEnabled: {
-                    enabled: false,
-                    minimumVersion: '1.0.0',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsMYXProviderEnabledFlag(
-          stateWithDisabledRemoteFlag,
-        );
-        expect(result).toBe(true);
-      });
-
-      it('local flag overrides remote flag even when version check fails', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(false);
-        process.env.MM_PERPS_MYX_PROVIDER_ENABLED = 'true';
-
-        const stateWithVersionCheckFailure = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsMyxProviderEnabled: {
-                    enabled: true,
-                    minimumVersion: '99.0.0',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsMYXProviderEnabledFlag(
-          stateWithVersionCheckFailure,
-        );
-        expect(result).toBe(true);
-      });
-
-      it('uses remote flag when local is not set', () => {
-        mockHasMinimumRequiredVersion.mockReturnValue(true);
-        delete process.env.MM_PERPS_MYX_PROVIDER_ENABLED;
-
-        const stateWithDisabledRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsMyxProviderEnabled: {
-                    enabled: false,
-                    minimumVersion: '1.0.0',
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsMYXProviderEnabledFlag(
-          stateWithDisabledRemoteFlag,
-        );
-        expect(result).toBe(false);
-      });
-
-      it('falls back to local flag (false by default) when remote flag is invalid', () => {
-        delete process.env.MM_PERPS_MYX_PROVIDER_ENABLED;
-
-        const stateWithInvalidRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsMyxProviderEnabled: {
-                    enabled: 'invalid',
-                    minimumVersion: 123,
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsMYXProviderEnabledFlag(
-          stateWithInvalidRemoteFlag,
-        );
-        expect(result).toBe(false);
-      });
-
-      it('falls back to local flag (true) when remote flag is invalid and env is true', () => {
-        process.env.MM_PERPS_MYX_PROVIDER_ENABLED = 'true';
-
-        const stateWithInvalidRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsMyxProviderEnabled: {
-                    enabled: 'invalid',
-                    minimumVersion: 123,
-                  },
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsMYXProviderEnabledFlag(
-          stateWithInvalidRemoteFlag,
-        );
-        expect(result).toBe(true);
-      });
-
-      it('falls back to local flag (false) when remote flag is null and env is false', () => {
-        process.env.MM_PERPS_MYX_PROVIDER_ENABLED = 'false';
-
-        const stateWithNullRemoteFlag = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsMyxProviderEnabled: null,
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        };
-
-        const result = selectPerpsMYXProviderEnabledFlag(
-          stateWithNullRemoteFlag,
-        );
-        expect(result).toBe(false);
-      });
-
-      it('falls back to local flag when RemoteFeatureFlagController is undefined', () => {
-        delete process.env.MM_PERPS_MYX_PROVIDER_ENABLED;
-
-        const stateWithUndefinedController = {
-          engine: {
-            backgroundState: {
-              RemoteFeatureFlagController: undefined,
-            },
-          },
-        };
-
-        const result = selectPerpsMYXProviderEnabledFlag(
-          stateWithUndefinedController,
-        );
-        expect(result).toBe(false);
-      });
     });
   });
 });

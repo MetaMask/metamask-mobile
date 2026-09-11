@@ -1,14 +1,14 @@
-import { DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrderType } from '../types/legacyDeposit';
 import getNotificationDetails from './getNotificationDetails';
 import { getNotificationDetails as getAggregatorNotificationDetails } from '../Aggregator/utils';
-import { getNotificationDetails as getDepositNotificationDetails } from '../Deposit/utils';
+import { getNotificationDetails as getDepositNotificationDetails } from '../utils/depositUtils';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 
 jest.mock('../Aggregator/utils', () => ({
   getNotificationDetails: jest.fn(),
 }));
 
-jest.mock('../Deposit/utils', () => ({
+jest.mock('../utils/depositUtils', () => ({
   getNotificationDetails: jest.fn(),
 }));
 

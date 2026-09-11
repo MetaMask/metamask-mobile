@@ -1,14 +1,13 @@
-import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import {
   KeyringMetadata,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
+import { KeyringType } from '@metamask/keyring-api/v2';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
-import {
-  LedgerKeyring,
-  LedgerMobileBridge,
-} from '@metamask/eth-ledger-bridge-keyring';
+import { LedgerKeyring as LegacyLedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
+import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_LEGACY_PATH,
@@ -17,8 +16,20 @@ import {
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
+import { getChecksumAddress, Hex } from '@metamask/utils';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
+
+/**
+ * The subset of bridge methods used by the legacy BLE connection helpers
+ * below. `LedgerMobileBridge` satisfies this shape.
+ */
+interface LedgerBridgeConnection {
+  updateTransportMethod: (transport: BleTransport | string) => Promise<boolean>;
+  getAppNameAndVersion: () => Promise<{ appName: string; version: string }>;
+  openEthApp: () => Promise<void>;
+  closeApps: () => Promise<void>;
+}
 
 const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
   if (!abortSignal?.aborted) {
@@ -29,6 +40,25 @@ const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
   error.name = 'LedgerOperationAbortedError';
   throw error;
 };
+
+/**
+ * Ensure a Ledger keyring exists in the controller before invoking a V2 operation.
+ *
+ * `withKeyringV2` has no `createIfMissing` option, so callers that need
+ * on-demand creation perform the check + create inside `withController` so the
+ * operation is serialized by the KeyringController mutex.
+ */
+async function ensureLedgerKeyringExists(): Promise<void> {
+  const keyringController = Engine.context.KeyringController;
+  await keyringController.withController(async (controller) => {
+    const hasKeyring = controller.keyrings.some(
+      ({ keyring }) => keyring.type === LegacyLedgerKeyring.type,
+    );
+    if (!hasKeyring) {
+      await controller.addNewKeyring(LegacyLedgerKeyring.type);
+    }
+  });
+}
 
 /**
  * Perform an operation with the Ledger keyring.
@@ -47,28 +77,32 @@ export const withLedgerKeyring = async <CallbackResult = void>(
     metadata: KeyringMetadata;
   }) => Promise<CallbackResult>,
 ): Promise<CallbackResult> => {
+  await ensureLedgerKeyringExists();
   const keyringController = Engine.context.KeyringController;
-  return await keyringController.withKeyring(
-    { type: ExtendedKeyringTypes.ledger },
-    ({ keyring, metadata }) => {
+  return await keyringController.withKeyringV2(
+    { type: KeyringType.Ledger },
+    async ({ keyring, metadata }) => {
       if (!(keyring instanceof LedgerKeyring)) {
         throw new Error('Expected LedgerKeyring');
       }
       return operation({ keyring, metadata });
     },
-    // TODO: Refactor this to stop creating the keyring on-demand
-    // Instead create it only in response to an explicit user action, and do
-    // not allow Ledger interactions until after that has been done.
-    { createIfMissing: true },
   );
 };
 
 /**
- * Connects to the ledger device by requesting some metadata from it.
+ * Connect a Ledger device via a legacy BLE transport and return the running
+ * app name.
  *
- * @param transport - The transport to use to connect to the device
- * @param deviceId - The device ID to connect to
- * @returns The name of the currently open application on the device
+ * Called by `LedgerBluetoothAdapter` after it has discovered and opened a
+ * transport to the device through `@ledgerhq/react-native-hw-transport-ble`.
+ * The transport is forwarded to the keyring's bridge via
+ * `updateTransportMethod`.
+ *
+ * @param transport - The opened BLE transport from the legacy adapter.
+ * @param deviceId - The device ID to connect to.
+ * @param abortSignal - Optional abort signal to cancel the operation.
+ * @returns The name of the currently open application on the device.
  */
 export const connectLedgerHardware = async (
   transport: BleTransport,
@@ -78,10 +112,8 @@ export const connectLedgerHardware = async (
   throwIfLedgerOperationAborted(abortSignal);
 
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
-    keyring.setHdPath(LEDGER_LIVE_PATH);
     keyring.setDeviceId(deviceId);
-
-    const ledgerBridge = keyring.bridge as LedgerMobileBridge;
+    const ledgerBridge = keyring.bridge as unknown as LedgerBridgeConnection;
     await ledgerBridge.updateTransportMethod(transport);
     return ledgerBridge;
   });
@@ -89,8 +121,8 @@ export const connectLedgerHardware = async (
   // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
   // flows are serialized at the adapter/provider layer.
   throwIfLedgerOperationAborted(abortSignal);
-  const appAndVersion = await bridge.getAppNameAndVersion();
-  return appAndVersion.appName;
+  const { appName } = await bridge.getAppNameAndVersion();
+  return appName;
 };
 
 /**
@@ -98,7 +130,7 @@ export const connectLedgerHardware = async (
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
   const bridge = await withLedgerKeyring(
-    async ({ keyring }) => keyring.bridge as LedgerMobileBridge,
+    async ({ keyring }) => keyring.bridge as unknown as LedgerBridgeConnection,
   );
   await bridge.openEthApp();
 };
@@ -108,7 +140,7 @@ export const openEthereumAppOnLedger = async (): Promise<void> => {
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
   const bridge = await withLedgerKeyring(
-    async ({ keyring }) => keyring.bridge as LedgerMobileBridge,
+    async ({ keyring }) => keyring.bridge as unknown as LedgerBridgeConnection,
   );
   await bridge.closeApps();
 };
@@ -125,8 +157,10 @@ export const forgetLedger = async (): Promise<void> => {
     // `removeAccountsFromPermissions` because too many places in the UI still
     // operate on hex addresses rather than CAIP Account Id.
     const accounts = await keyring.getAccounts();
-    removeAccountsFromPermissions(accounts);
-    keyring.forgetDevice();
+    removeAccountsFromPermissions(
+      accounts.map(({ address }) => getChecksumAddress(address as Hex)),
+    );
+    await keyring.forgetDevice();
   });
 };
 
@@ -183,7 +217,10 @@ export const getHDPath = async (): Promise<string> =>
  * @returns The Ledger Accounts
  */
 export const getLedgerAccounts = async (): Promise<string[]> =>
-  await withLedgerKeyring(async ({ keyring }) => keyring.getAccounts());
+  await withLedgerKeyring(async ({ keyring }) => {
+    const accounts = await keyring.getAccounts();
+    return accounts.map(({ address }) => address);
+  });
 
 /**
  * Unlock Ledger Accounts by page
@@ -293,10 +330,25 @@ export const unlockLedgerWalletAccount = async (index: number) => {
           );
         }
 
-        keyring.setAccountToUnlock(index);
-        const accounts = await keyring.addAccounts(1);
+        // Ledger Live mode uses a per-account hardened third segment;
+        // Legacy and BIP-44 modes are `${hdPath}/${index}`.
+        // NOTE: Use `keyring.hdPath` (that is set using `setHDPath` function) + We force
+        // the type, since `createAccounts` expects a specific derivation path format.
+        const derivationPath: `m/${string}` =
+          keyring.hdPath === LEDGER_LIVE_PATH
+            ? `m/44'/60'/${index}'/0/0`
+            : (`${keyring.hdPath}/${index}` as `m/${string}`);
+        const [account] = await keyring.createAccounts({
+          type: 'bip44:derive-path',
+          entropySource: keyring.entropySource,
+          derivationPath,
+        });
+
+        if (!account) {
+          throw new Error(`No account created for device: Ledger`);
+        }
         return {
-          unlockAccount: accounts[accounts.length - 1],
+          unlockAccount: account.address,
           name: accountName,
         };
       },

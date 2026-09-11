@@ -657,10 +657,11 @@ describe('RecipientSelectorModal', () => {
     });
 
     it('applies filtering logic to wallet sections', () => {
-      const { getByText } = renderRecipientSelectorModal();
+      const { getByText, queryByText } = renderRecipientSelectorModal();
 
-      // Wallet section should be shown with compatible accounts
-      expect(getByText('Wallet 1')).toBeTruthy();
+      expect(queryByText('Wallet 1')).toBeFalsy();
+      expect(getByText('Account 1')).toBeTruthy();
+      expect(getByText('Account 2')).toBeTruthy();
     });
   });
 });

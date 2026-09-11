@@ -18,12 +18,9 @@ const styleSheet = (_params: { theme: Theme }) =>
     },
     disabledRowContent: {
       flex: 1,
-      flexDirection: 'column',
-      alignItems: 'flex-start',
-      gap: 4,
-    },
-    comingSoonTag: {
-      borderRadius: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
   });
 

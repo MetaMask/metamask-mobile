@@ -16,6 +16,7 @@ import {
   SolScope,
   Transaction as NonEvmTransaction,
   TrxScope,
+  XlmScope,
 } from '@metamask/keyring-api';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -290,6 +291,7 @@ export const selectMultichainTokenListForAccountsAnyChain =
 
           tokens.push({
             name: metadata?.name ?? '',
+            // TokenI has no assetId; non-EVM CAIP-19 IDs are stored in address.
             address: assetId,
             symbol: metadata?.symbol ?? '',
             image: metadata?.iconUrl,
@@ -319,14 +321,11 @@ export const selectMultichainTokenListForAccountsAnyChain =
  * active networks (e.g. TRON) from causing `selectSelectedInternalAccount` to
  * resolve to a non-EVM address that has no EVM balance data.
  */
-const selectAccountTokensAcrossChainsForEvmScope = createSelector(
-  (state: RootState) => state,
-  selectSelectedInternalAccountByScope,
-  (state, accountByScope) => {
-    const evmAddress = accountByScope(EVM_SCOPE)?.address;
-    return selectAccountTokensAcrossChainsForAddress(state, evmAddress);
-  },
-);
+const selectAccountTokensAcrossChainsForEvmScope = (state: RootState) =>
+  selectAccountTokensAcrossChainsForAddress(
+    state,
+    selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,
+  );
 
 /**
  * Unified selector: EVM tokens (native + ERC20) for the selected EVM address
@@ -351,13 +350,22 @@ export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
         selectMultichainTokenListForAccountsAnyChain(state, [account]) || [];
 
       for (const token of nonEvmTokensForAccount) {
-        if (isTronSpecialAsset(String(token.chainId), token.symbol)) {
+        // TokenI has no assetId. This Earn adapter maps CAIP-19 IDs onto
+        // TokenI.address (see selectMultichainTokenListForAccountsAnyChain).
+        if (isTronSpecialAsset(token.address)) {
           continue;
         }
         // We just need tron mainnet, at least for now
         if (
           String(token.chainId).startsWith('tron:') &&
           token.chainId !== TrxScope.Mainnet
+        ) {
+          continue;
+        }
+        // We just need stellar pubnet, at least for now
+        if (
+          String(token.chainId).startsWith('stellar:') &&
+          token.chainId !== XlmScope.Pubnet
         ) {
           continue;
         }

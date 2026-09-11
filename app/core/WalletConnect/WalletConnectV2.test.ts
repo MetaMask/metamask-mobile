@@ -189,6 +189,10 @@ jest.mock('../../selectors/networkController', () => ({
     ticker: 'ETH',
   }),
   selectEvmNetworkConfigurationsByChainId: jest.fn().mockReturnValue({}),
+  selectNetworkConfigurationsByCaipChainId: jest.fn().mockReturnValue({
+    'eip155:1': { name: 'Ethereum Mainnet' },
+    'eip155:137': { name: 'Polygon' },
+  }),
   selectSelectedNetworkClientId: jest.fn().mockReturnValue('mainnet'),
   selectNetworkClientId: jest.fn().mockReturnValue('mainnet'),
   selectRpcUrl: jest.fn().mockReturnValue('https://mainnet.infura.io/v3/123'),
@@ -275,6 +279,9 @@ describe('WC2Manager', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    // Spies on real modules (StorageWrapper, wcUtils, store, ...) would
+    // otherwise leak into later tests in this single-describe file.
+    jest.restoreAllMocks();
     // Reset WC2Manager singleton state
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (WC2Manager as any).instance = undefined;
@@ -1103,6 +1110,75 @@ describe('WC2Manager', () => {
           originalGetCaveatImpl,
         );
       }
+    });
+
+    it('seeds requested eip155 chains into the permission request when a proposal mixes eip155 with an adapter namespace (Tron)', async () => {
+      // Regression test for WPN-1704: a proposal with both eip155 and tron
+      // used to raise a permission request whose only chain scopes were
+      // Tron's, so the approval UI pre-selected Tron only and eip155 settled
+      // with no accounts.
+      mockApproveSession.mockResolvedValue({
+        topic: 'test-topic',
+        pairingTopic: 'mixed-pairing',
+        peer: {
+          metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+        },
+      });
+
+      const mixedProposal = {
+        id: 43,
+        params: {
+          id: 43,
+          pairingTopic: 'mixed-pairing',
+          proposer: {
+            publicKey: 'mixed-public-key',
+            metadata: {
+              name: 'Multichain Dapp',
+              description: 'Multichain Dapp',
+              url: 'https://multichain.example.com',
+              icons: ['https://multichain.example.com/icon.png'],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            eip155: {
+              chains: ['eip155:1', 'eip155:137'],
+              methods: ['eth_sendTransaction', 'personal_sign'],
+              events: ['chainChanged', 'accountsChanged'],
+            },
+            tron: {
+              chains: ['tron:0x2b6653dc'],
+              methods: ['tron_signTransaction', 'tron_signMessage'],
+              events: [],
+            },
+          },
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://multichain.example.com',
+            validation: 'VALID' as const,
+            origin: 'https://multichain.example.com',
+          },
+        },
+      };
+
+      await manager.onSessionProposal(mixedProposal);
+
+      const requestPermissionsMock = Engine.context.PermissionController
+        .requestPermissions as jest.Mock;
+      expect(requestPermissionsMock).toHaveBeenCalledTimes(1);
+
+      const requestedCaveatValue =
+        requestPermissionsMock.mock.calls[0][1]['endowment:caip25'].caveats[0]
+          .value;
+
+      // Both the requested eip155 chains and the Tron adapter scope must be
+      // present so the approval UI pre-selects EVM and Tron together.
+      expect(Object.keys(requestedCaveatValue.optionalScopes)).toEqual(
+        expect.arrayContaining(['eip155:1', 'eip155:137', 'tron:728126428']),
+      );
     });
 
     it('logs "invalid wallet status" error to console on session proposal with invalid wallet status', async () => {
@@ -2018,11 +2094,34 @@ describe('WC2Manager', () => {
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
       const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.id).toBe('verify-test-pairing');
       expect(metadata.verifyContext).toEqual({
         isScam: true,
         validation: 'INVALID',
         verifiedOrigin: 'https://malicious-site.com',
       });
+    });
+
+    it('stores pairing topic as wc2Metadata id for permission-origin matching', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'pairing-id-topic',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      await manager.onSessionProposal(createProposal());
+
+      const metadataCall = dispatchSpy.mock.calls.find(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+
+      expect(metadataCall?.[0]?.metadata?.id).toBe('verify-test-pairing');
     });
 
     it('dispatches verifyContext with isScam false for verified dapps', async () => {

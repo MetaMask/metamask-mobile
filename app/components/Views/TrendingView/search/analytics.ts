@@ -34,6 +34,7 @@ export const getExploreSearchResultCount = (
 };
 
 export type SearchInteractionType =
+  | 'opened'
   | 'result_clicked'
   | 'scrolled'
   | 'tab_switched'
@@ -42,9 +43,14 @@ export type SearchInteractionType =
 /** 'all' = aggregated view; other values are a specific feed pill. */
 export type SearchFeedPill = SearchFeedId | 'all';
 
+/** Surface that opened search. Only set on `opened`. */
+export type SearchEntryPoint = 'home' | 'explore' | 'deeplink';
+
 export interface ExploreSearchInteractedProperties {
   interaction_type: SearchInteractionType;
   search_query: string;
+  /** Only set on `opened`. */
+  entry_point?: SearchEntryPoint;
   /** Only set on result_clicked when tab_name is 'all'. */
   section_name?: SearchFeedId;
   tab_name?: SearchFeedPill;
@@ -83,7 +89,8 @@ export type ExploreSectionName =
   | 'sites_recents'
   | 'sites_favorites'
   | 'sites_ecosystems'
-  | 'sites_popular';
+  | 'sites_popular'
+  | 'whats_happening';
 
 export interface ExploreInteractedProperties {
   interaction_type:
@@ -91,7 +98,7 @@ export interface ExploreInteractedProperties {
     | 'section_see_all_tapped'
     | 'section_item_tapped'
     | 'prediction_voted';
-  tab_name: ExploreTabName;
+  tab_name?: ExploreTabName;
   section_name?: ExploreSectionName;
   position?: number;
   asset_type?: 'token' | 'stock' | 'perp' | 'prediction' | 'dapp';
@@ -100,6 +107,8 @@ export interface ExploreInteractedProperties {
   token_symbol?: string;
   chain_id?: string;
   item_clicked?: string;
+  /** Entry surface when the user arrived on Explore (e.g. `homescreen_pill`). */
+  source?: string;
 }
 
 export const trackExploreInteracted = (
@@ -165,6 +174,25 @@ export const trackExploreSearchEvent = (
       .addProperties(properties as unknown as Record<string, unknown>)
       .build(),
   );
+};
+
+/**
+ * Fired when the user opens the search screen, so opens can be attributed to
+ * the surface they came from. In-app entry points call this from their tap
+ * handlers; deeplinks call it when their route params are consumed.
+ *
+ * `search_query` is sent as an empty string because the opened-event schema
+ * requires it. A deeplink's prefilled query is reported by the settled
+ * `searched` event.
+ */
+export const trackExploreSearchOpened = (
+  entryPoint: SearchEntryPoint,
+): void => {
+  trackExploreSearchEvent({
+    interaction_type: 'opened',
+    search_query: '',
+    entry_point: entryPoint,
+  });
 };
 
 /**

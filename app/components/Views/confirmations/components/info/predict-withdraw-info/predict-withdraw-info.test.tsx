@@ -31,11 +31,11 @@ describe('PredictWithdrawInfo', () => {
     });
   });
 
-  it('does not pass hasMax to CustomAmountInfo', () => {
+  it('passes hasMax to CustomAmountInfo', () => {
     render(<PredictWithdrawInfo />);
 
     expect(CustomAmountInfoMock).toHaveBeenCalledWith(
-      expect.not.objectContaining({ hasMax: true }),
+      expect.objectContaining({ hasMax: true }),
       undefined,
     );
   });

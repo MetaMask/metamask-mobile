@@ -1,11 +1,14 @@
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Interface } from '@ethersproject/abi';
 import {
+  hasTransactionType,
   TransactionMeta,
   TransactionParams,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+
+export { hasTransactionType } from '@metamask/transaction-controller';
 import {
   abiERC721,
   abiERC20,
@@ -15,7 +18,10 @@ import {
 
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import { addTransaction } from '../../../../util/transaction-controller';
-import { POST_QUOTE_TRANSACTION_TYPES } from '../constants/confirmations';
+import {
+  PAY_TRANSACTION_TYPES,
+  POST_QUOTE_TRANSACTION_TYPES,
+} from '../constants/confirmations';
 import { Severity } from '../components/status-icon';
 
 const erc20Interface = new Interface(abiERC20);
@@ -133,21 +139,16 @@ export function resolveTransactionType(
   return nestedType ?? transaction.type;
 }
 
-export function hasTransactionType(
+export function getTransactionType(
   transactionMeta: TransactionMeta | undefined,
-  types: readonly TransactionType[],
-) {
-  const { nestedTransactions, type } = transactionMeta ?? {};
-
-  if (types.includes(type as TransactionType)) {
-    return true;
+): string | undefined {
+  if (!transactionMeta) return undefined;
+  const { type, nestedTransactions } = transactionMeta;
+  if (nestedTransactions?.length) {
+    const nestedType = nestedTransactions.find((tx) => tx.type)?.type;
+    if (nestedType) return nestedType;
   }
-
-  return (
-    nestedTransactions?.some((tx) =>
-      types.includes(tx.type as TransactionType),
-    ) ?? false
-  );
+  return type;
 }
 
 /**
@@ -177,6 +178,23 @@ export function getPostQuoteTransactionType(
 
   return POST_QUOTE_TRANSACTION_TYPES.find((type) =>
     hasTransactionType(transactionMeta, [type as unknown as TransactionType]),
+  );
+}
+
+/**
+ * Returns the matching MM Pay transaction type (e.g. "moneyAccountDeposit")
+ * for the given transaction metadata. Batched confirmations report type
+ * `batch`, so the pay type lives in the nested transactions.
+ */
+export function getPayTransactionType(
+  transactionMeta: TransactionMeta | undefined,
+): string | undefined {
+  if (!transactionMeta) {
+    return undefined;
+  }
+
+  return PAY_TRANSACTION_TYPES.find((type) =>
+    hasTransactionType(transactionMeta, [type]),
   );
 }
 

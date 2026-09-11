@@ -1,6 +1,6 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
+import Matchers from '../../framework/detox/Matchers';
+import Gestures from '../../framework/detox/Gestures';
+import Assertions from '../../framework/detox/Assertions';
 import { HardwareWalletBottomSheetSelectorsIDs } from '../../selectors/Ledger/Ledger.selectors';
 
 class HardwareWalletBottomSheet {

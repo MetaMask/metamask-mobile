@@ -1,18 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Text, {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FilterButton,
+  FilterButtonVariant,
+  FilterButtonGroup,
+  FontWeight,
+  HeaderStandard,
+  SectionDivider,
+  SectionHeader,
+  Spinner,
+  Text,
+  TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
+} from '@metamask/design-system-react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
-import styleSheet from './HIP3DebugView.styles';
 import Engine from '../../../../core/Engine';
 import {
   type HyperLiquidProvider,
@@ -36,7 +44,8 @@ const getHyperLiquidProvider = (): HyperLiquidProvider | undefined => {
 };
 
 const HIP3DebugView: React.FC = () => {
-  const { styles } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const provider = getHyperLiquidProvider();
 
   // DEX selection state
@@ -462,343 +471,379 @@ const HIP3DebugView: React.FC = () => {
     }
   };
 
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   if (!__DEV__) {
     return (
-      <SafeAreaView
-        style={styles.container}
-        edges={['bottom', 'left', 'right']}
-      >
-        <View style={styles.section}>
-          <Text variant={TextVariant.HeadingLG}>Debug Tools</Text>
-          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+      <Box twClassName="flex-1 bg-default">
+        <HeaderStandard
+          title="Debug Tools"
+          onBack={handleBack}
+          includesTopInset
+        />
+        <Box twClassName="px-4 py-4" style={{ paddingBottom: insets.bottom }}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             Only available in development builds
           </Text>
-        </View>
-      </SafeAreaView>
+        </Box>
+      </Box>
     );
   }
 
   if (!provider) {
     return (
-      <SafeAreaView
-        style={styles.container}
-        edges={['bottom', 'left', 'right']}
-      >
-        <View style={styles.section}>
-          <Text variant={TextVariant.HeadingLG}>HIP-3 Debug Tools</Text>
-          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
+      <Box twClassName="flex-1 bg-default">
+        <HeaderStandard
+          title="HIP-3 Debug Tools"
+          onBack={handleBack}
+          includesTopInset
+        />
+        <Box twClassName="px-4 py-4" style={{ paddingBottom: insets.bottom }}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             Provider not initialized
           </Text>
-        </View>
-      </SafeAreaView>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <ScrollView style={styles.scrollView}>
+    <Box twClassName="flex-1 bg-default">
+      <HeaderStandard
+        title="HIP-3 Debug Tools"
+        onBack={handleBack}
+        includesTopInset
+      />
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom }}>
         {/* DEX Selector Section */}
-        <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
-            Step 1: Select HIP-3 DEX
-          </Text>
-          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-            Choose a DEX to test (avoids querying all {availableDexs.length}{' '}
-            DEXs)
-          </Text>
-
-          {loadingDexs && <ActivityIndicator style={styles.loader} />}
-          {!loadingDexs && availableDexs.length === 0 && (
-            <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-              No HIP-3 DEXs available
+        <Box paddingBottom={3}>
+          <SectionHeader title="Step 1: Select HIP-3 DEX">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              Choose a DEX to test (avoids querying all {availableDexs.length}{' '}
+              DEXs)
             </Text>
+          </SectionHeader>
+
+          {loadingDexs && (
+            <Box twClassName="px-4">
+              <Spinner />
+            </Box>
+          )}
+          {!loadingDexs && availableDexs.length === 0 && (
+            <Box twClassName="px-4">
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                No HIP-3 DEXs available
+              </Text>
+            </Box>
           )}
           {!loadingDexs && availableDexs.length > 0 && (
-            <View>
-              <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-                Selected: {selectedDex || 'None'}
-              </Text>
+            <FilterButtonGroup
+              value={selectedDex ?? ''}
+              onChange={setSelectedDex}
+              variant={FilterButtonVariant.Secondary}
+              twClassName="px-4"
+            >
               {availableDexs.slice(0, 10).map((dex) => (
-                <TouchableOpacity
-                  key={dex}
-                  style={[
-                    styles.button,
-                    selectedDex === dex
-                      ? styles.button
-                      : styles.buttonSecondary,
-                  ]}
-                  onPress={() => setSelectedDex(dex)}
-                >
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    style={
-                      selectedDex === dex
-                        ? styles.buttonText
-                        : styles.buttonTextSecondary
-                    }
-                  >
-                    {dex}
-                  </Text>
-                </TouchableOpacity>
+                <FilterButton key={dex} value={dex}>
+                  {dex}
+                </FilterButton>
               ))}
-            </View>
+            </FilterButtonGroup>
           )}
-        </View>
+        </Box>
 
         {/* Market Selector Section */}
         {selectedDex && (
-          <View style={styles.section}>
-            <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
-              Step 2: Select Market
-            </Text>
-            <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-              Choose a market on {selectedDex} DEX for testing
-            </Text>
-
-            {loadingMarkets && <ActivityIndicator style={styles.loader} />}
-            {!loadingMarkets && markets.length === 0 && (
-              <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-                No markets available for {selectedDex}
-              </Text>
-            )}
-            {!loadingMarkets && markets.length > 0 && (
-              <View>
-                <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-                  Selected: {selectedMarket || 'None'}
+          <>
+            <SectionDivider />
+            <Box paddingBottom={3}>
+              <SectionHeader title="Step 2: Select Market">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  Choose a market on {selectedDex} DEX for testing
                 </Text>
-                {markets.slice(0, 5).map((market) => (
-                  <TouchableOpacity
-                    key={market.name}
-                    style={[
-                      styles.button,
-                      selectedMarket === market.name
-                        ? styles.button
-                        : styles.buttonSecondary,
-                    ]}
-                    onPress={() => setSelectedMarket(market.name)}
+              </SectionHeader>
+
+              {loadingMarkets && (
+                <Box twClassName="px-4">
+                  <Spinner />
+                </Box>
+              )}
+              {!loadingMarkets && markets.length === 0 && (
+                <Box twClassName="px-4">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      style={
-                        selectedMarket === market.name
-                          ? styles.buttonText
-                          : styles.buttonTextSecondary
-                      }
-                    >
+                    No markets available for {selectedDex}
+                  </Text>
+                </Box>
+              )}
+              {!loadingMarkets && markets.length > 0 && (
+                <FilterButtonGroup
+                  value={selectedMarket ?? ''}
+                  onChange={setSelectedMarket}
+                  variant={FilterButtonVariant.Secondary}
+                  twClassName="px-4"
+                >
+                  {markets.slice(0, 5).map((market) => (
+                    <FilterButton key={market.name} value={market.name}>
                       {market.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
+                    </FilterButton>
+                  ))}
+                </FilterButtonGroup>
+              )}
+            </Box>
+          </>
         )}
 
         {/* Balance Check Section */}
-        <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
-            Balance Check
-          </Text>
-          <Text variant={TextVariant.BodySM} style={styles.subtitle}>
-            Check balances across all DEXs. Results will be logged to DevLogger
-            console.
-          </Text>
-
-          <TouchableOpacity style={styles.button} onPress={checkBalance}>
-            <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
-              Check Balance
+        <SectionDivider />
+        <Box paddingBottom={3}>
+          <SectionHeader title="Balance Check">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+            >
+              Check balances across all DEXs. Results will be logged to
+              DevLogger console.
             </Text>
-          </TouchableOpacity>
+          </SectionHeader>
 
-          {/* Display balance info if available */}
-          {balanceInfo && (
-            <View style={styles.successBox}>
-              <Text
-                variant={TextVariant.BodySMMedium}
-                style={styles.successText}
-              >
-                Account Summary
-              </Text>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
-                Total: ${balanceInfo.totalBalance}
-              </Text>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
-                Available: ${balanceInfo.spendableBalance}
-              </Text>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
-                Margin Used: ${balanceInfo.marginUsed}
-              </Text>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
-                Positions: {balanceInfo.positionCount} | Sub-Accounts:{' '}
-                {balanceInfo.subAccountCount}
-              </Text>
+          <Box twClassName="px-4 gap-2">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={checkBalance}
+            >
+              Check Balance
+            </Button>
 
-              {/* Display per-sub-account balances if available */}
-              {balanceInfo.subAccountBreakdown &&
-                Object.keys(balanceInfo.subAccountBreakdown).length > 0 && (
-                  <View style={styles.subAccountSection}>
-                    <Text
-                      variant={TextVariant.BodySMMedium}
-                      style={styles.successText}
-                    >
-                      Per Sub-Account Balances:
-                    </Text>
-                    {Object.entries(balanceInfo.subAccountBreakdown).map(
-                      ([subAccount, breakdown]) => (
-                        <View key={subAccount} style={styles.subAccountItem}>
-                          <Text
-                            variant={TextVariant.BodySM}
-                            style={styles.successText}
-                          >
-                            {subAccount || 'main'}:
-                          </Text>
-                          <Text
-                            variant={TextVariant.BodySM}
-                            style={styles.successText}
-                          >
-                            {'  '}Total: ${breakdown.totalBalance}
-                          </Text>
-                          <Text
-                            variant={TextVariant.BodySM}
-                            style={styles.successText}
-                          >
-                            {'  '}Available: ${breakdown.spendableBalance}
-                          </Text>
-                        </View>
-                      ),
-                    )}
-                  </View>
-                )}
-            </View>
-          )}
-        </View>
+            {balanceInfo && (
+              <Box twClassName="p-3 rounded-lg bg-success-muted gap-1">
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.SuccessDefault}
+                >
+                  Account Summary
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.SuccessDefault}
+                >
+                  Total: ${balanceInfo.totalBalance}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.SuccessDefault}
+                >
+                  Available: ${balanceInfo.spendableBalance}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.SuccessDefault}
+                >
+                  Margin Used: ${balanceInfo.marginUsed}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.SuccessDefault}
+                >
+                  Positions: {balanceInfo.positionCount} | Sub-Accounts:{' '}
+                  {balanceInfo.subAccountCount}
+                </Text>
+
+                {balanceInfo.subAccountBreakdown &&
+                  Object.keys(balanceInfo.subAccountBreakdown).length > 0 && (
+                    <Box twClassName="mt-2 pt-2 border-t border-success-default gap-1">
+                      <Text
+                        variant={TextVariant.BodySm}
+                        fontWeight={FontWeight.Medium}
+                        color={TextColor.SuccessDefault}
+                      >
+                        Per Sub-Account Balances:
+                      </Text>
+                      {Object.entries(balanceInfo.subAccountBreakdown).map(
+                        ([subAccount, breakdown]) => (
+                          <Box key={subAccount} twClassName="pl-2 gap-0.5">
+                            <Text
+                              variant={TextVariant.BodySm}
+                              color={TextColor.SuccessDefault}
+                            >
+                              {subAccount || 'main'}:
+                            </Text>
+                            <Text
+                              variant={TextVariant.BodySm}
+                              color={TextColor.SuccessDefault}
+                            >
+                              {'  '}Total: ${breakdown.totalBalance}
+                            </Text>
+                            <Text
+                              variant={TextVariant.BodySm}
+                              color={TextColor.SuccessDefault}
+                            >
+                              {'  '}Available: ${breakdown.spendableBalance}
+                            </Text>
+                          </Box>
+                        ),
+                      )}
+                    </Box>
+                  )}
+              </Box>
+            )}
+          </Box>
+        </Box>
 
         {/* Manual Transfer Testing */}
-        <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
-            Manual Transfer Testing
-          </Text>
+        <SectionDivider />
+        <Box paddingBottom={3}>
+          <SectionHeader title="Manual Transfer Testing" />
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={testTransferToSelectedDex}
-            disabled={!selectedDex}
-          >
-            <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
-              Transfer $10 → {selectedDex || '(select DEX)'} DEX
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.buttonSecondary]}
-            onPress={testTransferFromSelectedDex}
-            disabled={!selectedDex}
-          >
-            <Text
-              variant={TextVariant.BodyMD}
-              style={[styles.buttonText, styles.buttonTextSecondary]}
+          <Box twClassName="px-4 gap-2">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              isDisabled={!selectedDex}
+              onPress={testTransferToSelectedDex}
             >
-              Reset: Transfer ALL ← {selectedDex || '(select DEX)'} DEX
-            </Text>
-          </TouchableOpacity>
+              {`Transfer $10 → ${selectedDex || '(select DEX)'} DEX`}
+            </Button>
 
-          {transferResult.status === 'loading' && (
-            <ActivityIndicator style={styles.loader} />
-          )}
+            <Button
+              variant={ButtonVariant.Tertiary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              isDisabled={!selectedDex}
+              onPress={testTransferFromSelectedDex}
+            >
+              {`Reset: Transfer ALL ← ${selectedDex || '(select DEX)'} DEX`}
+            </Button>
 
-          {transferResult.status === 'error' && (
-            <View style={styles.errorBox}>
-              <Text variant={TextVariant.BodySM} style={styles.errorText}>
-                ❌ {transferResult.error}
-              </Text>
-            </View>
-          )}
+            {transferResult.status === 'loading' && <Spinner />}
 
-          {transferResult.status === 'success' && (
-            <View style={styles.successBox}>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
-                {transferResult.data}
-              </Text>
-            </View>
-          )}
-        </View>
+            {transferResult.status === 'error' && (
+              <Box twClassName="p-3 rounded-lg bg-error-muted">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
+                  ❌ {transferResult.error}
+                </Text>
+              </Box>
+            )}
+
+            {transferResult.status === 'success' && (
+              <Box twClassName="p-3 rounded-lg bg-success-muted">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.SuccessDefault}
+                >
+                  {transferResult.data}
+                </Text>
+              </Box>
+            )}
+          </Box>
+        </Box>
 
         {/* Auto-Transfer Testing */}
-        <View style={styles.section}>
-          <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
-            Auto-Transfer Testing
-          </Text>
+        <SectionDivider />
+        <Box paddingBottom={3}>
+          <SectionHeader title="Auto-Transfer Testing" />
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={testOrderWithAutoTransfer}
-          >
-            <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
+          <Box twClassName="px-4 gap-2">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={testOrderWithAutoTransfer}
+            >
               Place Order (Test Auto-Transfer)
-            </Text>
-          </TouchableOpacity>
+            </Button>
 
-          {orderResult.status === 'loading' && (
-            <ActivityIndicator style={styles.loader} />
-          )}
+            {orderResult.status === 'loading' && <Spinner />}
 
-          {orderResult.status === 'error' && (
-            <View style={styles.errorBox}>
-              <Text variant={TextVariant.BodySM} style={styles.errorText}>
-                ❌ {orderResult.error}
-              </Text>
-            </View>
-          )}
+            {orderResult.status === 'error' && (
+              <Box twClassName="p-3 rounded-lg bg-error-muted">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
+                  ❌ {orderResult.error}
+                </Text>
+              </Box>
+            )}
 
-          {orderResult.status === 'success' && (
-            <View style={styles.successBox}>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
-                {orderResult.data}
-              </Text>
-            </View>
-          )}
+            {orderResult.status === 'success' && (
+              <Box twClassName="p-3 rounded-lg bg-success-muted">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.SuccessDefault}
+                >
+                  {orderResult.data}
+                </Text>
+              </Box>
+            )}
 
-          <TouchableOpacity
-            style={[styles.button, styles.buttonSecondary]}
-            onPress={testCloseWithAutoTransferBack}
-          >
-            <Text
-              variant={TextVariant.BodyMD}
-              style={[styles.buttonText, styles.buttonTextSecondary]}
+            <Button
+              variant={ButtonVariant.Tertiary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={testCloseWithAutoTransferBack}
             >
               Close Position (Test Transfer Back)
-            </Text>
-          </TouchableOpacity>
+            </Button>
 
-          {closeResult.status === 'loading' && (
-            <ActivityIndicator style={styles.loader} />
-          )}
+            {closeResult.status === 'loading' && <Spinner />}
 
-          {closeResult.status === 'error' && (
-            <View style={styles.errorBox}>
-              <Text variant={TextVariant.BodySM} style={styles.errorText}>
-                ❌ {closeResult.error}
-              </Text>
-            </View>
-          )}
+            {closeResult.status === 'error' && (
+              <Box twClassName="p-3 rounded-lg bg-error-muted">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
+                  ❌ {closeResult.error}
+                </Text>
+              </Box>
+            )}
 
-          {closeResult.status === 'success' && (
-            <View style={styles.successBox}>
-              <Text variant={TextVariant.BodySM} style={styles.successText}>
-                {closeResult.data}
-              </Text>
-            </View>
-          )}
-        </View>
+            {closeResult.status === 'success' && (
+              <Box twClassName="p-3 rounded-lg bg-success-muted">
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.SuccessDefault}
+                >
+                  {closeResult.data}
+                </Text>
+              </Box>
+            )}
+          </Box>
+        </Box>
 
         {/* Debug Info */}
-        <View style={styles.section}>
-          <Text variant={TextVariant.BodyXS} style={styles.subtitle}>
+        <SectionDivider />
+        <Box twClassName="px-4 pb-4">
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             Check DevLogger console for detailed logs
           </Text>
-        </View>
+        </Box>
       </ScrollView>
-    </SafeAreaView>
+    </Box>
   );
 };
 

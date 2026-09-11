@@ -4,6 +4,8 @@ import {
   MultichainBalancesControllerMessenger,
 } from '@metamask/assets-controllers';
 import type { MessengerClientInitFunction } from '../../types';
+import { selectIsControllerDeprecated } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../../store';
 
 /**
  * Initialize the MultichainBalancesController.
@@ -23,6 +25,10 @@ export const multichainBalancesControllerInit: MessengerClientInitFunction<
   const controller = new MultichainBalancesController({
     messenger: controllerMessenger,
     state: multichainBalancesControllerState,
+    isDeprecated: () =>
+      selectIsControllerDeprecated('MultichainBalancesController')(
+        store.getState(),
+      ),
   });
 
   return { controller };

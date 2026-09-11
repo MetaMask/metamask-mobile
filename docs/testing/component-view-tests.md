@@ -118,7 +118,7 @@ Drop anything that only produces a render scenario: "The screen shows X when sta
 
 #### 3. Deduplicate against existing tests
 
-Read `ComponentName.view.test.tsx` (if it exists) and remove any candidate already covered.
+Read `ComponentName.view.test.tsx` (if it exists) **and** sibling `ComponentName.test.tsx`. Remove any candidate already covered by either file. Prefer CV for screen behavior: do not add a shallow unit test that only re-asserts what CV already covers. See [unit-vs-component-view-overlap.md](./unit-vs-component-view-overlap.md).
 
 #### 4. Run coverage and prioritize
 

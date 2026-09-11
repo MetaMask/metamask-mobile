@@ -1,11 +1,7 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import type { UseHomepagePredictWorldCupMarketsResult } from '../hooks/useHomepagePredictWorldCupMarkets';
-import type { UseHomepagePredictTaggedMarketsResult } from '../hooks/useHomepagePredictTaggedMarkets';
 import type { PredictionsTrendingHeaderTestId } from '../predictionsSectionTypes';
-import type { PredictEmptyStateCtaName } from '../../../abTestConfig';
-import HomepagePredictWorldCupDiscovery from './HomepagePredictWorldCupDiscovery';
 import HomepagePredictTrendingCarousel from './HomepagePredictTrendingCarousel';
 
 export interface HomepagePredictTrendingMarketsProps {
@@ -18,16 +14,8 @@ export interface HomepagePredictTrendingMarketsProps {
   isLoadingMarkets: boolean;
   markets: PredictMarket[];
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /** Required when `discoveryLayout` is `list` (World Cup discovery rail). */
-  worldCupHomepage?: UseHomepagePredictWorldCupMarketsResult;
-  worldCupEventCount?: number;
-  /** Required when `discoveryLayout` is `list` (NBA champion event, separate from World Cup tag). */
-  nbaChampionHomepage?: UseHomepagePredictTaggedMarketsResult;
-  emptyStateTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  onEmptyStateTreatmentCtaClick?: (
-    ctaName: PredictEmptyStateCtaName,
-    categoryName?: string,
-  ) => void;
+  /** Required when `discoveryLayout` is `list`. */
+  discoveryList?: ReactNode;
 }
 
 const HomepagePredictTrendingMarkets = ({
@@ -38,11 +26,7 @@ const HomepagePredictTrendingMarkets = ({
   isLoadingMarkets,
   markets,
   transactionActiveAbTests,
-  worldCupHomepage,
-  worldCupEventCount,
-  nbaChampionHomepage,
-  emptyStateTransactionActiveAbTests,
-  onEmptyStateTreatmentCtaClick,
+  discoveryList,
 }: HomepagePredictTrendingMarketsProps) => {
   if (discoveryLayout === 'carousel') {
     return (
@@ -57,22 +41,7 @@ const HomepagePredictTrendingMarkets = ({
     );
   }
 
-  if (!worldCupHomepage || !nbaChampionHomepage) {
-    return null;
-  }
-
-  return (
-    <HomepagePredictWorldCupDiscovery
-      title={title}
-      onViewAll={onViewAll}
-      headerTestIdKey={headerTestIdKey}
-      worldCup={worldCupHomepage}
-      worldCupEventCount={worldCupEventCount}
-      nbaChampion={nbaChampionHomepage}
-      transactionActiveAbTests={emptyStateTransactionActiveAbTests}
-      onTreatmentCtaClick={onEmptyStateTreatmentCtaClick}
-    />
-  );
+  return discoveryList ?? null;
 };
 
 export default HomepagePredictTrendingMarkets;

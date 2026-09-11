@@ -1,9 +1,16 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Animated } from 'react-native';
 import { FLipQuoteButton } from './index';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
+import { playSelection } from '../../../../../util/haptics';
 
+jest.mock('../../../../../util/haptics', () => ({
+  playSelection: jest.fn(() => Promise.resolve()),
+}));
+
+const mockPlaySelection = jest.mocked(playSelection);
 const mockOnPress = jest.fn();
 
 const renderFlipQuoteButton = (disabled: boolean = false) =>
@@ -17,6 +24,10 @@ const renderFlipQuoteButton = (disabled: boolean = false) =>
 describe('FLipQuoteButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPlaySelection.mockResolvedValue(undefined);
+    jest.spyOn(Animated, 'timing').mockReturnValue({
+      start: jest.fn(),
+    } as unknown as Animated.CompositeAnimation);
   });
 
   afterEach(() => {
@@ -52,6 +63,14 @@ describe('FLipQuoteButton', () => {
       fireEvent.press(button);
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays selection haptic when pressed', () => {
+      const { getByTestId } = renderFlipQuoteButton(false);
+
+      fireEvent.press(getByTestId('arrow-button'));
+
+      expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     });
 
     it('handles onPressIn event when enabled', () => {

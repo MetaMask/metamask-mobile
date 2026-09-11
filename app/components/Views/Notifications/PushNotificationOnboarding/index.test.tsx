@@ -183,7 +183,6 @@ const expectNotificationsOnToast = () => {
         description: "We'll send you transactions, price alerts, and updates.",
       },
       startAccessory: expect.any(Object),
-      customBottomOffset: expect.any(Number),
       hasNoTimeout: false,
     }),
   );
@@ -198,7 +197,6 @@ const expectNotificationsOffToast = () => {
         description: 'Turn them on anytime in Settings → Notifications.',
       },
       startAccessory: expect.any(Object),
-      customBottomOffset: expect.any(Number),
       hasNoTimeout: false,
     }),
   );
@@ -213,7 +211,6 @@ const expectPersonalizedAlertsOnToast = () => {
         description: 'Manage this anytime in Settings.',
       },
       startAccessory: expect.any(Object),
-      customBottomOffset: expect.any(Number),
       hasNoTimeout: false,
     }),
   );
@@ -228,7 +225,6 @@ const expectPersonalizedAlertsOffToast = () => {
         description: 'Turn it on anytime in Settings.',
       },
       startAccessory: expect.any(Object),
-      customBottomOffset: expect.any(Number),
       hasNoTimeout: false,
     }),
   );

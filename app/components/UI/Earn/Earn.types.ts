@@ -48,14 +48,6 @@ export interface GasImpactModalParams {
   chainId: string;
 }
 
-/** Earn screens parameters */
-export interface EarnScreensParams {
-  screen?: string;
-  params?: {
-    token?: Record<string, unknown>;
-  };
-}
-
 /**
  * Lending deposit confirmation parameters
  * Matches LendingDepositViewRouteParams in EarnLendingDepositConfirmationView
@@ -66,6 +58,7 @@ export interface LendingDepositConfirmationParams {
   amountFiat?: string;
   annualRewardsToken?: string;
   annualRewardsFiat?: string;
+  annualRewardRate?: string;
   action?: Extract<EARN_LENDING_ACTIONS, 'ALLOWANCE_INCREASE' | 'DEPOSIT'>;
   lendingContractAddress?: string;
   lendingProtocol?: string;

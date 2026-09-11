@@ -6,6 +6,8 @@ import {
   SolScope,
   TrxAccountType,
   TrxScope,
+  XlmAccountType,
+  XlmScope,
 } from '@metamask/keyring-api';
 import imageIcons from '../../images/image-icons';
 import { MultichainBlockExplorerFormatUrls } from './networks';
@@ -23,6 +25,7 @@ export const MULTICHAIN_TOKEN_IMAGES = {
   [TrxScope.Mainnet]: imageIcons.TRON,
   [TrxScope.Nile]: imageIcons.TRON,
   [TrxScope.Shasta]: imageIcons.TRON,
+  [XlmScope.Pubnet]: imageIcons.STELLAR,
 } as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
@@ -82,6 +85,12 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     address: 'https://shasta.tronscan.org/#/address/{address}',
     transaction: 'https://shasta.tronscan.org/#/transaction/{txId}',
   },
+  [XlmScope.Pubnet]: {
+    url: 'https://stellar.expert/',
+    address: 'https://stellar.expert/explorer/public/account/{address}',
+    transaction: 'https://stellar.expert/explorer/public/tx/{txId}',
+    token: 'https://stellar.expert/explorer/public/asset/{address}',
+  },
 } as const;
 
 export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
@@ -91,6 +100,7 @@ export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
   [BtcAccountType.P2tr]: BtcScope.Mainnet,
   [SolAccountType.DataAccount]: SolScope.Mainnet,
   [TrxAccountType.Eoa]: TrxScope.Mainnet,
+  [XlmAccountType.Account]: XlmScope.Pubnet,
 } as const;
 
 export const PRICE_API_CURRENCIES = [
@@ -145,27 +155,49 @@ export const PRICE_API_CURRENCIES = [
  * These are virtual resources and staking state assets passed from the Tron Snap
  * to the extension for informational purposes, not actual tradeable tokens.
  */
-export const TRON_SPECIAL_ASSET_SYMBOLS = {
-  ENERGY: 'energy',
-  BANDWIDTH: 'bandwidth',
-  MAX_ENERGY: 'max-energy',
-  MAX_BANDWIDTH: 'max-bandwidth',
-  STRX_ENERGY: 'strx-energy',
-  STRX_BANDWIDTH: 'strx-bandwidth',
-  TRX_READY_FOR_WITHDRAWAL: 'trx-ready-for-withdrawal',
-  TRX_STAKING_REWARDS: 'trx-staking-rewards',
-  TRX_IN_LOCK_PERIOD: 'trx-in-lock-period',
-} as const;
+export enum KnownCaip19Id {
+  TrxStakedForBandwidthMainnet = `${TrxScope.Mainnet}/slip44:195-staked-for-bandwidth`,
+  TrxStakedForBandwidthNile = `${TrxScope.Nile}/slip44:195-staked-for-bandwidth`,
+  TrxStakedForBandwidthShasta = `${TrxScope.Shasta}/slip44:195-staked-for-bandwidth`,
+
+  TrxStakedForEnergyMainnet = `${TrxScope.Mainnet}/slip44:195-staked-for-energy`,
+  TrxStakedForEnergyNile = `${TrxScope.Nile}/slip44:195-staked-for-energy`,
+  TrxStakedForEnergyShasta = `${TrxScope.Shasta}/slip44:195-staked-for-energy`,
+
+  TrxReadyForWithdrawalMainnet = `${TrxScope.Mainnet}/slip44:195-ready-for-withdrawal`,
+  TrxReadyForWithdrawalNile = `${TrxScope.Nile}/slip44:195-ready-for-withdrawal`,
+  TrxReadyForWithdrawalShasta = `${TrxScope.Shasta}/slip44:195-ready-for-withdrawal`,
+
+  TrxStakingRewardsMainnet = `${TrxScope.Mainnet}/slip44:195-staking-rewards`,
+  TrxStakingRewardsNile = `${TrxScope.Nile}/slip44:195-staking-rewards`,
+  TrxStakingRewardsShasta = `${TrxScope.Shasta}/slip44:195-staking-rewards`,
+
+  TrxInLockPeriodMainnet = `${TrxScope.Mainnet}/slip44:195-in-lock-period`,
+  TrxInLockPeriodNile = `${TrxScope.Nile}/slip44:195-in-lock-period`,
+  TrxInLockPeriodShasta = `${TrxScope.Shasta}/slip44:195-in-lock-period`,
+
+  EnergyMainnet = `${TrxScope.Mainnet}/slip44:energy`,
+  EnergyNile = `${TrxScope.Nile}/slip44:energy`,
+  EnergyShasta = `${TrxScope.Shasta}/slip44:energy`,
+
+  MaximumEnergyMainnet = `${TrxScope.Mainnet}/slip44:maximum-energy`,
+  MaximumEnergyNile = `${TrxScope.Nile}/slip44:maximum-energy`,
+  MaximumEnergyShasta = `${TrxScope.Shasta}/slip44:maximum-energy`,
+
+  BandwidthMainnet = `${TrxScope.Mainnet}/slip44:bandwidth`,
+  BandwidthNile = `${TrxScope.Nile}/slip44:bandwidth`,
+  BandwidthShasta = `${TrxScope.Shasta}/slip44:bandwidth`,
+
+  MaximumBandwidthMainnet = `${TrxScope.Mainnet}/slip44:maximum-bandwidth`,
+  MaximumBandwidthNile = `${TrxScope.Nile}/slip44:maximum-bandwidth`,
+  MaximumBandwidthShasta = `${TrxScope.Shasta}/slip44:maximum-bandwidth`,
+}
 
 export enum TronResourceType {
   ENERGY = 'ENERGY',
   BANDWIDTH = 'BANDWIDTH',
 }
 
-export type TronSpecialAssetSymbol =
-  (typeof TRON_SPECIAL_ASSET_SYMBOLS)[keyof typeof TRON_SPECIAL_ASSET_SYMBOLS];
-
-export const TRON_SPECIAL_ASSET_SYMBOLS_SET: ReadonlySet<TronSpecialAssetSymbol> =
-  new Set(
-    Object.values(TRON_SPECIAL_ASSET_SYMBOLS) as TronSpecialAssetSymbol[],
-  );
+export const TRON_SPECIAL_ASSET_IDS_SET: ReadonlySet<string> = new Set(
+  Object.values(KnownCaip19Id),
+);

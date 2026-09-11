@@ -26,7 +26,7 @@ export const InputStepperDescriptionRow = ({
       testID="input-stepper-description-row"
     >
       {description.icon && (
-        <View>
+        <View style={inputStepperDescriptionRow.iconWrapper}>
           <Icon
             testID="input-stepper-description-icon"
             name={description.icon.name}

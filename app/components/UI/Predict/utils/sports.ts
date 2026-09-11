@@ -1,0 +1,511 @@
+import {
+  isDrawCapableLeague,
+  isTeamToAdvanceMarketType,
+  WORLD_CUP_LEAGUE,
+} from '../constants/sports';
+import type {
+  PredictMarketGame,
+  PredictOutcome,
+  PredictOutcomeToken,
+  PredictSportsLeague,
+  PredictSportTeam,
+} from '../types';
+
+interface TeamMatchedOutcome {
+  id?: string;
+  groupItemTitle?: string;
+  tokens: { title?: string; shortTitle?: string }[];
+}
+
+export interface SportCardOutcome<TToken extends SportCardToken> {
+  id: string;
+  title?: string;
+  sportsMarketType?: string;
+  groupItemThreshold?: number;
+  groupItemTitle?: string;
+  negRisk?: boolean;
+  tokens: TToken[];
+}
+
+export interface SportCardToken {
+  id: string;
+  title?: string;
+  shortTitle?: string;
+}
+
+export interface SportCardBetSide<
+  TOutcome extends SportCardOutcome<TToken>,
+  TToken extends SportCardToken,
+> {
+  outcome: TOutcome;
+  token: TToken;
+}
+
+export interface ResolvedSportCardButtons<
+  TOutcome extends SportCardOutcome<TToken>,
+  TToken extends SportCardToken,
+> {
+  home?: SportCardBetSide<TOutcome, TToken>;
+  draw?: SportCardBetSide<TOutcome, TToken>;
+  away?: SportCardBetSide<TOutcome, TToken>;
+  isTeamToAdvance: boolean;
+  remainingOptions: number;
+}
+
+const normalizeTeamLabel = (value?: string): string | undefined =>
+  value?.trim().toLowerCase();
+
+export const sportTeamMatchesLabel = (
+  label: string | undefined,
+  team: PredictSportTeam,
+): boolean => {
+  const normalizedLabel = normalizeTeamLabel(label);
+  if (!normalizedLabel) {
+    return false;
+  }
+
+  return [team.name, team.alias, team.abbreviation]
+    .map(normalizeTeamLabel)
+    .some((teamLabel) => teamLabel === normalizedLabel);
+};
+
+export const outcomeMatchesTeam = <T extends TeamMatchedOutcome>(
+  outcome: T,
+  team: PredictSportTeam,
+): boolean => {
+  const tokenLabel = outcome.tokens[0]?.shortTitle ?? outcome.tokens[0]?.title;
+
+  return (
+    sportTeamMatchesLabel(outcome.groupItemTitle, team) ||
+    sportTeamMatchesLabel(tokenLabel, team)
+  );
+};
+
+export const getTeamOutcome = <T extends TeamMatchedOutcome & { id: string }>(
+  outcomes: T[],
+  team: PredictSportTeam,
+  fallbackIndex: number,
+  excludedOutcome?: T,
+): T | undefined =>
+  outcomes.find(
+    (outcome) =>
+      outcome.id !== excludedOutcome?.id && outcomeMatchesTeam(outcome, team),
+  ) ??
+  outcomes.find((outcome) => outcome.id !== excludedOutcome?.id) ??
+  outcomes[fallbackIndex];
+
+export const getMatchingSportTeam = (
+  groupItemTitle: string,
+  game: PredictMarketGame,
+): PredictSportTeam | undefined =>
+  [game.homeTeam, game.awayTeam].find((team) =>
+    sportTeamMatchesLabel(groupItemTitle, team),
+  );
+
+export const getSportTeamColorForLabel = (
+  label: string | undefined,
+  game?: PredictMarketGame,
+): string | undefined => {
+  if (!game || !label) {
+    return undefined;
+  }
+
+  if (sportTeamMatchesLabel(label, game.homeTeam)) {
+    return game.homeTeam.color;
+  }
+
+  if (sportTeamMatchesLabel(label, game.awayTeam)) {
+    return game.awayTeam.color;
+  }
+
+  return undefined;
+};
+
+export const getSportTeamDisplayOrder = (
+  label: string | undefined,
+  game?: PredictMarketGame,
+): number => {
+  if (!game || !label) {
+    return 1;
+  }
+
+  if (sportTeamMatchesLabel(label, game.homeTeam)) {
+    return 0;
+  }
+
+  if (sportTeamMatchesLabel(label, game.awayTeam)) {
+    return 2;
+  }
+
+  return 1;
+};
+
+export const getPrimaryMoneylineOutcomes = <
+  T extends { sportsMarketType?: string },
+>(
+  outcomes: T[],
+): T[] => {
+  const moneylineOutcomes = outcomes.filter(
+    (outcome) => outcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+
+  return moneylineOutcomes.length > 0 ? moneylineOutcomes : outcomes;
+};
+
+const getExplicitMoneylineOutcomes = <T extends { sportsMarketType?: string }>(
+  outcomes: T[],
+): T[] =>
+  outcomes.filter(
+    (outcome) => outcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+
+const isDrawLabel = (value?: string): boolean =>
+  value?.trim().toLowerCase() === 'draw';
+
+const tokenIsDraw = (token: { title?: string; shortTitle?: string }): boolean =>
+  isDrawLabel(token.title) || isDrawLabel(token.shortTitle);
+
+const outcomeIsDraw = <T extends TeamMatchedOutcome & { title?: string }>(
+  outcome: T,
+): boolean =>
+  isDrawLabel(outcome.groupItemTitle) ||
+  isDrawLabel(outcome.title) ||
+  outcome.tokens.some(tokenIsDraw);
+
+/**
+ * Detects whether moneyline outcomes expose an explicit Draw option.
+ *
+ * Two Polymarket shapes are supported: a combined moneyline, where one
+ * outcome's tokens include a Draw token, and a split neg-risk moneyline, where
+ * home / draw / away arrive as separate outcomes. The `>= 3` threshold on the
+ * split case avoids treating a two-way winner market (home + away only) as
+ * draw-capable when a token title happens to mention "draw".
+ */
+export const hasExplicitMoneylineDraw = <
+  T extends TeamMatchedOutcome & {
+    sportsMarketType?: string;
+    title?: string;
+    negRisk?: boolean;
+  },
+>(
+  outcomes: T[],
+): boolean => {
+  const moneylineOutcomes = getExplicitMoneylineOutcomes(outcomes);
+  if (moneylineOutcomes.length === 0) {
+    return false;
+  }
+
+  const combinedMoneylineHasDraw = moneylineOutcomes.some((outcome) =>
+    outcome.tokens.some(tokenIsDraw),
+  );
+  if (combinedMoneylineHasDraw) {
+    return true;
+  }
+
+  const negRiskMoneylineOutcomes = moneylineOutcomes.filter(
+    (outcome) => outcome.negRisk,
+  );
+  return (
+    negRiskMoneylineOutcomes.length >= 3 &&
+    negRiskMoneylineOutcomes.some(outcomeIsDraw)
+  );
+};
+
+/**
+ * Whether a market should render a Draw button / third outcome.
+ *
+ * True when the league is inherently draw-capable (e.g. soccer) or when the
+ * outcomes themselves expose an explicit moneyline draw via
+ * {@link hasExplicitMoneylineDraw} (optional for some esports markets).
+ */
+export const isDrawCapableMarket = <
+  T extends TeamMatchedOutcome & {
+    sportsMarketType?: string;
+    title?: string;
+    negRisk?: boolean;
+  },
+>({
+  game,
+  outcomes,
+}: {
+  game?: PredictMarketGame;
+  outcomes: T[];
+}): boolean =>
+  Boolean(
+    game &&
+      (isDrawCapableLeague(game.league) || hasExplicitMoneylineDraw(outcomes)),
+  );
+
+export const getPrimarySportsCardOutcomes = <
+  T extends { sportsMarketType?: string },
+>(
+  outcomes: T[],
+  league?: PredictSportsLeague,
+): T[] => {
+  if (league === WORLD_CUP_LEAGUE) {
+    const advanceOutcomes = outcomes.filter((outcome) =>
+      isTeamToAdvanceMarketType(outcome.sportsMarketType),
+    );
+
+    if (advanceOutcomes.length > 0) {
+      return advanceOutcomes;
+    }
+  }
+
+  return getPrimaryMoneylineOutcomes(outcomes);
+};
+
+const isGenericTeamLabel = (label: string): boolean => {
+  const normalizedLabel = normalizeTeamLabel(label);
+  return (
+    normalizedLabel === 'team to advance' ||
+    normalizedLabel?.startsWith('draw') === true
+  );
+};
+
+export const getTeamToAdvanceTokenLogo = (
+  tokenTitle: string | undefined,
+  game?: PredictMarketGame,
+): string | undefined => {
+  if (
+    !game?.homeTeam ||
+    !game?.awayTeam ||
+    !tokenTitle ||
+    isGenericTeamLabel(tokenTitle)
+  ) {
+    return undefined;
+  }
+
+  return getMatchingSportTeam(tokenTitle, game)?.logo;
+};
+
+export const getTokenImage = ({
+  sportsMarketType,
+  tokenTitle,
+  game,
+}: {
+  sportsMarketType?: string;
+  tokenTitle?: string;
+  game?: PredictMarketGame;
+}): string | undefined => {
+  if (isTeamToAdvanceMarketType(sportsMarketType)) {
+    return getTeamToAdvanceTokenLogo(tokenTitle, game);
+  }
+
+  return undefined;
+};
+
+export const getBuyOutcomeImage = ({
+  outcome,
+  outcomeToken,
+  game,
+}: {
+  outcome: PredictOutcome;
+  outcomeToken?: PredictOutcomeToken;
+  game?: PredictMarketGame;
+}): string | undefined => {
+  if (
+    game?.league === WORLD_CUP_LEAGUE &&
+    isTeamToAdvanceMarketType(outcome.sportsMarketType)
+  ) {
+    return (
+      outcomeToken?.image ??
+      getTokenImage({
+        sportsMarketType: outcome.sportsMarketType,
+        tokenTitle: outcomeToken?.title,
+        game,
+      }) ??
+      outcome.image
+    );
+  }
+
+  return outcome.image;
+};
+
+const getTeamToken = <TToken extends SportCardToken>(
+  tokens: TToken[],
+  team: PredictSportTeam,
+  excludedTokenIds: string[] = [],
+): TToken | undefined =>
+  tokens.find((token) => sportTeamMatchesLabel(token.title, team)) ??
+  tokens.find((token) => !excludedTokenIds.includes(token.id)) ??
+  tokens[0];
+
+const getDrawToken = <TToken extends SportCardToken>(
+  tokens: TToken[],
+): TToken | undefined => tokens.find(tokenIsDraw);
+
+const getSortedDrawOutcomes = <
+  TOutcome extends SportCardOutcome<TToken>,
+  TToken extends SportCardToken,
+>(
+  outcomes: TOutcome[],
+): TOutcome[] =>
+  [...outcomes].sort(
+    (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
+  );
+
+/**
+ * Picks the outcome that matches `team` from a candidate list, preferring a
+ * title/abbreviation match. Falls back to `fallbackIndex` (then the first
+ * remaining candidate) so home/away assignment still works when labels are
+ * generic. `excludedOutcomes` prevents the draw outcome from being reused.
+ */
+const getTeamOutcomeFromCandidates = <
+  TOutcome extends SportCardOutcome<TToken>,
+  TToken extends SportCardToken,
+>(
+  outcomes: TOutcome[],
+  team: PredictSportTeam,
+  fallbackIndex: number,
+  excludedOutcomes: TOutcome[] = [],
+): TOutcome | undefined => {
+  const excludedIds = new Set(excludedOutcomes.map((outcome) => outcome.id));
+  const candidates = outcomes.filter((outcome) => !excludedIds.has(outcome.id));
+  return (
+    candidates.find((outcome) => outcomeMatchesTeam(outcome, team)) ??
+    candidates[fallbackIndex] ??
+    candidates[0]
+  );
+};
+
+export const resolveSportCardButtons = <
+  TOutcome extends SportCardOutcome<TToken>,
+  TToken extends SportCardToken,
+>({
+  outcomes,
+  game,
+  showDraw,
+}: {
+  outcomes: TOutcome[];
+  game: PredictMarketGame;
+  showDraw: boolean;
+}): ResolvedSportCardButtons<TOutcome, TToken> => {
+  const primaryOutcomes = getPrimarySportsCardOutcomes(outcomes, game.league);
+  const firstOutcome = primaryOutcomes[0];
+  const isTeamToAdvance =
+    game.league === WORLD_CUP_LEAGUE &&
+    isTeamToAdvanceMarketType(firstOutcome?.sportsMarketType);
+
+  const fallbackResult = {
+    isTeamToAdvance,
+    remainingOptions: isTeamToAdvance ? 0 : Math.max(0, outcomes.length - 1),
+  };
+
+  if (!firstOutcome) {
+    return fallbackResult;
+  }
+
+  const sortedDrawOutcomes =
+    showDraw && !isTeamToAdvance && primaryOutcomes.length >= 3
+      ? getSortedDrawOutcomes(primaryOutcomes)
+      : null;
+
+  if (sortedDrawOutcomes) {
+    const drawOutcome =
+      sortedDrawOutcomes.find(outcomeIsDraw) ?? sortedDrawOutcomes[1];
+    if (!drawOutcome) {
+      return fallbackResult;
+    }
+
+    const homeOutcome = getTeamOutcomeFromCandidates(
+      sortedDrawOutcomes,
+      game.homeTeam,
+      0,
+      [drawOutcome],
+    );
+    const awayOutcome = getTeamOutcomeFromCandidates(
+      sortedDrawOutcomes,
+      game.awayTeam,
+      1,
+      [drawOutcome, homeOutcome].filter((outcome): outcome is TOutcome =>
+        Boolean(outcome),
+      ),
+    );
+    const homeToken = homeOutcome
+      ? getTeamToken(homeOutcome.tokens, game.homeTeam)
+      : undefined;
+    const drawToken = getDrawToken(drawOutcome.tokens) ?? drawOutcome.tokens[0];
+    const awayToken = awayOutcome
+      ? getTeamToken(awayOutcome.tokens, game.awayTeam)
+      : undefined;
+
+    return {
+      ...fallbackResult,
+      home:
+        homeOutcome && homeToken
+          ? { outcome: homeOutcome, token: homeToken }
+          : undefined,
+      draw: drawToken ? { outcome: drawOutcome, token: drawToken } : undefined,
+      away:
+        awayOutcome && awayToken
+          ? { outcome: awayOutcome, token: awayToken }
+          : undefined,
+    };
+  }
+
+  if (isTeamToAdvance && primaryOutcomes.length >= 2) {
+    const homeOutcome = getTeamOutcome(primaryOutcomes, game.homeTeam, 0);
+    const awayOutcome = getTeamOutcome(
+      primaryOutcomes,
+      game.awayTeam,
+      1,
+      homeOutcome,
+    );
+    const homeToken = homeOutcome
+      ? getTeamToken(homeOutcome.tokens, game.homeTeam)
+      : undefined;
+    const awayToken = awayOutcome
+      ? getTeamToken(
+          awayOutcome.tokens,
+          game.awayTeam,
+          [homeToken?.id].filter((id): id is string => Boolean(id)),
+        )
+      : undefined;
+
+    return {
+      ...fallbackResult,
+      home:
+        homeOutcome && homeToken
+          ? { outcome: homeOutcome, token: homeToken }
+          : undefined,
+      away:
+        awayOutcome && awayToken
+          ? { outcome: awayOutcome, token: awayToken }
+          : undefined,
+    };
+  }
+
+  const homeToken = getTeamToken(firstOutcome.tokens, game.homeTeam);
+  const drawToken =
+    showDraw && !isTeamToAdvance
+      ? getDrawToken(firstOutcome.tokens)
+      : undefined;
+  const awayToken = getTeamToken(
+    firstOutcome.tokens,
+    game.awayTeam,
+    [homeToken?.id, drawToken?.id].filter((id): id is string => Boolean(id)),
+  );
+
+  return {
+    ...fallbackResult,
+    home: homeToken ? { outcome: firstOutcome, token: homeToken } : undefined,
+    draw: drawToken ? { outcome: firstOutcome, token: drawToken } : undefined,
+    away: awayToken ? { outcome: firstOutcome, token: awayToken } : undefined,
+  };
+};
+
+export const resolvePredictSportCardButtons = ({
+  outcomes,
+  game,
+  showDraw,
+}: {
+  outcomes: PredictOutcome[];
+  game: PredictMarketGame;
+  showDraw: boolean;
+}): ResolvedSportCardButtons<PredictOutcome, PredictOutcomeToken> =>
+  resolveSportCardButtons<PredictOutcome, PredictOutcomeToken>({
+    outcomes,
+    game,
+    showDraw,
+  });

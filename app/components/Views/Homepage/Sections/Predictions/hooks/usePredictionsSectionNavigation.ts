@@ -9,10 +9,7 @@ import { PredictEventValues } from '../../../../../UI/Predict/constants/eventNam
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 import { predictQueries } from '../../../../../UI/Predict/queries';
 import { getEvmAccountFromSelectedAccountGroup } from '../../../../../UI/Predict/utils/accounts';
-import {
-  HomeSectionNames,
-  type HomeSectionName,
-} from '../../../hooks/useHomeViewedEvent';
+import { HomeSectionNames } from '../../../hooks/useHomeViewedEvent';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -60,7 +57,6 @@ export const usePredictNavigationHandlers = (): {
         params: {
           marketId: position.marketId,
           entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-          headerShown: false,
         },
       });
     },
@@ -74,17 +70,11 @@ export const usePredictNavigationHandlers = (): {
   };
 };
 
-export const usePredictionsCommonSetup = ({
-  sectionNameOverride,
-  titleOverride,
-}: {
-  sectionNameOverride?: HomeSectionName;
-  titleOverride?: string;
-}) => {
+export const usePredictionsCommonSetup = () => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const queryClient = useQueryClient();
-  const title = titleOverride ?? strings('homepage.sections.predictions');
-  const analyticsName = sectionNameOverride ?? HomeSectionNames.PREDICT;
+  const title = strings('homepage.sections.predictions');
+  const analyticsName = HomeSectionNames.PREDICT;
   const {
     handleViewAllPredictions,
     handleViewAllFromPositions,

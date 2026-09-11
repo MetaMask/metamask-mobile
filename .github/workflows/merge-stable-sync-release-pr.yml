@@ -56,11 +56,25 @@ jobs:
     name: Merge with merge commit (via github-tools)
     needs: prepare-stable-sync-release-merge
     if: needs.prepare-stable-sync-release-merge.outputs.should_merge == 'true'
-    uses: MetaMask/github-tools/.github/workflows/merge-approved-pr.yml@v1
-    with:
-      pr-number: ${{ github.event.issue.number }}
-      required-base-branch: ${{ needs.prepare-stable-sync-release-merge.outputs.base_branch }}
-      head-branch-pattern: '^stable-sync-'
-      merge-method: merge
-    secrets:
-      github-token: ${{ secrets.METAMASK_MOBILE_BRANCH_SYNC_TOKEN }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            pull_requests: write
+            contents: write
+            members: read
+
+      - name: Merge approved PR
+        uses: MetaMask/github-tools/.github/actions/merge-approved-pr@v1
+        with:
+          pr-number: ${{ github.event.issue.number }}
+          required-base-branch: ${{ needs.prepare-stable-sync-release-merge.outputs.base_branch }}
+          head-branch-pattern: '^stable-sync-'
+          merge-method: merge
+          github-token: ${{ steps.get-token.outputs.token }}

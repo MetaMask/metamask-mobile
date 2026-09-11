@@ -4,10 +4,16 @@ import {
   AvatarIcon,
   AvatarIconSeverity,
   AvatarIconSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -15,15 +21,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
-import {
-  BadgeAnchorElementShape,
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
 import PendingSpinner from '../PendingSpinner/PendingSpinner';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
@@ -34,6 +31,8 @@ export interface ActivityRowViewProps {
   chainId?: Hex;
   onPress?: (id: string) => void;
   showNetworkBadge?: boolean;
+  /** Whether the crypto/fiat amounts should be masked. */
+  privacyMode?: boolean;
 }
 
 const ActivityRowView = ({
@@ -42,6 +41,7 @@ const ActivityRowView = ({
   chainId,
   onPress,
   showNetworkBadge = false,
+  privacyMode = false,
 }: ActivityRowViewProps) => {
   const tw = useTailwind();
 
@@ -76,14 +76,16 @@ const ActivityRowView = ({
     >
       {showNetworkBadge ? (
         <BadgeWrapper
-          anchorElementShape={BadgeAnchorElementShape.Circular}
-          badgePosition={BadgePosition.BottomRight}
+          positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+          position={BadgeWrapperPosition.BottomRight}
           style={tw.style('self-center')}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkImageSource}
-              size={AvatarSize.Sm}
+          badge={
+            <BadgeNetwork
+              src={
+                networkImageSource as React.ComponentProps<
+                  typeof BadgeNetwork
+                >['src']
+              }
             />
           }
         >
@@ -135,25 +137,31 @@ const ActivityRowView = ({
         ) : null}
       </Box>
       <Box alignItems={BoxAlignItems.End} twClassName="shrink-0 gap-0.5">
-        <Text
+        <SensitiveText
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={amountColor}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
           twClassName="text-right"
+          testID={MoneyActivityItemTestIds.PRIMARY_AMOUNT}
         >
           {display.primaryAmount}
-        </Text>
-        <Text
+        </SensitiveText>
+        <SensitiveText
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
           twClassName="text-right"
+          testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
         >
           {display.fiatAmount}
-        </Text>
+        </SensitiveText>
       </Box>
     </Pressable>
   );
 };
 
-export default ActivityRowView;
+export default React.memo(ActivityRowView);

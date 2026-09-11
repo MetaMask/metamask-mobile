@@ -1,7 +1,7 @@
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../helpers/mockHelpers.ts';
 import { MockApiEndpoint, RampsRegion } from '../../../framework/types.ts';
-import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers.ts';
+import { getDecodedProxiedURL } from '../../../smoke-appium/notifications/utils/helpers.ts';
 import { RAMPS_NETWORKS_RESPONSE } from './responses/ramps-networks-response.ts';
 import { getCountryResponseForUrl } from './responses/countries-contracts.ts';
 import {

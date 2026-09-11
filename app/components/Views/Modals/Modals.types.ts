@@ -1,3 +1,5 @@
+import type { TransactionMeta } from '@metamask/transaction-controller';
+
 /**
  * Modal navigation parameters
  */
@@ -14,6 +16,9 @@ export interface ModalConfirmationParams {
   description?: string;
   onConfirm?: () => void;
   onCancel?: () => void;
+  cancelLabel?: string;
+  confirmLabel?: string;
+  isDanger?: boolean;
 }
 
 /** Modal mandatory parameters */
@@ -43,9 +48,29 @@ export interface SeedphraseModalParams {
   seedPhrase?: string[];
 }
 
-/** Transaction details sheet parameters */
+/** Transaction details sheet parameters (matches TransactionDetailsSheet route). */
 export interface TransactionDetailsSheetParams {
-  transactionId?: string;
+  tx: TransactionMeta;
+  transactionElement: {
+    actionKey: string;
+    value?: string;
+    [key: string]: unknown;
+  };
+  transactionDetails: {
+    hash?: string;
+    renderFrom?: string;
+    renderTo?: string;
+    renderValue?: string;
+    summaryAmount?: string;
+    summaryFee?: string;
+    summaryTotalAmount?: string;
+    summarySecondaryTotalAmount?: string;
+    transactionType?: string;
+    txChainId?: string;
+    [key: string]: unknown;
+  };
+  showSpeedUpModal: () => void;
+  showCancelModal: () => void;
 }
 
 /** Show NFT display media parameters */

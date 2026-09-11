@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   Button,
@@ -16,6 +17,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import styleSheet from './TokenNotAvailableModal.styles';
@@ -27,7 +29,6 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS } from './TokenNotAvailableModal.testIds';
 import type { BuyFlowOrigin } from '../../BuildQuote/BuildQuote';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface TokenNotAvailableModalParams {
   assetId: string;
@@ -44,13 +45,12 @@ export const createTokenNotAvailableModalNavigationDetails =
 function TokenNotAvailableModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { assetId, buyFlowOrigin } = useParams<TokenNotAvailableModalParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
   const { selectedProvider } = useRampsProviders();
   const { selectedToken } = useRampsTokens();
-  const surfaceClass = useElevatedSurface();
 
   const tokenName = selectedToken?.name ?? '';
   const providerName = selectedProvider?.name ?? '';
@@ -79,14 +79,22 @@ function TokenNotAvailableModal() {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (buyFlowOrigin === 'tokenInfo') {
         // Token Info buy flow: return to the Tokens Full View screen
-        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW as never);
+        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, undefined, {
+          pop: true,
+        });
       } else if (buyFlowOrigin === 'homeTokenList') {
         // Home token list buy flow: return to home screen
-        navigation.navigate(Routes.WALLET.HOME as never);
+        navigation.navigate(
+          Routes.HOME_TABS,
+          { screen: Routes.WALLET.HOME },
+          { pop: true },
+        );
       } else {
-        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-        });
+        navigation.navigate(
+          Routes.RAMP.TOKEN_SELECTION,
+          { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
+          { pop: true },
+        );
       }
     });
   }, [
@@ -108,8 +116,9 @@ function TokenNotAvailableModal() {
         .build(),
     );
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(
-        ...createProviderSelectionModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createProviderSelectionModalNavigationDetails({
           assetId,
           skipQuotes: true,
         }),
@@ -145,11 +154,17 @@ function TokenNotAvailableModal() {
           navigation.goBack();
         } else if (buyFlowOrigin === 'homeTokenList') {
           // Home token list buy flow: return to home screen
-          navigation.navigate(Routes.WALLET.HOME as never);
+          navigation.navigate(
+            Routes.HOME_TABS,
+            { screen: Routes.WALLET.HOME },
+            { pop: true },
+          );
         } else {
-          navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-            screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-          });
+          navigation.navigate(
+            Routes.RAMP.TOKEN_SELECTION,
+            { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
+            { pop: true },
+          );
         }
       }
     },
@@ -162,7 +177,6 @@ function TokenNotAvailableModal() {
       goBack={navigation.goBack}
       onClose={handleDismiss}
       testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
-      twClassName={surfaceClass}
     >
       <HeaderStandard
         title={strings('fiat_on_ramp.token_unavailable_modal.title')}

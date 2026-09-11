@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'react-native';
 import { Provider, useSelector } from 'react-redux';
@@ -51,26 +51,6 @@ jest.mock('../../Stake/hooks/useBalance', () => ({
   default: () => ({
     currentCurrency: 'usd',
     conversionRate: 1,
-  }),
-}));
-
-jest.mock('../../Earn/hooks/useMusdConversionTokens', () => ({
-  __esModule: true,
-  useMusdConversionTokens: () => ({
-    isConversionToken: jest.fn().mockReturnValue(false),
-    tokenFilter: jest.fn().mockReturnValue([]),
-    isMusdSupportedOnChain: jest.fn().mockReturnValue(false),
-    getMusdOutputChainId: jest.fn().mockReturnValue('0x1'),
-    tokens: [],
-  }),
-}));
-
-jest.mock('../../Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => ({
-    isEligible: true,
-    isLoading: false,
-    geolocation: 'US',
-    blockedCountries: [],
   }),
 }));
 
@@ -332,34 +312,6 @@ describe('Balance', () => {
     );
     expect(getByTestId('asset-DAI')).toBeOnTheScreen();
     expect(queryByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID)).toBeNull();
-  });
-
-  it('should fire navigation event for non native tokens', () => {
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />
-      </Provider>,
-    );
-    const assetElement = getByTestId('asset-DAI');
-    fireEvent.press(assetElement);
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not fire navigation event for native tokens', () => {
-    const { queryAllByTestId } = render(
-      <Provider store={store}>
-        <Balance asset={mockETH} mainBalance="100" secondaryBalance="200" />,
-      </Provider>,
-    );
-
-    // Includes native ETH and staked ETH
-    const ethElements = queryAllByTestId('asset-ETH');
-
-    ethElements.forEach((ethElement) => {
-      fireEvent.press(ethElement);
-    });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(0);
   });
 
   describe('Percentage Change Color Logic', () => {

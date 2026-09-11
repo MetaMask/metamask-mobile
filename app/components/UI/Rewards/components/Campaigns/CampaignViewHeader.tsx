@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   HeaderStandard,
   TextVariant,
@@ -22,7 +23,7 @@ const CampaignViewHeader: React.FC<CampaignViewHeaderProps> = ({
   hasCampaign,
   campaignId,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   return (
     <HeaderStandard
       title={title}

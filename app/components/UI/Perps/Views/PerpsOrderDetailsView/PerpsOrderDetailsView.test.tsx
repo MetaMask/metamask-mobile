@@ -11,6 +11,10 @@ import { type Order } from '@metamask/perps-controller';
 let mockRouteParams: { order?: Order } = {};
 const mockCancelOrder = jest.fn();
 const mockShowToast = jest.fn();
+const mockCancellationInProgress = jest
+  .fn()
+  .mockReturnValue({ type: 'progress' });
+const mockCancellationSuccess = jest.fn().mockReturnValue({ type: 'success' });
 const mockGetExplorerUrl = jest.fn();
 const mockUsePerpsOrderFees = jest.fn((_params?: unknown) => ({
   totalFee: 0.5,
@@ -63,10 +67,8 @@ jest.mock('../../hooks/usePerpsToasts', () => ({
     PerpsToastOptions: {
       orderManagement: {
         shared: {
-          cancellationInProgress: jest
-            .fn()
-            .mockReturnValue({ type: 'progress' }),
-          cancellationSuccess: jest.fn().mockReturnValue({ type: 'success' }),
+          cancellationInProgress: mockCancellationInProgress,
+          cancellationSuccess: mockCancellationSuccess,
           cancellationFailed: { type: 'error' },
         },
       },
@@ -193,6 +195,32 @@ describe('PerpsOrderDetailsView', () => {
     expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
+  it('strips DEX prefix from visible asset symbol while preserving raw symbol for cancellation', async () => {
+    mockRouteParams = {
+      order: {
+        ...mockOrder,
+        symbol: 'xyz:MSTR',
+      },
+    };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(screen.getByText('MSTR')).toBeOnTheScreen();
+    expect(screen.getAllByText('0.5000 MSTR')).toHaveLength(2);
+    expect(screen.queryByText('xyz:MSTR')).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
+
+    await waitFor(() => {
+      expect(mockCancelOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'order-123',
+          symbol: 'xyz:MSTR',
+        }),
+      );
+    });
+  });
+
   it('renders error state when no order is provided', () => {
     mockRouteParams = {};
 
@@ -264,10 +292,12 @@ describe('PerpsOrderDetailsView', () => {
     fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
 
     await waitFor(() => {
-      expect(mockCancelOrder).toHaveBeenCalledWith({
-        orderId: 'child-tp-order-123',
-        symbol: 'BTC',
-      });
+      expect(mockCancelOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'child-tp-order-123',
+          symbol: 'BTC',
+        }),
+      );
     });
   });
 
@@ -477,15 +507,68 @@ describe('PerpsOrderDetailsView', () => {
     fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
 
     await waitFor(() => {
-      expect(mockCancelOrder).toHaveBeenCalledWith({
-        orderId: 'order-123',
-        symbol: 'BTC',
-      });
+      expect(mockCancelOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'order-123',
+          symbol: 'BTC',
+        }),
+      );
     });
 
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
+  it('passes long direction to cancel toasts for a reduce-only sell (limit close of a long)', async () => {
+    // Arrange - a limit close on a long position rests as a reduce-only sell
+    mockRouteParams = {
+      order: { ...mockOrder, reduceOnly: true, side: 'sell' as const },
+    };
+    render(<PerpsOrderDetailsView />);
+
+    // Act
+    fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
+
+    // Assert - direction reflects the position being closed, not the order side
+    await waitFor(() => {
+      expect(mockCancellationInProgress).toHaveBeenCalledWith(
+        'long',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+    await waitFor(() => {
+      expect(mockCancellationSuccess).toHaveBeenCalledWith(
+        true,
+        expect.anything(),
+        'long',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+  });
+
+  it('passes short direction to cancel toasts for a non-reduce-only sell (opening short)', async () => {
+    // Arrange - a regular short entry order
+    mockRouteParams = {
+      order: { ...mockOrder, reduceOnly: false, side: 'sell' as const },
+    };
+    render(<PerpsOrderDetailsView />);
+
+    // Act
+    fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
+
+    // Assert
+    await waitFor(() => {
+      expect(mockCancellationInProgress).toHaveBeenCalledWith(
+        'short',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 
@@ -515,17 +598,19 @@ describe('PerpsOrderDetailsView', () => {
     });
   });
 
-  it('shows fill percentage for partially filled orders', () => {
+  it('does not show the fill percentage status for partially filled orders', () => {
     mockRouteParams = { order: mockPartiallyFilledOrder };
     render(<PerpsOrderDetailsView />);
 
-    expect(screen.getByText('50% filled')).toBeOnTheScreen();
+    expect(screen.queryByText('50% filled')).toBeNull();
+    expect(screen.queryByText('perps.order_details.status')).toBeNull();
   });
 
-  it('shows open status for unfilled orders', () => {
+  it('does not show the open status for unfilled orders', () => {
     render(<PerpsOrderDetailsView />);
 
-    expect(screen.getByText('perps.order_details.open')).toBeOnTheScreen();
+    expect(screen.queryByText('perps.order_details.open')).toBeNull();
+    expect(screen.queryByText('perps.order_details.status')).toBeNull();
   });
 
   it('renders short direction for sell orders', () => {

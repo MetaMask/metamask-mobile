@@ -5,10 +5,13 @@ import { fontStyles } from '../../../../../../styles/common';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
+  const { colors } = theme;
 
   return StyleSheet.create({
     modalView: {
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: theme.colors.background.elevated2,
+      borderWidth: 1,
+      borderColor: colors.border.alternative,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 8,
@@ -32,6 +35,9 @@ const styleSheet = (params: { theme: Theme }) => {
     modalContentValue: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
+    },
+    iconButton: {
+      marginLeft: 4,
     },
   });
 };

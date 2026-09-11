@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortDropdowns from './PerpsMarketSortDropdowns';
 import { type SortOptionId } from '@metamask/perps-controller';
+import { IconName } from '@metamask/design-system-react-native';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -21,24 +22,8 @@ jest.mock('../../../../../component-library/hooks', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
     Box: View,
-  };
-});
-
-// Mock component-library Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ children, ...props }: { children?: React.ReactNode }) => (
-      <Text {...props}>{children}</Text>
-    ),
-    TextColor: {
-      Default: 'Default',
-    },
-    TextVariant: {
-      BodySM: 'BodySM',
-    },
   };
 });
 
@@ -140,6 +125,49 @@ describe('PerpsMarketSortDropdowns', () => {
       );
 
       expect(screen.getByText('Funding rate')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Sort Direction Icon', () => {
+    it('shows a down arrow when sortDirection is desc', () => {
+      render(
+        <PerpsMarketSortDropdowns
+          selectedOptionId="volume"
+          onSortPress={mockOnSortPress}
+          sortDirection="desc"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('perps-market-sort-dropdowns-sort-direction'),
+      ).toHaveProp('name', IconName.Arrow2Down);
+    });
+
+    it('shows an up arrow when sortDirection is asc', () => {
+      render(
+        <PerpsMarketSortDropdowns
+          selectedOptionId="volume"
+          onSortPress={mockOnSortPress}
+          sortDirection="asc"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('perps-market-sort-dropdowns-sort-direction'),
+      ).toHaveProp('name', IconName.Arrow2Up);
+    });
+
+    it('shows a down arrow when sortDirection is omitted', () => {
+      render(
+        <PerpsMarketSortDropdowns
+          selectedOptionId="volume"
+          onSortPress={mockOnSortPress}
+        />,
+      );
+
+      expect(
+        screen.getByTestId('perps-market-sort-dropdowns-sort-direction'),
+      ).toHaveProp('name', IconName.Arrow2Down);
     });
   });
 

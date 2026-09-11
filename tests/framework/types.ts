@@ -20,7 +20,6 @@ export interface DeviceMatrix {
 
 // Gestures
 
-import { LanguageAndLocale } from 'detox/detox';
 import { DappVariants } from './Constants.ts';
 import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
@@ -33,6 +32,10 @@ import CommandQueueServer from './fixtures/CommandQueueServer.ts';
 import { CurrentDeviceDetails } from './fixtures/playwright';
 import type { PlatformDeviceCommandHandler } from './services/device-commands/types';
 
+export interface LanguageAndLocale {
+  language?: string;
+  locale?: string;
+}
 /*
  * WDIO PLAYWRIGHT TESTS
  */
@@ -114,12 +117,20 @@ export interface GestureOptions {
   checkStability?: boolean;
   checkVisibility?: boolean;
   checkEnabled?: boolean;
+  /** Appium: when false, skip waitForDisplayed (XCUITest visible=false nodes). */
+  checkForDisplayed?: boolean;
   elemDescription?: string; // For better error messages - i.e "Get Started button"
 }
 
 export interface TapOptions extends GestureOptions {
   delay?: number; // Delay before the tap action
   waitForElementToDisappear?: boolean; // If true, waits for the element to disappear after tapping
+  /** Appium: stricter enabled polling before tap (AppiumGestures.waitUntilInteractive) */
+  waitForInteractive?: boolean;
+  /** Appium: consecutive interactive reads required when waitForInteractive is true */
+  enabledStableReads?: number;
+  /** Appium: extra settle time after interactive wait before tap */
+  postEnabledSettleMs?: number;
 }
 
 export interface TypeTextOptions extends GestureOptions {
@@ -144,6 +155,9 @@ export interface MatcherOptions {
   lastElement?: boolean;
   index?: number;
 }
+
+/** Scroll container for Gestures.scrollToElement — Appium testID string. */
+export type ScrollContainer = string;
 
 /**
  * The options for the scroll gesture.
@@ -238,6 +252,8 @@ export enum E2ECommandTypes {
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
   exportState = 'export-state',
+  /** Inject QR sync sync-ready SRP payload (HAS_TEST_OVERRIDES Appium/Detox). */
+  applyQrSyncSyncReady = 'apply-qr-sync-sync-ready',
 }
 
 export enum GanacheHardfork {
@@ -285,6 +301,10 @@ export interface LaunchArgs {
   commandQueueServerPort: string;
   /** Account-activity WebSocket mock port; launch-arg key matches `launchArgKey` in `tests/websocket/constants.ts`. */
   accountActivityWsPort: string;
+  /** Test-only source account used to bypass the transaction-pay headless fiat flow. */
+  transactionPayFiatTestFundingSource: string;
+  /** Optional human-readable funding amount for the transaction-pay fiat test flow. */
+  transactionPayFiatTestAmountOverride: string;
   /** Appium specific launch args */
   stop: boolean;
   wait: boolean;

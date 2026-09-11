@@ -17,6 +17,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { InteractionManager, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 
 // Internal dependencies.
@@ -42,7 +43,7 @@ const PredictUnavailable = forwardRef<
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isVisible, setIsVisible] = useState(false);
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleSheetClosed = useCallback(() => {
     setIsVisible(false);

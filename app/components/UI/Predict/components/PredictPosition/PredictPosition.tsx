@@ -1,5 +1,7 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import SensitiveText, {
   SensitiveTextLength,
@@ -9,7 +11,12 @@ import {
   TextColor as ComponentTextColor,
 } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { PredictPosition as PredictPositionType } from '../../types';
+import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import { formatPercentage, formatPrice } from '../../utils/format';
+import {
+  estimatePredictSellNetValue,
+  getPredictPositionDisplay,
+} from '../../utils/orders';
 import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -34,17 +41,17 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 }: PredictPositionProps) => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
+  const feeCollection = useSelector(selectPredictFeeCollectionFlag);
 
-  const {
-    icon,
-    title,
+  const { icon, title, initialValue, outcome, currentValue, size, optimistic } =
+    position;
+  const { value, percentPnl } = getPredictPositionDisplay({
     initialValue,
-    percentPnl,
-    outcome,
-    currentValue,
-    size,
-    optimistic,
-  } = position;
+    netValue: estimatePredictSellNetValue({
+      grossValue: currentValue,
+      feeCollection,
+    }),
+  });
 
   return (
     <TouchableOpacity
@@ -93,7 +100,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
             >
-              {formatPrice(currentValue, { maximumDecimals: 2 })}
+              {formatPrice(value, { maximumDecimals: 2 })}
             </SensitiveText>
             <SensitiveText
               variant={ComponentTextVariant.BodySMMedium}

@@ -9,12 +9,14 @@
 import type { Mockttp } from 'mockttp';
 import {
   createLogger,
+  getRegionLocationCode,
   LogLevel,
   type TestSpecificMock,
   RampsRegion,
 } from '../../framework';
 import { safeGetBodyText } from '../MockServerE2E.ts';
-import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
+import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers.ts';
+import { buildV2GeolocationResponse } from './ramps/responses/ramps-geolocation.ts';
 
 const logger = createLogger({
   name: 'PerpsArbitrumMocks',
@@ -44,13 +46,17 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   // eth_blockNumber - latest block
   eth_blockNumber: '0x1234567',
 
-  // eth_getBlockByNumber - block data
+  // eth_getBlockByNumber - block data. `baseFeePerGas` marks the chain as
+  // EIP-1559 so transactions resolve maxFeePerGas/maxPriorityFeePerGas. Without
+  // it, EIP-7702 (type 0x4) batches fail with "Invalid transaction envelope
+  // type: specified type 0x4 but included a gasPrice".
   eth_getBlockByNumber: {
     number: '0x1234567',
     hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
     timestamp: '0x' + Math.floor(Date.now() / 1000).toString(16),
     gasLimit: '0x1c9c380',
     gasUsed: '0x5208',
+    baseFeePerGas: '0x989680',
     transactions: [],
   },
 
@@ -73,9 +79,33 @@ const MOCK_COIN_SVG = `<svg width="24" height="24" xmlns="http://www.w3.org/2000
  */
 const HYPERLIQUID_E2E_META_BODY = {
   universe: [
-    { name: 'BTC', szDecimals: 3, maxLeverage: 50, marginTableId: 0 },
-    { name: 'ETH', szDecimals: 4, maxLeverage: 50, marginTableId: 0 },
-    { name: 'SOL', szDecimals: 2, maxLeverage: 50, marginTableId: 0 },
+    {
+      name: 'BTC',
+      szDecimals: 3,
+      maxLeverage: 50,
+      marginTableId: 0,
+      markPx: '67000',
+      openInterest: '1000',
+      volume: '5000000',
+    },
+    {
+      name: 'ETH',
+      szDecimals: 4,
+      maxLeverage: 50,
+      marginTableId: 0,
+      markPx: '2500',
+      openInterest: '500',
+      volume: '3000000',
+    },
+    {
+      name: 'SOL',
+      szDecimals: 2,
+      maxLeverage: 50,
+      marginTableId: 0,
+      markPx: '200',
+      openInterest: '100',
+      volume: '1000000',
+    },
   ],
 } as const;
 
@@ -225,7 +255,11 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       };
     });
 
-  // Mock HyperLiquid Exchange API POST requests through the mobile proxy
+  // Mock HyperLiquid Exchange API POST requests through the mobile proxy.
+  // Order placement requires `response.data.statuses` with resting/filled —
+  // bare `{ status: 'ok' }` makes HyperLiquidProvider treat the order as failed
+  // ("Order failed" / funds returned toast). See integration harness
+  // createMockExchangeClient() for the canonical shape.
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
@@ -233,11 +267,83 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       return urlParam.includes('api.hyperliquid.xyz/exchange');
     })
     .asPriority(1000)
-    .thenCallback(() => {
-      logger.info('[Perps E2E Mock] Intercepted HyperLiquid Exchange POST');
+    .thenCallback(async (request) => {
+      const bodyText = await safeGetBodyText(request);
+      let actionType: string | undefined;
+      try {
+        const body = bodyText ? JSON.parse(bodyText) : {};
+        actionType =
+          body?.action?.type ??
+          body?.action?.a ??
+          (Array.isArray(body?.action?.orders) ? 'order' : undefined);
+      } catch {
+        /* ignore parse errors — fall through to generic ok */
+      }
+
+      logger.info(
+        `[Perps E2E Mock] Intercepted HyperLiquid Exchange POST (action=${actionType ?? 'unknown'})`,
+      );
+
+      const isOrderAction =
+        actionType === 'order' ||
+        actionType === 'batchModify' ||
+        (typeof bodyText === 'string' && bodyText.includes('"orders"'));
+
+      const isCancelAction =
+        actionType === 'cancel' ||
+        actionType === 'batchCancel' ||
+        (typeof bodyText === 'string' && bodyText.includes('"cancels"'));
+
+      // Place / modify — provider reads statuses[0].resting.oid (or filled).
+      if (isOrderAction) {
+        const oid = Date.now();
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            status: 'ok',
+            response: {
+              type: 'order',
+              data: {
+                statuses: [{ resting: { oid } }],
+              },
+            },
+          }),
+          headers: { 'Content-Type': 'application/json' },
+        };
+      }
+
+      // Cancel — provider expects statuses[0] === 'success'.
+      if (isCancelAction) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            status: 'ok',
+            response: {
+              type: 'cancel',
+              data: {
+                statuses: ['success'],
+              },
+            },
+          }),
+          headers: { 'Content-Type': 'application/json' },
+        };
+      }
+
+      // approveBuilderFee, setReferrer, updateLeverage, etc.
+      // Default to order-shaped success: unknown action types that still hit
+      // placeOrder must not get bare `{ status: 'ok' }` (Order failed toast).
+      const oid = Date.now();
       return {
         statusCode: 200,
-        body: JSON.stringify({ status: 'ok' }),
+        body: JSON.stringify({
+          status: 'ok',
+          response: {
+            type: 'order',
+            data: {
+              statuses: [{ resting: { oid } }],
+            },
+          },
+        }),
         headers: { 'Content-Type': 'application/json' },
       };
     });
@@ -557,33 +663,41 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
 
 /**
  * Mock the geolocation endpoint for Perps eligibility checks.
- * The EligibilityService fetches geolocation via /proxy and compares
- * the plain-text result against the blocked regions list (US, CA-ON, GB, BE).
+ *
+ * `@metamask/geolocation-controller` v1 resolves the user's location from the
+ * `/v2/geolocation` endpoint (JSON `{ country, region, timezone }`), not the
+ * legacy on-ramp `/geolocation` endpoint (plain text). Perps reads it via
+ * `GeolocationController`, so the mock must answer the v2 endpoint, otherwise
+ * the request falls through to the default (US) mock and the user is geo-blocked
+ * (blocked regions: US, CA-ON, GB, BE).
+ *
  * Pass a non-blocked region (e.g. Spain, France) to ensure eligibility.
  */
 export const mockPerpsGeolocation = async (
   mockServer: Mockttp,
   region: RampsRegion,
 ): Promise<void> => {
-  const regionCode = region.id.replace('/regions/', '');
+  const v2Response = buildV2GeolocationResponse(region);
 
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
       const urlParam = new URL(request.url).searchParams.get('url') || '';
-      return /on-ramp\.(dev-api|uat-api|api)\.cx\.metamask\.io\/geolocation/.test(
+      return /geolocation\.(dev-|uat-)?api\.cx\.metamask\.io\/v2\/geolocation/.test(
         urlParam,
       );
     })
     .asPriority(1000)
     .thenCallback(() => {
       logger.info(
-        `[Perps E2E Mock] Intercepted geolocation request → ${regionCode}`,
+        `[Perps E2E Mock] Intercepted geolocation request → ${getRegionLocationCode(
+          region,
+        )}`,
       );
       return {
         statusCode: 200,
-        body: regionCode,
-        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(v2Response),
+        headers: { 'Content-Type': 'application/json' },
       };
     });
 };

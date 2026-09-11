@@ -7,11 +7,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  NavigationProp,
-  useNavigation,
-  useFocusEffect,
-} from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   forwardRef,
   useCallback,
@@ -46,8 +43,7 @@ import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { PredictPosition, PredictPositionStatus } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
+import { PredictPosition } from '../../types';
 import {
   formatPercentage,
   formatPredictUnrealizedPnLStringParts,
@@ -57,6 +53,7 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 import { PredictEventValues } from '../../constants/eventNames';
 import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accounts';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import { PREDICT_POSITIONS_HEADER_TEST_IDS } from './PredictPositionsHeader.testIds';
 
 export interface PredictPositionsHeaderHandle {
@@ -77,8 +74,7 @@ const PredictPositionsHeader = forwardRef<
   const { onError } = props;
   const privacyMode = useSelector(selectPrivacyMode);
   const { claim, isClaimPending } = usePredictClaim();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
@@ -102,10 +98,7 @@ const PredictPositionsHeader = forwardRef<
   });
   const hasPositions = (activePositions?.length ?? 0) > 0;
   const wonPositions = useMemo(
-    () =>
-      claimablePositions.filter(
-        (position) => position.status === PredictPositionStatus.WON,
-      ),
+    () => claimablePositions.filter(isActionableClaimablePosition),
     [claimablePositions],
   );
 
@@ -187,7 +180,9 @@ const PredictPositionsHeader = forwardRef<
   const handleClaim = async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        await claim({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );

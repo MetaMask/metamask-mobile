@@ -1,30 +1,29 @@
-import type {
-  MetaMetricsSwapsEventSource,
-  QuoteMetadata,
-  QuoteResponse,
+import {
+  getQuotesReceivedProperties,
+  type MetaMetricsSwapsEventSource,
+  type QuoteMetadata,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
-import type { BridgeStatusController } from '@metamask/bridge-status-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import {
   selectAbTestContext,
+  selectBridgeControllerState,
   selectDestToken,
+  selectIsSlippageUserOverride,
+  selectIsGasIncludedSTXSendBundleSupported,
+  selectSlippage,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
-import {
-  NUMPAD_QUICK_ACTIONS_AB_KEY,
-  NUMPAD_QUICK_ACTIONS_VARIANTS,
-} from '../../../components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig';
-import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-} from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
+import {
+  CHAIN_VALUE_ORDER_AB_KEY,
+  CHAIN_VALUE_ORDER_VARIANTS,
+} from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { useMemo } from 'react';
 
 import {
@@ -35,6 +34,8 @@ import {
   createActiveABTestAssignment,
   normalizeActiveABTestAssignments,
 } from '../../analytics/activeABTestAssignments';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
+import { useUnifiedSwapBridgeContext } from '../../../components/UI/Bridge/hooks/useUnifiedSwapBridgeContext';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -50,23 +51,23 @@ function mergeTransactionActiveAbTests(
 }
 
 export default function useSubmitBridgeTx() {
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destToken = useSelector(selectDestToken);
+  const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride =
+    useSelector(selectIsSlippageUserOverride) ?? false;
+  const bridgeControllerState = useSelector(selectBridgeControllerState);
+  const unifiedSwapBridgeContext = useUnifiedSwapBridgeContext();
   const abTestContext = useSelector(selectAbTestContext);
-  const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
-    useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
-  const {
-    variantName: tokenSelectorVariantName,
-    isActive: isTokenSelectorAbActive,
-  } = useABTest(
-    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  );
   const {
     variantName: ambientColorVariantName,
     isActive: isAmbientColorAbActive,
   } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
+  const {
+    variantName: chainValueOrderVariantName,
+    isActive: isChainValueOrderAbActive,
+  } = useABTest(CHAIN_VALUE_ORDER_AB_KEY, CHAIN_VALUE_ORDER_VARIANTS);
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -77,24 +78,6 @@ export default function useSubmitBridgeTx() {
   const activeAbTests = useMemo(() => {
     const tests: TransactionActiveAbTestEntry[] = [];
 
-    if (isNumpadAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          NUMPAD_QUICK_ACTIONS_AB_KEY,
-          numpadVariantName,
-        ),
-      );
-    }
-
-    if (isTokenSelectorAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-          tokenSelectorVariantName,
-        ),
-      );
-    }
-
     if (isAmbientColorAbActive) {
       tests.push(
         createActiveABTestAssignment(
@@ -104,14 +87,21 @@ export default function useSubmitBridgeTx() {
       );
     }
 
+    if (isChainValueOrderAbActive) {
+      tests.push(
+        createActiveABTestAssignment(
+          CHAIN_VALUE_ORDER_AB_KEY,
+          chainValueOrderVariantName,
+        ),
+      );
+    }
+
     return tests.length > 0 ? tests : undefined;
   }, [
-    isNumpadAbActive,
-    numpadVariantName,
-    isTokenSelectorAbActive,
-    tokenSelectorVariantName,
     isAmbientColorAbActive,
     ambientColorVariantName,
+    isChainValueOrderAbActive,
+    chainValueOrderVariantName,
   ]);
 
   const submitBridgeTx = async ({
@@ -119,10 +109,10 @@ export default function useSubmitBridgeTx() {
     location,
     transactionActiveAbTests: transactionActiveAbTestsFromRoute,
   }: {
-    quoteResponse: QuoteResponse & QuoteMetadata;
+    quoteResponse: QuoteResponse;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
-    /** Route-carried tests (e.g. homepage trending sections) merged at submit time */
+    /** Route-carried A/B assignments merged at submit time. */
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   }) => {
     if (!walletAddress) {
@@ -134,34 +124,54 @@ export default function useSubmitBridgeTx() {
       transactionActiveAbTestsFromRoute,
     );
     const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
+    const inputPrimaryDenomination =
+      bridgeControllerState?.inputPrimaryDenomination ?? 'token_amount';
+    const quotesReceivedContext = getQuotesReceivedProperties(
+      quoteResponse,
+      [],
+      true,
+      undefined,
+      undefined,
+      undefined,
+      {
+        custom_slippage: isSlippageUserOverride,
+        slippage_limit: slippage === undefined ? undefined : Number(slippage),
+        usd_amount_source:
+          unifiedSwapBridgeContext.usd_amount_source || undefined,
+        token_symbol_source:
+          unifiedSwapBridgeContext.token_symbol_source || undefined,
+        token_symbol_destination:
+          unifiedSwapBridgeContext.token_symbol_destination || undefined,
+      },
+    );
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
-        // check whether quoteResponse is an intent transaction
         if (quoteResponse.quote.intent) {
           return await Engine.context.BridgeStatusController.submitIntent({
-            quoteResponse: quoteResponse as Parameters<
-              BridgeStatusController['submitIntent']
-            >[0]['quoteResponse'],
+            quoteResponse,
             accountAddress: walletAddress,
             location,
             abTests,
             activeAbTests: mergedActiveAbTests,
             tokenSecurityTypeDestination,
+            inputPrimaryDenomination,
+            quotesReceivedContext,
+            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
           });
         }
         return await Engine.context.BridgeStatusController.submitTx(
           walletAddress,
-          {
-            ...quoteResponse,
-            approval: quoteResponse.approval ?? undefined,
-          } as Parameters<BridgeStatusController['submitTx']>[1],
+          quoteResponse,
           stxEnabled,
-          undefined, // quotesReceivedContext
+          quotesReceivedContext,
           location,
           abTests,
           mergedActiveAbTests,
           tokenSecurityTypeDestination,
+          undefined, // batchSellTrades
+          inputPrimaryDenomination,
+          BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
         );
       },
     );

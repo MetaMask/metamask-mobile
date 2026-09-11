@@ -44,6 +44,9 @@ interface PlaywrightTestResult {
   annotations?: { type: string; description?: string }[];
 }
 
+const isTestFailureStatus = (status: string): boolean =>
+  status === 'failed' || status === 'timedOut' || status === 'interrupted';
+
 /**
  * Main Playwright reporter for performance test runs.
  * Replaces the old custom-reporter.js with clean separation of concerns.
@@ -131,6 +134,7 @@ class PerformanceReporter {
 
     if (this.sessions.length > 0 && isBrowserStackRun) {
       await this.enrichSessionsWithProviderData();
+      await this.publishAppSizeToSentry();
     }
 
     // Clean up leftover environment variables
@@ -212,8 +216,7 @@ class PerformanceReporter {
     testTags: string[],
     projectName: string,
   ): void {
-    const isActualFailure =
-      result.status === 'failed' || result.status === 'timedOut';
+    const isActualFailure = isTestFailureStatus(result.status);
     if (!isActualFailure) return;
 
     const teamId = teamInfo.teamId;
@@ -274,7 +277,7 @@ class PerformanceReporter {
         };
 
         // Mark actual failures
-        if (result.status === 'failed' || result.status === 'timedOut') {
+        if (isTestFailureStatus(result.status)) {
           metricsEntry.testFailed = true;
           metricsEntry.failureReason = result.status;
         }
@@ -286,6 +289,34 @@ class PerformanceReporter {
         // Ensure team info is included
         if (!metricsEntry.team) {
           metricsEntry.team = teamInfo;
+        }
+
+        if (!metricsEntry.steps || metricsEntry.steps.length === 0) {
+          metricsEntry.testFailed = true;
+          metricsEntry.failureReason = 'no_performance_metrics';
+
+          const teamId = teamInfo.teamId;
+          if (!this.failedTestsByTeam[teamId]) {
+            this.failedTestsByTeam[teamId] = { team: teamInfo, tests: [] };
+          }
+          const alreadyTracked = this.failedTestsByTeam[teamId].tests.find(
+            (t) => t.testName === test.title && t.projectName === projectName,
+          );
+          if (!alreadyTracked) {
+            this.failedTestsByTeam[teamId].tests.push({
+              testName: test.title,
+              testFilePath,
+              tags: testTags,
+              status: 'failed',
+              duration: result.duration,
+              projectName,
+              sessionId:
+                result.annotations?.find((a) => a.type === 'sessionId')
+                  ?.description ?? null,
+              qualityGates: null,
+              failureReason: 'no_performance_metrics',
+            });
+          }
         }
 
         // For fallback metrics, ensure proper structure
@@ -381,7 +412,7 @@ class PerformanceReporter {
       } catch (error) {
         logger.error(`Error processing metrics: ${error}`);
       }
-    } else if (result.status === 'failed' || result.status === 'timedOut') {
+    } else if (isTestFailureStatus(result.status)) {
       // For actual failed tests without metrics, create a basic entry
       logger.warn('Test failed without metrics, creating basic entry');
 
@@ -480,6 +511,65 @@ class PerformanceReporter {
         await enricher.enrichSession(session);
       } catch (error) {
         logger.error(`Error enriching session for ${session.testTitle}`);
+      }
+    }
+  }
+
+  /**
+   * After BrowserStack enrichment, publish the installed app size for each
+   * session that has profiling data to Sentry, following the same pattern
+   * as the per-test timing measurements sent from the fixture.
+   */
+  private async publishAppSizeToSentry(): Promise<void> {
+    for (const session of this.sessions) {
+      const appSizeMb = session.profilingSummary?.appSizeMb;
+      if (appSizeMb === undefined) {
+        continue;
+      }
+
+      const metric = this.metrics.find((m) => m.testName === session.testTitle);
+
+      const deviceInfo: DeviceInfo = session.deviceInfo ??
+        metric?.device ?? {
+          name: 'Unknown',
+          osVersion: 'Unknown',
+          provider: 'browserstack',
+        };
+
+      const teamInfo = session.team ?? metric?.team ?? null;
+
+      try {
+        const sentToSentry = await publishPerformanceScenarioToSentry({
+          metrics: {
+            steps: [],
+            timestamp: session.timestamp ?? new Date().toISOString(),
+            thresholdMarginPercent: 0,
+            team: teamInfo,
+            total: 0,
+            totalThreshold: null,
+            hasThresholds: false,
+            totalValidation: null,
+            device: deviceInfo,
+            appSizeMb,
+          },
+          testTitle: session.testTitle,
+          projectName: session.projectName ?? 'unknown',
+          testFilePath: session.testFilePath,
+          videoRecordingUrl: session.videoURL ?? null,
+          tags: session.tags ?? metric?.tags ?? [],
+          status: session.testStatus,
+        });
+
+        if (sentToSentry) {
+          logger.info(
+            `App size (${appSizeMb} MB) for "${session.testTitle}" sent to Sentry`,
+          );
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn(
+          `Failed to publish app size for "${session.testTitle}" to Sentry: ${message}`,
+        );
       }
     }
   }

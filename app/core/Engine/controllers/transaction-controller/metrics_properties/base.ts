@@ -2,6 +2,7 @@ import { merge } from 'lodash';
 import {
   TransactionType,
   type TransactionMeta,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 
 import type {
@@ -15,7 +16,6 @@ import {
   isValidHexAddress,
 } from '../../../../../util/address';
 import { getMethodData } from '../../../../../util/transactions';
-import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 
 export async function getBaseMetricsProperties({
   transactionMeta,
@@ -60,6 +60,14 @@ export function getTransactionTypeValue(
 ) {
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
     return 'predict_deposit';
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.predictDepositAndOrder,
+    ])
+  ) {
+    return 'predict_deposit_and_order';
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {

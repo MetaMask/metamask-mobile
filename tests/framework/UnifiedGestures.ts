@@ -8,8 +8,8 @@ import {
   DetoxGestureStrategy,
   AppiumGestureStrategy,
 } from './GestureStrategy.ts';
-import Matchers from './Matchers.ts';
-import { resolve, isSelector, type Selector } from './Selector.ts';
+import Matchers from './detox/Matchers.ts';
+import { resolve, isSelector, type Selector } from './detox/Selector.ts';
 
 /**
  * UnifiedGestures — Static facade for framework-agnostic gesture execution.

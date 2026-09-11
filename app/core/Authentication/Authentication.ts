@@ -33,7 +33,14 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  TraceContext,
+  trace,
+  endTrace,
+  getTraceContext,
+} from '../../util/trace';
 import { isE2EMockOAuth } from '../../util/environment';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
@@ -53,8 +60,11 @@ import {
 import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
+  EncAccountDataType,
+  SeedlessOnboardingMigrationVersion,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -69,7 +79,7 @@ import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
-import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -86,11 +96,25 @@ import {
   SecurityLevel,
   authenticateAsync,
 } from 'expo-local-authentication';
-import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
+import {
+  classifyUnlockError,
+  getAuthIcon,
+  getAuthLabel,
+  getAuthType,
+} from './utils';
+import { trackForcedReset } from '../../util/analytics/accountAccessTracking';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
+import { captureException } from '@sentry/react-native';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
+import { clearBrazeUser } from '../Braze';
+import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
+import {
+  clearUnlockAppStartType,
+  getUnlockAppStartType,
+  resumeUnlockDeeplinkNavigatedAfterOptIn,
+} from '../Performance/unlockTraces';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -157,6 +181,17 @@ class AuthenticationService {
     }
   };
 
+  private clearSessionScopedProviderTokens = async (): Promise<void> => {
+    try {
+      await depositResetProviderToken();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to clear deposit provider token during wallet setup',
+      );
+    }
+  };
+
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
   }
@@ -213,7 +248,7 @@ class AuthenticationService {
     password: string,
     seed: string,
     clearEngine: boolean,
-  ): Promise<void> => {
+  ): Promise<EntropySourceId> => {
     // Restore vault with user entered password
     if (clearEngine) await Engine.resetState();
 
@@ -221,14 +256,17 @@ class AuthenticationService {
 
     const mnemonic = mnemonicPhraseToBytes(seed);
 
-    await MultichainAccountService.createMultichainAccountWallet({
-      type: 'restore',
-      password,
-      mnemonic,
-    });
+    const wallet = await MultichainAccountService.createMultichainAccountWallet(
+      {
+        type: 'restore',
+        password,
+        mnemonic,
+      },
+    );
 
     password = this.wipeSensitiveData();
     seed = this.wipeSensitiveData();
+    return wallet.entropySource;
   };
 
   private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
@@ -555,6 +593,7 @@ class AuthenticationService {
         await this.createWalletVaultAndKeychain(password);
       }
 
+      await this.clearSessionScopedProviderTokens();
       await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -581,15 +620,31 @@ class AuthenticationService {
    * @param authData - type of authentication required to fetch password from keychain
    * @param parsedSeed - provides the parsed SRP
    * @param clearEngine - this boolean clears the engine data on new wallet
+   * @param isQrSync - this boolean indicates if the wallet is being created from QR sync
    */
   newWalletAndRestore = async (
     password: string,
     authData: AuthData,
     parsedSeed: string,
     clearEngine: boolean,
+    isQrSync: boolean = false,
   ): Promise<void> => {
     try {
-      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
+      const primaryEntropySource = await this.newWalletVaultAndRestore(
+        password,
+        parsedSeed,
+        clearEngine,
+      );
+
+      await this.clearSessionScopedProviderTokens();
+
+      if (isQrSync) {
+        Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
+          primaryEntropySource,
+        );
+        await Engine.context.QrSyncController.importRemainingSecrets();
+      }
+
       await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -667,8 +722,7 @@ class AuthenticationService {
         passcodeAvailable,
       });
 
-      // Ex - "Face ID", "Device Passcode", "Password"
-      const authLabel = getAuthLabel({
+      const authLabelKey = getAuthLabel({
         allowLoginWithRememberMe,
         legacyUserChoseBiometrics,
         legacyUserChosePasscode,
@@ -676,9 +730,10 @@ class AuthenticationService {
         passcodeAvailable,
         supportedBiometricTypes,
       });
+      const authLabel = strings(authLabelKey);
 
       const authDescription =
-        authLabel === 'Device Authentication'
+        authLabelKey === 'authentication.labels.device_authentication'
           ? strings('app_settings.enable_device_authentication_desc')
           : undefined;
 
@@ -740,10 +795,15 @@ class AuthenticationService {
       password,
       authPreference,
       onBeforeNavigate,
+      // Optional onboarding trace context; forwarded to rehydrateSeedPhrase so the seedless
+      // OnboardingFetchSrps span nests under the onboarding journey. Omitted by non-onboarding
+      // callers (login/biometric unlock), which leaves tracing behaviour unchanged for them.
+      parentContext,
     }: {
       password?: string;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
+      parentContext?: TraceContext;
     } = {
       password: undefined,
       authPreference: undefined,
@@ -770,8 +830,9 @@ class AuthenticationService {
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
           if (authPreference?.oauth2Login) {
-            // if seedless flow - rehydrate
-            await this.rehydrateSeedPhrase(passwordToUse);
+            // If seedless flow, rehydrate and nest OnboardingFetchSrps under
+            // the onboarding journey when a parent context is supplied.
+            await this.rehydrateSeedPhrase(passwordToUse, parentContext);
             fallbackToPassword = true;
           } else if (
             await this.checkIsSeedlessPasswordOutdated({
@@ -820,6 +881,10 @@ class AuthenticationService {
             OPTIN_META_METRICS_UI_SEEN,
           );
           if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
+            const deeplinkAppStartType = getUnlockAppStartType();
+            cancelDeeplinkNavigatedTrace({ reason: 'metrics_opt_in' });
+            clearUnlockAppStartType();
+
             NavigationService.navigation?.reset({
               routes: [
                 {
@@ -828,6 +893,14 @@ class AuthenticationService {
                     screen: Routes.ONBOARDING.NAV,
                     params: {
                       screen: Routes.ONBOARDING.OPTIN_METRICS,
+                      params: {
+                        onContinue: async () => {
+                          resumeUnlockDeeplinkNavigatedAfterOptIn({
+                            appStartType: deeplinkAppStartType,
+                          });
+                          await navigateToPostUnlockHome();
+                        },
+                      },
                     },
                   },
                 },
@@ -903,6 +976,8 @@ class AuthenticationService {
       if (error instanceof Error) {
         // Track unlockWallet error as analytics.
         trackErrorAsAnalytics('Unlock Wallet Error', error.message);
+        // Track App Unlocked Failed with whether lockApp reset the keychain.
+        trackForcedReset(classifyUnlockError(error), shouldResetOnLock);
       }
       throw ensureError(error, 'Unlock wallet failed');
     } finally {
@@ -974,15 +1049,21 @@ class AuthenticationService {
       }
 
       const seedPhrase = await KeyringController.exportSeedPhrase(
-        password,
+        { password },
         keyringId,
       );
 
       let createKeyAndBackupSrpSuccess = false;
+      // Nest under the open New Social Create Wallet journey span when present so
+      // this security op appears in the onboarding waterfall (not as a root span).
+      const parentContext = getTraceContext({
+        name: TraceName.OnboardingNewSocialCreateWallet,
+      });
       try {
         trace({
           name: TraceName.OnboardingCreateKeyAndBackupSrp,
           op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
         });
         await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
           password,
@@ -998,6 +1079,7 @@ class AuthenticationService {
           name: TraceName.OnboardingCreateKeyAndBackupSrpError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage },
+          parentContext,
         });
         endTrace({
           name: TraceName.OnboardingCreateKeyAndBackupSrpError,
@@ -1012,6 +1094,12 @@ class AuthenticationService {
       }
 
       await this.syncKeyringEncryptionKey();
+
+      // New users already have dataType set on their secrets during creation,
+      // so we mark the migration as complete to prevent it from running
+      SeedlessOnboardingController.setMigrationVersion(
+        SeedlessOnboardingMigrationVersion.V1,
+      );
 
       this.dispatchOauthReset();
     } catch (error) {
@@ -1140,7 +1228,6 @@ class AuthenticationService {
       // handle seedless controller import error by reverting keyring controller mnemonic import
       await MultichainAccountService.removeMultichainAccountWallet(
         entropySource,
-        newAccount.address,
       );
       throw error;
     }
@@ -1157,9 +1244,12 @@ class AuthenticationService {
     const bufferedPrivateKey = hexToBytes(add0x(privateKey));
 
     if (syncWithSocial) {
+      // Run data type migration before adding new private key to ensure data consistency.
+      await this.runSeedlessOnboardingMigrations();
+
       await SeedlessOnboardingController.addNewSecretData(
         bufferedPrivateKey,
-        SecretType.PrivateKey,
+        EncAccountDataType.ImportedPrivateKey,
         {
           keyringId,
         },
@@ -1231,7 +1321,13 @@ class AuthenticationService {
     return true;
   };
 
-  rehydrateSeedPhrase = async (password: string): Promise<void> => {
+  rehydrateSeedPhrase = async (
+    password: string,
+    // Optional so existing callers are unaffected. When provided (from the onboarding UI), it
+    // nests OnboardingFetchSrps under the overall-journey span instead of emitting it as a
+    // disconnected root transaction in Sentry.
+    parentContext?: TraceContext,
+  ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
       let allSRPs: Awaited<
@@ -1242,6 +1338,7 @@ class AuthenticationService {
         trace({
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
         });
         allSRPs =
           await SeedlessOnboardingController.fetchAllSecretData(password);
@@ -1534,6 +1631,86 @@ class AuthenticationService {
   };
 
   /**
+   * Runs seedless onboarding migrations if needed.
+   *
+   * Delegates to SeedlessOnboardingController.runMigrations() which handles
+   * version tracking and migration logic. Called before adding new secret data
+   * to ensure data type consistency and correct ordering.
+   *
+   * Migration failures are reported via analytics and Sentry but do not
+   * propagate, so the caller's primary operation (e.g. import SRP / private
+   * key) can continue. Legacy secrets may remain unmigrated until a later
+   * successful run; new secrets are still written with the correct dataType.
+   */
+  runSeedlessOnboardingMigrations = async (): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    const state = ReduxService.store.getState();
+    const completedOnboarding = selectCompletedOnboarding(state);
+
+    if (!completedOnboarding) {
+      return;
+    }
+
+    try {
+      const migrationPerformed =
+        await SeedlessOnboardingController.runMigrations();
+
+      if (migrationPerformed) {
+        try {
+          analytics.trackEvent(
+            AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
+            )
+              .addProperties({
+                migration_version:
+                  SeedlessOnboardingController.state?.migrationVersion,
+              })
+              .build(),
+          );
+        } catch (metaMetricsError) {
+          // A tracking failure must not roll back a successful migration.
+          Logger.log(
+            'Failed to track seedless onboarding migration completion',
+            metaMetricsError,
+          );
+        }
+      }
+    } catch (error) {
+      const isError = error instanceof Error;
+      const errorMessage = isError ? error.message : 'Unknown error';
+      const migrationError = isError ? error : new Error(errorMessage);
+
+      try {
+        analytics.trackEvent(
+          AnalyticsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
+          )
+            .addProperties({
+              migration_version:
+                SeedlessOnboardingController.state?.migrationVersion,
+              error: errorMessage,
+            })
+            .build(),
+        );
+      } catch (metaMetricsError) {
+        Logger.log(
+          'Failed to track seedless onboarding migration failure',
+          metaMetricsError,
+        );
+      }
+
+      try {
+        captureException(migrationError);
+      } catch (sentryError) {
+        Logger.log(
+          'Failed to capture seedless onboarding migration failure',
+          sentryError,
+        );
+      }
+    }
+  };
+
+  /**
    * Deletes the wallet by resetting wallet state and deleting user data.
    * This is the main public method for wallet deletion/reset flows.
    * It calls resetWalletState() followed by deleteUser(), and also clears
@@ -1542,6 +1719,7 @@ class AuthenticationService {
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
+    clearBrazeUser();
     await this.resetWalletState();
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state
@@ -1735,7 +1913,7 @@ class AuthenticationService {
     const { KeyringController } = Engine.context;
     await this.reauthenticate(password);
     const rawSeedPhrase = await KeyringController.exportSeedPhrase(
-      password,
+      { password },
       keyringId,
     );
     const seedPhrase = uint8ArrayToMnemonic(rawSeedPhrase, wordlist);
@@ -1756,7 +1934,10 @@ class AuthenticationService {
   ): Promise<string> => {
     const { KeyringController } = Engine.context;
     await this.reauthenticate(password);
-    const privateKey = await KeyringController.exportAccount(password, address);
+    const privateKey = await KeyringController.exportAccount(
+      { password },
+      address,
+    );
     return privateKey;
   };
 }

@@ -1,9 +1,9 @@
-// Pure-black preview token override. MUST be first — mutates upstream
-// design-tokens before the twrnc preset imports them. See file for details.
-import './app/util/theme/preBootPureBlack';
-
 // Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
+
+// Native C++ networking (nitro-fetch + nitro-websockets). Must run after shim.
+import './app/core/NitroFetchSetup';
+import './app/core/NitroWebSocketSetup';
 
 // TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
@@ -105,7 +105,6 @@ LogBox.ignoreLogs([
   "ViewPropTypes will be removed from React Native, along with all other PropTypes. We recommend that you migrate away from PropTypes and switch to a type system like TypeScript. If you need to continue using ViewPropTypes, migrate to the 'deprecated-react-native-prop-types' package.",
   'ReactImageView: Image source "null"',
   'Warning: componentWillReceiveProps has been renamed',
-  'You passed a server string as an argument to one of the react-native-keychain functions',
 ]);
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;

@@ -1,9 +1,10 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { BtcAccountType } from '@metamask/keyring-api';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { AssetType } from '../../../types/token';
-import { Token } from './token';
+import { Token, TokenTagRenderer } from './token';
 import { act, fireEvent } from '@testing-library/react-native';
 
 jest.mock(
@@ -178,5 +179,75 @@ describe('Token', () => {
     });
 
     expect(mockOnPress).not.toHaveBeenCalled();
+  });
+
+  it('renders tag from first matching tagRenderer', () => {
+    const mockToken = createMockToken({
+      symbol: 'ETH',
+      name: 'Ethereum',
+    });
+
+    const renderer: TokenTagRenderer = () =>
+      React.createElement(Text, null, 'No fee');
+
+    const { getByText } = renderWithProvider(
+      <Token
+        asset={mockToken}
+        tagRenderers={[renderer]}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('No fee')).toBeOnTheScreen();
+  });
+
+  it('does not render tag when tagRenderers is empty', () => {
+    const mockToken = createMockToken({
+      symbol: 'ETH',
+      name: 'Ethereum',
+    });
+
+    const { queryByText } = renderWithProvider(
+      <Token asset={mockToken} tagRenderers={[]} onPress={mockOnPress} />,
+    );
+
+    expect(queryByText('No fee')).not.toBeOnTheScreen();
+  });
+
+  it('does not render tag when no tagRenderers provided', () => {
+    const mockToken = createMockToken({
+      symbol: 'ETH',
+      name: 'Ethereum',
+    });
+
+    const { queryByText } = renderWithProvider(
+      <Token asset={mockToken} onPress={mockOnPress} />,
+    );
+
+    expect(queryByText('No fee')).not.toBeOnTheScreen();
+  });
+
+  it('renders first non-null tag when multiple renderers provided', () => {
+    const mockToken = createMockToken({
+      symbol: 'ETH',
+      name: 'Ethereum',
+    });
+
+    const nullRenderer: TokenTagRenderer = () => null;
+    const tagRenderer: TokenTagRenderer = () =>
+      React.createElement(Text, null, 'Winner');
+    const lateRenderer: TokenTagRenderer = () =>
+      React.createElement(Text, null, 'Loser');
+
+    const { getByText, queryByText } = renderWithProvider(
+      <Token
+        asset={mockToken}
+        tagRenderers={[nullRenderer, tagRenderer, lateRenderer]}
+        onPress={mockOnPress}
+      />,
+    );
+
+    expect(getByText('Winner')).toBeOnTheScreen();
+    expect(queryByText('Loser')).not.toBeOnTheScreen();
   });
 });

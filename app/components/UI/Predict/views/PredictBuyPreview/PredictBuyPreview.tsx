@@ -18,6 +18,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, {
   useState,
   useRef,
@@ -54,6 +55,7 @@ import {
 } from '../../constants/eventNames';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatCents, formatPrice } from '../../utils/format';
+import { getDisplayBuyPrice } from '../../utils/prices';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
@@ -74,17 +76,17 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
 import {
+  buildPredictFeeBreakdownAmounts,
   getPredictBuyAllInCost,
-  getPredictExchangeFee,
   roundUpToCents,
 } from '../../utils/orders';
+import { usePredictMaxBetAmount } from '../../hooks/usePredictMaxBetAmount';
 
 /**
- * Module-level flag shared by three consumers to distinguish an explicit
+ * Module-level flag shared by consumers to distinguish an explicit
  * back-button dismiss from a swipe / hardware-back dismiss:
  *
  * - `PredictPreviewSheetContext.onBuyDismiss` — sheet-mode swipe tracking
- * - `PredictBuyPreview` `beforeRemove` listener — screen-mode swipe tracking (only when `trackSwipeDismiss` is set in route params)
  * - `usePredictBuyActions` — AnyToken screen-mode swipe tracking
  *
  * **Reset contract:** the ref is reset to `false` on each `PredictBuyPreview`
@@ -105,7 +107,7 @@ export const predictBuyPreviewSessionRef = {
 
 /**
  * Set to true when the user confirms an order (handleConfirm). Used by
- * PredictPreviewSheetContext.onBuyDismiss and the beforeRemove listener to
+ * PredictPreviewSheetContext.onBuyDismiss to
  * suppress the Betslip Dismissed event when the sheet/screen closes after a
  * successful or in-progress order rather than a user-initiated dismissal.
  * Reset to false on each mount.
@@ -129,7 +131,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const { goBack, dispatch, addListener } = useNavigation();
+  const { goBack, dispatch } = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
@@ -142,7 +144,6 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     predictFeedTab,
     predictScreen,
     transactionActiveAbTests,
-    trackSwipeDismiss,
   } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
   const ActiveScrollView = isSheetMode ? GHScrollView : ScrollView;
@@ -158,37 +159,6 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       ),
     [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
-
-  // Track swipe/hardware-back dismissals in screen mode, but only when
-  // trackSwipeDismiss is set — scopes the change to the disableBottomSheet
-  // (HomepageDiscoveryTabs) flow and preserves prior behavior for the
-  // pre-existing flagless screen-mode path.
-  // The back-button handler sets predictBuyPreviewDismissedViaBackRef before
-  // calling goBack() so we can distinguish it from a swipe here.
-  // Sheet-mode dismissals are handled by PredictPreviewSheetContext.onBuyDismiss.
-  useEffect(() => {
-    if (isSheetMode || !trackSwipeDismiss) return;
-    return addListener('beforeRemove', () => {
-      if (!predictBuyPreviewOrderInitiatedRef.current) {
-        const dismissalMethod = predictBuyPreviewDismissedViaBackRef.current
-          ? PredictDismissalMethod.BACK_BUTTON
-          : PredictDismissalMethod.SWIPE;
-        Engine.context.PredictController.trackBetslipDismissed({
-          analyticsProperties,
-          dismissalMethod,
-          hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
-          timeOnScreenMs: Date.now() - mountTimestampRef.current,
-          activeAbTests: transactionActiveAbTests,
-        });
-      }
-    });
-  }, [
-    addListener,
-    isSheetMode,
-    trackSwipeDismiss,
-    analyticsProperties,
-    transactionActiveAbTests,
-  ]);
 
   const {
     placeOrder,
@@ -223,6 +193,16 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     size: currentValue,
     autoRefreshTimeout: 1000,
   });
+
+  const { maxBetAmount, isLoading: isMaxBetAmountLoading } =
+    usePredictMaxBetAmount({
+      availableBalance: balance,
+      marketId: market.id,
+      outcomeId: outcome.id,
+      outcomeTokenId: outcomeToken.id,
+      preview,
+    });
+  const isAvailableBalanceLoading = isBalanceLoading || isMaxBetAmountLoading;
 
   const {
     retrySheetRef,
@@ -280,7 +260,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
-      sharePrice: outcomeToken?.price,
+      sharePrice: getDisplayBuyPrice(outcomeToken),
       activeAbTests: transactionActiveAbTests,
     });
     // eslint-disable-next-line react-compiler/react-compiler
@@ -291,12 +271,17 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const isRateLimited = preview?.rateLimited ?? false;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
-  const exchangeFee = getPredictExchangeFee(preview?.fees);
   const previewAllInCost = getPredictBuyAllInCost(preview);
   const total =
     currentValue > 0 && preview
       ? previewAllInCost
       : roundUpToCents(currentValue);
+  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+    side: Side.BUY,
+    order: currentValue,
+    metamaskFee,
+    total,
+  });
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
   const isInsufficientBalance =
@@ -331,7 +316,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
 
   const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
-    preview?.sharePrice ?? outcomeToken?.price ?? 0,
+    preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
   )}`;
 
   useEffect(() => {
@@ -399,13 +384,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               });
             }
             onClose?.();
-          } else if (trackSwipeDismiss) {
-            // Screen mode (disableBottomSheet flow): beforeRemove owns all
-            // tracking — setting the ref above lets it classify back vs. swipe.
-            // Firing here too would double-count the event.
-            goBack();
           } else {
-            // Flagless screen mode: no beforeRemove listener, so track directly.
             if (!predictBuyPreviewOrderInitiatedRef.current) {
               Engine.context.PredictController.trackBetslipDismissed({
                 analyticsProperties,
@@ -502,7 +481,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         </Box>
         {/* Available balance */}
         <Box twClassName="text-center mt-2">
-          {isBalanceLoading ? (
+          {isAvailableBalanceLoading ? (
             <Skeleton width={120} height={20} />
           ) : (
             <Text
@@ -510,7 +489,10 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               color={TextColor.TextAlternative}
             >
               {`${strings('predict.order.available')}: `}
-              {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
+              {formatPrice(maxBetAmount, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
             </Text>
           )}
         </Box>
@@ -586,7 +568,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           style={tw.style('text-white font-medium')}
         >
           {outcomeToken?.title} ·{' '}
-          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
+          {formatCents(
+            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
+          )}
         </Text>
       </ButtonHero>
     );
@@ -689,12 +673,14 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={exchangeFee}
-          metamaskFee={metamaskFee}
-          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          providerFee={feeBreakdown.exchangeFee}
+          metamaskFee={feeBreakdown.metamaskFee}
+          sharePrice={
+            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+          }
           contractCount={preview?.minAmountReceived ?? 0}
-          betAmount={currentValue}
-          total={total}
+          betAmount={feeBreakdown.order}
+          total={feeBreakdown.total}
           onClose={handleFeeBreakdownClose}
           fakOrdersEnabled={fakOrdersEnabled}
         />
@@ -702,7 +688,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+        sharePrice={
+          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+        }
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
         onDismiss={resetOrderNotFilled}

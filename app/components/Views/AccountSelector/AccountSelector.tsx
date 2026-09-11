@@ -7,34 +7,19 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  HeaderStandard,
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import AddWalletButton from '../../../component-library/components-temp/MultichainAccounts/AddWalletButton';
 import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
 import Engine from '../../../core/Engine';
 import { store } from '../../../store';
@@ -63,13 +48,12 @@ import {
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
-import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
 import Routes from '../../../constants/navigation/Routes';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { y: frameY } = useSafeAreaFrame();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -86,20 +70,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
 
-  const {
-    isAccountSyncingInProgress,
-    loadingMessage: accountOperationLoadingMessage,
-  } = useAccountsOperationsLoadingStates();
+  // Stable array reference so the memoized list isn't re-rendered (and its
+  // selectedIdSet / renderItem rebuilt) on every parent render.
+  const selectedAccountGroups = useMemo(
+    () => (selectedAccountGroup ? [selectedAccountGroup] : []),
+    [selectedAccountGroup],
+  );
 
   useSyncSRPs();
-
-  const buttonLabel = useMemo(() => {
-    if (isAccountSyncingInProgress) {
-      return accountOperationLoadingMessage;
-    }
-
-    return strings('multichain_accounts.add_wallet');
-  }, [isAccountSyncingInProgress, accountOperationLoadingMessage]);
 
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
@@ -144,7 +122,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [dispatch, reloadAccounts]);
 
-  // Tracing for the account list: start at layout flush, end after paint (useEffect).
+  // Tracing for the account list: start at layout flush, end after paint (the
+  // `useEffect` below). The `useLayoutEffect` cleanup is a leak-safety fallback
+  // that ends the span if the view unmounts before the passive effect runs;
+  // `endTrace` is idempotent, so the normal path only records one span.
   useLayoutEffect(() => {
     if (!isAccountSelector) {
       return undefined;
@@ -211,55 +192,28 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         {selectedAccountGroup ? (
           <MultichainAccountSelectorList
             onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroups={[selectedAccountGroup]}
+            selectedAccountGroups={selectedAccountGroups}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
             showFooter={!disableAddAccountButton}
           />
         ) : null}
         {!disableAddAccountButton && (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="px-4 pt-6 pb-5"
-          >
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={handleAddAccount}
-              isDisabled={isAccountSyncingInProgress}
-              testID={
-                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-              }
-              twClassName="flex-1"
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                gap={2}
-              >
-                {isAccountSyncingInProgress ? (
-                  <ActivityIndicator size="small" />
-                ) : null}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {buttonLabel}
-                </Text>
-              </Box>
-            </Button>
-          </Box>
+          <AddWalletButton
+            onPress={handleAddAccount}
+            testID={
+              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+            }
+          />
         )}
       </Fragment>
     ),
     [
       selectedAccountGroup,
+      selectedAccountGroups,
       _onSelectMultichainAccount,
       disableAddAccountButton,
       handleAddAccount,
-      buttonLabel,
-      isAccountSyncingInProgress,
     ],
   );
 

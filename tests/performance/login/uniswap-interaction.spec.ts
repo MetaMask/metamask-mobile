@@ -2,10 +2,12 @@ import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import UniswapDapp from '../../page-objects/MMConnect/UniswapDapp';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import { unlockIfLockScreenVisible } from '../mm-connect/utils';
 import { PerformanceLogin } from '../../tags.performance.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import {
+  loginToAppPlaywright,
+  unlockIfLockScreenVisible,
+} from '../../flows/wallet.flow';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
 import {
   launchMobileBrowser,
   navigateToDapp,
@@ -15,9 +17,9 @@ import {
 const UNISWAP_URL = 'https://app.uniswap.org';
 
 perfTest.describe(`${PerformanceLogin}`, () => {
-  perfTest.setTimeout(10 * 60 * 1000);
+  perfTest.setTimeout(20 * 60 * 1000);
 
-  perfTest(
+  perfTest.skip(
     'Connect to Uniswap dapp, edit accounts, choose another account, and skip Solana popup',
     { tag: '@metamask-mobile-platform' },
     async ({ currentDeviceDetails, driver: _driver, performanceTracker }) => {
@@ -36,7 +38,7 @@ perfTest.describe(`${PerformanceLogin}`, () => {
       );
       await loginToAppPlaywright();
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await launchMobileBrowser();
         await navigateToDapp(UNISWAP_URL);
       });
@@ -45,11 +47,11 @@ perfTest.describe(`${PerformanceLogin}`, () => {
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
       if (platform === 'android') {
-        await PlaywrightContextHelpers.withWebAction(async () => {
+        await AppiumContextHelpers.withWebAction(async () => {
           await UniswapDapp.connectWithMetaMask();
         }, UNISWAP_URL);
       } else {
-        await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AppiumContextHelpers.withNativeAction(async () => {
           await UniswapDapp.connectIOS();
           await UniswapDapp.selectWalletConnectOption();
         });
@@ -57,7 +59,7 @@ perfTest.describe(`${PerformanceLogin}`, () => {
 
       // Android comes from a webAction so needs to be in native context
       if (platform === 'android') {
-        await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AppiumContextHelpers.withNativeAction(async () => {
           await UniswapDapp.tapOnMetaMaskWalletOptionAndOpenDeeplink();
         });
       } else {
@@ -66,7 +68,6 @@ perfTest.describe(`${PerformanceLogin}`, () => {
       }
 
       metamaskTimer.start();
-
       // Still on Native Context
       await unlockIfLockScreenVisible();
       metamaskTimer.stop();

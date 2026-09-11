@@ -1,22 +1,28 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+import React, {
+  useRef,
+  useEffect,
+  useCallback,
+  useState,
+  useMemo,
+} from 'react';
+import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  BottomSheetRef,
+  Box,
+  ButtonsAlignment,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
+  ListItemSelect,
+  ListItemVariant,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { styleSheet } from './PerpsMarketSortFieldBottomSheet.styles';
 import type { PerpsMarketSortFieldBottomSheetProps } from './PerpsMarketSortFieldBottomSheet.types';
 import {
   MARKET_SORTING_CONFIG,
@@ -24,17 +30,18 @@ import {
   type SortDirection,
 } from '@metamask/perps-controller';
 
+const DEFAULT_SORT_OPTION =
+  MARKET_SORTING_CONFIG.SortOptions.find(
+    (option) => option.id === MARKET_SORTING_CONFIG.DefaultSortOptionId,
+  ) ?? MARKET_SORTING_CONFIG.SortOptions[0];
+
 /**
  * PerpsMarketSortFieldBottomSheet Component
  *
- * Bottom sheet for selecting market sort options with apply button.
- * Similar to trending tokens sort pattern.
+ * Bottom sheet for selecting a single market sort field (not a binary filter).
+ * Changes stay in draft until Apply; Reset restores the default sort.
  *
- * Features:
- * - Flat list of sort options
- * - Direction toggle for price change only (tap to toggle high-to-low / low-to-high)
- * - Other options (volume, open interest, funding rate) show checkmark when selected
- * - Apply button to confirm selection
+ * Tapping the selected option toggles high-to-low / low-to-high in the draft.
  *
  * @example
  * ```tsx
@@ -52,135 +59,152 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
 > = ({
   isVisible,
   onClose,
-  selectedOptionId: initialSelectedOptionId,
-  sortDirection: initialSortDirection,
+  selectedOptionId,
+  sortDirection,
   onOptionSelect,
   testID,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const [draftOptionId, setDraftOptionId] =
+    useState<SortOptionId>(selectedOptionId);
+  const [draftDirection, setDraftDirection] =
+    useState<SortDirection>(sortDirection);
 
-  // Local state for selection (not applied until Apply button is pressed)
-  const [selectedOption, setSelectedOption] = useState(initialSelectedOptionId);
-  const [sortDirection, setSortDirection] =
-    useState<SortDirection>(initialSortDirection);
-
-  // Sync local state when props change or when sheet opens
-  // This ensures uncommitted changes are reset when reopening the sheet
-  useEffect(() => {
-    if (isVisible) {
-      setSelectedOption(initialSelectedOptionId);
-      setSortDirection(initialSortDirection);
-    }
-  }, [initialSelectedOptionId, initialSortDirection, isVisible]);
+  const resetDraft = useCallback(() => {
+    setDraftOptionId(selectedOptionId);
+    setDraftDirection(sortDirection);
+  }, [selectedOptionId, sortDirection]);
 
   useEffect(() => {
     if (isVisible) {
+      resetDraft();
       bottomSheetRef.current?.onOpenBottomSheet();
     }
-  }, [isVisible]);
+  }, [isVisible, resetDraft]);
 
-  /**
-   * Handle option press - either select new option or toggle direction
-   */
-  const handleOptionPress = useCallback(
-    (optionId: SortOptionId) => {
-      // If clicking the same option, toggle sort direction
-      if (selectedOption === optionId) {
-        const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-        setSortDirection(newDirection);
-      } else {
-        // If clicking a different option, select it with descending direction
-        setSelectedOption(optionId);
-        setSortDirection('desc');
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet(onClose);
+  }, [onClose]);
+
+  const applyAndClose = useCallback(
+    (optionId: SortOptionId, direction: SortDirection) => {
+      const option = MARKET_SORTING_CONFIG.SortOptions.find(
+        (opt) => opt.id === optionId,
+      );
+      if (!option) {
+        return;
       }
+
+      bottomSheetRef.current?.onCloseBottomSheet(() => {
+        onOptionSelect(option.id, option.field, direction);
+        onClose();
+      });
     },
-    [selectedOption, sortDirection],
+    [onClose, onOptionSelect],
   );
 
-  /**
-   * Handle apply button - applies selection and closes sheet
-   */
+  const handleOptionPress = useCallback(
+    (optionId: SortOptionId) => {
+      if (draftOptionId === optionId) {
+        setDraftDirection((currentDirection) =>
+          currentDirection === 'asc' ? 'desc' : 'asc',
+        );
+        return;
+      }
+
+      setDraftOptionId(optionId);
+      setDraftDirection('desc');
+    },
+    [draftOptionId],
+  );
+
   const handleApply = useCallback(() => {
-    const option = MARKET_SORTING_CONFIG.SortOptions.find(
-      (opt) => opt.id === selectedOption,
-    );
-    if (option) {
-      onOptionSelect(option.id, option.field, sortDirection);
-    }
-    bottomSheetRef.current?.onCloseBottomSheet(() => {
-      onClose();
-    });
-  }, [selectedOption, sortDirection, onOptionSelect, onClose]);
+    applyAndClose(draftOptionId, draftDirection);
+  }, [applyAndClose, draftDirection, draftOptionId]);
+
+  const handleReset = useCallback(() => {
+    setDraftOptionId(DEFAULT_SORT_OPTION.id);
+    setDraftDirection(MARKET_SORTING_CONFIG.DefaultDirection);
+  }, []);
+
+  const primaryButtonProps = useMemo(
+    () => ({
+      children: strings('perps.sort.apply'),
+      onPress: handleApply,
+      testID: testID ? `${testID}-apply` : undefined,
+    }),
+    [handleApply, testID],
+  );
+
+  const secondaryButtonProps = useMemo(
+    () => ({
+      children: strings('perps.sort.reset'),
+      onPress: handleReset,
+      testID: testID ? `${testID}-reset` : undefined,
+    }),
+    [handleReset, testID],
+  );
 
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
-      isFullscreen={false}
-      testID={testID}
-    >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.sort.sort_by')}
-        </Text>
+    <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{
+          testID: testID ? `${testID}-close` : undefined,
+        }}
+      >
+        {strings('perps.sort.sort_by')}
       </BottomSheetHeader>
-      <View style={styles.optionsList}>
-        {/* Render sort options */}
-        {MARKET_SORTING_CONFIG.SortOptions.map((option) => {
-          const isSelected = selectedOption === option.id;
-          return (
-            <TouchableOpacity
-              key={option.id}
-              style={[styles.optionRow, isSelected && styles.optionRowSelected]}
-              activeOpacity={1}
-              onPress={() => handleOptionPress(option.id)}
-              testID={testID ? `${testID}-option-${option.id}` : undefined}
-            >
-              <Text variant={TextVariant.BodyMD}>
-                {strings(option.labelKey)}
-              </Text>
-              {isSelected && (
-                <View
-                  style={styles.arrowContainer}
-                  testID={testID ? `${testID}-direction-indicator` : undefined}
-                >
+      {MARKET_SORTING_CONFIG.SortOptions.map((option) => {
+        const isSelected = draftOptionId === option.id;
+        return (
+          <ListItemSelect
+            key={option.id}
+            title={strings(option.labelKey)}
+            variant={ListItemVariant.OneLine}
+            isSelected={isSelected}
+            showSelectedIcon={false}
+            onPress={() => handleOptionPress(option.id)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: isSelected }}
+            endAccessory={
+              isSelected ? (
+                <Box twClassName="flex-row items-center gap-2">
                   <Text
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                     testID={testID ? `${testID}-direction-text` : undefined}
                   >
-                    {sortDirection === 'asc'
+                    {draftDirection === 'asc'
                       ? strings('perps.sort.low_to_high')
                       : strings('perps.sort.high_to_low')}
                   </Text>
                   <Icon
                     name={
-                      sortDirection === 'asc'
+                      draftDirection === 'asc'
                         ? IconName.Arrow2Up
                         : IconName.Arrow2Down
                     }
                     size={IconSize.Md}
-                    color={IconColor.Alternative}
+                    color={IconColor.IconAlternative}
+                    testID={
+                      testID ? `${testID}-direction-indicator` : undefined
+                    }
                   />
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-      <ButtonBase
-        label={
-          <Text style={styles.applyButtonText}>
-            {strings('perps.sort.apply')}
-          </Text>
-        }
-        onPress={handleApply}
-        style={styles.applyButton}
-        testID={testID ? `${testID}-apply-button` : undefined}
+                </Box>
+              ) : undefined
+            }
+            testID={testID ? `${testID}-option-${option.id}` : undefined}
+          />
+        );
+      })}
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        primaryButtonProps={primaryButtonProps}
+        secondaryButtonProps={secondaryButtonProps}
+        twClassName="pt-4"
       />
     </BottomSheet>
   );

@@ -308,6 +308,12 @@ export const AwaitingConfirmationContent: React.FC<
             </>
           }
         />
+        {/*
+          coverScreen={false}: this content mounts under FullWindowOverlay.
+          RN Modal cannot present from that overlay on iOS (no view controller;
+          react-native-screens#1149 / #33022). In-place rendering still fills
+          the window via absolute styles on the scanner container.
+        */}
         <AnimatedQRScannerModal
           pauseQRCode={setShouldPause}
           visible={scannerVisible}
@@ -317,6 +323,7 @@ export const AwaitingConfirmationContent: React.FC<
           onQRHardwareScanError={onQRHardwareScanError}
           onModalHideComplete={handleScannerModalHide}
           hideModal={() => setScannerVisible(false)}
+          coverScreen={false}
         />
       </>
     );

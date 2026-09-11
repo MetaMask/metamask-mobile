@@ -74,4 +74,58 @@ describe('resolveABTestAssignment', () => {
       isActive: false,
     });
   });
+
+  describe('threshold groups (remote-feature-flag-controller@5)', () => {
+    it('resolves the variant from featureFlagThresholdGroups', () => {
+      expect(
+        resolveABTestAssignment({}, flagKey, validVariants, {
+          [flagKey]: 'treatment',
+        }),
+      ).toEqual({
+        variantName: 'treatment',
+        isActive: true,
+      });
+    });
+
+    it('prefers a local flag value override over the threshold group', () => {
+      // A local override lands in the flag value (via selectRemoteFeatureFlags)
+      // and must win over the remote threshold group assignment.
+      expect(
+        resolveABTestAssignment(
+          { [flagKey]: { name: 'control' } },
+          flagKey,
+          validVariants,
+          { [flagKey]: 'treatment' },
+        ),
+      ).toEqual({
+        variantName: 'control',
+        isActive: true,
+      });
+    });
+
+    it('falls back to control when the threshold group name is invalid', () => {
+      expect(
+        resolveABTestAssignment({}, flagKey, validVariants, {
+          [flagKey]: 'unexpected',
+        }),
+      ).toEqual({
+        variantName: 'control',
+        isActive: false,
+      });
+    });
+
+    it('falls back to the flag value when no threshold group is present', () => {
+      expect(
+        resolveABTestAssignment(
+          { [flagKey]: 'treatment' },
+          flagKey,
+          validVariants,
+          {},
+        ),
+      ).toEqual({
+        variantName: 'treatment',
+        isActive: true,
+      });
+    });
+  });
 });

@@ -51,7 +51,9 @@ describe('useConnectionHandler', () => {
 
     jest.advanceTimersByTime(3000);
 
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('OfflineModeView');
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('OfflineModeView', {
+      autoDismissOnReconnect: true,
+    });
     expect(mockTrackEvent).toHaveBeenCalledWith(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.CONNECTION_DROPPED,

@@ -1,10 +1,10 @@
-import { WebSocketService } from '@metamask/snaps-controllers';
+import {
+  WebSocketService,
+  type WebSocketServiceMessenger,
+} from '@metamask/snaps-controllers';
 import { MessengerClientInitRequest } from '../../types';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
-import {
-  getWebSocketServiceMessenger,
-  WebSocketServiceMessenger,
-} from '../../messengers/snaps';
+import { getWebSocketServiceMessenger } from '../../messengers/snaps';
 import { WebSocketServiceInit } from './websocket-service-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';

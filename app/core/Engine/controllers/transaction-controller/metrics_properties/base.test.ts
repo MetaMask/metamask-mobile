@@ -151,4 +151,30 @@ describe('getTransactionTypeValue', () => {
   ])('returns %s for standalone relay deposit type %s', (expected, txType) => {
     expect(getTransactionTypeValue(txType)).toBe(expected);
   });
+
+  it.each([
+    [
+      'standalone predictDepositAndOrder',
+      {
+        type: TransactionType.predictDepositAndOrder,
+      } as TransactionMeta,
+    ],
+    [
+      'PWAT batch with nested predictDepositAndOrder',
+      {
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: TransactionType.tokenMethodApprove },
+          { type: TransactionType.predictDepositAndOrder },
+        ],
+      } as TransactionMeta,
+    ],
+  ])(
+    'returns predict_deposit_and_order for %s',
+    (_name, mockTransactionMeta) => {
+      expect(
+        getTransactionTypeValue(mockTransactionMeta.type, mockTransactionMeta),
+      ).toBe('predict_deposit_and_order');
+    },
+  );
 });

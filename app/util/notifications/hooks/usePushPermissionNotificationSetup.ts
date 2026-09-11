@@ -27,6 +27,8 @@ export function usePushPermissionNotificationSetup() {
 
   // Finish MetaMask notification setup after the pre-prompt resolves. The OS
   // permission result determines whether push registration should be attempted.
+  // Returns the in-flight promise so callers that navigate away immediately can
+  // `await` it first (errors are handled internally, so it never rejects).
   const enableNotificationsInBackground = useCallback(
     (nativePermissionEnabled: boolean) => {
       const registerPushNotifications = nativePermissionEnabled;
@@ -60,7 +62,7 @@ export function usePushPermissionNotificationSetup() {
         }
       };
 
-      void enableNotifications();
+      return enableNotifications();
     },
     [],
   );

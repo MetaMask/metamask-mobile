@@ -98,6 +98,7 @@ describe('logs :: generateStateLogs', () => {
     Engine.context.SeedlessOnboardingController.state = {
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
+      migrationVersion: 0,
     } as typeof Engine.context.SeedlessOnboardingController.state;
   });
 
@@ -139,6 +140,7 @@ describe('logs :: generateStateLogs', () => {
           PhishingController: { whitelist: [] },
           AssetsContractController: { assets: [] },
           DeFiPositionsController: { positions: [] },
+          DeFiPositionsControllerV2: { positions: [] },
           PredictController: { predictions: [] },
           KeyringController: {
             vault: 'vault mock',
@@ -156,8 +158,94 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('NftDetectionController')).toBe(false);
     expect(logs.includes('PhishingController')).toBe(false);
     expect(logs.includes('DeFiPositionsController')).toBe(false);
+    expect(logs.includes('DeFiPositionsControllerV2')).toBe(false);
     expect(logs.includes('PredictController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
+  });
+
+  it('replaces CardController cardHomeData with a PII-free summary', () => {
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          CardController: {
+            ...backgroundState.CardController,
+            cardHomeDataAddress: '0xfe0fc6e921ab1cce1ba40efd8ef63658583dc16d',
+            cardHomeData: {
+              card: { id: 'card-secret', lastFour: '1234' },
+              primaryFundingAsset: {
+                address: '0xusdctoken',
+                walletAddress: '0xwallet',
+                symbol: 'USDC',
+              },
+              fundingAssets: [{ address: '0x1' }, { address: '0x2' }],
+              actions: [{ type: 'add_funds' }],
+              alerts: [{ type: 'kyc_pending' }],
+            },
+            cardHomeDataStatus: 'success',
+            cardHomeDataError: null,
+          },
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsed = JSON.parse(logs);
+    const card = parsed.engine.backgroundState.CardController;
+
+    expect(card.cardHomeDataAddress).toBe(true);
+    expect(card.cardHomeData).toStrictEqual({
+      hasCard: true,
+      hasPrimaryFundingAsset: true,
+      fundingAssetCount: 2,
+      actionTypes: ['add_funds'],
+      alertTypes: ['kyc_pending'],
+    });
+    expect(logs.includes('0xfe0fc6e921ab1cce1ba40efd8ef63658583dc16d')).toBe(
+      false,
+    );
+    expect(logs.includes('0xusdctoken')).toBe(false);
+    expect(logs.includes('card-secret')).toBe(false);
+  });
+
+  it('keeps cardHomeData null when CardController has no cached data', () => {
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          CardController: {
+            ...backgroundState.CardController,
+            cardHomeData: null,
+            cardHomeDataAddress: null,
+            cardHomeDataStatus: 'error',
+            cardHomeDataError: {
+              reason: 'no_evm_address',
+              code: null,
+              statusCode: null,
+              at: 1,
+            },
+          },
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const card = JSON.parse(logs).engine.backgroundState.CardController;
+
+    expect(card.cardHomeData).toBeNull();
+    expect(card.cardHomeDataAddress).toBe(false);
+    expect(card.cardHomeDataError).toStrictEqual({
+      reason: 'no_evm_address',
+      code: null,
+      statusCode: null,
+      at: 1,
+    });
   });
 
   it('includes isUnlocked state from KeyringController', () => {
@@ -401,6 +489,7 @@ describe('logs :: generateStateLogs', () => {
       Engine.context.SeedlessOnboardingController.state = {
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
     });
 
@@ -539,6 +628,7 @@ describe('logs :: generateStateLogs', () => {
         userId: 'user-123',
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
 
       const mockStateInput = {
@@ -690,6 +780,7 @@ describe('logs :: generateStateLogs', () => {
         ],
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
 
       const mockStateInput = {
@@ -720,6 +811,7 @@ describe('logs :: generateStateLogs', () => {
         socialBackupsMetadata: [],
         nodeAuthTokens: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
 
       const mockStateInput = {
@@ -780,15 +872,19 @@ describe('logs :: downloadStateLogs', () => {
     expect(Share.open).toHaveBeenCalledWith({
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
-      url: '/mock/path/state-logs-v1.0.0-(100).json',
+      url: 'file:///mock/path/state-logs-v1.0.0-(100).json',
+      filename: 'state-logs-v1.0.0-(100).json',
+      type: 'application/json',
+      failOnCancel: false,
     });
   });
 
-  it('generates and shares logs on Android', async () => {
+  it('generates and shares logs as a file on Android', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
     (Device.isIos as jest.Mock).mockReturnValue(false);
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
 
     const mockStateInput = merge({}, initialRootState, {
       engine: {
@@ -803,11 +899,20 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput);
 
-    expect(RNFS.writeFile).not.toHaveBeenCalled();
+    // The logs are written to disk and the real file is shared, so that the
+    // Android share sheet offers a save/download option (issue #24359).
+    expect(RNFS.writeFile).toHaveBeenCalledWith(
+      '/mock/path/state-logs-v1.0.0-(100).json',
+      expect.any(String),
+      'utf8',
+    );
     expect(Share.open).toHaveBeenCalledWith({
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
-      url: expect.stringContaining('data:text/plain;base64,'),
+      url: 'file:///mock/path/state-logs-v1.0.0-(100).json',
+      filename: 'state-logs-v1.0.0-(100).json',
+      type: 'application/json',
+      failOnCancel: false,
     });
   });
 
@@ -901,11 +1006,9 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput, false);
 
-    expect(Share.open).toHaveBeenCalledWith({
-      subject: 'TestApp State logs -  v1.0.0 (100)',
-      title: 'TestApp State logs -  v1.0.0 (100)',
-      url: expect.stringContaining('data:text/plain;base64,'),
-    });
+    const [, writtenContent] = (RNFS.writeFile as jest.Mock).mock.calls[0];
+    const jsonData = JSON.parse(writtenContent);
+    expect(jsonData.loggedIn).toBe(false);
   });
 
   it('includes analytics id in logs when analytics is enabled', async () => {
@@ -930,12 +1033,8 @@ describe('logs :: downloadStateLogs', () => {
 
     expect(analytics.getAnalyticsId).toHaveBeenCalled();
 
-    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
-    const [shareOpenArgs] = shareOpenCalls[0];
-    const { url } = shareOpenArgs;
-    const base64Data = url.replace('data:text/plain;base64,', '');
-    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(decodedData);
+    const [, writtenContent] = (RNFS.writeFile as jest.Mock).mock.calls[0];
+    const jsonData = JSON.parse(writtenContent);
     expect(jsonData.metaMetricsId).toBe('test-analytics-id');
   });
 
@@ -959,20 +1058,10 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput);
 
-    expect(Share.open).toHaveBeenCalledWith({
-      subject: 'TestApp State logs -  v1.0.0 (100)',
-      title: 'TestApp State logs -  v1.0.0 (100)',
-      url: expect.stringContaining('data:text/plain;base64,'),
-    });
-
-    // Access the arguments passed to Share.open
-    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
-    expect(shareOpenCalls.length).toBeGreaterThan(0);
-    const [shareOpenArgs] = shareOpenCalls[0];
-    const { url } = shareOpenArgs;
-    const base64Data = url.replace('data:text/plain;base64,', '');
-    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(decodedData);
+    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
+    expect(writeFileCalls.length).toBeGreaterThan(0);
+    const [, writtenContent] = writeFileCalls[0];
+    const jsonData = JSON.parse(writtenContent);
     expect(jsonData).not.toHaveProperty('metaMetricsId');
   });
 
@@ -998,13 +1087,10 @@ describe('logs :: downloadStateLogs', () => {
     await downloadStateLogs(mockStateInput);
 
     // Then the logs should include the remote feature flag environment
-    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
-    expect(shareOpenCalls.length).toBeGreaterThan(0);
-    const [shareOpenArgs] = shareOpenCalls[0];
-    const { url } = shareOpenArgs;
-    const base64Data = url.replace('data:text/plain;base64,', '');
-    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(decodedData);
+    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
+    expect(writeFileCalls.length).toBeGreaterThan(0);
+    const [, writtenContent] = writeFileCalls[0];
+    const jsonData = JSON.parse(writtenContent);
     expect(jsonData.remoteFeatureFlagEnvironment).toBe('Development');
   });
 
@@ -1030,13 +1116,10 @@ describe('logs :: downloadStateLogs', () => {
     await downloadStateLogs(mockStateInput);
 
     // Then the logs should include the remote feature flag distribution
-    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
-    expect(shareOpenCalls.length).toBeGreaterThan(0);
-    const [shareOpenArgs] = shareOpenCalls[0];
-    const { url } = shareOpenArgs;
-    const base64Data = url.replace('data:text/plain;base64,', '');
-    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(decodedData);
+    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
+    expect(writeFileCalls.length).toBeGreaterThan(0);
+    const [, writtenContent] = writeFileCalls[0];
+    const jsonData = JSON.parse(writtenContent);
     expect(jsonData.remoteFeatureFlagDistribution).toBe('Main');
   });
 
@@ -1059,13 +1142,10 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput);
 
-    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
-    expect(shareOpenCalls.length).toBeGreaterThan(0);
-    const [shareOpenArgs] = shareOpenCalls[0];
-    const { url } = shareOpenArgs;
-    const base64Data = url.replace('data:text/plain;base64,', '');
-    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(decodedData);
+    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
+    expect(writeFileCalls.length).toBeGreaterThan(0);
+    const [, writtenContent] = writeFileCalls[0];
+    const jsonData = JSON.parse(writtenContent);
     expect(jsonData.otaVersion).toBeDefined();
     expect(jsonData.runtimeVersion).toBeDefined();
   });

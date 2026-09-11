@@ -21,7 +21,12 @@ import {
 import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
-import { FrameworkDetector } from '../FrameworkDetector.ts';
+import { adbDeviceArgs } from '../e2eWorkerPorts.ts';
+import {
+  isAdbTransportFault,
+  withAdbHostLock,
+} from '../services/appium/adbHostLock.ts';
+import { isSharedAndroidAdbDaemon } from '../services/providers/emulator/android/androidDevicePool.ts';
 
 const execAsync = promisify(exec);
 
@@ -78,15 +83,17 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
     return;
   }
 
-  // Get device ID to target specific device (important for CI with multiple devices)
-  // In Detox: use device.id for multi-device support
-  // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
-  // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
-  let deviceFlag = '';
-  if (FrameworkDetector.isDetox()) {
-    const deviceId = device.id || '';
-    deviceFlag = deviceId ? `-s ${deviceId}` : '';
+  // Shared-adb pools: --remove races sibling UiAutomator2 and can restart the
+  // daemon (`protocol fault` → `daemon not running; starting now` → device
+  // offline). setupAndroidPortForwarding overwrites the mappings we need.
+  if (isSharedAndroidAdbDaemon()) {
+    logger.debug(
+      'Skipping adb reverse --remove on shared Android adb daemon (device pool size >= 2)',
+    );
+    return;
   }
+
+  const deviceFlag = adbDeviceArgs().join(' ');
 
   // Clean up only the specific fallback ports we use
   // This prevents conflicts with Detox's own port management
@@ -104,20 +111,35 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
 
   logger.debug('Cleaning up test port forwards before test...');
 
-  for (const port of fallbackPorts) {
-    try {
-      const command = `adb ${deviceFlag} reverse --remove tcp:${port}`;
-      await execAsync(command);
-      logger.debug(`✓ Removed port forwarding for tcp:${port}`);
-    } catch (error) {
-      // Silently ignore "not found" errors - the port might not have been forwarded
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      if (!errorMessage.includes('not found')) {
+  // Serialize reverse --remove across N=2 workers that share one adb server.
+  // Concurrent removes cause protocol faults / daemon restarts that kill the
+  // sibling worker's UiAutomator2 mid-test.
+  await withAdbHostLock(async () => {
+    for (const port of fallbackPorts) {
+      try {
+        const command = `adb ${deviceFlag} reverse --remove tcp:${port}`;
+        await execAsync(command);
+        logger.debug(`✓ Removed port forwarding for tcp:${port}`);
+      } catch (error) {
+        // Silently ignore "not found" errors - the port might not have been forwarded
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('not found')) {
+          continue;
+        }
         logger.debug(`Note: Could not remove tcp:${port}: ${errorMessage}`);
+        if (isAdbTransportFault(errorMessage)) {
+          // Abort remaining removes — continuing amplifies daemon churn.
+          // setupAndroidPortForwarding will recreate needed reverses.
+          logger.warn(
+            'Aborting adb reverse cleanup after transport fault; ' +
+              'will rely on setup to recreate forwards',
+          );
+          return;
+        }
       }
     }
-  }
+  });
 
   logger.debug('✓ Cleaned up test port forwarding');
 }
@@ -187,15 +209,7 @@ async function setupAndroidPortForwarding(
     fallbackPort += instanceIndex;
   }
 
-  // Get device ID to target specific device (important for CI with multiple devices)
-  // In Detox: use device.id for multi-device support
-  // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
-  // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
-  let deviceFlag = '';
-  if (FrameworkDetector.isDetox()) {
-    const deviceId = device.id || '';
-    deviceFlag = deviceId ? `-s ${deviceId}` : '';
-  }
+  const deviceFlag = adbDeviceArgs().join(' ');
 
   const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;
 
@@ -208,7 +222,9 @@ async function setupAndroidPortForwarding(
   for (let attempt = 1; attempt <= maxAdbRetries; attempt++) {
     try {
       logger.debug(`Executing port forward (attempt ${attempt}): ${command}`);
-      const { stdout, stderr } = await execAsync(command);
+      const { stdout, stderr } = await withAdbHostLock(() =>
+        execAsync(command),
+      );
 
       if (stderr && !stderr.includes('')) {
         logger.warn(`adb reverse stderr: ${stderr}`);
@@ -243,7 +259,8 @@ async function setupAndroidPortForwarding(
       const isDeviceOffline =
         errorMessage.includes('not found') ||
         errorMessage.includes('device offline') ||
-        errorMessage.includes('unauthorized');
+        errorMessage.includes('unauthorized') ||
+        isAdbTransportFault(errorMessage);
 
       if (isDeviceOffline && attempt < maxAdbRetries) {
         logger.warn(
@@ -274,6 +291,16 @@ export async function startResourceWithRetry(
   resource: Resource,
   maxRetries: number = 3,
 ): Promise<number> {
+  const isRetryableAnvilForkError = (errorMessage: string): boolean =>
+    resourceType === ResourceType.ANVIL &&
+    [
+      'failed to create genesis',
+      'failed to get account for',
+      'failed to get fork block number',
+      'http error 401',
+      'error code -32603',
+    ].some((signature) => errorMessage.includes(signature));
+
   let attempt = 0;
   let lastError: Error | undefined;
 
@@ -316,6 +343,18 @@ export async function startResourceWithRetry(
         logger.debug(
           `Port ${failedPort} conflict for ${resourceType}, retrying with new random port (${attempt}/${maxRetries})`,
         );
+        continue;
+      }
+
+      // Anvil forks can fail transiently when upstream RPC returns temporary
+      // errors during genesis/account fetch. Retrying usually recovers.
+      if (attempt < maxRetries && isRetryableAnvilForkError(errorMessage)) {
+        attempt++;
+        const retryDelayMs = 2000;
+        logger.debug(
+          `Transient fork startup error for ${resourceType}, retrying (${attempt}/${maxRetries}) after ${retryDelayMs}ms: ${errorMessage}`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         continue;
       }
 
@@ -495,13 +534,6 @@ function getServerPort(resourceType: ResourceType): number {
   return allocatedPort;
 }
 
-/**
- * Gets the URL for the second test dapp.
- * This function is used instead of a constant to ensure device.getPlatform() is called
- * after Detox is properly initialized, preventing initialization errors in the apiSpecs tests.
- *
- * @returns {string} The URL for the second test dapp
- */
 // ========== New Clean Dapp API (Use These) ==========
 
 /**
@@ -522,10 +554,7 @@ function getServerPort(resourceType: ResourceType): number {
  * const url2 = getDappUrl(1);
  */
 export function getDappUrl(index: number): string {
-  const isAndroid = FrameworkDetector.isDetox()
-    ? device.getPlatform() === 'android'
-    : true; // Appium single emulator assumption
-  const port = isAndroid
+  const port = PlatformDetector.isAndroid()
     ? FALLBACK_DAPP_SERVER_PORT + index
     : getDappPort(index);
   return `http://localhost:${port}`;
@@ -596,7 +625,8 @@ export function getTestDappLocalUrl() {
 
 /**
  * Gets the Anvil port for use during test execution.
- * Automatically handles platform differences (Android uses fallback port, iOS uses actual allocated port).
+ * Android uses the fallback port (mapped via adb reverse); iOS uses the
+ * actual PortManager-allocated port.
  *
  * @returns The Anvil port to use in tests (8545 on Android, allocated port on iOS)
  *
@@ -605,10 +635,9 @@ export function getTestDappLocalUrl() {
  * const wsUrl = `ws://localhost:${getAnvilPortForTest()}`;
  */
 export function getAnvilPortForTest(): number {
-  const isAndroid = FrameworkDetector.isDetox()
-    ? device.getPlatform() === 'android'
-    : true;
-  return isAndroid ? DEFAULT_ANVIL_PORT : getServerPort(ResourceType.ANVIL);
+  return PlatformDetector.isAndroid()
+    ? DEFAULT_ANVIL_PORT
+    : getServerPort(ResourceType.ANVIL);
 }
 
 export function getGanachePort(): number {

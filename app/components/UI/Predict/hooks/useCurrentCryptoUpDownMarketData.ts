@@ -16,6 +16,7 @@ import {
 } from '../utils/series';
 import { useCryptoTargetPrice } from './useCryptoTargetPrice';
 import { useCryptoUpDownChartData } from './useCryptoUpDownChartData';
+import { useLiveCryptoPrice } from './useLiveCryptoPrice';
 import {
   useCurrentPredictMarketFromSeries,
   type UseCurrentPredictMarketFromSeriesParams,
@@ -45,11 +46,24 @@ const FALLBACK_MARKET: PredictMarketWithSeries = {
   series: FALLBACK_SERIES,
 };
 
-export type UseCurrentCryptoUpDownMarketDataParams =
-  UseCurrentPredictMarketFromSeriesParams;
+export interface UseCurrentCryptoUpDownMarketDataParams
+  extends UseCurrentPredictMarketFromSeriesParams {
+  /**
+   * Set to `false` for UI that only displays the current price as a scalar
+   * (e.g. the homepage BTC row) and never renders a chart. Skips
+   * `useCryptoUpDownChartData`'s point-history array (merge/trim/reduce on
+   * every live tick) in favor of a plain throttled price ticker. Defaults to
+   * `true` for callers that render a chart.
+   */
+  withChartData?: boolean;
+  /** Live price refresh cadence when `withChartData` is `false`. */
+  priceUpdateIntervalMs?: number;
+}
 
 export const useCurrentCryptoUpDownMarketData = ({
   enabled = true,
+  withChartData = true,
+  priceUpdateIntervalMs,
   ...seriesParams
 }: UseCurrentCryptoUpDownMarketDataParams) => {
   const currentMarketQuery = useCurrentPredictMarketFromSeries({
@@ -89,6 +103,7 @@ export const useCurrentCryptoUpDownMarketData = ({
       eventStartTime: eventStartTime ?? '',
       variant,
       endDate: market.endDate ?? '',
+      twapWindowSeconds: market.twapWindowSeconds,
       enabled:
         shouldFetchMarketData &&
         Boolean(symbol) &&
@@ -99,14 +114,35 @@ export const useCurrentCryptoUpDownMarketData = ({
     ? resolveCryptoTargetPrice(market, targetPrice)
     : undefined;
   const chartData = useCryptoUpDownChartData(market, priceToBeat, {
-    enabled: shouldFetchMarketData,
+    enabled: shouldFetchMarketData && withChartData,
   });
-  const currentPrice = useMemo(
-    () =>
+  const { value: liveTickerPrice } = useLiveCryptoPrice({
+    symbol,
+    enabled: shouldFetchMarketData && !withChartData,
+    twapWindowSeconds: market.twapWindowSeconds,
+    updateIntervalMs: priceUpdateIntervalMs,
+  });
+  const chartDerivedPrice = useMemo(() => {
+    if (
+      market.twapWindowSeconds &&
+      (chartData.connectionError ||
+        (chartData.loading && chartData.data.length === 0))
+    ) {
+      return undefined;
+    }
+
+    return (
       chartData.data.at(-1)?.value ??
-      (chartData.value > 0 ? chartData.value : undefined),
-    [chartData.data, chartData.value],
-  );
+      (chartData.value > 0 ? chartData.value : undefined)
+    );
+  }, [
+    chartData.connectionError,
+    chartData.data,
+    chartData.loading,
+    chartData.value,
+    market.twapWindowSeconds,
+  ]);
+  const currentPrice = withChartData ? chartDerivedPrice : liveTickerPrice;
   const durationMs = getSeriesDurationMs(market.series.recurrence);
   const timeRemainingMs = getSeriesMarketTimeRemainingMs(market.endDate, nowMs);
 
@@ -128,7 +164,9 @@ export const useCurrentCryptoUpDownMarketData = ({
     chartData,
     isLoading:
       currentMarketQuery.isLoading ||
-      (shouldFetchMarketData && (chartData.loading || isTargetPriceFetching)),
+      (shouldFetchMarketData &&
+        withChartData &&
+        (chartData.loading || isTargetPriceFetching)),
     isFetching: currentMarketQuery.isFetching || isTargetPriceFetching,
   };
 };

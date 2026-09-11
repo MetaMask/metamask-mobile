@@ -5,9 +5,7 @@ import styleSheet from './gas-modal-header.styles';
 
 import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 export const GasModalHeader = ({
   onBackButtonClick,
@@ -27,7 +25,7 @@ export const GasModalHeader = ({
           testID="back-button"
         />
       </View>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+      <Text variant={TextVariant.HeadingMd} style={styles.title}>
         {title}
       </Text>
     </View>

@@ -1,11 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import styleSheet from './PerpsLeverage.styles';
-import { useStyles } from '../../../../hooks/useStyles';
+import { Tag, TagSeverity } from '@metamask/design-system-react-native';
 
 interface PerpsLeverageProps {
   maxLeverage: string;
@@ -15,16 +9,10 @@ interface PerpsLeverageProps {
 const PerpsLeverage = ({
   maxLeverage,
   testID = 'perps-leverage',
-}: PerpsLeverageProps) => {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <View style={styles.maxLeverage} testID={testID}>
-      <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-        {maxLeverage}
-      </Text>
-    </View>
-  );
-};
+}: PerpsLeverageProps) => (
+  <Tag severity={TagSeverity.Neutral} testID={testID} twClassName="self-center">
+    {maxLeverage}
+  </Tag>
+);
 
 export default PerpsLeverage;

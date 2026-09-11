@@ -4,18 +4,17 @@ import { useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import {
   selectPredictHotTabFlag,
-  selectPredictWorldCupConfig,
-  selectPredictWorldCupMainFeedTabEnabledFlag,
+  selectPredictWimbledonTabFlag,
 } from '../selectors/featureFlags';
 import {
   PREDICT_BASE_TABS,
   PREDICT_HOT_TAB,
-  PREDICT_WORLD_CUP_TAB,
+  PREDICT_WIMBLEDON_TAB,
   isPredictTabKey,
   type PredictTabKey,
 } from '../constants/feedTabs';
+import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../constants/flags';
 import type { PredictNavigationParamList } from '../types/navigation';
-import { buildPredictWorldCupAllQuery } from '../utils/worldCup';
 
 export interface FeedTab {
   key: PredictTabKey;
@@ -34,10 +33,7 @@ export const usePredictTabs = (): UsePredictTabsResult => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const hotTabFlag = useSelector(selectPredictHotTabFlag);
-  const isWorldCupMainFeedTabEnabled = useSelector(
-    selectPredictWorldCupMainFeedTabEnabledFlag,
-  );
-  const worldCupConfig = useSelector(selectPredictWorldCupConfig);
+  const wimbledonTabFlag = useSelector(selectPredictWimbledonTabFlag);
 
   const tabs: FeedTab[] = useMemo(() => {
     const baseTabs: FeedTab[] = PREDICT_BASE_TABS.map((tab) => ({
@@ -45,28 +41,32 @@ export const usePredictTabs = (): UsePredictTabsResult => {
       label: strings(tab.labelKey),
     }));
 
+    const optionalTabs: FeedTab[] = [];
+
+    if (wimbledonTabFlag.enabled) {
+      optionalTabs.push({
+        key: PREDICT_WIMBLEDON_TAB.key,
+        label: strings(PREDICT_WIMBLEDON_TAB.labelKey),
+        customQueryParams:
+          wimbledonTabFlag.queryParams ??
+          PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+      });
+    }
+
     if (hotTabFlag.enabled) {
-      baseTabs.unshift({
+      optionalTabs.push({
         key: PREDICT_HOT_TAB.key,
         label: strings(PREDICT_HOT_TAB.labelKey),
         customQueryParams: hotTabFlag.queryParams,
       });
     }
 
-    if (isWorldCupMainFeedTabEnabled) {
-      baseTabs.unshift({
-        key: PREDICT_WORLD_CUP_TAB.key,
-        label: strings(PREDICT_WORLD_CUP_TAB.labelKey),
-        customQueryParams: buildPredictWorldCupAllQuery(worldCupConfig),
-      });
-    }
-
-    return baseTabs;
+    return [...optionalTabs, ...baseTabs];
   }, [
     hotTabFlag.enabled,
     hotTabFlag.queryParams,
-    isWorldCupMainFeedTabEnabled,
-    worldCupConfig,
+    wimbledonTabFlag.enabled,
+    wimbledonTabFlag.queryParams,
   ]);
 
   const requestedValidTabKey = isPredictTabKey(route.params?.tab)

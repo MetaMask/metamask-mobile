@@ -1,13 +1,11 @@
 import { StyleSheet } from 'react-native';
-import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) =>
+const styleSheet = () =>
   StyleSheet.create({
     content: {
       paddingHorizontal: 16,
-      paddingBottom: 8,
+      paddingBottom: 24,
       gap: 16,
-      backgroundColor: params.theme.colors.background.default,
     },
   });
 

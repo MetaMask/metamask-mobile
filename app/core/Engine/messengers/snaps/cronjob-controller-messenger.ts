@@ -6,8 +6,6 @@ import {
 import { CronjobControllerMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
-export type { CronjobControllerMessenger };
-
 /**
  * Get a messenger for the cronjob controller. This is scoped to the
  * actions and events that the cronjob controller is allowed to handle.
@@ -16,14 +14,12 @@ export type { CronjobControllerMessenger };
  * @returns The CronjobControllerMessenger.
  */
 export function getCronjobControllerMessenger(
-  rootMessenger: RootMessenger,
-): CronjobControllerMessenger {
-  const messenger = new Messenger<
-    'CronjobController',
+  rootMessenger: RootMessenger<
     MessengerActions<CronjobControllerMessenger>,
-    MessengerEvents<CronjobControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<CronjobControllerMessenger>
+  >,
+): CronjobControllerMessenger {
+  const messenger: CronjobControllerMessenger = new Messenger({
     namespace: 'CronjobController',
     parent: rootMessenger,
   });

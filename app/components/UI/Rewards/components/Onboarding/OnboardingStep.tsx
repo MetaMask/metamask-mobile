@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
-import { PanResponder } from 'react-native';
+import { PanResponder, Platform } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Text,
@@ -18,6 +18,7 @@ import ProgressIndicator from './ProgressIndicator';
 import { strings } from '../../../../../../locales/i18n';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { setOnboardingActiveStep } from '../../../../../reducers/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
@@ -72,7 +73,7 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
 }) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
 
   const onClose = useCallback(() => {
@@ -108,6 +109,9 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   return (
     <KeyboardAwareScrollView
       keyboardShouldPersistTaps="handled"
+      enableOnAndroid
+      enableAutomaticScroll
+      extraScrollHeight={Platform.OS === 'android' ? 120 : 20}
       testID="onboarding-step-container"
       contentContainerStyle={tw.style(
         `min-h-full px-4 ${isLargeDevice ? 'py-8' : 'py-2'}`,

@@ -1,4 +1,4 @@
-import { performEvmRefresh, performEvmTokenRefresh } from './tokenRefreshUtils';
+import { performEvmTokenRefresh } from './tokenRefreshUtils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { Hex } from '@metamask/utils';
@@ -56,8 +56,6 @@ const fakeNetworkConfigurations = {
   '0x1': { chainId: '0x1', nativeCurrency: 'ETH' },
   '0x2': { chainId: '0x2', nativeCurrency: 'BNB' },
 };
-
-const fakeNativeCurrencies = ['ETH', 'BNB'];
 
 describe('performEvmTokenRefresh', () => {
   beforeEach(() => {
@@ -156,86 +154,5 @@ describe('performEvmTokenRefresh', () => {
     );
 
     expect(Logger.error).not.toHaveBeenCalled();
-  });
-});
-
-describe('performEvmRefresh', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useRealTimers();
-    (
-      Engine.context.TokenDetectionController.detectTokens as jest.Mock
-    ).mockResolvedValue(undefined);
-  });
-
-  it('performs all EVM refresh actions including balance refresh', async () => {
-    await performEvmRefresh(
-      fakeNetworkConfigurations as Record<
-        string,
-        { chainId: Hex; nativeCurrency: string }
-      >,
-      fakeNativeCurrencies,
-    );
-
-    expect(
-      Engine.context.TokenDetectionController.detectTokens,
-    ).toHaveBeenCalledWith({
-      chainIds: ['0x1', '0x2'],
-    });
-
-    expect(
-      Engine.context.TokenBalancesController.updateBalances,
-    ).toHaveBeenCalledWith({
-      chainIds: ['0x1', '0x2'],
-    });
-
-    expect(
-      Engine.context.AccountTrackerController.refresh,
-    ).toHaveBeenCalledWith(['client-1', 'client-2']);
-
-    expect(
-      Engine.context.CurrencyRateController.updateExchangeRate,
-    ).toHaveBeenCalledWith(fakeNativeCurrencies);
-
-    expect(
-      Engine.context.TokenRatesController.updateExchangeRates,
-    ).toHaveBeenCalledWith([
-      { chainId: '0x1', nativeCurrency: 'ETH' },
-      { chainId: '0x2', nativeCurrency: 'BNB' },
-    ]);
-
-    expect(Logger.error).not.toHaveBeenCalled();
-  });
-
-  it('filters network configurations when updating token exchange rates', async () => {
-    // This is a rare edge-case. NetworkConfigurations should have a native currency
-    const invalidNetworkConfiguration = {
-      '0x1': { chainId: '0x1', nativeCurrency: undefined as unknown as string },
-    } as const;
-    const currencies = ['ETH'];
-
-    await performEvmRefresh(invalidNetworkConfiguration, currencies);
-    expect(
-      Engine.context.TokenRatesController.updateExchangeRates,
-    ).toHaveBeenCalledWith([]); // This controller handles when there is no chains to update
-  });
-
-  it('catches and logs error if any action fails', async () => {
-    (
-      Engine.context.AccountTrackerController.refresh as jest.Mock
-    ).mockRejectedValueOnce(new Error('Simulated error'));
-
-    await performEvmRefresh(
-      fakeNetworkConfigurations as Record<
-        string,
-        { chainId: Hex; nativeCurrency: string }
-      >,
-      fakeNativeCurrencies,
-    );
-
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      'Error while refreshing tokens',
-    );
   });
 });

@@ -107,6 +107,14 @@ jest.mock(
   '../components/Onboarding/VerifyingVeriffKYC',
   () => 'VerifyingVeriffKYC',
 );
+jest.mock(
+  '../components/Onboarding/ImmersveKYCProcessing',
+  () => 'ImmersveKYCProcessing',
+);
+jest.mock(
+  '../components/Onboarding/ImmersveFundingApproval',
+  () => 'ImmersveFundingApproval',
+);
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
 jest.mock('../components/Onboarding/KYCPending', () => 'KYCPending');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');

@@ -4,17 +4,20 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
+  AccountProviderWrapper,
+  XlmAccountProvider,
 } from '@metamask/multichain-account-service';
 import { MessengerClientInitFunction } from '../../types';
-import Engine from '../../Engine';
-import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
+import { isStellarAccountsFeatureEnabled } from '../../../../multichain-stellar/remote-feature-flag';
+import { previousValueComparator } from '../../../../util/value-comparator';
 
 /**
  * Initialize the multichain account service.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the service.
+ * @param request.initMessenger - The messenger to use for initialization.
  * @returns The initialized service.
  */
 export const multichainAccountServiceInit: MessengerClientInitFunction<
@@ -35,25 +38,35 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
     createAccounts: {
       timeoutMs: 3000,
-      batched: false,
     },
     resyncAccounts: {
       autoRemoveExtraSnapAccounts: false,
     },
   };
 
-  const solanaSnapAccountProviderConfig = {
-    ...snapAccountProviderConfig,
-    createAccounts: {
-      ...snapAccountProviderConfig.createAccounts,
-      batched: true,
-    },
-  };
+  const xlmProvider = new AccountProviderWrapper(
+    controllerMessenger,
+    new XlmAccountProvider(controllerMessenger, snapAccountProviderConfig),
+  );
+
+  // initialize Stellar provider based on feature flag
+  const initialRemoteFeatureFlagsState = initMessenger.call(
+    'RemoteFeatureFlagController:getState',
+  );
+
+  const initialStellarEnabled = isStellarAccountsFeatureEnabled(
+    initialRemoteFeatureFlagsState.remoteFeatureFlags?.stellarAccounts,
+  );
+
+  xlmProvider.setEnabled(initialStellarEnabled);
 
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
+    // TODO: Once stellar is officially supported,
+    // move it to the providers array via `XLM_ACCOUNT_PROVIDER_NAME`.
+    providers: [xlmProvider],
     providerConfigs: {
-      [SOL_ACCOUNT_PROVIDER_NAME]: solanaSnapAccountProviderConfig,
+      [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// END:ONLY_INCLUDE_IF
@@ -63,19 +76,32 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   });
 
-  // TODO: Move this logic to the SnapKeyring directly.
+  // Subscribe to feature flag changes to enable Stellar provider.
   initMessenger.subscribe(
-    'MultichainAccountService:multichainAccountGroupUpdated',
-    (group) => {
-      const { AccountTreeController } = Engine.context;
+    'RemoteFeatureFlagController:stateChange',
+    previousValueComparator((prevState, currState) => {
+      const prevStellarEnabled = isStellarAccountsFeatureEnabled(
+        prevState.remoteFeatureFlags?.stellarAccounts,
+      );
+      const currStellarEnabled = isStellarAccountsFeatureEnabled(
+        currState.remoteFeatureFlags?.stellarAccounts,
+      );
 
-      // If the current group gets updated, then maybe there are more accounts being "selected"
-      // now, so we have to forward them to the Snap keyring too!
-      if (AccountTreeController.getSelectedAccountGroup() === group.id) {
-        // eslint-disable-next-line no-void
-        void forwardSelectedAccountGroupToSnapKeyring(group.id);
+      // Only handle the case when Stellar provider is enabled.
+      if (prevStellarEnabled !== currStellarEnabled && currStellarEnabled) {
+        xlmProvider.setEnabled(currStellarEnabled);
+        // Trigger wallet alignment when Stellar accounts are enabled
+        // This will create Stellar accounts for existing wallets
+        controller.alignWallets().catch((error) => {
+          console.error(
+            'Failed to align wallets after enabling Stellar provider:',
+            error,
+          );
+        });
       }
-    },
+
+      return true;
+    }, initialRemoteFeatureFlagsState),
   );
 
   return { controller, memStateKey: null, persistedStateKey: null };

@@ -1,11 +1,11 @@
 import React from 'react';
-import { withMessenger } from './route-messenger-helpers';
+import { withRouteMessenger } from './route-messenger-helpers';
 
-describe('withMessenger', () => {
+describe('withRouteMessenger', () => {
   const FooComponent = () => <div>Foo</div>;
 
   it('returns a Route component with the expected shape', () => {
-    const Route = withMessenger(FooComponent, {
+    const Route = withRouteMessenger(FooComponent, {
       capabilities: {
         actions: ['SnapController:installSnaps'],
         events: ['SnapController:snapInstalled'],
@@ -28,14 +28,17 @@ describe('withMessenger', () => {
           getState: jest.fn(),
           goBack: jest.fn(),
           navigate: jest.fn(),
+          navigateDeprecated: jest.fn(),
+          preload: jest.fn(),
           removeListener: jest.fn(),
+          replaceParams: jest.fn(),
           reset: jest.fn(),
           setOptions: jest.fn(),
           setParams: jest.fn(),
         }}
       />,
     ).toMatchInlineSnapshot(`
-      <RouteWithMessengerElement
+      <RouteMessengerProviderWrapper
         navigation={
           {
             "addListener": [MockFunction],
@@ -47,7 +50,10 @@ describe('withMessenger', () => {
             "goBack": [MockFunction],
             "isFocused": [MockFunction],
             "navigate": [MockFunction],
+            "navigateDeprecated": [MockFunction],
+            "preload": [MockFunction],
             "removeListener": [MockFunction],
+            "replaceParams": [MockFunction],
             "reset": [MockFunction],
             "setOptions": [MockFunction],
             "setParams": [MockFunction],

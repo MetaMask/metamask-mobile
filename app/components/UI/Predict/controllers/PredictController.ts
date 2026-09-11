@@ -25,6 +25,7 @@ import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import { errorCodes } from '@metamask/rpc-errors';
 import {
   TransactionControllerEstimateGasAction,
   TransactionControllerTransactionConfirmedEvent,
@@ -37,6 +38,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
+import { formatUnits, Interface } from 'ethers/lib/utils';
 import performance from 'react-native-performance';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -50,15 +52,24 @@ import {
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
-import { PredictTradeStatus } from '../constants/eventNames';
+import {
+  MAX_TRACKED_PREDICT_BUY_TERMINALS,
+  type PredictBuyTerminalStatus,
+  PredictEventValues,
+  PredictTradeStatus,
+  type PredictTradeStatusValue,
+} from '../constants/eventNames';
 
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchWithTimeout';
 import {
+  COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
 
@@ -67,7 +78,9 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceHistoryPoint,
+  CryptoPriceSubscriptionOptions,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
@@ -83,36 +96,49 @@ import {
   GetPriceResponse,
   GetSeriesParams,
   OrderPreview,
+  PendingOrderPreview,
   PlaceOrderParams,
   PredictAccountMeta,
   PredictActivity,
   PredictBalance,
+  PredictBuyAttempt,
+  PredictBuyAttemptContext,
   PredictClaim,
   PredictClaimStatus,
+  PredictEligibility,
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarket,
   PredictMarketListParams,
   PredictMarketListResponse,
+  PredictOrderErrorStage,
   PredictPosition,
-  PredictPositionStatus,
   PredictPriceHistoryPoint,
+  PredictTradeAnalyticsProperties,
   PredictWithdraw,
   PredictWithdrawStatus,
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  PreviewMaxBuyOrderParams,
   PriceUpdateCallback,
   OrderbookCallback,
   Result,
   SearchMarketsParams,
   Side,
+  StartPredictBuyAttemptArgs,
   UnrealizedPnL,
 } from '../types';
-import { PredictFeatureFlags } from '../types/flags';
+import { PredictFeatureFlags, PredictHiddenMarketsFlag } from '../types/flags';
 
+import {
+  classifyPredictBuyFailure,
+  mapClaimFailureReason,
+} from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
+import { generateOrderId } from '../utils/orders';
+import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
@@ -130,10 +156,7 @@ import { withTrace, type TraceableController } from './utils/withTrace';
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
-  eligibility: {
-    eligible: boolean;
-    country?: string;
-  };
+  eligibility: PredictEligibility;
 
   // Error handling
   lastError: string | null;
@@ -160,6 +183,11 @@ export type PredictControllerState = {
       transactionId?: string;
       state: ActiveOrderState;
       error?: string;
+      /**
+       * Which buy leg failed. `'payment'` = swap/deposit before order placement.
+       * `'order'` (default when omitted) = order placement / fill failure.
+       */
+      errorStage?: PredictOrderErrorStage;
       paymentTokenAddress?: string;
       paymentTokenSymbol?: string;
     };
@@ -181,7 +209,7 @@ export type PredictControllerState = {
  * Get default PredictController state
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
-  eligibility: { eligible: false },
+  eligibility: { status: 'checking', eligible: false },
   lastError: null,
   lastUpdateTimestamp: 0,
   balances: {},
@@ -283,6 +311,9 @@ export type PredictTransactionEventStatus =
   | 'rejected'
   | 'depositing';
 
+type PredictTransactionMetricType =
+  (typeof PredictEventValues.TRANSACTION_TYPE)[keyof typeof PredictEventValues.TRANSACTION_TYPE];
+
 export interface PredictControllerTransactionStatusChangedEvent {
   type: 'PredictController:transactionStatusChanged';
   payload: [
@@ -293,6 +324,7 @@ export interface PredictControllerTransactionStatusChangedEvent {
       transactionId?: string;
       amount?: number;
       marketId?: string;
+      isPostDepositOrderFailure?: boolean;
     },
   ];
 }
@@ -301,8 +333,29 @@ export type PredictTransactionStatusChangedPayload =
   PredictControllerTransactionStatusChangedEvent['payload'][0];
 
 export type PredictControllerEvents =
+  // EngineService still subscribes to the legacy `stateChange` event.
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   | ControllerStateChangeEvent<'PredictController', PredictControllerState>
   | PredictControllerTransactionStatusChangedEvent;
+
+interface TransactionReceiptLog {
+  address?: string;
+  data?: string;
+  topics?: string | string[];
+}
+
+interface ClaimAmountFromSimulationOptions {
+  treatMissingRelevantTokenChangesAsZero?: boolean;
+}
+
+const PAYOUT_REDEMPTION_INTERFACE = new Interface([
+  'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
+]);
+
+const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
+  MATIC_CONTRACTS_V2.collateral.toLowerCase(),
+  USDC_E_ADDRESS.toLowerCase(),
+]);
 
 /**
  * The action which can be used to retrieve the state of the PredictController.
@@ -323,6 +376,8 @@ export type PredictControllerActions =
  * External actions the PredictController can call
  */
 type AllowedActions =
+  // Keep the legacy action in the messenger contract until its delegation is removed separately.
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   | AccountsControllerGetSelectedAccountAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
   | NetworkControllerGetStateAction
@@ -397,6 +452,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'searchMarkets',
   'selectPaymentToken',
   'setSelectedPaymentToken',
+  'subscribeToConnectionStatus',
   'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
@@ -404,8 +460,13 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackActivityViewed',
   'trackBannerAction',
   'trackBetslipDismissed',
+  'trackCategoryClicked',
+  'trackFeedFilterChanged',
+  'trackFeedTabChanged',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
+  'trackHomeSectionInteraction',
+  'trackHomeViewed',
   'trackMarketDetailsOpened',
   'trackPositionViewed',
   'trackPortfolioPositionsButtonTapped',
@@ -433,6 +494,16 @@ const HIGHLIGHT_SERIES_PAST_WINDOW_MS = 60 * 60 * 1000;
 const HIGHLIGHT_SERIES_FUTURE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
+ * How long an optimistic balance (set right after an order fills) stays
+ * authoritative. Settlement happens off-device on Polygon, so there is no
+ * local tx-confirmed event for it — this window is a safety cap generously
+ * sized to outlast settlement, and any confirmed Predict transaction event
+ * (deposit, withdraw, claim) clears the cached balance early so a fresh
+ * on-chain value is fetched.
+ */
+export const OPTIMISTIC_BALANCE_MAX_AGE_MS = 30 * 1000;
+
+/**
  * PredictController - Protocol-agnostic prediction markets trading controller
  *
  * Provides a unified interface for prediction markets trading across multiple protocols.
@@ -446,15 +517,42 @@ export class PredictController extends BaseController<
   PredictControllerMessenger
 > {
   private provider: PolymarketProvider;
+  private eligibilityRefreshPromise: Promise<PredictEligibility> | null = null;
 
   private pendingOrderPreviews: {
-    [transactionId: string]: {
-      preview: OrderPreview;
-      signerAddress: string;
-      analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-      activeAbTests?: PlaceOrderParams['activeAbTests'];
-    };
+    [transactionId: string]: PendingOrderPreview;
   } = {};
+
+  /**
+   * In-memory claim analytics context keyed by lowercased signer address.
+   * Captured when a claim is initiated and consumed when the claim transaction
+   * reaches a terminal status, so `succeeded`/`failed` events keep entry-point
+   * attribution. Keyed by address (not transactionId) because the claim has no
+   * transaction id at initiation time.
+   */
+  private pendingClaimAnalytics: {
+    [address: string]: PredictTradeAnalyticsProperties;
+  } = {};
+
+  /**
+   * Tracks which claim transactions have already emitted a terminal
+   * `PREDICT_TRADE_TRANSACTION` event, keyed by transaction id. Keyed per
+   * transaction (not per address) so a delayed/duplicate `transactionStatusUpdated`
+   * for an earlier claim cannot emit a spurious terminal event for, or suppress
+   * the real terminal event of, a newer in-flight claim on the same address.
+   * Each claim creates a unique transaction id, so no per-attempt reset is needed.
+   */
+  private claimTerminalEmitted = new Set<string>();
+
+  private flowTerminalMetricEmitted = new Set<string>();
+
+  private predictBuyTerminalEmitted = new Set<string>();
+
+  private predictBuyTerminalEmissionOrder: string[] = [];
+
+  private predictBuyAttempts = new Map<string, PredictBuyAttemptContext>();
+
+  private retryablePredictBuyAttemptIdsByAddress = new Map<string, string>();
 
   private readonly traceable: TraceableController = {
     update: (updater) => this.update(updater),
@@ -481,7 +579,7 @@ export class PredictController extends BaseController<
     });
 
     this.analytics = new PredictAnalytics({
-      getEligibility: () => this.state.eligibility ?? { eligible: false },
+      getEligibility: () => this.state.eligibility,
     });
 
     this.messenger.subscribe(
@@ -489,22 +587,8 @@ export class PredictController extends BaseController<
       this.handleTransactionStatusUpdate.bind(this),
     );
 
-    this.refreshEligibility().catch((error) => {
-      DevLogger.log('PredictController: Error refreshing eligibility', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
-
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('refreshEligibility', {
-          provider: POLYMARKET_PROVIDER_ID,
-        }),
-      );
-    });
+    // refreshEligibility owns failure state and logging.
+    this.refreshEligibility().catch(() => undefined);
   }
 
   /**
@@ -701,8 +785,44 @@ export class PredictController extends BaseController<
           }
         }
 
+        markets = this.filterHiddenMarkets(
+          markets,
+          featureFlags.hiddenMarketsFlag,
+          params.category,
+        );
+
         return { markets, nextCursor };
       },
+    );
+  }
+
+  /**
+   * Removes remotely hidden markets (by id or slug) from category feed
+   * results. Used to pull broken markets (e.g. stale end dates polluting the
+   * Ending Soon tab) without an app release.
+   */
+  private filterHiddenMarkets(
+    markets: PredictMarket[],
+    hiddenMarketsFlag: PredictHiddenMarketsFlag,
+    category?: string,
+  ): PredictMarket[] {
+    if (!category) {
+      return markets;
+    }
+
+    const entry = hiddenMarketsFlag.hidden.find(
+      (hidden) => hidden.category === category,
+    );
+    if (!entry || (entry.marketIds.length === 0 && entry.slugs.length === 0)) {
+      return markets;
+    }
+
+    const hiddenMarketIds = new Set(entry.marketIds);
+    const hiddenSlugs = new Set(entry.slugs);
+
+    return markets.filter(
+      (market) =>
+        !hiddenMarketIds.has(market.id) && !hiddenSlugs.has(market.slug),
     );
   }
 
@@ -1023,6 +1143,9 @@ export class PredictController extends BaseController<
             providerId: POLYMARKET_PROVIDER_ID,
             symbol: params.symbol,
             variant: params.variant,
+            ...(params.twapWindowSeconds !== undefined && {
+              twapWindowSeconds: params.twapWindowSeconds,
+            }),
           },
         },
         errorContext: {
@@ -1031,6 +1154,7 @@ export class PredictController extends BaseController<
           eventStartTime: params.eventStartTime,
           variant: params.variant,
           endDate: params.endDate,
+          twapWindowSeconds: params.twapWindowSeconds,
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
         traceData: (history) => ({ pointCount: history.length }),
@@ -1206,6 +1330,295 @@ export class PredictController extends BaseController<
     return this.analytics.trackPredictOrderEvent(args);
   }
 
+  public trackTradeConsidered(): void {
+    this.analytics.trackTradeConsidered();
+  }
+
+  public startPredictBuyAttempt({
+    amountUsd,
+    paymentMethod,
+    analyticsProperties,
+    sharePrice,
+    orderType,
+    activeAbTests,
+  }: StartPredictBuyAttemptArgs): PredictBuyAttempt {
+    this.cancelRetryablePredictBuyAttempt(
+      'User started a new attempt after a retryable order failure',
+    );
+
+    const address = this.requireEvmAccountAddress().toLowerCase();
+    const attempt: PredictBuyAttempt = {
+      attemptId: generateOrderId(),
+      amountUsd,
+      paymentMethod,
+    };
+
+    this.predictBuyAttempts.set(attempt.attemptId, {
+      attempt,
+      address,
+      analyticsProperties,
+      sharePrice,
+      orderType,
+      activeAbTests,
+    });
+
+    this.trackPredictOrderEvent({
+      status: PredictTradeStatus.ATTEMPT_STARTED,
+      amountUsd,
+      analyticsProperties,
+      sharePrice,
+      orderType,
+      attemptId: attempt.attemptId,
+      paymentMethod,
+      activeAbTests,
+    });
+
+    return attempt;
+  }
+
+  public getRetryablePredictBuyAttempt(): PredictBuyAttempt | undefined {
+    const address = this.getEvmAccountAddress()?.toLowerCase();
+    if (!address) {
+      return undefined;
+    }
+
+    const attemptId = this.retryablePredictBuyAttemptIdsByAddress.get(address);
+    return attemptId
+      ? this.predictBuyAttempts.get(attemptId)?.attempt
+      : undefined;
+  }
+
+  public cancelRetryablePredictBuyAttempt(
+    failureReason = 'User cancelled after a retryable order failure',
+  ): boolean {
+    const address = this.getEvmAccountAddress()?.toLowerCase();
+    if (!address) {
+      return false;
+    }
+
+    const attemptId = this.retryablePredictBuyAttemptIdsByAddress.get(address);
+    const context = attemptId
+      ? this.predictBuyAttempts.get(attemptId)
+      : undefined;
+    if (!context) {
+      return false;
+    }
+
+    this.trackPredictBuyTerminalEvent({
+      status: PredictTradeStatus.CANCELLED,
+      amountUsd: context.attempt.amountUsd,
+      analyticsProperties: context.analyticsProperties,
+      sharePrice: context.sharePrice,
+      orderType: context.orderType,
+      attemptId: context.attempt.attemptId,
+      paymentMethod: context.attempt.paymentMethod,
+      failureStage: PredictEventValues.FAILURE_STAGE.ORDER,
+      failureCategory: PredictEventValues.FAILURE_CATEGORY.USER_REJECTED,
+      failureReason,
+      activeAbTests: context.activeAbTests,
+    });
+
+    return true;
+  }
+
+  public trackPredictBuyTerminalEvent(
+    args: Omit<
+      Parameters<PredictAnalytics['trackPredictOrderEvent']>[0],
+      'status'
+    > & {
+      status: PredictBuyTerminalStatus;
+      attemptId: string;
+    },
+  ): void {
+    if (this.predictBuyTerminalEmitted.has(args.attemptId)) {
+      return;
+    }
+
+    this.predictBuyTerminalEmitted.add(args.attemptId);
+    this.predictBuyTerminalEmissionOrder.push(args.attemptId);
+    if (
+      this.predictBuyTerminalEmissionOrder.length >
+      MAX_TRACKED_PREDICT_BUY_TERMINALS
+    ) {
+      const oldestAttemptId = this.predictBuyTerminalEmissionOrder.shift();
+      if (oldestAttemptId) {
+        this.predictBuyTerminalEmitted.delete(oldestAttemptId);
+      }
+    }
+
+    const context = this.predictBuyAttempts.get(args.attemptId);
+    if (
+      context &&
+      this.retryablePredictBuyAttemptIdsByAddress.get(context.address) ===
+        args.attemptId
+    ) {
+      this.retryablePredictBuyAttemptIdsByAddress.delete(context.address);
+    }
+    this.predictBuyAttempts.delete(args.attemptId);
+
+    this.trackPredictOrderEvent(args);
+  }
+
+  private markPredictBuyAttemptRetryable(
+    attemptId: string,
+    address: string,
+  ): void {
+    if (!this.predictBuyAttempts.has(attemptId)) {
+      return;
+    }
+
+    this.retryablePredictBuyAttemptIdsByAddress.set(
+      address.toLowerCase(),
+      attemptId,
+    );
+  }
+
+  private trackPredictFlowMetric({
+    transactionType,
+    status,
+    amountUsd,
+    analyticsProperties,
+    failureReason,
+  }: {
+    transactionType: PredictTransactionMetricType;
+    status: PredictTradeStatusValue;
+    amountUsd?: number;
+    analyticsProperties?: PredictTradeAnalyticsProperties;
+    failureReason?: string;
+  }): void {
+    const flowAnalyticsProperties: PredictTradeAnalyticsProperties = {
+      entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+      ...(analyticsProperties ?? {}),
+      transactionType,
+    };
+
+    this.trackPredictOrderEvent({
+      status,
+      analyticsProperties: flowAnalyticsProperties,
+      ...(amountUsd !== undefined && {
+        amountUsd,
+      }),
+      ...(status === PredictTradeStatus.FAILED &&
+        failureReason && {
+          failureReason,
+        }),
+    });
+  }
+
+  private trackTransactionSubmissionMetric({
+    status,
+    failureReason,
+  }: {
+    status: PredictTradeStatusValue;
+    failureReason?: string;
+  }): void {
+    this.trackPredictFlowMetric({
+      transactionType:
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_TRANSACTION_SUBMISSION,
+      status,
+      ...(failureReason && {
+        failureReason,
+      }),
+    });
+  }
+
+  /**
+   * Logs an error that occurred after a transaction batch was already
+   * submitted. At that point the flow is genuinely in flight, so callers
+   * swallow the error (keeping any pending-state locks for the
+   * terminal-status handler) instead of surfacing a false failure.
+   */
+  private logPostSubmissionBookkeepingError(
+    method: string,
+    error: Error,
+  ): void {
+    Logger.error(
+      error,
+      this.getErrorContext(method, {
+        providerId: POLYMARKET_PROVIDER_ID,
+        operation: 'post_submission_bookkeeping',
+      }),
+    );
+  }
+
+  /**
+   * Tracks the terminal flow metric for an error thrown before the
+   * transaction batch was submitted, classifying user cancellations.
+   *
+   * @returns whether the error was a user cancellation
+   */
+  private trackFlowSubmissionFailureMetric({
+    transactionType,
+    error,
+  }: {
+    transactionType: PredictTransactionMetricType;
+    error: unknown;
+  }): boolean {
+    const isUserCancelled = this.isUserCancelledTransactionError(error);
+
+    this.trackPredictFlowMetric({
+      transactionType,
+      status: isUserCancelled
+        ? PredictTradeStatus.CANCELLED
+        : PredictTradeStatus.FAILED,
+      failureReason: ensureError(error).message,
+    });
+
+    return isUserCancelled;
+  }
+
+  private isUserCancelledTransactionError(error: unknown): boolean {
+    // Prefer the language-independent EIP-1193 code (4001) emitted by
+    // `providerErrors.userRejectedRequest()` over message matching, which can
+    // silently flip cancelled/failed if upstream error wording changes.
+    const errorCode = (error as { code?: unknown } | null | undefined)?.code;
+    if (errorCode === errorCodes.provider.userRejectedRequest) {
+      return true;
+    }
+
+    const message = ensureError(error).message.toLowerCase();
+    return (
+      message.includes('user denied transaction signature') ||
+      message.includes('user rejected') ||
+      message.includes('user cancelled') ||
+      message.includes('user canceled')
+    );
+  }
+
+  private async submitPredictTransactionBatch({
+    params,
+    missingBatchIdError,
+  }: {
+    params: Parameters<typeof addTransactionBatch>[0];
+    missingBatchIdError: string;
+  }): Promise<string> {
+    try {
+      const batchResult = await addTransactionBatch(params);
+
+      if (!batchResult?.batchId) {
+        throw new Error(missingBatchIdError);
+      }
+
+      this.trackTransactionSubmissionMetric({
+        status: PredictTradeStatus.SUCCEEDED,
+      });
+
+      return batchResult.batchId;
+    } catch (error) {
+      const e = ensureError(error);
+      const isUserCancelled = this.isUserCancelledTransactionError(error);
+
+      this.trackTransactionSubmissionMetric({
+        status: isUserCancelled
+          ? PredictTradeStatus.CANCELLED
+          : PredictTradeStatus.FAILED,
+        failureReason: e.message,
+      });
+
+      throw error;
+    }
+  }
+
   public trackMarketDetailsOpened(
     args: Parameters<PredictAnalytics['trackMarketDetailsOpened']>[0],
   ): void {
@@ -1268,6 +1681,12 @@ export class PredictController extends BaseController<
     this.analytics.trackBannerAction(args);
   }
 
+  public trackCategoryClicked(
+    args: Parameters<PredictAnalytics['trackCategoryClicked']>[0],
+  ): void {
+    this.analytics.trackCategoryClicked(args);
+  }
+
   public trackShareAction(
     args: Parameters<PredictAnalytics['trackShareAction']>[0],
   ): void {
@@ -1283,6 +1702,51 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackSearchInteracted']>[0],
   ): void {
     this.analytics.trackSearchInteracted(args);
+  }
+
+  /**
+   * Track Predict Home Viewed analytics event (redesigned home)
+   *
+   * @public
+   */
+  public trackHomeViewed(
+    args: Parameters<PredictAnalytics['trackHomeViewed']>[0],
+  ): void {
+    this.analytics.trackHomeViewed(args);
+  }
+
+  /**
+   * Track Predict Home Section Interaction analytics event
+   * (section viewed / tapped / see-all)
+   *
+   * @public
+   */
+  public trackHomeSectionInteraction(
+    args: Parameters<PredictAnalytics['trackHomeSectionInteraction']>[0],
+  ): void {
+    this.analytics.trackHomeSectionInteraction(args);
+  }
+
+  /**
+   * Track Predict Feed Tab Changed analytics event (generic feed)
+   *
+   * @public
+   */
+  public trackFeedTabChanged(
+    args: Parameters<PredictAnalytics['trackFeedTabChanged']>[0],
+  ): void {
+    this.analytics.trackFeedTabChanged(args);
+  }
+
+  /**
+   * Track Predict Feed Filter Changed analytics event (generic feed)
+   *
+   * @public
+   */
+  public trackFeedFilterChanged(
+    args: Parameters<PredictAnalytics['trackFeedFilterChanged']>[0],
+  ): void {
+    this.analytics.trackFeedFilterChanged(args);
   }
 
   /**
@@ -1319,6 +1783,85 @@ export class PredictController extends BaseController<
     }
   }
 
+  async previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams,
+  ): Promise<OrderPreview | null> {
+    try {
+      const provider = this.provider;
+      const signer = this.getSigner();
+
+      return provider.previewMaxBuyOrder({ ...params, signer });
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('previewMaxBuyOrder', {
+          providerId: POLYMARKET_PROVIDER_ID,
+          side: Side.BUY,
+          marketId: params.marketId,
+          outcomeId: params.outcomeId,
+        }),
+      );
+
+      throw error;
+    }
+  }
+
+  private handlePostDepositOrderFailure({
+    activeOrderAddress,
+    errorMessage,
+    pendingOrder,
+    preview,
+    marketId,
+  }: {
+    activeOrderAddress: string;
+    errorMessage: string;
+    pendingOrder: PendingOrderPreview;
+    preview: OrderPreview;
+    marketId?: string;
+  }): void {
+    this.update((state) => {
+      state.lastError = errorMessage;
+      state.lastUpdateTimestamp = Date.now();
+      const activeOrder = state.activeBuyOrders[activeOrderAddress];
+      if (activeOrder) {
+        activeOrder.state = ActiveOrderState.PREVIEW;
+        delete activeOrder.error;
+        delete activeOrder.errorStage;
+      }
+      state.selectedPaymentToken = null;
+    });
+
+    this.provider.clearOptimisticPosition(
+      activeOrderAddress,
+      preview.outcomeTokenId,
+    );
+
+    this.messenger.publish('PredictController:transactionStatusChanged', {
+      type: 'order',
+      status: 'failed',
+      senderAddress: activeOrderAddress,
+      marketId,
+      amount: pendingOrder.depositedAmount ?? preview.maxAmountSpent,
+      isPostDepositOrderFailure: true,
+    });
+
+    if (this.state.activeBuyOrders[activeOrderAddress]?.transactionId) {
+      this.update((state) => {
+        if (state.activeBuyOrders[activeOrderAddress]) {
+          state.activeBuyOrders[activeOrderAddress].transactionId = undefined;
+        }
+      });
+      this.initPayWithAnyToken().catch((error) => {
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('placeOrder', {
+            operation: 'initPayWithAnyToken',
+          }),
+        );
+      });
+    }
+  }
+
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
     const activeOrderAddress =
       params.address ?? this.requireEvmAccountAddress();
@@ -1339,22 +1882,38 @@ export class PredictController extends BaseController<
         error instanceof Error
           ? error.message
           : PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED;
+      const pendingOrder = params.transactionId
+        ? this.pendingOrderPreviews[params.transactionId]
+        : undefined;
+      const isPostDepositOrderFailure =
+        isBuyWithAnyToken && pendingOrder !== undefined;
 
-      this.update((state) => {
-        state.lastError = errorMessage;
-        state.lastUpdateTimestamp = Date.now();
-        if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
-          state.activeBuyOrders[activeOrderAddress].state =
-            ActiveOrderState.PREVIEW;
-          state.activeBuyOrders[activeOrderAddress].error = errorMessage;
-        }
-      });
-
-      if (isBuyWithAnyToken && isExistingPendingOrder) {
-        this.provider.clearOptimisticPosition(
+      if (isPostDepositOrderFailure) {
+        this.handlePostDepositOrderFailure({
           activeOrderAddress,
-          params.preview.outcomeTokenId,
-        );
+          errorMessage,
+          pendingOrder,
+          preview: params.preview,
+          marketId: params.analyticsProperties?.marketId,
+        });
+      } else {
+        this.update((state) => {
+          state.lastError = errorMessage;
+          state.lastUpdateTimestamp = Date.now();
+          if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
+            state.activeBuyOrders[activeOrderAddress].state =
+              ActiveOrderState.PREVIEW;
+            state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+            state.activeBuyOrders[activeOrderAddress].errorStage = 'order';
+          }
+        });
+
+        if (isBuyWithAnyToken && isExistingPendingOrder) {
+          this.provider.clearOptimisticPosition(
+            activeOrderAddress,
+            params.preview.outcomeTokenId,
+          );
+        }
       }
 
       const isBackgroundOrder =
@@ -1362,12 +1921,37 @@ export class PredictController extends BaseController<
         params.transactionId !==
           this.state.activeBuyOrders[activeOrderAddress]?.transactionId;
 
-      if (isBuyWithAnyToken && isExistingPendingOrder && isBackgroundOrder) {
+      if (
+        !isPostDepositOrderFailure &&
+        isBuyWithAnyToken &&
+        isExistingPendingOrder &&
+        isBackgroundOrder
+      ) {
         this.messenger.publish('PredictController:transactionStatusChanged', {
           type: 'order',
           status: 'failed',
           senderAddress: activeOrderAddress,
           marketId: params.analyticsProperties?.marketId,
+        });
+      }
+
+      if (params.attempt && params.preview.side === Side.BUY) {
+        const failure = classifyPredictBuyFailure(
+          errorMessage,
+          PredictEventValues.FAILURE_STAGE.ORDER,
+        );
+        this.trackPredictBuyTerminalEvent({
+          status: PredictTradeStatus.FAILED,
+          amountUsd: params.attempt.amountUsd,
+          analyticsProperties: params.analyticsProperties,
+          sharePrice: params.preview.sharePrice,
+          orderType: params.preview.orderType,
+          attemptId: params.attempt.attemptId,
+          paymentMethod: params.attempt.paymentMethod,
+          failureStage: failure.failureStage,
+          failureCategory: failure.failureCategory,
+          failureReason: failure.failureReason,
+          activeAbTests: params.activeAbTests,
         });
       }
 
@@ -1394,6 +1978,7 @@ export class PredictController extends BaseController<
           signerAddress: activeOrderAddress,
           analyticsProperties: params.analyticsProperties,
           activeAbTests: params.activeAbTests,
+          attempt: params.attempt,
         };
       }
       this.update((state) => {
@@ -1423,7 +2008,7 @@ export class PredictController extends BaseController<
 
       this.trackPredictOrderEvent({
         status: PredictTradeStatus.SWAP_INITIATED,
-        amountUsd: params.preview?.maxAmountSpent,
+        amountUsd: params.attempt?.amountUsd ?? params.preview?.maxAmountSpent,
         analyticsProperties: params.analyticsProperties,
         sharePrice: params.preview?.sharePrice,
         orderType: params.preview.orderType,
@@ -1436,6 +2021,8 @@ export class PredictController extends BaseController<
           params.preview.side === Side.BUY
             ? this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenSymbol
             : undefined,
+        attemptId: params.attempt?.attemptId,
+        paymentMethod: params.attempt?.paymentMethod,
         activeAbTests: params.activeAbTests,
       });
 
@@ -1482,9 +2069,10 @@ export class PredictController extends BaseController<
 
     const sharePrice = preview?.sharePrice;
     const amountUsd =
-      preview.side === Side.BUY
+      params.attempt?.amountUsd ??
+      (preview.side === Side.BUY
         ? preview?.maxAmountSpent
-        : preview?.minAmountReceived;
+        : preview?.minAmountReceived);
 
     // Start Sentry trace for place order operation
     const traceId = `place-order-${Date.now()}`;
@@ -1522,16 +2110,40 @@ export class PredictController extends BaseController<
         orderType: preview.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
+        attemptId: params.attempt?.attemptId,
+        paymentMethod: params.attempt?.paymentMethod,
         activeAbTests: params.activeAbTests,
       });
 
-      // Invalidate query cache (to avoid nonce issues)
-      await this.invalidateQueryCache(provider.chainId);
+      const maxAttempts = isExistingPendingOrder ? 2 : 1;
+      let result:
+        | Awaited<ReturnType<PolymarketProvider['placeOrder']>>
+        | undefined;
 
-      const result = await provider.placeOrder({
-        ...params,
-        signer,
-      });
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          // Invalidate before each attempt to avoid nonce issues.
+          await this.invalidateQueryCache(provider.chainId);
+          result = await provider.placeOrder({
+            ...params,
+            signer,
+          });
+
+          if (result.success || attempt === maxAttempts) {
+            break;
+          }
+        } catch (error) {
+          if (attempt === maxAttempts) {
+            throw error;
+          }
+        }
+      }
+
+      // The loop always assigns result before it exits without throwing.
+      // This guard also protects against future changes to the attempt count.
+      if (!result) {
+        throw new Error(PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
+      }
 
       // Track Predict Action Completed or Failed
       const completionDuration = performance.now() - startTime;
@@ -1551,7 +2163,12 @@ export class PredictController extends BaseController<
 
       const { spentAmount, receivedAmount } = result.response;
 
-      const cachedBalance = this.state.balances[signer.address]?.balance ?? 0;
+      const cachedBalanceEntry = this.state.balances[signer.address];
+      const cachedBalance = cachedBalanceEntry?.balance ?? 0;
+      // Without a known baseline, an optimistic delta would produce a bogus
+      // (possibly negative) balance — leave the cache empty so the next read
+      // fetches the real value from chain instead.
+      const hasBalanceBaseline = cachedBalanceEntry !== undefined;
       let realAmountUsd = amountUsd;
       let realSharePrice = sharePrice;
       try {
@@ -1560,26 +2177,41 @@ export class PredictController extends BaseController<
           realAmountUsd = parseFloat(spentAmount);
           realSharePrice = parseFloat(spentAmount) / parseFloat(receivedAmount);
 
-          // Optimistically update balance
-          this.update((state) => {
-            state.balances[signer.address] = {
-              balance: cachedBalance - (realAmountUsd + totalFee),
-              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-              validUntil: Date.now() + 5000,
-            };
-          });
+          if (hasBalanceBaseline) {
+            // Optimistically update balance. Held until a confirmed
+            // transaction event clears it, capped so it can't outlive
+            // on-chain settlement.
+            this.update((state) => {
+              state.balances[signer.address] = {
+                balance: Math.max(
+                  0,
+                  cachedBalance - (realAmountUsd + totalFee),
+                ),
+                validUntil: Date.now() + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+              };
+            });
+          }
         } else {
+          const serviceFee = preview.fees?.totalFee ?? 0;
+          const marketFee = preview.fees?.marketFee ?? 0;
           realAmountUsd = parseFloat(receivedAmount);
           realSharePrice = parseFloat(receivedAmount) / parseFloat(spentAmount);
+          const netAmountUsd = Math.max(
+            0,
+            realAmountUsd - serviceFee - marketFee,
+          );
 
-          // Optimistically update balance
-          this.update((state) => {
-            state.balances[signer.address] = {
-              balance: cachedBalance + realAmountUsd,
-              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-              validUntil: Date.now() + 5000,
-            };
-          });
+          if (hasBalanceBaseline) {
+            // Optimistically update balance. Held until a confirmed
+            // transaction event clears it, capped so it can't outlive
+            // on-chain settlement.
+            this.update((state) => {
+              state.balances[signer.address] = {
+                balance: cachedBalance + netAmountUsd,
+                validUntil: Date.now() + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+              };
+            });
+          }
         }
       } catch (_e) {
         // If we can't get real share price, continue without it
@@ -1595,17 +2227,29 @@ export class PredictController extends BaseController<
       }
 
       // Track Predict Trade Transaction with succeeded status (fire and forget)
-      this.trackPredictOrderEvent({
+      const successEvent = {
         status: PredictTradeStatus.SUCCEEDED,
-        amountUsd: realAmountUsd,
+        amountUsd: params.attempt?.amountUsd ?? realAmountUsd,
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
         orderType: preview.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
+        tradeCompletedAmountUsd: realAmountUsd,
+        attemptId: params.attempt?.attemptId,
+        paymentMethod: params.attempt?.paymentMethod,
         activeAbTests: params.activeAbTests,
-      });
+      };
+
+      if (params.attempt) {
+        this.trackPredictBuyTerminalEvent({
+          ...successEvent,
+          attemptId: params.attempt.attemptId,
+        });
+      } else {
+        this.trackPredictOrderEvent(successEvent);
+      }
 
       traceData = { success: true, side: preview.side };
       return result as unknown as Result;
@@ -1615,40 +2259,95 @@ export class PredictController extends BaseController<
         error instanceof Error
           ? error.message
           : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED;
+      const pendingOrder = params.transactionId
+        ? this.pendingOrderPreviews[params.transactionId]
+        : undefined;
+      const isPostDepositOrderFailure =
+        isBuyWithAnyToken && pendingOrder !== undefined;
 
-      // Track Predict Trade Transaction with failed status (fire and forget)
-      this.trackPredictOrderEvent({
-        status: PredictTradeStatus.FAILED,
-        amountUsd,
-        analyticsProperties,
-        sharePrice,
-        completionDuration,
-        failureReason: errorMessage,
-        orderType: preview.orderType,
-        paymentTokenAddress,
-        paymentTokenSymbol,
-        activeAbTests: params.activeAbTests,
-      });
-
-      // Update error state for Sentry integration
-      this.update((state) => {
-        state.lastError = errorMessage;
-        state.lastUpdateTimestamp = Date.now();
-        if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
-          state.activeBuyOrders[activeOrderAddress].state =
-            ActiveOrderState.PREVIEW;
-          state.activeBuyOrders[activeOrderAddress].error = errorMessage;
-        }
-        if (isBuyWithAnyToken) {
-          state.selectedPaymentToken = null;
-        }
-      });
-
-      if (isBuyWithAnyToken) {
-        this.provider.clearOptimisticPosition(
-          activeOrderAddress,
-          preview.outcomeTokenId,
+      if (params.attempt && preview.side === Side.BUY) {
+        const failure = classifyPredictBuyFailure(
+          error,
+          PredictEventValues.FAILURE_STAGE.ORDER,
         );
+        const failureEvent = {
+          amountUsd: params.attempt.amountUsd,
+          analyticsProperties,
+          sharePrice,
+          completionDuration,
+          failureReason: failure.failureReason,
+          failureStage: failure.failureStage,
+          failureCategory: failure.failureCategory,
+          orderType: preview.orderType,
+          paymentTokenAddress,
+          paymentTokenSymbol,
+          attemptId: params.attempt.attemptId,
+          paymentMethod: params.attempt.paymentMethod,
+          activeAbTests: params.activeAbTests,
+        };
+
+        if (failure.isRetryable) {
+          this.markPredictBuyAttemptRetryable(
+            params.attempt.attemptId,
+            activeOrderAddress,
+          );
+          this.trackPredictOrderEvent({
+            ...failureEvent,
+            status: PredictTradeStatus.ORDER_FAILED,
+          });
+        } else {
+          this.trackPredictBuyTerminalEvent({
+            ...failureEvent,
+            status: failure.isUserRejected
+              ? PredictTradeStatus.CANCELLED
+              : PredictTradeStatus.FAILED,
+          });
+        }
+      } else {
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          amountUsd,
+          analyticsProperties,
+          sharePrice,
+          completionDuration,
+          failureReason: errorMessage,
+          orderType: preview.orderType,
+          paymentTokenAddress,
+          paymentTokenSymbol,
+          activeAbTests: params.activeAbTests,
+        });
+      }
+
+      if (isPostDepositOrderFailure) {
+        this.handlePostDepositOrderFailure({
+          activeOrderAddress,
+          errorMessage,
+          pendingOrder,
+          preview,
+          marketId: analyticsProperties?.marketId,
+        });
+      } else {
+        // Update error state for Sentry integration
+        this.update((state) => {
+          state.lastError = errorMessage;
+          state.lastUpdateTimestamp = Date.now();
+          if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
+            state.activeBuyOrders[activeOrderAddress].state =
+              ActiveOrderState.PREVIEW;
+            state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+            state.activeBuyOrders[activeOrderAddress].errorStage = 'order';
+          }
+          if (isBuyWithAnyToken) {
+            state.selectedPaymentToken = null;
+          }
+        });
+
+        if (isBuyWithAnyToken) {
+          this.provider.clearOptimisticPosition(
+            activeOrderAddress,
+            preview.outcomeTokenId,
+          );
+        }
       }
 
       traceData = { success: false, error: errorMessage };
@@ -1658,7 +2357,11 @@ export class PredictController extends BaseController<
         params.transactionId !==
           this.state.activeBuyOrders[activeOrderAddress]?.transactionId;
 
-      if (isBuyWithAnyToken && isBackgroundOrder) {
+      if (
+        !isPostDepositOrderFailure &&
+        isBuyWithAnyToken &&
+        isBackgroundOrder
+      ) {
         this.messenger.publish('PredictController:transactionStatusChanged', {
           type: 'order',
           status: 'failed',
@@ -1724,9 +2427,8 @@ export class PredictController extends BaseController<
     }
   }
 
-  async claimWithConfirmation(
-    _params: ClaimParams = {},
-  ): Promise<PredictClaim> {
+  async claimWithConfirmation(params: ClaimParams = {}): Promise<PredictClaim> {
+    const analyticsContext = params.analyticsProperties;
     // Start Sentry trace for claim operation
     const traceId = `claim-${Date.now()}`;
     let traceData:
@@ -1749,6 +2451,7 @@ export class PredictController extends BaseController<
     });
 
     const signer = this.getSigner();
+    let submittedClaim: PredictClaim | undefined;
 
     try {
       const provider = this.provider;
@@ -1769,6 +2472,16 @@ export class PredictController extends BaseController<
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');
       }
+
+      // Stash claim analytics context so the terminal-status handler can fire
+      // `succeeded`/`failed` with entry-point attribution. Captured here (before
+      // `confirmClaim` clears `claimablePositions`) so single-market context is
+      // available at terminal time.
+      this.pendingClaimAnalytics[signer.address.toLowerCase()] =
+        this.buildClaimAnalyticsProperties(
+          analyticsContext,
+          claimablePositions,
+        );
 
       // Set pending claim placeholder before preparing the transaction
       this.update((state) => {
@@ -1810,38 +2523,41 @@ export class PredictController extends BaseController<
         );
       }
 
-      // Add transaction batch - can fail if transaction submission fails
-      const batchResult = await addTransactionBatch({
-        from: signer.address as Hex,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        skipInitialGasEstimate: true,
-        // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
-        transactions,
+      const accountState = await provider.getAccountState({
+        ownerAddress: signer.address,
       });
 
-      if (!batchResult?.batchId) {
-        throw new Error(
-          'Failed to get batch ID from claim transaction submission',
-        );
-      }
+      const isDepositWallet = accountState.walletType === 'deposit-wallet';
 
-      const { batchId } = batchResult;
+      const gasFeeToken = isDepositWallet
+        ? undefined
+        : (MATIC_CONTRACTS_V2.collateral as Hex);
+
+      // Add transaction batch - can fail if transaction submission fails
+      const batchId = await this.submitPredictTransactionBatch({
+        params: {
+          from: signer.address as Hex,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          networkClientId,
+          disableHook: true,
+          disableSequential: true,
+          gasFeeToken,
+          transactions,
+        },
+        missingBatchIdError:
+          'Failed to get batch ID from claim transaction submission',
+      });
+      submittedClaim = {
+        batchId,
+        chainId,
+        status: PredictClaimStatus.PENDING,
+      };
 
       // Store the real batchId for pending claim tracking
       this.update((state) => {
         state.pendingClaims[signer.address] = batchId;
       });
-
-      const predictClaim: PredictClaim = {
-        batchId,
-        chainId,
-        status: PredictClaimStatus.PENDING,
-      };
 
       this.update((state) => {
         state.lastError = null; // Clear any previous errors
@@ -1849,13 +2565,32 @@ export class PredictController extends BaseController<
       });
 
       traceData = { success: true, positionCount: claimablePositions.length };
-      return predictClaim;
+      return submittedClaim;
     } catch (error) {
+      const e = ensureError(error);
+
+      if (submittedClaim) {
+        // Keep the pending-claim lock and analytics stash for the
+        // terminal-status handler, and return the pending claim so the caller
+        // does not record a false failure for a local bookkeeping error.
+        traceData = { success: true, error: e.message };
+        this.logPostSubmissionBookkeepingError('claimWithConfirmation', e);
+        return submittedClaim;
+      }
+
       this.clearPendingClaimForAddress({ address: signer.address });
 
-      const e = ensureError(error);
-      if (e.message.includes('User denied transaction signature')) {
+      if (this.isUserCancelledTransactionError(error)) {
         traceData = { success: false, reason: 'user_cancelled' };
+
+        const claimAnalytics =
+          this.pendingClaimAnalytics[signer.address.toLowerCase()] ??
+          this.buildClaimAnalyticsProperties(analyticsContext);
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.CANCELLED,
+          analyticsProperties: claimAnalytics,
+        });
+        delete this.pendingClaimAnalytics[signer.address.toLowerCase()];
 
         // ignore error, as the user cancelled the tx
         return {
@@ -1894,6 +2629,10 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      // The hook's catch handler tracks the `failed` event for re-thrown
+      // (pre-tx) errors, so just clear the stash here to avoid a double-fire.
+      delete this.pendingClaimAnalytics[signer.address.toLowerCase()];
+
       // Re-throw the error so the hook can handle it and show the toast
       throw error;
     } finally {
@@ -1903,6 +2642,227 @@ export class PredictController extends BaseController<
         data: traceData,
       });
     }
+  }
+
+  /**
+   * Builds the analytics properties for a claim `PREDICT_TRADE_TRANSACTION`
+   * event. Always sets `transaction_type: mm_predict_claim`. When a single
+   * market is being claimed, `market_id`/`market_title` are populated; for
+   * multi-market claims they are omitted in favor of `claimable_positions_count`.
+   */
+  private buildClaimAnalyticsProperties(
+    analyticsContext?: PredictTradeAnalyticsProperties,
+    claimablePositions?: PredictPosition[],
+  ): PredictTradeAnalyticsProperties {
+    const properties: PredictTradeAnalyticsProperties = {
+      entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+      ...analyticsContext,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+    };
+
+    if (claimablePositions && claimablePositions.length > 0) {
+      properties.claimablePositionsCount = claimablePositions.length;
+
+      const distinctMarketIds = new Set(
+        claimablePositions.map((position) => position.marketId),
+      );
+      if (distinctMarketIds.size === 1) {
+        const [singlePosition] = claimablePositions;
+        properties.marketId = properties.marketId ?? singlePosition.marketId;
+        properties.marketTitle = properties.marketTitle ?? singlePosition.title;
+      }
+    }
+
+    return properties;
+  }
+
+  /**
+   * Fires the terminal claim `PREDICT_TRADE_TRANSACTION` event
+   * (`succeeded`/`failed`) using the stashed analytics context and the claim
+   * amount captured before claimable positions are cleared.
+   *
+   * Idempotent per transaction: if a terminal event was already emitted for this
+   * transaction id (e.g. by the footer resolution-lag guard, or a repeated
+   * terminal `transactionStatusUpdated`), this is a no-op. The stash is left
+   * untouched on skip so a stale update cannot clear a newer claim's attribution.
+   */
+  private trackClaimTransactionOutcome({
+    status,
+    amount,
+    address,
+    transactionMeta,
+  }: {
+    status: PredictTransactionEventStatus;
+    amount?: number;
+    address: string;
+    transactionMeta: TransactionMeta;
+  }): void {
+    const transactionId = transactionMeta.id;
+
+    if (this.claimTerminalEmitted.has(transactionId)) {
+      return;
+    }
+
+    const normalizedAddress = address.toLowerCase();
+    const analyticsProperties =
+      this.pendingClaimAnalytics[normalizedAddress] ??
+      this.buildClaimAnalyticsProperties();
+
+    if (status === 'confirmed') {
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: amount,
+        analyticsProperties,
+      });
+    } else if (status === 'rejected') {
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.CANCELLED,
+        amountUsd: amount,
+        analyticsProperties,
+      });
+    } else {
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        amountUsd: amount,
+        analyticsProperties,
+        failureReason: mapClaimFailureReason(transactionMeta.error?.message),
+      });
+    }
+
+    this.claimTerminalEmitted.add(transactionId);
+    delete this.pendingClaimAnalytics[normalizedAddress];
+  }
+
+  /**
+   * Emits a terminal `failed`/`pending_resolution` claim event for the
+   * resolution-lag (no-positions-won) guard surfaced on the claim confirmation
+   * footer (Sentry 5JA7). Participates in the same per-transaction idempotency
+   * guard as {@link trackClaimTransactionOutcome} (keyed by `transactionId`), so
+   * the eventual `rejected` status update for the same transaction does not emit
+   * a duplicate terminal event.
+   */
+  public trackClaimResolutionLagFailure({
+    transactionId,
+    address,
+  }: {
+    transactionId?: string;
+    address?: string;
+  }): void {
+    if (transactionId && this.claimTerminalEmitted.has(transactionId)) {
+      return;
+    }
+
+    const normalizedAddress = (
+      address ?? this.getSigner().address
+    ).toLowerCase();
+
+    const analyticsProperties =
+      this.pendingClaimAnalytics[normalizedAddress] ??
+      this.buildClaimAnalyticsProperties();
+
+    this.trackPredictOrderEvent({
+      status: PredictTradeStatus.FAILED,
+      analyticsProperties,
+      failureReason: PredictEventValues.CLAIM_FAILURE_REASON.PENDING_RESOLUTION,
+    });
+
+    if (transactionId) {
+      this.claimTerminalEmitted.add(transactionId);
+    }
+    delete this.pendingClaimAnalytics[normalizedAddress];
+  }
+
+  private getTerminalFlowTransactionType(
+    type: PredictTransactionEventType,
+  ): PredictTransactionMetricType | null {
+    switch (type) {
+      case 'deposit':
+      case 'depositAndOrder':
+        return PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT;
+      case 'withdraw':
+        return PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW;
+      case 'claim':
+      case 'order':
+        return null;
+    }
+  }
+
+  private getTerminalFlowStatus(
+    status: PredictTransactionEventStatus,
+  ): PredictTradeStatusValue | null {
+    switch (status) {
+      case 'confirmed':
+        return PredictTradeStatus.SUCCEEDED;
+      case 'failed':
+        return PredictTradeStatus.FAILED;
+      case 'rejected':
+        return PredictTradeStatus.CANCELLED;
+      case 'approved':
+      case 'depositing':
+        return null;
+    }
+  }
+
+  private getTerminalFlowFailureReason({
+    type,
+    transactionMeta,
+  }: {
+    type: PredictTransactionEventType;
+    transactionMeta: TransactionMeta;
+  }): string {
+    if (transactionMeta.error?.message) {
+      return transactionMeta.error.message;
+    }
+
+    switch (type) {
+      case 'withdraw':
+        return PREDICT_ERROR_CODES.WITHDRAW_FAILED;
+      case 'deposit':
+      case 'depositAndOrder':
+        return PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      case 'claim':
+      case 'order':
+        return PREDICT_ERROR_CODES.UNKNOWN_ERROR;
+    }
+  }
+
+  private trackTerminalFlowOutcomeMetric({
+    type,
+    status,
+    amount,
+    transactionMeta,
+  }: {
+    type: PredictTransactionEventType;
+    status: PredictTransactionEventStatus;
+    amount?: number;
+    transactionMeta: TransactionMeta;
+  }): void {
+    const transactionType = this.getTerminalFlowTransactionType(type);
+    const tradeStatus = this.getTerminalFlowStatus(status);
+
+    if (!transactionType || !tradeStatus) {
+      return;
+    }
+
+    const metricKey = `${transactionMeta.id}:${transactionType}`;
+    if (this.flowTerminalMetricEmitted.has(metricKey)) {
+      return;
+    }
+
+    this.trackPredictFlowMetric({
+      transactionType,
+      status: tradeStatus,
+      ...(amount !== undefined && {
+        amountUsd: amount,
+      }),
+      ...(tradeStatus === PredictTradeStatus.FAILED && {
+        failureReason: this.getTerminalFlowFailureReason({
+          type,
+          transactionMeta,
+        }),
+      }),
+    });
+    this.flowTerminalMetricEmitted.add(metricKey);
   }
 
   public confirmClaim({ address }: { address?: string }): void {
@@ -1942,50 +2902,108 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Refresh eligibility status
+   * Refresh eligibility status.
+   *
+   * Concurrent callers share one in-flight request. A confirmed
+   * `eligible` / `ineligible` result stays in state while a re-check is in
+   * flight, so a routine foreground refresh or a slow geoblock check never
+   * blocks a user who was already confirmed; only the first check (or a
+   * retry after `unavailable`) reports `checking`. A definitive result
+   * requires a country; failures and incomplete responses become
+   * `unavailable` so they are never described as a geo-restriction.
    */
-  public async refreshEligibility(): Promise<void> {
+  public async refreshEligibility(): Promise<PredictEligibility> {
+    if (this.eligibilityRefreshPromise) {
+      return this.eligibilityRefreshPromise;
+    }
+
+    this.eligibilityRefreshPromise = this.performEligibilityRefresh().finally(
+      () => {
+        this.eligibilityRefreshPromise = null;
+      },
+    );
+    return this.eligibilityRefreshPromise;
+  }
+
+  private async performEligibilityRefresh(): Promise<PredictEligibility> {
     DevLogger.log('PredictController: Refreshing eligibility');
+    const { status: previousStatus } = this.state.eligibility;
+    const hasConfirmedResult =
+      previousStatus === 'eligible' || previousStatus === 'ineligible';
+    if (!hasConfirmedResult) {
+      this.update((state) => {
+        state.eligibility = { status: 'checking', eligible: false };
+      });
+    }
+
+    if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
+      const eligibility: PredictEligibility = {
+        status: 'eligible',
+        country: 'N/A',
+        eligible: true,
+      };
+      this.update((state) => {
+        state.eligibility = eligibility;
+      });
+      return eligibility;
+    }
+
     try {
       const geoBlockResponse = await this.provider.isEligible();
-      if (geoBlockResponse.isEligible && geoBlockResponse.country) {
-        const isLocallyGeoblocked = this.isLocallyGeoblocked({
-          country: geoBlockResponse.country,
-        });
-        geoBlockResponse.isEligible = !isLocallyGeoblocked;
+      const country = geoBlockResponse.country?.trim();
+      if (!country) {
+        throw new Error('Geoblock check returned an incomplete response');
       }
-      if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
-        geoBlockResponse.isEligible = true;
-        geoBlockResponse.country = 'N/A';
-      }
-      this.update((state) => {
-        state.eligibility = {
-          eligible: geoBlockResponse.isEligible,
-          country: geoBlockResponse.country,
-        };
-      });
-    } catch (error) {
-      this.update((state) => {
-        state.eligibility = {
-          eligible: false,
-          country: undefined,
-        };
-      });
-      DevLogger.log('PredictController: Eligibility refresh failed', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
 
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('refreshEligibility.provider', {
-          providerId: POLYMARKET_PROVIDER_ID,
-        }),
-      );
+      const status =
+        geoBlockResponse.isEligible && !this.isLocallyGeoblocked({ country })
+          ? 'eligible'
+          : 'ineligible';
+      const eligibility: PredictEligibility = {
+        status,
+        country,
+        eligible: status === 'eligible',
+      };
+      this.update((state) => {
+        state.eligibility = eligibility;
+      });
+      return eligibility;
+    } catch (error) {
+      const eligibility: PredictEligibility = {
+        status: 'unavailable',
+        eligible: false,
+      };
+      this.update((state) => {
+        state.eligibility = eligibility;
+      });
+      this.reportEligibilityRefreshFailure(error);
+      return eligibility;
     }
+  }
+
+  private reportEligibilityRefreshFailure(error: unknown): void {
+    const errorContext = this.getErrorContext('refreshEligibility.provider', {
+      providerId: POLYMARKET_PROVIDER_ID,
+    });
+
+    DevLogger.log('PredictController: Eligibility refresh failed', {
+      error:
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (isExpectedPolymarketRequestAbort(error)) {
+      Logger.log(
+        'Predict geoblock request ended by expected timeout/cancellation:',
+        error instanceof Error ? error.message : String(error),
+        errorContext,
+      );
+      return;
+    }
+
+    Logger.error(ensureError(error), errorContext);
   }
 
   /**
@@ -2054,12 +3072,33 @@ export class PredictController extends BaseController<
   public subscribeToCryptoPrices(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void {
     const provider = this.provider;
     if (!provider?.subscribeToCryptoPrices) {
       return () => undefined;
     }
-    return provider.subscribeToCryptoPrices(symbols, callback);
+    return options
+      ? provider.subscribeToCryptoPrices(symbols, callback, options)
+      : provider.subscribeToCryptoPrices(symbols, callback);
+  }
+
+  /**
+   * Subscribes to WebSocket connection-status changes for live data feeds.
+   * The callback fires immediately with the current status and thereafter only
+   * on real transitions, replacing per-subscriber polling.
+   *
+   * @param callback - Function invoked with the current {@link ConnectionStatus}.
+   * @returns Unsubscribe function to clean up the subscription.
+   */
+  public subscribeToConnectionStatus(
+    callback: ConnectionStatusCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToConnectionStatus) {
+      return () => undefined;
+    }
+    return provider.subscribeToConnectionStatus(callback);
   }
 
   /**
@@ -2095,6 +3134,7 @@ export class PredictController extends BaseController<
     this.update((state) => {
       if (state.activeBuyOrders[address]) {
         delete state.activeBuyOrders[address].error;
+        delete state.activeBuyOrders[address].errorStage;
       }
     });
   }
@@ -2131,6 +3171,10 @@ export class PredictController extends BaseController<
   public selectPaymentToken(token: AssetType | null): void {
     const isBalanceToken =
       !token || token.address === PREDICT_BALANCE_PLACEHOLDER_ADDRESS;
+
+    this.cancelRetryablePredictBuyAttempt(
+      'User changed payment method after a retryable order failure',
+    );
 
     this.setSelectedPaymentToken(
       isBalanceToken
@@ -2203,6 +3247,7 @@ export class PredictController extends BaseController<
     _params: PrepareDepositParams = {},
   ): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
+    let submittedBatchId: string | undefined;
 
     try {
       const signer = this.getSigner();
@@ -2232,6 +3277,11 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by deposit preparation');
       }
 
+      const parsedChainId = hexToNumber(chainId);
+      if (isNaN(parsedChainId)) {
+        throw new Error(`Invalid chain ID format: ${chainId}`);
+      }
+
       DevLogger.log('PredictController: depositWithConfirmation transactions', {
         count: transactions.length,
         transactions: transactions.map((tx, index) => ({
@@ -2259,28 +3309,21 @@ export class PredictController extends BaseController<
         state.pendingDeposits[signer.address] = 'pending';
       });
 
-      const batchResult = await addTransactionBatch({
-        from: signer.address as Hex,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        skipInitialGasEstimate: true,
-        transactions,
+      const batchId = await this.submitPredictTransactionBatch({
+        params: {
+          from: signer.address as Hex,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          networkClientId,
+          disableHook: true,
+          disableSequential: true,
+          skipInitialGasEstimate: true,
+          transactions,
+        },
+        missingBatchIdError:
+          'Failed to get batch ID from transaction submission',
       });
-
-      if (!batchResult?.batchId) {
-        throw new Error('Failed to get batch ID from transaction submission');
-      }
-
-      const { batchId } = batchResult;
-
-      // Validate chainId format before parsing
-      const parsedChainId = hexToNumber(chainId);
-      if (isNaN(parsedChainId)) {
-        throw new Error(`Invalid chain ID format: ${chainId}`);
-      }
+      submittedBatchId = batchId;
 
       this.update((state) => {
         state.pendingDeposits[signer.address] = batchId;
@@ -2294,7 +3337,24 @@ export class PredictController extends BaseController<
       };
     } catch (error) {
       const e = ensureError(error);
-      if (e.message.includes('User denied transaction signature')) {
+
+      if (submittedBatchId !== undefined) {
+        // Keep the pending-deposit entry (the terminal-status handler clears
+        // it by address) and return the batchId so the caller does not
+        // surface a false deposit failure for a local bookkeeping error.
+        this.logPostSubmissionBookkeepingError('depositWithConfirmation', e);
+        return {
+          success: true,
+          response: { batchId: submittedBatchId },
+        };
+      }
+
+      const isUserCancelled = this.trackFlowSubmissionFailureMetric({
+        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        error,
+      });
+
+      if (isUserCancelled) {
         // Clear pending state before returning
         this.clearPendingDeposit();
         // ignore error, as the user cancelled the tx
@@ -2334,6 +3394,7 @@ export class PredictController extends BaseController<
   public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
     const address = this.requireEvmAccountAddress();
+    let submittedBatchId: string | undefined;
 
     if (!this.state.activeBuyOrders[address]) {
       this.update((state) => {
@@ -2405,26 +3466,31 @@ export class PredictController extends BaseController<
         throw new Error(`Network client not found for chain ID: ${chainId}`);
       }
 
-      const batchResult = await addTransactionBatch({
-        from: signer.address as Hex,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        skipInitialGasEstimate: true,
-        transactions: depositAndOrderTransactions,
+      const batchId = await this.submitPredictTransactionBatch({
+        params: {
+          from: signer.address as Hex,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          networkClientId,
+          disableHook: true,
+          disableSequential: true,
+          skipInitialGasEstimate: true,
+          transactions: depositAndOrderTransactions,
+        },
+        missingBatchIdError:
+          'Failed to get batch ID from transaction submission',
       });
+      submittedBatchId = batchId;
 
-      if (!batchResult?.batchId) {
-        throw new Error('Failed to get batch ID from transaction submission');
-      }
-
-      const { batchId } = batchResult;
-
+      // Keep payment-stage errors sticky so reopen still shows the Add funds
+      // banner after a depositAndOrder failure + successful re-init (PRED-1026).
       this.update((state) => {
-        if (state.activeBuyOrders[address]) {
+        if (
+          state.activeBuyOrders[address] &&
+          state.activeBuyOrders[address].errorStage !== 'payment'
+        ) {
           delete state.activeBuyOrders[address].error;
+          delete state.activeBuyOrders[address].errorStage;
         }
       });
 
@@ -2436,6 +3502,29 @@ export class PredictController extends BaseController<
       };
     } catch (error) {
       const e = ensureError(error);
+
+      if (submittedBatchId !== undefined) {
+        // Report success so a local bookkeeping error does not get treated as
+        // a failure of the in-flight deposit-and-order batch.
+        this.logPostSubmissionBookkeepingError('initPayWithAnyToken', e);
+        return {
+          success: true,
+          response: { batchId: submittedBatchId },
+        };
+      }
+
+      const isUserCancelled = this.trackFlowSubmissionFailureMetric({
+        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        error,
+      });
+
+      if (isUserCancelled) {
+        return {
+          success: true,
+          response: { batchId: 'NA' },
+        };
+      }
+
       Logger.error(
         e,
         this.getErrorContext('initPayWithAnyToken', {
@@ -2443,9 +3532,17 @@ export class PredictController extends BaseController<
         }),
       );
 
+      const errorMessage = e.message || PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      this.update((state) => {
+        if (state.activeBuyOrders[address]) {
+          state.activeBuyOrders[address].error = errorMessage;
+          state.activeBuyOrders[address].errorStage = 'payment';
+        }
+      });
+
       return {
         success: false,
-        error: e.message,
+        error: errorMessage,
       };
     }
   }
@@ -2551,7 +3648,13 @@ export class PredictController extends BaseController<
     });
 
     try {
-      this.handleTransactionSideEffects(type, status, address, transactionMeta);
+      this.handleTransactionSideEffects(
+        type,
+        status,
+        address,
+        transactionMeta,
+        amount,
+      );
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -2572,6 +3675,28 @@ export class PredictController extends BaseController<
       ...(transactionId ? { transactionId } : {}),
       ...(amount !== undefined ? { amount } : {}),
     });
+
+    this.trackTerminalFlowOutcomeMetric({
+      type,
+      status,
+      amount,
+      transactionMeta,
+    });
+
+    // Track terminal claim outcome on PREDICT_TRADE_TRANSACTION. `amount` is
+    // captured above before `handleTransactionSideEffects` -> `confirmClaim`
+    // clears claimable positions, so `amount_usd` reflects the claimed value.
+    if (
+      type === 'claim' &&
+      (status === 'confirmed' || status === 'failed' || status === 'rejected')
+    ) {
+      this.trackClaimTransactionOutcome({
+        status,
+        amount,
+        address,
+        transactionMeta,
+      });
+    }
   }
 
   private async syncDepositWalletBalanceAllowanceIfNeeded({
@@ -2611,6 +3736,7 @@ export class PredictController extends BaseController<
     status: PredictTransactionEventStatus,
     address: string,
     transactionMeta: TransactionMeta,
+    amount?: number,
   ): void {
     const isTerminal =
       status === 'confirmed' || status === 'failed' || status === 'rejected';
@@ -2619,12 +3745,27 @@ export class PredictController extends BaseController<
       this.clearPendingDepositForAddress({ address });
     }
 
+    if (status === 'confirmed') {
+      // Any confirmed Predict transaction changes on-chain funds and possibly
+      // wallet deployment — drop the cached account state and balance so the
+      // next read fetches fresh values instead of stale or optimistic ones.
+      this.provider.invalidateAccountState(address);
+      this.update((state) => {
+        // Balance entries may be keyed by checksummed addresses (signer
+        // address) while `address` is lowercased — match case-insensitively.
+        for (const key of Object.keys(state.balances)) {
+          if (key.toLowerCase() === address.toLowerCase()) {
+            delete state.balances[key];
+          }
+        }
+      });
+    }
+
     let depositWalletSyncPromise: Promise<void> | undefined;
     if (
       (type === 'deposit' || type === 'depositAndOrder') &&
       status === 'confirmed'
     ) {
-      this.provider.invalidateAccountState(address);
       depositWalletSyncPromise = this.syncDepositWalletBalanceAllowanceIfNeeded(
         {
           transactionMeta,
@@ -2643,15 +3784,20 @@ export class PredictController extends BaseController<
         return;
       }
 
+      pendingOrder.depositedAmount = amount;
+
       // Track swap/deposit success — the token swap confirmed, order placement begins
       this.trackPredictOrderEvent({
         status: PredictTradeStatus.SWAP_SUCCESS,
+        amountUsd: pendingOrder.attempt?.amountUsd,
         analyticsProperties: pendingOrder.analyticsProperties,
         paymentTokenAddress:
           this.state.activeBuyOrders[address]?.paymentTokenAddress,
         paymentTokenSymbol:
           this.state.activeBuyOrders[address]?.paymentTokenSymbol,
         orderType: pendingOrder.preview?.orderType,
+        attemptId: pendingOrder.attempt?.attemptId,
+        paymentMethod: pendingOrder.attempt?.paymentMethod,
         activeAbTests: pendingOrder.activeAbTests,
       });
 
@@ -2660,6 +3806,7 @@ export class PredictController extends BaseController<
         signerAddress,
         analyticsProperties: pendingAnalytics,
         activeAbTests: pendingActiveAbTests,
+        attempt,
       } = pendingOrder;
 
       (depositWalletSyncPromise ?? Promise.resolve())
@@ -2670,6 +3817,7 @@ export class PredictController extends BaseController<
             preview,
             address: signerAddress,
             transactionId,
+            attempt,
           }),
         )
         .catch((error) => {
@@ -2708,11 +3856,33 @@ export class PredictController extends BaseController<
         this.provider.clearOptimisticPosition(address, outcomeTokenId);
       }
 
-      if (failedActiveOrder) {
-        const errorMessage =
-          transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      const swapError =
+        transactionMeta.error ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      const errorMessage =
+        transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
 
-        // PWAT active order: swap/deposit step failed before order placement
+      if (pendingOrder?.attempt) {
+        const failure = classifyPredictBuyFailure(
+          swapError,
+          PredictEventValues.FAILURE_STAGE.SWAP,
+        );
+        this.trackPredictBuyTerminalEvent({
+          status: failure.isUserRejected
+            ? PredictTradeStatus.CANCELLED
+            : PredictTradeStatus.FAILED,
+          amountUsd: pendingOrder.attempt.amountUsd,
+          analyticsProperties: pendingOrder.analyticsProperties,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
+          failureReason: failure.failureReason,
+          failureStage: failure.failureStage,
+          failureCategory: failure.failureCategory,
+          orderType: pendingOrder.preview.orderType,
+          attemptId: pendingOrder.attempt.attemptId,
+          paymentMethod: pendingOrder.attempt.paymentMethod,
+          activeAbTests: pendingOrder.activeAbTests,
+        });
+      } else if (failedActiveOrder) {
         this.trackPredictOrderEvent({
           status: PredictTradeStatus.SWAP_FAILED,
           analyticsProperties: pendingOrder?.analyticsProperties,
@@ -2721,12 +3891,26 @@ export class PredictController extends BaseController<
           failureReason: errorMessage,
           activeAbTests: pendingOrder?.activeAbTests,
         });
+      } else {
+        // Background deposit with no active PWAT order — track as a generic failure
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          analyticsProperties: pendingOrder?.analyticsProperties,
+          failureReason: errorMessage,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
+          orderType: pendingOrder?.preview?.orderType,
+          activeAbTests: pendingOrder?.activeAbTests,
+        });
+      }
 
+      if (failedActiveOrder) {
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
             state.activeBuyOrders[address].state =
               ActiveOrderState.PAY_WITH_ANY_TOKEN;
             state.activeBuyOrders[address].error = errorMessage;
+            state.activeBuyOrders[address].errorStage = 'payment';
             state.activeBuyOrders[address].transactionId = undefined;
           }
         });
@@ -2737,19 +3921,6 @@ export class PredictController extends BaseController<
               operation: 'initPayWithAnyToken',
             }),
           );
-        });
-      } else {
-        // Background deposit with no active PWAT order — track as a generic failure
-        this.trackPredictOrderEvent({
-          status: PredictTradeStatus.FAILED,
-          analyticsProperties: pendingOrder?.analyticsProperties,
-          failureReason:
-            transactionMeta.error?.message ??
-            PREDICT_ERROR_CODES.DEPOSIT_FAILED,
-          paymentTokenAddress: failedPaymentTokenAddress,
-          paymentTokenSymbol: failedPaymentTokenSymbol,
-          orderType: pendingOrder?.preview?.orderType,
-          activeAbTests: pendingOrder?.activeAbTests,
         });
       }
 
@@ -2773,19 +3944,41 @@ export class PredictController extends BaseController<
         delete this.pendingOrderPreviews[transactionId];
       }
 
-      if (this.state.activeBuyOrders[address]) {
-        // Track swap_failed — user rejected the deposit/swap approval
+      const rejectedActiveOrder = this.state.activeBuyOrders[address];
+      if (rejectedPendingOrder?.attempt) {
+        const failure = classifyPredictBuyFailure(
+          {
+            code: errorCodes.provider.userRejectedRequest,
+            message:
+              transactionMeta.error?.message ?? 'User rejected transaction',
+          },
+          PredictEventValues.FAILURE_STAGE.SWAP,
+        );
+        this.trackPredictBuyTerminalEvent({
+          status: PredictTradeStatus.CANCELLED,
+          amountUsd: rejectedPendingOrder.attempt.amountUsd,
+          analyticsProperties: rejectedPendingOrder.analyticsProperties,
+          paymentTokenAddress: rejectedActiveOrder?.paymentTokenAddress,
+          paymentTokenSymbol: rejectedActiveOrder?.paymentTokenSymbol,
+          failureReason: failure.failureReason,
+          failureStage: failure.failureStage,
+          failureCategory: failure.failureCategory,
+          orderType: rejectedPendingOrder.preview.orderType,
+          attemptId: rejectedPendingOrder.attempt.attemptId,
+          paymentMethod: rejectedPendingOrder.attempt.paymentMethod,
+          activeAbTests: rejectedPendingOrder.activeAbTests,
+        });
+      } else if (rejectedActiveOrder) {
         this.trackPredictOrderEvent({
-          status: PredictTradeStatus.SWAP_FAILED,
+          status: PredictTradeStatus.CANCELLED,
           analyticsProperties: rejectedPendingOrder?.analyticsProperties,
-          paymentTokenAddress:
-            this.state.activeBuyOrders[address]?.paymentTokenAddress,
-          paymentTokenSymbol:
-            this.state.activeBuyOrders[address]?.paymentTokenSymbol,
-          failureReason: 'user_rejected',
+          paymentTokenAddress: rejectedActiveOrder.paymentTokenAddress,
+          paymentTokenSymbol: rejectedActiveOrder.paymentTokenSymbol,
           activeAbTests: rejectedPendingOrder?.activeAbTests,
         });
+      }
 
+      if (this.state.activeBuyOrders[address]) {
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
             state.activeBuyOrders[address].state = ActiveOrderState.PREVIEW;
@@ -2851,13 +4044,137 @@ export class PredictController extends BaseController<
       return 0;
     }
 
-    return this.state.claimablePositions[matchedAddress].reduce(
-      (sum, position) =>
-        position.status === PredictPositionStatus.WON
-          ? sum + position.currentValue
-          : sum,
-      0,
+    return this.state.claimablePositions[matchedAddress]
+      .filter(isActionableClaimablePosition)
+      .reduce((sum, position) => sum + position.currentValue, 0);
+  }
+
+  private getClaimAmountFromReceipt(
+    logs: TransactionReceiptLog[] | undefined,
+  ): number | undefined {
+    if (!logs?.length) {
+      return undefined;
+    }
+
+    let payoutRaw = 0n;
+    let hasPayoutRedemption = false;
+
+    for (const log of logs) {
+      if (
+        log.address?.toLowerCase() !==
+        MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()
+      ) {
+        continue;
+      }
+
+      const topics = this.normalizeLogTopics(log.topics);
+      if (!topics || !log.data) {
+        continue;
+      }
+
+      try {
+        const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
+          topics,
+          data: log.data,
+        });
+        const payout = parsedLog.args.payout?.toString();
+
+        if (payout === undefined) {
+          continue;
+        }
+
+        payoutRaw += BigInt(payout);
+        hasPayoutRedemption = true;
+      } catch (_error) {
+        continue;
+      }
+    }
+
+    if (!hasPayoutRedemption) {
+      return undefined;
+    }
+
+    return parseFloat(
+      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
     );
+  }
+
+  private getClaimAmountFromSimulation(
+    transactionMeta: TransactionMeta,
+    {
+      treatMissingRelevantTokenChangesAsZero = false,
+    }: ClaimAmountFromSimulationOptions = {},
+  ): number | undefined {
+    const tokenBalanceChanges =
+      transactionMeta.simulationData?.tokenBalanceChanges;
+
+    if (!tokenBalanceChanges) {
+      return undefined;
+    }
+
+    let hasRelevantTokenChange = false;
+
+    const claimAmount = tokenBalanceChanges.reduce((sum, change) => {
+      const address = change.address?.toLowerCase();
+
+      if (
+        change.isDecrease ||
+        change.standard !== 'erc20' ||
+        !address ||
+        !PREDICT_CLAIM_COLLATERAL_ADDRESSES.has(address) ||
+        typeof change.difference !== 'string'
+      ) {
+        return sum;
+      }
+
+      try {
+        const difference = parseFloat(
+          formatUnits(change.difference, COLLATERAL_TOKEN_DECIMALS),
+        );
+        hasRelevantTokenChange = true;
+        return sum + difference;
+      } catch (error) {
+        DevLogger.log(
+          'PredictController: Failed to parse claim simulation difference',
+          {
+            difference: change.difference,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        );
+        return sum;
+      }
+    }, 0);
+
+    if (hasRelevantTokenChange) {
+      return claimAmount;
+    }
+
+    return treatMissingRelevantTokenChangesAsZero ? 0 : undefined;
+  }
+
+  private getActualClaimAmount(
+    transactionMeta: TransactionMeta,
+    options?: ClaimAmountFromSimulationOptions,
+  ): number | undefined {
+    const receiptAmount = this.getClaimAmountFromReceipt(
+      transactionMeta.txReceipt?.logs as TransactionReceiptLog[] | undefined,
+    );
+
+    if (receiptAmount !== undefined) {
+      return receiptAmount;
+    }
+
+    return this.getClaimAmountFromSimulation(transactionMeta, options);
+  }
+
+  private normalizeLogTopics(
+    topics: string | string[] | undefined,
+  ): string[] | undefined {
+    if (!topics) {
+      return undefined;
+    }
+
+    return Array.isArray(topics) ? topics : undefined;
   }
 
   private getTransactionAmount({
@@ -2871,7 +4188,10 @@ export class PredictController extends BaseController<
     transactionMeta: TransactionMeta;
     address: string;
   }): number | undefined {
-    if (type === 'deposit' && status === 'confirmed') {
+    if (
+      (type === 'deposit' || type === 'depositAndOrder') &&
+      status === 'confirmed'
+    ) {
       const totalFiat = Number(transactionMeta.metamaskPay?.totalFiat ?? 0);
       const bridgeFeeFiat = Number(
         transactionMeta.metamaskPay?.bridgeFeeFiat ?? 0,
@@ -2889,7 +4209,15 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'claim') {
-      return this.getClaimAmountByAddress(address);
+      const actualClaimAmount = this.getActualClaimAmount(transactionMeta, {
+        treatMissingRelevantTokenChangesAsZero: status === 'confirmed',
+      });
+
+      if (status === 'confirmed') {
+        return actualClaimAmount ?? 0;
+      }
+
+      return actualClaimAmount ?? this.getClaimAmountByAddress(address);
     }
 
     if (type === 'withdraw' && status === 'confirmed') {
@@ -3013,6 +4341,8 @@ export class PredictController extends BaseController<
   public async prepareWithdraw(
     _params: PrepareWithdrawParams = {},
   ): Promise<Result<string>> {
+    let submittedBatchId: string | undefined;
+
     try {
       const provider = this.provider;
 
@@ -3044,20 +4374,25 @@ export class PredictController extends BaseController<
         };
       });
 
-      const { batchId } = await addTransactionBatch({
-        from: signer.address as Hex,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
-        networkClientId: this.messenger.call(
-          'NetworkController:findNetworkClientIdByChainId',
-          chainId,
-        ),
-        disableHook: true,
-        disableSequential: true,
-        requireApproval: true,
-        transactions: [transaction],
-        gasFeeToken,
+      const batchId = await this.submitPredictTransactionBatch({
+        params: {
+          from: signer.address as Hex,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          networkClientId: this.messenger.call(
+            'NetworkController:findNetworkClientIdByChainId',
+            chainId,
+          ),
+          disableHook: true,
+          disableSequential: true,
+          requireApproval: true,
+          transactions: [transaction],
+          gasFeeToken,
+        },
+        missingBatchIdError:
+          'Failed to get batch ID from transaction submission',
       });
+      submittedBatchId = batchId;
 
       this.update((state) => {
         if (state.withdrawTransaction) {
@@ -3076,7 +4411,25 @@ export class PredictController extends BaseController<
           : PREDICT_ERROR_CODES.WITHDRAW_FAILED;
 
       const e = ensureError(error);
-      if (e.message.includes('User denied transaction signature')) {
+
+      if (submittedBatchId !== undefined) {
+        // Keep `withdrawTransaction` (the terminal-status handler clears it)
+        // and report success so a local bookkeeping error does not surface a
+        // false failure for the in-flight withdraw.
+        this.logPostSubmissionBookkeepingError('prepareWithdraw', e);
+        return {
+          success: true,
+          response: submittedBatchId,
+        };
+      }
+
+      const isUserCancelled = this.trackFlowSubmissionFailureMetric({
+        transactionType:
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
+        error,
+      });
+
+      if (isUserCancelled) {
         // ignore error, as the user cancelled the tx
         return {
           success: true,
@@ -3213,13 +4566,6 @@ export class PredictController extends BaseController<
     }
 
     const signer = this.getSigner(request.transactionMeta.txParams.from);
-
-    const chainId = activeWithdrawTransaction.chainId;
-
-    const networkClientId = this.messenger.call(
-      'NetworkController:findNetworkClientIdByChainId',
-      numberToHex(chainId),
-    );
     const withdrawDataPrefix = withdrawTransaction.data?.slice(0, 10);
 
     if (
@@ -3230,13 +4576,43 @@ export class PredictController extends BaseController<
       return;
     }
 
-    // Invalidate query cache (to avoid nonce issues)
-    await this.invalidateQueryCache(chainId);
+    const accountState = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const chainId = activeWithdrawTransaction.chainId;
 
-    const { callData, amount } = await provider.signWithdraw({
+    if (accountState.walletType === 'safe') {
+      // Invalidate query cache to avoid using a stale Safe nonce.
+      await this.invalidateQueryCache(chainId);
+    }
+
+    const { callData, amount, walletType } = await provider.signWithdraw({
       callData: withdrawTransaction?.data as Hex,
       signer,
     });
+
+    if (walletType === 'deposit-wallet') {
+      this.update((state) => {
+        if (state.withdrawTransaction) {
+          state.withdrawTransaction.amount = amount;
+          state.withdrawTransaction.status = PredictWithdrawStatus.PENDING;
+        }
+      });
+
+      return {
+        updateTransaction: (transaction: TransactionMeta) => {
+          transaction.assetsFiatValues = {
+            ...transaction.assetsFiatValues,
+            receiving: String(amount),
+          };
+        },
+      };
+    }
+
+    const networkClientId = this.messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      numberToHex(chainId),
+    );
 
     const newParams = {
       ...withdrawTransaction,
@@ -3291,6 +4667,8 @@ export class PredictController extends BaseController<
         // Only update gas if estimation succeeded
         if (updatedGas) {
           transaction.txParams.gas = updatedGas;
+          // Keep the legacy field synchronized for existing transaction consumers.
+          // eslint-disable-next-line @typescript-eslint/no-deprecated
           transaction.txParams.gasLimit = updatedGas;
         }
       },

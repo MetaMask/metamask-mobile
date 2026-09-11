@@ -1,14 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { addBreadcrumb } from '@sentry/react-native';
-import performance from 'react-native-performance';
 import {
+  annotateTrace,
   endTrace,
+  getTraceContext,
   trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
 import type { HomeSectionName } from './useHomeViewedEvent';
+import { useRenderStormMonitor } from '../../../../hooks/performance/useRenderStormMonitor';
 
 interface UseSectionPerformanceConfig {
   /** Section identifier — primary Sentry tag for filtering. */
@@ -38,10 +39,45 @@ interface UseSectionPerformanceConfig {
   reRenderThreshold?: number;
   /** Sliding window in ms for re-render detection. @default 500 */
   reRenderWindowMs?: number;
+  /** Bounded cohort tags applied to the existing TTC and DFD starts. */
+  tags?: Record<string, string | number | boolean>;
+  /** Trace data/context applied to the existing TTC and DFD ends. */
+  data?: Record<string, string | number | boolean>;
+  /** Restarts TTC/DFD when one mounted surface begins a new data generation. */
+  generationKey?: string;
+  /** Accept content that is already valid when a warm generation starts. */
+  acceptReadyContentOnGenerationStart?: boolean;
 }
 
 const DEFAULT_RE_RENDER_THRESHOLD = 3;
 const DEFAULT_RE_RENDER_WINDOW_MS = 500;
+const RESERVED_METADATA_KEYS = new Set([
+  'section_id',
+  'success',
+  'content_state',
+  'reason',
+]);
+
+const sanitizeMetadata = (
+  metadata?: Record<string, string | number | boolean>,
+) =>
+  metadata
+    ? Object.fromEntries(
+        Object.entries(metadata).filter(
+          ([key]) => !RESERVED_METADATA_KEYS.has(key),
+        ),
+      )
+    : undefined;
+
+const resolveCancellationReason = (
+  startedGenerationKey: string | undefined,
+  nextGenerationKey: string | undefined,
+) => {
+  if (nextGenerationKey === startedGenerationKey) {
+    return 'unmounted';
+  }
+  return nextGenerationKey === undefined ? 'unfocused' : 'generation_changed';
+};
 
 /**
  * Reusable performance telemetry for homepage sections.
@@ -49,7 +85,7 @@ const DEFAULT_RE_RENDER_WINDOW_MS = 500;
  * Captures three metrics via the existing trace/endTrace Sentry integration:
  * 1. **Time to Content** — mount until `contentReady` (valuable non-skeleton UI).
  * 2. **Data Fetch Latency** — first full `isLoading` cycle per mount (opt-in; refresh excluded).
- * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs in `useEffect` after paint, not during render).
+ * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs after every commit).
  *
  * Bookkeeping is ref-based; the hook does not intentionally trigger extra re-renders.
  */
@@ -62,11 +98,45 @@ export const useSectionPerformance = ({
   enabled = true,
   reRenderThreshold = DEFAULT_RE_RENDER_THRESHOLD,
   reRenderWindowMs = DEFAULT_RE_RENDER_WINDOW_MS,
+  tags,
+  data,
+  generationKey,
+  acceptReadyContentOnGenerationStart = false,
 }: UseSectionPerformanceConfig) => {
+  const nextTagsRef = useRef(sanitizeMetadata(tags));
+  nextTagsRef.current = sanitizeMetadata(tags);
+  const nextDataRef = useRef(sanitizeMetadata(data));
+  nextDataRef.current = sanitizeMetadata(data);
+  const pendingGenerationKeyRef = useRef(generationKey);
+  pendingGenerationKeyRef.current = generationKey;
+  const contentReadyRef = useRef(contentReady);
+  contentReadyRef.current = contentReady;
+  const acceptReadyContentOnGenerationStartRef = useRef(
+    acceptReadyContentOnGenerationStart,
+  );
+  acceptReadyContentOnGenerationStartRef.current =
+    acceptReadyContentOnGenerationStart;
+  const activeGenerationKeyRef = useRef(generationKey);
+  const tagsRef = useRef(nextTagsRef.current);
+  const dataRef = useRef(nextDataRef.current);
+  if (activeGenerationKeyRef.current === generationKey) {
+    tagsRef.current = nextTagsRef.current;
+    dataRef.current = nextDataRef.current;
+  }
+
+  const annotateLatestTags = (name: TraceName, id: string) => {
+    if (!tagsRef.current) {
+      return;
+    }
+    annotateTrace(getTraceContext({ name, id }), tagsRef.current);
+  };
+
   // --- Time to Content refs ---
   const ttcTraceId = useRef(uuidv4());
   const ttcStarted = useRef(false);
   const ttcEnded = useRef(false);
+  const hasStartedTtcGeneration = useRef(false);
+  const ttcReadyForCompletion = useRef(true);
 
   // --- Data Fetch Latency refs ---
   const fetchTraceId = useRef(uuidv4());
@@ -74,57 +144,117 @@ export const useSectionPerformance = ({
   const fetchEnded = useRef(false);
   const prevIsLoading = useRef<boolean | undefined>(undefined);
 
-  // --- Re-render monitoring refs ---
-  const renderTimestamps = useRef<number[]>([]);
-  const hasLoggedExcessiveRenders = useRef(false);
-
   const traceContentState =
     contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
+
+  useRenderStormMonitor({
+    id: sectionId,
+    category: TraceOperation.HomepageSectionPerformance,
+    entityLabel: 'section',
+    breadcrumbData: { section_id: sectionId },
+    enabled,
+    reRenderThreshold,
+    reRenderWindowMs,
+  });
 
   // ──────────────────────────────────────────────
   // 1. Time to Content — start span on mount
   // ──────────────────────────────────────────────
   useEffect(() => {
+    activeGenerationKeyRef.current = generationKey;
+    tagsRef.current = nextTagsRef.current;
+    dataRef.current = nextDataRef.current;
+    fetchStarted.current = false;
+    fetchEnded.current = false;
+    prevIsLoading.current = undefined;
     if (!enabled) return;
 
+    const startedGenerationKey = generationKey;
+    const isRestart = hasStartedTtcGeneration.current;
+    hasStartedTtcGeneration.current = true;
+    ttcReadyForCompletion.current =
+      !isRestart ||
+      !contentReadyRef.current ||
+      acceptReadyContentOnGenerationStartRef.current;
     ttcTraceId.current = uuidv4();
     ttcEnded.current = false;
     trace({
       name: TraceName.HomepageSectionTimeToContent,
       op: TraceOperation.HomepageSectionPerformance,
       id: ttcTraceId.current,
-      tags: { section_id: sectionId },
+      tags: { ...tagsRef.current, section_id: sectionId },
+      data: { ...dataRef.current, section_id: sectionId },
     });
     ttcStarted.current = true;
 
     return () => {
       if (ttcStarted.current && !ttcEnded.current) {
+        annotateLatestTags(
+          TraceName.HomepageSectionTimeToContent,
+          ttcTraceId.current,
+        );
         endTrace({
           name: TraceName.HomepageSectionTimeToContent,
           id: ttcTraceId.current,
-          data: { success: false, reason: 'unmounted', section_id: sectionId },
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            success: false,
+            reason: resolveCancellationReason(
+              startedGenerationKey,
+              pendingGenerationKeyRef.current,
+            ),
+            section_id: sectionId,
+          },
         });
         ttcStarted.current = false;
       }
       if (fetchStarted.current && !fetchEnded.current) {
+        annotateLatestTags(
+          TraceName.HomepageSectionDataFetch,
+          fetchTraceId.current,
+        );
         endTrace({
           name: TraceName.HomepageSectionDataFetch,
           id: fetchTraceId.current,
-          data: { success: false, reason: 'unmounted', section_id: sectionId },
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            success: false,
+            reason: resolveCancellationReason(
+              startedGenerationKey,
+              pendingGenerationKeyRef.current,
+            ),
+            section_id: sectionId,
+          },
         });
         fetchStarted.current = false;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled]);
+  }, [enabled, generationKey, sectionId]);
 
   // Time to Content — end span when content is ready
   useEffect(() => {
-    if (enabled && contentReady && ttcStarted.current && !ttcEnded.current) {
+    if (!contentReady) {
+      ttcReadyForCompletion.current = true;
+      return;
+    }
+    if (
+      enabled &&
+      ttcReadyForCompletion.current &&
+      ttcStarted.current &&
+      !ttcEnded.current
+    ) {
+      annotateLatestTags(
+        TraceName.HomepageSectionTimeToContent,
+        ttcTraceId.current,
+      );
       endTrace({
         name: TraceName.HomepageSectionTimeToContent,
         id: ttcTraceId.current,
         data: {
+          ...tagsRef.current,
+          ...dataRef.current,
           success: true,
           section_id: sectionId,
           content_state: traceContentState,
@@ -132,7 +262,7 @@ export const useSectionPerformance = ({
       });
       ttcEnded.current = true;
     }
-  }, [enabled, contentReady, sectionId, traceContentState]);
+  }, [enabled, contentReady, generationKey, sectionId, traceContentState]);
 
   // ──────────────────────────────────────────────
   // 2. Data Fetch Latency — track isLoading transitions
@@ -150,7 +280,8 @@ export const useSectionPerformance = ({
         name: TraceName.HomepageSectionDataFetch,
         op: TraceOperation.HomepageSectionPerformance,
         id: fetchTraceId.current,
-        tags: { section_id: sectionId },
+        tags: { ...tagsRef.current, section_id: sectionId },
+        data: { ...dataRef.current, section_id: sectionId },
       });
       fetchStarted.current = true;
     }
@@ -162,10 +293,16 @@ export const useSectionPerformance = ({
       fetchStarted.current &&
       !fetchEnded.current
     ) {
+      annotateLatestTags(
+        TraceName.HomepageSectionDataFetch,
+        fetchTraceId.current,
+      );
       endTrace({
         name: TraceName.HomepageSectionDataFetch,
         id: fetchTraceId.current,
         data: {
+          ...tagsRef.current,
+          ...dataRef.current,
           success: true,
           section_id: sectionId,
           content_state: traceContentState,
@@ -174,49 +311,5 @@ export const useSectionPerformance = ({
       fetchStarted.current = false;
       fetchEnded.current = true;
     }
-  }, [enabled, isLoading, sectionId, traceContentState]);
-
-  // ──────────────────────────────────────────────
-  // 3. Re-render Monitoring — useEffect after commit (not during render)
-  //
-  // In development, React 18 Strict Mode runs mount effects twice (setup → cleanup
-  // → setup), which records one extra sample vs a single logical mount. Bump the
-  // effective threshold in __DEV__ so dev builds match production sensitivity.
-  // ──────────────────────────────────────────────
-  useEffect(() => {
-    if (!enabled) return;
-
-    const effectiveReRenderThreshold = __DEV__
-      ? reRenderThreshold + 1
-      : reRenderThreshold;
-
-    const now = performance.now();
-    const timestamps = renderTimestamps.current;
-    timestamps.push(now);
-
-    const windowStart = now - reRenderWindowMs;
-    while (timestamps.length > 0 && timestamps[0] < windowStart) {
-      timestamps.shift();
-    }
-
-    if (
-      timestamps.length > effectiveReRenderThreshold &&
-      !hasLoggedExcessiveRenders.current
-    ) {
-      hasLoggedExcessiveRenders.current = true;
-      addBreadcrumb({
-        category: TraceOperation.HomepageSectionPerformance,
-        message: `Excessive re-renders detected in section "${sectionId}": ${timestamps.length} renders in ${reRenderWindowMs}ms`,
-        level: 'warning',
-        data: {
-          section_id: sectionId,
-          render_count: timestamps.length,
-          window_ms: reRenderWindowMs,
-          threshold: reRenderThreshold,
-        },
-      });
-    }
-    // Intentionally every commit — do not add deps (would miss re-renders).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  });
+  }, [enabled, generationKey, isLoading, sectionId, traceContentState]);
 };

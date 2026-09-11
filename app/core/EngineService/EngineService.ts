@@ -32,6 +32,14 @@ import { hasPersistedState } from './utils/persistence-utils';
 import { setExistingUser } from '../../actions/user';
 import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
 
+/**
+ * Reads the AnalyticsController's own persisted copy of the analytics identity.
+ * Used to recover the identity when MMKV has lost it — see `getAnalyticsId`.
+ */
+const getPersistedAnalyticsId = (state: unknown): unknown =>
+  (state as { AnalyticsController?: { analyticsId?: unknown } })
+    ?.AnalyticsController?.analyticsId;
+
 export class EngineService {
   private engineInitialized = false;
 
@@ -167,7 +175,8 @@ export class EngineService {
       // `analyticsId` is not persisted in state to prevent losing it in case of corruption.
       // It is also used as a random source for other controllers like RemoteFeatureFlagController.
       // Passing it to engine ensures all controllers are initialized with the same analyticsId.
-      const analyticsId = await getAnalyticsId();
+      // The persisted controller copy is passed as a recovery source for MMKV loss.
+      const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
       Engine.init(analyticsId, state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       // Pass state to detect controllers that changed during init
@@ -190,6 +199,19 @@ export class EngineService {
         error as Error,
         'Failed to initialize Engine! Falling back to vault recovery.',
       );
+
+      // In e2e/test-override builds, fail loudly with the REAL init error
+      // instead of falling through to a confusing downstream crash (e.g.
+      // "Engine does not exist" at HardwareWalletProvider). Release builds
+      // route Logger to Sentry only, which e2e cannot observe — hence the
+      // direct console.error, which surfaces as ReactNativeJS in logcat.
+      if (hasTestOverrides) {
+        console.error(
+          '[EngineService] Engine init failed under test overrides:',
+          error,
+        );
+        throw error;
+      }
 
       // Give the navigation stack a chance to load
       // This can be removed if the vault recovery flow is moved higher up in the stack
@@ -369,7 +391,7 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const analyticsId = await getAnalyticsId();
+      const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
       const instance = Engine.init(analyticsId, state, newKeyringState);
       if (instance) {
         // Pass state to detect controllers that changed during init

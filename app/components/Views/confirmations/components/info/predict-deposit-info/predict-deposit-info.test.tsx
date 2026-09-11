@@ -41,7 +41,7 @@ describe('PredictDepositInfo', () => {
     );
   });
 
-  it('sets navbar title to "Transfer to Predictions" when payWithOption is MoneyAccount', () => {
+  it('sets navbar title to "Send to Predictions" when payWithOption is MoneyAccount', () => {
     mockUseParams.mockReturnValue({
       payWithOption: PayWithOption.MoneyAccount,
     });
@@ -49,7 +49,7 @@ describe('PredictDepositInfo', () => {
     render(<PredictDepositInfo />);
 
     expect(mockUseNavbar).toHaveBeenCalledWith(
-      strings('predict.transfer_to_predictions'),
+      strings('predict.send_to_predictions'),
     );
   });
 

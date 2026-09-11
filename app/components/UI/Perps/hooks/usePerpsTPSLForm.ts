@@ -6,6 +6,7 @@ import { regex } from '../../../../util/regex';
 import {
   DECIMAL_PRECISION_CONFIG,
   calculatePositionSize,
+  type OrderType,
   type Position,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
@@ -19,6 +20,7 @@ import {
   getTakeProfitErrorDirection,
   hasExceededSignificantFigures,
   hasTPSLValuesChanged,
+  isPositiveTriggerPrice,
   isStopLossSafeFromLiquidation,
   isValidStopLossPrice,
   isValidTakeProfitPrice,
@@ -40,7 +42,7 @@ interface UsePerpsTPSLFormParams {
   entryPrice?: number;
   isVisible?: boolean;
   liquidationPrice?: string;
-  orderType?: 'market' | 'limit';
+  orderType?: OrderType;
   amount?: string; // For new orders - USD amount to calculate position size
   szDecimals?: number; // For new orders - asset decimal precision
 }
@@ -104,6 +106,32 @@ export interface UsePerpsTPSLFormReturn {
   validation: TPSLFormValidation;
   display: TPSLFormDisplay;
 }
+
+/**
+ * Resolves the inline error for one trigger price field.
+ *
+ * A non-positive price is reported first: it is rejected by the protocol
+ * regardless of which side of the reference price it falls on, and the
+ * direction rules on their own would let it through.
+ *
+ * @param price - The current trigger price value, empty when the field is unset
+ * @param isOnValidSide - Whether the price sits on the correct side of the reference price
+ * @param getWrongSideMessage - Builds the direction-specific message for a wrong-side price
+ * @returns The message to show under the field, or an empty string when there is nothing to report
+ */
+const resolveTriggerPriceError = (
+  price: string,
+  isOnValidSide: boolean,
+  getWrongSideMessage: () => string,
+): string => {
+  if (!price) return '';
+
+  if (!isPositiveTriggerPrice(price)) {
+    return strings('perps.tpsl.trigger_price_must_be_positive');
+  }
+
+  return isOnValidSide ? '' : getWrongSideMessage();
+};
 
 /**
  * Custom hook to manage TPSL form state, validation, and business logic
@@ -348,12 +376,13 @@ export function usePerpsTPSLForm(
       // Set price as source of truth when user is actively typing
       setTpSourceOfTruth('price');
 
-      // Update RoE percentage based on price only if percentage field is not focused
-      // and we have valid base prices for calculation
+      // Update RoE percentage based on price whenever the user types a trigger
+      // price. The price field is the active source of truth here, so we do not
+      // gate on tpPercentInputFocused — a stale true value must not silently
+      // block the auto-fill (mirrors the same reasoning in handleTakeProfitPercentageChange).
       if (
         sanitized &&
         leverage &&
-        !tpPercentInputFocused &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
         const roePercent = calculateRoEForPrice(sanitized, true, !!position, {
@@ -376,7 +405,6 @@ export function usePerpsTPSLForm(
       actualDirection,
       leverage,
       entryPrice,
-      tpPercentInputFocused,
       takeProfitPrice,
       position,
     ],
@@ -396,12 +424,14 @@ export function usePerpsTPSLForm(
       // Set percentage as source of truth when user is actively typing
       setTpSourceOfTruth('percentage');
 
-      // Update price based on RoE percentage only if price field is not focused
+      // Always compute the trigger price when the user is typing a percentage.
+      // The percentage field is the active source of truth here, so we do not
+      // gate on tpPriceInputFocused — a stale true value (e.g. due to iOS
+      // focus/blur ordering) must not silently block the auto-fill.
       if (
         finalValue &&
         !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
-        leverage &&
-        !tpPriceInputFocused
+        leverage
       ) {
         const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
         const price = calculatePriceForRoE(roeValue, true, {
@@ -423,14 +453,7 @@ export function usePerpsTPSLForm(
       }
       setTpUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [
-      currentPrice,
-      actualDirection,
-      leverage,
-      entryPrice,
-      tpPriceInputFocused,
-      takeProfitPercentage,
-    ],
+    [currentPrice, actualDirection, leverage, entryPrice, takeProfitPercentage],
   );
 
   const handleStopLossPriceChange = useCallback(
@@ -461,12 +484,13 @@ export function usePerpsTPSLForm(
       // Set price as source of truth when user is actively typing
       setSlSourceOfTruth('price');
 
-      // Update RoE percentage based on price only if percentage field is not focused
-      // and we have valid base prices for calculation
+      // Update RoE percentage based on price whenever the user types a trigger
+      // price. The price field is the active source of truth here, so we do not
+      // gate on slPercentInputFocused — a stale true value must not silently
+      // block the auto-fill (mirrors the same reasoning in handleStopLossPercentageChange).
       if (
         sanitized &&
         leverage &&
-        !slPercentInputFocused &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
         const roePercent = calculateRoEForPrice(sanitized, false, !!position, {
@@ -490,7 +514,6 @@ export function usePerpsTPSLForm(
       actualDirection,
       leverage,
       entryPrice,
-      slPercentInputFocused,
       stopLossPrice,
       position,
     ],
@@ -510,12 +533,14 @@ export function usePerpsTPSLForm(
       // Set percentage as source of truth when user is actively typing
       setSlSourceOfTruth('percentage');
 
-      // Update price based on RoE percentage only if price field is not focused
+      // Always compute the trigger price when the user is typing a percentage.
+      // The percentage field is the active source of truth here, so we do not
+      // gate on slPriceInputFocused — a stale true value (e.g. due to iOS
+      // focus/blur ordering) must not silently block the auto-fill.
       if (
         finalValue &&
         !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
-        leverage &&
-        !slPriceInputFocused
+        leverage
       ) {
         const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
         const price = calculatePriceForRoE(roeValue, false, {
@@ -537,14 +562,7 @@ export function usePerpsTPSLForm(
       }
       setSlUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [
-      currentPrice,
-      actualDirection,
-      leverage,
-      entryPrice,
-      slPriceInputFocused,
-      stopLossPercentage,
-    ],
+    [currentPrice, actualDirection, leverage, entryPrice, stopLossPercentage],
   );
 
   // Focus/blur event handlers to manage source of truth and prevent input interference
@@ -898,28 +916,32 @@ export function usePerpsTPSLForm(
   );
 
   // Take Profit Errors
-  const takeProfitError =
-    !isValidTakeProfitPrice(takeProfitPrice, {
+  const takeProfitError = resolveTriggerPriceError(
+    takeProfitPrice,
+    isValidTakeProfitPrice(takeProfitPrice, {
       currentPrice: referencePrice,
       direction: actualDirection,
-    }) && takeProfitPrice
-      ? strings('perps.tpsl.take_profit_invalid_price', {
-          direction: getTakeProfitErrorDirection(actualDirection),
-          priceType,
-        })
-      : '';
+    }),
+    () =>
+      strings('perps.tpsl.take_profit_invalid_price', {
+        direction: getTakeProfitErrorDirection(actualDirection),
+        priceType,
+      }),
+  );
 
   // Stop Loss Errors
-  const stopLossError =
-    !isValidStopLossPrice(stopLossPrice, {
+  const stopLossError = resolveTriggerPriceError(
+    stopLossPrice,
+    isValidStopLossPrice(stopLossPrice, {
       currentPrice: referencePrice,
       direction: actualDirection,
-    }) && stopLossPrice
-      ? strings('perps.tpsl.stop_loss_invalid_price', {
-          direction: getStopLossErrorDirection(actualDirection),
-          priceType,
-        })
-      : '';
+    }),
+    () =>
+      strings('perps.tpsl.stop_loss_invalid_price', {
+        direction: getStopLossErrorDirection(actualDirection),
+        priceType,
+      }),
+  );
 
   const stopLossLiquidationError =
     !isStopLossSafeFromLiquidation(

@@ -1,5 +1,5 @@
 import { ViewStyle } from 'react-native';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { WalletClientType } from '../../../core/SnapKeyring/types';
 import { CaipChainId } from '@metamask/utils';
 
 interface NavigationParams {

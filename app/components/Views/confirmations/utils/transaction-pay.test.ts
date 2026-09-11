@@ -4,6 +4,8 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
+  applyMoneyAccountOverride,
+  formatAmountForDisplay,
   getAvailableTokens,
   getBlockedTokensForTransactionType,
   getRequiredBalance,
@@ -25,25 +27,15 @@ import { AssetType, TokenStandard } from '../types/token';
 import {
   TransactionPayRequiredToken,
   TransactionPaymentToken,
+  PaymentOverride,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import { store } from '../../../../store';
-import {
-  selectGasFeeTokenFlags,
+import type {
   BlockedTokensListConfig,
   BlockedTokensConfig,
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
-
-jest.mock('../../../../store', () => ({
-  store: {
-    getState: jest.fn(),
-  },
-}));
-
-jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
-  selectGasFeeTokenFlags: jest.fn(),
-}));
+import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/transaction-controller', () => ({
   updateAtomicBatchData: jest.fn(),
@@ -52,6 +44,18 @@ jest.mock('../../../../util/transaction-controller', () => ({
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      TransactionPayController: {
+        setTransactionConfig: jest.fn(),
+        updateFiatPayment: jest.fn(),
+      },
+    },
+  },
 }));
 
 const CHAIN_ID_MOCK = '0x1';
@@ -81,12 +85,8 @@ const ERC20_TOKEN_MOCK = {
 } as AssetType;
 
 describe('Transaction Pay Utils', () => {
-  const selectGasFeeTokenFlagsMock = jest.mocked(selectGasFeeTokenFlags);
-
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(store.getState).mockReturnValue({} as never);
-    selectGasFeeTokenFlagsMock.mockReturnValue({ gasFeeTokens: {} });
   });
 
   describe('getRequiredBalance', () => {
@@ -335,7 +335,7 @@ describe('Transaction Pay Utils', () => {
     });
 
     describe('disabled', () => {
-      it('marks token as disabled when no native balance and no gas station support', () => {
+      it('keeps token enabled when native balance is zero', () => {
         const result = getAvailableTokens({
           tokens: [
             ERC20_TOKEN_MOCK,
@@ -344,10 +344,8 @@ describe('Transaction Pay Utils', () => {
         });
 
         expect(result).toHaveLength(1);
-        expect(result[0].disabled).toBe(true);
-        expect(result[0].disabledMessage).toBe(
-          strings('pay_with_modal.no_gas'),
-        );
+        expect(result[0].disabled).toBe(false);
+        expect(result[0].disabledMessage).toBeUndefined();
       });
 
       it('marks token as enabled when native balance exists', () => {
@@ -360,43 +358,14 @@ describe('Transaction Pay Utils', () => {
         expect(result[0].disabledMessage).toBeUndefined();
       });
 
-      it('marks token as enabled when no native balance but gas station supports token', () => {
-        selectGasFeeTokenFlagsMock.mockReturnValue({
-          gasFeeTokens: {
-            [CHAIN_ID_MOCK]: {
-              name: 'Ethereum',
-              tokens: [
-                {
-                  name: 'Test Token',
-                  address: ERC20_TOKEN_MOCK.address as Hex,
-                },
-              ],
-            },
-          },
-        });
-
-        const result = getAvailableTokens({
-          tokens: [
-            ERC20_TOKEN_MOCK,
-            { ...TOKEN_MOCK, balance: '0' } as AssetType,
-          ],
-        });
-
-        expect(result).toHaveLength(1);
-        expect(result[0].disabled).toBe(false);
-        expect(result[0].disabledMessage).toBeUndefined();
-      });
-
-      it('marks token as disabled when native token is not found in tokens list', () => {
+      it('keeps token enabled when native token is not found in tokens list', () => {
         const result = getAvailableTokens({
           tokens: [ERC20_TOKEN_MOCK],
         });
 
         expect(result).toHaveLength(1);
-        expect(result[0].disabled).toBe(true);
-        expect(result[0].disabledMessage).toBe(
-          strings('pay_with_modal.no_gas'),
-        );
+        expect(result[0].disabled).toBe(false);
+        expect(result[0].disabledMessage).toBeUndefined();
       });
     });
 
@@ -516,7 +485,7 @@ describe('Transaction Pay Utils', () => {
         expect(result[1].disabled).toBe(false);
       });
 
-      it('keeps no-gas disabled message when token is disabled for no gas but not blocked', () => {
+      it('keeps token enabled when token is not blocked and native balance is zero', () => {
         const blockedTokens: BlockedTokensListConfig = {
           chainIds: [],
           tokens: [],
@@ -531,10 +500,8 @@ describe('Transaction Pay Utils', () => {
         });
 
         expect(result).toHaveLength(1);
-        expect(result[0].disabled).toBe(true);
-        expect(result[0].disabledMessage).toBe(
-          strings('pay_with_modal.no_gas'),
-        );
+        expect(result[0].disabled).toBe(false);
+        expect(result[0].disabledMessage).toBeUndefined();
       });
     });
   });
@@ -906,6 +873,204 @@ describe('Transaction Pay Utils', () => {
 
       expect(result).toBe(OVERRIDE);
       expect(result?.address).not.toBe(MUSD_TOKEN_ADDRESS);
+    });
+  });
+
+  describe('applyMoneyAccountOverride', () => {
+    const TRANSACTION_ID = 'tx-override-1';
+    const MONEY_ADDRESS = '0xabc1111111111111111111111111111111111111';
+
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+    const updateFiatPaymentMock = jest.mocked(
+      Engine.context.TransactionPayController.updateFiatPayment,
+    );
+
+    function buildTransactionMeta(
+      type: TransactionType,
+      overrides: Partial<TransactionMeta> = {},
+    ): TransactionMeta {
+      return {
+        id: TRANSACTION_ID,
+        type,
+        ...overrides,
+      } as TransactionMeta;
+    }
+
+    function runConfigCallback(): Record<string, unknown> {
+      const config: Record<string, unknown> = {};
+      setTransactionConfigMock.mock.calls[0][1](config as never);
+      return config;
+    }
+
+    it('sets paymentOverride and atomic:false for perpsWithdraw', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.perpsWithdraw),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets paymentOverride and atomic:false for predictWithdraw', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.predictWithdraw),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets paymentOverride and refundTo but leaves atomic unset for moneyAccountDeposit', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.moneyAccountDeposit),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBeUndefined();
+      expect(config.refundTo).toBe(MONEY_ADDRESS);
+    });
+
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ] as const)(
+      'sets refundTo but leaves atomic unset for %s',
+      (transactionType) => {
+        applyMoneyAccountOverride(
+          TRANSACTION_ID,
+          MONEY_ADDRESS,
+          buildTransactionMeta(transactionType),
+        );
+
+        const config = runConfigCallback();
+
+        expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+        expect(config.atomic).toBeUndefined();
+        expect(config.refundTo).toBe(MONEY_ADDRESS);
+      },
+    );
+
+    it('sets only paymentOverride for moneyAccountWithdraw (no atomic or refundTo)', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.moneyAccountWithdraw),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBeUndefined();
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets atomic:false when moneyAccountAddress is undefined for perps/predict withdraws', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        undefined,
+        buildTransactionMeta(TransactionType.perpsWithdraw),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBe(false);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('omits refundTo when moneyAccountAddress is undefined for moneyAccountDeposit', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        undefined,
+        buildTransactionMeta(TransactionType.moneyAccountDeposit),
+      );
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('sets paymentOverride and refundTo when transactionMeta is undefined', () => {
+      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, undefined);
+
+      const config = runConfigCallback();
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.atomic).toBeUndefined();
+      expect(config.refundTo).toBe(MONEY_ADDRESS);
+    });
+
+    it('clears selectedPaymentMethodId via updateFiatPayment', () => {
+      applyMoneyAccountOverride(
+        TRANSACTION_ID,
+        MONEY_ADDRESS,
+        buildTransactionMeta(TransactionType.moneyAccountDeposit),
+      );
+
+      expect(updateFiatPaymentMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        callback: expect.any(Function),
+      });
+
+      const fp = { selectedPaymentMethodId: 'some-method' } as Record<
+        string,
+        unknown
+      >;
+      updateFiatPaymentMock.mock.calls[0][0].callback(fp as never);
+
+      expect(fp.selectedPaymentMethodId).toBeUndefined();
+    });
+  });
+
+  describe('formatAmountForDisplay', () => {
+    it('returns whole numbers unchanged', () => {
+      expect(formatAmountForDisplay('500')).toBe('500');
+    });
+
+    it.each(['12.', '12.3', '12.34', '0.05'])(
+      'returns %s unchanged when already within two decimals',
+      (amount) => {
+        expect(formatAmountForDisplay(amount)).toBe(amount);
+      },
+    );
+
+    it('truncates rather than rounds so the result never exceeds the balance', () => {
+      // The displayed value is re-typable through the keypad, so rounding up
+      // would let the user enter an amount above their balance.
+      expect(formatAmountForDisplay('50.389')).toBe('50.38');
+    });
+
+    it('never carries into the whole part', () => {
+      expect(formatAmountForDisplay('1.999')).toBe('1.99');
+    });
+
+    it('truncates a long exact balance to cents', () => {
+      expect(formatAmountForDisplay('2160.6159999')).toBe('2160.61');
+    });
+
+    it('truncates an amount using a comma separator', () => {
+      expect(formatAmountForDisplay('50,389')).toBe('50.38');
+    });
+
+    it('returns the input unchanged when it is not a parseable number', () => {
+      expect(formatAmountForDisplay('1.2.3')).toBe('1.2.3');
     });
   });
 });

@@ -5,7 +5,6 @@ import {
 } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 import { waitFor } from '@testing-library/react-native';
-import { Interface } from '@ethersproject/abi';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   stakingDepositConfirmationState,
@@ -18,7 +17,7 @@ import {
   tokensControllerMock,
 } from '../__mocks__/controllers/other-controllers-mock';
 import { updateEditableParams } from '../../../../util/transaction-controller';
-import { DISTRIBUTOR_CLAIM_ABI } from '../../../UI/Earn/components/MerklRewards/constants';
+import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 
 jest.mock('../../../../util/transaction-controller');
 
@@ -485,20 +484,22 @@ describe('Edge cases', () => {
 
 describe('musdClaim transactions', () => {
   const USER_ADDRESS = '0x1234567890123456789012345678901234567890';
-  const TOKEN_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+  const OTHER_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+  const MERKL_DISTRIBUTOR_ADDRESS =
+    '0x3Ef3D8bA38EBe18DB133cEc108f4D14CE00Dd9Ae';
+  const TRANSFER_TOPIC =
+    '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
-  // Helper to encode valid claim data
-  const encodeClaimData = (amount: string): string => {
-    const contractInterface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-    return contractInterface.encodeFunctionData('claim', [
-      [USER_ADDRESS],
-      [TOKEN_ADDRESS],
-      [amount],
-      [[]],
-    ]);
-  };
+  const padAddress = (address: string) =>
+    `0x${address.slice(2).toLowerCase().padStart(64, '0')}`;
 
-  const createMusdClaimState = (claimData: string) =>
+  const makeTransferLog = (from: string, amount: bigint) => ({
+    address: MUSD_TOKEN_ADDRESS,
+    topics: [TRANSFER_TOPIC, padAddress(from), padAddress(USER_ADDRESS)],
+    data: `0x${amount.toString(16).padStart(64, '0')}`,
+  });
+
+  const createMusdClaimState = (logs: ReturnType<typeof makeTransferLog>[]) =>
     merge({}, transferConfirmationState, {
       engine: {
         backgroundState: {
@@ -507,8 +508,10 @@ describe('musdClaim transactions', () => {
               {
                 type: TransactionType.musdClaim,
                 txParams: {
-                  data: claimData,
                   from: USER_ADDRESS,
+                },
+                txReceipt: {
+                  logs,
                 },
               },
             ],
@@ -517,12 +520,12 @@ describe('musdClaim transactions', () => {
       },
     });
 
-  it('decodes and returns correct amount for musdClaim transaction', async () => {
-    const claimAmount = '50000000'; // 50 mUSD (6 decimals)
-    const claimData = encodeClaimData(claimAmount);
+  const createClaimStateForAmount = (amount: bigint) =>
+    createMusdClaimState([makeTransferLog(MERKL_DISTRIBUTOR_ADDRESS, amount)]);
 
+  it('returns the claimed amount for a musdClaim transaction', async () => {
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(claimData),
+      state: createClaimStateForAmount(50000000n), // 50 mUSD (6 decimals)
     });
 
     await waitFor(() => {
@@ -541,11 +544,8 @@ describe('musdClaim transactions', () => {
   });
 
   it('handles fractional mUSD amounts correctly', async () => {
-    const claimAmount = '12345000'; // 12.345 mUSD (6 decimals)
-    const claimData = encodeClaimData(claimAmount);
-
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(claimData),
+      state: createClaimStateForAmount(12345000n), // 12.345 mUSD (6 decimals)
     });
 
     await waitFor(() => {
@@ -564,11 +564,8 @@ describe('musdClaim transactions', () => {
   });
 
   it('handles very small mUSD amounts', async () => {
-    const claimAmount = '100'; // 0.0001 mUSD (6 decimals)
-    const claimData = encodeClaimData(claimAmount);
-
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(claimData),
+      state: createClaimStateForAmount(100n), // 0.0001 mUSD (6 decimals)
     });
 
     await waitFor(() => {
@@ -585,11 +582,8 @@ describe('musdClaim transactions', () => {
   });
 
   it('handles large mUSD amounts', async () => {
-    const claimAmount = '100000000000'; // 100,000 mUSD (6 decimals)
-    const claimData = encodeClaimData(claimAmount);
-
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(claimData),
+      state: createClaimStateForAmount(100000000000n), // 100,000 mUSD (6 decimals)
     });
 
     await waitFor(() => {
@@ -605,15 +599,12 @@ describe('musdClaim transactions', () => {
     });
   });
 
-  it('returns default values when claim data is invalid', async () => {
-    const invalidClaimData = '0x123456'; // Invalid data
-
+  it('returns default values when the receipt has no distributor Transfer log', async () => {
     const { result } = renderHookWithProvider(() => useTokenAmount(), {
-      state: createMusdClaimState(invalidClaimData),
+      state: createMusdClaimState([makeTransferLog(OTHER_ADDRESS, 50000000n)]),
     });
 
     await waitFor(() => {
-      // When decoding fails, it falls through to default case
       expect(result.current.amount).toBeDefined();
     });
   });

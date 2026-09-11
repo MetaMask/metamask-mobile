@@ -4,6 +4,7 @@ import PerpsStopLossPromptBanner from './PerpsStopLossPromptBanner';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
 
 const initialState = {
   engine: {
@@ -228,6 +229,30 @@ describe('PerpsStopLossPromptBanner', () => {
   });
 
   describe('fade-out animation', () => {
+    it('shows success banner without action button when isSuccess is true', () => {
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <PerpsStopLossPromptBanner
+          variant="stop_loss"
+          liquidationDistance={15}
+          suggestedStopLossPrice="47500"
+          suggestedStopLossPercent={-50}
+          onSetStopLoss={jest.fn()}
+          isSuccess
+        />,
+        { state: initialState },
+      );
+
+      expect(
+        getByText(strings('perps.stop_loss_prompt.success_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
+      ).toBeNull();
+    });
+
     it('calls onFadeOutComplete after success animation', async () => {
       jest.useFakeTimers();
       const onFadeOutComplete = jest.fn();

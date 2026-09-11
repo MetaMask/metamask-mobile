@@ -132,7 +132,7 @@
     "reset_wallet": "Redefinir Carteira",
     "cant_proceed": "Você não pode prosseguir antes de digitar a palavra 'Delete'. Desta forma você está optando por excluir sua carteira atual.",
     "invalid_password": "Senha inválida",
-    "type_delete": "Digite '%{delete}' para excluir sua carteira atual permanentemente",
+    "type_delete": "Digite '{{delete}}' para excluir sua carteira atual permanentemente",
     "delete_my": "Apagar minha carteira",
     "are_you_sure": "Tem certeza de que deseja excluir sua carteira?",
     "your_current_wallet": "Sua carteira atual, suas contas e seus ativos serão ",
@@ -501,13 +501,13 @@
     "security_heading": "Segurança",
     "privacy_heading": "Privacidade",
     "failed_to_fetch_chain_id": "Não foi possível fazer o fetch do ID da chain. O URL da RPC está correto?",
-    "endpoint_returned_different_chain_id": "O endpoint retornou um ID diferente da chain: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "O endpoint retornou um ID diferente da chain: {{chainIdReturned}}",
     "chain_id_required": "O ID da chain é obrigatório. É preciso ser igual ao ID da chain retornado pela rede. Você pode informar um número decimal ou um número hexadecimal com o prefixo “0x”.",
     "invalid_hex_number": "Número hexadecimal inválido.",
     "invalid_hex_number_leading_zeros": "Número hexadecimal inválido. Remover zeros à esquerda.",
     "invalid_number": "Número inválido. Informe um número decimal ou um número hexadecimal com o prefixo “0x”.",
     "invalid_number_leading_zeros": "Número inválido. Remover zeros à esquerda.",
-    "invalid_number_range": "Número inválido. Insira um número entre 1 e %{maxSafeChainId}",
+    "invalid_number_range": "Número inválido. Insira um número entre 1 e {{maxSafeChainId}}",
     "hide_zero_balance_tokens_title": "Oculta tokens sem saldo",
     "hide_zero_balance_tokens_desc": "Impede que tokens sem saldo sejam exibidos na sua lista de tokens."
   },
@@ -1532,7 +1532,7 @@
     "title": "Confira as novidades"
   },
   "invalid_network": {
-    "title": "O ID da chain da rede personalizada \n %{network} \n precisa ser inserido novamente.",
+    "title": "O ID da chain da rede personalizada \n {{network}} \n precisa ser inserido novamente.",
     "message": "Para proteger você contra provedores de rede mal-intencionados ou defeituosos, as IDs da chain agora são obrigatórias para todas as redes personalizadas.",
     "hint": "Encontre as IDs da chain das redes mais populares em ",
     "edit_network_button": "Editar rede",
@@ -1561,7 +1561,7 @@
     "cancel": "Cancelar",
     "approve": "Aprovar",
     "unrecognized_chain": "Esta rede personalizada não é reconhecida",
-    "invalid_chain": "A %{rpcUrl} para essa ID da chain não corresponde à lista de chainid.network.",
+    "invalid_chain": "A {{rpcUrl}} para essa ID da chain não corresponde à lista de chainid.network.",
     "alert_recommend": "Recomendamos",
     "alert_verify": "verificar o ID da chain"
   },

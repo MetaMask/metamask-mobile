@@ -1,30 +1,29 @@
-import { TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
-import { hasTransactionType } from '../../utils/transaction';
-import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
   useTransactionPayFiatPayment,
   useTransactionPayQuotes,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from './useTransactionPayData';
-
-const SUPPORTED_TYPES = [
-  TransactionType.musdConversion,
-  TransactionType.moneyAccountDeposit,
-];
 
 export function useIsPaidByMetaMask(): boolean {
   const { selectedPaymentMethodId } = useTransactionPayFiatPayment() || {};
   const totals = useTransactionPayTotals();
   const quotes = useTransactionPayQuotes();
-  const transactionMetadata = useTransactionMetadataOrThrow();
+  const sourceAmounts = useTransactionPaySourceAmounts();
+  const transactionMeta = useTransactionMetadataRequest();
 
-  if (
-    !quotes?.length ||
-    !totals?.fees ||
-    !hasTransactionType(transactionMetadata, SUPPORTED_TYPES) ||
-    selectedPaymentMethodId
-  ) {
+  if (selectedPaymentMethodId) {
+    return false;
+  }
+
+  // Mirror the fee row's sponsored $0 display (pre-quote, gasless).
+  if (transactionMeta?.isGasFeeSponsored && !sourceAmounts?.length) {
+    return true;
+  }
+
+  if (!quotes?.length || !totals?.fees) {
     return false;
   }
 

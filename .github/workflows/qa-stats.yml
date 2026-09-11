@@ -21,7 +21,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Collect QA stats
-        run: node .github/scripts/collect-qa-stats.mjs
+        run: node .github/scripts/qa-automation/stats/collect-qa-stats.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}

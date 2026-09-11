@@ -11,7 +11,6 @@ import {
   IconName,
   IconColor,
 } from '../../../../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../../../../component-library/components/Texts/Text';
 
 import { IndividualFiatDisplay } from '../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import {
@@ -42,6 +41,7 @@ import { strings } from '../../../../../../../../../../locales/i18n';
 import AnimatedPulse from '../../../../../UI/animated-pulse';
 import { selectContractExchangeRatesByChainId } from '../../../../../../../../../selectors/tokenRatesController';
 import { RootState } from '../../../../../../../../../reducers';
+import { Text } from '@metamask/design-system-react-native';
 
 interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
@@ -99,9 +99,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
-  const { colors } = useTheme();
+  const theme = useTheme();
 
-  const styles = styleSheet(colors);
+  const styles = styleSheet(theme);
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId),

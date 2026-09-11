@@ -281,4 +281,21 @@ describe('PerpsMarketTypeSection', () => {
     // Assert
     expect(getByTestId('custom-section-id')).toBeOnTheScreen();
   });
+
+  it('derives header and market list testIDs from the section testID', () => {
+    // Arrange & Act
+    const { getByTestId } = renderWithProvider(
+      <PerpsMarketTypeSection
+        title="Explore crypto"
+        markets={mockMarkets}
+        marketType="crypto"
+        testID="custom-section-id"
+      />,
+      { state: initialState },
+    );
+
+    // Assert
+    expect(getByTestId('custom-section-id-header')).toBeOnTheScreen();
+    expect(getByTestId('custom-section-id-list')).toBeOnTheScreen();
+  });
 });

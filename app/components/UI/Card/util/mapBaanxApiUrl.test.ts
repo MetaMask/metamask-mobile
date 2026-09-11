@@ -3,8 +3,6 @@ import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from './mapBaanxApiUrl';
 
 describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   const originalBaanxUrl = process.env.BAANX_API_URL;
-  const originalBuildsEnabled =
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
 
   afterEach(() => {
     if (originalBaanxUrl !== undefined) {
@@ -12,19 +10,9 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
     } else {
       delete process.env.BAANX_API_URL;
     }
-    if (originalBuildsEnabled !== undefined) {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
-        originalBuildsEnabled;
-    } else {
-      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
-    }
   });
 
-  describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (builds.yml path)', () => {
-    beforeEach(() => {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
-    });
-
+  describe('when BAANX_API_URL is set (builds.yml path)', () => {
     it('returns BAANX_API_URL from environment when set', () => {
       process.env.BAANX_API_URL = 'https://test.api';
       expect(getDefaultBaanxApiBaseUrlForMetaMaskEnv('any-env')).toBe(
@@ -50,9 +38,9 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
     });
   });
 
-  describe('when not BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (legacy .js.env path)', () => {
+  describe('when BAANX_API_URL is not set (fallback path)', () => {
     beforeEach(() => {
-      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+      delete process.env.BAANX_API_URL;
     });
 
     it('returns AppConstants.BAANX_API_URL.PRD for production/rc', () => {

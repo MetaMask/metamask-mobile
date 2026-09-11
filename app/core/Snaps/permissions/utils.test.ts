@@ -14,7 +14,7 @@ const TEST_MNEMONIC =
 const TEST_MNEMONIC_SEED = hexToBytes(mnemonicToSeed(TEST_MNEMONIC));
 
 /**
- * Setup the messenger and mock `KeyringController:withKeyring`.
+ * Setup the messenger and mock `KeyringController:withKeyringV2`.
  *
  * @param deserialize - Whether to deserialize the HD keyring state before returning.
  * @returns The messenger.
@@ -33,10 +33,14 @@ async function getMessenger(deserialize = true) {
 
   const keyrings: Record<string, Keyring> = {
     main: new HdKeyringV2({
+      // @ts-expect-error: Two different types with this name exist, but they
+      // are unrelated.
       legacyKeyring: hdKeyring,
       entropySource: 'mock-hd-keyring-id',
     }),
     ledger: new LedgerKeyringV2({
+      // @ts-expect-error: Two different types with this name exist, but they
+      // are unrelated.
       legacyKeyring: ledgerKeyring,
       entropySource: 'mock-ledger-keyring-id',
     }),

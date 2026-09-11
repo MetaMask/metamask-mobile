@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -7,10 +8,7 @@ import {
   PredictMarketStatus,
   PredictOutcomeToken,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictPreviewSheet } from '../../contexts';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
@@ -20,6 +18,7 @@ import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import { PREDICT_SPORT_CARD_FOOTER_TEST_IDS } from './PredictSportCardFooter.testIds';
 
 interface PredictSportCardFooterProps {
@@ -39,8 +38,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   onBuyButtonPress,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
@@ -103,15 +101,22 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        // Claims are aggregate; market attribution is derived controller-side.
+        await claim({
+          entryPoint:
+            resolvedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  }, [executeGuardedAction, claim]);
+  }, [executeGuardedAction, claim, resolvedEntryPoint]);
 
   const hasPositions = positions.length > 0;
-  const hasClaimablePositions = claimablePositions.length > 0;
-  const claimableAmount = claimablePositions.reduce(
+  const winningClaimablePositions = claimablePositions.filter(
+    isActionableClaimablePosition,
+  );
+  const hasClaimablePositions = winningClaimablePositions.length > 0;
+  const claimableAmount = winningClaimablePositions.reduce(
     (sum, p) => sum + (p.currentValue ?? 0),
     0,
   );
@@ -176,7 +181,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
       {hasClaimablePositions && (
         <PredictPicksForCard
           marketId={market.id}
-          positions={claimablePositions}
+          positions={winningClaimablePositions}
           showSeparator
           testID={
             testID

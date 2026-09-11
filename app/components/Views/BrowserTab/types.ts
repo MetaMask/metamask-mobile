@@ -128,6 +128,11 @@ export type BrowserTabProps = SharedTabProps & {
    */
   fromTrending?: boolean;
   /**
+   * Whether browser was opened from the Explore search screen, which lives in
+   * the root stack — closing must pop back to it, not jump to the Explore tab.
+   */
+  fromExploreSearch?: boolean;
+  /**
    * Whether browser was opened from Perps view
    */
   fromPerps?: boolean;
@@ -143,6 +148,18 @@ export type BrowserTabProps = SharedTabProps & {
    * Whether browser was opened from the What's Happening detail view
    */
   fromWhatsHappening?: boolean;
+  /**
+   * Whether browser was opened from the Market Insights view
+   */
+  fromMarketInsights?: boolean;
+  /**
+   * Whether browser was opened from the Money tab
+   */
+  fromMoney?: boolean;
+  /**
+   * Whether browser was opened from Earn strategy selection
+   */
+  fromEarnStrategySelection?: boolean;
 
   /**
    * Boolean indicating if browser is in fullscreen mode

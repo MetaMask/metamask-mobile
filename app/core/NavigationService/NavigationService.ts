@@ -96,6 +96,14 @@ class NavigationService {
   static set navigation(navRef: NavigationContainerRef<ParamListBase>) {
     this.#assertNavigationRefType(navRef);
     this.#navigation = this.#createReactAwareNavigation(navRef);
+
+    if (__DEV__) {
+      import('../../dev-tools/AgenticService/AgenticService').then(
+        ({ default: AgenticService }) => {
+          AgenticService.install(navRef, this.#navigation);
+        },
+      );
+    }
   }
 
   /**
@@ -104,6 +112,16 @@ class NavigationService {
   static get navigation() {
     this.#assertNavigationExists();
     return this.#navigation;
+  }
+
+  /**
+   * Returns the focused route when navigation is ready.
+   *
+   * Unlike the navigation getter, analytics callers can safely use this during
+   * app startup without logging or throwing when the container is not mounted.
+   */
+  static getCurrentRoute() {
+    return this.#navigation?.getCurrentRoute();
   }
 
   /**

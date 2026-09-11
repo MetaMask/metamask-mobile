@@ -1,5 +1,5 @@
 /* global by, element, waitFor */
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';
 import {
   QRScannerSelectorsIDs,

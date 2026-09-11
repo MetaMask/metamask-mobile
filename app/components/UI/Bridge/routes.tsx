@@ -5,6 +5,7 @@ import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import BridgeView from './Views/BridgeView';
 import { BatchSellTokenSelect } from './Views/BatchSellTokenSelect';
 import { BatchSellReview } from './Views/BatchSellReview';
+import RecurringJobDetailsView from './Views/RecurringJobDetailsView';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
@@ -22,6 +23,8 @@ import {
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
+import { HardwareWalletsSwaps } from '../HardwareWallet/Swaps/HardwareWalletsSwaps';
+import { HwQrScanner } from '../HardwareWallet/Swaps/HwQrScanner';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
 import { PostTradeBottomSheet } from './components/PostTradeBottomSheet';
 import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
@@ -30,11 +33,21 @@ import { BatchSellFinalReviewModal } from './components/BatchSellFinalReviewModa
 import { BatchSellNetworkFeeInfoModal } from './components/BatchSellNetworkFeeInfoModal';
 import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
 import { BatchSellPriceImpactInfoModal } from './components/BatchSellPriceImpactInfoModal';
+import { SwapsLimitOrderExpirationModalScreen } from './components/SwapsLimitOrderExpirationModal/SwapsLimitOrderExpirationModalScreen';
+import { LimitOrderConfirmationModalScreen } from './components/LimitOrderConfirmationModal/LimitOrderConfirmationModalScreen';
+import { RecurringIntervalSheetScreen } from './components/RecurringIntervalSheet/RecurringIntervalSheetScreen';
+import { RecurringRepeatInfoSheetScreen } from './components/RecurringRepeatInfoSheet/RecurringRepeatInfoSheetScreen';
+import { PriceRangeSheetScreen } from './components/PriceRangeSheet/PriceRangeSheetScreen';
+import { RecurringConfirmOrderSheetScreen } from './components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheetScreen';
+import type {
+  BridgeModalsNavigationParamList,
+  BridgeScreensStackParamList,
+} from './types/navigation';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<BridgeScreensStackParamList>();
 export const BridgeScreenStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
@@ -56,10 +69,26 @@ export const BridgeScreenStack = () => (
       name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
       component={QuoteSelectorView}
     />
+    <Stack.Screen
+      name={Routes.BRIDGE.RECURRING_JOB_DETAILS}
+      component={RecurringJobDetailsView}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
+      component={HardwareWalletsSwaps}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.HW_QR_SCANNER}
+      component={HwQrScanner}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
-const ModalStack = createNativeStackNavigator();
+const ModalStack =
+  createNativeStackNavigator<BridgeModalsNavigationParamList>();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{
@@ -146,6 +175,30 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BATCH_SELL_PRICE_IMPACT_INFO_MODAL}
       component={BatchSellPriceImpactInfoModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_EXPIRATION_MODAL}
+      component={SwapsLimitOrderExpirationModalScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL}
+      component={LimitOrderConfirmationModalScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.RECURRING_INTERVAL_MODAL}
+      component={RecurringIntervalSheetScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.RECURRING_REPEAT_INFO_MODAL}
+      component={RecurringRepeatInfoSheetScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.RECURRING_PRICE_RANGE_MODAL}
+      component={PriceRangeSheetScreen}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL}
+      component={RecurringConfirmOrderSheetScreen}
     />
   </ModalStack.Navigator>
 );

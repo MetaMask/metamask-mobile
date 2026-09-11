@@ -38,6 +38,8 @@ export const isE2EOrExpEnvironment =
 export const hasTestOverrides =
   process.env.IS_PERFORMANCE_TEST !== 'true' &&
   process.env.HAS_TEST_OVERRIDES === 'true';
+export const isE2EOrPerformanceTest =
+  hasTestOverrides || process.env.IS_PERFORMANCE_TEST === 'true';
 export const enableApiCallLogs = process.env.LOG_API_CALLS === 'true';
 export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FALLBACK_FIXTURE_SERVER_PORT;

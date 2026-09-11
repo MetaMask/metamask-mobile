@@ -9,4 +9,5 @@ export const MetaMetricsOptInSelectorsIDs = {
     'default-network-use-this-button-id',
   METAMETRICS_OPT_IN_CONTAINER_ID: 'meta-metrics-container',
   OPTIN_METRICS_METRICS_CHECKBOX: 'optin-metrics-metrics-checkbox',
+  OPTIN_METRICS_MARKETING_CHECKBOX: 'optin-metrics-marketing-checkbox',
 };

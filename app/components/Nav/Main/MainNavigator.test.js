@@ -39,6 +39,8 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.RAMP.SETTINGS).toBeDefined();
     expect(Routes.RAMP.TOKEN_SELECTION).toBeDefined();
     expect(Routes.RAMP.ORDER_DETAILS).toBeDefined();
+    expect(Routes.RAMP.GET_PIX_KEY).toBeDefined();
+    expect(Routes.RAMP.VBA_VERIFY_IDENTITY).toBeDefined();
   });
 
   it('has deposit routes defined', () => {
@@ -91,6 +93,7 @@ describe('MainNavigator Route Constants', () => {
 
   it('has card routes defined', () => {
     expect(Routes.CARD.ROOT).toBeDefined();
+    expect(Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT).toBeDefined();
   });
 
   it('has feature flag override route defined', () => {
@@ -148,7 +151,7 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET).toBeDefined();
     expect(Routes.MONEY.MODALS.LINK_CARD_SHEET).toBeDefined();
     expect(Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET).toBeDefined();
-    expect(Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.DEEPLINK_MODAL).toBeDefined();
   });
 });
 
@@ -184,6 +187,7 @@ describe('Route Constants Validation', () => {
       Routes.MODAL.WALLET_ACTIONS,
       Routes.MODAL.ROOT_MODAL_FLOW,
       Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
+      Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
     ];
 
     modalRoutes.forEach((route) => {

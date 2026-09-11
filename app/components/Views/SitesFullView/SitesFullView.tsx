@@ -2,6 +2,7 @@ import React, { useCallback, useState, useMemo } from 'react';
 import { Platform, StyleSheet, View, RefreshControl } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -50,7 +51,7 @@ const SitesFullView: React.FC = () => {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: SitesFullViewParams }, 'params'>>();
   const isFavorites = route.params?.mode === 'favorites';

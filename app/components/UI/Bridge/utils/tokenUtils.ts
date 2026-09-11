@@ -5,8 +5,10 @@ import {
   parseCaipAssetType,
   toCaipAssetType,
 } from '@metamask/utils';
+import { EthScope } from '@metamask/keyring-api';
 import {
   formatAddressToAssetId,
+  formatChainIdToCaip,
   formatChainIdToHex,
   getNativeAssetForChainId,
   isNonEvmChainId,
@@ -14,8 +16,9 @@ import {
 import { zeroAddress } from 'ethereumjs-util';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
-import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
+import { getSwapDestToken } from './getSwapDestToken';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
+import { areAddressesEqual } from '../../../../util/address';
 
 export interface ApiTokenForBridgeToken {
   assetId: string;
@@ -141,20 +144,24 @@ export const convertAPITokensToBridgeTokens = (
   );
 
 /**
- * Helper function to get default destination token, handling both hex and CAIP format chain IDs
+ * Helper function to get default destination token, handling both hex and CAIP format chain IDs.
+ *
+ * Returns the chain-wide default from `DefaultSwapDestTokens`.
+ * Use `getSwapDestToken` when you also know the source token address and want
+ * to respect per-source overrides.
  */
 export const getDefaultDestToken = (
   chainId: Hex | CaipChainId,
 ): BridgeToken | undefined => {
   // Try direct lookup first
-  let token = DefaultSwapDestTokens[chainId];
+  let token = getSwapDestToken(chainId);
   if (token) return token;
 
   // If chainId is CAIP format (e.g., "eip155:1"), convert to hex and try again
   if (typeof chainId === 'string' && chainId.includes(':')) {
     const chainIdFromCaip = chainId.split(':')[1];
     const hexChainId = `0x${parseInt(chainIdFromCaip, 10).toString(16)}` as Hex;
-    token = DefaultSwapDestTokens[hexChainId];
+    token = getSwapDestToken(hexChainId);
     if (token) {
       // Return token with CAIP chainId to match the request format
       return { ...token, chainId };
@@ -162,6 +169,41 @@ export const getDefaultDestToken = (
   }
 
   return undefined;
+};
+
+/**
+ * Computes a default source/dest token pair to re-anchor a swap/bridge
+ * selection on when it's found to be outside a set of enabled chains (e.g.
+ * a token selected in an unrestricted flow that isn't supported by a
+ * narrower one like Limit Order). Prefers Ethereum mainnet's ETH/mUSD pair
+ * when Ethereum is part of the enabled chains, otherwise falls back to the
+ * native token + configured default dest token of the first enabled chain.
+ *
+ * Returns `undefined` when there are no enabled chains to anchor on.
+ */
+export const getDefaultTokenPairForChains = (
+  chainIds: CaipChainId[],
+): { sourceToken: BridgeToken; destToken?: BridgeToken } | undefined => {
+  if (chainIds.length === 0) {
+    return undefined;
+  }
+
+  const fallbackChainId = chainIds.includes(EthScope.Mainnet)
+    ? EthScope.Mainnet
+    : chainIds[0];
+
+  const sourceToken = getNativeSourceToken(fallbackChainId);
+  // Look up the dest default using the source token's already-formatted
+  // chainId (not the raw fallbackChainId) so both tokens end up in the
+  // same chainId format (hex for EVM chains).
+  const destTokenCandidate = getDefaultDestToken(sourceToken.chainId);
+  const destToken =
+    destTokenCandidate &&
+    !areAddressesEqual(destTokenCandidate.address, sourceToken.address)
+      ? destTokenCandidate
+      : undefined;
+
+  return { sourceToken, destToken };
 };
 
 /**
@@ -198,4 +240,32 @@ export const tokenToIncludeAsset = (
       : (assetId.toLowerCase() as CaipAssetType),
     name: token.name ?? '',
   };
+};
+
+/**
+ * Returns true when two bridge tokens reference the same on-chain asset.
+ * Addresses are normalized (e.g. Polygon native 0x…1010 → 0x0) and compared
+ * case-insensitively for EVM; chain IDs are normalized to CAIP format, so
+ * same-address tokens on different chains are NOT considered identical.
+ */
+export const isSameBridgeToken = (
+  tokenA: BridgeToken | undefined,
+  tokenB: BridgeToken | undefined,
+): boolean => {
+  if (!tokenA || !tokenB) {
+    return false;
+  }
+
+  if (
+    !areAddressesEqual(
+      normalizeTokenAddress(tokenA.address, tokenA.chainId),
+      normalizeTokenAddress(tokenB.address, tokenB.chainId),
+    )
+  ) {
+    return false;
+  }
+
+  return (
+    formatChainIdToCaip(tokenA.chainId) === formatChainIdToCaip(tokenB.chainId)
+  );
 };

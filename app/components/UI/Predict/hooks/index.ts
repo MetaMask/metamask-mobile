@@ -6,10 +6,10 @@ export { useCurrentPredictMarketFromSeries } from './useCurrentPredictMarketFrom
 export type { UseCurrentPredictMarketFromSeriesParams } from './useCurrentPredictMarketFromSeries';
 
 export {
-  useLiveGameUpdates,
-  type UseLiveGameUpdatesOptions,
-  type UseLiveGameUpdatesResult,
-} from './useLiveGameUpdates';
+  usePredictGame,
+  type UsePredictGameOptions,
+  type UsePredictGameResult,
+} from './usePredictGame';
 
 export {
   useLiveMarketPrices,
@@ -38,10 +38,6 @@ export { usePredictCashOut } from './usePredictCashOut';
 export { usePredictPortfolio } from './usePredictPortfolio';
 
 export {
-  usePredictWorldCupMarkets,
-  usePredictWorldCupAvailability,
-  usePredictWorldCupAvailableTabs,
-  type UsePredictWorldCupMarketsOptions,
-  type UsePredictWorldCupAvailableTabsOptions,
-  type PredictWorldCupAvailableTab,
-} from './usePredictWorldCup';
+  usePredictFeedMarketList,
+  type UsePredictFeedMarketListOptions,
+} from './usePredictFeedMarketList';

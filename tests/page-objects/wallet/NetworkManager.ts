@@ -7,25 +7,24 @@ import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
 } from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
-import TestHelpers from '../../helpers';
-import {
-  WalletViewSelectorsIDs,
-  WalletViewSelectorsText,
-} from '../../../app/components/Views/Wallet/WalletView.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { type AppiumElement } from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import WalletView from './WalletView';
+import TokensFullView from './HomeSections';
 
 class NetworkManager {
   /**
    * Button to open the network manager
    */
-  get openNetworkManagerButton(): EncapsulatedElementType {
+  get openNetworkManagerButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
   /**
    * Select the bottom sheet of the network manager
    */
-  get networkManagerBottomSheet(): EncapsulatedElementType {
+  get networkManagerBottomSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_MANAGER_BOTTOM_SHEET,
     );
@@ -34,7 +33,7 @@ class NetworkManager {
   /**
    * Select the tab of the popular networks
    */
-  get popularNetworksTab(): EncapsulatedElementType {
+  get popularNetworksTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.POPULAR_NETWORKS_TAB,
     );
@@ -43,7 +42,7 @@ class NetworkManager {
   /**
    * Select the tab of the custom networks
    */
-  get customNetworksTab(): EncapsulatedElementType {
+  get customNetworksTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.CUSTOM_NETWORKS_TAB,
     );
@@ -52,7 +51,7 @@ class NetworkManager {
   /**
    * Select the container of the popular networks tab
    */
-  get popularNetworksContainer(): EncapsulatedElementType {
+  get popularNetworksContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.POPULAR_NETWORKS_CONTAINER,
     );
@@ -61,7 +60,7 @@ class NetworkManager {
   /**
    * Select the container of the custom networks tab
    */
-  get customNetworksContainer(): EncapsulatedElementType {
+  get customNetworksContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.CUSTOM_NETWORKS_CONTAINER,
     );
@@ -70,7 +69,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksSelected(): EncapsulatedElementType {
+  get selectAllPopularNetworksSelected(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_SELECTED,
     );
@@ -79,7 +78,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksNotSelected(): EncapsulatedElementType {
+  get selectAllPopularNetworksNotSelected(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED,
     );
@@ -88,7 +87,7 @@ class NetworkManager {
   /**
    * Select the network by name wether it is selected or not
    */
-  getNetworkByCaipChainId(caipChainId: CaipChainId): EncapsulatedElementType {
+  getNetworkByCaipChainId(caipChainId: CaipChainId): Promise<AppiumElement> {
     return Matchers.getElementByID(
       new RegExp(`^network-list-item-${caipChainId}-(selected|not-selected)$`),
     );
@@ -99,7 +98,7 @@ class NetworkManager {
    */
   getSelectedNetworkByCaipChainId(
     caipChainId: CaipChainId,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, true),
     );
@@ -110,7 +109,7 @@ class NetworkManager {
    */
   getNotSelectedNetworkByCaipChainId(
     caipChainId: CaipChainId,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, false),
     );
@@ -119,7 +118,7 @@ class NetworkManager {
   /**
    * Select the network by name in the base control bar
    */
-  getBaseControlBarText(caipChainId: CaipChainId): EncapsulatedElementType {
+  getBaseControlBarText(caipChainId: CaipChainId): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}-${caipChainId}`,
     );
@@ -129,7 +128,7 @@ class NetworkManager {
    * Get token element by symbol
    * Note: Gets the first instance in case of duplicates during render cycles
    */
-  getTokenBySymbol(symbol: string): EncapsulatedElementType {
+  getTokenBySymbol(symbol: string): Promise<AppiumElement> {
     return Matchers.getElementByID(`asset-${symbol}`, 0);
   }
 
@@ -150,6 +149,62 @@ class NetworkManager {
     const tokenElement = this.getTokenBySymbol(symbol);
     await Assertions.expectElementToNotBeVisible(tokenElement, {
       elemDescription: `Token ${symbol} should not be visible`,
+      timeout: 3000,
+    });
+  }
+
+  /**
+   * Check that a token row is mounted, whether or not it is on screen.
+   *
+   * Rows below the fold report isDisplayed=false, so
+   * {@link checkTokenIsVisible} cannot prove that a token is still held.
+   *
+   * @param symbol - Token symbol rendered on the asset row.
+   * @param options - Assertion overrides.
+   * @param options.timeout - How long to keep polling for the row to appear.
+   */
+  async checkTokenExists(symbol: string, { timeout = 10_000 } = {}) {
+    await Assertions.expectElementToExist(this.getTokenBySymbol(symbol), {
+      description: `Token ${symbol} should be in the asset list`,
+      timeout,
+    });
+  }
+
+  /**
+   * Some lists are virtualized and require scrolling
+   *
+   * @param symbol - Token symbol to scroll to.
+   */
+  async scrollToToken(symbol: string): Promise<void> {
+    const container = Matchers.scrollContainer(
+      WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
+    );
+    try {
+      await Gestures.scrollToElement(this.getTokenBySymbol(symbol), container, {
+        direction: 'down',
+        scrollAmount: 50,
+      });
+    } catch {
+      await Gestures.scrollToElement(this.getTokenBySymbol(symbol), container, {
+        direction: 'up',
+        scrollAmount: 50,
+      });
+    }
+  }
+
+  /**
+   * Check that a token row is absent from the hierarchy.
+   *
+   * @param symbol - Token symbol rendered on the asset row.
+   * @param options - Assertion overrides.
+   * @param options.timeout - How long to keep polling for the row to go away.
+   * Raise it when the row is expected to disappear as the result of async work
+   * (for example the spam cleanup that runs after unlock).
+   */
+  async checkTokenDoesNotExist(symbol: string, { timeout = 10_000 } = {}) {
+    await Assertions.expectElementToNotExist(this.getTokenBySymbol(symbol), {
+      description: `Token ${symbol} should not be in the asset list`,
+      timeout,
     });
   }
 
@@ -205,13 +260,8 @@ class NetworkManager {
    * so that the network filter control bar becomes accessible.
    */
   async navigateToTokensFullView(): Promise<void> {
-    const tokensSectionHeader = Matchers.getElementByText(
-      WalletViewSelectorsText.TOKENS_SECTION,
-    );
-    await Gestures.waitAndTap(tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'Tokens Section Header (navigate to full view)',
-    });
+    await WalletView.tapOnNewTokensSection();
+    await TokensFullView.waitForVisible();
   }
 
   /**
@@ -235,6 +285,7 @@ class NetworkManager {
     await this.navigateToTokensFullView();
     await Gestures.waitAndTap(this.openNetworkManagerButton, {
       elemDescription: 'Open Network Manager Button (from TokensFullView)',
+      timeout: 10_000,
     });
     await this.waitForNetworkManagerToLoad();
   }
@@ -243,7 +294,7 @@ class NetworkManager {
    * Check if the network manager is currently visible
    */
   async isNetworkManagerVisible(): Promise<boolean> {
-    return Utilities.isElementVisible(this.networkManagerBottomSheet, 1000);
+    return Utilities.isElementVisible(this.popularNetworksContainer, 1000);
   }
 
   /**
@@ -348,7 +399,7 @@ class NetworkManager {
   /**
    * Get network by display name (for custom networks)
    */
-  getNetworkByName(networkName: string): EncapsulatedElementType {
+  getNetworkByName(networkName: string): Promise<AppiumElement> {
     return Matchers.getElementByText(networkName);
   }
 
@@ -376,13 +427,43 @@ class NetworkManager {
    * Wait for network manager to be fully loaded
    */
   async waitForNetworkManagerToLoad() {
-    await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
-      elemDescription: 'Network Manager Bottom Sheet',
-      timeout: 10000,
+    // Anvil/localhost fixtures often open the sheet on the Custom tab, so
+    // popular-networks-selector-container is not mounted until we switch.
+    await Utilities.waitUntil(
+      async () =>
+        (await Utilities.isElementVisible(
+          this.popularNetworksContainer,
+          500,
+        )) ||
+        (await Utilities.isElementVisible(this.customNetworksContainer, 500)) ||
+        (await Utilities.isElementVisible(this.popularNetworksTab, 500)),
+      {
+        timeout: 15_000,
+        interval: 500,
+      },
+    );
+
+    if (
+      !(await Utilities.isElementVisible(this.popularNetworksContainer, 1_000))
+    ) {
+      await this.tapPopularNetworksTab();
+    }
+
+    await Assertions.expectElementToBeVisible(this.popularNetworksContainer, {
+      elemDescription: 'Popular Networks Container',
+      timeout: 15_000,
     });
-    // Wait for bottom sheet animation to complete
-    // eslint-disable-next-line no-restricted-syntax
-    await TestHelpers.delay(1000); // Allow for bottom sheet slide-up animation
+    // Android only: on iOS XCUITest finds the BottomSheet testID but reports
+    // displayed=false.
+    if (PlatformDetector.isAndroid()) {
+      await Assertions.expectElementToBeVisible(
+        this.networkManagerBottomSheet,
+        {
+          elemDescription: 'Network Manager Bottom Sheet after open',
+          timeout: 10_000,
+        },
+      );
+    }
   }
 
   /**

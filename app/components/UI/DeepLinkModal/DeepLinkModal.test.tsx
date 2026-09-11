@@ -153,7 +153,6 @@ describe('DeepLinkModal', () => {
                 ...this.additionalProperties,
               },
               sensitiveProperties: {},
-              saveDataRecording: true,
             };
           }),
         };

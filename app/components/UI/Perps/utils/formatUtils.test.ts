@@ -9,17 +9,21 @@ import {
   formatPercentage,
   formatLargeNumber,
   formatVolume,
+  formatCoinVolume,
   formatPositionSize,
   formatLeverage,
   parseCurrencyString,
   truncateToTwoDecimals,
   parsePercentageString,
   formatTransactionDate,
+  formatProOrderCardTimestamp,
   formatDateSection,
   formatFundingRate,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+  formatPerpsPrice,
+  formatPositionTriggerSummary,
 } from './formatUtils';
 import {
   countSignificantFigures,
@@ -43,14 +47,18 @@ jest.mock('../../../../util/assets', () => ({
 
 // Mock the strings function
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: { count?: number }) => {
     const mockStrings: Record<string, string> = {
       today: 'Today',
+      'perps.position.card.tpsl_count_multiple': '{{count}} orders',
       'notifications.yesterday': 'Yesterday',
       'perps.today': 'Today',
       'perps.yesterday': 'Yesterday',
     };
-    return mockStrings[key] || key;
+    const template = mockStrings[key] || key;
+    return params?.count === undefined
+      ? template
+      : template.replace('{{count}}', String(params.count));
   },
 }));
 
@@ -179,15 +187,12 @@ describe('formatUtils', () => {
       expect(result).toBe('');
     });
 
-    it('displays zero display value when value rounds to zero', () => {
-      // Given a value that rounds to zero with 4 decimals
-      const value = 0.000000001; // Would round to 0.0000%
+    it('displays threshold when positive value is below display precision', () => {
+      const value = 0.000000001;
 
-      // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      expect(result).toBe('<0.0001%');
     });
 
     it('handles number precision edge cases correctly', () => {
@@ -801,6 +806,32 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatCoinVolume', () => {
+    it('formats candle volume without a USD prefix', () => {
+      const volume = 0.33;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('0.33');
+    });
+
+    it('keeps magnitude suffixes without a dollar sign', () => {
+      const volume = 123456;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('123K');
+    });
+
+    it('keeps the minus sign in front of negative coin volume', () => {
+      const volume = -1000000;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('-1.00M');
+    });
+  });
+
   describe('formatPositionSize', () => {
     it('should format very small numbers without trailing zeros', () => {
       expect(formatPositionSize(0.001)).toBe('0.001');
@@ -1060,6 +1091,20 @@ describe('formatUtils', () => {
       expect(formatTransactionDate(zeroTimestamp)).toMatch(
         /January 1, 1970 at \d{1,2}:\d{2} (AM|PM)/,
       );
+    });
+  });
+
+  describe('formatProOrderCardTimestamp', () => {
+    it('formats order placement time in Figma pro-card style', () => {
+      // Local timezone-aware: construct from Date parts so the assertion is stable.
+      const date = new Date(2026, 3, 6, 19, 13, 54);
+      expect(formatProOrderCardTimestamp(date.getTime())).toBe(
+        '06 Apr 26 • 19:13:54',
+      );
+    });
+
+    it('returns empty string for invalid timestamps', () => {
+      expect(formatProOrderCardTimestamp(Number.NaN)).toBe('');
     });
   });
 
@@ -1410,6 +1455,37 @@ describe('formatUtils', () => {
     });
 
     describe('PRICE_RANGES_UNIVERSAL (comprehensive formatting)', () => {
+      describe('formatPerpsPrice', () => {
+        it('uses market-aware Hyperliquid price precision when szDecimals is known', () => {
+          expect(formatPerpsPrice('2.1946', { szDecimals: 2 })).toBe('$2.1946');
+        });
+
+        it('returns market-aware price without currency symbol when requested', () => {
+          expect(
+            formatPerpsPrice('2.1946', {
+              szDecimals: 2,
+              includeCurrencySymbol: false,
+            }),
+          ).toBe('2.1946');
+        });
+
+        it('falls back to universal price ranges when szDecimals is null', () => {
+          expect(formatPerpsPrice(95123.45, { szDecimals: null })).toBe(
+            '$95,123',
+          );
+        });
+
+        it('falls back to universal price ranges when Hyperliquid formatting rejects the price', () => {
+          expect(formatPerpsPrice('not-a-price', { szDecimals: 2 })).toBe(
+            '$---',
+          );
+        });
+
+        it('falls back to universal price ranges when szDecimals is unknown', () => {
+          expect(formatPerpsPrice(95123.45)).toBe('$95,123');
+        });
+      });
+
       it('should format high-value BTC prices without decimals (> $10k)', () => {
         // BTC at $126k - no decimals for cleaner display
         expect(
@@ -2027,6 +2103,47 @@ describe('formatUtils', () => {
 
         expect(result).toBe('12.34');
       });
+    });
+  });
+
+  describe('formatPositionTriggerSummary', () => {
+    it('names the order count when a side carries several trigger orders', () => {
+      const summary = formatPositionTriggerSummary({
+        count: 3,
+        price: '2654.1',
+      });
+
+      expect(summary).toBe('3 orders');
+    });
+
+    it('keeps the trigger price when a side carries exactly one order', () => {
+      const summary = formatPositionTriggerSummary({
+        count: 1,
+        price: '2312.8',
+      });
+
+      expect(summary).toBe('$2,312.8');
+    });
+
+    it('keeps the trigger price when the controller reports no count', () => {
+      const summary = formatPositionTriggerSummary({ price: '2312.8' });
+
+      expect(summary).toBe('$2,312.8');
+    });
+
+    it('applies market size decimals to the single order price', () => {
+      const summary = formatPositionTriggerSummary({
+        count: 1,
+        price: '2.1946',
+        szDecimals: 2,
+      });
+
+      expect(summary).toBe('$2.1946');
+    });
+
+    it('returns null when a side has neither a count nor a usable price', () => {
+      expect(formatPositionTriggerSummary({ count: 0 })).toBeNull();
+      expect(formatPositionTriggerSummary({ price: '0' })).toBeNull();
     });
   });
 });

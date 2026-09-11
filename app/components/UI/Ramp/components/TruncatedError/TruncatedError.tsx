@@ -7,6 +7,8 @@ import {
   type TextLayoutEventData,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import {
   Text,
   type TextProps,
@@ -54,7 +56,7 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   showChangeProvider,
   amount,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [isTruncated, setIsTruncated] = useState(false);
   const [hasMeasured, setHasMeasured] = useState(false);
 
@@ -75,8 +77,9 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   );
 
   const handleInfoPress = useCallback(() => {
-    navigation.navigate(
-      ...createErrorDetailsModalNavDetails({
+    navigateWithDetails(
+      navigation,
+      createErrorDetailsModalNavDetails({
         errorMessage: errorDetails ?? error,
         providerName,
         providerSupportUrl,

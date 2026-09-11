@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import { dismissHeadlessFlow } from './headlessEntryNavigation';
 import { closeSession, getSession } from './sessionRegistry';
@@ -21,7 +22,7 @@ export function useHeadlessSessionFocusDismissal(
   isFocused: boolean,
   options: UseHeadlessSessionFocusDismissalOptions = {},
 ): void {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const navigationRef = useRef(navigation);
   navigationRef.current = navigation;
 

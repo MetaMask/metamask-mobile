@@ -1,3 +1,4 @@
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectBatchSellEnabled } from '../../../../selectors/featureFlagController/batchSell';
@@ -33,6 +34,9 @@ export const handleBatchSellUrl = async () => {
 
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+      params: {
+        batchSellLocation: BatchSellMetricsLocation.Deeplink,
+      },
     });
   } catch (error) {
     DevLogger.log('Failed to handle batch sell deeplink:', error);

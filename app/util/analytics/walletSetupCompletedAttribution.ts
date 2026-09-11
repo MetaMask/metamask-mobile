@@ -2,6 +2,8 @@ import {
   ATTRIBUTION_DEFAULT_TTL_MS,
   type AttributionRecord,
 } from '../../core/redux/slices/attribution';
+import ReduxService from '../../core/redux';
+import { selectAttributionRecord } from '../../selectors/attribution';
 
 /**
  * Analytics payload fields forwarded from {@link AttributionRecord} to
@@ -53,4 +55,18 @@ export function getWalletSetupCompletedAttributionAnalyticsProps(
   assignIfNonEmpty(props, 'utm_content', attributionRecord.utm_content);
   assignIfNonEmpty(props, 'attribution_id', attributionRecord.attribution_id);
   return props;
+}
+
+/**
+ * Reads persisted attribution from the Redux store and builds optional
+ * acquisition props for Wallet Setup Completed.
+ */
+export function getWalletSetupAttributionPropsFromStore(
+  dataCollectionForMarketing: boolean,
+): WalletSetupCompletedAttributionAnalyticsPayload {
+  const record = selectAttributionRecord(ReduxService.store.getState());
+  return getWalletSetupCompletedAttributionAnalyticsProps(
+    record,
+    dataCollectionForMarketing,
+  );
 }

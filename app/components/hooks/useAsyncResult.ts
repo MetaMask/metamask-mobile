@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, DependencyList, useEffect } from 'react';
 
 /**

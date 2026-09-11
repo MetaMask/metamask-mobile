@@ -42,7 +42,7 @@ function renderWithProvider(component: React.ComponentType) {
   );
 }
 
-jest.mock('../../../Deposit/constants', () => ({
+jest.mock('../../../constants', () => ({
   US_STATES: [
     { code: 'CA', name: 'California' },
     { code: 'NY', name: 'New York' },
@@ -100,7 +100,7 @@ describe('StateSelectorModal (V2)', () => {
     const searchInput = getByPlaceholderText('Search by state');
     fireEvent.changeText(searchInput, 'Cal');
     expect(queryByText('New York')).not.toBeOnTheScreen();
-    const clearButton = getByTestId('textfield-endacccessory');
+    const clearButton = getByTestId('searchable-selector-clear-button');
     fireEvent.press(clearButton);
     expect(queryByText('No states match')).not.toBeOnTheScreen();
   });

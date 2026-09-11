@@ -17,7 +17,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Image } from 'expo-image';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
 import {
   PredictActivityType,
@@ -27,6 +28,7 @@ import {
 } from '../../types';
 import { usePredictActivity } from '../../hooks/usePredictActivity';
 import { formatCents, formatPrice } from '../../utils/format';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -39,14 +41,13 @@ import {
   getPredictPositionsHistoryListSelector,
   PredictPositionsHistoryListSelectorsIDs,
 } from '../../Predict.testIds';
-import type { PredictNavigationParamList } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface PredictTransactionsViewProps {
   /**
-   * Actionable claimable winnings for the "Claim pending" section.
-   * Expected positions are won and have a positive current value; this view
-   * filters defensively so non-actionable positions cannot render here.
+   * Actionable claimable positions for the "Claim pending" section.
+   * Expected positions are won or redeemable; this view filters defensively
+   * so positions without a claimable status cannot render here.
    */
   claimPendingPositions?: PredictPosition[];
   onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
@@ -84,9 +85,6 @@ interface ClaimPendingPositionRowProps {
   position: PredictPosition;
 }
 
-const isActionableClaimPendingPosition = (position: PredictPosition) =>
-  position.status === PredictPositionStatus.WON && position.currentValue > 0;
-
 const getClaimPendingPositionTitle = (
   status: PredictPositionStatus,
 ): string => {
@@ -106,8 +104,7 @@ const ClaimPendingPositionRow = ({
   position,
 }: ClaimPendingPositionRowProps) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.PREDICT.MARKET_DETAILS, {
@@ -232,7 +229,12 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     hasNextPage,
     fetchNextPage,
     refetch: refetchActivity,
-  } = usePredictActivity();
+  } = usePredictActivity({
+    // PredictPositionsView keeps this list mounted while the positions tab
+    // is showing. Skip the fetch until the history tab is actually visible
+    // (standalone usage omits `isVisible` and still fetches).
+    enabled: isVisible !== false,
+  });
 
   // Track screen load performance (activity data loaded)
   usePredictMeasurement({
@@ -257,7 +259,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   const sections: ActivitySection[] = useMemo(() => {
     const sortedClaimPendingPositions = claimPendingPositions
       ? claimPendingPositions
-          .filter(isActionableClaimPendingPosition)
+          .filter(isActionableClaimablePosition)
           .sort(
             (a, b) =>
               new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
@@ -529,7 +531,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE}
       >
         <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-          {strings('predict.error.description')}
+          {strings('predict.error.description_short')}
         </Text>
         <Pressable
           accessibilityRole="button"
