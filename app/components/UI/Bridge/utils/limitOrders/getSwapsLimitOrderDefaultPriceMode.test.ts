@@ -31,6 +31,12 @@ const usdt = createMockToken({
   decimals: 6,
 });
 
+const musd = createMockToken({
+  address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  symbol: 'mUSD',
+  decimals: 6,
+});
+
 describe('getIsSwapsLimitOrderStablecoin', () => {
   it('detects a stablecoin from a lowercase address', () => {
     expect(getIsSwapsLimitOrderStablecoin(usdc)).toBe(true);
@@ -54,6 +60,22 @@ describe('getIsSwapsLimitOrderStablecoin', () => {
           address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
           symbol: 'USDC',
           chainId: 'eip155:8453' as CaipChainId,
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('detects mUSD as a stablecoin on Ethereum mainnet', () => {
+    expect(getIsSwapsLimitOrderStablecoin(musd)).toBe(true);
+  });
+
+  it('detects mUSD as a stablecoin on Linea', () => {
+    expect(
+      getIsSwapsLimitOrderStablecoin(
+        createMockToken({
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          symbol: 'mUSD',
+          chainId: '0xe708',
         }),
       ),
     ).toBe(true);
@@ -122,6 +144,18 @@ describe('getSwapsLimitOrderDefaultPriceMode', () => {
       getSwapsLimitOrderDefaultPriceMode({
         sourceToken: eth,
         destToken: usdc,
+      }),
+    ).toEqual({
+      executionType: LimitOrderExecutionType.SELL,
+      isLimitFiatMode: false,
+    });
+  });
+
+  it('sells ETH priced in mUSD for the default Ethereum limit order pair', () => {
+    expect(
+      getSwapsLimitOrderDefaultPriceMode({
+        sourceToken: eth,
+        destToken: musd,
       }),
     ).toEqual({
       executionType: LimitOrderExecutionType.SELL,
