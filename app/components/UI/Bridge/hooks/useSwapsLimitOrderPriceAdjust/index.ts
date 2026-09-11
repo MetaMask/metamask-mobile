@@ -6,11 +6,15 @@ import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import type { BridgeToken } from '../../types';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
 import { formatLimitOrderFiatPriceFromTokenAmount } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import {
+  getIsSwapsLimitOrderStablecoin,
+  getSwapsLimitOrderDefaultPriceMode,
+} from '../../utils/limitOrders/getSwapsLimitOrderDefaultPriceMode';
 import { getSwapsLimitOrderPriceFromMarketPercent } from '../../utils/limitOrders/getSwapsLimitOrderPriceFromMarketPercent';
 import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
 import { getSwapsLimitOrderSecondaryValue } from '../../utils/limitOrders/getSwapsLimitOrderSecondaryValue';
 import {
-  initialLimitOrderPriceAdjustState,
+  getInitialLimitOrderPriceAdjustState,
   limitOrderPriceAdjustReducer,
 } from '../../reducers/limitOrderPriceAdjustReducer';
 import {
@@ -28,9 +32,17 @@ export const useSwapsLimitOrderPriceAdjust = ({
   sourceToken,
 }: Params) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const {
+    executionType: defaultExecutionType,
+    isLimitFiatMode: defaultIsLimitFiatMode,
+  } = getSwapsLimitOrderDefaultPriceMode({ destToken, sourceToken });
   const [state, dispatch] = useReducer(
     limitOrderPriceAdjustReducer,
-    initialLimitOrderPriceAdjustState,
+    {
+      executionType: defaultExecutionType,
+      isLimitFiatMode: defaultIsLimitFiatMode,
+    },
+    getInitialLimitOrderPriceAdjustState,
   );
   const {
     customValue,
@@ -119,7 +131,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
       return;
     }
 
-    // A 0% offset is market, so the price keeps following the live rate.
+    // A 0% offset is market, so it's treated the same as the market preset.
     dispatch({
       type: 'commitCustomPercent',
       limitPrice: nextLimitPrice,
@@ -128,20 +140,30 @@ export const useSwapsLimitOrderPriceAdjust = ({
     });
   }, [customValue, getLimitPriceFromSignedPercent, isCustomActive, isSell]);
 
+  // A new pair starts over on the side and denomination that pair defaults to,
+  // which is also what makes a source/dest flip land on the right ones.
   useEffect(() => {
-    dispatch({ type: 'reset' });
+    dispatch({
+      type: 'reset',
+      executionType: defaultExecutionType,
+      isLimitFiatMode: defaultIsLimitFiatMode,
+    });
   }, [
+    defaultExecutionType,
+    defaultIsLimitFiatMode,
     destToken?.address,
     destToken?.chainId,
     sourceToken?.address,
     sourceToken?.chainId,
   ]);
 
-  // Keeps the limit price on the live market rate for as long as it sits at
-  // market, so it refreshes with every market data update instead of only
-  // being seeded once.
+  // Seeds the limit price from the live market rate exactly once whenever
+  // there isn't one yet (initial mount, a new token pair, or after flipping
+  // sides). Once seeded, the price stays put even as the market rate keeps
+  // moving; only the market-comparison label below keeps reflecting the live
+  // difference between the fixed price and the current market rate.
   useEffect(() => {
-    if (!isTrackingMarket) {
+    if (!isTrackingMarket || limitPrice !== undefined) {
       return;
     }
 
@@ -154,23 +176,21 @@ export const useSwapsLimitOrderPriceAdjust = ({
       type: 'seedFromMarket',
       limitPrice: nextLimitPrice,
     });
-  }, [
-    destToken?.address,
-    destToken?.chainId,
-    executionType, // flipSide clears limitPrice even when quotedFiatRate is unchanged
-    getLimitPriceFromSignedPercent,
-    isTrackingMarket,
-    sourceToken?.address,
-    sourceToken?.chainId,
-  ]);
+  }, [getLimitPriceFromSignedPercent, isTrackingMarket, limitPrice]);
 
   const canToggleLimitPrice = Boolean(
     destFiatRate && destFiatRate > 0 && sourceFiatRate && sourceFiatRate > 0,
   );
 
   const handleQuoteUnitPress = useCallback(() => {
-    dispatch({ type: 'flipSide' });
-  }, []);
+    // Flipping the side swaps which token the price is expressed in, so the
+    // denomination follows whichever token becomes the counter token.
+    const nextCounterToken = isSell ? sourceToken : destToken;
+    dispatch({
+      type: 'flipSide',
+      isLimitFiatMode: !getIsSwapsLimitOrderStablecoin(nextCounterToken),
+    });
+  }, [destToken, isSell, sourceToken]);
 
   const handleAmountTypeTogglePress = useCallback(() => {
     if (!canToggleLimitPrice) {
@@ -210,17 +230,16 @@ export const useSwapsLimitOrderPriceAdjust = ({
   const limitFiat = isLimitFiatMode
     ? limitPrice
     : formatLimitOrderFiatPriceFromTokenAmount(limitPrice, counterFiatRate);
-  const marketComparison = isTrackingMarket
-    ? undefined
-    : getSwapsLimitOrderPriceMarketComparison({
-        limitFiat,
-        marketFiat: quotedFiatRate,
-        executionType,
-        threshold: 0,
-      });
+  const marketComparison = getSwapsLimitOrderPriceMarketComparison({
+    limitFiat,
+    marketFiat: quotedFiatRate,
+    executionType,
+    threshold: 0,
+  });
 
   return {
     commitCustomPercent,
+    counterFiatRate,
     counterToken,
     customValue: customValue ?? '',
     handleCustomPress,

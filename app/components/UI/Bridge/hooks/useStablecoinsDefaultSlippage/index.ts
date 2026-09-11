@@ -65,6 +65,17 @@ export const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   ]),
 };
 
+export const getIsStablecoin = (tokenAddress: string, chainId: Hex) => {
+  const stablecoins = StablecoinsByChainId[chainId];
+
+  if (!stablecoins) return false;
+
+  return (
+    stablecoins.has(tokenAddress.toLowerCase()) ||
+    stablecoins.has(toChecksumHexAddress(tokenAddress))
+  );
+};
+
 /**
  * This function checks if the source and destination tokens are both stablecoins.
  * @param sourceTokenAddress - The address of the source token.
@@ -76,18 +87,9 @@ export const getIsStablecoinPair = (
   sourceTokenAddress: string,
   destTokenAddress: string,
   chainId: Hex,
-) => {
-  const stablecoins = StablecoinsByChainId[chainId];
-
-  if (!stablecoins) return false;
-
-  return (
-    (stablecoins.has(sourceTokenAddress.toLowerCase()) ||
-      stablecoins.has(toChecksumHexAddress(sourceTokenAddress))) &&
-    (stablecoins.has(destTokenAddress.toLowerCase()) ||
-      stablecoins.has(toChecksumHexAddress(destTokenAddress)))
-  );
-};
+) =>
+  getIsStablecoin(sourceTokenAddress, chainId) &&
+  getIsStablecoin(destTokenAddress, chainId);
 
 /**
  * This function handles the slippage for stablecoins swaps.
