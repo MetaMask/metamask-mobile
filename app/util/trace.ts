@@ -37,8 +37,39 @@ export enum TraceName {
   LoginBiometricAuthentication = 'Login Biometrics Authentication',
   AppStartBiometricAuthentication = 'App start Biometrics Authentication',
   EngineInitialization = 'Engine Initialization',
+  /**
+   * Despite the name, this ends at `App`'s **first render** — not when startup
+   * is over and not when anything is on screen. The splash still covers the UI
+   * and the user cannot interact yet. Kept as-is because it has shipped
+   * history; use `AppStartToUnlockInteractive` for the full cold-start journey.
+   */
   UIStartup = 'UI Startup',
   HomepageReady = 'Homepage Ready',
+  /**
+   * Process start -> the unlock screen genuinely accepts input. The app's
+   * most-executed cold path, previously untracked in production: `UIStartup`
+   * ends at `App`'s first render, before the splash reveal and unlock paint.
+   */
+  AppStartToUnlockInteractive = 'App Start To Unlock Interactive',
+  /**
+   * `appServicesReady` -> splash overlay removed. Fixed animation cost paid
+   * after the UI is already rendered underneath, so it is pure perceived
+   * latency. Should trend to zero.
+   */
+  SplashRevealTax = 'Splash Reveal Tax',
+  /**
+   * `AppFlow`'s first render — the synchronous navigator module-evaluation
+   * burst. Splits "engine init" from "screen graph evaluation" inside startup.
+   */
+  RootNavigatorFirstRender = 'Root Navigator First Render',
+  /** Reading and parsing every `persist:<Controller>` blob before Engine init. */
+  ControllerStateRehydration = 'Controller State Rehydration',
+  /**
+   * `Engine.init()` finishing -> the navigator's first render. Nothing visible
+   * happens here, which is why it needs a span: it is where fire-and-forget
+   * startup work lands, and it sits between two spans rather than inside either.
+   */
+  PostInitGap = 'Post Init Gap',
   UiSlotsLoad = 'UI Slots Load',
   DeeplinkProcessed = 'Deeplink Processed',
   DeeplinkNavigated = 'Deeplink Navigated',
