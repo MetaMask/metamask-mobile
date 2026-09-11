@@ -740,7 +740,7 @@ describe('LedgerBluetoothDMKAdapter', () => {
         expectEmitted(DeviceEvent.DeviceLocked);
       });
 
-      it('times out and closes the session when address verification stalls', async () => {
+      it('returns false, emits AppNotOpen, and closes the session when address verification stalls', async () => {
         jest.useFakeTimers();
         try {
           mockConnectLedgerHardware.mockResolvedValueOnce('Ethereum');
@@ -752,14 +752,32 @@ describe('LedgerBluetoothDMKAdapter', () => {
           pending.catch(() => undefined);
           await jest.advanceTimersByTimeAsync(OPERATION_TIMEOUT_MS);
 
-          await expect(pending).rejects.toThrow(
-            'Device unresponsive during verification',
-          );
+          await expect(pending).resolves.toBe(false);
+          expectEmitted(DeviceEvent.AppNotOpen);
           expect(adapter.isConnected()).toBe(false);
           expect(mockDisconnectLedgerDmkSession).toHaveBeenCalled();
         } finally {
           jest.useRealTimers();
         }
+      });
+
+      it('returns false and emits AppNotOpen when the app check fails with a timeout error', async () => {
+        const timeoutError = new Error('Device unresponsive');
+        timeoutError.name = 'LedgerTimeoutError';
+        mockConnectLedgerHardware.mockRejectedValueOnce(timeoutError);
+
+        await expect(adapter.ensureDeviceReady(DEVICE_ID)).resolves.toBe(false);
+        expectEmitted(DeviceEvent.AppNotOpen);
+      });
+
+      it('returns false and emits AppNotOpen when the app check fails with a DMK unresponsive error', async () => {
+        const unresponsiveError = new Error(
+          'Device action ended without completion',
+        );
+        mockConnectLedgerHardware.mockRejectedValueOnce(unresponsiveError);
+
+        await expect(adapter.ensureDeviceReady(DEVICE_ID)).resolves.toBe(false);
+        expectEmitted(DeviceEvent.AppNotOpen);
       });
 
       it('opens the Ethereum app from the BOLOS screen and returns false', async () => {

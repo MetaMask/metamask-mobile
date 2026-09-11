@@ -29,6 +29,7 @@ import { ensureLedgerPermissions } from './shared/ledger-permissions';
 import {
   TRANSIENT_BLE_ERROR_NAMES,
   isDeviceLockedError,
+  isLedgerTimeoutError,
   hasTransientBleMessage,
   toError,
 } from './shared/ledger-errors';
@@ -54,6 +55,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   readonly #bleMonitor: BluetoothStateMonitor;
   #scanSubscription: Subscription | null = null;
   #scanTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  #pendingClose: Promise<void> | null = null;
 
   constructor(options: HardwareWalletAdapterOptions) {
     this.#options = options;
@@ -97,7 +99,26 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
   async #doConnect(deviceId: string): Promise<void> {
     try {
-      const transport = await TransportBLE.open(deviceId);
+      // Serialize with any in-flight teardown so TransportBLE.open can never
+      // race a pending disconnectDevice for the same peripheral.
+      if (this.#pendingClose) {
+        await this.#pendingClose.catch(() => undefined);
+        // Destroy may have run while awaiting the teardown.
+        this.#assertAdapterReady();
+      }
+
+      const transport = await withLedgerTimeout(
+        TransportBLE.open(deviceId),
+        LEDGER_OPERATION_TIMEOUT_MS,
+        'Device unresponsive while connecting',
+        () => {
+          // Clear any half-open native connection so the next attempt starts
+          // clean — queued so a subsequent open serializes behind it.
+          void this.#enqueueClose(() =>
+            TransportBLE.disconnectDevice(deviceId),
+          );
+        },
+      );
 
       if (transport == null) {
         this.#clearTransportState();
@@ -147,10 +168,15 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     } catch (error) {
       this.#clearTransportState();
 
-      this.#emitEvent({
-        event: DeviceEvent.ConnectionFailed,
-        error: toError(error),
-      });
+      // Timeout errors are re-routed by ensureDeviceReady to the
+      // "open the app" modal — emitting ConnectionFailed here would make
+      // the sheet flip Error → AwaitingApp.
+      if (!isLedgerTimeoutError(error)) {
+        this.#emitEvent({
+          event: DeviceEvent.ConnectionFailed,
+          error: toError(error),
+        });
+      }
 
       throw error;
     }
@@ -363,7 +389,21 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   async #doEnsureDeviceReady(deviceId: string): Promise<boolean> {
     if (!this.isConnected() || this.#deviceId !== deviceId) {
       DevLogger.log('[LedgerBluetoothAdapter] Connecting first...');
-      await this.connect(deviceId);
+      try {
+        await this.connect(deviceId);
+      } catch (error) {
+        if (isLedgerTimeoutError(error)) {
+          // Connect-phase stall (device mid app-switch or showing the
+          // open-app prompt). Return to the "open the app" modal rather
+          // than a fatal error screen.
+          this.#emitEvent({
+            event: DeviceEvent.AppNotOpen,
+            currentAppName: REQUIRED_APP_NAME,
+          });
+          return false;
+        }
+        throw error;
+      }
     }
 
     if (!this.#transport) {
@@ -406,6 +446,17 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           event: DeviceEvent.DeviceLocked,
           error: toError(error),
         });
+      }
+
+      if (isLedgerTimeoutError(error)) {
+        // Device stalled during the app check (typically mid app-switch after
+        // the user tapped Continue). Return to the "open the app" modal
+        // instead of surfacing a fatal error screen.
+        this.#emitEvent({
+          event: DeviceEvent.AppNotOpen,
+          currentAppName: REQUIRED_APP_NAME,
+        });
+        return false;
       }
 
       throw error;
@@ -454,6 +505,15 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         this.#emitEvent({
           event: DeviceEvent.DeviceLocked,
           error: toError(verifyError),
+        });
+      }
+
+      if (isLedgerTimeoutError(verifyError)) {
+        // Device stalled mid verification (e.g. the user was switching apps).
+        // Return to the "open the app" modal instead of a silent spinner.
+        this.#emitEvent({
+          event: DeviceEvent.AppNotOpen,
+          currentAppName: REQUIRED_APP_NAME,
         });
       }
       return false;
@@ -506,12 +566,30 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     this.#options.onDeviceEvent(payload);
   }
 
+  /**
+   * Chain a close/disconnect operation onto the pending-close queue so
+   * subsequent connects serialize behind every in-flight teardown.
+   */
+  #enqueueClose(close: () => Promise<void>): Promise<void> {
+    const run = async (): Promise<void> => {
+      try {
+        await close();
+      } catch {
+        // Ignore close errors — device may already be disconnected
+      }
+    };
+    this.#pendingClose = this.#pendingClose
+      ? this.#pendingClose.then(run, run)
+      : run();
+    return this.#pendingClose;
+  }
+
   async #closeTransport(): Promise<void> {
     const transport = this.#transport;
     const deviceId = this.#deviceId;
     this.#transport = null;
 
-    try {
+    await this.#enqueueClose(async () => {
       if (transport) {
         if (deviceId) {
           // TransportBLE.close() queues a delayed disconnect (5s timeout).
@@ -527,9 +605,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         // stale connection that blocks the next TransportBLE.open() call.
         await TransportBLE.disconnectDevice(deviceId);
       }
-    } catch {
-      // Ignore close errors — device may already be disconnected
-    }
+    });
   }
 
   #clearTransportState(): void {
