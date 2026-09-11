@@ -134,7 +134,9 @@ export function useEnableNotifications(props?: UseEnableNotificationsProps) {
       await enableNotificationsHelper({
         hasMarketingConsent,
         productAnnouncementEnabled,
-        registerPushNotifications: nudgeEnablePush,
+        // Push registration is performed once, below, after shared notification
+        // setup and the OS-permission check.
+        registerPushNotifications: false,
       });
     } catch (enableError) {
       setError(enableError);
@@ -147,7 +149,6 @@ export function useEnableNotifications(props?: UseEnableNotificationsProps) {
     });
     await updateNotificationSubscriptionExpiration();
   }, [
-    nudgeEnablePush,
     throwOnError,
     hasMarketingConsent,
     productAnnouncementEnabled,
@@ -173,26 +174,28 @@ export function useEnableNotifications(props?: UseEnableNotificationsProps) {
  * @returns An object containing the `disableNotifications` function, loading state, and error state.
  */
 export function useDisableNotifications() {
-  const { togglePushNotification, loading: pushLoading } =
-    usePushNotificationsToggle();
-
   const data = useSelector(selectIsMetamaskNotificationsEnabled);
   const loading = useSelector(selectIsUpdatingMetamaskNotifications);
   const [error, setError] = useState<string | undefined>(undefined);
   const disableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(undefined);
-    await togglePushNotification(false);
-    await disableNotificationsHelper().catch((e) => {
-      Logger.error(e);
-      setError(`Failed to disable push notifications`);
-    });
+
+    try {
+      await disableNotificationsHelper();
+    } catch (e) {
+      Logger.error(e instanceof Error ? e : new Error(String(e)));
+      setError('Failed to disable notifications');
+      return false;
+    }
+
     await setUserHasTurnedOffNotificationsOnce();
-  }, [togglePushNotification]);
+    return true;
+  }, []);
 
   return {
     disableNotifications,
-    loading: loading && pushLoading,
+    loading,
     // This will be fixed in a separate PR to converge the types correctly
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error: error as any,

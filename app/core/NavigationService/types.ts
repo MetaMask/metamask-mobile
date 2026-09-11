@@ -427,6 +427,7 @@ export type RootModalFlowParamList = {
   ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   BasicFunctionality: { caller?: string } | undefined;
+  BasicFunctionalityMigration: undefined;
   ConfirmTurnOnBackupAndSync:
     | ConfirmTurnOnBackupAndSyncModalNavigateParams
     | undefined;
@@ -791,6 +792,7 @@ export type RootStackParamList = {
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: { caller?: string } | undefined;
+  BasicFunctionalityMigration: undefined;
   ConfirmTurnOnBackupAndSync:
     | ConfirmTurnOnBackupAndSyncModalNavigateParams
     | undefined;
@@ -996,7 +998,7 @@ export type RootStackParamList = {
   PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
 
   // Social Leaderboard routes
-  TopTradersView:
+  SocialV0View:
     | {
         /** Analytics entry-point that opened the leaderboard. Narrowed at the
          * receiver to LeaderboardScreenViewedSource. */
@@ -1011,6 +1013,14 @@ export type RootStackParamList = {
         landingTab?: 'leaderboard' | 'feed';
         /** Audience preselected on the Feed tab when `landingTab` is `feed`. */
         landingFeedAudience?: 'all' | 'following';
+      }
+    | undefined;
+  /** The same screen mounted as the Social tab root (SOCIAL.TAB). */
+  SocialLeaderboardTab: RootStackParamList['SocialV0View'];
+  SocialV1View:
+    | {
+        source?: string;
+        showNotificationsBanner?: boolean;
       }
     | undefined;
   TraderProfileView: {
@@ -1181,8 +1191,7 @@ export type RootStackParamList = {
   AddAsset: AddAssetParams | undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
 
-  // Asset detail stack routes (nested under the `Asset` navigator)
-  AssetStackFlow: NavigatorScreenParams<AssetStackParamList> | undefined;
+  // Asset detail stack routes (siblings of `Asset` inside `AssetStackFlow`)
   SecurityTrust: AssetStackParamList['SecurityTrust'];
   CreatePriceAlert: AssetStackParamList['CreatePriceAlert'];
   ManagePriceAlerts: AssetStackParamList['ManagePriceAlerts'];

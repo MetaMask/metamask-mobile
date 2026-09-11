@@ -13,6 +13,7 @@ process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
 process.env.COMPLIANCE_API_URL = 'https://compliance.example.com';
+process.env.KYC_API_URL = 'https://kyc-api.example.com';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -30,6 +31,55 @@ process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
 // When running Reassure perf tests we want to avoid Jest coverage to reduce memory usage
 const isReassureRun = process.env.REASSURE === 'true';
 
+const DEPENDENCIES_TO_TRANSPILE = [
+  '@react-native',
+  'react-native',
+  'redux-persist-filesystem',
+  '@react-navigation',
+  '@react-native-community',
+  '@react-native-masked-view',
+  'react-navigation',
+  'react-navigation-redux-helpers',
+  '@sentry',
+  'd3-color',
+  'd3-shape',
+  'd3-path',
+  'd3-scale',
+  'd3-array',
+  'd3-time',
+  'd3-format',
+  'd3-interpolate',
+  'd3-selection',
+  'd3-axis',
+  'd3-transition',
+  'internmap',
+  'lodash-es',
+  'react-native-wagmi-charts',
+  'react-native-nitro-modules',
+  '@notifee',
+  'expo-file-system',
+  'expo-modules-core',
+  'expo(nent)?',
+  '@expo(nent)?/.*',
+  '@noble/.*',
+  '@nktkas/hyperliquid',
+  '@metamask/base-controller',
+  '@metamask/base-data-service',
+  '@metamask/design-system-twrnc-preset',
+  '@metamask/design-system-react-native',
+  '@metamask/messenger',
+  '@metamask/native-utils',
+  '@metamask/react-native-acm',
+  '@metamask/react-native-actionsheet',
+  '@metamask/react-native-button',
+  '@metamask/smart-transactions-controller',
+  '@tommasini/react-native-scrollable-tab-view',
+  '@veriff/react-native-sdk',
+  '@sumsub/react-native-mobilesdk-module',
+  '@braze/react-native-sdk',
+  'uuid',
+];
+
 const config = {
   // RN 0.85 removes the bundled 'react-native' Jest preset in favor of the
   // extracted '@react-native/jest-preset' package (functionally identical on
@@ -38,13 +88,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    // NOTE: @metamask/base-controller, @metamask/controller-utils, and
-    // @metamask/abi-utils are transitive deps of @metamask/perps-controller.
-    // 17.x ships them ESM-only under a nested node_modules; each nested
-    // `node_modules/` in the path causes the outer negative lookahead to
-    // re-evaluate, so they must appear as top-level allow-list entries
-    // (not scoped under perps-controller) to be transformed.
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/perps-controller|@metamask/base-controller|@metamask/controller-utils|@metamask/abi-utils|@metamask/messenger|@metamask/superstruct|@metamask/utils|lodash-es|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk|@sumsub/react-native-mobilesdk-module|@braze/react-native-sdk|uuid))',
+    `node_modules/(?!(${DEPENDENCIES_TO_TRANSPILE.join('|')}))`,
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
@@ -100,15 +144,14 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
-    // 17.x ships ESM-only under dist/*.js (16.x used dist/*.cjs).
     '^@metamask/perps-controller$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.js',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.cjs',
     '^@metamask/perps-controller/(constants|types|utils)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.js',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.cjs',
     '^@metamask/perps-controller/(constants|types|utils)/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.js',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.cjs',
     '^@metamask/perps-controller/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.js',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
     // @metamask/perps-controller@9.1.0+ ships a broken CJS build whose
     // bundler baked in a CI-only absolute path (a file:// URL left over from
