@@ -89,62 +89,34 @@ jest.mock('../TrendingTokenLogo', () => {
   };
 });
 
-jest.mock(
-  '../../../../../component-library/components/Badges/BadgeWrapper',
-  () => {
-    const { View: RNView } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: function MockBadgeWrapper({
-        children,
-        badgeElement,
-        badgePosition,
-      }: {
-        children: unknown;
-        badgeElement: unknown;
-        badgePosition: string;
-      }) {
-        return (
-          <RNView testID="badge-wrapper" data-position={badgePosition}>
-            {children}
-            {badgeElement}
-          </RNView>
-        );
-      },
-      BadgePosition: {
-        BottomRight: 'BottomRight',
-      },
-    };
-  },
-);
-
-jest.mock('../../../../../component-library/components/Badges/Badge', () => {
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const { View: RNView } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    default: function MockBadge({
-      size,
-      variant,
-      imageSource,
-      isScaled,
+    ...actual,
+    BadgeWrapper: function MockBadgeWrapper({
+      children,
+      badge,
+      position,
     }: {
-      size: string;
-      variant: string;
-      imageSource?: string;
-      isScaled?: boolean;
+      children: React.ReactNode;
+      badge: React.ReactNode;
+      position: string;
     }) {
       return (
-        <RNView
-          testID="network-badge"
-          data-size={size}
-          data-variant={variant}
-          data-image-source={imageSource}
-          data-scaled={isScaled}
-        />
+        <RNView testID="badge-wrapper" data-position={position}>
+          {children}
+          {badge}
+        </RNView>
       );
     },
-    BadgeVariant: {
-      Network: 'Network',
+    BadgeNetwork: function MockBadgeNetwork({
+      src,
+    }: {
+      src?: string | { uri?: string };
+    }) {
+      const imageSource = typeof src === 'string' ? src : src?.uri;
+      return <RNView testID="network-badge" data-image-source={imageSource} />;
     },
   };
 });
