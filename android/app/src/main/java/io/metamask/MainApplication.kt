@@ -22,6 +22,7 @@ import cl.json.ShareApplication
 import io.branch.rnbranch.RNBranchModule
 import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
+import io.metamask.nativeModules.BrazePushPackage
 import io.metamask.nativeModules.NotificationPackage
 import io.metamask.nativeModules.HermesProfiler.HermesProfilerPackage
 import com.braze.BrazeActivityLifecycleCallbackListener
@@ -45,6 +46,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
                 add(RCTMinimizerPackage())
                 add(RNTarPackage())
                 add(NotificationPackage())
+                add(BrazePushPackage())
                 if (BuildConfig.IS_PERFORMANCE_TEST) {
                     add(HermesProfilerPackage())
                 }
