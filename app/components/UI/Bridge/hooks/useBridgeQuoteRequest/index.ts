@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
   formatAddressToCaipReference,
@@ -46,6 +46,16 @@ interface UpdateQuoteParamsOptions {
 export const useBridgeQuoteRequest = (
   options: UseBridgeQuoteRequestOptions = {},
 ) => {
+  const ownedTraceId = useRef<string | undefined>(undefined);
+  const cancelOwnedTrace = useCallback(() => {
+    if (ownedTraceId.current) {
+      swapQuoteFetchTrace.finish('cancelled', ownedTraceId.current);
+      ownedTraceId.current = undefined;
+    }
+  }, []);
+
+  useEffect(() => cancelOwnedTrace, [cancelOwnedTrace]);
+
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -171,7 +181,12 @@ export const useBridgeQuoteRequest = (
 
   // Start the trace when the user commits a request, before the debounce timer.
   const debouncedUpdateQuoteParams = useMemo(() => {
-    const debounced = debounce(updateQuoteParams, DEBOUNCE_WAIT);
+    let traceId: string | undefined;
+    let requestDispatched = false;
+    const debounced = debounce((requestOptions: UpdateQuoteParamsOptions) => {
+      requestDispatched = true;
+      return updateQuoteParams(requestOptions);
+    }, DEBOUNCE_WAIT);
 
     const debouncedWithTrace = ((
       requestOptions: UpdateQuoteParamsOptions = {},
@@ -184,21 +199,25 @@ export const useBridgeQuoteRequest = (
         !walletAddress
       ) {
         debounced.cancel();
-        swapQuoteFetchTrace.finish('cancelled');
+        cancelOwnedTrace();
+        traceId = undefined;
         return;
       }
 
-      const traceId =
+      traceId =
         sourceAmount && sourceAmount !== '.'
           ? swapQuoteFetchTrace.start({
-              sourceToken,
-              destToken,
+              srcChainId: sourceToken?.chainId,
+              destChainId: destToken?.chainId,
               isRefresh: requestOptions.isRefresh ?? false,
             })
           : undefined;
+      requestDispatched = false;
 
       if (!traceId) {
-        swapQuoteFetchTrace.finish('cancelled');
+        cancelOwnedTrace();
+      } else {
+        ownedTraceId.current = traceId;
       }
 
       debounced({
@@ -209,12 +228,16 @@ export const useBridgeQuoteRequest = (
 
     debouncedWithTrace.cancel = () => {
       debounced.cancel();
-      swapQuoteFetchTrace.finish('cancelled');
+      if (!requestDispatched && traceId) {
+        swapQuoteFetchTrace.finish('cancelled', traceId);
+      }
+      traceId = undefined;
     };
     debouncedWithTrace.flush = () => debounced.flush();
 
     return debouncedWithTrace;
   }, [
+    cancelOwnedTrace,
     destToken,
     destChainId,
     sourceAmount,

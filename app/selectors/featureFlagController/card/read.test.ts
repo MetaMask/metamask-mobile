@@ -6,6 +6,7 @@ import {
   defaultCardFeatureFlag,
 } from './defaults';
 import {
+  getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
   readCardProviderChains,
@@ -548,6 +549,64 @@ describe('card feature flag readers', () => {
           regionCode: 'US',
         }),
       ).toBe(false);
+    });
+  });
+
+  describe('getCardUkMigrationUpdateBadgeSeverity', () => {
+    const deadline = new Date('2026-09-30T23:59:59.999Z');
+
+    it('returns null when migration is inactive', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity({
+          phase: 'off',
+          isActive: false,
+          deadline,
+        }),
+      ).toBeNull();
+    });
+
+    it('returns info when soft period started more than 7 days before end', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'soft', isActive: true, deadline },
+          new Date('2026-09-20T00:00:00.000Z'),
+        ),
+      ).toBe('info');
+    });
+
+    it('returns warning when soft period is within 7 days of end', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'soft', isActive: true, deadline },
+          new Date('2026-09-24T00:00:00.000Z'),
+        ),
+      ).toBe('warning');
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'soft', isActive: true, deadline },
+          new Date('2026-09-30T12:00:00.000Z'),
+        ),
+      ).toBe('warning');
+    });
+
+    it('returns danger when soft period has ended (forced)', () => {
+      expect(
+        getCardUkMigrationUpdateBadgeSeverity(
+          { phase: 'forced', isActive: true, deadline },
+          new Date('2026-10-01T00:00:00.000Z'),
+        ),
+      ).toBe('danger');
+    });
+
+    it('returns danger after deadline when cached phase remains soft', () => {
+      const state = { phase: 'soft' as const, isActive: true, deadline };
+
+      const severity = getCardUkMigrationUpdateBadgeSeverity(
+        state,
+        new Date('2026-10-01T00:00:00.000Z'),
+      );
+
+      expect(severity).toBe('danger');
     });
   });
 });

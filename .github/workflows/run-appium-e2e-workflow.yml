@@ -31,7 +31,7 @@ on:
         type: number
         default: 1
       changed_spec_files:
-        description: 'Space-separated changed E2E specs for PR flakiness detection (run twice)'
+        description: 'Space-separated changed E2E specs for main-target PR flakiness detection (run twice)'
         required: false
         type: string
         default: ''
@@ -145,7 +145,7 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
 
       - name: Setup Node for shard selection
@@ -155,7 +155,7 @@ jobs:
 
       - name: Download frozen qa-stats timings
         id: download-timings
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         continue-on-error: true
         with:
           name: e2e-timings-${{ github.run_id }}
@@ -193,6 +193,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
           CHANGED_SPEC_FILES: ${{ inputs.changed_spec_files }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           PREVIOUS_RESULTS_PATH: ${{ steps.download-previous-results.outcome == 'success' && './previous-playwright-json' || '' }}
@@ -267,7 +268,7 @@ jobs:
             env.ANDROID_EMULATOR_IMAGE_FINGERPRINT != ''
           }}
         continue-on-error: true
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ~/.android/avd
           key: android-e2e-golden-avd-v1-${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT }}
@@ -295,7 +296,7 @@ jobs:
 
       - name: Cache static ffmpeg
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/mms-ffmpeg
           key: static-ffmpeg-b6.1.1-${{ runner.os }}-${{ runner.arch }}
@@ -339,13 +340,13 @@ jobs:
             steps.select-specs.outputs.spec_count != '0' &&
             steps.download-android-apk-namespace.outcome != 'success'
           }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
       - name: Download Android build artifacts (current)
         if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' && steps.select-specs.outputs.spec_count != '0' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
@@ -379,13 +380,13 @@ jobs:
             steps.select-specs.outputs.spec_count != '0' &&
             steps.download-ios-app-namespace.outcome != 'success'
           }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
       - name: Download iOS build artifacts (current)
         if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' && steps.select-specs.outputs.spec_count != '0' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -438,7 +439,7 @@ jobs:
 
       - name: Restore WDA DerivedData cache
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/appium-wda
           key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
@@ -672,7 +673,7 @@ jobs:
 
       - name: Upload fixture validation reports
         if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' && steps.select-specs.outputs.spec_count != '0' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: fixture-validation-results-${{ inputs.test-suite-name }}
           path: |

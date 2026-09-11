@@ -116,7 +116,7 @@ jobs:
       - name: Restore .metamask folder
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -149,7 +149,14 @@ jobs:
   native-build-fingerprint:
     name: Compute native build fingerprint
     runs-on: ubuntu-latest
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    if: >-
+      ${{
+        needs.get_requirements.outputs.skip_everything != 'true' &&
+        (
+          needs.get_requirements.outputs.android_e2e_needed == 'true' ||
+          needs.get_requirements.outputs.ios_e2e_needed == 'true'
+        )
+      }}
     permissions:
       contents: read
       statuses: write
@@ -160,13 +167,13 @@ jobs:
     steps:
       # Default: fingerprint the PR merge tree (or push/schedule commit).
       - name: Checkout repository
-        if: ${{ needs.get_requirements.outputs.native_build_needed != 'false' || github.event_name != 'pull_request' }}
+        if: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs != 'true' || github.event_name != 'pull_request' }}
         uses: actions/checkout@v6
 
       # Test-only PRs reuse main native builds — fingerprint main HEAD so the lookup
       # key matches completed ci.yml runs on the main branch.
       - name: Checkout main for test-only fingerprint
-        if: ${{ needs.get_requirements.outputs.native_build_needed == 'false' && github.event_name == 'pull_request' }}
+        if: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' && github.event_name == 'pull_request' }}
         uses: actions/checkout@v6
         with:
           ref: main
@@ -187,7 +194,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ needs.get_requirements.outputs.native_build_needed == 'true' }}
+          post-status: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs != 'true' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -776,7 +783,7 @@ jobs:
           path: ios
       - name: Download iOS bundle (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ios-bundle
           path: ios
@@ -882,7 +889,7 @@ jobs:
         run: tar -czf ci-js-deps.tar.gz node_modules app/util/termsOfUse/termsOfUseContent.ts
       - name: Upload CI JS deps artifact
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ci-js-deps
           path: ci-js-deps.tar.gz
@@ -922,7 +929,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1002,7 +1009,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1020,7 +1027,7 @@ jobs:
           path: tests/coverage/
       - name: Download coverage shards (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: coverage-*
           path: tests/coverage/
@@ -1217,7 +1224,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1303,7 +1310,7 @@ jobs:
         id: download-ci-js-deps
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-js-deps
           path: .
@@ -1428,9 +1435,9 @@ jobs:
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}
       pr_number: ${{ github.event.pull_request.number }}
-      # Test-only PRs use the latest main APKs directly. PRs with app changes
-      # leave this false so the build workflow can use fingerprint reuse.
-      reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      # Test-only performance runs reuse main APKs when available, with a fresh-build
+      # fallback; app-changing PRs use normal fingerprint reuse with JS repacking.
+      reuse_main_builds: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
       source_fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
     secrets: inherit
     permissions:
@@ -1465,7 +1472,7 @@ jobs:
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      use-main-builds-for-test-only-prs: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
     secrets: inherit
 
   prepare-e2e-timings:
@@ -1509,7 +1516,7 @@ jobs:
         # uploaded by the earliest attempt is always the one shards will use.
         if: ${{ steps.fetch.outputs.available == 'true' }}
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-timings-${{ github.run_id }}
           path: ./e2e-timings.json
@@ -1524,13 +1531,7 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
-    # PRs into main do not build iOS from path filters alone — it has to be
-    # requested with run-appium-ios-tests, or with skip-smart-e2e-selection when
-    # path filters already require iOS. Both opt-ins are resolved into
-    # ios_e2e_needed by .github/scripts/qa-automation/e2e-ci-orchestration/compute-e2e-platform-flags.cjs, which also
-    # keeps ios_e2e_needed and run_appium_ios equal on those PRs so the app is
-    # only built when iOS E2E will actually run. Pushes to main/release/*, the
-    # nightly schedule, and PRs into release/* are unaffected.
+    # Build when the final iOS E2E platform flag is enabled.
     if: >-
       ${{
         !cancelled() &&
@@ -1552,19 +1553,8 @@ jobs:
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
+      use-main-builds-for-test-only-prs: ${{ needs.get_requirements.outputs.use_main_builds_for_test_only_prs == 'true' }}
     secrets: inherit
-
-  ios-tests-ready:
-    name: 'iOS Tests Ready'
-    runs-on: ubuntu-latest
-    if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
-    needs: [build-ios-apps]
-    steps:
-      - name: iOS build complete
-        run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
-
-
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
@@ -1608,34 +1598,15 @@ jobs:
 
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
-    # Main/release push and main schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests, or change
-    # page-objects/selectors/locators/framework/smoke-appium
-    # (same smart-selected tags as other E2E jobs).
+    # Runs when the final iOS E2E platform flag is enabled.
     if: >-
       ${{
         !cancelled() &&
-        needs.ios-tests-ready.result == 'success' &&
+        needs.build-ios-apps.result == 'success' &&
         (needs.prepare-e2e-timings.result == 'success' ||
           needs.prepare-e2e-timings.result == 'skipped' ||
           needs.prepare-e2e-timings.result == 'failure') &&
-        (
-          (
-            github.event_name == 'push' &&
-            (
-              github.ref == 'refs/heads/main' ||
-              startsWith(github.ref, 'refs/heads/release/')
-            )
-          ) ||
-          (
-            github.ref == 'refs/heads/main' &&
-            github.event_name == 'schedule'
-          ) ||
-          (
-            github.event_name == 'pull_request' &&
-            needs.get_requirements.outputs.run_appium_ios == 'true'
-          )
-        )
+        needs.get_requirements.outputs.ios_e2e_needed == 'true'
       }}
     permissions:
       contents: read
@@ -1645,7 +1616,7 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
+    needs: [get_requirements, build-ios-apps, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
@@ -1740,7 +1711,7 @@ jobs:
       # GitHub Actions artifact store — download via actions/* regardless of provider.
       - name: Download fixture validation results
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: fixture-validation-results-validate-e2e-fixtures
           path: fixture-results/
@@ -1801,7 +1772,7 @@ jobs:
           path: coverage/
       - name: Download lcov.info (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: lcov.info
           path: coverage/
@@ -1950,7 +1921,7 @@ jobs:
       actions: write
     steps:
       - name: Delete CI JS deps artifact
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({

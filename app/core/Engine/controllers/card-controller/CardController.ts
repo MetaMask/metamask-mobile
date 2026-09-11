@@ -11,6 +11,10 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { MetaMetricsEvents } from '../../../Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
+import type { IMetaMetricsEvent } from '../../../../util/analytics/analytics.types';
 import ReduxService from '../../../redux';
 import type { RootState } from '../../../../reducers';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
@@ -92,6 +96,7 @@ import {
   ExternalTransactionRevertedError,
 } from './utils/awaitExternalTransactionReceipt';
 import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
+import { capRedeemAmount } from './utils/redeemAmount';
 import {
   MONEY_ACCOUNT_DELEGATION_NETWORK,
   MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
@@ -119,6 +124,8 @@ import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safe
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
+
+type RedeemFailureStage = 'estimation' | 'submit' | 'on_chain';
 
 const bucketRedeemAmount = (amount: string): string => {
   const n = Number.parseFloat(amount);
@@ -2129,6 +2136,35 @@ export class CardController extends BaseController<
   }
 
   /**
+   * Emitted here rather than from the redeem screen because monitoring runs for
+   * up to three minutes and survives the user navigating away, so a view-side
+   * emit would drop exactly the slow failures worth measuring.
+   */
+  #trackRedeemEvent(
+    event: IMetaMetricsEvent,
+    properties: Record<string, string | number | null>,
+  ): void {
+    try {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(event)
+          .addProperties({
+            provider: this.state.activeProviderId,
+            ...properties,
+          })
+          .build(),
+      );
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: '#trackRedeemEvent' },
+        },
+      });
+    }
+  }
+
+  /**
    * Submits a credit / mUSD Back withdrawal and monitors the returned txHash
    * until confirmed or failed. State lives on the controller so navigating
    * away from the redeem screen does not lose the outcome.
@@ -2137,7 +2173,8 @@ export class CardController extends BaseController<
     mode: RedeemWalletMode;
     amount: string;
   }): Promise<CreditWithdrawResponse | CashbackWithdrawResponse> {
-    const { mode, amount } = params;
+    const { mode } = params;
+    const amount = capRedeemAmount(params.amount);
     const existing = this.#getRedeemWithdrawal();
     // Terminal states are stale once the user leaves the redeem UI — allow a
     // fresh submit. The view keeps the button locked through `success` while
@@ -2153,6 +2190,7 @@ export class CardController extends BaseController<
 
     const submittedAt = Date.now();
     const generation = ++this.redeemGeneration;
+    const amountBucket = bucketRedeemAmount(amount);
     this.#setRedeemWithdrawal(
       {
         mode,
@@ -2164,6 +2202,14 @@ export class CardController extends BaseController<
       },
       generation,
     );
+
+    this.#trackRedeemEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_STARTED, {
+      mode,
+      amount_bucket: amountBucket,
+    });
+
+    let stage: RedeemFailureStage = 'estimation';
+    let pollingChainId: string | null = null;
 
     return await trace(
       {
@@ -2203,6 +2249,9 @@ export class CardController extends BaseController<
             throw error;
           }
 
+          pollingChainId = chainId;
+          stage = 'submit';
+
           const submitResult =
             mode === 'credit'
               ? await this.#submitCreditWithdraw({ amount })
@@ -2211,9 +2260,11 @@ export class CardController extends BaseController<
           Logger.log('Card redeem withdraw submitted', {
             mode,
             network: estimation.network,
-            amountBucket: bucketRedeemAmount(amount),
+            amountBucket,
             chainId,
           });
+
+          stage = 'on_chain';
 
           this.#setRedeemWithdrawal(
             {
@@ -2246,6 +2297,16 @@ export class CardController extends BaseController<
             generation,
           );
 
+          this.#trackRedeemEvent(
+            MetaMetricsEvents.CARD_REDEEM_PROCESS_COMPLETED,
+            {
+              mode,
+              amount_bucket: amountBucket,
+              chain_id: chainId,
+              duration_ms: Date.now() - submittedAt,
+            },
+          );
+
           // Refresh card home so headline balance / credit banner update.
           if (generation === this.redeemGeneration) {
             this.fetchCardHomeData({ force: true }).catch((refreshError) => {
@@ -2266,6 +2327,8 @@ export class CardController extends BaseController<
           return submitResult;
         } catch (error) {
           if (error instanceof ExternalTransactionMonitorCancelledError) {
+            // Abandoned, not failed — the outcome is unknowable, so it must not
+            // count against the failure rate.
             annotateTrace(context, { success: false, reason: 'cancelled' });
             throw error;
           }
@@ -2286,6 +2349,17 @@ export class CardController extends BaseController<
             code: classified?.code != null ? classified.code : 'none',
             statusCode:
               classified?.statusCode != null ? classified.statusCode : -1,
+          });
+          this.#trackRedeemEvent(MetaMetricsEvents.CARD_REDEEM_PROCESS_FAILED, {
+            mode,
+            amount_bucket: amountBucket,
+            chain_id: pollingChainId,
+            duration_ms: Date.now() - submittedAt,
+            stage,
+            reason: classified?.reason ?? 'unknown',
+            error_name: (error as Error)?.name ?? 'unknown',
+            error_code: classified?.code ?? null,
+            status_code: classified?.statusCode ?? null,
           });
           throw error;
         }

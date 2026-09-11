@@ -23,6 +23,13 @@ on:
         required: false
         type: boolean
         default: true
+      build_attribution:
+        description: >-
+          Optional analytics build attribution forwarded to build.yml as METAMASK_BUILD_ATTRIBUTION.
+          Set to 'nightly' by nightly-build.yml; leave empty for the default suffixes.
+        required: false
+        type: string
+        default: ''
       runner_provider:
         description: >-
           Runner provider forwarded from the caller. Leave empty to defer to the repo
@@ -61,6 +68,11 @@ on:
         required: false
         type: boolean
         default: true
+      build_attribution:
+        description: "Analytics build attribution (METAMASK_BUILD_ATTRIBUTION). Use 'nightly' to report -rc-nightly / -exp-nightly; leave empty for the default suffixes"
+        required: false
+        type: string
+        default: ''
       runner_provider:
         description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: false
@@ -91,6 +103,7 @@ jobs:
       platform: ios
       source_branch: ${{ inputs.source_branch }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
+      build_attribution: ${{ inputs.build_attribution }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 

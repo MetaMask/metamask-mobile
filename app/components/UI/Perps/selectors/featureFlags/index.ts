@@ -412,6 +412,32 @@ export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for the Pro open-position margin preview.
+ * LaunchDarkly key (kebab-case): `perps-position-modify-preview-enabled`.
+ */
+export const PERPS_POSITION_MODIFY_PREVIEW_ENABLED_FLAG_KEY =
+  'perpsPositionModifyPreviewEnabled' as const;
+
+/**
+ * Selector for before→after margin (and liquidation) on the Pro order form
+ * when an isolated position is already open, including leverage changes.
+ * Defaults to false so the preview can be rolled out and rolled back
+ * independently of Pro mode.
+ *
+ * @returns boolean - true if the position-modify preview should be shown
+ */
+export const selectPerpsPositionModifyPreviewEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_POSITION_MODIFY_PREVIEW_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Client-config / Redux key for the Pro Scale order feature flag.
  * LaunchDarkly key (kebab-case): `perps-mobile-scale`.
  */

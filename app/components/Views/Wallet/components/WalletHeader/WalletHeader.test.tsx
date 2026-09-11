@@ -4,7 +4,7 @@ import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WalletHeader, { type WalletHeaderProps } from './WalletHeader';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
-import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
+import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 
 jest.mock('../../../../UI/AddressCopy', () => {
   const { View } = jest.requireActual('react-native');
@@ -27,9 +27,8 @@ jest.mock('../../../../UI/Card/components/CardButton', () => {
   };
 });
 
-jest.mock('../../../../../util/notifications', () => ({
-  ...jest.requireActual('../../../../../util/notifications'),
-  isNotificationsFeatureEnabled: jest.fn(() => false),
+jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
+  useAccountsMenuAttention: jest.fn(() => false),
 }));
 
 jest.mock('../../../AccountSelector', () => ({
@@ -47,8 +46,6 @@ const defaultProps: WalletHeaderProps = {
     navigate: jest.fn(),
   } as unknown as NavigationProp<ParamListBase>,
   isMoneyAccountVisible: false,
-  isNotificationEnabled: false,
-  unreadNotificationCount: 0,
   handleSearchPress: jest.fn(),
   handleActivityPress: jest.fn(),
   handleCardPress: jest.fn(),
@@ -61,7 +58,7 @@ const defaultProps: WalletHeaderProps = {
 describe('WalletHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(false);
+    jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
   });
 
   it('renders the header root and account picker', () => {
@@ -150,21 +147,27 @@ describe('WalletHeader', () => {
     });
   });
 
-  describe('when the notifications feature is enabled', () => {
-    beforeEach(() => {
-      jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
-    });
+  describe('Accounts menu attention badge', () => {
+    it('shows the hamburger badge when there is Accounts menu attention', () => {
+      jest.mocked(useAccountsMenuAttention).mockReturnValue(true);
 
-    it('still calls handleHamburgerPress when the menu button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <WalletHeader {...defaultProps} />,
       );
 
-      fireEvent.press(
-        getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the hamburger badge when there is no Accounts menu attention', () => {
+      const { queryByTestId } = renderWithProvider(
+        <WalletHeader {...defaultProps} />,
       );
 
-      expect(defaultProps.handleHamburgerPress).toHaveBeenCalledTimes(1);
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE),
+      ).toBeNull();
     });
   });
 });

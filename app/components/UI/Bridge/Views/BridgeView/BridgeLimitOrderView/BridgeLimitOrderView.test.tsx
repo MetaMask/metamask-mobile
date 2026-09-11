@@ -1,30 +1,32 @@
 import React from 'react';
 import type { CaipChainId } from '@metamask/utils';
+import { FeatureId } from '@metamask/bridge-controller';
 import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { createBridgeTestState } from '../../../testUtils';
 import { createMockTokenWithBalance } from '../../../testUtils/fixtures';
-import { mockUseBridgeQuoteData } from '../../../_mocks_/useBridgeQuoteData.mock';
-import { useBridgeQuoteData } from '../../../hooks/useBridgeQuoteData';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
-import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
+import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
+import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
+import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
 import {
   LimitOrderExecutionType,
   getSwapsLimitOrderExpirationLabel,
 } from '../../../constants/limitOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { SwapsFeatureIdProvider } from '../../../providers/SwapsFeatureIdProvider';
 import BridgeLimitOrderView from './index';
 
 /**
  * Unit tests for BridgeLimitOrderView orchestration (keypad footer swap,
- * dismiss/commit wiring, preset handlers). CV covers tab navigation and mock
- * orders data; these branches need isolated hook mocks to assert callback
- * composition without the full Bridge quote pipeline.
+ * dismiss/commit wiring, preset handlers, banner composition). CV covers tab
+ * navigation and mock orders data; these branches need isolated hook mocks to
+ * assert callback composition.
  */
 
 jest.mock(
@@ -38,24 +40,17 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn(),
-}));
-
-jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
-  const { useBridgeQuoteData: useBridgeQuoteDataMock } = jest.requireMock(
-    '../../../hooks/useBridgeQuoteData',
-  );
-
-  return {
-    BridgeQuoteDataProvider: ({ children }: { children: React.ReactNode }) =>
-      children,
-    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteDataMock()),
-  };
-});
-
 jest.mock('../../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useInsufficientBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => false),
+}));
+
+jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
+  useIsHardwareWalletForBridge: jest.fn(() => false),
 }));
 
 jest.mock('../../../hooks/useLimitOrderSwapsInput', () => ({
@@ -70,8 +65,8 @@ jest.mock('../../../hooks/useSwapsLimitOrderKeypad', () => ({
   useSwapsLimitOrderKeypad: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useHasMissingQuoteAndAssetsPriceData', () => ({
-  useHasMissingQuoteAndAssetsPriceData: jest.fn(() => false),
+jest.mock('../../../hooks/useHasMissingAssetsPriceData', () => ({
+  useHasMissingAssetsPriceData: jest.fn(() => false),
 }));
 
 const mockNavigate = jest.fn();
@@ -144,15 +139,25 @@ jest.mock('../../../components/OrdersTabs', () => ({
   default: () => null,
 }));
 
-jest.mock('../../../components/SwapsBanners', () => ({
-  SwapsBanners: ({ children }: { children?: React.ReactNode }) => children,
-  HardwareWalletUnsupportedBanner: () => null,
-  InsufficientNativeReserveBanner: () => null,
-  MissingQuoteAndAssetsPriceDataBanner: () => null,
-  QuoteErrorBanner: () => null,
-  DestAssetRequireActivateBanner: () => null,
-  TokenWarningBanner: () => null,
-}));
+// Each banner decides its own visibility (covered in its own test file), so
+// these stubs always render to assert which banners the view composes.
+jest.mock('../../../components/SwapsBanners', () => {
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    SwapsBanners: ({ children }: { children?: React.ReactNode }) => children,
+    HardwareWalletUnsupportedBanner: () => (
+      <View testID="mock-hardware-wallet-unsupported-banner" />
+    ),
+    MissingAssetsPriceDataBanner: () => (
+      <View testID="mock-missing-assets-price-data-banner" />
+    ),
+    DestAssetRequireActivateBanner: () => (
+      <View testID="mock-dest-asset-require-activate-banner" />
+    ),
+    TokenWarningBanner: () => <View testID="mock-token-warning-banner" />,
+  };
+});
 
 jest.mock('../../../components/LimitOrderPriceAdjustCard', () => {
   const ReactActual = jest.requireActual('react');
@@ -249,16 +254,16 @@ let mockSourceAmount = '';
 function buildSwapInputsMock() {
   return {
     destToken: mockDestToken,
-    destTokenAmount: '24.44',
+    // Limit orders do not quote a destination amount.
+    destTokenAmount: '',
     enabledChainIds: ['eip155:1'] as CaipChainId[],
     handleDestTokenPress: jest.fn(),
     handleFlipTokensPress: jest.fn(),
     handleSourceMaxPress: jest.fn(),
     handleSourcePresetAmountSelect: jest.fn(),
     handleSourceTokenPress: jest.fn(),
-    isDestAmountLoading: false,
     isFlipDisabled: false,
-    isQuoteSponsored: false,
+    isSourceNetworkGasSponsored: false,
     sourceAmount: mockSourceAmount,
     sourceAmountInput: {
       amount: mockSourceAmount,
@@ -333,14 +338,19 @@ function renderLimitOrderView(
     Parameters<typeof createBridgeTestState>[0]
   >['bridgeReducerOverrides'] = {},
 ) {
-  return renderWithProvider(<BridgeLimitOrderView />, {
-    state: createBridgeTestState({
-      bridgeReducerOverrides: {
-        sourceToken: mockSourceToken,
-        ...bridgeReducerOverrides,
-      },
-    }),
-  });
+  return renderWithProvider(
+    <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+      <BridgeLimitOrderView />
+    </SwapsFeatureIdProvider>,
+    {
+      state: createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceToken: mockSourceToken,
+          ...bridgeReducerOverrides,
+        },
+      }),
+    },
+  );
 }
 
 describe('BridgeLimitOrderView', () => {
@@ -350,9 +360,6 @@ describe('BridgeLimitOrderView', () => {
     mockIsCustomPercentFocused = false;
     mockSourceAmount = '';
 
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => mockUseBridgeQuoteData);
     jest.mocked(useLatestBalance).mockReturnValue({
       displayBalance: '1.0',
       atomicBalance: undefined,
@@ -366,7 +373,9 @@ describe('BridgeLimitOrderView', () => {
     jest
       .mocked(useSwapsLimitOrderKeypad)
       .mockImplementation(() => buildKeypadMock());
-    jest.mocked(useHasMissingQuoteAndAssetsPriceData).mockReturnValue(false);
+    jest.mocked(useHasMissingAssetsPriceData).mockReturnValue(false);
+    jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(false);
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
   });
 
   it('renders the limit order container and source token input', () => {
@@ -417,12 +426,16 @@ describe('BridgeLimitOrderView', () => {
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
         .accessibilityState?.disabled,
     ).toBeFalsy();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.busy,
+    ).not.toBe(true);
   });
 
-  it('disables the keypad confirm button when quote price data is unavailable', () => {
+  it('disables the keypad confirm button without a loading state when a traded asset has no price data', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
-    jest.mocked(useHasMissingQuoteAndAssetsPriceData).mockReturnValue(true);
+    jest.mocked(useHasMissingAssetsPriceData).mockReturnValue(true);
 
     const { getByTestId } = renderLimitOrderView();
 
@@ -430,6 +443,56 @@ describe('BridgeLimitOrderView', () => {
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.busy,
+    ).not.toBe(true);
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toHaveTextContent(strings('bridge.limit.create_order'));
+  });
+
+  it('disables the keypad confirm button for a hardware wallet account', () => {
+    // Limit orders cannot be signed by a hardware wallet. Quote fetching used
+    // to block this implicitly; the view now gates the CTA directly.
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useIsHardwareWalletForBridge).mockReturnValue(true);
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('disables the keypad confirm button when source balance is too low', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('composes the token warning, activation, hardware wallet, and missing price banners', () => {
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId('mock-hardware-wallet-unsupported-banner'),
+    ).toBeOnTheScreen();
+    expect(getByTestId('mock-token-warning-banner')).toBeOnTheScreen();
+    expect(
+      getByTestId('mock-dest-asset-require-activate-banner'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('mock-missing-assets-price-data-banner'),
+    ).toBeOnTheScreen();
   });
 
   it('commits the custom percent and closes the keypad when dismiss runs while custom percent is focused', () => {
