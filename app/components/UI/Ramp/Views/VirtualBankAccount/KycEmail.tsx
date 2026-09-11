@@ -29,6 +29,7 @@ const KycEmail = () => {
   const {
     email,
     setEmail,
+    showEmailField,
     isVerifying,
     isContinueDisabled,
     goBack,
@@ -66,24 +67,26 @@ const KycEmail = () => {
               {strings('virtual_bank_account.kyc_email.description')}
             </Text>
           </Box>
-          <Box marginTop={6}>
-            <TextField
-              value={email}
-              onChangeText={setEmail}
-              placeholder={strings(
-                'virtual_bank_account.kyc_email.input_placeholder',
-              )}
-              autoFocus
-              inputProps={{
-                testID: KycEmailSelectorsIDs.EMAIL_INPUT,
-                autoCapitalize: 'none',
-                autoComplete: 'email',
-                keyboardType: 'email-address',
-                returnKeyType: 'done',
-                onSubmitEditing: startVerification,
-              }}
-            />
-          </Box>
+          {showEmailField ? (
+            <Box marginTop={6}>
+              <TextField
+                value={email}
+                onChangeText={setEmail}
+                placeholder={strings(
+                  'virtual_bank_account.kyc_email.input_placeholder',
+                )}
+                autoFocus
+                inputProps={{
+                  testID: KycEmailSelectorsIDs.EMAIL_INPUT,
+                  autoCapitalize: 'none',
+                  autoComplete: 'email',
+                  keyboardType: 'email-address',
+                  returnKeyType: 'done',
+                  onSubmitEditing: startVerification,
+                }}
+              />
+            </Box>
+          ) : null}
         </Box>
         <Box padding={4}>
           <Button

@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
 import {
   VBA_KYC_COUNTRY_CODE,
@@ -24,6 +24,9 @@ const mockKycControllerState = {
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
+    AuthenticationController: {
+      getPartnerIdentityToken: jest.fn(),
+    },
     KycController: {
       get state() {
         return mockKycControllerState;
@@ -49,6 +52,16 @@ const mockKycController = Engine.context.KycController as unknown as {
   acceptTermsAndStartSession: jest.Mock<Promise<void>, [unknown]>;
 };
 
+const mockGetPartnerIdentityToken = Engine.context.AuthenticationController
+  .getPartnerIdentityToken as jest.Mock<Promise<string>, unknown[]>;
+
+const partnerIdentityJwt = (payload: Record<string, unknown>): string => {
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+    'base64url',
+  );
+  return `header.${encodedPayload}.signature`;
+};
+
 const catalog = {
   idOS: [
     {
@@ -68,10 +81,21 @@ const catalog = {
   ],
 };
 
+const waitUntilPartnerEmailResolved = async (result: {
+  current: ReturnType<typeof useKycEmailVerification>;
+}) => {
+  await waitFor(() => {
+    expect(
+      result.current.showEmailField || result.current.email.length > 0,
+    ).toBe(true);
+  });
+};
+
 const enterEmailAndStart = async (
   result: { current: ReturnType<typeof useKycEmailVerification> },
   email = 'user@example.com',
 ) => {
+  await waitUntilPartnerEmailResolved(result);
   act(() => result.current.setEmail(email));
   await act(result.current.startVerification);
 };
@@ -85,22 +109,55 @@ describe('useKycEmailVerification', () => {
     mockKycController.createVendorCustomer.mockResolvedValue(undefined);
     mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
+    mockGetPartnerIdentityToken.mockRejectedValue(new Error('email_required'));
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  it('disables continue until a non-empty email is set', () => {
+  it('disables continue until a non-empty email is set', async () => {
     const { result } = renderHook(() => useKycEmailVerification());
 
+    await waitUntilPartnerEmailResolved(result);
+
     expect(result.current.isContinueDisabled).toBe(true);
+    expect(result.current.showEmailField).toBe(true);
 
     act(() => {
       result.current.setEmail('user@example.com');
     });
 
     expect(result.current.isContinueDisabled).toBe(false);
+  });
+
+  it('uses the partner identity email and hides the email field', async () => {
+    mockGetPartnerIdentityToken.mockResolvedValue(
+      partnerIdentityJwt({ ext: { email: 'partner@example.com' } }),
+    );
+
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    await waitUntilPartnerEmailResolved(result);
+
+    expect(mockGetPartnerIdentityToken).toHaveBeenCalledWith(['email'], 'kyc');
+    expect(result.current.email).toBe('partner@example.com');
+    expect(result.current.showEmailField).toBe(false);
+    expect(result.current.isContinueDisabled).toBe(false);
+  });
+
+  it('shows the email field when the partner identity token has no email', async () => {
+    mockGetPartnerIdentityToken.mockResolvedValue(
+      partnerIdentityJwt({ sub: 'profile-id' }),
+    );
+
+    const { result } = renderHook(() => useKycEmailVerification());
+
+    await waitUntilPartnerEmailResolved(result);
+
+    expect(result.current.email).toBe('');
+    expect(result.current.showEmailField).toBe(true);
+    expect(result.current.isContinueDisabled).toBe(true);
   });
 
   it('creates the customer then starts the session with catalog consents', async () => {
@@ -204,6 +261,8 @@ describe('useKycEmailVerification', () => {
   it('does not start verification when the email is blank', async () => {
     const { result } = renderHook(() => useKycEmailVerification());
 
+    await waitUntilPartnerEmailResolved(result);
+
     await act(async () => {
       await result.current.startVerification();
     });
@@ -212,8 +271,10 @@ describe('useKycEmailVerification', () => {
     expect(mockKycController.acceptTermsAndStartSession).not.toHaveBeenCalled();
   });
 
-  it('navigates back from goBack', () => {
+  it('navigates back from goBack', async () => {
     const { result } = renderHook(() => useKycEmailVerification());
+
+    await waitUntilPartnerEmailResolved(result);
 
     act(() => {
       result.current.goBack();

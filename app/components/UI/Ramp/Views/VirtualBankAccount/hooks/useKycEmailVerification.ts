@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type {
@@ -14,11 +14,15 @@ import {
   VBA_KYC_COUNTRY_CODE,
   VBA_KYC_PRODUCT,
   VBA_KYC_VENDOR,
+  VBA_PARTNER_IDENTITY_AUDIENCE,
+  VBA_PARTNER_IDENTITY_CLAIMS,
 } from '../constants';
+import { emailFromPartnerIdentityToken } from '../utils/partnerIdentityEmail';
 
 interface UseKycEmailVerificationResult {
   email: string;
   setEmail: (email: string) => void;
+  showEmailField: boolean;
   isVerifying: boolean;
   isContinueDisabled: boolean;
   goBack: () => void;
@@ -51,10 +55,50 @@ const throwIfKycControllerError = (step: string): void => {
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
   const [email, setEmail] = useState('');
+  const [hasPartnerEmail, setHasPartnerEmail] = useState(false);
+  const [isResolvingPartnerEmail, setIsResolvingPartnerEmail] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
 
   const trimmedEmail = email.trim();
-  const isContinueDisabled = !trimmedEmail || isVerifying;
+  const isContinueDisabled =
+    !trimmedEmail || isVerifying || isResolvingPartnerEmail;
+  const showEmailField = !isResolvingPartnerEmail && !hasPartnerEmail;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPartnerEmail = async () => {
+      try {
+        const partnerIdentityToken =
+          await Engine.context.AuthenticationController.getPartnerIdentityToken(
+            VBA_PARTNER_IDENTITY_CLAIMS,
+            VBA_PARTNER_IDENTITY_AUDIENCE,
+          );
+        const partnerEmail =
+          emailFromPartnerIdentityToken(partnerIdentityToken);
+        if (!cancelled && partnerEmail) {
+          setEmail(partnerEmail);
+          setHasPartnerEmail(true);
+        }
+      } catch (error) {
+        // `EmailRequiredError` (no verified email on the profile), a locked
+        // wallet, or a signed-out user: fall back to asking for the email.
+        Logger.log('[VBA KYC] partner identity email unavailable', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      } finally {
+        if (!cancelled) {
+          setIsResolvingPartnerEmail(false);
+        }
+      }
+    };
+
+    loadPartnerEmail();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const goBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -121,6 +165,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   return {
     email,
     setEmail,
+    showEmailField,
     isVerifying,
     isContinueDisabled,
     goBack,

@@ -17,6 +17,7 @@ describe('KycEmail', () => {
     mockUseKycEmailVerification.mockReturnValue({
       email: '',
       setEmail: mockSetEmail,
+      showEmailField: true,
       isVerifying: false,
       isContinueDisabled: true,
       goBack: mockGoBack,
@@ -45,6 +46,7 @@ describe('KycEmail', () => {
     mockUseKycEmailVerification.mockReturnValue({
       email: 'user@example.com',
       setEmail: mockSetEmail,
+      showEmailField: true,
       isVerifying: false,
       isContinueDisabled: false,
       goBack: mockGoBack,
@@ -63,5 +65,21 @@ describe('KycEmail', () => {
     fireEvent.press(getByTestId(KycEmailSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('hides the email field when the partner identity email is available', () => {
+    mockUseKycEmailVerification.mockReturnValue({
+      email: 'partner@example.com',
+      setEmail: mockSetEmail,
+      showEmailField: false,
+      isVerifying: false,
+      isContinueDisabled: false,
+      goBack: mockGoBack,
+      startVerification: mockStartVerification,
+    });
+
+    const { queryByTestId } = renderWithProvider(<KycEmail />);
+
+    expect(queryByTestId(KycEmailSelectorsIDs.EMAIL_INPUT)).toBeNull();
   });
 });

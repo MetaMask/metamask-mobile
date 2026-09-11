@@ -1,3 +1,7 @@
+import type {
+  OidcTokenAudience,
+  OidcTokenClaims,
+} from '@metamask/profile-sync-controller/sdk';
 import AppConstants from '../../../../../core/AppConstants';
 
 // ISO 3166-1 alpha-3 country code; the VBA MVP is Brazil-only.
@@ -10,6 +14,12 @@ export const VBA_KYC_VENDOR = 'iron' as const;
 // Consuming product for the VBA flow. Scopes KYC-required checks and the
 // SumSub hand-off inside `acceptTermsAndStartSession`.
 export const VBA_KYC_PRODUCT = 'money' as const;
+
+// Audience stamped on the partner identity token minted by
+// `AuthenticationController.getPartnerIdentityToken`, whose `email` claim
+// prefills "What's your email?".
+export const VBA_PARTNER_IDENTITY_AUDIENCE: OidcTokenAudience = 'kyc';
+export const VBA_PARTNER_IDENTITY_CLAIMS: OidcTokenClaims = ['email'];
 
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- Pix's brand teal has no design-token equivalent
 export const PIX_BRAND_COLOR = '#2CBFB0';
