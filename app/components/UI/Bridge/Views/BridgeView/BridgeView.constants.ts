@@ -17,3 +17,11 @@ export const TAB_TO_FEATURE_ID = {
   [BridgeTabKey.Limit]: FeatureId.LIMIT_ORDER,
   [BridgeTabKey.Recurring]: FeatureId.RECURRING_BUY,
 };
+
+export const DEBOUNCE_WAIT = 300;
+
+/**
+ * Feature IDs that have been migrated to use the SwapQuotesProvider
+ * To migrate a feature ID, add it to this list and replace the useBridgeQuoteRequest hook with useSwapQuotes.
+ */
+export const MIGRATED_FEATURE_IDS: FeatureId[] = [];

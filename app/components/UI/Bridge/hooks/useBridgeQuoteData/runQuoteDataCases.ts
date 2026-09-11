@@ -1,6 +1,7 @@
 import { act, waitFor } from '@testing-library/react-native';
 import {
   RequestStatus,
+  FeatureId,
   getNativeAssetForChainId,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
@@ -22,6 +23,8 @@ import * as quoteUtils from '../../utils/quoteUtils';
 import { useBridgeQuoteData } from '.';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
 import useInsufficientBalance from '../useInsufficientBalance';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import { MIGRATED_FEATURE_IDS } from '../../Views/BridgeView/BridgeView.constants';
 
 const defaultSelectBridgeQuotesResults: ReturnType<
   typeof bridgeSlice.selectBridgeQuotes
@@ -128,35 +131,41 @@ const applyQuoteDataState = ({
   return { selectSourceAmountSpy };
 };
 
-const mockUseIsInsufficientBalance =
-  useInsufficientBalance as jest.MockedFunction<typeof useInsufficientBalance>;
-
-const mockUseValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
-  typeof useValidateBridgeTx
->;
+const mockUseIsInsufficientBalance = jest.mocked(useInsufficientBalance);
+const mockUseValidateBridgeTx = jest.mocked(useValidateBridgeTx);
 const mockValidateBridgeTx = jest.fn();
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockTrace = jest.mocked(trace);
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
 
 export const runQuoteDataCases = ({
   name,
   mockDispatch,
   renderHook,
+  featureId,
 }: {
   name: string;
   mockDispatch: jest.Mock;
-  renderHook: (options?: { latestSourceAtomicBalance?: BigNumber }) => {
+  renderHook: (options?: {
+    latestSourceAtomicBalance?: BigNumber;
+    featureId: FeatureId;
+    isActive?: boolean;
+  }) => {
     result: { current: ReturnType<typeof useBridgeQuoteData> };
     rerender: (props?: unknown) => void;
     unmount: () => void;
   };
+  featureId: FeatureId;
 }) => {
   const renderUseBridgeQuoteData = (
     overrides: QuoteDataState = {},
-    hookOptions?: { latestSourceAtomicBalance?: BigNumber },
+    hookOptions?: {
+      latestSourceAtomicBalance?: BigNumber;
+      isActive?: boolean;
+    },
   ) => {
     const { selectSourceAmountSpy } = applyQuoteDataState(overrides);
     return {
-      ...renderHook(hookOptions),
+      ...renderHook({ ...hookOptions, featureId }),
       selectSourceAmountSpy,
     };
   };
@@ -202,6 +211,7 @@ export const runQuoteDataCases = ({
       mockUseValidateBridgeTx.mockReturnValue({
         validateBridgeTx: mockValidateBridgeTx,
       });
+      mockUseSwapsFeatureId.mockReturnValue(featureId);
     });
 
     afterEach(() => {
@@ -280,6 +290,48 @@ export const runQuoteDataCases = ({
       renderUseBridgeQuoteData();
 
       expect(mockTrace).not.toHaveBeenCalled();
+    });
+
+    it('returns quote data when invoked with no arguments', () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+      applyQuoteDataState();
+
+      // This file is the unit fallback for the deprecated hook itself.
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      const { result } = renderUseBridgeQuoteData();
+
+      expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+    });
+
+    it('does not validate quotes when the hook is inactive', async () => {
+      selectBridgeQuotes.mockImplementation(() => ({
+        ...defaultSelectBridgeQuotesResults,
+        recommendedQuote: mockQuoteWithMetadata,
+      }));
+
+      mockUseSwapsFeatureId.mockReturnValue(
+        MIGRATED_FEATURE_IDS.find((id) => id !== featureId) ??
+          FeatureId.UNIFIED_SWAP_BRIDGE,
+      );
+
+      const { result } = renderUseBridgeQuoteData(
+        { bridgeReducerOverrides: createSolanaSwapTokens() },
+        { isActive: false },
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockValidateBridgeTx).not.toHaveBeenCalled();
+      if (isCombinedQuoteHook) {
+        expect(result.current).toBeNull();
+        return;
+      }
+      expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
     });
 
     it.each([

@@ -17,6 +17,12 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
 import { buildGenericQuoteRequest } from './utils';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
+import {
+  DEBOUNCE_WAIT,
+  MIGRATED_FEATURE_IDS,
+} from '../../Views/BridgeView/BridgeView.constants';
 
 export type SwapQuotesContextValue = ReturnType<typeof useQuoteRequest> &
   ReturnType<typeof useQuoteData>;
@@ -210,18 +216,22 @@ const useQuoteData = ({
   );
 };
 
-export function SwapQuotesProvider({
+export const SwapQuotesProvider = ({
   children,
-  ...params
-}: SwapQuotesProviderProps) {
-  const { quoteParams, latestSourceAtomicBalance } = params;
+}: {
+  children: React.ReactNode;
+}) => {
+  const { quoteParams, latestSourceBalance: latestSourceBalanceFromParent } =
+    useBridgeSession();
   // Presence (not truthiness): parent may pass undefined while its own
   // useLatestBalance is still loading. That must not start a second fetch.
-  const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in params;
+  const hasLatestSourceBalanceOverride = Boolean(latestSourceBalanceFromParent);
+  const featureId = useSwapsFeatureId();
 
+  const isActive = MIGRATED_FEATURE_IDS.includes(featureId);
   // Fetch balance here and pass it to the request/response hooks
   const latestSourceBalance = useLatestBalance(
-    hasLatestSourceBalanceOverride
+    hasLatestSourceBalanceOverride || !isActive
       ? {}
       : {
           address: quoteParams.srcToken?.address,
@@ -231,15 +241,20 @@ export function SwapQuotesProvider({
         },
   );
   const latestAtomicBalance = hasLatestSourceBalanceOverride
-    ? latestSourceAtomicBalance
+    ? latestSourceBalanceFromParent?.atomicBalance
     : latestSourceBalance?.atomicBalance;
   const resolvedParams = {
-    ...params,
+    quoteParams,
+    featureId,
     latestSourceAtomicBalance: latestAtomicBalance,
+    debounceWait: DEBOUNCE_WAIT,
   };
 
   const requestData = useQuoteRequest(resolvedParams);
-  const quoteData = useQuoteData(resolvedParams);
+  const quoteData = useQuoteData({
+    ...resolvedParams,
+    isActive,
+  });
 
   const value = useMemo(
     () => ({ ...requestData, ...quoteData }),
@@ -251,4 +266,4 @@ export function SwapQuotesProvider({
       {children}
     </SwapQuotesContext.Provider>
   );
-}
+};
