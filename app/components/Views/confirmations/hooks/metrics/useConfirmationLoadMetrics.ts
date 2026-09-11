@@ -11,7 +11,12 @@ const log = createProjectLogger('confirmation-load-metrics');
 
 const meansByTransactionType = new Map<
   string,
-  { sampleCount: number; totalDurationMs: number }
+  {
+    sampleCount: number;
+    totalDurationMs: number;
+    warmSampleCount: number;
+    warmTotalDurationMs: number;
+  }
 >();
 
 /**
@@ -35,6 +40,13 @@ const meansByTransactionType = new Map<
  * type is not masked by a fast one. This is diagnostic output only — the mean
  * is never dispatched as a metric property nor attached to the Sentry trace,
  * both of which stay per-confirmation.
+ *
+ * A second mean (`warmAverageMs`) excludes each type's first sample. That first
+ * confirmation absorbs one-off module evaluation and cache warming, so it can
+ * sit hundreds of milliseconds above the steady state and drag `averageMs` with
+ * it — enough to swamp the effect being measured when comparing builds. The
+ * warm mean is the figure to compare; it is `undefined` until a type has at
+ * least two samples.
  *
  * @returns An object with an `onFirstPaint` callback, to be passed to the root
  * confirmation container's `onLayout`.
@@ -99,10 +111,22 @@ export function useConfirmationLoadMetrics() {
     const stats = meansByTransactionType.get(transactionType) ?? {
       sampleCount: 0,
       totalDurationMs: 0,
+      warmSampleCount: 0,
+      warmTotalDurationMs: 0,
     };
+
+    // Counted before the increment below, so the first sample of each type is
+    // treated as cold and excluded from the warm mean.
+    const isWarmSample = stats.sampleCount > 0;
 
     stats.sampleCount += 1;
     stats.totalDurationMs += durationMs;
+
+    if (isWarmSample) {
+      stats.warmSampleCount += 1;
+      stats.warmTotalDurationMs += durationMs;
+    }
+
     meansByTransactionType.set(transactionType, stats);
 
     log('First paint', durationMs, {
@@ -110,6 +134,10 @@ export function useConfirmationLoadMetrics() {
       sampleCount: stats.sampleCount,
       transactionId,
       transactionType,
+      warmAverageMs: stats.warmSampleCount
+        ? Math.round(stats.warmTotalDurationMs / stats.warmSampleCount)
+        : undefined,
+      warmSampleCount: stats.warmSampleCount,
     });
   }, [canMeasure, createdAtMs, dispatch, transactionId, transactionType]);
 
