@@ -226,7 +226,12 @@ const NowTabContent: React.FC<TabProps> = ({
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isEarnSectionVisible = useSelector(selectIsExploreEarnSectionVisible);
 
-  const whatsHappening = useWhatsHappening();
+  const whatsHappening = useWhatsHappening({
+    telemetryContext: {
+      source: WhatsHappeningSource.Explore,
+      stage: 'carousel',
+    },
+  });
   const refreshWhatsHappening = whatsHappening.refresh;
 
   useEffect(() => {

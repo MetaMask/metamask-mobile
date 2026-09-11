@@ -1,4 +1,4 @@
-import { BUILD_TYPE, OAUTH_CONFIG } from './config';
+import { BUILD_TYPE } from './config';
 import { buildTypeMapping } from './oauthBuildType';
 
 describe('buildTypeMapping', () => {
