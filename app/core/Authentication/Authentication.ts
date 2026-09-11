@@ -409,6 +409,8 @@ class AuthenticationService {
     // Restore vault with empty password
     await KeyringController.submitPassword('');
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      Engine.context.AuthenticationController.clearState();
       await SeedlessOnboardingController.clearState();
     }
     await this.resetPassword();
@@ -1111,6 +1113,8 @@ class AuthenticationService {
         EngineClass.disableAutomaticVaultBackup = false;
       }
 
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      Engine.context.AuthenticationController.clearState();
       SeedlessOnboardingController.clearState();
       throw error;
     }
@@ -1747,6 +1751,8 @@ class AuthenticationService {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
         });
 
+        // Sign out and re-arm profile/social pairing for the next wallet.
+        Engine.context.AuthenticationController.clearState();
         Engine.context.SeedlessOnboardingController.clearState();
 
         await depositResetProviderToken();
