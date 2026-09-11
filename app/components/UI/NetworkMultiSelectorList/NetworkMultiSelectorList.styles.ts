@@ -26,7 +26,8 @@ const createStyles = (params: { theme: Theme }) => {
       alignSelf: 'center',
     },
     networkNameText: {
-      flex: 1,
+      flexGrow: 0,
+      flexShrink: 1,
       minWidth: 0,
     },
   });
