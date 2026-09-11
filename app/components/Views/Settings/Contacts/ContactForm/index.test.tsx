@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import Engine, { EngineState } from '../../../../../core/Engine';
+import ClipboardManager from '../../../../../core/ClipboardManager';
 import ContactForm from '.';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
@@ -42,6 +43,10 @@ jest.mock('../../../../../core/Engine', () => ({
       delete: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../../core/ClipboardManager', () => ({
+  setString: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock address book data
@@ -180,6 +185,28 @@ describe('ContactForm', () => {
     expect(await findByText(strings('address_book.edit'))).toBeOnTheScreen();
     expect(queryByTestId(AddContactViewSelectorsIDs.CANCEL_BUTTON)).toBeNull();
     expect(queryByTestId(AddContactViewSelectorsIDs.DELETE_BUTTON)).toBeNull();
+  });
+
+  it('copies the saved address from the read-only address field', async () => {
+    const { findByTestId, queryByLabelText } = renderContactForm({
+      mode: 'edit',
+      address: MOCK_ADDRESS,
+    });
+
+    expect(queryByLabelText(strings('send.scan_qr_code'))).toBeNull();
+
+    fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.COPY_BUTTON));
+
+    await waitFor(() => {
+      expect(ClipboardManager.setString).toHaveBeenCalledWith(MOCK_ADDRESS);
+    });
+
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.COPY_BUTTON),
+    ).toHaveProp(
+      'accessibilityLabel',
+      strings('transactions.address_copied_to_clipboard'),
+    );
   });
 
   it('replaces Edit with Save, Cancel, and Delete when editing a contact', async () => {
