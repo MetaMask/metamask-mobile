@@ -13,8 +13,8 @@ interface CapturedPanGesture {
   onFinalize?: PanHandler;
 }
 
-const createChainableGesture = () => {
-  const api: CapturedPanGesture & Record<string, unknown> = {};
+const createChainableGesture = (): Record<string, unknown> => {
+  const api: Record<string, unknown> = {};
   const returnApi = () => api;
   const capture = (name: keyof CapturedPanGesture) => {
     api[name] = jest.fn((handler: PanHandler) => {
