@@ -1,8 +1,15 @@
 import { renderHook } from '@testing-library/react-native';
 
-import { DEBOUNCE_WAIT, useBridgeQuoteRequest } from './';
+import { useBridgeQuoteRequest } from './';
 import { mockContext, runQuoteRequestCases } from './runQuoteRequestCases';
 import type { DebounceSettings } from 'lodash';
+import { FeatureId } from '@metamask/bridge-controller';
+import { DEBOUNCE_WAIT } from '../../Views/BridgeView/BridgeView.constants';
+
+/**
+ * Unit fallback: debounce, swap-quote traces, and BridgeController request
+ * params cannot be driven from CV without a live quote stream.
+ */
 
 jest.mock('lodash', () => {
   const actual = jest.requireActual<typeof import('lodash')>('lodash');
@@ -59,8 +66,13 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
 runQuoteRequestCases({
   name: 'useBridgeQuoteRequest',
   debounceMs: DEBOUNCE_WAIT,
   renderHook: (options) => renderHook(() => useBridgeQuoteRequest(options)),
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
 });
