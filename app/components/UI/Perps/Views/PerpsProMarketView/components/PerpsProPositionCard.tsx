@@ -53,7 +53,7 @@ interface PerpsProPositionCardProps {
   isEditMarginDisabled?: boolean;
 }
 
-const ACTION_BUTTON_CLASS_NAME = 'flex-1';
+const ACTION_BUTTON_CLASS_NAME = 'flex-1 rounded-full';
 const ACTION_BUTTON_TEXT_PROPS = {
   variant: TextVariant.BodySm,
   fontWeight: FontWeight.Medium,
@@ -446,7 +446,7 @@ const PerpsProPositionCard = ({
             size={ButtonIconSize.Md}
             variant={ButtonIconVariant.Filled}
             iconProps={{ size: IconSize.Md }}
-            twClassName="rounded-md"
+            twClassName="rounded-full"
             onPress={() => onShare?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
             accessibilityLabel={strings('perps.pro_positions_panel.card.share')}
