@@ -209,6 +209,137 @@ const renderHookWithStore = (
 };
 
 describe('useAccountGroupsForPermissions', () => {
+  /**
+   * State overrides that mark the given group IDs as hidden in the account
+   * tree, for use with `renderHookWithStore`.
+   */
+  const withHiddenGroups = (...hiddenGroupIds: string[]) => ({
+    accountTree: {
+      wallets: {
+        [MOCK_WALLET_ID]: {
+          id: MOCK_WALLET_ID,
+          type: AccountWalletType.Entropy,
+          metadata: {
+            name: 'Test Wallet 1',
+            entropy: {
+              id: '01JKAF3DSGM3AB87EM9N0K41AJ',
+            },
+          },
+          groups: {
+            [MOCK_GROUP_ID_1]: {
+              id: MOCK_GROUP_ID_1,
+              type: AccountGroupType.MultichainAccount,
+              metadata: {
+                name: 'Test Group 1',
+                pinned: false,
+                hidden: hiddenGroupIds.includes(MOCK_GROUP_ID_1),
+                entropy: {
+                  groupIndex: 0,
+                },
+              },
+              accounts: [mockEvmAccount1.id, mockSolAccount1.id],
+            },
+            [MOCK_GROUP_ID_2]: {
+              id: MOCK_GROUP_ID_2,
+              type: AccountGroupType.MultichainAccount,
+              metadata: {
+                name: 'Test Group 2',
+                pinned: false,
+                hidden: hiddenGroupIds.includes(MOCK_GROUP_ID_2),
+                entropy: {
+                  groupIndex: 1,
+                },
+              },
+              accounts: [mockEvmAccount2.id, mockSolAccount2.id],
+            },
+          },
+        },
+      },
+    },
+  });
+
+  describe('hidden account group handling', () => {
+    it('excludes hidden unconnected groups from supportedAccountGroups', () => {
+      const emptyPermission = createEmptyPermission();
+      const requestedCaipAccountIds: CaipAccountId[] = [];
+      const requestedCaipChainIds: CaipChainId[] = ['eip155:1' as CaipChainId];
+      const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+      const { result } = renderHookWithStore(
+        emptyPermission,
+        requestedCaipAccountIds,
+        requestedCaipChainIds,
+        requestedNamespacesWithoutWallet,
+        withHiddenGroups(MOCK_GROUP_ID_2),
+      );
+
+      const groupIds = result.current.supportedAccountGroups.map((g) => g.id);
+      expect(groupIds).not.toContain(MOCK_GROUP_ID_2);
+      expect(groupIds).toContain(MOCK_GROUP_ID_1);
+    });
+
+    it('keeps hidden connected groups in connectedAccountGroups so existing permissions are preserved', () => {
+      const existingPermission = createPermissionWithEvmAccounts([
+        mockEvmAccount2.address,
+      ]);
+      const requestedCaipAccountIds: CaipAccountId[] = [];
+      const requestedCaipChainIds: CaipChainId[] = ['eip155:1' as CaipChainId];
+      const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+      const { result } = renderHookWithStore(
+        existingPermission,
+        requestedCaipAccountIds,
+        requestedCaipChainIds,
+        requestedNamespacesWithoutWallet,
+        withHiddenGroups(MOCK_GROUP_ID_2),
+      );
+
+      expect(
+        result.current.connectedAccountGroups.map((g) => g.id),
+      ).toContain(MOCK_GROUP_ID_2);
+    });
+
+    it('offers hidden groups that fulfill explicitly requested account IDs', () => {
+      const emptyPermission = createEmptyPermission();
+      const requestedCaipAccountIds: CaipAccountId[] = [
+        `eip155:1:${mockEvmAccount2.address}` as CaipAccountId,
+      ];
+      const requestedCaipChainIds: CaipChainId[] = ['eip155:1' as CaipChainId];
+      const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+      const { result } = renderHookWithStore(
+        emptyPermission,
+        requestedCaipAccountIds,
+        requestedCaipChainIds,
+        requestedNamespacesWithoutWallet,
+        withHiddenGroups(MOCK_GROUP_ID_2),
+      );
+
+      expect(result.current.supportedAccountGroups[0].id).toBe(
+        MOCK_GROUP_ID_2,
+      );
+    });
+
+    it('does not suggest a hidden unconnected selected group as the default connection', () => {
+      const emptyPermission = createEmptyPermission();
+      const requestedCaipAccountIds: CaipAccountId[] = [];
+      const requestedCaipChainIds: CaipChainId[] = ['eip155:1' as CaipChainId];
+      const requestedNamespacesWithoutWallet: CaipNamespace[] = [];
+
+      const { result } = renderHookWithStore(
+        emptyPermission,
+        requestedCaipAccountIds,
+        requestedCaipChainIds,
+        requestedNamespacesWithoutWallet,
+        withHiddenGroups(MOCK_GROUP_ID_1),
+      );
+
+      expect(
+        result.current.selectedAndRequestedAccountGroups.map((g) => g.id),
+      ).not.toContain(MOCK_GROUP_ID_1);
+    });
+  });
+
   describe('when no existing permissions', () => {
     it('returns empty connected account groups with available supported groups', () => {
       const emptyPermission = createEmptyPermission();

@@ -1,16 +1,16 @@
 import { useCallback, useMemo } from 'react';
-import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import { AccountGroupId, AccountWalletType } from '@metamask/account-api';
-import type { AccountWalletObject } from '@metamask/account-tree-controller';
+import type {
+  AccountGroupObject,
+  AccountWalletObject,
+} from '@metamask/account-tree-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectAccountGroupsByWallet } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../selectors/accountsController';
 import { selectHiddenAccountGroupIds } from '../../../selectors/multichainAccounts/manageAccounts';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { removeHardwareAccount } from '../../../util/accounts/removeHardwareAccount';
-import { strings } from '../../../../locales/i18n';
 import useToggleAccountGroupHidden from './hooks/useToggleAccountGroupHidden';
 import type { ManageAccountsSection } from './ManageAccountsView';
 import { ManageAccountRowVariant } from './components/ManageAccountRow';
@@ -24,6 +24,14 @@ interface UseManageAccountsViewDeps {
    * Opens the delete-account confirmation sheet for an imported account.
    */
   navigateToDeleteAccount?: (account: InternalAccount) => void;
+  /**
+   * Opens the remove-hardware-account confirmation sheet for a hardware
+   * account, passing the account group so the sheet can render the group name.
+   */
+  navigateToRemoveHardwareAccount?: (
+    account: InternalAccount,
+    accountGroup: AccountGroupObject,
+  ) => void;
 }
 
 /**
@@ -57,7 +65,7 @@ const isPrivateKeyWallet = (wallet: AccountWalletObject): boolean =>
 /**
  * Determines the row variant (trailing actions) for a wallet.
  * - Entropy / HD: Hide toggle only.
- * - Hardware: Hide toggle and remove action.
+ * - Hardware: Remove action only (hardware accounts are not hideable).
  * - Imported private key: Remove action only.
  * - Snap / unknown: No trailing action.
  *
@@ -82,7 +90,7 @@ const getWalletRowVariant = (
         return ManageAccountRowVariant.Remove;
       }
       if (isHardwareKeyringWallet(wallet)) {
-        return ManageAccountRowVariant.HideAndRemove;
+        return ManageAccountRowVariant.Remove;
       }
       return ManageAccountRowVariant.None;
     default:
@@ -131,7 +139,7 @@ interface UseManageAccountsViewResult {
 const useManageAccountsView = (
   deps: UseManageAccountsViewDeps = {},
 ): UseManageAccountsViewResult => {
-  const { navigateToDeleteAccount } = deps;
+  const { navigateToDeleteAccount, navigateToRemoveHardwareAccount } = deps;
   const accountSections = useSelector(selectAccountGroupsByWallet);
   const hiddenGroupIds = useSelector(
     selectHiddenAccountGroupIds,
@@ -184,8 +192,8 @@ const useManageAccountsView = (
   );
 
   /**
-   * Handles removing an account group (opens delete confirmation for imported
-   * accounts, shows alert and removes for hardware accounts).
+   * Handles removing an account group (opens the appropriate confirmation
+   * sheet for imported and hardware accounts).
    */
   const onRemoveAccount = useCallback(
     (groupId: AccountGroupId) => {
@@ -201,46 +209,28 @@ const useManageAccountsView = (
         return;
       }
 
+      const accountId = group.accounts[0];
+      const account = accountId ? internalAccountsById[accountId] : undefined;
+      if (!account) {
+        return;
+      }
+
       if (isPrivateKeyWallet(section.wallet)) {
         // Imported group → delete-account confirmation sheet.
-        const accountId = group.accounts[0];
-        const account = accountId ? internalAccountsById[accountId] : undefined;
-        if (account) {
-          navigateToDeleteAccount?.(account);
-        }
+        navigateToDeleteAccount?.(account);
         return;
       }
 
       if (isHardwareKeyringWallet(section.wallet)) {
-        // Hardware group → confirm Alert, then remove from the keyring.
-        const accountId = group.accounts[0];
-        const account = accountId ? internalAccountsById[accountId] : undefined;
-        if (!account) {
-          return;
-        }
-        const { type: keyringType } = section.wallet.metadata.keyring;
-        Alert.alert(
-          strings('accounts.remove_hardware_account'),
-          strings('accounts.remove_hw_account_alert_description'),
-          [
-            {
-              text: strings('accounts.remove_account_alert_cancel_btn'),
-              style: 'cancel',
-            },
-            {
-              text: strings('accounts.remove_account_alert_remove_btn'),
-              onPress: async () => {
-                await removeHardwareAccount({
-                  address: account.address,
-                  keyringType,
-                });
-              },
-            },
-          ],
-        );
+        navigateToRemoveHardwareAccount?.(account, group);
       }
     },
-    [accountSections, internalAccountsById, navigateToDeleteAccount],
+    [
+      accountSections,
+      internalAccountsById,
+      navigateToDeleteAccount,
+      navigateToRemoveHardwareAccount,
+    ],
   );
 
   /**

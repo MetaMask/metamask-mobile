@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import useManageAccountsView from './useManageAccountsView';
@@ -25,10 +26,20 @@ const ManageAccounts = () => {
   } = useManageAccountsView({
     navigateToDeleteAccount: useCallback(
       (account: InternalAccount) => {
-        navigation.navigate(
-          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
-          { account },
-        );
+        navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+          screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
+          params: { account },
+        });
+      },
+      [navigation],
+    ),
+    navigateToRemoveHardwareAccount: useCallback(
+      (account: InternalAccount, accountGroup: AccountGroupObject) => {
+        navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
+          screen:
+            Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REMOVE_HARDWARE_ACCOUNT,
+          params: { account, accountGroup },
+        });
       },
       [navigation],
     ),

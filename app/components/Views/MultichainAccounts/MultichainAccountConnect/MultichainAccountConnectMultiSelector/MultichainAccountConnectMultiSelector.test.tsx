@@ -1,13 +1,19 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { AccountGroupId } from '@metamask/account-api';
+import {
+  AccountGroupType,
+  AccountWalletType,
+} from '@metamask/account-api';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
-import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector';
+import MultichainAccountConnectMultiSelector, {
+  MultichainAccountConnectMultiSelectorProps,
+} from './MultichainAccountConnectMultiSelector';
 import { ConnectedAccountsSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../../AccountSelector/AccountListBottomSheet.testIds';
@@ -37,6 +43,7 @@ const MOCK_GROUP_ID_1 =
   'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/0' as AccountGroupId;
 const MOCK_GROUP_ID_2 =
   'entropy:01JKAF3DSGM3AB87EM9N0K41AJ/1' as AccountGroupId;
+const MOCK_WALLET_ID = 'entropy:01JKAF3DSGM3AB87EM9N0K41AJ';
 const MOCK_SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
 const mockEvmAccount1 = createMockInternalAccount(
@@ -82,12 +89,55 @@ const mockConnection: ConnectionProps = {
   otherPublicKey: 'test-key',
 };
 
-const createMockState = (): DeepPartial<RootState> => ({
+interface MockWalletTreeInput {
+  groups: {
+    id: string;
+    name: string;
+    hidden?: boolean;
+    accountIds: string[];
+  }[];
+}
+
+const createMockWalletTree = ({
+  groups,
+}: MockWalletTreeInput): Record<string, unknown> => ({
+  [MOCK_WALLET_ID]: {
+    id: MOCK_WALLET_ID,
+    type: AccountWalletType.Entropy,
+    metadata: {
+      name: 'Test Wallet 1',
+      entropy: {
+        id: '01JKAF3DSGM3AB87EM9N0K41AJ',
+      },
+    },
+    groups: groups.reduce<Record<string, unknown>>((acc, group) => {
+      acc[group.id] = {
+        id: group.id,
+        type: AccountGroupType.MultichainAccount,
+        metadata: {
+          name: group.name,
+          pinned: false,
+          hidden: group.hidden ?? false,
+          entropy: {
+            groupIndex: 0,
+          },
+        },
+        accounts: group.accountIds,
+      };
+      return acc;
+    }, {}),
+  },
+});
+
+const createMockState = (
+  walletTree: Record<string, unknown> = {},
+): DeepPartial<RootState> =>
+  ({
   engine: {
     backgroundState: {
       AccountTreeController: {
         accountTree: {
-          wallets: {},
+          wallets: walletTree,
         },
         selectedAccountGroup: MOCK_GROUP_ID_1,
       },
@@ -100,6 +150,9 @@ const createMockState = (): DeepPartial<RootState> => ({
             [mockSolAccount2.id]: mockSolAccount2,
           },
         },
+      },
+      PreferencesController: {
+        privacyMode: false,
       },
       KeyringController: {
         keyrings: [],
@@ -122,7 +175,7 @@ const createMockState = (): DeepPartial<RootState> => ({
       },
     },
   },
-});
+  }) as DeepPartial<RootState>;
 
 const defaultProps = {
   accountGroups: [],
@@ -397,6 +450,92 @@ describe('MultichainAccountConnectMultiSelector', () => {
       // The actual selection logic is handled by MultichainAccountSelectorList
       // We verify the component renders and has the correct test ID
       expect(accountList).toBeDefined();
+    });
+
+    it('renders the account groups passed via the accountGroups prop', () => {
+      const mockAccountGroups = [
+        {
+          id: MOCK_GROUP_ID_1,
+          accounts: [mockEvmAccount1],
+          metadata: { name: 'Account 1', pinned: false, hidden: false },
+        },
+        {
+          id: MOCK_GROUP_ID_2,
+          accounts: [mockEvmAccount2],
+          metadata: { name: 'Account 2', pinned: false, hidden: false },
+        },
+      ] as unknown as MultichainAccountConnectMultiSelectorProps['accountGroups'];
+
+      const walletTree = createMockWalletTree({
+        groups: [
+          {
+            id: MOCK_GROUP_ID_1,
+            name: 'Account 1',
+            accountIds: [mockEvmAccount1.id],
+          },
+          {
+            id: MOCK_GROUP_ID_2,
+            name: 'Account 2',
+            accountIds: [mockEvmAccount2.id],
+          },
+        ],
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <MultichainAccountConnectMultiSelector
+          {...defaultProps}
+          accountGroups={mockAccountGroups}
+        />,
+        { state: createMockState(walletTree) },
+      );
+
+      expect(getByText('Account 1')).toBeOnTheScreen();
+      expect(getByText('Account 2')).toBeOnTheScreen();
+      expect(queryByText('Wallet 1')).toBeNull();
+    });
+
+    it('still lists hidden account groups that are already connected (default-selected)', () => {
+      // Group 2 is hidden but already connected — it must stay listed so the
+      // user can keep or revoke its permissions.
+      const mockAccountGroups = [
+        {
+          id: MOCK_GROUP_ID_1,
+          accounts: [mockEvmAccount1],
+          metadata: { name: 'Account 1', pinned: false, hidden: false },
+        },
+        {
+          id: MOCK_GROUP_ID_2,
+          accounts: [mockEvmAccount2],
+          metadata: { name: 'Account 2', pinned: false, hidden: true },
+        },
+      ] as unknown as MultichainAccountConnectMultiSelectorProps['accountGroups'];
+
+      const walletTree = createMockWalletTree({
+        groups: [
+          {
+            id: MOCK_GROUP_ID_1,
+            name: 'Account 1',
+            accountIds: [mockEvmAccount1.id],
+          },
+          {
+            id: MOCK_GROUP_ID_2,
+            name: 'Account 2',
+            hidden: true,
+            accountIds: [mockEvmAccount2.id],
+          },
+        ],
+      });
+
+      const { getByText } = renderWithProvider(
+        <MultichainAccountConnectMultiSelector
+          {...defaultProps}
+          accountGroups={mockAccountGroups}
+          defaultSelectedAccountGroupIds={[MOCK_GROUP_ID_1, MOCK_GROUP_ID_2]}
+        />,
+        { state: createMockState(walletTree) },
+      );
+
+      expect(getByText('Account 2')).toBeOnTheScreen();
     });
   });
 
