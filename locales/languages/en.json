@@ -5564,7 +5564,7 @@
     "contract": "Contract ({{address}})",
     "contract_name": "Contract name:",
     "contract_address": "Contract address:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
+    "invalid_contract_address": "Contract address is invalid. Enter a new one",
     "contract_allowance": "Allowance:",
     "data": "Data",
     "function_approve": "Function: Approve",
