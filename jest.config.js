@@ -67,6 +67,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/assets-controllers',
   '@metamask/base-controller',
   '@metamask/base-data-service',
+  '@metamask/bridge-controller',
+  '@metamask/bridge-status-controller',
   '@metamask/client-controller',
   '@metamask/config-registry-controller',
   '@metamask/controller-utils',
