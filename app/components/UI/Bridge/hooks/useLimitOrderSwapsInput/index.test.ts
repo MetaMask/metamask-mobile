@@ -29,28 +29,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../useBridgeQuoteData/BridgeQuoteDataContext', () => ({
-  useBridgeQuoteDataContext: () => ({
-    destTokenAmount: undefined,
-    isLoading: false,
-  }),
-}));
-
-const mockUpdateQuoteParams = Object.assign(jest.fn(), { cancel: jest.fn() });
-jest.mock('../useBridgeQuoteRequest', () => ({
-  useBridgeQuoteRequest: () => mockUpdateQuoteParams,
-}));
-
 jest.mock('../useIsNetworkEnabled', () => ({
   useIsNetworkEnabled: () => true,
 }));
 
-let mockIsHardwareWallet = false;
-jest.mock('../useIsHardwareWalletForBridge', () => ({
-  useIsHardwareWalletForBridge: () => mockIsHardwareWallet,
-}));
-
 const mockSyncFiatAmountToTokenAmount = jest.fn();
+const mockResetToTokenMode = jest.fn();
 jest.mock('../useSourceAmountInput', () => ({
   useSourceAmountInput: () => ({
     amount: '',
@@ -66,14 +50,16 @@ jest.mock('../useSourceAmountInput', () => ({
     keypadCurrency: undefined,
     keypadDecimals: 18,
     handleKeypadChange: jest.fn(),
-    resetToTokenMode: jest.fn(),
+    resetToTokenMode: mockResetToTokenMode,
     syncFiatAmountToTokenAmount: mockSyncFiatAmountToTokenAmount,
     isFiatMode: false,
   }),
 }));
 
+const mockSwitchTokens = jest.fn(() => Promise.resolve());
+const mockHandleSwitchTokens = jest.fn(() => mockSwitchTokens);
 jest.mock('../useSwitchTokens', () => ({
-  useSwitchTokens: () => ({ handleSwitchTokens: jest.fn(() => jest.fn()) }),
+  useSwitchTokens: () => ({ handleSwitchTokens: mockHandleSwitchTokens }),
 }));
 
 import { useSelector } from 'react-redux';
@@ -123,7 +109,7 @@ const renderLimitOrderSwapInputsHook = (
 describe('useLimitOrderSwapInputs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsHardwareWallet = false;
+    mockHandleSwitchTokens.mockReturnValue(mockSwitchTokens);
   });
 
   it('always resets source/dest to ETH/mUSD on mount when Ethereum is enabled', () => {
@@ -230,8 +216,8 @@ describe('useLimitOrderSwapInputs', () => {
     });
   });
 
-  describe('isQuoteSponsored', () => {
-    it('is true when both tokens are on the same gas-sponsored chain', () => {
+  describe('isSourceNetworkGasSponsored', () => {
+    it('is true when the source token chain is gas sponsored', () => {
       const sourceToken = createMockToken({ chainId: '0x279f' });
       const destToken = createMockToken({
         chainId: '0x279f',
@@ -244,10 +230,12 @@ describe('useLimitOrderSwapInputs', () => {
         ['0x279f'],
       );
 
-      expect(result.current.isQuoteSponsored).toBe(true);
+      expect(result.current.isSourceNetworkGasSponsored).toBe(true);
     });
 
-    it('is false when the tokens are on different chains', () => {
+    it('is true when only the source chain is sponsored and the destination is on another chain', () => {
+      // Sponsorship is read from the source chain alone: limit orders no longer
+      // request a quote, so there is no single-chain quote to qualify.
       const sourceToken = createMockToken({ chainId: '0x279f' });
       const destToken = createMockToken({
         chainId: '0x1',
@@ -257,13 +245,13 @@ describe('useLimitOrderSwapInputs', () => {
       const { result } = renderLimitOrderSwapInputsHook(
         { sourceToken, destToken, sourceAmount: undefined },
         ENABLED_CHAIN_IDS,
-        ['0x279f', '0x1'],
+        ['0x279f'],
       );
 
-      expect(result.current.isQuoteSponsored).toBe(false);
+      expect(result.current.isSourceNetworkGasSponsored).toBe(true);
     });
 
-    it('is false when the shared chain is not gas sponsored', () => {
+    it('is false when the source chain is not gas sponsored', () => {
       const sourceToken = createMockToken({ chainId: '0x1' });
       const destToken = createMockToken({ chainId: '0x1', address: '0xdest' });
 
@@ -273,29 +261,56 @@ describe('useLimitOrderSwapInputs', () => {
         [],
       );
 
-      expect(result.current.isQuoteSponsored).toBe(false);
+      expect(result.current.isSourceNetworkGasSponsored).toBe(false);
+    });
+
+    it('is false when there is no source token', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: undefined,
+          destToken: undefined,
+          sourceAmount: undefined,
+        },
+        ENABLED_CHAIN_IDS,
+        ['0x279f'],
+      );
+
+      expect(result.current.isSourceNetworkGasSponsored).toBe(false);
     });
   });
 
-  describe('quote requests', () => {
-    const validInputs = {
-      sourceToken: getNativeSourceToken('eip155:1'),
-      destToken: createMockToken({ address: '0xdest', symbol: 'mUSD' }),
-      sourceAmount: '1',
-    };
+  describe('handleFlipTokensPress', () => {
+    it('switches the tokens with the destination amount so it becomes the source amount', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: getNativeSourceToken('eip155:1'),
+          destToken: createMockToken({ address: '0xdest', symbol: 'mUSD' }),
+          sourceAmount: '1',
+        },
+        ENABLED_CHAIN_IDS,
+      );
 
-    it('requests a quote once the inputs are complete', () => {
-      renderLimitOrderSwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
+      result.current.handleFlipTokensPress('3000');
 
-      expect(mockUpdateQuoteParams).toHaveBeenCalled();
+      expect(mockResetToTokenMode).toHaveBeenCalledTimes(1);
+      expect(mockHandleSwitchTokens).toHaveBeenCalledWith('3000');
+      expect(mockSwitchTokens).toHaveBeenCalledTimes(1);
     });
 
-    it('never requests a quote for a hardware wallet account', () => {
-      mockIsHardwareWallet = true;
+    it('switches the tokens without an amount so the source input is cleared', () => {
+      const { result } = renderLimitOrderSwapInputsHook(
+        {
+          sourceToken: getNativeSourceToken('eip155:1'),
+          destToken: createMockToken({ address: '0xdest', symbol: 'mUSD' }),
+          sourceAmount: '1',
+        },
+        ENABLED_CHAIN_IDS,
+      );
 
-      renderLimitOrderSwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
+      result.current.handleFlipTokensPress();
 
-      expect(mockUpdateQuoteParams).not.toHaveBeenCalled();
+      expect(mockHandleSwitchTokens).toHaveBeenCalledWith(undefined);
+      expect(mockSwitchTokens).toHaveBeenCalledTimes(1);
     });
   });
 

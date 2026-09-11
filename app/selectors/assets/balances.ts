@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import {
-  calculateBalanceForAllWallets,
   type TokenBalancesControllerState,
   type TokenRatesControllerState,
   type MultichainBalancesControllerState,
@@ -9,7 +8,6 @@ import {
   type CurrencyRateState,
   type BalanceChangeResult,
   calculateBalanceChangeForAllWallets,
-  calculateBalanceChangeForAccountGroup,
   type BalanceChangePeriod,
   MultichainAssetsControllerState,
 } from '@metamask/assets-controllers';
@@ -63,7 +61,6 @@ import {
   selectSelectedInternalAccountId,
 } from '../accountsController';
 import type { NetworkConfig } from '@metamask/network-enablement-controller';
-import { selectIsAssetsUnifyStateEnabled } from '../featureFlagController/assetsUnifyState';
 import { selectAssetsControllerStateForBalances } from './assets-controller';
 import { augmentArcExcludedAssets } from '../../enablement/assets/arc';
 import { filterExcludedTokenBalances } from '../../enablement/assets/networks-customization';
@@ -278,105 +275,30 @@ const selectNetworksMapForBalances = (
 export const selectBalanceForAllWallets = (popularChainIds?: CaipChainId[]) =>
   createSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
       selectAssetsControllerStateForBalances,
       selectAccountTreeStateForBalances,
-      selectAccountsStateForBalances,
-      selectTokenBalancesStateForBalances,
-      selectTokenRatesStateForBalances,
-      selectMultichainAssetsRatesStateForBalances,
-      selectMultichainBalancesStateForBalances,
-      selectMultichainAssetsControllerStateForBalances,
-      selectTokensStateForBalances,
-      selectCurrencyRateStateForBalances,
       selectNetworksMapForBalances(popularChainIds),
-      selectNetworkConfigurations,
     ],
     (
-      isAssetsUnifyStateEnabled: boolean,
       assetsControllerState: AssetsControllerState,
       accountTreeState: AccountTreeControllerState,
-      accountsState: AccountsControllerState,
-      tokenBalancesState: TokenBalancesControllerState,
-      tokenRatesState: TokenRatesControllerState,
-      multichainRatesState: MultichainAssetsRatesControllerState,
-      multichainBalancesState: MultichainBalancesControllerState,
-      multichainAssetsControllerState: MultichainAssetsControllerState,
-      tokensState: TokensControllerState,
-      currencyRateState: CurrencyRateState,
       enabledNetworkMap: Record<string, Record<string, boolean>> | undefined,
-      networkConfigurationsByChainId: Record<string, NetworkConfig>,
-    ) => {
-      if (isAssetsUnifyStateEnabled) {
-        return calculateBalanceForAllWalletsFromUnified(
-          augmentAssetsControllerStateForBalances(assetsControllerState),
-          accountTreeState,
-          enabledNetworkMap,
-        );
-      }
-      return calculateBalanceForAllWallets(
+    ) =>
+      calculateBalanceForAllWalletsFromUnified(
+        augmentAssetsControllerStateForBalances(assetsControllerState),
         accountTreeState,
-        accountsState,
-        tokenBalancesState,
-        tokenRatesState,
-        multichainRatesState,
-        multichainBalancesState,
-        multichainAssetsControllerState,
-        tokensState,
-        currencyRateState,
         enabledNetworkMap,
-        networkConfigurationsByChainId,
-      );
-    },
+      ),
   );
 
 export const selectBalanceForAllWalletsAndChains = createSelector(
-  [
-    selectIsAssetsUnifyStateEnabled,
-    selectAssetsControllerStateForBalances,
-    selectAccountTreeStateForBalances,
-    selectAccountsStateForBalances,
-    selectTokenBalancesStateForBalances,
-    selectTokenRatesStateForBalances,
-    selectMultichainAssetsRatesStateForBalances,
-    selectMultichainBalancesStateForBalances,
-    selectMultichainAssetsControllerStateForBalances,
-    selectTokensStateForBalances,
-    selectCurrencyRateStateForBalances,
-  ],
-  (
-    isAssetsUnifyStateEnabled,
-    assetsControllerState,
-    accountTreeState,
-    accountsState,
-    tokenBalancesState,
-    tokenRatesState,
-    multichainRatesState,
-    multichainBalancesState,
-    multichainAssetsControllerState,
-    tokensState,
-    currencyRateState,
-  ) => {
-    if (isAssetsUnifyStateEnabled) {
-      return calculateBalanceForAllWalletsFromUnified(
-        augmentAssetsControllerStateForBalances(assetsControllerState),
-        accountTreeState,
-        undefined,
-      );
-    }
-    return calculateBalanceForAllWallets(
+  [selectAssetsControllerStateForBalances, selectAccountTreeStateForBalances],
+  (assetsControllerState, accountTreeState) =>
+    calculateBalanceForAllWalletsFromUnified(
+      augmentAssetsControllerStateForBalances(assetsControllerState),
       accountTreeState,
-      accountsState,
-      tokenBalancesState,
-      tokenRatesState,
-      multichainRatesState,
-      multichainBalancesState,
-      multichainAssetsControllerState,
-      tokensState,
-      currencyRateState,
       undefined,
-    );
-  },
+    ),
 );
 
 export const selectBalanceByAccountGroup = (groupId: string) =>
@@ -495,34 +417,16 @@ export const selectUnifiedBalanceBySelectedAccountGroup = (
  */
 const selectRawAccountGroupBalanceForEmptyState = createSelector(
   [
-    selectIsAssetsUnifyStateEnabled,
     selectAssetsControllerStateForBalances,
     selectSelectedAccountGroupId,
     selectNetworkConfigurationsByCaipChainId,
     selectAccountTreeStateForBalances,
-    selectAccountsStateForBalances,
-    selectTokenBalancesStateForBalances,
-    selectTokenRatesStateForBalances,
-    selectMultichainAssetsRatesStateForBalances,
-    selectMultichainBalancesStateForBalances,
-    selectMultichainAssetsControllerStateForBalances,
-    selectTokensStateForBalances,
-    selectCurrencyRateStateForBalances,
   ],
   (
-    isAssetsUnifyStateEnabled,
     assetsControllerState,
     selectedGroupId,
     networkConfigurationsByChainId,
     accountTreeState,
-    accountsState,
-    tokenBalancesState,
-    tokenRatesState,
-    multichainRatesState,
-    multichainBalancesState,
-    multichainAssetsControllerState,
-    tokensState,
-    currencyRateState,
   ) => {
     if (!selectedGroupId) {
       return null;
@@ -574,24 +478,11 @@ const selectRawAccountGroupBalanceForEmptyState = createSelector(
     });
 
     // Calculate balance using the mainnet-only network map
-    const allBalances = isAssetsUnifyStateEnabled
-      ? calculateBalanceForAllWalletsFromUnified(
-          augmentAssetsControllerStateForBalances(assetsControllerState),
-          accountTreeState,
-          enabledNetworkMap,
-        )
-      : calculateBalanceForAllWallets(
-          accountTreeState,
-          accountsState,
-          tokenBalancesState,
-          tokenRatesState,
-          multichainRatesState,
-          multichainBalancesState,
-          multichainAssetsControllerState,
-          tokensState,
-          currencyRateState,
-          enabledNetworkMap,
-        );
+    const allBalances = calculateBalanceForAllWalletsFromUnified(
+      augmentAssetsControllerStateForBalances(assetsControllerState),
+      accountTreeState,
+      enabledNetworkMap,
+    );
 
     // Extract account group balance across mainnet networks
     const walletId = selectedGroupId.split('/')[0];
@@ -684,57 +575,22 @@ export const selectBalanceChangeByAccountGroup = (
 ) =>
   createSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
       selectAssetsControllerStateForBalances,
       selectAccountTreeStateForBalances,
-      selectAccountsStateForBalances,
-      selectTokenBalancesStateForBalances,
-      selectTokenRatesStateForBalances,
-      selectMultichainAssetsRatesStateForBalances,
-      selectMultichainBalancesStateForBalances,
-      selectMultichainAssetsControllerStateForBalances,
-      selectTokensStateForBalances,
-      selectCurrencyRateStateForBalances,
       selectNetworksMapForBalances(popularChainIds),
     ],
     (
-      isAssetsUnifyStateEnabled,
       assetsControllerState,
       accountTreeState,
-      accountsState,
-      tokenBalancesState,
-      tokenRatesState,
-      multichainRatesState,
-      multichainBalancesState,
-      multichainAssetsControllerState,
-      tokensState,
-      currencyRateState,
       enabledNetworkMap,
-    ): BalanceChangeResult => {
-      if (isAssetsUnifyStateEnabled) {
-        return calculateBalanceChangeForAccountGroupFromUnified(
-          augmentAssetsControllerStateForBalances(assetsControllerState),
-          accountTreeState,
-          groupId,
-          period,
-          enabledNetworkMap,
-        );
-      }
-      return calculateBalanceChangeForAccountGroup(
+    ): BalanceChangeResult =>
+      calculateBalanceChangeForAccountGroupFromUnified(
+        augmentAssetsControllerStateForBalances(assetsControllerState),
         accountTreeState,
-        accountsState,
-        tokenBalancesState,
-        tokenRatesState,
-        multichainRatesState,
-        multichainBalancesState,
-        multichainAssetsControllerState,
-        tokensState,
-        currencyRateState,
-        enabledNetworkMap,
         groupId,
         period,
-      );
-    },
+        enabledNetworkMap,
+      ),
   );
 
 export const selectBalancePercentChangeByAccountGroup = (
@@ -753,60 +609,26 @@ export const selectBalanceChangeBySelectedAccountGroup = (
 ) => {
   const selectRawBalanceChange = createSelector(
     [
-      selectIsAssetsUnifyStateEnabled,
       selectAssetsControllerStateForBalances,
       selectSelectedAccountGroupId,
       selectAccountTreeStateForBalances,
-      selectAccountsStateForBalances,
-      selectTokenBalancesStateForBalances,
-      selectTokenRatesStateForBalances,
-      selectMultichainAssetsRatesStateForBalances,
-      selectMultichainBalancesStateForBalances,
-      selectMultichainAssetsControllerStateForBalances,
-      selectTokensStateForBalances,
-      selectCurrencyRateStateForBalances,
       selectNetworksMapForBalances(popularChainIds),
     ],
     (
-      isAssetsUnifyStateEnabled,
       assetsControllerState,
       selectedGroupId,
       accountTreeState,
-      accountsState,
-      tokenBalancesState,
-      tokenRatesState,
-      multichainRatesState,
-      multichainBalancesState,
-      multichainAssetsControllerState,
-      tokensState,
-      currencyRateState,
       enabledNetworkMap,
     ): BalanceChangeResult | null => {
       if (!selectedGroupId) {
         return null;
       }
-      if (isAssetsUnifyStateEnabled) {
-        return calculateBalanceChangeForAccountGroupFromUnified(
-          augmentAssetsControllerStateForBalances(assetsControllerState),
-          accountTreeState,
-          selectedGroupId,
-          period,
-          enabledNetworkMap,
-        );
-      }
-      return calculateBalanceChangeForAccountGroup(
+      return calculateBalanceChangeForAccountGroupFromUnified(
+        augmentAssetsControllerStateForBalances(assetsControllerState),
         accountTreeState,
-        accountsState,
-        tokenBalancesState,
-        tokenRatesState,
-        multichainRatesState,
-        multichainBalancesState,
-        multichainAssetsControllerState,
-        tokensState,
-        currencyRateState,
-        enabledNetworkMap,
         selectedGroupId,
         period,
+        enabledNetworkMap,
       );
     },
   );
