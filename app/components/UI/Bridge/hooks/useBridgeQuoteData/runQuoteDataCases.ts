@@ -292,7 +292,6 @@ export const runQuoteDataCases = ({
       expect(mockTrace).not.toHaveBeenCalled();
     });
 
-    // if (name === 'useBridgeQuoteData') {
     it('returns quote data when invoked with no arguments', () => {
       selectBridgeQuotes.mockImplementation(() => ({
         ...defaultSelectBridgeQuotesResults,
@@ -334,7 +333,6 @@ export const runQuoteDataCases = ({
       }
       expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
     });
-    // }
 
     it.each([
       [true, false, false],

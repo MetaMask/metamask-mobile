@@ -234,7 +234,6 @@ runQuoteRequestCases({
 runQuoteDataCases({
   name: 'useQuoteData',
   mockDispatch,
-
   renderHook: (options) =>
     // @ts-expect-error - this returns quote data
     renderHook(() => useSwapQuotes(), {

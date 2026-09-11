@@ -6,11 +6,6 @@ import type { DebounceSettings } from 'lodash';
 import { FeatureId } from '@metamask/bridge-controller';
 import { DEBOUNCE_WAIT } from '../../Views/BridgeView/BridgeView.constants';
 
-/**
- * Unit fallback: debounce, swap-quote traces, and BridgeController request
- * params cannot be driven from CV without a live quote stream.
- */
-
 jest.mock('lodash', () => {
   const actual = jest.requireActual<typeof import('lodash')>('lodash');
 
