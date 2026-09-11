@@ -53,6 +53,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   'd3-axis',
   'd3-transition',
   'internmap',
+  'lodash-es',
   'react-native-wagmi-charts',
   'react-native-nitro-modules',
   '@notifee',
