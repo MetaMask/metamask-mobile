@@ -18,6 +18,7 @@ import {
   selectMusdBalanceChainIds,
   MUSD_BALANCE_CHAIN_IDS_FALLBACK,
   selectExploreEarnSectionEnabledFlag,
+  selectEarnTradeMenuRowRedesignEnabled,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { Json } from '@metamask/utils';
@@ -2270,6 +2271,83 @@ describe('Earn Feature Flag Selectors', () => {
       process.env.MM_EXPLORE_EARN_SECTION_ENABLED = 'false';
 
       const result = selectExploreEarnSectionEnabledFlag(mockedEmptyFlagsState);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectEarnTradeMenuRowRedesignEnabled', () => {
+    it('returns true when remote flag is enabled and version check passes', () => {
+      process.env.MM_EARN_TRADE_MENU_ROW_REDESIGN_ENABLED = 'false';
+
+      const stateWithEnabledRemoteFlag = createStateWithRemoteFlags({
+        earnTradeMenuRowRedesignEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result = selectEarnTradeMenuRowRedesignEnabled(
+        stateWithEnabledRemoteFlag,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is disabled', () => {
+      process.env.MM_EARN_TRADE_MENU_ROW_REDESIGN_ENABLED = 'true';
+
+      const stateWithDisabledRemoteFlag = createStateWithRemoteFlags({
+        earnTradeMenuRowRedesignEnabled: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result = selectEarnTradeMenuRowRedesignEnabled(
+        stateWithDisabledRemoteFlag,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag minimum version is not met', () => {
+      process.env.MM_EARN_TRADE_MENU_ROW_REDESIGN_ENABLED = 'true';
+
+      const stateWithVersionMismatch = createStateWithRemoteFlags({
+        earnTradeMenuRowRedesignEnabled: {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        },
+      });
+
+      const result = selectEarnTradeMenuRowRedesignEnabled(
+        stateWithVersionMismatch,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('falls back to local flag when remote flag is invalid', () => {
+      process.env.MM_EARN_TRADE_MENU_ROW_REDESIGN_ENABLED = 'true';
+
+      const stateWithInvalidRemoteFlag = createStateWithRemoteFlags({
+        earnTradeMenuRowRedesignEnabled: null,
+      });
+
+      const result = selectEarnTradeMenuRowRedesignEnabled(
+        stateWithInvalidRemoteFlag,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('falls back to false when remote flag is unavailable and local flag is disabled', () => {
+      process.env.MM_EARN_TRADE_MENU_ROW_REDESIGN_ENABLED = 'false';
+
+      const result = selectEarnTradeMenuRowRedesignEnabled(
+        mockedEmptyFlagsState,
+      );
 
       expect(result).toBe(false);
     });

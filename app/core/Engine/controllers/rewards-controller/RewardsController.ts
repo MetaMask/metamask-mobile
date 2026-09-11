@@ -31,6 +31,7 @@ import {
   type PerpsTradingCampaignLeaderboardDto,
   type PerpsTradingCampaignLeaderboardPositionDto,
   type PerpsTradingCampaignVolumeDto,
+  type PerpsTradingCampaignPrizePoolDto,
   type PaginatedOndoGmActivityDto,
   type PerpsTradingCampaignParticipantOutcomeDto,
   type PredictThePitchLeaderboardDto,
@@ -195,6 +196,9 @@ const PERPS_TRADING_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 0;
 // Perps Trading Campaign volume cache threshold
 const PERPS_TRADING_CAMPAIGN_VOLUME_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
+// Perps Trading Campaign prize pool cache threshold
+const PERPS_TRADING_CAMPAIGN_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
 // Perps Trading participant outcome cache threshold
 const PERPS_TRADING_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
@@ -345,6 +349,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   perpsTradingCampaignVolume: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  perpsTradingCampaignPrizePool: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -594,6 +604,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPerpsTradingCampaignLeaderboard',
   'getPerpsTradingCampaignLeaderboardPosition',
   'getPerpsTradingCampaignVolume',
+  'getPerpsTradingCampaignPrizePool',
   'getOptInStatus',
   'getPerpsTradingCampaignParticipantOutcome',
   'getPredictThePitchLeaderboard',
@@ -6097,6 +6108,7 @@ export class RewardsController extends BaseController<
             entries: cached.entries,
             totalParticipants: cached.totalParticipants,
             minVolumeForEligibility: cached.minVolumeForEligibility,
+            numberOfWinners: cached.numberOfWinners,
           },
           lastFetched: cached.lastFetched,
         };
@@ -6118,6 +6130,7 @@ export class RewardsController extends BaseController<
             entries: payload.entries,
             totalParticipants: payload.totalParticipants,
             minVolumeForEligibility: payload.minVolumeForEligibility,
+            numberOfWinners: payload.numberOfWinners,
             lastFetched: Date.now(),
           };
         });
@@ -6254,6 +6267,68 @@ export class RewardsController extends BaseController<
         this.update((state) => {
           state.perpsTradingCampaignVolume[k] = {
             totalUsdVolume: payload.totalUsdVolume,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the perps trading campaign prize ladder and currently unlocked pool.
+   * This is a public endpoint - no authentication required.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get the prize pool for.
+   * @returns The prize pool schedule and unlocked amount for the campaign.
+   */
+  async getPerpsTradingCampaignPrizePool(
+    campaignId: string,
+  ): Promise<PerpsTradingCampaignPrizePoolDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        totalVolumeUsd: 0,
+        unlockedPoolUsd: 0,
+        thresholdsUsd: [],
+        poolScheduleUsd: [],
+        computedAt: null,
+      };
+    }
+
+    const result = await wrapWithCache<PerpsTradingCampaignPrizePoolDto>({
+      key: campaignId,
+      ttl: PERPS_TRADING_CAMPAIGN_PRIZE_POOL_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.perpsTradingCampaignPrizePool[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            totalVolumeUsd: cached.totalVolumeUsd,
+            unlockedPoolUsd: cached.unlockedPoolUsd,
+            thresholdsUsd: cached.thresholdsUsd,
+            poolScheduleUsd: cached.poolScheduleUsd,
+            computedAt: cached.computedAt,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh perps trading campaign prize pool via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getPerpsTradingCampaignPrizePool',
+          campaignId,
+        )) as PerpsTradingCampaignPrizePoolDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.perpsTradingCampaignPrizePool[k] = {
+            totalVolumeUsd: payload.totalVolumeUsd,
+            unlockedPoolUsd: payload.unlockedPoolUsd,
+            thresholdsUsd: payload.thresholdsUsd,
+            poolScheduleUsd: payload.poolScheduleUsd,
+            computedAt: payload.computedAt,
             lastFetched: Date.now(),
           };
         });

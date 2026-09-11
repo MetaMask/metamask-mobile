@@ -142,6 +142,12 @@ jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
   }),
 }));
 
+jest.mock('./socialLeaderboardOnboardingNavigation', () => ({
+  getFollowTradingHomeRoute: () =>
+    jest.requireActual('../../../../constants/navigation/Routes').default.SOCIAL
+      .V0,
+}));
+
 const makeTrader = (overrides: Partial<TopTrader> = {}): TopTrader => ({
   id: 'profile-1',
   address: '0xabc',
@@ -758,7 +764,7 @@ describe('SocialLeaderboardOnboarding', () => {
     // The user's real tap afterwards completes the flow.
     await fireTrigger(RIVE_TRIGGERS.GOT_IT);
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL.V0, { source: 'nux' }),
     );
   });
 
@@ -779,7 +785,7 @@ describe('SocialLeaderboardOnboarding', () => {
     await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
     expect(mockRequestPushPermission).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+      StackActions.replace(Routes.SOCIAL.V0, {
         source: 'nux',
         showNotificationsBanner: false,
       }),
@@ -822,7 +828,7 @@ describe('SocialLeaderboardOnboarding', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+      StackActions.replace(Routes.SOCIAL.V0, {
         source: 'nux',
         showNotificationsBanner: false,
       }),
@@ -853,7 +859,7 @@ describe('SocialLeaderboardOnboarding', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+      StackActions.replace(Routes.SOCIAL.V0, {
         source: 'nux',
         showNotificationsBanner: false,
       }),
@@ -894,7 +900,7 @@ describe('SocialLeaderboardOnboarding', () => {
     // Still completes the flow (user is never ejected) and asks the leaderboard
     // to surface the "turn on notifications" banner.
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+      StackActions.replace(Routes.SOCIAL.V0, {
         source: 'nux',
         showNotificationsBanner: true,
       }),
@@ -939,7 +945,7 @@ describe('SocialLeaderboardOnboarding', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL.V0, { source: 'nux' }),
     );
   });
 
@@ -970,7 +976,7 @@ describe('SocialLeaderboardOnboarding', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL.V0, { source: 'nux' }),
     );
   });
 
@@ -987,7 +993,7 @@ describe('SocialLeaderboardOnboarding', () => {
     // The user's real tap afterwards completes the flow.
     await fireTrigger(RIVE_TRIGGERS.GOT_IT_2);
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL.V0, { source: 'nux' }),
     );
   });
 
@@ -1025,7 +1031,7 @@ describe('SocialLeaderboardOnboarding', () => {
     await fireTrigger(RIVE_TRIGGERS.GOT_IT);
     expect(mockRequestPushPermission).not.toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL.V0, { source: 'nux' }),
     );
   });
 
@@ -1106,7 +1112,7 @@ describe('SocialLeaderboardOnboarding', () => {
       { emitEvent: false },
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL.V0, { source: 'nux' }),
     );
     expect(mockTrack).not.toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,

@@ -70,10 +70,70 @@ describe('MoneyHeader', () => {
     });
   });
 
-  describe('"Join Pro" button', () => {
-    it('is not shown when Pro access is disabled', () => {
-      mockUseMoneyAccountPlusAccess.mockReturnValue(
-        MoneyAccountPlusAccess.Disabled,
+  describe('back button', () => {
+    it('is not rendered without an onBack handler', () => {
+      const { queryByTestId } = render(
+        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+      );
+
+      expect(
+        queryByTestId(MoneyHeaderTestIds.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('is rendered with an onBack handler', () => {
+      const { getByTestId } = render(
+        <MoneyHeader
+          onMenuPress={jest.fn()}
+          onGetProPress={jest.fn()}
+          onBack={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.BACK_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('calls onBack when pressed', () => {
+      const mockOnBack = jest.fn();
+      const { getByTestId } = render(
+        <MoneyHeader
+          onMenuPress={jest.fn()}
+          onGetProPress={jest.fn()}
+          onBack={mockOnBack}
+        />,
+      );
+
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
+
+      expect(mockOnBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the Money title and the menu button alongside it', () => {
+      const { getByTestId } = render(
+        <MoneyHeader
+          onMenuPress={jest.fn()}
+          onGetProPress={jest.fn()}
+          onBack={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.TITLE)).toHaveTextContent(
+        strings('money.title'),
+      );
+      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+    });
+  });
+
+  describe('"Get Pro" button', () => {
+    it('is not shown when the Pro subscription flag is disabled', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: false,
+        variantName: 'control',
+        isActive: false,
+      });
+
+      const { queryByTestId } = render(
+        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
       );
 
       const { queryByTestId } = renderMoneyHeader();

@@ -21,6 +21,7 @@ import MoneyAccountSweepstakesLearnMoreRows from '../components/Campaigns/MoneyA
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetMoneyAccountSweepstakesStatsMe } from '../hooks/useGetMoneyAccountSweepstakesStatsMe';
 import { useMoneyAccountSweepstakesBinding } from '../hooks/useMoneyAccountSweepstakesBinding';
+import { useMoneyAccountSweepstakesIngestLag } from '../hooks/useMoneyAccountSweepstakesIngestLag';
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
@@ -120,6 +121,10 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
     hasError: hasStatsError,
     refetch: refetchStats,
   } = useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
+
+  const { isIngestLagging } = useMoneyAccountSweepstakesIngestLag(
+    stats?.dataAsOf,
+  );
 
   const tileCampaign = useMemo(
     () => buildMoneyAccountSweepstakesTileCampaign(series),
@@ -242,6 +247,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                 isStatsLoading={isStatsLoading}
                 hasStatsError={hasStatsError}
                 onRetryStats={refetchStats}
+                isIngestLagging={isIngestLagging}
               >
                 {optedInAny && (
                   <MoneyAccountSweepstakesCampaignCTA
