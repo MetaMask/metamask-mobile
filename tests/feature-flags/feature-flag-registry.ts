@@ -3499,7 +3499,67 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'earnMoneyDepositCtaTokenAddresses',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: {},
+    productionDefault: {
+      '0x1': [
+        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+        '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+        '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
+        '0x23878914EFE38d27C4D67Ab83ed1b93A74D4086a',
+        '0x018008bfb33d285247A21d44E50697654f754e63',
+      ],
+      '0x2105': [
+        '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
+        '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+        '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
+      ],
+      '0x38': [
+        '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+        '0x55d398326f99059fF775485246999027B3197955',
+        '0x00901a076785e0906d1028c7d6372d247bec7d61',
+        '0xa9251ca9DE909CB71783723713B21E4233fbf1B1',
+      ],
+      '0x89': [
+        '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+        '0xA4D94019934D8333Ef880ABFFbF2FDd611C762BD',
+      ],
+      '0x8f': [
+        '0x754704Bc059F8C67012fEd69BC8A327a5aafb603',
+        '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+      ],
+      '0xa4b1': [
+        '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+        '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+        '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
+        '0x625E7708f30cA75bfd92586e17077590C60eb4cD',
+        '0x724dc807b04555b71ed48a6896b6f41593b8c637',
+      ],
+      '0xe708': [
+        '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+        '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
+        '0x4AF15ec2A0BD43Db75dd04E62FAA3B8EF36b00d5',
+        '0x374D7860c4f2f604De0191298dD393703Cce84f3',
+      ],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyDepositCtaTokens: {
+    name: 'earnMoneyDepositCtaTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      '0x1': ['USDC', 'USDT', 'DAI', 'mUSD', 'aUSDC', 'aUSDT', 'aDAI'],
+      '0x2105': ['USDC', 'USDT', 'DAI', 'aUSDC'],
+      '0x38': ['USDC', 'USDT', 'aUSDC', 'aUSDT'],
+      '0x89': ['USDC', 'aUSDC'],
+      '0x8f': ['USDC', 'mUSD'],
+      '0xa4b1': ['USDC', 'USDT', 'DAI', 'aUSDC', 'aUSDCN'],
+      '0xe708': ['mUSD', 'USDC', 'USDT', 'DAI', 'aUSDC'],
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -3508,8 +3568,24 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.4.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyEarnBannerTokens: {
+    name: 'earnMoneyEarnBannerTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      '0x1': ['USDC', 'USDT', 'DAI', 'mUSD', 'aUSDC', 'aUSDT', 'aDAI'],
+      '0x2105': ['USDC', 'USDT', 'DAI', 'aUSDC'],
+      '0x38': ['USDC', 'USDT', 'aUSDC', 'aUSDT'],
+      '0x89': ['USDC', 'aUSDC'],
+      '0x8f': ['USDC'],
+      '0xa4b1': ['USDC', 'USDT', 'DAI', 'aUSDC', 'aUSDCN'],
+      '0xe708': ['mUSD', 'USDC', 'USDT', 'DAI', 'aUSDC'],
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3517,18 +3593,47 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   earnMoneyEarningSectionEnabled: {
     name: 'earnMoneyEarningSectionEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.6.0',
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  musd1313AbtestEarnSectionOnHomepage: {
+    name: 'musd1313AbtestEarnSectionOnHomepage',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+        thresholdName: 'control',
+        thresholdVersion: 2,
+        value: 'control',
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+        thresholdName: 'treatment',
+        thresholdVersion: 2,
+        value: 'treatment',
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 
   earnHomeSectionEnabled: {
     name: 'earnHomeSectionEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
@@ -3539,7 +3644,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   earnExploreSectionEnabled: {
     name: 'earnExploreSectionEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
@@ -3552,8 +3657,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.4.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3566,6 +3671,35 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '0.0.0',
       enabled: false,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton: {
+    name: 'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+        thresholdName: 'control',
+        thresholdVersion: 2,
+        value: 'control',
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+        thresholdName: 'treatment',
+        thresholdVersion: 2,
+        value: 'treatment',
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 
@@ -3583,8 +3717,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   earnMoneyCardTiltAnimationEnabled: {
     name: 'earnMoneyCardTiltAnimationEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyCardFlipAnimationEnabled: {
+    name: 'earnMoneyCardFlipAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -3617,18 +3765,35 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     },
     status: FeatureFlagStatus.Active,
   },
+  earnMoneyBalanceAnimationEnabled: {
+    name: 'earnMoneyBalanceAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyParallaxAnimationEnabled: {
     name: 'earnMoneyParallaxAnimationEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.7.0',
+    },
     status: FeatureFlagStatus.Active,
   },
   earnMoneyCardEducationAnimationEnabled: {
     name: 'earnMoneyCardEducationAnimationEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -3647,8 +3812,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '7.74.0',
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3668,8 +3833,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '7.65.0',
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3690,8 +3855,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '7.65.0',
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3730,8 +3895,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '7.65.0',
-      enabled: true,
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3760,8 +3925,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '7.65.0',
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3771,7 +3936,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      chainIds: ['0x1', '0xe708'],
+      chainIds: ['0x1', '0xe708', '0x8f'],
     },
     status: FeatureFlagStatus.Active,
   },
