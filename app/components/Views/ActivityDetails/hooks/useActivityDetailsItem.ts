@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import {
   type ActivityListItem,
+  isPerpsProviderActivityKind,
   preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
@@ -10,6 +11,7 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../selector
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
+import { usePerpsActivityItems } from '../../ActivityList/hooks/usePerpsActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -86,10 +88,17 @@ function buildLocalItemsByLookupKey(
 }
 
 function isProviderBackedItem(item: ActivityListItem): boolean {
-  return (
-    item.raw?.type === 'perpsTransaction' ||
-    item.raw?.type === 'predictActivity'
-  );
+  return item.raw?.type === 'predictActivity';
+}
+
+function getDomainIdentifier(item: ActivityListItem): string | undefined {
+  if (isPerpsProviderActivityKind(item.type)) {
+    return item.hash;
+  }
+  if (item.raw?.type === 'predictActivity' || item.raw?.type === 'rampOrder') {
+    return item.raw.data.id;
+  }
+  return undefined;
 }
 
 function buildItemsByIdentifier(
@@ -97,12 +106,7 @@ function buildItemsByIdentifier(
 ): Map<string, ActivityListItem> {
   const byIdentifier = buildItemsByHash(items);
   for (const item of items) {
-    const domainId =
-      item.raw?.type === 'perpsTransaction' ||
-      item.raw?.type === 'predictActivity' ||
-      item.raw?.type === 'rampOrder'
-        ? item.raw.data.id
-        : undefined;
+    const domainId = getDomainIdentifier(item);
     const normalizedDomainId = domainId?.toLowerCase();
     if (normalizedDomainId && !byIdentifier.has(normalizedDomainId)) {
       byIdentifier.set(normalizedDomainId, item);
@@ -157,6 +161,7 @@ export function useActivityDetailsItem(
 ): ActivityListItem | undefined {
   const localActivityItems = useLocalActivityItems();
   const rampActivityItems = useRampActivityItems();
+  const { items: perpsActivityItems } = usePerpsActivityItems();
   const { data: evmTransactions } = useTransactionsQuery();
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
@@ -209,6 +214,10 @@ export function useActivityDetailsItem(
     () => buildItemsByIdentifier(filterByChain(rampActivityItems, chainId)),
     [rampActivityItems, chainId],
   );
+  const perpsByIdentifier = useMemo(
+    () => buildItemsByIdentifier(filterByChain(perpsActivityItems, chainId)),
+    [perpsActivityItems, chainId],
+  );
 
   return useMemo(() => {
     const id = txIdentifier?.toLowerCase();
@@ -241,9 +250,14 @@ export function useActivityDetailsItem(
     );
     const nonEvmItem = nonEvmByHash.get(id);
     const rampItem = rampByIdentifier.get(id);
+    const perpsItem = perpsByIdentifier.get(id);
 
     if (rampItem) {
       return rampItem;
+    }
+
+    if (perpsItem) {
+      return perpsItem;
     }
 
     if (localItem) {
@@ -274,5 +288,6 @@ export function useActivityDetailsItem(
     nonEvmByHash,
     preloadedByIdentifier,
     rampByIdentifier,
+    perpsByIdentifier,
   ]);
 }

@@ -12,6 +12,7 @@ export type {
   TokenAmount,
 } from './types';
 export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
+export { isPerpsProviderActivityKind } from './perps-activity-kinds';
 export {
   isNftTransferType,
   isUnlimitedApprovalAmount,

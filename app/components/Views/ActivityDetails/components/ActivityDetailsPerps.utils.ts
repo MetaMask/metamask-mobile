@@ -4,7 +4,8 @@ import type {
   ActivityListItem,
   PerpsOrderKind,
 } from '../../../../util/activity-adapters';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuse Perps UI utilities until shared perps utilities are extracted. */
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuse Perps UI utilities until shared perps utilities are extracted.
+import type { PerpsTransaction } from '../../../UI/Perps/types/transactionHistory';
 import {
   formatTransactionDate as formatPerpsTransactionDate,
   formatPerpsFiat,
@@ -12,12 +13,8 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
-/* eslint-enable import-x/no-restricted-paths */
 
-export type PerpsTransaction = Extract<
-  NonNullable<ActivityListItem['raw']>,
-  { type: 'perpsTransaction' }
->['data'];
+export type { PerpsTransaction };
 
 export type PerpsDepositWithdrawalStatus = NonNullable<
   PerpsTransaction['depositWithdrawal']
@@ -43,12 +40,6 @@ export type PerpsActivityType =
 export type PerpsActivityListItem = ActivityListItem & {
   type: PerpsActivityType;
 };
-
-export function getPerpsTransaction(
-  item: ActivityListItem,
-): PerpsTransaction | undefined {
-  return item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
-}
 
 export {
   formatPerpsTransactionDate,
