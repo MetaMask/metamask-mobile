@@ -476,7 +476,7 @@ describe('PerpsProChartPanel', () => {
     expect(selector.props.periodButtonTwClassName).toBe('h-8 rounded-lg px-1');
     expect(selector.props.moreButtonTwClassName).toBe('h-8 rounded-lg px-1');
     expect(selector.props.textVariant).toBe(TextVariant.BodySm);
-    expect(fullscreenButton?.props.size).toBe(ButtonIconSize.Md);
+    expect(fullscreenButton?.props.size).toBe(ButtonIconSize.Sm);
   });
 
   it('forwards a selected Pro candle period', () => {

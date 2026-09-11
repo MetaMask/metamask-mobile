@@ -123,12 +123,15 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
             isSelected: period.value === selectedPeriod,
             variant: filterVariant,
             onPress: () => onPeriodChange?.(period.value),
+            accessibilityState: {
+              selected: period.value === selectedPeriod,
+            },
           }
         : { value: period.value })}
       size={FilterButtonSize.Sm}
       twClassName={
         fillWidth
-          ? `flex-1 ${periodButtonTwClassName ?? ''}`.trim()
+          ? `min-w-0 flex-1 ${periodButtonTwClassName ?? ''}`.trim()
           : periodButtonTwClassName
       }
       textProps={textVariant ? { variant: textVariant } : undefined}
@@ -152,7 +155,11 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
           : SelectButtonVariant.Tertiary
       }
       size={SelectButtonSize.Sm}
-      twClassName={moreButtonTwClassName}
+      twClassName={
+        fillWidth
+          ? `shrink-0 ${moreButtonTwClassName ?? ''}`.trim()
+          : moreButtonTwClassName
+      }
       textProps={textVariant ? { variant: textVariant } : undefined}
       onPress={onMorePress}
       testID={
@@ -168,12 +175,17 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           twClassName={groupTwClassName}
-          accessibilityRole="tablist"
           testID={
             testID ? getCandlePeriodSelectorSelectors.group(testID) : undefined
           }
         >
-          {periodButtons}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="min-w-0 flex-1 gap-2"
+          >
+            {periodButtons}
+          </Box>
           {moreButton}
         </Box>
       ) : (

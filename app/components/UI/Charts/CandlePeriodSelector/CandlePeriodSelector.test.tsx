@@ -210,15 +210,15 @@ describe('CandlePeriodSelector', () => {
       expect(periodButtons).toHaveLength(CUSTOM_CANDLE_PERIODS.length);
       periodButtons.forEach((periodButton) => {
         expect(periodButton.props.twClassName).toBe(
-          'flex-1 h-8 rounded-lg px-1',
+          'min-w-0 flex-1 h-8 rounded-lg px-1',
         );
       });
       expect(UNSAFE_getByType(SelectButton).props.twClassName).toBe(
-        'h-8 rounded-lg px-1',
+        'shrink-0 h-8 rounded-lg px-1',
       );
     });
 
-    it('marks the selected period without the group context', () => {
+    it('marks the selected period as selected for assistive technology', () => {
       const { UNSAFE_getAllByType } = renderWithProvider(
         <CandlePeriodSelector
           selectedPeriod={CandlePeriod.OneHour}
@@ -229,10 +229,17 @@ describe('CandlePeriodSelector', () => {
       );
 
       const selectedStates = UNSAFE_getAllByType(FilterButton).map(
-        (periodButton) => periodButton.props.isSelected,
+        (periodButton) => ({
+          isSelected: periodButton.props.isSelected,
+          accessibilityState: periodButton.props.accessibilityState,
+        }),
       );
 
-      expect(selectedStates).toEqual([false, true, false]);
+      expect(selectedStates).toEqual([
+        { isSelected: false, accessibilityState: { selected: false } },
+        { isSelected: true, accessibilityState: { selected: true } },
+        { isSelected: false, accessibilityState: { selected: false } },
+      ]);
     });
 
     it('routes period presses through onPeriodChange', () => {

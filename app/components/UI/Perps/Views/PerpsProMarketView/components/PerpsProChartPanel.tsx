@@ -413,7 +413,7 @@ const PerpsProChartPanel = ({
                 />
                 <ButtonIcon
                   iconName={IconName.Expand}
-                  size={ButtonIconSize.Md}
+                  size={ButtonIconSize.Sm}
                   onPress={handleFullscreenChartOpen}
                   testID={
                     PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON
