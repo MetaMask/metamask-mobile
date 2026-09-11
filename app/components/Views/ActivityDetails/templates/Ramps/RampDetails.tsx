@@ -3,11 +3,11 @@ import {
   isRampFiatOrder,
   isRampRampsOrder,
   type ActivityListItem,
-} from '../../../../util/activity-adapters';
-import { useRampsDetailsOrder } from './Ramps/useRampsDetailsOrder';
-import { DefaultDetails } from './DefaultDetails';
-import { RampFiatOrderDetails } from './RampFiatOrderDetails';
-import { RampRampsOrderDetails } from './RampRampsOrderDetails';
+} from '../../../../../util/activity-adapters';
+import { useRampsDetailsOrder } from './useRampsDetailsOrder';
+import { DefaultDetails } from '../DefaultDetails';
+import { RampFiatOrderDetails } from '../RampFiatOrderDetails';
+import { RampRampsOrderDetails } from '../RampRampsOrderDetails';
 
 export type RampActivityListItem = ActivityListItem & {
   type: 'buy' | 'sell' | 'rampBuy' | 'rampSell';

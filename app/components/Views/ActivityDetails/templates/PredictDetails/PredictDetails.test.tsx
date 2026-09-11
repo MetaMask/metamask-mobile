@@ -2,12 +2,12 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { PredictActivity } from '#app/components/UI/Predict/types';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
-import Routes from '../../../../constants/navigation/Routes';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
-import { usePredictDetailsItem } from './PredictDetails/usePredictDetailsItem';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
+import Routes from '../../../../../constants/navigation/Routes';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+import { usePredictDetailsItem } from './usePredictDetailsItem';
 import { PredictDetails } from './PredictDetails';
 
 const mockNavigate = jest.fn();
@@ -16,17 +16,17 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('./PredictDetails/usePredictDetailsItem', () => ({
+jest.mock('./usePredictDetailsItem', () => ({
   usePredictDetailsItem: jest.fn(),
 }));
 
 const usePredictDetailsItemMock = jest.mocked(usePredictDetailsItem);
 
 jest.mock(
-  '../../../../selectors/multichainAccounts/accountTreeController',
+  '../../../../../selectors/multichainAccounts/accountTreeController',
   () => {
     const actual = jest.requireActual(
-      '../../../../selectors/multichainAccounts/accountTreeController',
+      '../../../../../selectors/multichainAccounts/accountTreeController',
     );
     return {
       ...actual,

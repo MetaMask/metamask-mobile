@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import {
   FontWeight,
@@ -15,10 +15,10 @@ import {
   getPerpsDisplaySymbol,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import { useNavigateToPerpsHome } from '../../../UI/Perps/utils/perpsModeSwitch';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
@@ -32,8 +32,8 @@ import {
   ActivityDetailsTemplateFrame,
   useActivityPayFiat,
   useFormatActivityTokenAmount,
-} from '../components';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+} from '../../components';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import {
   formatPerpsOrderFee,
   formatPositiveFiat,
@@ -46,17 +46,17 @@ import {
   type PerpsActivityListItem,
   type PerpsDepositWithdrawalStatus,
   type PerpsTransaction,
-} from '../components/ActivityDetailsPerps.utils';
-import { usePerpsDetailsItem } from './Perps/usePerpsDetailsItem';
-import { DefaultDetails } from './DefaultDetails';
+} from '../../components/ActivityDetailsPerps.utils';
+import { usePerpsDetailsItem } from './usePerpsDetailsItem';
+import { DefaultDetails } from '../DefaultDetails';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
+import { usePerpsRecordedOrderFees } from '../../../../UI/Perps/hooks';
 import {
   getOrderPriceRowVisibility,
   getValidPerpsPrice,
   resolvePerpsTransactionOrderType,
-} from '../../../UI/Perps/utils/orderUtils';
-import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
+} from '../../../../UI/Perps/utils/orderUtils';
+import { resolvePerpsOrderStatusLabel } from '../../../../UI/ActivityListItemRow/titleLabels';
 
 /**
  * The local row's activity status in the terms the step timeline speaks. A

@@ -6,18 +6,18 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-} from '../../../../constants/on-ramp';
-import Routes from '../../../../constants/navigation/Routes';
-import { getProviderName } from '../../../../reducers/fiatOrders';
-import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+} from '../../../../../constants/on-ramp';
+import Routes from '../../../../../constants/navigation/Routes';
+import { getProviderName } from '../../../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../../../reducers/fiatOrders/types';
 import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
-} from '../../../../util/networks';
-import ClipboardManager from '../../../../core/ClipboardManager';
-import { mapRampOrder } from '../../../../util/activity-adapters';
-import { useAccountNames } from '../../../hooks/DisplayName/useAccountNames';
-import { useRampsDetailsOrder } from './Ramps/useRampsDetailsOrder';
+} from '../../../../../util/networks';
+import ClipboardManager from '../../../../../core/ClipboardManager';
+import { mapRampOrder } from '../../../../../util/activity-adapters';
+import { useAccountNames } from '../../../../hooks/DisplayName/useAccountNames';
+import { useRampsDetailsOrder } from './useRampsDetailsOrder';
 import { RampDetails, type RampActivityListItem } from './RampDetails';
 
 const mockNavigate = jest.fn();
@@ -31,33 +31,33 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../reducers/fiatOrders', () => ({
+jest.mock('../../../../../reducers/fiatOrders', () => ({
   getProviderName: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/networkController', () => ({
+jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../hooks/DisplayName/useAccountNames', () => ({
+jest.mock('../../../../hooks/DisplayName/useAccountNames', () => ({
   useAccountNames: jest.fn(),
 }));
 
-jest.mock('../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../util/networks'),
+jest.mock('../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../util/networks'),
   findBlockExplorerUrlForChain: jest.fn(),
   getBlockExplorerTxUrl: jest.fn(),
 }));
 
-jest.mock('../../../../core/ClipboardManager', () => ({
+jest.mock('../../../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('./Ramps/useRampsDetailsOrder', () => ({
+jest.mock('./useRampsDetailsOrder', () => ({
   useRampsDetailsOrder: jest.fn(),
 }));
 
-jest.mock('./DefaultDetails', () => ({
+jest.mock('../DefaultDetails', () => ({
   DefaultDetails: () => null,
 }));
 
@@ -243,7 +243,7 @@ describe('RampDetails', () => {
 
   it('renders native RampsOrder details via RampRampsOrderDetails', async () => {
     const { mapRampsOrder } = jest.requireActual(
-      '../../../../util/activity-adapters',
+      '../../../../../util/activity-adapters',
     );
     const { RampsOrderStatus } = jest.requireActual(
       '@metamask/ramps-controller',
@@ -302,7 +302,7 @@ describe('RampDetails', () => {
 
   it('renders native RampsOrder sell amounts and destination', () => {
     const { mapRampsOrder } = jest.requireActual(
-      '../../../../util/activity-adapters',
+      '../../../../../util/activity-adapters',
     );
     const { RampsOrderStatus } = jest.requireActual(
       '@metamask/ramps-controller',

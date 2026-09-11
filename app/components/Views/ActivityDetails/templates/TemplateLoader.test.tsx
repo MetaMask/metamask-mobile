@@ -76,8 +76,8 @@ jest.mock('./Perps/usePerpsDetailsItem', () => ({
 }));
 
 const RAMP_DETAILS_STUB_TEST_ID = 'ramp-details-stub';
-jest.mock('./RampDetails', () => {
-  const actual = jest.requireActual('./RampDetails');
+jest.mock('./Ramps/RampDetails', () => {
+  const actual = jest.requireActual('./Ramps/RampDetails');
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {

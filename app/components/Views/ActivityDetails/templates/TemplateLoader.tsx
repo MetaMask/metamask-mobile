@@ -11,9 +11,9 @@ import { DefaultDetails } from './DefaultDetails';
 import { DepositDetails } from './DepositDetails';
 import { NftDetails } from './NftDetails';
 import { SmartAccountUpgradeDetails } from './SmartAccountUpgradeDetails';
-import { PerpsDetails } from './PerpsDetails';
-import { PredictDetails } from './PredictDetails';
-import { RampDetails } from './RampDetails';
+import { PerpsDetails } from './Perps/PerpsDetails';
+import { PredictDetails } from './PredictDetails/PredictDetails';
+import { RampDetails } from './Ramps/RampDetails';
 import { SendDetails } from './SendDetails';
 import { SwapDetails } from './SwapDetails';
 
