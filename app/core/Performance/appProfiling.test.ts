@@ -1,13 +1,13 @@
+import { AppState, type AppStateStatus } from 'react-native';
 import {
   __resetAppProfilingForTests,
   getLastAppProfilePath,
   getLastAppProfilingError,
+  initializeAppProfiling,
   isAppProfilingRecording,
-  isAppProfilingSessionLost,
   isPerformanceProfilingEnabled,
   startAppProfiling,
   stopAppProfiling,
-  subscribeAppProfilingStatus,
 } from './appProfiling';
 import { getHermesProfilerModule } from './hermesProfilerModule';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
@@ -22,7 +22,7 @@ jest.mock('./hermesProfilerModule', () => ({
 }));
 
 const ANDROID_PROFILE_PATH =
-  '/storage/emulated/0/Android/data/io.metamask/files/Documents/metamask-performance.cpuprofile';
+  '/storage/emulated/0/Android/data/io.metamask/files/Documents/metamask-performance.segment-1.cpuprofile';
 
 const mockGetHermesProfilerModule = jest.mocked(getHermesProfilerModule);
 
@@ -41,8 +41,37 @@ function mockNativeModule(overrides?: {
   return nativeModule;
 }
 
+async function flushPromises(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
+/**
+ * Captures the listener `initializeAppProfiling` registers so tests can drive
+ * app lifecycle transitions directly.
+ */
+function captureAppStateListener(): () => (state: AppStateStatus) => void {
+  let listener: ((state: AppStateStatus) => void) | undefined;
+  jest
+    .spyOn(AppState, 'addEventListener')
+    .mockImplementation((_event, handler) => {
+      listener = handler as (state: AppStateStatus) => void;
+      return { remove: jest.fn() } as unknown as ReturnType<
+        typeof AppState.addEventListener
+      >;
+    });
+  return () => {
+    if (!listener) {
+      throw new Error('initializeAppProfiling did not register a listener');
+    }
+    return listener;
+  };
+}
+
 describe('appProfiling', () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllMocks();
     __resetAppProfilingForTests();
     mockGetHermesProfilerModule.mockReturnValue(null);
@@ -75,17 +104,6 @@ describe('appProfiling', () => {
   it('starts and stops profiling through the native module', async () => {
     const nativeModule = mockNativeModule();
 
-    const statuses: {
-      isRecording: boolean;
-      lastProfilePath: string | null;
-    }[] = [];
-    const unsubscribe = subscribeAppProfilingStatus((status) => {
-      statuses.push({
-        isRecording: status.isRecording,
-        lastProfilePath: status.lastProfilePath,
-      });
-    });
-
     const started = await startAppProfiling(true);
 
     expect(started).toBe(true);
@@ -98,14 +116,6 @@ describe('appProfiling', () => {
     expect(path).toBe(ANDROID_PROFILE_PATH);
     expect(getLastAppProfilePath()).toBe(ANDROID_PROFILE_PATH);
     expect(isAppProfilingRecording()).toBe(false);
-    expect(statuses.some((status) => status.isRecording)).toBe(true);
-    expect(
-      statuses.some(
-        (status) => status.lastProfilePath === ANDROID_PROFILE_PATH,
-      ),
-    ).toBe(true);
-
-    unsubscribe();
   });
 
   it('falls back to react-native-release-profiler when the native module is absent', async () => {
@@ -120,13 +130,12 @@ describe('appProfiling', () => {
     expect(path).toBe('/tmp/profile.cpuprofile');
   });
 
-  it('reports a lost session when stop runs without an active session', async () => {
+  it('leaves Hermes alone when stop runs without an active session', async () => {
     const nativeModule = mockNativeModule();
 
     const path = await stopAppProfiling(true);
 
     expect(path).toBeNull();
-    expect(isAppProfilingSessionLost()).toBe(true);
     expect(getLastAppProfilingError()).toBeNull();
     // Dumping with no active sampler is what makes the native call hang, so the
     // native module must not be reached at all in this state.
@@ -157,5 +166,71 @@ describe('appProfiling', () => {
     );
     expect(isAppProfilingRecording()).toBe(false);
     expect(getLastAppProfilingError()).toContain('Hermes wrote no trace');
+  });
+
+  describe('initializeAppProfiling', () => {
+    it('does nothing when profiling is disabled', () => {
+      const nativeModule = mockNativeModule();
+      const addEventListener = jest.spyOn(AppState, 'addEventListener');
+
+      initializeAppProfiling(false);
+
+      expect(nativeModule.startProfiling).not.toHaveBeenCalled();
+      expect(addEventListener).not.toHaveBeenCalled();
+    });
+
+    it('arms profiling for the app process on startup', async () => {
+      const nativeModule = mockNativeModule();
+      captureAppStateListener();
+
+      initializeAppProfiling(true);
+      await flushPromises();
+
+      expect(nativeModule.startProfiling).toHaveBeenCalledTimes(1);
+      expect(isAppProfilingRecording()).toBe(true);
+    });
+
+    it('dumps and re-arms when the app is backgrounded', async () => {
+      const nativeModule = mockNativeModule();
+      const getListener = captureAppStateListener();
+
+      initializeAppProfiling(true);
+      await flushPromises();
+
+      getListener()('background');
+      await flushPromises();
+
+      expect(nativeModule.stopProfilingToAppStorage).toHaveBeenCalledTimes(1);
+      // Specs background the app mid-test, so the rest of the run still needs
+      // to be profiled.
+      expect(nativeModule.startProfiling).toHaveBeenCalledTimes(2);
+      expect(isAppProfilingRecording()).toBe(true);
+    });
+
+    it('ignores transitions other than background', async () => {
+      const nativeModule = mockNativeModule();
+      const getListener = captureAppStateListener();
+
+      initializeAppProfiling(true);
+      await flushPromises();
+
+      getListener()('active');
+      await flushPromises();
+
+      expect(nativeModule.stopProfilingToAppStorage).not.toHaveBeenCalled();
+      expect(nativeModule.startProfiling).toHaveBeenCalledTimes(1);
+    });
+
+    it('registers a single listener even if called twice', async () => {
+      mockNativeModule();
+      const getListener = captureAppStateListener();
+
+      initializeAppProfiling(true);
+      initializeAppProfiling(true);
+      await flushPromises();
+
+      expect(getListener()).toBeDefined();
+      expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
+    });
   });
 });

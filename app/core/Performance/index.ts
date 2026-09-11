@@ -4,10 +4,9 @@ export { Performance };
 export {
   getLastAppProfilePath,
   getLastAppProfilingError,
+  initializeAppProfiling,
   isAppProfilingRecording,
-  isAppProfilingSessionLost,
   isPerformanceProfilingEnabled,
   startAppProfiling,
   stopAppProfiling,
-  subscribeAppProfilingStatus,
 } from './appProfiling';

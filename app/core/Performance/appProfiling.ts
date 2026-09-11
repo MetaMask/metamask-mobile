@@ -11,55 +11,24 @@
  * `react-native-release-profiler` directly; export/pull is not implemented
  * there yet.
  *
- * A profiling session cannot outlive the app process that started it. Specs
- * that deliberately kill the app (`terminateApp`) reload the JS bundle and
- * therefore reset the state below, which is reported as a lost session rather
- * than stopping a session that Hermes no longer has. Attempting a dump with no
- * active sampler is what makes the native stop call hang.
+ * The session is driven entirely by the app process, not by the test: it arms
+ * itself as soon as JS runs and dumps whenever the app is backgrounded. A
+ * profiling session cannot outlive the process that opened it, and asking
+ * Hermes to dump a sampler it is no longer running is what makes the native
+ * stop call hang, so a process that never armed itself never dumps.
  */
 
+import { AppState, Platform, type NativeEventSubscription } from 'react-native';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
-import { Platform } from 'react-native';
 import { getHermesProfilerModule } from './hermesProfilerModule';
 
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';
 
-export interface AppProfilingStatus {
-  isRecording: boolean;
-  isSessionLost: boolean;
-  lastProfilePath: string | null;
-  lastError: string | null;
-}
-
-type AppProfilingListener = (status: AppProfilingStatus) => void;
-
 let isRecording = false;
-let isSessionLost = false;
 let lastProfilePath: string | null = null;
 let lastError: string | null = null;
-const listeners = new Set<AppProfilingListener>();
-
-function getStatus(): AppProfilingStatus {
-  return { isRecording, isSessionLost, lastProfilePath, lastError };
-}
-
-function notifyListeners(): void {
-  const status = getStatus();
-  listeners.forEach((listener) => {
-    listener(status);
-  });
-}
-
-export function subscribeAppProfilingStatus(
-  listener: AppProfilingListener,
-): () => void {
-  listeners.add(listener);
-  listener(getStatus());
-  return () => {
-    listeners.delete(listener);
-  };
-}
+let appStateSubscription: NativeEventSubscription | null = null;
 
 /**
  * Starts a Hermes CPU profiling session.
@@ -73,8 +42,6 @@ export async function startAppProfiling(
   }
 
   lastError = null;
-  isSessionLost = false;
-  notifyListeners();
 
   try {
     const profiler = getHermesProfilerModule();
@@ -85,18 +52,15 @@ export async function startAppProfiling(
     if (!started) {
       isRecording = false;
       lastError = 'startProfiling returned false';
-      notifyListeners();
       return false;
     }
 
     isRecording = true;
     lastProfilePath = null;
-    notifyListeners();
     return true;
   } catch (error) {
     isRecording = false;
     lastError = `startProfiling failed: ${String(error)}`;
-    notifyListeners();
     throw error;
   }
 }
@@ -116,14 +80,11 @@ export async function stopAppProfiling(
   }
 
   if (!isRecording) {
-    isSessionLost = true;
     lastProfilePath = null;
-    notifyListeners();
     return null;
   }
 
   lastError = null;
-  notifyListeners();
 
   try {
     const profiler = getHermesProfilerModule();
@@ -134,28 +95,71 @@ export async function stopAppProfiling(
 
     if (typeof path === 'string' && path.length > 0) {
       lastProfilePath = path;
-      notifyListeners();
       return lastProfilePath;
     }
 
     lastProfilePath = null;
     lastError = 'stopProfiling returned an empty path';
-    notifyListeners();
     return null;
   } catch (error) {
     isRecording = false;
     lastError = `stopProfiling failed: ${String(error)}`;
-    notifyListeners();
     throw error;
   }
 }
 
-export function isAppProfilingRecording(): boolean {
-  return isRecording;
+/**
+ * Writes out the in-flight trace and arms the next one.
+ *
+ * Failures are left in `lastError` rather than propagated: this runs from an app
+ * lifecycle callback, where there is nobody to report to, and a dump that fails
+ * should not stop the following segments from being recorded.
+ */
+function dumpAndRearm(enabled: boolean): void {
+  stopAppProfiling(enabled)
+    .catch(() => undefined)
+    .then(() => startAppProfiling(enabled))
+    .catch(() => undefined);
 }
 
-export function isAppProfilingSessionLost(): boolean {
-  return isSessionLost;
+/**
+ * Arms profiling for this app process and keeps it armed for the process's
+ * lifetime.
+ *
+ * Called from the app entry point so the trace covers startup. The performance
+ * specs measure launch timings, and anything that asks the app to start
+ * profiling from the outside costs an Appium round trip at exactly the moment
+ * those timers begin. Self-arming is free, so a spec that restarts the app gets
+ * the restarted process profiled too.
+ *
+ * Backgrounding is the dump trigger. It is the only signal available to the app
+ * that both the test can produce on demand (`mobile: backgroundApp`) and that
+ * cannot be swallowed by whatever is on screen. Profiling re-arms afterwards
+ * because specs background the app mid-test — the warm-start specs and the
+ * OAuth hand-offs in seedless onboarding do — and the work after that point
+ * still belongs to the test.
+ */
+export function initializeAppProfiling(
+  enabled: boolean = isPerformanceProfilingEnabled,
+): void {
+  if (!enabled || appStateSubscription) {
+    return;
+  }
+
+  startAppProfiling(enabled).catch(() => {
+    // Recorded in lastError; never block app startup on profiling.
+  });
+
+  appStateSubscription = AppState.addEventListener('change', (nextState) => {
+    if (nextState !== 'background') {
+      return;
+    }
+    dumpAndRearm(enabled);
+  });
+}
+
+export function isAppProfilingRecording(): boolean {
+  return isRecording;
 }
 
 export function getLastAppProfilePath(): string | null {
@@ -172,8 +176,8 @@ export function getLastAppProfilingError(): string | null {
  */
 export function __resetAppProfilingForTests(): void {
   isRecording = false;
-  isSessionLost = false;
   lastProfilePath = null;
   lastError = null;
-  listeners.clear();
+  appStateSubscription?.remove();
+  appStateSubscription = null;
 }
