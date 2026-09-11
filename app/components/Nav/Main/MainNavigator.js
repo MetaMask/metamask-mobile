@@ -271,18 +271,6 @@ const AssetStackFlow = (props) => (
   </NativeStack.Navigator>
 );
 
-const AssetNavigator = (props) => (
-  <NativeStack.Navigator
-    initialRouteName={'AssetStackFlow'}
-    screenOptions={clearNativeStackNavigatorOptions}
-  >
-    <NativeStack.Screen
-      name={'AssetStackFlow'}
-      component={AssetStackFlow}
-      initialParams={props.route.params}
-    />
-  </NativeStack.Navigator>
-);
 /* eslint-enable react/prop-types */
 
 const WalletTabStackFlow = () => {
@@ -693,13 +681,6 @@ const HomeTabs = () => {
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       freezeOnBlur: false,
     },
@@ -712,11 +693,6 @@ const HomeTabs = () => {
     },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
-        );
-      },
       rootScreenName: Routes.REWARDS_VIEW,
       freezeOnBlur: false,
     },
@@ -728,11 +704,6 @@ const HomeTabs = () => {
     trending: {
       tabBarIconKey: TabBarIconKey.Trending,
       callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
-          ).build(),
-        );
         // Re-enable AppState listener when returning to trending tab
         // (it was disabled when leaving to prevent phantom sessions)
         TrendingFeedSessionManager.getInstance().enableAppStateListener();
@@ -752,13 +723,6 @@ const HomeTabs = () => {
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.SETTINGS_VIEW,
     },
   };
@@ -819,6 +783,7 @@ const HomeTabs = () => {
           descriptors={descriptors}
           navigation={navigation}
           onHeightChange={setFloatingTabBarHeight}
+          trailingAction={headerNavBarVariant.trailingNavBarAction}
         />
       ) : (
         <TabBar
@@ -933,38 +898,6 @@ const Webview = () => (
   </NativeStack.Navigator>
 );
 
-/* eslint-disable react/prop-types */
-const NftDetailsModeView = (props) => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name=" " // No name here because this title will be displayed in the header of the page
-      component={NftDetails}
-      initialParams={{
-        collectible: props.route.params?.collectible,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
-/* eslint-disable react/prop-types */
-const NftDetailsFullImageModeView = (props) => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name=" " // No name here because this title will be displayed in the header of the page
-      component={NftDetailsFullImage}
-      initialParams={{
-        collectible: props.route.params?.collectible,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
-const AddBookmarkView = () => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen name="AddBookmark" component={AddBookmark} />
-  </NativeStack.Navigator>
-);
-
 const OfflineModeView = (props) => (
   <NativeStack.Navigator>
     <NativeStack.Screen
@@ -1032,17 +965,6 @@ const SetPasswordFlow = () => (
     <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
   </NativeStack.Navigator>
 );
-
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-const SampleFeatureFlow = () => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name={Routes.SAMPLE_FEATURE}
-      component={SampleFeature}
-    />
-  </NativeStack.Navigator>
-);
-///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
   const dispatch = useDispatch();
@@ -1187,7 +1109,7 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name="Asset"
-        component={AssetNavigator}
+        component={AssetStackFlow}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
@@ -1221,7 +1143,7 @@ const MainNavigator = () => {
           ...slideFromRightNativeOptions,
         }}
       />
-      <NativeStack.Screen name="AddBookmarkView" component={AddBookmarkView} />
+      <NativeStack.Screen name="AddBookmarkView" component={AddBookmark} />
       <NativeStack.Screen name="OfflineModeView" component={OfflineModeView} />
       <NativeStack.Screen
         name={Routes.NOTIFICATIONS.VIEW}
@@ -1243,12 +1165,12 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name="NftDetails"
-        component={NftDetailsModeView}
+        component={NftDetails}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
         name="NftDetailsFullImage"
-        component={NftDetailsFullImageModeView}
+        component={NftDetailsFullImage}
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
@@ -1596,7 +1518,7 @@ const MainNavigator = () => {
       }
       <NativeStack.Screen
         name={Routes.SAMPLE_FEATURE}
-        component={SampleFeatureFlow}
+        component={SampleFeature}
       />
       {
         ///: END:ONLY_INCLUDE_IF

@@ -254,6 +254,7 @@ const Routes = {
     ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
+    BASIC_FUNCTIONALITY_MIGRATION: 'BasicFunctionalityMigration',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
     FEATURE_NOTIFICATIONS_GATE: 'FeatureNotificationsGate',
     SDK_LOADING: 'SDKLoading',
@@ -424,7 +425,6 @@ const Routes = {
   },
   SOCIAL: {
     ROOT: 'Social',
-    /** Root of the Social tab in the floating nav bar's treatment arms. */
     TAB: 'SocialLeaderboardTab',
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',

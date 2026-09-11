@@ -124,8 +124,6 @@ const CHART_REQUEST_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
 };
 const PROGRESS_RING_SIZE = 54;
 const PROGRESS_RING_STROKE_WIDTH = 4;
-const COMPACT_PROGRESS_RING_SIZE = 40;
-const COMPACT_PROGRESS_RING_STROKE_WIDTH = 2;
 const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
@@ -813,19 +811,15 @@ const ProgressLogo = React.memo(
     progress,
     color,
     trackColor,
-    compact,
   }: {
     imageUrl?: string;
     progress: number;
     color: string;
     trackColor: string;
-    compact?: boolean;
   }) => {
     const tw = useTailwind();
-    const ringSize = compact ? COMPACT_PROGRESS_RING_SIZE : PROGRESS_RING_SIZE;
-    const strokeWidth = compact
-      ? COMPACT_PROGRESS_RING_STROKE_WIDTH
-      : PROGRESS_RING_STROKE_WIDTH;
+    const ringSize = PROGRESS_RING_SIZE;
+    const strokeWidth = PROGRESS_RING_STROKE_WIDTH;
     const radius = (ringSize - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference * (1 - progress);
@@ -864,11 +858,7 @@ const ProgressLogo = React.memo(
             />
           </Svg>
         </Box>
-        <Box
-          twClassName={`${
-            compact ? 'h-8 w-8' : 'h-10 w-10'
-          } overflow-hidden rounded-full bg-default`}
-        >
+        <Box twClassName="h-10 w-10 overflow-hidden rounded-full bg-default">
           {imageUrl ? (
             <Image
               source={{ uri: imageUrl }}
@@ -917,7 +907,6 @@ const LiveStatus = React.memo(
         progress={progressRemaining}
         color={accentColor}
         trackColor={trackColor}
-        compact={compact}
       />
     );
 

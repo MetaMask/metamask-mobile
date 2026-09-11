@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { createSelector } from 'reselect';
 import { debounce } from 'lodash';
 import {
   formatAddressToCaipReference,
@@ -20,6 +21,12 @@ import { areAddressesEqual } from '../../../../util/address';
 import { calcTokenValue } from '../../../../util/transactions';
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
+import {
+  getCurrencyRateControllerCurrentCurrency,
+  getCurrencyRateControllerCurrencyRates,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+} from '../../../../selectors/assets/assets-migration';
 import {
   selectBridgeFeatureFlags,
   selectDestAddress,
@@ -166,17 +173,42 @@ const buildQuoteRequest = ({
 // exchange-rate-denominated amounts, …) from raw fetchQuotes results. We inject
 // our locally-held quotes into this shape instead of going through Redux so the
 // BridgeController background state stays untouched.
-const selectQuoteMetadataDeps = (state: RootState) => ({
-  bridgeController: state.engine.backgroundState.BridgeController,
-  gasFeeEstimatesByChainId:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
-    {},
-  multichainAssetsRates:
-    state.engine.backgroundState.MultichainAssetsRatesController,
-  tokenRates: state.engine.backgroundState.TokenRatesController,
-  currencyRate: state.engine.backgroundState.CurrencyRateController,
-  bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
-});
+//
+// Built with `createSelector` (not a plain object-literal selector) so the
+// nested `multichainAssetsRates`/`tokenRates`/`currencyRate` wrappers keep a
+// stable reference when their underlying (already-memoized) inputs haven't
+// changed. A plain selector would allocate fresh wrapper objects on every
+// call, which always fails `shallowEqual` in the consuming `useSelector` and
+// causes a re-render on every Redux dispatch regardless of relevance.
+const selectQuoteMetadataDeps = createSelector(
+  [
+    (state: RootState) => state.engine.backgroundState.BridgeController,
+    (state: RootState) =>
+      state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
+      {},
+    getMultichainAssetsRatesControllerConversionRates,
+    getTokenRatesControllerMarketData,
+    getCurrencyRateControllerCurrentCurrency,
+    getCurrencyRateControllerCurrencyRates,
+    (state: RootState) => selectRemoteFeatureFlags(state).bridgeConfig,
+  ],
+  (
+    bridgeController,
+    gasFeeEstimatesByChainId,
+    conversionRates,
+    marketData,
+    currentCurrency,
+    currencyRates,
+    bridgeConfig,
+  ) => ({
+    bridgeController,
+    gasFeeEstimatesByChainId,
+    multichainAssetsRates: { conversionRates, historicalPrices: {} },
+    tokenRates: { marketData },
+    currencyRate: { currentCurrency, currencyRates },
+    bridgeConfig,
+  }),
+);
 
 export function useQuickBuyQuotes({
   sourceToken,
@@ -573,7 +605,7 @@ export function useQuickBuyQuotes({
     [],
   );
 
-  const metadataDeps = useSelector(selectQuoteMetadataDeps, shallowEqual);
+  const metadataDeps = useSelector(selectQuoteMetadataDeps);
 
   const enrichedResult = useMemo(() => {
     // BridgeController.fetchQuotes called directly (not via internal polling)

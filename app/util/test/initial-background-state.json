@@ -791,6 +791,42 @@
     "isUiOpen": false
   },
   "ComplianceController": {},
+  "KycController": {
+    "phase": "idle",
+    "statusMessage": "",
+    "error": null,
+    "email": null,
+    "vendorDisclaimersAccepted": {
+      "moonpay": null,
+      "iron": null
+    },
+    "providerDisclaimersAccepted": {
+      "sumsub": null
+    },
+    "idosDisclaimersAccepted": null,
+    "credentialReusabilityConsentGiven": null,
+    "vendorDisclaimers": [],
+    "vendorError": null,
+    "sessionDisclaimers": null,
+    "geoCountry": null,
+    "moonpaySessionToken": null,
+    "moonpayAccessToken": null,
+    "moonpayCustomerId": null,
+    "activeVendor": "moonpay",
+    "activeProduct": null,
+    "kycRequiredByProduct": {},
+    "lastCheckedAt": null,
+    "userStatus": null,
+    "userStatusSumsubSessionId": null,
+    "userStatusErrorCode": null,
+    "sumsub": {
+      "status": "idle",
+      "result": null,
+      "sessionId": null,
+      "applicantAccessToken": null,
+      "sessionStatus": null
+    }
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
