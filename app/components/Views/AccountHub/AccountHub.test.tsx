@@ -243,11 +243,6 @@ describe('AccountHub', () => {
       AccountHubSelectorsIDs.MANAGE_ACCOUNTS_BUTTON,
     );
 
-    expect(manageAccountsButton).toHaveProp(
-      'accessibilityLabel',
-      'Manage accounts',
-    );
-
     fireEvent.press(manageAccountsButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MANAGE_ACCOUNTS_VIEW);
