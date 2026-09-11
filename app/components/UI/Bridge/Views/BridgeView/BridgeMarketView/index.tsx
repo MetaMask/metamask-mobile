@@ -6,10 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  FeatureId,
-  MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import ScreenView from '../../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
