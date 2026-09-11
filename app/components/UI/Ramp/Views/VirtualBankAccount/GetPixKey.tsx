@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -24,7 +24,6 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import TagBase from '../../../../../component-library/base-components/TagBase';
 import { TagShape } from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
@@ -69,12 +68,10 @@ const GetPixKey = () => {
     providerDisclaimersAccepted = [],
     idosDisclaimersAccepted = [],
   } = useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
     !isLoading &&
-    !isSubmitting &&
     !error &&
     Boolean(disclaimers?.length) &&
     providerDisclaimersAccepted.length > 0 &&
@@ -82,21 +79,11 @@ const GetPixKey = () => {
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleAgreeAndContinue = useCallback(async () => {
-    setIsSubmitting(true);
-    try {
-      await Engine.context.KycController.acceptTermsAndStartSession({
-        product: 'money',
-        providerDisclaimersAccepted,
-        idosDisclaimersAccepted,
-      });
-    } finally {
-      setIsSubmitting(false);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.RAMP.VBA_ONBOARDING }],
-      });
-    }
+  const handleAgreeAndContinue = useCallback(() => {
+    navigation.navigate(Routes.RAMP.VBA_KYC, {
+      providerDisclaimersAccepted,
+      idosDisclaimersAccepted,
+    });
   }, [idosDisclaimersAccepted, navigation, providerDisclaimersAccepted]);
 
   return (

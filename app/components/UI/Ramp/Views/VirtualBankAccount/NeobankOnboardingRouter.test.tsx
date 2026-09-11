@@ -1,13 +1,18 @@
 import React from 'react';
-import { waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { NeobankOnboardingStage } from '@metamask/ramps-controller';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import NeobankOnboardingRouter from './NeobankOnboardingRouter';
 
+jest.mock('@metamask/ramps-controller', () => ({
+  NeobankOnboardingStage: {
+    VendorTermsRequired: 'VendorTermsRequired',
+    KycStartedIncomplete: 'KycStartedIncomplete',
+  },
+}));
+
 const mockHydrateNeobankStore = jest.fn();
-const mockInitializeKyc = jest.fn();
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockUseSelector = jest.fn((_selector: unknown) => ({
@@ -24,9 +29,6 @@ jest.mock('../../../../../core/Engine', () => ({
     RampsController: {
       hydrateNeobankStore: (...args: unknown[]) =>
         mockHydrateNeobankStore(...args),
-    },
-    KycController: {
-      initialize: (...args: unknown[]) => mockInitializeKyc(...args),
     },
   },
 }));
@@ -47,7 +49,6 @@ describe('NeobankOnboardingRouter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue({ address: '0xabc' });
-    mockInitializeKyc.mockResolvedValue(undefined);
   });
 
   it('hydrates with the selected account and opens terms', async () => {
@@ -55,17 +56,13 @@ describe('NeobankOnboardingRouter', () => {
       NeobankOnboardingStage.VendorTermsRequired,
     );
 
-    renderWithProvider(<NeobankOnboardingRouter />);
+    render(<NeobankOnboardingRouter />);
 
     await waitFor(() => {
       expect(mockHydrateNeobankStore).toHaveBeenCalledWith({
         walletAddress: '0xabc',
       });
       expect(mockUseSelector).toHaveBeenCalledWith(selectPrimaryMoneyAccount);
-      expect(mockInitializeKyc).toHaveBeenCalledWith({
-        product: 'money',
-        vendor: 'iron',
-      });
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
         routes: [{ name: Routes.RAMP.GET_PIX_KEY }],
@@ -73,17 +70,17 @@ describe('NeobankOnboardingRouter', () => {
     });
   });
 
-  it('opens identity verification for an incomplete KYC session', async () => {
+  it('opens the KYC page for an incomplete KYC session', async () => {
     mockHydrateNeobankStore.mockResolvedValue(
       NeobankOnboardingStage.KycStartedIncomplete,
     );
 
-    renderWithProvider(<NeobankOnboardingRouter />);
+    render(<NeobankOnboardingRouter />);
 
     await waitFor(() =>
       expect(mockReset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.RAMP.VBA_VERIFY_IDENTITY }],
+        routes: [{ name: Routes.RAMP.VBA_KYC }],
       }),
     );
   });
@@ -91,7 +88,7 @@ describe('NeobankOnboardingRouter', () => {
   it('shows a retryable error when hydration fails', async () => {
     mockHydrateNeobankStore.mockRejectedValue(new Error('network down'));
 
-    const { getByText } = renderWithProvider(<NeobankOnboardingRouter />);
+    const { getByText } = render(<NeobankOnboardingRouter />);
 
     await waitFor(() =>
       expect(

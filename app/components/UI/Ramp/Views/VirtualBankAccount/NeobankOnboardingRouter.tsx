@@ -43,10 +43,6 @@ const NeobankOnboardingRouter = () => {
           if (!account?.address) {
             throw new Error('No selected account');
           }
-          await Engine.context.KycController.initialize({
-            product: 'money',
-            vendor: 'iron',
-          });
           const stage =
             await Engine.context.RampsController.hydrateNeobankStore({
               walletAddress: account.address,
@@ -62,10 +58,10 @@ const NeobankOnboardingRouter = () => {
               index: 0,
               routes: [{ name: Routes.RAMP.GET_PIX_KEY }],
             });
-          } else if (nextSurface === 'identity') {
+          } else if (nextSurface === 'kyc') {
             navigation.reset({
               index: 0,
-              routes: [{ name: Routes.RAMP.VBA_VERIFY_IDENTITY }],
+              routes: [{ name: Routes.RAMP.VBA_KYC }],
             });
           } else if (nextSurface === 'complete') {
             navigation.navigate(Routes.MONEY.ROOT, {

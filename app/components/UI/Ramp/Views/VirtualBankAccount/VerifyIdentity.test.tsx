@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
@@ -13,15 +13,6 @@ import {
   SUMSUB_PRIVACY_POLICY_URL,
   SUMSUB_TERMS_URL,
 } from './constants';
-
-const mockStartSumSub = jest.fn();
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    KycController: {
-      startSumSub: (...args: unknown[]) => mockStartSumSub(...args),
-    },
-  },
-}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -39,10 +30,6 @@ jest.mock('@react-navigation/native', () => ({
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockStartSumSub.mockResolvedValue({
-      success: true,
-      status: 'Approved',
-    });
   });
 
   afterEach(() => {
@@ -180,32 +167,11 @@ describe('VbaVerifyIdentity', () => {
     expect(openUrlSpy).toHaveBeenCalledWith(SUMSUB_TERMS_URL);
   });
 
-  it('asks KycController to launch Sumsub and resumes routing', async () => {
+  it('routes to the dedicated KYC page without launching Sumsub directly', () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
-    await waitFor(() => {
-      expect(mockStartSumSub).toHaveBeenCalledTimes(1);
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [{ name: Routes.RAMP.VBA_ONBOARDING }],
-      });
-    });
-  });
-
-  it('resumes routing when the Sumsub launch fails', async () => {
-    mockStartSumSub.mockRejectedValueOnce(new Error('launch failed'));
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
-
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockStartSumSub).toHaveBeenCalledTimes(1);
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [{ name: Routes.RAMP.VBA_ONBOARDING }],
-      });
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC);
   });
 });

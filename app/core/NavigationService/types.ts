@@ -98,6 +98,7 @@ import type { MAPickerSheetParams } from '../../components/UI/Charts/AdvancedCha
 import type { FeatureNotificationsGateSheetParams } from '../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet';
 import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCliApproval/types';
 import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
+import type { KycPageParams } from '../../components/UI/Ramp/Views/VirtualBankAccount/hooks/useKycPageLaunch';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
 import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
@@ -560,6 +561,7 @@ export type RootStackParamList = {
   RampVbaOnboarding: undefined;
   RampGetPixKey: undefined;
   RampVbaVerifyIdentity: undefined;
+  RampVbaKyc: KycPageParams | undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;

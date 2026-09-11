@@ -1,13 +1,33 @@
 import { NeobankOnboardingStage } from '@metamask/ramps-controller';
 import { getNeobankStageRoute } from './neobankStageRoute';
 
+jest.mock('@metamask/ramps-controller', () => ({
+  NeobankOnboardingStage: {
+    NoUser: 'NoUser',
+    EmailOtpRequired: 'EmailOtpRequired',
+    VendorTermsRequired: 'VendorTermsRequired',
+    ProviderTermsRequired: 'ProviderTermsRequired',
+    KycNotStarted: 'KycNotStarted',
+    KycStartedIncomplete: 'KycStartedIncomplete',
+    KycRejected: 'KycRejected',
+    KycNeedsReview: 'KycNeedsReview',
+    KycPending: 'KycPending',
+    WalletNotSigned: 'WalletNotSigned',
+    AutorampNotCreated: 'AutorampNotCreated',
+    AutorampPending: 'AutorampPending',
+    AutorampCreated: 'AutorampCreated',
+    LookupFailed: 'LookupFailed',
+  },
+}));
+
 describe('getNeobankStageRoute', () => {
   it.each([
     [NeobankOnboardingStage.NoUser, 'terms'],
     [NeobankOnboardingStage.VendorTermsRequired, 'terms'],
     [NeobankOnboardingStage.ProviderTermsRequired, 'terms'],
-    [NeobankOnboardingStage.KycNotStarted, 'identity'],
-    [NeobankOnboardingStage.KycStartedIncomplete, 'identity'],
+    [NeobankOnboardingStage.KycNotStarted, 'kyc'],
+    [NeobankOnboardingStage.KycStartedIncomplete, 'kyc'],
+    [NeobankOnboardingStage.KycNeedsReview, 'kyc'],
     [NeobankOnboardingStage.KycPending, 'processing'],
     [NeobankOnboardingStage.WalletNotSigned, 'processing'],
     [NeobankOnboardingStage.AutorampNotCreated, 'processing'],
@@ -15,7 +35,6 @@ describe('getNeobankStageRoute', () => {
     [NeobankOnboardingStage.EmailOtpRequired, 'email'],
     [NeobankOnboardingStage.AutorampCreated, 'complete'],
     [NeobankOnboardingStage.KycRejected, 'error'],
-    [NeobankOnboardingStage.KycNeedsReview, 'error'],
     [NeobankOnboardingStage.LookupFailed, 'error'],
   ] as const)('maps %s to %s', (stage, expectedRoute) => {
     expect(getNeobankStageRoute(stage)).toBe(expectedRoute);

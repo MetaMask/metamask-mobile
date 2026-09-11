@@ -28,7 +28,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -131,7 +130,6 @@ const VbaVerifyIdentity = () => {
   const tw = useTailwind();
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
-  const [isLaunchingSumSub, setIsLaunchingSumSub] = useState(false);
   const chevronRotation = useSharedValue(0);
 
   const animatedChevronStyle = useAnimatedStyle(() => ({
@@ -140,19 +138,8 @@ const VbaVerifyIdentity = () => {
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleContinue = useCallback(async () => {
-    setIsLaunchingSumSub(true);
-    try {
-      await Engine.context.KycController.startSumSub();
-    } catch {
-      // Core records the error and the stage router presents the retry state.
-    } finally {
-      setIsLaunchingSumSub(false);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.RAMP.VBA_ONBOARDING }],
-      });
-    }
+  const handleContinue = useCallback(() => {
+    navigation.navigate(Routes.RAMP.VBA_KYC);
   }, [navigation]);
 
   const toggleDataAndPrivacy = useCallback(() => {
@@ -337,8 +324,6 @@ const VbaVerifyIdentity = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isDisabled={isLaunchingSumSub}
-          isLoading={isLaunchingSumSub}
           onPress={handleContinue}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
         >

@@ -2,7 +2,7 @@ import { NeobankOnboardingStage } from '@metamask/ramps-controller';
 
 export type NeobankStageRoute =
   | 'terms'
-  | 'identity'
+  | 'kyc'
   | 'processing'
   | 'email'
   | 'complete'
@@ -22,7 +22,8 @@ export function getNeobankStageRoute(stage: unknown): NeobankStageRoute {
       return 'terms';
     case NeobankOnboardingStage.KycNotStarted:
     case NeobankOnboardingStage.KycStartedIncomplete:
-      return 'identity';
+    case NeobankOnboardingStage.KycNeedsReview:
+      return 'kyc';
     case NeobankOnboardingStage.KycPending:
     case NeobankOnboardingStage.WalletNotSigned:
     case NeobankOnboardingStage.AutorampNotCreated:
@@ -33,7 +34,6 @@ export function getNeobankStageRoute(stage: unknown): NeobankStageRoute {
     case NeobankOnboardingStage.AutorampCreated:
       return 'complete';
     case NeobankOnboardingStage.KycRejected:
-    case NeobankOnboardingStage.KycNeedsReview:
     case NeobankOnboardingStage.LookupFailed:
     default:
       return 'error';

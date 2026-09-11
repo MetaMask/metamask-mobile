@@ -1,31 +1,20 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockReset = jest.fn();
-const mockAcceptTermsAndStartSession = jest.fn();
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    KycController: {
-      acceptTermsAndStartSession: (...args: unknown[]) =>
-        mockAcceptTermsAndStartSession(...args),
-    },
-  },
-}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
-    reset: mockReset,
   }),
 }));
 
@@ -43,7 +32,6 @@ describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
-    mockAcceptTermsAndStartSession.mockResolvedValue(undefined);
     mockUseKycDisclaimers.mockReturnValue({
       disclaimers: [loadedDisclaimer],
       isLoading: false,
@@ -77,23 +65,16 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('accepts the displayed terms and resumes stage routing', async () => {
+  it('routes accepted terms through the dedicated KYC page', () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
     expect(button).toBeEnabled();
 
     fireEvent.press(button);
-    await waitFor(() => {
-      expect(mockAcceptTermsAndStartSession).toHaveBeenCalledWith({
-        product: 'money',
-        providerDisclaimersAccepted: [{ key: 'sumsub', version: '1' }],
-        idosDisclaimersAccepted: [{ key: 'idos', version: '1' }],
-      });
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [{ name: 'RampVbaOnboarding' }],
-      });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_KYC, {
+      providerDisclaimersAccepted: [{ key: 'sumsub', version: '1' }],
+      idosDisclaimersAccepted: [{ key: 'idos', version: '1' }],
     });
   });
 
