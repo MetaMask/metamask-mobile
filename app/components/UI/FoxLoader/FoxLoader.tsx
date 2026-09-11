@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { View, Animated, Dimensions } from 'react-native';
+import { View, Animated, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Alignment,
@@ -63,10 +63,14 @@ const FoxLoaderAnimation = ({
   appServicesReady = false,
   onAnimationComplete = () => undefined,
 }: FoxLoaderProps) => {
-  const screenDims = Dimensions.get('screen');
-  const screenH = screenDims.height;
-  const screenW = screenDims.width;
-  const { styles } = useStyles(styleSheet, { screenH, screenW });
+  // Use the app's window (not the physical screen) so the fox stays centered
+  // in the box it's actually rendered inside. On iPad the two can diverge
+  // (Split View, Stage Manager, or iPhone-compatibility-mode scaling), which
+  // pushed the fox off-screen and left users looking at a blank loader.
+  // useWindowDimensions (vs. a one-time Dimensions.get) also keeps the fox
+  // centered if the window resizes after mount, e.g. a Split View resize.
+  const { width: windowW, height: windowH } = useWindowDimensions();
+  const { styles } = useStyles(styleSheet, { windowH, windowW });
   const { riveFile } = useRiveFile(splashRiveFile);
   const { riveRef, riveViewRef, setHybridRef } = useRive();
   const isPlaying = riveViewRef != null;
