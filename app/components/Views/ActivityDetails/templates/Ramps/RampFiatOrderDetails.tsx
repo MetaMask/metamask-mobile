@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
-import { getProviderName } from '../../../../reducers/fiatOrders';
-import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import { ActivityDetailsBlockExplorerButton } from '../components/ActivityDetailsFooter';
-import { ActivityDetailsTemplateFrame } from '../components/ActivityDetailsTemplateFrame';
+import { getProviderName } from '../../../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../../../reducers/fiatOrders/types';
+import { ActivityDetailsBlockExplorerButton } from '../../components/ActivityDetailsFooter';
+import { ActivityDetailsTemplateFrame } from '../../components/ActivityDetailsTemplateFrame';
 import {
   RampDetailsAmountsSection,
   RampDetailsHeroView,
   RampDetailsMetadataSection,
-} from './RampDetailsShared';
+} from '../RampDetailsShared';
 import {
   formatRampActivityDate,
   formatRampActivityFiatAmount,
@@ -20,7 +20,7 @@ import {
   getRampActivityTransactionHash,
   isRampSellOrder,
   mapRampActivityStatus,
-} from './rampDetailsUtils';
+} from '../rampDetailsUtils';
 
 /** Legacy FiatOrder ActivityDetails template — extract of prior RampDetails. */
 export function RampFiatOrderDetails({

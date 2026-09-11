@@ -6,14 +6,14 @@ import {
   mapRampsOrderType,
   toRampsOrderCaipChainId,
   toRampsOrderToken,
-} from '../../../../util/activity-adapters/adapters/ramps-order-helpers';
-import { ActivityDetailsBlockExplorerButton } from '../components/ActivityDetailsFooter';
-import { ActivityDetailsTemplateFrame } from '../components/ActivityDetailsTemplateFrame';
+} from '../../../../../util/activity-adapters/adapters/ramps-order-helpers';
+import { ActivityDetailsBlockExplorerButton } from '../../components/ActivityDetailsFooter';
+import { ActivityDetailsTemplateFrame } from '../../components/ActivityDetailsTemplateFrame';
 import {
   RampDetailsAmountsSection,
   RampDetailsHeroView,
   RampDetailsMetadataSection,
-} from './RampDetailsShared';
+} from '../RampDetailsShared';
 import {
   formatRampActivityDate,
   formatRampActivityFiatAmount,
@@ -21,7 +21,7 @@ import {
   getRampActivityExplorerChainId,
   getRampsOrderStatusDescription,
   mapRampsOrderActivityStatus,
-} from './rampDetailsUtils';
+} from '../rampDetailsUtils';
 
 function isRampsSellOrder(order: RampsOrder) {
   return mapRampsOrderType(order.orderType) === 'sell';
