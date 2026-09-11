@@ -3,14 +3,14 @@ import {
   type KycControllerMessenger,
 } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
-import { sumSubLauncher } from './sumSubLauncher';
+import { sumsubLauncher } from './sumSubLauncher';
 
 /**
  * Initialize the KycController.
  *
  * The controller owns the identity flow (terms, session, KYC-required check,
  * and the SumSub hand-off). Platform-specific SDK presentation is delegated
- * to the injected {@link sumSubLauncher}.
+ * to the injected {@link sumsubLauncher}.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger for the controller.
@@ -24,7 +24,7 @@ export const kycControllerInit: MessengerClientInitFunction<
   const controller = new KycController({
     messenger: controllerMessenger,
     state: persistedState.KycController,
-    sumsubLauncher: sumSubLauncher,
+    sumsubLauncher,
   });
 
   return { controller };

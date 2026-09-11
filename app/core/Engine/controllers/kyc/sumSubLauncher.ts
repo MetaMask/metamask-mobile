@@ -27,7 +27,7 @@ const assertSumSubNativeModuleLinked = (): void => {
  * Jest and Expo Go). The SumSub package is CommonJS (`module.exports`), so the
  * API may live on the namespace itself or under `.default`.
  */
-export const sumSubLauncher: KycSumSubLauncher = {
+export const sumsubLauncher: KycSumSubLauncher = {
   isAvailable: () => Boolean(NativeModules[SUMSUB_NATIVE_MODULE_NAME]),
 
   async launch({

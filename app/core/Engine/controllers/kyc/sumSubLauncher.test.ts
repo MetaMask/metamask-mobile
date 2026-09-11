@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 import {
-  sumSubLauncher,
+  sumsubLauncher,
   SUMSUB_NATIVE_MODULE_MISSING_ERROR,
   SUMSUB_NATIVE_MODULE_NAME,
 } from './sumSubLauncher';
@@ -59,7 +59,7 @@ const wireSumSubSdkBuilderMocks = () => {
   mockLaunch.mockResolvedValue({ success: true, status: 'Approved' });
 };
 
-describe('sumSubLauncher', () => {
+describe('sumsubLauncher', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     NativeModules[SUMSUB_NATIVE_MODULE_NAME] = { launch: jest.fn() };
@@ -73,15 +73,15 @@ describe('sumSubLauncher', () => {
   });
 
   it('reports availability from the native module', () => {
-    expect(sumSubLauncher.isAvailable()).toBe(true);
+    expect(sumsubLauncher.isAvailable()).toBe(true);
 
     delete NativeModules[SUMSUB_NATIVE_MODULE_NAME];
 
-    expect(sumSubLauncher.isAvailable()).toBe(false);
+    expect(sumsubLauncher.isAvailable()).toBe(false);
   });
 
   it('launches with the given access token, locale, and debug flag', async () => {
-    const result = await sumSubLauncher.launch({
+    const result = await sumsubLauncher.launch({
       applicantAccessToken: 'applicant-token',
       onTokenExpiration: async () => 'applicant-token',
       locale: 'pt',
@@ -102,7 +102,7 @@ describe('sumSubLauncher', () => {
     const onTokenExpiration = jest.fn().mockResolvedValue('refreshed-token');
     const captured = captureExpirationHandler();
 
-    await sumSubLauncher.launch({
+    await sumsubLauncher.launch({
       applicantAccessToken: 'applicant-token',
       onTokenExpiration,
     });
@@ -117,7 +117,7 @@ describe('sumSubLauncher', () => {
     );
 
     await expect(
-      sumSubLauncher.launch({
+      sumsubLauncher.launch({
         applicantAccessToken: 'applicant-token',
         onTokenExpiration: async () => 'applicant-token',
       }),
@@ -128,7 +128,7 @@ describe('sumSubLauncher', () => {
     delete NativeModules[SUMSUB_NATIVE_MODULE_NAME];
 
     await expect(
-      sumSubLauncher.launch({
+      sumsubLauncher.launch({
         applicantAccessToken: 'applicant-token',
         onTokenExpiration: async () => 'applicant-token',
       }),
@@ -149,7 +149,7 @@ describe('sumSubLauncher', () => {
       },
     );
 
-    await sumSubLauncher.launch({
+    await sumsubLauncher.launch({
       applicantAccessToken: 'applicant-token',
       onTokenExpiration: async () => 'applicant-token',
       onStatusChange,
