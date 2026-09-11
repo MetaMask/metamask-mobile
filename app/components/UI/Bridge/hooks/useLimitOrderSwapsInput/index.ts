@@ -6,9 +6,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
 import {
-  selectDestToken,
-  selectSourceAmount,
-  selectSourceToken,
   setDestToken,
   setSourceAmount,
   setSourceAmountAsMax,
@@ -40,9 +37,6 @@ export const useLimitOrderSwapInputs = () => {
   );
   const enabledChainIds = limitOrderFeatureFlags?.enabledChainIds;
 
-  const sourceAmount = useSelector(selectSourceAmount);
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
   const isFiatToggleEnabled = useSelector(
     (state: RootState) =>
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
@@ -78,6 +72,11 @@ export const useLimitOrderSwapInputs = () => {
     didResetTokensRef.current = true;
   }, [enabledChainIds, dispatch]);
 
+  const {
+    latestSourceBalance,
+    quoteParams: { srcAmount: sourceAmount, srcToken: sourceToken, destToken },
+  } = useBridgeSession();
+
   useEffect(() => {
     if (didResetTokensRef.current) {
       // Avoid overwriting the freshly reset dest token with one computed from stale data.
@@ -106,8 +105,6 @@ export const useLimitOrderSwapInputs = () => {
     dispatch(setDestToken(nextDestToken));
   }, [sourceToken, destToken, dispatch]);
 
-  const { latestSourceBalance } = useBridgeSession();
-
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
       dispatch(setSourceAmount(value));
@@ -128,6 +125,40 @@ export const useLimitOrderSwapInputs = () => {
   const isSourceNetworkGasSponsored = useIsNetworkGasSponsored(
     sourceToken?.chainId,
   );
+
+  // // Gas sponsorship only covers trades that stay on a single sponsored chain.
+  // const isQuoteSponsored =
+  //   Boolean(sourceToken?.chainId) &&
+  //   sourceToken?.chainId === destToken?.chainId &&
+  //   isSourceNetworkGasSponsored;
+
+  // const combinedSwapQuoteData = useSwapQuotes();
+  // const updateQuoteParams = combinedSwapQuoteData?.debouncedUpdateQuoteParams;
+
+  // // A limit order can't be signed by a hardware wallet on any chain, so no
+  // // quote is ever requested for one. The inputs stay interactive and
+  // // `HardwareWalletUnsupportedBanner` explains why no quote appears. Gating
+  // // here rather than in useSwapQuotes keeps hardware wallets working
+  // // for Market orders, which share that hook but not this one.
+  // const isHardwareWallet = useIsHardwareWalletForBridge();
+
+  // // Both pickers are restricted to EVM chains, so no destination address is
+  // // needed: that is only required for bridges involving a non-EVM chain.
+  // const hasValidBridgeInputs =
+  //   !isHardwareWallet &&
+  //   sourceAmount !== undefined &&
+  //   sourceAmount !== '.' &&
+  //   Boolean(sourceToken?.decimals) &&
+  //   Boolean(destToken);
+
+  // useEffect(() => {
+  //   if (hasValidBridgeInputs && updateQuoteParams) {
+  //     updateQuoteParams();
+  //   }
+  //   return () => {
+  //     updateQuoteParams?.cancel();
+  //   };
+  // }, [hasValidBridgeInputs, updateQuoteParams]);
 
   const handleSourceMaxPress = useCallback(() => {
     if (!latestSourceBalance?.displayBalance) {
