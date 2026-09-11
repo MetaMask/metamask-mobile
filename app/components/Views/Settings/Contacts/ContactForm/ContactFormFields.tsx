@@ -1,4 +1,4 @@
-import React, { type RefObject } from 'react';
+import React, { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { type TextInput } from 'react-native';
 import {
   Box,
@@ -17,8 +17,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../../util/address';
+import ClipboardManager from '../../../../../core/ClipboardManager';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
+
+const COPIED_ICON_RESET_MS = 3000;
 
 interface ContactFormFieldsProps {
   address: string | null;
@@ -41,6 +44,73 @@ interface ContactFormFieldsProps {
   toEnsAddress: string | null;
   toEnsName: string | null | undefined;
 }
+
+const AddressFieldEndAccessory = ({
+  addressToCopy,
+  isAddMode,
+  onScan,
+}: {
+  addressToCopy: string;
+  isAddMode: boolean;
+  onScan: () => void;
+}) => {
+  const [copied, setCopied] = useState(false);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const onCopy = useCallback(async () => {
+    if (!addressToCopy) {
+      return;
+    }
+
+    await ClipboardManager.setString(addressToCopy);
+    setCopied(true);
+
+    if (copiedTimeoutRef.current) {
+      clearTimeout(copiedTimeoutRef.current);
+    }
+    copiedTimeoutRef.current = setTimeout(() => {
+      setCopied(false);
+    }, COPIED_ICON_RESET_MS);
+  }, [addressToCopy]);
+
+  if (isAddMode) {
+    return (
+      <ButtonIcon
+        iconName={IconName.ScanBarcode}
+        size={ButtonIconSize.Sm}
+        onPress={onScan}
+        accessibilityLabel={strings('send.scan_qr_code')}
+      />
+    );
+  }
+
+  if (!addressToCopy) {
+    return null;
+  }
+
+  return (
+    <ButtonIcon
+      iconName={copied ? IconName.CopySuccess : IconName.Copy}
+      size={ButtonIconSize.Sm}
+      onPress={onCopy}
+      accessibilityLabel={
+        copied
+          ? strings('transactions.address_copied_to_clipboard')
+          : strings('wallet_creation_error.copy')
+      }
+      testID={AddContactViewSelectorsIDs.COPY_BUTTON}
+    />
+  );
+};
 
 export const ContactFormFields = ({
   address,
@@ -89,14 +159,11 @@ export const ContactFormFields = ({
         isError={Boolean(addressError)}
         inputRef={addressInputRef}
         endAccessory={
-          isAddMode ? (
-            <ButtonIcon
-              iconName={IconName.ScanBarcode}
-              size={ButtonIconSize.Sm}
-              onPress={onScan}
-              accessibilityLabel={strings('send.scan_qr_code')}
-            />
-          ) : undefined
+          <AddressFieldEndAccessory
+            addressToCopy={toEnsAddress || address || ''}
+            isAddMode={isAddMode}
+            onScan={onScan}
+          />
         }
         inputProps={{
           autoCapitalize: 'none',
