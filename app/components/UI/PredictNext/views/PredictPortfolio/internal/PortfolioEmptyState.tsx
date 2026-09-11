@@ -49,6 +49,7 @@ export const PortfolioEmptyState = ({
         variant={ButtonVariant.Secondary}
         onPress={onBrowseMarkets}
         testID={PredictPortfolioScreenTestIds.BROWSE_MARKETS}
+        twClassName="self-center"
       >
         {strings('predict_next.portfolio.empty.browse_markets')}
       </Button>
