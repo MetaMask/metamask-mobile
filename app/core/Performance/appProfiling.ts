@@ -12,23 +12,39 @@
  * there yet.
  *
  * The session is driven entirely by the app process, not by the test: it arms
- * itself as soon as JS runs and dumps whenever the app is backgrounded. A
- * profiling session cannot outlive the process that opened it, and asking
- * Hermes to dump a sampler it is no longer running is what makes the native
- * stop call hang, so a process that never armed itself never dumps.
+ * itself as soon as JS runs and dumps whenever the app stays backgrounded long
+ * enough to clear a short grace period. A profiling session cannot outlive the
+ * process that opened it, so a process that never armed itself never dumps.
  */
 
 import { AppState, Platform, type NativeEventSubscription } from 'react-native';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
+import Logger from '../../util/Logger';
 import { getHermesProfilerModule } from './hermesProfilerModule';
 
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';
 
+/**
+ * Transient Android pauses (biometric prompts, permission dialogs, share
+ * sheets, Custom Tabs) also fire `AppState` `'background'`. Waiting this long
+ * before dumping avoids spending a multi-MB write on those brief pauses; a
+ * real test-driven background lasts well past this window.
+ */
+const BACKGROUND_DUMP_GRACE_MS = 500;
+
 let isRecording = false;
 let lastProfilePath: string | null = null;
 let lastError: string | null = null;
 let appStateSubscription: NativeEventSubscription | null = null;
+let backgroundDumpTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function clearBackgroundDumpTimeout(): void {
+  if (backgroundDumpTimeout !== null) {
+    clearTimeout(backgroundDumpTimeout);
+    backgroundDumpTimeout = null;
+  }
+}
 
 /**
  * Starts a Hermes CPU profiling session.
@@ -45,6 +61,23 @@ export async function startAppProfiling(
 
   try {
     const profiler = getHermesProfilerModule();
+
+    // The Babel inlined `IS_PERFORMANCE_TEST` flag and Gradle's
+    // `BuildConfig.IS_PERFORMANCE_TEST` come from the same env var but through
+    // different processes. When JS sees the flag and the native module is
+    // missing, Gradle almost certainly did not, and falling back to
+    // `react-native-release-profiler` would write somewhere the fixture never
+    // looks — the run would "pass" with zero traces. Be loud on Android.
+    if (Platform.OS === 'android' && !profiler) {
+      lastError =
+        'MetaMaskHermesProfiler is not registered; BuildConfig.IS_PERFORMANCE_TEST is likely false';
+      Logger.error(new Error(lastError), {
+        tags: { feature: 'performance-profiling' },
+      });
+      isRecording = false;
+      return false;
+    }
+
     const started = profiler
       ? await profiler.startProfiling()
       : await Promise.resolve(startProfiling());
@@ -88,6 +121,17 @@ export async function stopAppProfiling(
 
   try {
     const profiler = getHermesProfilerModule();
+
+    if (Platform.OS === 'android' && !profiler) {
+      lastError =
+        'MetaMaskHermesProfiler is not registered; BuildConfig.IS_PERFORMANCE_TEST is likely false';
+      Logger.error(new Error(lastError), {
+        tags: { feature: 'performance-profiling' },
+      });
+      isRecording = false;
+      return null;
+    }
+
     const path = profiler
       ? await profiler.stopProfilingToAppStorage()
       : await stopProfiling(Platform.OS === 'android');
@@ -134,7 +178,9 @@ function dumpAndRearm(enabled: boolean): void {
  *
  * Backgrounding is the dump trigger. It is the only signal available to the app
  * that both the test can produce on demand (`mobile: backgroundApp`) and that
- * cannot be swallowed by whatever is on screen. Profiling re-arms afterwards
+ * cannot be swallowed by whatever is on screen. A short grace period filters
+ * out transient Android pauses (biometric prompts, permission dialogs, Custom
+ * Tabs) that also fire `AppState` `'background'`. Profiling re-arms afterwards
  * because specs background the app mid-test — the warm-start specs and the
  * OAuth hand-offs in seedless onboarding do — and the work after that point
  * still belongs to the test.
@@ -151,10 +197,17 @@ export function initializeAppProfiling(
   });
 
   appStateSubscription = AppState.addEventListener('change', (nextState) => {
-    if (nextState !== 'background') {
+    if (nextState === 'background') {
+      clearBackgroundDumpTimeout();
+      backgroundDumpTimeout = setTimeout(() => {
+        backgroundDumpTimeout = null;
+        dumpAndRearm(enabled);
+      }, BACKGROUND_DUMP_GRACE_MS);
       return;
     }
-    dumpAndRearm(enabled);
+
+    // Foreground (or inactive) again before the grace elapsed — cancel the dump.
+    clearBackgroundDumpTimeout();
   });
 }
 
@@ -178,6 +231,7 @@ export function __resetAppProfilingForTests(): void {
   isRecording = false;
   lastProfilePath = null;
   lastError = null;
+  clearBackgroundDumpTimeout();
   appStateSubscription?.remove();
   appStateSubscription = null;
 }

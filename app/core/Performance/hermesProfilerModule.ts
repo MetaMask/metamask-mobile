@@ -3,8 +3,10 @@
  *
  * The module lives in `android/app/src/main/java/io/metamask/nativeModules/HermesProfiler`
  * and is only registered when `BuildConfig.IS_PERFORMANCE_TEST` is true, so it
- * is absent on every other Android build and on iOS. Callers must treat a
- * missing module as "profiling unavailable" rather than an error.
+ * is absent on every other Android build and on iOS. On iOS a missing module is
+ * expected and callers fall back to `react-native-release-profiler`. On Android
+ * inside a performance APK a missing module means the JS and Gradle flags
+ * disagree — callers should treat that as a configuration error, not fall back.
  */
 
 import { NativeModules, Platform } from 'react-native';

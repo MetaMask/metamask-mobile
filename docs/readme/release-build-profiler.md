@@ -40,9 +40,11 @@ stop sequence as the shake flow above — `dumpSampledTraceToFile` then `disable
 on the native modules thread — against the prebuilt `hermes-android` artifact
 from Maven, so no React Native or Hermes patches are involved. The only
 difference from the shake flow is the destination: the shake flow copies to the
-shared Downloads collection through `MediaStore`, which Appium cannot read back
-on a non-rooted device, so the module writes to app-scoped external storage
-(`getExternalFilesDir(DIRECTORY_DOCUMENTS)`) instead.
+shared Downloads collection through `MediaStore`. Appium can pull from Downloads
+on a non-rooted device too, but app-scoped external storage
+(`getExternalFilesDir(DIRECTORY_DOCUMENTS)`) gives deterministic segment names,
+numbering that survives process restarts, and automatic cleanup under
+`fullReset` — without a Toast — so the module writes there instead.
 
 #### Why the app drives its own session
 
@@ -77,9 +79,9 @@ report. On iOS collection is skipped (app-scoped export is Android-only).
 
 #### Segments
 
-A Hermes session cannot outlive the process that opened it, and asking Hermes to
-dump a sampler that is no longer running is what makes the native stop call
-hang. So the app dumps whenever it is backgrounded and immediately re-arms, and
+A Hermes session cannot outlive the process that opened it. The app therefore
+dumps whenever it stays backgrounded past a short grace period (so brief pauses
+like biometric prompts do not cost a multi-MB write) and immediately re-arms, and
 one test can produce several traces:
 
 - Specs that kill the app (`AppiumGestures.terminateApp`, used by the cold-start
@@ -89,10 +91,11 @@ one test can produce several traces:
 - Specs that background the app themselves — the warm-start specs, and the OAuth
   hand-offs in seedless onboarding — produce a segment at that point too.
 
-The app numbers segments across processes, scanning the output directory so a
-restarted process cannot reuse an index the test has not pulled yet, and renames
-each trace into place only once Hermes has finished writing it, so a segment
-that pulls and parses is complete.
+`dumpSampledTraceToFile` clears the sample buffer after writing, so segments
+never overlap. The app numbers segments across processes by scanning the output
+directory so a restarted process cannot reuse an index the test has not pulled
+yet, and renames each trace into place only once Hermes has finished writing it,
+so a segment that pulls and parses is complete.
 
 Artifacts are named `<project>-<title>.cpuprofile`, with `.retry-<n>` for
 retried attempts (otherwise a retry overwrites the artifact of the attempt

@@ -1,4 +1,4 @@
-import { AppState, type AppStateStatus } from 'react-native';
+import { AppState, Platform, type AppStateStatus } from 'react-native';
 import {
   __resetAppProfilingForTests,
   getLastAppProfilePath,
@@ -11,6 +11,7 @@ import {
 } from './appProfiling';
 import { getHermesProfilerModule } from './hermesProfilerModule';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
+import Logger from '../../util/Logger';
 
 jest.mock('react-native-release-profiler', () => ({
   startProfiling: jest.fn(),
@@ -19,6 +20,14 @@ jest.mock('react-native-release-profiler', () => ({
 
 jest.mock('./hermesProfilerModule', () => ({
   getHermesProfilerModule: jest.fn(),
+}));
+
+jest.mock('../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
 }));
 
 const ANDROID_PROFILE_PATH =
@@ -73,8 +82,15 @@ describe('appProfiling', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
+    jest.useRealTimers();
     __resetAppProfilingForTests();
     mockGetHermesProfilerModule.mockReturnValue(null);
+    // Jest's RN setup defaults Platform.OS to ios; reset so each test is explicit.
+    (Platform as { OS: typeof Platform.OS }).OS = 'ios';
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('reports profiling disabled outside performance APKs in unit tests', () => {
@@ -102,6 +118,7 @@ describe('appProfiling', () => {
   });
 
   it('starts and stops profiling through the native module', async () => {
+    (Platform as { OS: typeof Platform.OS }).OS = 'android';
     const nativeModule = mockNativeModule();
 
     const started = await startAppProfiling(true);
@@ -118,7 +135,7 @@ describe('appProfiling', () => {
     expect(isAppProfilingRecording()).toBe(false);
   });
 
-  it('falls back to react-native-release-profiler when the native module is absent', async () => {
+  it('falls back to react-native-release-profiler on iOS when the native module is absent', async () => {
     (startProfiling as jest.Mock).mockReturnValue(true);
     (stopProfiling as jest.Mock).mockResolvedValue('/tmp/profile.cpuprofile');
 
@@ -130,7 +147,25 @@ describe('appProfiling', () => {
     expect(path).toBe('/tmp/profile.cpuprofile');
   });
 
+  it('fails loudly on Android when the native module is missing', async () => {
+    (Platform as { OS: typeof Platform.OS }).OS = 'android';
+    mockGetHermesProfilerModule.mockReturnValue(null);
+    (startProfiling as jest.Mock).mockReturnValue(true);
+
+    const started = await startAppProfiling(true);
+
+    expect(started).toBe(false);
+    expect(isAppProfilingRecording()).toBe(false);
+    expect(getLastAppProfilingError()).toContain(
+      'MetaMaskHermesProfiler is not registered',
+    );
+    expect(Logger.error).toHaveBeenCalled();
+    // Must not silently write somewhere the fixture never looks.
+    expect(startProfiling).not.toHaveBeenCalled();
+  });
+
   it('leaves Hermes alone when stop runs without an active session', async () => {
+    (Platform as { OS: typeof Platform.OS }).OS = 'android';
     const nativeModule = mockNativeModule();
 
     const path = await stopAppProfiling(true);
@@ -143,6 +178,7 @@ describe('appProfiling', () => {
   });
 
   it('records an error when the native start reports failure', async () => {
+    (Platform as { OS: typeof Platform.OS }).OS = 'android';
     mockNativeModule({ startProfiling: jest.fn().mockResolvedValue(false) });
 
     const started = await startAppProfiling(true);
@@ -153,6 +189,7 @@ describe('appProfiling', () => {
   });
 
   it('records an error when the native stop rejects', async () => {
+    (Platform as { OS: typeof Platform.OS }).OS = 'android';
     mockNativeModule({
       stopProfilingToAppStorage: jest
         .fn()
@@ -180,6 +217,7 @@ describe('appProfiling', () => {
     });
 
     it('arms profiling for the app process on startup', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
       const nativeModule = mockNativeModule();
       captureAppStateListener();
 
@@ -190,7 +228,9 @@ describe('appProfiling', () => {
       expect(isAppProfilingRecording()).toBe(true);
     });
 
-    it('dumps and re-arms when the app is backgrounded', async () => {
+    it('dumps and re-arms after the background grace period', async () => {
+      jest.useFakeTimers();
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
       const nativeModule = mockNativeModule();
       const getListener = captureAppStateListener();
 
@@ -198,6 +238,11 @@ describe('appProfiling', () => {
       await flushPromises();
 
       getListener()('background');
+      await flushPromises();
+      // Still within the grace period — no dump yet.
+      expect(nativeModule.stopProfilingToAppStorage).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(500);
       await flushPromises();
 
       expect(nativeModule.stopProfilingToAppStorage).toHaveBeenCalledTimes(1);
@@ -207,7 +252,26 @@ describe('appProfiling', () => {
       expect(isAppProfilingRecording()).toBe(true);
     });
 
+    it('cancels a pending dump when the app returns to the foreground', async () => {
+      jest.useFakeTimers();
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      const nativeModule = mockNativeModule();
+      const getListener = captureAppStateListener();
+
+      initializeAppProfiling(true);
+      await flushPromises();
+
+      getListener()('background');
+      getListener()('active');
+      jest.advanceTimersByTime(500);
+      await flushPromises();
+
+      expect(nativeModule.stopProfilingToAppStorage).not.toHaveBeenCalled();
+      expect(nativeModule.startProfiling).toHaveBeenCalledTimes(1);
+    });
+
     it('ignores transitions other than background', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
       const nativeModule = mockNativeModule();
       const getListener = captureAppStateListener();
 
@@ -222,6 +286,7 @@ describe('appProfiling', () => {
     });
 
     it('registers a single listener even if called twice', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
       mockNativeModule();
       const getListener = captureAppStateListener();
 

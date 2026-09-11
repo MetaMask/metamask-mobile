@@ -16,16 +16,23 @@ import java.io.File
  *
  * The stop sequence mirrors `react-native-release-profiler`'s shake-driven RC
  * flow (dump, then disable, both on the native modules thread) because that
- * ordering is known to work against the prebuilt `hermes-android` artifact. The
- * only deviation is the destination: RC copies to the shared Downloads
- * collection via MediaStore, which Appium cannot read back, so we write to
- * app-scoped external storage instead. That path is inside the app sandbox and
- * is therefore retrievable with `pullFile` on a non-rooted BrowserStack device.
+ * ordering is known to work against the prebuilt `hermes-android` artifact.
  *
- * Each stop writes a numbered segment rather than a single fixed file. One test
- * can profile several app processes (specs that restart the app) and background
- * the app several times (OAuth hand-offs), and every one of those produces its
- * own trace.
+ * Destination differs from RC on purpose. RC copies to the shared Downloads
+ * collection via MediaStore; `pullFile` from Downloads works on non-rooted
+ * devices too, but app-scoped external storage gives us deterministic segment
+ * names, numbering that survives process restarts, and automatic cleanup under
+ * `fullReset` — without a Toast. Each stop therefore writes a numbered segment
+ * rather than a single fixed file: one test can profile several app processes
+ * (specs that restart the app) and background the app several times (OAuth
+ * hand-offs), and every one of those produces its own trace.
+ *
+ * `dumpSampledTraceToFile` clears the sample buffer after writing, so segments
+ * never overlap. On RN 0.83.6 `HermesSamplingProfiler.disable()` is JNI-bound
+ * to `enable()` (fixed upstream on main), so `disable` is currently a no-op and
+ * the sampler keeps running across segments; when RN ships the fix, `disable`
+ * will genuinely stop it and the re-arm `enable()` restarts it. Either way the
+ * dump-then-disable order here is correct.
  */
 class HermesProfilerModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {

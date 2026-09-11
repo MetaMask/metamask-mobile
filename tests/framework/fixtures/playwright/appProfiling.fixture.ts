@@ -51,7 +51,10 @@ export const appProfilingFixture: Fixtures<
         return;
       }
 
-      resetAppProfilingSegments();
+      // Probe the device so leftover segments from a previous session are not
+      // attributed to this test. Relies on fullReset in BrowserStack, but stays
+      // correct when that is off.
+      await resetAppProfilingSegments();
 
       const removeTerminateHook = onBeforeAppTerminate(async () => {
         await collectAppProfiling(testInfo, currentDeviceDetails.platform);
