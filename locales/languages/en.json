@@ -4930,7 +4930,7 @@
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Account couldn't connect",
-    "info": "Please scan the QR code on the site to reconnect to MetaMask"
+    "info": "Please scan the QR code on the site to reconnect to MetaMask."
   },
   "app_information": {
     "title": "Information",
