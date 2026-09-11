@@ -62,7 +62,7 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
         onPress={onPress}
         activeOpacity={0.7}
         accessibilityRole="button"
-        testID="quick-buy-rate-tag-pressable"
+        testID={QuickBuySheetSelectorsIDs.RATE_TAG_PRESSABLE}
       >
         {content}
       </TouchableOpacity>
