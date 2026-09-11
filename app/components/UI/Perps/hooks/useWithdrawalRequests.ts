@@ -175,6 +175,9 @@ export const useWithdrawalRequests = (
       Logger.error(errorInstance, {
         tags: {
           feature: PERPS_CONSTANTS.FeatureName,
+          component: 'useWithdrawalRequests',
+          action: 'financial_withdrawal',
+          operation: 'financial_operations',
         },
         context: {
           name: 'useWithdrawalRequests.executeWithdrawalCompletionCheck',

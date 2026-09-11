@@ -52,32 +52,46 @@ const STORED_USD_PRICE_RANGE: RecurringPriceRange = {
 function renderRecurringPriceRangeView({
   currentCurrency = 'usd',
 }: {
-  currentCurrency?: string;
+  currentCurrency?: 'usd' | 'eur';
 } = {}) {
   return renderBridgeView({
     deterministicFiat: true,
     overrides: {
       engine: {
         backgroundState: {
-          TokenRatesController: {
-            marketData: {
-              '0x1': {
-                '0x0000000000000000000000000000000000000000': {
-                  tokenAddress: '0x0000000000000000000000000000000000000000',
-                  currency: 'ETH',
-                  price: 1,
-                },
-                [MUSD_ADDRESS]: {
-                  tokenAddress: MUSD_ADDRESS,
-                  currency: 'ETH',
-                  price: MUSD_ETH_PRICE,
-                },
+          AssetsController: {
+            selectedCurrency: currentCurrency,
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                decimals: 18,
+                symbol: 'ETH',
+                name: 'Ether',
+              },
+              [`eip155:1/erc20:${MUSD_ADDRESS}`]: {
+                type: 'erc20',
+                decimals: 18,
+                symbol: 'mUSD',
+                name: 'mUSD',
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                price: ETH_FIAT_RATE,
+                usdPrice: ETH_FIAT_RATE,
+                lastUpdated: Date.now(),
+              },
+              // Priced at $1 (fiat); the compat selector converts this into
+              // the native-currency-denominated market data the fiat-rate
+              // helpers expect (i.e. MUSD_ETH_PRICE = 1 / ETH_FIAT_RATE).
+              [`eip155:1/erc20:${MUSD_ADDRESS}`]: {
+                assetPriceType: 'fungible',
+                price: MUSD_FIAT_RATE,
+                lastUpdated: Date.now(),
               },
             },
           },
-          ...(currentCurrency
-            ? { CurrencyRateController: { currentCurrency } }
-            : {}),
         },
       },
     },

@@ -59,6 +59,25 @@ function getState({
             },
           },
         },
+        AssetsController: {
+          selectedCurrency: 'usd',
+          assetsInfo: {
+            'eip155:1/slip44:60': {
+              type: 'native' as const,
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+            },
+          },
+          assetsPrice: {
+            'eip155:1/slip44:60': {
+              assetPriceType: 'fungible' as const,
+              price: 556.12,
+              usdPrice: 556.12,
+              lastUpdated: 1732887955694,
+            },
+          },
+        },
       },
     },
   });

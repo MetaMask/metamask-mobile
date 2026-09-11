@@ -130,12 +130,14 @@ describe('useFeeCalculationsTransactionBatch', () => {
     const clonedStakingDepositConfirmationState = cloneDeep(
       stakingDepositConfirmationState,
     );
-    clonedStakingDepositConfirmationState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
-      {
-        conversionDate: 1732887955.694,
-        conversionRate: 80,
-        usdConversionRate: 80,
-      };
+    clonedStakingDepositConfirmationState.engine.backgroundState.AssetsController.assetsPrice[
+      'eip155:1/slip44:60'
+    ] = {
+      assetPriceType: 'fungible',
+      price: 80,
+      usdPrice: 80,
+      lastUpdated: 1732887955694,
+    };
 
     const { result } = renderHookWithProvider(
       () => useFeeCalculationsTransactionBatch(mockTransactionBatchMeta),
@@ -155,13 +157,8 @@ describe('useFeeCalculationsTransactionBatch', () => {
       stakingDepositConfirmationState,
     );
 
-    // No type is exported for CurrencyRate, so we need to cast it to the correct type
-    clonedStakingDepositConfirmationState.engine.backgroundState.CurrencyRateController.currencyRates.ETH =
-      null as unknown as {
-        conversionDate: number;
-        conversionRate: number;
-        usdConversionRate: number;
-      };
+    delete clonedStakingDepositConfirmationState.engine.backgroundState
+      .AssetsController.assetsPrice['eip155:1/slip44:60'];
 
     const { result } = renderHookWithProvider(
       () => useFeeCalculationsTransactionBatch(mockTransactionBatchMeta),

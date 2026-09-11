@@ -242,6 +242,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `amount_filled` (optional): Amount filled in partially filled orders (number)
 - `remaining_amount` (optional): Amount remaining in partially filled orders (number)
 - `error_message` (optional): Error description when status is 'failed'
+- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active. The shared screen vs bottom-sheet experiment (`perpsAbtestScreenVsBottomSheet`) is registered on this conversion event only — see [`docs/perps/perps-ab-testing.md`](./perps-ab-testing.md)
 
 ### 5. PERPS_ORDER_CANCEL_TRANSACTION
 
@@ -372,15 +373,15 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 
 ### Canonical `active_ab_tests` Pattern
 
-Perps A/B tests (e.g., TAT-1937 button colors) follow the canonical MetaMask Mobile A/B testing standard (see [`docs/ab-testing.md`](../ab-testing.md)) rather than a Perps-local flat-property pattern. Each test is registered once in `app/util/analytics/abTestAnalyticsRegistry.ts` with the events it should be attached to; `active_ab_tests` is then injected automatically onto every matching event when the test is active — no manual per-event wiring is required in the view components.
+Perps A/B tests follow the canonical MetaMask Mobile A/B testing standard (see [`docs/ab-testing.md`](../ab-testing.md)) rather than a Perps-local flat-property pattern. Each test is registered once in `app/util/analytics/abTestAnalyticsRegistry.ts` with the events it should be attached to; `active_ab_tests` is then injected automatically onto every matching event when the test is active — no manual per-event wiring is required in the view components.
 
 To run multiple concurrent tests, register each test's mapping in the registry; `enrichWithABTests()` appends an entry per active test to the shared `active_ab_tests` array on any event that matches one of the registered `eventNames`.
 
+Register only the events needed to answer that test's question. Do not copy another test's event list.
+
 ### Where to Track AB Tests
 
-**✅ Track in both events:** Use dual tracking to enable engagement rate calculation.
-
-**Dual Tracking Approach:**
+**Button color (TAT-1937):** dual tracking on `PERPS_SCREEN_VIEWED` and `PERPS_UI_INTERACTION` so engagement rate can be calculated.
 
 1. **PERPS_SCREEN_VIEWED** (baseline exposure):
    - `active_ab_tests` is auto-injected when the test is active
@@ -391,16 +392,12 @@ To run multiple concurrent tests, register each test's mapping in the registry; 
    - `active_ab_tests` is auto-injected when the test is active and user taps Long/Short or Place Order button
    - Measures which variant drives more button presses
 
-**Why Both Events?**
+**Why both events for button color?**
 
 - **Engagement Rate** = Button presses / Screen views per variant
 - Answers: "Which button color makes users more likely to press the button?"
 
-**Example:** For TAT-1937 (button color test):
-
-- Screen views establish baseline (how many saw control vs monochrome)
-- Button presses measure engagement
-- Compare button presses to screen views for each variant
+**Screen vs bottom sheet (`perpsAbtestScreenVsBottomSheet`):** conversion tracking only. Register `PERPS_POSITION_CLOSE_TRANSACTION` (and later each converted flow's transaction event). Do not attach this assignment to screen or interaction events. `Experiment Viewed` from `useABTest` is the exposure signal.
 
 For details, see [perps-ab-testing.md](./perps-ab-testing.md).
 
