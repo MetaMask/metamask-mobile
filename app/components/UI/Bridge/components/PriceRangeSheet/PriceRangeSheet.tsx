@@ -15,8 +15,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
   ButtonSize,
-  ButtonsAlignment,
+  ButtonVariant,
   FilterButton,
   FontWeight,
   SegmentedControl,
@@ -143,7 +144,6 @@ function PriceRangeAmountField({
 }
 
 const PriceRangeSheet = ({
-  isVisible,
   sourceToken,
   destToken,
   sourceFiatRate,
@@ -152,8 +152,8 @@ const PriceRangeSheet = ({
   initialTokenSide,
   initialMin,
   initialMax,
-  onClose,
   onConfirm,
+  goBack,
 }: PriceRangeSheetProps) => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -167,15 +167,6 @@ const PriceRangeSheet = ({
   const [focusedField, setFocusedField] = useState<PriceRangeField | null>(
     null,
   );
-
-  useEffect(() => {
-    if (isVisible) {
-      setPendingTokenSide(initialTokenSide ?? DEFAULT_PRICE_RANGE_TOKEN_SIDE);
-      setPendingMin(initialMin ?? '');
-      setPendingMax(initialMax ?? '');
-      setFocusedField(null);
-    }
-  }, [initialMax, initialMin, initialTokenSide, isVisible]);
 
   useEffect(() => {
     if (focusedField !== 'max') {
@@ -236,11 +227,6 @@ const PriceRangeSheet = ({
     sheetRef.current?.onCloseBottomSheet();
   }, [closeKeypad]);
 
-  const handleSheetClosed = useCallback(() => {
-    closeKeypad();
-    onClose();
-  }, [closeKeypad, onClose]);
-
   const focusField = useCallback((field: PriceRangeField) => {
     setFocusedField(field);
     keypadRef.current?.open();
@@ -294,8 +280,11 @@ const PriceRangeSheet = ({
     [focusedField],
   );
 
-  const handleClearAll = useCallback(() => {
+  const handleClearMin = useCallback(() => {
     setPendingMin('');
+  }, []);
+
+  const handleClearMax = useCallback(() => {
     setPendingMax('');
   }, []);
 
@@ -324,15 +313,12 @@ const PriceRangeSheet = ({
     pendingTokenSide,
   ]);
 
-  if (!isVisible) {
-    return null;
-  }
-
   return (
     <BottomSheet
       ref={sheetRef}
       testID={PriceRangeSheetSelectorsIDs.SHEET}
-      onClose={handleSheetClosed}
+      goBack={goBack}
+      onClose={closeKeypad}
     >
       <BottomSheetHeader
         onClose={closeSheet}
@@ -430,11 +416,31 @@ const PriceRangeSheet = ({
             </Box>
 
             <Box gap={4}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('bridge.recurring.price_range.min_token_price', {
-                  symbol: selectedToken?.symbol ?? '',
-                })}
-              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="-mr-3 min-h-8"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('bridge.recurring.price_range.min_token_price', {
+                    symbol: selectedToken?.symbol ?? '',
+                  })}
+                </Text>
+                {pendingMin ? (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleClearMin}
+                    testID={PriceRangeSheetSelectorsIDs.CLEAR_MIN}
+                  >
+                    {strings('bridge.recurring.price_range.clear')}
+                  </Button>
+                ) : null}
+              </Box>
               <PricePercentRow
                 bound="min"
                 percents={PRICE_RANGE_MIN_PERCENTS}
@@ -453,11 +459,31 @@ const PriceRangeSheet = ({
             </Box>
 
             <Box gap={4}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings('bridge.recurring.price_range.max_token_price', {
-                  symbol: selectedToken?.symbol ?? '',
-                })}
-              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="-mr-3 min-h-8"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('bridge.recurring.price_range.max_token_price', {
+                    symbol: selectedToken?.symbol ?? '',
+                  })}
+                </Text>
+                {pendingMax ? (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Sm}
+                    onPress={handleClearMax}
+                    testID={PriceRangeSheetSelectorsIDs.CLEAR_MAX}
+                  >
+                    {strings('bridge.recurring.price_range.clear')}
+                  </Button>
+                ) : null}
+              </Box>
               <PricePercentRow
                 bound="max"
                 percents={PRICE_RANGE_MAX_PERCENTS}
@@ -486,15 +512,6 @@ const PriceRangeSheet = ({
         ) : null}
       </Box>
       <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
-        twClassName="gap-4"
-        secondaryButtonProps={{
-          children: strings('bridge.recurring.price_range.clear_all'),
-          onPress: handleClearAll,
-          isDisabled: !pendingMin && !pendingMax,
-          size: ButtonSize.Lg,
-          testID: PriceRangeSheetSelectorsIDs.CLEAR_ALL,
-        }}
         primaryButtonProps={{
           children: strings('bridge.recurring.confirm'),
           onPress: handleConfirm,

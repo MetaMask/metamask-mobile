@@ -9,7 +9,10 @@ import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
+import {
+  navigateWithDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import {
@@ -68,6 +71,8 @@ import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import type { MoneyDepositAsset } from '../../selectors/depositTokens';
+import type { MoneyHomeParams } from '../../types/navigation';
+import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -106,6 +111,7 @@ const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
@@ -375,6 +381,12 @@ const MoneyHomeView = () => {
     });
   }, [navigation]);
 
+  // Only set when this stack was pushed over the caller's (e.g. a Rewards
+  // campaign funding flow), so back returns there instead of to a tab.
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   const handleAddPress = useCallback(
     ({
       labelKey,
@@ -401,9 +413,14 @@ const MoneyHomeView = () => {
 
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        // A Rewards-originated Money home is already on the stack, so the
+        // deposit it starts should return here rather than switch tabs.
+        ...(launchedFrom && {
+          params: { launchedFrom: ConfirmationLaunchSource.RewardsMoneyHome },
+        }),
       });
     },
-    [navigation, trackButtonClicked],
+    [navigation, trackButtonClicked, launchedFrom],
   );
 
   const handleTransferPress = useCallback(() => {
@@ -638,7 +655,9 @@ const MoneyHomeView = () => {
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
-    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
+    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS, {
+      overrideToUsd: true,
+    });
   }, [navigation, trackButtonClicked]);
 
   const handleWhatYouGetPress = useCallback(() => {
@@ -884,6 +903,7 @@ const MoneyHomeView = () => {
       <MoneyHeader
         onMenuPress={handleMenuPress}
         onGetProPress={handleGetProPress}
+        onBack={showBackButton ? handleBackPress : undefined}
       />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}

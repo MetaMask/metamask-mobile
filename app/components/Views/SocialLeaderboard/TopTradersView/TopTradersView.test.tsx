@@ -266,13 +266,20 @@ const expectLatestQueryEnabledStates = (expected: Record<TabKey, boolean>) => {
   expect(latestCalls).toEqual([
     [
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
+        chains: [
+          'base',
+          'solana',
+          'ethereum',
+          'bsc',
+          'robinhood',
+          'hyperliquid',
+        ],
         enabled: expected.all,
       }),
     ],
     [
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         enabled: expected.tokens,
       }),
     ],
@@ -700,14 +707,14 @@ describe('TopTradersView', () => {
     expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         enabled: true,
       }),
     );
     expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         enabled: false,
       }),
     );
@@ -852,7 +859,7 @@ describe('TopTradersView', () => {
 
     const runDeferredSetupAction = async () => {
       const setupCall = mockNavigate.mock.calls.find(
-        ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+        ([route]) => route === Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       );
       const onSetupComplete = setupCall?.[1]?.onSetupComplete;
       await act(async () => {
@@ -872,7 +879,7 @@ describe('TopTradersView', () => {
       expect(mockToggleFollow).not.toHaveBeenCalled();
       expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+        Routes.SOCIAL.TRADING_SIGNALS_SETUP,
         expect.objectContaining({ onSetupComplete: expect.any(Function) }),
       );
     });
@@ -962,7 +969,7 @@ describe('TopTradersView', () => {
       expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
       expect(mockPlayErrorNotification).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+        Routes.SOCIAL.TRADING_SIGNALS_SETUP,
         expect.anything(),
       );
     });

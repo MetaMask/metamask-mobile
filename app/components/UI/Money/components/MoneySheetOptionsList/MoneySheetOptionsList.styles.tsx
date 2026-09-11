@@ -22,9 +22,6 @@ const styleSheet = (_params: { theme: Theme }) =>
       alignItems: 'center',
       gap: 8,
     },
-    comingSoonTag: {
-      borderRadius: 8,
-    },
   });
 
 export default styleSheet;

@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   TRADING_DEFAULTS,
   DECIMAL_PRECISION_CONFIG,
   OrderType,
+  PerpsMode,
   getMaxAllowedAmount,
   isLimitExecutionOrderType,
   isTriggerOrderType,
   selectTradeConfiguration,
   selectPendingTradeConfiguration,
+  selectSelectedOrderType,
   type OrderFormState,
 } from '@metamask/perps-controller';
+import Engine from '../../../../core/Engine';
 import {
   usePerpsLiveAccount,
   usePerpsLivePositions,
@@ -20,6 +24,7 @@ import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { usePerpsSelector } from './usePerpsSelector';
+import { selectPerpsMode } from '../selectors/perpsController';
 import {
   getMaxAllowedAmountAtExecutionPrice,
   getProspectiveExecutionPrice,
@@ -39,6 +44,19 @@ interface UsePerpsOrderFormParams {
   /** When paying with a custom token, the selected token amount in USD; used to cap maxPossibleAmount and handlers */
   effectiveAvailableBalance?: number;
 }
+
+const isOrderTypeAllowedOnSurface = (
+  type: OrderType | undefined,
+  mode: PerpsMode,
+): type is OrderType => {
+  if (!type) {
+    return false;
+  }
+  if (mode === PerpsMode.Lite) {
+    return type === 'market' || type === 'limit';
+  }
+  return true;
+};
 
 export interface UsePerpsOrderFormReturn {
   orderForm: OrderFormState;
@@ -62,6 +80,8 @@ export interface UsePerpsOrderFormReturn {
   /** Clears price-field interaction state without clearing entered prices. */
   resetPriceInputInteraction: () => void;
   setOrderType: (type: OrderType) => void;
+  /** Reduce-only flag restored from the 30s pending draft, if present. */
+  pendingReduceOnly: boolean | undefined;
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
   handleMinAmount: () => void;
@@ -84,11 +104,11 @@ export function usePerpsOrderForm(
 ): UsePerpsOrderFormReturn {
   const {
     initialAsset = 'BTC',
-    initialDirection = 'long',
+    initialDirection,
     initialAmount,
     fallbackAmount: fallbackAmountParam,
     initialLeverage,
-    initialType = 'market',
+    initialType,
     effectiveAvailableBalance: effectiveAvailableBalanceParam,
   } = params;
 
@@ -115,10 +135,13 @@ export function usePerpsOrderForm(
     selectTradeConfiguration(state, initialAsset),
   );
 
-  // Get pending trade configuration for this asset (temporary, expires after 5 minutes)
+  // Get pending trade configuration for this asset (temporary, expires after 30 seconds)
   const pendingConfig = usePerpsSelector((state) =>
     selectPendingTradeConfiguration(state, initialAsset),
   );
+
+  const persistedOrderType = usePerpsSelector(selectSelectedOrderType);
+  const perpsMode = useSelector(selectPerpsMode);
 
   const spendableBalance = Number.parseFloat(
     effectiveAvailableBalanceParam != null
@@ -196,8 +219,19 @@ export function usePerpsOrderForm(
     defaultLeverage,
   ]);
 
-  // Priority for order type: pending config > navigation param > default (market)
-  const defaultOrderType = pendingConfig?.orderType || initialType || 'market';
+  // Navigation param > persisted global type > pending draft.
+  // Pending is per-market, so it must not override a type chosen on another market.
+  // Lite only offers market/limit; skip Pro-only types (twap, triggers) so they
+  // stay stored for Pro instead of being submitted from Lite.
+  const defaultOrderType =
+    [initialType, persistedOrderType, pendingConfig?.orderType].find((type) =>
+      isOrderTypeAllowedOnSurface(type, perpsMode),
+    ) ?? 'market';
+
+  // Navigation param > pending draft > long. Do not default the param to long
+  // or a short draft cannot restore when the route omits direction.
+  const defaultDirection =
+    initialDirection ?? pendingConfig?.direction ?? 'long';
 
   // Calculate initial balance percentage
   const parsedInitialAmount = Number.parseFloat(initialAmountValue);
@@ -212,7 +246,7 @@ export function usePerpsOrderForm(
   // Initialize form state with pending config if available
   const [orderForm, setOrderForm] = useState<OrderFormState>({
     asset: initialAsset,
-    direction: initialDirection,
+    direction: defaultDirection,
     amount: initialAmountValue, // Will be updated by useEffect when initialAmountValue is calculated
     leverage: defaultLeverage,
     balancePercent: Math.round(initialBalancePercent * 100) / 100,
@@ -335,7 +369,10 @@ export function usePerpsOrderForm(
       ...(pendingConfig.limitPrice !== undefined && {
         limitPrice: pendingConfig.limitPrice,
       }),
-      ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
+      ...(pendingConfig.direction &&
+        initialDirection === undefined && {
+          direction: pendingConfig.direction,
+        }),
     }));
     // We don't need to depend on pendingConfig because we only want to restore it once when the component mounts
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -391,18 +428,37 @@ export function usePerpsOrderForm(
   ]);
 
   // Update entire form
-  const updateOrderForm = useCallback((updates: Partial<OrderFormState>) => {
-    setOrderForm((prev) => ({ ...prev, ...updates }));
-  }, []);
+  const updateOrderForm = useCallback(
+    (updates: Partial<OrderFormState>) => {
+      setOrderForm((prev) => ({ ...prev, ...updates }));
+      if (updates.leverage !== undefined) {
+        Engine.context.PerpsController.saveTradeConfiguration(
+          initialAsset,
+          updates.leverage,
+        );
+      }
+      if (updates.type !== undefined) {
+        Engine.context.PerpsController.setSelectedOrderType(updates.type);
+      }
+    },
+    [initialAsset],
+  );
 
   // Individual setters for common operations
   const setAmount = useCallback((amount: string) => {
     setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
   }, []);
 
-  const setLeverage = useCallback((leverage: number) => {
-    setOrderForm((prev) => ({ ...prev, leverage }));
-  }, []);
+  const setLeverage = useCallback(
+    (leverage: number) => {
+      setOrderForm((prev) => ({ ...prev, leverage }));
+      Engine.context.PerpsController.saveTradeConfiguration(
+        initialAsset,
+        leverage,
+      );
+    },
+    [initialAsset],
+  );
 
   const setDirection = useCallback((direction: 'long' | 'short') => {
     setOrderForm((prev) => ({ ...prev, direction }));
@@ -469,6 +525,7 @@ export function usePerpsOrderForm(
 
   const setOrderType = useCallback((type: OrderType) => {
     setOrderForm((prev) => ({ ...prev, type }));
+    Engine.context.PerpsController.setSelectedOrderType(type);
   }, []);
 
   // Handle percentage-based amount selection (respects custom token amount when set).
@@ -525,6 +582,7 @@ export function usePerpsOrderForm(
       setTriggerPrice: setTriggerPriceValue,
       resetPriceInputInteraction,
       setOrderType,
+      pendingReduceOnly: pendingConfig?.reduceOnly,
       handlePercentageAmount,
       handleMaxAmount,
       handleMinAmount,
@@ -550,6 +608,7 @@ export function usePerpsOrderForm(
       setTriggerPriceValue,
       resetPriceInputInteraction,
       setOrderType,
+      pendingConfig?.reduceOnly,
       handlePercentageAmount,
       handleMaxAmount,
       handleMinAmount,

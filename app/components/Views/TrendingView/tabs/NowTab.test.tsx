@@ -136,6 +136,8 @@ const mockEarnSection = jest.fn(
     showDividers?: boolean;
     tokenDetailsSource?: string;
     enabled?: boolean;
+    // TODO: Can we not use the actual type here? Why do we need unknown?
+    analyticsContext?: unknown;
   }) =>
     React.createElement('View', {
       testID: 'explore-earn-section',
@@ -151,6 +153,7 @@ jest.mock('../../../UI/Earn/components/EarnSection', () => ({
     showDividers?: boolean;
     tokenDetailsSource?: string;
     enabled?: boolean;
+    analyticsContext?: unknown;
   }) => mockEarnSection(props),
 }));
 
@@ -222,7 +225,7 @@ import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
-import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
+import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import NowTab from './NowTab';
@@ -234,6 +237,11 @@ import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import Routes from '../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
+  EARN_MODULE_SCREEN_NAMES,
+} from '../../../UI/Earn/constants/earnModuleEvents';
 
 const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
 const mockUseStocksFeed = jest.mocked(useStocksFeed);
@@ -260,19 +268,19 @@ const createMockSelectorImpl =
     perpsEnabled = false,
     predictEnabled = false,
     whatsHappeningEnabled = false,
-    earnSectionEnabled = false,
+    earnSectionVisible = false,
   }: {
     perpsEnabled?: boolean;
     predictEnabled?: boolean;
     whatsHappeningEnabled?: boolean;
-    earnSectionEnabled?: boolean;
+    earnSectionVisible?: boolean;
   }) =>
   (selector: unknown) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
     if (selector === selectPredictEnabledFlag) return predictEnabled;
     if (selector === selectWhatsHappeningEnabled) return whatsHappeningEnabled;
-    if (selector === selectExploreEarnSectionEnabledFlag)
-      return earnSectionEnabled;
+    if (selector === selectIsExploreEarnSectionVisible)
+      return earnSectionVisible;
     return undefined;
   };
 
@@ -702,10 +710,10 @@ describe('NowTab — Crypto Movers', () => {
 });
 
 describe('NowTab — Earn section', () => {
-  it('renders Earn section without Homepage analytics metadata when enabled', () => {
+  it('renders Earn section without Homepage analytics metadata when visible', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: true }),
+      createMockSelectorImpl({ earnSectionVisible: true }),
     );
 
     renderNowTab();
@@ -715,13 +723,18 @@ describe('NowTab — Earn section', () => {
       enabled: true,
       refresh: { trigger: 0, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_NOW_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_NOW_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
     });
   });
 
   it('forwards Explore refresh trigger to Earn section', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: true }),
+      createMockSelectorImpl({ earnSectionVisible: true }),
     );
 
     renderNowTab({
@@ -733,13 +746,18 @@ describe('NowTab — Earn section', () => {
       enabled: true,
       refresh: { trigger: 1, silentRefresh: true },
       tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+      analyticsContext: {
+        screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_NOW_TAB,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_NOW_TAB,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      },
     });
   });
 
   it('disables Earn when another Explore tab is active', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: true }),
+      createMockSelectorImpl({ earnSectionVisible: true }),
     );
 
     renderNowTab(defaultTabProps, { activeTab: 'Crypto' });
@@ -752,7 +770,7 @@ describe('NowTab — Earn section', () => {
   it('disables Earn when Explore screen is unfocused', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: true }),
+      createMockSelectorImpl({ earnSectionVisible: true }),
     );
     mockUseIsFocused.mockReturnValue(false);
 
@@ -763,10 +781,10 @@ describe('NowTab — Earn section', () => {
     );
   });
 
-  it('does not render Earn section when disabled', () => {
+  it('does not render Earn section when not visible', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: false }),
+      createMockSelectorImpl({ earnSectionVisible: false }),
     );
 
     renderNowTab();

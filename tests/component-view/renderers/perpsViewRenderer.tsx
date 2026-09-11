@@ -7,6 +7,13 @@ import renderWithProvider, {
   type DeepPartial,
 } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import { selectHip3ConfigVersion } from '../../../app/components/UI/Perps/selectors/featureFlags';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../../../app/components/UI/Perps/selectors/perpsController';
+import { PerpsConnectionManager } from '../../../app/components/UI/Perps/services/PerpsConnectionManager';
+import { buildPerpsMarketContextKey } from '../../../app/components/UI/Perps/utils/perpsMarketContext';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
@@ -41,6 +48,7 @@ import PerpsTPSLView from '../../../app/components/UI/Perps/Views/PerpsTPSLView/
 import PerpsOrderDetailsView from '../../../app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView';
 import PerpsOrderView from '../../../app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView';
 import PerpsProMarketView from '../../../app/components/UI/Perps/Views/PerpsProMarketView/PerpsProMarketView';
+import { usePerpsChaseOrders } from '../../../app/components/UI/Perps/hooks/usePerpsChaseOrders';
 import PerpsCancelAllOrdersView from '../../../app/components/UI/Perps/Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
@@ -81,6 +89,28 @@ const testConnectionValue: PerpsConnectionContextValue = {
   reconnectWithNewContext: async (): Promise<void> => undefined,
 };
 
+function setTestMarketContext(
+  state: DeepPartial<RootState>,
+  isInitialized: boolean,
+): void {
+  const manager = PerpsConnectionManager as unknown as {
+    initializedMarketContextKey: string | null;
+    initializedConnectionGeneration: number | null;
+    connectionGeneration: number;
+  };
+  const rootState = state as RootState;
+  manager.initializedMarketContextKey = isInitialized
+    ? buildPerpsMarketContextKey(
+        selectPerpsNetwork(rootState),
+        selectPerpsProvider(rootState),
+        selectHip3ConfigVersion(rootState),
+      )
+    : null;
+  manager.initializedConnectionGeneration = isInitialized
+    ? manager.connectionGeneration
+    : null;
+}
+
 const testHardwareWalletValue: HardwareWalletContextValue = {
   walletType: null,
   deviceId: null,
@@ -106,6 +136,11 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   },
 };
 
+const PerpsChaseDiscoveryConsumer = () => {
+  usePerpsChaseOrders({ isEnabled: false, enableDiscovery: true });
+  return null;
+};
+
 const PerpsTestProviders = ({
   children,
   connectionValue = testConnectionValue,
@@ -122,6 +157,7 @@ const PerpsTestProviders = ({
       <AccessRestrictedProvider>
         <PerpsConnectionContext.Provider value={connectionValue}>
           <PerpsStreamProvider testStreamManager={streamManager}>
+            <PerpsChaseDiscoveryConsumer />
             {children}
           </PerpsStreamProvider>
         </PerpsConnectionContext.Provider>
@@ -402,6 +438,8 @@ interface RenderPerpsViewOptions {
   extraRoutes?: PerpsExtraRoute[];
   /** Selects the matching Perps state preset. */
   mode?: 'lite' | 'pro';
+  /** Override the PerpsConnectionContext value. Useful for views that behave differently when disconnected or connecting. */
+  connectionValue?: PerpsConnectionContextValue;
 }
 
 const DefaultRouteProbe =
@@ -420,13 +458,20 @@ export function renderPerpsView(
   routeName: string,
   options: RenderPerpsViewOptions = {},
 ) {
-  const { overrides, initialParams, streamOverrides, extraRoutes, mode } =
-    options;
+  const {
+    overrides,
+    initialParams,
+    streamOverrides,
+    extraRoutes,
+    mode,
+    connectionValue,
+  } = options;
   const builder = mode === 'pro' ? initialStatePerpsPro() : initialStatePerps();
   if (overrides) {
     builder.withOverrides(overrides);
   }
   const state = builder.build();
+  setTestMarketContext(state, true);
   const { streamManager: testStreamManager, stream } =
     createTestStreamManager(streamOverrides);
   const queryClient = createPerpsQueryClient();
@@ -435,6 +480,7 @@ export function renderPerpsView(
     <PerpsTestProviders
       queryClient={queryClient}
       streamManager={testStreamManager}
+      connectionValue={connectionValue}
     >
       <Component {...props} />
     </PerpsTestProviders>
@@ -622,6 +668,8 @@ export function renderPerpsMarketDetailsView(
 
 const defaultProMarket = {
   ...defaultMarketDetailsMarket,
+  providerId: 'hyperliquid' as const,
+  szDecimals: 2,
 };
 
 const defaultProPrices: Record<string, PriceUpdate> = {
@@ -766,7 +814,8 @@ const defaultOrderBookMarket = {
  */
 export function renderPerpsOrderBookView(options: RenderPerpsViewOptions = {}) {
   const initialParams = {
-    market: defaultOrderBookMarket,
+    symbol: defaultOrderBookMarket.symbol,
+    marketData: defaultOrderBookMarket,
     ...options.initialParams,
   };
   return renderPerpsView(
@@ -859,7 +908,7 @@ export function renderPerpsTPSLView(
 }
 
 /** Minimal order for PerpsOrderDetailsView. */
-const defaultOrderDetailsOrder = {
+export const defaultOrderDetailsOrder = {
   orderId: 'order_1',
   symbol: 'ETH',
   side: 'buy' as const,
@@ -1013,6 +1062,7 @@ export function renderPerpsComponent(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
+  setTestMarketContext(state, true);
   const { streamManager: testStreamManager, stream } =
     createTestStreamManager(streamOverrides);
   const queryClient = createPerpsQueryClient();
@@ -1050,6 +1100,7 @@ export function renderPerpsComponentDisconnected(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
+  setTestMarketContext(state, false);
   const { streamManager: testStreamManager, stream } =
     createTestStreamManager(streamOverrides);
   const queryClient = createPerpsQueryClient();

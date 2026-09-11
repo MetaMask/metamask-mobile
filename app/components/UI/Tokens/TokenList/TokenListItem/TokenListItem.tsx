@@ -5,12 +5,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
@@ -23,7 +17,6 @@ import { FlashListAssetKey } from '../TokenList';
 import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
@@ -71,6 +64,9 @@ import {
   SECONDARY_BALANCE_TEST_ID,
 } from '../../../AssetElement/index.constants';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -78,6 +74,7 @@ import {
   FontWeight,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -521,6 +518,23 @@ export const TokenListItem = React.memo(
       );
     }
 
+    const assetLogoWithNetworkBadge = (
+      <BadgeWrapper
+        style={styles.badge}
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          networkBadgeSource && (
+            <BadgeNetwork
+              src={networkBadgeSource}
+              twClassName="h-5 w-5 rounded-1"
+            />
+          )
+        }
+      >
+        <AssetLogo asset={asset} />
+      </BadgeWrapper>
+    );
+
     // Money Hub compact mUSD layout: name vertically centered, fiat over
     // native on the right, no price/24h-change row.
     if (hideSecondaryPriceRow && isMusdAsset) {
@@ -530,20 +544,7 @@ export const TokenListItem = React.memo(
           style={styles.itemWrapper}
           testID={getAssetTestId(asset.symbol)}
         >
-          <BadgeWrapper
-            style={styles.badge}
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              networkBadgeSource && (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
-                />
-              )
-            }
-          >
-            <AssetLogo asset={asset} />
-          </BadgeWrapper>
+          {assetLogoWithNetworkBadge}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -600,20 +601,7 @@ export const TokenListItem = React.memo(
         testID={getAssetTestId(asset.symbol)}
       >
         {/* Column: 1 - Token logo */}
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            networkBadgeSource && (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource}
-              />
-            )
-          }
-        >
-          <AssetLogo asset={asset} />
-        </BadgeWrapper>
+        {assetLogoWithNetworkBadge}
 
         {/* Column 2*/}
         <Box twClassName="flex-1 ml-5">
@@ -640,7 +628,7 @@ export const TokenListItem = React.memo(
                   {asset.name || asset.symbol}
                 </Text>
                 {label && (
-                  <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+                  <Tag testID={ACCOUNT_TYPE_LABEL_TEST_ID}>{label}</Tag>
                 )}
                 {shouldResolveCaipForSecurityBadge &&
                   caipAssetIdForSecurity && (

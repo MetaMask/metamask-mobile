@@ -293,7 +293,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       style={
                         {
                           "color": "#131416",
-                          "fontFamily": "Geist-Medium",
+                          "fontFamily": "Inter-Medium",
                           "fontSize": 16,
                           "letterSpacing": 0,
                           "lineHeight": 24,
@@ -309,7 +309,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       style={
                         {
                           "color": "#66676a",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
                           "lineHeight": 22,
@@ -340,7 +340,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       style={
                         {
                           "color": "#131416",
-                          "fontFamily": "Geist-Medium",
+                          "fontFamily": "Inter-Medium",
                           "fontSize": 14,
                           "letterSpacing": 0,
                           "lineHeight": 22,
@@ -356,7 +356,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                       style={
                         {
                           "color": "#66676a",
-                          "fontFamily": "Geist-Regular",
+                          "fontFamily": "Inter-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
                           "lineHeight": 22,

@@ -21,6 +21,7 @@ import { AlertsContextProvider } from '../../context/alert-system-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useConfirmationLoadMetrics } from '../../hooks/metrics/useConfirmationLoadMetrics';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import AlertBanner from '../alert-banner';
@@ -71,8 +72,28 @@ export enum PayWithOption {
   MoneyAccount = 'money_account',
 }
 
+/**
+ * The surface a confirmation was opened from, for the cases where the
+ * post-confirmation landing has to differ from the default for that
+ * transaction type.
+ */
+export enum ConfirmationLaunchSource {
+  /**
+   * A Rewards campaign. The pushed Rewards stack sits underneath the
+   * confirmation, so the landing preserves it rather than switching tabs.
+   */
+  Rewards = 'rewards',
+  /**
+   * Money home, itself already pushed over a Rewards campaign by an earlier
+   * deposit. That screen is still on the stack underneath the confirmation, so
+   * the landing returns to it instead of stacking a second copy on top.
+   */
+  RewardsMoneyHome = 'rewards-money-home',
+}
+
 export interface ConfirmationParams {
   autoSelectFiatPayment?: boolean;
+  launchedFrom?: ConfirmationLaunchSource;
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;
@@ -154,6 +175,7 @@ export const Confirm = ({
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation<AppNavigationProp>();
   const { onReject } = useConfirmActions();
+  const { onFirstPaint } = useConfirmationLoadMetrics();
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
     disableSafeArea,
@@ -198,6 +220,7 @@ export const Confirm = ({
         edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
         style={[styles.flatContainer, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
+        onLayout={onFirstPaint}
       >
         <ConfirmWrapped styles={styles} route={route} />
       </SafeAreaView>
@@ -206,7 +229,11 @@ export const Confirm = ({
 
   return (
     <BottomSheet onClose={() => onReject()} testID={ConfirmationUIType.MODAL}>
-      <View testID={approvalRequest?.type} style={styles.confirmContainer}>
+      <View
+        testID={approvalRequest?.type}
+        style={styles.confirmContainer}
+        onLayout={onFirstPaint}
+      >
         <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>

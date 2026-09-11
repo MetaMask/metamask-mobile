@@ -1,6 +1,6 @@
 import type { GenericQuoteRequest } from '@metamask/bridge-controller';
 import { calcTokenValue } from '../../../../../util/transactions';
-import type { UseSwapQuotesParams } from './types';
+import type { BridgeToken } from '../../types';
 
 const normalizeSrcAmount = (
   srcAmount: string | undefined,
@@ -13,7 +13,14 @@ const normalizeSrcAmount = (
 };
 
 export const buildGenericQuoteRequest = (input: {
-  quoteParams: UseSwapQuotesParams['quoteParams'];
+  quoteParams: {
+    srcAmount?: string;
+    srcToken?: BridgeToken;
+    destToken?: BridgeToken;
+    walletAddress?: string;
+    destWalletAddress?: string;
+    slippage?: string;
+  };
   gasIncluded: boolean;
   gasIncluded7702: boolean;
   insufficientBalance: boolean;
@@ -35,7 +42,12 @@ export const buildGenericQuoteRequest = (input: {
     slippage,
   } = quoteParams;
 
-  if (!walletAddress || !srcToken || !destToken || srcAmount === undefined) {
+  if (
+    !walletAddress ||
+    !srcToken ||
+    srcAmount === undefined ||
+    !destToken?.chainId
+  ) {
     return;
   }
   const normalizedSourceAmount = normalizeSrcAmount(
@@ -48,10 +60,10 @@ export const buildGenericQuoteRequest = (input: {
   const insufficientBal = insufficientBalance || insufficientNativeReserveError;
 
   return {
-    srcChainId: srcToken?.chainId,
-    srcTokenAddress: srcToken?.address,
-    destChainId: destToken?.chainId,
-    destTokenAddress: destToken?.address,
+    srcChainId: srcToken.chainId,
+    srcTokenAddress: srcToken.address,
+    destChainId: destToken.chainId,
+    destTokenAddress: destToken.address,
     srcTokenAmount: normalizedSourceAmount,
     slippage: Number.isNaN(slippageNumber) ? undefined : slippageNumber,
     walletAddress,

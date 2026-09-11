@@ -15,7 +15,6 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS,
 } from '../../../../UI/Earn/constants/musd';
 import Engine from '../../../../../core/Engine';
@@ -37,10 +36,14 @@ import {
   MM_PAY_AMOUNT_INPUT_TYPE_KEY,
   MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED_MAX,
 } from '../../utils/pay-amount-input-metrics';
-import { useDepositPrefillAmount } from './useDepositPrefillAmount';
+import {
+  DepositPrefillStatus,
+  useDepositPrefillAmount,
+} from './useDepositPrefillAmount';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
+const MIN_FIAT_AMOUNT = 0.01;
 
 interface DepositPrefetchQuoteRequest {
   amountHuman: string;
@@ -50,13 +53,10 @@ interface DepositPrefetchQuoteRequest {
   sawQuoteLoading: boolean;
 }
 
-function formatFiatAmount(value: BigNumber): string {
-  return value.isInteger() ? value.toString(10) : value.toFixed(2);
-}
-
 export function useTransactionCustomAmount({
+  autoSelectFiatPayment,
   currency,
-}: { currency?: string } = {}) {
+}: { autoSelectFiatPayment?: boolean; currency?: string } = {}) {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { chainId, id: transactionId } = transactionMeta;
 
@@ -126,7 +126,7 @@ export function useTransactionCustomAmount({
   const tokenFiatRate = isMoneyAccountWithdraw
     ? musdFiatRate
     : payTokenFiatRate;
-  const { balanceRaw, balanceUsd } = useTransactionPayBalance({ currency });
+  const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
   const payTokenKey = `${payToken?.chainId ?? ''}:${
     payToken?.address.toLowerCase() ?? ''
@@ -144,7 +144,7 @@ export function useTransactionCustomAmount({
   const { isAmountUpdateQuotePipelineEnabled, updateTransactionPayAmount } =
     useUpdateTransactionPayAmount();
 
-  const depositPrefill = useDepositPrefillAmount();
+  const depositPrefill = useDepositPrefillAmount({ autoSelectFiatPayment });
 
   useEffect(() => {
     if (!isMoneyAccountDeposit || !isAmountUpdateQuotePipelineEnabled) {
@@ -354,32 +354,22 @@ export function useTransactionCustomAmount({
         return false;
       }
 
-      // Money-account withdraw Max must not arm isMaxAmount (post-quote would
-      // treat destination payment-token balance as the source). Use the exact
-      // redeemable balanceRaw instead of fiat rounded to cents so Max does not
-      // leave dust.
-      let newAmount: string;
-      if (percentage === 100 && isMoneyAccountWithdraw && balanceRaw) {
-        const exactHuman = new BigNumber(balanceRaw).shiftedBy(-MUSD_DECIMALS);
-        if (!exactHuman.isFinite() || exactHuman.lte(0)) {
-          return false;
-        }
-        const exactFiat = tokenFiatRate
-          ? exactHuman.multipliedBy(tokenFiatRate)
-          : exactHuman;
-        newAmount = exactFiat.toFixed();
-      } else {
-        newAmount = formatFiatAmount(
-          new BigNumber(percentage)
-            .dividedBy(100)
-            .multipliedBy(balanceUsd)
-            .decimalPlaces(2, BigNumber.ROUND_DOWN),
-        );
-      }
+      const rawAmount = new BigNumber(percentage)
+        .dividedBy(100)
+        .multipliedBy(balanceUsd);
 
-      // Sub-cent / dust balances ROUND_DOWN to $0. Treat that like no balance
-      // so Max does not arm auto-submit and strand the page on Loading.
-      if (new BigNumber(newAmount).lte(0)) {
+      // Pad a lone decimal to cents (`500.1` -> `500.10`).
+      // Anything more precise keeps every digit.
+      const newAmount =
+        rawAmount.decimalPlaces() === 1
+          ? rawAmount.toFixed(2)
+          : rawAmount.toFixed();
+
+      // Sub-cent dust renders as $0.00 and cannot produce a usable quote, so
+      // treat it like no balance rather than arming auto-submit and stranding
+      // the page on Loading. Checked against the raw amount because the
+      // applied amount deliberately keeps full precision.
+      if (rawAmount.lt(MIN_FIAT_AMOUNT)) {
         return false;
       }
 
@@ -392,12 +382,7 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Arm isMaxAmount on a full (100%) selection so TPC can resolve the exact
-      // source balance via getBalance (perps HyperLiquid, predict Polymarket,
-      // money-account deposit mUSD + vmUSD). Money-account withdraws are the
-      // exception: Max must keep the explicit nested-tx amount, not treat the
-      // destination payment token balance as the source amount in post-quote.
-      if (percentage === 100 && !isMoneyAccountWithdraw) {
+      if (percentage === 100) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
@@ -406,33 +391,24 @@ export function useTransactionCustomAmount({
       setAmountFiat(newAmount);
       return true;
     },
-    [
-      balanceRaw,
-      balanceUsd,
-      isMaxAmount,
-      isMoneyAccountWithdraw,
-      setConfirmationMetric,
-      setIsMax,
-      tokenFiatRate,
-    ],
+    [balanceUsd, isMaxAmount, setIsMax, setConfirmationMetric],
   );
 
-  const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
+  const isDepositPrefilled =
+    depositPrefill.status === DepositPrefillStatus.Prefilled;
+  const prevHasPrefilled = useRef(isDepositPrefilled);
   useEffect(() => {
     // Skip if the user has manually typed on the keypad — a transient
     // hasPrefilled toggle (from tokenKey changes) must not overwrite
     // their input. The ref resets when the pay token genuinely changes.
     if (userHasEditedRef.current) {
-      prevHasPrefilled.current = depositPrefill.hasPrefilled;
+      prevHasPrefilled.current = isDepositPrefilled;
       return;
     }
     // Apply when committed, or on the token-switch frame where the next
     // amount is already computed but `hasPrefilled` has not flipped true yet.
     // Clearing to $0 in that gap is what made the prefill disappear.
-    if (
-      depositPrefill.hasPrefilled ||
-      depositPrefill.prefillAmount !== undefined
-    ) {
+    if (isDepositPrefilled || depositPrefill.prefillAmount !== undefined) {
       amountChangeTimeRef.current = Date.now();
       // Uncapped percentage prefills go through the same Max/percentage path
       // as the keypad buttons so money-account Max gets isMaxAmount —
@@ -467,12 +443,12 @@ export function useTransactionCustomAmount({
         setIsMax(false);
       }
     }
-    prevHasPrefilled.current = depositPrefill.hasPrefilled;
+    prevHasPrefilled.current = isDepositPrefilled;
     // Re-run on token change so a new funded token applies immediately instead
     // of waiting for hasPrefilled to toggle. Same-token balance updates do not
     // change payTokenKey, so the one-shot prefill is preserved.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [depositPrefill.hasPrefilled, payTokenKey]);
+  }, [isDepositPrefilled, payTokenKey]);
 
   useEffect(() => {
     if (
@@ -539,9 +515,7 @@ export function useTransactionCustomAmount({
     amountHumanDebounced,
     hasInput,
     hasPrefetchedQuote,
-    isDepositPrefillEnabled: depositPrefill.enabled,
-    isDepositPrefilled: depositPrefill.hasPrefilled,
-    isDepositPrefillLoading: depositPrefill.isLoading,
+    depositPrefillStatus: depositPrefill.status,
     isInputChanged,
     isPrefillPending,
     updatePendingAmount,

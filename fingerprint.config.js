@@ -147,43 +147,23 @@ const config = {
     '.github/scripts/shared/**',
     '.github/scripts/fitness-functions/**',
     '.github/scripts/add-release-label-to-pr-and-linked-issues.ts',
-    '.github/scripts/check-feature-flag-registry.ts',
-    '.github/scripts/check-feature-flag-registry.test.ts',
     '.github/scripts/check-pr-has-required-labels.ts',
     '.github/scripts/check-template-and-add-labels.ts',
     '.github/scripts/check-template-and-add-labels.test.ts',
     '.github/scripts/close-release-bug-report-issue.ts',
-    '.github/scripts/collect-qa-stats.mjs',
-    '.github/scripts/qa-stats-e2e.cjs',
     '.github/scripts/create-bug-report-issue.ts',
     '.github/scripts/extract-semver.sh',
     '.github/scripts/generate-regression-slack-summary.mjs',
     '.github/scripts/get-next-semver-version.sh',
     '.github/scripts/get-stable-released-version.sh',
-    '.github/scripts/known-feature-flag-constants.ts',
     '.github/scripts/resolve-previous-ref.sh',
     '.github/scripts/run-update-release-changelog-mobile.sh',
     '.github/scripts/scripts.types.ts',
     '.github/scripts/validate-pr-commit.sh',
 
-    // Operate on already-built app artifacts/test reports, not native compilation.
-    '.github/scripts/e2e-create-json-test-report.mjs',
-    '.github/scripts/e2e-extract-test-results.mjs',
-    '.github/scripts/e2e-freeze-timings.mjs',
-    '.github/scripts/e2e-merge-test-results.mjs',
-    '.github/scripts/e2e-report-fixture-validation.mjs',
-    '.github/scripts/e2e-smart-selection.mjs',
-    '.github/scripts/e2e-split-tags-shards.mjs',
-    '.github/scripts/shared/e2e-timing-shards.mjs',
-    '.github/scripts/e2e-timing-shards.test.ts',
-
-    // E2E platform-gating logic. Its outputs (`native_build_needed`,
-    // `ios_e2e_needed`, `android_e2e_needed`, `skip_e2e`, ...) only decide *whether*
-    // build/test jobs run - none of them is a build parameter, so no change here can
-    // alter what gets compiled.
-    '.github/scripts/compute-e2e-platform-flags.cjs',
-    '.github/scripts/compute-e2e-platform-flags.test.ts',
-    '.github/scripts/run-compute-e2e-platform-flags.cjs',
+    // QA-owned test orchestration and reporting scripts.
+    // New scripts added here are assumed not to affect native compilation.
+    '.github/scripts/qa-automation/**',
 
     // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
     // since it writes OTA version metadata consumed by the release pipeline.

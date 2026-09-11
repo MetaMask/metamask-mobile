@@ -28,10 +28,10 @@ export const ICONNAME_BY_BANNERALERTSEVERITY: IconNameByBannerAlertSeverity = {
 export const BANNERALERT_TEST_ID = 'banneralert';
 
 // Sample consts
-export const SAMPLE_BANNERALERT_TITLE = 'Sample Banner Alert Title';
-export const SAMPLE_BANNERALERT_DESCRIPTION = 'Sample Banner Alert Description';
+export const SAMPLE_BANNERALERT_TITLE = 'Sample banner alert title';
+export const SAMPLE_BANNERALERT_DESCRIPTION = 'Sample banner alert description';
 export const SAMPLE_BANNERALERT_ACTIONBUTTONLABEL =
-  'Sample Action Button Label';
+  'Sample action button label';
 export const SAMPLE_BANNERALERT_PROPS: BannerAlertProps = {
   severity: DEFAULT_BANNERALERT_SEVERITY,
   title: SAMPLE_BANNERALERT_TITLE,

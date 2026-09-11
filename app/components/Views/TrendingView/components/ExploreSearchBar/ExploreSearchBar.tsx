@@ -4,6 +4,8 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
+  ButtonIcon,
+  ButtonIconSize,
   Text,
   TextVariant,
   TextFieldSearch,
@@ -46,6 +48,7 @@ interface ExploreSearchBarInteractiveProps {
    * keyboard dark grey until the animation settles.
    */
   autoFocus?: boolean;
+  dismissVariant?: 'cancel' | 'back';
 }
 
 type ExploreSearchBarProps =
@@ -64,7 +67,17 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
   const isButtonMode = props.type === 'button';
   const rowTwClassName = props.rowTwClassName ?? 'gap-2';
   const shouldFocus = props.type === 'interactive' && (props.autoFocus ?? true);
+  const isBackVariant =
+    props.type === 'interactive' && props.dismissVariant === 'back';
   const inputRef = useRef<TextInput>(null);
+
+  const dismissSearch = () => {
+    if (props.type !== 'interactive') {
+      return;
+    }
+    props.onSearchChange('');
+    props.onCancel();
+  };
 
   // `autoFocus` only applies on mount, so callers turning it on later need this.
   useEffect(() => {
@@ -133,6 +146,17 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
                 props.onSearchChange('');
               }}
               clearButtonProps={{ testID: 'explore-search-clear-button' }}
+              startAccessory={
+                isBackVariant ? (
+                  <ButtonIcon
+                    iconName={IconName.Arrow2Left}
+                    size={ButtonIconSize.Md}
+                    onPress={dismissSearch}
+                    accessibilityLabel={strings('navigation.back')}
+                    testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON}
+                  />
+                ) : undefined
+              }
               inputProps={{
                 autoCapitalize: 'none',
                 keyboardAppearance,
@@ -140,20 +164,19 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               }}
             />
           </Box>
-          <TouchableOpacity
-            onPress={() => {
-              props.onSearchChange('');
-              props.onCancel();
-            }}
-            testID="explore-search-cancel-button"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              style={tw.style('text-default font-medium')}
+          {!isBackVariant && (
+            <TouchableOpacity
+              onPress={dismissSearch}
+              testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON}
             >
-              {strings('transaction.cancel')}
-            </Text>
-          </TouchableOpacity>
+              <Text
+                variant={TextVariant.BodyMd}
+                style={tw.style('text-default font-medium')}
+              >
+                {strings('transaction.cancel')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </>
       )}
     </Box>

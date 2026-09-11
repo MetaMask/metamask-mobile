@@ -72,6 +72,7 @@ describe('usePerpsLiveOrders', () => {
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs,
     });
   });
@@ -89,15 +90,22 @@ describe('usePerpsLiveOrders', () => {
 
   it('updates orders when callback is invoked', async () => {
     let capturedCallback: (orders: Order[]) => void = jest.fn();
+    let capturedOnDelivery: (source: 'fresh' | 'cache' | 'optimistic') => void =
+      jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
+      capturedOnDelivery = params.onDelivery;
       return jest.fn();
     });
 
     const { result } = renderHook(() => usePerpsLiveOrders());
 
     // Initially empty
-    expect(result.current).toEqual({ orders: [], isInitialLoading: true });
+    expect(result.current).toEqual({
+      orders: [],
+      isInitialLoading: true,
+      deliveryRevision: 0,
+    });
 
     // Simulate orders update
     const orders: Order[] = [
@@ -107,10 +115,19 @@ describe('usePerpsLiveOrders', () => {
 
     act(() => {
       capturedCallback(orders);
+      capturedOnDelivery('optimistic');
+    });
+
+    expect(result.current.deliveryRevision).toBe(0);
+
+    act(() => {
+      capturedCallback(orders);
+      capturedOnDelivery('fresh');
     });
 
     await waitFor(() => {
       expect(result.current.orders).toEqual(orders);
+      expect(result.current.deliveryRevision).toBe(1);
     });
   });
 
@@ -121,6 +138,7 @@ describe('usePerpsLiveOrders', () => {
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs: 0, // Default value for orders (no throttling for instant updates)
     });
   });
@@ -142,6 +160,7 @@ describe('usePerpsLiveOrders', () => {
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs: 500,
     });
 
@@ -152,6 +171,7 @@ describe('usePerpsLiveOrders', () => {
     expect(mockUnsubscribe1).toHaveBeenCalled();
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
+      onDelivery: expect.any(Function),
       throttleMs: 1000,
     });
   });
@@ -232,7 +252,11 @@ describe('usePerpsLiveOrders', () => {
 
     mockSelectedAddress = '0x2222222222222222222222222222222222222222';
     rerender(undefined);
-    expect(result.current).toEqual({ orders: [], isInitialLoading: true });
+    expect(result.current).toEqual({
+      orders: [],
+      isInitialLoading: true,
+      deliveryRevision: 0,
+    });
 
     // Account switch: receive null (clearCache)
     act(() => {
