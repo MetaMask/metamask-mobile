@@ -40,6 +40,7 @@ interface UpdateQuoteParamsOptions {
 
 /**
  * Hook for handling bridge quote request updates
+ * @deprecated Use useSwapQuotes for new features. Avoid adding new functionality to this hook.
  * @returns {Function} A debounced function to update quote parameters
  */
 export const useBridgeQuoteRequest = (

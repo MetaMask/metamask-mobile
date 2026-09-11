@@ -11,11 +11,9 @@ import BottomSheet, {
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { TokenWarningModalMode } from './constants';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
-  selectSourceToken,
   selectDestToken,
   selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
@@ -101,18 +99,10 @@ export const TokenWarningModal = () => {
     location,
   } = useParams<TokenWarningModalParams>();
 
-  const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
-  const tokenBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
-  const { activeQuote } = useBridgeQuoteData({
-    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
-  });
+  const { activeQuote } = useBridgeQuoteDataContext();
 
   const confirmBridge = useBridgeConfirm({
     activeQuote,
@@ -143,7 +133,6 @@ export const TokenWarningModal = () => {
     ) {
       navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
         type: PriceImpactModalType.Execution,
-        token: sourceToken,
         location,
       });
       return;
@@ -155,14 +144,7 @@ export const TokenWarningModal = () => {
     } else {
       await confirmBridge();
     }
-  }, [
-    activeQuote,
-    bridgeFeatureFlags,
-    confirmBridge,
-    navigation,
-    sourceToken,
-    location,
-  ]);
+  }, [activeQuote, bridgeFeatureFlags, confirmBridge, navigation, location]);
 
   const {
     isMalicious,

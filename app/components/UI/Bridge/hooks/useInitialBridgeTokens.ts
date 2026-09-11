@@ -8,17 +8,12 @@ import { tokenMatchesQuery, tokenToIncludeAsset } from '../utils/tokenUtils';
 import { selectAllowedChainRanking } from '../../../../core/redux/slices/bridge';
 import type { IncludeAsset } from '../types';
 import { getMinimalIncludedAssets } from '../utils/cacheUtils';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
 
 export interface UseInitialBridgeTokensParams {
   /** A list of chain IDs to fetch tokens for. */
   chainIds?: CaipChainId[];
   searchString?: string;
-  /**
-   * Identifies which surface triggered this request (e.g. Limit order,
-   * Recurring buy, Market order) so the backend can attribute it
-   * accordingly. Required so every caller must make an explicit choice.
-   */
-  featureId: FeatureId;
 }
 
 /**
@@ -32,9 +27,9 @@ export interface UseInitialBridgeTokensParams {
 export const useInitialBridgeTokens = ({
   chainIds,
   searchString,
-  featureId,
 }: UseInitialBridgeTokensParams) => {
   const enabledChainRanking = useSelector(selectAllowedChainRanking);
+  const featureId = useSwapsFeatureId();
 
   const chainIdsToFetch = useMemo(() => {
     if (chainIds) {

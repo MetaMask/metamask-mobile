@@ -1,6 +1,10 @@
 import '../../../../../../tests/component-view/mocks';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { renderBridgeView } from '../../../../../../tests/component-view/renderers/bridge';
+import {
+  BridgeViewWithSession as BridgeView,
+  renderBridgeView,
+  withBridgeSession,
+} from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
@@ -11,7 +15,6 @@ import {
 } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
-import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -1250,8 +1253,9 @@ describeForPlatforms('BridgeView', () => {
           [
             {
               name: Routes.BRIDGE.TOKEN_SELECTOR,
-              Component:
-                BridgeTokenSelector as unknown as React.ComponentType<unknown>,
+              Component: withBridgeSession(
+                BridgeTokenSelector as unknown as React.ComponentType,
+              ),
             },
           ],
           { state },

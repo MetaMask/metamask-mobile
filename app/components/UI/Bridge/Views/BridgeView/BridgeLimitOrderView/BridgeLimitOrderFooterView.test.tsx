@@ -32,6 +32,10 @@ jest.mock('../../../hooks/useInsufficientBalance', () => ({
   default: jest.fn(() => false),
 }));
 
+jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn().mockImplementation(() => undefined),
+}));
+
 /**
  * Builds Redux state that satisfies the footer's only render condition: a
  * source token with decimals and a source amount that is not a bare decimal
