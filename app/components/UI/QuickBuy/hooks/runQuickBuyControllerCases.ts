@@ -104,9 +104,8 @@ const mockUseDestTokenExchangeRate =
   useDestTokenExchangeRate as jest.MockedFunction<
     typeof useDestTokenExchangeRate
   >;
-const mockUsePriceImpactViewData = usePriceImpactViewData as jest.MockedFunction<
-  typeof usePriceImpactViewData
->;
+const mockUsePriceImpactViewData =
+  usePriceImpactViewData as jest.MockedFunction<typeof usePriceImpactViewData>;
 const mockToAssetId = toAssetId as jest.MockedFunction<typeof toAssetId>;
 
 const mockTrackAmountSelected = jest.fn();
@@ -3374,32 +3373,32 @@ export const runQuickBuyControllerCases = ({
         expect(mockTrackSlippageChanged).not.toHaveBeenCalled();
       });
 
-        it('tracks slippage_changed when slippage updates after mount', () => {
-          const props = {
-            target: createTarget(),
-            onClose: jest.fn(),
-          };
-          const { rerender } = renderHook(undefined, undefined, undefined, props);
+      it('tracks slippage_changed when slippage updates after mount', () => {
+        const props = {
+          target: createTarget(),
+          onClose: jest.fn(),
+        };
+        const { rerender } = renderHook(undefined, undefined, undefined, props);
 
-          (selectSlippage as unknown as jest.Mock).mockReturnValue('2');
-          rerender(props);
+        (selectSlippage as unknown as jest.Mock).mockReturnValue('2');
+        rerender(props);
 
-          expect(mockTrackSlippageChanged).toHaveBeenCalledWith('2', '0.5');
-        });
+        expect(mockTrackSlippageChanged).toHaveBeenCalledWith('2', '0.5');
+      });
 
-        it('tracks slippage_changed from Auto when previous slippage is unset', () => {
-          (selectSlippage as unknown as jest.Mock).mockReturnValue(undefined);
-          const props = {
-            target: createTarget(),
-            onClose: jest.fn(),
-          };
-          const { rerender } = renderHook(undefined, undefined, undefined, props);
+      it('tracks slippage_changed from Auto when previous slippage is unset', () => {
+        (selectSlippage as unknown as jest.Mock).mockReturnValue(undefined);
+        const props = {
+          target: createTarget(),
+          onClose: jest.fn(),
+        };
+        const { rerender } = renderHook(undefined, undefined, undefined, props);
 
-          (selectSlippage as unknown as jest.Mock).mockReturnValue('1');
-          rerender(props);
+        (selectSlippage as unknown as jest.Mock).mockReturnValue('1');
+        rerender(props);
 
-          expect(mockTrackSlippageChanged).toHaveBeenCalledWith('1', 'Auto');
-        });
+        expect(mockTrackSlippageChanged).toHaveBeenCalledWith('1', 'Auto');
+      });
 
       it('tracks receive_token_selected when the user picks a receive token', () => {
         const usdc = createSourceToken({
@@ -4173,9 +4172,9 @@ export const runQuickBuyControllerCases = ({
 
         const { result } = renderHook(createTarget(), jest.fn());
 
-        expect(result.current.sourceTokenOptions.map((token) => token.symbol)).toEqual(
-          ['ETH'],
-        );
+        expect(
+          result.current.sourceTokenOptions.map((token) => token.symbol),
+        ).toEqual(['ETH']);
       });
 
       it('does not auto-select a pay-with token when the option list is empty', () => {
@@ -4653,7 +4652,9 @@ export const runQuickBuyControllerCases = ({
           atomicBalance: undefined,
         });
         mockUsePayWithTokens.mockReturnValue({
-          options: [createSourceToken({ currencyExchangeRate: 1, balance: '0' })],
+          options: [
+            createSourceToken({ currencyExchangeRate: 1, balance: '0' }),
+          ],
           isLoading: false,
         });
 
@@ -4713,7 +4714,9 @@ export const runQuickBuyControllerCases = ({
           atomicBalance: undefined,
         });
         mockUsePayWithTokens.mockReturnValue({
-          options: [createSourceToken({ currencyExchangeRate: 1, balance: '0' })],
+          options: [
+            createSourceToken({ currencyExchangeRate: 1, balance: '0' }),
+          ],
           isLoading: false,
         });
 

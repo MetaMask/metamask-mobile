@@ -284,6 +284,8 @@ export function useQuickBuyQuotes({
     if (normalizedSourceAmount === '0') {
     }
 
+    const featureId = getQuickBuyFeatureId(analyticsContext?.source);
+
     const params =
       normalizedSourceAmount && normalizedSourceAmount !== '0'
         ? buildGenericQuoteRequest({
@@ -299,6 +301,7 @@ export function useQuickBuyQuotes({
             gasIncluded7702,
             insufficientBalance: false,
             insufficientNativeReserveError: false,
+            featureId,
           })
         : null;
 
@@ -320,8 +323,6 @@ export function useQuickBuyQuotes({
 
     const requestedAt = Date.now();
     requestStartedAtRef.current = requestedAt;
-
-    const featureId = getQuickBuyFeatureId(analyticsContext?.source);
 
     // Shared by REQUESTED + RECEIVED. Null when analytics context is incomplete
     // — both events guard on this single value instead of duplicating the check.
