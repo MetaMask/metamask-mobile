@@ -1,0 +1,26 @@
+diff --git a/dist/strategy/relay/relay-quotes.cjs b/dist/strategy/relay/relay-quotes.cjs
+--- a/dist/strategy/relay/relay-quotes.cjs
++++ b/dist/strategy/relay/relay-quotes.cjs
+@@ -196,7 +196,8 @@
+         }
+         const hasTransactions = Boolean(body.txs?.length);
+         const requiresExactOutput = hasTransactions ||
+-            transaction.type === transaction_controller_1.TransactionType.perpsDepositAndOrder;
++            transaction.type === transaction_controller_1.TransactionType.perpsDepositAndOrder ||
++            transaction.type === transaction_controller_1.TransactionType.predictDepositAndOrder;
+         const finalBody = {
+             ...body,
+             amount: body.amount ??
+diff --git a/dist/strategy/relay/relay-quotes.mjs b/dist/strategy/relay/relay-quotes.mjs
+--- a/dist/strategy/relay/relay-quotes.mjs
++++ b/dist/strategy/relay/relay-quotes.mjs
+@@ -193,7 +193,8 @@
+         }
+         const hasTransactions = Boolean(body.txs?.length);
+         const requiresExactOutput = hasTransactions ||
+-            transaction.type === TransactionType.perpsDepositAndOrder;
++            transaction.type === TransactionType.perpsDepositAndOrder ||
++            transaction.type === TransactionType.predictDepositAndOrder;
+         const finalBody = {
+             ...body,
+             amount: body.amount ??

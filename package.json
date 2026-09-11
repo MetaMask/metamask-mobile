@@ -403,7 +403,7 @@
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^69.7.0",
-    "@metamask/transaction-pay-controller": "^27.1.1",
+    "@metamask/transaction-pay-controller": "patch:@metamask/transaction-pay-controller@npm%3A27.1.1#~/.yarn/patches/@metamask-transaction-pay-controller-npm-27.1.1-predict-deposit-order-exact-output.patch",
     "@metamask/tron-wallet-snap": "^3.2.0",
     "@metamask/utils": "^11.11.0",
     "@metamask/wallet": "^12.0.3",
