@@ -17,6 +17,7 @@ import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general
 import {
   consumeSharedSessionRecreate,
   resetSharedSessionRecreateState,
+  setSharedSessionRecreateHandler,
 } from './sessionRecovery.ts';
 
 jest.mock('../../AndroidWebViewCdpHelpers.ts', () => ({
@@ -288,7 +289,7 @@ describe('softReloadAppForFixtures', () => {
     });
   });
 
-  it('fails fast and requests recreate when UiAutomator2 is dead after soft reload', async () => {
+  it('fails fast and requests recreate when UiAutomator2 is dead and no in-process handler is set', async () => {
     const drv = createDrv({
       isExisting: jest
         .fn()
@@ -310,5 +311,37 @@ describe('softReloadAppForFixtures', () => {
     ).rejects.toThrow(/instrumentation process is not running/);
 
     expect(consumeSharedSessionRecreate()).toBe(true);
+  });
+
+  it('retries soft reload once after in-process session recreate when UiAutomator2 is dead', async () => {
+    const deadDrv = createDrv({
+      isExisting: jest
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+          ),
+        ),
+    });
+    const healthyDrv = createDrv({
+      isExisting: jest.fn().mockResolvedValue(false),
+    });
+    const recreateHandler = jest.fn().mockResolvedValue(healthyDrv);
+    setSharedSessionRecreateHandler(recreateHandler);
+
+    const result = await softReloadAppForFixtures({
+      currentDeviceDetails,
+      deviceCommands,
+      launchArgs: {},
+      fixtureServer,
+      drv: deadDrv,
+    });
+
+    expect(recreateHandler).toHaveBeenCalledTimes(1);
+    expect(launchAppMock).toHaveBeenCalledTimes(2);
+    expect(clearAppData).toHaveBeenCalledTimes(2);
+    expect(switchToNativeContextMock).toHaveBeenCalledWith(healthyDrv);
+    expect(result.attemptedMetroDevLauncherDismissal).toBe(false);
+    expect(consumeSharedSessionRecreate()).toBe(false);
   });
 });
