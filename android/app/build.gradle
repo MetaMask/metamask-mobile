@@ -374,6 +374,9 @@ android {
 
 	  buildTypes.each {
 		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
+		  // Gates the Hermes CPU profiling native module so it is compiled out of
+		  // every build except the BrowserStack performance APKs in builds.yml.
+		  it.buildConfigField 'boolean', 'IS_PERFORMANCE_TEST', "${System.getenv('IS_PERFORMANCE_TEST') == 'true'}"
     }
 
     buildFeatures {
