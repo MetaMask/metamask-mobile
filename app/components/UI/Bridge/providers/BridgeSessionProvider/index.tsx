@@ -14,7 +14,7 @@ import {
   TAB_TO_FEATURE_ID,
 } from '../../Views/BridgeView/BridgeView.constants';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
-import type { buildGenericQuoteRequest } from '../../hooks/useSwapQuotes/utils';
+import type { buildGenericQuoteRequest } from '../SwapQuotesProvider/utils';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { SwapsFeatureIdProvider } from '../SwapsFeatureIdProvider';
 
