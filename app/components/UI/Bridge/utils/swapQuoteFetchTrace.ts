@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   formatChainIdToCaip,
   type GenericQuoteRequest,
+  type QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import {
   endTrace,
@@ -27,6 +28,7 @@ let activeTraceId: string | undefined;
 const finishTrace = (
   result: SwapQuoteFetchTraceResult,
   id: string | undefined = activeTraceId,
+  reason?: QuoteStreamCompleteReason,
 ): void => {
   if (!id || activeTraceId !== id) {
     return;
@@ -36,7 +38,12 @@ const finishTrace = (
     name: TraceName.SwapQuoteFetch,
     id,
     timestamp: Date.now(),
-    data: { result },
+    data: {
+      result,
+      ...(result === 'no_quotes' || result === 'error'
+        ? { no_quote_reason: reason ?? 'generic_error' }
+        : {}),
+    },
   });
   activeTraceId = undefined;
 };
@@ -84,7 +91,11 @@ export const swapQuoteFetchTrace = {
     return id;
   },
 
-  finish(result: SwapQuoteFetchTraceResult, id?: string): void {
-    finishTrace(result, id);
+  finish(
+    result: SwapQuoteFetchTraceResult,
+    id?: string,
+    reason?: QuoteStreamCompleteReason,
+  ): void {
+    finishTrace(result, id, reason);
   },
 };
