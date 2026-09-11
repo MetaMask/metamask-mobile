@@ -33,9 +33,23 @@ const sourceToken = createMockToken({
   decimals: 18,
 });
 
+// Neither token is a stablecoin, so this pair defaults to a buy priced in
+// fiat. Pairs holding a stablecoin have their own describe block below.
 const destToken = createMockToken({
+  address: '0x514910771af9ca656af840dff83e8264ecf986ca',
+  symbol: 'LINK',
+  decimals: 18,
+});
+
+const usdc = createMockToken({
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
   symbol: 'USDC',
+  decimals: 6,
+});
+
+const usdt = createMockToken({
+  address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+  symbol: 'USDT',
   decimals: 6,
 });
 
@@ -50,7 +64,7 @@ function mockFiatRates({
     if (token?.symbol === 'ETH') {
       return sourceRate;
     }
-    if (token?.symbol === 'USDC') {
+    if (token?.symbol === 'LINK') {
       return destRate;
     }
     return undefined;
@@ -87,20 +101,20 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
     expect(result.current.isLimitFiatMode).toBe(true);
     expect(result.current.limitPrice).toBe('1');
-    expect(result.current.quotedSymbol).toBe('USDC');
+    expect(result.current.quotedSymbol).toBe('LINK');
     expect(result.current.counterToken).toEqual(sourceToken);
   });
 
   it('reseeds market price after flipping quote unit when source and dest fiat rates match', () => {
-    const usdt = createMockToken({
-      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-      symbol: 'USDT',
-      decimals: 6,
+    const uni = createMockToken({
+      address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+      symbol: 'UNI',
+      decimals: 18,
     });
     mockUseLiveTokenFiatRate.mockImplementation(() => 1);
 
     const { result } = renderPriceAdjustHook({
-      sourceToken: usdt,
+      sourceToken: uni,
     });
 
     expect(result.current.limitPrice).toBe('1');
@@ -111,7 +125,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
 
     expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
     expect(result.current.limitPrice).toBe('1');
-    expect(result.current.quotedSymbol).toBe('USDT');
+    expect(result.current.quotedSymbol).toBe('UNI');
   });
 
   it('does not reseed market price after the user edits the limit price', () => {
@@ -316,19 +330,18 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
 
     expect(result.current.limitPrice).toBe('1');
 
-    const usdc = destToken;
     mockUseLiveTokenFiatRate.mockImplementation((token) => {
       if (token?.symbol === 'ETH') {
         return 2000;
       }
-      if (token?.symbol === 'USDC') {
+      if (token?.symbol === 'LINK') {
         return 1.5;
       }
       return undefined;
     });
 
     rerender({
-      destToken: usdc,
+      destToken,
       sourceToken,
     });
 
@@ -360,19 +373,26 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.onAmountTypeTogglePress).toBeUndefined();
   });
 
-  describe('live market tracking', () => {
-    it('suppresses market comparison while tracking market, even if the raw comparison would show one', () => {
-      // Simulates the one-render lag right after a market data update, where
-      // limitPrice hasn't resynced yet and the raw comparison would report a
-      // false divergence. isTrackingMarket must suppress it unconditionally.
+  describe('market price seeding', () => {
+    it('surfaces the market comparison even right after the market preset, when the raw comparison would show one', () => {
+      // Once seeded, the limit price no longer follows the market, so the
+      // comparison must not be suppressed just because the price sits at
+      // market immediately after pressing "Market".
       mockGetSwapsLimitOrderPriceMarketComparison.mockReturnValue({
-        label: 'stale comparison',
+        label: 'real comparison',
         isNegative: true,
       });
 
       const { result } = renderPriceAdjustHook();
 
-      expect(result.current.marketComparison).toBeUndefined();
+      act(() => {
+        result.current.handleMarketPress();
+      });
+
+      expect(result.current.marketComparison).toEqual({
+        label: 'real comparison',
+        isNegative: true,
+      });
     });
 
     it('surfaces the market comparison once tracking market stops', () => {
@@ -393,7 +413,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       });
     });
 
-    it('follows the market rate while the price sits at market', () => {
+    it('seeds the limit price from the market rate on mount, but does not keep following it', () => {
       const { result, rerender } = renderPriceAdjustHook();
 
       expect(result.current.limitPrice).toBe('1');
@@ -401,10 +421,10 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       mockFiatRates({ destRate: 1.2 });
       rerender({ destToken, sourceToken });
 
-      expect(result.current.limitPrice).toBe('1.2');
+      expect(result.current.limitPrice).toBe('1');
     });
 
-    it('stops following the market after a percent preset, and resumes after the market preset', () => {
+    it('does not follow the market after a percent preset or after the market preset', () => {
       const { result, rerender } = renderPriceAdjustHook();
 
       act(() => {
@@ -427,10 +447,10 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       mockFiatRates({ destRate: 1.5 });
       rerender({ destToken, sourceToken });
 
-      expect(result.current.limitPrice).toBe('1.5');
+      expect(result.current.limitPrice).toBe('1.2');
     });
 
-    it('follows the market after a zero custom percent is committed', () => {
+    it('does not follow the market after a zero custom percent is committed', () => {
       const { result, rerender } = renderPriceAdjustHook();
 
       act(() => {
@@ -442,14 +462,16 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
         result.current.commitCustomPercent();
       });
 
+      expect(result.current.limitPrice).toBe('1');
+
       mockFiatRates({ destRate: 1.2 });
       rerender({ destToken, sourceToken });
 
-      expect(result.current.limitPrice).toBe('1.2');
+      expect(result.current.limitPrice).toBe('1');
       expect(result.current.isCustomActive).toBe(true);
     });
 
-    it('stops following the market after a non-zero custom percent is committed', () => {
+    it('does not follow the market after a non-zero custom percent is committed', () => {
       const { result, rerender } = renderPriceAdjustHook();
 
       act(() => {
@@ -469,7 +491,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       expect(result.current.limitPrice).toBe('0.95');
     });
 
-    it('stops following the market after the denomination is toggled', () => {
+    it('does not follow the market after the denomination is toggled', () => {
       const { result, rerender } = renderPriceAdjustHook();
 
       act(() => {
@@ -484,7 +506,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       expect(result.current.limitPrice).toBe('0.0005');
     });
 
-    it('follows the market in counter-token denomination after the market preset', () => {
+    it('seeds the market price in counter-token denomination after the market preset, but does not keep following it', () => {
       const { result, rerender } = renderPriceAdjustHook();
 
       act(() => {
@@ -501,15 +523,15 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       mockFiatRates({ destRate: 2 });
       rerender({ destToken, sourceToken });
 
-      expect(result.current.limitPrice).toBe('0.001');
+      expect(result.current.limitPrice).toBe('0.0005');
     });
   });
 
   it('seeds the market price for a new pair sharing the same quoted fiat rate and counter decimals', () => {
-    const usdt = createMockToken({
-      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-      symbol: 'USDT',
-      decimals: 6,
+    const uni = createMockToken({
+      address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
+      symbol: 'UNI',
+      decimals: 18,
     });
     mockUseLiveTokenFiatRate.mockImplementation((token) =>
       token?.symbol === 'ETH' ? 2000 : 1,
@@ -520,11 +542,111 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.limitPrice).toBe('1');
 
     rerender({
-      destToken: usdt,
+      destToken: uni,
       sourceToken,
     });
 
     expect(result.current.limitPrice).toBe('1');
+  });
+
+  describe('stablecoin pairs', () => {
+    beforeEach(() => {
+      mockUseLiveTokenFiatRate.mockImplementation((token) =>
+        token?.symbol === 'ETH' ? 2000 : 1,
+      );
+    });
+
+    it('buys the destination token priced in the source stablecoin', () => {
+      const { result } = renderPriceAdjustHook({
+        sourceToken: usdc,
+        destToken: sourceToken,
+      });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
+      expect(result.current.isLimitFiatMode).toBe(false);
+      expect(result.current.quotedSymbol).toBe('ETH');
+      expect(result.current.counterToken).toEqual(usdc);
+      expect(result.current.limitPrice).toBe('2000');
+    });
+
+    it('sells the source token priced in the destination stablecoin', () => {
+      const { result } = renderPriceAdjustHook({ destToken: usdc });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
+      expect(result.current.isLimitFiatMode).toBe(false);
+      expect(result.current.quotedSymbol).toBe('ETH');
+      expect(result.current.counterToken).toEqual(usdc);
+      expect(result.current.limitPrice).toBe('2000');
+    });
+
+    it('buys the destination stablecoin priced in the source stablecoin', () => {
+      const { result } = renderPriceAdjustHook({
+        sourceToken: usdc,
+        destToken: usdt,
+      });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
+      expect(result.current.isLimitFiatMode).toBe(false);
+      expect(result.current.quotedSymbol).toBe('USDT');
+      expect(result.current.counterToken).toEqual(usdc);
+      expect(result.current.limitPrice).toBe('1');
+    });
+
+    it('keeps pricing in the stablecoin after the tokens are flipped', () => {
+      const { result, rerender } = renderPriceAdjustHook({ destToken: usdc });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
+
+      rerender({ destToken: sourceToken, sourceToken: usdc });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
+      expect(result.current.isLimitFiatMode).toBe(false);
+      expect(result.current.counterToken).toEqual(usdc);
+      expect(result.current.limitPrice).toBe('2000');
+    });
+
+    it('prices in fiat again once a flip leaves no stablecoin in the pair', () => {
+      const { result, rerender } = renderPriceAdjustHook({
+        sourceToken: usdc,
+        destToken: sourceToken,
+      });
+
+      expect(result.current.isLimitFiatMode).toBe(false);
+
+      rerender({ destToken, sourceToken });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
+      expect(result.current.isLimitFiatMode).toBe(true);
+      expect(result.current.limitPrice).toBe('1');
+    });
+
+    it('keeps pricing in the stablecoin when the quote unit is flipped onto the other stablecoin', () => {
+      const { result } = renderPriceAdjustHook({
+        sourceToken: usdc,
+        destToken: usdt,
+      });
+
+      act(() => {
+        result.current.onQuoteUnitPress?.();
+      });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
+      expect(result.current.isLimitFiatMode).toBe(false);
+      expect(result.current.counterToken).toEqual(usdt);
+    });
+
+    it('prices in fiat when the quote unit is flipped onto a non-stablecoin', () => {
+      const { result } = renderPriceAdjustHook({ destToken: usdc });
+
+      act(() => {
+        result.current.onQuoteUnitPress?.();
+      });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
+      expect(result.current.isLimitFiatMode).toBe(true);
+      expect(result.current.counterToken).toEqual(sourceToken);
+      expect(result.current.limitPrice).toBe('1');
+    });
   });
 
   it('resets price fields when the token pair changes', () => {
