@@ -1,10 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { AccountGroupId } from '@metamask/account-api';
-import {
-  AccountGroupType,
-  AccountWalletType,
-} from '@metamask/account-api';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider, {
@@ -133,48 +130,48 @@ const createMockState = (
   walletTree: Record<string, unknown> = {},
 ): DeepPartial<RootState> =>
   ({
-  engine: {
-    backgroundState: {
-      AccountTreeController: {
-        accountTree: {
-          wallets: walletTree,
+    engine: {
+      backgroundState: {
+        AccountTreeController: {
+          accountTree: {
+            wallets: walletTree,
+          },
+          selectedAccountGroup: MOCK_GROUP_ID_1,
         },
-        selectedAccountGroup: MOCK_GROUP_ID_1,
-      },
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            [mockEvmAccount1.id]: mockEvmAccount1,
-            [mockEvmAccount2.id]: mockEvmAccount2,
-            [mockSolAccount1.id]: mockSolAccount1,
-            [mockSolAccount2.id]: mockSolAccount2,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [mockEvmAccount1.id]: mockEvmAccount1,
+              [mockEvmAccount2.id]: mockEvmAccount2,
+              [mockSolAccount1.id]: mockSolAccount1,
+              [mockSolAccount2.id]: mockSolAccount2,
+            },
           },
         },
-      },
-      PreferencesController: {
-        privacyMode: false,
-      },
-      KeyringController: {
-        keyrings: [],
-      },
-      MultichainNetworkController: {
-        multichainNetworkConfigurationsByChainId: {
-          'eip155:1': {
-            chainId: 'eip155:1',
-            name: 'Ethereum Mainnet',
-            nativeCurrency: 'ETH',
-            blockExplorerUrls: ['https://etherscan.io'],
-          },
-          [MOCK_SOLANA_CHAIN_ID]: {
-            chainId: MOCK_SOLANA_CHAIN_ID,
-            name: 'Solana Mainnet',
-            nativeCurrency: 'SOL',
-            blockExplorerUrls: ['https://explorer.solana.com'],
+        PreferencesController: {
+          privacyMode: false,
+        },
+        KeyringController: {
+          keyrings: [],
+        },
+        MultichainNetworkController: {
+          multichainNetworkConfigurationsByChainId: {
+            'eip155:1': {
+              chainId: 'eip155:1',
+              name: 'Ethereum Mainnet',
+              nativeCurrency: 'ETH',
+              blockExplorerUrls: ['https://etherscan.io'],
+            },
+            [MOCK_SOLANA_CHAIN_ID]: {
+              chainId: MOCK_SOLANA_CHAIN_ID,
+              name: 'Solana Mainnet',
+              nativeCurrency: 'SOL',
+              blockExplorerUrls: ['https://explorer.solana.com'],
+            },
           },
         },
       },
     },
-  },
   }) as DeepPartial<RootState>;
 
 const defaultProps = {

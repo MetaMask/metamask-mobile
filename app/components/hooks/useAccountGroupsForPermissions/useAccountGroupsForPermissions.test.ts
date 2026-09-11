@@ -294,9 +294,9 @@ describe('useAccountGroupsForPermissions', () => {
         withHiddenGroups(MOCK_GROUP_ID_2),
       );
 
-      expect(
-        result.current.connectedAccountGroups.map((g) => g.id),
-      ).toContain(MOCK_GROUP_ID_2);
+      expect(result.current.connectedAccountGroups.map((g) => g.id)).toContain(
+        MOCK_GROUP_ID_2,
+      );
     });
 
     it('offers hidden groups that fulfill explicitly requested account IDs', () => {
@@ -315,9 +315,7 @@ describe('useAccountGroupsForPermissions', () => {
         withHiddenGroups(MOCK_GROUP_ID_2),
       );
 
-      expect(result.current.supportedAccountGroups[0].id).toBe(
-        MOCK_GROUP_ID_2,
-      );
+      expect(result.current.supportedAccountGroups[0].id).toBe(MOCK_GROUP_ID_2);
     });
 
     it('does not suggest a hidden unconnected selected group as the default connection', () => {
