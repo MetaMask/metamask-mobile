@@ -7,14 +7,15 @@ import {
 } from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import React from 'react';
-import { Text } from 'react-native';
 import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
   renderComponentViewScreen,
   renderScreenWithRoutes,
 } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
+import { QuoteSelectorView } from '../../components/QuoteSelectorView';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -26,7 +27,11 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { FEATURE_FLAG_NAME as RWA_FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
-import { BridgeViewMode, type BridgeToken } from '../../types';
+import {
+  BridgeViewMode,
+  TokenSelectorType,
+  type BridgeToken,
+} from '../../types';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -833,6 +838,42 @@ describeForPlatforms('BridgeView', () => {
     ).not.toBe(true);
   });
 
+  it('opens quote selector from the market tab', async () => {
+    const now = Date.now();
+    const state = initialStateBridge({ deterministicFiat: true })
+      .withOverrides({
+        bridge: DEFAULT_BRIDGE,
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [mockQuoteWithMetadata],
+              recommendedQuote: mockQuoteWithMetadata,
+              quotesLastFetched: now,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteFetchError: null,
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>)
+      .build();
+
+    const { findByTestId, findByText } = renderScreenWithRoutes(
+      BridgeView,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
+      [
+        {
+          name: Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
+          Component: withBridgeSession(QuoteSelectorView),
+        },
+      ],
+      { state },
+    );
+
+    fireEvent.press(await findByTestId('rate-arrow-button'));
+
+    expect(await findByText(strings('bridge.select_quote'))).toBeOnTheScreen();
+  });
+
   it('stores custom slippage when user sets 5%', async () => {
     const { store } = defaultBridgeWithTokens({
       bridge: { selectedDestChainId: '0x1' },
@@ -861,31 +902,96 @@ describeForPlatforms('BridgeView', () => {
   });
 
   it('navigates to dest token selector on press', async () => {
-    const TokenSelectorProbe: React.FC<{
-      route?: { params?: { type?: string } };
-    }> = (props) => (
-      <Text testID="token-selector-probe">{props?.route?.params?.type}</Text>
-    );
     const state = initialStateBridge()
       .withOverrides({
         bridge: { sourceToken: ETH_SOURCE },
-      } as unknown as Record<string, unknown>)
-      .build() as unknown as Record<string, unknown>;
-    const { findByText } = renderScreenWithRoutes(
-      BridgeView as unknown as React.ComponentType,
-      { name: Routes.BRIDGE.ROOT },
+      })
+      .build();
+    const { findByTestId } = renderScreenWithRoutes(
+      BridgeView,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
       [
         {
           name: Routes.BRIDGE.TOKEN_SELECTOR,
-          Component:
-            TokenSelectorProbe as unknown as React.ComponentType<unknown>,
+          Component: createRouteParamsProbe(Routes.BRIDGE.TOKEN_SELECTOR),
         },
       ],
       { state },
     );
 
-    fireEvent.press(await findByText('Swap to'));
-    expect(await findByText('dest')).toBeOnTheScreen();
+    fireEvent.press(
+      await findByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
+    );
+
+    expect(
+      await findByTestId(
+        getRouteParamsProbeTestId(Routes.BRIDGE.TOKEN_SELECTOR),
+      ),
+    ).toHaveTextContent(JSON.stringify({ type: TokenSelectorType.Dest }));
+  });
+
+  it('navigates to source token selector on press', async () => {
+    const state = initialStateBridge()
+      .withOverrides({
+        bridge: { sourceToken: ETH_SOURCE },
+      })
+      .build();
+    const { findByTestId } = renderScreenWithRoutes(
+      BridgeView,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
+      [
+        {
+          name: Routes.BRIDGE.TOKEN_SELECTOR,
+          Component: createRouteParamsProbe(Routes.BRIDGE.TOKEN_SELECTOR),
+        },
+      ],
+      { state },
+    );
+
+    fireEvent.press(
+      await findByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+    );
+
+    expect(
+      await findByTestId(
+        getRouteParamsProbeTestId(Routes.BRIDGE.TOKEN_SELECTOR),
+      ),
+    ).toHaveTextContent(JSON.stringify({ type: TokenSelectorType.Source }));
+  });
+
+  it('opens the swap slippage modal from the settings button', async () => {
+    const state = initialStateBridge({ deterministicFiat: true })
+      .withOverrides({
+        bridge: DEFAULT_BRIDGE,
+      })
+      .build();
+    const { findByTestId, getByTestId } = renderScreenWithRoutes(
+      BridgeView,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
+      [
+        {
+          name: Routes.BRIDGE.MODALS.ROOT,
+          Component: createRouteParamsProbe(Routes.BRIDGE.MODALS.ROOT),
+        },
+      ],
+      { state },
+    );
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+    );
+
+    expect(
+      await findByTestId(getRouteParamsProbeTestId(Routes.BRIDGE.MODALS.ROOT)),
+    ).toHaveTextContent(
+      JSON.stringify({
+        screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+        params: {
+          sourceChainId: ETH_SOURCE.chainId,
+          destChainId: USDC_DEST.chainId,
+        },
+      }),
+    );
   });
 
   describe('Gasless swap', () => {
@@ -1370,6 +1476,34 @@ describeForPlatforms('BridgeView', () => {
 
       expect(within(sourceArea).getByText('USDC')).toBeOnTheScreen();
       expect(within(destArea).getByText('USDT')).toBeOnTheScreen();
+    });
+
+    it('applies source token, dest token, and amount from route params', async () => {
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { sourceToken: undefined, destToken: undefined },
+        })
+        .build();
+      const { findByTestId, findByText, findByDisplayValue } =
+        renderScreenWithRoutes(
+          BridgeView,
+          { name: Routes.BRIDGE.BRIDGE_VIEW },
+          [],
+          { state },
+          {
+            sourceToken: USDC_DEST,
+            destToken: USDT_DEST,
+            sourceAmount: '1000000',
+          },
+        );
+
+      expect(
+        within(
+          await findByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).getByText(USDC_DEST.symbol),
+      ).toBeOnTheScreen();
+      expect(await findByText(USDT_DEST.symbol)).toBeOnTheScreen();
+      expect(await findByDisplayValue('1,000,000')).toBeOnTheScreen();
     });
 
     // E2E: 'navigate to bridge view with no parameters' + 'handle invalid deep link parameters gracefully'

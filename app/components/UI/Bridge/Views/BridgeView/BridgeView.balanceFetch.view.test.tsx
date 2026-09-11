@@ -15,6 +15,7 @@ import {
   withBridgeSession,
 } from '../../../../../../tests/component-view/renderers/bridge';
 import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
 import { BridgeQuoteDataProvider } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
@@ -53,18 +54,20 @@ const BridgeModalsRoot = () => (
 
 const BridgeViewWithTokenWarningModal = () => (
   <BridgeSessionProvider>
-    <BridgeQuoteDataProvider>
-      <ScreensStack.Navigator>
-        <ScreensStack.Screen
-          name={Routes.BRIDGE.BRIDGE_VIEW}
-          component={BridgeView}
-        />
-        <ScreensStack.Screen
-          name={Routes.BRIDGE.MODALS.ROOT}
-          component={BridgeModalsRoot}
-        />
-      </ScreensStack.Navigator>
-    </BridgeQuoteDataProvider>
+    <SwapQuotesProvider>
+      <BridgeQuoteDataProvider>
+        <ScreensStack.Navigator>
+          <ScreensStack.Screen
+            name={Routes.BRIDGE.BRIDGE_VIEW}
+            component={BridgeView}
+          />
+          <ScreensStack.Screen
+            name={Routes.BRIDGE.MODALS.ROOT}
+            component={BridgeModalsRoot}
+          />
+        </ScreensStack.Navigator>
+      </BridgeQuoteDataProvider>
+    </SwapQuotesProvider>
   </BridgeSessionProvider>
 );
 
