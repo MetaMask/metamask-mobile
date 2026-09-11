@@ -6,14 +6,39 @@ import { useFiatNormalizer } from './useFiatNormalizer';
 
 const mockStore = configureStore([]);
 
+const USD_RATE_ASSET_ID = 'eip155:999/slip44:999';
+
 function buildStore(usdRate: number | undefined, currentCurrency: string) {
   return mockStore({
     engine: {
       backgroundState: {
-        CurrencyRateController: {
-          currentCurrency,
-          currencyRates:
-            usdRate === undefined ? {} : { usd: { conversionRate: usdRate } },
+        AssetsController: {
+          selectedCurrency: currentCurrency,
+          assetsInfo:
+            usdRate === undefined
+              ? {}
+              : {
+                  [USD_RATE_ASSET_ID]: {
+                    type: 'native' as const,
+                    symbol: 'usd',
+                    name: 'USD',
+                    decimals: 18,
+                  },
+                },
+          assetsPrice:
+            usdRate === undefined
+              ? {}
+              : {
+                  [USD_RATE_ASSET_ID]: {
+                    assetPriceType: 'fungible' as const,
+                    price: usdRate,
+                    usdPrice: 1,
+                    lastUpdated: 1732887955694,
+                  },
+                },
+          assetsBalance: {},
+          customAssets: {},
+          assetPreferences: {},
         },
       },
     },

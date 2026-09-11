@@ -20,7 +20,10 @@ import { SOCIAL_V1_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/Soci
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
 import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
-import { BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Perps/abTestConfig';
+import {
+  BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
+} from '../../components/UI/Perps/abTestConfig';
 import { PRO_SUBSCRIPTION_FLOW_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/ProSubscription/abTestConfig';
 import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_ANALYTICS_MAPPING,
@@ -61,6 +64,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Perps
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
 
   // Pro Subscription
   PRO_SUBSCRIPTION_FLOW_AB_TEST_ANALYTICS_MAPPING,

@@ -221,6 +221,8 @@ describe('GasFeesDetailsRow', () => {
         conversionRate: number;
         usdConversionRate: number;
       };
+    clonedStakingDepositConfirmationState.engine.backgroundState.AssetsController.assetsPrice =
+      {};
 
     const { queryByText } = renderWithProvider(<GasFeesDetailsRow />, {
       state: clonedStakingDepositConfirmationState,

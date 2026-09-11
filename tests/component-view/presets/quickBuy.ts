@@ -30,6 +30,31 @@ export const initialStateQuickBuy = (options?: InitialStateQuickBuyOptions) =>
               },
             },
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsBalance: {
+              'acc-1': {
+                'eip155:1/slip44:60': { amount: '10' },
+              },
+            },
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2000,
+                usdPrice: 2000,
+                lastUpdated: 1700000000000,
+              },
+            },
+          },
           PreferencesController: {
             tokenSortConfig: {
               key: 'tokenFiatAmount',
