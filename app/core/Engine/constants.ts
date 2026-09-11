@@ -11,6 +11,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RewardsDataService',
   'StorageService',
   'SubscriptionService',
+  'SubscriptionDelegationService',
   'ShieldApiService',
   'ClaimsService',
   'TokenDetectionController',

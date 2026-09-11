@@ -100,7 +100,7 @@ export const selectTrialedSubscriptionProducts = createSelector(
 export const selectIsMoneyAccountPlusSubscriber = createSelector(
   selectSubscriptions,
   (subscriptions) =>
-    subscriptions.some(
+    console.log('>>>>>>> [subscriptions]', subscriptions) || subscriptions.some(
       (subscription) =>
         ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
         hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),

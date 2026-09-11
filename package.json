@@ -186,6 +186,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/subscription-controller": {
+      "type": "breaking",
+      "previewVersion": "9.0.0-preview-c89c65ec1"
+    }
+  },
   "resolutions": {
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",

@@ -38,6 +38,7 @@ import {
   getSelectedPlusPlan,
   type SelectedPlusPlan,
 } from './utils/getSelectedPlusPlan';
+import { useStartProSubscription } from '../../hooks/useStartProSubscription';
 
 interface BenefitsProps {
   onSuccess: (plan: SelectedPlusPlan) => void;
@@ -47,6 +48,8 @@ interface BenefitsProps {
 
 const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
   const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
+  const { startSubscription, isSubmitting, errorMessage } =
+    useStartProSubscription();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
@@ -74,7 +77,7 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
 
   const canSelectPlans =
     !isLoading && !hasError && isPricingReady && visiblePlans.length > 0;
-  const isCtaDisabled = !canSelectPlans;
+  const isCtaDisabled = !canSelectPlans || isSubmitting;
 
   const handleBenefitPress = useCallback((id: string) => {
     setIsBenefitDetailSheetOpen(true);
@@ -87,7 +90,7 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
     setIsBenefitDetailSheetOpen(false);
   }, []);
 
-  const handleCtaPress = useCallback(() => {
+  const handleCtaPress = useCallback(async () => {
     if (isCtaDisabled) {
       return;
     }
@@ -97,8 +100,13 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
       return;
     }
 
-    onSuccess(checkoutPlan);
-  }, [isCtaDisabled, onSuccess, plusPricing, resolvedPlan]);
+    try {
+      await startSubscription(checkoutPlan);
+      onSuccess(checkoutPlan);
+    } catch {
+      // The hook logs the failure and exposes localized error state.
+    }
+  }, [isCtaDisabled, onSuccess, plusPricing, resolvedPlan, startSubscription]);
 
   const handlePlanPress = useCallback(
     (planId: PlanId) => {
@@ -243,12 +251,22 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
             ))
           : null}
 
+        {errorMessage ? (
+          <Box testID={BenefitsTestIds.JOIN_ERROR}>
+            <BannerAlert
+              severity={BannerAlertSeverity.Danger}
+              description={errorMessage}
+            />
+          </Box>
+        ) : null}
+
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleCtaPress}
           testID={BenefitsTestIds.CTA_BUTTON}
           isDisabled={isCtaDisabled}
+          isLoading={isSubmitting}
           isFullWidth
         >
           {strings('pro_subscription.join_pro')}

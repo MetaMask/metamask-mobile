@@ -94,6 +94,11 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
+    // The subscription-controller preview is ESM-only. Transforming its full
+    // nested dependency graph exhausts Jest's heap, while the wallet-owned v8
+    // controller remains the runtime instance exercised by existing tests.
+    '^@metamask/subscription-controller$':
+      '<rootDir>/app/__mocks__/@metamask/subscription-controller-preview.ts',
     '^@metamask/perps-controller$':
       '<rootDir>/node_modules/@metamask/perps-controller/dist/index.cjs',
     '^@metamask/perps-controller/(constants|types|utils)$':

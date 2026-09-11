@@ -191,6 +191,7 @@ import { complianceServiceInit } from './controllers/compliance/compliance-servi
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
+import { subscriptionDelegationServiceInit } from './controllers/subscription-delegation-service-init';
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
@@ -406,6 +407,7 @@ export class Engine {
         ComplianceController: complianceControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
+        SubscriptionDelegationService: subscriptionDelegationServiceInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -616,8 +618,10 @@ export class Engine {
       TransactionController: this.transactionController,
       TransactionPayController: messengerClientsByName.TransactionPayController,
       SmartTransactionsController: this.smartTransactionsController,
-      SubscriptionController: subscriptionController,
-      SubscriptionService: subscriptionService,
+      SubscriptionController:
+        subscriptionController as unknown as EngineContext['SubscriptionController'],
+      SubscriptionService:
+        subscriptionService as unknown as EngineContext['SubscriptionService'],
       ShieldController: shieldController,
       ClaimsController: claimsController,
       GasFeeController: this.gasFeeController,
@@ -697,6 +701,8 @@ export class Engine {
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController:
         messengerClientsByName.MoneyAccountUpgradeController,
+      SubscriptionDelegationService:
+        messengerClientsByName.SubscriptionDelegationService,
     };
 
     const childControllers = Object.assign({}, this.context);

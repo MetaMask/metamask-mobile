@@ -51,7 +51,7 @@ export const moneyAccountApiDataServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger }) => {
   const controller = new MoneyAccountApiDataService({
     messenger: controllerMessenger,
-    env: Env.PRD,
+    env: Env.DEV,
     trace: sentryTrace,
   });
 

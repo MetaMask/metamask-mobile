@@ -11595,6 +11595,8 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "join_error": "We couldn't start your Pro subscription. Try again.",
+    "insufficient_balance": "You don't have enough funds in your Money account to start this subscription.",
     "pro": "Pro",
     "pricing": {
       "loading": "Loading plans...",

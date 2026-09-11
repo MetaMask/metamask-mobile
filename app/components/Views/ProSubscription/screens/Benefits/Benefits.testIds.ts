@@ -14,6 +14,7 @@ export const BenefitsTestIds = {
   PRICING_UNAVAILABLE: 'benefits-pricing-unavailable',
   PRICING_MALFORMED: 'benefits-pricing-malformed',
   PRICING_RETRY_BUTTON: 'benefits-pricing-retry-button',
+  JOIN_ERROR: 'benefits-join-error',
   PLAN_CARD_PRICE: (planId: string) => `benefits-plan-card-${planId}-price`,
   PLAN_CARD_SUB_PRICE: (planId: string) =>
     `benefits-plan-card-${planId}-sub-price`,

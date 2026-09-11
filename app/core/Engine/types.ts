@@ -420,6 +420,8 @@ import {
   type SubscriptionControllerActions,
   type SubscriptionControllerEvents,
   type SubscriptionControllerState,
+  type SubscriptionDelegationService,
+  type SubscriptionDelegationServiceActions,
   SubscriptionService,
   type SubscriptionServiceActions,
   type SubscriptionServiceEvents,
@@ -693,6 +695,7 @@ export type GlobalActions =
   | DeFiPositionsControllerV2Actions
   | StorageServiceActions
   | SubscriptionControllerActions
+  | SubscriptionDelegationServiceActions
   | SubscriptionServiceActions
   | ShieldControllerActions
   | ShieldApiServiceActions
@@ -909,6 +912,7 @@ export type MessengerClients = {
   SignatureController: SignatureController;
   StorageService: StorageService;
   SubscriptionController: SubscriptionController;
+  SubscriptionDelegationService: SubscriptionDelegationService;
   SubscriptionService: SubscriptionService;
   ShieldController: ShieldController;
   ShieldApiService: ShieldApiService;
@@ -1184,7 +1188,8 @@ export type MessengerClientsToInitialize =
   | 'ComplianceService'
   | 'ComplianceController'
   | 'ChompApiService'
-  | 'MoneyAccountUpgradeController';
+  | 'MoneyAccountUpgradeController'
+  | 'SubscriptionDelegationService';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

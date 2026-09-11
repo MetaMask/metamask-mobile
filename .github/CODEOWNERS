@@ -201,8 +201,10 @@ app/core/Engine/controllers/earn-controller @MetaMask/earn
 app/core/Engine/messengers/earn-controller-messenger @MetaMask/earn
 app/core/Engine/controllers/chomp-api-service-init*                    @MetaMask/earn
 app/core/Engine/controllers/money-account-upgrade-controller-init*     @MetaMask/earn
+app/core/Engine/controllers/subscription-delegation-service-init*      @MetaMask/earn
 app/core/Engine/messengers/chomp-api-service-messenger*                @MetaMask/earn
 app/core/Engine/messengers/money-account-upgrade-controller-messenger* @MetaMask/earn
+app/core/Engine/messengers/subscription-delegation-service-messenger*  @MetaMask/earn
 app/selectors/earnController         @MetaMask/earn
 app/selectors/featureFlagController/chompApi/ @MetaMask/earn
 **/Earn/**                           @MetaMask/earn
