@@ -32,6 +32,8 @@ export interface TopTrader {
   winRatePercent: number | null;
   /** PnL broken down by chain. Used for client-side chain filtering. */
   pnlPerChain: Record<string, number>;
+  /** Followers this trader has, as reported by the leaderboard. */
+  followerCount: number;
   /** Whether the current user is following this trader. */
   isFollowing: boolean;
 }

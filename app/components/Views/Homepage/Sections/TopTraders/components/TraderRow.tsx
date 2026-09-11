@@ -7,18 +7,26 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconName,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { RankMedal, isTopRank } from '../topRank';
 import type { TopTrader } from '../types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the leaderboard number formatters; route-isolation backlog */
+import {
+  formatCount,
+  formatPercent,
+  formatSignedUsd,
+} from '../../../../SocialLeaderboard/utils/formatters';
+/* eslint-enable import-x/no-restricted-paths */
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderMuteChip from '../../../../SocialLeaderboard/components/TraderMuteChip';
 import TraderAvatar from './TraderAvatar';
@@ -26,9 +34,16 @@ import TraderAvatar from './TraderAvatar';
 const MUTE_CHIP_DIAMETER = 40;
 
 const AVATAR_SIZE = 40;
+// Medal height that keeps the badge tucked into the avatar's bottom-right
+// corner rather than dominating it (the default 30 is sized for a standalone
+// podium).
+const SOCIAL_V1_MEDAL_HEIGHT = 24;
+// At or above this win rate the tag switches to the highlighted treatment.
+const ELITE_WIN_RATE_PERCENT = 90;
 // Fixed row height so the skeleton placeholder can match it exactly without
 // drifting due to font-scale or button-size differences.
 export const TRADER_ROW_HEIGHT = 71;
+export const SOCIAL_V1_TRADER_ROW_HEIGHT = 72;
 
 /**
  * The figure shown under the username. Callers that rank by something other
@@ -44,6 +59,8 @@ export interface TraderRowMetric {
 
 export interface TraderRowProps {
   trader: TopTrader;
+  /** Opts into the denser, metrics-first Social V1 leaderboard treatment. */
+  variant?: 'default' | 'socialV1';
   /** Defaults to the trader's PnL for the loaded window. */
   metric?: TraderRowMetric;
   onFollowPress: (traderId: string) => void;
@@ -73,6 +90,7 @@ export interface TraderRowProps {
  */
 const TraderRow: React.FC<TraderRowProps> = ({
   trader,
+  variant = 'default',
   metric,
   onFollowPress,
   onTraderPress,
@@ -87,10 +105,123 @@ const TraderRow: React.FC<TraderRowProps> = ({
   const isMetricPositive = metric?.isPositive ?? trader.pnlValue >= 0;
   const showMedal = isTopRank(trader.rank);
   const canShowMuteChip = showMute && Boolean(onMuteToggle);
+  const isSocialV1 = variant === 'socialV1';
 
   const handleMutePress = React.useCallback(() => {
     onMuteToggle?.(trader.id);
   }, [onMuteToggle, trader.id]);
+
+  if (isSocialV1) {
+    const isEliteWinRate =
+      (trader.winRatePercent ?? 0) >= ELITE_WIN_RATE_PERCENT;
+    const winRateLabel = strings('social_leaderboard.win_rate_tag', {
+      winRate: formatPercent(trader.winRatePercent, {
+        showSign: false,
+        decimals: 0,
+      }),
+    });
+    const followerLabel = strings(
+      trader.followerCount === 1
+        ? 'social_leaderboard.trader_profile.followers_count'
+        : 'social_leaderboard.trader_profile.followers_count_plural',
+      { count: formatCount(trader.followerCount) },
+    );
+    const roi = formatPercent(trader.percentageChange, { decimals: 1 });
+
+    return (
+      <TouchableOpacity
+        activeOpacity={onTraderPress ? 0.7 : 1}
+        onPress={
+          onTraderPress
+            ? () =>
+                onTraderPress(trader.id, trader.username, trader.overallRank)
+            : undefined
+        }
+        disabled={!onTraderPress}
+        testID={testID ?? `trader-row-${trader.id}`}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={3}
+          twClassName="px-4"
+          style={{ height: SOCIAL_V1_TRADER_ROW_HEIGHT }}
+        >
+          <Box>
+            <TraderAvatar
+              imageUrl={trader.avatarUri}
+              address={trader.address}
+              size={AVATAR_SIZE}
+              recyclingKey={trader.id}
+            />
+            {showMedal ? (
+              <Box twClassName="absolute -bottom-1 -right-2">
+                <RankMedal rank={trader.rank} size={SOCIAL_V1_MEDAL_HEIGHT} />
+              </Box>
+            ) : null}
+          </Box>
+
+          {/* `min-w-0` lets the name truncate inside the row instead of
+              pushing the metrics column off the right edge. */}
+          <Box twClassName="flex-1 min-w-0">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              <Text
+                variant={TextVariant.BodyLg}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {trader.username}
+              </Text>
+              {trader.winRatePercent !== null && (
+                <Tag
+                  severity={
+                    isEliteWinRate ? TagSeverity.Warning : TagSeverity.Neutral
+                  }
+                  startIconName={isEliteWinRate ? IconName.Trophy : undefined}
+                  twClassName="shrink-0"
+                >
+                  {winRateLabel}
+                </Tag>
+              )}
+            </Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              {followerLabel}
+            </Text>
+          </Box>
+
+          <Box alignItems={BoxAlignItems.End} twClassName="shrink-0">
+            <Text
+              variant={TextVariant.BodyLg}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+              twClassName={
+                isMetricPositive ? 'text-success-default' : 'text-error-default'
+              }
+            >
+              {metricText}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              {roi}
+            </Text>
+          </Box>
+        </Box>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <Box
@@ -117,7 +248,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={4}
         >
-          <View>
+          <Box>
             <TraderAvatar
               imageUrl={trader.avatarUri}
               address={trader.address}
@@ -127,11 +258,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
             {showMedal ? (
               // Offset so the medal bottom (incl. its 2px border) sits ~10px
               // below the avatar's bottom edge.
-              <View style={tw.style('absolute -bottom-[10px] -right-2')}>
+              <Box twClassName="absolute -bottom-[10px] -right-2">
                 <RankMedal rank={trader.rank} />
-              </View>
+              </Box>
             ) : null}
-          </View>
+          </Box>
 
           <Box twClassName="flex-1 min-w-0">
             <Text

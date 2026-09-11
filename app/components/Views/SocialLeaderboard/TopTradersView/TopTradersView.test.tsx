@@ -156,6 +156,7 @@ const fixtureTraders: TopTrader[] = [
     pnlValue: 963146.8,
     winRatePercent: 92,
     pnlPerChain: { base: 500000, ethereum: 463146.8 },
+    followerCount: 48707,
     isFollowing: false,
   },
   {
@@ -169,6 +170,7 @@ const fixtureTraders: TopTrader[] = [
     pnlValue: 474751.45,
     winRatePercent: 61,
     pnlPerChain: { base: 474751.45 },
+    followerCount: 21999,
     isFollowing: false,
   },
   {
@@ -182,6 +184,7 @@ const fixtureTraders: TopTrader[] = [
     pnlValue: 374735.16,
     winRatePercent: 48,
     pnlPerChain: { solana: 374735.16 },
+    followerCount: 11772,
     isFollowing: false,
   },
 ];
@@ -697,6 +700,65 @@ describe('TopTradersView', () => {
       all: false,
       tokens: true,
       perps: true,
+    });
+  });
+
+  describe('pinned type filter', () => {
+    it('scopes the queries to the pinned type and hides the type pill', () => {
+      renderWithProvider(<TopTradersView pinnedTypeFilter="all" />);
+
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+      ).toBeNull();
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: false,
+        perps: false,
+      });
+    });
+
+    it('does not prefetch the other type queries', () => {
+      jest.useFakeTimers();
+      try {
+        setTabResult('all', { isFetching: false });
+        const { rerender } = renderWithProvider(
+          <TopTradersView pinnedTypeFilter="all" />,
+        );
+
+        rerender(<TopTradersView pinnedTypeFilter="all" />);
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+
+        expectLatestQueryEnabledStates({
+          all: true,
+          tokens: false,
+          perps: false,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('keeps the pinned type enabled when the sort changes', () => {
+      renderWithProvider(<TopTradersView pinnedTypeFilter="all" />);
+
+      selectSort('winRate');
+
+      expectLatestQueryEnabledStates({
+        all: true,
+        tokens: false,
+        perps: false,
+      });
+    });
+
+    it('reports the pinned type as the analytics chain filter', () => {
+      renderWithProvider(<TopTradersView pinnedTypeFilter="all" />);
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
+        expect.objectContaining({ chain_filter: 'all' }),
+      );
     });
   });
 

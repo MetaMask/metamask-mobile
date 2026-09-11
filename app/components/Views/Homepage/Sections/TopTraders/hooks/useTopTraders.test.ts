@@ -41,6 +41,7 @@ const mockTraders = [
     pnl7d: 963146.8,
     roiPercent7d: 43,
     pnlPerChain: { base: 963146.8 },
+    followerCount: 48707,
   },
   {
     rank: 2,
@@ -51,6 +52,7 @@ const mockTraders = [
     pnl7d: 474751.45,
     roiPercent7d: 359,
     pnlPerChain: { ethereum: 474751.45 },
+    followerCount: 21999,
   },
   {
     rank: 3,
@@ -61,6 +63,7 @@ const mockTraders = [
     pnl7d: 374735.16,
     roiPercent7d: 617,
     pnlPerChain: { solana: 374735.16 },
+    followerCount: 11772,
   },
 ];
 
@@ -140,6 +143,7 @@ describe('useTopTraders', () => {
         pnlValue: first.pnl7d,
         winRatePercent: null,
         pnlPerChain: first.pnlPerChain ?? {},
+        followerCount: first.followerCount,
         isFollowing: false,
       });
     });
