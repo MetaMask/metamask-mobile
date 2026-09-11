@@ -4,7 +4,7 @@ import React, { useImperativeHandle, useRef, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SocialFeedPositionCard } from '../SocialV1View/feed/components';
-import { useMockSocialV1Feed } from '../SocialV1View/feed/hooks/useMockSocialV1Feed';
+import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import SubnavPills from './SubnavPills';
 import { SOCIAL_SHELL_TAB_CONFIG } from './tabConfig';
@@ -39,7 +39,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const [selectedSubnav, setSelectedSubnav] = useState<SocialShellSubnavId>(
     config.defaultSubnav,
   );
-  const { items: feedItems } = useMockSocialV1Feed();
+  const { items: feedItems } = useSocialV1Feed();
 
   useImperativeHandle(
     pageRef,

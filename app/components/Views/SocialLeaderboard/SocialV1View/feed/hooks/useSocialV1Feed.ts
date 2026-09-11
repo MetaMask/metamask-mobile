@@ -4,10 +4,10 @@ import type { UseSocialV1FeedResult } from '../types';
 
 /**
  * Temporary V1 Feed data source until the social API exposes post/comment
- * fields. Matches the shape of a future `useSocialV1Feed` so the Feed tab
- * can swap implementations without changing card UI.
+ * fields. Matches the shape of a future live feed so the Feed tab can swap
+ * implementations without changing card UI.
  */
-export const useMockSocialV1Feed = (): UseSocialV1FeedResult =>
+export const useSocialV1Feed = (): UseSocialV1FeedResult =>
   useMemo(
     () => ({
       items: MOCK_SOCIAL_V1_FEED_ITEMS,
