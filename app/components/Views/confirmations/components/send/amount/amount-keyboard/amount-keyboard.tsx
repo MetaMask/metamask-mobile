@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -9,11 +9,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../../../../util/navigation/navUtils.ts';
 import { useStyles } from '../../../../../../hooks/useStyles';
+import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { AssetType, TokenStandard } from '../../../../types/token';
 import { getFractionLength } from '../../../../utils/send.ts';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
-import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
-import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
@@ -38,28 +37,40 @@ const ADDITIONAL_KAYBOARD_BUTTONS_INCLUDING_MAX = [
 
 export const AmountKeyboard = ({
   amount,
+  amountError,
   fiatMode,
+  getFiatValue,
+  getNativeValue,
   updateAmount,
+  validateNonEvmAmountAsync,
 }: {
   amount: string;
+  amountError?: string;
   fiatMode: boolean;
+  getFiatValue: (amount: string) => string;
+  getNativeValue: (amount: string) => string;
   updateAmount: (value: string) => void;
+  validateNonEvmAmountAsync: () => Promise<string | undefined>;
 }) => {
-  const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
-  const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
-  const { amountError, validateNonEvmAmountAsync } = useAmountValidation();
+  const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount({
+    deferGasPolling: true,
+  });
   const { asset, updateValue, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const { isNonEvmSendType } = useSendType();
   const { alert: unreliableNetworkAlert } = useUnreliableNetworkAlert();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
-  const { styles } = useStyles(styleSheet, {
-    amountError: Boolean(amountError),
-    submitDisabled: isNFT && !amount,
-  });
+  const hasAmountError = Boolean(amountError);
+  const submitDisabled = isNFT && !amount;
+  const styleVars = useMemo(
+    () => ({ amountError: hasAmountError, submitDisabled }),
+    [hasAmountError, submitDisabled],
+  );
+  const { styles } = useStyles(styleSheet, styleVars);
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
+  const { playImpact } = useHaptics();
 
   const { predefinedRecipient } = useParams<{
     predefinedRecipient: PredefinedRecipient;
@@ -67,6 +78,7 @@ export const AmountKeyboard = ({
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
+      playImpact(ImpactMoment.QuickAmountSelection);
       const percentageAmount = getPercentageAmount(percentage) ?? '0';
       updateAmount(
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
@@ -80,6 +92,7 @@ export const AmountKeyboard = ({
       fiatMode,
       getFiatValue,
       getPercentageAmount,
+      playImpact,
       setAmountInputMethodPressedMax,
       updateAmount,
       updateValue,
@@ -95,10 +108,11 @@ export const AmountKeyboard = ({
       ) {
         return;
       }
+      playImpact(ImpactMoment.KeypadKey);
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
     },
-    [asset, fiatMode, getNativeValue, updateAmount, updateValue],
+    [asset, fiatMode, getNativeValue, playImpact, updateAmount, updateValue],
   );
 
   const goToNextPage = useCallback(async () => {

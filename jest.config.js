@@ -201,6 +201,10 @@ const config = {
       '<rootDir>/app/__mocks__/rive-app-react-native.tsx',
     '^react-native-qrcode-svg$':
       '<rootDir>/app/__mocks__/react-native-qrcode-svg.js',
+    '^number-flow-react-native$':
+      '<rootDir>/app/__mocks__/number-flow-react-native.tsx',
+    '^number-flow-react-native/native$':
+      '<rootDir>/app/__mocks__/number-flow-react-native.tsx',
   },
   cache: true,
   ...(process.env.JEST_CACHE_DIRECTORY && {
