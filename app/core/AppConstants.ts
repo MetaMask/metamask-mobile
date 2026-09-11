@@ -277,27 +277,6 @@ export default {
     DEV: 'https://test-sec.immersve.com',
     PRD: 'https://api-sec.immersve.com',
   },
-  // Universal KYC API (va-mmcx-universal-kyc-api).
-  // GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
-  KYC_API_URL: {
-    DEV: 'https://kyc-api.dev-api.cx.metamask.io',
-    UAT: 'https://kyc-api.uat-api.cx.metamask.io',
-    PRD: 'https://kyc-api.api.cx.metamask.io',
-  },
-  // idOS enclave, serving the JWKS that verifies the UKYC `encryptionDataKey`
-  // schema's `jwtChain`. Distinct host from KYC_API_URL.
-  IDOS_ENCLAVE_URL: {
-    DEV: 'https://enclave.staging.sandbox.fractal.id',
-    UAT: 'https://enclave.staging.sandbox.fractal.id',
-    PRD: 'https://enclave.idos.network',
-  },
-  // idOS relay, serving the JWKS that verifies the UKYC `ukycCapabilityToken`
-  // schema's `jwtChain`.
-  IDOS_RELAY_URL: {
-    DEV: 'https://relay.playground.idos.network',
-    UAT: 'https://relay.staging.idos.network',
-    PRD: 'https://relay.idos.network',
-  },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',
