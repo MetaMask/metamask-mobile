@@ -165,43 +165,66 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
     [displayToken.networkBadgeChainId],
   );
 
-  const valueLabel = isMoneyAccountSelected
-    ? strings('confirm.pay_with_bottom_sheet.money_account')
-    : matchesPerpsBalance
-      ? strings('perps.adjust_margin.perps_balance')
-      : displayToken.symbol;
+  const getValueLabel = () => {
+    if (isMoneyAccountSelected) {
+      return strings('confirm.pay_with_bottom_sheet.money_account');
+    }
 
-  const valueStartAccessory = isMoneyAccountSelected ? (
-    <Image
-      testID="perps-pay-row-token-icon"
-      source={MoneyIcon}
-      style={tokenIconStyles.iconSmall}
-    />
-  ) : matchesPerpsBalance ? (
-    <BaseTokenIcon
-      testID="perps-pay-row-token-icon"
-      icon={PERPS_BALANCE_ICON_URI}
-      symbol={strings('perps.adjust_margin.perps_balance')}
-      style={tokenIconStyles.iconSmall}
-    />
-  ) : token ? (
-    <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImageSource}
+    if (matchesPerpsBalance) {
+      return strings('perps.adjust_margin.perps_balance');
+    }
+
+    return displayToken.symbol;
+  };
+
+  const getValueStartAccessory = () => {
+    if (isMoneyAccountSelected) {
+      return (
+        <Image
+          testID="perps-pay-row-token-icon"
+          source={MoneyIcon}
+          style={tokenIconStyles.iconSmall}
         />
-      }
-    >
-      <BaseTokenIcon
-        testID="perps-pay-row-token-icon"
-        icon={token.image}
-        symbol={token.symbol}
-        style={tokenIconStyles.iconSmall}
-      />
-    </BadgeWrapper>
-  ) : null;
+      );
+    }
+
+    if (matchesPerpsBalance) {
+      return (
+        <BaseTokenIcon
+          testID="perps-pay-row-token-icon"
+          icon={PERPS_BALANCE_ICON_URI}
+          symbol={strings('perps.adjust_margin.perps_balance')}
+          style={tokenIconStyles.iconSmall}
+        />
+      );
+    }
+
+    if (!token) {
+      return null;
+    }
+
+    return (
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+          />
+        }
+      >
+        <BaseTokenIcon
+          testID="perps-pay-row-token-icon"
+          icon={token.image}
+          symbol={token.symbol}
+          style={tokenIconStyles.iconSmall}
+        />
+      </BadgeWrapper>
+    );
+  };
+
+  const valueLabel = getValueLabel();
+  const valueStartAccessory = getValueStartAccessory();
 
   return (
     <TouchableOpacity

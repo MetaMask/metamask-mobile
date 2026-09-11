@@ -95,11 +95,19 @@ export function PredictPayWithRow({
   }, [canEdit, navigation, onPaymentSelectorOpen]);
 
   const label = strings('confirm.label.pay_with');
-  const displaySymbol = isMoneyAccountSelected
-    ? strings('confirm.pay_with_bottom_sheet.money_account')
-    : showPredictBalance
-      ? 'Predict balance'
-      : (selectedPaymentToken?.symbol ?? payToken?.symbol ?? '');
+  const getDisplaySymbol = () => {
+    if (isMoneyAccountSelected) {
+      return strings('confirm.pay_with_bottom_sheet.money_account');
+    }
+
+    if (showPredictBalance) {
+      return 'Predict balance';
+    }
+
+    return selectedPaymentToken?.symbol ?? payToken?.symbol ?? '';
+  };
+
+  const displaySymbol = getDisplaySymbol();
   const tokenIconAddress = showPredictBalance
     ? POLYGON_PUSD.address
     : (payToken?.address as Hex | undefined);
