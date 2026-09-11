@@ -165,13 +165,10 @@ module.exports = {
       ],
     },
     {
-      // 17.x of @metamask/perps-controller (and current previews) ships
-      // ESM-only under dist/*.js. Force Babel to transform it (and its
-      // nested peers hoisted under it — @metamask/*, lodash-es, etc.)
-      // to CJS so Jest can load them without needing
+      // 17.x of @metamask/perps-controller ships ESM-only under dist/*.js.
+      // Force Babel to transform it (and lodash-es, a nested peer of
+      // controller-utils) to CJS so Jest can load them without needing
       // --experimental-vm-modules.
-      // The 16.x line shipped a dual build, so this override is a no-op
-      // there (Babel would apply the same transform via the preset).
       test: (filename) => {
         const f = posixPath(filename);
         return (

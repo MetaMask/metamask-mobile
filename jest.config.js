@@ -1,43 +1,4 @@
-const fs = require('fs');
-const path = require('path');
-
 process.env.TZ = 'America/Toronto';
-
-/**
- * Build a jest moduleNameMapper *value* for a file inside the
- * `@metamask/perps-controller` package.
- *
- * Different releases of the controller ship different distribution shapes:
- * - 16.x → dual CJS/ESM (`dist/*.cjs` and `dist/*.js`)
- * - 17.x (and current previews) → ESM-only (`dist/*.js`)
- *
- * We probe the on-disk shape at config load time so tests keep working no
- * matter which version is installed (production or preview).
- *
- * @param {string} relativePath Path relative to the `dist/` directory,
- *   without extension. Empty string maps to `dist/index`.
- *   May include `$1`/`$2` placeholders for regex captures — these are
- *   ignored by the disk check and passed through untouched to jest.
- * @returns {string} An absolute filepath jest can rewrite the import to.
- */
-function resolvePerpsControllerEntry(relativePath) {
-  const base = path.join(
-    __dirname,
-    'node_modules',
-    '@metamask',
-    'perps-controller',
-    'dist',
-    relativePath || 'index',
-  );
-  // If the caller passed a regex-substituted path with capture groups,
-  // we can't check the exact file on disk. Prefer .js in that case, as
-  // that's the format used by 16.x + 17.x.
-  if (base.includes('$')) {
-    return `${base}.js`;
-  }
-  return fs.existsSync(`${base}.cjs`) ? `${base}.cjs` : `${base}.js`;
-}
-
 
 // Unit tests need a test-like environment before Babel transforms app modules.
 process.env.METAMASK_ENVIRONMENT ??= 'test';
@@ -139,17 +100,15 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
-    // NOTE: @metamask/perps-controller 16.x shipped a dual CJS/ESM build
-    // (dist/*.cjs and dist/*.js). 17.x (and current previews) ship
-    // ESM-only under dist/*.js. To stay compatible with either shape,
-    // resolve the file dynamically at config load time and prefer .cjs
-    // when it exists, falling back to .js.
-    '^@metamask/perps-controller$': resolvePerpsControllerEntry(''),
+    // 17.x ships ESM-only under dist/*.js (16.x used dist/*.cjs).
+    '^@metamask/perps-controller$':
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.js',
     '^@metamask/perps-controller/(constants|types|utils)$':
-      resolvePerpsControllerEntry('$1/index'),
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.js',
     '^@metamask/perps-controller/(constants|types|utils)/(.*)$':
-      resolvePerpsControllerEntry('$1/$2'),
-    '^@metamask/perps-controller/(.*)$': resolvePerpsControllerEntry('$1'),
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.js',
+    '^@metamask/perps-controller/(.*)$':
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.js',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
     // @metamask/perps-controller@9.1.0+ ships a broken CJS build whose
     // bundler baked in a CI-only absolute path (a file:// URL left over from

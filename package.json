@@ -177,12 +177,6 @@
     "docs:platform-api:build": "platform-api-docs --build --project-label Mobile --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'",
     "docs:platform-api:serve": "platform-api-docs --serve --project-label Mobile --site-base-url / --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'"
   },
-  "previewBuilds": {
-    "@metamask/perps-controller": {
-      "type": "breaking",
-      "previewVersion": "17.0.0-preview-b3db565c8"
-    }
-  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "prettier --write",
@@ -367,7 +361,7 @@
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@metamask/notification-services-controller": "^27.0.1",
     "@metamask/permission-controller": "^13.1.1",
-    "@metamask/perps-controller": "^16.2.0",
+    "@metamask/perps-controller": "^17.1.0",
     "@metamask/phishing-controller": "^17.3.1",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
