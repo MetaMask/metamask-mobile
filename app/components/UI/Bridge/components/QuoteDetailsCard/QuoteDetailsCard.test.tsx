@@ -9,7 +9,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol';
 import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import {
   MetaMetricsSwapsEventSource,
   toQuoteResponseV2,
@@ -18,6 +17,11 @@ import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import type { GaslessFeeAsset } from '../../utils/getGaslessFeeAsset';
 
+/**
+ * Unit fallback: QuoteDetailsCard is a nested card, not a screen. Fee, impact,
+ * and rewards rows depend on quote context that CV would need the full
+ * BridgeQuoteDataProvider and quote fetch to drive.
+ */
 jest.mock(
   '../../../../../animations/rewards_icon_animations.riv',
   () => 'mocked-riv-file',
@@ -46,9 +50,8 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-//Mock useBridgeQuoteData hook
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn().mockImplementation(() => ({
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn().mockImplementation(() => ({
     quoteFetchError: null,
     activeQuote: {
       ...mockQuotes[0],
@@ -76,15 +79,6 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     shouldShowPriceImpactWarning: false,
   })),
 }));
-
-jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
-  const { useBridgeQuoteData } = jest.requireMock(
-    '../../hooks/useBridgeQuoteData',
-  );
-  return {
-    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
-  };
-});
 
 // Mock useRewards hook
 jest.mock('../../hooks/useRewards', () => ({
@@ -326,10 +320,13 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('renders the relayer fee when the selected quote includes one', () => {
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    const originalImpl =
+      mockModule.useBridgeQuoteDataContext.getMockImplementation();
 
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       ...originalImpl(),
       activeQuote: {
         ...mockQuotes[0],
@@ -356,7 +353,6 @@ describe('QuoteDetailsCard', () => {
 
     expect(getByText(strings('bridge.relayer_fee'))).toBeOnTheScreen();
     expect(getByText('$1.23')).toBeOnTheScreen();
-    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 
   it('does not render the relayer fee when the selected quote omits it', () => {
@@ -441,10 +437,13 @@ describe('QuoteDetailsCard', () => {
 
   it('displays "Included" fee when gasIncluded7702 is true', () => {
     // Temporarily replace the mock with one that has gasIncluded7702 = true
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    const originalImpl =
+      mockModule.useBridgeQuoteDataContext.getMockImplementation();
 
-    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+    mockModule.useBridgeQuoteDataContext.mockImplementation(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -479,7 +478,7 @@ describe('QuoteDetailsCard', () => {
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
 
     // Restore original implementation
-    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+    mockModule.useBridgeQuoteDataContext.mockImplementation(originalImpl);
   });
 
   it('displays the redesigned gasless fee with its fee asset', () => {
@@ -529,10 +528,13 @@ describe('QuoteDetailsCard', () => {
 
   it('displays "Included" fee when gasIncluded is true', () => {
     // Temporarily replace the mock with one that has gasIncluded = true
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    const originalImpl =
+      mockModule.useBridgeQuoteDataContext.getMockImplementation();
 
-    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+    mockModule.useBridgeQuoteDataContext.mockImplementation(() => ({
       quoteFetchError: null,
       activeQuote: toQuoteResponseV2(mockQuotesGasIncluded[0]),
       destTokenAmount: '24.44',
@@ -560,14 +562,17 @@ describe('QuoteDetailsCard', () => {
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
 
     // Restore original implementation
-    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+    mockModule.useBridgeQuoteDataContext.mockImplementation(originalImpl);
   });
 
   it('renders sponsored fee label when gas is sponsored', () => {
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    const originalImpl =
+      mockModule.useBridgeQuoteDataContext.getMockImplementation();
 
-    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+    mockModule.useBridgeQuoteDataContext.mockImplementation(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -600,14 +605,17 @@ describe('QuoteDetailsCard', () => {
     expect(getByText('Price impact')).toBeOnTheScreen();
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
 
-    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+    mockModule.useBridgeQuoteDataContext.mockImplementation(originalImpl);
   });
 
   it('opens sponsored fee tooltip with native token in content', () => {
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    const originalImpl =
+      mockModule.useBridgeQuoteDataContext.getMockImplementation();
 
-    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+    mockModule.useBridgeQuoteDataContext.mockImplementation(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -653,12 +661,14 @@ describe('QuoteDetailsCard', () => {
     expect(getByText('Price impact')).toBeOnTheScreen();
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
 
-    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+    mockModule.useBridgeQuoteDataContext.mockImplementation(originalImpl);
   });
 
   it('handles early return when formattedQuoteData is missing', () => {
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       quoteFetchError: null,
       activeQuote: mockQuotes[0],
       destTokenAmount: '24.44',
@@ -679,8 +689,10 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('hides the price impact row when quote price data is unavailable', () => {
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -712,8 +724,10 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('hides the price impact row when quote price impact is null', () => {
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -748,8 +762,10 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('handles price impact info button navigation', () => {
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -794,8 +810,10 @@ describe('QuoteDetailsCard', () => {
 
   it('does not navigate when price impact is below warning threshold', () => {
     // priceImpact 0.04 < warning threshold 0.05 → priceImpactIsSafe = true → no navigation
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -872,8 +890,10 @@ describe('QuoteDetailsCard', () => {
 
   it('renders price impact row in normal state when price impact is below warning threshold', () => {
     // 0.04 (4%) < warning threshold 0.05 (5%) → normal state, no warning icon
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -912,8 +932,10 @@ describe('QuoteDetailsCard', () => {
 
   it('renders price impact row in warning state when price impact is between thresholds', () => {
     // 0.10 (10%) >= warning threshold 0.05 (5%) but < error threshold 0.25 (25%) → warning state
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -952,8 +974,10 @@ describe('QuoteDetailsCard', () => {
 
   it('renders price impact row in error state when price impact exceeds error threshold', () => {
     // 25.0 >= error threshold 0.25 (25%) → error state
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+    const mockModule = jest.requireMock(
+      '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+    );
+    mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
       quoteFetchError: null,
       activeQuote: {
         ...mockQuotes[0],
@@ -992,8 +1016,10 @@ describe('QuoteDetailsCard', () => {
 
   describe('minimum received row', () => {
     it('displays minimum received row when minToTokenAmount is present', () => {
-      const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-      mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      const mockModule = jest.requireMock(
+        '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+      );
+      mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
         quoteFetchError: null,
         activeQuote: {
           ...mockQuotes[0],
@@ -1029,8 +1055,10 @@ describe('QuoteDetailsCard', () => {
     });
 
     it('does not display minimum received row when minToTokenAmount is absent', () => {
-      const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-      mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      const mockModule = jest.requireMock(
+        '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+      );
+      mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
         quoteFetchError: null,
         activeQuote: {
           ...mockQuotes[0],
@@ -1353,7 +1381,10 @@ describe('QuoteDetailsCard', () => {
 
     it('handles quote loading state with rewards', async () => {
       // Given quote is loading
-      (useBridgeQuoteData as jest.Mock).mockImplementationOnce(() => ({
+      const mockModule = jest.requireMock(
+        '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+      );
+      mockModule.useBridgeQuoteDataContext.mockImplementationOnce(() => ({
         quoteFetchError: null,
         activeQuote: mockQuotes[0],
         destTokenAmount: '24.44',

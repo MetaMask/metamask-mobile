@@ -3,17 +3,17 @@ import {
   formatChainIdToHex,
   isNonEvmChainId,
   sumAmounts,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../useLatestBalance';
 import { ethers } from 'ethers';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { BigNumber } from 'bignumber.js';
 import { isNumberValue } from '../../../../../util/number/bigint';
 
 interface Props {
-  quote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+  quote?: QuoteResponse | null;
 }
 
 /**
