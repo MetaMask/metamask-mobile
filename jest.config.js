@@ -31,6 +31,51 @@ process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
 // When running Reassure perf tests we want to avoid Jest coverage to reduce memory usage
 const isReassureRun = process.env.REASSURE === 'true';
 
+const DEPENDENCIES_TO_TRANSPILE = [
+  '@react-native',
+  'react-native',
+  'redux-persist-filesystem',
+  '@react-navigation',
+  '@react-native-community',
+  '@react-native-masked-view',
+  'react-navigation',
+  'react-navigation-redux-helpers',
+  '@sentry',
+  'd3-color',
+  'd3-shape',
+  'd3-path',
+  'd3-scale',
+  'd3-array',
+  'd3-time',
+  'd3-format',
+  'd3-interpolate',
+  'd3-selection',
+  'd3-axis',
+  'd3-transition',
+  'internmap',
+  'react-native-wagmi-charts',
+  'react-native-nitro-modules',
+  '@notifee',
+  'expo-file-system',
+  'expo-modules-core',
+  'expo(nent)?',
+  '@expo(nent)?/.*',
+  '@noble/.*',
+  '@nktkas/hyperliquid',
+  '@metamask/base-controller',
+  '@metamask/base-data-service',
+  '@metamask/design-system-twrnc-preset',
+  '@metamask/design-system-react-native',
+  '@metamask/messenger',
+  '@metamask/native-utils',
+  '@metamask/smart-transactions-controller',
+  '@tommasini/react-native-scrollable-tab-view',
+  '@veriff/react-native-sdk',
+  '@sumsub/react-native-mobilesdk-module',
+  '@braze/react-native-sdk',
+  'uuid',
+];
+
 const config = {
   // RN 0.85 removes the bundled 'react-native' Jest preset in favor of the
   // extracted '@react-native/jest-preset' package (functionally identical on
@@ -39,7 +84,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk|@sumsub/react-native-mobilesdk-module|@braze/react-native-sdk|uuid))',
+    `node_modules/(?!(${DEPENDENCIES_TO_TRANSPILE.join('|')}))`,
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
