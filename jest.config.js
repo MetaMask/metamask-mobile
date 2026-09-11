@@ -73,6 +73,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/react-native-actionsheet',
   '@metamask/react-native-button',
   '@metamask/smart-transactions-controller',
+  '@metamask/transaction-pay-controller',
   '@tommasini/react-native-scrollable-tab-view',
   '@veriff/react-native-sdk',
   '@sumsub/react-native-mobilesdk-module',
