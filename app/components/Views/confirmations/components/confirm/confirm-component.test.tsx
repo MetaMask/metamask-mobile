@@ -16,12 +16,16 @@ import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import { TraceName, endTrace, trace } from '../../../../../util/trace';
 import { Confirm, ConfirmationLoader } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
+import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 
 jest.mock('../../hooks/useConfirmReject');
+// Confirm renders the footer, which still depends on the full useConfirmActions
+// chain (useTransactionConfirm -> useFiatConfirm -> ramps -> react-query).
+jest.mock('../../hooks/useConfirmActions');
 
 jest.mock('../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../util/trace'),
@@ -161,6 +165,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
 }));
 
 describe('Confirm', () => {
+  const useConfirmActionsMock = jest.mocked(useConfirmActions);
   const useConfirmRejectMock = jest.mocked(useConfirmReject);
   const mockOnReject = jest.fn();
   const useParamsMock = jest.mocked(useParams);
@@ -168,6 +173,10 @@ describe('Confirm', () => {
   beforeEach(() => {
     useConfirmRejectMock.mockReturnValue({
       onReject: mockOnReject,
+    });
+    useConfirmActionsMock.mockReturnValue({
+      onReject: jest.fn(),
+      onConfirm: jest.fn(),
     });
 
     jest.mocked(useConfirmationAlerts).mockReturnValue([]);
