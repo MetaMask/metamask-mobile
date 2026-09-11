@@ -1,7 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { AccountGroupId } from '@metamask/account-api';
-import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import {
+  AccountGroupType,
+  AccountWalletType,
+  AccountGroupId,
+} from '@metamask/account-api';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider, {
