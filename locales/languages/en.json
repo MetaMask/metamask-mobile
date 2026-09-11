@@ -10536,7 +10536,7 @@
       "auth_fail_title": "Authentication failed",
       "auth_fail_description": "Unable to authenticate with the rewards program. Please check your connection and try again.",
       "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Please check your connection and try again.",
+      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.",
       "intro_confirm_geo_loading": "Checking region...",
       "step_confirm": "Next",
       "step_finish": "Let's go",
@@ -10609,12 +10609,12 @@
         "cancel": "Cancel",
         "confirm": "Confirm",
         "error_title": "Something went wrong",
-        "error_message": "Failed to opt out of Rewards. Please try again.",
+        "error_message": "Failed to opt out of Rewards. Try again.",
         "processing": "Processing..."
       },
       "request_received": {
         "title": "Request received",
-        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, please contact support through the app."
+        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, contact support through the app."
       }
     },
     "toast_dismiss": "Dismiss",
@@ -10631,8 +10631,8 @@
       },
       "account_not_supported": {
         "title": "Account not supported",
-        "description_hardware": "Hardware wallet accounts are not yet eligible. Please switch to a different account to proceed.",
-        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Please switch to a different account to proceed.",
+        "description_hardware": "Hardware wallet accounts are not yet eligible. Switch to a different account to proceed.",
+        "description_general": "Currently only non-hardware internal Ethereum and Solana accounts are eligible. Switch to a different account to proceed.",
         "confirm": "Go back"
       }
     },
@@ -10714,7 +10714,7 @@
       "arriving_soon": "Arriving soon",
       "check_back_soon": "Check back soon to claim",
       "redeem_failure_title": "Redeem failed",
-      "redeem_failure_description": "Please try again later.",
+      "redeem_failure_description": "Try again later.",
       "reward_details": "Reward Details",
       "select_account_description": "Select the account where you'd like this reward sent."
     },
@@ -10743,7 +10743,7 @@
       "geo_locked_cta": "Check eligibility",
       "geo_loading": "Checking region...",
       "remind_me_success_toast": "We'll let you know when this campaign starts.",
-      "remind_me_save_error": "Could not save your reminder. Please try again.",
+      "remind_me_save_error": "Could not save your reminder. Try again.",
       "view_details": "View details",
       "view_details_accessibility": "View details for {{campaignName}}"
     },
@@ -10756,7 +10756,7 @@
       "opt_in": "Opt in",
       "opting_in": "Opting in...",
       "opted_in": "You're opted in to this campaign",
-      "opt_in_error": "Failed to opt in. Please try again.",
+      "opt_in_error": "Failed to opt in. Try again.",
       "join_campaign": "Join the campaign",
       "competition_closed_title": "Competition no longer open",
       "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
@@ -10766,9 +10766,9 @@
       "open_position": "Trade now",
       "how_it_works": "How it works",
       "error_title": "Unable to load this campaign",
-      "error_description": "We couldn't load this campaign. Please try again.",
+      "error_description": "We couldn't load this campaign. Try again.",
       "stats_error_title": "Unable to load stats",
-      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "retry": "Retry",
       "last_checked_at": "Last checked at",
       "ondo": {
@@ -10779,7 +10779,7 @@
     "campaign_ended_stats": {
       "title": "Stats",
       "error_title": "Unable to load all stats",
-      "error_description": "We had a problem loading your stats. Please try again later.",
+      "error_description": "We had a problem loading your stats. Try again later.",
       "retry": "Retry",
       "total_participants": "Total participants",
       "total_volume": "Total volume",
@@ -10795,7 +10795,7 @@
       "max_tier_subtext": "{{maxThreshold}}+ TVL — all milestones reached",
       "max_badge": "Max",
       "error_title": "Failed to load prize pool",
-      "error_description": "There was an error loading the prize pool. Please try again.",
+      "error_description": "There was an error loading the prize pool. Try again.",
       "retry": "Retry"
     },
     "ondo_campaign_portfolio": {
@@ -10803,7 +10803,7 @@
       "position_unrealized_pnl": "P&L",
       "updated_at": "Last updated: {{time}}",
       "error_loading": "Failed to load positions.",
-      "error_loading_description": "There was an error loading your positions. Please try again.",
+      "error_loading_description": "There was an error loading your positions. Try again.",
       "retry": "Retry",
       "loading": "Loading positions...",
       "empty": "You don't have any positions",
@@ -10828,7 +10828,7 @@
       "total_participants": "{{count}} participants",
       "updated_at": "Last updated: {{time}}",
       "error_loading": "Failed to load leaderboard",
-      "error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "error_loading_position": "Failed to load your position",
       "retry": "Retry",
       "no_data": "No leaderboard data available",
@@ -10846,7 +10846,7 @@
     "ondo_campaign_stats": {
       "title": "Stats",
       "stats_error_title": "Unable to load all stats",
-      "stats_error_description": "We had a problem loading your stats. Please try again later.",
+      "stats_error_description": "We had a problem loading your stats. Try again later.",
       "retry": "Retry",
       "label_return": "Return",
       "label_market_value": "Market value",
@@ -10870,7 +10870,7 @@
       "type_rebalance": "Rebalance",
       "type_external_outflow": "Outflow",
       "error_title": "Failed to load activity",
-      "error_description": "Something went wrong while loading the activity. Please try again.",
+      "error_description": "Something went wrong while loading the activity. Try again.",
       "retry_button": "Retry",
       "empty_title": "No activity yet",
       "empty_description": "Your campaign activity will appear here once you have transactions."
@@ -10903,7 +10903,7 @@
       "leaderboard_total_participants": "{{count}} participants",
       "last_updated": "Last updated: {{time}}",
       "leaderboard_error_loading": "Failed to load leaderboard",
-      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "leaderboard_powered_by_prefix": "Powered by ",
       "leaderboard_hypertracker_brand": "HyperTracker",
@@ -10913,7 +10913,7 @@
       "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
-      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "stats_retry": "Retry"
     },
     "predict_the_pitch_campaign": {
@@ -10932,7 +10932,7 @@
       "positions_open_badge": "{{count}} open",
       "positions_closed_badge": "{{count}} closed",
       "positions_error": "Failed to load predictions",
-      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_error_description": "Something went wrong while loading your predictions. Try again.",
       "positions_retry": "Retry",
       "positions_last_updated": "Last updated: {{time}}",
       "positions_empty": "No predictions yet",
@@ -10941,10 +10941,10 @@
       "leaderboard_total_participants": "{{count}} participants",
       "last_updated": "Last updated: {{time}}",
       "leaderboard_error_loading": "Failed to load leaderboard",
-      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "leaderboard_error_loading_description": "Something went wrong while loading the leaderboard. Try again.",
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "stats_error_title": "Unable to load stats",
-      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "stats_error_description": "We had a problem loading your stats. Try again.",
       "label_markets_traded": "Markets traded",
       "stats_retry": "Retry",
       "performance_title": "Performance",
@@ -10974,7 +10974,7 @@
       "previous_title": "Previous",
       "empty_state": "No campaigns available",
       "error_title": "Unable to load campaigns",
-      "error_description": "We couldn't load any campaigns. Please try again.",
+      "error_description": "We couldn't load any campaigns. Try again.",
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
     },
@@ -11123,7 +11123,7 @@
     },
     "show_error": {
       "title": "Connection error",
-      "description": "Failed to establish connection. Please try again."
+      "description": "Failed to establish connection. Try again."
     },
     "show_rejection": {
       "title": "Approval rejected",
@@ -11316,8 +11316,8 @@
     },
     "errors": {
       "device_locked": "Unlock it and try again to continue",
-      "app_not_open": "Please open the Ethereum app on your device",
-      "device_disconnected": "Your {{device}} was disconnected. Please reconnect and try again",
+      "app_not_open": "Open the Ethereum app on your device",
+      "device_disconnected": "Your {{device}} was disconnected. Reconnect and try again",
       "device_not_found": "Could not find your {{device}}. Please make sure it's connected",
       "device_not_ready": "Your device is not ready. Please check it and try again",
       "blind_signing": "Blind signing is disabled. Please enable it in your device settings",
