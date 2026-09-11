@@ -5,6 +5,8 @@ import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
 import { mockTheme } from '../../../util/theme';
+import AddBookmark from '../../Views/AddBookmark';
+import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 
@@ -377,7 +379,7 @@ describe('MainNavigator', () => {
     // Then it should contain the SampleFeature screen with correct configuration
     interface ScreenChild {
       name: string;
-      component: { name: string };
+      component: React.ComponentType;
     }
     const screenProps: ScreenChild[] = container.root.children
       .filter(
@@ -397,7 +399,7 @@ describe('MainNavigator', () => {
     );
 
     expect(sampleFeatureScreen).toBeDefined();
-    expect(sampleFeatureScreen?.component.name).toBe('SampleFeatureFlow');
+    expect(sampleFeatureScreen?.component).toBe(SampleFeature);
   });
 
   it('includes FeatureFlagOverride screen when METAMASK_ENVIRONMENT is not production', () => {
@@ -1479,12 +1481,11 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders AddBookmarkView navigator', () => {
+      it('points the AddBookmarkView route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'AddBookmarkView');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'AddBookmarkView')).toBe(AddBookmark);
       });
 
       it('renders OfflineModeView navigator', () => {

@@ -922,12 +922,6 @@ const Webview = () => (
   </NativeStack.Navigator>
 );
 
-const AddBookmarkView = () => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen name="AddBookmark" component={AddBookmark} />
-  </NativeStack.Navigator>
-);
-
 const OfflineModeView = (props) => (
   <NativeStack.Navigator>
     <NativeStack.Screen
@@ -995,17 +989,6 @@ const SetPasswordFlow = () => (
     <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
   </NativeStack.Navigator>
 );
-
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-const SampleFeatureFlow = () => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name={Routes.SAMPLE_FEATURE}
-      component={SampleFeature}
-    />
-  </NativeStack.Navigator>
-);
-///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
   const dispatch = useDispatch();
@@ -1184,7 +1167,7 @@ const MainNavigator = () => {
           ...slideFromRightNativeOptions,
         }}
       />
-      <NativeStack.Screen name="AddBookmarkView" component={AddBookmarkView} />
+      <NativeStack.Screen name="AddBookmarkView" component={AddBookmark} />
       <NativeStack.Screen name="OfflineModeView" component={OfflineModeView} />
       <NativeStack.Screen
         name={Routes.NOTIFICATIONS.VIEW}
@@ -1559,7 +1542,7 @@ const MainNavigator = () => {
       }
       <NativeStack.Screen
         name={Routes.SAMPLE_FEATURE}
-        component={SampleFeatureFlow}
+        component={SampleFeature}
       />
       {
         ///: END:ONLY_INCLUDE_IF

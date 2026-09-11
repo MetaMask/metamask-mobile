@@ -3083,17 +3083,28 @@ describe('MoneyHomeView', () => {
       reset: jest.fn(),
     } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>;
 
-    // EUR/ETH = 900, USD/ETH = 1000 -> fiat->USD factor is 1000/900 = 10/9.
+    // EUR/ETH = 900, USD/ETH = 1000 -> conversionRate/usdConversionRate
+    // are derived by the compat selector from AssetsController's native
+    // ETH price entry (denominated in the selected currency) + usdPrice.
     const eurCurrencyRatesState = {
       engine: {
         backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: 'eur',
-            currencyRates: {
-              ETH: {
-                conversionDate: 0,
-                conversionRate: 900,
-                usdConversionRate: 1000,
+          AssetsController: {
+            selectedCurrency: 'eur' as const,
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native' as const,
+                symbol: 'ETH',
+                name: 'Ether',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible' as const,
+                price: 900,
+                usdPrice: 1000,
+                lastUpdated: 0,
               },
             },
           },
