@@ -1,26 +1,39 @@
 diff --git a/dist/strategy/relay/relay-quotes.cjs b/dist/strategy/relay/relay-quotes.cjs
 --- a/dist/strategy/relay/relay-quotes.cjs
 +++ b/dist/strategy/relay/relay-quotes.cjs
-@@ -196,7 +196,8 @@
+@@ -196,7 +196,10 @@
          }
          const hasTransactions = Boolean(body.txs?.length);
          const requiresExactOutput = hasTransactions ||
 -            transaction.type === transaction_controller_1.TransactionType.perpsDepositAndOrder;
-+            transaction.type === transaction_controller_1.TransactionType.perpsDepositAndOrder ||
-+            transaction.type === transaction_controller_1.TransactionType.predictDepositAndOrder;
++            (0, transaction_controller_1.hasTransactionType)(transaction, [
++                transaction_controller_1.TransactionType.perpsDepositAndOrder,
++                transaction_controller_1.TransactionType.predictDepositAndOrder,
++            ]);
          const finalBody = {
              ...body,
              amount: body.amount ??
 diff --git a/dist/strategy/relay/relay-quotes.mjs b/dist/strategy/relay/relay-quotes.mjs
 --- a/dist/strategy/relay/relay-quotes.mjs
 +++ b/dist/strategy/relay/relay-quotes.mjs
-@@ -193,7 +193,8 @@
+@@ -1,7 +1,7 @@
+ /* eslint-disable require-atomic-updates */
+ import { Interface } from "@ethersproject/abi";
+ import { toHex } from "@metamask/controller-utils";
+-import { TransactionType } from "@metamask/transaction-controller";
++import { hasTransactionType, TransactionType } from "@metamask/transaction-controller";
+ import { createModuleLogger } from "@metamask/utils";
+ import { BigNumber } from "bignumber.js";
+ import { ARBITRUM_USDC_ADDRESS, CHAIN_ID_ARBITRUM, CHAIN_ID_HYPERCORE, CHAIN_ID_POLYGON, HYPERCORE_USDC_ADDRESS, HYPERCORE_USDC_DECIMALS, NATIVE_TOKEN_ADDRESS, PERPS_DEPOSIT_TYPES, USDC_DECIMALS, PaymentOverride } from "../../constants.mjs";
+@@ -192,7 +192,10 @@
          }
          const hasTransactions = Boolean(body.txs?.length);
          const requiresExactOutput = hasTransactions ||
 -            transaction.type === TransactionType.perpsDepositAndOrder;
-+            transaction.type === TransactionType.perpsDepositAndOrder ||
-+            transaction.type === TransactionType.predictDepositAndOrder;
++            hasTransactionType(transaction, [
++                TransactionType.perpsDepositAndOrder,
++                TransactionType.predictDepositAndOrder,
++            ]);
          const finalBody = {
              ...body,
              amount: body.amount ??
