@@ -10166,7 +10166,7 @@
       "withdraw": "Move funds",
       "withdraw_to_money_account": "Move to Money account",
       "withdraw_unavailable": "Redemption unavailable",
-      "withdrawal_success": "Redemption completed successfully",
+      "withdrawal_success": "Redemption completed",
       "withdrawal_failed": "Redemption failed. Please try again.",
       "loading_error": "Failed to load credit. Please try again.",
       "funding_required": {
@@ -10220,7 +10220,7 @@
       "enabled": "Enabled",
       "limited": "Limited",
       "not_enabled": "Not enabled",
-      "update_success": "Spend priority updated successfully",
+      "update_success": "Spend priority updated",
       "update_error": "Failed to update spend priority"
     },
     "card_authentication": {
@@ -10565,7 +10565,7 @@
       "no_linked_accounts": "No accounts opted in",
       "all_accounts_linked_title": "All accounts opted in",
       "all_accounts_linked_description": "You have added all your accounts to Rewards.",
-      "link_account_success_title": "{{accountName}} successfully added",
+      "link_account_success_title": "{{accountName}} added",
       "link_account_error_title": "Failed to add account",
       "link_account_button": "Add",
       "link_account_failed_error": "Failed to add account",
@@ -10661,7 +10661,7 @@
       "untracked": "Not enrolled",
       "unsupported": "Not supported",
       "tracked_count": "{{optedIn}}/{{total}} enrolled",
-      "link_account_success": "{{accountName}} added successfully",
+      "link_account_success": "{{accountName}} added",
       "link_account_error": "Failed to add one or more addresses for {{accountName}}",
       "link_account_address_error": "Failed to add {{address}}"
     },
@@ -11134,7 +11134,7 @@
       "description": "Return to the app to continue."
     },
     "show_cli_link_success": {
-      "title": "Agent wallet successfully linked",
+      "title": "Agent wallet linked",
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
@@ -11584,7 +11584,7 @@
       "cancel": "Cancel",
       "success": {
         "title": "Plan canceled",
-        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_prefix": "Your Pro plan was canceled. It won't renew, and you'll keep all your benefits until ",
         "description_suffix": ".",
         "done": "Done"
       }
