@@ -516,9 +516,9 @@ jest.mock(
 // `payToken.balanceUsd` controller snapshot.
 let mockPayTokenAccountBalanceUsd = '0';
 jest.mock(
-  '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance',
+  '../../../../Views/confirmations/hooks/pay/usePayTokenOrMoneyAccountBalance',
   () => ({
-    usePayTokenAccountBalance: () => ({
+    usePayTokenOrMoneyAccountBalance: () => ({
       balanceUsd: mockPayTokenAccountBalanceUsd,
       balanceRaw: '0',
     }),

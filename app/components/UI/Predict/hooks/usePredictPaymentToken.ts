@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { AssetType } from '../../../Views/confirmations/types/token';
+import { useIsMoneyAccountPaymentOverride } from '../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 import { selectPredictSelectedPaymentToken } from '../selectors/predictController';
 
 export type PredictPaymentTokenInput =
@@ -22,7 +23,9 @@ export interface UsePredictPaymentTokenResult {
 
 export function usePredictPaymentToken(): UsePredictPaymentTokenResult {
   const selectedPaymentToken = useSelector(selectPredictSelectedPaymentToken);
-  const isPredictBalanceSelected = selectedPaymentToken === null;
+  const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
+  const isPredictBalanceSelected =
+    selectedPaymentToken === null && !isMoneyAccountSelected;
 
   const { PredictController } = Engine.context;
 

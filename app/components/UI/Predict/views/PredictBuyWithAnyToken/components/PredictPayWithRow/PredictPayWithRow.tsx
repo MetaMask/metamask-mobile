@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import {
   Box,
@@ -16,6 +17,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -23,6 +25,9 @@ import Icon, {
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import MoneyIcon from '../../../../../../../images/money.png';
+import { RootState } from '../../../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../../../selectors/transactionPayController';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import {
@@ -36,6 +41,10 @@ import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
 
 type PredictPayWithRowVariant = 'pill' | 'row';
+
+const styles = StyleSheet.create({
+  moneyIcon: { width: 24, height: 24 },
+});
 
 interface PredictPayWithRowProps {
   disabled?: boolean;
@@ -67,7 +76,17 @@ export function PredictPayWithRow({
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 
-  const showPredictBalance = isPredictBalanceSelected || !payToken;
+  // Paying from the Money Account repoints the pay token to mUSD on Monad, so
+  // the override is the only signal that distinguishes it from the user having
+  // picked mUSD directly.
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
+
+  const showPredictBalance =
+    !isMoneyAccountSelected && (isPredictBalanceSelected || !payToken);
 
   const handlePress = useCallback(() => {
     if (!canEdit) return;
@@ -76,9 +95,11 @@ export function PredictPayWithRow({
   }, [canEdit, navigation, onPaymentSelectorOpen]);
 
   const label = strings('confirm.label.pay_with');
-  const displaySymbol = showPredictBalance
-    ? 'Predict balance'
-    : (selectedPaymentToken?.symbol ?? payToken?.symbol ?? '');
+  const displaySymbol = isMoneyAccountSelected
+    ? strings('confirm.pay_with_bottom_sheet.money_account')
+    : showPredictBalance
+      ? 'Predict balance'
+      : (selectedPaymentToken?.symbol ?? payToken?.symbol ?? '');
   const tokenIconAddress = showPredictBalance
     ? POLYGON_PUSD.address
     : (payToken?.address as Hex | undefined);
@@ -107,12 +128,17 @@ export function PredictPayWithRow({
             alignItems={BoxAlignItems.Center}
             gap={2}
           >
-            {tokenIconAddress && tokenIconChainId && (
-              <TokenIcon
-                address={tokenIconAddress}
-                chainId={tokenIconChainId}
-                variant={TokenIconVariant.Row}
-              />
+            {isMoneyAccountSelected ? (
+              <Image source={MoneyIcon} style={styles.moneyIcon} />
+            ) : (
+              tokenIconAddress &&
+              tokenIconChainId && (
+                <TokenIcon
+                  address={tokenIconAddress}
+                  chainId={tokenIconChainId}
+                  variant={TokenIconVariant.Row}
+                />
+              )
             )}
             <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
               {displaySymbol}
@@ -152,8 +178,16 @@ export function PredictPayWithRow({
           twClassName={`rounded-full py-2 pl-[9px] pr-[16px] mt-2 ${!canEdit ? '' : 'bg-muted'} mx-auto`}
           gap={3}
         >
-          {tokenIconAddress && tokenIconChainId && (
-            <TokenIcon address={tokenIconAddress} chainId={tokenIconChainId} />
+          {isMoneyAccountSelected ? (
+            <Image source={MoneyIcon} style={styles.moneyIcon} />
+          ) : (
+            tokenIconAddress &&
+            tokenIconChainId && (
+              <TokenIcon
+                address={tokenIconAddress}
+                chainId={tokenIconChainId}
+              />
+            )
           )}
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {`${label} ${displaySymbol}`}
