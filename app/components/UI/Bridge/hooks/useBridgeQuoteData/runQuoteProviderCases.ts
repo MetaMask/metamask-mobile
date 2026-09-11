@@ -13,7 +13,7 @@ import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBri
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
 import { FeatureId } from '@metamask/bridge-controller';
 import { useBridgeSession } from '../useBridgeSession';
-import type { buildGenericQuoteRequest } from '../useSwapQuotes/utils';
+import type { buildGenericQuoteRequest } from '../../providers/SwapQuotesProvider/utils';
 import { BigNumber } from 'ethers';
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
