@@ -1,5 +1,5 @@
 diff --git a/lib/module/fetch.js b/lib/module/fetch.js
-index 0d91c71368388fa1eed6c1b97993539657ac086c..9571df2b1a277327b1a07b491e2c218e99075fb3 100644
+index 0d91c71..a41b0b3 100644
 --- a/lib/module/fetch.js
 +++ b/lib/module/fetch.js
 @@ -38,7 +38,7 @@ function headersToPairs(headers) {
@@ -11,8 +11,42 @@ index 0d91c71368388fa1eed6c1b97993539657ac086c..9571df2b1a277327b1a07b491e2c218e
      headers.forEach((v, k) => pairs.push({
        key: k,
        value: v
+@@ -491,22 +491,20 @@ function base64ToBytes(b64) {
+   return out;
+   /* eslint-enable no-bitwise */
+ }
+-// Cached: our nitro-text-decoder if the app bundles it (aliased require keeps it optional, not a dep), else a global TextDecoder.
++// Cached: the global TextDecoder (installed by the app, e.g. via Expo's winter
++// runtime) or null when unavailable.
++//
++// PATCHED (MetaMask): upstream resolved an optional 'react-native-nitro-text-decoder'
++// module here through an aliased require ("dynamicRequire") before falling back to
++// globalThis.TextDecoder. That pattern is fatal under Metro production bundles:
++// the aliased require is invisible to Metro's dependency collector, so the module
++// is never bundled and the runtime string lookup throws "Requiring unknown module".
++// Worse, Metro's guardedLoadModule intercepts that throw and routes it to
++// ErrorUtils.reportFatalError instead of rethrowing, so the surrounding try/catch
++// never fires and the app crashes. Use the global TextDecoder directly.
+ let _decoder;
+ function resolveTextDecoder() {
+   if (_decoder !== undefined) return _decoder;
+-  try {
+-    const dynamicRequire = require;
+-    const mod = dynamicRequire('react-native-nitro-text-decoder');
+-    if (mod && typeof mod.TextDecoder === 'function') {
+-      _decoder = new mod.TextDecoder('utf-8', {
+-        fatal: true
+-      });
+-      return _decoder;
+-    }
+-  } catch {
+-    // optional, not bundled
+-  }
+   const GlobalTextDecoder = globalThis.TextDecoder;
+   if (typeof GlobalTextDecoder === 'function') {
+     _decoder = new GlobalTextDecoder('utf-8', {
 diff --git a/src/fetch.ts b/src/fetch.ts
-index e61e64b562f260be7f51cb7f90badf538ccbab2d..f259526fd8e6ed47a449fcca4376024b7dcadcac 100644
+index e61e64b..808cb67 100644
 --- a/src/fetch.ts
 +++ b/src/fetch.ts
 @@ -47,7 +47,7 @@ function headersToPairs(headers?: HeadersInit): NitroHeader[] | undefined {
@@ -24,3 +58,37 @@ index e61e64b562f260be7f51cb7f90badf538ccbab2d..f259526fd8e6ed47a449fcca4376024b
      headers.forEach((v, k) => pairs.push({ key: k, value: v }));
      return pairs;
    }
+@@ -532,22 +532,20 @@ type TextDecoderCtor = new (
+   options?: { fatal?: boolean }
+ ) => MinimalTextDecoder;
+ 
+-// Cached: our nitro-text-decoder if the app bundles it (aliased require keeps it optional, not a dep), else a global TextDecoder.
++// Cached: the global TextDecoder (installed by the app, e.g. via Expo's winter
++// runtime) or null when unavailable.
++//
++// PATCHED (MetaMask): upstream resolved an optional 'react-native-nitro-text-decoder'
++// module here through an aliased require ("dynamicRequire") before falling back to
++// globalThis.TextDecoder. That pattern is fatal under Metro production bundles:
++// the aliased require is invisible to Metro's dependency collector, so the module
++// is never bundled and the runtime string lookup throws "Requiring unknown module".
++// Worse, Metro's guardedLoadModule intercepts that throw and routes it to
++// ErrorUtils.reportFatalError instead of rethrowing, so the surrounding try/catch
++// never fires and the app crashes. Use the global TextDecoder directly.
+ let _decoder: MinimalTextDecoder | null | undefined;
+ function resolveTextDecoder(): MinimalTextDecoder | null {
+   if (_decoder !== undefined) return _decoder;
+-  try {
+-    const dynamicRequire = require;
+-    const mod = dynamicRequire('react-native-nitro-text-decoder') as {
+-      TextDecoder?: TextDecoderCtor;
+-    };
+-    if (mod && typeof mod.TextDecoder === 'function') {
+-      _decoder = new mod.TextDecoder('utf-8', { fatal: true });
+-      return _decoder;
+-    }
+-  } catch {
+-    // optional, not bundled
+-  }
+   const GlobalTextDecoder = (globalThis as { TextDecoder?: TextDecoderCtor })
+     .TextDecoder;
+   if (typeof GlobalTextDecoder === 'function') {
