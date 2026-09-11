@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { Linking, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import Logger from '../../../../../util/Logger';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -29,19 +28,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   IDOS_PRIVACY_POLICY_URL,
   IDOS_TERMS_URL,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
-  MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
   SUMSUB_PRIVACY_POLICY_URL,
   SUMSUB_TERMS_URL,
 } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
-import { launchSumSubSdk } from './launchSumSubSdk';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -144,19 +143,17 @@ const VbaVerifyIdentity = () => {
   const handleContinue = useCallback(async () => {
     setIsLaunchingSumSub(true);
     try {
-      const result = await launchSumSubSdk({
-        accessToken: MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-        onTokenExpired: async () => MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-      });
-      Logger.log('[VBA KYC] Sumsub SDK closed', result);
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'vba-kyc', provider: 'sumsub' },
-      });
+      await Engine.context.KycController.startSumSub();
+    } catch {
+      // Core records the error and the stage router presents the retry state.
     } finally {
       setIsLaunchingSumSub(false);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.RAMP.VBA_ONBOARDING }],
+      });
     }
-  }, []);
+  }, [navigation]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {
