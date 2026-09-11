@@ -13,6 +13,7 @@ const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
 interface MockMarket {
   isHip3: boolean;
   marketType?: string;
+  tags?: string[];
 }
 
 function mockMarkets(markets: MockMarket[]) {
@@ -109,6 +110,7 @@ describe('usePerpsCategories', () => {
         { isHip3: true, marketType: MarketCategory.PreIpo },
         { isHip3: true, marketType: MarketCategory.Stock },
         { isHip3: false },
+        { isHip3: false, tags: ['memecoin'] },
       ]);
 
       const { result } = renderHook(() => usePerpsCategories());
@@ -116,6 +118,7 @@ describe('usePerpsCategories', () => {
       const ids = result.current.map((c) => c.id);
       expect(ids).toEqual([
         'crypto',
+        'memecoin',
         'stock',
         'pre-ipo',
         'forex',
@@ -132,5 +135,50 @@ describe('usePerpsCategories', () => {
     const { result } = renderHook(() => usePerpsCategories());
 
     expect(result.current[0].label).toBe(strings('perps.home.tabs.pre_ipo'));
+  });
+
+  describe('memecoin category', () => {
+    it('surfaces the memecoin pill when any non-HIP-3 market carries the memecoin tag', () => {
+      mockMarkets([{ isHip3: false }, { isHip3: false, tags: ['memecoin'] }]);
+
+      const { result } = renderHook(() => usePerpsCategories());
+
+      const ids = result.current.map((c) => c.id);
+      expect(ids).toEqual(['crypto', 'memecoin']);
+    });
+
+    it('deduplicates the memecoin pill across multiple tagged markets', () => {
+      mockMarkets([
+        { isHip3: false, tags: ['memecoin'] },
+        { isHip3: false, tags: ['memecoin', 'top-100'] },
+        { isHip3: false, tags: ['memecoin'] },
+      ]);
+
+      const { result } = renderHook(() => usePerpsCategories());
+
+      const ids = result.current.map((c) => c.id);
+      expect(ids).toEqual(['crypto', 'memecoin']);
+    });
+
+    it('does not surface memecoin when only HIP-3 markets carry the tag', () => {
+      mockMarkets([
+        { isHip3: false },
+        { isHip3: true, marketType: MarketCategory.Stock, tags: ['memecoin'] },
+      ]);
+
+      const { result } = renderHook(() => usePerpsCategories());
+
+      const ids = result.current.map((c) => c.id);
+      expect(ids).toEqual(['crypto', 'stock']);
+    });
+
+    it('does not surface memecoin when the tag is absent', () => {
+      mockMarkets([{ isHip3: false, tags: ['top-100'] }, { isHip3: false }]);
+
+      const { result } = renderHook(() => usePerpsCategories());
+
+      const ids = result.current.map((c) => c.id);
+      expect(ids).toEqual(['crypto']);
+    });
   });
 });

@@ -94,6 +94,25 @@ describe('PerpsProducts', () => {
     expect(toJSON()).toBeNull();
   });
 
+  it('renders the local sentiment-satisfied glyph on the memecoin pill', () => {
+    mockCategories = [
+      { id: 'crypto', label: 'Crypto' },
+      { id: 'memecoin', label: 'Memecoins' },
+    ];
+
+    const { getByTestId } = render(<PerpsProducts />);
+
+    expect(getByTestId('perps-sentiment-satisfied-icon')).toBeTruthy();
+  });
+
+  it('does not render the local glyph when no memecoin category exists', () => {
+    mockCategories = [{ id: 'crypto', label: 'Crypto' }];
+
+    const { queryByTestId } = render(<PerpsProducts />);
+
+    expect(queryByTestId('perps-sentiment-satisfied-icon')).toBeNull();
+  });
+
   it('renders pills for available categories', () => {
     mockCategories = [
       { id: 'crypto', label: 'Crypto' },
