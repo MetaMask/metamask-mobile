@@ -396,6 +396,68 @@ describe('Feature Flag Registry', () => {
         }
       }
     });
+
+    it('registers Assets and leftover catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'ASSETS3831TestFeatureFlagPermissions',
+        'assetsAccountsApiV6',
+        'assetsMemeCoinView',
+        'networkAssetsSnapsMigrationSolana',
+        'networkAssetsSnapsMigrationStellar',
+        'platformTestStructure',
+        'priceAlertsEnabled',
+        'productSafetyScamQuestionnaireEnabled',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+    });
+
+    it('version-gates global watchlist on at 8.9.0 and price alerts on at 8.2.0', () => {
+      expect(
+        getRegistryEntry('assetsGlobalWatchlistV1')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.9.0',
+      });
+      expect(getRegistryEntry('priceAlertsEnabled')?.productionDefault).toEqual(
+        {
+          enabled: true,
+          minimumVersion: '8.2.0',
+        },
+      );
+    });
+
+    it('pins Assets and Pro-subscription A/B flags to control', () => {
+      const abTestFlags = [
+        'assetsASSETS3205AbtestAmbientPriceColor',
+        'assetsASSETS3380AbtestExploreQuickBuy',
+        'subSUB990AbtestProSubscriptionFlow',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        for (const variant of variants) {
+          if (variant.name === 'control') {
+            continue;
+          }
+          expect(variant.scope.value).toBe(0);
+        }
+      }
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
