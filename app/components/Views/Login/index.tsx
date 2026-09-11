@@ -62,6 +62,7 @@ import {
   TraceOperation,
   endTrace,
 } from '../../../util/trace';
+import { endAppStartToUnlockInteractive } from '../../../core/Performance/startupStageSpans';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -612,6 +613,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             >
               <TextField
                 placeholder={strings('login.password_placeholder')}
+                // Fires on the password field's NATIVE layout — the first
+                // moment the user can actually type. A mount or effect fires
+                // before the field accepts input and would measure ~zero.
+                // Guarded internally, so repeated layouts are harmless.
+                onLayout={endAppStartToUnlockInteractive}
                 inputRef={fieldRef}
                 onChangeText={handlePasswordChange}
                 value={password}
