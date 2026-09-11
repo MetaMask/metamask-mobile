@@ -1,22 +1,27 @@
+import { merge } from 'lodash';
+import {
+  ChainId,
+  type DeepPartial,
+  formatChainIdToCaip,
+  getNativeAssetForChainId,
+  type QuoteResponse,
+  toBridgeAssetV2,
+} from '@metamask/bridge-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useHasSufficientGasEvenIfGasIncludedOrSponsored } from './index';
 import { useLatestBalance } from '../useLatestBalance';
-import { useBridgeQuoteData } from '../useBridgeQuoteData';
-import {
-  ChainId,
-  formatChainIdToCaip,
-  getNativeAssetForChainId,
-  toBridgeAssetV2,
-} from '@metamask/bridge-controller';
 import { BigNumber } from 'ethers';
+import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import type { useBridgeQuoteDataContext } from '../useBridgeQuoteData/BridgeQuoteDataContext';
 
-// Mock dependencies
 jest.mock('../useLatestBalance');
 
+const createQuote = (
+  overrides: DeepPartial<QuoteResponse> = {},
+): QuoteResponse => merge({}, mockQuoteWithMetadata, overrides);
+
 describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
-  const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
-    typeof useLatestBalance
-  >;
+  const mockUseLatestBalance = jest.mocked(useLatestBalance);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -32,7 +37,9 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
       expect(result.current).toBe(null);
     });
     it('returns true when user has sufficient gas balance', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote: ReturnType<
+        typeof useBridgeQuoteDataContext
+      >['activeQuote'] = {
         chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
@@ -46,7 +53,9 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      } as unknown as ReturnType<
+        typeof useBridgeQuoteDataContext
+      >['activeQuote'];
 
       // User has 0.01 ETH
       mockUseLatestBalance.mockReturnValue({
@@ -66,7 +75,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
     });
 
     it('returns false when user has insufficient gas balance', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote = createQuote({
         chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
@@ -80,12 +89,11 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      });
 
-      // User has 0.001 ETH
       mockUseLatestBalance.mockReturnValue({
         displayBalance: '0.001',
-        atomicBalance: BigNumber.from('1000000000000000'), // 0.001 ETH in wei
+        atomicBalance: BigNumber.from('1000000000000000'),
       });
 
       const { result } = renderHookWithProvider(
@@ -100,7 +108,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
     });
 
     it('handles scientific notation in total gas fee', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote = createQuote({
         chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
@@ -114,12 +122,11 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      });
 
-      // User has 0.001 ETH (more than enough for the tiny gas fee)
       mockUseLatestBalance.mockReturnValue({
         displayBalance: '0.001',
-        atomicBalance: BigNumber.from('1000000000000000'), // 0.001 ETH in wei
+        atomicBalance: BigNumber.from('1000000000000000'),
       });
 
       const { result } = renderHookWithProvider(
@@ -130,12 +137,11 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
         { state: {} },
       );
 
-      // Should return true since 0.001 ETH > 0.00000009200359292 ETH
       expect(result.current).toBe(true);
     });
 
     it('returns null when gas token balance is not available', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote = createQuote({
         chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
@@ -149,7 +155,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      });
 
       mockUseLatestBalance.mockReturnValue(undefined);
 
@@ -165,7 +171,9 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
     });
 
     it('returns null when gas fee amount is not available', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote: ReturnType<
+        typeof useBridgeQuoteDataContext
+      >['activeQuote'] = {
         chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
@@ -179,7 +187,9 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      } as unknown as ReturnType<
+        typeof useBridgeQuoteDataContext
+      >['activeQuote'];
 
       mockUseLatestBalance.mockReturnValue({
         displayBalance: '0.01',
@@ -198,7 +208,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
     });
 
     it('returns null when gas token balance atomicBalance is not available', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote = createQuote({
         chainId: 'eip155:1',
         quote: {
           gasIncluded: false,
@@ -212,12 +222,12 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      });
 
       mockUseLatestBalance.mockReturnValue({
         displayBalance: '0.01',
         atomicBalance: undefined,
-      } as unknown as ReturnType<typeof useLatestBalance>);
+      } as ReturnType<typeof useLatestBalance>);
 
       const { result } = renderHookWithProvider(
         () =>
@@ -233,7 +243,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
 
   describe('for Solana', () => {
     it('returns true when user has sufficient SOL balance', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote = createQuote({
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         quote: {
           gasIncluded: false,
@@ -249,7 +259,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      });
 
       // User has 0.01 SOL
       mockUseLatestBalance.mockReturnValue({
@@ -269,12 +279,11 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
     });
 
     it('returns false when user has insufficient SOL balance', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote = createQuote({
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         quote: {
           gasIncluded: false,
           gasIncluded7702: false,
-          srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           feeData: {
             network: [
               {
@@ -286,7 +295,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      });
 
       // User has 0.001 SOL
       mockUseLatestBalance.mockReturnValue({
@@ -308,7 +317,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
 
   describe('for Bitcoin', () => {
     it('uses totalNetworkFee to validate BTC gas balance', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote = createQuote({
         chainId: formatChainIdToCaip(ChainId.BTC),
         quote: {
           feeData: {
@@ -320,11 +329,11 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      });
 
       mockUseLatestBalance.mockReturnValue({
         displayBalance: '0.001',
-        atomicBalance: BigNumber.from('100000'), // 0.001 BTC in sats
+        atomicBalance: BigNumber.from('100000'),
       });
 
       const { result } = renderHookWithProvider(
@@ -339,7 +348,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
     });
 
     it('falls back to gasFee.total.amount when totalNetworkFee is unavailable', () => {
-      const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] = {
+      const mockQuote = createQuote({
         chainId: formatChainIdToCaip(ChainId.BTC),
         quote: {
           feeData: {
@@ -351,11 +360,11 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             ],
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+      });
 
       mockUseLatestBalance.mockReturnValue({
         displayBalance: '0.001',
-        atomicBalance: BigNumber.from('100000'), // 0.001 BTC in sats
+        atomicBalance: BigNumber.from('100000'),
       });
 
       const { result } = renderHookWithProvider(
