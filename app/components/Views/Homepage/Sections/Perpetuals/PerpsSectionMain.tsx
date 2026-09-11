@@ -111,6 +111,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       totalSectionsLoaded,
       emptyStateContent = 'tiles',
       emptyStateTitleOverride,
+      isActivePerpsTrader,
     },
     ref,
   ) => {
@@ -371,6 +372,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       itemCount,
       isVisible: isSectionVisible,
       fireImmediateWhenNoView: !pillsEmptyFeedHidden,
+      isActivePerpsTrader,
     });
 
     const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;

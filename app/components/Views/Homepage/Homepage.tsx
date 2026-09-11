@@ -20,6 +20,7 @@ import { SectionRefreshHandle } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { useIsActivePerpsTrader } from '../../UI/Perps/hooks';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
@@ -39,6 +40,9 @@ import {
   HOMEPAGE_EARN_SECTION_AB_KEY,
   HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_EARN_SECTION_VARIANTS,
+  PERPS_SECTION_PRIORITY_AB_KEY,
+  PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
+  PERPS_SECTION_PRIORITY_VARIANTS,
 } from './abTestConfig';
 import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
 
@@ -84,6 +88,17 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const shouldRenderEarnSection =
       isHomepageEarnSectionVisible && earnSectionVariant.showEarnSection;
 
+    const { variant: perpsSectionPriorityVariant } = useABTest(
+      PERPS_SECTION_PRIORITY_AB_KEY,
+      PERPS_SECTION_PRIORITY_VARIANTS,
+      PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
+    );
+    const isActivePerpsTrader = useIsActivePerpsTrader();
+    const showPerpsAboveTokens =
+      isPerpsEnabled &&
+      perpsSectionPriorityVariant.perpsAboveTokensEligible &&
+      isActivePerpsTrader;
+
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();
     const popularNetworksKey = popularNetworks.join(',');
@@ -117,8 +132,16 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const enabledSections = useMemo(
       () =>
         [
-          { name: HomeSectionNames.TOKENS, enabled: true },
-          { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+          // Order must match the JSX below — this drives `sectionIndex` on Home Viewed.
+          ...(showPerpsAboveTokens
+            ? [
+                { name: HomeSectionNames.PERPS, enabled: true },
+                { name: HomeSectionNames.TOKENS, enabled: true },
+              ]
+            : [
+                { name: HomeSectionNames.TOKENS, enabled: true },
+                { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+              ]),
           { name: HomeSectionNames.EARN, enabled: shouldRenderEarnSection },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
           { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
@@ -131,6 +154,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         ].filter((section) => section.enabled),
       [
         isPerpsEnabled,
+        showPerpsAboveTokens,
         shouldRenderEarnSection,
         isPredictEnabled,
         isDeFiEnabled,
@@ -164,6 +188,22 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
+    const tokensSection = (
+      <TokensSection
+        ref={tokensSectionRef}
+        sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
+        totalSectionsLoaded={totalSectionsLoaded}
+      />
+    );
+    const perpsSection = isPerpsEnabled ? (
+      <HomepagePerpsHomeSlot
+        ref={perpsSectionRef}
+        sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+        totalSectionsLoaded={totalSectionsLoaded}
+        isActivePerpsTrader={isActivePerpsTrader}
+      />
+    ) : null;
+
     return (
       <PerpsConnectionProvider isEnabled={isPerpsEnabled} suppressErrorView>
         <PerpsStreamProvider>
@@ -175,17 +215,16 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             {balanceBreakdownSectionProps ? (
               <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
             ) : null}
-            <TokensSection
-              ref={tokensSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-            {isPerpsEnabled && (
-              <HomepagePerpsHomeSlot
-                ref={perpsSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
+            {showPerpsAboveTokens ? (
+              <>
+                {perpsSection}
+                {tokensSection}
+              </>
+            ) : (
+              <>
+                {tokensSection}
+                {perpsSection}
+              </>
             )}
             {shouldRenderEarnSection && (
               <HomepageEarnSection
