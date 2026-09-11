@@ -31,8 +31,9 @@ const toLinks = (
  * screen via {@link Engine.context.KycController.fetchSessionDisclaimers}.
  *
  * Passing `country` loads the pre-session global catalog
- * (`GET /disclaimers?country=`). Vendor T&Cs stay on
- * {@link Engine.context.KycController.loadDisclaimers} (Get Pix Key).
+ * (`GET /disclaimers?country=`). Session-scoped consents are posted later by
+ * {@link Engine.context.KycController.acceptTermsAndStartSession}. Vendor T&Cs
+ * stay on {@link Engine.context.KycController.loadDisclaimers} (Get Pix Key).
  *
  * `disclaimers` is `null` until a load returns a non-empty list. Callers should
  * treat a non-empty `error` as "the user hasn't seen the terms" and keep the
