@@ -4001,6 +4001,20 @@
     "settings": "You can also",
     "settings_link": "manage other default settings."
   },
+  "basic_functionality_migration": {
+    "title": "Your settings have changed",
+    "social_title": "Privacy and product updates",
+    "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
+    "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
+    "social_body_2_middle": " and updated ",
+    "social_body_2_suffix": ".",
+    "blog_post_link": "blog post",
+    "privacy_notice_link": "Privacy Notice",
+    "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
+    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
+    "settings_link": "Settings > Privacy",
+    "accept_and_close": "Accept and close"
+  },
   "onboarding_interest_questionnaire": {
     "title": "How will you use MetaMask?",
     "description": "Select all that apply.",
