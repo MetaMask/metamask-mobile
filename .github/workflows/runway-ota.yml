@@ -1,19 +1,30 @@
 ##############################################################################################
 #
-# Runway OTA RC
+# Runway OTA
 #
-# Triggered from Runway to push an OTA update to the RC channel (iOS + Android) and post a Slack
-# notification (matching the prior Runway RC behaviour on the OTA path).
+# Triggered from Runway to push an OTA update to the RC or production channel (iOS + Android).
+# For RC dispatches, also posts a Slack notification.
 #
 # This workflow does not build binaries and does not bump the build version — the release PR is
 # expected to bump OTA_VERSION (app/constants/ota.ts) before dispatch.
 #
+# NOTE: Runway dispatches this workflow by filename. The Runway config for both the RC and
+# production OTA actions must target runway-ota.yml and pass channel accordingly.
+#
 ##############################################################################################
-name: Runway OTA RC
+name: Runway OTA
+run-name: "Runway OTA ${{ inputs.channel == 'rc' && 'RC' || 'Production' }}"
 
 on:
   workflow_dispatch:
     inputs:
+      channel:
+        description: 'OTA channel: rc or production'
+        required: true
+        type: choice
+        options:
+          - rc
+          - production
       source_branch:
         description: >-
           Optional branch, tag, or SHA for OTA publish.
@@ -22,7 +33,7 @@ on:
         type: string
 
 permissions:
-  actions: read # required by slack-rc-notification.yml
+  actions: read # required by slack-rc-notification.yml (RC channel only)
   contents: read
   pull-requests: read
   id-token: write # required by push-eas-update.yml
@@ -50,21 +61,21 @@ jobs:
           echo "Using PR #${{ needs.resolve-context.outputs.pr_number }}"
 
   push-ota:
-    name: Push OTA update (rc)
+    name: Push OTA update (${{ inputs.channel }})
     needs: [resolve-context, validate-ota-pr]
     uses: ./.github/workflows/push-eas-update.yml
     with:
       pr_number: ${{ needs.resolve-context.outputs.pr_number }}
       base_branch: ${{ needs.resolve-context.outputs.base_ref }}
       message: ${{ needs.resolve-context.outputs.ota_version }}
-      channel: rc
+      channel: ${{ inputs.channel }}
       platform: all
     secrets: inherit
 
   derive-slack-semver:
     name: Derive Slack channel semver
     needs: push-ota
-    if: success()
+    if: ${{ inputs.channel == 'rc' && success() }}
     runs-on: ubuntu-latest
     outputs:
       semver: ${{ steps.derive.outputs.semver }}
@@ -82,7 +93,7 @@ jobs:
   slack-notification:
     name: Slack RC Notification
     needs: [push-ota, derive-slack-semver]
-    if: success()
+    if: ${{ inputs.channel == 'rc' && success() }}
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ inputs.source_branch || github.ref_name }}
