@@ -126,7 +126,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
             products: [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS],
             isTrialRequested,
             recurringInterval: plan.interval,
-            billingCycles: 1,
+            billingCycles: 12,
             chainId: preparedDelegation.metadata.chainIdHex,
             payerAddress,
             tokenSymbol: preparedDelegation.metadata.tokenSymbol,
