@@ -25,7 +25,10 @@ export {
   classifyPooledStakingActivity,
 } from './adapters/staking-activity';
 export { mapPredictActivity } from './adapters/predict-activity';
-export { mapPerpsTransaction } from './adapters/perps-transaction';
+export {
+  getPerpsActivityMappingIds,
+  mapPerpsTransaction,
+} from './adapters/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';
 export { mapRampsOrder } from './adapters/ramps-order';
 export {

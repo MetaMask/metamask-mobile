@@ -1,5 +1,6 @@
 import '../../../../tests/component-view/mocks';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import { Text, TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { renderShortAddress } from '../../../util/address';
@@ -19,10 +20,11 @@ import {
   buildActivityCvPerpsTradeItem,
   initialStateActivityWithPerpsDetails,
 } from '../../../../tests/component-view/presets/activity';
-import { renderPreloadedActivityDetailsView } from '../../../../tests/component-view/renderers/activity';
+import { renderActivityDetailsView } from '../../../../tests/component-view/renderers/activity';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
+import { usePerpsActivityQuery } from './hooks/usePerpsActivityQuery';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import {
   formatPerpsOrderFee,
@@ -31,13 +33,22 @@ import {
   formatPositiveFiat,
   getPerpsPositionSize,
   getPerpsPriceValue,
-  getPerpsTransaction,
 } from './components/ActivityDetailsPerps.utils';
 import {
   ActivityDetailsSelectorsIDs,
   getActivityDetailsStepIconTestId,
   getActivityDetailsStepTestId,
 } from './ActivityDetails.testIds';
+
+// eslint-disable-next-line no-restricted-syntax
+jest.mock('./hooks/usePerpsActivityQuery', () => ({
+  usePerpsActivityQuery: jest.fn(() => ({
+    data: undefined,
+    isFetching: false,
+  })),
+}));
+
+const usePerpsActivityQueryMock = jest.mocked(usePerpsActivityQuery);
 
 const findAmountTextColor = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,18 +89,55 @@ const {
   DO_IT_AGAIN_BUTTON,
 } = ActivityDetailsSelectorsIDs;
 
-const renderPerpsDetails = (item: ActivityListItem) => {
-  const state = initialStateActivityWithPerpsDetails([
-    buildActivityCvPerpsPayTransaction(item.hash),
-  ]).build();
+function getPerpsTransaction(item: ActivityListItem) {
+  return item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
+}
 
-  return renderPreloadedActivityDetailsView(item, { state });
+function seedPerpsHistory(item: ActivityListItem) {
+  const transaction = getPerpsTransaction(item);
+  usePerpsActivityQueryMock.mockReturnValue({
+    transactions: transaction ? [transaction] : [],
+    isFetching: false,
+  } as ReturnType<typeof usePerpsActivityQuery>);
+}
+
+function payStatusForItem(item: ActivityListItem) {
+  if (item.status === 'pending') {
+    return TransactionStatus.submitted;
+  }
+  if (item.status === 'failed') {
+    return TransactionStatus.failed;
+  }
+  return TransactionStatus.confirmed;
+}
+
+const renderPerpsDetails = (item: ActivityListItem) => {
+  seedPerpsHistory(item);
+  const payTransactions =
+    item.type === 'perpsAddFunds'
+      ? [
+          {
+            ...buildActivityCvPerpsPayTransaction(item.hash),
+            status: payStatusForItem(item),
+          },
+        ]
+      : [];
+  const state = initialStateActivityWithPerpsDetails(payTransactions).build();
+
+  return renderActivityDetailsView({
+    state,
+    params: { chainId: item.chainId, txIdentifier: item.hash },
+  });
 };
 
 const renderPerpsTradeDetails = (item: ActivityListItem) => {
+  seedPerpsHistory(item);
   const state = initialStateActivityWithPerpsDetails().build();
 
-  return renderPreloadedActivityDetailsView(item, { state });
+  return renderActivityDetailsView({
+    state,
+    params: { chainId: item.chainId, txIdentifier: item.hash },
+  });
 };
 
 describeForPlatforms('ActivityDetails — Perps funds', () => {
@@ -423,7 +471,7 @@ describeForPlatforms('ActivityDetails — Perps funds', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows confirmed Perps withdrawal details with Ethereum network, completed steps, and Withdraw', async () => {
+  it('shows confirmed Perps withdrawal details with completed steps and Withdraw', async () => {
     const item = buildActivityCvPerpsCompletedWithdrawalItem();
 
     const {
@@ -431,7 +479,6 @@ describeForPlatforms('ActivityDetails — Perps funds', () => {
       getByTestId,
       getByText,
       queryByTestId,
-      queryByText,
       UNSAFE_getAllByType,
     } = renderPerpsDetails(item);
 
@@ -463,10 +510,9 @@ describeForPlatforms('ActivityDetails — Perps funds', () => {
       { exact: false },
     );
 
-    expect(getByTestId(NETWORK_ROW)).toHaveTextContent('Ethereum', {
+    expect(getByTestId(NETWORK_ROW)).toHaveTextContent('Arbitrum One', {
       exact: false,
     });
-    expect(queryByText('Arbitrum')).toBeNull();
 
     expect(queryByTestId(NETWORK_FEE_ROW)).toBeNull();
     expect(queryByTestId(BRIDGE_FEE_ROW)).toBeNull();

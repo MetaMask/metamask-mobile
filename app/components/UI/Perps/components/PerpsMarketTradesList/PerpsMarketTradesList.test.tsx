@@ -396,7 +396,6 @@ describe('PerpsMarketTradesList', () => {
         Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
           txIdentifier: expect.stringContaining('fill-1'),
-          preloadKey: expect.any(String),
         }),
       );
     });
@@ -417,7 +416,6 @@ describe('PerpsMarketTradesList', () => {
         Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
           txIdentifier: expect.stringContaining('fill-2'),
-          preloadKey: expect.any(String),
         }),
       );
     });

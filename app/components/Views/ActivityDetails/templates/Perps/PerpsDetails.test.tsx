@@ -1,17 +1,18 @@
 import React from 'react';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { OrdinaryOrderType } from '@metamask/perps-controller';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import {
   FillType,
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
   type PerpsTransaction,
-} from '../../../UI/Perps/types/transactionHistory';
-import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+} from '../../../../UI/Perps/types/transactionHistory';
+import { usePerpsRecordedOrderFees } from '../../../../UI/Perps/hooks';
+import { usePerpsDetailsItem } from './usePerpsDetailsItem';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import { PerpsDetails } from './PerpsDetails';
 
 const mockPerpsConnectionProvider = jest.fn(
@@ -22,10 +23,10 @@ const mockPerpsStreamProvider = jest.fn(
 );
 
 jest.mock(
-  '../../../../selectors/multichainAccounts/accountTreeController',
+  '../../../../../selectors/multichainAccounts/accountTreeController',
   () => {
     const actual = jest.requireActual(
-      '../../../../selectors/multichainAccounts/accountTreeController',
+      '../../../../../selectors/multichainAccounts/accountTreeController',
     );
     return {
       ...actual,
@@ -37,17 +38,17 @@ jest.mock(
   },
 );
 
-jest.mock('../../../UI/Perps/providers/PerpsConnectionProvider', () => ({
+jest.mock('../../../../UI/Perps/providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
     mockPerpsConnectionProvider({ children }),
 }));
 
-jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
+jest.mock('../../../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     mockPerpsStreamProvider({ children }),
 }));
 
-jest.mock('../../../UI/Perps/hooks', () => ({
+jest.mock('../../../../UI/Perps/hooks', () => ({
   usePerpsBlockExplorerUrl: () => ({
     getExplorerUrl: () => 'https://app.hyperliquid.xyz/explorer/address/0x1',
   }),
@@ -56,7 +57,15 @@ jest.mock('../../../UI/Perps/hooks', () => ({
     isLoading: false,
     hasError: false,
   })),
+  usePerpsConnection: () => ({ isConnected: true }),
+  usePerpsTransactionHistory: () => ({ transactions: [] }),
 }));
+
+jest.mock('./usePerpsDetailsItem', () => ({
+  usePerpsDetailsItem: jest.fn(),
+}));
+
+const usePerpsDetailsItemMock = jest.mocked(usePerpsDetailsItem);
 
 const mockUsePerpsRecordedOrderFees =
   usePerpsRecordedOrderFees as jest.MockedFunction<
@@ -153,13 +162,17 @@ function perpsItem(
   transaction: PerpsTransaction,
   status: ActivityListItem['status'] = 'success',
 ): ActivityListItem {
+  usePerpsDetailsItemMock.mockReturnValue({
+    transaction,
+    item: undefined,
+    isLoading: false,
+  });
   return {
     type,
     chainId: 'eip155:42161',
     status,
     timestamp: transaction.timestamp,
     hash: transaction.id,
-    raw: { type: 'perpsTransaction', data: transaction },
     data: { token: { amount: '1', symbol: 'USD', direction: 'out' } },
   } as ActivityListItem;
 }
@@ -243,6 +256,11 @@ function localPerpsFundsItem(
 describe('PerpsDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    usePerpsDetailsItemMock.mockReturnValue({
+      transaction: undefined,
+      item: undefined,
+      isLoading: false,
+    });
   });
 
   it.each(orderRowCases)('renders the $orderType price rows', (orderCase) => {
@@ -341,34 +359,6 @@ describe('PerpsDetails', () => {
     ).toHaveTextContent('Confirmed');
   });
 
-  it('renders trade details without Perps provider contexts', () => {
-    const transaction: PerpsTransaction = {
-      ...baseTransaction,
-      type: 'trade',
-      fill: {
-        shortTitle: 'Closed short',
-        amount: '-$0.02',
-        amountNumber: -0.02,
-        isPositive: false,
-        size: '0.0001',
-        entryPrice: '92113',
-        points: '0',
-        pnl: '-$0.02',
-        fee: '0.02',
-        action: 'Closed',
-        feeToken: 'USDC',
-        fillType: FillType.Standard,
-      },
-    };
-
-    renderWithProvider(
-      <PerpsDetails item={perpsItem('perpsCloseShort', transaction)} />,
-    );
-
-    expect(mockPerpsConnectionProvider).not.toHaveBeenCalled();
-    expect(mockPerpsStreamProvider).not.toHaveBeenCalled();
-  });
-
   it('renders canceled order rows and try-again CTA', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -398,32 +388,6 @@ describe('PerpsDetails', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('provides connection and stream contexts for order details', () => {
-    const transaction: PerpsTransaction = {
-      ...baseTransaction,
-      id: 'provider-backed-order',
-      type: 'order',
-      category: 'limit_order',
-      title: 'Limit order',
-      order: {
-        orderId: 'provider-backed-order',
-        text: PerpsOrderTransactionStatus.Filled,
-        statusType: PerpsOrderTransactionStatusType.Filled,
-        type: 'limit',
-        size: '10',
-        limitPrice: '98023',
-        filled: '100%',
-      },
-    };
-
-    renderWithProvider(
-      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
-    );
-
-    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
-    expect(mockPerpsStreamProvider).toHaveBeenCalledTimes(1);
   });
 
   it('renders the recorded fee for a partially filled canceled order', () => {

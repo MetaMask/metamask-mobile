@@ -65,10 +65,6 @@ import {
   useBridgeHistoryItemBySrcTxHash,
   findBridgeHistoryItemBySrcTxHash,
 } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
-import {
-  handleUnifiedSwapsTxHistoryItemClick,
-  isBridgeTxHistoryItemBridge,
-} from '../../UI/Bridge/utils/transaction-history';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
@@ -113,11 +109,7 @@ import {
 } from './utils/resolveRampOrderTarget';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
-import {
-  INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
-  PerpsActivitySource,
-  type PerpsActivitySourceState,
-} from './hooks/PerpsActivitySource';
+import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
 import {
   INITIAL_PREDICT_ACTIVITY_SOURCE_STATE,
   PredictActivitySource,
@@ -125,8 +117,6 @@ import {
 } from './hooks/PredictActivitySource';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { predictActivityToItem } from '../../UI/Predict/utils/predictActivityToItem';
 import {
   ActivityTypeFilter,
   activityKindMatchesTypeFilter,
@@ -246,10 +236,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const { goToBuy } = useRampNavigation();
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-    const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
-      INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
-    );
-    const [hasPerpsSourceReported, setHasPerpsSourceReported] = useState(false);
+    const perps = usePerpsActivityItems({
+      enabled:
+        isPerpsEnabled &&
+        (typeFilter === ActivityTypeFilter.Perps ||
+          typeFilter === ActivityTypeFilter.All),
+    });
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const [predictSource, setPredictSource] =
       useState<PredictActivitySourceState>(
@@ -257,14 +249,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       );
     const [hasPredictSourceReported, setHasPredictSourceReported] =
       useState(false);
-
-    const handlePerpsSourceChange = useCallback(
-      (state: PerpsActivitySourceState) => {
-        setHasPerpsSourceReported(true);
-        setPerpsSource(state);
-      },
-      [],
-    );
 
     const handlePredictSourceChange = useCallback(
       (state: PredictActivitySourceState) => {
@@ -538,7 +522,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         localItems,
         confirmedEvmItems,
         nonEvmItems,
-        isPerpsEnabled ? perpsSource.items : [],
+        isPerpsEnabled ? perps.items : [],
         isPredictEnabled ? predictSource.items : [],
         rampActivityItems,
       );
@@ -568,7 +552,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       subFilterKinds,
       networkFilter,
       isPerpsEnabled,
-      perpsSource.items,
+      perps.items,
       isPredictEnabled,
       predictSource.items,
       rampActivityItems,
@@ -722,22 +706,14 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter === ActivityTypeFilter.All ||
       typeFilter === ActivityTypeFilter.Predictions;
 
-    const perpsFilterActive =
-      typeFilter === ActivityTypeFilter.Perps ||
-      typeFilter === ActivityTypeFilter.All;
     const predictFilterActive =
       typeFilter === ActivityTypeFilter.Predictions ||
       typeFilter === ActivityTypeFilter.All;
 
-    const perpsActivatedRef = useRef(false);
     const predictActivatedRef = useRef(false);
-    if (isPerpsEnabled && perpsFilterActive) {
-      perpsActivatedRef.current = true;
-    }
     if (isPredictEnabled && predictFilterActive) {
       predictActivatedRef.current = true;
     }
-    const shouldMountPerpsSource = isPerpsEnabled && perpsActivatedRef.current;
     const shouldMountPredictSource =
       isPredictEnabled && predictActivatedRef.current;
 
@@ -745,7 +721,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       isFetchingNextPage ||
       (isPerpsEnabled &&
         perpsRelevantForFilter &&
-        Boolean(perpsSource.isFetchingMore)) ||
+        Boolean(perps.isFetchingMore)) ||
       (isPredictEnabled &&
         predictRelevantForFilter &&
         Boolean(predictSource.isFetchingMore));
@@ -820,7 +796,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       cancelUnsignedQRTransaction,
     } = useUnifiedTxActions();
 
-    const perpsRefetch = perpsSource.refetch;
+    const perpsRefetch = perps.refetch;
     const predictRefetch = predictSource.refetch;
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
@@ -865,92 +841,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           const detailsRoute = getActivityDetailsRoute(item);
           if (detailsRoute) {
             navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-            return;
           }
-          // Mappers always set hash (txHash || id); keep the pre-native
-          // fallback keyed by order id if a row somehow lacks hash.
-          navigation.navigate(Routes.ACTIVITY_DETAILS, {
-            chainId: item.chainId,
-            txIdentifier: item.hash ?? raw.data.id,
-          });
           return;
         }
 
         const detailsRoute = getActivityDetailsRoute(item);
         if (detailsRoute) {
           navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-          return;
-        }
-
-        // Flag off: non-EVM cross-chain bridges keep the bridge-status screen.
-        if (raw.type === 'keyringTransaction') {
-          const keyringBridgeHistoryItem = getBridgeHistoryItemByHash(
-            item.hash,
-          );
-          if (
-            keyringBridgeHistoryItem &&
-            isBridgeTxHistoryItemBridge(keyringBridgeHistoryItem)
-          ) {
-            handleUnifiedSwapsTxHistoryItemClick({
-              navigation,
-              multiChainTx: raw.data,
-              bridgeTxHistoryItem: keyringBridgeHistoryItem,
-            });
-            return;
-          }
-        }
-
-        // Perps rows route to the dedicated perps detail screens, mirroring the
-        // legacy perps transactions view (trade → position, funding → funding,
-        // order → order). Deposits/withdrawals have no detail screen.
-        if (raw.type === 'perpsTransaction') {
-          const perpsTx = raw.data;
-          if (perpsTx.type === 'trade') {
-            navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-              transaction: perpsTx,
-            });
-          } else if (perpsTx.type === 'funding') {
-            navigation.navigate(Routes.PERPS.FUNDING_TRANSACTION, {
-              transaction: perpsTx,
-            });
-          } else if (perpsTx.type === 'order') {
-            navigation.navigate(Routes.PERPS.ORDER_TRANSACTION, {
-              transaction: perpsTx,
-            });
-          }
-          return;
-        }
-
-        if (raw.type === 'predictActivity') {
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-            screen: Routes.PREDICT.ACTIVITY_DETAIL,
-            params: { activity: predictActivityToItem(raw.data) },
-          });
-          return;
-        }
-
-        if (raw.type === 'localTransaction') {
-          const tx = raw.data.primaryTransaction;
-          if (tx.type === TransactionType.bridge) {
-            const bridgeTxHistoryItem =
-              bridgeHistory[tx.id] ??
-              // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
-              (tx.actionId ? bridgeHistory[tx.actionId] : undefined) ??
-              Object.values(bridgeHistory).find(
-                (itemValue) =>
-                  (itemValue as unknown as { originalTransactionId?: string })
-                    .originalTransactionId === tx.id,
-              );
-
-            handleUnifiedSwapsTxHistoryItemClick({
-              navigation,
-              evmTxMeta: tx,
-              bridgeTxHistoryItem,
-            });
-          }
         }
       },
-      [bridgeHistory, getBridgeHistoryItemByHash, goToBuy, navigation],
+      [goToBuy, navigation],
     );
 
     // Index of the last API-confirmed EVM item — used to trigger pagination.
@@ -1008,10 +908,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (
           isPerpsEnabled &&
           perpsRelevantForFilter &&
-          perpsSource.hasMore &&
-          !perpsSource.isFetchingMore
+          perps.hasMore &&
+          !perps.isFetchingMore
         ) {
-          perpsSource.loadMore?.();
+          perps.loadMore();
         }
         if (
           isPredictEnabled &&
@@ -1031,7 +931,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         groupedData.length,
         isPerpsEnabled,
         perpsRelevantForFilter,
-        perpsSource,
+        perps,
         isPredictEnabled,
         predictRelevantForFilter,
         predictSource,
@@ -1050,9 +950,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       [floatingTabBarInset, tabBarHeight, bottomInset],
     );
 
-    const isPerpsLoading =
-      shouldMountPerpsSource &&
-      (!hasPerpsSourceReported || perpsSource.isLoading);
+    const isPerpsLoading = perps.isLoading;
     const isPredictLoading =
       shouldMountPredictSource &&
       (!hasPredictSourceReported || predictSource.isLoading);
@@ -1125,7 +1023,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       typeFilter === ActivityTypeFilter.Perps &&
       Boolean(subFilterKinds) &&
       isPerpsEnabled &&
-      perpsSource.items.length > 0;
+      perps.items.length > 0;
 
     const renderEmptyList = () => (
       <View style={styles.emptyList}>
@@ -1152,15 +1050,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const haveRelevantSourcesReported = (() => {
       switch (typeFilter) {
         case ActivityTypeFilter.Perps:
-          return !isPerpsEnabled || hasPerpsSourceReported;
+          return true;
         case ActivityTypeFilter.Predictions:
           return !isPredictEnabled || hasPredictSourceReported;
         case undefined:
         case ActivityTypeFilter.All:
-          return (
-            (!isPerpsEnabled || hasPerpsSourceReported) &&
-            (!isPredictEnabled || hasPredictSourceReported)
-          );
+          return !isPredictEnabled || hasPredictSourceReported;
         default:
           return true;
       }
@@ -1256,9 +1151,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               />
             )}
           </PriceChartContext.Consumer>
-          {shouldMountPerpsSource ? (
-            <PerpsActivitySource onChange={handlePerpsSourceChange} />
-          ) : null}
           {shouldMountPredictSource ? (
             <PredictActivitySource onChange={handlePredictSourceChange} />
           ) : null}
