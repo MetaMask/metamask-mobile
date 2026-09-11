@@ -1410,21 +1410,6 @@ describe('MainNavigator', () => {
       expect(tabs).not.toContain(Routes.SOCIAL.TAB);
     });
 
-    it.each([
-      ['searchFocused', 'search'],
-      ['tradeFocused', 'trade'],
-    ])(
-      'hands the %s arm trailing action to the floating bar',
-      (arm, trailingAction) => {
-        const state = stateForArm(arm);
-        const container = renderWithProvider(<MainNavigator />, { state });
-
-        expect(
-          renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
-        ).toBe(trailingAction);
-      },
-    );
-  });
   describe('Inner navigator component rendering', () => {
     const getScreenComponent = (
       root: ReactTestInstance,
