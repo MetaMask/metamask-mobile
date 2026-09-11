@@ -1345,35 +1345,56 @@ describe('MainNavigator', () => {
         )
         .map((child) => child.props.name);
 
-    const homeTabNames = (
+    const renderHomeTabs = (
       container: { root: ReactTestInstance },
       state: ReturnType<typeof stateForArm>,
-    ): string[] => {
+    ): ReactTestInstance => {
       const HomeTabs = container.root.findAll(
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
       )[0]?.props?.component;
-      const { root } = renderWithProvider(<HomeTabs route={{ params: {} }} />, {
-        state,
-      });
-      return root
+      return renderWithProvider(<HomeTabs route={{ params: {} }} />, { state })
+        .root;
+    };
+
+    const homeTabNames = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): string[] =>
+      renderHomeTabs(container, state)
         .findAll(
           (node: ReactTestInstance) => node.type?.toString?.() === 'TabScreen',
         )
         .map((node) => node.props.name);
-    };
 
-    it('pushes Rewards onto the root stack in treatment, where it is no longer a tab', () => {
-      const state = stateForArm('searchFocused');
-      const container = renderWithProvider(<MainNavigator />, { state });
+    const renderedTabBar = (
+      root: ReactTestInstance,
+    ): React.ReactElement<{ trailingAction?: string }> =>
+      root
+        .findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        )[0]
+        ?.props?.tabBar({
+          state: { routes: [{ name: Routes.WALLET.HOME }], index: 0 },
+          descriptors: {},
+          navigation: {},
+        });
 
-      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+    it.each(['searchFocused', 'tradeFocused'])(
+      'pushes Rewards onto the root stack in %s, where it is no longer a tab',
+      (arm) => {
+        const state = stateForArm(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
 
-      const tabs = homeTabNames(container, state);
-      expect(tabs).toContain(Routes.SOCIAL.TAB);
-      expect(tabs).not.toContain(Routes.REWARDS_VIEW);
-      expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
-    });
+        expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+
+        const tabs = homeTabNames(container, state);
+        expect(tabs).toContain(Routes.SOCIAL.TAB);
+        expect(tabs).not.toContain(Routes.REWARDS_VIEW);
+        expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      },
+    );
 
     it('keeps the root-stack fallback in control, where the nearer tab wins', () => {
       const state = stateForArm('control');
@@ -1388,8 +1409,22 @@ describe('MainNavigator', () => {
       expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
       expect(tabs).not.toContain(Routes.SOCIAL.TAB);
     });
-  });
 
+    it.each([
+      ['searchFocused', 'search'],
+      ['tradeFocused', 'trade'],
+    ])(
+      'hands the %s arm trailing action to the floating bar',
+      (arm, trailingAction) => {
+        const state = stateForArm(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        expect(
+          renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+        ).toBe(trailingAction);
+      },
+    );
+  });
   describe('Inner navigator component rendering', () => {
     const getScreenComponent = (
       root: ReactTestInstance,
