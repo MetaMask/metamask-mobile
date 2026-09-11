@@ -2308,14 +2308,14 @@
       "insufficientMargin": "Insufficient margin to execute this trade. Consider adding more funds or reducing your position size.",
       "reduceOnlyViolation": "This order would increase your position. Only reduce-only orders are allowed.",
       "positionWouldFlip": "This order would flip your position direction. Please close your existing position first.",
-      "marginAdjustmentFailed": "Unable to adjust margin. Please try again.",
-      "tpslUpdateFailed": "Unable to update take profit/stop loss. Please try again.",
-      "orderRejected": "Order was rejected. Please check your parameters and try again.",
+      "marginAdjustmentFailed": "Unable to adjust margin. Try again.",
+      "tpslUpdateFailed": "Unable to update take profit/stop loss. Try again.",
+      "orderRejected": "Order was rejected. Check your parameters and try again.",
       "slippageExceeded": "Price moved too much. Try using a limit order or increase slippage tolerance.",
-      "rateLimitExceeded": "Too many requests. Please wait a moment and try again.",
-      "serviceUnavailable": "Service is temporarily unavailable. Please try again later.",
-      "networkErrorSimple": "Network error occurred. Please check your connection and try again.",
-      "insufficientBalance": "Insufficient balance to complete this operation. Please check your available funds.",
+      "rateLimitExceeded": "Too many requests. Wait a moment and try again.",
+      "serviceUnavailable": "Service is temporarily unavailable. Try again later.",
+      "networkErrorSimple": "Network error occurred. Check your connection and try again.",
+      "insufficientBalance": "Insufficient balance to complete this operation. Check your available funds.",
       "connectionFailed": {
         "title": "Couldn't connect to perps",
         "description": "We're working to get it back online soon.",
@@ -2324,12 +2324,12 @@
       },
       "networkError": {
         "title": "Network error",
-        "description": "There was a problem connecting to the network. Please try again.",
+        "description": "There was a problem connecting to the network. Try again.",
         "retry": "Try again"
       },
       "unknown": {
         "title": "Something went wrong",
-        "description": "An unexpected error occurred. Please try again later.",
+        "description": "An unexpected error occurred. Try again later.",
         "retry": "Retry"
       },
       "marginValidation": {
@@ -2377,7 +2377,7 @@
         "position_count_plural": "{{count}} positions"
       },
       "details": {
-        "error_message": "Position data not found. Please go back and try again.",
+        "error_message": "Position data not found. Go back and try again.",
         "section_title": "Position"
       },
       "account": {
@@ -2404,7 +2404,7 @@
     "market": {
       "details": {
         "title": "Market details",
-        "error_message": "Market data not found. Please go back and try again."
+        "error_message": "Market data not found. Go back and try again."
       },
       "statistics": "Overview",
       "stats": "Stats",
@@ -3498,7 +3498,7 @@
       "no_funds_enough_try_token": "Not enough funds. Try a different token.",
       "prediction_minimum_bet": "Minimum amount is {{amount}}",
       "to_win": "To win",
-      "order_failed_generic": "Transaction failed. Please try again.",
+      "order_failed_generic": "Transaction failed. Try again.",
       "market_busy_title": "Market busy",
       "market_busy_body_buy": "The market is moving fast, so we couldn't buy at {{price}}. Try again at the best available price?",
       "market_busy_body_sell": "The market is moving fast, so we couldn't sell at {{price}}. Try again at the best available price?",
@@ -3525,7 +3525,7 @@
       "withdraw_completed_subtitle": "{{amount}} USDC moved to your wallet",
       "withdraw_any_token_completed_subtitle": "{{amount}} {{token}} moved to your wallet",
       "unavailable_title": "Withdrawals temporarily unavailable",
-      "unavailable_description": "For urgent assistance, please contact Customer Service.",
+      "unavailable_description": "For urgent assistance, contact Customer Service.",
       "unavailable_got_it": "Got it",
       "error_title": "Something went wrong",
       "error_description": "Failed to proceed with withdrawal",
@@ -3560,7 +3560,7 @@
       "title": "Couldn't connect to Predictions",
       "description": "Check your connection and try again. If it continues, try a different network.",
       "description_short": "Couldn't connect to Predictions. Check your connection and try again.",
-      "chart_connection_error": "There is an issue connecting. Please try again later.",
+      "chart_connection_error": "There is an issue connecting. Try again later.",
       "retry": "Try again"
     },
     "error_messages": {
@@ -3765,7 +3765,7 @@
     "tokens_empty_description": "Nothing to see yet. Why not browse tokens or make a trade?",
     "discover_nfts": "Import NFTs",
     "no_transactions": "You have no transactions",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Switch network to view transactions",
     "send_button": "Send",
     "deposit_button": "Deposit",
     "copy_address": "Copy",
@@ -3924,7 +3924,7 @@
       "search_link": "Enable it from Settings.",
       "custom_warning_desc": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
       "custom_warning_link": "scams and security risks.",
-      "custom_info_desc": "Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about ",
+      "custom_info_desc": "Token detection is not available on this network yet. Import the token manually and make sure you trust it. Learn about ",
       "custom_info_link": "token scams and security risks.",
       "custom_security_tips": "Security tips"
     }
@@ -4129,7 +4129,7 @@
     "remove_hardware_account": "Remove hardware account",
     "remove_hw_account_alert_description": "Are you sure you want to remove this hardware wallet account? You’ll have to resync your hardware wallet if you want to use this account again with MetaMask Mobile.",
     "remove_snap_account": "Remove snap account",
-    "remove_snap_account_alert_description": "This account will be removed from your wallet. Please make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
+    "remove_snap_account_alert_description": "This account will be removed from your wallet. Make sure you have the original Secret Recovery Phrase or private key for this imported account before continuing. You can import or create accounts again from the account drop-down.",
     "remove_account_alert_remove_btn": "Remove",
     "remove_account_alert_cancel_btn": "Never mind",
     "accounts_title": "Accounts",
@@ -4295,7 +4295,7 @@
     "enable_device_authentication": "Enable Device Authentication",
     "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Choose the amount of time before the application automatically locks.",
-    "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
+    "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
     "autolock_immediately": "Immediately",
     "autolock_never": "Never",
     "autolock_after": "After {{time}} seconds",
@@ -4449,7 +4449,7 @@
     "add_chain_title": "Add a network",
     "add_chain_search_placeholder": "Search by name, chain ID, or currency",
     "add_chain_loading": "Loading networks…",
-    "add_chain_error": "Failed to load networks. Please try again.",
+    "add_chain_error": "Failed to load networks. Try again.",
     "add_chain_retry": "Retry",
     "add_chain_added": "Added",
     "add_chain_or": "or",
@@ -4553,7 +4553,7 @@
     "delete_data_status_title": "Deletion task status",
     "delete_data_status_description": "The current status is",
     "delete_metrics_error_title": "We are unable to delete this data right now.",
-    "delete_metrics_error_description": "This request can't be completed right now due to an analytics system server issue, please try again later.",
+    "delete_metrics_error_description": "This request can't be completed right now due to an analytics system server issue. Try again later.",
     "ok": "OK",
     "clear_sdk_connections_title": "Clear all MetaMask SDK connections",
     "clear_sdk_connections_text": "All connections will be cleared and dapps will need to request connection again",
@@ -4757,7 +4757,7 @@
     "simulation_details_description": "Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. ",
     "simulation_details_learn_more": "Learn more.",
     "aes_crypto_test_form_title": "AES crypto - test form",
-    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support.",
+    "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, report it to MetaMask support.",
     "developer_options": {
       "title": "Developer options",
       "generate_trace_test": "Generate trace test",
@@ -4930,7 +4930,7 @@
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "Account couldn't connect",
-    "info": "Please scan the QR code on the site to reconnect to MetaMask"
+    "info": "Scan the QR code on the site to reconnect to MetaMask"
   },
   "app_information": {
     "title": "Information",
@@ -5044,7 +5044,7 @@
     "set_price_alert": "Set price alert",
     "update_price_alert": "Update price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
-    "save_error": "Failed to save price alert. Please try again.",
+    "save_error": "Failed to save price alert. Try again.",
     "delete_success": "Price alert deleted.",
     "delete_error": "Failed to delete price alert. Try again.",
     "toggle_error": "Failed to update price alert. Try again.",
@@ -10247,7 +10247,7 @@
         "network_error": "Network error. Please check your connection and try again.",
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later.",
+        "configuration_error": "Service is temporarily unavailable. Try again later.",
         "forbidden_error": "This action isn't available for your account."
       }
     },
@@ -10288,7 +10288,7 @@
       "error_card_provider_not_found": "Card provider is not available for your region.",
       "error_card_id_mismatch": "Card verification failed. Please try again.",
       "error_card_not_active": "Your card is not active. Please activate your card first.",
-      "error_network": "Network error occurred. Please check your connection and try again.",
+      "error_network": "Network error occurred. Check your connection and try again.",
       "error_timeout": "The request timed out. Please try again.",
       "error_server": "Server error occurred. Please try again later.",
       "error_unknown": "An unexpected error occurred. Please try again or contact support.",

@@ -1365,7 +1365,7 @@ describe('usePerpsToasts', () => {
           { label: '\n', isBold: false },
           {
             // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: 'Unable to update take profit/stop loss. Try again.',
             isBold: false,
           },
         ]);
@@ -1389,7 +1389,7 @@ describe('usePerpsToasts', () => {
           { label: '\n', isBold: false },
           {
             // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: 'Unable to update take profit/stop loss. Try again.',
             isBold: false,
           },
         ]);
