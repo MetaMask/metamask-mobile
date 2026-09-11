@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { Laminar } from 'react-native-laminar';
@@ -15,9 +16,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 const mockUseReducedMotion = jest.mocked(useReducedMotion);
+const styles = StyleSheet.create({
+  fontSizeLarge: { fontSize: 60 },
+  fontSizeSmall: { fontSize: 32 },
+});
 
 describe('AnimatedNumericText', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockUseReducedMotion.mockReturnValue(false);
   });
 
@@ -71,6 +77,94 @@ describe('AnimatedNumericText', () => {
 
     expect(getByTestId('animated-numeric-text')).toHaveTextContent('5 1INCH');
     expect(UNSAFE_getByType(Laminar).props.text).toBe('5');
+  });
+
+  it('rolls a bulk amount replacement through Laminar', () => {
+    const { getByTestId, rerender, UNSAFE_getByType } = render(
+      <AnimatedNumericText
+        animateFontSize
+        rollDigits={false}
+        style={styles.fontSizeLarge}
+        testID="animated-numeric-text"
+        value="0.00"
+      />,
+    );
+
+    rerender(
+      <AnimatedNumericText
+        animateFontSize
+        rollDigits={false}
+        style={styles.fontSizeSmall}
+        testID="animated-numeric-text"
+        value="1,234,567.89"
+      />,
+    );
+
+    expect(getByTestId('animated-numeric-text')).toHaveTextContent(
+      '1,234,567.89',
+    );
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('1,234,567.89');
+    expect(UNSAFE_getByType(Laminar).props.animationPreset).toBe('smooth');
+  });
+
+  it('keeps the first typed digit on slots instead of Laminar', () => {
+    const { rerender, UNSAFE_queryAllByType } = render(
+      <AnimatedNumericText rollDigits={false} value="0.00" />,
+    );
+
+    rerender(<AnimatedNumericText rollDigits={false} value="1" />);
+
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+  });
+
+  it('keeps deleting the last digit on slots instead of Laminar', () => {
+    const { rerender, UNSAFE_queryAllByType } = render(
+      <AnimatedNumericText rollDigits={false} value="1" />,
+    );
+
+    rerender(<AnimatedNumericText rollDigits={false} value="0.00" />);
+
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+  });
+
+  it('keeps keypad typing on slots instead of Laminar', () => {
+    const { rerender, UNSAFE_queryAllByType } = render(
+      <AnimatedNumericText rollDigits={false} value="12" />,
+    );
+
+    rerender(<AnimatedNumericText rollDigits={false} value="123" />);
+
+    expect(UNSAFE_queryAllByType(Laminar)).toHaveLength(0);
+  });
+
+  it('renders grouping commas while font size is animating', () => {
+    const { getByTestId } = render(
+      <AnimatedNumericText
+        animateFontSize
+        rollDigits={false}
+        style={styles.fontSizeSmall}
+        testID="animated-numeric-text"
+        value="12,345,678"
+      />,
+    );
+
+    expect(getByTestId('animated-numeric-text')).toHaveTextContent(
+      '12,345,678',
+    );
+  });
+
+  it('renders grouping commas with digit rolling turned off', () => {
+    const { getByTestId } = render(
+      <AnimatedNumericText
+        value="1,234,567.89"
+        rollDigits={false}
+        testID="animated-numeric-text"
+      />,
+    );
+
+    expect(getByTestId('animated-numeric-text')).toHaveTextContent(
+      '1,234,567.89',
+    );
   });
 
   it('renders the same content with digit rolling turned off', () => {
