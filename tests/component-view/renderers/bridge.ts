@@ -20,21 +20,6 @@ import BlockExplorersModal from '../../../app/components/UI/Bridge/components/Tr
 import { initialStateBridge } from '../presets/bridge';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Transaction } from '@metamask/keyring-api';
-import { BridgeSessionProvider } from '../../../app/components/UI/Bridge/providers/BridgeSessionProvider';
-import { SwapQuotesProvider } from '../../../app/components/UI/Bridge/providers/SwapQuotesProvider';
-
-export const withBridgeSession = (Component: React.ComponentType) =>
-  function BridgeViewWithSession() {
-    return (
-      <BridgeSessionProvider>
-        <SwapQuotesProvider>
-          <Component />
-        </SwapQuotesProvider>
-      </BridgeSessionProvider>
-    );
-  };
-
-export const BridgeViewWithSession = withBridgeSession(BridgeView);
 
 interface RenderBridgeViewOptions {
   overrides?: DeepPartial<RootState>;
@@ -69,7 +54,7 @@ export function renderBridgeView(
   const state = builder.build();
 
   return renderComponentViewScreen(
-    BridgeViewWithSession as unknown as React.ComponentType,
+    BridgeView as unknown as React.ComponentType,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
     { state },
   );
@@ -86,7 +71,7 @@ export function renderBridgeViewWithModals(
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    BridgeViewWithSession as unknown as React.ComponentType,
+    BridgeView as unknown as React.ComponentType,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
     [
       {
@@ -109,7 +94,7 @@ export function renderBridgeViewWithRecurringJobDetails(
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    BridgeViewWithSession as unknown as React.ComponentType,
+    BridgeView as unknown as React.ComponentType,
     { name: Routes.BRIDGE.BRIDGE_VIEW },
     [
       {
