@@ -1,0 +1,22 @@
+{
+  "conservative": {
+    "selected_tags": ["ALL"],
+    "risk_level": "high",
+    "confidence": 0,
+    "reasoning": "Fallback: AI analysis did not complete successfully. Running all tests.",
+    "performance_tests": {
+      "selected_tags": ["ALL"],
+      "reasoning": "Fallback: AI analysis did not complete successfully. Running all performance tests."
+    }
+  },
+  "empty": {
+    "selected_tags": [],
+    "risk_level": "low",
+    "confidence": 100,
+    "reasoning": "No files changed - no analysis needed",
+    "performance_tests": {
+      "selected_tags": [],
+      "reasoning": "No files changed - no performance tests needed"
+    }
+  }
+}
