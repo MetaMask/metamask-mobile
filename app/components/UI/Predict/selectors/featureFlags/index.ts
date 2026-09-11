@@ -229,9 +229,27 @@ export const selectPredictFeedCarouselConfig = createSelector(
         parsedFlag.priorityOrder.map((id) => id.trim()).filter(Boolean),
       ),
     ];
+    const seenSlotSeries = new Set<string>();
+    const seenSlotIndexes = new Set<number>();
+    const prioritySlots = parsedFlag.prioritySlots.flatMap((slot) => {
+      const seriesId = slot.seriesId.trim();
+      if (
+        !seriesId ||
+        !Number.isInteger(slot.index) ||
+        slot.index < 0 ||
+        seenSlotSeries.has(seriesId) ||
+        seenSlotIndexes.has(slot.index)
+      ) {
+        return [];
+      }
+
+      seenSlotSeries.add(seriesId);
+      seenSlotIndexes.add(slot.index);
+      return [{ seriesId, index: slot.index }];
+    });
 
     if (parsedFlag.mode !== 'custom') {
-      if (priorityOrder.length === 0) {
+      if (priorityOrder.length === 0 && prioritySlots.length === 0) {
         return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
       }
 
@@ -241,6 +259,7 @@ export const selectPredictFeedCarouselConfig = createSelector(
         minimumVersion: parsedFlag.minimumVersion,
         mode: 'live',
         priorityOrder,
+        prioritySlots,
       };
     }
 
@@ -256,6 +275,7 @@ export const selectPredictFeedCarouselConfig = createSelector(
       title,
       deeplink,
       priorityOrder,
+      prioritySlots,
       contentSource: {
         ...parsedFlag.contentSource,
         queryParams: parsedFlag.contentSource.queryParams

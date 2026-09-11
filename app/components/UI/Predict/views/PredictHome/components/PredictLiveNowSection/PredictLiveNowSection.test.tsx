@@ -181,6 +181,7 @@ const createCustomConfig = (
   mode: 'custom',
   title: 'Wimbledon',
   priorityOrder: [],
+  prioritySlots: [],
   contentSource: {
     composition: 'query-results',
     queryParams: 'tag_slug=tennis',
