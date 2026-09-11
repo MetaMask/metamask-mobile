@@ -1,9 +1,7 @@
 import type { Fixtures, TestInfo } from '@playwright/test';
 import {
-  collectAppProfilingBeforeAppTerminate,
+  collectAppProfiling,
   resetAppProfilingSegments,
-  startAppProfilingFromTest,
-  stopAndCollectAppProfiling,
 } from '../../../performance/helpers/appProfiling.ts';
 import { onBeforeAppTerminate } from '../../appLifecycle.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
@@ -20,14 +18,17 @@ function isPerformanceTest(testInfo: TestInfo): boolean {
 const logger = createAppiumLogger('appProfiling');
 
 /**
- * Wraps every performance spec in a Hermes CPU profiling session: started
- * before the test body (so it covers login) and stopped after the last
- * assertion.
+ * Collects a Hermes CPU profile for every performance spec.
  *
- * A session cannot outlive the app process that opened it, so specs that
- * restart the app flush their profile through the before-terminate hook and the
- * final stop becomes a no-op. Those specs still produce a trace; it covers the
- * work leading up to the restart rather than the restart itself.
+ * Nothing here starts profiling: the app arms itself on startup, so the trace
+ * covers the launch the launch-time specs measure, and a spec that restarts the
+ * app gets the new process profiled for free. This fixture only decides when to
+ * harvest what the app has recorded.
+ *
+ * A session cannot outlive the process that opened it, so specs that kill the
+ * app have to be harvested first — `terminateApp` runs the before-terminate
+ * hooks, and the one registered here flushes the in-flight trace while the
+ * process is still alive.
  */
 export const appProfilingFixture: Fixtures<
   TestLevelFixtures,
@@ -52,23 +53,8 @@ export const appProfilingFixture: Fixtures<
 
       resetAppProfilingSegments();
 
-      let profilingStarted = false;
-      try {
-        await startAppProfilingFromTest();
-        profilingStarted = true;
-      } catch (error) {
-        logger.warn(
-          `Could not start Hermes profiling for "${testInfo.title}"; continuing without profiling: ${String(error)}`,
-        );
-      }
-
-      let flushedBeforeTerminate = false;
       const removeTerminateHook = onBeforeAppTerminate(async () => {
-        flushedBeforeTerminate =
-          (await collectAppProfilingBeforeAppTerminate(
-            testInfo,
-            currentDeviceDetails.platform,
-          )) || flushedBeforeTerminate;
+        await collectAppProfiling(testInfo, currentDeviceDetails.platform);
       });
 
       let testError: unknown;
@@ -80,21 +66,12 @@ export const appProfilingFixture: Fixtures<
         removeTerminateHook();
       }
 
-      if (profilingStarted && flushedBeforeTerminate) {
-        logger.info(
-          `Hermes profile for "${testInfo.title}" was collected before the app restart; nothing left to stop`,
+      try {
+        await collectAppProfiling(testInfo, currentDeviceDetails.platform);
+      } catch (error) {
+        logger.warn(
+          `Could not collect Hermes profiling for "${testInfo.title}"; preserving test result: ${String(error)}`,
         );
-      } else if (profilingStarted) {
-        try {
-          await stopAndCollectAppProfiling(
-            testInfo,
-            currentDeviceDetails.platform,
-          );
-        } catch (error) {
-          logger.warn(
-            `Could not collect Hermes profiling for "${testInfo.title}"; preserving test result: ${String(error)}`,
-          );
-        }
       }
 
       if (testError) {
