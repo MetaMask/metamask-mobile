@@ -39,6 +39,9 @@ export async function writeToTokenWatchList(
   blob: WatchlistBlob,
 ): Promise<void> {
   const validated = create(blob, WatchlistBlobSchema);
+  console.log(
+    `[writeToTokenWatchList] Calling ${SET_ASSETS_WATCHLIST_ACTION}...`,
+  );
   await (Engine.controllerMessenger.call as CallableFunction)(
     SET_ASSETS_WATCHLIST_ACTION,
     validated,
