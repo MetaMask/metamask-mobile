@@ -54,7 +54,6 @@ export const BridgeLimitOrderFooterView = ({
         label={ctaLabel}
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
         disabled={ctaDisabled}
-        loading={ctaDisabled}
         latestSourceBalance={latestSourceBalance}
       />
     </Box>
