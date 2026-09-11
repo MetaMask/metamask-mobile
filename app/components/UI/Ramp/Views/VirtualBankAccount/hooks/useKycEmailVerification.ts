@@ -25,7 +25,7 @@ interface UseKycEmailVerificationResult {
   startVerification: () => Promise<void>;
 }
 
-const consentRecordsFromDocuments = (
+const toAcceptedDisclaimerKeys = (
   documents: (KycCatalogDocument | KycConsentDocument)[] | undefined,
 ): KycConsentRecord[] =>
   (documents ?? []).map(({ key, version }) => ({ key, version }));
@@ -87,10 +87,10 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
       await Engine.context.KycController.acceptTermsAndStartSession({
         email: trimmedEmail,
         product: VBA_KYC_PRODUCT,
-        providerDisclaimersAccepted: consentRecordsFromDocuments(
+        providerDisclaimersAccepted: toAcceptedDisclaimerKeys(
           catalog.kycProvider,
         ),
-        idosDisclaimersAccepted: consentRecordsFromDocuments(catalog.idOS),
+        idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
       });
       throwIfKycControllerError('acceptTermsAndStartSession');
 
