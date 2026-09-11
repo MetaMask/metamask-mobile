@@ -7,6 +7,7 @@ import {
   IconName,
   Label,
   Text,
+  TextArea,
   TextColor,
   TextField,
   TextVariant,
@@ -104,19 +105,17 @@ export const ContactFormFields = ({
     </Box>
     <Box twClassName="gap-2">
       <Label>{strings('address_book.memo')}</Label>
-      <TextField
+      <TextArea
+        ref={memoInputRef}
         value={memo ?? ''}
         onChangeText={onChangeMemo}
         placeholder={strings('address_book.memo')}
         isDisabled={!editable}
-        inputRef={memoInputRef}
-        inputProps={{
-          autoCapitalize: 'none',
-          autoCorrect: false,
-          spellCheck: false,
-          keyboardAppearance: themeAppearance,
-          testID: AddContactViewSelectorsIDs.MEMO_INPUT,
-        }}
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+        keyboardAppearance={themeAppearance}
+        testID={AddContactViewSelectorsIDs.MEMO_INPUT}
       />
     </Box>
   </>
