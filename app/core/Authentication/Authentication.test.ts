@@ -220,8 +220,7 @@ jest.mock('../Engine', () => ({
     },
 
     QrSyncController: {
-      enrichPrimaryProvisioningEntry: jest.fn(),
-      importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
+      importRemainingSecrets: jest.fn(),
     },
   },
 }));
@@ -1475,10 +1474,6 @@ describe('Authentication', () => {
 
       it('imports remaining QR sync secrets after primary vault restore', async () => {
         const Engine = jest.requireMock('../Engine');
-        const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
-        Engine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
-          PRIMARY_ENTROPY_SOURCE,
-        );
 
         await Authentication.newWalletAndRestore(
           'password',
@@ -1488,9 +1483,6 @@ describe('Authentication', () => {
           true,
         );
 
-        expect(
-          Engine.context.QrSyncController.enrichPrimaryProvisioningEntry,
-        ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
         expect(
           Engine.context.QrSyncController.importRemainingSecrets,
         ).toHaveBeenCalledWith();

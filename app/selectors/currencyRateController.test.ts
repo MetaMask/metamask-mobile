@@ -17,6 +17,41 @@ jest.mock('../../app/util/networks', () => ({
   isTestNet: jest.fn(),
 }));
 
+// `getCurrencyRateControllerCurrencyRates`/`getCurrencyRateControllerCurrentCurrency`
+// (the AssetsController-derived compat selectors) have their own dedicated
+// coverage in assets-migration.test.ts. Here we mock them to read from the
+// legacy `CurrencyRateController` shape on the mock state so these tests can
+// keep exercising the composition logic in `./currencyRateController` without
+// needing to hand-construct full AssetsController fixtures.
+jest.mock('./assets/assets-migration', () => ({
+  getCurrencyRateControllerCurrencyRates: jest.fn(
+    (state: RootState) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (state as any)?.engine?.backgroundState?.CurrencyRateController
+        ?.currencyRates ?? {},
+  ),
+  getCurrencyRateControllerCurrentCurrency: jest.fn(
+    (state: RootState) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (state as any)?.engine?.backgroundState?.CurrencyRateController
+        ?.currentCurrency,
+  ),
+}));
+
+// Test-only state shape that keeps the legacy `CurrencyRateController` key
+// available for the mocked compat selectors above, while still being
+// assignable to `RootState` wherever the real selectors are invoked.
+type MockRootState = RootState & {
+  engine: RootState['engine'] & {
+    backgroundState: RootState['engine']['backgroundState'] & {
+      CurrencyRateController: {
+        currencyRates: CurrencyRateState['currencyRates'];
+        currentCurrency?: string;
+      };
+    };
+  };
+};
+
 describe('CurrencyRateController Selectors', () => {
   const mockCurrencyRateState = {
     currencyRates: {
@@ -122,7 +157,7 @@ describe('CurrencyRateController Selectors', () => {
     });
 
     const arrange = () => {
-      const mockState: RootState = {
+      const mockState: MockRootState = {
         engine: {
           backgroundState: {
             CurrencyRateController: {
@@ -134,7 +169,7 @@ describe('CurrencyRateController Selectors', () => {
             },
           },
         },
-      } as unknown as RootState;
+      } as unknown as MockRootState;
 
       const mockSelectNetworkConfigurationByChainId = jest
         .spyOn(

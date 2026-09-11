@@ -64,7 +64,7 @@
     },
     "gas_estimate_failed": {
       "title": "Inaccurate fee",
-      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you to input a custom gas limit, but there's a risk the transaction will still fail."
+      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
     "insufficient_balance": {
       "title": "Insufficient funds",
@@ -1920,19 +1920,19 @@
         },
         "stop_limit": {
           "title": "Stop limit",
-          "description": "Limit fills at trigger price"
+          "description": "Place a limit order if trigger price hits"
         },
         "stop_market": {
           "title": "Stop market",
-          "description": "Market fills at trigger price"
+          "description": "Place a market order if trigger price hits"
         },
         "take_profit_limit": {
           "title": "Take limit",
-          "description": "Limit take-profit at trigger price"
+          "description": "Place a limit order if trigger price is reached"
         },
         "take_profit_market": {
           "title": "Take market",
-          "description": "Market take-profit at trigger price"
+          "description": "Place a market order if trigger price is reached"
         },
         "twap": {
           "title": "TWAP",
@@ -4000,6 +4000,20 @@
     "pna25_open_settings_button": "Open Settings",
     "settings": "You can also",
     "settings_link": "manage other default settings."
+  },
+  "basic_functionality_migration": {
+    "title": "Your settings have changed",
+    "social_title": "Privacy and product updates",
+    "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
+    "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
+    "social_body_2_middle": " and updated ",
+    "social_body_2_suffix": ".",
+    "blog_post_link": "blog post",
+    "privacy_notice_link": "Privacy Notice",
+    "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
+    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
+    "settings_link": "Settings > Privacy",
+    "accept_and_close": "Accept and close"
   },
   "onboarding_interest_questionnaire": {
     "title": "How will you use MetaMask?",
@@ -9784,6 +9798,7 @@
         "expiring_error": "Your verification session expired. Contact support to continue."
       },
       "immersve_kyc_modal": {
+        "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
         "load_error": "Something went wrong loading identity verification. Try again.",
         "try_again": "Try again"
       },

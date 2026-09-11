@@ -1,9 +1,14 @@
-// Visible-range / bar-spacing → CHART_INTERACTED analytics.
+// Visible-range / bar-spacing → CHART_INTERACTED analytics + zoom persistence.
 //
 // Subscribes to TradingView's barSpacingChanged (zoom) and
 // onVisibleRangeChanged (pan), debouncing each by 450ms and skipping pan
 // events that fire within 500ms of a zoom (the same finger gesture often
 // triggers both).
+//
+// Candle-count persistence is gated on an active two-finger pinch, matching
+// the lightweight chart. TradingView also fires barSpacingChanged for
+// initial layout, data load, refresh, interval change, and programmatic
+// applyVisibleRange — those must not overwrite PerpsController.visibleCandleCount.
 //
 // Ported from chartLogic.js zoom/pan debounce code in onChartReady
 // (~lines 5587-5661), trimmed of the legacy `__mmSuppressChartInteractUntil`
@@ -13,11 +18,20 @@
 
 import { postToRN, reportErrorToRN } from '../core/bridge';
 import { notifyDataLifecycle } from '../core/dataLifecycle';
-import { getWidget, isChartReady } from '../core/state';
+import { resolutionToIntervalMs } from '../core/resolution';
+import {
+  getCurrentResolution,
+  getOhlcvData,
+  getWidget,
+  isChartReady,
+} from '../core/state';
 import type { TVActiveChart } from '../core/types';
+import { eachChartDocument } from '../widget/tvDomHelpers';
 
 const DEBOUNCE_MS = 450;
 const PAN_SKIP_AFTER_ZOOM_MS = 500;
+const MIN_VISIBLE_CANDLES = 10;
+const MAX_VISIBLE_CANDLES = 250;
 
 interface DebounceState {
   zoomTimer: ReturnType<typeof setTimeout> | null;
@@ -30,6 +44,132 @@ const debounce: DebounceState = {
   panTimer: null,
   zoomLastFiredAt: 0,
 };
+
+let attachedChart: TVActiveChart | null = null;
+let isPinchZoomActive = false;
+let pinchTrackingInstalled = false;
+
+type PinchTrackedElement = EventTarget & {
+  __mmPinchTracking?: boolean;
+};
+
+/**
+ * Track two-finger touches on the TradingView host + iframe documents so
+ * barSpacingChanged handlers can tell user pinch zoom apart from
+ * programmatic spacing changes.
+ */
+function installPinchTracking(): void {
+  if (pinchTrackingInstalled) {
+    return;
+  }
+  pinchTrackingInstalled = true;
+
+  eachChartDocument((doc) => {
+    const target =
+      doc.getElementById('tv_chart_container') ??
+      doc.body ??
+      doc.documentElement;
+    if (!target) {
+      return;
+    }
+    const tracked = target as PinchTrackedElement;
+    if (tracked.__mmPinchTracking) {
+      return;
+    }
+    tracked.__mmPinchTracking = true;
+
+    target.addEventListener(
+      'touchstart',
+      (event) => {
+        isPinchZoomActive = (event as TouchEvent).touches.length >= 2;
+      },
+      { passive: true },
+    );
+    target.addEventListener(
+      'touchmove',
+      (event) => {
+        if ((event as TouchEvent).touches.length >= 2) {
+          isPinchZoomActive = true;
+        }
+      },
+      { passive: true },
+    );
+    target.addEventListener(
+      'touchend',
+      (event) => {
+        if ((event as TouchEvent).touches.length < 2) {
+          // Keep the flag through this event loop so a final spacing callback
+          // emitted by the gesture is still treated as a pinch.
+          setTimeout(() => {
+            isPinchZoomActive = false;
+          }, 0);
+        }
+      },
+      { passive: true },
+    );
+    target.addEventListener(
+      'touchcancel',
+      () => {
+        isPinchZoomActive = false;
+      },
+      { passive: true },
+    );
+  });
+}
+
+/**
+ * Visible candle count from TradingView's unix-second visible range and the
+ * current resolution. Returns undefined when the range or resolution is unusable.
+ *
+ * The right edge is clamped to the latest loaded bar because `applyVisibleRange`
+ * frames the viewport as `visibleFromMs → lastBar + 2 bars` of trailing
+ * whitespace. Measuring the raw range would count that padding, so a persisted
+ * count would grow by two candles every time the range is re-applied. Clamping
+ * makes the emitted count the exact inverse of `lastBar - intervalMs * count`.
+ */
+export function computeVisibleCandleCount(
+  chart: TVActiveChart,
+): number | undefined {
+  try {
+    const range = chart.getVisibleRange?.();
+    if (
+      !range ||
+      !Number.isFinite(range.from) ||
+      !Number.isFinite(range.to) ||
+      range.to <= range.from
+    ) {
+      return undefined;
+    }
+    const intervalMs = resolutionToIntervalMs(getCurrentResolution());
+    if (!intervalMs) {
+      return undefined;
+    }
+    const lastBarTimeMs = getOhlcvData().at(-1)?.time;
+    const rightEdgeSec =
+      typeof lastBarTimeMs === 'number' && Number.isFinite(lastBarTimeMs)
+        ? Math.min(range.to, Math.ceil(lastBarTimeMs / 1000))
+        : range.to;
+    const count = Math.round(((rightEdgeSec - range.from) * 1000) / intervalMs);
+    if (!Number.isFinite(count) || count <= 0) {
+      return undefined;
+    }
+    return Math.min(MAX_VISIBLE_CANDLES, Math.max(MIN_VISIBLE_CANDLES, count));
+  } catch {
+    return undefined;
+  }
+}
+
+function postZoomCandleCount(): void {
+  if (!getWidget() || !isChartReady()) return;
+  const candleCount = attachedChart
+    ? computeVisibleCandleCount(attachedChart)
+    : undefined;
+  if (candleCount === undefined) {
+    return;
+  }
+  postToRN('VISIBLE_CANDLE_COUNT_CHANGED', { candleCount });
+  debounce.zoomLastFiredAt = Date.now();
+}
 
 function fireZoom(): void {
   if (!getWidget() || !isChartReady()) return;
@@ -46,6 +186,15 @@ function firePan(): void {
 }
 
 function scheduleZoom(): void {
+  // Ignore programmatic spacing changes (layout, data load, refresh, interval
+  // change, applyVisibleRange). Only a real pinch should persist zoom or
+  // count as a user zoom analytics event.
+  if (!isPinchZoomActive) {
+    return;
+  }
+  // Report the zoom count immediately so a symbol/interval remount cannot
+  // drop the pending value before the analytics debounce fires.
+  postZoomCandleCount();
   if (debounce.zoomTimer) clearTimeout(debounce.zoomTimer);
   debounce.zoomTimer = setTimeout(() => {
     debounce.zoomTimer = null;
@@ -67,6 +216,8 @@ function schedulePan(): void {
  * debounced CHART_INTERACTED emitters. Safe to call once per chart-ready.
  */
 export function attachVisibleRangeListeners(chart: TVActiveChart): void {
+  attachedChart = chart;
+  installPinchTracking();
   try {
     chart.getTimeScale().barSpacingChanged().subscribe(null, scheduleZoom);
   } catch (error) {
@@ -86,9 +237,17 @@ export function attachVisibleRangeListeners(chart: TVActiveChart): void {
 
 /** Test-only: reset the debounce state between cases. */
 export function __resetVisibleRangeForTests(): void {
+  attachedChart = null;
+  isPinchZoomActive = false;
+  pinchTrackingInstalled = false;
   if (debounce.zoomTimer) clearTimeout(debounce.zoomTimer);
   if (debounce.panTimer) clearTimeout(debounce.panTimer);
   debounce.zoomTimer = null;
   debounce.panTimer = null;
   debounce.zoomLastFiredAt = 0;
+}
+
+/** Test-only: simulate an active pinch gesture. */
+export function __setPinchZoomActiveForTests(active: boolean): void {
+  isPinchZoomActive = active;
 }
