@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
@@ -13,6 +14,7 @@ import {
   type Order,
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
+import { selectPerpsProvider } from '../selectors/perpsController';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -218,11 +220,18 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const { depositWithOrder } = usePerpsTrading();
+  const activeProvider = useSelector(selectPerpsProvider);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { track } = usePerpsEventTracking();
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
+      // Lighter has no deposit-with-order route. Trade its existing venue
+      // balance directly, without creating a transaction or changing UI mode.
+      if (activeProvider === 'lighter') {
+        navigation.navigate(Routes.PERPS.BALANCE_ORDER, params);
+        return;
+      }
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
         depositWithOrder,
@@ -260,6 +269,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [
       navigation,
       depositWithOrder,
+      activeProvider,
       showToast,
       PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
       track,

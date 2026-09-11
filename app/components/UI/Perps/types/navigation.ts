@@ -82,6 +82,7 @@ export type PerpsOrderRouteParams = {
 export type PerpsStackParamList = {
   // Order flow routes
   PerpsOrder: PerpsOrderRouteParams;
+  PerpsBalanceOrder: PerpsOrderRouteParams;
 
   PerpsOrderSuccess: {
     orderId: string;

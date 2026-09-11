@@ -58,14 +58,45 @@ describe('PerpsProviderSelectorSheet', () => {
     expect(
       queryByTestId('provider-sheet-option-hyperliquid-testnet'),
     ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId('provider-sheet-option-lighter-mainnet'),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId('provider-sheet-option-lighter-testnet'),
+    ).not.toBeOnTheScreen();
   });
 
-  it('calls onOptionSelect when an option is pressed', async () => {
+  it('renders all matching options when all providers available', () => {
+    mockUsePerpsProvider.mockReturnValue({
+      availableProviders: ['hyperliquid', 'lighter'],
+    });
+
+    const { getByTestId } = render(
+      <PerpsProviderSelectorSheet {...defaultProps} />,
+    );
+
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-mainnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-testnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-lighter-mainnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-lighter-testnet'),
+    ).toBeOnTheScreen();
+  });
+
+  it('selects the option and closes its navigation route when pressed', async () => {
     const onOptionSelect = jest.fn().mockResolvedValue(undefined);
+    const onClose = jest.fn();
 
     const { getByTestId } = render(
       <PerpsProviderSelectorSheet
         {...defaultProps}
+        onClose={onClose}
         onOptionSelect={onOptionSelect}
       />,
     );
@@ -80,6 +111,7 @@ describe('PerpsProviderSelectorSheet', () => {
         providerId: 'hyperliquid',
       }),
     );
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('marks the selected option as selected', () => {
