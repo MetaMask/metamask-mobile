@@ -18,7 +18,8 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
-import { measureCreatePasswordToOnboardingSuccess } from './helpers/seedlessOnboardingTimers';
+import { captureOnboardingTtc } from './helpers/captureOnboardingTtc';
+import type { OnboardingScreenId } from '../../../app/hooks/performance/onboardingPerformanceIds';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -42,30 +43,31 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
     'Seedless Onboarding: Google Login New User',
     { tag: '@metamask-onboarding-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      const platform = currentDeviceDetails.platform;
       const timer1 = new TimerHelper(
         'Google: Tap "Create new wallet" → OnboardingSheet visible',
         { ios: 1500, android: 2000 },
-        currentDeviceDetails.platform,
+        platform,
       );
       const timer2 = new TimerHelper(
         'Google: Tap Google login → post-OAuth screen visible',
         { ios: 15000, android: 5000 },
-        currentDeviceDetails.platform,
+        platform,
       );
       const timer3 = new TimerHelper(
         'Google: Post-OAuth action → Password fields visible',
         { ios: 4000, android: 4000 },
-        currentDeviceDetails.platform,
+        platform,
       );
       const timer4 = new TimerHelper(
         'Google: Tap "Create Password" → Onboarding Success visible',
         { ios: 5000, android: 4000 },
-        currentDeviceDetails.platform,
+        platform,
       );
       const timer5 = new TimerHelper(
         'Google: Tap "Done" → wallet main screen visible',
         { ios: 30000, android: 5000 },
-        currentDeviceDetails.platform,
+        platform,
       );
 
       const password = getPasswordForScenario('onboarding') ?? '';
@@ -79,13 +81,19 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           },
         );
       });
+      await captureOnboardingTtc(
+        performanceTracker,
+        'onboarding_sheet',
+        platform,
+      );
 
       await OnboardingSheet.tapGoogleLoginButton();
       await SocialLoginView.dismissUpdateModalIfPresent();
 
       let isNewUser = true;
+      let postOauthScreen: OnboardingScreenId = 'choose_pw';
 
-      if (currentDeviceDetails.platform === 'ios') {
+      if (platform === 'ios') {
         await timer2.measure(async () => {
           const result = await waitForFirstSuccessful([
             SocialLoginView.isIosNewUserScreenVisible().then(() => 'new_user'),
@@ -94,13 +102,23 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             ),
           ]);
           isNewUser = result === 'new_user';
+          postOauthScreen =
+            result === 'new_user'
+              ? 'social_login_success_new_user'
+              : 'account_already_exists';
         });
+        await captureOnboardingTtc(
+          performanceTracker,
+          postOauthScreen,
+          platform,
+        );
 
         if (isNewUser) {
           await SocialLoginView.tapIosNewUserSetPinButton();
           await timer3.measure(async () => {
             await CreatePasswordView.isVisible();
           });
+          await captureOnboardingTtc(performanceTracker, 'choose_pw', platform);
         }
       } else {
         await timer2.measure(async () => {
@@ -111,7 +129,14 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             ),
           ]);
           isNewUser = result === 'new_user';
+          postOauthScreen =
+            result === 'new_user' ? 'choose_pw' : 'account_already_exists';
         });
+        await captureOnboardingTtc(
+          performanceTracker,
+          postOauthScreen,
+          platform,
+        );
       }
 
       if (isNewUser) {
@@ -130,6 +155,11 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             OnboardingSuccessView.doneButton,
           );
         });
+        await captureOnboardingTtc(
+          performanceTracker,
+          'onboarding_success',
+          platform,
+        );
 
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
@@ -144,7 +174,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         });
 
         const timers = [timer1, timer2, timer4, timer5];
-        if (currentDeviceDetails.platform === 'ios') {
+        if (platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
         performanceTracker.addTimers(...timers);
@@ -153,6 +183,11 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await timer3.measure(async () => {
           await LoginView.waitForScreenToDisplay();
         });
+        await captureOnboardingTtc(
+          performanceTracker,
+          'social_rehydrate',
+          platform,
+        );
 
         await LoginView.enterPassword(password);
         await LoginView.tapLoginButton();

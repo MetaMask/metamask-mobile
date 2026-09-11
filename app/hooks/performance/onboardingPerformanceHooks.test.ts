@@ -41,6 +41,10 @@ jest.mock('./useRenderStormMonitor', () => ({
   useRenderStormMonitor: jest.fn(),
 }));
 
+jest.mock('./screenTtcRegistry', () => ({
+  recordScreenTtc: jest.fn(),
+}));
+
 const {
   trace: mockTrace,
   endTrace: mockEndTrace,
@@ -57,6 +61,7 @@ describe('onboarding performance hooks', () => {
     mockGetPerformanceTimestamp.mockReturnValue(mockPerformanceMountTs);
     _resetOnboardingNavigationPerformanceForTesting();
     jest.useFakeTimers();
+    jest.setSystemTime(mockPerformanceMountTs);
   });
 
   afterEach(() => {

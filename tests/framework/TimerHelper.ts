@@ -105,6 +105,19 @@ class TimerHelper {
   }
 
   /**
+   * Records an externally measured duration (e.g. in-app Sentry-equivalent TTC)
+   * without using wall-clock start/stop.
+   */
+  recordDuration(durationMs: number): void {
+    const timer = TimerStore.getTimer(this.id);
+    const safeDuration = Math.max(0, durationMs);
+    const end = Date.now();
+    timer.start = end - safeDuration;
+    timer.end = end;
+    timer.duration = safeDuration;
+  }
+
+  /**
    * Renames this timer to a new identifier.
    * @param newName - The new identifier for this timer
    */
