@@ -9,6 +9,7 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   usePerpsTrading,
   usePerpsTPSLUpdate,
@@ -206,6 +207,9 @@ describe('PerpsPositionsView', () => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
+      if (selector === selectPerpsCrossMarginEnabledFlag) {
+        return true;
+      }
       if (selector === selectPrivacyMode) {
         return false;
       }
@@ -234,7 +238,8 @@ describe('PerpsPositionsView', () => {
         expect(screen.getByText('Account summary')).toBeOnTheScreen();
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
-        expect(screen.getByText('Margin used')).toBeOnTheScreen();
+        // The account summary and the Cross position both show this label.
+        expect(screen.getAllByText('Margin used')).toHaveLength(2);
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
 
         // Check that the actual formatted values appear in the UI
@@ -583,6 +588,7 @@ describe('PerpsPositionsView', () => {
       ).selectPerpsEligibility;
       useSelector.mockImplementation((selector: unknown) => {
         if (selector === mockSelectPerpsEligibility) return true;
+        if (selector === selectPerpsCrossMarginEnabledFlag) return true;
         if (selector === selectPrivacyMode) return true;
         return undefined;
       });
@@ -631,7 +637,8 @@ describe('PerpsPositionsView', () => {
       await waitFor(() => {
         expect(screen.getByText('Total balance')).toBeOnTheScreen();
         expect(screen.getByText('Available balance')).toBeOnTheScreen();
-        expect(screen.getByText('Margin used')).toBeOnTheScreen();
+        // The account summary and the Cross position both show this label.
+        expect(screen.getAllByText('Margin used')).toHaveLength(2);
         expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
       });
     });

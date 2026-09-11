@@ -21,6 +21,8 @@ export const tooltipContentRegistry: ContentRegistry = {
   receive: undefined,
   leverage: undefined,
   liquidation_price: undefined,
+  cross_liquidation_price: undefined,
+  cross_no_liquidation_price: undefined,
   liquidation_distance: undefined,
   margin: undefined,
   open_interest: undefined,

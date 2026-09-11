@@ -3,6 +3,7 @@ import type { Position } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
 import PerpsProPositionCard from './PerpsProPositionCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -34,8 +35,97 @@ describe('PerpsProPositionCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(false);
+    // Cross margin flag on, privacy mode off.
+    (useSelector as jest.Mock).mockImplementation(
+      (selector: unknown) => selector === selectPerpsCrossMarginEnabledFlag,
+    );
   });
+
+  it.each([null, '2500'])(
+    'renders Cross liquidation %s with its explanation action',
+    (liquidationPrice) => {
+      const cross = {
+        ...position,
+        leverage: { type: 'cross' as const, value: 3 },
+        liquidationPrice,
+      };
+
+      render(
+        <PerpsProPositionCard position={cross} onEditMargin={jest.fn()} />,
+      );
+
+      expect(screen.getByTestId('cross-margin-tag-pro-ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('cross-liquidation-info-pro-ETH'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+      ).toHaveTextContent(
+        liquidationPrice === null ? 'No liquidation price' : '$2,500 (13.79%)',
+      );
+      expect(screen.getByText('Margin used')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITION_EDIT_MARGIN,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  it('falls back to the isolated presentation when the Cross margin flag is off', () => {
+    // Arrange - every selector false, including the Cross margin flag
+    (useSelector as jest.Mock).mockReturnValue(false);
+    const onEditMargin = jest.fn();
+
+    // Act
+    render(
+      <PerpsProPositionCard
+        position={{
+          ...position,
+          leverage: { type: 'cross', value: 3 },
+          liquidationPrice: null,
+        }}
+        onEditMargin={onEditMargin}
+      />,
+    );
+
+    // Assert - none of this PR's Cross affordances render.
+    // Margin stays non-editable because canEditMargin already keyed off
+    // leverage.type === 'isolated' before this PR; the flag does not change that.
+    expect(
+      screen.queryByTestId('cross-margin-tag-pro-ETH'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('cross-liquidation-info-pro-ETH'),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Margin used')).not.toBeOnTheScreen();
+  });
+
+  it.each([null, '2500'])(
+    'masks Cross liquidation %s in privacy mode',
+    (liquidationPrice) => {
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      render(
+        <PerpsProPositionCard
+          position={{
+            ...position,
+            leverage: { type: 'cross', value: 3 },
+            liquidationPrice,
+          }}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+      ).toHaveTextContent(DOTS_SHORT);
+      expect(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+      ).not.toHaveTextContent(
+        liquidationPrice === null ? 'No liquidation price' : '$2,500 (13.79%)',
+      );
+    },
+  );
 
   it('renders position summary metrics and action controls', () => {
     render(<PerpsProPositionCard position={position} />);
