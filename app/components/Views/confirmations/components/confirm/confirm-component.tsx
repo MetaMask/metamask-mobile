@@ -166,10 +166,6 @@ interface ConfirmProps {
   fullscreenStyle?: StyleProp<ViewStyle>;
 }
 
-interface ConfirmInternalProps extends ConfirmProps {
-  approvalRequestType?: string;
-}
-
 export const Confirm = ({
   route,
   disableSafeArea = false,
@@ -178,12 +174,9 @@ export const Confirm = ({
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
 
-  // While there is no approval request, keep the loading state in place and
-  // disable the back gesture. The approvalRequest-present nav options
-  // (headerShown / gestureEnabled) are set by ConfirmInternal so this effect
-  // stays independent of the expensive isFullScreenConfirmation hook.
   useEffect(() => {
     if (!approvalRequest) {
+      // Keep the loading state in place until there is a request that can be rejected.
       const options: NativeStackNavigationOptions = { gestureEnabled: false };
       navigation.setOptions(options);
     }
@@ -203,17 +196,13 @@ export const Confirm = ({
     }
   }, [approvalRequest]);
 
-  // Show spinner if there is no approvalRequest. Crucially, none of the
-  // expensive confirmation hooks (useConfirmActions -> useTransactionConfirm,
-  // useFullScreenConfirmation -> useTransactionMetadataRequest, etc.) run on
-  // this path — they are gated behind ConfirmInternal below.
+  // Show spinner if there is no approvalRequest
   if (!approvalRequest) {
     return <Loader />;
   }
 
   return (
     <ConfirmInternal
-      approvalRequestType={approvalRequest.type}
       disableSafeArea={disableSafeArea}
       fullscreenStyle={fullscreenStyle}
       route={route}
@@ -221,18 +210,12 @@ export const Confirm = ({
   );
 };
 
-/**
- * The confirmation shell that mounts only once an approval request exists.
- * Everything expensive lives here — `useConfirmActions`,
- * `useFullScreenConfirmation`, styles — so none of it runs during the loader
- * phase.
- */
 function ConfirmInternal({
-  approvalRequestType,
   route,
   disableSafeArea = false,
   fullscreenStyle,
-}: ConfirmInternalProps) {
+}: ConfirmProps) {
+  const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { onReject } = useConfirmActions();
@@ -268,7 +251,7 @@ function ConfirmInternal({
   return (
     <BottomSheet onClose={() => onReject()} testID={ConfirmationUIType.MODAL}>
       <View
-        testID={approvalRequestType}
+        testID={approvalRequest?.type}
         style={styles.confirmContainer}
         onLayout={onFirstPaint}
       >

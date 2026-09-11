@@ -62,27 +62,15 @@ const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-/**
- * Thin visibility gate for the confirmation footer.
- *
- * Runs ONLY the cheap hooks needed to decide whether the footer renders at all.
- * For the types in `HIDE_FOOTER_BY_DEFAULT_TYPES` (e.g. `moneyAccountDeposit`)
- * the footer renders `null`, and gating here avoids paying for the heavy hook
- * chain in `FooterInternal` (`useConfirmActions` -> `useTransactionConfirm` ->
- * `useHandleHwSend` -> gas subtree, plus alerts/pay/gasless hooks). Because
- * hooks cannot be conditional, keeping those in this wrapper would run them and
- * throw the result away on every hidden-footer render.
- */
 export function Footer() {
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isFooterVisible: isFooterVisibleFlag } = useConfirmationContext();
+  const { isFooterVisible } = useConfirmationContext();
 
-  const isFooterVisible =
-    isFooterVisibleFlag ??
-    (!transactionMetadata ||
-      !hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES));
-
-  if (!isFooterVisible) {
+  if (
+    isFooterVisible === false ||
+    (isFooterVisible === undefined &&
+      hasTransactionType(transactionMetadata, HIDE_FOOTER_BY_DEFAULT_TYPES))
+  ) {
     return null;
   }
 
