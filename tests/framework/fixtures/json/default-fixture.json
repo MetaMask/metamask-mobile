@@ -931,6 +931,7 @@
       "campaignParticipantStatuses": {},
       "campaigns": [],
       "campaignsError": false,
+      "campaignsFetching": false,
       "campaignsHasLoaded": false,
       "campaignsLoading": false,
       "candidateSubscriptionId": "pending",

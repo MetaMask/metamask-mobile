@@ -4,6 +4,7 @@ import {
   selectActiveTab,
   selectReferralCode,
   selectBalanceTotal,
+  selectCampaignsFetching,
   selectReferralCount,
   selectReferredByCode,
   selectIsVipReferee,
@@ -1436,6 +1437,25 @@ describe('Rewards selectors', () => {
       it('returns correct active tab directly', () => {
         const state = createMockRootState({ activeTab: 'activity' });
         expect(selectActiveTab(state)).toBe('activity');
+      });
+    });
+
+    describe('selectCampaignsFetching direct calls', () => {
+      it('returns true while a campaigns fetch is in flight', () => {
+        const state = createMockRootState({ campaignsFetching: true });
+        expect(selectCampaignsFetching(state)).toBe(true);
+      });
+
+      it('returns false when no fetch is in flight', () => {
+        const state = createMockRootState({ campaignsFetching: false });
+        expect(selectCampaignsFetching(state)).toBe(false);
+      });
+
+      it('defaults to false when the flag is absent from persisted state', () => {
+        const state = createMockRootState({});
+        // @ts-expect-error deliberately simulating pre-upgrade state
+        delete state.rewards.campaignsFetching;
+        expect(selectCampaignsFetching(state)).toBe(false);
       });
     });
 

@@ -38,6 +38,7 @@ import rewardsReducer, {
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
+  setCampaignsFetching,
   setCampaignParticipantStatus,
   setPendingMasSeriesOptIn,
   clearPendingMasSeriesOptIn,
@@ -2141,6 +2142,7 @@ describe('rewardsReducer', () => {
         campaignsLoading: false,
         campaignsError: false,
         campaignsHasLoaded: false,
+        campaignsFetching: false,
         campaignParticipantStatuses: {},
         ondoCampaignLeaderboards: {},
         ondoCampaignLeaderboardPositions: {},
@@ -2293,6 +2295,7 @@ describe('rewardsReducer', () => {
         campaignsLoading: false,
         campaignsError: false,
         campaignsHasLoaded: false,
+        campaignsFetching: false,
         campaignParticipantStatuses: {},
         ondoCampaignLeaderboards: {},
         ondoCampaignLeaderboardPositions: {},
@@ -5362,6 +5365,44 @@ describe('setCampaignsError', () => {
     currentState = rewardsReducer(currentState, action);
     expect(currentState.campaignsError).toBe(true);
     expect(currentState.campaignsHasLoaded).toBe(true);
+  });
+});
+
+describe('setCampaignsFetching', () => {
+  it('should set campaignsFetching to true even when campaigns already exist', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+      campaignsHasLoaded: true,
+    };
+
+    const state = rewardsReducer(
+      stateWithCampaigns,
+      setCampaignsFetching(true),
+    );
+
+    expect(state.campaignsFetching).toBe(true);
+  });
+
+  it('should set campaignsFetching to false', () => {
+    const stateWithFetching: RewardsState = {
+      ...initialState,
+      campaignsFetching: true,
+    };
+
+    const state = rewardsReducer(
+      stateWithFetching,
+      setCampaignsFetching(false),
+    );
+
+    expect(state.campaignsFetching).toBe(false);
+  });
+
+  it('should not affect campaignsLoading or campaignsHasLoaded', () => {
+    const state = rewardsReducer(initialState, setCampaignsFetching(true));
+
+    expect(state.campaignsLoading).toBe(false);
+    expect(state.campaignsHasLoaded).toBe(false);
   });
 });
 
