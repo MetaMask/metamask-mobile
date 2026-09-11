@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { FeatureId, formatChainIdToCaip } from '@metamask/bridge-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../../reducers';
@@ -89,7 +89,6 @@ export const useRecurringBuySwapInputs = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
-    featureId: FeatureId.RECURRING_BUY,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
@@ -175,7 +174,6 @@ export const useRecurringBuySwapInputs = ({
       type: TokenSelectorType.Source,
       enabledChainIds,
       excludeRwaTokens: true,
-      featureId: FeatureId.RECURRING_BUY,
     });
   }, [enabledChainIds, navigation]);
 
@@ -186,7 +184,6 @@ export const useRecurringBuySwapInputs = ({
         ? [formatChainIdToCaip(sourceToken.chainId)]
         : [],
       excludeRwaTokens: true,
-      featureId: FeatureId.RECURRING_BUY,
     });
   }, [navigation, sourceToken?.chainId]);
 
