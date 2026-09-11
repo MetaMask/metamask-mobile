@@ -427,6 +427,7 @@ export type RootModalFlowParamList = {
   ActivityNetworkFilter: ActivityNetworkFilterSheetParams;
   NetworkManager: undefined;
   BasicFunctionality: { caller?: string } | undefined;
+  BasicFunctionalityMigration: undefined;
   ConfirmTurnOnBackupAndSync:
     | ConfirmTurnOnBackupAndSyncModalNavigateParams
     | undefined;
@@ -791,6 +792,7 @@ export type RootStackParamList = {
   AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: { caller?: string } | undefined;
+  BasicFunctionalityMigration: undefined;
   ConfirmTurnOnBackupAndSync:
     | ConfirmTurnOnBackupAndSyncModalNavigateParams
     | undefined;
@@ -1187,8 +1189,7 @@ export type RootStackParamList = {
   AddAsset: AddAssetParams | undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
 
-  // Asset detail stack routes (nested under the `Asset` navigator)
-  AssetStackFlow: NavigatorScreenParams<AssetStackParamList> | undefined;
+  // Asset detail stack routes (siblings of `Asset` inside `AssetStackFlow`)
   SecurityTrust: AssetStackParamList['SecurityTrust'];
   CreatePriceAlert: AssetStackParamList['CreatePriceAlert'];
   ManagePriceAlerts: AssetStackParamList['ManagePriceAlerts'];

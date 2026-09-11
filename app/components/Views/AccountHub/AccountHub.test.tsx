@@ -21,6 +21,7 @@ import {
 } from '../../../selectors/notifications';
 import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -34,6 +35,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
@@ -59,6 +61,10 @@ jest.mock('../../../util/accounts/useAccountsOperationsLoadingStates', () => ({
 
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
+jest.mock('../../UI/Card/hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => null),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -112,6 +118,7 @@ describe('AccountHub', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
+    jest.mocked(useCardUkMigrationUpdateBadge).mockReturnValue(null);
     jest.mocked(useAccountsOperationsLoadingStates).mockReturnValue({
       isAccountSyncingInProgress: false,
       loadingMessage: undefined,
@@ -168,6 +175,40 @@ describe('AccountHub', () => {
     expect(
       queryByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BADGE),
     ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the menu without a badge when unread notifications are the only attention reason', () => {
+    arrangeSelectors({ unreadCount: 2 });
+
+    const { getByTestId, queryByTestId } = render(<AccountHub />);
+
+    expect(
+      getByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BADGE),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(AccountHubSelectorsIDs.MENU_BADGE)).toBeNull();
+  });
+
+  it('shows the menu badge when the Card Update tag is visible', () => {
+    jest.mocked(useCardUkMigrationUpdateBadge).mockReturnValue('warning');
+
+    const { getByTestId, queryByTestId } = render(<AccountHub />);
+
+    expect(getByTestId(AccountHubSelectorsIDs.MENU_BADGE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BADGE),
+    ).toBeNull();
+  });
+
+  it('dots the bell and the menu independently when both reasons are present', () => {
+    arrangeSelectors({ unreadCount: 2 });
+    jest.mocked(useCardUkMigrationUpdateBadge).mockReturnValue('info');
+
+    const { getByTestId } = render(<AccountHub />);
+
+    expect(
+      getByTestId(AccountHubSelectorsIDs.NOTIFICATIONS_BADGE),
+    ).toBeOnTheScreen();
+    expect(getByTestId(AccountHubSelectorsIDs.MENU_BADGE)).toBeOnTheScreen();
   });
 
   it('hides the bell entirely when the notifications feature is disabled', () => {

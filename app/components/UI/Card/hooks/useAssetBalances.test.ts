@@ -2358,7 +2358,7 @@ describe('useAssetBalances', () => {
       renderHook(() => useAssetBalances([mockMoneyAccountToken]));
 
       const exchangeRateCall = mockUseQuery.mock.calls.find(
-        ([options]: [{ queryKey?: unknown[] }]) =>
+        ([options]: [{ queryKey?: readonly unknown[] }]) =>
           options?.queryKey?.[0] ===
           'MoneyAccountBalanceService:getExchangeRate',
       );

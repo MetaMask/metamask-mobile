@@ -28,6 +28,8 @@ enum CardScreens {
   ORDER_COMPLETED = 'ORDER_COMPLETED',
   SET_PIN = 'SET_PIN',
   CONFIRM_PIN = 'CONFIRM_PIN',
+  CASHBACK = 'CASHBACK',
+  CREDIT_REDEEM = 'CREDIT_REDEEM',
 }
 
 enum CardActions {
