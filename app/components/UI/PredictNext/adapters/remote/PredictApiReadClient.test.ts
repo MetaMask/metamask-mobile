@@ -39,10 +39,18 @@ describe('PredictApiReadClient', () => {
   });
 
   it('requests Venue Status without authorization or content type headers', async () => {
+    const getBearerToken = jest.fn().mockResolvedValue('secret-token');
     fetchMock.mockResolvedValue(createResponse());
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken,
+    });
 
     await client.fetchVenueStatus(venueId);
 
+    expect(getBearerToken).not.toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledWith(
       'https://predict.example/api/v1/venues/kalshi/status',
       {

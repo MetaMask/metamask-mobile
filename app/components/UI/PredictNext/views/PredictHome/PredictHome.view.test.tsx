@@ -2,7 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
-import { focusManager } from '@tanstack/react-query';
+import { focusManager, onlineManager } from '@tanstack/react-query';
 import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
@@ -28,6 +28,11 @@ describe('PredictHome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     configurePredictNextFeeds();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    onlineManager.setOnline(true);
   });
 
   it('loads and rounds the available Balance without blocking Feeds', async () => {
@@ -91,9 +96,21 @@ describe('PredictHome', () => {
     ).toHaveTextContent('$5.00');
   });
 
-  it('keeps cached Balance visible when a later refetch fails', async () => {
+  it('uses the 60-second Balance focus revalidation window', async () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1_000);
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    messengerCall.mockClear();
+
+    now.mockReturnValue(60_999);
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictMarketDataService:getBalance',
+      'kalshi',
+    );
 
     messengerCall.mockImplementation(
       (action: string, _venueId: string, id: string) => {
@@ -111,18 +128,17 @@ describe('PredictHome', () => {
         return Promise.resolve(undefined);
       },
     );
-
+    now.mockReturnValue(61_001);
     await act(async () => {
       focusManager.setFocused(false);
       focusManager.setFocused(true);
     });
 
     await waitFor(() =>
-      expect(
-        messengerCall.mock.calls.filter(
-          ([action]) => action === 'PredictMarketDataService:getBalance',
-        ),
-      ).toHaveLength(2),
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getBalance',
+        'kalshi',
+      ),
     );
     expect(
       view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
@@ -130,6 +146,18 @@ describe('PredictHome', () => {
     expect(
       view.queryByTestId(PredictHomeTestIds.BALANCE_ERROR),
     ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the Balance loading state visible while the first request is offline', async () => {
+    onlineManager.setOnline(false);
+
+    const view = renderPredictNext();
+
+    await waitFor(() =>
+      expect(
+        view.getByTestId(PredictHomeTestIds.BALANCE_LOADING),
+      ).toBeOnTheScreen(),
+    );
   });
 
   it('loads the first two backend-ordered Games for both previews', async () => {

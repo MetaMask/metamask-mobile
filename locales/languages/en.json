@@ -2980,6 +2980,7 @@
     }
   },
   "predict_next": {
+    "available_balance": "Available balance",
     "balance_unavailable": {
       "title": "Balance unavailable",
       "description": "Unable to load your available balance.",

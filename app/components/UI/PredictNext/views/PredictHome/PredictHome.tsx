@@ -115,7 +115,7 @@ export const PredictHome = () => {
           <Text variant={TextVariant.HeadingLg}>Predictions</Text>
           <BalanceSummary
             balance={balanceQuery.data}
-            isLoading={balanceQuery.isLoading}
+            isLoading={balanceQuery.isPending}
             isError={balanceQuery.isError}
             onRetry={() => balanceQuery.refetch()}
           />

@@ -79,7 +79,7 @@ export const BalanceSummary = ({
         {formatUsd(balance.available)}
       </SensitiveText>
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {strings('predict.available_balance')}
+        {strings('predict_next.available_balance')}
       </Text>
     </Box>
   );

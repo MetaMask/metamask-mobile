@@ -53,11 +53,7 @@ export class KalshiRemoteAdapter {
       fetchBalance: async (options) => {
         try {
           const value = await client.fetchBalance(this.venueId, options);
-          const result = parsePredictBalance(value);
-          if (result.venueId !== this.venueId || result.currency !== 'USD') {
-            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
-          }
-          return result;
+          return parsePredictBalance(value);
         } catch (error) {
           return mapError(error);
         }

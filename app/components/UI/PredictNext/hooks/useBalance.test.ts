@@ -1,8 +1,8 @@
-import { useQuery } from '@metamask/react-data-query';
+import { useQuery } from '@tanstack/react-query';
 import { useBalance } from './useBalance';
 import type { PredictVenueId } from '../types';
 
-jest.mock('@metamask/react-data-query', () => ({
+jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(),
 }));
 
@@ -19,6 +19,7 @@ describe('useBalance', () => {
 
     expect(mockedUseQuery).toHaveBeenCalledWith({
       queryKey: ['PredictMarketDataService:getBalance', venueId],
+      staleTime: 60_000,
       retry: false,
     });
   });
