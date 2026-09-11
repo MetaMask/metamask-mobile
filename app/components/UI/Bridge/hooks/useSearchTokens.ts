@@ -17,6 +17,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import type { IncludeAsset, PopularToken } from '../types';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -35,12 +36,6 @@ type SearchTraceResult = 'success' | 'error';
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
   includeAssets: IncludeAsset[];
-  /**
-   * Identifies which surface triggered this request (e.g. Limit order,
-   * Recurring buy, Market order) so the backend can attribute it
-   * accordingly. Required so every caller must make an explicit choice.
-   */
-  featureId: FeatureId;
 }
 
 interface UseSearchTokensResult {
@@ -77,8 +72,8 @@ const getResultCountBucket = (count: number): string =>
 export const useSearchTokens = ({
   chainIds,
   includeAssets,
-  featureId,
 }: UseSearchTokensParams): UseSearchTokensResult => {
+  const featureId = useSwapsFeatureId();
   const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
