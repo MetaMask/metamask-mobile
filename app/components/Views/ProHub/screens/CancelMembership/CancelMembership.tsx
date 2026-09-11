@@ -17,6 +17,7 @@ const CancelMembership = () => {
   const [step, setStep] = useState<CancelStep>('survey');
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
   const [stayFeedback, setStayFeedback] = useState('');
+  const [otherReasonText, setOtherReasonText] = useState('');
   const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
@@ -37,6 +38,10 @@ const CancelMembership = () => {
 
   const handleStayFeedbackChange = useCallback((value: string) => {
     setStayFeedback(value);
+  }, []);
+
+  const handleOtherReasonChange = useCallback((value: string) => {
+    setOtherReasonText(value);
   }, []);
 
   const handleDone = useCallback(() => {
@@ -96,8 +101,10 @@ const CancelMembership = () => {
         <CancelSurveyStep
           selectedReasonId={selectedReasonId}
           stayFeedback={stayFeedback}
+          otherReasonText={otherReasonText}
           onReasonSelect={handleReasonSelect}
           onStayFeedbackChange={handleStayFeedbackChange}
+          onOtherReasonChange={handleOtherReasonChange}
           onBack={handleBack}
           onKeepMembership={handleKeepMembership}
           onCancelConfirm={handleCancelConfirm}

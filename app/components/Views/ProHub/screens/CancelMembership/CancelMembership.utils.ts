@@ -1,8 +1,9 @@
 import type { NavigationState, PartialState } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { CancelReason } from './CancelMembership.constants';
-
-const OTHER_REASON_ID = 'other';
+import {
+  OTHER_REASON_ID,
+  type CancelReason,
+} from './CancelMembership.constants';
 
 /**
  * Shuffles cancel reasons for display so option order does not bias answers.

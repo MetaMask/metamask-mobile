@@ -10,6 +10,7 @@ export const CancelMembershipTestIds = {
   CANCEL_BUTTON: 'cancel-membership-cancel-button',
   STAY_QUESTION: 'cancel-membership-stay-question',
   STAY_QUESTION_INPUT: 'cancel-membership-stay-question-input',
+  OTHER_REASON_INPUT: 'cancel-membership-other-reason-input',
   // ── Success step ─────────────────────────────────────────────────────────
   SUCCESS_CHECK_ICON_BOX: 'cancel-membership-success-check-icon-box',
   SUCCESS_TITLE: 'cancel-membership-success-title',

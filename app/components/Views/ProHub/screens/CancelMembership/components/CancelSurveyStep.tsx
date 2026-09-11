@@ -35,6 +35,7 @@ import {
   CANCEL_REASONS,
   MAX_STAY_FEEDBACK_LENGTH,
   MOCK_CANCEL_STATS,
+  OTHER_REASON_ID,
 } from '../CancelMembership.constants';
 import { shuffleCancelReasons } from '../CancelMembership.utils';
 
@@ -87,8 +88,10 @@ const ReasonItem = ({ id, label, isSelected, onPress }: ReasonItemProps) => (
 export interface CancelSurveyStepProps {
   selectedReasonId: string | null;
   stayFeedback: string;
+  otherReasonText: string;
   onReasonSelect: (id: string) => void;
   onStayFeedbackChange: (value: string) => void;
+  onOtherReasonChange: (value: string) => void;
   onBack: () => void;
   onKeepMembership: () => void;
   onCancelConfirm: () => void;
@@ -97,8 +100,10 @@ export interface CancelSurveyStepProps {
 const CancelSurveyStep = ({
   selectedReasonId,
   stayFeedback,
+  otherReasonText,
   onReasonSelect,
   onStayFeedbackChange,
+  onOtherReasonChange,
   onBack,
   onKeepMembership,
   onCancelConfirm,
@@ -107,6 +112,7 @@ const CancelSurveyStep = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToStayQuestionRef = useRef(false);
   const showStayQuestion = selectedReasonId !== null;
+  const showOtherReasonInput = selectedReasonId === OTHER_REASON_ID;
   const orderedReasons = useMemo(
     () => shuffleCancelReasons(CANCEL_REASONS),
     [],
@@ -230,6 +236,24 @@ const CancelSurveyStep = ({
             />
           ))}
         </Box>
+
+        {showOtherReasonInput && (
+          <TextInput
+            value={otherReasonText}
+            onChangeText={onOtherReasonChange}
+            maxLength={MAX_STAY_FEEDBACK_LENGTH}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            placeholder={strings(
+              'pro_hub.cancel_membership.reason_other_placeholder',
+            )}
+            style={tw.style(
+              'mt-3 min-h-[96px] rounded-xl border border-muted bg-muted px-3 py-3 text-body-md text-default',
+            )}
+            testID={CancelMembershipTestIds.OTHER_REASON_INPUT}
+          />
+        )}
 
         {showStayQuestion && (
           <Box

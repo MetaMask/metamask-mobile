@@ -10,6 +10,7 @@ import {
 import {
   CANCEL_REASONS,
   MOCK_CANCEL_STATS,
+  OTHER_REASON_ID,
 } from '../CancelMembership.constants';
 import { strings } from '../../../../../../../locales/i18n';
 
@@ -40,8 +41,10 @@ const renderStep = (
   const props: React.ComponentProps<typeof CancelSurveyStep> = {
     selectedReasonId: null,
     stayFeedback: '',
+    otherReasonText: '',
     onReasonSelect: jest.fn(),
     onStayFeedbackChange: jest.fn(),
+    onOtherReasonChange: jest.fn(),
     onBack: jest.fn(),
     onKeepMembership: jest.fn(),
     onCancelConfirm: jest.fn(),
@@ -367,6 +370,52 @@ describe('CancelSurveyStep', () => {
       );
 
       expect(props.onStayFeedbackChange).toHaveBeenCalledWith('Lower price');
+    });
+  });
+
+  // ── Other reason input ────────────────────────────────────────────────────
+
+  describe('other reason input', () => {
+    it('hides the other reason input when no reason is selected', () => {
+      const { queryByTestId } = renderStep();
+
+      expect(
+        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+      ).toBeNull();
+    });
+
+    it('hides the other reason input when a non-other reason is selected', () => {
+      const firstReason = CANCEL_REASONS[0];
+      const { queryByTestId } = renderStep({
+        selectedReasonId: firstReason.id,
+      });
+
+      expect(
+        queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+      ).toBeNull();
+    });
+
+    it('shows the other reason input when other is selected', () => {
+      const { getByTestId } = renderStep({
+        selectedReasonId: OTHER_REASON_ID,
+      });
+
+      expect(
+        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onOtherReasonChange when the other reason input text changes', () => {
+      const { getByTestId, props } = renderStep({
+        selectedReasonId: OTHER_REASON_ID,
+      });
+
+      fireEvent.changeText(
+        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+        'Too many emails',
+      );
+
+      expect(props.onOtherReasonChange).toHaveBeenCalledWith('Too many emails');
     });
   });
 });

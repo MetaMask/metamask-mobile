@@ -118,15 +118,41 @@ describe('CancelMembership', () => {
     ).toBeOnTheScreen();
   });
 
-  it('switches to the success step when cancel is pressed after a reason is selected', () => {
-    const { getByTestId } = renderScreen();
+  it('shows the other reason input after other is selected', () => {
+    const { getByTestId, queryByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
-    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+    expect(queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT)).toBeNull();
+
+    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
 
     expect(
-      getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
     ).toBeOnTheScreen();
+  });
+
+  it('hides the other reason input after switching from other to a different reason', () => {
+    const { getByTestId, queryByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+    fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
+
+    expect(queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT)).toBeNull();
+  });
+
+  it('keeps typed other reason text after switching away from other and back', () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+    fireEvent.changeText(
+      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+      'Too many emails',
+    );
+    fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
+    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
+
+    expect(
+      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT).props.value,
+    ).toBe('Too many emails');
   });
 
   it('calls goBack when the back button on the survey step is pressed', () => {

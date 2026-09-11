@@ -1,6 +1,6 @@
 import type { NavigationState } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { CANCEL_REASONS } from './CancelMembership.constants';
+import { CANCEL_REASONS, OTHER_REASON_ID } from './CancelMembership.constants';
 import {
   POST_CANCELLATION_PRO_HUB_SOURCE,
   buildPostCancellationResetState,
@@ -27,7 +27,7 @@ describe('shuffleCancelReasons', () => {
   it('pins other as the last item', () => {
     const result = shuffleCancelReasons(CANCEL_REASONS);
 
-    expect(result[result.length - 1]?.id).toBe('other');
+    expect(result[result.length - 1]?.id).toBe(OTHER_REASON_ID);
   });
 
   it('keeps the same reason ids as the input', () => {
@@ -64,7 +64,7 @@ describe('shuffleCancelReasons', () => {
   it('shuffles remaining reasons when other is missing', () => {
     jest.spyOn(Math, 'random').mockReturnValue(0);
     const withoutOther = CANCEL_REASONS.filter(
-      (reason) => reason.id !== 'other',
+      (reason) => reason.id !== OTHER_REASON_ID,
     );
 
     const result = shuffleCancelReasons(withoutOther);
