@@ -72,6 +72,16 @@ jobs:
           ref: ${{ github.head_ref || github.ref }}
           clean: true
 
+      - name: Configure Namespace cache (iOS)
+        if: ${{ (inputs.runner_provider || 'current') == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            ~/.cache/mms-ffmpeg
+            .metamask
+            .yarn/cache
+
       - name: Setup E2E environment (iOS)
         uses: ./.github/actions/setup-e2e-env
         with:
@@ -83,13 +93,7 @@ jobs:
           install-applesimutils: 'false'
           runner_provider: ${{ inputs.runner_provider || 'current' }}
 
-      - name: Cache static ffmpeg
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/mms-ffmpeg
-          key: static-ffmpeg-b6.1.1-${{ runner.os }}-${{ runner.arch }}
-
-      - name: Install ffmpeg for XCUITest screen recording
+      - name: Ensure ffmpeg for XCUITest screen recording
         timeout-minutes: 2
         continue-on-error: true
         run: bash .github/scripts/qa-automation/appium-runner-prep/ensure-ffmpeg-ci.sh
