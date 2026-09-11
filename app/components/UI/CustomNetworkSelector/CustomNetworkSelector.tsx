@@ -6,7 +6,7 @@ import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import { parseCaipChainId } from '@metamask/utils';
+import { CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -37,7 +37,6 @@ import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
 // internal dependencies
@@ -60,6 +59,8 @@ const CustomNetworkSelector = ({
   openModal,
   dismissModal,
   openRpcModal,
+  onLocalNetworkSelect,
+  localSelectedChainIds,
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, {});
@@ -89,9 +90,28 @@ const CustomNetworkSelector = ({
     areAllNetworksSelected,
   });
 
-  const { selectCustomNetwork } = useNetworkSelection({
-    networks: networksToUse,
-  });
+  // Checkmarks always reflect the caller's local (Redux-free) selection -
+  // same source of truth as the popular-networks tab. Selecting an
+  // already-added custom network here never touches
+  // NetworkEnablementController.
+  const displayNetworksToUse = useMemo(
+    () =>
+      networksToUse.map((network) => ({
+        ...network,
+        isSelected: Boolean(
+          localSelectedChainIds?.includes(network.caipChainId),
+        ),
+      })),
+    [networksToUse, localSelectedChainIds],
+  );
+
+  const selectCustomNetwork = useCallback(
+    (caipChainId: CaipChainId, onComplete?: () => void) => {
+      onLocalNetworkSelect([caipChainId]);
+      onComplete?.();
+    },
+    [onLocalNetworkSelect],
+  );
 
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
@@ -130,12 +150,14 @@ const CustomNetworkSelector = ({
       };
 
       const handleMenuPress = () => {
-        // Don't allow deleting the active network or testnets
-        const isActiveNetwork = selectedChainIdCaip === caipChainId;
+        // Don't allow deleting testnets. Deleting the active network is
+        // allowed - NetworkManager switches away from it first (see
+        // isActiveNetwork below).
         openModal({
           isVisible: true,
           caipChainId,
-          displayEdit: !isTestNet(chainId) && !isActiveNetwork,
+          displayEdit: !isTestNet(chainId),
+          isActiveNetwork: selectedChainIdCaip === caipChainId,
           networkTypeOrRpcUrl: networkTypeOrRpcUrl || '',
           isReadOnly: false,
         });
@@ -216,7 +238,7 @@ const CustomNetworkSelector = ({
       style={styles.container}
     >
       <FlashList
-        data={networksToUse}
+        data={displayNetworksToUse}
         renderItem={renderNetworkItem}
         keyExtractor={(item) => item.caipChainId}
         ListFooterComponent={renderFooter}

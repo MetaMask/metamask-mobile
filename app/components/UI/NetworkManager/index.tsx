@@ -11,6 +11,7 @@ import ScrollableTabView, {
 import DefaultTabBar from '@tommasini/react-native-scrollable-tab-view/DefaultTabBar';
 import { CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // external dependencies
 import Engine from '../../../core/Engine';
@@ -37,7 +38,10 @@ import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
 import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelector';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
@@ -54,15 +58,24 @@ import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/Rpc
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
-export const createNetworkManagerNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
-  Routes.SHEET.NETWORK_MANAGER,
-);
+export interface NetworkManagerParams {
+  /** The popular-networks tab reports selection here instead of writing to Redux. */
+  onLocalNetworkSelect: (chainIds: CaipChainId[] | null) => void;
+  /** Current local selection, used to drive checkmarks. */
+  localSelectedChainIds: CaipChainId[] | null;
+}
+
+export const createNetworkManagerNavDetails =
+  createNavigationDetails<NetworkManagerParams>(
+    Routes.MODAL.ROOT_MODAL_FLOW,
+    Routes.SHEET.NETWORK_MANAGER,
+  );
 
 const initialNetworkMenuModal: NetworkMenuModalState = {
   isVisible: false,
   caipChainId: 'eip155:1',
   displayEdit: false,
+  isActiveNetwork: false,
   networkTypeOrRpcUrl: '',
   isReadOnly: false,
 };
@@ -71,9 +84,12 @@ const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
   isVisible: false,
   networkName: '',
   caipChainId: 'eip155:1',
+  isActiveNetwork: false,
 };
 
 const NetworkManager = () => {
+  const { onLocalNetworkSelect, localSelectedChainIds } =
+    useParams<NetworkManagerParams>();
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
@@ -266,7 +282,7 @@ const NetworkManager = () => {
   }, [navigation, showNetworkMenuModal.networkTypeOrRpcUrl]);
 
   const removeRpcUrl = useCallback(
-    (chainId: CaipChainId) => {
+    (chainId: CaipChainId, isActiveNetwork: boolean) => {
       const networkConfiguration = networkConfigurations[chainId];
 
       if (!networkConfiguration) {
@@ -279,28 +295,59 @@ const NetworkManager = () => {
         isVisible: true,
         networkName: networkConfiguration.name ?? '',
         caipChainId: networkConfiguration.caipChainId,
+        isActiveNetwork,
       });
     },
     [networkConfigurations, closeModal],
   );
 
-  const confirmRemoveRpc = useCallback(() => {
+  const confirmRemoveRpc = useCallback(async () => {
     if (showConfirmDeleteModal.caipChainId) {
-      const { caipChainId } = showConfirmDeleteModal;
-      const { NetworkController } = Engine.context;
+      const { caipChainId, isActiveNetwork } = showConfirmDeleteModal;
+      const { NetworkController, MultichainNetworkController } = Engine.context;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
+      // Deleting the active network would leave MultichainNetworkController
+      // pointing at a removed network, so switch to Ethereum mainnet first.
+      // Mainnet itself is never deletable (see isMainChain/isTestNet guards),
+      // so this fallback is always safe.
+      if (isActiveNetwork) {
+        const mainnetConfig = evmNetworkConfigurations[CHAIN_IDS.MAINNET];
+        const mainnetClientId =
+          mainnetConfig?.rpcEndpoints[mainnetConfig.defaultRpcEndpointIndex]
+            ?.networkClientId;
+        if (mainnetClientId) {
+          await MultichainNetworkController.setActiveNetwork(mainnetClientId);
+        }
+      }
+
       // Remove the network from controller and disable it in the filter
-      // Note: We only allow deleting non-active networks, so no need to switch
       NetworkController.removeNetwork(chainId);
       disableNetwork(showConfirmDeleteModal.caipChainId);
+
+      // If the deleted network was the local filter's selection, reset it so
+      // the Tokens/NFT/DeFi lists don't stay filtered to a chain that no
+      // longer exists. localSelectedChainIds is a snapshot from the nav
+      // params this screen opened with, so it won't reflect the reset above -
+      // close the sheet to avoid it showing the deleted network as selected.
+      if (localSelectedChainIds?.includes(showConfirmDeleteModal.caipChainId)) {
+        onLocalNetworkSelect(null);
+        sheetRef.current?.onCloseBottomSheet();
+      }
 
       identify(removeItemFromChainIdList(chainId));
 
       setShowConfirmDeleteModal(initialShowConfirmDeleteModal);
     }
-  }, [showConfirmDeleteModal, disableNetwork, identify]);
+  }, [
+    showConfirmDeleteModal,
+    disableNetwork,
+    identify,
+    localSelectedChainIds,
+    onLocalNetworkSelect,
+    evmNetworkConfigurations,
+  ]);
 
   const cancelButtonProps: ButtonProps = useMemo(
     () => ({
@@ -319,6 +366,23 @@ const NetworkManager = () => {
   );
 
   const defaultTabIndex = useMemo(() => {
+    // If the Tokens/NFT/DeFi lists are currently filtered to a specific
+    // network (local state, not Redux), default to whichever tab that
+    // network lives on so the picker reopens where the user left it.
+    if (localSelectedChainIds && localSelectedChainIds.length > 0) {
+      const popularChainIds: Set<string> = POPULAR_NETWORK_CHAIN_IDS;
+      const isPopularSelection = localSelectedChainIds.every((caipChainId) => {
+        if (isNonEvmChainId(caipChainId)) {
+          return popularChainIds.has(caipChainId);
+        }
+        const rawChainId = parseCaipChainId(caipChainId).reference;
+        return popularChainIds.has(toHex(rawChainId));
+      });
+      return isPopularSelection ? 0 : 1;
+    }
+
+    // No local selection yet ("All popular networks") - fall back to the
+    // enabled networks from Redux to guess a sensible starting tab.
     // If no popular networks are selected, default to custom tab (index 1)
     // Otherwise, show popular tab (index 0)
     if (enabledNetworks.length === 1) {
@@ -331,7 +395,7 @@ const NetworkManager = () => {
     }
 
     return enabledNetworks.length > 1 ? 0 : 1;
-  }, [enabledNetworks]);
+  }, [enabledNetworks, localSelectedChainIds]);
 
   // Capture the initial tab index only once on first render
   // This prevents tab switching when networks are added/deleted
@@ -366,12 +430,16 @@ const NetworkManager = () => {
               openModal={openModal}
               dismissModal={dismissModal}
               openRpcModal={openRpcModal}
+              onLocalNetworkSelect={onLocalNetworkSelect}
+              localSelectedChainIds={localSelectedChainIds}
             />
             <CustomNetworkSelector
               {...customTabProps}
               openModal={openModal}
               dismissModal={dismissModal}
               openRpcModal={openRpcModal}
+              onLocalNetworkSelect={onLocalNetworkSelect}
+              localSelectedChainIds={localSelectedChainIds}
             />
           </ScrollableTabView>
         </View>
@@ -392,7 +460,12 @@ const NetworkManager = () => {
                 <AccountAction
                   actionTitle={strings('app_settings.delete')}
                   iconName={IconName.Trash}
-                  onPress={() => removeRpcUrl(showNetworkMenuModal.caipChainId)}
+                  onPress={() =>
+                    removeRpcUrl(
+                      showNetworkMenuModal.caipChainId,
+                      showNetworkMenuModal.isActiveNetwork,
+                    )
+                  }
                 />
               )}
             </View>
@@ -426,6 +499,7 @@ const NetworkManager = () => {
         closeRpcModal={closeRpcModal}
         rpcMenuSheetRef={rpcMenuSheetRef}
         networkConfigurations={evmNetworkConfigurations}
+        onLocalNetworkSelect={onLocalNetworkSelect}
         styles={styles}
       />
     </>

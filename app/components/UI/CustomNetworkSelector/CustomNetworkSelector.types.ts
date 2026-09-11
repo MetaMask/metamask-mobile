@@ -17,4 +17,8 @@ export interface CustomNetworkSelectorProps {
   openModal: (networkMenuModal: NetworkMenuModalState) => void;
   dismissModal: () => void;
   openRpcModal?: (params: { chainId: string; networkName: string }) => void;
+  /** The popular-networks tab reports selection here instead of writing to Redux; the custom tab mirrors this. */
+  onLocalNetworkSelect: (chainIds: CaipChainId[] | null) => void;
+  /** Current local selection, used to drive checkmarks. */
+  localSelectedChainIds: CaipChainId[] | null;
 }

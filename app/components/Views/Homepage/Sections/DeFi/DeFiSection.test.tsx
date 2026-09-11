@@ -51,11 +51,15 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
-const mockSelectEnabledNetworks = jest.fn();
-jest.mock('../../../../../selectors/networkEnablementController', () => ({
-  ...jest.requireActual('../../../../../selectors/networkEnablementController'),
-  selectEnabledNetworksByNamespace: () => mockSelectEnabledNetworks(),
-}));
+let mockPopularEvmNetworks: string[] = ['0x1'];
+jest.mock(
+  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({
+      popularEvmNetworks: mockPopularEvmNetworks,
+    }),
+  }),
+);
 
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
@@ -152,7 +156,7 @@ describe('DeFiSection', () => {
       .requireMock('../../../../../selectors/deFiPositionsV2SectionEnabled')
       .selectDeFiPositionsV2SectionEnabled.mockReturnValue(false);
 
-    mockSelectEnabledNetworks.mockReturnValue({ eip155: { '0x1': true } });
+    mockPopularEvmNetworks = ['0x1'];
 
     mockUseDeFiPositionsForHomepage.mockReturnValue({
       positions: [],
@@ -404,7 +408,7 @@ describe('DeFiSection', () => {
     });
 
     it('filters out V2 positions on disabled EVM networks', () => {
-      mockSelectEnabledNetworks.mockReturnValue({ eip155: { '0x1': true } });
+      mockPopularEvmNetworks = ['0x1'];
       mockUseDeFiPositionsV2.mockReturnValue({
         positions: [
           createMockV2Position('aave'),
@@ -427,7 +431,7 @@ describe('DeFiSection', () => {
     });
 
     it('collapses when all V2 positions are on disabled networks', () => {
-      mockSelectEnabledNetworks.mockReturnValue({ eip155: { '0x1': true } });
+      mockPopularEvmNetworks = ['0x1'];
       mockUseDeFiPositionsV2.mockReturnValue({
         positions: [
           createMockV2Position('avalanche-only', { chainId: 'eip155:43114' }),

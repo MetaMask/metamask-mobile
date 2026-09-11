@@ -6,7 +6,6 @@ import { endTrace, trace } from '../../util/trace';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { useAnalytics } from './useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../util/test/analyticsMock';
-import { useNftDetectionChainIds } from './useNftDetectionChainIds';
 import { getDecimalChainId } from '../../util/networks';
 import Logger from '../../util/Logger';
 import {
@@ -39,10 +38,6 @@ jest.mock('../../core/Analytics', () => ({
   },
 }));
 
-jest.mock('./useNftDetectionChainIds', () => ({
-  useNftDetectionChainIds: jest.fn(),
-}));
-
 jest.mock('../../util/networks', () => ({
   getDecimalChainId: jest.fn(),
 }));
@@ -71,10 +66,6 @@ describe('useNftDetection', () => {
     typeof useDispatch
   >;
   const mockUseAnalytics = jest.mocked(useAnalytics);
-  const mockUseNftDetectionChainIds =
-    useNftDetectionChainIds as jest.MockedFunction<
-      typeof useNftDetectionChainIds
-    >;
   const mockGetDecimalChainId = getDecimalChainId as jest.MockedFunction<
     typeof getDecimalChainId
   >;
@@ -166,8 +157,6 @@ describe('useNftDetection', () => {
       }),
     );
 
-    mockUseNftDetectionChainIds.mockReturnValue(mockChainIds);
-
     // Reset to "before" state
     mockEngine.context.NftController.state = mockNftControllerStateBefore;
     mockEngine.context.PreferencesController.state.useNftDetection = true;
@@ -194,7 +183,18 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
+      });
+
+      expect(mockDetectNfts).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('returns early when chainIds is empty', async () => {
+      const { result } = renderHook(() => useNftDetection());
+
+      await act(async () => {
+        await result.current.detectNfts([]);
       });
 
       expect(mockDetectNfts).not.toHaveBeenCalled();
@@ -207,7 +207,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockDetectNfts).not.toHaveBeenCalled();
@@ -218,7 +218,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -230,7 +230,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -242,7 +242,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts(true, false);
+        await result.current.detectNfts(mockChainIds, true, false);
       });
 
       expect(mockDispatch).not.toHaveBeenCalledWith(
@@ -257,7 +257,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockDetectNfts).toHaveBeenCalledTimes(1);
@@ -271,7 +271,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts(false);
+        await result.current.detectNfts(mockChainIds, false);
       });
 
       expect(mockDetectNfts).toHaveBeenCalledTimes(1);
@@ -298,11 +298,11 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(firstAbortSignal).toBeDefined();
@@ -315,7 +315,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockTrace).toHaveBeenCalledWith({ name: 'DetectNfts' });
@@ -325,7 +325,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockEndTrace).toHaveBeenCalledWith({ name: 'DetectNfts' });
@@ -337,7 +337,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       // newlyDetectedNft (0xNFT2:2) was not in the pre-detection snapshot
@@ -360,7 +360,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
@@ -376,7 +376,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
@@ -389,7 +389,7 @@ describe('useNftDetection', () => {
 
       await act(async () => {
         try {
-          await result.current.detectNfts();
+          await result.current.detectNfts(mockChainIds);
         } catch (error) {
           // Expected error
         }
@@ -407,7 +407,7 @@ describe('useNftDetection', () => {
 
       await act(async () => {
         try {
-          await result.current.detectNfts();
+          await result.current.detectNfts(mockChainIds);
         } catch (error) {
           // Expected error
         }
@@ -445,7 +445,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockGetDecimalChainId).toHaveBeenCalledWith('0x89');
@@ -483,7 +483,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
@@ -507,7 +507,7 @@ describe('useNftDetection', () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
-        await result.current.detectNfts();
+        await result.current.detectNfts(mockChainIds);
       });
 
       act(() => {
@@ -530,13 +530,12 @@ describe('useNftDetection', () => {
   });
 
   describe('return value', () => {
-    it('returns detectNfts, abortDetection functions and chainIdsToDetectNftsFor', () => {
+    it('returns detectNfts and abortDetection functions', () => {
       const { result } = renderHook(() => useNftDetection());
 
       expect(result.current).toEqual({
         detectNfts: expect.any(Function),
         abortDetection: expect.any(Function),
-        chainIdsToDetectNftsFor: mockChainIds,
       });
     });
   });

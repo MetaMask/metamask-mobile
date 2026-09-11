@@ -18,7 +18,7 @@ import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
 import { useDeFiPositionsV2 } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { selectEnabledNetworksByNamespace } from '../../../../../selectors/networkEnablementController';
+import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import DeFiPositionsListItemV2 from '../../../../UI/Assets/DeFiPositions/components/DeFiPositionsListItemV2';
 import { filterDeFiPositionsByEnabledNetworks } from '../../../../UI/Assets/DeFiPositions/utils/filter-defi-positions-by-enabled-networks';
 import { strings } from '../../../../../../locales/i18n';
@@ -49,9 +49,7 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation<AppNavigationProp>();
     const privacyMode = useSelector(selectPrivacyMode);
-    const enabledNetworksByNamespace = useSelector(
-      selectEnabledNetworksByNamespace,
-    );
+    const { popularEvmNetworks } = useNetworkEnablement();
     const title = strings('homepage.sections.defi');
 
     const { isVisible, onLayout: visibilityOnLayout } =
@@ -63,13 +61,13 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     const displayedPositions = useMemo(() => {
       const filtered = filterDeFiPositionsByEnabledNetworks(
         positions,
-        enabledNetworksByNamespace,
+        popularEvmNetworks,
       );
 
       return [...filtered]
         .sort((a, b) => b.marketValue - a.marketValue)
         .slice(0, MAX_POSITIONS_DISPLAYED);
-    }, [positions, enabledNetworksByNamespace]);
+    }, [positions, popularEvmNetworks]);
 
     const handleViewAllDeFi = useCallback(() => {
       navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW);

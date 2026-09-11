@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { createStore } from 'redux';
 import { useNavigation } from '@react-navigation/native';
 import { parseCaipChainId } from '@metamask/utils';
@@ -12,11 +12,14 @@ import {
   useNetworksByCustomNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('../../../core/Multichain/utils', () => ({
@@ -103,10 +106,6 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   },
 }));
 
-jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
-  useNetworkSelection: jest.fn(),
-}));
-
 jest.mock('../../hooks/useNetworksToUse/useNetworksToUse', () => ({
   useNetworksToUse: jest.fn(),
 }));
@@ -120,6 +119,7 @@ jest.mock('../../../util/device', () => ({
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
   createProviderConfig: jest.fn(),
+  selectEvmChainId: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -160,6 +160,7 @@ jest.mock('@shopify/flash-list', () => {
 
 jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(),
+  selectSelectedNonEvmNetworkChainId: jest.fn(),
 }));
 
 // Mock store setup
@@ -176,6 +177,11 @@ describe('CustomNetworkSelector', () => {
   const mockOpenModal = jest.fn();
   const mockDismissModal = jest.fn();
   const mockOpenRpcModal = jest.fn();
+  const mockOnLocalNetworkSelect = jest.fn();
+  const defaultLocalProps = {
+    onLocalNetworkSelect: mockOnLocalNetworkSelect,
+    localSelectedChainIds: null,
+  };
   const mockParseCaipChainId = parseCaipChainId as jest.MockedFunction<
     typeof parseCaipChainId
   >;
@@ -189,9 +195,6 @@ describe('CustomNetworkSelector', () => {
   const mockUseNetworksByCustomNamespace = jest.mocked(
     useNetworksByCustomNamespace,
   );
-  const mockUseNetworkSelection = useNetworkSelection as jest.MockedFunction<
-    typeof useNetworkSelection
-  >;
   const mockUseNetworksToUse = useNetworksToUse as jest.MockedFunction<
     typeof useNetworksToUse
   >;
@@ -245,15 +248,6 @@ describe('CustomNetworkSelector', () => {
       networkCount: 2,
     });
 
-    mockUseNetworkSelection.mockReturnValue({
-      selectCustomNetwork: jest.fn(),
-      selectPopularNetwork: jest.fn(),
-      selectNetwork: jest.fn(),
-      deselectAll: jest.fn(),
-      selectAllPopularNetworks: jest.fn(),
-      customNetworksToReset: [],
-    });
-
     mockUseNetworksByCustomNamespace.mockReturnValue({
       networks: mockNetworks,
       selectedNetworks: [mockNetworks[0]],
@@ -298,9 +292,10 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
+          {...defaultLocalProps}
         />,
       );
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(getByTestId('mock-flash-list')).toBeOnTheScreen();
     });
 
     it('calls useNetworksByNamespace with correct parameters', () => {
@@ -308,6 +303,7 @@ describe('CustomNetworkSelector', () => {
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
+          {...defaultLocalProps}
         />,
       );
 
@@ -316,26 +312,12 @@ describe('CustomNetworkSelector', () => {
       });
     });
 
-    it('calls useNetworkSelection with correct parameters', () => {
-      renderWithProvider(
-        <CustomNetworkSelector
-          openModal={mockOpenModal}
-          dismissModal={mockDismissModal}
-        />,
-      );
-
-      // Since multichain is enabled, it should combine EVM and Solana networks
-      const expectedNetworks = [...mockNetworks, ...mockNetworks]; // Both hooks return the same mock data
-      expect(mockUseNetworkSelection).toHaveBeenCalledWith({
-        networks: expectedNetworks,
-      });
-    });
-
     it('calls useStyles with createStyles', () => {
       renderWithProvider(
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
+          {...defaultLocalProps}
         />,
       );
 
@@ -359,75 +341,99 @@ describe('CustomNetworkSelector', () => {
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
           openRpcModal={mockOpenRpcModal}
+          {...defaultLocalProps}
         />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(getByTestId('mock-flash-list')).toBeOnTheScreen();
     });
   });
 
   describe('callback functionality', () => {
-    let mockSelectCustomNetwork: jest.Mock;
-
-    beforeEach(() => {
-      mockSelectCustomNetwork = jest.fn();
-      mockUseNetworkSelection.mockReturnValue({
-        selectCustomNetwork: mockSelectCustomNetwork,
-        selectPopularNetwork: jest.fn(),
-        selectNetwork: jest.fn(),
-        deselectAll: jest.fn(),
-        selectAllPopularNetworks: jest.fn(),
-        customNetworksToReset: [],
-      });
-    });
-
-    it('passes dismissModal callback to selectCustomNetwork', () => {
-      // Act
-      renderWithProvider(
-        <CustomNetworkSelector
-          openModal={mockOpenModal}
-          dismissModal={mockDismissModal}
-        />,
-      );
-
-      // Assert - verify that dismissModal is available for use
-      expect(mockDismissModal).toBeDefined();
-      expect(typeof mockDismissModal).toBe('function');
-    });
-
-    it('accepts and uses dismissModal prop correctly', () => {
-      // Arrange & Act
+    it('derives each row isSelected from localSelectedChainIds, not the raw enablement flag', () => {
       const { getByTestId } = renderWithProvider(
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
+          onLocalNetworkSelect={mockOnLocalNetworkSelect}
+          localSelectedChainIds={[mockNetworks[1].caipChainId]}
         />,
       );
 
-      // Assert
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
-      // Verify the component renders without error when dismissModal is provided
-      expect(mockDismissModal).toBeDefined();
+      // mockNetworks[0].isSelected is true (via NetworkEnablementController)
+      // and mockNetworks[1].isSelected is false, but the rendered list must
+      // flip that based on localSelectedChainIds instead.
+      const flashListData = getByTestId('mock-flash-list').props.data;
+      expect(flashListData[0].isSelected).toBe(false);
+      expect(flashListData[1].isSelected).toBe(true);
     });
 
-    it('ensures dismissModal is passed to network selection', () => {
-      // Arrange
-      renderWithProvider(
+    it('calls onLocalNetworkSelect (never a controller/Redux write) when a custom network row is pressed', async () => {
+      const { getByTestId } = renderWithProvider(
         <CustomNetworkSelector
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
+          {...defaultLocalProps}
         />,
       );
 
-      // Assert that the hook was called with networks (multichain enabled combines both)
-      const expectedNetworks = [...mockNetworks, ...mockNetworks]; // Both hooks return the same mock data
-      expect(mockUseNetworkSelection).toHaveBeenCalledWith({
-        networks: expectedNetworks,
+      // FlashList itself is mocked out (it never actually mounts its
+      // children), so inspect the row element `renderItem` produces
+      // directly rather than trying to render it.
+      const { renderItem } = getByTestId('mock-flash-list').props;
+      const rowElement = renderItem({ item: mockNetworks[0] });
+      const cellElement = rowElement.props.children;
+
+      await cellElement.props.onPress();
+
+      expect(mockOnLocalNetworkSelect).toHaveBeenCalledWith([
+        mockNetworks[0].caipChainId,
+      ]);
+      expect(mockDismissModal).toHaveBeenCalled();
+    });
+  });
+
+  describe('network menu', () => {
+    it('flags the true active network via isActiveNetwork without blocking displayEdit', () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectIsEvmNetworkSelected) return true;
+        if (selector === selectEvmChainId) return '0x89'; // 137 in hex, matches mockNetworks[0]
+        if (selector === selectSelectedNonEvmNetworkChainId) return undefined;
+        return undefined;
       });
 
-      // The actual callback passing happens in the renderNetworkItem function
-      // which is tested implicitly through the component rendering
-      expect(mockSelectCustomNetwork).toBeDefined();
+      const { getByTestId } = renderWithProvider(
+        <CustomNetworkSelector
+          openModal={mockOpenModal}
+          dismissModal={mockDismissModal}
+          {...defaultLocalProps}
+        />,
+      );
+
+      const { renderItem } = getByTestId('mock-flash-list').props;
+
+      const activeRow = renderItem({ item: mockNetworks[0] });
+      activeRow.props.children.props.buttonProps.onButtonClick();
+
+      expect(mockOpenModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          caipChainId: mockNetworks[0].caipChainId,
+          displayEdit: true,
+          isActiveNetwork: true,
+        }),
+      );
+
+      mockOpenModal.mockClear();
+
+      const inactiveRow = renderItem({ item: mockNetworks[1] });
+      inactiveRow.props.children.props.buttonProps.onButtonClick();
+
+      expect(mockOpenModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          caipChainId: mockNetworks[1].caipChainId,
+          isActiveNetwork: false,
+        }),
+      );
     });
   });
 
@@ -438,10 +444,11 @@ describe('CustomNetworkSelector', () => {
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
           openRpcModal={mockOpenRpcModal}
+          {...defaultLocalProps}
         />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(getByTestId('mock-flash-list')).toBeOnTheScreen();
       expect(mockOpenRpcModal).toBeDefined();
     });
 
@@ -490,10 +497,11 @@ describe('CustomNetworkSelector', () => {
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
           openRpcModal={mockOpenRpcModal}
+          {...defaultLocalProps}
         />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(getByTestId('mock-flash-list')).toBeOnTheScreen();
     });
 
     it('does not display secondary text when network has single RPC', () => {
@@ -541,10 +549,11 @@ describe('CustomNetworkSelector', () => {
           openModal={mockOpenModal}
           dismissModal={mockDismissModal}
           openRpcModal={mockOpenRpcModal}
+          {...defaultLocalProps}
         />,
       );
 
-      expect(getByTestId('mock-flash-list')).toBeTruthy();
+      expect(getByTestId('mock-flash-list')).toBeOnTheScreen();
     });
   });
 });

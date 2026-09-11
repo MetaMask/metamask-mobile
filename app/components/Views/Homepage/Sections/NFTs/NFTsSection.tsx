@@ -20,6 +20,7 @@ import {
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOwnedNfts } from './hooks';
+import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
 import NftGridItemBottomSheet from '../../../../UI/NftGrid/NftGridItemBottomSheet';
 import NftSkeletonCell from '../../../../UI/NftGrid/NftSkeletonCell';
@@ -63,7 +64,8 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const selectedAddress = useSelector(
       selectSelectedInternalAccountFormattedAddress,
     );
-    const { onRefresh } = useNftRefresh();
+    const { popularEvmNetworks } = useNetworkEnablement();
+    const { onRefresh } = useNftRefresh(popularEvmNetworks);
     const { detectNfts } = useNftDetection();
     const detectNftsRef = useRef(detectNfts);
     detectNftsRef.current = detectNfts;
@@ -115,10 +117,16 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
 
       lastDetectionRef.current = now;
       setHasDetected(true);
-      detectNftsRef.current(true, false).catch(() => {
+      detectNftsRef.current(popularEvmNetworks, true, false).catch(() => {
         // detection errors are non-fatal
       });
-    }, [isVisible, visitId, selectedAddress, onViewportLayout]);
+    }, [
+      isVisible,
+      visitId,
+      selectedAddress,
+      onViewportLayout,
+      popularEvmNetworks,
+    ]);
 
     const displayNfts = useMemo(
       () => ownedNfts.slice(0, MAX_NFTS_DISPLAYED),

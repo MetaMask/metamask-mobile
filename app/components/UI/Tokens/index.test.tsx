@@ -125,7 +125,7 @@ const arrangeMockSelectors = () => {
   const mockSelectSortedAssetsBySelectedAccountGroup = jest
     .spyOn(
       AssetsListSelectorsModule,
-      'selectSortedAssetsBySelectedAccountGroup',
+      'selectSortedAssetsBySelectedAccountGroupForChainIds',
     )
     .mockImplementation(() => [
       { address: '0xToken1', chainId: '0x1', isStaked: false },
