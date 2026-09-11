@@ -4290,7 +4290,7 @@
     "state_logs": "State logs",
     "add_network_title": "Add a network",
     "auto_lock": "Auto-lock",
-    "enable_device_authentication": "Enable Device Authentication",
+    "enable_device_authentication": "Enable device authentication",
     "enable_device_authentication_desc": "Use your device’s biometrics or passcode to unlock MetaMask.",
     "auto_lock_desc": "Choose the amount of time before the application automatically locks.",
     "state_logs_desc": "This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon > Send Feedback, or reply to your existing ticket if you have one.",
@@ -6064,7 +6064,7 @@
       "remember_me": "Remember Me",
       "face_id": "Face ID",
       "touch_id": "Touch ID",
-      "device_authentication": "Device Authentication",
+      "device_authentication": "Device authentication",
       "device_passcode": "Device Passcode"
     }
   },
