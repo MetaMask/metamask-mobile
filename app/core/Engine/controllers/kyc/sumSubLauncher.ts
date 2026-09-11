@@ -47,7 +47,9 @@ export const sumsubLauncher: KycSumSubLauncher = {
     });
 
     try {
-      const SumSubModule = await import('@sumsub/react-native-mobilesdk-module');
+      const SumSubModule = await import(
+        '@sumsub/react-native-mobilesdk-module'
+      );
       const SNSMobileSDK = SumSubModule.default ?? SumSubModule;
       const sdk = SNSMobileSDK.init(applicantAccessToken, () => {
         Logger.log('[Sumsub] token expired', {
