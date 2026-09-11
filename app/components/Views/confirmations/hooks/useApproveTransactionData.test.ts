@@ -409,4 +409,37 @@ describe('useApproveTransactionData', () => {
       expect(isLoading).toBe(true);
     });
   });
+
+  describe('non-approval transaction data', () => {
+    it.each([
+      [
+        'a token transfer',
+        `0xa9059cbb000000000000000000000000${mockedSpender.slice(
+          2,
+        )}0000000000000000000000000000000000000000000000000000000000000064`,
+      ],
+      ['an unrecognised method', '0xd0e30db0'],
+    ])('returns no approve method for %s', (_title, data) => {
+      const clonedState = cloneDeep(approveERC20TransactionStateMock);
+
+      clonedState.engine.backgroundState.TransactionController.transactions[0].txParams.data =
+        data;
+
+      const { result } = renderHookWithProvider(
+        () => useApproveTransactionData(),
+        {
+          state: clonedState,
+        },
+      );
+
+      const { isLoading, approveMethod, isRevoke, spender, amount } =
+        result.current;
+
+      expect(isLoading).toBe(false);
+      expect(approveMethod).toBeUndefined();
+      expect(isRevoke).toBe(false);
+      expect(spender).toBeUndefined();
+      expect(amount).toBeUndefined();
+    });
+  });
 });
