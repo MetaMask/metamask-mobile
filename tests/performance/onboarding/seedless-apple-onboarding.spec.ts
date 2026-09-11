@@ -19,7 +19,10 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
 import { measureCreatePasswordToOnboardingSuccess } from './helpers/seedlessOnboardingTimers';
-import { captureOnboardingTtc } from './helpers/captureOnboardingTtc';
+import {
+  captureOnboardingTtc,
+  trackTimer,
+} from './helpers/captureOnboardingTtc';
 import type { OnboardingScreenId } from '../../../app/hooks/performance/onboardingPerformanceIds';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
@@ -82,11 +85,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           },
         );
       });
-      await captureOnboardingTtc(
-        performanceTracker,
-        'onboarding_sheet',
-        platform,
-      );
+      // Track immediately — do not Appium-poll TTC before OAuth tap.
+      trackTimer(performanceTracker, timer1);
 
       await OnboardingSheet.tapAppleLoginButton();
       await SocialLoginView.dismissUpdateModalIfPresent();
@@ -108,6 +108,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
               ? 'social_login_success_new_user'
               : 'account_already_exists';
         });
+        trackTimer(performanceTracker, timer2);
         await captureOnboardingTtc(
           performanceTracker,
           postOauthScreen,
@@ -119,6 +120,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           await timer3.measure(async () => {
             await CreatePasswordView.isVisible();
           });
+          trackTimer(performanceTracker, timer3);
           await captureOnboardingTtc(performanceTracker, 'choose_pw', platform);
         }
       } else {
@@ -133,6 +135,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           postOauthScreen =
             result === 'new_user' ? 'choose_pw' : 'account_already_exists';
         });
+        trackTimer(performanceTracker, timer2);
         await captureOnboardingTtc(
           performanceTracker,
           postOauthScreen,
@@ -153,9 +156,16 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await AppiumGestures.hideKeyboard();
         await CreatePasswordView.tapCreatePasswordButton();
         await measureCreatePasswordToOnboardingSuccess(timer4);
+        trackTimer(performanceTracker, timer4);
         await captureOnboardingTtc(
           performanceTracker,
           'onboarding_success',
+          platform,
+        );
+        // Sheet probe was recorded in-app earlier; read it only after OAuth.
+        await captureOnboardingTtc(
+          performanceTracker,
+          'onboarding_sheet',
           platform,
         );
 
@@ -170,20 +180,21 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             },
           );
         });
-
-        const timers = [timer1, timer2, timer4, timer5];
-        if (platform === 'ios') {
-          timers.splice(2, 0, timer3);
-        }
-        performanceTracker.addTimers(...timers);
+        trackTimer(performanceTracker, timer5);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();
         await timer3.measure(async () => {
           await LoginView.waitForScreenToDisplay();
         });
+        trackTimer(performanceTracker, timer3);
         await captureOnboardingTtc(
           performanceTracker,
           'social_rehydrate',
+          platform,
+        );
+        await captureOnboardingTtc(
+          performanceTracker,
+          'onboarding_sheet',
           platform,
         );
 
@@ -198,8 +209,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             },
           );
         });
-
-        performanceTracker.addTimers(timer1, timer2, timer3, timer4);
+        trackTimer(performanceTracker, timer4);
       }
     },
   );

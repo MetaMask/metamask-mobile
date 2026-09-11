@@ -18,7 +18,10 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
-import { captureOnboardingTtc } from './helpers/captureOnboardingTtc';
+import {
+  captureOnboardingTtc,
+  trackTimer,
+} from './helpers/captureOnboardingTtc';
 import type { OnboardingScreenId } from '../../../app/hooks/performance/onboardingPerformanceIds';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
@@ -110,11 +113,8 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       await timer1.measure(async () => {
         await assertTelegramLoginReady();
       });
-      await captureOnboardingTtc(
-        performanceTracker,
-        'onboarding_sheet',
-        platform,
-      );
+      // Track immediately — do not Appium-poll TTC before OAuth tap.
+      trackTimer(performanceTracker, timer1);
 
       await OnboardingSheet.tapTelegramLoginButton();
       await SocialLoginView.dismissUpdateModalIfPresent();
@@ -136,6 +136,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
               ? 'social_login_success_new_user'
               : 'account_already_exists';
         });
+        trackTimer(performanceTracker, timer2);
         await captureOnboardingTtc(
           performanceTracker,
           postOauthScreen,
@@ -147,6 +148,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           await timer3.measure(async () => {
             await CreatePasswordView.isVisible();
           });
+          trackTimer(performanceTracker, timer3);
           await captureOnboardingTtc(performanceTracker, 'choose_pw', platform);
         }
       } else {
@@ -161,6 +163,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           postOauthScreen =
             result === 'new_user' ? 'choose_pw' : 'account_already_exists';
         });
+        trackTimer(performanceTracker, timer2);
         await captureOnboardingTtc(
           performanceTracker,
           postOauthScreen,
@@ -184,11 +187,19 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             OnboardingSuccessView.doneButton,
           );
         });
+        trackTimer(performanceTracker, timer4);
         await captureOnboardingTtc(
           performanceTracker,
           'onboarding_success',
           platform,
         );
+        // Sheet probe was recorded in-app earlier; read it only after OAuth.
+        await captureOnboardingTtc(
+          performanceTracker,
+          'onboarding_sheet',
+          platform,
+        );
+
         await OnboardingSuccessView.tapDone();
         await dismissPushNotificationExistingUserSheet();
         await closePredictModal();
@@ -200,12 +211,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             },
           );
         });
-
-        const timers = [timer1, timer2, timer4, timer5];
-        if (platform === 'ios') {
-          timers.splice(2, 0, timer3);
-        }
-        performanceTracker.addTimers(...timers);
+        trackTimer(performanceTracker, timer5);
       } else {
         // Existing-user rehydration when the QA mock / account returns Account Found.
         // E2E_MOCK_OAUTH QA mock currently forces new-user results; keep this path
@@ -214,9 +220,15 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await timer3.measure(async () => {
           await LoginView.waitForScreenToDisplay();
         });
+        trackTimer(performanceTracker, timer3);
         await captureOnboardingTtc(
           performanceTracker,
           'social_rehydrate',
+          platform,
+        );
+        await captureOnboardingTtc(
+          performanceTracker,
+          'onboarding_sheet',
           platform,
         );
 
@@ -231,8 +243,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
             },
           );
         });
-
-        performanceTracker.addTimers(timer1, timer2, timer3, timer4);
+        trackTimer(performanceTracker, timer4);
       }
     },
   );

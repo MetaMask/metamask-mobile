@@ -13,7 +13,7 @@ import type { PerformanceTracker } from '../../reporters/PerformanceTracker';
 import type { AppiumElement } from '../../framework/AppiumElement';
 
 /** Keep optional reads short so missing probes never stall seedless OAuth flows. */
-const DEFAULT_OPTIONAL_TIMEOUT_MS = 8_000;
+const DEFAULT_OPTIONAL_TIMEOUT_MS = 2_000;
 const DEFAULT_REQUIRED_TIMEOUT_MS = 20_000;
 const POLL_MS = 250;
 
