@@ -1,18 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  DimensionValue,
-  Platform,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  Box,
   Button,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  Label,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
@@ -88,7 +83,6 @@ interface ContactFormState {
   mode: ContactMode;
   memo: string | null;
   editable: boolean;
-  inputWidth: DimensionValue | undefined;
   openNetworkSelector: boolean;
 }
 
@@ -147,7 +141,6 @@ const createInitialState = ({
     mode,
     memo: null,
     editable: true,
-    inputWidth: Platform.OS === 'android' ? '99%' : undefined,
     openNetworkSelector: false,
   };
 
@@ -210,9 +203,6 @@ const ContactForm = ({
   const addressInput = useRef<TextInput>(null);
   const memoInput = useRef<TextInput>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const inputWidthTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const contactAddressToRemove = useRef<string | null>(null);
 
   const updateState = (updates: Partial<ContactFormState>) => {
@@ -247,24 +237,6 @@ const ContactForm = ({
       </TouchableOpacity>
     );
   };
-
-  useEffect(() => {
-    // Workaround https://github.com/facebook/react-native/issues/9958
-    if (stateRef.current.inputWidth) {
-      inputWidthTimeoutId.current = setTimeout(() => {
-        setState((currentState) => ({
-          ...currentState,
-          inputWidth: '100%',
-        }));
-      }, 100);
-    }
-
-    return () => {
-      if (inputWidthTimeoutId.current) {
-        clearTimeout(inputWidthTimeoutId.current);
-      }
-    };
-  }, []);
 
   const onDelete = () => {
     contactAddressToRemove.current = state.address;
@@ -423,7 +395,6 @@ const ContactForm = ({
     addressReady,
     memo,
     editable,
-    inputWidth,
     toEnsAddress,
     errorContinue,
     contactChainId,
@@ -443,7 +414,6 @@ const ContactForm = ({
       ? strings('address_book.custom')
       : currentNetworkConfiguration?.name || '');
   const isAddMode = editable && mode === ADD;
-  const isEditMode = editable && mode === EDIT;
   const headerTitle = strings(
     `address_book.${route.params?.mode ?? ADD}_contact_title`,
   );
@@ -465,15 +435,12 @@ const ContactForm = ({
         endAccessory={headerEndAccessory ?? undefined}
       />
       <KeyboardAwareScrollView style={styles.informationWrapper}>
-        <View style={styles.scrollWrapper}>
+        <Box twClassName="flex-1 gap-4 py-3">
           <ContactFormFields
             address={address}
             addressInputRef={addressInput}
-            colors={colors}
             editable={editable}
-            inputWidth={inputWidth}
             isAddMode={isAddMode}
-            isEditMode={isEditMode}
             memo={memo}
             memoInputRef={memoInput}
             name={name}
@@ -481,23 +448,21 @@ const ContactForm = ({
             onChangeMemo={onChangeMemo}
             onChangeName={onChangeName}
             onScan={onScan}
-            styles={styles}
             themeAppearance={themeAppearance}
             toEnsAddress={toEnsAddress}
             toEnsName={toEnsName}
           />
 
-          <>
-            <Text style={styles.label}>{strings('address_book.network')}</Text>
+          <Box twClassName="gap-2">
+            <Label>{strings('address_book.network')}</Label>
             <ContactNetworkSelector
               chainId={contactChainId || chainId}
               editable={editable}
               networkName={networkName}
               onOpen={() => setOpenNetworkSelector(true)}
-              styles={styles}
             />
-          </>
-        </View>
+          </Box>
+        </Box>
 
         {addressError && (
           <ErrorMessage
