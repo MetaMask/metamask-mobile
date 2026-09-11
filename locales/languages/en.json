@@ -1218,7 +1218,19 @@
         "size_at_price": "{{size}} at {{price}}",
         "size_at_market_cap": "{{size}} at {{marketCap}} {{abbreviation}}"
       },
-      "no_data": "No data"
+      "no_data": "No data",
+      "position_card": {
+        "copy_trade": "Copy trade",
+        "leverage": "Leverage",
+        "auto_close": "Auto-close",
+        "entry_price": "Entry price",
+        "exit_price": "Exit price",
+        "max_hold_time": "Max hold time",
+        "status": "Status",
+        "closed": "Closed",
+        "buy": "Buy",
+        "sell": "Sell"
+      }
     },
     "shell": {
       "subnav": {
