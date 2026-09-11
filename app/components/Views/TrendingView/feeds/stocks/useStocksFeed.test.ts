@@ -3,6 +3,12 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useRwaTokens } from '../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 import { useStocksFeed } from './useStocksFeed';
 
+let mockIsBasicFunctionalityEnabled = true;
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => mockIsBasicFunctionalityEnabled),
+}));
+
 jest.mock('../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
   useRwaTokens: jest.fn(),
 }));
@@ -40,6 +46,7 @@ const arrangeRwaTokens = (assets = ALL_RWA_ASSETS) => {
 describe('useStocksFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsBasicFunctionalityEnabled = true;
     arrangeRwaTokens();
   });
 
@@ -64,6 +71,7 @@ describe('useStocksFeed', () => {
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
         expect.objectContaining({
           chainIds: ['eip155:1', 'eip155:4663'],
+          includeTokenSecurityData: false,
         }),
       );
     });
@@ -103,7 +111,20 @@ describe('useStocksFeed', () => {
     it('passes the query through to useRwaTokens as searchQuery', () => {
       renderHook(() => useStocksFeed({ query: ' OUSG ' }));
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
-        expect.objectContaining({ searchQuery: 'OUSG' }),
+        expect.objectContaining({
+          searchQuery: 'OUSG',
+          includeTokenSecurityData: true,
+        }),
+      );
+    });
+
+    it('does not request security data when Basic Functionality is off', () => {
+      mockIsBasicFunctionalityEnabled = false;
+
+      renderHook(() => useStocksFeed({ query: 'OUSG' }));
+
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ includeTokenSecurityData: false }),
       );
     });
 

@@ -7,6 +7,7 @@ import { sumsubLauncher } from './sumSubLauncher';
 import {
   KycController,
   type KycControllerMessenger,
+  type KycControllerState,
 } from '@metamask/kyc-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -35,7 +36,7 @@ function getLastConstructorArgs(): Record<string, unknown> | undefined {
 
 function getInitRequestMock(
   overrides: {
-    persistedState?: Record<string, unknown>;
+    persistedState?: { KycController?: Partial<KycControllerState> };
   } = {},
 ): jest.Mocked<MessengerClientInitRequest<KycControllerMessenger>> {
   const { persistedState = {} } = overrides;
@@ -68,12 +69,17 @@ describe('kycControllerInit', () => {
   });
 
   it('hydrates state from persistedState', () => {
-    const persistedState = {
-      KycController: {
-        termsAcceptedAt: '2025-01-01T00:00:00Z',
-        acceptedDisclaimerIds: ['disclaimer-1'],
-        kycRequiredByProduct: { ramps: true },
+    const persistedKycState: Partial<KycControllerState> = {
+      email: 'user@example.com',
+      kycRequiredByProduct: { ramps: true },
+      lastCheckedAt: '2025-01-01T00:00:00Z',
+      vendorDisclaimersAccepted: {
+        moonpay: { termsAcceptedAt: '2025-01-01T00:00:00Z' },
+        iron: { disclaimerIds: ['disclaimer-1'] },
       },
+    };
+    const persistedState = {
+      KycController: persistedKycState,
     };
 
     const { controller } = kycControllerInit(
@@ -81,9 +87,7 @@ describe('kycControllerInit', () => {
     );
 
     expect(controller).toBeInstanceOf(KycController);
-    expect(getLastConstructorArgs()?.state).toStrictEqual(
-      persistedState.KycController,
-    );
+    expect(getLastConstructorArgs()?.state).toStrictEqual(persistedKycState);
   });
 
   it('does not pin an identity vendor in constructor state', () => {
