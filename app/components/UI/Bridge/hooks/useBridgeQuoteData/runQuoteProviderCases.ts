@@ -4,12 +4,23 @@ import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 // eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
 import * as quoteUtils from '../../utils/quoteUtils';
-// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
-import * as bridgeController from '@metamask/bridge-controller';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import useInsufficientBalance from '../useInsufficientBalance';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
+import {
+  selectBridgeQuotes,
+  selectBridgeFeatureFlags,
+} from '@metamask/bridge-controller';
+
+const mockSelectBridgeQuotes = selectBridgeQuotes as jest.MockedFunction<
+  typeof selectBridgeQuotes
+>;
+
+const mockSelectBridgeFeatureFlags =
+  selectBridgeFeatureFlags as jest.MockedFunction<
+    typeof selectBridgeFeatureFlags
+  >;
 
 const mockUseIsInsufficientBalance =
   useInsufficientBalance as jest.MockedFunction<typeof useInsufficientBalance>;
@@ -45,34 +56,30 @@ export const runQuoteProviderCases = ({
       mockUseValidateBridgeTx.mockReturnValue({
         validateBridgeTx: mockValidateBridgeTx,
       });
-      jest
-        .spyOn(bridgeController, 'selectBridgeQuotes')
-        .mockImplementation(() => ({
-          recommendedQuote: mockQuoteWithMetadata,
-          sortedQuotes: [mockQuoteWithMetadata],
-          activeQuote: mockQuoteWithMetadata,
-          quotesLastFetchedMs: 1_700_000_000_000,
-          isLoading: false,
-          quoteFetchError: null,
-          quotesRefreshCount: 0,
-          isQuoteGoingToRefresh: false,
-          quotesInitialLoadTimeMs: 0,
-        }));
-      jest
-        .spyOn(bridgeController, 'selectBridgeFeatureFlags')
-        .mockImplementation(() => ({
-          minimumVersion: '7.58.0',
-          priceImpactThreshold: {
-            gasless: 0.4,
-            normal: 0.19,
-            warning: 0.05,
-            error: 0.25,
-          },
-          support: true,
-          chains: {},
-          refreshRate: 5000,
-          maxRefreshCount: 10,
-        }));
+      mockSelectBridgeQuotes.mockReturnValue({
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: [mockQuoteWithMetadata],
+        activeQuote: mockQuoteWithMetadata,
+        quotesLastFetchedMs: 1_700_000_000_000,
+        isLoading: false,
+        quoteFetchError: null,
+        quotesRefreshCount: 0,
+        isQuoteGoingToRefresh: false,
+        quotesInitialLoadTimeMs: 0,
+      });
+      mockSelectBridgeFeatureFlags.mockReturnValue({
+        minimumVersion: '7.58.0',
+        priceImpactThreshold: {
+          gasless: 0.4,
+          normal: 0.19,
+          warning: 0.05,
+          error: 0.25,
+        },
+        support: true,
+        chains: {},
+        refreshRate: 5000,
+        maxRefreshCount: 10,
+      });
     });
 
     afterEach(() => {
