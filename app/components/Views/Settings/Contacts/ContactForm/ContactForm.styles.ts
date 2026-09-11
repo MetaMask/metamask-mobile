@@ -12,21 +12,4 @@ export const createStyles = (colors: Colors) =>
       flex: 1,
       paddingHorizontal: 24,
     },
-    headerEndActionText: {
-      color: colors.primary.default,
-      fontSize: 14,
-    },
-    buttonsWrapper: {
-      marginVertical: 12,
-      flexDirection: 'row',
-      alignSelf: 'flex-end',
-    },
-    buttonsContainer: {
-      flex: 1,
-      flexDirection: 'column',
-      alignSelf: 'flex-end',
-    },
-    actionButton: {
-      marginVertical: 4,
-    },
   });
