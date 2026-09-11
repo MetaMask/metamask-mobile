@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated from 'react-native-reanimated';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useFloatingTabBarInset } from '../../../../../component-library/components/Navigation/TabBarFloating';
 import {
   navigateWithDetails,
   useParams,
@@ -124,6 +125,7 @@ const MoneyHomeView = () => {
     useHeaderStandardAnimated();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
@@ -935,7 +937,10 @@ const MoneyHomeView = () => {
       <MoneyHeader {...headerProps} />
       <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 40 + floatingTabBarInset },
+        ]}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
