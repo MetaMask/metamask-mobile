@@ -67,7 +67,7 @@ const FilterRangeSection: React.FC<FilterRangeSectionProps> = ({
           {formatLabel(value)}
         </Text>
       </Box>
-      <Box twClassName="mt-2">
+      <Box twClassName="mt-2 overflow-visible">
         <RangeSlider
           minimumValue={minimumValue}
           maximumValue={maximumValue}

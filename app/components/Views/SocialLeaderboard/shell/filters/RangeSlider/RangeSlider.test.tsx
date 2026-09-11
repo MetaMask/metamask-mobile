@@ -3,28 +3,52 @@ import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import RangeSlider from './RangeSlider';
 
-// react-native-gesture-handler and reanimated need to be mocked for the
-// test renderer. The pan gesture is a no-op; we verify the component mounts
-// and reports the initial value via the onValueChange/onDragEnd callbacks.
-jest.mock('react-native-gesture-handler', () => ({
-  Gesture: {
-    Pan: () => ({
-      onBegin: jest.fn().mockReturnThis(),
-      onUpdate: jest.fn().mockReturnThis(),
-      onEnd: jest.fn().mockReturnThis(),
-    }),
-  },
-  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
-  GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
+jest.mock('react-native-gesture-handler', () => {
+  const chainable = () => {
+    const api: Record<string, unknown> = {};
+    const returnApi = () => api;
+    [
+      'enabled',
+      'onBegin',
+      'onStart',
+      'onUpdate',
+      'onEnd',
+      'onFinalize',
+      'activeOffsetX',
+      'failOffsetY',
+      'hitSlop',
+      'minDistance',
+      'maxPointers',
+    ].forEach((method) => {
+      api[method] = jest.fn(returnApi);
+    });
+    return api;
+  };
+
+  return {
+    Gesture: {
+      Pan: jest.fn(chainable),
+    },
+    GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
+      children,
+  };
+});
 
 jest.mock('react-native-reanimated', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   const useSharedValue = (initial: unknown) => ({ value: initial });
   const useAnimatedStyle = () => ({});
-  const useAnimatedReaction = jest.fn();
+  const useAnimatedReaction = (
+    _prepare: () => unknown,
+    _react: (current: unknown, previous: unknown) => void,
+  ) => {
+    ReactActual.useEffect(() => {
+      const current = _prepare();
+      _react(current, null);
+    });
+  };
   const runOnJS = (fn: (...args: unknown[]) => unknown) => fn;
   const withTiming = (val: unknown) => val;
   return {

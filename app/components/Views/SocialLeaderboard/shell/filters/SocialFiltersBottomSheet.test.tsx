@@ -9,18 +9,37 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('react-native-gesture-handler', () => ({
-  Gesture: {
-    Pan: () => ({
-      onBegin: jest.fn().mockReturnThis(),
-      onUpdate: jest.fn().mockReturnThis(),
-      onEnd: jest.fn().mockReturnThis(),
-    }),
-  },
-  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
-  GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
+jest.mock('react-native-gesture-handler', () => {
+  const chainable = () => {
+    const api: Record<string, unknown> = {};
+    const returnApi = () => api;
+    [
+      'enabled',
+      'onBegin',
+      'onStart',
+      'onUpdate',
+      'onEnd',
+      'onFinalize',
+      'activeOffsetX',
+      'failOffsetY',
+      'hitSlop',
+      'minDistance',
+      'maxPointers',
+    ].forEach((method) => {
+      api[method] = jest.fn(returnApi);
+    });
+    return api;
+  };
+
+  return {
+    Gesture: {
+      Pan: jest.fn(chainable),
+    },
+    GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
+      children,
+  };
+});
 
 jest.mock('react-native-reanimated', () => {
   const ReactActual = jest.requireActual('react');
@@ -30,7 +49,15 @@ jest.mock('react-native-reanimated', () => {
     default: { View },
     useSharedValue: (initial: unknown) => ({ value: initial }),
     useAnimatedStyle: () => ({}),
-    useAnimatedReaction: jest.fn(),
+    useAnimatedReaction: (
+      _prepare: () => unknown,
+      _react: (current: unknown, previous: unknown) => void,
+    ) => {
+      ReactActual.useEffect(() => {
+        const current = _prepare();
+        _react(current, null);
+      });
+    },
     runOnJS: (fn: (...args: unknown[]) => unknown) => fn,
     withTiming: (val: unknown) => val,
   };
