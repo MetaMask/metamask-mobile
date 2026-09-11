@@ -44,7 +44,8 @@ jobs:
           echo "Expected: 19 shards"
           echo "Actual:   $(echo "$SUITES" | jq 'length') shards"
           echo "$SUITES" | jq -r '.[] | "  \(.tag) \(.split)/\(.total_splits)"'
-          echo "matrix={\"include\":$SUITES}" >> "$GITHUB_OUTPUT"
+          MATRIX=$(echo "$SUITES" | jq -c '{"include": .}')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   verify-android-all:
     name: 'Shard ${{ matrix.tag }} ${{ matrix.split }}/${{ matrix.total_splits }}'
@@ -94,7 +95,8 @@ jobs:
           echo "Expected: 3 shards"
           echo "Actual:   $(echo "$INCLUDE" | jq 'length') shards"
           echo "$INCLUDE" | jq -r '.[] | "  \(.tag) \(.split)/\(.total_splits)"'
-          echo "matrix={\"include\":$INCLUDE}" >> "$GITHUB_OUTPUT"
+          MATRIX=$(echo "$INCLUDE" | jq -c '{"include": .}')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   verify-android-snaps:
     name: 'Shard ${{ matrix.tag }} ${{ matrix.split }}/${{ matrix.total_splits }}'
@@ -153,7 +155,8 @@ jobs:
           echo "Expected: 5 shards"
           echo "Actual:   $(echo "$INCLUDE" | jq 'length') shards"
           echo "$INCLUDE" | jq -r '.[] | "  \(.tag) \(.split)/\(.total_splits)"'
-          echo "matrix={\"include\":$INCLUDE}" >> "$GITHUB_OUTPUT"
+          MATRIX=$(echo "$INCLUDE" | jq -c '{"include": .}')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   verify-ios-multi:
     name: 'Shard ${{ matrix.tag }} ${{ matrix.split }}/${{ matrix.total_splits }}'

@@ -130,7 +130,8 @@ jobs:
             INCLUDE=$(echo "$SUITES" | jq --argjson sel "$SELECTED" \
               '[.[] | select(.tag as $t | $sel | contains([$t]))]')
           fi
-          echo "matrix={\"include\":$INCLUDE}" >> "$GITHUB_OUTPUT"
+          MATRIX=$(echo "$INCLUDE" | jq -c '{"include": .}')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
   # Boots/stabilizes/saves the golden emulator snapshot once per system image
   # onto the shared cache volume, so shards quick-boot instead of paying a
