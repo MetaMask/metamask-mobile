@@ -12,6 +12,7 @@ export const ALLOWED_CAPABILITIES = defineAllowedRouteCapabilities({
     'QrSyncController:importRemainingSecrets',
     'QrSyncController:hasPendingSecretImports',
     'KeyringController:getAccounts',
+    'QrSyncProvisioningService:provisionFromMetadata',
   ],
   events: [],
 });

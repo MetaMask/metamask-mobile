@@ -22,6 +22,12 @@ class PredictPositions {
     return Matchers.getElementByID(PredictPositionsViewSelectorsIDs.CLAIM_CTA);
   }
 
+  get availableBalanceValue(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      PredictPositionsViewSelectorsIDs.AVAILABLE_BALANCE_VALUE,
+    );
+  }
+
   async waitForScreenToDisplay(
     options: { timeout?: number; description?: string } = {},
   ): Promise<void> {
@@ -46,6 +52,16 @@ class PredictPositions {
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back button on Predict Positions',
     });
+  }
+
+  async expectAvailableBalance(amount: string): Promise<void> {
+    await Assertions.expectElementToHaveText(
+      this.availableBalanceValue,
+      amount,
+      {
+        description: `Predict available balance should be ${amount}`,
+      },
+    );
   }
 }
 
