@@ -39,6 +39,7 @@ const ScreenTtcProbeHost = () => {
     if (!isScreenTtcProbeEnabled()) {
       return;
     }
+    setRecords(getAllScreenTtc());
     return subscribeScreenTtc(() => {
       setRecords(getAllScreenTtc());
     });

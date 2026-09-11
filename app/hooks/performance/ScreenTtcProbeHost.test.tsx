@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { act, render } from '@testing-library/react-native';
 import ScreenTtcProbeHost from './ScreenTtcProbeHost';
 import {
@@ -76,5 +76,25 @@ describe('ScreenTtcProbeHost', () => {
 
     expect(getByTestId('perf-ttc-onboarding_landing')).toBeTruthy();
     expect(getByTestId('perf-ttc-onboarding_sheet')).toBeTruthy();
+  });
+
+  it('picks up TTC recorded by an earlier sibling effect before subscribe', () => {
+    const SiblingThatRecordsOnMount = () => {
+      useEffect(() => {
+        recordScreenTtc(OnboardingScreenIds.ONBOARDING_LANDING, 55, 'filled');
+      }, []);
+      return null;
+    };
+
+    const { getByTestId } = render(
+      <>
+        <SiblingThatRecordsOnMount />
+        <ScreenTtcProbeHost />
+      </>,
+    );
+
+    expect(
+      getByTestId('perf-ttc-onboarding_landing').props.accessibilityLabel,
+    ).toBe('ttc:onboarding_landing:55:1');
   });
 });

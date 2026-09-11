@@ -1,5 +1,5 @@
-import type { OnboardingScreenId } from '../../../app/hooks/performance/onboardingPerformanceIds';
-import type { PerformanceTracker } from '../../reporters/PerformanceTracker';
+import type { OnboardingScreenId } from '../../../../app/hooks/performance/onboardingPerformanceIds';
+import type { PerformanceTracker } from '../../../reporters/PerformanceTracker';
 import { addAppScreenTtcTimer } from '../../utils/readScreenTtc';
 
 /**
