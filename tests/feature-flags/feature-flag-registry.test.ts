@@ -250,6 +250,71 @@ describe('Feature Flag Registry', () => {
         });
       }
     });
+
+    it('version-gates Money account on at 8.0.0', () => {
+      expect(
+        getRegistryEntry('moneyEnableMoneyAccount')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.0.0',
+      });
+    });
+
+    it('registers Card Immersve catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'cardImmersve',
+        'cardImmersveChains',
+        'cardImmersveConfig',
+        'cardImmersveCountries',
+        'cardIntercomSupport',
+        'immersveOnboardingEnabled',
+        'moneyHeadlessAllProviders',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+    });
+
+    it('keeps Immersve onboarding and Intercom support default-off', () => {
+      expect(
+        getRegistryEntry('immersveOnboardingEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+      expect(
+        getRegistryEntry('cardIntercomSupport')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('pins the Card attention-badge A/B flag to control', () => {
+      const productionDefault = getRegistryEntry(
+        'cardCARD338AbtestAttentionBadge',
+      )?.productionDefault;
+      expect(Array.isArray(productionDefault)).toBe(true);
+
+      const variants = productionDefault as {
+        name: string;
+        scope: { type: string; value: number };
+      }[];
+      const control = variants.find((variant) => variant.name === 'control');
+      const withBadge = variants.find(
+        (variant) => variant.name === 'withBadge',
+      );
+
+      expect(control?.scope).toEqual({
+        type: 'percentage_rollout',
+        value: 1,
+      });
+      expect(withBadge?.scope).toEqual({
+        type: 'percentage_rollout',
+        value: 0,
+      });
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
