@@ -96,6 +96,10 @@ interface MobileDataExtras {
   /** Semantic trigger type localized by the Activity presentation layer. */
   perpsTriggerOrderType?: TriggerOrderType;
   fees?: ActivityFee[];
+  /** Polymarket market title for predict provider activity list rows. */
+  marketTitle?: string;
+  /** Provider market icon URL for predict provider activity list rows. */
+  icon?: string;
 }
 
 type WithMobileDataTokens<T> = T extends { data: infer D }

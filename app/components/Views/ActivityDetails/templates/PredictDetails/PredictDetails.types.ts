@@ -1,7 +1,5 @@
 import { strings } from '../../../../../../locales/i18n';
 import type { ActivityListItem } from '../../../../../util/activity-adapters';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PredictActivity } from '../../../../UI/Predict/types';
 
 export type PredictActivityType =
   | 'predictionsAddFunds'
@@ -18,12 +16,6 @@ export function asPredictActivityItem(
   item: ActivityListItem,
 ): PredictActivityListItem {
   return item as PredictActivityListItem;
-}
-
-export function getPredictActivity(
-  item: ActivityListItem,
-): PredictActivity | undefined {
-  return item.raw?.type === 'predictActivity' ? item.raw.data : undefined;
 }
 
 export function formatPredictDate(timestamp: number): string {

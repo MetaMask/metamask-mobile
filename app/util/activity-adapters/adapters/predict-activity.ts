@@ -81,6 +81,8 @@ export function mapPredictActivity({
         raw,
         data: {
           token: toFiatToken(entry.amount, 'out', quoteAsset),
+          marketTitle: activity.title,
+          icon: activity.icon,
         },
       };
 
@@ -94,6 +96,8 @@ export function mapPredictActivity({
         raw,
         data: {
           token: toFiatToken(entry.amount, 'in', quoteAsset),
+          marketTitle: activity.title,
+          icon: activity.icon,
         },
       };
 
@@ -107,6 +111,8 @@ export function mapPredictActivity({
         raw,
         data: {
           token: toFiatToken(entry.amount, 'in', quoteAsset),
+          marketTitle: activity.title,
+          icon: activity.icon,
         },
       };
 

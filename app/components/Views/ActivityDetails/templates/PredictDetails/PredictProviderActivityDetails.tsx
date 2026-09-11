@@ -21,9 +21,11 @@ import {
 } from '../../../../UI/Predict/utils/format';
 /* eslint-enable import-x/no-restricted-paths */
 import {
-  getPredictActivity,
+  formatPredictDate,
+  getPredictFundsStepLabels,
   type PredictActivityListItem,
 } from './PredictDetails.types';
+import { usePredictActivityById } from '../../hooks/usePredictActivityById';
 import {
   ClaimWinningsBreakdown,
   PredictHero,
@@ -38,7 +40,7 @@ export function PredictProviderActivityDetails({
 }: {
   item: PredictActivityListItem;
 }) {
-  const activity = getPredictActivity(item);
+  const activity = usePredictActivityById(item.hash);
   const openPredictHome = useOpenPredictHome();
 
   if (!activity) {
