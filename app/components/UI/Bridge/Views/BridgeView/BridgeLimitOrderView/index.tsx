@@ -13,9 +13,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
-  selectBridgeBalanceRefreshKey,
   selectSlippage,
-  selectSourceToken,
   setSlippage,
 } from '../../../../../../core/redux/slices/bridge';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
@@ -30,7 +28,6 @@ import {
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
 import { LIMIT_MOCK_HISTORY_TAB } from './BridgeLimitOrderView.mockHistory';
@@ -62,19 +59,14 @@ import { getSwapsLimitOrderDestTokenAmount } from '../../../utils/limitOrders/ge
 import { strings } from '../../../../../../../locales/i18n';
 import { useHasMissingAssetsPriceData } from '../../../hooks/useHasMissingAssetsPriceData';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
 const formatTokenAmountValue = (
   amount: string | undefined,
   symbol: string | undefined,
 ) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
-interface BridgeLimitOrderViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-const BridgeLimitOrderViewContent = ({
-  latestSourceBalance,
-}: BridgeLimitOrderViewContentProps) => {
+const BridgeLimitOrderViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
@@ -83,6 +75,7 @@ const BridgeLimitOrderViewContent = ({
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
+  const { latestSourceBalance } = useBridgeSession();
   const {
     destToken,
     enabledChainIds,
@@ -96,7 +89,7 @@ const BridgeLimitOrderViewContent = ({
     sourceToken,
     sourceAmount,
     isSourceNetworkGasSponsored,
-  } = useLimitOrderSwapInputs({ latestSourceBalance });
+  } = useLimitOrderSwapInputs();
   const {
     commitCustomPercent,
     counterFiatRate,
@@ -463,20 +456,4 @@ const BridgeLimitOrderViewContent = ({
   );
 };
 
-const BridgeLimitOrderView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeLimitOrderViewContent latestSourceBalance={latestSourceBalance} />
-  );
-};
-
-export default BridgeLimitOrderView;
+export default BridgeLimitOrderViewContent;

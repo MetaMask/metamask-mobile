@@ -15,12 +15,17 @@ import {
 import { Hex } from '@metamask/utils';
 import { isHardwareAccount } from '../../../../../../util/address';
 import { mockUseBridgeQuoteData } from '../../../_mocks_/useBridgeQuoteData.mock';
-import { useBridgeQuoteData } from '../../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { mockQuoteWithMetadata } from '../../../_mocks_/bridgeQuoteWithMetadata';
 import { createBridgeTestState } from '../../../testUtils';
 import type { RootState } from '../../../../../../reducers';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 
+/**
+ * Unit fallback: footer banner and confirm branches need isolated quote-context
+ * overrides. CV remounts Market on tab switch and cannot hold a seeded
+ * BridgeController quote through those matrices.
+ */
 jest.mock(
   '../../../../../../multichain-accounts/controllers/account-tree-controller',
   () => ({
@@ -32,20 +37,11 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest
+jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
-
-jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
-  const { useBridgeQuoteData } = jest.requireMock(
-    '../../../hooks/useBridgeQuoteData',
-  );
-  return {
-    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
-  };
-});
 
 jest.mock('../../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../../util/address'),
@@ -60,15 +56,16 @@ jest.mock(
     SwapsMarketOrderConfirmButton: ({ testID }: { testID?: string }) => {
       const MockReact = jest.requireActual('react');
       const { View } = jest.requireActual('react-native');
-      const { useBridgeQuoteData: getBridgeQuoteData } = jest.requireMock(
-        '../../../hooks/useBridgeQuoteData',
-      ) as {
-        useBridgeQuoteData: () => {
-          isLoading: boolean;
-          activeQuote: unknown;
-          needsNewQuote: boolean;
+      const { useBridgeQuoteDataContext: getBridgeQuoteData } =
+        jest.requireMock(
+          '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext',
+        ) as {
+          useBridgeQuoteDataContext: () => {
+            isLoading: boolean;
+            activeQuote: unknown;
+            needsNewQuote: boolean;
+          };
         };
-      };
       const { isLoading, activeQuote, needsNewQuote } = getBridgeQuoteData();
       const isLoadingWithoutActiveQuote =
         isLoading && !activeQuote && !needsNewQuote;
@@ -171,19 +168,17 @@ describe('BridgeMarketViewFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mocked(useBridgeQuoteDataContext)
       .mockImplementation(() => mockUseBridgeQuoteData);
   });
 
   describe('Rendering conditions', () => {
     it('renders a disabled loading button when loading without an active quote', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: true,
-          activeQuote: null,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: true,
+        activeQuote: null,
+      }));
 
       const { getByTestId } = renderFooter(buildActiveQuoteState());
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
@@ -194,13 +189,11 @@ describe('BridgeMarketViewFooter', () => {
     });
 
     it('renders nothing when there is no active quote', () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: false,
-          activeQuote: null,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: false,
+        activeQuote: null,
+      }));
 
       const { queryByTestId } = renderFooter(buildActiveQuoteState());
 
@@ -301,13 +294,11 @@ describe('BridgeMarketViewFooter', () => {
 
   describe('Blockaid Security Alert', () => {
     it('displays blockaid error banner when blockaid error exists', async () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          blockaidError: 'This transaction may be a security risk',
-          activeQuote: mockQuoteWithMetadata,
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        blockaidError: 'This transaction may be a security risk',
+        activeQuote: mockQuoteWithMetadata,
+      }));
 
       const { getByText } = renderFooter(buildActiveQuoteState());
 
@@ -330,15 +321,15 @@ describe('BridgeMarketViewFooter', () => {
     it('shows fee disclaimer with fee percentage when fee is greater than zero', async () => {
       const feePercentage = 0.875; // quoteBpsFee: 87.5 / 100
 
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: {
-            ...mockQuoteWithMetadata,
-            quote: { feeData: { metabridge: [{ quoteBpsFee: 87.5 }] } },
-          },
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            feeData: { metabridge: [{ quoteBpsFee: 87.5 }] },
+          } as unknown as QuoteResponse['quote'],
+        },
+      }));
 
       const { getByText } = renderFooter(buildActiveQuoteState());
 
@@ -352,17 +343,15 @@ describe('BridgeMarketViewFooter', () => {
     });
 
     it('shows standard fee disclaimer when fee is less than base fee but discountType is absent', async () => {
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: {
-            ...mockQuoteWithMetadata,
-            quote: {
-              feeData: { metabridge: [{ quoteBpsFee: 57.5, baseBpsFee: 90 }] },
-            },
-          },
-        }));
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            feeData: { metabridge: [{ quoteBpsFee: 57.5, baseBpsFee: 90 }] },
+          } as unknown as QuoteResponse['quote'],
+        },
+      }));
 
       const { getByTestId } = renderFooter(buildActiveQuoteState());
 
@@ -397,25 +386,23 @@ describe('BridgeMarketViewFooter', () => {
     ])(
       'shows discounted fee disclaimer and badge for $discountType discountType',
       async ({ discountType, expectedBadgeTestId, expectedBadgeLabel }) => {
-        jest
-          .mocked(useBridgeQuoteData as unknown as jest.Mock)
-          .mockImplementation(() => ({
-            ...mockUseBridgeQuoteData,
-            activeQuote: {
-              ...mockQuoteWithMetadata,
-              quote: {
-                feeData: {
-                  metabridge: [
-                    {
-                      quoteBpsFee: 57.5,
-                      baseBpsFee: 90,
-                      discountType,
-                    },
-                  ],
-                },
+        jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              feeData: {
+                metabridge: [
+                  {
+                    quoteBpsFee: 57.5,
+                    baseBpsFee: 90,
+                    discountType,
+                  },
+                ],
               },
-            },
-          }));
+            } as unknown as QuoteResponse['quote'],
+          },
+        }));
 
         const { getByTestId, getByText } = renderFooter(
           buildActiveQuoteState(),
@@ -438,25 +425,23 @@ describe('BridgeMarketViewFooter', () => {
     it('shows no MM fee disclaimer when dest token is mUSD and fee is zero', async () => {
       const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: false,
-          activeQuote: {
-            ...mockQuoteWithMetadata,
-            quote: {
-              ...mockQuoteWithMetadata.quote,
-              dest: {
-                asset: {
-                  ...mockQuoteWithMetadata.quote.dest.asset,
-                  symbol: 'mUSD',
-                },
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: false,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            dest: {
+              asset: {
+                ...mockQuoteWithMetadata.quote.dest.asset,
+                symbol: 'mUSD',
               },
-              feeData: { metabridge: [{ quoteBpsFee: 0, baseBpsFee: 87.5 }] },
             },
-          },
-        }));
+            feeData: { metabridge: [{ quoteBpsFee: 0, baseBpsFee: 87.5 }] },
+          } as unknown as QuoteResponse['quote'],
+        },
+      }));
 
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
@@ -498,27 +483,25 @@ describe('BridgeMarketViewFooter', () => {
     it('shows fee disclaimer when fee is undefined', async () => {
       const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: false,
-          activeQuote: {
-            ...mockQuoteWithMetadata,
-            quote: {
-              ...mockQuoteWithMetadata.quote,
-              dest: {
-                asset: {
-                  ...mockQuoteWithMetadata.quote.dest.asset,
-                  symbol: 'mUSD',
-                },
-              },
-              feeData: {
-                metabridge: [{ quoteBpsFee: undefined, baseBpsFee: undefined }],
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: false,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            ...mockQuoteWithMetadata.quote,
+            dest: {
+              asset: {
+                ...mockQuoteWithMetadata.quote.dest.asset,
+                symbol: 'mUSD',
               },
             },
-          },
-        }));
+            feeData: {
+              metabridge: [{ quoteBpsFee: undefined, baseBpsFee: undefined }],
+            },
+          } as unknown as QuoteResponse['quote'],
+        },
+      }));
 
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
@@ -573,12 +556,10 @@ describe('BridgeMarketViewFooter', () => {
         data: '0xApprovalData',
       },
     };
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        activeQuote: mockQuote,
-      }));
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      activeQuote: mockQuote as unknown as QuoteResponse,
+    }));
 
     const testState = buildActiveQuoteState({
       bridgeControllerOverrides: {
