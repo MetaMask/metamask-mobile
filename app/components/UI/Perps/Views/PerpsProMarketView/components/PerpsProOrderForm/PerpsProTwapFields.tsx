@@ -2,12 +2,16 @@ import {
   Box,
   ButtonBase,
   ButtonBaseSize,
+  ButtonIcon,
+  ButtonIconSize,
   Checkbox,
   FontWeight,
+  IconName,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import React from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
@@ -41,6 +45,50 @@ export const formatCompactTwapDuration = (
   return parts.join(' ');
 };
 
+const durationDayLabel = (count: number) =>
+  count === 1
+    ? strings('perps.pro_order_form.twap.duration_day')
+    : strings('perps.pro_order_form.twap.duration_days', { count });
+
+const durationHourLabel = (count: number) =>
+  count === 1
+    ? strings('perps.pro_order_form.twap.duration_hour')
+    : strings('perps.pro_order_form.twap.duration_hours', { count });
+
+const durationMinuteLabel = (count: number) =>
+  count === 1
+    ? strings('perps.pro_order_form.twap.duration_minute')
+    : strings('perps.pro_order_form.twap.duration_minutes', { count });
+
+/**
+ * Spells the runtime out for the summary section — "30 mins", "1 hr 30 mins" —
+ * rather than the compact "0h 30m" used inside the runtime field itself.
+ */
+export const formatTwapRuntimeSummary = (durationMinutes: number): string => {
+  if (durationMinutes <= 0) {
+    return PERPS_CONSTANTS.FallbackDataDisplay;
+  }
+
+  const { MinutesPerHour, HoursPerDay } = PERPS_TWAP_UI_CONFIG;
+  const minutesPerDay = MinutesPerHour * HoursPerDay;
+  const days = Math.floor(durationMinutes / minutesPerDay);
+  const hours = Math.floor((durationMinutes % minutesPerDay) / MinutesPerHour);
+  const minutes = durationMinutes % MinutesPerHour;
+  const parts: string[] = [];
+
+  if (days > 0) {
+    parts.push(durationDayLabel(days));
+  }
+  if (hours > 0) {
+    parts.push(durationHourLabel(hours));
+  }
+  if (minutes > 0) {
+    parts.push(durationMinuteLabel(minutes));
+  }
+
+  return parts.join(' ');
+};
+
 const PerpsProTwapFields = ({
   twap,
   onDurationPress,
@@ -54,16 +102,27 @@ const PerpsProTwapFields = ({
       testID={ids.TWAP_DURATION_BUTTON}
     >
       <Box twClassName="items-start">
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          testID={ids.TWAP_DURATION_LABEL}
-        >
-          {strings(
-            'perps.pro_order_form.twap.runtime_label',
-            PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
-          )}
-        </Text>
+        <Box twClassName="w-full flex-row items-center justify-between">
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            testID={ids.TWAP_DURATION_LABEL}
+          >
+            {strings(
+              'perps.pro_order_form.twap.runtime_label',
+              PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
+            )}
+          </Text>
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Xs}
+            onPress={twap.onRuntimeInfoPress}
+            testID={ids.TWAP_DURATION_INFO}
+            accessibilityLabel={strings(
+              'perps.pro_order_form.twap.runtime_info',
+            )}
+          />
+        </Box>
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}

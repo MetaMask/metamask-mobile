@@ -108,6 +108,7 @@ export const MAX_PERPS_INPUT_DIGITS = 9;
 
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
+const SECONDS_PER_MINUTE = 60;
 const TWAP_DEFAULT_DURATION_MINUTES = 30;
 const TWAP_LIVE_UPDATE_INTERVAL_MS = 5000;
 const TWAP_DISCOVERY_INTERVAL_MS = 30_000;
@@ -116,6 +117,10 @@ const TWAP_FILL_HISTORY_PAGE_SIZE = 50;
 // Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
 // up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
 const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
+// Hyperliquid submits one TWAP suborder every 30 seconds, so the suborder count
+// is the runtime divided by this interval:
+// https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
+const TWAP_SUBORDER_INTERVAL_SECONDS = 30;
 
 /**
  * Mobile-only TWAP input and copy configuration derived from the controller's
@@ -126,6 +131,8 @@ const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
 export const PERPS_TWAP_UI_CONFIG = {
   MinutesPerHour: MINUTES_PER_HOUR,
   HoursPerDay: HOURS_PER_DAY,
+  SecondsPerMinute: SECONDS_PER_MINUTE,
+  SuborderIntervalSeconds: TWAP_SUBORDER_INTERVAL_SECONDS,
   MinimumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
   MaximumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
   MinimumNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,

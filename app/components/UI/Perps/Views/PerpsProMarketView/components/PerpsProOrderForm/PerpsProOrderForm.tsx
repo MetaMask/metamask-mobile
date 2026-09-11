@@ -242,8 +242,39 @@ const OrderSummary = ({
   feeDiscountPercentage,
   onSlippagePress,
   onFeesInfoPress,
+  twapSummary,
 }: PerpsProOrderSummaryProps) => (
   <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
+    {twapSummary ? (
+      <>
+        <KeyValueRow
+          keyLabel={strings('perps.pro_order_form.twap.summary_runtime')}
+          value={twapSummary.runtime}
+          keyTextProps={summaryKeyTextProps}
+          valueTextProps={{
+            ...summaryValueTextProps,
+            testID: ids.SUMMARY_TWAP_RUNTIME_VALUE,
+          }}
+          twClassName={summaryRowClassName}
+          style={summaryRowStyle}
+          testID={ids.SUMMARY_TWAP_RUNTIME}
+        />
+        <KeyValueRow
+          keyLabel={strings(
+            'perps.pro_order_form.twap.summary_size_per_suborder',
+          )}
+          value={twapSummary.sizePerSuborder}
+          keyTextProps={summaryKeyTextProps}
+          valueTextProps={{
+            ...summaryValueTextProps,
+            testID: ids.SUMMARY_TWAP_SIZE_PER_SUBORDER_VALUE,
+          }}
+          twClassName={summaryRowClassName}
+          style={summaryRowStyle}
+          testID={ids.SUMMARY_TWAP_SIZE_PER_SUBORDER}
+        />
+      </>
+    ) : null}
     <KeyValueRow
       keyLabel={strings('perps.order.margin')}
       value={margin}
@@ -253,16 +284,18 @@ const OrderSummary = ({
       style={summaryRowStyle}
       testID={ids.SUMMARY_MARGIN}
     />
-    <KeyValueRow
-      keyLabel={strings('perps.pro_order_form.est_liquidation')}
-      value={liquidationPrice}
-      keyTextProps={summaryKeyTextProps}
-      valueTextProps={summaryBeforeAfterValueTextProps}
-      twClassName={summaryBeforeAfterRowClassName}
-      style={summaryRowStyle}
-      testID={ids.SUMMARY_LIQUIDATION}
-    />
-    {slippage !== undefined ? (
+    {twapSummary ? null : (
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.est_liquidation')}
+        value={liquidationPrice}
+        keyTextProps={summaryKeyTextProps}
+        valueTextProps={summaryBeforeAfterValueTextProps}
+        twClassName={summaryBeforeAfterRowClassName}
+        style={summaryRowStyle}
+        testID={ids.SUMMARY_LIQUIDATION}
+      />
+    )}
+    {!twapSummary && slippage !== undefined ? (
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
         value={slippage}

@@ -1648,7 +1648,16 @@
         "randomize": "Randomize",
         "randomize_description": "Vary each suborder size by up to ±{{randomizeVariancePercent}}%.",
         "minimum_size": "TWAP total size must be at least ${{minNotionalUsd}}.",
-        "duration_range": "Running time must be between {{minDurationMinutes}} minutes and {{maxDurationHours}} hours."
+        "duration_range": "Running time must be between {{minDurationMinutes}} minutes and {{maxDurationHours}} hours.",
+        "summary_runtime": "Runtime",
+        "summary_size_per_suborder": "Size per suborder",
+        "runtime_info": "About TWAP runtime",
+        "duration_day": "1 day",
+        "duration_days": "{{count}} days",
+        "duration_hour": "1 hr",
+        "duration_hours": "{{count}} hrs",
+        "duration_minute": "1 min",
+        "duration_minutes": "{{count}} mins"
       }
     },
     "pro_positions_panel": {
@@ -1916,7 +1925,7 @@
         },
         "chase": {
           "title": "Chase",
-          "description": "Post-only limit order that follows the best bid or ask"
+          "description": "Auto adjust limit order to the best price"
         },
         "stop_limit": {
           "title": "Stop limit",
@@ -2491,6 +2500,10 @@
       "size_skew": {
         "title": "Size skew",
         "content": "Size skew controls how order size is distributed across the range. Values above 1 put more size near the end, values below 1 put more near the start, and 1.00 splits size evenly."
+      },
+      "twap_runtime": {
+        "title": "Runtime",
+        "content": "Runtime is how long the TWAP order keeps working. The total size is split into suborders that are submitted at regular intervals until the runtime ends."
       },
       "closing_fees": {
         "title": "Closing fees",
