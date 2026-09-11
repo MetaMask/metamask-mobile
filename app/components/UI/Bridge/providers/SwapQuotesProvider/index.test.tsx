@@ -6,6 +6,12 @@ import { runQuoteProviderCases } from '../../hooks/useBridgeQuoteData/runQuotePr
 import { FeatureId } from '@metamask/bridge-controller';
 import { mockContext } from '../../hooks/useBridgeQuoteRequest/runQuoteRequestCases';
 
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  selectBridgeQuotes: jest.fn(),
+  selectBridgeFeatureFlags: jest.fn(),
+}));
+
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
 }));
