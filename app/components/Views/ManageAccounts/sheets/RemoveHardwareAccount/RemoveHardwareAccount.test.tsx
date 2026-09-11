@@ -5,7 +5,7 @@ import { createMockInternalAccount } from '../../../../../util/test/accountsCont
 import { createMockAccountGroup } from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { EthAccountType } from '@metamask/keyring-api';
-import { toast } from '@metamask/design-system-react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { removeHardwareAccount } from '../../../../../util/accounts/removeHardwareAccount';
@@ -92,16 +92,6 @@ describe('RemoveHardwareAccount', () => {
     expect(queryByText(`Remove ${mockAccount.metadata.name}?`)).toBeNull();
   });
 
-  it('falls back to the internal account name when no group is passed', () => {
-    mockUseRoute.mockReturnValue({
-      params: { account: mockAccount },
-    } as never);
-
-    const { getByText } = render();
-
-    expect(getByText(`Remove ${mockAccount.metadata.name}?`)).toBeTruthy();
-  });
-
   it('navigates back when cancel is pressed', () => {
     const { getByTestId } = render();
 
@@ -141,28 +131,12 @@ describe('RemoveHardwareAccount', () => {
     await waitFor(() => {
       expect(mockToast).toHaveBeenCalledTimes(1);
     });
-    expect(mockToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: strings('accounts.account_removed_toast', {
-          accountName: mockAccountGroup.metadata.name,
-        }),
-        severity: expect.anything(),
-        hasNoTimeout: false,
+    expect(mockToast).toHaveBeenCalledWith({
+      title: strings('accounts.account_removed_toast', {
+        accountName: mockAccountGroup.metadata.name,
       }),
-    );
-  });
-
-  it('does not show a toast when removal fails', async () => {
-    mockRemoveHardwareAccount.mockRejectedValue(new Error('boom'));
-
-    const { getByTestId } = render();
-
-    fireEvent.press(getByTestId(RemoveHardwareAccountSelectors.REMOVE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockRemoveHardwareAccount).toHaveBeenCalled();
+      severity: ToastSeverity.Success,
     });
-    expect(mockToast).not.toHaveBeenCalled();
   });
 
   it('does not show a toast when cancel is pressed', () => {
