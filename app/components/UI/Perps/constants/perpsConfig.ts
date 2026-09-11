@@ -12,7 +12,6 @@ import type { Hex } from '@metamask/utils';
 import {
   CHASE_ORDER_STATUS,
   HYPERLIQUID_TWAP_LIMITS,
-  PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
   type ChaseOrder,
 } from '@metamask/perps-controller';
 import { TokenI } from '../../Tokens/types';
@@ -257,11 +256,9 @@ export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 
-export const PAGE_WINDOW_MS =
-  PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FUNDING_HISTORY_PAGE_WINDOW_DAYS * DAY;
+export const PAGE_WINDOW_MS = 7 * DAY;
 
-export const MAX_LOOKBACK_MS =
-  PERPS_TRANSACTIONS_HISTORY_CONSTANTS.DEFAULT_FUNDING_HISTORY_DAYS * DAY;
+export const MAX_LOOKBACK_MS = 365 * DAY;
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
