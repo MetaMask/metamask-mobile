@@ -39,8 +39,8 @@ import {
   type SectionListRenderItemInfo,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
-import Routes from '../../../../constants/navigation/Routes';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   ImpactMoment,
   playImpact,
@@ -450,6 +450,13 @@ const FeedView: React.FC<FeedViewProps> = ({
     }
   }, [hasNextPage, loadMore]);
 
+  // pb-6 plus whatever the floating NavBar overlays, so the last row stays
+  // reachable. The inset is 0 on control and wherever the navigator hides it.
+  const listBottomPadding = useMemo(
+    () => ({ paddingBottom: 24 + floatingTabBarInset }),
+    [floatingTabBarInset],
+  );
+
   const refreshControl = useMemo(
     () => (
       <RefreshControl
@@ -600,7 +607,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     onScroll,
     tw,
     now,
-    floatingTabBarInset,
+    listBottomPadding,
   ]);
 
   return (

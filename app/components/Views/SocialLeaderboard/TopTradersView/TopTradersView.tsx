@@ -36,8 +36,8 @@ import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
-import Routes from '../../../../constants/navigation/Routes';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
+import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   selectSocialLeaderboardEnabled,
