@@ -24,10 +24,13 @@ import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Transaction } from '@metamask/keyring-api';
 import { BridgeSessionProvider } from '../../../app/components/UI/Bridge/providers/BridgeSessionProvider';
 import { BridgeQuoteDataProvider } from '../../../app/components/UI/Bridge/hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { SwapQuotesProvider } from '../../../app/components/UI/Bridge/providers/SwapQuotesProvider';
 
 const BridgeSessionTree = ({ children }: { children: React.ReactNode }) => (
   <BridgeSessionProvider>
-    <BridgeQuoteDataProvider>{children}</BridgeQuoteDataProvider>
+    <SwapQuotesProvider>
+      <BridgeQuoteDataProvider>{children}</BridgeQuoteDataProvider>
+    </SwapQuotesProvider>
   </BridgeSessionProvider>
 );
 
