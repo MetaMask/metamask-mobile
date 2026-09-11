@@ -191,7 +191,8 @@ describe('filterLowQualityTokens', () => {
             {
               featureId: 'UNSTABLE_TOKEN_PRICE',
               type: 'Warning',
-              description: 'Tokens with limited liquidity in liquidity pools - could potentially become illiquid',
+              description:
+                'Tokens with limited liquidity in liquidity pools - could potentially become illiquid',
             },
           ],
         } as TrendingAsset['securityData'],
