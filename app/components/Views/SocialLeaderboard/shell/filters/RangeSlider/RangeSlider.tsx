@@ -73,6 +73,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     elevation: 4,
   },
+  minThumb: {
+    zIndex: 1,
+  },
+  maxThumb: {
+    zIndex: 2,
+  },
 });
 
 export interface RangeSliderProps {
@@ -431,11 +437,11 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
           <Animated.View
             style={[
               styles.thumb,
+              styles.minThumb,
               minThumbStyle,
               {
                 backgroundColor: colors.background.default,
                 borderColor: colors.icon.default,
-                zIndex: 1,
               },
             ]}
             pointerEvents="none"
@@ -446,11 +452,11 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
           <Animated.View
             style={[
               styles.thumb,
+              styles.maxThumb,
               maxThumbStyle,
               {
                 backgroundColor: colors.background.default,
                 borderColor: colors.icon.default,
-                zIndex: 2,
               },
             ]}
             pointerEvents="none"

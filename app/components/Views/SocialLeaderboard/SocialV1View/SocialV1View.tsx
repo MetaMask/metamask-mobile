@@ -432,7 +432,7 @@ const SocialV1View: React.FC = () => {
             gap={1}
           >
             <ButtonIcon
-              iconName={IconName.Star}
+              iconName={IconName.HeartStraight}
               size={ButtonIconSize.Md}
               onPress={handlePlaceholderHeaderAction}
               testID={SocialV1ViewSelectorsIDs.HEART_BUTTON}
