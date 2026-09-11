@@ -60,6 +60,7 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
     hero.status === 'error' || hero.status === 'ineligible'
       ? '—'
       : formatCurrency(hero.totalFiat, hero.userCurrency);
+  const zeroBalance = formatCurrency(0, hero.userCurrency);
   const amountText = useMemo(
     () =>
       hero.delta
@@ -125,5 +126,6 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
     privacyMode,
     shouldShowEmptyState,
     togglePrivacy,
+    zeroBalance,
   };
 }

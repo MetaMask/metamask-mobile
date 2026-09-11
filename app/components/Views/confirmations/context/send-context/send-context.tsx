@@ -5,6 +5,8 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useMemo,
+  useRef,
 } from 'react';
 import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
@@ -52,6 +54,10 @@ export const SendContextProvider: React.FC<{
   const [fromAccount, updateFromAccount] = useState<InternalAccount>();
   const accounts = useSelector(selectInternalAccountsById);
   const selectedGroup = useSelector(selectSelectedAccountGroup);
+  const accountsRef = useRef(accounts);
+  const selectedGroupRef = useRef(selectedGroup);
+  accountsRef.current = accounts;
+  selectedGroupRef.current = selectedGroup;
 
   const updateValue = useCallback(
     (val: string, maxMode?: boolean) => {
@@ -69,13 +75,16 @@ export const SendContextProvider: React.FC<{
         updatedAsset?.accountId &&
         updatedAsset.accountId !== fromAccount?.id
       ) {
-        updateFromAccount(accounts[updatedAsset.accountId as string]);
+        updateFromAccount(
+          accountsRef.current[updatedAsset.accountId as string],
+        );
       } else {
         // We don't have accountId in the updated asset - this is a navigation from outside of the send flow
         // Hence we need to update the fromAccount from the selected group
-        const selectedAccountGroupAccounts = selectedGroup?.accounts.map(
-          (accountId) => accounts[accountId],
-        );
+        const selectedAccountGroupAccounts =
+          selectedGroupRef.current?.accounts.map(
+            (accountId) => accountsRef.current[accountId],
+          );
 
         for (const protocol of Object.values(AssetProtocol)) {
           const config = PROTOCOL_CONFIG[protocol];
@@ -89,38 +98,41 @@ export const SendContextProvider: React.FC<{
         }
       }
     },
-    [
-      accounts,
-      fromAccount?.id,
-      updateValue,
-      updateAsset,
-      updateFromAccount,
-      selectedGroup?.accounts,
-    ],
+    [fromAccount?.id, updateValue, updateAsset, updateFromAccount],
   );
 
   const chainId =
     asset && isEvmAddress(asset.address) && asset.chainId
       ? toHex(asset.chainId)
       : (asset?.chainId as `${string}:${string}`); // CAIP format for non-EVM
+  const contextValue = useMemo(
+    () => ({
+      asset,
+      chainId,
+      fromAccount,
+      from: fromAccount?.address as string,
+      maxValueMode,
+      to,
+      updateAsset: handleUpdateAsset,
+      updateTo,
+      updateValue,
+      value,
+    }),
+    [
+      asset,
+      chainId,
+      fromAccount,
+      handleUpdateAsset,
+      maxValueMode,
+      to,
+      updateTo,
+      updateValue,
+      value,
+    ],
+  );
 
   return (
-    <SendContext.Provider
-      value={{
-        asset,
-        chainId,
-        fromAccount,
-        from: fromAccount?.address as string,
-        maxValueMode,
-        to,
-        updateAsset: handleUpdateAsset,
-        updateTo,
-        updateValue,
-        value,
-      }}
-    >
-      {children}
-    </SendContext.Provider>
+    <SendContext.Provider value={contextValue}>{children}</SendContext.Provider>
   );
 };
 

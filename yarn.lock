@@ -40263,6 +40263,7 @@ __metadata:
     react-native-keyboard-aware-scroll-view: "npm:^0.9.5"
     react-native-keyboard-controller: "npm:1.21.6"
     react-native-keychain: "npm:^10.0.0"
+    react-native-laminar: "npm:^1.4.5"
     react-native-launch-arguments: "patch:react-native-launch-arguments@npm%3A4.0.1#~/.yarn/patches/react-native-launch-arguments-npm-4.0.1-97eaf39f12.patch"
     react-native-level-fs: "npm:3.0.1"
     react-native-linear-gradient: "npm:^2.8.3"
@@ -46231,6 +46232,17 @@ __metadata:
   version: 10.0.0
   resolution: "react-native-keychain@npm:10.0.0"
   checksum: 10/f06f2214ec7f8ac6fe63a30bee8a434e2d14c316be4b67821d7c25f1f540869ca852a567949783a560b0f7ca97f18be50c409cb35cb2cde3d49fb0700338604a
+  languageName: node
+  linkType: hard
+
+"react-native-laminar@npm:^1.4.5":
+  version: 1.4.5
+  resolution: "react-native-laminar@npm:1.4.5"
+  peerDependencies:
+    react: ">=18"
+    react-native: ">=0.74"
+    react-native-reanimated: ">=3"
+  checksum: 10/6c1001ed29a4faace5f7727361522d7458271ced177fd51a4bc8f948f360f8ed1e422853bf089a476aa6c9f606e228a56241ced09b0843e78bed1f89c3d236fa
   languageName: node
   linkType: hard
 
