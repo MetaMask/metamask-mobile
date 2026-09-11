@@ -1,34 +1,15 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import { launchSumSubSdk } from './launchSumSubSdk';
-import {
-  METAMASK_PRIVACY_POLICY_URL,
-  METAMASK_TERMS_URL,
-  MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-} from './constants';
+import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
-
-jest.mock('./launchSumSubSdk', () => ({
-  launchSumSubSdk: jest.fn(),
-}));
-
-jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    log: jest.fn(),
-    error: jest.fn(),
-  },
-}));
 
 jest.mock('./hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
 const mockRetry = jest.fn();
-
-const mockLaunchSumSubSdk = jest.mocked(launchSumSubSdk);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -61,10 +42,6 @@ const catalogDisclaimers = [
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLaunchSumSubSdk.mockResolvedValue({
-      success: true,
-      status: 'Approved',
-    });
     mockUseKycSessionDisclaimers.mockReturnValue({
       disclaimers: catalogDisclaimers,
       isLoading: false,
@@ -239,46 +216,11 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('launches the Sumsub SDK with a mock applicant token when continue is pressed', async () => {
+  it('opens email collection when continue is pressed', () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
-    await waitFor(() => {
-      expect(mockLaunchSumSubSdk).toHaveBeenCalledWith({
-        accessToken: MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-        onTokenExpired: expect.any(Function),
-      });
-    });
-  });
-
-  it('returns the mock applicant token when the SDK asks to refresh', async () => {
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
-
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockLaunchSumSubSdk).toHaveBeenCalledTimes(1);
-    });
-
-    const { onTokenExpired } = mockLaunchSumSubSdk.mock.calls[0][0];
-
-    await expect(onTokenExpired?.()).resolves.toBe(
-      MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-    );
-  });
-
-  it('stays on the screen when the Sumsub SDK launch fails', async () => {
-    mockLaunchSumSubSdk.mockRejectedValueOnce(new Error('launch failed'));
-    const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
-
-    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
-
-    await waitFor(() => {
-      expect(mockLaunchSumSubSdk).toHaveBeenCalledTimes(1);
-    });
-    expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
-    ).toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaKycEmail');
   });
 });

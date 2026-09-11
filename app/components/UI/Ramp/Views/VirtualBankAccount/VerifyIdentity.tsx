@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { Linking, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import Logger from '../../../../../util/Logger';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -30,17 +29,16 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
-  MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
   VBA_KYC_COUNTRY_CODE,
 } from './constants';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import LegalLink from './components/LegalLink';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
-import { launchSumSubSdk } from './launchSumSubSdk';
 
 const CHEVRON_ANIMATION_DURATION = 200;
 
@@ -133,12 +131,10 @@ const VbaVerifyIdentity = () => {
     useKycSessionDisclaimers(VBA_KYC_COUNTRY_CODE);
   const [isDataAndPrivacyExpanded, setIsDataAndPrivacyExpanded] =
     useState(false);
-  const [isLaunchingSumSub, setIsLaunchingSumSub] = useState(false);
   const chevronRotation = useSharedValue(0);
 
   // The user can't continue without seeing idOS / SumSub terms.
-  const canContinue =
-    !isLoading && !error && Boolean(disclaimers?.length) && !isLaunchingSumSub;
+  const canContinue = !isLoading && !error && Boolean(disclaimers?.length);
 
   const animatedChevronStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${chevronRotation.value}deg` }],
@@ -146,22 +142,9 @@ const VbaVerifyIdentity = () => {
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleContinue = useCallback(async () => {
-    setIsLaunchingSumSub(true);
-    try {
-      const result = await launchSumSubSdk({
-        accessToken: MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-        onTokenExpired: async () => MOCK_SUMSUB_APPLICANT_ACCESS_TOKEN,
-      });
-      Logger.log('[VBA KYC] Sumsub SDK closed', result);
-    } catch (sumSubError) {
-      Logger.error(sumSubError as Error, {
-        tags: { feature: 'vba-kyc', provider: 'sumsub' },
-      });
-    } finally {
-      setIsLaunchingSumSub(false);
-    }
-  }, []);
+  const handleContinue = useCallback(() => {
+    navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
+  }, [navigation]);
 
   const toggleDataAndPrivacy = useCallback(() => {
     setIsDataAndPrivacyExpanded((prev) => {
@@ -362,7 +345,6 @@ const VbaVerifyIdentity = () => {
           size={ButtonSize.Lg}
           isFullWidth
           isDisabled={!canContinue}
-          isLoading={isLaunchingSumSub}
           onPress={handleContinue}
           testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
         >
