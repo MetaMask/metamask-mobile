@@ -10,8 +10,11 @@ const DEFAULT_CATEGORIES: PerpsCategory[] = [
   { id: 'forex', label: 'Forex' },
 ];
 
+// Mutable so individual tests can inject categories such as 'memecoin'.
+let mockCategories: PerpsCategory[] = DEFAULT_CATEGORIES;
+
 jest.mock('../../hooks/usePerpsCategories', () => ({
-  usePerpsCategories: () => DEFAULT_CATEGORIES,
+  usePerpsCategories: () => mockCategories,
   NEW_CATEGORY: { id: 'new', label: 'New' },
 }));
 
@@ -39,6 +42,43 @@ describe('PerpsMarketCategoryBadges', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCategories = DEFAULT_CATEGORIES;
+  });
+
+  describe('memecoin icon', () => {
+    const MEMECOIN_CATEGORIES: PerpsCategory[] = [
+      { id: 'crypto', label: 'Crypto' },
+      { id: 'memecoin', label: 'Memecoins' },
+    ];
+
+    it('renders the local sentiment-satisfied glyph on the memecoin chip', () => {
+      mockCategories = MEMECOIN_CATEGORIES;
+
+      const { getByTestId } = render(
+        <PerpsMarketCategoryBadges {...defaultProps} />,
+      );
+
+      expect(getByTestId('perps-sentiment-satisfied-icon')).toBeTruthy();
+    });
+
+    it('renders the memecoin chip label alongside the local glyph', () => {
+      mockCategories = MEMECOIN_CATEGORIES;
+
+      const { getByText, getByTestId } = render(
+        <PerpsMarketCategoryBadges {...defaultProps} />,
+      );
+
+      expect(getByText('Memecoins')).toBeTruthy();
+      expect(getByTestId('perps-sentiment-satisfied-icon')).toBeTruthy();
+    });
+
+    it('does not render the local glyph when no memecoin category exists', () => {
+      const { queryByTestId } = render(
+        <PerpsMarketCategoryBadges {...defaultProps} />,
+      );
+
+      expect(queryByTestId('perps-sentiment-satisfied-icon')).toBeNull();
+    });
   });
 
   describe('All state (no category selected)', () => {

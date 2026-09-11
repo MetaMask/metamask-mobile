@@ -27,7 +27,13 @@ import {
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
-import { getCategoryIconName } from '../../constants/categoryIcons';
+import {
+  getCategoryIconName,
+  MEMECOIN_CATEGORY_ID,
+} from '../../constants/categoryIcons';
+import PerpsSentimentSatisfiedIcon, {
+  PERPS_SENTIMENT_ICON_SIZE_MD,
+} from '../PerpsSentimentSatisfiedIcon/PerpsSentimentSatisfiedIcon';
 import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
@@ -110,11 +116,15 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
         onPress={() => handlePillPress(category.id, index)}
         testID={`${TEST_ID}-${category.id}`}
         leading={
-          <Icon
-            name={getCategoryIconName(category.id)}
-            size={IconSize.Md}
-            color={IconColor.IconDefault}
-          />
+          category.id === MEMECOIN_CATEGORY_ID ? (
+            <PerpsSentimentSatisfiedIcon size={PERPS_SENTIMENT_ICON_SIZE_MD} />
+          ) : (
+            <Icon
+              name={getCategoryIconName(category.id)}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
+          )
         }
         title={category.label}
       />
