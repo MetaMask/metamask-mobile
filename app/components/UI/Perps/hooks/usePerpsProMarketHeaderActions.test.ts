@@ -54,13 +54,32 @@ jest.mock('./usePerpsWatchlistActions', () => ({
 
 const mockDropPerpsHomeFromStackHistory = jest.fn();
 jest.mock('../utils/perpsModeSwitch', () => ({
+  ...jest.requireActual('../utils/perpsModeSwitch'),
   useDropPerpsHomeFromStackHistory: () => mockDropPerpsHomeFromStackHistory,
 }));
 
 const mockNavigate = jest.fn();
+// Index within the Perps stack itself: 0 means this screen is the only entry,
+// so there is nothing to pop without leaving Perps.
+let mockPerpsStackIndex = 1;
+let mockHomeDroppedFromHistory = false;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    getState: () => ({
+      index: mockPerpsStackIndex,
+      routes: [
+        {
+          name: 'PerpsMarketDetails',
+          key: 'market-1',
+          params: mockHomeDroppedFromHistory
+            ? { homeDroppedFromHistory: true }
+            : {},
+        },
+      ],
+    }),
+  }),
 }));
 
 const mockOpenPerpsModeSelectionIfNeeded = jest.fn(() =>
@@ -81,6 +100,8 @@ describe('usePerpsProMarketHeaderActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack = true;
+    mockPerpsStackIndex = 1;
+    mockHomeDroppedFromHistory = false;
     mockIsWatchlist = false;
     mockPerpsModeValue = PerpsMode.Pro;
     mockOpenPerpsModeSelectionIfNeeded.mockResolvedValue(false);
@@ -97,6 +118,74 @@ describe('usePerpsProMarketHeaderActions', () => {
 
     expect(mockNavigateBack).toHaveBeenCalledTimes(1);
     expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('pops the parent stack when Perps was opened as a single entry from outside Perps', () => {
+    // Arrange - Explore (and homepage/activity) push PERPS.ROOT onto a
+    // market page with no Perps Home beneath it. Parent canGoBack is true
+    // and Home was never dropped, so back must return to that screen.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC', backFallback: 'home' }),
+    );
+
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    expect(mockNavigateBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('returns to Perps Home when Home was dropped from history and the fallback is home', () => {
+    // Arrange - the Lite -> Pro switch dropped Perps Home, so this market page
+    // is the only Perps route left, while a parent navigator still reports it
+    // can go back (TAT-3786). The dropped-Home stamp is what stops us from
+    // treating this like an Explore entry and popping out to wallet.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC', backFallback: 'home' }),
+    );
+
+    // Act
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    // Assert
+    expect(mockNavigateToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('leaves Perps when Home was dropped from history and the fallback is wallet', () => {
+    // Arrange - Pro's stack root is itself a market page after Home was
+    // dropped, so falling back to Perps Home would be a no-op.
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    // Act
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    // Assert
+    expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
   });
 
   it('falls back to leaving Perps when the stack cannot go back', () => {

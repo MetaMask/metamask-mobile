@@ -12,7 +12,10 @@ import { usePerpsMode } from './usePerpsMode';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
-import { useDropPerpsHomeFromStackHistory } from '../utils/perpsModeSwitch';
+import {
+  useDropPerpsHomeFromStackHistory,
+  wasPerpsHomeDroppedFromHistory,
+} from '../utils/perpsModeSwitch';
 import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
 
 export interface UsePerpsMarketHeaderActionsParams {
@@ -75,7 +78,21 @@ export const usePerpsMarketHeaderActions = ({
   const isWatchlist = useSelector(selectIsWatchlist);
 
   const handleBackPress = useCallback(() => {
-    if (canGoBack) {
+    // Read the stack at press time: Lite -> Pro resets it while this screen
+    // stays mounted, so a value captured on render would be stale.
+    const perpsState = navigation.getState();
+    const hasPerpsStackHistory = (perpsState?.index ?? 0) > 0;
+
+    // `canGoBack()` is parent-aware. A single-entry Perps stack still reports
+    // true when the main stack can pop `PERPS.ROOT` — that's correct for
+    // Explore/homepage (return to that screen) and wrong after Lite -> Pro
+    // dropped Perps Home (TAT-3786), which would dump the user on wallet.
+    // `dropPerpsHomeFromStackHistory` stamps remaining routes so we can tell
+    // those two single-entry stacks apart.
+    if (
+      canGoBack &&
+      (hasPerpsStackHistory || !wasPerpsHomeDroppedFromHistory(perpsState))
+    ) {
       navigateBack();
       return;
     }
@@ -89,7 +106,14 @@ export const usePerpsMarketHeaderActions = ({
     // Pro mode is active is itself a market screen, so falling back to it
     // here would often be a no-op. Leave Perps entirely instead.
     navigateToWallet();
-  }, [backFallback, canGoBack, navigateBack, navigateToHome, navigateToWallet]);
+  }, [
+    backFallback,
+    canGoBack,
+    navigateBack,
+    navigateToHome,
+    navigateToWallet,
+    navigation,
+  ]);
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {

@@ -7,6 +7,7 @@ import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsMode } from '../selectors/perpsController';
 import {
   PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  PERPS_HOME_DROPPED_FROM_HISTORY_PARAM,
   buildDefaultProMarket,
   isPerpsProModeActive,
   useIsPerpsProModeActive,
@@ -15,6 +16,8 @@ import {
   useNavigateToPerpsHome,
   useDropPerpsHomeFromStackHistory,
   toPerpsNavigatorScreenParams,
+  wasPerpsHomeDroppedFromHistory,
+  withHomeDroppedFromHistory,
 } from './perpsModeSwitch';
 
 jest.mock('react-redux', () => ({
@@ -311,8 +314,67 @@ describe('perpsModeSwitch', () => {
     });
   });
 
+  describe('wasPerpsHomeDroppedFromHistory', () => {
+    it('returns true when the focused route was stamped after Home was dropped', () => {
+      const state = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.PERPS.MARKET_DETAILS,
+            key: 'market-1',
+            params: { [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true },
+          },
+        ],
+      };
+
+      expect(wasPerpsHomeDroppedFromHistory(state)).toBe(true);
+    });
+
+    it('returns false when the focused route has no dropped-Home stamp', () => {
+      const state = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.PERPS.MARKET_DETAILS,
+            key: 'market-1',
+            params: { source: 'explore' },
+          },
+        ],
+      };
+
+      expect(wasPerpsHomeDroppedFromHistory(state)).toBe(false);
+    });
+
+    it('returns false when navigator state is missing', () => {
+      expect(wasPerpsHomeDroppedFromHistory(undefined)).toBe(false);
+    });
+
+    it('reads the stamp produced by withHomeDroppedFromHistory', () => {
+      const state = {
+        index: 0,
+        routes: [
+          {
+            params: withHomeDroppedFromHistory({
+              source: 'perps_home',
+            }),
+          },
+        ],
+      };
+
+      expect(wasPerpsHomeDroppedFromHistory(state)).toBe(true);
+    });
+  });
+
   describe('useDropPerpsHomeFromStackHistory', () => {
-    const buildRoute = (name: string, key: string) => ({ name, key });
+    const buildRoute = (name: string, key: string, params?: object) => ({
+      name,
+      key,
+      ...(params ? { params } : {}),
+    });
+    const withDroppedHomeStamp = (route: { name: string; key: string }) => ({
+      ...route,
+      params: { [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true },
+    });
 
     it('removes Perps Home while keeping the rest of the stack and the focused screen', () => {
       // Arrange - Home → market list → market, focused on the market.
@@ -330,13 +392,50 @@ describe('perpsModeSwitch', () => {
       // Act
       result.current();
 
-      // Assert - Home is gone and the market stays focused at its new index.
+      // Assert - Home is gone, the market stays focused, and remaining
+      // routes are stamped so back can tell this from an Explore entry.
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            buildRoute(Routes.PERPS.MARKET_LIST, 'list-1'),
-            buildRoute(Routes.PERPS.MARKET_DETAILS, 'market-1'),
+            withDroppedHomeStamp(
+              buildRoute(Routes.PERPS.MARKET_LIST, 'list-1'),
+            ),
+            withDroppedHomeStamp(
+              buildRoute(Routes.PERPS.MARKET_DETAILS, 'market-1'),
+            ),
+          ],
+        }),
+      );
+    });
+
+    it('keeps existing route params when stamping remaining routes', () => {
+      mockGetState.mockReturnValue({
+        index: 1,
+        routes: [
+          buildRoute(Routes.PERPS.PERPS_HOME, 'home-1'),
+          buildRoute(Routes.PERPS.MARKET_DETAILS, 'market-1', {
+            source: 'perps_home',
+          }),
+        ],
+      });
+
+      const { result } = renderHook(() => useDropPerpsHomeFromStackHistory());
+
+      result.current();
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 0,
+          routes: [
+            {
+              name: Routes.PERPS.MARKET_DETAILS,
+              key: 'market-1',
+              params: {
+                source: 'perps_home',
+                [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true,
+              },
+            },
           ],
         }),
       );

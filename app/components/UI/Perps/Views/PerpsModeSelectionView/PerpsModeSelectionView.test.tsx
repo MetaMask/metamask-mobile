@@ -103,6 +103,8 @@ jest.mock('../../utils/perpsModeSwitch', () => ({
   dropPerpsHomeFromStackHistory: jest.requireActual(
     '../../utils/perpsModeSwitch',
   ).dropPerpsHomeFromStackHistory,
+  withHomeDroppedFromHistory: jest.requireActual('../../utils/perpsModeSwitch')
+    .withHomeDroppedFromHistory,
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -328,6 +330,7 @@ describe('PerpsModeSelectionView', () => {
           params: {
             market: { symbol: 'BTC', name: 'Bitcoin' },
             source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+            homeDroppedFromHistory: true,
           },
         },
       ],
@@ -354,8 +357,16 @@ describe('PerpsModeSelectionView', () => {
       expect.objectContaining({
         index: 1,
         routes: [
-          { name: Routes.PERPS.MARKET_DETAILS, key: 'market-1' },
-          { name: Routes.PERPS.MODALS.ROOT, key: 'modal-1' },
+          {
+            name: Routes.PERPS.MARKET_DETAILS,
+            key: 'market-1',
+            params: { homeDroppedFromHistory: true },
+          },
+          {
+            name: Routes.PERPS.MODALS.ROOT,
+            key: 'modal-1',
+            params: { homeDroppedFromHistory: true },
+          },
         ],
       }),
     );
