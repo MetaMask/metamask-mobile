@@ -17,6 +17,7 @@ import {
   useDropPerpsHomeFromStackHistory,
   toPerpsNavigatorScreenParams,
   wasPerpsHomeDroppedFromHistory,
+  withHomeDroppedFromHistory,
 } from './perpsModeSwitch';
 
 jest.mock('react-redux', () => ({
@@ -346,6 +347,21 @@ describe('perpsModeSwitch', () => {
 
     it('returns false when navigator state is missing', () => {
       expect(wasPerpsHomeDroppedFromHistory(undefined)).toBe(false);
+    });
+
+    it('reads the stamp produced by withHomeDroppedFromHistory', () => {
+      const state = {
+        index: 0,
+        routes: [
+          {
+            params: withHomeDroppedFromHistory({
+              source: 'perps_home',
+            }),
+          },
+        ],
+      };
+
+      expect(wasPerpsHomeDroppedFromHistory(state)).toBe(true);
     });
   });
 

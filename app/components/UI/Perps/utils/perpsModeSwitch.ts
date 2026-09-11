@@ -166,8 +166,25 @@ export const navigateToPerpsHomeTarget = (
 export const PERPS_HOME_DROPPED_FROM_HISTORY_PARAM =
   'homeDroppedFromHistory' as const;
 
+/**
+ * Index + focused-route params are enough. Callers pass `navigation.getState()`
+ * or a partial fixture in tests; requiring a full `NavigationState` made the
+ * helper unusable from unit tests (`lint:tsc`).
+ */
+interface PerpsHistoryState {
+  index: number;
+  routes: readonly { params?: object }[];
+}
+
+export const withHomeDroppedFromHistory = <T extends object>(
+  params: T,
+): T & { [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true } => ({
+  ...params,
+  [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true,
+});
+
 export const wasPerpsHomeDroppedFromHistory = (
-  state: NavigationState | undefined,
+  state: PerpsHistoryState | undefined,
 ): boolean => {
   if (!state) {
     return false;
@@ -187,10 +204,7 @@ const stampHomeDroppedFromHistory = <T extends { params?: object }>(
   route: T,
 ): T => ({
   ...route,
-  params: {
-    ...(route.params ?? {}),
-    [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true,
-  },
+  params: withHomeDroppedFromHistory(route.params ?? {}),
 });
 
 /**
