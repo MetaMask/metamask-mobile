@@ -208,6 +208,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictWorldCup: {
+    name: 'predictWorldCup',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   socialAiTSA531AbtestWhatsHappeningExplore: {
     name: 'socialAiTSA531AbtestWhatsHappeningExplore',
     type: FeatureFlagType.Remote,
@@ -3917,6 +3928,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnTradeMenuRowRedesignEnabled: {
+    name: 'earnTradeMenuRowRedesignEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   enableFiatToggle: {
     name: 'enableFiatToggle',
     type: FeatureFlagType.Remote,
@@ -5311,6 +5333,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  socialAiTSA1122AbtestSocialBundleV1: {
+    name: 'socialAiTSA1122AbtestSocialBundleV1',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          value: 1,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   socialAiTSA612AbtestQuickBuy: {
     name: 'socialAiTSA612AbtestQuickBuy',
     type: FeatureFlagType.Remote,
@@ -5645,6 +5690,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  mobileUxBftcOnsolidation: {
+    name: 'mobileUxBftcOnsolidation',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -6319,6 +6375,105 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           ],
           minimumVersion: '8.6.0',
         },
+        '8.6.0': {
+          enabled: true,
+          enabledSportsMarketTypes: [
+            'moneyline',
+            'spreads',
+            'totals',
+            'first_half_moneyline',
+            'both_teams_to_score',
+            'both_teams_to_score_first_half',
+            'both_teams_to_score_second_half',
+            'first_half_totals',
+            'second_half_totals',
+            'soccer_first_to_score',
+            'soccer_halftime_result',
+            'soccer_second_half_result',
+            'soccer_player_goals',
+            'team_totals',
+            'soccer_team_totals',
+            'basketball_team_to_score_first',
+            'soccer_exact_score',
+            'soccer_team_to_advance',
+            'soccer_extra_time',
+            'soccer_penalty_shootout',
+            'child_moneyline',
+            'map_handicap',
+            'round_handicap_game_1',
+            'round_handicap_game_2',
+            'round_handicap_game_3',
+            'round_handicap_game_4',
+            'round_handicap_game_5',
+            'round_over_under_game_1',
+            'round_over_under_game_2',
+            'round_over_under_game_3',
+            'round_over_under_game_4',
+            'round_over_under_game_5',
+            'first_blood_game',
+            'kill_over_under_game',
+            'map_participant_win_total',
+            'cs2_odd_even_total_kills',
+            'cs2_odd_even_total_rounds',
+            'lol_both_teams_baron',
+            'lol_both_teams_dragon',
+            'lol_both_teams_inhibitors',
+            'lol_odd_even_total_kills',
+            'lol_penta_kill',
+            'lol_quadra_kill',
+            'dota2_both_teams_barracks',
+            'dota2_both_teams_roshan',
+            'dota2_game_ends_daytime',
+            'dota2_rampage',
+            'dota2_ultra_kill',
+          ],
+          leagues: [
+            'nba',
+            'wnba',
+            'mlb',
+            'kbo',
+            'npb',
+            'cpbl',
+            'nhl',
+            'shl',
+            'khl',
+            'cehl',
+            'dehl',
+            'fifwc',
+            'ucl',
+            'epl',
+            'lal',
+            'sea',
+            'bun',
+            'mls',
+            'fif',
+            'uel',
+            'col',
+            'fl1',
+            'ere',
+            'bra',
+            'por',
+            'bel1',
+            'elc',
+            'lib',
+            'nfl',
+            'cfb',
+            'cfl',
+            'atp',
+            'wta',
+            'itf',
+            'cs2',
+            'lol',
+            'dota2',
+            'val',
+            'r6siege',
+            'usc',
+            'efa',
+            'clf',
+            'saf1',
+          ],
+          minimumVersion: '8.6.0',
+        },
       },
     },
     status: FeatureFlagStatus.Active,
@@ -6758,106 +6913,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  stxMigrationBatchStatus: {
-    name: 'stxMigrationBatchStatus',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-        value: true,
-        name: 'sentinel on',
-      },
-      {
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-        value: false,
-        name: 'sentinel off',
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
-  stxMigrationCancel: {
-    name: 'stxMigrationCancel',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        value: true,
-        name: 'sentinel on',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-      },
-      {
-        value: false,
-        name: 'sentinel off',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
-  stxMigrationGetFees: {
-    name: 'stxMigrationGetFees',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        value: true,
-        name: 'sentinel on',
-        scope: {
-          type: 'threshold',
-          value: 1,
-        },
-      },
-      {
-        name: 'sentinel off',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-        value: false,
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
-  stxMigrationSubmitTransactions: {
-    name: 'stxMigrationSubmitTransactions',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'sentinel on',
-        scope: {
-          value: 1,
-          type: 'threshold',
-        },
-        value: true,
-      },
-      {
-        name: 'sentinel off',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-        value: false,
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 

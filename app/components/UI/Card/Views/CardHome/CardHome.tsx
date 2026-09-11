@@ -422,10 +422,6 @@ const CardHome = () => {
     refundFiatLabel,
   ]);
 
-  const handleRedeemCredit = useCallback(() => {
-    navigation.navigate(Routes.CARD.CREDIT_REDEEM);
-  }, [navigation]);
-
   const handleOpenUkMigrationSheet = useCallback(() => {
     navigation.navigate(Routes.CARD.MODALS.ID, {
       screen: Routes.CARD.MODALS.UK_MIGRATION,
@@ -758,7 +754,7 @@ const CardHome = () => {
                     : CardMessageBoxType.CreditAvailableNoMoneyAccount
                 }
                 values={{ amount: refundFiatLabel }}
-                onConfirm={handleRedeemCredit}
+                onConfirm={actions.redeemCreditAction}
               />
             </Box>
           )}
