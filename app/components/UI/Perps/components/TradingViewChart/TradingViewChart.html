@@ -35,10 +35,10 @@ THEME VARIABLES:
 
 TPSL LINE COLORS:
 - Entry: #CCC (Light Gray)
-- Take Profit: #B9F302 (Green)
+- Take Profit: #BAF24A (Green)
 - Stop Loss: #484848 (Dark Gray)  
 - Liquidation: #FF7584 (Red)
-- Candle Up: #B9F302 (Green)
+- Candle Up: #BAF24A (Green)
 - Candle Down: #FF7584 (Red)
 
 MESSAGE TYPES:
@@ -361,10 +361,10 @@ PERFORMANCE OPTIMIZATIONS:
             }
             // Create new candlestick series with performance optimizations
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
-                upColor: '#B9F302',
+                upColor: '#BAF24A',
                 downColor: '#FF7584',
                 borderVisible: false,
-                wickUpColor: '#B9F302',
+                wickUpColor: '#BAF24A',
                 wickDownColor: '#FF7584',
                 priceLineColor: '#FFF',
                 priceLineWidth: 1,
@@ -648,7 +648,7 @@ PERFORMANCE OPTIMIZATIONS:
                 try {
                     window.priceLines.takeProfitPrice = window.candlestickSeries.createPriceLine({
                         price: window.originalPriceLineData.takeProfitPrice.price,
-                        color: '#B9F302',
+                        color: '#BAF24A',
                         lineWidth: 1,
                         lineStyle: 2,
                         axisLabelVisible: true,
@@ -782,7 +782,7 @@ PERFORMANCE OPTIMIZATIONS:
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.takeProfitPrice),
-                        color: '#B9F302', // Light Green
+                        color: '#BAF24A', // Light Green
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
@@ -906,7 +906,7 @@ PERFORMANCE OPTIMIZATIONS:
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.takeProfitPrice),
-                        color: '#B9F302', // Light Green
+                        color: '#BAF24A', // Light Green
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
