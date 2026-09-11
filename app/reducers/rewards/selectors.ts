@@ -3,7 +3,9 @@ import type { RootState } from '..';
 import { initialState } from '.';
 import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
+import { selectRewardsSubscriptionId } from '../../selectors/rewards';
 import {
+  buildSeasonSubscriptionCompositeKey,
   buildSubscriptionCampaignCompositeKey,
   buildSubscriptionVipTransactionCompositeKey,
   buildCampaignOutcomeToastCompositeKey,
@@ -20,48 +22,145 @@ import type {
   MoneyAccountSweepstakesStatsMeDto,
   MoneyAccountSweepstakesPrizePoolDto,
   MoneyAccountSweepstakesDrawProofDto,
+  SubscriptionBenefitDto,
   VipTransactionType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
 
-export const selectReferralCode = (state: RootState) =>
-  state.rewards.referralCode;
-
-export const selectBalanceTotal = (state: RootState) =>
-  state.rewards.balanceTotal;
-
-export const selectReferralCount = (state: RootState) =>
-  state.rewards.refereeCount;
-
-export const selectReferredByCode = (state: RootState) =>
-  state.rewards.referredByCode;
-
-export const selectIsVipReferee = (state: RootState) =>
-  state.rewards.isVipReferee;
-
-export const selectReferredByVipCode = (state: RootState) =>
-  state.rewards.referredByVipCode;
-
-export const selectCurrentTier = (state: RootState) =>
-  state.rewards.currentTier;
-
-export const selectNextTier = (state: RootState) => state.rewards.nextTier;
-
-export const selectNextTierPointsNeeded = (state: RootState) =>
-  state.rewards.nextTierPointsNeeded;
-
-export const selectBalanceUpdatedAt = (state: RootState) =>
-  state.rewards.balanceUpdatedAt;
-
-export const selectSeasonStatusLoading = (state: RootState) =>
-  state.rewards.seasonStatusLoading;
-
-export const selectSeasonStatusError = (state: RootState) =>
-  state.rewards.seasonStatusError;
-
 export const selectSeasonId = (state: RootState) => state.rewards.seasonId;
+
+const selectSeasonUserStatuses = (state: RootState) =>
+  state.rewards.seasonUserStatuses;
+
+const selectReferralDetailsMap = (state: RootState) =>
+  state.rewards.referralDetails;
+
+const selectActiveBoostsMap = (state: RootState) => state.rewards.activeBoosts;
+
+const selectUnlockedRewardsMap = (state: RootState) =>
+  state.rewards.unlockedRewards;
+
+const selectPointsEventsMap = (state: RootState) => state.rewards.pointsEvents;
+
+const selectBenefitsMap = (state: RootState) => state.rewards.benefits;
+
+const selectCurrentSeasonUserStatus = createSelector(
+  [selectSeasonUserStatuses, selectSeasonId, selectRewardsSubscriptionId],
+  (statuses, seasonId, subscriptionId) => {
+    if (!seasonId || !subscriptionId) {
+      return undefined;
+    }
+    return statuses[
+      buildSeasonSubscriptionCompositeKey(seasonId, subscriptionId)
+    ];
+  },
+);
+
+const selectCurrentReferralDetails = createSelector(
+  [selectReferralDetailsMap, selectRewardsSubscriptionId],
+  (detailsMap, subscriptionId) => {
+    if (!subscriptionId) {
+      return undefined;
+    }
+    return detailsMap[subscriptionId];
+  },
+);
+
+const selectCurrentActiveBoostsEntry = createSelector(
+  [selectActiveBoostsMap, selectSeasonId, selectRewardsSubscriptionId],
+  (boostsMap, seasonId, subscriptionId) => {
+    if (!seasonId || !subscriptionId) {
+      return undefined;
+    }
+    return boostsMap[
+      buildSeasonSubscriptionCompositeKey(seasonId, subscriptionId)
+    ];
+  },
+);
+
+const selectCurrentUnlockedRewardsEntry = createSelector(
+  [selectUnlockedRewardsMap, selectSeasonId, selectRewardsSubscriptionId],
+  (unlockedMap, seasonId, subscriptionId) => {
+    if (!seasonId || !subscriptionId) {
+      return undefined;
+    }
+    return unlockedMap[
+      buildSeasonSubscriptionCompositeKey(seasonId, subscriptionId)
+    ];
+  },
+);
+
+const selectCurrentBenefitsEntry = createSelector(
+  [selectBenefitsMap, selectRewardsSubscriptionId],
+  (benefitsMap, subscriptionId) => {
+    if (!subscriptionId) {
+      return undefined;
+    }
+    return benefitsMap[subscriptionId];
+  },
+);
+
+export const selectReferralCode = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.referralCode ?? null,
+);
+
+export const selectBalanceTotal = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.balanceTotal ?? null,
+);
+
+export const selectReferralCount = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.refereeCount ?? 0,
+);
+
+export const selectReferredByCode = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.referredByCode ?? null,
+);
+
+export const selectIsVipReferee = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.isVipReferee ?? false,
+);
+
+export const selectReferredByVipCode = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.referredByVipCode ?? null,
+);
+
+export const selectCurrentTier = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.currentTier ?? null,
+);
+
+export const selectNextTier = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.nextTier ?? null,
+);
+
+export const selectNextTierPointsNeeded = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.nextTierPointsNeeded ?? null,
+);
+
+export const selectBalanceUpdatedAt = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.balanceUpdatedAt ?? null,
+);
+
+export const selectSeasonStatusLoading = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.loading ?? false,
+);
+
+export const selectSeasonStatusError = createSelector(
+  [selectCurrentSeasonUserStatus],
+  (entry) => entry?.error ?? null,
+);
 
 export const selectSeasonName = (state: RootState) => state.rewards.seasonName;
 
@@ -104,11 +203,15 @@ export const selectOptinAllowedForGeoLoading = (state: RootState) =>
 export const selectOptinAllowedForGeoError = (state: RootState) =>
   state.rewards.optinAllowedForGeoError;
 
-export const selectReferralDetailsLoading = (state: RootState) =>
-  state.rewards.referralDetailsLoading;
+export const selectReferralDetailsLoading = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.loading ?? false,
+);
 
-export const selectReferralDetailsError = (state: RootState) =>
-  state.rewards.referralDetailsError;
+export const selectReferralDetailsError = createSelector(
+  [selectCurrentReferralDetails],
+  (entry) => entry?.error ?? false,
+);
 
 export const selectCandidateSubscriptionId = (state: RootState) =>
   state.rewards.candidateSubscriptionId;
@@ -122,23 +225,35 @@ export const selectHideCurrentAccountNotOptedInBannerArray = (
   state.rewards.hideCurrentAccountNotOptedInBanner ??
   initialState.hideCurrentAccountNotOptedInBanner;
 
-export const selectActiveBoosts = (state: RootState) =>
-  state.rewards.activeBoosts;
+export const selectActiveBoosts = createSelector(
+  [selectCurrentActiveBoostsEntry],
+  (entry) => entry?.boosts ?? null,
+);
 
-export const selectActiveBoostsLoading = (state: RootState) =>
-  state.rewards.activeBoostsLoading;
+export const selectActiveBoostsLoading = createSelector(
+  [selectCurrentActiveBoostsEntry],
+  (entry) => entry?.loading ?? false,
+);
 
-export const selectActiveBoostsError = (state: RootState) =>
-  state.rewards.activeBoostsError;
+export const selectActiveBoostsError = createSelector(
+  [selectCurrentActiveBoostsEntry],
+  (entry) => entry?.error ?? false,
+);
 
-export const selectUnlockedRewards = (state: RootState) =>
-  state.rewards.unlockedRewards;
+export const selectUnlockedRewards = createSelector(
+  [selectCurrentUnlockedRewardsEntry],
+  (entry) => entry?.rewards ?? null,
+);
 
-export const selectUnlockedRewardLoading = (state: RootState) =>
-  state.rewards.unlockedRewardLoading;
+export const selectUnlockedRewardLoading = createSelector(
+  [selectCurrentUnlockedRewardsEntry],
+  (entry) => entry?.loading ?? false,
+);
 
-export const selectUnlockedRewardError = (state: RootState) =>
-  state.rewards.unlockedRewardError;
+export const selectUnlockedRewardError = createSelector(
+  [selectCurrentUnlockedRewardsEntry],
+  (entry) => entry?.error ?? false,
+);
 
 export const selectSeasonRewardById =
   (rewardId: string) => (state: RootState) =>
@@ -146,8 +261,19 @@ export const selectSeasonRewardById =
       .flatMap((tier) => tier.rewards)
       ?.find((reward) => reward.id === rewardId);
 
-export const selectPointsEvents = (state: RootState) =>
-  state.rewards.pointsEvents;
+export const selectPointsEvents = createSelector(
+  [selectPointsEventsMap, selectSeasonId, selectRewardsSubscriptionId],
+  (pointsMap, seasonId, subscriptionId) => {
+    if (!seasonId || !subscriptionId) {
+      return null;
+    }
+    return (
+      pointsMap[
+        buildSeasonSubscriptionCompositeKey(seasonId, subscriptionId)
+      ] ?? null
+    );
+  },
+);
 
 // Bulk link selectors
 export const selectBulkLinkState = (state: RootState) => state.rewards.bulkLink;
@@ -184,39 +310,71 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
 export const selectPendingMasSeriesOptIn = (state: RootState) =>
   state.rewards.pendingMasSeriesOptIn;
 
-// Benefits selectors
-export const selectBenefits = (
-  state: RootState,
-): RootState['rewards']['benefits'] =>
-  state.rewards.benefits ?? initialState.benefits;
+const EMPTY_BENEFITS: SubscriptionBenefitDto[] = [];
 
-export const selectBenefitsLoading = (state: RootState): boolean =>
-  state.rewards.benefitsLoading;
+// Benefits selectors
+export const selectBenefits = createSelector(
+  [selectCurrentBenefitsEntry],
+  (entry) => entry?.benefits ?? EMPTY_BENEFITS,
+);
+
+export const selectBenefitsLoading = createSelector(
+  [selectCurrentBenefitsEntry],
+  (entry) => entry?.loading ?? false,
+);
 
 // VIP dashboard selectors
 export const selectVipDashboard =
   (subscriptionId: string | null | undefined) => (state: RootState) =>
     subscriptionId
-      ? (state.rewards.vipDashboard?.[subscriptionId] ?? null)
+      ? (state.rewards.vipDashboard?.[subscriptionId]?.data ?? null)
       : null;
 
-export const selectVipDashboardLoading = (state: RootState): boolean =>
-  state.rewards.vipDashboardLoading;
+export const selectVipDashboardLoading = createSelector(
+  [
+    (state: RootState) => state.rewards.vipDashboard,
+    selectRewardsSubscriptionId,
+  ],
+  (vipDashboard, subscriptionId) =>
+    subscriptionId ? (vipDashboard[subscriptionId]?.loading ?? false) : false,
+);
 
-export const selectVipDashboardError = (state: RootState): boolean =>
-  state.rewards.vipDashboardError;
+export const selectVipDashboardError = createSelector(
+  [
+    (state: RootState) => state.rewards.vipDashboard,
+    selectRewardsSubscriptionId,
+  ],
+  (vipDashboard, subscriptionId) =>
+    subscriptionId ? (vipDashboard[subscriptionId]?.error ?? false) : false,
+);
 
 export const selectVipRefereeDashboard =
   (subscriptionId: string | null | undefined) => (state: RootState) =>
     subscriptionId
-      ? (state.rewards.vipRefereeDashboard?.[subscriptionId] ?? null)
+      ? (state.rewards.vipRefereeDashboard?.[subscriptionId]?.data ?? null)
       : null;
 
-export const selectVipRefereeDashboardLoading = (state: RootState): boolean =>
-  state.rewards.vipRefereeDashboardLoading;
+export const selectVipRefereeDashboardLoading = createSelector(
+  [
+    (state: RootState) => state.rewards.vipRefereeDashboard,
+    selectRewardsSubscriptionId,
+  ],
+  (vipRefereeDashboard, subscriptionId) =>
+    subscriptionId
+      ? (vipRefereeDashboard[subscriptionId]?.loading ?? false)
+      : false,
+);
 
-export const selectVipRefereeDashboardError = (state: RootState): boolean =>
-  state.rewards.vipRefereeDashboardError;
+export const selectVipRefereeDashboardError = createSelector(
+  [
+    (state: RootState) => state.rewards.vipRefereeDashboard,
+    selectRewardsSubscriptionId,
+  ],
+  (vipRefereeDashboard, subscriptionId) =>
+    subscriptionId
+      ? (vipRefereeDashboard[subscriptionId]?.error ?? false)
+      : false,
+);
 
 export const selectHasAcceptedVipInvite =
   (subscriptionId: string | null | undefined) =>
@@ -637,26 +795,43 @@ export const selectPredictThePitchPrizePoolErrorByCampaignId =
 
 // Money Account Sweepstakes stats selectors
 export const selectMoneyAccountSweepstakesStatsByCampaignId =
-  (campaignId: string | undefined) =>
-  (state: RootState): MoneyAccountSweepstakesStatsMeDto | null =>
-    campaignId
-      ? (state.rewards.moneyAccountSweepstakesStats[campaignId]?.data ?? null)
-      : null;
+  (subscriptionId: string | undefined | null, campaignId: string | undefined) =>
+  (state: RootState): MoneyAccountSweepstakesStatsMeDto | null => {
+    if (!subscriptionId || !campaignId) {
+      return null;
+    }
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    return state.rewards.moneyAccountSweepstakesStats[key]?.data ?? null;
+  };
 
 export const selectMoneyAccountSweepstakesStatsLoadingByCampaignId =
-  (campaignId: string | undefined) =>
-  (state: RootState): boolean =>
-    campaignId
-      ? (state.rewards.moneyAccountSweepstakesStats[campaignId]?.loading ??
-        false)
-      : false;
+  (subscriptionId: string | undefined | null, campaignId: string | undefined) =>
+  (state: RootState): boolean => {
+    if (!subscriptionId || !campaignId) {
+      return false;
+    }
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    return state.rewards.moneyAccountSweepstakesStats[key]?.loading ?? false;
+  };
 
 export const selectMoneyAccountSweepstakesStatsErrorByCampaignId =
-  (campaignId: string | undefined) =>
-  (state: RootState): boolean =>
-    campaignId
-      ? (state.rewards.moneyAccountSweepstakesStats[campaignId]?.error ?? false)
-      : false;
+  (subscriptionId: string | undefined | null, campaignId: string | undefined) =>
+  (state: RootState): boolean => {
+    if (!subscriptionId || !campaignId) {
+      return false;
+    }
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
+    return state.rewards.moneyAccountSweepstakesStats[key]?.error ?? false;
+  };
 
 // Money Account Sweepstakes prize pool selectors
 export const selectMoneyAccountSweepstakesPrizePoolByCampaignId =
