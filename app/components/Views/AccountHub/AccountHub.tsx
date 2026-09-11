@@ -39,6 +39,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useQRScanner } from '../../hooks/useQRScanner';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import { useHasUnreadNotifications } from '../../hooks/useHasUnreadNotifications';
+import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
@@ -71,6 +72,8 @@ const AccountHub = () => {
   );
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
   const hasUnreadNotifications = useHasUnreadNotifications();
+  const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const hasCardUpdateBadge = Boolean(cardUpdateBadgeSeverity);
 
   useSyncSRPs();
 
@@ -256,15 +259,27 @@ const AccountHub = () => {
               size={ButtonIconSize.Md}
               onPress={handleManageAccountsPress}
               testID={AccountHubSelectorsIDs.MANAGE_ACCOUNTS_BUTTON}
-              accessibilityLabel="Manage accounts"
-              accessibilityRole="button"
             />
-            <ButtonIcon
-              iconName={IconName.Menu}
-              size={ButtonIconSize.Md}
-              onPress={handleMenuPress}
-              testID={AccountHubSelectorsIDs.MENU_BUTTON}
-            />
+
+            <BadgeWrapper
+              position={BadgeWrapperPosition.TopRight}
+              positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+              badge={
+                hasCardUpdateBadge ? (
+                  <BadgeStatus
+                    status={BadgeStatusStatus.Attention}
+                    testID={AccountHubSelectorsIDs.MENU_BADGE}
+                  />
+                ) : null
+              }
+            >
+              <ButtonIcon
+                iconName={IconName.Menu}
+                size={ButtonIconSize.Md}
+                onPress={handleMenuPress}
+                testID={AccountHubSelectorsIDs.MENU_BUTTON}
+              />
+            </BadgeWrapper>
           </Box>
         }
         includesTopInset

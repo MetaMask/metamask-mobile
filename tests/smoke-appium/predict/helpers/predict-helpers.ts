@@ -40,6 +40,16 @@ export const remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke =
           leagues: [],
           enabledSportsMarketTypes: [],
         },
+        '8.4.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+        '8.10.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
         '7.82.0': {
           enabled: false,
           leagues: [],
