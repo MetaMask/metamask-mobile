@@ -709,7 +709,8 @@
     "settings": "Settings",
     "rewards": "Rewards",
     "trending": "Explore",
-    "money": "Money"
+    "money": "Money",
+    "social": "Social"
   },
   "drawer": {
     "send_button": "Send",
@@ -4000,6 +4001,20 @@
     "settings": "You can also",
     "settings_link": "manage other default settings."
   },
+  "basic_functionality_migration": {
+    "title": "Your settings have changed",
+    "social_title": "Privacy and product updates",
+    "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
+    "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
+    "social_body_2_middle": " and updated ",
+    "social_body_2_suffix": ".",
+    "blog_post_link": "blog post",
+    "privacy_notice_link": "Privacy Notice",
+    "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
+    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
+    "settings_link": "Settings > Privacy",
+    "accept_and_close": "Accept and close"
+  },
   "onboarding_interest_questionnaire": {
     "title": "How will you use MetaMask?",
     "description": "Select all that apply.",
@@ -6689,7 +6704,7 @@
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
     "network_not_supported": "Current network not supported",
-    "switch_network": "Please switch to Mainnet",
+    "switch_network": "Switch to Mainnet",
     "switch": "Switch",
     "purchases": "Purchases",
     "purchase_method": "Purchase method",
@@ -6873,7 +6888,7 @@
     "best_rate": "Best rate",
     "most_reliable": "Most reliable",
     "quotes_timeout": "Quotes timeout",
-    "request_new_quotes": "Please request new quotes to get the latest best rate.",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "wallet_pay_terms": "By continuing, you accept Crossmint's",
     "terms_of_service": "Terms of Service",
     "amount_to_buy": "Buy",
@@ -6927,12 +6942,12 @@
     "return_home": "Return to home screen",
     "incompatible_token_account_modal": {
       "title": "Incompatible account",
-      "description": "Your current account cannot support tokens on {{networkName}}. Please switch to a compatible account to continue.",
+      "description": "Your current account cannot support tokens on {{networkName}}. Switch to a compatible account to continue.",
       "cta": "Got it"
     },
     "eligibility_failed_modal": {
       "title": "Eligibility check failed",
-      "description": "We couldn't confirm access based on your region. Please try again. If the issue continues, contact support.",
+      "description": "We couldn't confirm access based on your region. Try again. If the issue continues, contact support.",
       "contact_support": "Contact support",
       "got_it": "Got it"
     },
@@ -6976,7 +6991,7 @@
       "failed": "Order failed",
       "cancelled": "Order canceled",
       "pending": "Order pending",
-      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Try again or use another provider.",
       "continue_order_description": "To continue your order, you'll need to select the button at the bottom of this page.",
       "the_provider": "the provider",
       "processing": "Processing order",
@@ -7014,7 +7029,7 @@
       "sent": "Sent!"
     },
     "notifications": {
-      "purchase_failed_title": "Purchase of {{currency}} failed. Please try again momentarily.",
+      "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "Verify your payment method and card support",
       "purchase_cancelled_title": "Your purchase was cancelled",
       "purchase_cancelled_description": "Verify your payment method and card support",
@@ -7051,7 +7066,7 @@
     "processing_info_modal_description": "Card purchases typically take a few minutes. You can contact support if you have questions.",
     "go_to_provider_support": "Go to {{provider}} support page",
     "error_title": "Something went wrong",
-    "error_message": "Unable to load order details. Please try again.",
+    "error_message": "Unable to load order details. Try again.",
     "try_again": "Try again",
     "close": "Close"
   },
@@ -7062,7 +7077,7 @@
       "purchase_completed_title": "Your purchase of {{amount}} {{cryptocurrency}} was successful",
       "purchase_completed_description": "Your {{cryptocurrency}} is now available",
       "purchase_failed_title": "Purchase of {{cryptocurrency}} failed",
-      "purchase_failed_description": "Please try again momentarily",
+      "purchase_failed_description": "Try again momentarily",
       "purchase_cancelled_title": "Your purchase was cancelled",
       "purchase_cancelled_description": "Your purchase of {{cryptocurrency}} has been cancelled",
       "track": "Track"
@@ -7086,7 +7101,7 @@
       "start_swapping": "Start swapping"
     },
     "feature_off_title": "Temporarily unavailable",
-    "feature_off_body": "MetaMask Swaps are undergoing maintenance. Please check back later.",
+    "feature_off_body": "MetaMask Swaps are undergoing maintenance. Check back later.",
     "wrong_network_title": "Swaps not available",
     "wrong_network_body": "You’re only able to swap tokens on the Ethereum Main Network.",
     "unallowed_asset_title": "Can’t swap this token",
@@ -7119,7 +7134,7 @@
     "error_gathering_token_details": "There was an error gathering token details.",
     "Import": "Import",
     "invalid_token_contract_address": "Invalid token contract address.",
-    "please_verify_on_explorer": "Please verify on",
+    "please_verify_on_explorer": "Verify on",
     "add_warning": "Anyone can create a token, including creating fake versions of existing tokens that claim to represent projects.",
     "import_token": "Import token?",
     "contract": "Contract:",
@@ -7214,11 +7229,11 @@
       "3": "that wraps and unwraps native tokens which can save on gas costs."
     },
     "quotes_timeout": "Quotes timeout",
-    "request_new_quotes": "Please request new quotes to get the latest best rate.",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "quotes_not_available": "Quotes not available",
     "try_adjusting": "Try adjusting the amount and try again.",
     "error_fetching_quote": "Error fetching quote",
-    "unexpected_error": "There has been an unexpected error, please request new quotes to get the latest best rate. (error: {{error}})",
+    "unexpected_error": "There has been an unexpected error. Request new quotes to get the latest best rate. (error: {{error}})",
     "get_new_quotes": "Get new quotes",
     "try_again": "Try again",
     "terms_of_service": "Terms of service",
@@ -7270,15 +7285,15 @@
     "title": "An error occurred",
     "subtitle": "Your information can't be shown. Don’t worry, your wallet and funds are safe.",
     "try_again_button": "Try again",
-    "submit_ticket_1": "Please report this issue so we can fix it:",
+    "submit_ticket_1": "Report this issue so we can fix it:",
     "submit_ticket_2": "Take a screenshot of this screen.",
     "submit_ticket_3": "Copy",
     "submit_ticket_4": "the error message to clipboard.",
     "submit_ticket_5": "Submit a ticket",
     "submit_ticket_6": "here.",
-    "submit_ticket_7": "Please include the error message and the screenshot.",
+    "submit_ticket_7": "Include the error message and the screenshot.",
     "submit_ticket_8": "Send us a bug report",
-    "submit_ticket_9": "Please include details about what happened.",
+    "submit_ticket_9": "Include details about what happened.",
     "bug_report_prompt_title": "Tell us what happened",
     "bug_report_prompt_description": "Add details so we can figure out what went wrong.",
     "bug_report_thanks": "Thanks! We’ll take a look soon.",
@@ -7483,8 +7498,8 @@
     "add_token_manually": "Add them manually.",
     "got_it": "Got it",
     "error_title": "Something went wrong",
-    "error_message": "There was an error loading the network information. Please try again later.",
-    "private_network_third_description": "Please enter a name for this network to make it easy to identify.",
+    "error_message": "There was an error loading the network information. Try again later.",
+    "private_network_third_description": "Enter a name for this network to make it easy to identify.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "Enable auto token detection",
     "token_detection_mainnet_title": "Token detection is enabled so tokens will automatically show up in your wallet.",
@@ -7513,7 +7528,7 @@
     "action": "Turn off Remember Me"
   },
   "dapp_connect": {
-    "warning": "In order to use this feature, please update the app to the newest version"
+    "warning": "To use this feature, update the app to the newest version"
   },
   "confirmation_modal": {
     "cancel_cta": "Cancel",
@@ -7527,7 +7542,7 @@
     "title": "Review our Terms of Use",
     "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
     "accept_cta": "Accept",
-    "accept_helper_description": "Please scroll to read all sections",
+    "accept_helper_description": "Scroll to read all sections",
     "agree_cta": "Agree"
   },
   "update_needed": {
@@ -7626,7 +7641,7 @@
     "open_settings": "Open settings",
     "view_settings": "View settings",
     "bluetooth_off": "Bluetooth is off",
-    "bluetooth_off_message": "Please turn on Bluetooth for your device",
+    "bluetooth_off_message": "Turn on Bluetooth for your device",
     "bluetooth_access_blocked": "Ledger needs Bluetooth access to pair with your mobile device.",
     "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings and try again.",
     "location_access_blocked": "MetaMask needs location access permission to pair with your ledger.",
@@ -7634,22 +7649,22 @@
     "nearbyDevices_access_blocked": "MetaMask needs nearby devices permission to pair with your Ledger.",
     "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings and try again.",
     "bluetooth_scanning_error": "Error while scanning the device",
-    "bluetooth_scanning_error_message": "Please make sure your device is unlocked and the Ethereum app is running",
+    "bluetooth_scanning_error_message": "Make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "Bluetooth connection failed",
-    "bluetooth_connection_failed_message": "Please make sure your Ledger is unlocked and your Bluetooth is enabled",
+    "bluetooth_connection_failed_message": "Make sure your Ledger is unlocked and your Bluetooth is enabled",
     "ethereum_app_open": "Ledger requires confirmation",
-    "ethereum_app_open_message": "Please confirm on your device to open Ethereum app. Press OK once done.",
+    "ethereum_app_open_message": "Confirm on your device to open Ethereum app. Press OK once done.",
     "ethereum_app_unconfirmed_error": "You have denied the request to open the Ethereum app.",
     "failed_to_open_eth_app": "Failed to open the Ethereum app.",
-    "ethereum_app_open_error": "Please install/accept Ethereum app on your Ledger device.",
+    "ethereum_app_open_error": "Install/accept Ethereum app on your Ledger device.",
     "running_app_close": "Failed to close the running app.",
     "running_app_close_error": "Failed to close the running app on your Ledger device.",
     "ethereum_app_not_installed": "Ethereum app not installed.",
-    "ethereum_app_not_installed_error": "Please install the Ethereum app on your Ledger device.",
+    "ethereum_app_not_installed_error": "Install the Ethereum app on your Ledger device.",
     "eth_app_not_open": "Ethereum app not open",
-    "eth_app_not_open_message": "Please open the Ethereum app on your Ledger device.",
+    "eth_app_not_open_message": "Open the Ethereum app on your Ledger device.",
     "ledger_is_locked": "Ledger is locked",
-    "unlock_ledger_message": "Please unlock your Ledger device",
+    "unlock_ledger_message": "Unlock your Ledger device",
     "unlock_ledger_device": "Unlock your Ledger device",
     "cannot_get_account": "Cannot get account",
     "connect_ledger": "Connect Ledger",
@@ -7660,7 +7675,7 @@
     "save_device_selection": "Save",
     "enable_bluetooth": "Enable Bluetooth",
     "install_and_open_eth_app": "Install and open the Ethereum app",
-    "ledger_reminder_message": "Please make sure your Ledger device is:",
+    "ledger_reminder_message": "Make sure your Ledger device is:",
     "ledger_reminder_message_step_one": "1. Unlock your Ledger device",
     "ledger_reminder_message_step_two": "2. Install and open the Ethereum app",
     "ledger_reminder_message_step_three": "3. Enable Bluetooth",
@@ -7675,14 +7690,14 @@
     "bluetooth_enabled_message": "Make sure Bluetooth is enabled",
     "device_unlocked_message": "Device is unlocked",
     "ledger_disconnected": "Your device got disconnected",
-    "ledger_disconnected_error": "The connection to your device has been lost. Please try again.",
+    "ledger_disconnected_error": "The connection to your device has been lost. Try again.",
     "unknown_error": "Unexpected error occurred.",
     "unknown_error_message": "An unexpected error occurred. Please try again.",
     "error_occured": "An error occurred",
     "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
-    "open_eth_app": "Please open the Ethereum app",
-    "open_eth_app_message_one": "We’ve detected you have the Ethereum app installed but it’s not open, please ",
+    "open_eth_app": "Open the Ethereum app",
+    "open_eth_app_message_one": "We've detected you have the Ethereum app installed but it's not open, ",
     "open_eth_app_message_two": "press the two buttons on the device to accept the prompt to open the Ethereum app to continue.",
     "toast_bluetooth_connection_error_title": "Something went wrong",
     "toast_bluetooth_connection_error_subtitle": "Ledger has not been connected",
@@ -7692,7 +7707,7 @@
     "forget_device": "Forget Ledger",
     "sign_with_ledger": "Sign with Ledger",
     "ledger_pending_confirmation": "Ledger is busy",
-    "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Please clear the action first then retry.",
+    "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Clear the action first, then retry.",
     "not_supported": "Operation not supported",
     "not_supported_error": "Only version 4 of typed data signing is supported.",
     "error_during_connection": "An unknown error occurred",
@@ -7708,7 +7723,7 @@
     "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Enable it in the settings.",
     "user_reject_transaction": "User rejected the transaction",
     "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device.",
     "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one.",
@@ -7716,10 +7731,10 @@
     "unspecified_error_during_connect": "Unspecified error when connect Ledger Hardware,",
     "account_name_existed": "Account {{accountName}} already exists",
     "unresponsive": "Ledger is unresponsive",
-    "unresponsive_message": "Please disconnect and reconnect your device",
+    "unresponsive_message": "Disconnect and reconnect your device",
     "ethereum_app_closed": "Ethereum app is closed",
-    "ethereum_app_closed_message": "Please open it on your Ledger device to continue",
-    "ledger_locked_message_continue": "Please unlock your Ledger device to continue",
+    "ethereum_app_closed_message": "Open it on your Ledger device to continue",
+    "ledger_locked_message_continue": "Unlock your Ledger device to continue",
     "bluetooth_access_denied": "Bluetooth access denied",
     "bluetooth_access_denied_message": "Enable Bluetooth in your device settings to connect your Ledger device",
     "location_access_denied": "Location access denied",
@@ -8037,7 +8052,7 @@
     "apy_info_label": "APY info",
     "balance_unavailable": "Balance unavailable",
     "balance_unavailable_value": "$—",
-    "balance_unavailable_banner_description": "We’re temporarily unable to display your balance. Your funds are safe—please try again shortly.",
+    "balance_unavailable_banner_description": "We're temporarily unable to display your balance. Your funds are safe—try again shortly.",
     "balance_retry": "Retry",
     "balance_no_account": "Money account not found",
     "onboarding": {
@@ -9064,6 +9079,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network fee",
+    "relayer_fee": "Relayer fee",
     "gas_fees_sponsored": "Paid by MetaMask",
     "included": "Included",
     "estimated_time": "Estimated time",
@@ -9578,7 +9594,7 @@
       "placeholder": "Password",
       "confirm": "Confirm",
       "cancel": "Cancel",
-      "error_empty": "Please enter your password",
+      "error_empty": "Enter your password",
       "error_incorrect": "Incorrect password. Try again."
     },
     "view_pin_bottomsheet": {
@@ -9636,7 +9652,7 @@
       "renews_annually": "Annually",
       "total": "Total",
       "pay": "Pay",
-      "payment_creation_error": "Failed to create payment. Please try again."
+      "payment_creation_error": "Failed to create payment. Try again."
     },
     "order_completed": {
       "title": "YOUR CARD\nIS ORDERED",
@@ -9675,9 +9691,9 @@
       "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
-      "load_error": "Failed to load payment page. Please try again.",
-      "timeout_error": "Payment verification timed out. Please check your transaction status.",
-      "payment_bounced_error": "Payment failed. Please try again with a different payment method.",
+      "load_error": "Failed to load payment page. Try again.",
+      "timeout_error": "Payment verification timed out. Check your transaction status.",
+      "payment_bounced_error": "Payment failed. Try again with a different payment method.",
       "close": "Close",
       "try_again": "Try again"
     },
@@ -9727,7 +9743,7 @@
         "phone_number_label": "Enter phone number",
         "country_area_code_label": "Country area code",
         "invalid_phone_number": "Invalid phone number",
-        "invalid_us_phone_number": "Please enter a valid US phone number (10 digits) to proceed.",
+        "invalid_us_phone_number": "Enter a valid US phone number (10 digits) to proceed.",
         "legal_terms": "By continuing, you agree to receiving SMS to verify your phone number."
       },
       "confirm_phone_number": {
@@ -9744,7 +9760,7 @@
         "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
         "terms_2_us": "Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.",
         "verify_button": "Next",
-        "start_verification_error": "Error starting verification. Please try again shortly."
+        "start_verification_error": "Error starting verification. Try again shortly."
       },
       "kyc_webview": {
         "close_confirmation_title": "Exit verification?",
@@ -9767,28 +9783,28 @@
       "verifying_veriff_kyc": {
         "title": "Awaiting approval",
         "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app."
+        "helper_text": "This usually takes a few seconds. Do not close the app."
       },
       "immersve_kyc_processing": {
         "title": "Awaiting approval",
         "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "incomplete_title": "Finish verifying your identity",
         "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
         "continue_button": "Continue verification",
         "info_needed_title": "Additional information needed",
         "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
         "info_needed_button": "Continue verification",
-        "expiring_error": "Your verification session expired. Please contact support to continue."
+        "expiring_error": "Your verification session expired. Contact support to continue."
       },
       "immersve_kyc_modal": {
-        "load_error": "Something went wrong loading identity verification. Please try again.",
+        "load_error": "Something went wrong loading identity verification. Try again.",
         "try_again": "Try again"
       },
       "immersve_funding_approval": {
         "title": "Set up card funding",
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
-        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "Approve funding",
         "retry_button": "Try again"
       },
@@ -9859,7 +9875,7 @@
       },
       "mailing_address": {
         "title": "Mailing address",
-        "description": "Please provide a mailing address that we can send your card to."
+        "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
         "title": "You're in!",
@@ -9882,7 +9898,7 @@
       "close_button": "Got it",
       "waitlist_form": {
         "title": "Join waitlist",
-        "load_error": "Something went wrong loading the form. Please try again.",
+        "load_error": "Something went wrong loading the form. Try again.",
         "try_again": "Try again",
         "success_toast": "You're on the waitlist!",
         "success_toast_description": "We'll let you know when the card is available in your country."
@@ -9892,19 +9908,19 @@
       },
       "errors": {
         "no_region_results": "No region matches {{searchString}}",
-        "email_already_exists": "Email already exists. Please use a different email.",
-        "invalid_email_format": "Invalid email format. Please check your email and try again.",
-        "invalid_verification_code": "Invalid verification code. Please check your code and try again.",
-        "verification_code_expired": "Verification code has expired. Please request a new code.",
-        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Please restart the registration process.",
-        "invalid_phone_format": "Invalid phone number format. Please check your phone number and try again.",
-        "phone_already_exists": "Phone number already exists. Please use a different phone number.",
-        "phone_number_mismatch": "Phone number does not match verification session. Please check your phone number and try again.",
-        "invalid_zip_code": "Invalid zip code. Please provide a valid zip code and try again.",
-        "us_state_required": "US state is required for US residents. Please provide a valid state and try again.",
-        "consent_already_linked": "User is already linked to a consent set. Please use a different user or contact support.",
-        "invalid_onboard_id": "Invalid onboarding ID. Please restart the registration process.",
-        "create_user_failed": "Failed to create user. Please try again."
+        "email_already_exists": "Email already exists. Use a different email.",
+        "invalid_email_format": "Invalid email format. Check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Enter a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Enter a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Restart the registration process.",
+        "create_user_failed": "Failed to create user. Try again."
       }
     },
     "card_home": {

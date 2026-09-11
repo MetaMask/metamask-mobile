@@ -222,6 +222,8 @@ PODS:
     - ExpoModulesCore
   - ExpoAsset (56.0.23):
     - ExpoModulesCore
+  - ExpoBlur (56.0.4):
+    - ExpoModulesCore
   - ExpoCrypto (56.0.4):
     - ExpoModulesCore
   - ExpoDomWebView (56.0.6):
@@ -599,8 +601,33 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - OpenSSL-Universal (3.6.0000)
+  - OpenSSL-Universal (3.6.2000)
   - PromisesObjC (2.4.0)
+  - QuickCrypto (1.1.5):
+    - hermes-engine
+    - NitroModules
+    - OpenSSL-Universal (~> 3.6.2000)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RCTDeprecation (0.85.3)
   - RCTRequired (0.85.3)
   - RCTSearchApi (1.0.1):
@@ -2081,8 +2108,6 @@ PODS:
     - YttriumWrapper (= 0.10.15)
   - react-native-cookies (6.2.1):
     - React-Core
-  - react-native-fast-crypto (2.2.0):
-    - React
   - react-native-get-random-values (2.0.0):
     - hermes-engine
     - RCTRequired
@@ -2270,14 +2295,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-quick-base64 (2.2.0):
-    - React-Core
-  - react-native-quick-crypto (0.7.15):
+  - react-native-quick-base64 (3.0.0):
     - hermes-engine
-    - OpenSSL-Universal
     - RCTRequired
     - RCTTypeSafety
-    - React
     - React-Core
     - React-Core-prebuilt
     - React-debug
@@ -3431,7 +3452,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNWorklets (0.10.1):
+  - RNWorklets (0.10.4):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3453,10 +3474,10 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - RNWorklets/apple (= 0.10.1)
-    - RNWorklets/common (= 0.10.1)
+    - RNWorklets/apple (= 0.10.4)
+    - RNWorklets/common (= 0.10.4)
     - Yoga
-  - RNWorklets/apple (0.10.1):
+  - RNWorklets/apple (0.10.4):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3479,7 +3500,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNWorklets/common (0.10.1):
+  - RNWorklets/common (0.10.4):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3545,6 +3566,7 @@ DEPENDENCIES:
   - expo-dev-menu-interface (from `../node_modules/expo-dev-menu-interface/ios`)
   - ExpoAppleAuthentication (from `../node_modules/expo-apple-authentication/ios`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
+  - ExpoBlur (from `../node_modules/expo-blur/ios`)
   - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
@@ -3580,6 +3602,7 @@ DEPENDENCIES:
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - NitroTextDecoder (from `../node_modules/react-native-nitro-text-decoder`)
   - OpenSSL-Universal
+  - QuickCrypto (from `../node_modules/react-native-quick-crypto`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
   - "RCTSearchApi (from `../node_modules/@metamask/react-native-search-api`)"
@@ -3626,7 +3649,6 @@ DEPENDENCIES:
   - react-native-branch (from `../node_modules/react-native-branch`)
   - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
-  - react-native-fast-crypto (from `../node_modules/react-native-fast-crypto`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-gzip (from `../node_modules/react-native-gzip`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
@@ -3638,7 +3660,6 @@ DEPENDENCIES:
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-performance (from `../node_modules/react-native-performance`)
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
-  - react-native-quick-crypto (from `../node_modules/react-native-quick-crypto`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
@@ -3785,6 +3806,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-apple-authentication/ios"
   ExpoAsset:
     :path: "../node_modules/expo-asset/ios"
+  ExpoBlur:
+    :path: "../node_modules/expo-blur/ios"
   ExpoCrypto:
     :path: "../node_modules/expo-crypto/ios"
   ExpoDomWebView:
@@ -3848,6 +3871,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-nitro-modules"
   NitroTextDecoder:
     :path: "../node_modules/react-native-nitro-text-decoder"
+  QuickCrypto:
+    :path: "../node_modules/react-native-quick-crypto"
   RCTDeprecation:
     :path: "../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation"
   RCTRequired:
@@ -3938,8 +3963,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@walletconnect/react-native-compat"
   react-native-cookies:
     :path: "../node_modules/@react-native-cookies/cookies"
-  react-native-fast-crypto:
-    :path: "../node_modules/react-native-fast-crypto"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-gzip:
@@ -3962,8 +3985,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-performance"
   react-native-quick-base64:
     :path: "../node_modules/react-native-quick-base64"
-  react-native-quick-crypto:
-    :path: "../node_modules/react-native-quick-crypto"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
   react-native-release-profiler:
@@ -4139,6 +4160,7 @@ SPEC CHECKSUMS:
   expo-dev-menu-interface: 65402d4affb8b418aa6cec29b3abb0e313c8f443
   ExpoAppleAuthentication: 3dd8ddd3016396a8171f06af8cc5e3e008e8eaf4
   ExpoAsset: 285f5cd377574a94ffbe60ec7d9e3d8eeeecb458
+  ExpoBlur: 234b3c1f42a35851428e10fa9d347701ae707c4d
   ExpoCrypto: b54a97c4357d46d7f8de079e69fa89029572244b
   ExpoDomWebView: 4e53b05879dc73ba374f76bff93dd64c8a0d91b3
   ExpoFileSystem: df530c4d7a94d57f40847f84b118766a79747d37
@@ -4187,8 +4209,9 @@ SPEC CHECKSUMS:
   NitroFetchWebsockets: cdd416ee66b2e16282b2c42f8b0785f71ba0f507
   NitroModules: 994eaa7fc39d1fb4b76bb61054312c9796c4a649
   NitroTextDecoder: 87ccc6809d473ea811f0a36b7fe3db521ce47e0c
-  OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
+  OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  QuickCrypto: 78b9ff82f1fe3710345e250c980ceee93dcaad5a
   RCTDeprecation: a4c521821fab57cbb125b36effe84d897d0dfa12
   RCTRequired: 9f3a7e5645d4bc3f551593de7550bb66ab6e42bc
   RCTSearchApi: 5fc36140c598a74fd831dca924a28ed53bc7aa18
@@ -4235,7 +4258,6 @@ SPEC CHECKSUMS:
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
   react-native-compat: 503602c411c7eac51a46b80c133b8d71fec29248
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
-  react-native-fast-crypto: 6b448866f5310cf203714a21147ef67f735bea8e
   react-native-get-random-values: 68792987aef40e8aa72dc448d97e009d1f440c88
   react-native-gzip: 3701e08898ef5125e2c857f685bfc611cf81e546
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
@@ -4246,8 +4268,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 4319d381f35bc11b53dafebd5cd99c04c66a9fb4
   react-native-pager-view: 6b98421fc9198e59349977100dc252bbd979cc16
   react-native-performance: 3290079971f56838ae50f7f1d65d6e075d88b932
-  react-native-quick-base64: 17dc4b8daee50e680d5f57cc3ee6773b6ee0110a
-  react-native-quick-crypto: fd8645a11e92979c238383930d785ec40dc1ce7d
+  react-native-quick-base64: 53393ee5ea472a7486e6652ad3d7a640ebf6ebda
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-release-profiler: b7d3f26e662f9bdd8612072a9613257d41eb6051
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
@@ -4320,7 +4341,7 @@ SPEC CHECKSUMS:
   RNShare: 7344a3a7d4e5df58c356ad0f79e4a3ef1325c635
   RNSVG: 0e52210d4d43165e7e2cf9c890a9848b27e513ac
   RNVectorIcons: 1965d63e341570227866dafdf9fd53c4c6ef3bb3
-  RNWorklets: 43af89f696342f91118a2f1f3a879056e2f47331
+  RNWorklets: f0de904d12965e1de29125e6acc7a0d65acadb43
   SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
