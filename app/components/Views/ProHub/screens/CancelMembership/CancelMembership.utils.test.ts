@@ -1,8 +1,10 @@
 import type { NavigationState } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import { CANCEL_REASONS, OTHER_REASON_ID } from './CancelMembership.constants';
 import {
   POST_CANCELLATION_PRO_HUB_SOURCE,
   buildPostCancellationResetState,
+  shuffleCancelReasons,
 } from './CancelMembership.utils';
 
 const createStackState = (routeNames: string[]): NavigationState => ({
@@ -15,6 +17,66 @@ const createStackState = (routeNames: string[]): NavigationState => ({
   })),
   type: 'stack',
   stale: false,
+});
+
+describe('shuffleCancelReasons', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('pins other as the last item', () => {
+    const result = shuffleCancelReasons(CANCEL_REASONS);
+
+    expect(result[result.length - 1]?.id).toBe(OTHER_REASON_ID);
+  });
+
+  it('keeps the same reason ids as the input', () => {
+    const result = shuffleCancelReasons(CANCEL_REASONS);
+
+    expect(result.map((reason) => reason.id).sort()).toEqual(
+      CANCEL_REASONS.map((reason) => reason.id).sort(),
+    );
+  });
+
+  it('does not mutate the input array', () => {
+    const input = [...CANCEL_REASONS];
+
+    shuffleCancelReasons(input);
+
+    expect(input).toEqual(CANCEL_REASONS);
+  });
+
+  it('returns a known permutation of non-other reasons when Math.random is 0', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const result = shuffleCancelReasons(CANCEL_REASONS);
+
+    expect(result.map((reason) => reason.id)).toEqual([
+      'not_using',
+      'benefit_misfit',
+      'didnt_work',
+      'support',
+      'cost',
+      'other',
+    ]);
+  });
+
+  it('shuffles remaining reasons when other is missing', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+    const withoutOther = CANCEL_REASONS.filter(
+      (reason) => reason.id !== OTHER_REASON_ID,
+    );
+
+    const result = shuffleCancelReasons(withoutOther);
+
+    expect(result.map((reason) => reason.id)).toEqual([
+      'not_using',
+      'benefit_misfit',
+      'didnt_work',
+      'support',
+      'cost',
+    ]);
+  });
 });
 
 describe('buildPostCancellationResetState', () => {
