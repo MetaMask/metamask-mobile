@@ -146,7 +146,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
                 key={tag.label}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="bg-muted rounded self-start min-w-[22px] px-1.5 py-0.5"
+                twClassName="bg-muted rounded-full self-start min-w-[22px] px-1.5 py-0.5"
                 gap={1}
               >
                 {iconAlertSeverity && (
@@ -165,7 +165,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
             {remainingCount > 0 && (
               <Box
                 alignItems={BoxAlignItems.Center}
-                twClassName="rounded self-start px-1.5 py-0.5"
+                twClassName="rounded-full self-start px-1.5 py-0.5"
               >
                 <Text
                   variant={TextVariant.BodySm}
