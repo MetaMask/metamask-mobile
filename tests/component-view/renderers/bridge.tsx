@@ -27,9 +27,11 @@ export const withBridgeSession = (Component: React.ComponentType) =>
   function BridgeViewWithSession() {
     return (
       <BridgeSessionProvider>
-        <BridgeQuoteDataProvider>
-          <Component />
-        </BridgeQuoteDataProvider>
+        <SwapQuotesProvider>
+          <BridgeQuoteDataProvider>
+            <Component />
+          </BridgeQuoteDataProvider>
+        </SwapQuotesProvider>
       </BridgeSessionProvider>
     );
   };
