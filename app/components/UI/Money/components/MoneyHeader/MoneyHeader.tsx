@@ -13,8 +13,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
-import { useProSubscriptionEnabled } from '../../../../../hooks/useProSubscriptionEnabled';
-import { useIsProSubscriber } from '../../../../../hooks/useIsProSubscriber';
+import {
+  MoneyAccountPlusAccess,
+  useMoneyAccountPlusAccess,
+} from '../../../../../hooks/useMoneyAccountPlusAccess';
 
 interface MoneyHeaderProps {
   /**
@@ -22,11 +24,15 @@ interface MoneyHeaderProps {
    */
   onMenuPress: () => void;
   /**
-   * Handler for the Pro button. Opens the Pro subscription flow, or the Pro hub
-   * when the user is already subscribed.
-   * Only fired when the Pro subscription flow flag is enabled.
+   * Handler for the "Join Pro" button.
+   * Only fired for users eligible to subscribe.
    */
   onGetProPress: () => void;
+  /**
+   * Handler for the "Pro" button.
+   * Only fired for users entitled to Money Account Plus.
+   */
+  onProHubPress: () => void;
   /**
    * Handler for the back button. Omit it — as the Money tab does — to render
    * the plain title with no back affordance.
@@ -37,14 +43,10 @@ interface MoneyHeaderProps {
 const MoneyHeader = ({
   onMenuPress,
   onGetProPress,
+  onProHubPress,
   onBack,
 }: MoneyHeaderProps) => {
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const isProSubscriber = useIsProSubscriber();
-
-  const proLabel = isProSubscriber
-    ? strings('pro_subscription.pro')
-    : strings('pro_subscription.join_pro');
+  const proAccess = useMoneyAccountPlusAccess();
 
   return (
     <HeaderRoot
@@ -56,14 +58,24 @@ const MoneyHeader = ({
       }}
       endAccessory={
         <Box twClassName="flex-row items-center gap-1">
-          {isProSubscriptionEnabled && (
+          {proAccess === MoneyAccountPlusAccess.Eligible && (
             <Button
               size={ButtonSize.Md}
               onPress={onGetProPress}
               testID={MoneyHeaderTestIds.GET_PRO_BUTTON}
-              accessibilityLabel={proLabel}
+              accessibilityLabel={strings('pro_subscription.join_pro')}
             >
-              {proLabel}
+              {strings('pro_subscription.join_pro')}
+            </Button>
+          )}
+          {proAccess === MoneyAccountPlusAccess.Subscriber && (
+            <Button
+              size={ButtonSize.Md}
+              onPress={onProHubPress}
+              testID={MoneyHeaderTestIds.PRO_HUB_BUTTON}
+              accessibilityLabel={strings('pro_subscription.view_pro')}
+            >
+              {strings('pro_subscription.view_pro')}
             </Button>
           )}
           <ButtonIcon

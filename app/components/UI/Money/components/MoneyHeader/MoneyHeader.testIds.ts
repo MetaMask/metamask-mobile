@@ -4,4 +4,5 @@ export const MoneyHeaderTestIds = {
   BACK_BUTTON: 'money-header-back-button',
   MENU_BUTTON: 'money-header-menu-button',
   GET_PRO_BUTTON: 'money-header-get-pro-button',
+  PRO_HUB_BUTTON: 'money-header-pro-hub-button',
 } as const;

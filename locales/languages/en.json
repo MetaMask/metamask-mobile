@@ -11595,6 +11595,7 @@
     "description_monthly": "{{monthlyPrice}}/mo",
     "description_annual": "{{annualPrice}} for annual membership",
     "join_pro": "Join Pro",
+    "view_pro": "Pro",
     "pro": "Pro",
     "pricing": {
       "loading": "Loading plans...",

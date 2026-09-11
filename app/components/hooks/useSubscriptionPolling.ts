@@ -19,9 +19,8 @@ const selectIsUiOpen = (state: RootState): boolean =>
  * Starts exactly one SubscriptionController poll while the caller enables it
  * and the user is signed in, unlocked, and in the foreground.
  *
- * This hook is intentionally unmounted in the v8 preparation milestone. The
- * future Pro flow decides where it belongs so we do not generate unused API
- * traffic.
+ * Mounted by the Money home view so Plus entitlements stay current while the
+ * user is on a surface that reacts to them.
  *
  * @param options - Polling options.
  * @param options.enabled - Caller gate for starting subscription polling.

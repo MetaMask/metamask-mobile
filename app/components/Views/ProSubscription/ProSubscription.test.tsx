@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import ProSubscription from './ProSubscription';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
+import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
 
 const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
@@ -24,9 +25,15 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-const mockUseProSubscriptionEnabled = jest.fn();
-jest.mock('../../../hooks/useProSubscriptionEnabled', () => ({
-  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
+const mockUseMoneyAccountPlusAccess = jest.fn();
+jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
+}));
+
+const mockRefreshEntitlements = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../core/Subscription/entitlementResolution', () => ({
+  refresh: () => mockRefreshEntitlements(),
 }));
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -72,30 +79,54 @@ describe('ProSubscription', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRoute.params = {};
-    mockUseProSubscriptionEnabled.mockReturnValue({
-      isProSubscriptionEnabled: true,
-      variantName: 'treatment',
-      isActive: true,
-    });
+    mockRefreshEntitlements.mockResolvedValue(undefined);
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Eligible,
+    );
   });
 
-  describe('feature flag guard', () => {
+  describe('access guard', () => {
     it('navigates back when Pro subscription is disabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: true,
-      });
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Disabled,
+      );
 
       render(<ProSubscription />);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('does not navigate back when Pro subscription is enabled', () => {
+    it('does not navigate back for an eligible non-subscriber', () => {
       render(<ProSubscription />);
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('sends an existing subscriber straight to the hub', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+
+      render(<ProSubscription />);
+
+      expect(mockReplace).toHaveBeenCalledWith('ProHub', {
+        source: 'pro_subscription_already_subscribed',
+      });
+    });
+
+    it('holds back the upsell while entitlements are loading', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Loading,
+      );
+
+      const { queryByTestId, getByTestId } = render(<ProSubscription />);
+
+      expect(queryByTestId('mock-benefits')).not.toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      // The close button stays available so the modal is never a dead end.
+      expect(
+        getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -134,16 +165,32 @@ describe('ProSubscription', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('replaces the current screen with ProHub when Success onSuccess fires', () => {
+    it('refreshes entitlements before replacing the screen with ProHub', async () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
-      fireEvent.press(getByTestId('mock-success'));
+      await act(async () => {
+        fireEvent.press(getByTestId('mock-success'));
+      });
 
+      expect(mockRefreshEntitlements).toHaveBeenCalledTimes(1);
       expect(mockReplace).toHaveBeenCalledWith('ProHub', {
         source: 'pro_subscription_success',
       });
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('keeps the success screen visible once the user becomes a subscriber', () => {
+      const { getByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-benefits'));
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Subscriber,
+      );
+      fireEvent.press(getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON));
+
+      expect(getByTestId('mock-success')).toBeOnTheScreen();
+      expect(mockReplace).not.toHaveBeenCalled();
     });
   });
 
