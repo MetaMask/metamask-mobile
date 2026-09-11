@@ -953,7 +953,7 @@
     "additional_verification": {
       "title": "Additional verification",
       "paragraph_1": "For larger deposits, you’ll need a valid ID (like a driver’s license) and a real-time selfie.",
-      "paragraph_2": "In order to complete your verification, you’ll need to enable access to your camera.",
+      "paragraph_2": "To complete your verification, you’ll need to enable access to your camera.",
       "button": "Continue"
     },
     "basic_info": {
@@ -3783,7 +3783,7 @@
     "private_key_detected": "Private key detected",
     "do_you_want_to_import_this_account": "Do you want to import this account?",
     "error": "Error",
-    "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
+    "logout_to_import_seed": "You need to log out first to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
     "unable_to_find_conversion_rate": "no conversion rate",
@@ -3992,7 +3992,7 @@
     "toast_action_button": "Close",
     "toast_read_more": "Read more",
     "pna25_title": "Privacy and product updates",
-    "pna25_description": "To better serve you, we’re updating our analytics so publicly available data like wallet addresses and related on-chain activity can be associated with actions you take in MetaMask. This helps us improve MetaMask's performance, security, and features in order to make a better, safer wallet.",
+    "pna25_description": "To better serve you, we’re updating our analytics so publicly available data like wallet addresses and related on-chain activity can be associated with actions you take in MetaMask. This helps us improve MetaMask's performance, security, and features to make a better, safer wallet.",
     "pna25_description_2": "We take privacy seriously. We do not use this information for advertising or sell your data to third parties. You can opt out anytime in Settings.",
     "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
     "pna25_blog_post_link": "blog post",
@@ -5348,7 +5348,7 @@
     "cancel": "Cancel",
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
-    "attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase.",
+    "attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. To do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase.",
     "not_allowed_error_title": "Turn on camera access",
     "not_allowed_error_desc": "To scan a QR code, you'll need to give MetaMask camera access from your device's settings menu.",
     "unrecognized_address_qr_code_title": "Unrecognized QR code",
