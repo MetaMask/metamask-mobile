@@ -396,3 +396,18 @@ export const selectExploreEarnSectionEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
+
+/**
+ * Selects whether the redesigned Earn row is rendered in the Trade menu.
+ */
+export const selectEarnTradeMenuRowRedesignEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_EARN_TRADE_MENU_ROW_REDESIGN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnTradeMenuRowRedesignEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
