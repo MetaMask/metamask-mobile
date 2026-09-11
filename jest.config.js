@@ -63,12 +63,17 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@expo(nent)?/.*',
   '@noble/.*',
   '@nktkas/hyperliquid',
+  '@metamask/abi-utils',
   '@metamask/base-controller',
   '@metamask/base-data-service',
+  '@metamask/controller-utils',
   '@metamask/design-system-twrnc-preset',
   '@metamask/design-system-react-native',
   '@metamask/messenger',
   '@metamask/native-utils',
+  '@metamask/perps-controller',
+  '@metamask/superstruct',
+  '@metamask/utils',
   '@metamask/react-native-acm',
   '@metamask/react-native-actionsheet',
   '@metamask/react-native-button',
@@ -145,13 +150,13 @@ const config = {
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
     '^@metamask/perps-controller$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.js',
     '^@metamask/perps-controller/(constants|types|utils)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.js',
     '^@metamask/perps-controller/(constants|types|utils)/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.js',
     '^@metamask/perps-controller/(.*)$':
-      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.js',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
     // @metamask/perps-controller@9.1.0+ ships a broken CJS build whose
     // bundler baked in a CI-only absolute path (a file:// URL left over from

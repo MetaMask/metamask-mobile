@@ -166,6 +166,23 @@ module.exports = {
       ],
     },
     {
+      // 17.x ships ESM-only under dist/*.js. Force CJS so Jest can load it
+      // without --experimental-vm-modules.
+      test: (filename) => {
+        const f = posixPath(filename);
+        return (
+          f.includes('/node_modules/@metamask/perps-controller/') ||
+          f.includes('/node_modules/lodash-es/')
+        );
+      },
+      plugins: [
+        [
+          '@babel/plugin-transform-modules-commonjs',
+          { allowTopLevelThis: true },
+        ],
+      ],
+    },
+    {
       test: pathIncludes('/node_modules/@noble/secp256k1'),
       plugins: [
         [

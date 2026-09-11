@@ -139,10 +139,7 @@ describe('usePerpsCategories', () => {
 
   describe('memecoin category', () => {
     it('surfaces the memecoin pill when any non-HIP-3 market carries the memecoin tag', () => {
-      mockMarkets([
-        { isHip3: false },
-        { isHip3: false, tags: ['memecoin'] },
-      ]);
+      mockMarkets([{ isHip3: false }, { isHip3: false, tags: ['memecoin'] }]);
 
       const { result } = renderHook(() => usePerpsCategories());
 
@@ -176,10 +173,7 @@ describe('usePerpsCategories', () => {
     });
 
     it('does not surface memecoin when the tag is absent', () => {
-      mockMarkets([
-        { isHip3: false, tags: ['top-100'] },
-        { isHip3: false },
-      ]);
+      mockMarkets([{ isHip3: false, tags: ['top-100'] }, { isHip3: false }]);
 
       const { result } = renderHook(() => usePerpsCategories());
 
