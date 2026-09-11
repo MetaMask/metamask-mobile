@@ -10,7 +10,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useFloatingTabBarInset } from '../../../../../component-library/components/Navigation/TabBarFloating';
-import { navigateWithDetails, useParams } from '../../../../../util/navigation/navUtils';
+import {
+  navigateWithDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import {
