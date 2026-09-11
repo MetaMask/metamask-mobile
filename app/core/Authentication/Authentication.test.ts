@@ -1767,6 +1767,11 @@ describe('Authentication', () => {
         Engine.context.AuthenticationController.clearState,
       ).toHaveBeenCalled();
       expect(
+        (
+          Engine.context.AuthenticationController.clearState as jest.Mock
+        ).mock.invocationCallOrder[0],
+      ).toBeLessThan(newWalletSpy.mock.invocationCallOrder[0]);
+      expect(
         Engine.context.SeedlessOnboardingController.clearState,
       ).toHaveBeenCalled();
 
@@ -4673,6 +4678,9 @@ describe('Authentication', () => {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
       expect(clearAuthStateSpy).toHaveBeenCalledTimes(1);
+      expect(clearAuthStateSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletAndKeychain.mock.invocationCallOrder[0],
+      );
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledWith(

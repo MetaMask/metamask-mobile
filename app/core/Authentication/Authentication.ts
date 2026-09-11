@@ -1101,6 +1101,11 @@ class AuthenticationService {
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
 
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      // Must run before the temporary vault unlocks so pairing/sync cannot
+      // attach that wallet to the previous profile.
+      Engine.context.AuthenticationController.clearState();
+
       // Disable automatic vault backups during OAuth error recovery
       EngineClass.disableAutomaticVaultBackup = true;
 
@@ -1113,8 +1118,6 @@ class AuthenticationService {
         EngineClass.disableAutomaticVaultBackup = false;
       }
 
-      // Sign out and re-arm profile/social pairing for the next wallet.
-      Engine.context.AuthenticationController.clearState();
       SeedlessOnboardingController.clearState();
       throw error;
     }
@@ -1747,12 +1750,15 @@ class AuthenticationService {
       Engine.context.CardController.setResetInProgress(true);
 
       try {
+        // Sign out and re-arm profile/social pairing for the next wallet.
+        // Must run before the temporary vault unlocks so pairing/sync cannot
+        // attach that wallet to the previous profile.
+        Engine.context.AuthenticationController.clearState();
+
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
         });
 
-        // Sign out and re-arm profile/social pairing for the next wallet.
-        Engine.context.AuthenticationController.clearState();
         Engine.context.SeedlessOnboardingController.clearState();
 
         await depositResetProviderToken();
