@@ -1,8 +1,8 @@
 # Appium Smoke Tests — iOS
 #
-# Fans out one reusable job per Appium smoke tag. Add a matching job below.
-# Invoked by ci.yml when iOS E2E is enabled.
-# iOS build artifacts come from build-ios-apps in the parent ci.yml workflow.
+# A compute-matrix job filters the full suite list by selected_tags, then
+# appium-ios-smoke fans out one runner per shard via dynamic matrix.
+# To add a suite: add one entry per shard in the SUITES JSON in compute-matrix.
 
 name: Appium Smoke Tests (iOS)
 
@@ -39,6 +39,38 @@ on:
         required: false
         type: number
         default: 2
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'namespace'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector'
+        required: false
+        type: string
+        default: '["ALL"]'
+      changed_spec_files:
+        description: 'Space-separated changed E2E specs for main-target PR flakiness detection'
+        required: false
+        type: string
+        default: ''
+      ios-device-pool-size:
+        description: 'iOS simulator and Playwright worker count (default 2)'
+        required: false
+        type: number
+        default: 2
 
 permissions:
   contents: read
@@ -47,367 +79,72 @@ permissions:
   pull-requests: read
 
 jobs:
-  appium-accounts-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeAccounts'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-accounts-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeAccounts
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
+  compute-matrix:
+    name: Compute shard matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.filter.outputs.matrix }}
+    steps:
+      - name: Filter suites by selected_tags
+        id: filter
+        shell: bash
+        run: |
+          # Full suite list — one entry per shard: {tag, slug, split, total_splits}.
+          # Suites with N shards appear N times with split: 1..N.
+          SUITES='[
+            {"tag":"SmokeAccounts",           "slug":"accounts",            "split":1,"total_splits":2},
+            {"tag":"SmokeAccounts",           "slug":"accounts",            "split":2,"total_splits":2},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":1,"total_splits":3},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":2,"total_splits":3},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":3,"total_splits":3},
+            {"tag":"SmokePredictions",        "slug":"predictions",         "split":1,"total_splits":2},
+            {"tag":"SmokePredictions",        "slug":"predictions",         "split":2,"total_splits":2},
+            {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":1,"total_splits":2},
+            {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":2,"total_splits":2},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":1,"total_splits":4},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":2,"total_splits":4},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":3,"total_splits":4},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":4,"total_splits":4},
+            {"tag":"SmokeNetworkAbstractions","slug":"network-abstractions","split":1,"total_splits":2},
+            {"tag":"SmokeNetworkAbstractions","slug":"network-abstractions","split":2,"total_splits":2},
+            {"tag":"SmokeWalletPlatform",     "slug":"wallet-platform",     "split":1,"total_splits":2},
+            {"tag":"SmokeWalletPlatform",     "slug":"wallet-platform",     "split":2,"total_splits":2},
+            {"tag":"SmokeSwap",               "slug":"swap",                "split":1,"total_splits":2},
+            {"tag":"SmokeSwap",               "slug":"swap",                "split":2,"total_splits":2},
+            {"tag":"SmokeStake",              "slug":"stake",               "split":1,"total_splits":1},
+            {"tag":"SmokeMoney",              "slug":"money",               "split":1,"total_splits":1},
+            {"tag":"SmokeBrowser",            "slug":"browser",             "split":1,"total_splits":1},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":1,"total_splits":3},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":2,"total_splits":3},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":3,"total_splits":3},
+            {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":1,"total_splits":2},
+            {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":2,"total_splits":2},
+            {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":1,"total_splits":2},
+            {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":2,"total_splits":2}
+          ]'
+          SELECTED='${{ inputs.selected_tags }}'
+          if echo "$SELECTED" | jq -e 'contains(["ALL"])' > /dev/null; then
+            INCLUDE="$SUITES"
+          else
+            INCLUDE=$(echo "$SUITES" | jq --argjson sel "$SELECTED" \
+              '[.[] | select(.tag as $t | $sel | contains([$t]))]')
+          fi
+          MATRIX=$(echo "$INCLUDE" | jq -c '{"include": .}')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
 
-  appium-perps-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokePerps'))
-      }}
+  appium-ios-smoke:
+    needs: [compute-matrix]
+    if: ${{ !cancelled() && needs.compute-matrix.result == 'success' }}
     strategy:
-      # N=2 pool: 4→3 keeps suite wall near pre-N=2; 4→2 estimated ~21m.
-      matrix:
-        split: [1, 2, 3]
       fail-fast: false
+      matrix: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
-      test-suite-name: appium-perps-ios-smoke-${{ matrix.split }}
+      test-suite-name: appium-${{ matrix.slug }}-ios-smoke-${{ matrix.split }}
       platform: ios
-      test_suite_tag: SmokePerps
+      test_suite_tag: ${{ matrix.tag }}
       split_number: ${{ matrix.split }}
-      total_splits: 3
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-predictions-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokePredictions'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-predictions-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokePredictions
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-seedless-onboarding-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeSeedlessOnboarding'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-seedless-onboarding-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeSeedlessOnboarding
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-snaps-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeSnaps'))
-      }}
-    strategy:
-      # N=2 barely sped up Snaps test steps; 6→4 only (avoid 6→3 ~21m jobs).
-      matrix:
-        split: [1, 2, 3, 4]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-snaps-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeSnaps
-      split_number: ${{ matrix.split }}
-      total_splits: 4
-      # Session reuse + denser shards; headroom vs former 25m single-shard load.
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-network-abstractions-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeNetworkAbstractions'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-network-abstractions-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeNetworkAbstractions
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-wallet-platform-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeWalletPlatform'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-wallet-platform-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeWalletPlatform
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-swap-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeSwap'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-swap-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeSwap
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-stake-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeStake'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-stake-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeStake
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-money-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeMoney'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-money-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeMoney
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-browser-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeBrowser'))
-      }}
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-browser-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeBrowser
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-confirmations-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeConfirmations'))
-      }}
-    strategy:
-      # Increased to 3 shards: money-account pay specs (6 files, ~11m serial)
-      # landed without timing data and unbalanced shard 1 to 19.4m (78% of timeout).
-      # 3 shards distributes load ~6-7m each vs the 25m timeout.
-      matrix:
-        split: [1, 2, 3]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-confirmations-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeConfirmations
-      split_number: ${{ matrix.split }}
-      total_splits: 3
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-multichain-api-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeMultiChainAPI'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-multichain-api-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeMultiChainAPI
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      test-timeout-minutes: 25
-      build_type: ${{ inputs.build_type || 'main' }}
-      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
-      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
-
-  appium-network-expansion-ios-smoke:
-    if: >-
-      ${{
-        !cancelled() &&
-        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
-         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeNetworkExpansion'))
-      }}
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-appium-e2e-workflow.yml
-    with:
-      test-suite-name: appium-network-expansion-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: SmokeNetworkExpansion
-      split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: ${{ matrix.total_splits }}
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}

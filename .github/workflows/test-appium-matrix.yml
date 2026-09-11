@@ -1,0 +1,113 @@
+# TEMPORARY — verify dynamic matrix expansion for run-appium-smoke-tests refactor.
+# Delete this file before merging MCWP-740/refactor_appium_smoke_tests.
+
+name: '[TEST] Appium matrix expansion'
+
+on:
+  workflow_dispatch:
+    inputs:
+      selected_tags:
+        description: 'JSON array of tags (e.g. ["ALL"] or ["SmokeSnaps"] or ["SmokePerps","SmokeConfirmations"])'
+        required: false
+        type: string
+        default: '["ALL"]'
+      platform:
+        description: 'Which suite list to test'
+        required: false
+        type: choice
+        options:
+          - android
+          - ios
+        default: android
+
+jobs:
+  compute-matrix:
+    name: Compute shard matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.filter.outputs.matrix }}
+    steps:
+      - name: Filter suites by selected_tags
+        id: filter
+        shell: bash
+        run: |
+          ANDROID_SUITES='[
+            {"tag":"SmokeAccounts",           "slug":"accounts",            "split":1,"total_splits":1},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":1,"total_splits":2},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":2,"total_splits":2},
+            {"tag":"SmokePredictions",        "slug":"predictions",         "split":1,"total_splits":1},
+            {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":1,"total_splits":1},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":1,"total_splits":3},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":2,"total_splits":3},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":3,"total_splits":3},
+            {"tag":"SmokeNetworkAbstractions","slug":"network-abstractions","split":1,"total_splits":1},
+            {"tag":"SmokeWalletPlatform",     "slug":"wallet-platform",     "split":1,"total_splits":1},
+            {"tag":"SmokeSwap",               "slug":"swap",                "split":1,"total_splits":1},
+            {"tag":"SmokeStake",              "slug":"stake",               "split":1,"total_splits":1},
+            {"tag":"SmokeMoney",              "slug":"money",               "split":1,"total_splits":1},
+            {"tag":"SmokeBrowser",            "slug":"browser",             "split":1,"total_splits":1},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":1,"total_splits":2},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":2,"total_splits":2},
+            {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":1,"total_splits":2},
+            {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":2,"total_splits":2},
+            {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":1,"total_splits":1}
+          ]'
+          IOS_SUITES='[
+            {"tag":"SmokeAccounts",           "slug":"accounts",            "split":1,"total_splits":2},
+            {"tag":"SmokeAccounts",           "slug":"accounts",            "split":2,"total_splits":2},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":1,"total_splits":3},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":2,"total_splits":3},
+            {"tag":"SmokePerps",              "slug":"perps",               "split":3,"total_splits":3},
+            {"tag":"SmokePredictions",        "slug":"predictions",         "split":1,"total_splits":2},
+            {"tag":"SmokePredictions",        "slug":"predictions",         "split":2,"total_splits":2},
+            {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":1,"total_splits":2},
+            {"tag":"SmokeSeedlessOnboarding", "slug":"seedless-onboarding", "split":2,"total_splits":2},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":1,"total_splits":4},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":2,"total_splits":4},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":3,"total_splits":4},
+            {"tag":"SmokeSnaps",              "slug":"snaps",               "split":4,"total_splits":4},
+            {"tag":"SmokeNetworkAbstractions","slug":"network-abstractions","split":1,"total_splits":2},
+            {"tag":"SmokeNetworkAbstractions","slug":"network-abstractions","split":2,"total_splits":2},
+            {"tag":"SmokeWalletPlatform",     "slug":"wallet-platform",     "split":1,"total_splits":2},
+            {"tag":"SmokeWalletPlatform",     "slug":"wallet-platform",     "split":2,"total_splits":2},
+            {"tag":"SmokeSwap",               "slug":"swap",                "split":1,"total_splits":2},
+            {"tag":"SmokeSwap",               "slug":"swap",                "split":2,"total_splits":2},
+            {"tag":"SmokeStake",              "slug":"stake",               "split":1,"total_splits":1},
+            {"tag":"SmokeMoney",              "slug":"money",               "split":1,"total_splits":1},
+            {"tag":"SmokeBrowser",            "slug":"browser",             "split":1,"total_splits":1},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":1,"total_splits":2},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":2,"total_splits":2},
+            {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":1,"total_splits":2},
+            {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":2,"total_splits":2},
+            {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":1,"total_splits":2},
+            {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":2,"total_splits":2}
+          ]'
+          SUITES="$( [ '${{ inputs.platform }}' = 'ios' ] && echo "$IOS_SUITES" || echo "$ANDROID_SUITES" )"
+          SELECTED='${{ inputs.selected_tags }}'
+          if echo "$SELECTED" | jq -e 'contains(["ALL"])' > /dev/null; then
+            INCLUDE="$SUITES"
+          else
+            INCLUDE=$(echo "$SUITES" | jq --argjson sel "$SELECTED" \
+              '[.[] | select(.tag as $t | $sel | contains([$t]))]')
+          fi
+          SHARD_COUNT=$(echo "$INCLUDE" | jq 'length')
+          echo "Shard count: $SHARD_COUNT"
+          echo "$INCLUDE" | jq -r '.[] | "  \(.tag) \(.split)/\(.total_splits) → appium-\(.slug)-${{ inputs.platform }}-smoke-\(.split)"'
+          echo "matrix={\"include\":$INCLUDE}" >> "$GITHUB_OUTPUT"
+
+  verify-matrix:
+    name: 'Shard ${{ matrix.tag }} ${{ matrix.split }}/${{ matrix.total_splits }}'
+    needs: [compute-matrix]
+    if: ${{ !cancelled() && needs.compute-matrix.result == 'success' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+    steps:
+      - name: Echo shard identity
+        run: |
+          echo "tag:          ${{ matrix.tag }}"
+          echo "slug:         ${{ matrix.slug }}"
+          echo "split:        ${{ matrix.split }}"
+          echo "total_splits: ${{ matrix.total_splits }}"
+          echo "suite-name:   appium-${{ matrix.slug }}-${{ inputs.platform }}-smoke-${{ matrix.split }}"
