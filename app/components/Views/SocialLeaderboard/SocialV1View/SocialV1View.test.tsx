@@ -6,6 +6,8 @@ import { getSubnavPillTestId } from '../shell/SubnavPills';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
+import { MOCK_SOCIAL_V1_FEED_ITEMS } from './feed/mocks/socialV1Feed.mock';
+import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
@@ -32,6 +34,19 @@ jest.mock('../analytics', () => {
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
   };
 });
+
+jest.mock(
+  '../../Homepage/Sections/Perpetuals/components/SparklineChart',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
+jest.mock('../components/PositionTokenAvatar', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('react-native-pager-view', () => {
   const ReactActual = jest.requireActual('react');
@@ -114,6 +129,16 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(getSubnavPillTestId('topTraders')),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the three mocked position cards on Feed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    MOCK_SOCIAL_V1_FEED_ITEMS.forEach((item) => {
+      expect(
+        screen.getByTestId(getSocialFeedPositionCardTestId(item.id)),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('emits TSA-1122 exposure when the v1 home opens', () => {
