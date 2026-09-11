@@ -741,6 +741,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   TWAP_DURATION_SECTION: 'perps-pro-order-form-twap-duration-section',
   TWAP_DURATION_BUTTON: 'perps-pro-order-form-twap-duration-button',
   TWAP_DURATION_LABEL: 'perps-pro-order-form-twap-duration-label',
+  TWAP_DURATION_INFO: 'perps-pro-order-form-twap-duration-info',
   TWAP_DURATION_VALUE: 'perps-pro-order-form-twap-duration-value',
   TWAP_DURATION_SHEET: 'perps-pro-order-form-twap-duration-sheet',
   TWAP_DURATION_SHEET_CLOSE: 'perps-pro-order-form-twap-duration-sheet-close',
@@ -758,6 +759,12 @@ export const PerpsProOrderFormSelectorsIDs = {
   SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
   SUMMARY_FEES_BUTTON: 'perps-pro-order-form-summary-fees-button',
   SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
+  SUMMARY_TWAP_RUNTIME: 'perps-pro-order-form-summary-twap-runtime',
+  SUMMARY_TWAP_RUNTIME_VALUE: 'perps-pro-order-form-summary-twap-runtime-value',
+  SUMMARY_TWAP_SIZE_PER_SUBORDER:
+    'perps-pro-order-form-summary-twap-size-per-suborder',
+  SUMMARY_TWAP_SIZE_PER_SUBORDER_VALUE:
+    'perps-pro-order-form-summary-twap-size-per-suborder-value',
   SCALE_FIELDS: 'perps-pro-order-form-scale-fields',
   SCALE_START_PRICE: 'perps-pro-order-form-scale-start-price',
   SCALE_END_PRICE: 'perps-pro-order-form-scale-end-price',
