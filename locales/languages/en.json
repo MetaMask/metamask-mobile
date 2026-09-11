@@ -11530,7 +11530,10 @@
       "predict": {
         "label": "Predict",
         "footnote": "One prediction trade per month. Unused trades don't roll over."
-      }
+      },
+      "resets_on": "Resets {{date}}",
+      "load_error": "Couldn't load your allowances.",
+      "retry": "Try again"
     },
     "physical_card": {
       "title": "Get your free MetaMask Card",
