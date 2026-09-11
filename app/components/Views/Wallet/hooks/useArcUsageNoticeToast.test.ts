@@ -86,7 +86,7 @@ describe('useArcUsageNoticeToast', () => {
     const options = showToast.mock.calls[0][0];
     expect(options.labelOptions[0].label).toBe('Notice');
     expect(options.descriptionOptions.description).toBe(
-      'Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team.',
+      'Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with the Arc team.',
     );
   });
 
