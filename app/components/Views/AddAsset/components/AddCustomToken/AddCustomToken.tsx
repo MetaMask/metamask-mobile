@@ -59,7 +59,6 @@ import {
 } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { ImportAsset } from '../../utils/utils';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import useAssetVisibility from '../../../../UI/TokenDetails/components/useAssetVisibility';
 import type { TokenI } from '../../../../UI/Tokens/types';
@@ -213,10 +212,6 @@ const AddCustomToken = ({
   const networkName = networkConfig?.name ?? '';
   const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
-  const isAssetsUnifyStateEnabled = useSelector(
-    selectIsAssetsUnifyStateEnabled,
-  );
-
   // Provide address + chainId so the hook can determine whether the token is
   // already hidden in AssetsController (isHidden) vs brand-new (not tracked).
   const tokenForVisibility = useMemo(
@@ -288,40 +283,44 @@ const AddCustomToken = ({
   }, [navigation]);
 
   const addToken = useCallback(async (): Promise<void> => {
-    const { TokensController } = Engine.context;
-
     trace({ name: TraceName.ImportTokens });
-    await TokensController.addToken({
-      address: address.trim(),
-      symbol,
-      decimals: Number(decimals),
-      name,
-      networkClientId: networkClientId ?? '',
-    });
-    endTrace({ name: TraceName.ImportTokens });
 
-    if (isAssetsUnifyStateEnabled) {
-      const caipChainId = formatChainIdToCaip(chainId as SupportedCaipChainId);
-      const trimmedAddress = address.trim();
-      const caipAssetType = toAssetId(trimmedAddress, caipChainId);
-      if (caipAssetType) {
-        try {
-          if (isHidden) {
-            // Token exists but was hidden — unhide it instead of re-adding
-            handleHideToken();
-          } else {
-            await handleAddCustomAsset(caipAssetType, {
-              address: trimmedAddress,
-              symbol,
-              name,
-              decimals: Number(decimals),
-              chainId: caipChainId,
-            });
-          }
-        } catch (error) {
-          Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');
-        }
+    const caipChainId = formatChainIdToCaip(chainId as SupportedCaipChainId);
+    const trimmedAddress = address.trim();
+    const caipAssetType = toAssetId(trimmedAddress, caipChainId);
+
+    // AssetsController is the sole source of truth for custom tokens, so a
+    // failed (or skippable-but-unexpected) write must propagate and abort
+    // here — the caller (ConfirmAddAsset) relies on this rejecting to avoid
+    // navigating away and to keep the success toast/analytics/form-reset
+    // below from firing on a token that was never actually imported.
+    if (!caipAssetType) {
+      endTrace({ name: TraceName.ImportTokens });
+      const error = new Error(
+        'AddCustomToken: unable to derive CAIP asset type',
+      );
+      Logger.error(error, 'AddCustomToken: addCustomAsset failed');
+      throw error;
+    }
+
+    try {
+      if (isHidden) {
+        // Token exists but was hidden — unhide it instead of re-adding
+        handleHideToken();
+      } else {
+        await handleAddCustomAsset(caipAssetType, {
+          address: trimmedAddress,
+          symbol,
+          name,
+          decimals: Number(decimals),
+          chainId: caipChainId,
+        });
       }
+    } catch (error) {
+      Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');
+      throw error;
+    } finally {
+      endTrace({ name: TraceName.ImportTokens });
     }
 
     try {
@@ -357,11 +356,9 @@ const AddCustomToken = ({
     symbol,
     decimals,
     name,
-    networkClientId,
     chainId,
     trackEvent,
     createEventBuilder,
-    isAssetsUnifyStateEnabled,
     handleAddCustomAsset,
     handleHideToken,
     isHidden,

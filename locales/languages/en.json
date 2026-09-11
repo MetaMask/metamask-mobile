@@ -9796,6 +9796,7 @@
         "expiring_error": "Your verification session expired. Contact support to continue."
       },
       "immersve_kyc_modal": {
+        "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
         "load_error": "Something went wrong loading identity verification. Try again.",
         "try_again": "Try again"
       },

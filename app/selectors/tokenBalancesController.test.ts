@@ -12,6 +12,32 @@ import {
 } from './tokenBalancesController';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 
+// `getTokenBalancesControllerTokenBalances` (the AssetsController-derived
+// compat selector) has its own dedicated coverage in assets-migration.test.ts.
+// Here we mock it to read from the legacy `TokenBalancesController.tokenBalances`
+// shape on the mock state so these tests can keep exercising the composition
+// logic in `./tokenBalancesController` without needing to hand-construct
+// full AssetsController fixtures.
+jest.mock('./assets/assets-migration', () => ({
+  getTokenBalancesControllerTokenBalances: jest.fn(
+    (state: RootState) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (state as any)?.engine?.backgroundState?.TokenBalancesController
+        ?.tokenBalances ?? {},
+  ),
+}));
+
+// Test-only state shape that keeps the legacy `TokenBalancesController` key
+// available for the mocked compat selector above, while still being
+// assignable to `RootState` wherever the real selectors are invoked.
+type MockRootState = RootState & {
+  engine: RootState['engine'] & {
+    backgroundState: RootState['engine']['backgroundState'] & {
+      TokenBalancesController: TokenBalancesControllerState;
+    };
+  };
+};
+
 describe('TokenBalancesController Selectors', () => {
   const mockTokenBalancesControllerState: TokenBalancesControllerState = {
     tokenBalances: {
@@ -32,7 +58,7 @@ describe('TokenBalancesController Selectors', () => {
     },
   };
 
-  const mockRootState: RootState = {
+  const mockRootState: MockRootState = {
     engine: {
       backgroundState: {
         TokenBalancesController: mockTokenBalancesControllerState,
@@ -54,7 +80,7 @@ describe('TokenBalancesController Selectors', () => {
         },
       },
     },
-  } as unknown as RootState;
+  } as unknown as MockRootState;
 
   describe('selectContractBalances', () => {
     it('returns token balances for the selected account and chain ID', () => {
@@ -146,7 +172,9 @@ describe('TokenBalancesController Selectors', () => {
   describe('selectAddressHasTokenBalances', () => {
     const arrange = () => {
       // Deep clone for isolated test
-      const mockState: RootState = JSON.parse(JSON.stringify(mockRootState));
+      const mockState: MockRootState = JSON.parse(
+        JSON.stringify(mockRootState),
+      );
       mockState.settings = { showFiatOnTestnets: true };
 
       return { mockState };
@@ -194,7 +222,9 @@ describe('TokenBalancesController Selectors', () => {
   describe('selectHasAnyNonZeroTokenBalance', () => {
     const arrange = () => {
       // Deep clone for isolated test
-      const mockState: RootState = JSON.parse(JSON.stringify(mockRootState));
+      const mockState: MockRootState = JSON.parse(
+        JSON.stringify(mockRootState),
+      );
       mockState.settings = { showFiatOnTestnets: false };
 
       return { mockState };

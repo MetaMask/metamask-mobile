@@ -5,7 +5,10 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+import {
+  createMockAccountsControllerState,
+  createMockUuidFromAddress,
+} from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
 import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
@@ -18,20 +21,27 @@ const MOCK_NETWORK_IMAGE = { uri: 'https://example.com/eth.png' };
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
+const MOCK_ACCOUNT_ID = createMockUuidFromAddress(MOCK_ADDRESS.toLowerCase());
+const NATIVE_ETH_ASSET_ID = 'eip155:1/slip44:60';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
-      AccountTrackerController: {
-        accountsByChainId: {
-          [CHAIN_IDS.MAINNET]: {
-            [MOCK_ADDRESS]: {
-              balance: '200',
-            },
+      AssetsController: {
+        assetsInfo: {
+          [NATIVE_ETH_ASSET_ID]: { type: 'native', decimals: 18 },
+        },
+        assetsBalance: {
+          [MOCK_ACCOUNT_ID]: {
+            [NATIVE_ETH_ASSET_ID]: { amount: '200' },
           },
         },
+        assetsPrice: {},
+        assetPreferences: {},
+        customAssets: {},
+        selectedCurrency: 'usd',
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
