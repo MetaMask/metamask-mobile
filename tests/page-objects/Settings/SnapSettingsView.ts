@@ -29,6 +29,10 @@ class SnapSettingsView {
    * Ensure the Snap details enable Switch is in the requested state.
    * Re-taps with fresh queries until the native value matches (Appium iOS
    * Switch taps can report success without flipping `value`).
+   *
+   * After the Switch matches, require several consecutive confirming samples
+   * before returning — SnapController can lag behind the native Switch, so a
+   * single `value=on` read is not enough before navigating away.
    */
   async setEnabled(enabled: boolean): Promise<void> {
     await Utilities.executeWithRetry(
@@ -57,6 +61,21 @@ class SnapSettingsView {
       {
         timeout: 20_000,
         description: `Snap details switch ${enabled ? 'on' : 'off'}`,
+      },
+    );
+
+    // Settle: Switch can report the target state before SnapController finishes.
+    let consecutiveMatches = 0;
+    await Utilities.waitUntil(
+      async () => {
+        const matches =
+          (await Assertions.isToggleOn(this.enabledToggle)) === enabled;
+        consecutiveMatches = matches ? consecutiveMatches + 1 : 0;
+        return consecutiveMatches >= 3;
+      },
+      {
+        timeout: 15_000,
+        interval: 500,
       },
     );
   }
