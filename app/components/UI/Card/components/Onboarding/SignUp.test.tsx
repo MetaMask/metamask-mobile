@@ -11,7 +11,7 @@ import SignUp from './SignUp';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardFlow, CardScreens } from '../../util/metrics';
 
 const mockUseCardPostAuthRedirect = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -178,6 +178,21 @@ jest.mock('../../../../../selectors/featureFlagController/card', () => {
     selectCardImmersveEnabled: jest.fn(() => false),
   };
 });
+
+jest.mock('../../hooks/useCardUkMigrationState', () => ({
+  useCardUkMigrationState: jest.fn(() => ({
+    state: {
+      phase: 'soft',
+      isActive: true,
+      deadline: new Date('2026-09-30T23:59:59.999Z'),
+    },
+    refresh: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => 'warning'),
+}));
 
 // Mock utility functions
 jest.mock('../../../Ramp/utils/depositUtils');
@@ -1460,6 +1475,71 @@ describe('SignUp Component', () => {
 
       expect(getByTestId('signup-immersve-legal-clickwrap')).toHaveTextContent(
         /clickwrap_suffix_migration/,
+      );
+    });
+
+    it('tracks CARD_VIEWED with migration flow props', async () => {
+      render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          provider: 'immersve',
+          screen: CardScreens.SIGN_UP,
+          flow: CardFlow.MIGRATION,
+          migration_phase: 'grace_window',
+          badge_reasons: ['card_migration'],
+        });
+      });
+    });
+
+    it('tracks SIGN_UP_BUTTON with migration flow and country codes only', async () => {
+      mockImmersveSignIn.mockResolvedValue({ done: true });
+      mockGetFundingSources.mockResolvedValue([{ id: 'fs-existing' }]);
+      mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fireEvent.changeText(
+        getByTestId('signup-immersve-phone-number-input'),
+        '7911123456',
+      );
+      mockAddProperties.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'immersve',
+        action: CardActions.SIGN_UP_BUTTON,
+        flow: CardFlow.MIGRATION,
+        migration_phase: 'grace_window',
+        badge_reasons: ['card_migration'],
+        country_of_residence: 'GB',
+        phone_number_country_code: '44',
+      });
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: expect.anything(),
+        }),
+      );
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          phone: expect.anything(),
+        }),
       );
     });
 
