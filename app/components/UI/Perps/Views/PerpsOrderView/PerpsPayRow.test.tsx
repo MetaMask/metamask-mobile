@@ -19,6 +19,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   ConfirmationRowComponentIDs,
@@ -147,6 +148,58 @@ describe('PerpsPayRow', () => {
     expect(
       getByTestId(TransactionPayComponentIDs.PAY_WITH_SYMBOL),
     ).toHaveTextContent('USDC');
+  });
+
+  describe('money account selected', () => {
+    const TRANSACTION_ID_MOCK = 'tx-money-1';
+
+    const MONEY_ACCOUNT_STATE = {
+      engine: {
+        backgroundState: {
+          TransactionPayController: {
+            transactionData: {
+              [TRANSACTION_ID_MOCK]: {
+                paymentOverride: PaymentOverride.MoneyAccount,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    beforeEach(() => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        txParams: { from: '0x123' },
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+    });
+
+    it('renders money account label instead of the underlying mUSD pay token', () => {
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { address: '0xmusd', chainId: '0x279f', symbol: 'mUSD' },
+        setPayToken: jest.fn(),
+      } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+      const { getByTestId } = renderWithProvider(<PerpsPayRow />, {
+        state: MONEY_ACCOUNT_STATE,
+      });
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.PAY_WITH_SYMBOL),
+      ).toHaveTextContent('confirm.pay_with_bottom_sheet.money_account');
+    });
+
+    it('renders money account label even when perps balance is also selected', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<PerpsPayRow />, {
+        state: MONEY_ACCOUNT_STATE,
+      });
+
+      expect(
+        getByTestId(TransactionPayComponentIDs.PAY_WITH_SYMBOL),
+      ).toHaveTextContent('confirm.pay_with_bottom_sheet.money_account');
+    });
   });
 
   it('navigates to pay with bottom sheet when row is pressed and not hardware account', () => {
