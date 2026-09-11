@@ -4318,7 +4318,7 @@
     "clear_approvals_modal_message": "All dapps will need to request access to view account information again.",
     "clear_browser_history_modal_title": "Clear browser history?",
     "clear_browser_history_modal_message": "We are about to remove all your browser history. Are you sure?",
-    "clear_cookies_modal_title": "Clear browser cookies",
+    "clear_cookies_modal_title": "Clear browser cookies?",
     "clear_cookies_modal_message": "We are about to remove your browser's cookies. Are you sure?",
     "reset_account_modal_message": "Resetting your account will clear your transaction activity.",
     "save_rpc_url": "Save",
