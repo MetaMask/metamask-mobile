@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added Segment tracking for clicks on the redesigned Earn row (#35960)
 - Added relayer fee transparency to swap and bridge quote details (#36060)
 - Added trust-signal badges to tokenized stock search results (#36043)
 - Added a back button to Money after adding funds from the Money Account Sweepstakes campaign, and an Updating indicator when qualifying deposits have not yet caught up to a confirmed Money Account transaction (#35918)
@@ -51,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a bug where scanning a Solana Pay QR code closed the scanner without opening the send flow (#35903)
 - Restored the Money onboarding footer layout spacing (#36065)
 - Fixed Braze push notification consent synchronization with MetaMask notification settings (#35945)
 - Fixed Money onboarding navigation before the final animation completes (#35998)
