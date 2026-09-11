@@ -8,6 +8,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxFlexWrap,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -124,7 +125,9 @@ const PotentialEarningsTokenRow = ({
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
+              flexWrap={BoxFlexWrap.Wrap}
               twClassName="gap-1"
+              testID={PotentialEarningsTokenRowTestIds.NAME_ROW}
             >
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {token.name || token.symbol}
