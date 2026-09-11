@@ -64,11 +64,88 @@ export function setBasicFunctionalityConsolidatedEnabled(
   };
 }
 
+export function setBasicFunctionalityMigrationNotification(
+  basicFunctionalityMigrationNotification,
+) {
+  return {
+    type: 'SET_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION',
+    basicFunctionalityMigrationNotification,
+  };
+}
+
+export function dismissBasicFunctionalityMigrationNotification() {
+  return {
+    type: 'DISMISS_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION',
+  };
+}
+
+export function consolidateBasicFunctionality() {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const {
+      selectMobileUxBftcConsolidationFlagEnabled,
+      BFT_CHILD_PREFERENCES,
+    } = require('../../selectors/featureFlagController/basicFunctionalityConsolidation');
+    if (
+      !selectMobileUxBftcConsolidationFlagEnabled(state) ||
+      state.settings?.isBasicFunctionalityConsolidatedEnabled
+    ) {
+      return;
+    }
+
+    const {
+      getBasicFunctionalityConsolidationPlan,
+      isBasicFunctionalitySocialLoginUser,
+    } = require('../../util/basicFunctionality/getBasicFunctionalityConsolidationPlan');
+    const {
+      syncConsolidatedBasicFunctionalityPreferences,
+    } = require('../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences');
+    const seedlessState =
+      state.engine?.backgroundState?.SeedlessOnboardingController;
+    const isSocialLogin = isBasicFunctionalitySocialLoginUser({
+      accountType: state.onboarding?.accountType,
+      authConnection: seedlessState?.authConnection,
+      hasSeedlessVault: seedlessState?.vault != null,
+    });
+    const preferencesController =
+      state.engine?.backgroundState?.PreferencesController ?? {};
+    const preferenceState = {
+      basicFunctionalityEnabled:
+        state.settings?.basicFunctionalityEnabled === true,
+    };
+    BFT_CHILD_PREFERENCES.forEach((preference) => {
+      preferenceState[preference] = preferencesController[preference] === true;
+    });
+
+    const { landingState, notification } =
+      getBasicFunctionalityConsolidationPlan(preferenceState, isSocialLogin);
+
+    syncConsolidatedBasicFunctionalityPreferences(landingState);
+    dispatch(setBasicFunctionality(landingState));
+    dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+    dispatch(
+      setBasicFunctionalityMigrationNotification(
+        state.settings?.basicFunctionalityMigrationNotificationDismissed
+          ? null
+          : notification,
+      ),
+    );
+
+    const Engine = require('../../core/Engine').default;
+    Engine.context.MultichainAccountService.setBasicFunctionality(
+      landingState,
+    ).catch((error) => {
+      console.error(
+        'Failed to set consolidated basic functionality on MultichainAccountService:',
+        error,
+      );
+    });
+  };
+}
+
 // Thunk action creator for user-initiated toggles (includes MultichainAccountService integration)
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   return async (dispatch, getState) => {
-    dispatch(setBasicFunctionality(basicFunctionalityEnabled));
-
     const {
       selectIsBasicFunctionalityConsolidationEnabled,
     } = require('../../selectors/featureFlagController/basicFunctionalityConsolidation');
@@ -76,7 +153,21 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
       syncConsolidatedBasicFunctionalityPreferences,
     } = require('../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences');
 
-    if (selectIsBasicFunctionalityConsolidationEnabled(getState())) {
+    // Evaluate consolidation eligibility before flipping BF. Silent-migration
+    // users are eligible via consistent all-on/all-off state; flipping BF first
+    // would make children look mixed and skip sync.
+    const shouldSyncConsolidatedPreferences =
+      selectIsBasicFunctionalityConsolidationEnabled(getState());
+
+    // Persist cohort membership before flipping BF so the UI does not briefly
+    // re-show granular toggles while children are still mixed.
+    if (shouldSyncConsolidatedPreferences) {
+      dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+    }
+
+    dispatch(setBasicFunctionality(basicFunctionalityEnabled));
+
+    if (shouldSyncConsolidatedPreferences) {
       syncConsolidatedBasicFunctionalityPreferences(basicFunctionalityEnabled);
     }
 
@@ -124,6 +215,13 @@ export function setPerpsChartPreferredCandlePeriod(preferredCandlePeriod) {
   return {
     type: 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD',
     preferredCandlePeriod,
+  };
+}
+
+export function setPerpsMarketListPreferences(preferences) {
+  return {
+    type: 'SET_PERPS_MARKET_LIST_PREFERENCES',
+    preferences,
   };
 }
 

@@ -55,10 +55,10 @@ on:
         default: ''
       reuse_main_builds:
         description: >-
-          For e2e builds only, use when the branch has no app changes (or when
-          explicitly selected manually). Downloads the latest Android APK
-          artifacts from main-branch CI and uploads them to BrowserStack.
-          Leave false for app changes so fingerprint reuse can be attempted.
+          For e2e builds only, use for test-only changes. Reuses main-branch
+          Android APKs when available without JS repacking, then falls back to
+          a fresh build. Leave false for app changes, which use fingerprint
+          reuse with JS repacking.
         required: false
         type: boolean
         default: false
@@ -402,10 +402,10 @@ jobs:
     if: always() && needs.prepare.outputs.run_tests == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download All Test Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: '*-test-results-*'
           path: ./test-results
@@ -422,7 +422,7 @@ jobs:
           echo "Aggregation completed"
 
       - name: Upload Final Combined Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aggregated-reports
           path: |
@@ -438,10 +438,10 @@ jobs:
     if: always() && !cancelled() && needs.aggregate-results.result != 'skipped' && inputs.pr_number != ''
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download Aggregated Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: aggregated-reports
           path: ./aggregated-reports
@@ -499,10 +499,10 @@ jobs:
     if: always() && needs.aggregate-results.result != 'skipped'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download Aggregated Results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: aggregated-reports
           path: ./aggregated-reports

@@ -36,6 +36,7 @@ import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -175,7 +176,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   onVisibleLeaderboardSettled,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
   const tw = useTailwind();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
@@ -466,7 +467,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           [SocialLeaderboardEventProperties.CHAIN_FILTER]: activeTab,
         });
       }
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
         traderAddress: trader?.address,
@@ -540,7 +541,13 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     ],
   );
 
-  const contentContainerStyle = tw.style('pb-6');
+  // pb-6 plus whatever the floating NavBar overlays, so the last row stays
+  // reachable. The inset is 0 on control and wherever the navigator hides it.
+  const floatingTabBarInset = useFloatingTabBarInset();
+  const contentContainerStyle = useMemo(
+    () => ({ paddingBottom: 24 + floatingTabBarInset }),
+    [floatingTabBarInset],
+  );
 
   return (
     <Box twClassName="flex-1">

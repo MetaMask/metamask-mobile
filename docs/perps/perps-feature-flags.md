@@ -59,9 +59,14 @@ interface VersionGatedFeatureFlag {
 - `enabled: false` = feature OFF (regardless of version)
 - Invalid/missing flag = fallback to local environment variable
 
-### String Flags (for A/B Tests)
+### JSON Flags (for A/B Tests)
 
-See [Perps A/B Testing Framework](./perps-ab-testing.md) for variant-based flags.
+A/B tests use LaunchDarkly JSON flags with the ordered cumulative threshold
+array from [`docs/ab-testing.md`](../ab-testing.md). The Redux /
+`useABTest` key is camelCase and matches the LaunchDarkly flag key (unlike
+boolean Perps flags, which use kebab-case LaunchDarkly keys).
+
+See [Perps A/B Testing Framework](./perps-ab-testing.md).
 
 ---
 
@@ -164,35 +169,39 @@ Follow existing test patterns covering:
 
 ### Version-Gated Boolean Flags
 
-| Redux Property                                     | LaunchDarkly Key                                         | Env Variable                                   | Default | Purpose                                                                                                  |
-| -------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
-| `perpsPerpTradingEnabled`                          | `perps-perp-trading-enabled`                             | `MM_PERPS_ENABLED`                             | false   | Main Perps feature toggle                                                                                |
-| `perpsPerpTradingServiceInterruptionBannerEnabled` | `perps-perp-trading-service-interruption-banner-enabled` | `MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED` | false   | Service disruption banner                                                                                |
-| `perpsPerpGtmOnboardingModalEnabled`               | `perps-perp-gtm-onboarding-modal-enabled`                | `MM_PERPS_GTM_MODAL_ENABLED`                   | false   | GTM onboarding modal                                                                                     |
-| `perpsOrderBookEnabled`                            | `perps-order-book-enabled`                               | `MM_PERPS_ORDER_BOOK_ENABLED`                  | false   | Order Book feature                                                                                       |
-| `perpsProModeEnabled`                              | `perps-pro-mode-enabled`                                 | —                                              | false   | Lite/Pro mode toggle and Pro-mode entry points (Pro market view)                                         |
-| `perpsMobileScale`                                 | `perps-mobile-scale`                                     | —                                              | false   | Version-gated Scale ladder placement in the Pro order form, minimum production version 8.10.0            |
-| `perpsMobileTwap`                                  | `perps-mobile-twap`                                      | —                                              | false   | Version-gated Hyperliquid TWAP placement in the Pro order form, minimum production version 8.10.0        |
-| `perpsMobileChase`                                 | `perps-mobile-chase`                                     | —                                              | false   | Version-gated Chase order placement and lifecycle controls, minimum production version 8.10.0            |
-| `perpsAdvancedChartEnabledV2`                      | `perps-advanced-chart-enabled-v2`                        | —                                              | false   | Perps market detail / fullscreen TradingView AdvancedChart (remote only)                                 |
-| `perpsShowFullAssetNames`                          | `perps-show-full-asset-names`                            | —                                              | false   | Show full asset names (e.g. "Bitcoin") instead of tickers (e.g. "BTC") in market row lists (remote only) |
-| `perpsFeedbackEnabled`                             | `perps-feedback-enabled`                                 | `MM_PERPS_FEEDBACK_ENABLED`                    | false   | Feedback button on home                                                                                  |
-| `perpsCompetitionBannerEnabled`                    | `perps-competition-banner-enabled`                       | —                                              | false   | Competition promotion banner on perps home (remote only)                                                 |
-| `perpsDefaultPayTokenWhenNoBalanceEnabled`         | `perps-default-pay-token-when-no-balance-enabled`        | —                                              | true    | Default pay token when no perps balance + Add funds CTA on market details (remote only)                  |
-| `vipProgramEnabled`                                | `vip-program-enabled`                                    | —                                              | false   | Gates VIP fee discount in perps (UI preview and order execution)                                         |
-| `perpsClosePositionLimitOrderEnabled`              | `perps-close-position-limit-order-enabled`               | —                                              | false   | Market/Limit order-type selector on the close position screen (limit close orders, remote only)          |
+| Redux Property                                     | LaunchDarkly Key                                         | Env Variable                                   | Default | Purpose                                                                                                                                                                            |
+| -------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `perpsPerpTradingEnabled`                          | `perps-perp-trading-enabled`                             | `MM_PERPS_ENABLED`                             | false   | Main Perps feature toggle                                                                                                                                                          |
+| `perpsPerpTradingServiceInterruptionBannerEnabled` | `perps-perp-trading-service-interruption-banner-enabled` | `MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED` | false   | Service disruption banner                                                                                                                                                          |
+| `perpsPerpGtmOnboardingModalEnabled`               | `perps-perp-gtm-onboarding-modal-enabled`                | `MM_PERPS_GTM_MODAL_ENABLED`                   | false   | GTM onboarding modal                                                                                                                                                               |
+| `perpsOrderBookEnabled`                            | `perps-order-book-enabled`                               | `MM_PERPS_ORDER_BOOK_ENABLED`                  | false   | Order Book feature                                                                                                                                                                 |
+| `perpsProModeEnabled`                              | `perps-pro-mode-enabled`                                 | —                                              | false   | Lite/Pro mode toggle and Pro-mode entry points (Pro market view)                                                                                                                   |
+| `perpsMobileScale`                                 | `perps-mobile-scale`                                     | —                                              | false   | Version-gated Scale ladder placement in the Pro order form, minimum production version 8.10.0                                                                                      |
+| `perpsMobileTwap`                                  | `perps-mobile-twap`                                      | —                                              | false   | Version-gated Hyperliquid TWAP placement in the Pro order form, minimum production version 8.10.0                                                                                  |
+| `perpsMobileChase`                                 | `perps-mobile-chase`                                     | —                                              | false   | Version-gated Chase order placement and lifecycle controls, minimum production version 8.10.0                                                                                      |
+| `perpsPositionModifyPreviewEnabled`                | `perps-position-modify-preview-enabled`                  | —                                              | false   | Version-gated before→after margin (and liquidation) on the Pro order form when an isolated position is already open, including leverage changes. Minimum production version 8.11.0 |
+| `perpsAdvancedChartEnabledV2`                      | `perps-advanced-chart-enabled-v2`                        | —                                              | false   | Perps market detail / fullscreen TradingView AdvancedChart (remote only)                                                                                                           |
+| `perpsShowFullAssetNames`                          | `perps-show-full-asset-names`                            | —                                              | false   | Show full asset names (e.g. "Bitcoin") instead of tickers (e.g. "BTC") in market row lists (remote only)                                                                           |
+| `perpsFeedbackEnabled`                             | `perps-feedback-enabled`                                 | `MM_PERPS_FEEDBACK_ENABLED`                    | false   | Feedback button on home                                                                                                                                                            |
+| `perpsCompetitionBannerEnabled`                    | `perps-competition-banner-enabled`                       | —                                              | false   | Competition promotion banner on perps home (remote only)                                                                                                                           |
+| `perpsDefaultPayTokenWhenNoBalanceEnabled`         | `perps-default-pay-token-when-no-balance-enabled`        | —                                              | true    | Default pay token when no perps balance + Add funds CTA on market details (remote only)                                                                                            |
+| `vipProgramEnabled`                                | `vip-program-enabled`                                    | —                                              | false   | Gates VIP fee discount in perps (UI preview and order execution)                                                                                                                   |
+| `perpsClosePositionLimitOrderEnabled`              | `perps-close-position-limit-order-enabled`               | —                                              | false   | Market/Limit order-type selector on the close position screen (limit close orders, remote only)                                                                                    |
 
 `perpsMobileScale`, `perpsMobileTwap`, and `perpsMobileChase` are independent remote-only flags. Missing, malformed, disabled, or below-version values resolve to `false`; all three production configurations start at Mobile 8.10.0. Enabling one strategy does not enable the others.
 
+`perpsPositionModifyPreviewEnabled` is an independent remote-only flag. Missing, malformed, disabled, or below-version values resolve to `false`. When off, the Pro order form keeps the single-value margin and liquidation summary even if the user already has an open isolated position.
+
 ### A/B Test Flags
 
-| Redux Property                  | LaunchDarkly Key                    | Variants            | Purpose                          |
-| ------------------------------- | ----------------------------------- | ------------------- | -------------------------------- |
-| `perpsTAT1937AbtestButtonColor` | `perps-tat1937-abtest-button-color` | `control`, `colors` | Button color A/B test (TAT-1937) |
+| Redux Property                   | LaunchDarkly Key                    | Variants               | Purpose                                  |
+| -------------------------------- | ----------------------------------- | ---------------------- | ---------------------------------------- |
+| `perpsTAT1937AbtestButtonColor`  | `perps-tat1937-abtest-button-color` | `control`, `colors`    | Button color A/B test (TAT-1937)         |
+| `perpsAbtestScreenVsBottomSheet` | `perpsAbtestScreenVsBottomSheet`    | `control`, `treatment` | Shared screen vs bottom-sheet experience |
 
-`control` (white/white) is the required fallback variant for `useABTest` and is therefore the default experience; `colors` (green long / red short) is the active-experiment variant.
+For `perpsTAT1937AbtestButtonColor`, `control` (white/white) is the required `useABTest` fallback and therefore the default experience; `colors` (green long / red short) is the active-experiment variant. That flag is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition (see [MetaMask/contributor-docs: Remote Feature Flags](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md#4-composing-version-based-scope-with-threshold-scope)) — the version gate lives entirely in the LaunchDarkly flag config, not in app code.
 
-`perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition (see [MetaMask/contributor-docs: Remote Feature Flags](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md#4-composing-version-based-scope-with-threshold-scope)) — the version gate lives entirely in the LaunchDarkly flag config, not in app code.
+`perpsAbtestScreenVsBottomSheet` defaults to `control` (full-page screens). Consume it only through `usePerpsScreenVsBottomSheetAbTest()` — see [`docs/perps/perps-ab-testing.md`](./perps-ab-testing.md). The LaunchDarkly key is camelCase on purpose so it matches `useABTest` / Redux.
 
 ### Configuration Flags
 

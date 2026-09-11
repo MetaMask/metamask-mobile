@@ -391,6 +391,33 @@ describe('PerpsProPositionsPanel', () => {
     });
   });
 
+  it('spaces the TWAP inner tabs below the filter row', () => {
+    // Arrange
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Assert
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY),
+    ).toHaveStyle({ paddingTop: 12 });
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('keeps TWAP selected when Chase is hidden', () => {
     // Arrange
     renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
@@ -937,20 +964,20 @@ describe('PerpsProPositionsPanel', () => {
       providerId: 'hyperliquid' as const,
       maxLeverage: '20x',
     };
-    const myxMarket = {
+    const lighterMarket = {
       symbol: 'SOL',
-      providerId: 'myx' as const,
+      providerId: 'lighter' as const,
       maxLeverage: '50x',
     };
     mockUsePerpsMarkets.mockReturnValue({
-      markets: [hyperliquidMarket, myxMarket],
+      markets: [hyperliquidMarket, lighterMarket],
       isLoading: false,
       error: null,
       refresh: jest.fn(),
       isRefreshing: false,
     } as unknown as ReturnType<typeof usePerpsMarkets>);
     mockUsePerpsTwapOrders.mockReturnValue({
-      twapOrders: [makeTwapOrder({ providerId: 'myx' })],
+      twapOrders: [makeTwapOrder({ providerId: 'lighter' })],
       isLoading: false,
       error: null,
       refresh: mockRefreshTwapOrders,
@@ -968,12 +995,12 @@ describe('PerpsProPositionsPanel', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapRowSelector('myx', 'twap-1')),
+      screen.getByTestId(getPerpsProTwapRowSelector('lighter', 'twap-1')),
     );
 
     // Assert
     expect(onSelectMarket).toHaveBeenCalledWith(
-      myxMarket,
+      lighterMarket,
       PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     );
   });

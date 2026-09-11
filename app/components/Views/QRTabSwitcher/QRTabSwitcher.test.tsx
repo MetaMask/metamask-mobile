@@ -8,7 +8,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
 } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import type { RootState } from '../../../reducers';
@@ -55,23 +54,32 @@ jest.mock('../../../core/Engine', () => {
       QrSyncController: {
         state: { ...mockDefaultQrSyncControllerState },
       },
-      QrSyncProvisioningService: {
-        provisionFromMetadata: jest.fn(() => Promise.resolve()),
-      },
     },
   };
 });
 
+jest.mock(
+  '../../../core/QrSync/startExistingUserQrMetadataProvisioning',
+  () => ({
+    startExistingUserQrMetadataProvisioning: jest.fn(),
+  }),
+);
+
 import Engine from '../../../core/Engine';
+import { startExistingUserQrMetadataProvisioning } from '../../../core/QrSync/startExistingUserQrMetadataProvisioning';
+
+const mockStartExistingUserQrMetadataProvisioning = jest.mocked(
+  startExistingUserQrMetadataProvisioning,
+);
 
 const mockResetState = jest.fn();
+const mockHandleScannedQrPayload = jest.fn(() => Promise.resolve());
 const mockImportRemainingSecrets = jest.fn(() => Promise.resolve());
 const mockGetAccounts = jest.fn<Promise<string[]>, []>(() =>
   Promise.resolve([]),
 );
 const mockHasPendingSecretImports = jest.fn().mockResolvedValue(false);
-const mockProvisionFromMetadata = Engine.context.QrSyncProvisioningService
-  .provisionFromMetadata as jest.Mock;
+const mockProvisionFromMetadata = jest.fn(() => Promise.resolve());
 
 jest.mock('../../../core/QrSync/showExtensionCancelledErrorSheet', () => {
   const actual = jest.requireActual(
@@ -82,6 +90,11 @@ jest.mock('../../../core/QrSync/showExtensionCancelledErrorSheet', () => {
     showExtensionCancelledErrorSheet: jest.fn(),
   };
 });
+
+jest.mock('../../../core/QrSync/qrSyncTelemetry', () => ({
+  ...jest.requireActual('../../../core/QrSync/qrSyncTelemetry'),
+  reportQrSyncFailure: jest.fn(),
+}));
 
 const mockShowExtensionCancelledErrorSheet = jest.mocked(
   showExtensionCancelledErrorSheet,
@@ -109,7 +122,7 @@ const wrapQrTabSwitcher = (ui: React.ReactElement = <QRTabSwitcher />) => (
     value={createMockRouteMessenger({
       'QrSyncController:resetState': mockResetState,
       'QrSyncController:importRemainingSecrets': mockImportRemainingSecrets,
-      'QrSyncController:handleScannedQrPayload': jest.fn(),
+      'QrSyncController:handleScannedQrPayload': mockHandleScannedQrPayload,
       'QrSyncController:hasPendingSecretImports': mockHasPendingSecretImports,
       'KeyringController:getAccounts': mockGetAccounts,
     })}
@@ -122,6 +135,7 @@ const renderQrTabSwitcher = () => render(wrapQrTabSwitcher());
 
 jest.mock('../QRScanner', () => jest.fn(() => null));
 
+const MockQRScanner = jest.requireMock('../QRScanner') as jest.Mock;
 jest.mock('../AddDeviceToWallet/DeviceAdded', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -266,6 +280,57 @@ describe('QRTabSwitcher', () => {
     expect(getByTestId('device-added-loader-screen')).toBeOnTheScreen();
   });
 
+  it('submits add-device scans via the live QRTabSwitcher route messenger', async () => {
+    const staleParentOnScanSuccess = jest.fn();
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        onScanError: jest.fn(),
+        // Stale parent callback must not be used for add-device submit.
+        onScanSuccess: staleParentOnScanSuccess,
+        origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+      },
+    });
+
+    renderWithQrSyncState({});
+
+    const scannerProps = MockQRScanner.mock.calls.at(-1)?.[0] as {
+      onScanSuccess: (data: { content?: string }, content?: string) => void;
+    };
+    scannerProps.onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
+
+    await waitFor(() => {
+      expect(mockHandleScannedQrPayload).toHaveBeenCalledWith(
+        'metamask://connect/mwp?p=test',
+      );
+    });
+    expect(staleParentOnScanSuccess).not.toHaveBeenCalled();
+  });
+
+  it('reports add-device scan submit failures to Sentry', async () => {
+    const { reportQrSyncFailure } = jest.requireMock(
+      '../../../core/QrSync/qrSyncTelemetry',
+    ) as { reportQrSyncFailure: jest.Mock };
+
+    mockHandleScannedQrPayload.mockRejectedValueOnce(
+      new Error('scan submit failed'),
+    );
+
+    renderAddDeviceFlow({});
+
+    const scannerProps = MockQRScanner.mock.calls.at(-1)?.[0] as {
+      onScanSuccess: (data: { content?: string }, content?: string) => void;
+    };
+    scannerProps.onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
+
+    await waitFor(() => {
+      expect(reportQrSyncFailure).toHaveBeenCalledWith(expect.any(Error), {
+        surface: 'scanner',
+        operation: 'submit_scanned_payload',
+        source: 'QRTabSwitcher.addDeviceScan',
+      });
+    });
+  });
+
   it('resets QR sync session when closing scanner during add-device flow', async () => {
     const { UNSAFE_getByType } = renderAddDeviceFlow({
       phase: QrSyncPhases.DISPLAYING_OTP,
@@ -284,14 +349,28 @@ describe('QRTabSwitcher', () => {
     renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingSecretImports: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary: false,
-          },
-        ],
+        pendingSecretImports: {
+          version: 1 as const,
+          wallets: [
+            {
+              id: 'wallet:test' as `wallet:${string}`,
+              type: 'mnemonic' as const,
+              value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+              metadata: { name: 'Wallet 1' },
+              groups: [
+                {
+                  id: 'wallet:test/0' as `wallet:${string}/${string}`,
+                  groupIndex: 0,
+                  metadata: {
+                    name: 'Account 1',
+                    pinned: false,
+                    hidden: false,
+                  },
+                },
+              ],
+            },
+          ],
+        },
       },
       false,
     );
@@ -306,13 +385,9 @@ describe('QRTabSwitcher', () => {
         { pop: true },
       );
     });
-    expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
   });
 
   it('imports remaining secrets and navigates home for existing users', async () => {
-    const mnemonic =
-      'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
-
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts
       .mockResolvedValueOnce(['0xold'])
@@ -321,23 +396,39 @@ describe('QRTabSwitcher', () => {
     renderAddDeviceFlow(
       {
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingSecretImports: [
-          {
-            index: 0,
-            value: mnemonic,
-            type: QrSyncSecretTypes.MNEMONIC,
-            isPrimary: false,
-          },
-        ],
+        pendingSecretImports: {
+          version: 1 as const,
+          wallets: [
+            {
+              id: 'wallet:test' as `wallet:${string}`,
+              type: 'mnemonic' as const,
+              value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+              metadata: { name: 'Wallet 1' },
+              groups: [
+                {
+                  id: 'wallet:test/0' as `wallet:${string}/${string}`,
+                  groupIndex: 0,
+                  metadata: {
+                    name: 'Account 1',
+                    pinned: false,
+                    hidden: false,
+                  },
+                },
+              ],
+            },
+          ],
+        },
       },
       true,
     );
 
     await waitFor(() => {
       expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
+      expect(mockStartExistingUserQrMetadataProvisioning).toHaveBeenCalledTimes(
+        1,
+      );
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
-    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
     expect(mockResetState).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,

@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
+import { FeatureId } from '@metamask/bridge-controller';
 import {
   Box,
   HeaderStandard,
@@ -35,6 +36,7 @@ import {
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyTabEnabledFlag,
 } from '../../../../../selectors/bridge/featureFlags';
+import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { BridgeTabKey } from './BridgeView.constants';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import BridgeMarketView from './BridgeMarketView';
@@ -256,10 +258,20 @@ const BridgeView = () => {
       ) : null}
       <GestureDetector gesture={swipeGesture}>
         <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
-          {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
-          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Market ? (
+            <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+              <BridgeMarketView />
+            </SwapsFeatureIdProvider>
+          ) : null}
+          {renderedTab === BridgeTabKey.Limit ? (
+            <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+              <BridgeLimitOrderView />
+            </SwapsFeatureIdProvider>
+          ) : null}
           {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView />
+            <SwapsFeatureIdProvider featureId={FeatureId.RECURRING_BUY}>
+              <BridgeRecurringBuyView />
+            </SwapsFeatureIdProvider>
           ) : null}
         </Box>
       </GestureDetector>

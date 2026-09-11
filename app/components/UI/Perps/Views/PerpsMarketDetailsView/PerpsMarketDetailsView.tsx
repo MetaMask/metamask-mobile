@@ -149,6 +149,7 @@ import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsVisibleCandleCount } from '../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import {
   PERPS_MARKET_DETAIL_SECTION,
@@ -177,7 +178,10 @@ import {
   MarketInsightsEntryCard,
   MarketInsightsEntryCardSkeleton,
   MarketInsightsDisclaimerBottomSheet,
+  getMarketInsightsTraceId,
+  getMarketInsightsTraceTags,
   useMarketInsights,
+  useMarketInsightsEntryTrace,
 } from '../../../MarketInsights';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
@@ -191,6 +195,7 @@ import {
 } from '../../abTestConfig';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
+import { refreshLightweightChartViewport } from '../../utils/refreshLightweightChartViewport';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import {
@@ -415,7 +420,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     timeAgo: perpsInsightsTimeAgo,
     isLoading: isPerpsInsightsLoading,
     error: perpsInsightsError,
-  } = useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
+    cacheState: perpsInsightsCacheState,
+  } = useMarketInsights(market?.symbol, isPerpsInsightsEnabled, {
+    source: 'perps',
+    stage: 'entry_card',
+    assetType: 'perps',
+  });
+  const perpsInsightsEntryTraceId = useMarketInsightsEntryTrace({
+    assetIdentifier: market?.symbol,
+    assetType: 'perps',
+    cacheState: perpsInsightsCacheState,
+    enabled: isPerpsInsightsEnabled,
+    error: perpsInsightsError,
+    isLoading: isPerpsInsightsLoading,
+    report: perpsInsightsReport,
+    source: 'perps',
+  });
   const previousInsightsSymbolRef = useRef(market?.symbol);
   const isInsightsStateForCurrentSymbol =
     previousInsightsSymbolRef.current === market?.symbol;
@@ -505,9 +525,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
-  const [visibleCandleCount, setVisibleCandleCount] = useState<number>(
-    PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
-  );
+  const { visibleCandleCount, onVisibleCandleCountChange } =
+    usePerpsVisibleCandleCount(market?.symbol);
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
@@ -747,7 +766,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             Logger.error(
               ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'),
               {
-                tags: { feature: PERPS_CONSTANTS.FeatureName },
+                tags: {
+                  feature: PERPS_CONSTANTS.FeatureName,
+                  component: 'PerpsMarketDetailsView',
+                  action: 'financial_deposit',
+                  operation: 'financial_operations',
+                },
               },
             );
           },
@@ -755,7 +779,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       );
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsMarketDetailsView',
+          action: 'financial_deposit',
+          operation: 'financial_operations',
+        },
       });
     }
   }, [
@@ -950,15 +979,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     setRefreshing(true);
 
     try {
-      // Reset chart to default state (like initial navigation)
-      setVisibleCandleCount(45);
-
-      // Reset chart view to default position
+      // Snap the viewport to the latest candles; keep the persisted zoom.
       if (isAdvancedChartEnabled) {
         setEffectiveChartLibrary(configuredChartLibrary);
         setAdvancedChartResetKey((key) => key + 1);
       } else {
-        chartRef.current?.resetToDefault();
+        refreshLightweightChartViewport(chartRef.current, visibleCandleCount);
       }
 
       // WebSocket streaming provides real-time data - no manual refresh needed
@@ -971,7 +997,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [configuredChartLibrary, isAdvancedChartEnabled]);
+  }, [configuredChartLibrary, isAdvancedChartEnabled, visibleCandleCount]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -1522,9 +1548,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         digest_id: perpsInsightsReport.digestId,
       }),
     });
+    const traceId = getMarketInsightsTraceId(
+      market.symbol,
+      'perps',
+      'full_view',
+    );
     trace({
       name: TraceName.MarketInsightsViewLoad,
       op: TraceOperation.MarketInsightsLoad,
+      id: traceId,
+      tags: getMarketInsightsTraceTags(
+        { source: 'perps', stage: 'full_view', assetType: 'perps' },
+        'warm',
+      ),
     });
     navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
       assetSymbol: market.symbol,
@@ -1808,6 +1844,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           setChartDeliveryRevision((revision) => revision + 1)
         }
         onError={handleChartError}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         fallbackCandleData={candleData}
         fallbackDeliveryRevision={priceDeliveryRevision}
         fallbackFetchMoreHistory={fetchMoreHistory}
@@ -1833,6 +1870,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         coloredVolume
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
       />
     );
@@ -2004,6 +2042,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 timeAgo={perpsInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
                 onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                traceId={perpsInsightsEntryTraceId}
                 source="perps"
                 testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
               />
@@ -2207,6 +2246,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           visibleCandleCount={visibleCandleCount}
           onClose={handleFullscreenChartClose}
           onIntervalChange={handleCandlePeriodChange}
+          onVisibleCandleCountChange={onVisibleCandleCountChange}
           isAdvancedChartEnabled={isAdvancedChartEnabled}
           symbol={market?.symbol}
           positionSize={existingPosition?.size}

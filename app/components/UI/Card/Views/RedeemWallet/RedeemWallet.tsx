@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useEffect, useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -10,19 +9,21 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  ButtonIcon,
+  ButtonIconSize,
   HeaderStandard,
   AvatarAccount,
   AvatarBaseSize,
+  IconColor,
+  IconName,
+  KeyValueRow,
+  KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName as ToastIconName } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import I18n, { strings } from '../../../../../../locales/i18n';
@@ -30,20 +31,14 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import useRedeemableWallet, {
   type RedeemableWalletMode,
 } from '../../hooks/useRedeemableWallet';
 import useRedeemDestination from '../../hooks/useRedeemDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  selectCardHomeDataStatus,
-  selectCardActiveProviderId,
-} from '../../../../../selectors/cardController';
-import { withCardProvider } from '../../util/metrics';
+import { selectCardHomeDataStatus } from '../../../../../selectors/cardController';
+import { useRedeemWalletAnalytics } from './hooks/useRedeemWalletAnalytics';
 import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import {
@@ -51,6 +46,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { getUsdToFiatConversionRate } from '../../../Money/utils/moneyActivityFiat';
+import { getStablecoinFiatAmount } from '../../util/getStablecoinFiatAmount';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { formatAddress } from '../../../../../util/address';
 import type { RootState } from '../../../../../reducers';
@@ -60,9 +56,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   formatAmount,
   formatCurrency,
-  getCashbackWithdrawalAmounts,
-} from '../Cashback/Cashback.utils';
+  getRedeemWithdrawalAmounts,
+} from './RedeemWallet.utils';
 import { REDEEM_CONFIG } from './RedeemWallet.config';
+import { CardRedeemWithdrawalInProgressError } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { capRedeemAmount } from '../../../../../core/Engine/controllers/card-controller/utils/redeemAmount';
 
 interface RedeemWalletProps {
   mode: RedeemableWalletMode;
@@ -76,8 +74,6 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const headerHandlers = useCardHeaderHandlers('back');
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder } = useAnalytics();
-  const activeProviderId = useSelector(selectCardActiveProviderId);
 
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const currencyRates = useSelector(selectCurrencyRates);
@@ -91,6 +87,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     error,
     estimation,
     isEstimating,
+    estimationError,
     fetchEstimation,
     withdraw,
     isWithdrawing,
@@ -100,13 +97,13 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     resetWithdraw,
   } = useRedeemableWallet(mode);
 
-  const balance = wallet?.balance ?? '0';
+  const balance = capRedeemAmount(wallet?.balance ?? '0');
   const currency = formatCurrency(wallet?.currency ?? '');
   const isWithdrawable = wallet?.isWithdrawable ?? false;
 
   const feePrice = estimation?.price ?? '0';
   const { roundedFeeNum, expectedToReceiveNumber, hasInsufficientBalance } =
-    getCashbackWithdrawalAmounts(balance, feePrice);
+    getRedeemWithdrawalAmounts(balance, feePrice);
 
   const destination = useRedeemDestination({
     currency: wallet?.currency,
@@ -125,10 +122,9 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     if (config.showFiatBalance) {
       const usdToFiat = getUsdToFiatConversionRate(currencyRates);
       const balanceNum = parseFloat(balance);
-      if (usdToFiat !== undefined && Number.isFinite(balanceNum)) {
-        // ponytail: prices the refund balance as 1 stablecoin ~= 1 USD
-        // (ceiling: assumes USDC/USDT ~= $1; upgrade path is a market lookup).
-        return formatWithThreshold(balanceNum * usdToFiat, 0.01, I18n.locale, {
+      const fiatAmount = getStablecoinFiatAmount(balanceNum, usdToFiat);
+      if (fiatAmount !== undefined) {
+        return formatWithThreshold(fiatAmount, 0.01, I18n.locale, {
           style: 'currency',
           currency: currentCurrency?.toUpperCase() || 'USD',
         });
@@ -203,79 +199,116 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const showSetupBanner =
     needsSetup && (!useMoneyAccountFlow || canLinkMoneyAccount);
 
+  const { trackRedeemButton } = useRedeemWalletAnalytics({
+    mode,
+    isWalletLoading: isLoading,
+    isFundingStatusLoading,
+    hasLoadingError: showLoadingError,
+    hasEstimation: !!estimation,
+    hasEstimationError: !!estimationError,
+    isDestinationResolved: destination.isResolved,
+    isMoneyAccountDestination: destination.isMoneyAccountDestination,
+    isWithdrawable,
+    needsSetup,
+    hasInsufficientBalance,
+  });
+
+  // Fetch when wallet data becomes available (including late loads while focused).
   useEffect(() => {
     if (wallet) {
       fetchEstimation().catch(() => undefined);
     }
   }, [wallet, fetchEstimation]);
 
+  // Refresh estimation whenever the screen regains focus.
+  useFocusEffect(
+    useCallback(() => {
+      if (wallet) {
+        fetchEstimation().catch(() => undefined);
+      }
+    }, [wallet, fetchEstimation]),
+  );
+
   useEffect(() => {
-    if (monitoringStatus === 'success') {
+    const isFailed = monitoringStatus === 'failed' || !!monitoringError;
+    const isSuccess = monitoringStatus === 'success';
+    // A rejected submit for an already-in-flight redeem (this mode or the
+    // other) is not a real failure — the controller owns the outcome.
+    const submitFailed =
+      !!withdrawError &&
+      !(withdrawError instanceof CardRedeemWithdrawalInProgressError);
+
+    // A rejected submit while the controller still reports a withdrawal in
+    // flight means a duplicate press was rejected, not that the withdrawal
+    // failed. The controller owns the outcome, so wait for it.
+    if (monitoringStatus === 'monitoring' || isWithdrawing) return;
+
+    if (isSuccess) {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [{ label: strings(config.strings.withdrawalSuccess) }],
-        iconName: IconName.Confirmation,
+        iconName: ToastIconName.Confirmation,
         iconColor: theme.colors.success.default,
         hasNoTimeout: false,
       });
-      navigation.goBack();
-    }
-  }, [monitoringStatus, toastRef, theme, navigation, config]);
-
-  useEffect(() => {
-    if (monitoringStatus === 'failed' || monitoringError) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalFailed) }],
-        iconName: IconName.Danger,
-        iconColor: theme.colors.error.default,
-        hasNoTimeout: false,
-      });
-    }
-  }, [monitoringStatus, monitoringError, toastRef, theme, config]);
-
-  useEffect(() => {
-    if (withdrawError) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [{ label: strings(config.strings.withdrawalFailed) }],
-        iconName: IconName.Danger,
-        iconColor: theme.colors.error.default,
-        hasNoTimeout: false,
-      });
-    }
-  }, [withdrawError, toastRef, theme, config]);
-
-  useEffect(
-    () => () => {
       resetWithdraw();
-    },
-    [resetWithdraw],
-  );
+      navigation.goBack();
+      return;
+    }
 
-  const handleWithdraw = useCallback(() => {
-    if (needsSetup || isFundingStatusUnavailable) return;
+    if (isFailed || submitFailed) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [{ label: strings(config.strings.withdrawalFailed) }],
+        iconName: ToastIconName.Danger,
+        iconColor: theme.colors.error.default,
+        hasNoTimeout: false,
+      });
+      if (isFailed) {
+        resetWithdraw();
+      }
+    }
+  }, [
+    monitoringStatus,
+    monitoringError,
+    withdrawError,
+    isWithdrawing,
+    toastRef,
+    theme,
+    navigation,
+    config,
+    resetWithdraw,
+  ]);
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(activeProviderId, {
-            action: config.analyticsAction,
-            type: 'withdraw',
-          }),
-        )
-        .build(),
-    );
+  const handleWithdraw = useCallback(async () => {
+    if (
+      needsSetup ||
+      isFundingStatusUnavailable ||
+      isWithdrawing ||
+      monitoringStatus === 'monitoring' ||
+      monitoringStatus === 'success'
+    ) {
+      return;
+    }
+
+    trackRedeemButton('withdraw');
+
+    try {
+      await fetchEstimation();
+    } catch {
+      // Estimation failure surfaces via estimationError / button state; still
+      // allow withdraw — controller re-fetches estimation at submit time.
+    }
     withdraw(balance);
   }, [
     balance,
     withdraw,
-    trackEvent,
-    createEventBuilder,
-    activeProviderId,
+    fetchEstimation,
+    trackRedeemButton,
     needsSetup,
     isFundingStatusUnavailable,
-    config,
+    isWithdrawing,
+    monitoringStatus,
   ]);
 
   const handleNavigateToSpendingLimit = useCallback(() => {
@@ -288,12 +321,14 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   }, [navigation, destination.delegationToken]);
 
   const handleSetupPress = useCallback(() => {
+    trackRedeemButton('setup');
     if (useMoneyAccountFlow) {
       startLinkFlow(config.moneyAccountOrigin);
       return;
     }
     handleNavigateToSpendingLimit();
   }, [
+    trackRedeemButton,
     useMoneyAccountFlow,
     startLinkFlow,
     handleNavigateToSpendingLimit,
@@ -301,13 +336,19 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   ]);
 
   const handleOpenRefundInfo = useCallback(() => {
+    trackRedeemButton('refund_info');
     navigation.navigate(Routes.CARD.MODALS.ID, {
       screen: Routes.CARD.MODALS.CREDIT_REFUND_TOOLTIP,
       params: { isMoneyAccount: destination.isMoneyAccountDestination },
     });
-  }, [navigation, destination.isMoneyAccountDestination]);
+  }, [trackRedeemButton, navigation, destination.isMoneyAccountDestination]);
 
-  const isProcessing = isWithdrawing || monitoringStatus === 'monitoring';
+  // Keep the button locked through success until resetWithdraw/goBack run —
+  // otherwise it briefly re-enables between monitor completion and navigation.
+  const isProcessing =
+    isWithdrawing ||
+    monitoringStatus === 'monitoring' ||
+    monitoringStatus === 'success';
 
   const buttonLabel = useMemo(() => {
     if (
@@ -390,17 +431,14 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
               {strings(config.strings.available)}
             </Text>
             {config.showRefundInfo ? (
-              <TouchableOpacity
+              <ButtonIcon
                 onPress={handleOpenRefundInfo}
+                iconName={IconName.Info}
+                size={ButtonIconSize.Sm}
+                iconProps={{ color: IconColor.IconAlternative }}
                 testID={testIds.REFUND_INFO_BUTTON}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.Alternative}
-                />
-              </TouchableOpacity>
+              />
             ) : null}
           </Box>
         </Box>
@@ -421,49 +459,45 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
           >
             <Box twClassName="gap-3">
               <KeyValueRow
-                field={{
-                  label: { text: strings(config.strings.networkFee) },
-                }}
-                value={{
-                  label:
-                    isLoading || isEstimating ? (
-                      <Skeleton
-                        height={20}
-                        width={80}
-                        style={tw.style('rounded-md')}
-                      />
-                    ) : (
-                      { text: `${formatAmount(roundedFeeNum)} ${currency}` }
-                    ),
-                }}
+                variant={KeyValueRowVariant.Summary}
+                twClassName="px-0 h-auto"
+                keyLabel={strings(config.strings.networkFee)}
+                value={
+                  isLoading || isEstimating ? (
+                    <Skeleton
+                      height={20}
+                      width={80}
+                      style={tw.style('rounded-md')}
+                    />
+                  ) : (
+                    `${formatAmount(roundedFeeNum)} ${currency}`
+                  )
+                }
               />
               <KeyValueRow
-                field={{
-                  label: { text: strings(config.strings.expectedToReceive) },
-                }}
-                value={{
-                  label:
-                    isLoading || isEstimating ? (
-                      <Skeleton
-                        height={20}
-                        width={80}
-                        style={tw.style('rounded-md')}
-                      />
-                    ) : (
-                      {
-                        text: `${formatAmount(
-                          expectedToReceiveNumber,
-                        )} ${currency}`,
-                      }
-                    ),
-                }}
+                variant={KeyValueRowVariant.Summary}
+                twClassName="px-0 h-auto"
+                keyLabel={strings(config.strings.expectedToReceive)}
+                value={
+                  isLoading || isEstimating ? (
+                    <Skeleton
+                      height={20}
+                      width={80}
+                      style={tw.style('rounded-md')}
+                    />
+                  ) : (
+                    `${formatAmount(expectedToReceiveNumber)} ${currency}`
+                  )
+                }
               />
-              <Box testID={testIds.TO_ROW}>
-                <KeyValueRow
-                  field={{ label: { text: strings(config.strings.to) } }}
-                  value={{
-                    label:
-                      isLoading || isEstimating || !destination.isResolved ? (
+              {(isLoading || isEstimating || destinationChip) && (
+                <Box testID={testIds.TO_ROW}>
+                  <KeyValueRow
+                    variant={KeyValueRowVariant.Summary}
+                    twClassName="px-0 h-auto"
+                    keyLabel={strings(config.strings.to)}
+                    value={
+                      isLoading || isEstimating ? (
                         <Skeleton
                           height={20}
                           width={120}
@@ -471,10 +505,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
                         />
                       ) : (
                         destinationChip
-                      ),
-                  }}
-                />
-              </Box>
+                      )
+                    }
+                  />
+                </Box>
+              )}
             </Box>
           </Box>
         )}

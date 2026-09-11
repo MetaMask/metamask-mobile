@@ -47,6 +47,7 @@ export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
 
 export const PUSH_NOTIFICATIONS_PROMPT_COUNT = `${prefix}pushNotificationsPromptCount`;
 export const PUSH_NOTIFICATIONS_PROMPT_TIME = `${prefix}pushNotificationsPromptTime`;
+export const BRAZE_PUSH_REGISTRATION_STATE = `${prefix}brazePushRegistrationState`;
 
 export const LANGUAGE = `${prefix}language`;
 
@@ -88,7 +89,8 @@ export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const PERPS_MODE_SELECTION_COMPLETED = `${prefix}perpsModeSelectionCompleted`;
 
-export const PERPS_COMPETITION_BANNER_DISMISSED = `${prefix}perpsCompetitionBannerDismissed`;
+export const perpsCompetitionBannerDismissedKey = (campaignId: string) =>
+  `${prefix}perpsCompetitionBannerDismissed:${campaignId}`;
 
 export const PERPS_LAST_ACTION_AT = `${prefix}perpsLastActionAt`;
 

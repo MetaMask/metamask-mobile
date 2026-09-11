@@ -45,10 +45,10 @@ on:
         required: false
         default: false
         type: boolean
-      reuse-main-builds-only:
+      use-main-builds-for-test-only-prs:
         description: >-
-          When true, only reuse native artifacts from the base branch (main) and skip
-          JS repacking. Fails if no reusable main build is found.
+          When true, reuse native artifacts from main for test-only PRs and skip JS
+          repacking. If no reusable main build is found, fall back to a fresh native build.
         required: false
         default: false
         type: boolean
@@ -219,13 +219,13 @@ jobs:
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
           artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
-          metadata-artifact-name: ${{ inputs.reuse-main-builds-only != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
+          metadata-artifact-name: ${{ inputs.use-main-builds-for-test-only-prs != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
           github-token: ${{ github.token }}
-          main-branch-only: ${{ inputs.reuse-main-builds-only }}
-          max-candidates-per-branch: ${{ inputs.reuse-main-builds-only && '30' || '10' }}
+          main-branch-only: ${{ inputs.use-main-builds-for-test-only-prs }}
+          max-candidates-per-branch: ${{ inputs.use-main-builds-for-test-only-prs && '30' || '10' }}
 
       - name: Restore APKs matching fingerprint from branch cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && inputs.reuse-main-builds-only != true }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && inputs.use-main-builds-for-test-only-prs != true }}
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -236,7 +236,7 @@ jobs:
           key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore APKs matching fingerprint from main cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && (inputs.reuse-main-builds-only == true || (steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && (inputs.use-main-builds-for-test-only-prs == true || (steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -250,7 +250,7 @@ jobs:
         id: download-reusable-metadata
         if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-reusable-metadata/android
@@ -307,7 +307,7 @@ jobs:
         id: download-reusable-apk
         if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -319,7 +319,7 @@ jobs:
         id: download-reusable-test-apk
         if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -338,7 +338,7 @@ jobs:
       - name: Compute native-build gate
         id: gate
         run: |
-          if [[ "${{ inputs.reuse-main-builds-only }}" == "true" ]]; then
+          if [[ "${{ inputs.use-main-builds-for-test-only-prs }}" == "true" ]]; then
             if [[ "${{ steps.force-builds.outputs.force }}" == "true" ]]; then
               echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
               echo "force-builds override on test-only PR — compiling fresh native build."
@@ -393,7 +393,7 @@ jobs:
       - name: Restore .metamask folder
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -447,16 +447,16 @@ jobs:
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
           artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
-          metadata-artifact-name: ${{ inputs.reuse-main-builds-only != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
+          metadata-artifact-name: ${{ inputs.use-main-builds-for-test-only-prs != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
           github-token: ${{ github.token }}
-          main-branch-only: ${{ inputs.reuse-main-builds-only }}
-          max-candidates-per-branch: ${{ inputs.reuse-main-builds-only && '30' || '10' }}
+          main-branch-only: ${{ inputs.use-main-builds-for-test-only-prs }}
+          max-candidates-per-branch: ${{ inputs.use-main-builds-for-test-only-prs && '30' || '10' }}
 
       - name: Download late reusable Android build metadata
         id: download-late-metadata
         if: ${{ steps.find-reusable-build-late.outputs.found == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-reusable-metadata/android-late
@@ -535,7 +535,7 @@ jobs:
         id: download-late-apk
         if: ${{ steps.validate-late-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -547,7 +547,7 @@ jobs:
         id: download-late-test-apk
         if: ${{ steps.validate-late-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -687,7 +687,7 @@ jobs:
       # A late-reused APK carries the donor's JS bundle, not this branch's, so a late
       # reuse must repack exactly like an early one.
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ inputs.reuse-main-builds-only != true && (steps.gate.outputs.needs-native-build != 'true' || (steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success')) }}
+        if: ${{ inputs.use-main-builds-for-test-only-prs != true && (steps.gate.outputs.needs-native-build != 'true' || (steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success')) }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app

@@ -12,10 +12,10 @@ import {
 
 describe('Feature Flag Registry', () => {
   describe('FEATURE_FLAG_REGISTRY', () => {
-    it('registers Chase as version-gated and default-off', () => {
+    it('registers Chase as in-prod, version-gated and default-off', () => {
       expect(FEATURE_FLAG_REGISTRY.perpsMobileChase).toMatchObject({
         name: 'perpsMobileChase',
-        inProd: false,
+        inProd: true,
         productionDefault: {
           enabled: false,
           minimumVersion: '8.10.0',
@@ -58,10 +58,25 @@ describe('Feature Flag Registry', () => {
       expect(FEATURE_FLAG_REGISTRY.perpsMobileScale).toMatchObject({
         name: 'perpsMobileScale',
         type: FeatureFlagType.Remote,
-        inProd: false,
+        inProd: true,
         productionDefault: {
           enabled: false,
           minimumVersion: '8.10.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
+    it('registers the Pro position-modify margin preview as in-prod, version-gated and default-off', () => {
+      expect(
+        FEATURE_FLAG_REGISTRY.perpsPositionModifyPreviewEnabled,
+      ).toMatchObject({
+        name: 'perpsPositionModifyPreviewEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.11.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -111,7 +126,7 @@ describe('Feature Flag Registry', () => {
       expect(extendedSportsFlag).toEqual(
         expect.objectContaining({
           versions: expect.objectContaining({
-            '8.6.0': expect.objectContaining({
+            '8.10.0': expect.objectContaining({
               enabledSportsMarketTypes: expect.arrayContaining([
                 'first_half_moneyline',
                 'first_half_spreads',
@@ -140,6 +155,100 @@ describe('Feature Flag Registry', () => {
         enabled: false,
         minimumVersion: '8.10.0',
       });
+    });
+
+    it('keeps the Money hub default-off', () => {
+      expect(
+        getRegistryEntry('earnMoneyHubEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('keeps mUSD conversion and Get-mUSD CTAs default-off', () => {
+      const musdCtaFlags = [
+        'earnMusdCtaEnabled',
+        'earnMusdConversionFlowEnabled',
+        'earnMusdConversionAssetOverviewCtaEnabled',
+        'earnMusdConversionTokenListItemCtaEnabled',
+      ];
+
+      for (const flagName of musdCtaFlags) {
+        expect(getRegistryEntry(flagName)?.productionDefault).toEqual({
+          enabled: false,
+          minimumVersion: '0.0.0',
+        });
+      }
+    });
+
+    it('version-gates the Earn banner and token-list Money CTA on at 8.4.0', () => {
+      expect(
+        getRegistryEntry('earnMoneyEarnBannerEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.4.0',
+      });
+      expect(
+        getRegistryEntry('earnMoneyTokenListItemCtaEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.4.0',
+      });
+    });
+
+    it('registers Earn catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'earnMoneyDepositCtaTokens',
+        'earnMoneyEarnBannerTokens',
+        'earnMoneyBalanceAnimationEnabled',
+        'earnMoneyCardFlipAnimationEnabled',
+        'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+        'musd1313AbtestEarnSectionOnHomepage',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+    });
+
+    it('includes Monad in mUSD token registration chain ids', () => {
+      expect(
+        getRegistryEntry('earnMusdTokenRegistrationChainIds')
+          ?.productionDefault,
+      ).toEqual({
+        chainIds: ['0x1', '0xe708', '0x8f'],
+      });
+    });
+
+    it('pins Earn homepage and token-details A/B flags to control', () => {
+      const abTestFlags = [
+        'musd1313AbtestEarnSectionOnHomepage',
+        'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+        const treatment = variants.find(
+          (variant) => variant.name === 'treatment',
+        );
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        expect(treatment?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 0,
+        });
+      }
     });
   });
 

@@ -10,6 +10,7 @@ import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_KEY } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
+import { PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY } from '../../components/UI/Perps/abTestConfig';
 
 describe('enrichWithABTests', () => {
   it('injects one active assignment for a matching allowlisted event', () => {
@@ -332,6 +333,35 @@ describe('enrichWithABTests', () => {
     expect(result.properties.active_ab_tests).toEqual([
       createActiveABTestAssignment(HOMEPAGE_EARN_SECTION_AB_KEY, 'treatment'),
     ]);
+  });
+
+  it('attaches the Perps screen-vs-bottom-sheet assignment to close-position conversion events', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.PERPS_POSITION_CLOSE_TRANSACTION,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+        'treatment',
+      ),
+    ]);
+  });
+
+  it('does not attach the Perps screen-vs-bottom-sheet assignment to unrelated Perps events', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    ).build();
+
+    const result = enrichWithABTests(event, {
+      [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toBeUndefined();
   });
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {

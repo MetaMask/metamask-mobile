@@ -6,7 +6,7 @@
 >
 > E2E tests are significantly slower, more brittle, and resource-intensive than unit and integration tests. Always prioritize unit and integration tests over E2E ones.
 
-Our end-to-end (E2E) testing strategy uses **Appium + Playwright** smoke tests under `tests/smoke-appium/`. Builds are **main-e2e** release binaries with `HAS_TEST_OVERRIDES=true`. See [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
+Our end-to-end (E2E) testing strategy uses **Appium + Playwright** smoke tests under `tests/smoke-appium/`. Builds are **main-e2e** release binaries with `HAS_TEST_OVERRIDES=true`. See [tests/docs/appium-smoke-testing.md](../../tests/docs/appium-smoke-testing.md).
 
 - [Local environment setup](#local-environment-setup)
   - [Tooling setup](#tooling-setup)
@@ -30,7 +30,7 @@ Ensure that following devices are set up:
 - **iOS**: iPhone 16 Pro
 - **Android**: Pixel 5 API 34
 
-> **Note**: Default simulator/emulator names are configured in Appium/Playwright config and `.e2e.env` (see [appium-smoke-testing.md](../testing/appium-smoke-testing.md)).
+> **Note**: Default simulator/emulator names are configured in Appium/Playwright config and `.e2e.env` (see [appium-smoke-testing.md](../../tests/docs/appium-smoke-testing.md)).
 
 **iOS:**
 
@@ -120,7 +120,7 @@ yarn build:android:main:e2e
 
 ### Run Appium smoke
 
-See **[Appium smoke tests (Playwright)](#appium-smoke-tests-playwright)** and [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
+See **[Appium smoke tests (Playwright)](#appium-smoke-tests-playwright)** and [tests/docs/appium-smoke-testing.md](../../tests/docs/appium-smoke-testing.md).
 
 To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../tests/docs/README.md).
 
@@ -144,14 +144,14 @@ gh run download RUN_ID --repo MetaMask/metamask-mobile \
 
 IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
 IOS_SIMULATOR_NAME="iPhone 16 Pro" \
-node scripts/e2e/prepare-ios-appium-runner.mjs
+node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
 
 IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
 IOS_SIMULATOR_UDID="$(xcrun simctl list devices booted -j | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));console.log(Object.values(d.devices).flat().find(x=>x.state==='Booted')?.udid||'')")" \
 yarn appium-smoke:ios --grep SmokeAccounts
 ```
 
-Full guide: **[Appium smoke testing](../testing/appium-smoke-testing.md)** — builds, env vars, Android ABI caveats, CI, troubleshooting.
+Full guide: **[Appium smoke testing](../../tests/docs/appium-smoke-testing.md)** — builds, env vars, Android ABI caveats, CI, troubleshooting.
 
 ## Flask E2E Testing (Snaps Support)
 
@@ -296,7 +296,7 @@ yarn build:android:flask:e2e  # or yarn build:ios:flask:e2e
 
 ## Legacy Appium (wdio)
 
-> **Removed.** Use Playwright Appium smoke — [Appium smoke tests (Playwright)](#appium-smoke-tests-playwright) and [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
+> **Removed.** Use Playwright Appium smoke — [Appium smoke tests (Playwright)](#appium-smoke-tests-playwright) and [tests/docs/appium-smoke-testing.md](../../tests/docs/appium-smoke-testing.md).
 
 ~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
 
@@ -320,13 +320,13 @@ The API Spec tests use `@open-rpc/test-coverage` against the in-app Test Dapp We
 
 #### Commands
 
-1. **Build / obtain main-e2e iOS app** (see [Appium smoke testing](../testing/appium-smoke-testing.md)), e.g. `build/ci-main-e2e/MetaMask.app`.
+1. **Build / obtain main-e2e iOS app** (see [Appium smoke testing](../../tests/docs/appium-smoke-testing.md)), e.g. `build/ci-main-e2e/MetaMask.app`.
 
 2. **Prepare simulator + Appium** (once):
 
    ```bash
    set -a && source .e2e.env && set +a
-   IOS_APP_PATH=build/ci-main-e2e/MetaMask.app node scripts/e2e/prepare-ios-appium-runner.mjs
+   IOS_APP_PATH=build/ci-main-e2e/MetaMask.app node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
    ```
 
 3. **Run API Spec Tests**:

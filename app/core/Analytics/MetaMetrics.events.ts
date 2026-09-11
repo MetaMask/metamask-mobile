@@ -192,6 +192,7 @@ enum EVENT_NAME {
   WALLET_CREATION_ATTEMPTED = 'Wallet Creation Attempted',
   WALLET_CREATED = 'Wallet Created',
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
+  ONBOARDING_LOADING_TIMED_OUT = 'Onboarding Loading Timed Out',
   WALLET_GOOGLE_IOS_WARNING_VIEWED = 'Wallet Google Ios Warning Viewed',
   WALLET_GOOGLE_IOS_ERROR_VIEWED = 'Wallet Google Ios Error Viewed',
   WALLET_CREATION_ERROR_SCREEN_VIEWED = 'Wallet Creation Error Screen Viewed',
@@ -394,6 +395,9 @@ enum EVENT_NAME {
   RAMPS_CHECKOUT_CALLBACK_DETECTED = 'Ramps Checkout Callback Detected',
   RAMPS_CHECKOUT_CLOSED = 'Ramps Checkout Closed',
 
+  NETWORK_USAGE_NOTICE_TOAST_VIEWED = 'Network Usage Notice Toast Viewed',
+  NETWORK_USAGE_NOTICE_TOAST_INTERACTED = 'Network Usage Notice Toast Interacted',
+
   ACCOUNTS = 'Accounts',
   DAPP_VIEW = 'Dapp View',
   NAVIGATION_DRAWER = 'Navigation Drawer',
@@ -464,6 +468,10 @@ enum EVENT_NAME {
   EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED = 'Earn Lending Deposit More Button Clicked',
   EARN_LENDING_WITHDRAW_BUTTON_CLICKED = 'Earn Lending Withdraw Button Clicked',
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED = 'Earn Lending Withdraw Confirmation Back Clicked',
+  // Earn Module
+  EARN_MODULE_SURFACE_VIEWED = 'Earn Module Surface Viewed',
+  EARN_MODULE_SURFACE_CLICKED = 'Earn Module Surface Clicked',
+  EARN_MODULE_BUTTON_CLICKED = 'Earn Module Button Clicked',
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
@@ -541,6 +549,7 @@ enum EVENT_NAME {
 
   // Login screen
   LOGIN_SCREEN_VIEWED = 'Login Screen Viewed',
+  APP_UNLOCKED = 'App Unlocked',
 
   // Reset Wallet Confirmed Modal
   RESET_WALLET_CONFIRMED = 'Reset Wallet Confirmed',
@@ -682,6 +691,9 @@ enum EVENT_NAME {
   CARD_TRANSACTION_HISTORY_OPENED = 'Card Transaction History Opened',
   CARD_TRANSACTION_DETAILS_OPENED = 'Card Transaction Details Opened',
   CARD_TRANSACTION_REPORT_STARTED = 'Card Transaction Report Started',
+  CARD_REDEEM_PROCESS_STARTED = 'Card Redeem Process Started',
+  CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
+  CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -1074,6 +1086,9 @@ const events = {
   WALLET_CREATION_ATTEMPTED: generateOpt(EVENT_NAME.WALLET_CREATION_ATTEMPTED),
   WALLET_CREATED: generateOpt(EVENT_NAME.WALLET_CREATED),
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
+  ONBOARDING_LOADING_TIMED_OUT: generateOpt(
+    EVENT_NAME.ONBOARDING_LOADING_TIMED_OUT,
+  ),
   WALLET_GOOGLE_IOS_WARNING_VIEWED: generateOpt(
     EVENT_NAME.WALLET_GOOGLE_IOS_WARNING_VIEWED,
   ),
@@ -1415,6 +1430,13 @@ const events = {
   ),
   RAMPS_CHECKOUT_CLOSED: generateOpt(EVENT_NAME.RAMPS_CHECKOUT_CLOSED),
 
+  NETWORK_USAGE_NOTICE_TOAST_VIEWED: generateOpt(
+    EVENT_NAME.NETWORK_USAGE_NOTICE_TOAST_VIEWED,
+  ),
+  NETWORK_USAGE_NOTICE_TOAST_INTERACTED: generateOpt(
+    EVENT_NAME.NETWORK_USAGE_NOTICE_TOAST_INTERACTED,
+  ),
+
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED: generateOpt(
     EVENT_NAME.FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED,
   ),
@@ -1511,6 +1533,7 @@ const events = {
 
   // Login screen
   LOGIN_SCREEN_VIEWED: generateOpt(EVENT_NAME.LOGIN_SCREEN_VIEWED),
+  APP_UNLOCKED: generateOpt(EVENT_NAME.APP_UNLOCKED),
 
   // Delete Wallet Modal
   RESET_WALLET_CONFIRMED: generateOpt(EVENT_NAME.RESET_WALLET_CONFIRMED),
@@ -1660,6 +1683,15 @@ const events = {
   ),
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED: generateOpt(
     EVENT_NAME.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
+  ),
+  EARN_MODULE_SURFACE_VIEWED: generateOpt(
+    EVENT_NAME.EARN_MODULE_SURFACE_VIEWED,
+  ),
+  EARN_MODULE_SURFACE_CLICKED: generateOpt(
+    EVENT_NAME.EARN_MODULE_SURFACE_CLICKED,
+  ),
+  EARN_MODULE_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.EARN_MODULE_BUTTON_CLICKED,
   ),
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(
@@ -1961,6 +1993,15 @@ const events = {
   ),
   CARD_TRANSACTION_REPORT_STARTED: generateOpt(
     EVENT_NAME.CARD_TRANSACTION_REPORT_STARTED,
+  ),
+  CARD_REDEEM_PROCESS_STARTED: generateOpt(
+    EVENT_NAME.CARD_REDEEM_PROCESS_STARTED,
+  ),
+  CARD_REDEEM_PROCESS_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_REDEEM_PROCESS_COMPLETED,
+  ),
+  CARD_REDEEM_PROCESS_FAILED: generateOpt(
+    EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(

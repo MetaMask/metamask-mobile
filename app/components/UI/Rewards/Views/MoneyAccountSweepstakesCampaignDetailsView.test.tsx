@@ -13,6 +13,7 @@ import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { useGetMoneyAccountSweepstakesStatsMe } from '../hooks/useGetMoneyAccountSweepstakesStatsMe';
+import { useMoneyAccountSweepstakesIngestLag } from '../hooks/useMoneyAccountSweepstakesIngestLag';
 import type { MoneyAccountSweepstakesSeries } from '../utils/moneyAccountSweepstakesSeries';
 import { createMoneyAccountSweepstakesLocalizedText } from '../components/Campaigns/MoneyAccountSweepstakes/testUtils';
 
@@ -219,6 +220,12 @@ jest.mock('../hooks/useRewardsToast', () => ({
   }),
 }));
 
+jest.mock('../hooks/useMoneyAccountSweepstakesIngestLag', () => ({
+  useMoneyAccountSweepstakesIngestLag: jest.fn(() => ({
+    isIngestLagging: false,
+  })),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -238,6 +245,9 @@ const mockUseGetMoneyAccountSweepstakesStatsMe =
   useGetMoneyAccountSweepstakesStatsMe as jest.MockedFunction<
     typeof useGetMoneyAccountSweepstakesStatsMe
   >;
+const mockUseMoneyAccountSweepstakesIngestLag = jest.mocked(
+  useMoneyAccountSweepstakesIngestLag,
+);
 
 const localizedText = createMoneyAccountSweepstakesLocalizedText();
 
@@ -320,6 +330,9 @@ function setupHooks({
     isLoading: isStatsLoading,
     hasError: hasStatsError,
     refetch: mockRefetchStats,
+  });
+  mockUseMoneyAccountSweepstakesIngestLag.mockReturnValue({
+    isIngestLagging: false,
   });
 }
 
@@ -524,6 +537,41 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
 
     await waitFor(() => {
       expect(mockEnsureBound).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('backend ingest lag', () => {
+    it('flags the deposit figures as catching up, measured against the ingest watermark', () => {
+      setupHooks({
+        optedInAny: true,
+        stats: { ...statsWithBalance, dataAsOf: '2026-08-24T09:15:00.000Z' },
+      });
+      mockUseMoneyAccountSweepstakesIngestLag.mockReturnValue({
+        isIngestLagging: true,
+      });
+
+      const { getByTestId } = render(
+        <MoneyAccountSweepstakesCampaignDetailsView />,
+      );
+
+      expect(mockUseMoneyAccountSweepstakesIngestLag).toHaveBeenCalledWith(
+        '2026-08-24T09:15:00.000Z',
+      );
+      expect(
+        getByTestId('money-account-sweepstakes-pending-ingest-label'),
+      ).toBeOnTheScreen();
+    });
+
+    it('leaves the figures unqualified when the ingest is current', () => {
+      setupHooks({ optedInAny: true, stats: statsWithBalance });
+
+      const { queryByTestId } = render(
+        <MoneyAccountSweepstakesCampaignDetailsView />,
+      );
+
+      expect(
+        queryByTestId('money-account-sweepstakes-pending-ingest-label'),
+      ).toBeNull();
     });
   });
 });

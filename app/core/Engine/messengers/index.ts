@@ -141,11 +141,14 @@ import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
+import { getUiSlotsControllerMessenger } from './ui-slots-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
 import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
+import { getKycServiceMessenger } from './kyc/kyc-service-messenger';
+import { getKycControllerMessenger } from './kyc/kyc-controller-messenger';
 import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
@@ -469,6 +472,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getCardControllerMessenger,
     getInitMessenger: noop,
   },
+  UiSlotsController: {
+    getMessenger: getUiSlotsControllerMessenger,
+    getInitMessenger: noop,
+  },
   QrSyncController: {
     getMessenger: getQrSyncControllerMessenger,
     getInitMessenger: noop,
@@ -487,6 +494,14 @@ export const MESSENGER_FACTORIES = {
   },
   ComplianceController: {
     getMessenger: getComplianceControllerMessenger,
+    getInitMessenger: noop,
+  },
+  KycService: {
+    getMessenger: getKycServiceMessenger,
+    getInitMessenger: noop,
+  },
+  KycController: {
+    getMessenger: getKycControllerMessenger,
     getInitMessenger: noop,
   },
   ChompApiService: {
