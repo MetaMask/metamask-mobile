@@ -226,6 +226,26 @@ function sanitizeFilePart(value: string): string {
   return value.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
+/**
+ * A test produces one profiling segment per app process it profiles. Specs that
+ * restart the app therefore produce several, and each needs its own artifact
+ * name. The first keeps the plain name so single-segment specs (almost all of
+ * them) get a predictable artifact.
+ */
+let collectedSegmentCount = 0;
+
+export function resetAppProfilingSegments(): void {
+  collectedSegmentCount = 0;
+}
+
+function nextProfileFileName(testInfo: TestInfo): string {
+  collectedSegmentCount += 1;
+  const base = `${sanitizeFilePart(testInfo.project.name)}-${sanitizeFilePart(testInfo.title)}`;
+  return collectedSegmentCount === 1
+    ? `${base}.cpuprofile`
+    : `${base}.segment-${collectedSegmentCount}.cpuprofile`;
+}
+
 function toAndroidPullPath(profilePath: string): string {
   if (profilePath.startsWith('/sdcard/Android/data/')) {
     return profilePath;
@@ -345,7 +365,7 @@ export async function pullAndAttachAppProfiling(
   const buffer = await pullValidProfilerFile(appiumDriver, remotePath);
 
   await fs.mkdir(PROFILE_OUTPUT_DIRECTORY, { recursive: true });
-  const fileName = `${sanitizeFilePart(testInfo.project.name)}-${sanitizeFilePart(testInfo.title)}.cpuprofile`;
+  const fileName = nextProfileFileName(testInfo);
   const outputPath = path.join(PROFILE_OUTPUT_DIRECTORY, fileName);
   await fs.writeFile(outputPath, buffer);
 
@@ -370,4 +390,36 @@ export async function stopAndCollectAppProfiling(
 ): Promise<string | null> {
   await stopAppProfilingFromTest();
   return pullAndAttachAppProfiling(testInfo, platform);
+}
+
+/**
+ * Collects the in-flight profiling segment before the app process is killed,
+ * and reports whether a session was stopped.
+ *
+ * Hermes cannot dump a trace from a process that no longer exists, so a spec
+ * that restarts the app has to flush its profile first. Profiling is not
+ * restarted afterwards on purpose: tapping the in-app start control costs an
+ * Appium round trip, and the launch-time specs begin measuring immediately
+ * after the relaunch, so re-arming there would inflate the very timer they
+ * exist to record.
+ */
+export async function collectAppProfilingBeforeAppTerminate(
+  testInfo: TestInfo,
+  platform: 'android' | 'ios',
+): Promise<boolean> {
+  const appiumDriver = getDriver();
+  if (!appiumDriver) {
+    return false;
+  }
+  // The spec was just driving the app, so it is in the foreground here and a
+  // direct lookup is reliable without reactivating it.
+  if (!(await elementExists(appiumDriver, RECORDING_READY_TEST_ID))) {
+    return false;
+  }
+
+  logger.info(
+    `Flushing Hermes profile for "${testInfo.title}" before the app is terminated`,
+  );
+  await stopAndCollectAppProfiling(testInfo, platform);
+  return true;
 }

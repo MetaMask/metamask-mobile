@@ -60,17 +60,14 @@ via `performance-profiler-result-ready` so tests can wait and `pullFile`. Do
 **not** use deeplinks — unknown `metamask://e2e/profiler/*` URLs show MetaMask's
 unsupported-link UI.
 
-Appium scenarios:
+#### Every performance spec is profiled automatically
 
-```ts
-await startAppProfilingFromTest();
-// ... scenario ...
-await stopAndCollectAppProfiling(testInfo, platform);
-```
-
-On Android this waits for the result hook, pulls the profile into
-`tests/reporters/reports/hermes-cpuprofiles/`, and attaches it to Playwright.
-On iOS it stops profiling only (pull not implemented).
+`appProfiling.fixture.ts` is an `auto` fixture, so no spec needs profiling
+plumbing. Any Playwright test under `tests/performance/` gets a session started
+before its body (covering login) and stopped after its last assertion. On
+Android the fixture then pulls the profile into
+`tests/reporters/reports/hermes-cpuprofiles/` and attaches it to the Playwright
+report; on iOS it stops profiling only (pull not implemented).
 
 #### One session per app process
 
@@ -79,12 +76,27 @@ not a limitation we work around — asking Hermes to dump a sampler that is no
 longer running is what makes the native stop call hang.
 
 BrowserStack satisfies this by default: `fullReset: true` plus disabled session
-reuse means each performance spec runs against a freshly installed app. Specs
-that deliberately kill the app mid-test (`AppiumGestures.terminateApp`, used by
-the cold-start launch-time specs) reload the JS bundle, so the stop control
-publishes `performance-profiler-session-lost` and collection is skipped for that
-spec rather than attempting a dump. Profile those journeys as separate specs if
-you need a trace across the restart.
+reuse means each performance spec runs against a freshly installed app.
+
+Specs that deliberately kill the app mid-test (`AppiumGestures.terminateApp`,
+used by the cold-start launch-time specs) still get a profile. `terminateApp`
+runs the `onBeforeAppTerminate` hooks from `tests/framework/appLifecycle.ts`, and
+the profiling fixture uses one to flush the in-flight trace while the process is
+still alive. The fixture's end-of-test stop then has nothing left to do.
+
+Profiling is deliberately **not** re-armed after the relaunch. Tapping the
+in-app start control costs an Appium round trip, and the launch-time specs start
+measuring immediately after `activateApp`, so re-arming there would inflate the
+very timer they exist to record. Those specs therefore produce a trace of the
+work leading up to the restart rather than of the restart itself.
+
+A test that profiles more than one process produces one artifact per segment:
+the first keeps the plain `<project>-<title>.cpuprofile` name and later ones are
+suffixed `.segment-<n>.cpuprofile`.
+
+If the app dies without going through `terminateApp` (a crash, say), the stop
+control publishes `performance-profiler-session-lost` and collection is skipped
+for that spec instead of hanging on a dump.
 
 ### 3) Convert and view in Chrome tracing
 
