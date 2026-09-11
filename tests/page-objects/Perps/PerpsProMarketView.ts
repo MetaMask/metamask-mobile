@@ -116,12 +116,6 @@ class PerpsProMarketView {
     );
   }
 
-  get feesValue(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      PerpsProOrderFormSelectorsIDs.SUMMARY_FEES_VALUE,
-    );
-  }
-
   // ── Positions panel ────────────────────────────────────────────────────────
 
   get positionsPanel(): Promise<AppiumElement> {
@@ -312,12 +306,16 @@ class PerpsProMarketView {
 
   // ── Readiness ──────────────────────────────────────────────────────────────
 
-  async waitForProViewReady(timeout = 20000): Promise<void> {
-    // Container is a layout View: XCUITest frequently keeps isDisplayed=false.
+  async waitForProContainer(timeout = 20000): Promise<void> {
+    // Layout View: XCUITest/UiAutomator often keep isDisplayed=false.
     await Assertions.expectElementToExist(this.container, {
       description: 'Perps Pro Market View container',
       timeout,
     });
+  }
+
+  async waitForProViewReady(timeout = 20000): Promise<void> {
+    await this.waitForProContainer(timeout);
     // Order-form control is a stronger "Pro entry ready" signal than the root.
     await Assertions.expectElementToExist(this.directionLong, {
       description: 'Pro order form Long direction',
@@ -325,16 +323,27 @@ class PerpsProMarketView {
     });
   }
 
+  /**
+   * After Auto close Set from the position card, Pro can keep the root layout
+   * mounted while order-form and positions-list children remount. Wait for a
+   * Pro child anchor and the concrete position row before close polling.
+   *
+   * Anchors on the Pro root, not `waitForProViewReady`: Set is reached from the
+   * position card, which leaves the order form (and its Long control)
+   * unmounted, so a readiness gate would never pass on this path. The row wait
+   * below scrolls, so it covers the positions panel being below the fold.
+   */
+  async waitForPositionRowRemounted(
+    symbol: string,
+    timeout = 20000,
+  ): Promise<void> {
+    await this.waitForProContainer(timeout);
+    await this.waitForPositionRow(symbol, timeout);
+  }
+
   async waitForPositionsPanel(timeout = 20000): Promise<void> {
     await Assertions.expectElementToBeVisible(this.positionsPanel, {
       description: 'Pro positions panel',
-      timeout,
-    });
-  }
-
-  async waitForFeesReady(timeout = 30000): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.feesValue, {
-      description: 'Pro order form fees value',
       timeout,
     });
   }
@@ -653,6 +662,30 @@ class PerpsProMarketView {
     await Assertions.expectElementToNotExist(this.positionRow(symbol), {
       description: `Pro position row for ${symbol} should not be visible`,
       timeout: 10000,
+    });
+  }
+
+  /**
+   * Cheap position-gone poll for close waits (`waitForCloseAfterPricePush` /
+   * liquidation / TP). Do **not** re-tap Positions or scroll — those use
+   * `scrollUntilVisible` (default 45s) and burn the outer retry budget in one
+   * attempt when the Pro scroll-view is mid-transition after Auto close Set.
+   *
+   * Requiring the Pro root rules out a false "row gone" pass while the whole
+   * view is transiently unmounted, and keeps this to two short waits per poll.
+   * Anchor on the root only: order-form controls are unmounted after close and
+   * liquidation, and the positions panel sits below the fold (absent from the
+   * UiAutomator hierarchy until scrolled), so either would stall the poll
+   * before it ever reached the row check.
+   */
+  async expectPositionRowGone(symbol: string, timeout = 1500): Promise<void> {
+    await Assertions.expectElementToExist(this.container, {
+      description: 'Pro root anchor for position-gone poll',
+      timeout,
+    });
+    await Assertions.expectElementToNotExist(this.positionRow(symbol), {
+      description: `Pro position row for ${symbol} gone from hierarchy`,
+      timeout,
     });
   }
 

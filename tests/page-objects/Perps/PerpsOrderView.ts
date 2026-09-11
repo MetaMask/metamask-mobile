@@ -197,8 +197,8 @@ class PerpsOrderView {
     return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON);
   }
 
-  private get tpslAutoCloseTitle(): Promise<AppiumElement> {
-    return Matchers.getElementByText('Auto close');
+  private get tpslBottomSheet(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET);
   }
 
   // Required for next test
@@ -283,7 +283,7 @@ class PerpsOrderView {
       | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
     focusInputElemDescription: string,
   ): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.tpslAutoCloseTitle, {
+    await Assertions.expectElementToBeVisible(this.tpslBottomSheet, {
       description: 'TPSL Auto close screen visible',
       timeout: 15000,
     });
@@ -341,6 +341,13 @@ class PerpsOrderView {
       elemDescription: 'Confirm TP/SL (Set)',
       checkForDisplayed: true,
       checkEnabled: true,
+    });
+    // Android Fabric dismisses via goBack before updatePositionTPSL finishes.
+    // Wait on the sheet testID — "Auto close" also labels the order-form row
+    // and position-card title, so a text matcher never leaves the hierarchy.
+    await Assertions.expectElementToNotExist(this.tpslBottomSheet, {
+      description: 'TPSL Auto close sheet dismissed after Set',
+      timeout: 15000,
     });
   }
 
