@@ -4,10 +4,13 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
+  HelpText,
+  HelpTextSeverity,
   IconName,
   Label,
   Text,
   TextArea,
+  TextButton,
   TextColor,
   TextField,
   TextVariant,
@@ -15,12 +18,16 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../../util/address';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
+import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 
 interface ContactFormFieldsProps {
   address: string | null;
+  /** Resolved, user-facing validation message for the address field. */
+  addressError: string | null;
   addressInputRef: RefObject<TextInput | null>;
   editable: boolean;
-  hasAddressError: boolean;
+  /** Lets the user save despite the address error (contract address case). */
+  errorContinue: boolean;
   isAddMode: boolean;
   memo: string | null;
   memoInputRef: RefObject<TextInput | null>;
@@ -28,6 +35,7 @@ interface ContactFormFieldsProps {
   onChangeAddress: (address: string) => void;
   onChangeMemo: (memo: string) => void;
   onChangeName: (name: string) => void;
+  onErrorContinue: () => void;
   onScan: () => void;
   themeAppearance: 'light' | 'dark';
   toEnsAddress: string | null;
@@ -36,9 +44,10 @@ interface ContactFormFieldsProps {
 
 export const ContactFormFields = ({
   address,
+  addressError,
   addressInputRef,
   editable,
-  hasAddressError,
+  errorContinue,
   isAddMode,
   memo,
   memoInputRef,
@@ -46,6 +55,7 @@ export const ContactFormFields = ({
   onChangeAddress,
   onChangeMemo,
   onChangeName,
+  onErrorContinue,
   onScan,
   themeAppearance,
   toEnsAddress,
@@ -76,7 +86,7 @@ export const ContactFormFields = ({
         onChangeText={onChangeAddress}
         placeholder={strings('address_book.add_input_placeholder')}
         isDisabled={!isAddMode}
-        isError={hasAddressError}
+        isError={Boolean(addressError)}
         inputRef={addressInputRef}
         endAccessory={
           isAddMode ? (
@@ -101,6 +111,19 @@ export const ContactFormFields = ({
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {renderShortAddress(toEnsAddress)}
         </Text>
+      ) : null}
+      {addressError ? (
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          testID={CommonSelectorsIDs.ERROR_MESSAGE}
+        >
+          {addressError}
+        </HelpText>
+      ) : null}
+      {addressError && errorContinue ? (
+        <TextButton onPress={onErrorContinue}>
+          {strings('transaction.continueError')}
+        </TextButton>
       ) : null}
     </Box>
     <Box twClassName="gap-2">

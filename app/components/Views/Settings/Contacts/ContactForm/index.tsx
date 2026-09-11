@@ -17,8 +17,6 @@ import {
   areAddressesEqual,
   toChecksumAddress,
 } from '../../../../../util/address';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import ErrorMessage from '../../../confirmations/legacy/components/ErrorMessage';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -438,9 +436,10 @@ const ContactForm = ({
         <Box twClassName="flex-1 gap-4 py-3">
           <ContactFormFields
             address={address}
+            addressError={addressError ? renderErrorMessage(addressError) : null}
             addressInputRef={addressInput}
             editable={editable}
-            hasAddressError={Boolean(addressError)}
+            errorContinue={!!errorContinue}
             isAddMode={isAddMode}
             memo={memo}
             memoInputRef={memoInput}
@@ -448,6 +447,7 @@ const ContactForm = ({
             onChangeAddress={onChangeAddress}
             onChangeMemo={onChangeMemo}
             onChangeName={onChangeName}
+            onErrorContinue={onErrorContinue}
             onScan={onScan}
             themeAppearance={themeAppearance}
             toEnsAddress={toEnsAddress}
@@ -464,14 +464,6 @@ const ContactForm = ({
             />
           </Box>
         </Box>
-
-        {addressError && (
-          <ErrorMessage
-            errorMessage={renderErrorMessage(addressError)}
-            errorContinue={!!errorContinue}
-            onContinue={onErrorContinue}
-          />
-        )}
 
         {!!editable && (
           <View style={styles.buttonsWrapper}>
