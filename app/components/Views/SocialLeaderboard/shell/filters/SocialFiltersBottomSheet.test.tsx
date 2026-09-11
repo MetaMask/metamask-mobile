@@ -9,22 +9,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('react-native-gesture-handler', () => {
-  const ReactActual = jest.requireActual('react');
-  return {
-    Gesture: {
-      Pan: () => ({
-        onBegin: jest.fn().mockReturnThis(),
-        onUpdate: jest.fn().mockReturnThis(),
-        onEnd: jest.fn().mockReturnThis(),
-      }),
-    },
-    GestureDetector: ({ children }: { children: React.ReactNode }) =>
-      children as ReactActual.ReactElement,
-    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
-      children as ReactActual.ReactElement,
-  };
-});
+jest.mock('react-native-gesture-handler', () => ({
+  Gesture: {
+    Pan: () => ({
+      onBegin: jest.fn().mockReturnThis(),
+      onUpdate: jest.fn().mockReturnThis(),
+      onEnd: jest.fn().mockReturnThis(),
+    }),
+  },
+  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+  GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
 
 jest.mock('react-native-reanimated', () => {
   const ReactActual = jest.requireActual('react');
@@ -125,17 +121,22 @@ jest.mock('@metamask/design-system-react-native', () => {
       children: React.ReactNode;
       onChange?: (value: string) => void;
     }) =>
-      ReactActual.Children.map(
-        children,
-        (child: React.ReactElement<{ value?: string }>) => {
-          if (ReactActual.isValidElement(child) && child.props.value) {
-            return ReactActual.cloneElement(child, {
-              onPress: () => onChange?.(child.props.value as string),
-            });
-          }
+      ReactActual.Children.toArray(children).map((child) => {
+        if (
+          !ReactActual.isValidElement<{ value?: string; onPress?: () => void }>(
+            child,
+          )
+        ) {
           return child;
-        },
-      ),
+        }
+        const { value } = child.props;
+        if (!value) {
+          return child;
+        }
+        return ReactActual.cloneElement(child, {
+          onPress: () => onChange?.(value),
+        });
+      }),
     FilterButtonSize: { Lg: 'lg' },
     FilterButtonVariant: { Secondary: 'secondary' },
   };

@@ -6,22 +6,18 @@ import RangeSlider from './RangeSlider';
 // react-native-gesture-handler and reanimated need to be mocked for the
 // test renderer. The pan gesture is a no-op; we verify the component mounts
 // and reports the initial value via the onValueChange/onDragEnd callbacks.
-jest.mock('react-native-gesture-handler', () => {
-  const ReactActual = jest.requireActual('react');
-  return {
-    Gesture: {
-      Pan: () => ({
-        onBegin: jest.fn().mockReturnThis(),
-        onUpdate: jest.fn().mockReturnThis(),
-        onEnd: jest.fn().mockReturnThis(),
-      }),
-    },
-    GestureDetector: ({ children }: { children: React.ReactNode }) =>
-      children as ReactActual.ReactElement,
-    GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
-      children as ReactActual.ReactElement,
-  };
-});
+jest.mock('react-native-gesture-handler', () => ({
+  Gesture: {
+    Pan: () => ({
+      onBegin: jest.fn().mockReturnThis(),
+      onUpdate: jest.fn().mockReturnThis(),
+      onEnd: jest.fn().mockReturnThis(),
+    }),
+  },
+  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+  GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
 
 jest.mock('react-native-reanimated', () => {
   const ReactActual = jest.requireActual('react');
