@@ -1506,13 +1506,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           { pop: true },
         );
       } else {
-        // Navigate to TrendingView/TrendingFeed
         // Note: We use explicit navigation instead of goBack() because the browser
         // is a separate tab in the Tab Navigator, and goBack() doesn't properly
         // navigate back between tabs.
-        navigation.navigate(Routes.TRENDING_VIEW, {
-          screen: Routes.TRENDING_FEED,
-        });
+        navigation.navigate(Routes.TRENDING_VIEW);
       }
     }, [
       navigation,

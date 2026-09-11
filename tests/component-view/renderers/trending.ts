@@ -103,7 +103,7 @@ export function renderTrendingViewWithRoutes(
     withExploreFeedProviders(
       ExploreFeed as unknown as React.ComponentType<unknown>,
     ),
-    { name: Routes.TRENDING_FEED },
+    { name: Routes.TRENDING_VIEW },
     [
       {
         name: Routes.EXPLORE_SEARCH,
