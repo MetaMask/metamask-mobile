@@ -3,6 +3,7 @@ import React from 'react';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsProTwapFields, {
   formatCompactTwapDuration,
+  formatTwapRuntimeSummary,
 } from './PerpsProTwapFields';
 import type { PerpsProTwapModel } from './PerpsProOrderForm.types';
 
@@ -18,6 +19,7 @@ const buildTwapModel = (
   onHoursChange: jest.fn(),
   onMinutesChange: jest.fn(),
   onRandomizeChange: jest.fn(),
+  onRuntimeInfoPress: jest.fn(),
   ...overrides,
 });
 
@@ -58,6 +60,48 @@ describe('formatCompactTwapDuration', () => {
 
     // Assert
     expect(result).toBe('0h 15m');
+  });
+});
+
+describe('formatTwapRuntimeSummary', () => {
+  it('spells minutes out for a sub-hour runtime', () => {
+    // Arrange / Act
+    const result = formatTwapRuntimeSummary(30);
+
+    // Assert: the Figma summary reads "30 mins", not the compact "0h 30m"
+    expect(result).toBe('30 mins');
+  });
+
+  it('combines hours and minutes', () => {
+    // Arrange / Act
+    const result = formatTwapRuntimeSummary(90);
+
+    // Assert
+    expect(result).toBe('1 hr 30 mins');
+  });
+
+  it('uses singular units for a one-minute runtime', () => {
+    // Arrange / Act
+    const result = formatTwapRuntimeSummary(1);
+
+    // Assert
+    expect(result).toBe('1 min');
+  });
+
+  it('includes days once the runtime spans one', () => {
+    // Arrange / Act
+    const result = formatTwapRuntimeSummary(1500);
+
+    // Assert
+    expect(result).toBe('1 day 1 hr');
+  });
+
+  it('falls back to a placeholder when no runtime is set', () => {
+    // Arrange / Act
+    const result = formatTwapRuntimeSummary(0);
+
+    // Assert
+    expect(result).toBe('--');
   });
 });
 
@@ -108,6 +152,23 @@ describe('PerpsProTwapFields', () => {
       'accessibilityLabel',
       'Randomize',
     );
+  });
+
+  it('opens the runtime tooltip when the info affordance is pressed', () => {
+    // Arrange
+    const onRuntimeInfoPress = jest.fn();
+    render(
+      <PerpsProTwapFields
+        twap={buildTwapModel({ onRuntimeInfoPress })}
+        onDurationPress={jest.fn()}
+      />,
+    );
+
+    // Act
+    fireEvent.press(screen.getByTestId(ids.TWAP_DURATION_INFO));
+
+    // Assert
+    expect(onRuntimeInfoPress).toHaveBeenCalled();
   });
 
   it('reports a Randomize toggle to the model', () => {
