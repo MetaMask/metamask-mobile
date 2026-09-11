@@ -7,6 +7,7 @@ import Engine, { EngineState } from '../../../../../core/Engine';
 import ContactForm from '.';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
+import { SYMBOL_ERROR } from '../../../../../constants/error';
 import { strings } from '../../../../../../locales/i18n';
 
 const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
@@ -267,6 +268,37 @@ describe('ContactForm', () => {
         expect.anything(),
         expect.anything(),
       );
+    });
+
+    expect(
+      await findByTestId(CommonSelectorsIDs.ERROR_MESSAGE),
+    ).toHaveTextContent('Invalid address');
+  });
+
+  it('offers a continue action for errors that can be bypassed', async () => {
+    const validateAddressOrENSMock = jest.requireMock(
+      '../../../../../util/address',
+    ).validateAddressOrENS;
+
+    validateAddressOrENSMock.mockResolvedValue({
+      addressError: SYMBOL_ERROR,
+      toEnsName: null,
+      addressReady: true,
+      toEnsAddress: null,
+      errorContinue: true,
+    });
+
+    const { findByTestId, findByText, queryByTestId } = renderContactForm();
+
+    fireEvent.changeText(
+      await findByTestId(AddContactViewSelectorsIDs.ADDRESS_INPUT),
+      MOCK_ADDRESS_2,
+    );
+
+    fireEvent.press(await findByText(strings('transaction.continueError')));
+
+    await waitFor(() => {
+      expect(queryByTestId(CommonSelectorsIDs.ERROR_MESSAGE)).toBeNull();
     });
   });
 
