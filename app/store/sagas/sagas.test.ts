@@ -95,7 +95,7 @@ jest.mock('../../core/Engine', () => ({
       init: jest.fn(),
     },
     AccountsController: {
-      updateAccounts: jest.fn(),
+      init: jest.fn(),
     },
     ApprovalController: {
       clearRequests: jest.fn(),
