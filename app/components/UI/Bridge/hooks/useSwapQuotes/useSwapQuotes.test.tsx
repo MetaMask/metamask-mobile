@@ -183,6 +183,14 @@ const Wrapper = ({
         : undefined,
   });
 
+  jest.mock('../../Views/BridgeView/BridgeView.constants', () => {
+    const { FeatureId } = jest.requireActual('@metamask/bridge-controller');
+    return {
+      ...jest.requireActual('../../Views/BridgeView/BridgeView.constants'),
+      MIGRATED_FEATURE_IDS: [FeatureId.LIMIT_ORDER],
+    };
+  });
+
   return <SwapQuotesProvider>{children}</SwapQuotesProvider>;
 };
 
