@@ -151,6 +151,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   pageRef,
 }) => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
   // `'SocialV0View'` is the *route* name for the whole Follow Trading surface
@@ -451,7 +452,6 @@ const FeedView: React.FC<FeedViewProps> = ({
 
   // pb-6 plus whatever the floating NavBar overlays, so the last row stays
   // reachable. The inset is 0 on control and wherever the navigator hides it.
-  const floatingTabBarInset = useFloatingTabBarInset();
   const listBottomPadding = useMemo(
     () => ({ paddingBottom: 24 + floatingTabBarInset }),
     [floatingTabBarInset],
@@ -552,7 +552,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         <Animated.ScrollView
           ref={skeletonScrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={listBottomPadding}
+          contentContainerStyle={tw.style(`pb-[${24 + floatingTabBarInset}px]`)}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={16}
@@ -584,7 +584,9 @@ const FeedView: React.FC<FeedViewProps> = ({
         scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        contentContainerStyle={[tw.style('flex-grow'), listBottomPadding]}
+        contentContainerStyle={tw.style(
+          `pb-[${24 + floatingTabBarInset}px] flex-grow`,
+        )}
         extraData={now}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
