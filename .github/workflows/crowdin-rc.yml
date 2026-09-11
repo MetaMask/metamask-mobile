@@ -1,12 +1,61 @@
-name: Crowdin Download Approved RC Translations
+name: Crowdin RC Sync
+run-name: "Crowdin RC Sync — ${{ inputs.mode == 'upload' && 'upload sources' || 'download translations' }}"
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'upload — push sources to Crowdin; download — pull approved translations back'
+        required: true
+        type: choice
+        options:
+          - upload
+          - download
 
 jobs:
+  upload-sources:
+    name: Upload sources
+    if: ${{ inputs.mode == 'upload' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+            pull_requests: write
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Use installation token to ensure that the commit later can trigger status check workflows
+          token: ${{ steps.get-token.outputs.token }}
+
+      - name: crowdin upload sources
+        uses: crowdin/github-action@a3160b9e5a9e00739392c23da5e580c6cabe526d
+        with:
+          crowdin_branch_name: ${{ github.ref_name }}
+          upload_sources: true
+          upload_translations: false # disabled to prevent translations overwriting Blends translations
+          download_translations: false # created separate action to pull down completed translations
+          # This will be in dry-run mode until after we've tested this on `main`
+          dryrun_action: true
+          github_user_name: metamaskbot
+          github_user_email: metamaskbot@users.noreply.github.com
+        env:
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
+          GITHUB_ACTOR: metamaskbot
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
   find-rc-branches:
     name: Find release candidate branches
-    if: ${{ github.ref_name == 'main' }}
+    if: ${{ inputs.mode == 'download' && github.ref_name == 'main' }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -35,11 +84,11 @@ jobs:
             core.info(`Found release branches: ${branches.join(',')}`);
             core.setOutput('branches', JSON.stringify(branches));
 
-
   download-translations:
     name: Download translations
     # Use `!cancelled()` to ensure this runs even when `find-rc-branches` is skipped
-    if: ${{ !cancelled() }}
+    # (i.e. when dispatched from a non-main branch — downloads for that branch only)
+    if: ${{ inputs.mode == 'download' && !cancelled() }}
     needs: [find-rc-branches]
     runs-on: ubuntu-latest
     timeout-minutes: 3
