@@ -6,6 +6,7 @@ export const ConnectedAccountModalSelectorsText = {
   IMPORTED: enContent.accounts.imported,
   TITLE: enContent.accounts.connected_accounts_title,
   SELECT_ALL: enContent.networks.select_all,
+  PERMISSIONS_UPDATED: enContent.toast.permissions_updated,
 } as const;
 
 export const ConnectedAccountsSelectorsIDs = {
