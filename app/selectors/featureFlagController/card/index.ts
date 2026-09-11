@@ -194,3 +194,14 @@ export const selectIsCardUkMigrationActive = createSelector(
   selectCardUkMigrationState,
   (state) => state.isActive,
 );
+
+export const selectCardIntercomSupportEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_CARD_INTERCOM_SUPPORT_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardIntercomSupport as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);

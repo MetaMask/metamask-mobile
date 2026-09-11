@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import CardHomeFooter from './CardHomeFooter';
 import { CardHomeSelectors } from '../CardHome.testIds';
 
@@ -113,5 +113,44 @@ describe('CardHomeFooter', () => {
     ).toBeOnTheScreen();
     fireEvent.press(getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-retry`));
     expect(onRetryLegalDocuments).toHaveBeenCalledTimes(1);
+  });
+
+  it('drafts a support email when no contact support handler is provided', () => {
+    const { getByTestId } = render(<CardHomeFooter {...baseProps} />);
+
+    fireEvent.press(getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    expect(Linking.openURL).toHaveBeenCalledWith('mailto:support@example.com');
+  });
+
+  it('swallows the mailto rejection on devices with no mail handler', async () => {
+    (Linking.openURL as jest.Mock).mockRejectedValueOnce(
+      new Error('Unable to open URL: mailto:support@example.com'),
+    );
+
+    const { getByTestId } = render(<CardHomeFooter {...baseProps} />);
+
+    fireEvent.press(getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    // An unhandled rejection here is what red-boxes the app in dev, so the
+    // assertion is really that flushing the microtask queue stays quiet.
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'mailto:support@example.com',
+      );
+    });
+  });
+
+  it('calls the contact support handler instead of drafting an email when provided', () => {
+    const onContactSupport = jest.fn();
+
+    const { getByTestId } = render(
+      <CardHomeFooter {...baseProps} onContactSupport={onContactSupport} />,
+    );
+
+    fireEvent.press(getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    expect(onContactSupport).toHaveBeenCalledTimes(1);
+    expect(Linking.openURL).not.toHaveBeenCalled();
   });
 });
