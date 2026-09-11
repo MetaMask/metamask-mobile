@@ -1,6 +1,6 @@
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
-import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../../../app/components/UI/AssetElement/AssetElement.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';

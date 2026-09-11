@@ -8,7 +8,7 @@ import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../../../app/components/UI/AssetElement/AssetElement.testIds';
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
 
