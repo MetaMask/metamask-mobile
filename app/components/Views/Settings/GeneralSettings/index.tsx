@@ -181,13 +181,10 @@ const Settings = ({
   );
 
   const selectCurrency = async (currency: SupportedCurrency) => {
-    const { CurrencyRateController, AssetsController } = Engine.context;
-    CurrencyRateController.setCurrentCurrency(currency);
-    // When the `assetsUnifyState` flag is enabled, the UI reads the active
-    // currency from AssetsController.selectedCurrency rather than from
-    // CurrencyRateController, so it must be updated here too. Otherwise the
-    // selection silently no-ops and the displayed currency stays unchanged.
-    AssetsController?.setSelectedCurrency?.(currency);
+    const { AssetsController } = Engine.context;
+    // AssetsController is the sole source of truth for the active currency;
+    // the UI reads it from AssetsController.selectedCurrency.
+    await AssetsController.setSelectedCurrency(currency);
     updateUserTraitsWithCurrentCurrency(currency);
   };
 
