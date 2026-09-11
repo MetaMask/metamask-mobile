@@ -30,23 +30,6 @@ const toAcceptedDisclaimerKeys = (
 ): KycConsentRecord[] =>
   (documents ?? []).map(({ key, version }) => ({ key, version }));
 
-/**
- * Throws when `KycController` recorded a failure on `state.error` without
- * rejecting. A retry that rewrites the same message still counts as failed.
- *
- * @param step - Controller method that just ran.
- */
-const throwIfKycControllerError = (step: string): void => {
-  const { error } = Engine.context.KycController.state;
-  if (error) {
-    Logger.log('[VBA KYC] controller step failed via state.error', {
-      step,
-      controllerError: error,
-    });
-    throw new Error(error);
-  }
-};
-
 /** Creates the KYC customer, posts catalog consents, and starts SumSub. */
 export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -69,7 +52,6 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
         vendor: VBA_KYC_VENDOR,
         email: trimmedEmail,
       });
-      throwIfKycControllerError('createVendorCustomer');
 
       if (Engine.context.KycController.state.vendorDisclaimers.length === 0) {
         throw new Error(
@@ -92,7 +74,6 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
         ),
         idosDisclaimersAccepted: toAcceptedDisclaimerKeys(catalog.idOS),
       });
-      throwIfKycControllerError('acceptTermsAndStartSession');
 
       if (Engine.context.KycController.state.sumsub.status === 'abandoned') {
         Logger.log('[VBA KYC] Sumsub SDK abandoned');
