@@ -13,6 +13,9 @@ import {
   renderBridgeViewWithModals,
   withBridgeSession,
 } from '../../../../../../tests/component-view/renderers/bridge';
+import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
+import { BridgeQuoteDataProvider } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -34,6 +37,37 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 
 const BRIDGE_VIEW_NATIVE_SOURCE_FETCHES = 2;
 const QUOTE_MODAL_NATIVE_SOURCE_FETCHES = 1;
+
+const ModalStack = createNativeStackNavigator();
+const ScreensStack = createNativeStackNavigator();
+
+const BridgeModalsRoot = () => (
+  <ModalStack.Navigator>
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}
+      component={TokenWarningModal}
+    />
+  </ModalStack.Navigator>
+);
+
+const BridgeViewWithTokenWarningModal = () => (
+  <BridgeSessionProvider>
+    <SwapQuotesProvider>
+      <BridgeQuoteDataProvider>
+        <ScreensStack.Navigator>
+          <ScreensStack.Screen
+            name={Routes.BRIDGE.BRIDGE_VIEW}
+            component={BridgeView}
+          />
+          <ScreensStack.Screen
+            name={Routes.BRIDGE.MODALS.ROOT}
+            component={BridgeModalsRoot}
+          />
+        </ScreensStack.Navigator>
+      </BridgeQuoteDataProvider>
+    </SwapQuotesProvider>
+  </BridgeSessionProvider>
+);
 
 const quotedBridgeControllerState = {
   quotes: [mockQuoteWithMetadata],
