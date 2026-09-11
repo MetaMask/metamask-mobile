@@ -51,6 +51,7 @@ import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 
 const QUOTE_VALUE_SKELETON_WIDTH = 72;
 const QUOTE_VALUE_SKELETON_HEIGHT = 20;
@@ -166,7 +167,6 @@ function formatTokenAmountValue(
 }
 
 const RecurringConfirmOrderSheet = ({
-  latestSourceBalance,
   onEditSlippagePress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
@@ -178,6 +178,7 @@ const RecurringConfirmOrderSheet = ({
   const slippage = useSelector(selectSlippage);
   const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
     useBridgeQuoteDataContext();
+  const { latestSourceBalance } = useBridgeSession();
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
