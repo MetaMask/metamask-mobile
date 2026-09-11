@@ -48,12 +48,17 @@ jobs:
     name: Detect flaky unit tests
     runs-on: ubuntu-latest
     steps:
-      # fetch-depth: 0 is required so `git diff origin/${base}...HEAD` in
-      # Stage 1 has enough history to compute the PR's changed files.
+      # Checkout the PR head, not GitHub's merge commit, so Stage 3 snippet
+      # validation and sticky blob links refer to the same tree. fetch-depth: 0
+      # is required so Stage 1 can diff origin/${base}...${headSha}.
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+
+      - name: Fetch base branch for Stage 1 diff
+        run: git fetch --no-tags origin ${{ github.base_ref }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -138,7 +143,8 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
-          ref: v1
+          # https://github.com/MetaMask/ai-analyzer/releases — v2.3.0
+          ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
