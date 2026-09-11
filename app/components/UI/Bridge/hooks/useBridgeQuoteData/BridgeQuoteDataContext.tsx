@@ -31,6 +31,11 @@ export function BridgeQuoteDataProvider({
   );
 }
 
+/**
+ * Hook for getting the bridge quote data context
+ * @deprecated Use useSwapQuotes instead. Avoid adding new functionality to this hook.
+ * @returns BridgeQuoteDataContextValue
+ */
 export function useBridgeQuoteDataContext(): BridgeQuoteDataContextValue {
   const combinedSwapQuoteData = useSwapQuotes();
   const quoteDataContext = useContext(BridgeQuoteDataContext);
