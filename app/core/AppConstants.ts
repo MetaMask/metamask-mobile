@@ -277,13 +277,6 @@ export default {
     DEV: 'https://test-sec.immersve.com',
     PRD: 'https://api-sec.immersve.com',
   },
-  // Universal KYC API (va-mmcx-universal-kyc-api).
-  // GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
-  KYC_API_URL: {
-    DEV: 'https://kyc-api.dev-api.cx.metamask.io',
-    UAT: 'https://kyc-api.uat-api.cx.metamask.io',
-    PRD: 'https://kyc-api.api.cx.metamask.io',
-  },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
       'EthQuery - RPC Error - This service is not available in your country',

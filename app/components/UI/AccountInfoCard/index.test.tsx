@@ -7,6 +7,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1,
+  createMockUuidFromAddress,
 } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
@@ -35,6 +36,11 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
+const MOCK_ACCOUNT_ID_1 = createMockUuidFromAddress(
+  MOCK_ADDRESS_1.toLowerCase(),
+);
+const NATIVE_SEPOLIA_ASSET_ID = 'eip155:11155111/slip44:60';
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
@@ -42,24 +48,32 @@ const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      AccountTrackerController: {
-        accountsByChainId: {
-          '0xaa36a7': {
-            [MOCK_ADDRESS_1]: {
-              balance: '0x2',
-            },
+      AssetsController: {
+        assetsInfo: {
+          [NATIVE_SEPOLIA_ASSET_ID]: {
+            type: 'native',
+            symbol: 'SepoliaETH',
+            decimals: 0,
           },
         },
+        assetsBalance: {
+          [MOCK_ACCOUNT_ID_1]: {
+            [NATIVE_SEPOLIA_ASSET_ID]: { amount: '2' },
+          },
+        },
+        assetsPrice: {
+          [NATIVE_SEPOLIA_ASSET_ID]: {
+            assetPriceType: 'fungible',
+            price: 10,
+            usdPrice: 10,
+            lastUpdated: Date.now(),
+          },
+        },
+        assetPreferences: {},
+        customAssets: {},
+        selectedCurrency: 'inr',
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      CurrencyRateController: {
-        currentCurrency: 'inr',
-        currencyRates: {
-          ETH: {
-            conversionRate: 10,
-          },
-        },
-      },
       NetworkController: {
         ...mockNetworkState({
           chainId: '0xaa36a7',
@@ -68,9 +82,6 @@ const mockInitialState: DeepPartial<RootState> = {
           ticker: 'SepoliaETH',
           type: RpcEndpointType.Infura,
         }),
-      },
-      TokenBalancesController: {
-        tokenBalances: {},
       },
     },
   },

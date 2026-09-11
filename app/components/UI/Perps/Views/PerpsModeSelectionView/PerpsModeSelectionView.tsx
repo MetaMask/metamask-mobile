@@ -16,6 +16,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsModeSelectionBottomSheet from '../../components/PerpsModeSelectionBottomSheet';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMode } from '../../hooks/usePerpsMode';
+import { selectPerpsLastViewedMarketSymbol } from '../../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../../selectors/featureFlags';
 import { markPerpsModeSelectionCompleted } from '../../utils/perpsModeSelectionStorage';
 import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
@@ -61,6 +62,7 @@ const PerpsModeSelectionView: React.FC = () => {
   });
   const { mode: selectedMode, setMode } = usePerpsMode();
   const isProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
 
   const hasSelectedRef = useRef(false);
   const dismissEmittedRef = useRef(false);
@@ -109,7 +111,7 @@ const PerpsModeSelectionView: React.FC = () => {
             {
               name: Routes.PERPS.MARKET_DETAILS,
               params: {
-                market: buildDefaultProMarket(),
+                market: buildDefaultProMarket(lastViewedMarketSymbol),
                 source,
               },
             },
@@ -129,6 +131,7 @@ const PerpsModeSelectionView: React.FC = () => {
             resolvePerpsHomeNavigationTarget(
               isProModeEnabled && mode === PerpsMode.Pro,
               { source },
+              lastViewedMarketSymbol,
             ),
           ),
         );
@@ -147,7 +150,7 @@ const PerpsModeSelectionView: React.FC = () => {
 
       // `home` + Lite: dismiss only — already on Perps Home.
     },
-    [entry, isProModeEnabled, navigation, source],
+    [entry, isProModeEnabled, lastViewedMarketSymbol, navigation, source],
   );
 
   const handleSelect = useCallback(

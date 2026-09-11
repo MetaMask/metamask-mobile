@@ -18,7 +18,6 @@ import initialRootState, {
 } from '../../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../../reducers';
 import { GasFeeToken } from '@metamask/transaction-controller';
-import { Token } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 
@@ -84,9 +83,12 @@ describe('GasFeeTokenToast', () => {
     accounts: {
       [mockAccountId]: {
         address: mockAccountId,
+        type: 'eip155:eoa',
       },
     },
   } as unknown as Partial<AccountsControllerState>;
+
+  const matchingTokenAssetId = `eip155:1/erc20:${matchingTokenAddress}`;
 
   const TOKENS_CONTROLLER_STATE = {
     ...initialRootState,
@@ -94,18 +96,21 @@ describe('GasFeeTokenToast', () => {
       ...initialRootState.engine,
       backgroundState: {
         ...backgroundState,
-        TokensController: {
-          ...backgroundState.TokensController,
-          allTokens: {
-            ...backgroundState.TokensController.allTokens,
-            '0x1': {
-              [mockAccountId]: [
-                {
-                  address: matchingTokenAddress,
-                  symbol: matchingTokenSymbol,
-                  image: matchingTokenImage,
-                } as unknown as Token,
-              ],
+        AssetsController: {
+          ...backgroundState.AssetsController,
+          assetsInfo: {
+            ...backgroundState.AssetsController.assetsInfo,
+            [matchingTokenAssetId]: {
+              type: 'erc20',
+              symbol: matchingTokenSymbol,
+              image: matchingTokenImage,
+              decimals: 18,
+            },
+          },
+          assetsBalance: {
+            ...backgroundState.AssetsController.assetsBalance,
+            [mockAccountId]: {
+              [matchingTokenAssetId]: { amount: '1' },
             },
           },
         },
