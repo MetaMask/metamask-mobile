@@ -59,9 +59,14 @@ interface VersionGatedFeatureFlag {
 - `enabled: false` = feature OFF (regardless of version)
 - Invalid/missing flag = fallback to local environment variable
 
-### String Flags (for A/B Tests)
+### JSON Flags (for A/B Tests)
 
-See [Perps A/B Testing Framework](./perps-ab-testing.md) for variant-based flags.
+A/B tests use LaunchDarkly JSON flags with the ordered cumulative threshold
+array from [`docs/ab-testing.md`](../ab-testing.md). The Redux /
+`useABTest` key is camelCase and matches the LaunchDarkly flag key (unlike
+boolean Perps flags, which use kebab-case LaunchDarkly keys).
+
+See [Perps A/B Testing Framework](./perps-ab-testing.md).
 
 ---
 
@@ -194,11 +199,9 @@ Follow existing test patterns covering:
 | `perpsTAT1937AbtestButtonColor`  | `perps-tat1937-abtest-button-color` | `control`, `colors`    | Button color A/B test (TAT-1937)         |
 | `perpsAbtestScreenVsBottomSheet` | `perpsAbtestScreenVsBottomSheet`    | `control`, `treatment` | Shared screen vs bottom-sheet experience |
 
-`control` (white/white) is the required fallback variant for `useABTest` and is therefore the default experience; `colors` (green long / red short) is the active-experiment variant.
+For `perpsTAT1937AbtestButtonColor`, `control` (white/white) is the required `useABTest` fallback and therefore the default experience; `colors` (green long / red short) is the active-experiment variant. That flag is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition (see [MetaMask/contributor-docs: Remote Feature Flags](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md#4-composing-version-based-scope-with-threshold-scope)) — the version gate lives entirely in the LaunchDarkly flag config, not in app code.
 
-`perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition (see [MetaMask/contributor-docs: Remote Feature Flags](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md#4-composing-version-based-scope-with-threshold-scope)) — the version gate lives entirely in the LaunchDarkly flag config, not in app code.
-
-`perpsAbtestScreenVsBottomSheet` defaults to `control` (full-page screens). Consume it only through `usePerpsScreenVsBottomSheetAbTest()` — see [`docs/perps/perps-ab-testing.md`](./perps-ab-testing.md).
+`perpsAbtestScreenVsBottomSheet` defaults to `control` (full-page screens). Consume it only through `usePerpsScreenVsBottomSheetAbTest()` — see [`docs/perps/perps-ab-testing.md`](./perps-ab-testing.md). The LaunchDarkly key is camelCase on purpose so it matches `useABTest` / Redux.
 
 ### Configuration Flags
 

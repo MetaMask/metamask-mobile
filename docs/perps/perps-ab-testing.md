@@ -78,7 +78,7 @@ const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
 Keep **one route and the same params**. Swap the presented component from a thin router, the same way `PerpsMarketDetailsRouter` swaps `PerpsProMarketView` vs `PerpsMarketDetailsView` behind a flag without changing navigation.
 
-Sketch (Close Position, TAT-3552, and later conversions):
+Sketch (Close Position, TAT-3552). Control today is the existing `PerpsClosePositionView`. Treatment sheets are owned by the conversion ticket and do not exist in this PR:
 
 ```typescript
 const ClosePositionRouter: React.FC = () => {
@@ -89,7 +89,7 @@ const ClosePositionRouter: React.FC = () => {
     return isProMode ? <ProClosePositionSheet /> : <LiteClosePositionSheet />;
   }
 
-  return isProMode ? <ProClosePositionView /> : <LiteClosePositionView />;
+  return <PerpsClosePositionView />;
 };
 ```
 
@@ -101,7 +101,7 @@ Rules:
 
 ### Analytics
 
-`SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING` in `abTestConfig.ts` is registered in `app/util/analytics/abTestAnalyticsRegistry.ts`. The shared analytics wrappers automatically attach `active_ab_tests` to `Perp Position Close Transaction`, the conversion event for the first converted flow.
+`SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING` in `abTestConfig.ts` is registered in `app/util/analytics/abTestAnalyticsRegistry.ts`. Close-position conversion events are emitted from Perps Core via `trackPerpsEvent`, which calls `analytics.trackEvent` and therefore still receives registry enrichment. The wrappers attach `active_ab_tests` to `Perp Position Close Transaction`, the conversion event for the first converted flow.
 
 Do not add broad Perps screen, interaction, or trade events preemptively. When another flow adopts the shared hook, add only that flow's conversion event to the mapping and cover it with an enrichment test.
 

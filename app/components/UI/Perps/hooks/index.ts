@@ -98,6 +98,9 @@ export {
   getPerpsToastLabels,
 } from './usePerpsToasts';
 
+// A/B tests
+export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
+
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsMarketFills } from './usePerpsMarketFills';
@@ -110,7 +113,6 @@ export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
-export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 export { usePerpsHomeSectionTracking } from './usePerpsHomeSectionTracking';
 export { usePerpsMarketAboutTracking } from './usePerpsMarketAboutTracking';
 
