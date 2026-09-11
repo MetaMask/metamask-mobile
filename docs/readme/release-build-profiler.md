@@ -31,19 +31,9 @@ Notes:
 
 #### Performance-test APKs (programmatic profiling)
 
-BrowserStack performance builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. Those APKs include:
+BrowserStack performance builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. In those APKs the app profiles itself: `index.js` calls `initializeAppProfiling()`, which arms Hermes as soon as JS runs and dumps a trace every time the app is backgrounded. Outside performance APKs it is a no-op, and so are `startAppProfiling` / `stopAppProfiling` if you call them directly.
 
-```ts
-import { startAppProfiling, stopAppProfiling } from 'app/core/Performance';
-
-await startAppProfiling();
-// ... flow to measure ...
-const path = await stopAppProfiling();
-```
-
-Outside performance APKs these functions no-op.
-
-On Android they go through `MetaMaskHermesProfiler`, a native module in
+On Android this goes through `MetaMaskHermesProfiler`, a native module in
 `android/app/src/main/java/io/metamask/nativeModules/HermesProfiler/` that is
 only registered when `BuildConfig.IS_PERFORMANCE_TEST` is true. It runs the same
 stop sequence as the shake flow above — `dumpSampledTraceToFile` then `disable`,
@@ -54,49 +44,63 @@ shared Downloads collection through `MediaStore`, which Appium cannot read back
 on a non-rooted device, so the module writes to app-scoped external storage
 (`getExternalFilesDir(DIRECTORY_DOCUMENTS)`) instead.
 
-`PerformanceProfilerStatus` mounts Appium Pressables
-(`performance-profiler-start` / `performance-profiler-stop`) and exposes the path
-via `performance-profiler-result-ready` so tests can wait and `pullFile`. Do
-**not** use deeplinks — unknown `metamask://e2e/profiler/*` URLs show MetaMask's
-unsupported-link UI.
+#### Why the app drives its own session
+
+Nothing in the test taps in-app controls to start or stop profiling, and nothing
+should. Two reasons:
+
+- **Launch coverage.** Anything that asks the app to start profiling from the
+  outside costs an Appium round trip at exactly the moment the launch-time specs
+  begin their timers. Self-arming is free, so the launch those specs measure is
+  actually in the trace, and a spec that restarts the app gets the new process
+  profiled with no extra work.
+- **Reliability.** The previous design mounted invisible `Pressable` hooks in
+  the app root. Because the root draws edge-to-edge on `targetSdk` 36, the hooks
+  nearest the top of the screen sat under the status bar, where Android reports
+  them as not visible to the user and Appium drops them from the accessibility
+  tree entirely. Roughly a fifth of start/stop lookups failed that way, and no
+  timeout could fix it.
+
+Backgrounding is the dump trigger because it is the only signal that the test
+can produce on demand (`mobile: backgroundApp`, already used by the warm-start
+specs) and that nothing on screen can swallow. Do **not** use deeplinks —
+unknown `metamask://e2e/profiler/*` URLs show MetaMask's unsupported-link UI.
 
 #### Every performance spec is profiled automatically
 
 `appProfiling.fixture.ts` is an `auto` fixture, so no spec needs profiling
-plumbing. Any Playwright test under `tests/performance/` gets a session started
-before its body (covering login) and stopped after its last assertion. On
-Android the fixture then pulls the profile into
+plumbing. Any Playwright test under `tests/performance/` is profiled from app
+startup; after the last assertion the fixture backgrounds the app, waits for the
+trace to land, pulls every segment into
 `tests/reporters/reports/hermes-cpuprofiles/` and attaches it to the Playwright
-report; on iOS it stops profiling only (pull not implemented).
+report. On iOS collection is skipped (app-scoped export is Android-only).
 
-#### One session per app process
+#### Segments
 
-A Hermes profiling session cannot outlive the process that opened it. This is
-not a limitation we work around — asking Hermes to dump a sampler that is no
-longer running is what makes the native stop call hang.
+A Hermes session cannot outlive the process that opened it, and asking Hermes to
+dump a sampler that is no longer running is what makes the native stop call
+hang. So the app dumps whenever it is backgrounded and immediately re-arms, and
+one test can produce several traces:
 
-BrowserStack satisfies this by default: `fullReset: true` plus disabled session
-reuse means each performance spec runs against a freshly installed app.
+- Specs that kill the app (`AppiumGestures.terminateApp`, used by the cold-start
+  launch-time specs) flush first. `terminateApp` runs the `onBeforeAppTerminate`
+  hooks from `tests/framework/appLifecycle.ts`, and the fixture registers one to
+  harvest the in-flight trace while the process is still alive.
+- Specs that background the app themselves — the warm-start specs, and the OAuth
+  hand-offs in seedless onboarding — produce a segment at that point too.
 
-Specs that deliberately kill the app mid-test (`AppiumGestures.terminateApp`,
-used by the cold-start launch-time specs) still get a profile. `terminateApp`
-runs the `onBeforeAppTerminate` hooks from `tests/framework/appLifecycle.ts`, and
-the profiling fixture uses one to flush the in-flight trace while the process is
-still alive. The fixture's end-of-test stop then has nothing left to do.
+The app numbers segments across processes, scanning the output directory so a
+restarted process cannot reuse an index the test has not pulled yet, and renames
+each trace into place only once Hermes has finished writing it, so a segment
+that pulls and parses is complete.
 
-Profiling is deliberately **not** re-armed after the relaunch. Tapping the
-in-app start control costs an Appium round trip, and the launch-time specs start
-measuring immediately after `activateApp`, so re-arming there would inflate the
-very timer they exist to record. Those specs therefore produce a trace of the
-work leading up to the restart rather than of the restart itself.
+Artifacts are named `<project>-<title>.cpuprofile`, with `.retry-<n>` for
+retried attempts (otherwise a retry overwrites the artifact of the attempt
+before it) and `.segment-<n>` for every segment after the first.
 
-A test that profiles more than one process produces one artifact per segment:
-the first keeps the plain `<project>-<title>.cpuprofile` name and later ones are
-suffixed `.segment-<n>.cpuprofile`.
-
-If the app dies without going through `terminateApp` (a crash, say), the stop
-control publishes `performance-profiler-session-lost` and collection is skipped
-for that spec instead of hanging on a dump.
+If the app never armed itself, or died without going through `terminateApp`, no
+segment appears; the fixture logs a warning and preserves the test result rather
+than failing the spec.
 
 ### 3) Convert and view in Chrome tracing
 
