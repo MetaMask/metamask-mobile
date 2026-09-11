@@ -5077,17 +5077,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  rewardsFirstPredictOnUsEnabled: {
-    name: 'rewardsFirstPredictOnUsEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '7.8.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   rewardsReferralCodeEnabled: {
     name: 'rewardsReferralCodeEnabled',
     type: FeatureFlagType.Remote,

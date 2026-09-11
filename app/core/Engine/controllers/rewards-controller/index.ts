@@ -1,6 +1,5 @@
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
-import { selectRewardsFirstPredictOnUsEnabled } from '../../../../selectors/featureFlagController/rewardsFirstPredictOnUs';
 import type { MessengerClientInitFunction } from '../../types';
 import {
   RewardsController,
@@ -33,11 +32,6 @@ export const rewardsControllerInit: MessengerClientInitFunction<
       const isVipEnabled = selectVipProgramEnabled(getState());
       return !isVipEnabled;
     },
-    isFirstPredictOnUsDisabled: () => {
-      const isFirstPredictOnUsEnabled =
-        selectRewardsFirstPredictOnUsEnabled(getState());
-      return !isFirstPredictOnUsEnabled;
-    },
   });
 
   return { controller };
@@ -63,7 +57,6 @@ export type {
   RewardsControllerGetCampaignsAction,
   RewardsControllerGetCandidateSubscriptionIdAction,
   RewardsControllerGetClientVersionRequirementsAction,
-  RewardsControllerGetFirstPredictOnUsAction,
   RewardsControllerGetDefaultRewardsEnvUrlAction,
   RewardsControllerGetFirstSubscriptionIdAction,
   RewardsControllerGetGeoRewardsMetadataAction,

@@ -51,7 +51,6 @@ interface PredictMarketMultipleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
-  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
@@ -64,7 +63,6 @@ interface PredictMarketMultipleProps {
 const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   market,
   testID,
-  cardPressDisabled,
   entryPoint: propEntryPoint,
   isCarousel = false,
   onCardPress,
@@ -139,11 +137,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     outcome: PredictOutcome,
     outcomeToken: PredictOutcomeToken,
   ) => {
-    const handledExternally =
-      onBuyButtonPress?.({ market, outcome, outcomeToken }) === true;
-    if (handledExternally) {
-      return;
-    }
+    onBuyButtonPress?.({ market, outcome, outcomeToken });
 
     executeGuardedAction(
       () => {
@@ -174,10 +168,6 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
-        if (cardPressDisabled) {
-          return;
-        }
-
         onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,

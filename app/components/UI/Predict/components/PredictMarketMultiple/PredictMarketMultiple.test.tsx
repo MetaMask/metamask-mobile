@@ -117,6 +117,7 @@ describe('PredictMarketMultiple', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
     mockNavigate.mockClear();
   });
 
@@ -125,11 +126,9 @@ describe('PredictMarketMultiple', () => {
       jest.requireActual<typeof import('../../utils/format')>(
         '../../utils/format',
       );
-    const spy = jest
-      .spyOn(formatModule, 'formatPercentage')
-      .mockImplementation(() => {
-        throw new Error('format failure');
-      });
+    jest.spyOn(formatModule, 'formatPercentage').mockImplementation(() => {
+      throw new Error('format failure');
+    });
 
     const { getByText } = renderWithProvider(
       <PredictMarketMultiple market={mockMarket} />,
@@ -137,7 +136,6 @@ describe('PredictMarketMultiple', () => {
     );
 
     expect(getByText('0')).toBeOnTheScreen();
-    spy.mockRestore();
   });
 
   it('render market information correctly', () => {
@@ -180,8 +178,8 @@ describe('PredictMarketMultiple', () => {
     });
   });
 
-  it('calls buy handler instead of opening the buy sheet when it returns true', () => {
-    const onBuyButtonPress = jest.fn(() => true);
+  it('opens the buy sheet after calling the buy handler', () => {
+    const onBuyButtonPress = jest.fn();
     const { UNSAFE_getAllByType } = renderWithProvider(
       <PredictMarketMultiple
         market={mockMarket}
@@ -198,7 +196,7 @@ describe('PredictMarketMultiple', () => {
       outcome: mockMarket.outcomes[0],
       outcomeToken: mockMarket.outcomes[0].tokens[0],
     });
-    expect(mockOpenBuySheet).not.toHaveBeenCalled();
+    expect(mockOpenBuySheet).toHaveBeenCalled();
   });
 
   it('handle missing or invalid market data gracefully', () => {
@@ -392,21 +390,6 @@ describe('PredictMarketMultiple', () => {
         image: mockMarket.image,
       },
     });
-  });
-
-  it('does not navigate to market details when card press is disabled', () => {
-    const { getByTestId } = renderWithProvider(
-      <PredictMarketMultiple
-        market={mockMarket}
-        cardPressDisabled
-        testID="predict-market-multiple-card"
-      />,
-      { state: initialState },
-    );
-
-    fireEvent.press(getByTestId('predict-market-multiple-card'));
-
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('checks eligibility before balance for Yes button', () => {

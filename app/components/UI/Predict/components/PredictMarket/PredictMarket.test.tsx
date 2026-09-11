@@ -355,59 +355,51 @@ describe('PredictMarket', () => {
     expect(queryByTestId('predict-market-sport-card')).toBeNull();
   });
 
-  it('passes sponsored buy handler props to the selected child card', () => {
-    const onBuyButtonPress = jest.fn(() => true);
+  it('passes buy handler props to the selected child card', () => {
+    const onBuyButtonPress = jest.fn();
 
     setupPredictMarketTest(mockSingleMarket, {
-      cardPressDisabled: true,
       onBuyButtonPress,
     });
 
     expect(PredictMarketSingle).toHaveBeenCalledWith(
       expect.objectContaining({
-        cardPressDisabled: true,
         onBuyButtonPress,
       }),
       undefined,
     );
   });
 
-  it('passes sponsored buy handler props to multi-outcome and sport cards', () => {
-    const onBuyButtonPress = jest.fn(() => true);
+  it('passes buy handler props to multi-outcome and sport cards', () => {
+    const onBuyButtonPress = jest.fn();
 
     setupPredictMarketTest(mockMultipleMarket, {
-      cardPressDisabled: true,
       onBuyButtonPress,
     });
     expect(PredictMarketMultiple).toHaveBeenCalledWith(
       expect.objectContaining({
-        cardPressDisabled: true,
         onBuyButtonPress,
       }),
       undefined,
     );
 
     setupPredictMarketTest(mockNflMarket, {
-      cardPressDisabled: true,
       onBuyButtonPress,
     });
 
     expect(PredictMarketSportCard).toHaveBeenCalledWith(
       expect.objectContaining({
-        cardPressDisabled: true,
         onBuyButtonPress,
       }),
       undefined,
     );
 
     setupPredictMarketTest(mockCryptoUpDownMarket, {
-      cardPressDisabled: true,
       onBuyButtonPress,
     });
 
     expect(PredictCryptoUpDownMarketCard).toHaveBeenCalledWith(
       expect.objectContaining({
-        cardPressDisabled: true,
         onBuyButtonPress,
       }),
       undefined,

@@ -114,11 +114,6 @@ import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
-import {
-  resolveFirstPredictOnUsLaunch,
-  type ResolvedFirstPredictOnUsLaunch,
-} from '../../UI/Rewards/utils/resolveFirstPredictOnUs';
-import { markFirstPredictionOnUsOfferViewed } from '../../../reducers/rewards';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 interface KeyringState {
@@ -246,11 +241,6 @@ const ChoosePassword = () => {
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
-  // Off-screen resolution of the First Predict On Us onboarding splash. Kicked
-  // off early (for social login) so the result is typically ready by the time
-  // the wallet is created and we navigate into the success flow.
-  const firstPredictOnUsLaunchRef =
-    useRef<Promise<ResolvedFirstPredictOnUsLaunch | null> | null>(null);
 
   const reduxAccountType = useSelector(selectOnboardingAccountType);
   const { shouldShowQuestionnaire } =
@@ -260,13 +250,6 @@ const ChoosePassword = () => {
     () => route.params?.oauthLoginSuccess,
     [route.params?.oauthLoginSuccess],
   );
-
-  useEffect(() => {
-    if (!isSocialLoginUser || firstPredictOnUsLaunchRef.current) {
-      return;
-    }
-    firstPredictOnUsLaunchRef.current = resolveFirstPredictOnUsLaunch();
-  }, [isSocialLoginUser]);
 
   useEffect(() => {
     if (!isSocialLoginUser) {
@@ -480,34 +463,7 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
-  const onContinueNavigation = useCallback(async () => {
-    // The First Predict On Us splash is a flat onboarding step shown after any
-    // survey and before the "wallet ready" success screen. Its off-screen gating
-    // was kicked off on mount; if it resolved we reset to the splash (which
-    // dismisses forward to OnboardingSuccess). Otherwise we reset straight to
-    // the success flow. The flow stays linear either way.
-    const firstPredictOnUsLaunch = firstPredictOnUsLaunchRef.current
-      ? await firstPredictOnUsLaunchRef.current
-      : null;
-
-    if (firstPredictOnUsLaunch) {
-      dispatch(markFirstPredictionOnUsOfferViewed());
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: Routes.ONBOARDING.FIRST_PREDICT_ON_US_SPLASH,
-            params: {
-              content: firstPredictOnUsLaunch.content,
-              markets: firstPredictOnUsLaunch.markets,
-              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-            },
-          },
-        ],
-      });
-      return;
-    }
-
+  const onContinueNavigation = useCallback(() => {
     navigation.reset({
       index: 0,
       routes: [
@@ -522,7 +478,7 @@ const ChoosePassword = () => {
         },
       ],
     });
-  }, [navigation, dispatch]);
+  }, [navigation]);
 
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData, isMarketingOptedIn: boolean) => {
