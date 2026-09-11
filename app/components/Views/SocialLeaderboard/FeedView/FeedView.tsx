@@ -552,7 +552,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         <Animated.ScrollView
           ref={skeletonScrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style(`pb-[${24 + floatingTabBarInset}px]`)}
+          contentContainerStyle={listBottomPadding}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={16}
@@ -584,9 +584,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        contentContainerStyle={tw.style(
-          `pb-[${24 + floatingTabBarInset}px] flex-grow`,
-        )}
+        contentContainerStyle={[tw.style('flex-grow'), listBottomPadding]}
         extraData={now}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
