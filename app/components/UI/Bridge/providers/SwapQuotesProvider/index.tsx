@@ -16,7 +16,7 @@ import { useLatestBalance } from '../../hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
-import { buildGenericQuoteRequest } from '../../hooks/useSwapQuotes/utils';
+import { buildGenericQuoteRequest } from './utils';
 
 export type SwapQuotesContextValue = ReturnType<typeof useQuoteRequest> &
   ReturnType<typeof useQuoteData>;
