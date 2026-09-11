@@ -57,7 +57,7 @@ diff --git a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSS
 index 1a3bce00363ee2dfc2ec2c2d0b8445a91e5c87d2..598c500ef5e03ad59bc57758f266066f03139973 100644
 --- a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
 +++ b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
-@@ -29,6 +29,16 @@ class ReactNativeFeatureFlagsOverridesOSSStable : public ReactNativeFeatureFlags
+@@ -29,7 +29,17 @@ class ReactNativeFeatureFlagsOverridesOSSStable : public ReactNativeFeatureFlags
    {
      return true;
    }
@@ -74,3 +74,38 @@ index 1a3bce00363ee2dfc2ec2c2d0b8445a91e5c87d2..598c500ef5e03ad59bc57758f266066f
    bool useShadowNodeStateOnClone() override
    {
      return true;
+   }
+diff --git a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp b/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
+index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..a1d6d1a2d58f41f3a5d3f4f6f2d6e3f7f8a9b0c1 100644
+--- a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
++++ b/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
+@@ -34,5 +34,5 @@ void HermesSamplingProfiler::registerNatives() {
+       makeNativeMethod("enable", HermesSamplingProfiler::enable),
+-      makeNativeMethod("disable", HermesSamplingProfiler::enable),
++      makeNativeMethod("disable", HermesSamplingProfiler::disable),
+       makeNativeMethod(
+           "dumpSampledTraceToFile",
+           HermesSamplingProfiler::dumpSampledTraceToFile),
+diff --git a/ReactAndroid/hermes-engine/build.gradle.kts b/ReactAndroid/hermes-engine/build.gradle.kts
+index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..c2c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f 100644
+--- a/ReactAndroid/hermes-engine/build.gradle.kts
++++ b/ReactAndroid/hermes-engine/build.gradle.kts
+@@ -165,5 +165,8 @@ val configureBuildForHermes by
+               "-B",
+               hermesBuildDir.toString(),
+               "-DJSI_DIR=" + jsiDir.absolutePath,
+               "-DCMAKE_BUILD_TYPE=Release",
++              "-DCMAKE_C_FLAGS=-fno-lto",
++              "-DCMAKE_CXX_FLAGS=-fno-lto",
++              "-DCMAKE_SHARED_LINKER_FLAGS=-fuse-ld=lld",
+           )
+diff --git a/ReactAndroid/hermes-engine/build.gradle.kts b/ReactAndroid/hermes-engine/build.gradle.kts
+index c2c7d8e9f0a1b2c3d4e5f60718293a4b5c6d7e8f..d3e4f5a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c 100644
+--- a/ReactAndroid/hermes-engine/build.gradle.kts
++++ b/ReactAndroid/hermes-engine/build.gradle.kts
+@@ -284,4 +284,4 @@ android {
+             "-DHERMES_BUILD_SHARED_JSI=True",
+             "-DHERMES_RELEASE_VERSION=for RN ${version}",
+-            "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=True",
++            "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=False",
+             // We intentionally build Hermes with Intl support only. This is to simplify

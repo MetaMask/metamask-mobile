@@ -85,3 +85,77 @@ subprojects { subproject ->
 		}
 	}
 }
+
+// Hermes 0.83's Android sampling profiler uses pthread_kill with stale
+// pthread_t handles. Android's Bionic libc aborts in that case instead of
+// returning ESRCH, which can leave the profiler dump stuck or crash the
+// hermes-sampling thread. Performance APKs patch the extracted Hermes source
+// after unzipHermes; all other Android variants keep the standard dependency.
+if (System.getenv('IS_PERFORMANCE_TEST') == 'true') {
+subprojects { subproject ->
+	if (subproject.name != 'hermes-engine') return
+
+	subproject.tasks.matching { it.name == 'unzipHermes' }.configureEach { unzipTask ->
+		unzipTask.doLast {
+			def profilerFiles = fileTree(unzipTask.destinationDir).matching {
+				include '**/lib/VM/Profiler/SamplingProfilerPosix.cpp'
+			}.files
+
+			if (profilerFiles.size() != 1) {
+				throw new GradleException(
+					"Hermes sampling profiler source not found after unzipHermes: ${profilerFiles}"
+				)
+			}
+
+			def profilerFile = profilerFiles.first()
+			def source = profilerFile.getText('UTF-8')
+
+			if (!source.contains('sys/syscall.h')) {
+				source = source.replace(
+					'#include "SamplingProfilerSampler.h"',
+					'''#include "SamplingProfilerSampler.h"
+
+#if defined(__ANDROID__)
+#include <sys/syscall.h>
+#include <unistd.h>
+#endif'''
+				)
+			}
+
+			if (!source.contains('currentTid_')) {
+				source = source.replace(
+					'pthread_t currentThread_;',
+					'''pthread_t currentThread_;
+
+  /// Kernel thread ID for safe signal delivery via tgkill on Android.
+  pid_t currentTid_;'''
+				)
+				source = source.replace(
+					'currentThread_{pthread_self()} {',
+					'''currentThread_{pthread_self()} {
+  currentTid_ = static_cast<pid_t>(syscall(__NR_gettid));'''
+				)
+				source = source.replace(
+					'  pthread_kill(posixProfiler->currentThread_, SIGPROF);',
+					'''#if defined(__ANDROID__)
+  // Bionic aborts when pthread_kill receives an invalid pthread_t.
+  if (syscall(__NR_tgkill, getpid(), posixProfiler->currentTid_, SIGPROF) != 0) {
+    self->profilerForSig_.store(nullptr, std::memory_order_release);
+    return true;
+  }
+#else
+  pthread_kill(posixProfiler->currentThread_, SIGPROF);
+#endif'''
+				)
+				source = source.replace(
+					'profiler->currentThread_ = pthread_self();',
+					'''profiler->currentThread_ = pthread_self();
+  profiler->currentTid_ = static_cast<pid_t>(syscall(__NR_gettid));'''
+				)
+			}
+
+			profilerFile.writeText(source, 'UTF-8')
+		}
+	}
+}
+}
