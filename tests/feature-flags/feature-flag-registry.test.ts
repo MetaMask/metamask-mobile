@@ -315,6 +315,87 @@ describe('Feature Flag Registry', () => {
         value: 0,
       });
     });
+
+    it('registers Home/TMCU and Social AI catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'homeTMCU1209AbtestHomepageBalanceBreakdown',
+        'homeTMCU470AbtestTrendingSections',
+        'homeTMCU828AbtestOnboardingChecklistStepper',
+        'aiSocialFeedEnabled',
+        'socialAIQuickBuyStreamQuotes',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+      expect(
+        getRegistryEntry('aiSocialLeaderboardOnboaridngEnabled'),
+      ).toBeUndefined();
+    });
+
+    it('version-gates activity and transactions redesigns on at 8.5.0', () => {
+      expect(
+        getRegistryEntry('tmcuActivityRedesignEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.5.0',
+      });
+      expect(
+        getRegistryEntry('tmcuTransactionsRedesignEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.5.0',
+      });
+    });
+
+    it('enables the Social AI feed and leaderboard at 8.0.0+', () => {
+      expect(
+        getRegistryEntry('aiSocialFeedEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.3.0',
+      });
+      expect(
+        getRegistryEntry('aiSocialLeaderboardEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.0.0',
+      });
+    });
+
+    it('pins Home and Social AI percentage A/B flags to control', () => {
+      const abTestFlags = [
+        'homeTMCU1209AbtestHomepageBalanceBreakdown',
+        'homeTMCU610AbtestWalletHomePostOnboardingSteps',
+        'socialAiTSA531AbtestWhatsHappeningExplore',
+        'socialAiTSA612AbtestQuickBuy',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        for (const variant of variants) {
+          if (variant.name === 'control') {
+            continue;
+          }
+          expect(variant.scope).toEqual({
+            type: 'percentage_rollout',
+            value: 0,
+          });
+        }
+      }
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
