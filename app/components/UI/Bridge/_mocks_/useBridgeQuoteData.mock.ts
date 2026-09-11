@@ -22,7 +22,6 @@ export const mockUseBridgeQuoteData: ReturnType<
     priceImpact: '1%',
     priceImpactFiat: '1',
     slippage: '0.5%',
-    priceImpactFiat: '1',
   },
   quotesLoadingStatus: RequestStatus.FETCHED,
   blockaidError: null,
