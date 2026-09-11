@@ -2313,7 +2313,7 @@
       "orderRejected": "Order was rejected. Please check your parameters and try again.",
       "slippageExceeded": "Price moved too much. Try using a limit order or increase slippage tolerance.",
       "rateLimitExceeded": "Too many requests. Please wait a moment and try again.",
-      "serviceUnavailable": "Service is temporarily unavailable. Please try again later.",
+      "serviceUnavailable": "Service is temporarily unavailable. Try again later.",
       "networkErrorSimple": "Network error occurred. Please check your connection and try again.",
       "insufficientBalance": "Insufficient balance to complete this operation. Please check your available funds.",
       "connectionFailed": {
@@ -9927,10 +9927,10 @@
     "card_home": {
       "title": "Card",
       "authentication_error": "Your session has expired. Log in again.",
-      "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
+      "onboarding_token_revoked": "We couldn't continue your Card session. Log in again.",
       "available_balance": "Available balance",
       "error_title": "Can't fetch data",
-      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Check your connection or try refreshing the page.",
       "try_again": "Try again",
       "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to ",
       "add_funds": "Add funds",
@@ -9945,8 +9945,8 @@
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
       "logout_confirmation_cancel": "Cancel",
       "logout_confirmation_confirm": "Log out",
-      "enable_card_error": "Failed to enable card. Please try again later.",
-      "view_card_details_error": "Unable to load card details. Please try again.",
+      "enable_card_error": "Failed to enable card. Try again later.",
+      "view_card_details_error": "Unable to load card details. Try again.",
       "biometric_verification_required": "Authentication required to view card details.",
       "unfreeze_auth_required": "Authentication required to resume spending on your card.",
       "card_details": {
@@ -9970,7 +9970,7 @@
         },
         "no_card": {
           "title": "You need to enable your card",
-          "description": "Please enable your card to start spending"
+          "description": "Enable your card to start spending"
         },
         "frozen": {
           "title": "Your card is frozen",
@@ -9978,7 +9978,7 @@
         },
         "blocked": {
           "title": "Your card is blocked",
-          "description": "Please contact support to unblock your card"
+          "description": "Contact support to unblock your card"
         },
         "kyc_pending": {
           "title": "Verification in progress",
@@ -9999,20 +9999,20 @@
       "kyc_status": {
         "pending": {
           "title": "Verification in progress",
-          "description": "Your identity verification is being processed. This usually takes a few minutes. Please check back shortly to enable your card."
+          "description": "Your identity verification is being processed. This usually takes a few minutes. Check back shortly to enable your card."
         },
         "rejected": {
           "title": "Verification not approved",
-          "description": "We were unable to verify your identity. Please contact support for assistance.",
-          "support_description": "We were unable to verify your identity at this time. Please contact our support team at {{email}} for assistance and we'll help you resolve this issue."
+          "description": "We were unable to verify your identity. Contact support for assistance.",
+          "support_description": "We were unable to verify your identity at this time. Contact our support team at {{email}} for assistance and we'll help you resolve this issue."
         },
         "unverified": {
           "title": "Verification required",
-          "description": "You need to complete identity verification before enabling your card. Please contact support team at {{email}} for assistance."
+          "description": "You need to complete identity verification before enabling your card. Contact support team at {{email}} for assistance."
         },
         "error": {
           "title": "Verification status unavailable",
-          "description": "We couldn't check your verification status. Please try again later or contact support if the issue persists."
+          "description": "We couldn't check your verification status. Try again later or contact support if the issue persists."
         },
         "ok_button": "OK"
       },
@@ -10022,7 +10022,7 @@
         "view_card_details_description": "Card number, expiration and CVV",
         "view_pin": "View PIN",
         "view_pin_description": "View your card PIN securely",
-        "view_pin_error": "Failed to load PIN. Please try again.",
+        "view_pin_error": "Failed to load PIN. Try again.",
         "set_pin": "Set a 4-digit PIN",
         "set_pin_description": "For ATM withdrawals and chip payments",
         "manage_spending_limit": "Manage limit",
@@ -10042,7 +10042,7 @@
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
         "unfreeze_card_description": "Resume all spending on your card",
-        "freeze_error": "Failed to update card status. Please try again.",
+        "freeze_error": "Failed to update card status. Try again.",
         "freeze_success": "Card successfully frozen",
         "unfreeze_success": "Card successfully unfrozen",
         "change_asset": "Change asset",
@@ -10119,7 +10119,7 @@
       "update_error": "Failed to update spending limit",
       "select_token": "Select token",
       "loading": "Loading available tokens...",
-      "load_error": "Unable to load tokens. Please try again.",
+      "load_error": "Unable to load tokens. Try again.",
       "retry": "Try again",
       "on_linea": "on Linea",
       "account_label": "Account",
@@ -10143,9 +10143,9 @@
       "withdraw": "Withdraw",
       "withdraw_unavailable": "Withdrawal unavailable",
       "withdrawal_success": "Withdrawal completed successfully",
-      "withdrawal_failed": "Withdrawal failed. Please try again.",
+      "withdrawal_failed": "Withdrawal failed. Try again.",
       "no_cashback": "No mUSD back available",
-      "loading_error": "Failed to load mUSD back. Please try again.",
+      "loading_error": "Failed to load mUSD back. Try again.",
       "funding_required": {
         "title": "Set up Linea funding",
         "description": "You need at least one approved funding source on Linea before redeeming mUSD back.",
@@ -10167,8 +10167,8 @@
       "withdraw_to_money_account": "Move to Money account",
       "withdraw_unavailable": "Redemption unavailable",
       "withdrawal_success": "Redemption completed successfully",
-      "withdrawal_failed": "Redemption failed. Please try again.",
-      "loading_error": "Failed to load credit. Please try again.",
+      "withdrawal_failed": "Redemption failed. Try again.",
+      "loading_error": "Failed to load credit. Try again.",
       "funding_required": {
         "title": "Set up funding",
         "description": "You need at least one approved funding source before redeeming your credit.",
@@ -10237,22 +10237,22 @@
       "forgot_password_button": "Forgot password?",
       "errors": {
         "invalid_credentials": "Invalid login details",
-        "invalid_otp_code": "Incorrect code, please try again",
-        "unknown_error": "Unknown error, please try again later",
+        "invalid_otp_code": "Incorrect code. Try again.",
+        "unknown_error": "Unknown error. Try again later.",
         "email_required": "Email is required",
         "password_required": "Password is required",
         "email_invalid": "Invalid email address",
         "password_invalid": "Incorrect password. Try again.",
         "invalid_email_or_password": "Invalid email or password, check your credentials and try again.",
-        "network_error": "Network error. Please check your connection and try again.",
-        "timeout_error": "Request timed out. Please check your connection and try again.",
-        "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later.",
+        "network_error": "Network error. Check your connection and try again.",
+        "timeout_error": "Request timed out. Check your connection and try again.",
+        "server_error": "Server error. Try again later.",
+        "configuration_error": "Service is temporarily unavailable. Try again later.",
         "forbidden_error": "This action isn't available for your account."
       }
     },
     "card_forgot_password": {
-      "load_error": "Something went wrong loading the page. Please try again.",
+      "load_error": "Something went wrong loading the page. Try again.",
       "try_again": "Try again",
       "reset_success": "Password reset successful"
     },
