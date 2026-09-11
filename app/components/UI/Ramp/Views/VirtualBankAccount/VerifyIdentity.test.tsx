@@ -4,10 +4,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import {
-  METAMASK_PRIVACY_POLICY_URL,
-  METAMASK_TERMS_URL,
-} from './constants';
+import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
 import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
 
 jest.mock('./hooks/useKycSessionDisclaimers');
