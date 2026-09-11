@@ -1,18 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  DimensionValue,
-  Platform,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  Box,
   Button,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  Label,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
@@ -22,8 +17,6 @@ import {
   areAddressesEqual,
   toChecksumAddress,
 } from '../../../../../util/address';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import ErrorMessage from '../../../confirmations/legacy/components/ErrorMessage';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -88,7 +81,6 @@ interface ContactFormState {
   mode: ContactMode;
   memo: string | null;
   editable: boolean;
-  inputWidth: DimensionValue | undefined;
   openNetworkSelector: boolean;
 }
 
@@ -147,7 +139,6 @@ const createInitialState = ({
     mode,
     memo: null,
     editable: true,
-    inputWidth: Platform.OS === 'android' ? '99%' : undefined,
     openNetworkSelector: false,
   };
 
@@ -210,9 +201,6 @@ const ContactForm = ({
   const addressInput = useRef<TextInput>(null);
   const memoInput = useRef<TextInput>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const inputWidthTimeoutId = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const contactAddressToRemove = useRef<string | null>(null);
 
   const updateState = (updates: Partial<ContactFormState>) => {
@@ -224,47 +212,12 @@ const ContactForm = ({
   }, [state]);
 
   const onEdit = () => {
-    updateState({ editable: !state.editable });
+    updateState({ editable: true });
   };
 
-  const renderHeaderEndAccessory = () => {
-    const addMode = route.params?.mode === 'add';
-
-    if (addMode) {
-      return null;
-    }
-
-    return (
-      <TouchableOpacity
-        onPress={onEdit}
-        testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
-      >
-        <Text style={styles.headerEndActionText}>
-          {state.editable
-            ? strings('address_book.cancel')
-            : strings('address_book.edit')}
-        </Text>
-      </TouchableOpacity>
-    );
+  const onCancel = () => {
+    updateState({ editable: false });
   };
-
-  useEffect(() => {
-    // Workaround https://github.com/facebook/react-native/issues/9958
-    if (stateRef.current.inputWidth) {
-      inputWidthTimeoutId.current = setTimeout(() => {
-        setState((currentState) => ({
-          ...currentState,
-          inputWidth: '100%',
-        }));
-      }, 100);
-    }
-
-    return () => {
-      if (inputWidthTimeoutId.current) {
-        clearTimeout(inputWidthTimeoutId.current);
-      }
-    };
-  }, []);
 
   const onDelete = () => {
     contactAddressToRemove.current = state.address;
@@ -423,7 +376,6 @@ const ContactForm = ({
     addressReady,
     memo,
     editable,
-    inputWidth,
     toEnsAddress,
     errorContinue,
     contactChainId,
@@ -443,11 +395,9 @@ const ContactForm = ({
       ? strings('address_book.custom')
       : currentNetworkConfiguration?.name || '');
   const isAddMode = editable && mode === ADD;
-  const isEditMode = editable && mode === EDIT;
   const headerTitle = strings(
     `address_book.${route.params?.mode ?? ADD}_contact_title`,
   );
-  const headerEndAccessory = renderHeaderEndAccessory();
 
   return (
     <SafeAreaView
@@ -462,83 +412,92 @@ const ContactForm = ({
         backButtonProps={{
           testID: CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON,
         }}
-        endAccessory={headerEndAccessory ?? undefined}
       />
       <KeyboardAwareScrollView style={styles.informationWrapper}>
-        <View style={styles.scrollWrapper}>
+        <Box twClassName="flex-1 gap-4 py-3">
           <ContactFormFields
             address={address}
+            addressError={addressError ? renderErrorMessage(addressError) : null}
             addressInputRef={addressInput}
-            colors={colors}
             editable={editable}
-            inputWidth={inputWidth}
+            errorContinue={!!errorContinue}
             isAddMode={isAddMode}
-            isEditMode={isEditMode}
             memo={memo}
             memoInputRef={memoInput}
             name={name}
             onChangeAddress={onChangeAddress}
             onChangeMemo={onChangeMemo}
             onChangeName={onChangeName}
+            onErrorContinue={onErrorContinue}
             onScan={onScan}
-            styles={styles}
             themeAppearance={themeAppearance}
             toEnsAddress={toEnsAddress}
             toEnsName={toEnsName}
           />
 
-          <>
-            <Text style={styles.label}>{strings('address_book.network')}</Text>
+          <Box twClassName="gap-2">
+            <Label>{strings('address_book.network')}</Label>
             <ContactNetworkSelector
               chainId={contactChainId || chainId}
               editable={editable}
               networkName={networkName}
               onOpen={() => setOpenNetworkSelector(true)}
-              styles={styles}
             />
-          </>
-        </View>
+          </Box>
+        </Box>
 
-        {addressError && (
-          <ErrorMessage
-            errorMessage={renderErrorMessage(addressError)}
-            errorContinue={!!errorContinue}
-            onContinue={onErrorContinue}
-          />
-        )}
-
-        {!!editable && (
-          <View style={styles.buttonsWrapper}>
-            <View style={styles.buttonsContainer}>
-              <View style={styles.actionButton}>
+        {mode === EDIT && !editable ? (
+          <Box twClassName="py-3">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={onEdit}
+              testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
+            >
+              {strings('address_book.edit')}
+            </Button>
+          </Box>
+        ) : (
+          <Box twClassName="gap-2 py-3">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              isDisabled={!addressReady || !name || !!addressError}
+              onPress={saveContact}
+              testID={AddContactViewSelectorsIDs.ADD_BUTTON}
+            >
+              {strings(
+                mode === ADD
+                  ? 'address_book.add_contact'
+                  : 'address_book.save',
+              )}
+            </Button>
+            {mode === EDIT ? (
+              <>
                 <Button
-                  variant={ButtonVariant.Primary}
+                  variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
                   isFullWidth
-                  isDisabled={!addressReady || !name || !!addressError}
-                  onPress={saveContact}
-                  testID={AddContactViewSelectorsIDs.ADD_BUTTON}
+                  onPress={onCancel}
+                  testID={AddContactViewSelectorsIDs.CANCEL_BUTTON}
                 >
-                  {strings(`address_book.${mode}_contact`)}
+                  {strings('address_book.cancel')}
                 </Button>
-              </View>
-              {mode === EDIT && (
-                <View style={styles.actionButton}>
-                  <Button
-                    variant={ButtonVariant.Tertiary}
-                    size={ButtonSize.Lg}
-                    isFullWidth
-                    isDanger
-                    isDisabled={!addressReady || !name || !!addressError}
-                    onPress={onDelete}
-                    testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
-                  >
-                    {strings(`address_book.delete`)}
-                  </Button>
-                </View>
-              )}
-            </View>
-          </View>
+                <Button
+                  variant={ButtonVariant.Tertiary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  isDanger
+                  onPress={onDelete}
+                  testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
+                >
+                  {strings('address_book.delete')}
+                </Button>
+              </>
+            ) : null}
+          </Box>
         )}
         <ActionSheet
           ref={actionSheet}
