@@ -49,16 +49,25 @@ class Performance {
           'runJsBundleStart',
           'runJsBundleEnd',
         );
+        // Measure the whole pre-JS window in one span. `Math.max` of the two
+        // phases below was used here previously, on the assumption that native
+        // launch and JS bundle load overlap. They do not: measured on a
+        // Galaxy A14 (production release), `nativeLaunchEnd` precedes
+        // `runJsBundleStart` with 0 ms of overlap, and there is a further
+        // ~589 ms of React Native host/context setup between them that neither
+        // phase covers. Taking the max therefore under-reported app start by
+        // ~642 ms and made that gap permanently invisible.
+        performance.measure('appStart', 'nativeLaunchStart', 'runJsBundleEnd');
+
         // Retrieve the measurements
         const nativeLaunchEntry = performance.getEntriesByName('nativeLaunch');
         const runJsBundleEntry = performance.getEntriesByName('runJsBundle');
+        const appStartEntry = performance.getEntriesByName('appStart');
 
         // Get the duration
         const nativeLaunchDuration = nativeLaunchEntry[0].duration;
         const jsBundleDuration = runJsBundleEntry[0].duration;
-        // Assuming JS bundle loads in parallel with launch start
-        // the total app start time is then the maximum of the two durations
-        const appStartTime = Math.max(nativeLaunchDuration, jsBundleDuration);
+        const appStartTime = appStartEntry[0].duration;
 
         if (isTestEnvironment || isE2EOrExpEnvironment) {
           // eslint-disable-next-line no-console
@@ -74,7 +83,7 @@ class Performance {
           console.info(`NATIVE LAUNCH TIME - ${nativeLaunchDuration}ms`);
           console.info(`JS BUNDLE LOAD TIME - ${jsBundleDuration}ms`);
           console.info(
-            `APP START TIME = MAX(NATIVE LAUNCH TIME, JS BUNDLE LOAD TIME) - ${appStartTime}ms`,
+            `APP START TIME = nativeLaunchStart -> runJsBundleEnd - ${appStartTime}ms`,
           );
           console.info(
             `-------------------------------------------------------`,
