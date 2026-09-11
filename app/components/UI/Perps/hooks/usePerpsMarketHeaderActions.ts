@@ -12,7 +12,10 @@ import { usePerpsMode } from './usePerpsMode';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
-import { useDropPerpsHomeFromStackHistory } from '../utils/perpsModeSwitch';
+import {
+  useDropPerpsHomeFromStackHistory,
+  wasPerpsHomeDroppedFromHistory,
+} from '../utils/perpsModeSwitch';
 import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
 
 export interface UsePerpsMarketHeaderActionsParams {
@@ -75,17 +78,21 @@ export const usePerpsMarketHeaderActions = ({
   const isWatchlist = useSelector(selectIsWatchlist);
 
   const handleBackPress = useCallback(() => {
-    // `canGoBack()` is parent-aware: it stays true while an ancestor navigator
-    // can pop, so on a single-entry Perps stack `goBack()` unwinds out of Perps
-    // entirely. Switching Lite -> Pro drops Perps Home from history (TAT-3612)
-    // and switching back to Lite does not restore it, which is exactly how the
-    // stack ends up with one route. Require a poppable Perps entry of our own
-    // before delegating, so the fallback below still runs (TAT-3786). Read the
-    // stack at press time: it is reset while this screen stays mounted, so a
-    // value captured on render would be stale.
-    const hasPerpsStackHistory = (navigation.getState()?.index ?? 0) > 0;
+    // Read the stack at press time: Lite -> Pro resets it while this screen
+    // stays mounted, so a value captured on render would be stale.
+    const perpsState = navigation.getState();
+    const hasPerpsStackHistory = (perpsState?.index ?? 0) > 0;
 
-    if (canGoBack && hasPerpsStackHistory) {
+    // `canGoBack()` is parent-aware. A single-entry Perps stack still reports
+    // true when the main stack can pop `PERPS.ROOT` — that's correct for
+    // Explore/homepage (return to that screen) and wrong after Lite -> Pro
+    // dropped Perps Home (TAT-3786), which would dump the user on wallet.
+    // `dropPerpsHomeFromStackHistory` stamps remaining routes so we can tell
+    // those two single-entry stacks apart.
+    if (
+      canGoBack &&
+      (hasPerpsStackHistory || !wasPerpsHomeDroppedFromHistory(perpsState))
+    ) {
       navigateBack();
       return;
     }

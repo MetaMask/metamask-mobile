@@ -157,6 +157,43 @@ export const navigateToPerpsHomeTarget = (
 };
 
 /**
+ * Stamped onto remaining Perps routes when {@link dropPerpsHomeFromStackHistory}
+ * actually removes Home. A single-entry Perps stack looks the same whether the
+ * user arrived from Explore (back should pop `PERPS.ROOT`) or Home was dropped
+ * after Lite -> Pro (back should use the header fallback). This param is how
+ * the back handler tells those apart.
+ */
+export const PERPS_HOME_DROPPED_FROM_HISTORY_PARAM =
+  'homeDroppedFromHistory' as const;
+
+export const wasPerpsHomeDroppedFromHistory = (
+  state: NavigationState | undefined,
+): boolean => {
+  if (!state) {
+    return false;
+  }
+  const params = state.routes[state.index]?.params;
+  if (!params || typeof params !== 'object') {
+    return false;
+  }
+  return (
+    (params as Record<string, unknown>)[
+      PERPS_HOME_DROPPED_FROM_HISTORY_PARAM
+    ] === true
+  );
+};
+
+const stampHomeDroppedFromHistory = <T extends { params?: object }>(
+  route: T,
+): T => ({
+  ...route,
+  params: {
+    ...(route.params ?? {}),
+    [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true,
+  },
+});
+
+/**
  * Removes `PerpsHomeView` from a Perps stack's history, leaving every other
  * entry (e.g. the market list) untouched.
  *
@@ -165,6 +202,10 @@ export const navigateToPerpsHomeTarget = (
  * user came through stays in history and the back button would reveal the Lite
  * hub while Pro is active. Screens that switch mode by navigating
  * (Perps Home itself, the Trade sheet) already avoid seeding Home instead.
+ *
+ * Remaining routes are stamped with {@link PERPS_HOME_DROPPED_FROM_HISTORY_PARAM}
+ * so the market-header back handler can still pop out of Perps when the stack
+ * was a single external entry (Explore, homepage) rather than a dropped Home.
  */
 export const dropPerpsHomeFromStackHistory = (navigation: {
   getState: () => NavigationState | undefined;
@@ -178,15 +219,20 @@ export const dropPerpsHomeFromStackHistory = (navigation: {
     return;
   }
 
-  const routes = state.routes.filter(
+  const remainingRoutes = state.routes.filter(
     (route) => route.name !== Routes.PERPS.PERPS_HOME,
   );
 
   // Nothing to drop, or Home is the only entry — resetting to an empty
   // history would leave the navigator with no screen to render.
-  if (routes.length === state.routes.length || routes.length === 0) {
+  if (
+    remainingRoutes.length === state.routes.length ||
+    remainingRoutes.length === 0
+  ) {
     return;
   }
+
+  const routes = remainingRoutes.map(stampHomeDroppedFromHistory);
 
   // Keep the user on the screen they're looking at: its position shifts when
   // an earlier route is removed.

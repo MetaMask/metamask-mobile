@@ -354,8 +354,16 @@ describe('PerpsModeSelectionView', () => {
       expect.objectContaining({
         index: 1,
         routes: [
-          { name: Routes.PERPS.MARKET_DETAILS, key: 'market-1' },
-          { name: Routes.PERPS.MODALS.ROOT, key: 'modal-1' },
+          {
+            name: Routes.PERPS.MARKET_DETAILS,
+            key: 'market-1',
+            params: { homeDroppedFromHistory: true },
+          },
+          {
+            name: Routes.PERPS.MODALS.ROOT,
+            key: 'modal-1',
+            params: { homeDroppedFromHistory: true },
+          },
         ],
       }),
     );
