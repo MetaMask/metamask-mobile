@@ -60,6 +60,9 @@ describeForPlatforms('Contacts component views', () => {
     const addressInput = await findByTestId(
       AddContactViewSelectorsIDs.ADDRESS_INPUT,
     );
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.COPY_BUTTON),
+    ).toBeOnTheScreen();
 
     await waitFor(() => {
       expect(nameInput).toHaveProp('value', SYNCED_CONTACT.name);

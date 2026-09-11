@@ -10,6 +10,7 @@ export const AddContactViewSelectorsIDs = {
   CONTAINER: 'add-contacts-screen',
   EDIT_BUTTON: 'edit-button',
   CANCEL_BUTTON: 'add-contact-cancel-button',
+  COPY_BUTTON: 'add-contact-copy-address-button',
   /** First option in the CV action-sheet mock (delete confirmation). */
   DELETE_CONFIRM_ACTION_SHEET_OPTION: 'action-sheet-option-0',
 };
