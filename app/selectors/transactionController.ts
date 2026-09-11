@@ -26,10 +26,6 @@ interface MetaMaskPayToken {
 type LocalTransaction = TransactionMeta | SmartTransaction;
 const MONEY_DEPOSIT_TYPES = [TransactionType.moneyAccountDeposit];
 const MONEY_WITHDRAW_TYPES = [TransactionType.moneyAccountWithdraw];
-
-// Hoisted so the empty-state fallback keeps a stable reference. A fresh `[]`
-// per evaluation would change identity on every call and defeat memoisation in
-// every selector derived from `selectTransactions`.
 const EMPTY_TRANSACTIONS: TransactionMeta[] = [];
 
 function isTerminalFailedStatus(status: unknown): boolean {
