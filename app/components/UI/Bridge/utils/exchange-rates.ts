@@ -149,7 +149,13 @@ export const calcTokenFiatRate = ({
 
   const evmChainId = token.chainId as Hex;
   const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+  // Market data is keyed by checksummed address; normalize the lookup key
+  // since token.address may come from sources (e.g. default token configs)
+  // that store addresses in lowercase.
+  const evmTokenMarketData =
+    evmMultiChainExchangeRates?.[
+      (safeToChecksumAddress(token.address) ?? token.address) as Hex
+    ];
 
   const nativeCurrency =
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
@@ -201,7 +207,13 @@ export const calcTokenFiatValue = ({
   // EVM
   const evmChainId = token.chainId as Hex;
   const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
-  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+  // Market data is keyed by checksummed address; normalize the lookup key
+  // since token.address may come from sources (e.g. default token configs)
+  // that store addresses in lowercase.
+  const evmTokenMarketData =
+    evmMultiChainExchangeRates?.[
+      (safeToChecksumAddress(token.address) ?? token.address) as Hex
+    ];
 
   const nativeCurrency =
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
