@@ -470,15 +470,10 @@ export const usePerpsMarketListView = ({
   );
 
   // Calculate market counts per category (for hiding empty pills/tabs).
-  // 'memecoin' and 'new' are seeded explicitly so counting works regardless
-  // of whether the installed @metamask/perps-controller lists 'memecoin' in
-  // MARKET_CATEGORIES yet. The Set dedupes once the dep is bumped.
+  // 'new' is seeded explicitly — it is a UI sentinel, not a MARKET_CATEGORIES
+  // entry. Memecoin is already in MARKET_CATEGORIES.
   const marketCounts = useMemo(() => {
-    const seededKeys = [
-      ...MARKET_CATEGORIES,
-      'memecoin' as const,
-      'new' as const,
-    ];
+    const seededKeys = [...MARKET_CATEGORIES, 'new' as const];
     const counts = Object.fromEntries(
       [...new Set(seededKeys)].map((category) => [category, 0]),
     ) as Record<Exclude<MarketTypeFilter, 'all'>, number>;

@@ -15,9 +15,7 @@ import {
  */
 export const HIP3_FILTER_KEYS: ReadonlySet<MarketTypeFilter> = new Set(
   MARKET_CATEGORIES.filter(
-    (c) =>
-      c !== MarketCategory.CryptoCurrency &&
-      c !== ('memecoin' as MarketTypeFilter),
+    (c) => c !== MarketCategory.CryptoCurrency && c !== MarketCategory.Memecoin,
   ),
 );
 
@@ -25,15 +23,10 @@ export const HIP3_FILTER_KEYS: ReadonlySet<MarketTypeFilter> = new Set(
  * Preferred display order for product categories.
  * Categories present in market data but missing from this list are
  * appended at the end in discovery order.
- *
- * NOTE: `memecoin` is cast because older versions of
- * `@metamask/perps-controller` (< 17.1.0) do not include it in
- * `MarketTypeFilter`. Once the mobile dep is bumped to a version that
- * ships `MarketCategory.Memecoin`, the cast can be dropped.
  */
 export const CATEGORY_DISPLAY_ORDER: Exclude<MarketTypeFilter, 'all'>[] = [
   'crypto',
-  'memecoin' as MarketTypeFilter as Exclude<MarketTypeFilter, 'all'>,
+  'memecoin',
   'stock',
   'pre-ipo',
   'forex',
@@ -84,7 +77,7 @@ export function filterMarketsByCategory<
     return markets.filter((market) => !market.isHip3);
   }
 
-  if ((filter as string) === 'memecoin') {
+  if (filter === 'memecoin') {
     return markets.filter(
       (market) => !market.isHip3 && !!market.tags?.includes('memecoin'),
     );
