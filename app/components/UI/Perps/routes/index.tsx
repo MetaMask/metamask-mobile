@@ -20,6 +20,7 @@ import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
 import PerpsMarketDetailsRouter from '../Views/PerpsMarketDetailsRouter';
+import PerpsBalanceOrderView from '../Views/PerpsBalanceOrderView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
 import PerpsOrderRedirect from '../Views/PerpsOrderRedirect';
@@ -314,6 +315,11 @@ const PerpsScreenStack = () => {
               />
 
               {/* Withdrawal flow screens */}
+              <Stack.Screen
+                name={Routes.PERPS.BALANCE_ORDER}
+                component={PerpsBalanceOrderView}
+                options={{ headerShown: false }}
+              />
               <Stack.Screen
                 name={Routes.PERPS.WITHDRAW}
                 component={PerpsWithdrawView}

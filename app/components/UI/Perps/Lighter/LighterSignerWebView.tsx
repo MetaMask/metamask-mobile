@@ -12,6 +12,7 @@ import type {
 import lighterSdkHtml from './wasm-wrapper.standalone.html';
 import {
   connectLighterExecutor,
+  reviveLighterBridge,
   resetLighterBridge,
   setLighterBridgeUnavailable,
   type LighterExecutorCall,
@@ -59,6 +60,12 @@ const executePromises: Record<
     }
   | undefined
 > = {};
+
+// Correlates a `execute` message with its `executeResult`/`executeError`
+// reply. A module-scoped counter is collision-free by construction, so it
+// needs no randomness — and keeps this off the security-review surface for
+// a file that drives a signer.
+let nextExecuteSequence = 0;
 
 /**
  * Reject and drop every in-flight call. Must run whenever the WebView
@@ -225,6 +232,10 @@ export const LighterSignerWebView = () => {
 
   useEffect(() => {
     isMountedRef.current = true;
+    // A previous host instance may have exhausted its reloads and left the
+    // bridge terminally unavailable. This mount is a real remount, so the
+    // signer can serve calls again.
+    reviveLighterBridge();
     return () => {
       isMountedRef.current = false;
       if (reloadTimerRef.current) {
@@ -252,6 +263,11 @@ export const LighterSignerWebView = () => {
           return;
         }
         DevLogger.log('[LighterSignerWebView] WASM signer ready');
+        // The threshold counts CONSECUTIVE failed reloads. Without this reset
+        // the counter climbs for the whole WebView lifetime, so a handful of
+        // transient content-process deaths spread across a long session — each
+        // one fully recovered — would eventually trip terminal unavailability.
+        reloadAttemptsRef.current = 0;
         const execute: LighterExecutor = (call, timeoutMs) => {
           const webview = webviewRef.current;
           if (!webview) {
@@ -260,9 +276,8 @@ export const LighterSignerWebView = () => {
             );
           }
           return new Promise((resolve, reject) => {
-            const executeId = `${call.function}_${Date.now()}_${Math.random()
-              .toString(36)
-              .slice(2)}`;
+            nextExecuteSequence += 1;
+            const executeId = `${call.function}_${nextExecuteSequence}`;
             const timer = setTimeout(() => {
               delete executePromises[executeId];
               reject(
@@ -298,6 +313,13 @@ export const LighterSignerWebView = () => {
           if (pendingResult) {
             clearTimeout(pendingResult.timer);
             if (
+              isRecord(message.result) &&
+              typeof message.result.error === 'string' &&
+              message.result.error.trim().length > 0
+            ) {
+              // WASM failures return an error without the success payload.
+              pendingResult.reject(new Error(message.result.error));
+            } else if (
               isValidLighterSignerResult(
                 pendingResult.functionName,
                 message.result,

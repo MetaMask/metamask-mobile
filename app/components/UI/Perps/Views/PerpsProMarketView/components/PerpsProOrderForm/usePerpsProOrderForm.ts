@@ -1886,13 +1886,13 @@ export const usePerpsProOrderForm = ({
   const isChaseExecutionRef = useRef(false);
 
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
-    onSuccess: () => {
+    onSuccess: (_position, result) => {
       if (isScaleOrder) {
         return;
       }
       const confirmationPositionSize = isChaseExecutionRef.current
         ? chaseConfirmationPositionSizeRef.current
-        : submissionPositionSize;
+        : (result?.submittedSize ?? submissionPositionSize);
       const toast = isTwapOrder
         ? PerpsToastOptions.orderManagement.twap.confirmed(
             orderForm.direction,

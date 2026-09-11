@@ -9,6 +9,7 @@ import {
 } from '../selectors/perpsController';
 import { usePerpsProvider } from './usePerpsProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { selectPerpsLighterProviderEnabledFlag } from '../selectors/featureFlags';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -84,6 +85,9 @@ beforeEach(() => {
   });
   // Default: Hyperliquid active on mainnet.
   mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectPerpsLighterProviderEnabledFlag) {
+      return mockIsLighterProviderEnabled();
+    }
     if (selector === selectPerpsProvider) {
       return 'hyperliquid';
     }
