@@ -56,7 +56,6 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { useTheme } from '../../../util/theme';
-import Engine from '../../../core/Engine';
 import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
@@ -144,13 +143,6 @@ type ActivityFlashListProps = FlashListProps<GroupedActivityListItem> & {
 const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<ActivityFlashListProps>,
 ) as unknown as React.ComponentType<ActivityFlashListProps>;
-
-const updateIncomingTransactions = () =>
-  (
-    Engine.context.TransactionController as unknown as {
-      updateIncomingTransactions: () => Promise<void>;
-    }
-  ).updateIncomingTransactions();
 
 const generateGroupedKey = (
   item: GroupedActivityListItem,
@@ -825,12 +817,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
       try {
-        await Promise.all([
-          updateIncomingTransactions(),
-          refetch(),
-          perpsRefetch?.(),
-          predictRefetch?.(),
-        ]);
+        await Promise.all([refetch(), perpsRefetch?.(), predictRefetch?.()]);
       } finally {
         setRefreshing(false);
       }
