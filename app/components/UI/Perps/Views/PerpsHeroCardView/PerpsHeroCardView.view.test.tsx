@@ -4,7 +4,8 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
-import { screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import Share from 'react-native-share';
 import { strings } from '../../../../../../locales/i18n';
 import {
   defaultPositionForViews,
@@ -14,6 +15,8 @@ import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
 } from '../../Perps.testIds';
+
+const TIMEOUT_MS = 5000;
 
 const longPosition = defaultPositionForViews;
 
@@ -110,5 +113,32 @@ describe('PerpsHeroCardView', () => {
     expect(
       await screen.findByText(strings('perps.pnl_hero_card.share_button')),
     ).toBeOnTheScreen();
+  });
+
+  it('pressing share invokes Share.open with the position asset', async () => {
+    const shareSpy = jest
+      .spyOn(Share, 'open')
+      .mockResolvedValue({ success: true } as never);
+
+    renderPerpsHeroCardView({ initialParams: { position: longPosition } });
+
+    await act(async () => {
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsHeroCardViewSelectorsIDs.SHARE_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+    });
+
+    await waitFor(
+      () => {
+        expect(shareSpy).toHaveBeenCalledTimes(1);
+      },
+      { timeout: TIMEOUT_MS },
+    );
+
+    shareSpy.mockRestore();
   });
 });

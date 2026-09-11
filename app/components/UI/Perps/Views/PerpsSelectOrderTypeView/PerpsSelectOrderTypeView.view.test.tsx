@@ -51,25 +51,24 @@ describe('PerpsSelectOrderTypeView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('pressing Market option does not crash and container remains on screen', async () => {
+  it('selecting Market type dismisses the sheet', async () => {
     renderPerpsView(
       PerpsSelectOrderTypeView as unknown as React.ComponentType,
       Routes.PERPS.SELECT_ORDER_TYPE,
       { initialParams: { currentOrderType: 'limit' } },
     );
 
-    const marketOption = await screen.findByTestId(
-      PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+    await screen.findByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
     );
 
-    fireEvent.press(marketOption);
-
-    // Sheet dismisses after a selection — container may leave the screen,
-    // but the interaction must not throw or leave the UI in an error state.
+    // Selecting a type triggers goBack — the sheet container must leave the screen.
     await waitFor(() => {
       expect(
-        screen.queryByText(strings('perps.errors.order_not_found')) ?? null,
-      ).toBeNull();
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
   });
 });

@@ -4,10 +4,12 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { renderPerpsSelectModifyActionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
+
+const TIMEOUT_MS = 5000;
 
 describe('PerpsSelectModifyActionView', () => {
   beforeEach(() => {
@@ -60,6 +62,23 @@ describe('PerpsSelectModifyActionView', () => {
 
     expect(
       await screen.findByText(strings('perps.modify.flip_position')),
+    ).toBeOnTheScreen();
+  });
+
+  it('pressing Add to Position navigates to the order confirmation screen', async () => {
+    renderPerpsSelectModifyActionView();
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsModifyActionSheetSelectorsIDs.ADD_TO_POSITION,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+
+    // The renderer pre-registers the confirmation route with a probe element.
+    expect(
+      await screen.findByTestId('route-order-confirmation', {}, { timeout: TIMEOUT_MS }),
     ).toBeOnTheScreen();
   });
 });
