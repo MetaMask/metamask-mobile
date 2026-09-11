@@ -42,7 +42,6 @@ PredictNext/
   queries/                     # Query descriptors and cache policy
   services/                    # Product services
   adapters/                    # Venue capability implementations
-  controller/                  # Composition and lifecycle
   config/
   selectors/
   errors/

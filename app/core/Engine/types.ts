@@ -372,14 +372,15 @@ import type {
   UiSlotsControllerEvents,
   UiSlotsControllerState,
 } from './controllers/ui-slots-controller/types';
-import { PredictNextController } from '../../components/UI/PredictNext/controller/PredictNextController';
-import type {
-  PredictMarketDataServiceActions,
-  PredictMarketDataServiceEvents,
+import {
+  PredictMarketDataService,
+  type PredictMarketDataServiceActions,
+  type PredictMarketDataServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictMarketDataService';
-import type {
-  PredictPortfolioServiceActions,
-  PredictPortfolioServiceEvents,
+import {
+  PredictPortfolioService,
+  type PredictPortfolioServiceActions,
+  type PredictPortfolioServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictPortfolioService';
 import type {
   CardControllerState,
@@ -957,7 +958,8 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
-  PredictNextController: PredictNextController;
+  PredictMarketDataService: PredictMarketDataService;
+  PredictPortfolioService: PredictPortfolioService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -1161,7 +1163,8 @@ export type MessengerClientsToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
-  | 'PredictNextController'
+  | 'PredictMarketDataService'
+  | 'PredictPortfolioService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'

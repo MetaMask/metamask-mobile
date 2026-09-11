@@ -76,7 +76,7 @@ describe('PredictNext public market data', () => {
     harnesses.splice(0).forEach((harness) => harness.destroy());
   });
 
-  it('reads Balance through the authenticated controller-to-transport chain', async () => {
+  it('reads Balance through the authenticated service-to-transport chain', async () => {
     const balance = {
       venueId: 'kalshi',
       currency: 'USD',
@@ -203,7 +203,7 @@ describe('PredictNext public market data', () => {
     harness.destroy();
   });
 
-  it('reads venue status through the real controller-to-transport chain', async () => {
+  it('reads venue status through the real service-to-transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness(() => ({
       body: status,
     }));
@@ -218,7 +218,7 @@ describe('PredictNext public market data', () => {
     harness.destroy();
   });
 
-  it('reads Market history through the real controller-to-transport chain', async () => {
+  it('reads Market history through the real service-to-transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness(() => ({
       body: marketHistory,
     }));

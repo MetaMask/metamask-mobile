@@ -363,7 +363,8 @@ jest.mock('../../app/core/Engine', () => {
       BridgeStatusController: {
         submitTx: jest.fn().mockResolvedValue({ success: true }),
       },
-      PredictNextController: {},
+      PredictMarketDataService: {},
+      PredictPortfolioService: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],

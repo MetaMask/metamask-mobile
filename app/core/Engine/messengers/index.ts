@@ -47,10 +47,11 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 ///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
+import { getPredictMarketDataServiceMessenger } from './predict-market-data-service-messenger';
 import {
-  getPredictNextControllerInitMessenger,
-  getPredictNextControllerMessenger,
-} from './predict-next-controller-messenger';
+  getPredictPortfolioServiceInitMessenger,
+  getPredictPortfolioServiceMessenger,
+} from './predict-portfolio-service-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -353,9 +354,13 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPredictControllerMessenger,
     getInitMessenger: noop,
   },
-  PredictNextController: {
-    getMessenger: getPredictNextControllerMessenger,
-    getInitMessenger: getPredictNextControllerInitMessenger,
+  PredictMarketDataService: {
+    getMessenger: getPredictMarketDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  PredictPortfolioService: {
+    getMessenger: getPredictPortfolioServiceMessenger,
+    getInitMessenger: getPredictPortfolioServiceInitMessenger,
   },
   BridgeController: {
     getMessenger: getBridgeControllerMessenger,

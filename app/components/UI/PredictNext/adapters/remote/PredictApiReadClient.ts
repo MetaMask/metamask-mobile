@@ -40,11 +40,22 @@ type PredictApiReadQueryParams = FetchFeedParams & {
 };
 
 export interface PredictApiReadClientOptions {
-  baseUrl: string;
+  baseUrl?: string;
   clientVersion: string;
   fetch?: typeof fetch;
   getBearerToken?: () => Promise<string | undefined>;
 }
+
+const parseBaseUrl = (baseUrl?: string): URL | undefined => {
+  if (!baseUrl) {
+    return undefined;
+  }
+  try {
+    return new URL(baseUrl);
+  } catch {
+    return undefined;
+  }
+};
 
 export class PredictHttpError extends Error {
   readonly status: number;
@@ -57,7 +68,7 @@ export class PredictHttpError extends Error {
 }
 
 export class PredictApiReadClient implements PredictApiReadTransport {
-  readonly #baseUrl: URL;
+  readonly #baseUrl?: URL;
   readonly #clientVersion: string;
   readonly #fetch: typeof fetch;
   readonly #getBearerToken?: () => Promise<string | undefined>;
@@ -68,7 +79,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     fetch: fetchFn = global.fetch,
     getBearerToken,
   }: PredictApiReadClientOptions) {
-    this.#baseUrl = new URL(baseUrl);
+    this.#baseUrl = parseBaseUrl(baseUrl);
     this.#clientVersion = clientVersion;
     this.#fetch = fetchFn;
     this.#getBearerToken = getBearerToken;
@@ -185,6 +196,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   }
 
   #baseUrlWithTrailingSlash(): URL {
+    if (!this.#baseUrl) {
+      throw new PredictHttpError(503);
+    }
     const url = new URL(this.#baseUrl.toString());
     url.pathname = `${url.pathname.replace(/\/$/u, '')}/`;
     return url;

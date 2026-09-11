@@ -38,6 +38,31 @@ describe('PredictApiReadClient', () => {
     });
   });
 
+  it('fails before HTTP when the API URL is not configured', async () => {
+    client = new PredictApiReadClient({
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+    });
+
+    await expect(client.fetchVenueStatus(venueId)).rejects.toMatchObject({
+      status: 503,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('fails before HTTP when the API URL is malformed', async () => {
+    client = new PredictApiReadClient({
+      baseUrl: 'not a URL',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+    });
+
+    await expect(client.fetchVenueStatus(venueId)).rejects.toMatchObject({
+      status: 503,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('requests Venue Status without authorization or content type headers', async () => {
     const getBearerToken = jest.fn().mockResolvedValue('secret-token');
     fetchMock.mockResolvedValue(createResponse());
