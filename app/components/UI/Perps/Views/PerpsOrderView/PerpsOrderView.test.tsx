@@ -526,6 +526,13 @@ jest.mock(
 );
 
 jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useMoneyAccountDepositAndOrder',
+  () => ({
+    useMoneyAccountDepositAndOrder: jest.fn(),
+  }),
+);
+
+jest.mock(
   '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics',
   () => ({
     useTransactionPayMetrics: jest.fn(),

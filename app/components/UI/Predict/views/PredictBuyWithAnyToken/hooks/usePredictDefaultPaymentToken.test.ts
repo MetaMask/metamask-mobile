@@ -18,6 +18,7 @@ let mockTokens: {
   standard?: TokenStandard;
   fiat?: { balance?: number };
 }[] = [];
+let mockIsMoneyAccountSelected = false;
 
 const createEvmErc20Token = ({
   address,
@@ -65,6 +66,13 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+  () => ({
+    useIsMoneyAccountPaymentOverride: () => mockIsMoneyAccountSelected,
+  }),
+);
+
 jest.mock('../../../constants/transactions', () => ({
   MINIMUM_BET: 1,
 }));
@@ -76,6 +84,20 @@ describe('usePredictDefaultPaymentToken', () => {
     mockIsBalanceLoading = false;
     mockActiveOrder = { state: ActiveOrderState.PREVIEW };
     mockTokens = [];
+    mockIsMoneyAccountSelected = false;
+  });
+
+  it('leaves the payment selection alone while paying from the Money Account', () => {
+    mockIsMoneyAccountSelected = true;
+    mockPredictBalance = 0;
+    mockTokens = [
+      createEvmErc20Token({ address: '0x1', symbol: 'USDC', fiatBalance: 100 }),
+    ];
+
+    renderHook(() => usePredictDefaultPaymentToken());
+
+    expect(mockOnPaymentTokenChange).not.toHaveBeenCalled();
+    expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
   });
 
   it('resets to predict balance when balance >= MINIMUM_BET', () => {

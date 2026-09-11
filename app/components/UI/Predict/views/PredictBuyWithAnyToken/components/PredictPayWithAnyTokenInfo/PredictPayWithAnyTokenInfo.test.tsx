@@ -22,6 +22,7 @@ let mockPayToken:
   | undefined;
 let mockSetPayToken = jest.fn();
 let mockPredictBalance = 0;
+let mockIsMoneyAccountSelected = false;
 
 jest.mock('../../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
@@ -29,6 +30,13 @@ jest.mock('../../../../hooks/usePredictPaymentToken', () => ({
     selectedPaymentToken: mockSelectedPaymentToken,
   }),
 }));
+
+jest.mock(
+  '../../../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride',
+  () => ({
+    useIsMoneyAccountPaymentOverride: () => mockIsMoneyAccountSelected,
+  }),
+);
 
 jest.mock('../../../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => ({
@@ -125,6 +133,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
     mockPayToken = undefined;
     mockSetPayToken = jest.fn();
     mockPredictBalance = 0;
+    mockIsMoneyAccountSelected = false;
   });
 
   describe('render', () => {
@@ -792,6 +801,29 @@ describe('PredictPayWithAnyTokenInfo', () => {
       mockSelectedPaymentToken = {
         address: '0xabc123',
         chainId: '0x1',
+      };
+
+      render(
+        <PredictPayWithAnyTokenInfo
+          currentValue={100}
+          preview={defaultPreview}
+          shouldDeferRelaySetup={false}
+        />,
+      );
+
+      expect(mockSetPayToken).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite the money account pay token with the Predict selection', () => {
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockIsMoneyAccountSelected = true;
+      mockSelectedPaymentToken = {
+        address: '0xabc123',
+        chainId: '0x1',
+      };
+      mockPayToken = {
+        address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        chainId: '0x8f',
       };
 
       render(
