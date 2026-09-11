@@ -450,6 +450,7 @@ jest.mock('../../app/core/Engine', () => {
           supportedStrategies: ['twap', 'scale', 'chase'],
         }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue({

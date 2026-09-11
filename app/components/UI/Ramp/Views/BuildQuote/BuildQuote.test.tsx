@@ -251,7 +251,7 @@ const USER_REGION = {
 };
 
 const CIRCUIT_BREAKER_MESSAGE =
-  'This service is temporarily unavailable. Please try again in about 30 minutes.';
+  'This service is temporarily unavailable. Try again in about 30 minutes.';
 
 const buildProviderWithLimits = (limits: {
   minAmount: number;
