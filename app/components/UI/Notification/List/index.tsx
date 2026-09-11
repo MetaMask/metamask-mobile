@@ -31,6 +31,8 @@ import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
 import { NotificationMenuViewSelectorsIDs } from '../../../Views/Notifications/NotificationMenuView.testIds';
+import ReduxService from '../../../../core/redux';
+import { selectLinkMetamaskComEnabled } from '../../../../selectors/featureFlagController/linkMetamaskCom';
 
 export const TEST_IDS = {
   loadingContainer: 'notification-list-loading',
@@ -97,7 +99,14 @@ export function useNotificationOnClick(
 
       if (ctaLink) {
         try {
-          if (ctaLink.includes(AppConstants.MM_IO_UNIVERSAL_LINK_HOST)) {
+          const includeCom = selectLinkMetamaskComEnabled(
+            ReduxService.store.getState(),
+          );
+          if (
+            ctaLink.includes(AppConstants.MM_IO_UNIVERSAL_LINK_HOST) ||
+            (includeCom &&
+              ctaLink.includes(AppConstants.MM_COM_UNIVERSAL_LINK_HOST))
+          ) {
             SharedDeeplinkManager.parse(ctaLink, {
               origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
             });

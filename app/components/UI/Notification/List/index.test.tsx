@@ -27,9 +27,25 @@ import { NotificationMenuViewSelectorsIDs } from '../../../Views/Notifications/N
 // eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 import SharedDeeplinkManager from '../../../../core/DeeplinkManager/DeeplinkManager';
+import { selectLinkMetamaskComEnabled } from '../../../../selectors/featureFlagController/linkMetamaskCom';
+import ReduxService from '../../../../core/redux';
 
 jest.mock('../../../../core/DeeplinkManager/DeeplinkManager', () => ({
   parse: jest.fn(),
+}));
+jest.mock(
+  '../../../../selectors/featureFlagController/linkMetamaskCom',
+  () => ({
+    selectLinkMetamaskComEnabled: jest.fn(() => false),
+  }),
+);
+jest.mock('../../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      getState: jest.fn(() => ({})),
+    },
+  },
 }));
 
 const mockNavigation = createNavigationProps({});
@@ -252,6 +268,43 @@ describe('useNotificationOnClick', () => {
 
     expect(mockParse).toHaveBeenCalledWith(ctaLink, expect.any(Object));
     expect(mocks.mockNavigation.navigate).not.toHaveBeenCalled();
+  });
+
+  it('opens link.metamask.com via DeeplinkManager when the flag is on', async () => {
+    jest.mocked(selectLinkMetamaskComEnabled).mockReturnValueOnce(true);
+    const mockParse = jest.mocked(SharedDeeplinkManager.parse);
+    const mocks = arrangeMocks();
+    const hook = renderHook(() =>
+      useNotificationOnClick({ navigation: mocks.mockNavigation }),
+    );
+    const notification = mockNotificationsWithMetaData[0].notification;
+    const ctaLink = 'https://link.metamask.com/some-path';
+
+    await act(() =>
+      hook.result.current.onNotificationPress(notification, ctaLink),
+    );
+
+    expect(ReduxService.store.getState).toHaveBeenCalled();
+    expect(mockParse).toHaveBeenCalledWith(ctaLink, expect.any(Object));
+  });
+
+  it('opens link.metamask.com externally when the flag is off', async () => {
+    jest.mocked(selectLinkMetamaskComEnabled).mockReturnValueOnce(false);
+    const mockOpenURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const mocks = arrangeMocks();
+    const hook = renderHook(() =>
+      useNotificationOnClick({ navigation: mocks.mockNavigation }),
+    );
+    const notification = mockNotificationsWithMetaData[0].notification;
+    const ctaLink = 'https://link.metamask.com/some-path';
+
+    await act(() =>
+      hook.result.current.onNotificationPress(notification, ctaLink),
+    );
+
+    expect(mockOpenURL).toHaveBeenCalledWith(ctaLink);
   });
 
   it('opens external URL via Linking when CTA link is not a metamask universal link', async () => {
