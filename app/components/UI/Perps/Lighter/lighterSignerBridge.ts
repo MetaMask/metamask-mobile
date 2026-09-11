@@ -27,6 +27,12 @@ const RELOAD_ERROR = 'Lighter signer WebView reloaded; retry the operation';
 const resetListeners = new Set<() => void>();
 let executor: LighterExecutor | null = null;
 let unavailableError: Error | null = null;
+// Terminal unavailability outlives a reset: once the WebView exhausts its
+// reload attempts it unmounts for good, so only a real remount (which
+// reconnects an executor) can revive the bridge. Without this, a controller
+// reset() would clear `unavailableError` and re-arm readiness against a page
+// that never comes back, leaving callers to hang until the 90s deadline.
+let isTerminallyUnavailable = false;
 let readyResolve: () => void;
 let readyReject: (reason: Error) => void;
 let ready: Promise<void>;
@@ -144,9 +150,29 @@ export function connectLighterExecutor(newExecutor: LighterExecutor): void {
   readyResolve();
 }
 
+/**
+ * Revive the bridge after terminal unavailability. Only the signer host may
+ * call this, and only when it is actually remounting the WebView — a late
+ * executor from the dying page must never resurrect a dead signer.
+ */
+export function reviveLighterBridge(): void {
+  if (!isTerminallyUnavailable) {
+    return;
+  }
+  isTerminallyUnavailable = false;
+  unavailableError = null;
+  executor = null;
+  armReadiness();
+}
+
 /** Re-arm the bridge while the WebView reloads. */
 export function resetLighterBridge(): void {
   executor = null;
+  if (isTerminallyUnavailable) {
+    // Keep failing fast rather than re-arming readiness for a dead page.
+    notifyResetListeners();
+    return;
+  }
   unavailableError = null;
   readyReject(new Error(RELOAD_ERROR));
   armReadiness();
@@ -157,6 +183,7 @@ export function resetLighterBridge(): void {
 export function setLighterBridgeUnavailable(reason: string): void {
   const error = new Error(reason);
   executor = null;
+  isTerminallyUnavailable = true;
   unavailableError = error;
   readyReject(error);
   notifyResetListeners();
