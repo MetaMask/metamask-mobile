@@ -7,7 +7,10 @@ import React, {
 } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import ScreenView from '../../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
