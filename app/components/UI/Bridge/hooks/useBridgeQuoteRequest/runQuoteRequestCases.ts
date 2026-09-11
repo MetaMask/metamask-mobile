@@ -1,6 +1,7 @@
 import { BigNumber } from 'ethers';
 import { act } from '@testing-library/react-native';
 import {
+  FeatureId,
   formatAddressToCaipReference,
   isSolanaChainId,
   QuoteStreamCompleteReason,
@@ -25,27 +26,21 @@ import {
   TraceOperation,
 } from '../../../../../util/trace';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
 
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
   'updateBridgeQuoteRequestParams',
 );
 
-const mockUseIsInsufficientBalance =
-  useIsInsufficientBalance as jest.MockedFunction<
-    typeof useIsInsufficientBalance
-  >;
-
-const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
-  typeof useLatestBalance
->;
-
-const mockUseInsufficientNativeReserveError =
-  useInsufficientNativeReserveError as jest.MockedFunction<
-    typeof useInsufficientNativeReserveError
-  >;
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
-const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+const mockUseIsInsufficientBalance = jest.mocked(useIsInsufficientBalance);
+const mockUseLatestBalance = jest.mocked(useLatestBalance);
+const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+const mockUseInsufficientNativeReserveError = jest.mocked(
+  useInsufficientNativeReserveError,
+);
+const mockTrace = jest.mocked(trace);
+const mockEndTrace = jest.mocked(endTrace);
 
 const defaultWalletAddress = '0x1234567890123456789012345678901234567890';
 
@@ -84,12 +79,14 @@ export const runQuoteRequestCases = ({
   debounceMs,
   renderHook,
   name,
+  featureId,
 }: {
   debounceMs: number;
   renderHook: (options?: {
     latestSourceAtomicBalance?: BigNumber;
     quoteRequestIndex?: number;
     quoteRequestCount?: number;
+    featureId: FeatureId;
   }) => {
     result: {
       current: ((opts?: {
@@ -105,6 +102,7 @@ export const runQuoteRequestCases = ({
     rerender?: (props: undefined) => void;
   };
   name: string;
+  featureId: FeatureId;
 }) => {
   /**
    * @deprecated only use to preserve coverage for old hooks
@@ -118,6 +116,7 @@ export const runQuoteRequestCases = ({
       walletAddress?: string;
       quoteRequestIndex?: number;
       quoteRequestCount?: number;
+      featureId: FeatureId;
     },
   ) => {
     const bridge = { ...mockBridgeReducerState, ...overrides };
@@ -164,6 +163,8 @@ export const runQuoteRequestCases = ({
         displayBalance: '10',
         atomicBalance: BigNumber.from('10000000000000000000'), // 10 ETH in wei
       });
+
+      mockUseSwapsFeatureId.mockReturnValue(featureId);
 
       mockUseIsInsufficientBalance.mockReturnValue(false);
       mockUseInsufficientNativeReserveError.mockReturnValue(undefined);
@@ -605,7 +606,7 @@ export const runQuoteRequestCases = ({
     it('skips update when wallet address is missing', async () => {
       const { result } = renderUseBridgeQuoteRequest(
         {},
-        { walletAddress: undefined },
+        { walletAddress: undefined, featureId: FeatureId.UNIFIED_SWAP_BRIDGE },
       );
 
       await act(async () => {
@@ -716,7 +717,12 @@ export const runQuoteRequestCases = ({
       async ({ overrides, omitWallet }) => {
         const { result } = renderUseBridgeQuoteRequest(
           overrides,
-          omitWallet ? { walletAddress: undefined } : undefined,
+          omitWallet
+            ? {
+                walletAddress: undefined,
+                featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+              }
+            : undefined,
         );
 
         await act(async () => {
@@ -1176,7 +1182,10 @@ export const runQuoteRequestCases = ({
 
         const testState = renderUseBridgeQuoteRequest(
           { sourceAmount: '5.5' },
-          { latestSourceAtomicBalance: overriddenAtomicBalance },
+          {
+            latestSourceAtomicBalance: overriddenAtomicBalance,
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          },
         );
 
         expect(mockUseLatestBalance).toHaveBeenCalledWith({});
@@ -1191,7 +1200,10 @@ export const runQuoteRequestCases = ({
       it('uses override path when latestSourceAtomicBalance key is provided as undefined', () => {
         const testState = renderUseBridgeQuoteRequest(
           { sourceAmount: '5.5' },
-          { latestSourceAtomicBalance: undefined },
+          {
+            latestSourceAtomicBalance: undefined,
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          },
         );
 
         expect(mockUseLatestBalance).toHaveBeenCalledWith({});

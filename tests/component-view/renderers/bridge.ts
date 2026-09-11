@@ -21,12 +21,15 @@ import { initialStateBridge } from '../presets/bridge';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Transaction } from '@metamask/keyring-api';
 import { BridgeSessionProvider } from '../../../app/components/UI/Bridge/providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../../../app/components/UI/Bridge/providers/SwapQuotesProvider';
 
 export const withBridgeSession = (Component: React.ComponentType) =>
   function BridgeViewWithSession() {
     return (
       <BridgeSessionProvider>
-        <Component />
+        <SwapQuotesProvider>
+          <Component />
+        </SwapQuotesProvider>
       </BridgeSessionProvider>
     );
   };
