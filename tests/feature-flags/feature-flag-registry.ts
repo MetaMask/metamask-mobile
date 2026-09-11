@@ -683,133 +683,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      constants: {
-        accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-        onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
-      },
       chains: {
-        'eip155:59144': {
-          tokens: [
-            {
-              address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
-              decimals: 6,
-              enabled: true,
-              name: 'USD Coin',
-              symbol: 'USDC',
-            },
-            {
-              symbol: 'USDT',
-              address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
-              decimals: 6,
-              enabled: true,
-              name: 'Tether USD',
-            },
-            {
-              name: 'Wrapped Ether',
-              symbol: 'WETH',
-              address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
-              decimals: 18,
-              enabled: true,
-            },
-            {
-              decimals: 18,
-              enabled: true,
-              name: 'EURe',
-              symbol: 'EURe',
-              address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
-            },
-            {
-              address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
-              decimals: 18,
-              enabled: true,
-              name: 'GBPe',
-              symbol: 'GBPe',
-            },
-            {
-              name: 'Aave USDC',
-              symbol: 'aUSDC',
-              address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
-              decimals: 6,
-              enabled: true,
-            },
-            {
-              decimals: 6,
-              enabled: true,
-              name: 'MetaMask USD',
-              symbol: 'mUSD',
-              address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-            },
-            {
-              decimals: 6,
-              enabled: true,
-              name: 'Aave Linea mUSD',
-              symbol: 'amUSD',
-              address: '0x61B19879F4033c2b5682a969cccC9141e022823c',
-            },
-          ],
-          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
-          enabled: true,
-          foxConnectAddresses: {
-            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
-            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
-          },
-        },
-        'eip155:8453': {
-          foxConnectAddresses: {
-            us: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
-            global: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
-          },
-          tokens: [
-            {
-              address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-              decimals: 6,
-              enabled: true,
-              name: 'USD Coin',
-              symbol: 'USDC',
-            },
-            {
-              name: 'Tether USD',
-              symbol: 'USDT',
-              address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
-              decimals: 6,
-              enabled: true,
-            },
-            {
-              name: 'Aave Base USDC',
-              symbol: 'aUSDC',
-              address: '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
-              decimals: 6,
-              enabled: true,
-            },
-            {
-              symbol: 'WETH',
-              address: '0x4200000000000000000000000000000000000006',
-              decimals: 18,
-              enabled: true,
-              name: 'Wrapped Ether',
-            },
-          ],
-          enabled: true,
-        },
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-          tokens: [
-            {
-              symbol: 'USDC',
-              address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-              decimals: 6,
-              enabled: true,
-              name: 'USDC',
-            },
-            {
-              symbol: 'USDT',
-              address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-              decimals: 6,
-              enabled: true,
-              name: 'USDT',
-            },
-          ],
-          enabled: true,
-        },
         'eip155:143': {
           enabled: true,
           foxConnectAddresses: {
@@ -818,11 +692,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           },
           tokens: [
             {
+              address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+              decimals: 6,
               enabled: true,
               name: 'USD Coin',
               symbol: 'USDC',
-              address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
-              decimals: 6,
             },
             {
               address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
@@ -833,6 +707,132 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             },
           ],
         },
+        'eip155:59144': {
+          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
+          enabled: true,
+          foxConnectAddresses: {
+            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+          },
+          tokens: [
+            {
+              address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+              decimals: 6,
+              enabled: true,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+            {
+              address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
+              decimals: 6,
+              enabled: true,
+              name: 'Tether USD',
+              symbol: 'USDT',
+            },
+            {
+              address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
+              decimals: 18,
+              enabled: true,
+              name: 'Wrapped Ether',
+              symbol: 'WETH',
+            },
+            {
+              address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
+              decimals: 18,
+              enabled: true,
+              name: 'EURe',
+              symbol: 'EURe',
+            },
+            {
+              address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
+              decimals: 18,
+              enabled: true,
+              name: 'GBPe',
+              symbol: 'GBPe',
+            },
+            {
+              address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
+              decimals: 6,
+              enabled: false,
+              name: 'Aave USDC',
+              symbol: 'aUSDC',
+            },
+            {
+              address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+              decimals: 6,
+              enabled: true,
+              name: 'MetaMask USD',
+              symbol: 'mUSD',
+            },
+            {
+              address: '0x61B19879F4033c2b5682a969cccC9141e022823c',
+              decimals: 6,
+              enabled: false,
+              name: 'Aave Linea mUSD',
+              symbol: 'amUSD',
+            },
+          ],
+        },
+        'eip155:8453': {
+          enabled: true,
+          foxConnectAddresses: {
+            global: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
+            us: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
+          },
+          tokens: [
+            {
+              address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+              decimals: 6,
+              enabled: true,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+            {
+              address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
+              decimals: 6,
+              enabled: true,
+              name: 'Tether USD',
+              symbol: 'USDT',
+            },
+            {
+              address: '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
+              decimals: 6,
+              enabled: false,
+              name: 'Aave Base USDC',
+              symbol: 'aUSDC',
+            },
+            {
+              address: '0x4200000000000000000000000000000000000006',
+              decimals: 18,
+              enabled: true,
+              name: 'Wrapped Ether',
+              symbol: 'WETH',
+            },
+          ],
+        },
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+          enabled: true,
+          tokens: [
+            {
+              address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+              decimals: 6,
+              enabled: true,
+              name: 'USDC',
+              symbol: 'USDC',
+            },
+            {
+              address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+              decimals: 6,
+              enabled: true,
+              name: 'USDT',
+              symbol: 'USDT',
+            },
+          ],
+        },
+      },
+      constants: {
+        accountsApiUrl: 'https://accounts.api.cx.metamask.io',
+        onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
       },
     },
     status: FeatureFlagStatus.Active,
@@ -854,8 +854,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -982,6 +982,93 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       IS: true,
       'US-MD': true,
       'US-HI': true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersve: {
+    name: 'cardImmersve',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        scope: {
+          type: 'threshold',
+          value: 0,
+        },
+        thresholdName: 'enabled',
+        thresholdVersion: 1,
+        value: {
+          enabled: true,
+          minimumVersion: '8.8.0',
+        },
+      },
+      {
+        scope: {
+          type: 'threshold',
+          value: 1,
+        },
+        thresholdName: 'disabled',
+        thresholdVersion: 1,
+        value: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersveChains: {
+    name: 'cardImmersveChains',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersveConfig: {
+    name: 'cardImmersveConfig',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      apiBaseUrl: 'https://test.immersve.com',
+      cardProgramId: '845d18d0530d11f1939b2555262ada6d',
+      clientApplicationId: '1e49c6da65c643003b7bc83402c73884',
+      fundingChannelId: '3fb4d892192f0a7587169abc5b9fe152',
+      network: 'base-sepolia',
+      partnerAccountId: '539a7dae231e578d0da0e293d110d08d',
+      spenderAddress: '0x46E98Cc4cEfd1E8d1ac07BdB7bc06e6e0914a0A0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersveCountries: {
+    name: 'cardImmersveCountries',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [],
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardIntercomSupport: {
+    name: 'cardIntercomSupport',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  immersveOnboardingEnabled: {
+    name: 'immersveOnboardingEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3741,18 +3828,21 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   cardArrivalAnimationEnabled: {
     name: 'cardArrivalAnimationEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
   cardTransactionHistory: {
     name: 'cardTransactionHistory',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.9.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4113,10 +4203,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   cardUkMigration: {
     name: 'cardUkMigration',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4166,8 +4255,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   moneyMovementBrazilNeobank: {
     name: 'moneyMovementBrazilNeobank',
     type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: false,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -4243,10 +4335,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   moneyEnableCardActivityEnrichment: {
     name: 'moneyEnableCardActivityEnrichment',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.9.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4256,8 +4348,27 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyHeadlessAllProviders: {
+    name: 'moneyHeadlessAllProviders',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '0.0.0': {
+          enabled: false,
+          featureVersion: '1',
+        },
+        '8.6.0': {
+          enabled: false,
+          featureVersion: '1',
+        },
+      },
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5642,8 +5753,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'control',
         scope: {
-          value: 1,
           type: 'percentage_rollout',
+          value: 1,
         },
       },
       {
