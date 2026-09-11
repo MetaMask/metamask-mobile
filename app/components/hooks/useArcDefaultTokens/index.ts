@@ -72,9 +72,9 @@ export function useArcDefaultTokens() {
       }
 
       dispatchedRef.current.add(account.id);
-      Engine.context.MultichainAssetsController.addAssets(
-        [ARC_USDC_ASSET_ID],
+      Engine.context.AssetsController.addCustomAsset(
         account.id,
+        ARC_USDC_ASSET_ID,
       ).catch((err: unknown) => {
         console.error('useArcDefaultTokens: failed to add Arc USDC', err);
         // Allow retry on next render by removing from the dispatched set.

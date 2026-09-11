@@ -22,8 +22,10 @@ jest.mock('../../../util/test/initial-root-state', () => ({
             accounts: {},
           },
         },
-        TokensController: {
-          allTokens: {},
+        AssetsController: {
+          assetsBalance: {},
+          assetsInfo: {},
+          customAssets: {},
         },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
@@ -175,9 +177,6 @@ jest.mock('../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: () => ({}),
 }));
 
-jest.mock('../../hooks/AssetPolling/useCurrencyRatePolling', () => jest.fn());
-jest.mock('../../hooks/AssetPolling/useTokenRatesPolling', () => jest.fn());
-
 import TransactionsView from './index';
 import initialRootState from '../../../util/test/initial-root-state';
 import { TX_SUBMITTED, TX_CONFIRMED } from '../../../constants/transaction';
@@ -317,15 +316,8 @@ describe('TransactionsView', () => {
           AddressBookController: {
             addressBook: {},
           },
-          TokensController: {
-            ...initialRootState.engine.backgroundState.TokensController,
-            allTokens: {
-              ...initialRootState.engine.backgroundState.TokensController
-                .allTokens,
-              '0x1': {
-                '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272': [],
-              },
-            },
+          AssetsController: {
+            ...initialRootState.engine.backgroundState.AssetsController,
           },
         },
       },

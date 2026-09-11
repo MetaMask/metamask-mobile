@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { performEvmTokenRefresh } from '../../UI/Tokens/util/tokenRefreshUtils';
 import Logger from '../../../util/Logger';
 
@@ -9,20 +10,24 @@ import Logger from '../../../util/Logger';
  */
 export const useCashTokensRefresh = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const evmNetworkConfigurationsByChainId = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
+  const selectedAccountGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
   );
+  const enabledChainIds = useSelector(selectEnabledNetworks);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await performEvmTokenRefresh(evmNetworkConfigurationsByChainId);
+      await performEvmTokenRefresh(
+        selectedAccountGroupAccounts,
+        enabledChainIds,
+      );
     } catch (error) {
       Logger.error(error as Error, 'useCashTokensRefresh: refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [evmNetworkConfigurationsByChainId]);
+  }, [selectedAccountGroupAccounts, enabledChainIds]);
 
   return { refreshing, onRefresh };
 };

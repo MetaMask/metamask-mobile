@@ -1,13 +1,12 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import {
-  selectEvmNetworkConfigurationsByChainId,
-  selectNativeNetworkCurrencies,
-} from '../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectUseNftDetection } from '../../../../selectors/preferencesController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { FUNGIBLE_ASSET_TYPES } from '../../../../core/Assets/accountGroupAssetLoader';
 
 const REFRESH_TIMEOUT_MS = 5000;
 const REFRESH_TIMEOUT_ERROR_MESSAGE = 'Balance refresh timed out';
@@ -29,45 +28,19 @@ export const useBalanceRefresh = () => {
 
   const isNftDetectionEnabled = useSelector(selectUseNftDetection);
 
-  const evmNetworkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
+  const selectedAccountGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
   );
 
-  const evmNetworkConfigurationsFiltered = useMemo(() => {
-    const allowed = new Set<string>(evmChainIds);
-    return Object.fromEntries(
-      Object.entries(evmNetworkConfigurations).filter(([chainId]) =>
-        allowed.has(chainId),
-      ),
-    );
-  }, [evmNetworkConfigurations, evmChainIds]);
-
-  const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
-
   const refreshBalance = useCallback(async () => {
-    const {
-      AccountTrackerController,
-      CurrencyRateController,
-      TokenBalancesController,
-      TokenDetectionController,
-      NftDetectionController,
-    } = Engine.context;
-    const networkClientIds = Object.values(evmNetworkConfigurationsFiltered)
-      .map(
-        ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
-          rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId,
-      )
-      .filter((id): id is string => Boolean(id));
+    const { AssetsController, NftDetectionController } = Engine.context;
 
     try {
       const refreshTasks: Promise<unknown>[] = [
-        AccountTrackerController.refresh(networkClientIds),
-        CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        TokenDetectionController.detectTokens({
-          chainIds: evmChainIds,
-        }),
-        TokenBalancesController.updateBalances({
-          chainIds: evmChainIds,
+        AssetsController.getAssets([...selectedAccountGroupAccounts], {
+          forceUpdate: true,
+          chainIds: evmChainIds.map(toEvmCaipChainId),
+          assetTypes: FUNGIBLE_ASSET_TYPES,
         }),
       ];
 
@@ -96,12 +69,7 @@ export const useBalanceRefresh = () => {
 
       Logger.error(error as Error, 'Error refreshing balance');
     }
-  }, [
-    evmNetworkConfigurationsFiltered,
-    evmChainIds,
-    nativeCurrencies,
-    isNftDetectionEnabled,
-  ]);
+  }, [selectedAccountGroupAccounts, evmChainIds, isNftDetectionEnabled]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
