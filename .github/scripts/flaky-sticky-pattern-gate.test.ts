@@ -136,6 +136,36 @@ describe('findingHasRequiredConstruct', () => {
     expect(result).toEqual({ ok: true });
   });
 
+  it('drops J6 when setTimeout appears only in a comment', () => {
+    const snippet = '// wait via setTimeout(1000ms) then assert';
+
+    const result = findingHasRequiredConstruct({
+      patternId: 'J6',
+      snippet,
+      source: snippet,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      reason: 'J6 snippet does not contain setTimeout/setInterval/sleep',
+    });
+  });
+
+  it('drops J6 when setTimeout appears only in a string', () => {
+    const snippet = "const note = 'avoid setTimeout(50) here';";
+
+    const result = findingHasRequiredConstruct({
+      patternId: 'J6',
+      snippet,
+      source: snippet,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      reason: 'J6 snippet does not contain setTimeout/setInterval/sleep',
+    });
+  });
+
   it('keeps J10 when the snippet contains spyOn', () => {
     const snippet = 'const spy = jest.spyOn(Date, "now");';
 

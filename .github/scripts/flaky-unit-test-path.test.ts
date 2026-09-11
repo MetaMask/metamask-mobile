@@ -40,4 +40,44 @@ describe('isFlakyWorkflowUnitTestPath', () => {
 
     expect(result).toBe(false);
   });
+
+  it('rejects a performance spec path', () => {
+    const result = isFlakyWorkflowUnitTestPath(
+      'tests/performance/login/eth-swap-flow.spec.ts',
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('rejects a regression spec path', () => {
+    const result = isFlakyWorkflowUnitTestPath(
+      'tests/regression/wallet/login.spec.ts',
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('rejects an e2e spec path', () => {
+    const result = isFlakyWorkflowUnitTestPath(
+      'app/features/SampleFeature/e2e/specs/sample-feature.spec.ts',
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('accepts a Jest unit test under tests/performance', () => {
+    const result = isFlakyWorkflowUnitTestPath(
+      'tests/performance/app-profiling-baseline-workflow.test.ts',
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('accepts a Jest unit test under tests/smoke', () => {
+    const result = isFlakyWorkflowUnitTestPath(
+      'tests/smoke/identity/utils/user-storage/userStorageMockttpController.test.ts',
+    );
+
+    expect(result).toBe(true);
+  });
 });

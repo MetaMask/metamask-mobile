@@ -4,7 +4,10 @@
  * Snippet-in-HEAD still allows a wrong patternId on real code (MCWP-820 /
  * PR 35290: J4 on an `expect` with no waitFor). These checks drop that class
  * of finding. J1/J2/J3/J5/J7/J9 stay prompt-only — they have no unique token.
+ *
+ * Matching walks CallExpressions so only executable calls satisfy a gate.
  */
+import * as ts from 'typescript';
 
 export type PatternGateInput = {
   patternId: string;
@@ -14,19 +17,60 @@ export type PatternGateInput = {
 
 export type PatternGateResult = { ok: true } | { ok: false; reason: string };
 
-const WAIT_FOR = /waitFor\s*\(/;
-const FAKE_TIMERS = /useFakeTimers\s*\(|setSystemTime\s*\(/;
-// jest.setTimeout only changes the test timeout; it is not a real-timer barrier.
-const REAL_TIMER =
-  /(?<!jest\.)setTimeout\s*\(|(?<!jest\.)setInterval\s*\(|\bsleep\s*\(/;
-const SPY_ON = /spyOn\s*\(/;
+const WAIT_FOR = 'waitFor';
+const FAKE_TIMER_CALLS = new Set(['useFakeTimers', 'setSystemTime']);
+const REAL_TIMER_CALLS = new Set(['setTimeout', 'setInterval', 'sleep']);
+const SPY_ON = 'spyOn';
+
+function collectCallNames(code: string): Set<string> {
+  const names = new Set<string>();
+  const sourceFile = ts.createSourceFile(
+    'finding.tsx',
+    code,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const expr = node.expression;
+      if (ts.isIdentifier(expr)) {
+        names.add(expr.text);
+      } else if (ts.isPropertyAccessExpression(expr)) {
+        const objectText = expr.expression.getText(sourceFile);
+        const prop = expr.name.text;
+        // jest.setTimeout only changes the test timeout.
+        if (!(objectText === 'jest' && prop === 'setTimeout')) {
+          names.add(prop);
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+
+  visit(sourceFile);
+  return names;
+}
+
+function hasAny(names: Set<string>, candidates: Set<string> | string): boolean {
+  if (typeof candidates === 'string') {
+    return names.has(candidates);
+  }
+  for (const candidate of candidates) {
+    if (names.has(candidate)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export function findingHasRequiredConstruct(
   input: PatternGateInput,
 ): PatternGateResult {
   switch (input.patternId) {
     case 'J4':
-      if (!WAIT_FOR.test(input.snippet)) {
+      if (!hasAny(collectCallNames(input.snippet), WAIT_FOR)) {
         return {
           ok: false,
           reason: 'J4 snippet does not contain waitFor(',
@@ -34,7 +78,7 @@ export function findingHasRequiredConstruct(
       }
       return { ok: true };
     case 'J6':
-      if (!REAL_TIMER.test(input.snippet)) {
+      if (!hasAny(collectCallNames(input.snippet), REAL_TIMER_CALLS)) {
         return {
           ok: false,
           reason: 'J6 snippet does not contain setTimeout/setInterval/sleep',
@@ -42,7 +86,7 @@ export function findingHasRequiredConstruct(
       }
       return { ok: true };
     case 'J10':
-      if (!SPY_ON.test(input.snippet)) {
+      if (!hasAny(collectCallNames(input.snippet), SPY_ON)) {
         return {
           ok: false,
           reason: 'J10 snippet does not contain spyOn(',
@@ -50,13 +94,21 @@ export function findingHasRequiredConstruct(
       }
       return { ok: true };
     case 'J8': {
-      if (!WAIT_FOR.test(input.source) || !FAKE_TIMERS.test(input.source)) {
+      const sourceNames = collectCallNames(input.source);
+      const snippetNames = collectCallNames(input.snippet);
+      if (
+        !hasAny(sourceNames, WAIT_FOR) ||
+        !hasAny(sourceNames, FAKE_TIMER_CALLS)
+      ) {
         return {
           ok: false,
           reason: 'J8 file does not contain both fake timers and waitFor',
         };
       }
-      if (!WAIT_FOR.test(input.snippet) && !FAKE_TIMERS.test(input.snippet)) {
+      if (
+        !hasAny(snippetNames, WAIT_FOR) &&
+        !hasAny(snippetNames, FAKE_TIMER_CALLS)
+      ) {
         return {
           ok: false,
           reason: 'J8 snippet contains neither fake timers nor waitFor',

@@ -307,7 +307,7 @@ function getModifiedUnitTestFiles(): string[] {
     diffOutput = sh('git', [
       'diff',
       '--name-only',
-      `origin/${env.baseRef}...HEAD`,
+      `origin/${env.baseRef}...${env.headSha || 'HEAD'}`,
     ]);
   } catch (error) {
     core.warning(`git diff failed: ${(error as Error).message}`);
