@@ -5,12 +5,12 @@ export type PlanId = 'annual' | 'monthly';
 
 export interface PlanOption {
   /** Unique key — matches the `membership.plans` i18n namespace segment. */
-  id: string;
+  id: PlanId;
   /** i18n key passed to `strings()` for the plan label. */
   label: string;
-  /** i18n key passed to `strings()` for the plan price. */
+  /** i18n key passed to `strings()` for the plan price. Supports `{{price}}`. */
   price: string;
-  /** i18n key passed to `strings()` for the plan sub price. */
+  /** i18n key passed to `strings()` for the plan sub price. Supports `{{price}}`. */
   subPrice?: string;
   /** i18n key passed to `strings()` for the plan savings badge. */
   savingsBadge?: string;

@@ -47,7 +47,6 @@ const MoneyHeader = ({
   onBack,
 }: MoneyHeaderProps) => {
   const proAccess = useMoneyAccountPlusAccess();
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
 
   return (
     <HeaderRoot

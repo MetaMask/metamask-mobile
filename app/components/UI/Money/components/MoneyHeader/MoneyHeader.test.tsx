@@ -125,21 +125,18 @@ describe('MoneyHeader', () => {
   });
 
   describe('"Get Pro" button', () => {
-    it('is not shown when the Pro subscription flag is disabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: false,
-      });
-
-      const { queryByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+    it('is not shown when Money Account Plus access is disabled', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Disabled,
       );
 
       const { queryByTestId } = renderMoneyHeader();
 
       expect(
         queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHeaderTestIds.PRO_HUB_BUTTON),
       ).not.toBeOnTheScreen();
     });
 
