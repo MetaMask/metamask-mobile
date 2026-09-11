@@ -185,6 +185,17 @@ describe('Amount', () => {
     expect(getByTestId('send_amount')).toHaveTextContent('0.00');
   });
 
+  it('formats the main input with animated thousands separators', () => {
+    const { getByRole, getByTestId } = renderComponent();
+
+    fireEvent.press(getByRole('button', { name: '1' }));
+    fireEvent.press(getByRole('button', { name: '2' }));
+    fireEvent.press(getByRole('button', { name: '3' }));
+    fireEvent.press(getByRole('button', { name: '4' }));
+
+    expect(getByTestId('send_amount')).toHaveTextContent('1,234');
+  });
+
   it('seeds display and send-context value from predefinedAmount', () => {
     mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
 

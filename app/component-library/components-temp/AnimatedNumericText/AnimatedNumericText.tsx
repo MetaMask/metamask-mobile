@@ -1,8 +1,10 @@
 import React, {
   memo,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   type ComponentProps,
 } from 'react';
 import {
@@ -12,7 +14,12 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import Animated, { useReducedMotion } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import {
   FontWeight,
   TextColor,
@@ -27,6 +34,15 @@ import {
   NUMERIC_SLOT_ENTERING,
   NUMERIC_SLOT_EXITING,
 } from './AnimatedNumericText.constants';
+import {
+  buildNumericSlots,
+  getMovingNumericSlotKeys,
+  type NumericSlotDescriptor,
+} from './buildNumericSlots';
+import {
+  isIncrementalNumericChange,
+  isZeroPlaceholder,
+} from './isIncrementalNumericChange';
 import { splitNumericString } from './splitNumericString';
 
 export interface AnimatedNumericTextProps {
@@ -51,6 +67,7 @@ export interface AnimatedNumericTextProps {
   containerStyle?: StyleProp<ViewStyle>;
   testID?: string;
   animated?: boolean;
+  animateFontSize?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -67,22 +84,53 @@ type AnimatedViewProps = ComponentProps<typeof Animated.View>;
 
 interface NumericSlotProps {
   character: string;
+  slotKey: string;
+  glyphKey: string;
   textStyle: TextStyle;
+  animatedTextStyle?: ComponentProps<typeof Animated.Text>['style'];
   entering: AnimatedViewProps['entering'];
   exiting: AnimatedViewProps['exiting'];
+  layout?: AnimatedViewProps['layout'];
 }
 
 /**
  * Memoised so appending a character re-renders one slot rather than all of
  * them. The editable amount uses these lightweight text slots so typing does
  * not rebuild Laminar's digit reels on every keypress.
+ *
+ * Commas keep a stable outer view (so font-size reflow stays locked to the
+ * digits) and remount the inner glyph when they shift, which fades the comma
+ * without throwing away the layout animation.
  */
 const NumericSlot = memo(
-  ({ character, textStyle, entering, exiting }: NumericSlotProps) => (
-    <Animated.View entering={entering} exiting={exiting}>
-      <Text style={textStyle}>{character}</Text>
-    </Animated.View>
-  ),
+  ({
+    character,
+    slotKey,
+    glyphKey,
+    textStyle,
+    animatedTextStyle,
+    entering,
+    exiting,
+    layout,
+  }: NumericSlotProps) => {
+    const glyph = (
+      <Animated.Text style={[textStyle, animatedTextStyle]}>
+        {character}
+      </Animated.Text>
+    );
+
+    return (
+      <Animated.View entering={entering} exiting={exiting} layout={layout}>
+        {slotKey === glyphKey ? (
+          glyph
+        ) : (
+          <Animated.View key={glyphKey} entering={entering} exiting={exiting}>
+            {glyph}
+          </Animated.View>
+        )}
+      </Animated.View>
+    );
+  },
 );
 
 NumericSlot.displayName = 'NumericSlot';
@@ -116,6 +164,7 @@ const VARIANT_FONT_WEIGHT: Record<TextVariant, FontWeight> = {
 };
 
 interface RollingNumericTextProps {
+  animationDuration?: number;
   textStyle: TextStyle;
   value: string;
 }
@@ -126,7 +175,11 @@ interface RollingNumericTextProps {
  * renders without rebuilding its digit reels.
  */
 const RollingNumericText = memo(
-  ({ textStyle, value }: RollingNumericTextProps) => {
+  ({
+    animationDuration = NUMERIC_ANIMATION_DURATION,
+    textStyle,
+    value,
+  }: RollingNumericTextProps) => {
     const { prefix, numeric, suffix } = useMemo(
       () => splitNumericString(value),
       [value],
@@ -144,8 +197,8 @@ const RollingNumericText = memo(
           variant="slots"
           autoSize={false}
           clipToBounds
-          animationPreset="snappy"
-          animationDuration={NUMERIC_ANIMATION_DURATION}
+          animationPreset="smooth"
+          animationDuration={animationDuration}
           stagger={0}
           style={textStyle}
         />
@@ -159,12 +212,14 @@ RollingNumericText.displayName = 'RollingNumericText';
 
 interface AppendOnlyNumericTextProps {
   textStyle: TextStyle;
+  animatedTextStyle?: ComponentProps<typeof Animated.Text>['style'];
   value: string;
 }
 
 const AppendOnlyNumericText = memo(
-  ({ textStyle, value }: AppendOnlyNumericTextProps) => {
+  ({ textStyle, animatedTextStyle, value }: AppendOnlyNumericTextProps) => {
     const hasMountedRef = useRef(false);
+    const previousSlotsRef = useRef<NumericSlotDescriptor[]>([]);
     const { prefix, numeric, suffix } = useMemo(
       () => splitNumericString(value),
       [value],
@@ -175,22 +230,46 @@ const AppendOnlyNumericText = memo(
     }, []);
 
     const entering = hasMountedRef.current ? NUMERIC_SLOT_ENTERING : undefined;
+    const slots = useMemo(
+      () => buildNumericSlots(numeric, isZeroPlaceholder(numeric) ? 0 : 1),
+      [numeric],
+    );
+    const movingSlotKeys = useMemo(
+      () => getMovingNumericSlotKeys(previousSlotsRef.current, slots),
+      [slots],
+    );
+
+    useLayoutEffect(() => {
+      previousSlotsRef.current = slots;
+    }, [slots]);
 
     return (
       <>
-        {prefix ? <Text style={textStyle}>{prefix}</Text> : null}
-        {numeric.split('').map((character, index) => (
+        {prefix ? (
+          <Animated.Text style={[textStyle, animatedTextStyle]}>
+            {prefix}
+          </Animated.Text>
+        ) : null}
+        {slots.map(({ character, key, glyphKey }) => (
           <NumericSlot
-            // Index identity is intentional: keypad edits append/remove only.
-            // eslint-disable-next-line react/no-array-index-key
-            key={index}
+            key={key}
+            slotKey={key}
+            glyphKey={glyphKey}
             character={character}
             textStyle={textStyle}
+            animatedTextStyle={animatedTextStyle}
             entering={entering}
             exiting={NUMERIC_SLOT_EXITING}
+            layout={
+              movingSlotKeys.has(key) ? NUMERIC_LAYOUT_TRANSITION : undefined
+            }
           />
         ))}
-        {suffix ? <Text style={textStyle}>{suffix}</Text> : null}
+        {suffix ? (
+          <Animated.Text style={[textStyle, animatedTextStyle]}>
+            {suffix}
+          </Animated.Text>
+        ) : null}
       </>
     );
   },
@@ -202,9 +281,14 @@ AppendOnlyNumericText.displayName = 'AppendOnlyNumericText';
  * Renders a numeric string without converting it to a JavaScript number, so
  * token balances retain their full precision.
  *
- * Editable keypad values use index-keyed text slots so appending a digit leaves
- * existing characters still. Secondary values use Laminar's string-native
- * slots renderer for rolling updates.
+ * Editable keypad values use stable digit slots so appending a digit leaves
+ * existing characters still. Grouping commas keep a stable layout wrapper so
+ * font-size reflow stays locked to the digits; the comma glyph remounts when
+ * it shifts so it fades rather than sliding. Replacing the whole amount at
+ * once (percentage / Max) hands the string to Laminar so it rolls the same
+ * way balances do. Slots return on the next keypress so we never swap
+ * renderers at the end of the roll (that swap reads as a shake). Secondary
+ * values use Laminar's string-native slots renderer for rolling updates.
  */
 const AnimatedNumericText = ({
   value,
@@ -217,6 +301,7 @@ const AnimatedNumericText = ({
   containerStyle,
   testID,
   animated = true,
+  animateFontSize = false,
 }: AnimatedNumericTextProps) => {
   const tw = useTailwind();
   const reduceMotion = useReducedMotion();
@@ -242,7 +327,92 @@ const AnimatedNumericText = ({
   );
 
   const motionEnabled = animated && !reduceMotion;
-  const layout = motionEnabled ? NUMERIC_LAYOUT_TRANSITION : undefined;
+  const displayedValueRef = useRef(value);
+  const [rollTarget, setRollTarget] = useState<string | null>(null);
+  const incrementalChange = useMemo(
+    () => isIncrementalNumericChange(displayedValueRef.current, value),
+    [value],
+  );
+  const incomingBulkReplace =
+    motionEnabled && !rollDigits && !incrementalChange;
+
+  useLayoutEffect(() => {
+    if (rollDigits || !motionEnabled) {
+      displayedValueRef.current = value;
+      if (rollTarget !== null) {
+        setRollTarget(null);
+      }
+      return;
+    }
+
+    if (!incrementalChange) {
+      // Stay on Laminar after the roll so we do not swap renderers mid-settle
+      // (that swap is the end-of-roll shake). Slots come back on the next
+      // incremental keypress.
+      if (rollTarget !== value) {
+        setRollTarget(value);
+      }
+      displayedValueRef.current = value;
+      return;
+    }
+
+    displayedValueRef.current = value;
+    if (rollTarget !== null) {
+      setRollTarget(null);
+    }
+  }, [incrementalChange, motionEnabled, rollDigits, rollTarget, value]);
+
+  const rollingBulkReplace = incomingBulkReplace || rollTarget !== null;
+  const layout =
+    motionEnabled && !rollingBulkReplace
+      ? NUMERIC_LAYOUT_TRANSITION
+      : undefined;
+  const targetFontSize =
+    typeof textStyle.fontSize === 'number' ? textStyle.fontSize : 0;
+  const animatedFontSize = useSharedValue(targetFontSize);
+
+  useEffect(() => {
+    if (
+      motionEnabled &&
+      animateFontSize &&
+      !rollingBulkReplace &&
+      animatedFontSize.value !== targetFontSize
+    ) {
+      animatedFontSize.value = withTiming(targetFontSize, {
+        duration: NUMERIC_ANIMATION_DURATION,
+      });
+      return;
+    }
+
+    animatedFontSize.value = targetFontSize;
+  }, [
+    animateFontSize,
+    animatedFontSize,
+    motionEnabled,
+    rollingBulkReplace,
+    targetFontSize,
+  ]);
+
+  const animatedTextStyle = useAnimatedStyle(
+    () => ({
+      fontSize: animatedFontSize.value,
+    }),
+    [animatedFontSize],
+  );
+
+  // When font size is animated, the shared value owns the size. Leaving the
+  // target on the static style lets a newly mounted comma (or digit) measure
+  // at the destination size for a frame, which is the "lost then snaps back"
+  // jump during a size step.
+  const slotTextStyle = useMemo(() => {
+    if (!animateFontSize || !targetFontSize) {
+      return textStyle;
+    }
+
+    const { fontSize: _targetFontSize, ...rest } = textStyle;
+
+    return rest as TextStyle;
+  }, [animateFontSize, targetFontSize, textStyle]);
 
   return (
     <Animated.View
@@ -255,10 +425,27 @@ const AnimatedNumericText = ({
     >
       {!motionEnabled ? (
         <Text style={textStyle}>{value}</Text>
-      ) : rollDigits ? (
-        <RollingNumericText textStyle={textStyle} value={value} />
+      ) : rollDigits || rollingBulkReplace ? (
+        <RollingNumericText
+          animationDuration={
+            incomingBulkReplace && rollTarget === null
+              ? 0
+              : NUMERIC_ANIMATION_DURATION
+          }
+          textStyle={textStyle}
+          value={
+            rollTarget ??
+            (incomingBulkReplace ? displayedValueRef.current : value)
+          }
+        />
       ) : (
-        <AppendOnlyNumericText textStyle={textStyle} value={value} />
+        <AppendOnlyNumericText
+          textStyle={slotTextStyle}
+          animatedTextStyle={
+            animateFontSize && targetFontSize ? animatedTextStyle : undefined
+          }
+          value={value}
+        />
       )}
     </Animated.View>
   );

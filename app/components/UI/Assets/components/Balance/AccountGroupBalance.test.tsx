@@ -1,5 +1,7 @@
 import React from 'react';
+import { Laminar } from 'react-native-laminar';
 
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -135,8 +137,10 @@ describe('AccountGroupBalance', () => {
       state: testState,
     });
 
-    // Component should render the balance container even when loading
     expect(getByTestId('balance-container')).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('$0.00');
   });
 
   it('renders formatted balance when balance data is fetched', () => {
@@ -159,6 +163,35 @@ describe('AccountGroupBalance', () => {
 
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
     expect(el).toBeOnTheScreen();
+  });
+
+  it('primes zero while loading and rolls each completed value update', () => {
+    const { rerender, UNSAFE_getByType } = renderWithProvider(
+      <AnimatedBalanceText isLoading loadingValue="$0.00" value="$123.45" />,
+      { state: testState },
+    );
+
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('0.00');
+
+    rerender(
+      <AnimatedBalanceText
+        isLoading={false}
+        loadingValue="$0.00"
+        value="$123.45"
+      />,
+    );
+
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('123.45');
+
+    rerender(
+      <AnimatedBalanceText
+        isLoading={false}
+        loadingValue="$0.00"
+        value="$456.78"
+      />,
+    );
+
+    expect(UNSAFE_getByType(Laminar).props.text).toBe('456.78');
   });
 
   it('renders empty state when fetched account group balance is zero', () => {

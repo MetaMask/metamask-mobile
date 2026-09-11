@@ -27,7 +27,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 import BalanceEmptyState from '../../../BalanceEmptyState';
@@ -137,6 +137,7 @@ const AccountGroupBalance = ({
   const totalBalance = groupBalance?.totalBalanceInUserCurrency ?? 0;
   const userCurrency = groupBalance?.userCurrency || 'USD';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
+  const zeroBalance = formatCurrency(0, userCurrency);
 
   const isLoading = !groupBalance || !hasBalanceFetched;
   const awaitBalanceForPostOnboardingSteps =
@@ -186,28 +187,35 @@ const AccountGroupBalance = ({
         testID="balance-container"
         style={styles.balanceContainer}
       >
-        <Skeleton hideChildren={isLoading}>
+        {privacyMode ? (
           <SensitiveText
-            isHidden={privacyMode}
+            isHidden
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
             variant={TextVariant.DisplayLg}
           >
             {displayBalance}
           </SensitiveText>
-        </Skeleton>
-
-        {balanceChange1d && (
-          <Skeleton hideChildren={isLoading}>
-            <AccountGroupBalanceChange
-              amountChangeInUserCurrency={
-                balanceChange1d.amountChangeInUserCurrency
-              }
-              percentChange={balanceChange1d.percentChange}
-              userCurrency={balanceChange1d.userCurrency}
-            />
-          </Skeleton>
+        ) : (
+          <AnimatedBalanceText
+            key={groupBalance?.groupId ?? 'loading'}
+            isLoading={isLoading}
+            loadingValue={zeroBalance}
+            testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+            value={displayBalance}
+            variant={TextVariant.DisplayLg}
+          />
         )}
+
+        {!isLoading && balanceChange1d ? (
+          <AccountGroupBalanceChange
+            amountChangeInUserCurrency={
+              balanceChange1d.amountChangeInUserCurrency
+            }
+            percentChange={balanceChange1d.percentChange}
+            userCurrency={balanceChange1d.userCurrency}
+          />
+        ) : null}
       </TouchableOpacity>
     );
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Laminar } from 'react-native-laminar';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyBalanceCard from './MoneyBalanceCard';
@@ -437,6 +438,24 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
+    it('rolls each formatted money balance update', () => {
+      const { rerender, UNSAFE_getByType } = renderWithProvider(
+        <MoneyBalanceCard />,
+      );
+
+      expect(UNSAFE_getByType(Laminar).props.text).toBe('1,000.00');
+
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          totalFiatRaw: '2000',
+          totalFiatFormatted: '$2,000.00',
+        }),
+      );
+      rerender(<MoneyBalanceCard />);
+
+      expect(UNSAFE_getByType(Laminar).props.text).toBe('2,000.00');
+    });
+
     it('renders the Add button with the add label', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -592,24 +611,19 @@ describe('MoneyBalanceCard', () => {
   });
 
   describe('loading states', () => {
-    it('renders balance skeleton when balance is loading', () => {
+    it('renders a zero balance placeholder when balance is loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({ isBalanceLoading: true }),
       );
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyBalanceCard />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.BALANCE),
-      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
+        '$0.00',
+      );
     });
 
-    it('renders APY skeleton when APY is loading', () => {
+    it('renders a zero APY placeholder when APY is loading', () => {
       mockUseMoneyVaultApy.mockReturnValue(
         createApyMock({
           vaultApyQuery: {
@@ -619,31 +633,18 @@ describe('MoneyBalanceCard', () => {
         }),
       );
 
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyBalanceCard />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.APY_TAG_SKELETON),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.APY_TAG),
-      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
+        /0% APY/,
+      );
     });
 
     it('renders balance and APY values when data has loaded', () => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyBalanceCard />,
-      );
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toBeOnTheScreen();
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.APY_TAG_SKELETON),
-      ).not.toBeOnTheScreen();
     });
 
     it('renders the APY tag with 0 when apyPercent is undefined', () => {
@@ -844,7 +845,7 @@ describe('MoneyBalanceCard', () => {
   });
 
   describe('retrying state (error + fetching)', () => {
-    it('renders the balance skeleton', () => {
+    it('renders a zero balance placeholder', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceFetchError: true,
@@ -858,9 +859,9 @@ describe('MoneyBalanceCard', () => {
         <MoneyBalanceCard />,
       );
 
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
-      ).toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
+        '$0.00',
+      );
       expect(
         queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
       ).not.toBeOnTheScreen();
@@ -884,12 +885,12 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
-    it('renders the balance skeleton', () => {
+    it('renders a zero balance placeholder', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
-      ).toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
+        '$0.00',
+      );
     });
 
     it('does not render the no-account message', () => {
@@ -900,12 +901,12 @@ describe('MoneyBalanceCard', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('does not render the balance text', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+    it('renders the balance placeholder', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.BALANCE),
-      ).not.toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
+        '$0.00',
+      );
     });
 
     it('does not render the balance error message', () => {
@@ -916,7 +917,7 @@ describe('MoneyBalanceCard', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the balance skeleton even when the balance is not loading', () => {
+    it('renders the balance placeholder even when the query is not loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
           isBalanceLoading: false,
@@ -927,9 +928,9 @@ describe('MoneyBalanceCard', () => {
 
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
-      ).toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
+        '$0.00',
+      );
     });
   });
 
