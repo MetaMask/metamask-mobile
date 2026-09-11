@@ -4,21 +4,21 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { PredictNextControllerMessenger } from '../../../components/UI/PredictNext/controller/PredictNextController';
 import type {
-  PredictMarketDataServiceActions,
-  PredictMarketDataServiceEvents,
-} from '../../../components/UI/PredictNext/services/PredictMarketDataService';
+  PredictNextControllerActions,
+  PredictNextControllerEvents,
+  PredictNextControllerMessenger,
+} from '../../../components/UI/PredictNext/controller/PredictNextController';
 import type { RootMessenger } from '../types';
 
 export const getPredictNextControllerMessenger = (
   rootMessenger: RootMessenger<
-    PredictMarketDataServiceActions,
-    PredictMarketDataServiceEvents
+    PredictNextControllerActions,
+    PredictNextControllerEvents
   >,
 ): PredictNextControllerMessenger =>
   new Messenger({
-    namespace: 'PredictMarketDataService',
+    namespace: 'PredictNextController',
     parent: rootMessenger,
   });
 

@@ -18,7 +18,7 @@ describe('useBalance', () => {
     useBalance(venueId);
 
     expect(mockedUseQuery).toHaveBeenCalledWith({
-      queryKey: ['PredictMarketDataService:getBalance', venueId],
+      queryKey: ['PredictPortfolioService:getBalance', venueId],
       staleTime: 60_000,
       retry: false,
     });

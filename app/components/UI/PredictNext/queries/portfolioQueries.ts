@@ -11,10 +11,10 @@ export const portfolioQueries = {
   getBalance: (
     venueId: PredictVenueId,
   ): PredictQueryDescriptor<
-    ['PredictMarketDataService:getBalance', PredictVenueId]
+    ['PredictPortfolioService:getBalance', PredictVenueId]
   > => ({
-    queryKey: ['PredictMarketDataService:getBalance', venueId],
-    family: ['PredictMarketDataService:getBalance', venueId],
+    queryKey: ['PredictPortfolioService:getBalance', venueId],
+    family: ['PredictPortfolioService:getBalance', venueId],
     staleTime: PORTFOLIO_BALANCE_STALE_TIME,
     scope: 'venue',
   }),

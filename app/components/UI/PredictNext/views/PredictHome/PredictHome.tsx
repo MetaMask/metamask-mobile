@@ -30,6 +30,7 @@ import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
+import { PortfolioActions } from './internal/PortfolioActions';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 
 const PREVIEW_LIMIT = 2;
@@ -81,6 +82,13 @@ export const PredictHome = () => {
     }, [entryPoint, navigation]),
   );
 
+  const openPortfolio = useCallback(
+    () =>
+      navigation.navigate(PredictNextRoutes.PORTFOLIO, {
+        venueId: KALSHI_VENUE_ID,
+      }),
+    [navigation],
+  );
   const openFeedScreen = useCallback(
     (feedScreenId: FeedScreenId) =>
       navigation.navigate(PredictNextRoutes.FEED, {
@@ -118,6 +126,12 @@ export const PredictHome = () => {
             isLoading={balanceQuery.isPending}
             isError={balanceQuery.isError}
             onRetry={() => balanceQuery.refetch()}
+          />
+          <PortfolioActions
+            onPositionsPress={openPortfolio}
+            // TODO(PRED-1162): Wire funding actions when the funding slice lands.
+            onAddFundsPress={() => undefined}
+            onWithdrawPress={() => undefined}
           />
           <FeedPreviewSection
             feedScreenId={NFL_FEED_SCREEN_ID}

@@ -370,7 +370,7 @@ export const configurePredictNextFeeds = ({
 
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string) => {
-      if (action === 'PredictMarketDataService:getBalance') {
+      if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
           currency: 'USD',

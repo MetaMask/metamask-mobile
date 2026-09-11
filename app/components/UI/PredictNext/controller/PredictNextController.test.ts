@@ -1,12 +1,10 @@
 import { Messenger } from '@metamask/messenger';
 import Logger from '../../../../util/Logger';
-import type {
-  PredictMarketDataServiceActions,
-  PredictMarketDataServiceEvents,
-} from '../services/PredictMarketDataService';
 import type { PredictVenueStatus } from '../types';
 import {
   PredictNextController,
+  type PredictNextControllerActions,
+  type PredictNextControllerEvents,
   type PredictNextControllerMessenger,
 } from './PredictNextController';
 
@@ -14,10 +12,10 @@ jest.mock('../../../../util/Logger');
 
 const createMessenger = (): PredictNextControllerMessenger =>
   new Messenger<
-    'PredictMarketDataService',
-    PredictMarketDataServiceActions,
-    PredictMarketDataServiceEvents
-  >({ namespace: 'PredictMarketDataService' });
+    'PredictNextController',
+    PredictNextControllerActions,
+    PredictNextControllerEvents
+  >({ namespace: 'PredictNextController' });
 
 const status: PredictVenueStatus = {
   venueId: 'kalshi' as PredictVenueStatus['venueId'],
@@ -98,10 +96,16 @@ describe('PredictNextController', () => {
 
   it('surfaces service construction failures', () => {
     const messenger = createMessenger();
-    messenger.registerActionHandler(
-      'PredictMarketDataService:invalidateQueries',
-      jest.fn(),
-    );
+    messenger
+      .buildChild({
+        namespace: 'PredictMarketDataService',
+        actions: [],
+        events: [],
+      })
+      .registerActionHandler(
+        'PredictMarketDataService:invalidateQueries',
+        jest.fn(),
+      );
     const controller = new PredictNextController({
       messenger,
       baseUrl: 'https://predict.example/',

@@ -1,15 +1,32 @@
 import type { CreateServicePolicyOptions } from '@metamask/controller-utils';
+import type { Messenger } from '@metamask/messenger';
 import Logger from '../../../../util/Logger';
 import { KalshiRemoteAdapter } from '../adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../adapters/remote/PredictApiReadClient';
 import {
   PredictMarketDataService,
-  type PredictMarketDataServiceMessenger,
+  type PredictMarketDataServiceActions,
+  type PredictMarketDataServiceEvents,
 } from '../services/PredictMarketDataService';
+import {
+  PredictPortfolioService,
+  type PredictPortfolioServiceActions,
+  type PredictPortfolioServiceEvents,
+} from '../services/PredictPortfolioService';
 
 export const PREDICT_NEXT_CONTROLLER_NAME = 'PredictNextController' as const;
 
-export type PredictNextControllerMessenger = PredictMarketDataServiceMessenger;
+export type PredictNextControllerActions =
+  | PredictMarketDataServiceActions
+  | PredictPortfolioServiceActions;
+export type PredictNextControllerEvents =
+  | PredictMarketDataServiceEvents
+  | PredictPortfolioServiceEvents;
+export type PredictNextControllerMessenger = Messenger<
+  typeof PREDICT_NEXT_CONTROLLER_NAME,
+  PredictNextControllerActions,
+  PredictNextControllerEvents
+>;
 
 export interface PredictNextControllerOptions {
   messenger: PredictNextControllerMessenger;
@@ -27,6 +44,7 @@ export interface PredictNextControllerOptions {
 export class PredictNextController {
   readonly #options: PredictNextControllerOptions;
   #marketDataService?: PredictMarketDataService;
+  #portfolioService?: PredictPortfolioService;
   #destroyed = false;
 
   constructor(options: PredictNextControllerOptions) {
@@ -38,9 +56,6 @@ export class PredictNextController {
       return;
     }
     if (!this.#options.baseUrl) {
-      // Expected while the Predict API URL is not yet wired into release builds.
-      // Logged as a breadcrumb (not an error) to avoid Sentry noise until the
-      // production URL ships via builds.yml.
       Logger.log(
         'PredictNext configuration is missing. Skipping controller initialization.',
       );
@@ -65,9 +80,33 @@ export class PredictNextController {
     }
 
     const adapter = new KalshiRemoteAdapter(client);
+    const marketDataMessenger = this.#options.messenger.buildChild<
+      'PredictMarketDataService',
+      PredictMarketDataServiceActions,
+      PredictMarketDataServiceEvents
+    >({
+      namespace: 'PredictMarketDataService',
+      actions: [],
+      events: [],
+    });
+    const portfolioMessenger = this.#options.messenger.buildChild<
+      'PredictPortfolioService',
+      PredictPortfolioServiceActions,
+      PredictPortfolioServiceEvents
+    >({
+      namespace: 'PredictPortfolioService',
+      actions: [],
+      events: [],
+    });
+
     this.#marketDataService = new PredictMarketDataService({
-      messenger: this.#options.messenger,
+      messenger: marketDataMessenger,
       marketData: adapter.marketData,
+      venueId: adapter.venueId,
+      policyOptions: this.#options.policyOptions,
+    });
+    this.#portfolioService = new PredictPortfolioService({
+      messenger: portfolioMessenger,
       portfolio: adapter.portfolio,
       venueId: adapter.venueId,
       policyOptions: this.#options.policyOptions,
@@ -80,6 +119,8 @@ export class PredictNextController {
     }
     this.#destroyed = true;
     this.#marketDataService?.destroy();
+    this.#portfolioService?.destroy();
     this.#marketDataService = undefined;
+    this.#portfolioService = undefined;
   }
 }

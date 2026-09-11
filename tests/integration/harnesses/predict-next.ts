@@ -2,18 +2,17 @@ import { ConstantBackoff } from '@metamask/controller-utils';
 import { Messenger } from '@metamask/messenger';
 import {
   PredictNextController,
+  type PredictNextControllerActions,
+  type PredictNextControllerEvents,
   type PredictNextControllerMessenger,
 } from '../../../app/components/UI/PredictNext/controller/PredictNextController';
-import type {
-  PredictMarketDataServiceActions,
-  PredictMarketDataServiceEvents,
-} from '../../../app/components/UI/PredictNext/services/PredictMarketDataService';
 
 /**
  * PredictNext integration-test harness.
  *
- * REAL: PredictNextController, PredictMarketDataService, KalshiRemoteAdapter,
- * PredictApiReadClient, and the public service messenger namespace.
+ * REAL: PredictNextController, PredictMarketDataService,
+ * PredictPortfolioService, KalshiRemoteAdapter, PredictApiReadClient, and both
+ * public service messenger namespaces.
  * MOCKED: HTTP fetch and app-shell base URL/client version configuration.
  */
 
@@ -46,10 +45,10 @@ export const buildPredictNextIntegrationHarness = (
   responder: PredictFetchResponder,
 ): PredictNextIntegrationHarness => {
   const messenger: PredictNextControllerMessenger = new Messenger<
-    'PredictMarketDataService',
-    PredictMarketDataServiceActions,
-    PredictMarketDataServiceEvents
-  >({ namespace: 'PredictMarketDataService' });
+    'PredictNextController',
+    PredictNextControllerActions,
+    PredictNextControllerEvents
+  >({ namespace: 'PredictNextController' });
   const fetchMock = jest.fn(async (input, init) =>
     jsonResponse(await responder(String(input), init)),
   ) as jest.MockedFunction<typeof fetch>;

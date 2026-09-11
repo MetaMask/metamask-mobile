@@ -7,6 +7,7 @@ import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.t
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
+import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
 import type { PredictFeedId } from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import {
@@ -47,6 +48,33 @@ describe('PredictHome', () => {
     ).toBeOnTheScreen();
   });
 
+  it('opens the Portfolio screen from the Positions action', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.POSITIONS));
+
+    expect(
+      await view.findByTestId(PredictPortfolioScreenTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.BACK));
+
+    expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
+  });
+
+  it('keeps funding actions disabled', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.WITHDRAW));
+
+    expect(view.getByTestId(PredictHomeTestIds.ADD_FUNDS)).toBeDisabled();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeDisabled();
+    expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
+  });
+
   it('masks Balance when privacy mode is enabled', async () => {
     const view = renderPredictNext(undefined, true);
 
@@ -59,7 +87,7 @@ describe('PredictHome', () => {
     let balanceFails = true;
     messengerCall.mockImplementation(
       (action: string, _venueId: string, id: string) => {
-        if (action === 'PredictMarketDataService:getBalance') {
+        if (action === 'PredictPortfolioService:getBalance') {
           return balanceFails
             ? Promise.reject(new Error('Balance failed'))
             : Promise.resolve({
@@ -108,13 +136,13 @@ describe('PredictHome', () => {
       focusManager.setFocused(true);
     });
     expect(messengerCall).not.toHaveBeenCalledWith(
-      'PredictMarketDataService:getBalance',
+      'PredictPortfolioService:getBalance',
       'kalshi',
     );
 
     messengerCall.mockImplementation(
       (action: string, _venueId: string, id: string) => {
-        if (action === 'PredictMarketDataService:getBalance') {
+        if (action === 'PredictPortfolioService:getBalance') {
           return Promise.reject(new Error('Balance refetch failed'));
         }
         if (action === 'PredictMarketDataService:getFeed') {
@@ -136,7 +164,7 @@ describe('PredictHome', () => {
 
     await waitFor(() =>
       expect(messengerCall).toHaveBeenCalledWith(
-        'PredictMarketDataService:getBalance',
+        'PredictPortfolioService:getBalance',
         'kalshi',
       ),
     );

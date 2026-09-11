@@ -1,10 +1,8 @@
 import {
   BaseDataService,
-  createServicePolicy,
   type DataServiceCacheUpdatedEvent,
   type DataServiceGranularCacheUpdatedEvent,
   type DataServiceInvalidateQueriesAction,
-  type ServicePolicy,
 } from '@metamask/base-data-service';
 import {
   handleWhen,
@@ -13,10 +11,7 @@ import {
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
-import type {
-  VenueMarketDataAdapter,
-  VenuePortfolioAdapter,
-} from '../adapters/types';
+import type { VenueMarketDataAdapter } from '../adapters/types';
 import { PredictError, PredictErrorCode } from '../errors';
 import {
   marketDataQueries,
@@ -26,10 +21,6 @@ import {
   type GetMarketHistoryResult,
   type GetVenueStatusResult,
 } from '../queries/marketDataQueries';
-import {
-  portfolioQueries,
-  type GetBalanceResult,
-} from '../queries/portfolioQueries';
 import type {
   PredictEntityId,
   PredictFeedId,
@@ -37,18 +28,11 @@ import type {
   PredictReadOptions,
   PredictVenueId,
 } from '../types';
+import { isRetryablePredictError } from './servicePolicy';
 import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_MARKET_DATA_SERVICE_NAME =
   'PredictMarketDataService' as const;
-
-export interface PredictMarketDataServiceGetBalanceAction {
-  type: 'PredictMarketDataService:getBalance';
-  handler: (
-    venueId: PredictVenueId,
-    options?: PredictReadOptions,
-  ) => Promise<GetBalanceResult>;
-}
 
 export interface PredictMarketDataServiceGetVenueStatusAction {
   type: 'PredictMarketDataService:getVenueStatus';
@@ -89,7 +73,6 @@ export interface PredictMarketDataServiceGetMarketHistoryAction {
 }
 
 export type PredictMarketDataServiceActions =
-  | PredictMarketDataServiceGetBalanceAction
   | PredictMarketDataServiceGetVenueStatusAction
   | PredictMarketDataServiceGetFeedAction
   | PredictMarketDataServiceGetEventAction
@@ -108,41 +91,9 @@ export type PredictMarketDataServiceMessenger = Messenger<
   PredictMarketDataServiceEvents
 >;
 
-const RETRYABLE_CODES = new Set([
-  PredictErrorCode.NETWORK_ERROR,
-  PredictErrorCode.RATE_LIMITED,
-  PredictErrorCode.VENUE_UNAVAILABLE,
-]);
-
-/** Returns whether a Predict error is safe to retry. */
-export const isRetryablePredictError = (error: unknown): boolean =>
-  error instanceof PredictError && RETRYABLE_CODES.has(error.code);
-
-/**
- * Wraps a Balance failure that has already completed the dedicated portfolio
- * policy. It is deliberately not a PredictError, so the shared market-data
- * policy neither retries it again nor counts it toward the circuit that Feeds
- * share: Balance failures stay local to Balance.
- */
-export class PortfolioFailureError extends Error {
-  readonly code: PredictErrorCode;
-
-  constructor(error: unknown) {
-    super(
-      error instanceof Error && error.message
-        ? error.message
-        : 'Balance is unavailable.',
-    );
-    this.name = 'PortfolioFailureError';
-    this.code =
-      error instanceof PredictError ? error.code : PredictErrorCode.UNKNOWN;
-  }
-}
-
 export interface PredictMarketDataServiceOptions {
   messenger: PredictMarketDataServiceMessenger;
   marketData: VenueMarketDataAdapter;
-  portfolio: VenuePortfolioAdapter;
   venueId: PredictVenueId;
   policyOptions?: Pick<
     CreateServicePolicyOptions,
@@ -156,14 +107,11 @@ export class PredictMarketDataService extends BaseDataService<
   PredictMarketDataServiceMessenger
 > {
   readonly #marketData: VenueMarketDataAdapter;
-  readonly #portfolio: VenuePortfolioAdapter;
-  readonly #portfolioPolicy: ServicePolicy;
   readonly #venueId: PredictVenueId;
 
   constructor({
     messenger,
     marketData,
-    portfolio,
     venueId,
     policyOptions,
   }: PredictMarketDataServiceOptions) {
@@ -178,19 +126,8 @@ export class PredictMarketDataService extends BaseDataService<
       },
     });
     this.#marketData = marketData;
-    this.#portfolio = portfolio;
-    this.#portfolioPolicy = createServicePolicy({
-      ...policyOptions,
-      maxRetries: 2,
-      retryFilterPolicy: handleWhen(isRetryablePredictError),
-      isServiceFailure: isRetryablePredictError,
-    });
     this.#venueId = venueId;
 
-    messenger.registerActionHandler(
-      'PredictMarketDataService:getBalance',
-      this.getBalance.bind(this),
-    );
     messenger.registerActionHandler(
       'PredictMarketDataService:getVenueStatus',
       this.getVenueStatus.bind(this),
@@ -206,42 +143,6 @@ export class PredictMarketDataService extends BaseDataService<
     messenger.registerActionHandler(
       'PredictMarketDataService:getMarketHistory',
       this.getMarketHistory.bind(this),
-    );
-  }
-
-  async getBalance(
-    venueId: PredictVenueId,
-    options?: PredictReadOptions,
-  ): Promise<GetBalanceResult> {
-    this.#assertVenue(venueId);
-    const descriptor = portfolioQueries.getBalance(venueId);
-    // Account-scoped: trace timing and outcome only, never the amount.
-    return withPredictNextTrace(
-      {
-        method: 'getBalance',
-        name: TraceName.PredictNextGetBalance,
-        op: TraceOperation.PredictDataFetch,
-        tags: { venueId },
-      },
-      () =>
-        this.fetchQuery({
-          queryKey: descriptor.queryKey,
-          staleTime: descriptor.staleTime,
-          queryFn: async ({ signal }) => {
-            try {
-              return (await this.#portfolioPolicy.execute(() =>
-                this.#portfolio.fetchBalance({
-                  signal: options?.signal ?? signal,
-                }),
-              )) as Json & GetBalanceResult;
-            } catch (error) {
-              if (error instanceof Error && error.name === 'AbortError') {
-                throw error;
-              }
-              throw new PortfolioFailureError(error);
-            }
-          },
-        }),
     );
   }
 

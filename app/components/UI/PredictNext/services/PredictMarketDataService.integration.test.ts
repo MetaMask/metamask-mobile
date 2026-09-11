@@ -87,7 +87,7 @@ describe('PredictNext public market data', () => {
     }));
 
     const result = await harness.messenger.call(
-      'PredictMarketDataService:getBalance',
+      'PredictPortfolioService:getBalance',
       KALSHI_VENUE_ID,
     );
 
@@ -109,7 +109,7 @@ describe('PredictNext public market data', () => {
 
     await expect(
       harness.messenger.call(
-        'PredictMarketDataService:getBalance',
+        'PredictPortfolioService:getBalance',
         KALSHI_VENUE_ID,
       ),
     ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
@@ -132,11 +132,10 @@ describe('PredictNext public market data', () => {
           },
     );
 
-    // One exhausted Balance read (three attempts) opens the dedicated
-    // portfolio circuit.
+    // One exhausted Balance read (three attempts) opens the portfolio circuit.
     await expect(
       harness.messenger.call(
-        'PredictMarketDataService:getBalance',
+        'PredictPortfolioService:getBalance',
         KALSHI_VENUE_ID,
       ),
     ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
@@ -145,13 +144,13 @@ describe('PredictNext public market data', () => {
     // Balance now fails fast on its own open circuit without new requests.
     await expect(
       harness.messenger.call(
-        'PredictMarketDataService:getBalance',
+        'PredictPortfolioService:getBalance',
         KALSHI_VENUE_ID,
       ),
-    ).rejects.toMatchObject({ code: 'UNKNOWN' });
+    ).rejects.toBeInstanceOf(BrokenCircuitError);
     expect(harness.fetchMock).toHaveBeenCalledTimes(3);
 
-    // The shared market-data circuit never saw a Balance failure.
+    // The market-data circuit never saw a Balance failure.
     const feed = await harness.messenger.call(
       'PredictMarketDataService:getFeed',
       KALSHI_VENUE_ID,
@@ -159,6 +158,31 @@ describe('PredictNext public market data', () => {
       {},
     );
     expect(feed.events).toHaveLength(1);
+    harness.destroy();
+  });
+
+  it('keeps Balance working when market-data failures open their circuit', async () => {
+    const balance = {
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '42',
+    };
+    const harness = buildPredictNextIntegrationHarness((url) =>
+      String(url).endsWith('/balance') ? { body: balance } : { status: 503 },
+    );
+
+    await expect(
+      harness.messenger.call(
+        'PredictMarketDataService:getVenueStatus',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    const result = await harness.messenger.call(
+      'PredictPortfolioService:getBalance',
+      KALSHI_VENUE_ID,
+    );
+
+    expect(result).toEqual(balance);
     harness.destroy();
   });
 
@@ -170,7 +194,7 @@ describe('PredictNext public market data', () => {
 
     await expect(
       harness.messenger.call(
-        'PredictMarketDataService:getBalance',
+        'PredictPortfolioService:getBalance',
         KALSHI_VENUE_ID,
       ),
     ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
