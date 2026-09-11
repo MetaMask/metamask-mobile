@@ -18,6 +18,7 @@
  */
 import * as core from '@actions/core';
 import { getOctokit } from '@actions/github';
+import { execFileSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import {
@@ -127,6 +128,25 @@ const env = {
   serverUrl: process.env.GITHUB_SERVER_URL ?? 'https://github.com',
   headSha: process.env.HEAD_SHA ?? '',
 };
+
+/** Blob at `headSha` so snippet links and validation share the same tree. */
+function readFileAtHead(relativePath: string, headSha: string): string | null {
+  if (!headSha) {
+    const sourcePath = join(WORKSPACE_ROOT, relativePath);
+    if (!existsSync(sourcePath)) {
+      return null;
+    }
+    return readFileSync(sourcePath, 'utf8');
+  }
+  try {
+    return execFileSync('git', ['show', `${headSha}:${relativePath}`], {
+      encoding: 'utf8',
+      cwd: WORKSPACE_ROOT,
+    });
+  } catch {
+    return null;
+  }
+}
 
 // Missing/malformed artifacts are treated as their empty shape rather than a
 // hard error: Stage 2 may have been skipped (no unit tests changed, or a fork
@@ -398,15 +418,13 @@ async function main(): Promise<void> {
       return false;
     }
 
-    const sourcePath = join(WORKSPACE_ROOT, finding.file);
-    if (!existsSync(sourcePath)) {
+    const source = readFileAtHead(finding.file, headSha);
+    if (source === null) {
       core.warning(
         `Dropping AI finding for ${finding.file}: analyzed file is unavailable`,
       );
       return false;
     }
-
-    const source = readFileSync(sourcePath, 'utf8');
     const match = locateSnippetInSource(source, finding.snippet, finding.line);
     if (!match) {
       const snippetLineCount = finding.snippet
