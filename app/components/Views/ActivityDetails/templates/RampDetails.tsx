@@ -4,8 +4,12 @@ import type { RampsOrder } from '@metamask/ramps-controller';
 import {
   isRampFiatOrder,
   isRampRampsOrder,
+  isRampActivityListRow,
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): shared ramp order lookup with ActivityList hook */
+import { useRampOrderById } from '../../ActivityList/hooks/useRampOrderLookup';
+/* eslint-enable import-x/no-restricted-paths */
 import {
   RampFiatOrderDetails,
   type RampFiatActivityListItem,
@@ -17,13 +21,40 @@ import {
 
 export type RampActivityListItem = ActivityListItem & {
   type: 'buy' | 'sell';
-  raw: { type: 'rampOrder'; data: FiatOrder | RampsOrder };
 };
 
 export function isRampActivityListItem(
   item: ActivityListItem,
 ): item is RampActivityListItem {
-  return item.raw?.type === 'rampOrder';
+  return isRampActivityListRow(item);
+}
+
+function RampOrderDetails({
+  item,
+  order,
+}: Readonly<{
+  item: RampActivityListItem;
+  order: FiatOrder | RampsOrder;
+}>) {
+  if (isRampRampsOrder(order)) {
+    return (
+      <RampRampsOrderDetails
+        item={item as RampRampsActivityListItem}
+        order={order}
+      />
+    );
+  }
+
+  if (isRampFiatOrder(order)) {
+    return (
+      <RampFiatOrderDetails
+        item={item as RampFiatActivityListItem}
+        order={order}
+      />
+    );
+  }
+
+  return null;
 }
 
 /**
@@ -33,15 +64,11 @@ export function isRampActivityListItem(
 export function RampDetails({
   item,
 }: Readonly<{ item: RampActivityListItem }>) {
-  const { data } = item.raw;
+  const order = useRampOrderById(item.hash);
 
-  if (isRampRampsOrder(data)) {
-    return <RampRampsOrderDetails item={item as RampRampsActivityListItem} />;
+  if (!order) {
+    return null;
   }
 
-  if (isRampFiatOrder(data)) {
-    return <RampFiatOrderDetails item={item as RampFiatActivityListItem} />;
-  }
-
-  return null;
+  return <RampOrderDetails item={item} order={order} />;
 }
