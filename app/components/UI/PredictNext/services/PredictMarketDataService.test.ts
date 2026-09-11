@@ -17,6 +17,7 @@ import {
   type PredictVenueId,
 } from '../types';
 import {
+  PREDICT_MARKET_DATA_SERVICE_NAME,
   PredictMarketDataService,
   type PredictMarketDataServiceMessenger,
 } from './PredictMarketDataService';
@@ -37,7 +38,7 @@ jest.mock('../../../../util/trace', () => ({
 
 const createService = (marketData: VenueMarketDataAdapter) => {
   const messenger: PredictMarketDataServiceMessenger = new Messenger({
-    namespace: 'PredictMarketDataService',
+    namespace: PREDICT_MARKET_DATA_SERVICE_NAME,
   });
   return new PredictMarketDataService({
     messenger,
