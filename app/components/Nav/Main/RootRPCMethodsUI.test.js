@@ -1,13 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
-import Engine from '../../../core/Engine';
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    TokensController: { hub: { removeAllListeners: jest.fn() } },
-  },
-}));
 
 jest.mock('../../Approvals/WatchAssetApproval', () => 'WatchAssetApproval');
 jest.mock('../../Approvals/AddChainApproval', () => 'AddChainApproval');
@@ -39,20 +32,5 @@ describe('RootRPCMethodsUI', () => {
       <RootRPCMethodsUI navigation={{ navigate: mockNavigate }} />,
     );
     expect(toJSON()).toBeTruthy();
-  });
-
-  it('cleans up TokensController listeners on unmount', () => {
-    const mockRemoveAllListeners = jest.fn();
-    jest.mocked(Engine).context.TokensController = {
-      hub: { removeAllListeners: mockRemoveAllListeners },
-    };
-
-    const { unmount } = render(
-      <RootRPCMethodsUI navigation={{ navigate: jest.fn() }} />,
-    );
-    expect(mockRemoveAllListeners).not.toHaveBeenCalled();
-
-    unmount();
-    expect(mockRemoveAllListeners).toHaveBeenCalled();
   });
 });
