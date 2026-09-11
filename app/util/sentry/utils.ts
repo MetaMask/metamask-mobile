@@ -197,10 +197,16 @@ export const sentryStateMask = {
         isSignedIn: false,
         srpSessionData: false,
       },
+      ProfileMetricsController: {
+        accountSourceBackfillEnqueued: true,
+        reportedAccounts: false,
+      },
       UserStorageController: {
         isBackupAndSyncEnabled: true,
         isBackupAndSyncUpdateLoading: false,
         isAccountSyncingEnabled: true,
+        isContactSyncingEnabled: true,
+        isRampsSyncingEnabled: true,
       },
     },
   },

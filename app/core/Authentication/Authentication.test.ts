@@ -204,9 +204,14 @@ jest.mock('../Engine', () => ({
       },
     },
 
+    AuthenticationController: {
+      clearState: jest.fn(),
+    },
+
     SeedlessOnboardingController: {
       addNewSecretData: jest.fn(),
       updateBackupMetadataState: jest.fn(),
+      clearState: jest.fn(),
       state: { vault: null },
     },
 
@@ -1725,6 +1730,9 @@ describe('Authentication', () => {
       const Engine = jest.requireMock('../Engine');
 
       // Mock the required Engine context methods to fail
+      Engine.context.AuthenticationController = {
+        clearState: jest.fn(),
+      };
       Engine.context.SeedlessOnboardingController = {
         state: {},
         createToprfKeyAndBackupSeedPhrase: jest
@@ -1755,6 +1763,14 @@ describe('Authentication', () => {
 
       // Verify rollback was called
       expect(newWalletSpy).toHaveBeenCalled();
+      expect(
+        Engine.context.AuthenticationController.clearState,
+      ).toHaveBeenCalled();
+      expect(
+        (
+          Engine.context.AuthenticationController.clearState as jest.Mock
+        ).mock.invocationCallOrder[0],
+      ).toBeLessThan(newWalletSpy.mock.invocationCallOrder[0]);
       expect(
         Engine.context.SeedlessOnboardingController.clearState,
       ).toHaveBeenCalled();
@@ -1880,6 +1896,12 @@ describe('Authentication', () => {
       expect(
         Engine.context.KeyringController.submitPassword,
       ).toHaveBeenCalledWith('');
+      expect(
+        Engine.context.AuthenticationController.clearState,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.SeedlessOnboardingController.clearState,
+      ).toHaveBeenCalled();
       expect(resetGenericPasswordSpy).toHaveBeenCalled();
     });
   });
@@ -4436,6 +4458,10 @@ describe('Authentication', () => {
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
 
+      Engine.context.AuthenticationController = {
+        clearState: jest.fn(),
+      } as unknown as (typeof Engine.context)['AuthenticationController'];
+
       Engine.context.SeedlessOnboardingController = {
         clearState: jest.fn(),
         setLocked: jest.fn().mockResolvedValue(undefined),
@@ -4493,6 +4519,10 @@ describe('Authentication', () => {
     it('completes wallet deletion successfully', async () => {
       // Arrange
       const clearVaultSpy = jest.mocked(clearAllVaultBackups);
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
       const clearStateSpy = jest.spyOn(
         Engine.context.SeedlessOnboardingController,
         'clearState',
@@ -4504,6 +4534,7 @@ describe('Authentication', () => {
 
       // Assert
       expect(clearVaultSpy).toHaveBeenCalledTimes(1);
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(1);
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setExistingUser(false),
@@ -4527,6 +4558,10 @@ describe('Authentication', () => {
         dispatch: jest.fn(),
         getState: () => ({ security: { allowLoginWithRememberMe: true } }),
       } as unknown as ReduxStore);
+
+      Engine.context.AuthenticationController = {
+        clearState: jest.fn(),
+      } as unknown as (typeof Engine.context)['AuthenticationController'];
 
       Engine.context.SeedlessOnboardingController = {
         clearState: jest.fn(),
@@ -4621,6 +4656,10 @@ describe('Authentication', () => {
         Authentication,
         'newWalletAndKeychain',
       );
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
       const clearStateSpy = jest.spyOn(
         Engine.context.SeedlessOnboardingController,
         'clearState',
@@ -4638,6 +4677,10 @@ describe('Authentication', () => {
       expect(newWalletAndKeychain).toHaveBeenCalledWith(expect.any(String), {
         currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
       });
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(1);
+      expect(clearAuthStateSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletAndKeychain.mock.invocationCallOrder[0],
+      );
       expect(clearStateSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledWith(
