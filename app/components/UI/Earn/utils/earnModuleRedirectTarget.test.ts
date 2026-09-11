@@ -29,10 +29,13 @@ describe('resolveEarnModuleRedirectTargetType', () => {
     EARN_MODULE_REDIRECT_TARGETS.MONEY_HOME,
     EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING,
     EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
+    EARN_MODULE_REDIRECT_TARGETS.SWAP,
+    EARN_MODULE_REDIRECT_TARGETS.BUY,
   ])('resolves %s as a screen destination', (target) => {
     const result = resolveEarnModuleRedirectTargetType(target);
 
     expect(result).toBe(EARN_MODULE_REDIRECT_TARGET_TYPES.SCREEN);
+    expect(mockLoggerError).not.toHaveBeenCalled();
   });
 
   it('resolves strategy selection as a bottom sheet destination', () => {
@@ -41,6 +44,7 @@ describe('resolveEarnModuleRedirectTargetType', () => {
     );
 
     expect(result).toBe(EARN_MODULE_REDIRECT_TARGET_TYPES.BOTTOM_SHEET);
+    expect(mockLoggerError).not.toHaveBeenCalled();
   });
 
   it('returns undefined for an unknown destination', () => {

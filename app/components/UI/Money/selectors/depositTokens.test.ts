@@ -1,12 +1,16 @@
 import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
+import { TransactionType } from '@metamask/transaction-controller';
 import type { RootState } from '../../../../reducers';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { selectMetaMaskPayTokensFlags } from '../../../../selectors/featureFlagController/confirmations';
 import {
+  filterMoneyDepositSupportedAssets,
   filterMoneyDepositEligibleAssets,
   type MoneyDepositAsset,
+  selectMoneyDepositBlockedTokens,
   selectMoneyDepositEligibleAssets,
+  selectMoneyDepositSupportedAssets,
 } from './depositTokens';
 import { selectMoneyDepositMinBalance } from './featureFlags';
 
@@ -46,7 +50,7 @@ const createAsset = (
 const emptyBlockedTokens = { chainIds: [], tokens: [] };
 
 describe('filterMoneyDepositEligibleAssets', () => {
-  it('keeps held EVM assets at the minimum fiat balance', () => {
+  it('keeps tracked EVM assets at the minimum fiat balance', () => {
     const asset = createAsset({
       fiat: { balance: 0.01, currency: 'usd', conversionRate: 1 },
     });
@@ -137,6 +141,116 @@ describe('filterMoneyDepositEligibleAssets', () => {
     );
 
     expect(result.map(({ symbol }) => symbol)).toEqual(['LARGE', 'SMALL']);
+  });
+});
+
+describe('filterMoneyDepositSupportedAssets', () => {
+  it('keeps supported EVM assets below the minimum balance', () => {
+    const asset = createAsset({
+      fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
+      rawBalance: '0x0',
+    });
+
+    const result = filterMoneyDepositSupportedAssets(
+      [asset],
+      emptyBlockedTokens,
+    );
+
+    expect(result).toEqual([asset]);
+  });
+
+  it('excludes blocked EVM assets', () => {
+    const asset = createAsset();
+
+    const result = filterMoneyDepositSupportedAssets([asset], {
+      chainIds: [],
+      tokens: [{ address: asset.address, chainId: asset.chainId as string }],
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it('excludes non-EVM assets', () => {
+    const asset = {
+      ...createAsset(),
+      accountType: SolAccountType.DataAccount,
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:mock-token',
+    } as unknown as Asset;
+
+    const result = filterMoneyDepositSupportedAssets(
+      [asset],
+      emptyBlockedTokens,
+    );
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe('selectMoneyDepositBlockedTokens', () => {
+  it('returns blocked tokens for Money deposits', () => {
+    const blockedTokens = {
+      chainIds: ['0x1'],
+      tokens: [],
+    };
+    const state = {} as RootState;
+    mockSelectMetaMaskPayTokensFlags.mockReturnValue({
+      preferredTokens: { default: [], overrides: {} },
+      blockedTokens: { default: blockedTokens, overrides: {} },
+      minimumRequiredTokenBalance: 0,
+    });
+
+    const result = selectMoneyDepositBlockedTokens(state);
+
+    expect(result).toEqual(blockedTokens);
+  });
+
+  it('returns the Money deposit transaction-type override', () => {
+    const defaultBlockedTokens = {
+      chainIds: ['0x1'],
+      tokens: [],
+    };
+    const overrideBlockedTokens = {
+      chainIds: [],
+      tokens: [{ address: '0xblocked', chainId: '0x1' }],
+    };
+    const state = {} as RootState;
+    mockSelectMetaMaskPayTokensFlags.mockReturnValue({
+      preferredTokens: { default: [], overrides: {} },
+      blockedTokens: {
+        default: defaultBlockedTokens,
+        overrides: {
+          [TransactionType.moneyAccountDeposit]: overrideBlockedTokens,
+        },
+      },
+      minimumRequiredTokenBalance: 0,
+    });
+
+    const result = selectMoneyDepositBlockedTokens(state);
+
+    expect(result).toEqual(overrideBlockedTokens);
+  });
+});
+
+describe('selectMoneyDepositSupportedAssets', () => {
+  it('returns supported assets without applying the minimum balance', () => {
+    const asset = createAsset({
+      fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
+      rawBalance: '0x0',
+    });
+    const state = {} as RootState;
+    mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+      'eip155:1': [asset],
+    });
+    mockSelectMetaMaskPayTokensFlags.mockReturnValue({
+      preferredTokens: { default: [], overrides: {} },
+      blockedTokens: { default: emptyBlockedTokens, overrides: {} },
+      minimumRequiredTokenBalance: 0,
+    });
+
+    const result = selectMoneyDepositSupportedAssets(state);
+
+    expect(result).toEqual([asset]);
   });
 });
 

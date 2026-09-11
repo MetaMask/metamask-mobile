@@ -3,6 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { IconName, TagSeverity } from '@metamask/design-system-react-native';
 import type { EarnExperience, EarnRate } from '../../types/earnAssets';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import { strings } from '../../../../../../locales/i18n';
 import EarnStrategyCard, { getRateTagSeverity } from './EarnStrategyCard';
 import {
   EarnStrategyCardVariant,
@@ -11,6 +12,7 @@ import {
 import { EarnStrategyCardSelectorsIDs } from './EarnStrategyCard.testIds';
 
 const cardTestID = 'strategy-card';
+const secondarySubtitle = 'Variable yield';
 
 const createRate = (): EarnRate => ({
   type: 'APY',
@@ -25,6 +27,7 @@ const createExperience = (
   id: `${type}:usdc`,
   type,
   role: type === 'MONEY_ACCOUNT_DEPOSIT' ? 'funding' : 'underlying',
+  depositReadiness: { status: 'ready' },
   rate: createRate(),
   isFeeSubsidized: false,
   ...overrides,
@@ -79,7 +82,7 @@ const createSecondaryProps = (
       type: EARN_EXPERIENCES.STABLECOIN_LENDING,
     },
     title: 'Lend USDC',
-    subtitle: 'Variable yield',
+    subtitle: secondarySubtitle,
     isActive: false,
     testID: cardTestID,
     ...overrides,
@@ -97,7 +100,14 @@ describe('EarnStrategyCard', () => {
     );
 
     expect(getByText('Money account')).toBeOnTheScreen();
-    expect(getByText('Up to 6.2% APY')).toBeOnTheScreen();
+    expect(
+      getByText(
+        `${strings('earn.strategy_selection.up_to')} ${strings(
+          'earn_module.rate_apy',
+          { percentage: '6.2' },
+        )}`,
+      ),
+    ).toBeOnTheScreen();
     expect(rateTag).toBeOnTheScreen();
     expect(getRateTagSeverity('MONEY_ACCOUNT_DEPOSIT')).toBe(
       TagSeverity.Success,
@@ -132,7 +142,33 @@ describe('EarnStrategyCard', () => {
     );
     expect(
       queryByTestId(`${cardTestID}-${EarnStrategyCardSelectorsIDs.INFO_ROW}-0`),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
+  });
+
+  it('omits information rows when the primary card has no rows', () => {
+    const { queryByTestId } = render(
+      <EarnStrategyCard
+        {...createPrimaryProps({
+          infoRows: undefined,
+        })}
+      />,
+    );
+
+    expect(
+      queryByTestId(`${cardTestID}-${EarnStrategyCardSelectorsIDs.INFO_ROW}-0`),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('omits the subtitle when the secondary card has no subtitle', () => {
+    const { queryByText } = render(
+      <EarnStrategyCard
+        {...createSecondaryProps({
+          subtitle: undefined,
+        })}
+      />,
+    );
+
+    expect(queryByText(secondarySubtitle)).not.toBeOnTheScreen();
   });
 
   it('renders ready APR rate copy', () => {
@@ -145,7 +181,14 @@ describe('EarnStrategyCard', () => {
 
     const { getByText } = render(<EarnStrategyCard {...props} />);
 
-    expect(getByText('Up to 3.8% APR')).toBeOnTheScreen();
+    expect(
+      getByText(
+        `${strings('earn.strategy_selection.up_to')} ${strings(
+          'earn_module.rate_apr',
+          { percentage: '3.8' },
+        )}`,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it.each([true, false])(
@@ -169,7 +212,7 @@ describe('EarnStrategyCard', () => {
       if (isFeeSubsidized) {
         expect(noFeeTag).toBeOnTheScreen();
       } else {
-        expect(noFeeTag).toBeNull();
+        expect(noFeeTag).not.toBeOnTheScreen();
       }
     },
   );

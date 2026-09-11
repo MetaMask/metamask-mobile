@@ -1,4 +1,5 @@
 import React from 'react';
+import BigNumber from 'bignumber.js';
 import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType } from '@metamask/keyring-api';
 import {
@@ -13,7 +14,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
 import EarnStrategySelectionModal, { requireEarnStrategyToken } from './index';
-import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
+import useEarnOpportunityNavigation, {
+  type EarnDepositNavigationRoute,
+} from '../../hooks/useEarnOpportunityNavigation';
 import useEarnToasts, {
   type EarnToastOptions,
 } from '../../hooks/useEarnToasts';
@@ -31,25 +34,85 @@ import type {
   EarnExperience,
   EarnExperienceType,
 } from '../../types/earnAssets';
+import Logger from '../../../../../util/Logger';
 
 let mockIsOnboardingRedirectNeeded = false;
+const mockEarnRedirectTargets = {
+  TOKEN_DETAILS: 'token_details',
+  MONEY_ONBOARDING: 'money_onboarding',
+  MONEY_DEPOSIT: 'money_deposit',
+  POOLED_STAKING_DEPOSIT: 'pooled_staking_deposit',
+  STABLECOIN_LENDING_DEPOSIT: 'stablecoin_lending_deposit',
+  TRX_STAKING_DEPOSIT: 'trx_staking_deposit',
+} as const;
+const mockGetEarnExperienceRedirectTarget = jest.fn(
+  (
+    experience: EarnExperience,
+    isOnboardingRedirectNeeded: boolean,
+  ): string | undefined => {
+    try {
+      if (experience.type === 'MONEY_ACCOUNT_DEPOSIT') {
+        return isOnboardingRedirectNeeded
+          ? mockEarnRedirectTargets.MONEY_ONBOARDING
+          : mockEarnRedirectTargets.MONEY_DEPOSIT;
+      }
+
+      if (experience.type === 'POOLED_STAKING') {
+        return mockEarnRedirectTargets.POOLED_STAKING_DEPOSIT;
+      }
+
+      if (experience.type === 'STABLECOIN_LENDING') {
+        return mockEarnRedirectTargets.STABLECOIN_LENDING_DEPOSIT;
+      }
+
+      if (experience.type === 'TRX_STAKING') {
+        return mockEarnRedirectTargets.TRX_STAKING_DEPOSIT;
+      }
+
+      throw new Error(
+        `[useEarnOpportunityNavigation] Unsupported Earn experience: ${experience.type}`,
+      );
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[useEarnOpportunityNavigation] Failed to resolve Earn experience redirect target',
+      );
+      return undefined;
+    }
+  },
+);
 
 jest.mock('@react-navigation/native');
 jest.mock('@metamask/design-system-twrnc-preset');
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   __esModule: true,
   default: jest.fn(),
-  getEarnExperienceRedirectTarget: jest.fn(() =>
-    mockIsOnboardingRedirectNeeded ? 'money_onboarding' : 'money_deposit',
-  ),
+  getEarnExperienceRedirectTarget: mockGetEarnExperienceRedirectTarget,
   getSelectedEarnStrategyRedirectTarget: jest.fn(
     (
-      _experience: unknown,
+      experience: EarnExperience,
       isOnboardingRedirectNeeded: boolean,
-      depositNavigationRoute?: { redirectTarget: string },
-    ) =>
-      depositNavigationRoute?.redirectTarget ??
-      (isOnboardingRedirectNeeded ? 'money_onboarding' : 'money_deposit'),
+      depositNavigationRoute?: EarnDepositNavigationRoute,
+    ) => {
+      if (depositNavigationRoute) {
+        return depositNavigationRoute.redirectTarget;
+      }
+
+      if (experience.depositReadiness.status === 'not_ready') {
+        return mockEarnRedirectTargets.TOKEN_DETAILS;
+      }
+
+      return mockGetEarnExperienceRedirectTarget(
+        experience,
+        isOnboardingRedirectNeeded,
+      );
+    },
   ),
 }));
 jest.mock('../../hooks/useEarnToasts');
@@ -77,9 +140,10 @@ const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackButtonClicked = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
 
-const assetId =
-  'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
 const assetAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const usdtAddress = '0xdac17f958d2ee523a2206206994597c13d831ec7';
+const usdcAssetId = `eip155:1/erc20:${assetAddress}` as EarnAssetId;
+const usdtAssetId = `eip155:1/erc20:${usdtAddress}` as EarnAssetId;
 const goBack = jest.fn();
 const navigateToDepositForExperience = jest.fn();
 const resolveEarnDepositNavigationRoute = jest.fn();
@@ -94,6 +158,7 @@ const createExperience = (
   id,
   type,
   role: 'underlying',
+  depositReadiness: { status: 'ready' },
   rate: { type: 'APY', percentage: 6.2, status: 'ready' },
   isFeeSubsidized: false,
   ...overrides,
@@ -104,32 +169,9 @@ const createEarnAsset = (
     createExperience('MONEY_ACCOUNT_DEPOSIT', 'money:usdc'),
     createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdc'),
   ],
+  fiatBalance = 10,
 ): EarnAsset => ({
-  kind: 'held',
-  assetId,
-  asset: {
-    accountType: EthAccountType.Eoa,
-    accountId: 'account-id',
-    assetId: assetAddress,
-    address: assetAddress,
-    chainId: '0x1',
-    decimals: 6,
-    image: 'usdc.png',
-    name: 'USD Coin',
-    symbol: 'USDC',
-    balance: '10',
-    rawBalance: '0x989680',
-    fiat: { balance: 10, currency: 'USD', conversionRate: 1 },
-    isNative: false,
-  } as Asset,
-  experiences,
-});
-
-const createDiscoveryEarnAsset = (
-  experiences: readonly EarnExperience[],
-): EarnAsset => ({
-  kind: 'discovery',
-  assetId,
+  assetId: usdcAssetId,
   metadata: {
     address: assetAddress,
     chainId: '0x1',
@@ -137,9 +179,48 @@ const createDiscoveryEarnAsset = (
     image: 'usdc.png',
     name: 'USD Coin',
     symbol: 'USDC',
-    logo: undefined,
+    ticker: 'USDC',
+    logo: 'usdc.png',
+    isETH: false,
+    isNative: false,
+  },
+  wallet: {
+    status: 'tracked',
+    asset: {
+      accountType: EthAccountType.Eoa,
+      accountId: 'account-id',
+      assetId: assetAddress,
+      address: assetAddress,
+      chainId: '0x1',
+      decimals: 6,
+      image: 'usdc.png',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      balance: String(fiatBalance),
+      rawBalance: `0x${new BigNumber(fiatBalance).shiftedBy(6).toString(16)}`,
+      fiat: { balance: fiatBalance, currency: 'USD', conversionRate: 1 },
+      isNative: false,
+    } as Asset,
+  },
+  experiences,
+});
+
+const createUntrackedEarnAsset = (
+  experiences: readonly EarnExperience[],
+): EarnAsset => ({
+  assetId: usdtAssetId,
+  metadata: {
+    address: usdtAddress,
+    chainId: '0x1',
+    decimals: 6,
+    image: 'usdt.png',
+    name: 'Tether USD',
+    symbol: 'USDT',
+    ticker: 'USDT',
+    logo: 'usdt.png',
     isETH: false,
   },
+  wallet: { status: 'untracked' },
   experiences,
 });
 
@@ -247,7 +328,6 @@ describe('EarnStrategySelectionModal', () => {
           EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
         ),
       );
-      await Promise.resolve();
     });
 
     await waitFor(() => {
@@ -281,44 +361,58 @@ describe('EarnStrategySelectionModal', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not render an unavailable non-money strategy', () => {
+  it('renders an unavailable non-money strategy without a rate tag', () => {
     mockUseRoute.mockReturnValue({
       params: {
-        earnAsset: createEarnAsset([
-          createExperience(
-            EARN_EXPERIENCES.STABLECOIN_LENDING,
-            'lending:usdc',
-            { rate: { type: 'APY', status: 'unavailable' } },
-          ),
-        ]),
+        earnAsset: createEarnAsset(
+          [
+            createExperience(
+              EARN_EXPERIENCES.STABLECOIN_LENDING,
+              'lending:usdc',
+              {
+                depositReadiness: {
+                  status: 'not_ready',
+                  reason: 'insufficient_balance',
+                },
+                rate: { type: 'APY', status: 'unavailable' },
+              },
+            ),
+          ],
+          0.009,
+        ),
       },
     } as unknown as ReturnType<typeof useRoute>);
 
     const { queryByTestId } = render(<EarnStrategySelectionModal />);
 
     expect(
-      queryByTestId(
+      screen.getByTestId(
         EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc')}-earn-strategy-rate-tag`,
       ),
     ).not.toBeOnTheScreen();
   });
 
-  it('does not render a non-money strategy for a discovery asset', () => {
+  it('renders a non-money strategy for an untracked asset', () => {
     mockUseRoute.mockReturnValue({
       params: {
-        earnAsset: createDiscoveryEarnAsset([
-          createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdc'),
+        earnAsset: createUntrackedEarnAsset([
+          createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdt'),
         ]),
       },
     } as unknown as ReturnType<typeof useRoute>);
 
-    const { queryByTestId } = render(<EarnStrategySelectionModal />);
+    render(<EarnStrategySelectionModal />);
 
     expect(
-      queryByTestId(
-        EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc'),
+      screen.getByTestId(
+        EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdt'),
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeOnTheScreen();
   });
 
   it('selects the first strategy when the modal renders', async () => {
@@ -381,9 +475,14 @@ describe('EarnStrategySelectionModal', () => {
       ).toEqual({ selected: true });
     });
 
-    fireEvent.press(
-      screen.getByTestId(EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON),
-    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
+        ),
+      );
+      await Promise.resolve();
+    });
 
     await waitFor(() => {
       expect(navigateToDepositForExperience).toHaveBeenCalledWith(
@@ -396,9 +495,12 @@ describe('EarnStrategySelectionModal', () => {
   });
 
   it('uses the fiat Money deposit route for an unheld Money strategy', async () => {
-    const earnAsset = createDiscoveryEarnAsset([
+    const earnAsset = createUntrackedEarnAsset([
       createExperience('MONEY_ACCOUNT_DEPOSIT', 'money:usdc', {
-        availability: { status: 'unavailable', reason: 'asset_not_held' },
+        depositReadiness: {
+          status: 'not_ready',
+          reason: 'asset_not_tracked',
+        },
       }),
     ]);
     const moneyFiatRoute = {
@@ -426,8 +528,11 @@ describe('EarnStrategySelectionModal', () => {
           EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
         ),
       );
-      await Promise.resolve();
     });
+
+    await waitFor(() =>
+      expect(navigateToDepositForExperience).toHaveBeenCalled(),
+    );
 
     expect(navigateToDepositForExperience).toHaveBeenCalledWith(
       earnAsset,
@@ -443,14 +548,17 @@ describe('EarnStrategySelectionModal', () => {
   });
 
   it('preserves the acquisition route for an unheld non-Money strategy', async () => {
-    const earnAsset = createDiscoveryEarnAsset([
-      createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdc', {
-        availability: { status: 'unavailable', reason: 'asset_not_held' },
+    const earnAsset = createUntrackedEarnAsset([
+      createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdt', {
+        depositReadiness: {
+          status: 'not_ready',
+          reason: 'asset_not_tracked',
+        },
       }),
     ]);
     const buyRoute = {
       type: 'buy' as const,
-      assetId,
+      assetId: usdtAssetId,
       redirectTarget: EARN_MODULE_REDIRECT_TARGETS.BUY,
     };
     resolveEarnDepositNavigationRoute.mockReturnValueOnce(buyRoute);
@@ -463,7 +571,7 @@ describe('EarnStrategySelectionModal', () => {
     await waitFor(() => {
       expect(
         screen.getByTestId(
-          EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc'),
+          EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdt'),
         ).props.accessibilityState,
       ).toEqual({ selected: true });
     });
@@ -474,18 +582,144 @@ describe('EarnStrategySelectionModal', () => {
           EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
         ),
       );
-      await Promise.resolve();
     });
+
+    await waitFor(() =>
+      expect(navigateToDepositForExperience).toHaveBeenCalled(),
+    );
 
     expect(navigateToDepositForExperience).toHaveBeenCalledWith(
       earnAsset,
-      expect.objectContaining({ id: 'lending:usdc' }),
+      expect.objectContaining({ id: 'lending:usdt' }),
       undefined,
       buyRoute,
     );
     expect(mockTrackButtonClicked).toHaveBeenCalledWith(
       expect.objectContaining({
         redirect_target: EARN_MODULE_REDIRECT_TARGETS.BUY,
+      }),
+    );
+  });
+
+  it('tracks Token Details when no acquisition route exists', async () => {
+    const earnAsset = createEarnAsset(
+      [
+        createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdc', {
+          depositReadiness: {
+            status: 'not_ready',
+            reason: 'insufficient_balance',
+          },
+        }),
+      ],
+      0.009,
+    );
+    mockUseRoute.mockReturnValue({
+      params: { earnAsset },
+    } as unknown as ReturnType<typeof useRoute>);
+
+    render(<EarnStrategySelectionModal />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc'),
+        ).props.accessibilityState,
+      ).toEqual({ selected: true }),
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
+        ),
+      );
+    });
+
+    await waitFor(() =>
+      expect(navigateToDepositForExperience).toHaveBeenCalled(),
+    );
+    expect(resolveEarnDepositNavigationRoute).toHaveBeenCalledWith(
+      earnAsset,
+      expect.objectContaining({ id: 'lending:usdc' }),
+    );
+    expect(navigateToDepositForExperience).toHaveBeenCalledWith(
+      earnAsset,
+      expect.objectContaining({ id: 'lending:usdc' }),
+      undefined,
+      undefined,
+    );
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        redirect_target: EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS,
+      }),
+    );
+  });
+
+  it('shows a toast when deposit route resolution fails', async () => {
+    const error = new Error('acquisition resolver failed');
+    resolveEarnDepositNavigationRoute.mockImplementationOnce(() => {
+      throw error;
+    });
+
+    render(<EarnStrategySelectionModal />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.STRATEGY_CARD('money:usdc'),
+        ).props.accessibilityState,
+      ).toEqual({ selected: true }),
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
+        ),
+      );
+    });
+
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith(navigationToDepositToast),
+    );
+    expect(navigateToDepositForExperience).not.toHaveBeenCalled();
+    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
+  });
+
+  it('tracks the non-Money deposit destination for a ready lending strategy', async () => {
+    const earnAsset = createEarnAsset([
+      createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdc'),
+    ]);
+    mockUseRoute.mockReturnValue({
+      params: { earnAsset },
+    } as unknown as ReturnType<typeof useRoute>);
+
+    render(<EarnStrategySelectionModal />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc'),
+        ).props.accessibilityState,
+      ).toEqual({ selected: true }),
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
+        ),
+      );
+    });
+
+    await waitFor(() =>
+      expect(navigateToDepositForExperience).toHaveBeenCalled(),
+    );
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selected_strategy_type: 'stablecoin_lending',
+        redirect_target:
+          EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT,
       }),
     );
   });
@@ -529,8 +763,11 @@ describe('EarnStrategySelectionModal', () => {
             EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
           ),
         );
-        await Promise.resolve();
       });
+
+      await waitFor(() =>
+        expect(navigateToDepositForExperience).toHaveBeenCalled(),
+      );
 
       expect(mockUseEarnAnalytics).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -564,9 +801,14 @@ describe('EarnStrategySelectionModal', () => {
 
     render(<EarnStrategySelectionModal />);
 
-    fireEvent.press(
-      screen.getByTestId(EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON),
-    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
+        ),
+      );
+      await Promise.resolve();
+    });
 
     await waitFor(() => {
       expect(showToast).toHaveBeenCalledWith(navigationToDepositToast);

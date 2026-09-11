@@ -2,19 +2,28 @@ import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType } from '@metamask/keyring-api';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import type {
-  DiscoveryEarnAsset,
   EarnAsset,
   EarnAssetId,
+  EarnExperience,
 } from '../../types/earnAssets';
 import { buildEarnAssets } from './buildEarnAssets';
 
 const assetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
 
-const createAsset = (
-  overrides: Partial<DiscoveryEarnAsset> = {},
-): DiscoveryEarnAsset => ({
-  kind: 'discovery',
+const createExperience = (
+  overrides: Partial<EarnExperience> = {},
+): EarnExperience => ({
+  id: 'money:usdc',
+  type: 'MONEY_ACCOUNT_DEPOSIT',
+  role: 'funding',
+  depositReadiness: { status: 'ready' },
+  rate: { type: 'APY', percentage: 6.2, status: 'ready' },
+  isFeeSubsidized: false,
+  ...overrides,
+});
+
+const createAsset = (overrides: Partial<EarnAsset> = {}): EarnAsset => ({
   assetId,
   metadata: {
     address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -27,37 +36,38 @@ const createAsset = (
     logo: 'usdc.png',
     isETH: false,
   },
-  experiences: [
-    {
-      id: 'money:usdc',
-      type: 'MONEY_ACCOUNT_DEPOSIT',
-      role: 'funding',
-      rate: { type: 'APY', percentage: 6.2, status: 'ready' },
-      isFeeSubsidized: false,
-    },
-  ],
+  wallet: { status: 'untracked' },
+  experiences: [createExperience()],
   ...overrides,
 });
 
-const createHeldAsset = (): EarnAsset => ({
-  kind: 'held',
+const createTrackedAsset = (overrides: Partial<EarnAsset> = {}): EarnAsset => ({
   assetId,
-  asset: {
-    accountType: EthAccountType.Eoa,
-    accountId: 'account-id',
-    assetId: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    chainId: '0x1',
-    decimals: 6,
-    image: 'held-usdc.png',
+  metadata: {
+    ...createAsset().metadata,
     name: 'Held USD Coin',
-    symbol: 'USDC',
-    balance: '10',
-    rawBalance: '0x989680',
-    fiat: { balance: 10, currency: 'USD', conversionRate: 1 },
-    isNative: false,
-  } as Asset,
+    image: 'held-usdc.png',
+  },
+  wallet: {
+    status: 'tracked',
+    asset: {
+      accountType: EthAccountType.Eoa,
+      accountId: 'account-id',
+      assetId: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      decimals: 6,
+      image: 'held-usdc.png',
+      name: 'Held USD Coin',
+      symbol: 'USDC',
+      balance: '10',
+      rawBalance: '0x989680',
+      fiat: { balance: 10, currency: 'USD', conversionRate: 1 },
+      isNative: false,
+    } as Asset,
+  },
   experiences: [],
+  ...overrides,
 });
 
 describe('buildEarnAssets', () => {
@@ -74,23 +84,69 @@ describe('buildEarnAssets', () => {
 
     const result = buildEarnAssets([createAsset(), usdt]);
 
-    expect(
-      result.map((asset) =>
-        asset.kind === 'discovery' ? asset.metadata.symbol : asset.asset.symbol,
-      ),
-    ).toEqual(['USDC', 'USDT']);
+    expect(result.map((asset) => asset.metadata.symbol)).toEqual([
+      'USDC',
+      'USDT',
+    ]);
   });
 
-  it('keeps wallet asset data over discovery metadata', () => {
-    const held = createHeldAsset();
-    const discovery = createAsset();
+  it('keeps tracked wallet data over untracked metadata', () => {
+    const tracked = createTrackedAsset();
+    const untracked = createAsset();
 
-    const [result] = buildEarnAssets([discovery, held]);
+    const [result] = buildEarnAssets([untracked, tracked]);
 
-    expect(result.kind).toBe('held');
-    if (result.kind === 'held') {
-      expect(result.asset.name).toBe('Held USD Coin');
-      expect(result.asset.balance).toBe('10');
+    expect(result.metadata).toMatchObject({
+      name: 'Held USD Coin',
+      image: 'held-usdc.png',
+    });
+    expect(result.wallet.status).toBe('tracked');
+    if (result.wallet.status === 'tracked') {
+      expect(result.wallet.asset.name).toBe('Held USD Coin');
+      expect(result.wallet.asset.balance).toBe('10');
+    }
+  });
+
+  it('keeps tracked wallet data when the tracked candidate comes first', () => {
+    const tracked = createTrackedAsset();
+    const untracked = createAsset({
+      metadata: {
+        ...createAsset().metadata,
+        name: 'Discovery USD Coin',
+        image: 'discovery-usdc.png',
+      },
+    });
+
+    const [result] = buildEarnAssets([tracked, untracked]);
+
+    expect(result.metadata).toMatchObject({
+      name: 'Held USD Coin',
+      image: 'held-usdc.png',
+    });
+    expect(result.wallet.status).toBe('tracked');
+    if (result.wallet.status === 'tracked') {
+      expect(result.wallet.asset.name).toBe('Held USD Coin');
+      expect(result.wallet.asset.balance).toBe('10');
+    }
+  });
+
+  it('matches asset IDs without regard to case', () => {
+    const tracked = createTrackedAsset();
+    const untracked = createAsset({
+      assetId: 'EIP155:1/ERC20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48',
+      metadata: {
+        ...createAsset().metadata,
+        name: 'Discovery USD Coin',
+      },
+    });
+
+    const result = buildEarnAssets([untracked, tracked]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].metadata.name).toBe('Held USD Coin');
+    expect(result[0].wallet.status).toBe('tracked');
+    if (result[0].wallet.status === 'tracked') {
+      expect(result[0].wallet.asset.balance).toBe('10');
     }
   });
 
@@ -101,6 +157,7 @@ describe('buildEarnAssets', () => {
           id: 'lending:1:aave:usdc',
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying',
+          depositReadiness: { status: 'ready' },
           rate: { type: 'APY', percentage: 4.2, status: 'ready' },
           isFeeSubsidized: false,
         },
@@ -122,6 +179,7 @@ describe('buildEarnAssets', () => {
           id: 'lending:1:aave:usdc',
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying',
+          depositReadiness: { status: 'ready' },
           rate: { type: 'APY', percentage: 4.2, status: 'ready' },
           isFeeSubsidized: false,
         },
@@ -133,6 +191,7 @@ describe('buildEarnAssets', () => {
           id: 'pooled:eth',
           type: EARN_EXPERIENCES.POOLED_STAKING,
           role: 'underlying',
+          depositReadiness: { status: 'ready' },
           rate: { type: 'APR', percentage: 3.8, status: 'ready' },
           isFeeSubsidized: false,
         },
@@ -140,6 +199,7 @@ describe('buildEarnAssets', () => {
           id: 'trx:trx',
           type: EARN_EXPERIENCES.TRX_STAKING,
           role: 'underlying',
+          depositReadiness: { status: 'ready' },
           rate: { type: 'APR', percentage: 4.5, status: 'ready' },
           isFeeSubsidized: false,
         },
@@ -163,6 +223,7 @@ describe('buildEarnAssets', () => {
           id: 'trx:trx',
           type: EARN_EXPERIENCES.TRX_STAKING,
           role: 'underlying',
+          depositReadiness: { status: 'ready' },
           rate: { type: 'APR', percentage: 4.5, status: 'ready' },
           isFeeSubsidized: false,
         },
@@ -170,6 +231,7 @@ describe('buildEarnAssets', () => {
           id: 'lending:1:aave:usdc',
           type: EARN_EXPERIENCES.STABLECOIN_LENDING,
           role: 'underlying',
+          depositReadiness: { status: 'ready' },
           rate: { type: 'APY', percentage: 4.2, status: 'ready' },
           isFeeSubsidized: false,
         },
@@ -177,6 +239,7 @@ describe('buildEarnAssets', () => {
           id: 'money:usdc',
           type: 'MONEY_ACCOUNT_DEPOSIT',
           role: 'funding',
+          depositReadiness: { status: 'ready' },
           rate: { type: 'APY', percentage: 6.2, status: 'ready' },
           isFeeSubsidized: false,
         },

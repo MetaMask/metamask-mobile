@@ -11,6 +11,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type EarnMoneyAccountRow from '../../../../Views/TrendingView/feeds/earn/EarnMoneyAccountRow';
 import type EarnSearchAssetRow from '../../../../Views/TrendingView/feeds/earn/EarnSearchAssetRow';
+import type { EarnAssetSearchItem } from '../../../../Views/TrendingView/feeds/earn/earnSearchTypes';
 import type PotentialEarningsTokenRow from '../../../Money/components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
 import type { MoneyDepositAsset } from '../../../Money/selectors/depositTokens';
 import type {
@@ -46,7 +47,6 @@ let mockIsOnboardingRedirectNeeded = false;
 const mockRedirectToOnboardingIfNeeded = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockLoggerError = jest.fn();
-const mockTrackMoneyButtonClicked = jest.fn();
 const mockTrackMoneySurfaceClicked = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
 const mockTrackTokenSurfaceClicked = jest.fn();
@@ -170,7 +170,6 @@ jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
 
 jest.mock('../../../Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
-    trackButtonClicked: mockTrackMoneyButtonClicked,
     trackSurfaceClicked: mockTrackMoneySurfaceClicked,
     trackTokenButtonClicked: mockTrackTokenButtonClicked,
     trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
@@ -227,24 +226,32 @@ jest.mock('@shopify/flash-list', () => ({
     renderItem,
     ListEmptyComponent,
     ListHeaderComponent,
+    keyExtractor,
     testID,
   }: {
-    data: readonly React.ComponentProps<typeof EarnSearchAssetRow>['item'][];
+    data: readonly EarnAssetSearchItem[];
     renderItem: (info: {
-      item: React.ComponentProps<typeof EarnSearchAssetRow>['item'];
+      item: EarnAssetSearchItem;
       index: number;
     }) => React.ReactNode;
     ListEmptyComponent?: React.ReactNode;
     ListHeaderComponent?: React.ReactNode;
+    keyExtractor?: (item: EarnAssetSearchItem, index: number) => string;
     testID?: string;
   }) => (
     <MockView testID={testID}>
       {ListHeaderComponent}
       {data.length === 0
         ? ListEmptyComponent
-        : data.map((item, index) => (
-            <MockView key={item.id}>{renderItem({ item, index })}</MockView>
-          ))}
+        : data.map((item, index) => {
+            const key = keyExtractor?.(item, index) ?? String(index);
+
+            return (
+              <MockView key={key} testID={`mock-flash-list-item-${key}`}>
+                {renderItem({ item, index })}
+              </MockView>
+            );
+          })}
     </MockView>
   ),
 }));
@@ -256,6 +263,7 @@ const createExperience = (
   id: `earn:${type}`,
   type,
   role: type === 'MONEY_ACCOUNT_DEPOSIT' ? 'funding' : 'underlying',
+  depositReadiness: { status: 'ready' },
   rate: {
     type: 'APY',
     status: 'ready',
@@ -264,7 +272,7 @@ const createExperience = (
   isFeeSubsidized: false,
 });
 
-const createHeldAsset = (
+const createTrackedAsset = (
   symbol: string,
   index: number,
   experiences: readonly EarnExperience[],
@@ -292,19 +300,27 @@ const createHeldAsset = (
   } as Asset;
 
   return {
-    kind: 'held',
     assetId: `eip155:1/erc20:${address}` as EarnAssetId,
-    asset,
+    metadata: {
+      address,
+      chainId: '0x1',
+      decimals: 6,
+      image: `${symbol}.png`,
+      name: `${symbol} Coin`,
+      symbol,
+      logo: `${symbol}.png`,
+      isETH: false,
+    },
+    wallet: { status: 'tracked', asset },
     experiences,
   };
 };
 
-const createDiscoveryAsset = (
+const createUntrackedAsset = (
   symbol: string,
   index: number,
   experienceType: EarnExperience['type'],
 ): EarnAsset => ({
-  kind: 'discovery',
   assetId:
     `eip155:1/erc20:0x${index.toString(16).padStart(40, '0')}` as EarnAssetId,
   metadata: {
@@ -317,12 +333,13 @@ const createDiscoveryAsset = (
     logo: `${symbol}.png`,
     isETH: false,
   },
+  wallet: { status: 'untracked' },
   experiences: [createExperience(experienceType)],
 });
 
 const createMoneyAssets = (count: number): EarnAsset[] =>
   Array.from({ length: count }, (_, index) =>
-    createHeldAsset(
+    createTrackedAsset(
       `M${index + 1}`,
       index + 1,
       [createExperience('MONEY_ACCOUNT_DEPOSIT')],
@@ -421,14 +438,14 @@ describe('EarnSectionListView', () => {
     expect(mockTrackEarnScreenViewed).toHaveBeenCalledTimes(1);
     expect(
       screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_TITLE),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('renders positive projection and More Ways content in Money-visible mode', () => {
-    const moneyAsset = createHeldAsset('USDC', 1, [
+    const moneyAsset = createTrackedAsset('USDC', 1, [
       createExperience('MONEY_ACCOUNT_DEPOSIT'),
       createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING),
     ]);
@@ -459,7 +476,7 @@ describe('EarnSectionListView', () => {
   });
 
   it('navigates to Earn crypto info when the projection is pressed', () => {
-    const moneyAsset = createHeldAsset('USDC', 1, [
+    const moneyAsset = createTrackedAsset('USDC', 1, [
       createExperience('MONEY_ACCOUNT_DEPOSIT'),
     ]);
     mockUseEarnAssetCatalogue.mockReturnValue(
@@ -486,11 +503,9 @@ describe('EarnSectionListView', () => {
     );
   });
 
-  it('caps Money rows at five and projects all derived Money assets in ranked order', () => {
+  it('renders all Money rows and projects all derived Money assets in ranked order', () => {
     const moneyAssets = createMoneyAssets(6);
-    const catalogueSymbols = moneyAssets.map((asset) =>
-      asset.kind === 'held' ? asset.asset.symbol : '',
-    );
+    const catalogueSymbols = moneyAssets.map((asset) => asset.metadata.symbol);
     const rankedSymbols = ['M2', 'M4', 'M6', 'M5', 'M3', 'M1'];
     mockUseEarnAssetCatalogue.mockReturnValue(
       createCatalogueResult({ assets: moneyAssets }),
@@ -513,32 +528,29 @@ describe('EarnSectionListView', () => {
     expect(catalogueSymbols).toEqual(['M1', 'M2', 'M3', 'M4', 'M5', 'M6']);
     expect(projectedAssets.map((asset) => asset.symbol)).toEqual(rankedSymbols);
     expect(projectionCall[1]).toBe(0.042);
-    expect(mockPotentialEarningsTokenRow).toHaveBeenCalledTimes(5);
+    expect(mockPotentialEarningsTokenRow).toHaveBeenCalledTimes(6);
     expect(
       mockPotentialEarningsTokenRow.mock.calls.map(
         ([props]) => props.token.symbol,
       ),
-    ).toEqual(rankedSymbols.slice(0, 5));
-    expect(
-      screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_VIEW_ALL),
-    ).toBeOnTheScreen();
+    ).toEqual(rankedSymbols);
   });
 
-  it('filters hidden-mode rows to supported non-Money experiences', () => {
+  it('renders hidden-mode rows for every non-Money experience', () => {
     isMoneyAccountVisible = false;
-    const stablecoin = createHeldAsset('USDC', 1, [
+    const stablecoin = createTrackedAsset('USDC', 1, [
       createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING),
     ]);
-    const pooled = createDiscoveryAsset(
+    const pooled = createUntrackedAsset(
       'ETH',
       2,
       EARN_EXPERIENCES.POOLED_STAKING,
     );
-    const trx = createDiscoveryAsset('TRX', 3, EARN_EXPERIENCES.TRX_STAKING);
-    const moneyOnly = createHeldAsset('MUSD', 4, [
+    const trx = createUntrackedAsset('TRX', 3, EARN_EXPERIENCES.TRX_STAKING);
+    const moneyOnly = createTrackedAsset('MUSD', 4, [
       createExperience('MONEY_ACCOUNT_DEPOSIT'),
     ]);
-    const unsupported = createDiscoveryAsset(
+    const unsupported = createUntrackedAsset(
       'OTHER',
       5,
       'UNSUPPORTED' as EARN_EXPERIENCES,
@@ -551,22 +563,43 @@ describe('EarnSectionListView', () => {
 
     render(<EarnSectionListView />);
 
-    expect(mockEarnSearchAssetRow).toHaveBeenCalledTimes(3);
+    expect(mockEarnSearchAssetRow).toHaveBeenCalledTimes(4);
     expect(
       mockEarnSearchAssetRow.mock.calls.map(([props]) => props.item.id),
     ).toEqual(
-      expect.arrayContaining([stablecoin.assetId, pooled.assetId, trx.assetId]),
+      expect.arrayContaining([
+        stablecoin.assetId,
+        pooled.assetId,
+        trx.assetId,
+        unsupported.assetId,
+      ]),
     );
     expect(
       mockEarnSearchAssetRow.mock.calls.map(([props]) => props.item.id),
-    ).not.toEqual(
-      expect.arrayContaining([moneyOnly.assetId, unsupported.assetId]),
+    ).not.toEqual(expect.arrayContaining([moneyOnly.assetId]));
+  });
+
+  it('uses asset IDs from keyExtractor for FlashList rows', () => {
+    isMoneyAccountVisible = false;
+    const asset = createUntrackedAsset(
+      'USDC',
+      1,
+      EARN_EXPERIENCES.STABLECOIN_LENDING,
     );
+    mockUseEarnAssetCatalogue.mockReturnValue(
+      createCatalogueResult({ assets: [asset] }),
+    );
+
+    render(<EarnSectionListView />);
+
+    expect(
+      screen.getByTestId(`mock-flash-list-item-${asset.assetId}`),
+    ).toBeOnTheScreen();
   });
 
   it('passes privacy mode to Money, projection, token, and More Ways children', () => {
     privacyMode = true;
-    const moneyAsset = createHeldAsset('USDC', 1, [
+    const moneyAsset = createTrackedAsset('USDC', 1, [
       createExperience('MONEY_ACCOUNT_DEPOSIT'),
       createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING),
     ]);
@@ -610,12 +643,12 @@ describe('EarnSectionListView', () => {
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_TITLE),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(mockEarnSearchAssetRow).not.toHaveBeenCalled();
   });
 
   it('renders a warning with partial rows and guards duplicate retries', async () => {
-    const partialAsset = createDiscoveryAsset(
+    const partialAsset = createUntrackedAsset(
       'USDC',
       1,
       EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -646,6 +679,29 @@ describe('EarnSectionListView', () => {
     expect(mockRefetchMoneyAccountBalance).toHaveBeenCalledTimes(1);
   });
 
+  it('logs refresh failures from the retry action', async () => {
+    const error = new Error('Earn refresh failed');
+    mockUseEarnAssetCatalogue.mockReturnValue(
+      createCatalogueResult({ hasError: true }),
+    );
+    mockRefresh.mockRejectedValueOnce(error);
+    mockRefetchMoneyAccountBalance.mockResolvedValueOnce(undefined);
+
+    render(<EarnSectionListView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.ERROR_RETRY),
+      );
+      await Promise.resolve();
+    });
+
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      error,
+      '[EarnSectionListView] Failed to refresh Earn data',
+    );
+  });
+
   it('renders the genuine empty-state copy when no eligible assets exist', () => {
     isMoneyAccountVisible = false;
 
@@ -664,14 +720,16 @@ describe('EarnSectionListView', () => {
 
     expect(
       screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_TITLE),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_SUBTITLE),
-    ).toBeNull();
-    expect(screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.DIVIDER)).toBeNull();
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.DIVIDER),
+    ).not.toBeOnTheScreen();
   });
 
-  it('navigates back, to Money, and to View all', () => {
+  it('navigates back and to Money', () => {
     const moneyAssets = createMoneyAssets(6);
     mockUseEarnAssetCatalogue.mockReturnValue(
       createCatalogueResult({ assets: moneyAssets }),
@@ -683,21 +741,12 @@ describe('EarnSectionListView', () => {
       screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON),
     );
     fireEvent.press(screen.getByTestId('mock-earn-money-account-row'));
-    fireEvent.press(
-      screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_VIEW_ALL),
-    );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({ pop: false });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
     expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith(
       expect.objectContaining({
         redirect_target: 'money_home',
-      }),
-    );
-    expect(mockTrackMoneyButtonClicked).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirect_target: 'money_potential_earnings',
       }),
     );
   });
@@ -708,25 +757,29 @@ describe('EarnSectionListView', () => {
       createCatalogueResult({ assets: [moneyAsset] }),
     );
     const token =
-      moneyAsset.kind === 'held'
-        ? (moneyAsset.asset as MoneyDepositAsset)
+      moneyAsset.wallet.status === 'tracked'
+        ? (moneyAsset.wallet.asset as MoneyDepositAsset)
         : undefined;
     if (!token) {
-      throw new Error('Expected held Money asset fixture');
+      throw new Error('Expected tracked Money asset fixture');
     }
 
     render(<EarnSectionListView />);
 
-    await fireEvent.press(
-      screen.getByTestId(
-        `${EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(0)}-card`,
-      ),
-    );
-    await fireEvent.press(
-      screen.getByTestId(
-        `${EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(0)}-add`,
-      ),
-    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          `${EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(0)}-card`,
+        ),
+      );
+    });
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          `${EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(0)}-add`,
+        ),
+      );
+    });
 
     const expectedOptions = {
       preferredPaymentToken: {
@@ -754,11 +807,13 @@ describe('EarnSectionListView', () => {
 
     render(<EarnSectionListView />);
 
-    await fireEvent.press(
-      screen.getByTestId(
-        `${EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(0)}-add`,
-      ),
-    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          `${EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(0)}-add`,
+        ),
+      );
+    });
 
     expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
       postOnboardingRedirect: {
@@ -783,11 +838,13 @@ describe('EarnSectionListView', () => {
 
     render(<EarnSectionListView />);
 
-    await fireEvent.press(
-      screen.getByTestId(
-        `${EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(0)}-add`,
-      ),
-    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          `${EARN_SECTION_LIST_TEST_IDS.MONEY_TOKEN_ROW(0)}-add`,
+        ),
+      );
+    });
 
     expect(mockLoggerError).toHaveBeenCalledWith(
       expect.any(Error),
@@ -797,7 +854,7 @@ describe('EarnSectionListView', () => {
 
   it('routes Earn asset presses through opportunity navigation', () => {
     isMoneyAccountVisible = false;
-    const asset = createDiscoveryAsset(
+    const asset = createUntrackedAsset(
       'USDC',
       1,
       EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -831,7 +888,7 @@ describe('EarnSectionListView', () => {
 
   it('uses the caller entry point in Earn asset analytics context', () => {
     isMoneyAccountVisible = false;
-    const asset = createDiscoveryAsset(
+    const asset = createUntrackedAsset(
       'USDC',
       1,
       EARN_EXPERIENCES.STABLECOIN_LENDING,

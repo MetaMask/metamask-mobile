@@ -9,10 +9,12 @@ import { getEarnAssetHighestRateCopy } from './getEarnAssetHighestRateCopy';
 const createExperience = (
   type: 'APR' | 'APY',
   percentage: number,
+  depositReadiness: EarnExperience['depositReadiness'],
 ): EarnExperience => ({
   id: `earn:${type}`,
   type: EARN_EXPERIENCES.STABLECOIN_LENDING,
   role: 'underlying',
+  depositReadiness,
   rate: {
     type,
     percentage,
@@ -21,55 +23,25 @@ const createExperience = (
   isFeeSubsidized: false,
 });
 
-const createAsset = ({
-  kind = 'discovery',
-  rateType = 'APY',
-  percentage = 4.2,
-  fiatBalance,
-}: {
-  kind?: 'held' | 'discovery';
+interface CreateAssetOptions {
   rateType?: 'APR' | 'APY';
   percentage?: number;
   fiatBalance?: number;
-} = {}): EarnSectionRankedAsset => {
-  const experience = createExperience(rateType, percentage);
+  depositReadiness?: EarnExperience['depositReadiness'];
+}
+
+const createAsset = ({
+  rateType = 'APY',
+  percentage = 4.2,
+  depositReadiness,
+}: CreateAssetOptions = {}): EarnSectionRankedAsset => {
+  const experience = createExperience(
+    rateType,
+    percentage,
+    depositReadiness ?? { status: 'not_ready', reason: 'asset_not_tracked' },
+  );
   const common = {
     assetId: 'eip155:1/erc20:0xusdc' as EarnAssetId,
-    experiences: [experience],
-    highestRatePercent: percentage,
-    highestRateExperience: experience,
-    rateStatus: 'ready' as const,
-  };
-
-  if (kind === 'held') {
-    return {
-      ...common,
-      kind,
-      asset: {
-        accountType: EthAccountType.Eoa,
-        accountId: 'account-id',
-        assetId: '0xusdc',
-        address: '0xusdc',
-        chainId: '0x1',
-        decimals: 6,
-        image: 'usdc.png',
-        name: 'USD Coin',
-        symbol: 'USDC',
-        balance: '1',
-        rawBalance: '0x1',
-        fiat: {
-          balance: fiatBalance ?? 1,
-          currency: 'USD',
-          conversionRate: 1,
-        },
-        isNative: false,
-      } as Asset,
-    };
-  }
-
-  return {
-    ...common,
-    kind,
     metadata: {
       address: '0xusdc',
       chainId: '0x1',
@@ -80,8 +52,47 @@ const createAsset = ({
       logo: 'usdc.png',
       isETH: false,
     },
+    experiences: [experience],
+    highestRatePercent: percentage,
+    highestRateExperience: experience,
+    rateStatus: 'ready' as const,
+  };
+
+  return {
+    ...common,
+    wallet: { status: 'untracked' as const },
   };
 };
+
+const createTrackedAsset = ({
+  fiatBalance = 1,
+  depositReadiness = { status: 'ready' },
+  ...options
+}: CreateAssetOptions = {}): EarnSectionRankedAsset => ({
+  ...createAsset({ ...options, depositReadiness }),
+  wallet: {
+    status: 'tracked',
+    asset: {
+      accountType: EthAccountType.Eoa,
+      accountId: 'account-id',
+      assetId: '0xusdc',
+      address: '0xusdc',
+      chainId: '0x1',
+      decimals: 6,
+      image: 'usdc.png',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      balance: '1',
+      rawBalance: '0x1',
+      fiat: {
+        balance: fiatBalance,
+        currency: 'USD',
+        conversionRate: 1,
+      },
+      isNative: false,
+    } as Asset,
+  },
+});
 
 describe('getEarnAssetHighestRateCopy', () => {
   it('returns unavailable copy when no rate is available', () => {
@@ -99,7 +110,7 @@ describe('getEarnAssetHighestRateCopy', () => {
   it.each([
     ['APR', 'rate_apr'],
     ['APY', 'rate_apy'],
-  ] as const)('returns %s copy for a discovery asset', (rateType, key) => {
+  ] as const)('returns %s copy for an untracked asset', (rateType, key) => {
     const asset = createAsset({ rateType });
 
     const result = getEarnAssetHighestRateCopy({ asset });
@@ -107,8 +118,8 @@ describe('getEarnAssetHighestRateCopy', () => {
     expect(result).toBe(strings(`earn_module.${key}`, { percentage: '4.2' }));
   });
 
-  it('returns get-started copy for a held asset with enough balance', () => {
-    const asset = createAsset({ kind: 'held', fiatBalance: 1 });
+  it('returns get-started copy for a tracked asset with enough balance', () => {
+    const asset = createTrackedAsset({ fiatBalance: 1 });
 
     const result = getEarnAssetHighestRateCopy({ asset });
 
@@ -117,8 +128,26 @@ describe('getEarnAssetHighestRateCopy', () => {
     );
   });
 
-  it('returns rate copy for a discovery asset', () => {
-    const asset = createAsset({ kind: 'discovery' });
+  it('returns APR get-started copy for a tracked asset with enough balance', () => {
+    const asset = createTrackedAsset({
+      rateType: 'APR',
+      fiatBalance: 1,
+    });
+
+    const result = getEarnAssetHighestRateCopy({ asset });
+
+    expect(result).toBe(
+      strings('earn_module.get_rate_apr', { percentage: '4.2' }),
+    );
+  });
+
+  it('returns rate copy for a tracked asset with insufficient balance', () => {
+    const asset = createTrackedAsset({
+      depositReadiness: {
+        status: 'not_ready',
+        reason: 'insufficient_balance',
+      },
+    });
 
     const result = getEarnAssetHighestRateCopy({ asset });
 
