@@ -86,7 +86,7 @@ export function useTransactionConfirm() {
 
       updatedMetadata.batchTransactions = [
         ...(updatedMetadata.batchTransactions ?? []),
-        selectedGasFeeToken.transferTransaction,
+        selectedGasFeeToken.getTransferTransaction(),
       ];
 
       updatedMetadata.txParams.gas = selectedGasFeeToken.gas;
