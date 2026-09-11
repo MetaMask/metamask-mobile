@@ -153,6 +153,7 @@ export function usePerpsActivityQuery(
     initialPageParam: undefined as number | undefined,
     getNextPageParam: (lastPage: PerpsActivityPage) => lastPage.nextCursor,
     enabled,
+    refetchOnMount: 'always',
     retry: (failureCount, error) =>
       error instanceof Error &&
       error.message === providerUnavailableMessage &&

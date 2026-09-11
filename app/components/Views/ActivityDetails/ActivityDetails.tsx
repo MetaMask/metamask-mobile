@@ -59,13 +59,8 @@ function ActivityDetailsScreen() {
     usePredictDetailsItem(activityItem ? undefined : txIdentifier, chainId);
   const item = perpsItem ?? activityItem ?? predictItem;
   const isLoading = isPerpsLoading || isPredictLoading;
-  const {
-    data: evmTransactions,
-    isPending,
-    isFetching,
-  } = useTransactionsQuery();
-  const waitingForApi =
-    !item && evmTransactions === undefined && (isPending || isFetching);
+  const { data: evmTransactions, isFetching } = useTransactionsQuery();
+  const waitingForApi = !item && evmTransactions === undefined && isFetching;
   const waiting = Boolean(isLoading || waitingForApi);
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
