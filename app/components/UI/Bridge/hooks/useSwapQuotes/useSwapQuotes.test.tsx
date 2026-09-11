@@ -137,14 +137,6 @@ jest.mock('../useBridgeSession', () => ({
   useBridgeSession: jest.fn(),
 }));
 
-jest.mock('../../Views/BridgeView/BridgeView.constants', () => {
-  const { FeatureId } = jest.requireActual('@metamask/bridge-controller');
-  return {
-    ...jest.requireActual('../../Views/BridgeView/BridgeView.constants'),
-    MIGRATED_FEATURE_IDS: [FeatureId.LIMIT_ORDER],
-  };
-});
-
 const mockUseBridgeSession = jest.mocked(useBridgeSession);
 
 const mockDebounceMs = 300;
