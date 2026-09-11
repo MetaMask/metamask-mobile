@@ -118,7 +118,7 @@ const OVERLAY_FADE_DURATION_MS = 200;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
 const HEADER_TOP_OFFSET = 60;
-const FOOTER_BOTTOM_OFFSET = 75;
+const FOOTER_BOTTOM_OFFSET = 100;
 const OVERLAY_TEXT_PRESETS = {
   small: {
     title: { fontSize: 18, lineHeight: 25, paddingHorizontal: 42 },

@@ -6,6 +6,7 @@ export { HardwareWalletSolanaSignUnsupportedBanner } from './banners/HardwareWal
 export { HardwareWalletUnsupportedBanner } from './banners/HardwareWalletUnsupportedBanner';
 export { InsufficientNativeReserveBanner } from './banners/InsufficientNativeReserveBanner';
 export { MarketClosedBanner } from './banners/MarketClosedBanner';
+export { MissingAssetsPriceDataBanner } from './banners/MissingAssetsPriceDataBanner';
 export { MissingQuoteAndAssetsPriceDataBanner } from './banners/MissingQuoteAndAssetsPriceDataBanner';
 export { MissingQuotePriceDataBanner } from './banners/MissingQuotePriceDataBanner';
 export { OffHoursTradingBanner } from './banners/OffHoursTradingBanner';

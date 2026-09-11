@@ -2,7 +2,19 @@ import { act } from '@testing-library/react-hooks';
 import { renderHookWithProvider } from '../../../test/renderWithProvider';
 // eslint-disable-next-line import-x/no-namespace
 import * as actions from '../../../../actions/identity';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { useAutoSignIn } from './useAutoSignIn';
+
+jest.mock(
+  '../../../../selectors/featureFlagController/basicFunctionalityConsolidation',
+  () => ({
+    selectIsBasicFunctionalityConsolidationEnabled: jest.fn(() => false),
+  }),
+);
+
+const mockedSelectIsBasicFunctionalityConsolidationEnabled = jest.mocked(
+  selectIsBasicFunctionalityConsolidationEnabled,
+);
 
 interface ArrangeMocksMetamaskStateOverrides {
   isUnlocked: boolean;
@@ -10,6 +22,8 @@ interface ArrangeMocksMetamaskStateOverrides {
   isSignedIn: boolean;
   completedOnboarding: boolean;
   needsProfilePairing: boolean;
+  needsSocialPairing?: boolean;
+  hasSeedlessVault?: boolean;
 }
 
 const arrangeMockState = (
@@ -24,6 +38,10 @@ const arrangeMockState = (
       AuthenticationController: {
         isSignedIn: stateOverrides.isSignedIn,
         needsProfilePairing: stateOverrides.needsProfilePairing,
+        needsSocialPairing: stateOverrides.needsSocialPairing,
+      },
+      SeedlessOnboardingController: {
+        vault: stateOverrides.hasSeedlessVault ? 'vault' : undefined,
       },
     },
   },
@@ -97,6 +115,10 @@ prerequisiteCombinations.forEach((combinedState) => {
 });
 
 describe('useAutoSignIn', () => {
+  beforeEach(() => {
+    mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
+  });
+
   it('initializes correctly', () => {
     const { state } = arrangeMocks({
       isUnlocked: false,
@@ -186,5 +208,87 @@ describe('useAutoSignIn', () => {
     });
 
     expect(mockPerformSignInAction).toHaveBeenCalled();
+  });
+
+  describe('social identifier pairing', () => {
+    const socialPairingReadyState = {
+      isUnlocked: true,
+      useExternalServices: true,
+      isSignedIn: true,
+      completedOnboarding: true,
+      needsProfilePairing: false,
+    };
+
+    it('forces sign-in for a social-login user when pairing is needed and consolidation is on', async () => {
+      mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(
+        true,
+      );
+      const { state, mockPerformSignInAction } = arrangeMocks({
+        ...socialPairingReadyState,
+        needsSocialPairing: true,
+        hasSeedlessVault: true,
+      });
+      const hook = renderHookWithProvider(() => useAutoSignIn(), { state });
+
+      await act(async () => {
+        await hook.result.current.autoSignIn();
+      });
+
+      expect(mockPerformSignInAction).toHaveBeenCalled();
+    });
+
+    it('does not force sign-in for an SRP user when pairing is needed and consolidation is on', async () => {
+      mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(
+        true,
+      );
+      const { state, mockPerformSignInAction } = arrangeMocks({
+        ...socialPairingReadyState,
+        needsSocialPairing: true,
+        hasSeedlessVault: false,
+      });
+      const hook = renderHookWithProvider(() => useAutoSignIn(), { state });
+
+      await act(async () => {
+        await hook.result.current.autoSignIn();
+      });
+
+      expect(mockPerformSignInAction).not.toHaveBeenCalled();
+    });
+
+    it('does not force sign-in for a social-login user when consolidation is off', async () => {
+      mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(
+        false,
+      );
+      const { state, mockPerformSignInAction } = arrangeMocks({
+        ...socialPairingReadyState,
+        needsSocialPairing: true,
+        hasSeedlessVault: true,
+      });
+      const hook = renderHookWithProvider(() => useAutoSignIn(), { state });
+
+      await act(async () => {
+        await hook.result.current.autoSignIn();
+      });
+
+      expect(mockPerformSignInAction).not.toHaveBeenCalled();
+    });
+
+    it('does not force sign-in for a social-login user when pairing is not needed', async () => {
+      mockedSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(
+        true,
+      );
+      const { state, mockPerformSignInAction } = arrangeMocks({
+        ...socialPairingReadyState,
+        needsSocialPairing: false,
+        hasSeedlessVault: true,
+      });
+      const hook = renderHookWithProvider(() => useAutoSignIn(), { state });
+
+      await act(async () => {
+        await hook.result.current.autoSignIn();
+      });
+
+      expect(mockPerformSignInAction).not.toHaveBeenCalled();
+    });
   });
 });
