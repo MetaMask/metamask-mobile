@@ -1045,6 +1045,10 @@
       "perpsChartPreferences": {
         "preferredCandlePeriod": "15m"
       },
+      "perpsMarketListPreferences": {
+        "marketTypeFilter": "all",
+        "showFavoritesOnly": false
+      },
       "primaryCurrency": "ETH",
       "searchEngine": "Google",
       "showAccountOnLeaderboard": true
