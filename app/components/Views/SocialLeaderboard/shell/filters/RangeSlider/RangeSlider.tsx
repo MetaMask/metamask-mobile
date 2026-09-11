@@ -111,8 +111,25 @@ interface ResolvedValue {
   max: number;
 }
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max);
+/** UI-thread clamp — gesture handlers run as worklets and cannot call plain JS. */
+function clampWorklet(value: number, min: number, max: number) {
+  'worklet';
+  return Math.min(Math.max(value, min), max);
+}
+
+/** UI-thread percent → domain value conversion for gesture handlers. */
+function percentToValueWorklet(
+  percent: number,
+  minimumValue: number,
+  maximumValue: number,
+  span: number,
+  step: number,
+) {
+  'worklet';
+  const raw = minimumValue + (percent / 100) * span;
+  const stepped = Math.round(raw / step) * step;
+  return clampWorklet(stepped, minimumValue, maximumValue);
+}
 
 /**
  * Dual-thumb range slider. The design system `Slider` only exposes a single
@@ -143,6 +160,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
     span > 0 ? ((value.max - minimumValue) / span) * 100 : 100,
   );
   const trackWidth = useSharedValue(0);
+  const dragStartPercent = useSharedValue(0);
 
   // Keep the animated percents in sync when the `value` prop changes externally
   // (e.g. reset to defaults). Reanimated reactions run on the UI thread.
@@ -165,15 +183,6 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
     [value.max, span, minimumValue],
   );
 
-  const percentToValue = useCallback(
-    (percent: number) => {
-      const raw = minimumValue + (percent / 100) * span;
-      const stepped = Math.round(raw / step) * step;
-      return clamp(stepped, minimumValue, maximumValue);
-    },
-    [minimumValue, maximumValue, span, step],
-  );
-
   const reportChange = useCallback(
     (next: ResolvedValue) => {
       onValueChange(next);
@@ -192,48 +201,88 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
     (which: 'min' | 'max') =>
       Gesture.Pan()
         .onBegin(() => {
+          dragStartPercent.value =
+            which === 'min' ? minPercent.value : maxPercent.value;
           runOnJS(playImpact)(ImpactMoment.SliderGrip);
         })
         .onUpdate((event) => {
           if (trackWidth.value === 0) {
             return;
           }
-          const percent = clamp(
-            (event.absoluteX / trackWidth.value) * 100,
+          const deltaPercent = (event.translationX / trackWidth.value) * 100;
+          const percent = clampWorklet(
+            dragStartPercent.value + deltaPercent,
             0,
             100,
           );
           if (which === 'min') {
             const clamped = Math.min(percent, maxPercent.value);
             minPercent.value = clamped;
-            const next: ResolvedValue = {
-              min: percentToValue(clamped),
-              max: percentToValue(maxPercent.value),
-            };
-            runOnJS(reportChange)(next);
+            runOnJS(reportChange)({
+              min: percentToValueWorklet(
+                clamped,
+                minimumValue,
+                maximumValue,
+                span,
+                step,
+              ),
+              max: percentToValueWorklet(
+                maxPercent.value,
+                minimumValue,
+                maximumValue,
+                span,
+                step,
+              ),
+            });
           } else {
             const clamped = Math.max(percent, minPercent.value);
             maxPercent.value = clamped;
-            const next: ResolvedValue = {
-              min: percentToValue(minPercent.value),
-              max: percentToValue(clamped),
-            };
-            runOnJS(reportChange)(next);
+            runOnJS(reportChange)({
+              min: percentToValueWorklet(
+                minPercent.value,
+                minimumValue,
+                maximumValue,
+                span,
+                step,
+              ),
+              max: percentToValueWorklet(
+                clamped,
+                minimumValue,
+                maximumValue,
+                span,
+                step,
+              ),
+            });
           }
         })
         .onEnd(() => {
-          const next: ResolvedValue = {
-            min: percentToValue(minPercent.value),
-            max: percentToValue(maxPercent.value),
-          };
-          runOnJS(reportDragEnd)(next);
+          runOnJS(reportDragEnd)({
+            min: percentToValueWorklet(
+              minPercent.value,
+              minimumValue,
+              maximumValue,
+              span,
+              step,
+            ),
+            max: percentToValueWorklet(
+              maxPercent.value,
+              minimumValue,
+              maximumValue,
+              span,
+              step,
+            ),
+          });
         }),
     [
+      dragStartPercent,
       maxPercent,
       minPercent,
-      percentToValue,
+      minimumValue,
+      maximumValue,
       reportChange,
       reportDragEnd,
+      span,
+      step,
       trackWidth,
     ],
   );
