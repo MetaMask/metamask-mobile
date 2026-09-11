@@ -95,6 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.filter.outputs.matrix }}
+      has_suites: ${{ steps.filter.outputs.has_suites }}
     steps:
       - name: Filter suites by selected_tags
         id: filter
@@ -130,8 +131,14 @@ jobs:
             INCLUDE=$(echo "$SUITES" | jq --argjson sel "$SELECTED" \
               '[.[] | select(.tag as $t | $sel | contains([$t]))]')
           fi
-          MATRIX=$(echo "$INCLUDE" | jq -c '{"include": .}')
-          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          COUNT=$(echo "$INCLUDE" | jq 'length')
+          if [ "$COUNT" -gt 0 ]; then
+            MATRIX=$(echo "$INCLUDE" | jq -c '{"include": .}')
+            echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+            echo "has_suites=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_suites=false" >> "$GITHUB_OUTPUT"
+          fi
 
   # Boots/stabilizes/saves the golden emulator snapshot once per system image
   # onto the shared cache volume, so shards quick-boot instead of paying a
@@ -146,7 +153,7 @@ jobs:
   appium-android-smoke:
     needs: [compute-matrix, prime-android-emulator-snapshot]
     # always(): run even when priming failed — boot mode auto falls back to cold.
-    if: ${{ always() && !cancelled() && needs.compute-matrix.result == 'success' }}
+    if: ${{ always() && !cancelled() && needs.compute-matrix.result == 'success' && needs.compute-matrix.outputs.has_suites == 'true' }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
