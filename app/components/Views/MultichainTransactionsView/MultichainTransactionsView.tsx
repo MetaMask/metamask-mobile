@@ -181,9 +181,14 @@ const MultichainTransactionsView = ({
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const shouldUseActivityRedesign =
     location === TransactionDetailLocation.AssetDetails;
-  const { bridgeArrivalItems, arrivalDestTxHashes } = useMemo(() => {
+  const {
+    bridgeArrivalItems,
+    arrivalDestTxHashes,
+    bridgeTransactionByActivityItem,
+  } = useMemo(() => {
     const items: ActivityListItem[] = [];
     const destTxHashes = new Set<string>();
+    const sourceTransactions = new WeakMap<ActivityListItem, TransactionMeta>();
 
     for (const tx of bridgeArrivalTransactions ?? []) {
       const bridgeHistoryItem = findBridgeHistoryItem({
@@ -199,67 +204,79 @@ const MultichainTransactionsView = ({
         destTxHashes.add(destTxHash.toLowerCase());
       }
 
-      items.push(
-        mapTransactionToActivityItem({
-          transaction: tx,
-          currentChainId: tx.chainId,
-          bridgeHistoryItem,
-        }),
-      );
+      const activityItem = mapTransactionToActivityItem({
+        transaction: tx,
+        currentChainId: tx.chainId,
+        bridgeHistoryItem,
+      });
+      items.push(activityItem);
+      sourceTransactions.set(activityItem, tx);
     }
 
-    return { bridgeArrivalItems: items, arrivalDestTxHashes: destTxHashes };
+    return {
+      bridgeArrivalItems: items,
+      arrivalDestTxHashes: destTxHashes,
+      bridgeTransactionByActivityItem: sourceTransactions,
+    };
   }, [bridgeArrivalTransactions, bridgeHistory]);
 
-  const activityListData = useMemo(
-    () =>
-      shouldUseActivityRedesign
-        ? groupActivityListItems([
-            ...bridgeArrivalItems,
-            ...visibleMultichainTransactions
-              .filter(
-                (transaction) =>
-                  !arrivalDestTxHashes.has(transaction.id?.toLowerCase()),
-              )
-              .map((transaction) => {
-                const activity = classifyKeyringStakingActivity(
-                  transaction,
-                  mapKeyringTransaction({
-                    transaction: {
-                      ...transaction,
-                      chain: transaction.chain ?? chainId,
-                      fees: transaction.fees ?? [],
-                    },
-                    subjectAddress: address,
-                  }) as ActivityListItem,
-                );
-                const bridgeHistoryItem =
-                  bridgeHistoryItemsBySrcTxHash[transaction.id] ??
-                  bridgeHistoryItemsByDestTxHash[transaction.id];
-                const quote = bridgeHistoryItem?.quote;
+  const { activityListData, transactionByActivityItem } = useMemo(() => {
+    const sourceTransactions = new WeakMap<ActivityListItem, Transaction>();
 
-                if (
-                  quote &&
-                  isCrossChain(quote.srcChainId, quote.destChainId)
-                ) {
-                  return applyBridgeQuote(activity, bridgeHistoryItem, address);
-                }
+    if (!shouldUseActivityRedesign) {
+      return {
+        activityListData: visibleMultichainTransactions,
+        transactionByActivityItem: sourceTransactions,
+      };
+    }
 
-                return activity;
-              }),
-          ])
-        : visibleMultichainTransactions,
-    [
-      address,
-      arrivalDestTxHashes,
-      bridgeArrivalItems,
-      bridgeHistoryItemsByDestTxHash,
-      bridgeHistoryItemsBySrcTxHash,
-      chainId,
-      shouldUseActivityRedesign,
-      visibleMultichainTransactions,
-    ],
-  );
+    const activityItems = visibleMultichainTransactions
+      .filter(
+        (transaction) =>
+          !arrivalDestTxHashes.has(transaction.id?.toLowerCase()),
+      )
+      .map((transaction) => {
+        let activity = classifyKeyringStakingActivity(
+          transaction,
+          mapKeyringTransaction({
+            transaction: {
+              ...transaction,
+              chain: transaction.chain ?? chainId,
+              fees: transaction.fees ?? [],
+            },
+            subjectAddress: address,
+          }) as ActivityListItem,
+        );
+        const bridgeHistoryItem =
+          bridgeHistoryItemsBySrcTxHash[transaction.id] ??
+          bridgeHistoryItemsByDestTxHash[transaction.id];
+        const quote = bridgeHistoryItem?.quote;
+
+        if (quote && isCrossChain(quote.srcChainId, quote.destChainId)) {
+          activity = applyBridgeQuote(activity, bridgeHistoryItem, address);
+        }
+
+        sourceTransactions.set(activity, transaction);
+        return activity;
+      });
+
+    return {
+      activityListData: groupActivityListItems([
+        ...bridgeArrivalItems,
+        ...activityItems,
+      ]),
+      transactionByActivityItem: sourceTransactions,
+    };
+  }, [
+    address,
+    arrivalDestTxHashes,
+    bridgeArrivalItems,
+    bridgeHistoryItemsByDestTxHash,
+    bridgeHistoryItemsBySrcTxHash,
+    chainId,
+    shouldUseActivityRedesign,
+    visibleMultichainTransactions,
+  ]);
 
   const handleBridgeArrivalPress = React.useCallback(
     (item: ActivityListItem) => {
@@ -269,10 +286,7 @@ const MultichainTransactionsView = ({
         return;
       }
 
-      const evmTxMeta =
-        item.raw?.type === 'localTransaction'
-          ? item.raw.data.primaryTransaction
-          : undefined;
+      const evmTxMeta = bridgeTransactionByActivityItem.get(item);
 
       if (!evmTxMeta) {
         return;
@@ -290,7 +304,7 @@ const MultichainTransactionsView = ({
         }),
       });
     },
-    [bridgeHistory, nav],
+    [bridgeHistory, bridgeTransactionByActivityItem, nav],
   );
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -382,7 +396,7 @@ const MultichainTransactionsView = ({
       return <ActivityListDateHeader timestamp={item.date} />;
     }
 
-    if (item.item.raw?.type === 'localTransaction') {
+    if (bridgeTransactionByActivityItem.has(item.item)) {
       return (
         <Box twClassName="px-4">
           <ActivityListItemRow
@@ -398,6 +412,7 @@ const MultichainTransactionsView = ({
     return (
       <MultichainAssetDetailsActivityListItem
         item={item.item}
+        transaction={transactionByActivityItem.get(item.item)}
         bridgeHistoryItem={
           srcTxHash
             ? (bridgeHistoryItemsBySrcTxHash[srcTxHash] ??

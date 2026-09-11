@@ -19,28 +19,19 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  * Provides analytics utilities backed by the analytics helper to keep the
  * existing hook API while migrating off MetaMetrics internals.
  *
- * The hook allows to track non-anonymous and anonymous events,
- * with properties and without properties,
- * with a unique trackEvent function
- *
- * ## Regular non-anonymous events
- * Regular events are tracked with the user ID and can have properties set
- *
- * ## Anonymous events
- * Anonymous tracking track sends two events: one with the anonymous ID and one with the user ID
- * - The anonymous event includes sensitive properties so you can know **what** but not **who**
- * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
+ * Track with `trackEvent` and `createEventBuilder`. Put properties on the
+ * builder with `addProperties`.
  *
  * @returns Analytics functions
  *
- * @example basic non-anonymous tracking with no properties:
+ * @example basic tracking with no properties:
  * const { trackEvent, createEventBuilder } = useAnalytics();
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.ONBOARDING_STARTED)
  *   .build()
  * );
  *
- * @example track with non-anonymous properties:
+ * @example track with properties:
  * const { trackEvent, createEventBuilder } = useAnalytics();
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
@@ -48,30 +39,6 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  *     option_chosen: 'Browser Bottom Bar Menu',
  *     number_of_tabs: undefined,
  *   })
- *   .build()
- * );
- *
- * @example track an anonymous event (without properties)
- * const { trackEvent, createEventBuilder } = useAnalytics();
- * trackEvent(
- *   createEventBuilder(MetaMetricsEvents.SWAP_COMPLETED)
- *   .build()
- * )
- *
- * @example track an anonymous event with properties
- * const { trackEvent, createEventBuilder } = useAnalytics();
- * trackEvent(
- *   createEventBuilder(MetaMetricsEvents.GAS_FEES_CHANGED)
- *   .addSensitiveProperties({ ...parameters })
- *   .build()
- * );
- *
- * @example track an event with both anonymous and non-anonymous properties
- * const { trackEvent, createEventBuilder } = useAnalytics();
- * trackEvent(
- *   createEventBuilder(MetaMetricsEvents.MY_EVENT)
- *   .addProperties({ ...nonAnonymousParameters })
- *   .addSensitiveProperties({ ...anonymousParameters })
  *   .build()
  * );
  *

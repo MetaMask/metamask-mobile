@@ -445,6 +445,47 @@ describe('usePerpsProPositionsPanelActions', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
+  it('reports an accepted order cancellation to the panel', async () => {
+    const onOrderCanceled = jest.fn();
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await actions?.handleCancelOrder(order, onOrderCanceled);
+    });
+
+    expect(onOrderCanceled).toHaveBeenCalledWith(order);
+  });
+
+  it('does not report a rejected order cancellation to the panel', async () => {
+    const onOrderCanceled = jest.fn();
+    mockCancelOrder.mockResolvedValueOnce({ success: false });
+    let actions:
+      | ReturnType<typeof usePerpsProPositionsPanelActions>
+      | undefined;
+    render(
+      <ActionHarness
+        onReady={(readyActions) => {
+          actions = readyActions;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      await actions?.handleCancelOrder(order, onOrderCanceled);
+    });
+
+    expect(onOrderCanceled).not.toHaveBeenCalled();
+  });
+
   it('keeps haptics silent for a non-cancelable order', async () => {
     let actions:
       | ReturnType<typeof usePerpsProPositionsPanelActions>

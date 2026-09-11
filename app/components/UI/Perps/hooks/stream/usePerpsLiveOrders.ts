@@ -22,6 +22,8 @@ export interface UsePerpsLiveOrdersReturn {
   orders: Order[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  /** Deliveries accepted by this selected-account subscription. */
+  deliveryRevision?: number;
 }
 
 /**
@@ -58,10 +60,13 @@ export function usePerpsLiveOrders(
   });
   const lastOrdersRef = useRef<Order[]>(EMPTY_ORDERS);
   const hasReceivedFirstUpdate = useRef(false);
+  const [deliveryRevision, setDeliveryRevision] = useState(0);
+  const acceptedDeliveryRef = useRef(false);
 
   useEffect(() => {
     const unsubscribe = stream.orders.subscribe({
       callback: (newOrders) => {
+        acceptedDeliveryRef.current = false;
         if (newOrders === null || newOrders === undefined) {
           // Cleared on account switch — show skeleton until first update for new account
           hasReceivedFirstUpdate.current = false;
@@ -77,6 +82,7 @@ export function usePerpsLiveOrders(
           hasReceivedFirstUpdate.current = true;
           setIsInitialLoading(false);
         }
+        acceptedDeliveryRef.current = true;
 
         // Only update if orders actually changed
         setOrdersAddress(selectedAddress);
@@ -92,6 +98,12 @@ export function usePerpsLiveOrders(
           lastOrdersRef.current = newOrders;
           setOrders(newOrders);
         }
+      },
+      onDelivery: (source) => {
+        if (source === 'fresh' && acceptedDeliveryRef.current) {
+          setDeliveryRevision((revision) => revision + 1);
+        }
+        acceptedDeliveryRef.current = false;
       },
       throttleMs,
     });
@@ -128,5 +140,6 @@ export function usePerpsLiveOrders(
   return {
     orders: ordersAddress === selectedAddress ? filteredOrders : EMPTY_ORDERS,
     isInitialLoading: ordersAddress !== selectedAddress || isInitialLoading,
+    deliveryRevision,
   };
 }

@@ -3,7 +3,7 @@
  * to ActivityListItem[] using mapLocalTransaction from @metamask/client-utils.
  */
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import { mapLocalTransaction } from '@metamask/client-utils';
 import {
   TransactionMeta,
@@ -15,6 +15,7 @@ import type { Hex } from '@metamask/utils';
 import {
   selectLocalTransactions,
   selectReplacedLocalTransactions,
+  selectRequiredTransactions,
 } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
@@ -31,6 +32,8 @@ import {
   type TokenAmount,
 } from '../../../../util/activity-adapters';
 import { isHardwareAccount } from '../../../../util/address';
+import { selectTransactionPayTransactionData } from '../../../../selectors/transactionPayController';
+import type { RootState } from '../../../../reducers';
 
 const BRIDGE_FAIL_STATUSES = [
   TransactionStatus.failed,
@@ -44,6 +47,9 @@ const QUEUE_BLOCKING_STATUSES = new Set<string>([
   'approved',
   'unapproved',
 ]);
+const EMPTY_TRANSACTION_PAY_DATA: ReturnType<
+  typeof selectTransactionPayTransactionData
+> = {};
 
 /**
  * Checks whether a transaction is a TransactionMeta (vs SmartTransaction).
@@ -284,6 +290,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
   // Outgoing / user-initiated txs only — excludes incoming spam from TransactionController.
   const localTransactions = useSelector(selectLocalTransactions);
   const replacedTransactions = useSelector(selectReplacedLocalTransactions);
+  const requiredTransactions = useSelector(selectRequiredTransactions);
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -301,6 +308,30 @@ export function useLocalActivityItems(): ActivityListItem[] {
   const transactionMetaList = useMemo(
     () => localTransactions.filter(isTransactionMetaLike),
     [localTransactions],
+  );
+  const transactionPayData =
+    useSelector((state: RootState) => {
+      const allTransactionPayData = selectTransactionPayTransactionData(state);
+      return transactionMetaList.reduce(
+        (selected, transaction) => {
+          const data = allTransactionPayData[transaction.id];
+          if (data) {
+            selected[transaction.id] = data;
+          }
+          return selected;
+        },
+        {} as typeof allTransactionPayData,
+      );
+    }, shallowEqual) ?? EMPTY_TRANSACTION_PAY_DATA;
+  const requiredTransactionsById = useMemo(
+    () =>
+      new Map(
+        requiredTransactions.map((transaction) => [
+          transaction.id,
+          transaction,
+        ]),
+      ),
+    [requiredTransactions],
   );
 
   return useMemo(() => {
@@ -366,6 +397,14 @@ export function useLocalActivityItems(): ActivityListItem[] {
 
       const group: TransactionGroup = {
         ...baseGroup,
+        activityAccountAddress: groupEvmAccountAddress,
+        relatedTransactions: (tx.requiredTransactionIds ?? [])
+          .map((id) => requiredTransactionsById.get(id))
+          .filter(
+            (transaction): transaction is TransactionMeta =>
+              transaction !== undefined,
+          ),
+        transactionPayData: transactionPayData[tx.id],
         activityStatus,
         sourceToken,
         destinationToken,
@@ -396,5 +435,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
     networkConfigurations,
     allTokens,
     groupEvmAccountAddress,
+    requiredTransactionsById,
+    transactionPayData,
   ]);
 }

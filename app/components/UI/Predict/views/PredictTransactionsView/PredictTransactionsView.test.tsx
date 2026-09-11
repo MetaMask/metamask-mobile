@@ -180,6 +180,24 @@ describe('PredictTransactionsView', () => {
     });
   });
 
+  it('fetches activity when the list is visible', () => {
+    render(<PredictTransactionsView isVisible />);
+
+    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('fetches activity when visibility is omitted', () => {
+    render(<PredictTransactionsView />);
+
+    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('does not fetch activity while the list is hidden', () => {
+    render(<PredictTransactionsView isVisible={false} />);
+
+    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: false });
+  });
+
   it('can defer visible-list analytics to the parent surface', () => {
     render(
       <PredictTransactionsView isVisible shouldTrackActivityViewed={false} />,

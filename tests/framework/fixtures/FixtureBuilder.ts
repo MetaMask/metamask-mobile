@@ -47,6 +47,7 @@ import { NetworkEnablementControllerState } from '@metamask/network-enablement-c
 import { RpcEndpointType } from '@metamask/network-controller';
 import { USDC_MAINNET } from '../../constants/musd-mainnet.ts';
 import {
+  ANVIL_LOCAL_ETH_HOLDING,
   toWeiHex,
   type TokenHolding,
 } from './mmpay-token-holdings-registry.ts';
@@ -191,6 +192,7 @@ class FixtureBuilder {
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
+      '@MetaMask:PUSH_PRE_PROMPT_SHOWN': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
@@ -299,6 +301,15 @@ class FixtureBuilder {
     };
 
     networkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Anvil / Localhost fixtures need a seeded native balance under
+    // assetsUnifyState; otherwise Confirm stays disabled with an empty pay
+    // balance. Not applied in withDefaultFixture() — that always registers
+    // 0x539 for RPC wiring and must not enable Anvil holdings globally.
+    if (providerConfig.chainId === '0x539') {
+      this.withAnvilLocalEthBalance();
+    }
+
     return this;
   }
 
@@ -1973,6 +1984,25 @@ class FixtureBuilder {
     });
 
     return this;
+  }
+
+  /**
+   * Seeds Anvil / Localhost (`0x539`) native ETH into legacy + unified
+   * AssetsController state and enables the chain. Prefer calling
+   * `withNetworkController({ chainId: '0x539', ... })`, which applies this
+   * automatically. Use this explicitly with `withDefaultFixture()` when the
+   * local node is selected without reconfiguring NetworkController.
+   *
+   * @param amount - Whole ETH amount to seed (default `100`).
+   * @returns The FixtureBuilder instance for method chaining.
+   */
+  withAnvilLocalEthBalance(amount: string = ANVIL_LOCAL_ETH_HOLDING.amount) {
+    return this.withTokenHoldings([
+      {
+        ...ANVIL_LOCAL_ETH_HOLDING,
+        amount,
+      },
+    ]);
   }
 
   /**

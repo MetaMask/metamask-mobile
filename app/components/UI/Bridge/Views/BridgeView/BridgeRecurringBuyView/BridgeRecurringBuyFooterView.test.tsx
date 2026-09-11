@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
@@ -11,6 +12,9 @@ import { createBridgeTestState } from '../../../testUtils';
 import type { RootState } from '../../../../../../reducers';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
+import { strings } from '../../../../../../../locales/i18n';
+import { formatMinimumReceived } from '../../../utils/currencyUtils';
+import { initialRecurringState } from '../../../utils/recurringSchedule';
 
 jest.mock(
   '../../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -74,8 +78,23 @@ function buildActiveQuoteState(
   });
 }
 
-function renderFooter(state: DeepPartial<RootState>) {
-  return renderWithProvider(<BridgeRecurringBuyFooterView />, { state });
+function renderFooter(
+  state: DeepPartial<RootState>,
+  {
+    onPreviewOrder = jest.fn(),
+    isPreviewDisabled,
+  }: {
+    onPreviewOrder?: () => void;
+    isPreviewDisabled?: boolean;
+  } = {},
+) {
+  return renderWithProvider(
+    <BridgeRecurringBuyFooterView
+      onPreviewOrder={onPreviewOrder}
+      isPreviewDisabled={isPreviewDisabled}
+    />,
+    { state },
+  );
 }
 
 describe('BridgeRecurringBuyFooterView', () => {
@@ -140,5 +159,143 @@ describe('BridgeRecurringBuyFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent(strings('bridge.recurring.preview_order'));
+  });
+
+  it('shows the confirm button as loading when the quote is refreshing', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        isLoading: true,
+      }));
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.busy,
+    ).toBe(true);
+  });
+
+  it('calls onPreviewOrder when Preview Order is pressed', () => {
+    const onPreviewOrder = jest.fn();
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState(), {
+      onPreviewOrder,
+    });
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+
+    expect(onPreviewOrder).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onPreviewOrder when Preview Order is disabled', () => {
+    const onPreviewOrder = jest.fn();
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState(), {
+      onPreviewOrder,
+      isPreviewDisabled: true,
+    });
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+
+    expect(onPreviewOrder).not.toHaveBeenCalled();
+  });
+
+  it('renders the spend summary for the default schedule', () => {
+    const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toHaveTextContent(
+      strings('bridge.recurring.spend_summary', {
+        amount: formatMinimumReceived('1.0'),
+        symbol: 'ETH',
+        everyValue: '1',
+        unit: strings('bridge.recurring.unit.hour'),
+        repeatCount: '10',
+      }),
+    );
+  });
+
+  it('uses the plural unit when every is greater than 1', () => {
+    const { getByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: {
+          recurring: {
+            ...initialRecurringState,
+            everyValue: '2',
+          },
+        },
+      }),
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toHaveTextContent(
+      strings('bridge.recurring.spend_summary', {
+        amount: formatMinimumReceived('1.0'),
+        symbol: 'ETH',
+        everyValue: '2',
+        unit: strings('bridge.recurring.unit_plural.hour'),
+        repeatCount: '10',
+      }),
+    );
+  });
+
+  it('caps spend summary amount decimals like market min received', () => {
+    const sourceAmount = '1.123456789012';
+    const { getByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: { sourceAmount },
+      }),
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toHaveTextContent(
+      strings('bridge.recurring.spend_summary', {
+        amount: formatMinimumReceived(sourceAmount),
+        symbol: 'ETH',
+        everyValue: '1',
+        unit: strings('bridge.recurring.unit.hour'),
+        repeatCount: '10',
+      }),
+    );
+  });
+
+  it('hides the spend summary when repeat count is empty', () => {
+    const { getByTestId, queryByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: {
+          recurring: {
+            ...initialRecurringState,
+            repeatCount: '',
+          },
+        },
+      }),
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toBeNull();
+  });
+
+  it('hides the spend summary when source amount is missing', () => {
+    const { queryByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: { sourceAmount: undefined },
+      }),
+    );
+
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toBeNull();
   });
 });
