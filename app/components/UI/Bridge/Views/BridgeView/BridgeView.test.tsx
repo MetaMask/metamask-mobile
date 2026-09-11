@@ -16,7 +16,6 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import BridgeViewContent from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
@@ -47,6 +46,7 @@ import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import BridgeViewContent from '.';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -414,12 +414,6 @@ const BridgeView = () => (
   </BridgeSessionProvider>
 );
 
-/**
- * Unit fallback: leftover cases need mocked quote context, focus effects, or
- * gesture handlers that CV cannot drive yet (quote expiry nav, keypad
- * orchestration, banner matrices, tab swipe). Overlapping screen UI lives in
- * BridgeView.view.test.tsx.
- */
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
 

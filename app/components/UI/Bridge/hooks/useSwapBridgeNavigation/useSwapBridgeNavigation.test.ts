@@ -75,10 +75,6 @@ jest.mock('../../../../../selectors/networkController', () => {
   };
 });
 
-jest.mock('../useSwapsFeatureId', () => ({
-  useSwapsFeatureId: jest.fn().mockReturnValue('unified_swap_bridge'),
-}));
-
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {

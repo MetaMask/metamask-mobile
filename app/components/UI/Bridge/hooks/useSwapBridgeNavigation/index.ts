@@ -49,7 +49,6 @@ import {
   ARC_USDC_BRIDGE_TOKEN,
 } from '../../../../../enablement/assets/arc';
 import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
-import { useSwapsFeatureId } from '../useSwapsFeatureId';
 
 /**
  * Allows to manually set the default Swap token when clicking on the Swap CTA from
@@ -192,7 +191,6 @@ export const useSwapBridgeNavigation = ({
   );
 
   const enabledChainRanking = useSelector(selectAllowedChainRanking);
-  const featureId = useSwapsFeatureId();
 
   const fetchPopularTokens = useFetchPopularTokens();
   const prefetchPopularTokens = useCallback(() => {
@@ -203,9 +201,9 @@ export const useSwapBridgeNavigation = ({
       chainIds: enabledChainRanking.map(
         (chain: { chainId: CaipChainId }) => chain.chainId,
       ),
-      featureId,
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     }).catch(() => undefined);
-  }, [enabledChainRanking, fetchPopularTokens, featureId]);
+  }, [enabledChainRanking, fetchPopularTokens]);
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
