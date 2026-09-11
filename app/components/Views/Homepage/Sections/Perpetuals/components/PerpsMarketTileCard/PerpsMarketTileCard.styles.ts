@@ -26,11 +26,11 @@ const styleSheet = (params: {
     },
     favoriteBadge: {
       position: 'absolute' as const,
-      top: -6,
-      right: -6,
+      top: -4,
+      right: -4,
       backgroundColor: theme.colors.background.alternative,
       borderRadius: 12,
-      padding: 3,
+      padding: 2,
     },
     sparklineContainer: {
       marginTop: 'auto' as const,
