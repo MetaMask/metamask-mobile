@@ -92,10 +92,29 @@ Expected logs include:
 2. `Android device pool size=3 workers=3`.
 3. Three `resumed from golden snapshot` messages (or `cold-booted for pool` if
    the cache missed).
-4. `Android emulator pool ready in <milliseconds>`.
-5. `Android pool worker 0` / `worker 1` / `worker 2` with distinct serials and systemPorts.
+4. `Installing io.appium.settings` (or skip when the helper is already on the
+   snapshot) on each serial.
+5. `Android emulator pool ready in <milliseconds>`.
+6. `Android pool worker 0` / `worker 1` / `worker 2` with distinct serials and systemPorts.
 
 The APK is installed concurrently on both serials before workers start.
+
+Sessions keep `appium:skipDeviceInitialization` for fast Appium startup, so
+`io.appium.settings` is not installed by the driver. Global setup installs that
+helper (and grants `PROJECT_MEDIA`) so `mobile: startMediaProjectionRecording`
+does not fall back to a long-lived `adb shell screenrecord`. Prime also bakes
+the helper into `e2e_golden`; existing snapshots still get the install on
+resume until the next prime.
+
+Sessions run WebdriverIO at `logLevel: 'info'` so the per-command `COMMAND` /
+`RESULT` lines stay available for debugging. Override with
+`APPIUM_WDIO_LOG_LEVEL` (`warn` silences that protocol chatter; `debug` /
+`trace` add more). The framework's own `[E2E Framework]` logs are unaffected.
+
+Note that WebdriverIO only truncates a large command result when the command
+name matches `/screenshot|recording/i`. Media projection stops through
+`executeScript`, so at `info` the full base64 MP4 is printed for every recorded
+test.
 
 Each Android smoke job also writes a **Android device pool** block to the
 GitHub job summary with pool size, boot mode, Playwright outcome, and

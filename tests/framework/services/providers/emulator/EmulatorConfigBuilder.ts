@@ -14,6 +14,39 @@ function readOptionalPort(envKey: string): number | undefined {
   return port;
 }
 
+const WDIO_LOG_LEVELS = [
+  'trace',
+  'debug',
+  'info',
+  'warn',
+  'error',
+  'silent',
+] as const;
+
+type WdioLogLevel = (typeof WDIO_LOG_LEVELS)[number];
+
+/**
+ * `info` keeps WebdriverIO's per-command `COMMAND` / `RESULT` lines, which are
+ * the primary signal when debugging a failed Appium step. Set
+ * `APPIUM_WDIO_LOG_LEVEL=warn` to silence that protocol chatter.
+ *
+ * @internal exported for unit tests
+ */
+export function resolveWdioLogLevel(
+  env: Record<string, string | undefined> = process.env,
+): WdioLogLevel {
+  const raw = env.APPIUM_WDIO_LOG_LEVEL?.trim().toLowerCase();
+  if (!raw) {
+    return 'info';
+  }
+  if (!WDIO_LOG_LEVELS.includes(raw as WdioLogLevel)) {
+    throw new Error(
+      `Invalid APPIUM_WDIO_LOG_LEVEL "${raw}". Expected one of ${WDIO_LOG_LEVELS.join(', ')}.`,
+    );
+  }
+  return raw as WdioLogLevel;
+}
+
 /**
  * Builder for Emulator WebDriver configuration (local Android/iOS).
  *
@@ -104,6 +137,7 @@ export class EmulatorConfigBuilder {
     return {
       hostname: getAppiumHost(),
       port: getAppiumPort(),
+      logLevel: resolveWdioLogLevel(),
       connectionRetryTimeout,
       connectionRetryCount: 0,
       capabilities: {
