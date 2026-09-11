@@ -265,8 +265,7 @@
     "expo-updates@npm:~56.0.23": "56.0.25",
     "expo-splash-screen@npm:~56.0.14": "56.0.14",
     "expo-dev-client@npm:~56.0.24": "56.0.25",
-    "metro@npm:^0.84.3": "0.84.4",
-    "metro@npm:0.84.4": "0.84.4"
+    "metro@npm:^0.84.3": "0.84.4"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
