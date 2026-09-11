@@ -136,6 +136,21 @@ export const NETWORK_LABEL_KEY: Record<SocialFilterNetwork, string> = {
 };
 
 /**
+ * Maps filter-sheet network ids to social-service chain ids. The sheet
+ * surfaces `bnb` for user-facing copy; the API expects `bsc` (see V0
+ * `SPOT_CHAINS` / `TopTradersView`).
+ */
+export const NETWORK_TO_CHAIN_ID: Record<
+  Exclude<SocialFilterNetwork, 'all'>,
+  string
+> = {
+  robinhood: 'robinhood',
+  bnb: 'bsc',
+  solana: 'solana',
+  base: 'base',
+};
+
+/**
  * Chains surfaced for each `type` selection. Reuses the V0 chain sets so the
  * API param mapper stays consistent with `TopTradersView`.
  */

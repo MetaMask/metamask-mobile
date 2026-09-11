@@ -186,9 +186,7 @@ describe('SocialV1View', () => {
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON));
 
-    expect(
-      screen.getByTestId('social-filters-bottom-sheet'),
-    ).toBeOnTheScreen();
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
   });
 
   it('closes the filters bottom sheet when Show results is pressed', () => {
@@ -206,9 +204,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.FILTER_BUTTON));
-    fireEvent.press(
-      screen.getByTestId('social-filters-bottom-sheet-backdrop'),
-    );
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
   });

@@ -74,9 +74,7 @@ describe('FilterRangeSection', () => {
   it('forwards drag end events to onDragEnd when provided', () => {
     const onDragEnd = jest.fn();
 
-    render(
-      <FilterRangeSection {...baseProps} onDragEnd={onDragEnd} />,
-    );
+    render(<FilterRangeSection {...baseProps} onDragEnd={onDragEnd} />);
     fireEvent.press(
       screen.getByTestId('social-filters-market_cap-slider-emit-drag-end'),
     );

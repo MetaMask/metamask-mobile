@@ -31,7 +31,7 @@ const SLIDER_TRACK_AREA_HEIGHT =
 
 const styles = StyleSheet.create({
   root: {
-    width: '100%',
+    alignSelf: 'stretch',
     marginHorizontal: SLIDER_TRACK_INSET,
     overflow: 'visible',
   },

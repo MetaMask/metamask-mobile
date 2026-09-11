@@ -363,9 +363,7 @@ describe('SocialFiltersBottomSheet', () => {
       />,
     );
 
-    fireEvent.press(
-      screen.getByTestId('social-filters-bottom-sheet-backdrop'),
-    );
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });

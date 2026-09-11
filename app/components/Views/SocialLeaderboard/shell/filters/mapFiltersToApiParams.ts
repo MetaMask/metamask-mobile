@@ -1,4 +1,4 @@
-import { TYPE_CHAINS } from './filterDefaults';
+import { NETWORK_TO_CHAIN_ID, TYPE_CHAINS } from './filterDefaults';
 import type { SocialFilterApiParams, SocialShellFilters } from './types';
 
 /**
@@ -15,7 +15,9 @@ export function mapFiltersToApiParams(
   filters: SocialShellFilters,
 ): SocialFilterApiParams {
   const chains =
-    filters.network === 'all' ? TYPE_CHAINS[filters.type] : [filters.network];
+    filters.network === 'all'
+      ? TYPE_CHAINS[filters.type]
+      : [NETWORK_TO_CHAIN_ID[filters.network]];
 
   return {
     chains,
