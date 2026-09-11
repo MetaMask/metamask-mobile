@@ -170,8 +170,6 @@ export const runQuoteDataCases = ({
     };
   };
 
-  const isCombinedQuoteHook = name === 'useQuoteData';
-
   return describe(name, () => {
     let isQuoteExpired: jest.SpyInstance;
     let shouldRefreshQuote: jest.SpyInstance;
@@ -279,10 +277,8 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: null,
         validQuotes: [mockQuoteWithMetadata],
         isActiveQuoteForCurrentTokenPair: true,
-        ...(isCombinedQuoteHook && {
-          refreshQuotes: expect.any(Function),
-          debouncedUpdateQuoteParams: expect.any(Function),
-        }),
+        refreshQuotes: expect.any(Function),
+        debouncedUpdateQuoteParams: expect.any(Function),
       });
     });
 
@@ -485,10 +481,8 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: RequestStatus.FETCHED,
         validQuotes: [],
         isActiveQuoteForCurrentTokenPair: false,
-        ...(isCombinedQuoteHook && {
-          refreshQuotes: expect.any(Function),
-          debouncedUpdateQuoteParams: expect.any(Function),
-        }),
+        refreshQuotes: expect.any(Function),
+        debouncedUpdateQuoteParams: expect.any(Function),
       });
     });
 
@@ -689,10 +683,8 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: null,
         validQuotes: [],
         isActiveQuoteForCurrentTokenPair: false,
-        ...(isCombinedQuoteHook && {
-          refreshQuotes: expect.any(Function),
-          debouncedUpdateQuoteParams: expect.any(Function),
-        }),
+        refreshQuotes: expect.any(Function),
+        debouncedUpdateQuoteParams: expect.any(Function),
       });
     });
 
@@ -729,10 +721,8 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: RequestStatus.LOADING,
         validQuotes: [],
         isActiveQuoteForCurrentTokenPair: false,
-        ...(isCombinedQuoteHook && {
-          refreshQuotes: expect.any(Function),
-          debouncedUpdateQuoteParams: expect.any(Function),
-        }),
+        refreshQuotes: expect.any(Function),
+        debouncedUpdateQuoteParams: expect.any(Function),
       });
     });
 
@@ -770,10 +760,8 @@ export const runQuoteDataCases = ({
         quotesLoadingStatus: null,
         validQuotes: [],
         isActiveQuoteForCurrentTokenPair: false,
-        ...(isCombinedQuoteHook && {
-          refreshQuotes: expect.any(Function),
-          debouncedUpdateQuoteParams: expect.any(Function),
-        }),
+        refreshQuotes: expect.any(Function),
+        debouncedUpdateQuoteParams: expect.any(Function),
       });
     });
 
@@ -1237,12 +1225,6 @@ export const runQuoteDataCases = ({
       mockUseIsInsufficientBalance.mockReturnValue(false);
 
       renderUseBridgeQuoteData(createBridgeTestState({}));
-
-      // Combined provider fetches when the override is omitted and shares
-      // that value with quote data. Covered in runQuoteRequestCases.
-      if (isCombinedQuoteHook) {
-        return;
-      }
 
       expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
         amount: '1000000000000000000',

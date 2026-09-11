@@ -215,14 +215,19 @@ export const SwapQuotesProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { quoteParams, latestSourceBalance: latestSourceBalanceFromParent } =
-    useBridgeSession();
+  const {
+    quoteParams,
+    latestSourceBalance: latestSourceBalanceFromParent,
+    selectedTab,
+    renderedTab,
+  } = useBridgeSession();
   // Presence (not truthiness): parent may pass undefined while its own
   // useLatestBalance is still loading. That must not start a second fetch.
   const hasLatestSourceBalanceOverride = Boolean(latestSourceBalanceFromParent);
   const featureId = useSwapsFeatureId();
 
-  const isActive = MIGRATED_FEATURE_IDS.includes(featureId);
+  const isActive =
+    MIGRATED_FEATURE_IDS.includes(featureId) && selectedTab === renderedTab;
   // Fetch balance here and pass it to the request/response hooks
   const latestSourceBalance = useLatestBalance(
     hasLatestSourceBalanceOverride || !isActive
