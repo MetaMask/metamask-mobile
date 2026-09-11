@@ -42,25 +42,8 @@ jest.mock('react-native-gesture-handler', () => {
 });
 
 jest.mock('react-native-reanimated', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: { View },
-    useSharedValue: (initial: unknown) => ({ value: initial }),
-    useAnimatedStyle: () => ({}),
-    useAnimatedReaction: (
-      _prepare: () => unknown,
-      _react: (current: unknown, previous: unknown) => void,
-    ) => {
-      ReactActual.useEffect(() => {
-        const current = _prepare();
-        _react(current, null);
-      });
-    },
-    runOnJS: (fn: (...args: unknown[]) => unknown) => fn,
-    withTiming: (val: unknown) => val,
-  };
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  return Reanimated;
 });
 
 jest.mock('../../../../../util/theme', () => ({
@@ -330,5 +313,60 @@ describe('SocialFiltersBottomSheet', () => {
     fireEvent.press(screen.getByTestId('social-filters-type-tokens'));
 
     expect(onChange).toHaveBeenCalledWith({ type: 'tokens' });
+  });
+
+  it('renders market cap and 24h volume sliders on Feed and Live trades', () => {
+    const { rerender } = render(
+      <SocialFiltersBottomSheet
+        tab="feed"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-filters-market_cap-slider'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-volume_24h-slider'),
+    ).toBeOnTheScreen();
+
+    rerender(
+      <SocialFiltersBottomSheet
+        tab="liveTrades"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-filters-market_cap-slider'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-volume_24h-slider'),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls onClose when the backdrop is pressed', () => {
+    const onClose = jest.fn();
+    render(
+      <SocialFiltersBottomSheet
+        tab="feed"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId('social-filters-bottom-sheet-backdrop'),
+    );
+
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

@@ -252,7 +252,14 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
     const nextMax = ((value.max - minimumValue) / span) * 100;
     propMinPercent.value = nextMin;
     propMaxPercent.value = nextMax;
-  }, [value.min, value.max, minimumValue, span, propMinPercent, propMaxPercent]);
+  }, [
+    value.min,
+    value.max,
+    minimumValue,
+    span,
+    propMinPercent,
+    propMaxPercent,
+  ]);
 
   useAnimatedReaction(
     () => ({
@@ -410,10 +417,7 @@ const RangeSlider: React.FC<RangeSliderProps> = ({
   return (
     <View style={styles.root} onLayout={handleLayout} testID={baseTestID}>
       <GestureDetector gesture={gesture}>
-        <Animated.View
-          style={styles.trackArea}
-          accessibilityRole="adjustable"
-        >
+        <Animated.View style={styles.trackArea} accessibilityRole="adjustable">
           <View
             style={[styles.track, { backgroundColor: colors.background.muted }]}
           />
