@@ -193,7 +193,7 @@ flowchart TD
 flowchart TD
     A[newWalletAndRestore isQrSync] --> B[newWalletVaultAndRestore]
     B --> C[importRemainingSecrets]
-    C --> D[importState snapshot.stripMetadata]
+    C --> D[importState snapshot — metadata already stripped at assignment]
     D --> E[clear pendingSecretImports]
     E --> F[secrets_imported]
 ```
@@ -204,8 +204,9 @@ flowchart TD
 Authentication.newWalletAndRestore(..., isQrSync)
   → newWalletVaultAndRestore           — primary vault created
   → if isQrSync: QrSyncController.importRemainingSecrets()
-      → AccountTreeController:importState(snapshot.stripMetadata())
-        — primary wallet matched by entropy source ID, not re-imported
+      → AccountTreeController:importState(snapshot)
+        — pendingSecretImports stored metadata-stripped at SYNC_READY time
+        — primary wallet filtered out by entropy source ID (new-user path)
         — secondary wallets + private-key groups imported
         — no metadata applied (Phase C's job)
       → pendingSecretImports = null
@@ -250,7 +251,7 @@ if (isQrSync) {
 ### Phase B acceptance criteria
 
 - [x] Vault created from primary SRP only
-- [x] Secondary secrets imported immediately after vault creation (non-fatal if import fails)
+- [x] Secondary secrets imported immediately after vault creation (fatal — error propagates to caller if import fails)
 - [x] `pendingSecretImports` cleared after import
 - [x] `secrets_imported` set on `importRemainingSecrets`
 - [x] No `discoverAccounts` or `syncWithUserStorage` during Phase B
