@@ -137,7 +137,8 @@ describe('PerpsHomeView', () => {
     let originalShowHeaderActionButtons: boolean;
 
     beforeEach(() => {
-      originalShowHeaderActionButtons = HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
+      originalShowHeaderActionButtons =
+        HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
       Object.assign(HOME_SCREEN_CONFIG, { ShowHeaderActionButtons: false });
     });
 
@@ -269,7 +270,9 @@ describe('PerpsHomeView', () => {
       );
 
       // Act – press the positions-section "⋯" action button (Close All entry point)
-      fireEvent.press(screen.getByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON));
+      fireEvent.press(
+        screen.getByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON),
+      );
 
       // Assert – the close-all geo-block tooltip appears
       await waitFor(() => {
@@ -295,7 +298,8 @@ describe('PerpsHomeView', () => {
     let originalShowHeaderActionButtons: boolean;
 
     beforeEach(() => {
-      originalShowHeaderActionButtons = HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
+      originalShowHeaderActionButtons =
+        HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
       Object.assign(HOME_SCREEN_CONFIG, { ShowHeaderActionButtons: false });
     });
 
@@ -342,7 +346,10 @@ describe('PerpsHomeView', () => {
       const { stream } = renderPerpsHomeView({
         overrides: eligibleOverrides,
         streamOverrides: {
-          account: { ...createFundedAccountForViews('100'), unrealizedPnl: '50' },
+          account: {
+            ...createFundedAccountForViews('100'),
+            unrealizedPnl: '50',
+          },
           positions: [createLongPositionForViews()],
           orders: [],
           marketData: [createEthMarketForViews()],

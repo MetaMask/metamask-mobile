@@ -124,7 +124,8 @@ describeForPlatforms('Position Close Flow', () => {
         extraRoutes: [
           {
             name: Routes.PERPS.CLOSE_POSITION,
-            Component: PerpsClosePositionView as unknown as React.ComponentType<unknown>,
+            Component:
+              PerpsClosePositionView as unknown as React.ComponentType<unknown>,
           },
         ],
       });
@@ -241,7 +242,8 @@ describeForPlatforms('Position Close Flow', () => {
         extraRoutes: [
           {
             name: Routes.PERPS.CLOSE_POSITION,
-            Component: PerpsClosePositionView as unknown as React.ComponentType<unknown>,
+            Component:
+              PerpsClosePositionView as unknown as React.ComponentType<unknown>,
           },
         ],
       });

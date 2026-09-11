@@ -78,7 +78,11 @@ describe('PerpsSelectModifyActionView', () => {
 
     // The renderer pre-registers the confirmation route with a probe element.
     expect(
-      await screen.findByTestId('route-order-confirmation', {}, { timeout: TIMEOUT_MS }),
+      await screen.findByTestId(
+        'route-order-confirmation',
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
     ).toBeOnTheScreen();
   });
 });
