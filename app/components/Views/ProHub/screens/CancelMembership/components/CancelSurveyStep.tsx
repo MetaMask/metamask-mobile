@@ -40,10 +40,10 @@ import {
 import { shuffleCancelReasons } from '../CancelMembership.utils';
 
 /**
- * Leaves the selected reason partially visible above the stay question so the
+ * Leaves the selected reason partially visible above the revealed field so the
  * auto-scroll reads as continuous rather than a jump.
  */
-const STAY_QUESTION_SCROLL_INSET = 16;
+const REVEALED_FIELD_SCROLL_INSET = 16;
 
 interface ReasonItemProps {
   id: string;
@@ -110,7 +110,7 @@ const CancelSurveyStep = ({
 }: CancelSurveyStepProps) => {
   const tw = useTailwind();
   const scrollViewRef = useRef<ScrollView>(null);
-  const hasScrolledToStayQuestionRef = useRef(false);
+  const hasScrolledToRevealedFieldRef = useRef(false);
   const showStayQuestion = selectedReasonId !== null;
   const showOtherReasonInput = selectedReasonId === OTHER_REASON_ID;
   const orderedReasons = useMemo(
@@ -118,17 +118,17 @@ const CancelSurveyStep = ({
     [],
   );
 
-  // The stay question mounts below the stats card and six reason rows, so on
-  // shorter devices it appears off-screen. Scroll to it once: onLayout also
-  // fires as the multiline input grows, and re-scrolling mid-typing would
-  // yank the field out from under the user.
-  const handleStayQuestionLayout = useCallback((event: LayoutChangeEvent) => {
-    if (hasScrolledToStayQuestionRef.current) {
+  // Selecting a reason reveals fields below the stats card and six reason
+  // rows, so on shorter devices they appear off-screen. Scroll to the topmost
+  // revealed field once: onLayout also fires as the multiline inputs grow, and
+  // re-scrolling mid-typing would yank the field out from under the user.
+  const handleRevealedFieldLayout = useCallback((event: LayoutChangeEvent) => {
+    if (hasScrolledToRevealedFieldRef.current) {
       return;
     }
-    hasScrolledToStayQuestionRef.current = true;
+    hasScrolledToRevealedFieldRef.current = true;
     scrollViewRef.current?.scrollTo({
-      y: Math.max(0, event.nativeEvent.layout.y - STAY_QUESTION_SCROLL_INSET),
+      y: Math.max(0, event.nativeEvent.layout.y - REVEALED_FIELD_SCROLL_INSET),
       animated: true,
     });
   }, []);
@@ -251,6 +251,7 @@ const CancelSurveyStep = ({
             style={tw.style(
               'mt-3 min-h-[96px] rounded-xl border border-muted bg-muted px-3 py-3 text-body-md text-default',
             )}
+            onLayout={handleRevealedFieldLayout}
             testID={CancelMembershipTestIds.OTHER_REASON_INPUT}
           />
         )}
@@ -258,7 +259,11 @@ const CancelSurveyStep = ({
         {showStayQuestion && (
           <Box
             twClassName="mt-6 gap-y-3"
-            onLayout={handleStayQuestionLayout}
+            // When "Other" is selected its input sits above and owns the
+            // scroll, so anchoring here would push that input off-screen.
+            onLayout={
+              showOtherReasonInput ? undefined : handleRevealedFieldLayout
+            }
             testID={CancelMembershipTestIds.STAY_QUESTION}
           >
             <Text

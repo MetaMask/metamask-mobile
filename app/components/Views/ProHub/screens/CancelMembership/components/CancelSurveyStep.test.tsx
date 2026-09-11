@@ -417,5 +417,56 @@ describe('CancelSurveyStep', () => {
 
       expect(props.onOtherReasonChange).toHaveBeenCalledWith('Too many emails');
     });
+
+    it('scrolls the other reason input into view when it lays out', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const { getByTestId } = renderStep({
+        selectedReasonId: OTHER_REASON_ID,
+      });
+
+      fireEvent(
+        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+        'layout',
+        createLayoutEvent(320),
+      );
+
+      expect(scrollToSpy).toHaveBeenCalledWith({ y: 304, animated: true });
+    });
+
+    it('keeps the other reason input in view when the stay question lays out', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const { getByTestId } = renderStep({
+        selectedReasonId: OTHER_REASON_ID,
+      });
+
+      fireEvent(
+        getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+        'layout',
+        createLayoutEvent(320),
+      );
+      fireEvent(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+        'layout',
+        createLayoutEvent(460),
+      );
+
+      expect(scrollToSpy).toHaveBeenCalledTimes(1);
+      expect(scrollToSpy).toHaveBeenCalledWith({ y: 304, animated: true });
+    });
+
+    it('does not scroll to the stay question when it lays out before the other reason input', () => {
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+      const { getByTestId } = renderStep({
+        selectedReasonId: OTHER_REASON_ID,
+      });
+
+      fireEvent(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+        'layout',
+        createLayoutEvent(460),
+      );
+
+      expect(scrollToSpy).not.toHaveBeenCalled();
+    });
   });
 });

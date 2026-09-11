@@ -121,7 +121,9 @@ describe('CancelMembership', () => {
   it('shows the other reason input after other is selected', () => {
     const { getByTestId, queryByTestId } = renderScreen();
 
-    expect(queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT)).toBeNull();
+    expect(
+      queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+    ).toBeNull();
 
     fireEvent.press(getByTestId(getCancelReasonTestId('other')));
 
@@ -136,7 +138,9 @@ describe('CancelMembership', () => {
     fireEvent.press(getByTestId(getCancelReasonTestId('other')));
     fireEvent.press(getByTestId(getCancelReasonTestId('cost')));
 
-    expect(queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT)).toBeNull();
+    expect(
+      queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
+    ).toBeNull();
   });
 
   it('keeps typed other reason text after switching away from other and back', () => {
