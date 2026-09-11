@@ -33,6 +33,7 @@ import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
 import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
+import { usePerpsVisibleCandleCount } from '../../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDeviatedAboveThreshold';
@@ -125,12 +126,14 @@ const PerpsProChartPanel = ({
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
   const { isChartExpanded, setChartExpanded } = usePerpsProChartExpanded();
+  const { visibleCandleCount, onVisibleCandleCountChange } =
+    usePerpsVisibleCandleCount(symbol);
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
+  const [inlineViewportRevision, setInlineViewportRevision] = useState(0);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
-  const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
   const chartContextKey = `${symbol}|${marketContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
 
   // Pro-only: the Advanced Chart unmounts while collapsed, so drop its last
@@ -302,6 +305,14 @@ const PerpsProChartPanel = ({
     });
   }, [chartAnalyticsProperties, symbol, track]);
 
+  const handleFullscreenChartClose = useCallback(() => {
+    setIsFullscreenChartVisible(false);
+    // The inline WebView remains mounted behind the modal and does not
+    // reframe from a count-only prop update. Remount it after closing so both
+    // chart libraries initialize from the fullscreen chart's persisted count.
+    setInlineViewportRevision((revision) => revision + 1);
+  }, []);
+
   let chartContent: React.ReactNode = (
     <Skeleton
       height={PRO_CHART_HEIGHT}
@@ -312,7 +323,7 @@ const PerpsProChartPanel = ({
   if (isMarketContextReady && isAdvancedChartEnabled) {
     chartContent = (
       <PerpsAdvancedChart
-        key={`${symbol}|${marketContextKey}`}
+        key={`${symbol}|${marketContextKey}|${inlineViewportRevision}`}
         symbol={symbol}
         interval={selectedCandlePeriod}
         visibleCandleCount={visibleCandleCount}
@@ -325,6 +336,7 @@ const PerpsProChartPanel = ({
         onResolved={handleAdvancedChartResolved}
         onFreshDelivery={onFreshDelivery}
         onError={onChartError}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         fallbackCandleData={candleData}
         fallbackDeliveryRevision={deliveryRevision}
         fallbackFetchMoreHistory={fetchMoreHistory}
@@ -339,6 +351,7 @@ const PerpsProChartPanel = ({
   ) {
     chartContent = (
       <TradingViewChart
+        key={`${symbol}|${marketContextKey}|${inlineViewportRevision}`}
         ref={chartRef}
         candleData={candleData}
         height={PRO_CHART_HEIGHT}
@@ -349,6 +362,7 @@ const PerpsProChartPanel = ({
         coloredVolume
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         testID={PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT}
       />
     );
@@ -461,8 +475,9 @@ const PerpsProChartPanel = ({
           tpslLines={tpslLines}
           selectedInterval={selectedCandlePeriod}
           visibleCandleCount={visibleCandleCount}
-          onClose={() => setIsFullscreenChartVisible(false)}
+          onClose={handleFullscreenChartClose}
           onIntervalChange={onCandlePeriodChange}
+          onVisibleCandleCountChange={onVisibleCandleCountChange}
           isAdvancedChartEnabled={isAdvancedChartEnabled}
           symbol={symbol}
           positionSize={existingPosition?.size}
