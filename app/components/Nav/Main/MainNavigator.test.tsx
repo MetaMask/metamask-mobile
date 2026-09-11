@@ -5,6 +5,8 @@ import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
 import { mockTheme } from '../../../util/theme';
+import NftDetails from '../../Views/NftDetails';
+import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -1466,20 +1468,20 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders NftDetailsModeView navigator', () => {
+      it('points the NftDetails route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'NftDetails');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'NftDetails')).toBe(NftDetails);
       });
 
-      it('renders NftDetailsFullImageModeView navigator', () => {
+      it('points the NftDetailsFullImage route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'NftDetailsFullImage');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'NftDetailsFullImage')).toBe(
+          NftDetailsFullImage,
+        );
       });
 
       it('renders SetPasswordFlow navigator', () => {
@@ -1490,7 +1492,7 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders AssetNavigator', () => {
+      it('renders AssetStackFlow under the Asset route', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
@@ -1785,18 +1787,19 @@ describe('MainNavigator', () => {
         expect(RevealPrivateCredential).toBeTruthy();
       });
 
-      it('renders AssetStackFlow inside AssetNavigator', () => {
+      it('registers the asset detail screens directly under the Asset route', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const AssetNavigator = getScreenComponent(mainRoot, 'Asset');
-        const { root: assetNavRoot } = renderInner(AssetNavigator);
+        // AssetStackFlow sits on the Asset route itself. There is no
+        // intermediate AssetStackFlow route to hop through.
+        const AssetStackFlow = getScreenComponent(mainRoot, 'Asset');
+        const { root: assetStackRoot } = renderInner(AssetStackFlow);
 
-        const AssetStackFlow = getScreenComponent(
-          assetNavRoot,
-          'AssetStackFlow',
-        );
-        expect(renderInner(AssetStackFlow).toJSON()).toBeTruthy();
+        expect(getScreenComponent(assetStackRoot, 'Asset')).toBeTruthy();
+        expect(
+          getScreenComponent(assetStackRoot, Routes.SECURITY_TRUST),
+        ).toBeTruthy();
       });
 
       it('renders SnapsSettingsStack inside SettingsFlow', () => {
