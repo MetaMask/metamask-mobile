@@ -88,7 +88,12 @@ const PerpsOrderRedirect: React.FC = () => {
       } catch (error: unknown) {
         const err = ensureError(error, 'PerpsOrderRedirect.depositWithOrder');
         Logger.error(err, {
-          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'PerpsOrderRedirect',
+            action: 'financial_deposit',
+            operation: 'financial_operations',
+          },
           context: { name: 'PerpsOrderRedirect.depositWithOrder', data: {} },
         });
         showToast(
@@ -101,7 +106,12 @@ const PerpsOrderRedirect: React.FC = () => {
 
     runDepositFlow().catch((error: unknown) => {
       Logger.error(ensureError(error, 'PerpsOrderRedirect.runDepositFlow'), {
-        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsOrderRedirect',
+          action: 'financial_deposit',
+          operation: 'financial_operations',
+        },
         context: { name: 'PerpsOrderRedirect.runDepositFlow', data: {} },
       });
     });
