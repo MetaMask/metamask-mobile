@@ -6496,7 +6496,7 @@
     "network_fee_not_available": "Network fee not available",
     "empty": {
       "title": "Nothing to see here",
-      "message": "This is where you can find notifications once there’s activity in your wallet. "
+      "message": "This is where you can find notifications once there’s activity in your wallet."
     },
     "disabled": {
       "title": "Turn on notifications",
