@@ -4,12 +4,24 @@ import { Connection } from '../services/connection';
 import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
 import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
-import {
-  hideNotificationById,
-  showSimpleNotification,
-} from '../../../actions/notification';
+import { showSimpleNotification } from '../../../actions/notification';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import NavigationService from '../../NavigationService';
+import Routes from '../../../constants/navigation/Routes';
+
+jest.mock('../../NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+      canGoBack: jest.fn(() => true),
+      getCurrentRoute: jest.fn(() => ({ name: 'Home' })),
+    },
+  },
+}));
+
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -66,52 +78,131 @@ describe('HostApplicationAdapter', () => {
     (store.dispatch as jest.Mock).mockClear();
     (setSdkV2Connections as jest.Mock).mockClear();
     (showSimpleNotification as jest.Mock).mockClear();
-    (hideNotificationById as jest.Mock).mockClear();
     (revokePermission as jest.Mock).mockClear();
     adapter = new HostApplicationAdapter();
   });
 
-  describe('showConnectionLoading', () => {
-    it('dispatches a pending notification with connection details', () => {
-      adapter.showConnectionLoading(
-        createMockConnectionInfo('session-123', 'Test DApp'),
-      );
+  describe('connection loading sheet', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nav = (NavigationService as any).navigation as {
+      navigate: jest.Mock;
+      goBack: jest.Mock;
+      canGoBack: jest.Mock;
+      getCurrentRoute: jest.Mock;
+    };
 
-      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
-      expect(showSimpleNotification).toHaveBeenCalledWith({
-        id: 'session-123',
-        autodismiss: 10000,
-        title: 'sdk_connect_v2.show_loading.title',
-        description: 'sdk_connect_v2.show_loading.description',
-        status: 'pending',
+    beforeEach(() => {
+      jest.useFakeTimers();
+      nav.navigate.mockClear();
+      nav.goBack.mockClear();
+      nav.canGoBack.mockReturnValue(true);
+      nav.getCurrentRoute.mockReturnValue({ name: 'Home' });
+    });
+
+    afterEach(() => {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    });
+
+    describe('showConnectionLoading', () => {
+      it('navigates to the shared SDK loading sheet', () => {
+        adapter.showConnectionLoading(
+          createMockConnectionInfo('session-123', 'Test DApp'),
+        );
+
+        expect(nav.navigate).toHaveBeenCalledTimes(1);
+        expect(nav.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.SHEET.SDK_LOADING,
+          },
+        );
       });
-      expect(store.dispatch).toHaveBeenCalledTimes(1);
+
+      it.each([
+        ['lock screen', Routes.LOCK_SCREEN],
+        ['login screen', Routes.ONBOARDING.LOGIN],
+        ['account connect sheet', Routes.SHEET.ACCOUNT_CONNECT],
+      ])('does not show the sheet over the %s', (_label, routeName) => {
+        nav.getCurrentRoute.mockReturnValue({ name: routeName });
+
+        adapter.showConnectionLoading(
+          createMockConnectionInfo('session-123', 'Test DApp'),
+        );
+
+        expect(nav.navigate).not.toHaveBeenCalled();
+      });
+
+      it('auto-dismisses the sheet after the timeout as a safety net', () => {
+        adapter.showConnectionLoading(
+          createMockConnectionInfo('session-123', 'Test DApp'),
+        );
+
+        // The sheet is now on top; the safety timer should take it down.
+        nav.getCurrentRoute.mockReturnValue({
+          name: Routes.SHEET.SDK_LOADING,
+        });
+        jest.advanceTimersByTime(10000);
+
+        expect(nav.goBack).toHaveBeenCalledTimes(1);
+      });
+
+      it('honors a custom autodismiss timeout', () => {
+        adapter.showConnectionLoading(
+          createMockConnectionInfo('session-123', 'Test DApp'),
+          { autodismissMs: 15000 },
+        );
+
+        nav.getCurrentRoute.mockReturnValue({
+          name: Routes.SHEET.SDK_LOADING,
+        });
+
+        jest.advanceTimersByTime(10000);
+        expect(nav.goBack).not.toHaveBeenCalled();
+
+        jest.advanceTimersByTime(5000);
+        expect(nav.goBack).toHaveBeenCalledTimes(1);
+      });
     });
 
-    it('uses a custom autodismiss timeout when provided', () => {
-      adapter.showConnectionLoading(
-        createMockConnectionInfo('session-123', 'Test DApp'),
-        { autodismissMs: 15000 },
-      );
+    describe('hideConnectionLoading', () => {
+      it('dismisses the sheet when it is the current route', () => {
+        nav.getCurrentRoute.mockReturnValue({
+          name: Routes.SHEET.SDK_LOADING,
+        });
 
-      expect(showSimpleNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'session-123',
-          autodismiss: 15000,
-        }),
-      );
-    });
-  });
+        adapter.hideConnectionLoading(
+          createMockConnectionInfo('session-123', 'Test DApp'),
+        );
 
-  describe('hideConnectionLoading', () => {
-    it('dispatches hideNotificationById with the session request ID', () => {
-      adapter.hideConnectionLoading(
-        createMockConnectionInfo('session-123', 'Test DApp'),
-      );
+        expect(nav.goBack).toHaveBeenCalledTimes(1);
+      });
 
-      expect(hideNotificationById).toHaveBeenCalledTimes(1);
-      expect(hideNotificationById).toHaveBeenCalledWith('session-123');
-      expect(store.dispatch).toHaveBeenCalledTimes(1);
+      it('does nothing when the loading sheet is not the current route', () => {
+        nav.getCurrentRoute.mockReturnValue({ name: 'Home' });
+
+        adapter.hideConnectionLoading(
+          createMockConnectionInfo('session-123', 'Test DApp'),
+        );
+
+        expect(nav.goBack).not.toHaveBeenCalled();
+      });
+
+      it('cancels the pending safety auto-dismiss timer', () => {
+        const info = createMockConnectionInfo('session-123', 'Test DApp');
+        adapter.showConnectionLoading(info);
+
+        nav.getCurrentRoute.mockReturnValue({
+          name: Routes.SHEET.SDK_LOADING,
+        });
+        adapter.hideConnectionLoading(info);
+        expect(nav.goBack).toHaveBeenCalledTimes(1);
+
+        // The safety timer should have been cleared, so advancing time must not
+        // trigger a second goBack.
+        jest.advanceTimersByTime(20000);
+        expect(nav.goBack).toHaveBeenCalledTimes(1);
+      });
     });
   });
 

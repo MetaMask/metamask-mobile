@@ -292,6 +292,52 @@ describe('Connection', () => {
         );
       });
 
+      it('dismisses the connection loading sheet when a wallet_createSession request arrives', async () => {
+        await Connection.create(
+          mockConnectionInfo,
+          mockKeyManager,
+          RELAY_URL,
+          mockHostApp,
+        );
+
+        (
+          Engine.context.ApprovalController.getTotalApprovalCount as jest.Mock
+        ).mockReturnValue(0);
+
+        const walletCreateSessionPayload = {
+          name: 'metamask-multichain-provider',
+          data: {
+            method: 'wallet_createSession',
+            params: {},
+            id: 1,
+          },
+        };
+
+        await onClientMessageCallback(walletCreateSessionPayload);
+
+        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
+          mockConnectionInfo,
+        );
+      });
+
+      it('does not dismiss the loading sheet for non-createSession messages', async () => {
+        await Connection.create(
+          mockConnectionInfo,
+          mockKeyManager,
+          RELAY_URL,
+          mockHostApp,
+        );
+
+        const otherPayload = {
+          name: 'metamask-provider',
+          data: { method: 'eth_accounts', params: [], id: 2 },
+        };
+
+        await onClientMessageCallback(otherPayload);
+
+        expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
+      });
+
       it('does not clear pending approvals or navigate away when there are no pending approval requests', async () => {
         await Connection.create(
           mockConnectionInfo,
