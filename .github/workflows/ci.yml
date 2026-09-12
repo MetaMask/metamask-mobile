@@ -1740,6 +1740,7 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
+      HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
     needs: merge-unit-and-component-view-tests
     # Run when merged coverage is ready even if optional integration shards failed upstream.
     if: ${{ always() && !cancelled() && needs.merge-unit-and-component-view-tests.result == 'success' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
@@ -1786,7 +1787,6 @@ jobs:
         # This is SonarSource/sonarqube-scan-action@v7.0.0
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
         env:
-          HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Require clean working directory
         shell: bash
