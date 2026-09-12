@@ -15,14 +15,12 @@ import { AnalyticsControllerActions } from '@metamask/analytics-controller';
  * @returns The restricted messenger.
  */
 export function getDeFiPositionsControllerMessenger(
-  rootMessenger: RootMessenger,
-): DeFiPositionsControllerMessenger {
-  const messenger = new Messenger<
-    'DeFiPositionsController',
+  rootMessenger: RootMessenger<
     MessengerActions<DeFiPositionsControllerMessenger>,
-    MessengerEvents<DeFiPositionsControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<DeFiPositionsControllerMessenger>
+  >,
+): DeFiPositionsControllerMessenger {
+  const messenger: DeFiPositionsControllerMessenger = new Messenger({
     namespace: 'DeFiPositionsController',
     parent: rootMessenger,
   });
@@ -38,19 +36,19 @@ export function getDeFiPositionsControllerMessenger(
   return messenger;
 }
 
-export type DeFiPositionsControllerInitMessenger = ReturnType<
-  typeof getDeFiPositionsControllerInitMessenger
+export type DeFiPositionsControllerInitMessenger = Messenger<
+  'DeFiPositionsControllerInit',
+  RemoteFeatureFlagControllerGetStateAction | AnalyticsControllerActions,
+  never
 >;
 
 export function getDeFiPositionsControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'DeFiPositionsControllerInit',
-    RemoteFeatureFlagControllerGetStateAction | AnalyticsControllerActions,
-    never,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<DeFiPositionsControllerInitMessenger>,
+    MessengerEvents<DeFiPositionsControllerInitMessenger>
+  >,
+): DeFiPositionsControllerInitMessenger {
+  const messenger: DeFiPositionsControllerInitMessenger = new Messenger({
     namespace: 'DeFiPositionsControllerInit',
     parent: rootMessenger,
   });
