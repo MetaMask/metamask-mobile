@@ -1275,6 +1275,7 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "win_rate_tag": "{{winRate}} WR",
     "mute": {
       "on_accessibility_label": "Notifications on. Tap to mute this trader",
       "muted_accessibility_label": "Muted. Tap to turn notifications back on",
