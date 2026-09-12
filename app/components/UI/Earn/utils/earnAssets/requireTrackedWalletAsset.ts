@@ -2,22 +2,22 @@ import type { Asset } from '@metamask/assets-controllers';
 import type { EarnAsset } from '../../types/earnAssets';
 
 /**
- * Returns AssetsController data required by wallet-backed operations.
+ * Returns the AssetsController asset tracked by the selected wallet.
  *
- * @param asset - Earn asset used by the operation.
+ * @param earnAsset - Earn asset used by the operation.
  * @param operation - Operation name included in the failure message.
  * @returns Wallet-tracked AssetsController asset.
  * @throws When the selected account wallet does not track the asset.
  */
-export const requireTrackedEarnAsset = (
-  asset: EarnAsset,
+export const requireTrackedWalletAsset = (
+  earnAsset: EarnAsset,
   operation: string,
 ): Asset => {
-  if (asset.wallet.status !== 'tracked') {
+  if (earnAsset.wallet.status !== 'tracked') {
     throw new Error(
-      `${operation} requires wallet-tracked asset: ${asset.assetId}`,
+      `${operation} requires wallet-tracked asset: ${earnAsset.assetId}`,
     );
   }
 
-  return asset.wallet.asset;
+  return earnAsset.wallet.asset;
 };

@@ -1,11 +1,6 @@
 import type { Asset } from '@metamask/assets-controllers';
 import { TransactionType } from '@metamask/transaction-controller';
-import {
-  isCaipAssetType,
-  KnownCaipNamespace,
-  parseCaipAssetType,
-  type Hex,
-} from '@metamask/utils';
+import type { Hex } from '@metamask/utils';
 import {
   getBlockedTokensForTransactionType,
   isTokenBlocked,
@@ -29,10 +24,6 @@ export interface MoneyDepositToken {
 export type MoneyDepositBlockedTokens = ReturnType<
   typeof getBlockedTokensForTransactionType
 >;
-
-export const isEvmCaip19AssetId = (assetId: string): boolean =>
-  isCaipAssetType(assetId) &&
-  parseCaipAssetType(assetId).chain.namespace === KnownCaipNamespace.Eip155;
 
 const hasBalance = (asset: MoneyDepositAsset) =>
   Number(asset.fiat?.balance ?? 0) > 0 ||
@@ -88,24 +79,18 @@ export const selectMoneyDepositBlockedTokens = createDeepEqualSelector(
     ),
 );
 
-export const selectMoneyDepositAssetsWithoutMinimumBalance =
-  createDeepEqualSelector(
-    [selectAssetsBySelectedAccountGroup, selectMoneyDepositBlockedTokens],
-    (assetsByChain, blockedTokens) =>
-      filterMoneyDepositSupportedAssets(
-        Object.values(assetsByChain).flat() as Asset[],
-        blockedTokens,
-      ),
-  );
-
 export const selectMoneyDepositAssetsMeetingMinimumBalance =
   createDeepEqualSelector(
     [
-      selectMoneyDepositAssetsWithoutMinimumBalance,
+      selectAssetsBySelectedAccountGroup,
+      selectMoneyDepositBlockedTokens,
       selectMoneyDepositMinBalance,
     ],
-    (supportedAssets, minimumBalance) =>
-      supportedAssets
+    (assetsByChain, blockedTokens, minimumBalance) =>
+      filterMoneyDepositSupportedAssets(
+        Object.values(assetsByChain).flat() as Asset[],
+        blockedTokens,
+      )
         .filter(
           (asset) =>
             hasBalance(asset) && meetsMinimumBalance(asset, minimumBalance),

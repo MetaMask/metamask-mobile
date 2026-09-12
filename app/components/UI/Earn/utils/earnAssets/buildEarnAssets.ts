@@ -42,7 +42,14 @@ const mergeExperiences = (
   return [...experiencesById.values()];
 };
 
-const selectCanonicalAsset = (
+/**
+ * Selects tracked wallet data when available for a duplicate asset identity.
+ *
+ * @param current - Asset already selected for the identity.
+ * @param incoming - Later asset candidate for the same identity.
+ * @returns Tracked candidate when current is untracked; otherwise current.
+ */
+const selectTrackedAssetWhenAvailable = (
   current: EarnAsset,
   incoming: EarnAsset,
 ): EarnAsset => {
@@ -83,7 +90,7 @@ export const buildEarnAssets = (
         }
 
         assetsById.set(identity, {
-          ...selectCanonicalAsset(current, candidate),
+          ...selectTrackedAssetWhenAvailable(current, candidate),
           experiences: orderExperiencesByRank(
             mergeExperiences(current.experiences, candidate.experiences),
           ),

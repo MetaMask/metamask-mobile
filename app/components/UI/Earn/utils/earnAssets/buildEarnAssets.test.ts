@@ -90,7 +90,7 @@ describe('buildEarnAssets', () => {
     ]);
   });
 
-  it('keeps tracked wallet data over untracked metadata', () => {
+  it('selects tracked asset when available after untracked candidate', () => {
     const tracked = createTrackedAsset();
     const untracked = createAsset();
 
@@ -107,7 +107,7 @@ describe('buildEarnAssets', () => {
     }
   });
 
-  it('keeps tracked wallet data when the tracked candidate comes first', () => {
+  it('keeps tracked asset when it is already selected', () => {
     const tracked = createTrackedAsset();
     const untracked = createAsset({
       metadata: {

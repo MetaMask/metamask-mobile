@@ -175,7 +175,8 @@ const renderNonMoneyStrategyCard = (
 const EarnStrategySelectionModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const isNavigatingToDepositRef = useRef(false);
-  const pendingDepositNavigationRouteRef = useRef<
+  // Preserve resolved route while bottom sheet closes before navigation runs.
+  const pendingEarnDepositRouteRef = useRef<
     EarnDepositNavigationRoute | undefined
   >(undefined);
   const [isNavigatingToDeposit, setIsNavigatingToDeposit] = useState(false);
@@ -259,12 +260,12 @@ const EarnStrategySelectionModal = () => {
         earnAsset,
         selectedStrategy,
         params.tokenDetailsSource,
-        pendingDepositNavigationRouteRef.current,
+        pendingEarnDepositRouteRef.current,
       );
     } catch (error) {
       handleNavigationError(error);
     } finally {
-      pendingDepositNavigationRouteRef.current = undefined;
+      pendingEarnDepositRouteRef.current = undefined;
       setIsNavigatingToDeposit(false);
     }
   }, [
@@ -288,8 +289,10 @@ const EarnStrategySelectionModal = () => {
       selectedStrategy.type as EARN_MODULE_STRATEGY_TYPES;
 
     try {
-      pendingDepositNavigationRouteRef.current =
-        resolveEarnDepositNavigationRoute(earnAsset, selectedStrategy);
+      pendingEarnDepositRouteRef.current = resolveEarnDepositNavigationRoute(
+        earnAsset,
+        selectedStrategy,
+      );
     } catch (error) {
       handleNavigationError(error);
       return;
@@ -321,7 +324,7 @@ const EarnStrategySelectionModal = () => {
       redirect_target: getSelectedEarnStrategyRedirectTarget(
         selectedStrategy,
         isOnboardingRedirectNeeded,
-        pendingDepositNavigationRouteRef.current,
+        pendingEarnDepositRouteRef.current,
       ),
     });
     isNavigatingToDepositRef.current = true;

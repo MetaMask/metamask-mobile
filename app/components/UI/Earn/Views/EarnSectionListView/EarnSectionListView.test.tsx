@@ -151,7 +151,9 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   default: jest.fn(() => ({
     navigateFromEarnAsset: mockNavigateFromEarnAsset,
   })),
-  getEarnAssetEntryRedirectTarget: jest.fn(() => 'stablecoin_lending_deposit'),
+  getEarnAssetSelectionRedirectTarget: jest.fn(
+    () => 'stablecoin_lending_deposit',
+  ),
 }));
 
 jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({

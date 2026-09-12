@@ -1,16 +1,16 @@
 import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType } from '@metamask/keyring-api';
 import type { EarnAsset, EarnAssetId } from '../../types/earnAssets';
-import { requireTrackedEarnAsset } from './requireTrackedEarnAsset';
+import { requireTrackedWalletAsset } from './requireTrackedWalletAsset';
 import { getMoneyDepositPaymentToken } from './getMoneyDepositPaymentToken';
 
-jest.mock('./requireTrackedEarnAsset', () => ({
-  requireTrackedEarnAsset: jest.fn(),
+jest.mock('./requireTrackedWalletAsset', () => ({
+  requireTrackedWalletAsset: jest.fn(),
 }));
 
 const ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const ASSET_ID = `eip155:1/erc20:${ADDRESS}` as EarnAssetId;
-const mockRequireTrackedEarnAsset = jest.mocked(requireTrackedEarnAsset);
+const mockRequireTrackedWalletAsset = jest.mocked(requireTrackedWalletAsset);
 
 const createEarnAsset = (wallet: EarnAsset['wallet']): EarnAsset => ({
   assetId: ASSET_ID,
@@ -47,7 +47,7 @@ const createWalletAsset = (): Asset =>
 
 describe('getMoneyDepositPaymentToken', () => {
   beforeEach(() => {
-    mockRequireTrackedEarnAsset.mockReset();
+    mockRequireTrackedWalletAsset.mockReset();
   });
 
   it('returns the tracked wallet asset address and chain ID', () => {
@@ -56,7 +56,7 @@ describe('getMoneyDepositPaymentToken', () => {
       status: 'tracked',
       asset: walletAsset,
     });
-    mockRequireTrackedEarnAsset.mockReturnValue(walletAsset);
+    mockRequireTrackedWalletAsset.mockReturnValue(walletAsset);
 
     const result = getMoneyDepositPaymentToken(earnAsset);
 
@@ -64,7 +64,7 @@ describe('getMoneyDepositPaymentToken', () => {
       address: ADDRESS,
       chainId: '0x1',
     });
-    expect(mockRequireTrackedEarnAsset).toHaveBeenCalledWith(
+    expect(mockRequireTrackedWalletAsset).toHaveBeenCalledWith(
       earnAsset,
       'Money deposit',
     );
@@ -75,7 +75,7 @@ describe('getMoneyDepositPaymentToken', () => {
     const error = new Error(
       `Money deposit requires wallet-tracked asset: ${ASSET_ID}`,
     );
-    mockRequireTrackedEarnAsset.mockImplementation(() => {
+    mockRequireTrackedWalletAsset.mockImplementation(() => {
       throw error;
     });
 
@@ -89,7 +89,7 @@ describe('getMoneyDepositPaymentToken', () => {
       status: 'tracked',
       asset: assetWithoutAddress,
     });
-    mockRequireTrackedEarnAsset.mockReturnValue(assetWithoutAddress);
+    mockRequireTrackedWalletAsset.mockReturnValue(assetWithoutAddress);
 
     expect(() => getMoneyDepositPaymentToken(earnAsset)).toThrow(
       'Money deposit requires tracked asset with address',

@@ -10,7 +10,7 @@ import {
   getEarnInputExperiences,
   getMoneyDepositPaymentToken,
   requiresEarnAssetAcquisition,
-  requireTrackedEarnAsset,
+  requireTrackedWalletAsset,
 } from '../utils/earnAssets';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { toHex } from '@metamask/controller-utils';
@@ -121,8 +121,15 @@ export const getEarnOpportunityDestination = (
   return getEarnExperienceDestination(singleSupportedExperience.type);
 };
 
-/** Used to determine the redirect_target property for event tracking. */
-export const getEarnAssetEntryRedirectTarget = (
+/**
+ * Used for analytics only.
+ *
+ * Returns the destination reached after selecting an Earn asset.
+ *
+ * Routes to strategy selection when multiple choices exist; otherwise routes
+ * directly to deposit, including Money onboarding when required.
+ */
+export const getEarnAssetSelectionRedirectTarget = (
   earnAsset: EarnAsset,
   isMoneyOnboardingRedirectNeeded: boolean,
 ): EarnOpportunityRedirectTarget | undefined => {
@@ -144,7 +151,11 @@ export const getEarnAssetEntryRedirectTarget = (
   }
 };
 
-export const getEarnSelectedStrategyRedirectTarget = (
+/**
+ * Returns the deposit destination for a specific Earn experience, including
+ * Money onboarding when required.
+ */
+export const getEarnExperienceDepositRedirectTarget = (
   experience: EarnExperience,
   isMoneyOnboardingRedirectNeeded: boolean,
 ): EarnExperienceRedirectTarget | undefined => {
@@ -172,17 +183,18 @@ export const getSelectedEarnStrategyRedirectTarget = (
   depositNavigationRoute?.redirectTarget ??
   (experience.depositReadiness.status === 'not_ready'
     ? EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS
-    : getEarnSelectedStrategyRedirectTarget(
+    : getEarnExperienceDepositRedirectTarget(
         experience,
         isMoneyOnboardingRedirectNeeded,
       ));
 
 /**
- * Navigates an Earn opportunity to strategy selection or Token Details based
- * on whether its experiences can currently accept a deposit.
+ * Provides Earn navigation based on asset readiness and experience type.
  *
- * @param tokenDetailsSource - Attribution source for Token Details navigation.
- * @returns Earn opportunity navigation callback.
+ * Handles strategy selection, Money fiat deposits, Swap/Buy acquisition,
+ * Token Details, and ready experience deposit flows.
+ *
+ * @returns Earn navigation callbacks and deposit route helpers.
  */
 const useEarnOpportunityNavigation = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -246,7 +258,7 @@ const useEarnOpportunityNavigation = () => {
 
   const navigateToStablecoinLending = useCallback(
     async (earnAsset: EarnAsset) => {
-      const asset = requireTrackedEarnAsset(
+      const asset = requireTrackedWalletAsset(
         earnAsset,
         'Stablecoin lending redirect',
       );

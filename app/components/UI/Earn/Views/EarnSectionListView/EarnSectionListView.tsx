@@ -49,7 +49,7 @@ import {
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import { isPositiveNumber } from '../../../Money/utils/number';
 import useEarnOpportunityNavigation, {
-  getEarnAssetEntryRedirectTarget,
+  getEarnAssetSelectionRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useEarnAssetCatalogue from '../../hooks/useEarnAssetCatalogue';
 import EarnSearchAssetRow from '../../../../Views/TrendingView/feeds/earn/EarnSearchAssetRow';
@@ -325,7 +325,7 @@ const EarnSectionListView = () => {
           position,
           moreWaysAssets.length,
         ),
-        redirect_target: getEarnAssetEntryRedirectTarget(
+        redirect_target: getEarnAssetSelectionRedirectTarget(
           item.asset,
           // isMoneyOnboardingRedirectNeeded is always false here since this handler is for non-Money deposit experiences.
           false,

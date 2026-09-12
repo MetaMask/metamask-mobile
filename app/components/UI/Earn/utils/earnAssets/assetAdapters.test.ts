@@ -185,6 +185,24 @@ describe('Earn asset adapters', () => {
     });
   });
 
+  it.each([
+    ['undefined', undefined],
+    ['empty', ''],
+    ['whitespace-only', '   '],
+  ] as const)(
+    'uses canonical asset ID when tracked asset address is %s',
+    (_addressState, address) => {
+      const walletAsset = {
+        ...createWalletAsset(),
+        address,
+      } as unknown as Asset;
+
+      const asset = createTrackedEarnAsset(walletAsset, ASSET_ID, []);
+
+      expect(asset.metadata.address).toBe(ASSET_ID);
+    },
+  );
+
   it('creates an untracked asset without wallet data', () => {
     const metadata = {
       address: ADDRESS,

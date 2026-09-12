@@ -14,7 +14,6 @@ import { selectRelayFixedSpread } from '../../../../selectors/featureFlagControl
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import {
-  selectMoneyDepositBlockedTokens,
   type MoneyDepositBlockedTokens,
   type MoneyDepositAsset,
 } from '../../Money/selectors/depositTokens';
@@ -223,7 +222,7 @@ const mockSelectorValues = ({
   isTrxStakingEnabled = false,
   earnTokens = [],
   earnOutputTokens = [],
-  moneyDepositAssets = [moneyToken],
+  moneyDepositAssetsMeetingMinimumBalance = [moneyToken],
   assets,
   relayFixedSpread = EMPTY_RELAY_FIXED_SPREAD_CONFIG,
   blockedTokens = { chainIds: [], tokens: [] },
@@ -235,7 +234,7 @@ const mockSelectorValues = ({
   isTrxStakingEnabled?: boolean;
   earnTokens?: EarnTokenDetails[];
   earnOutputTokens?: EarnTokenDetails[];
-  moneyDepositAssets?: MoneyDepositAsset[];
+  moneyDepositAssetsMeetingMinimumBalance?: MoneyDepositAsset[];
   assets?: Asset[];
   relayFixedSpread?: RelayFixedSpreadConfig;
   blockedTokens?: MoneyDepositBlockedTokens;
@@ -244,18 +243,16 @@ const mockSelectorValues = ({
     if (selector === selectIsMoneyAccountVisible) {
       return isMoneyAccountVisible;
     }
-    if (selector === selectMoneyDepositBlockedTokens) {
-      return blockedTokens;
-    }
     if (selector === selectRelayFixedSpread) return relayFixedSpread;
     if (selector === selectEarnAssetCatalogueInputs) {
       return {
         earnTokens,
         earnOutputTokens,
         lendingMarkets: [market],
-        moneyDepositAssets,
+        moneyDepositAssetsMeetingMinimumBalance,
+        moneyDepositBlockedTokens: blockedTokens,
         assets: assets ?? [
-          ...moneyDepositAssets,
+          ...moneyDepositAssetsMeetingMinimumBalance,
           ...earnTokens.map(earnTokenToAsset),
           ...earnOutputTokens.map(earnTokenToAsset),
         ],
@@ -544,7 +541,7 @@ describe('useEarnAssetCatalogue', () => {
     mockSelectorValues({
       earnTokens: [],
       earnOutputTokens: [],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
       assets: [],
     });
 
@@ -562,7 +559,7 @@ describe('useEarnAssetCatalogue', () => {
   it('marks Money funding insufficient when a tracked asset is not eligible', () => {
     mockSelectorValues({
       earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
       assets: [moneyToken],
     });
 
@@ -589,7 +586,7 @@ describe('useEarnAssetCatalogue', () => {
     };
     mockSelectorValues({
       earnTokens: [zeroBalanceToken],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
       assets: [earnTokenToAsset(zeroBalanceToken)],
     });
 
@@ -621,7 +618,7 @@ describe('useEarnAssetCatalogue', () => {
           isBalanceFiatAvailable: false,
         }),
       ],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
     });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
@@ -680,7 +677,9 @@ describe('useEarnAssetCatalogue', () => {
       isNative: true,
     } as MoneyDepositAsset;
     mockFormatAddressToAssetId.mockReturnValue(undefined);
-    mockSelectorValues({ moneyDepositAssets: [unresolvedMoneyAsset] });
+    mockSelectorValues({
+      moneyDepositAssetsMeetingMinimumBalance: [unresolvedMoneyAsset],
+    });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
@@ -714,7 +713,7 @@ describe('useEarnAssetCatalogue', () => {
       isNative: true,
     } as MoneyDepositAsset;
     mockSelectorValues({
-      moneyDepositAssets: [moneyToken, polToken, ethToken],
+      moneyDepositAssetsMeetingMinimumBalance: [moneyToken, polToken, ethToken],
       assets: [],
     });
     mockFormatAddressToAssetId.mockImplementation((_address, chainId) =>
@@ -824,7 +823,7 @@ describe('useEarnAssetCatalogue', () => {
     mockSelectorValues({
       earnTokens: [],
       earnOutputTokens: [],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
     });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
@@ -903,7 +902,7 @@ describe('useEarnAssetCatalogue', () => {
     const heldToken = createEarnToken(USDC_ADDRESS, 'underlying');
     mockSelectorValues({
       earnTokens: [heldToken],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
       assets: [],
     });
 
@@ -923,7 +922,7 @@ describe('useEarnAssetCatalogue', () => {
     mockSelectorValues({
       earnTokens: [],
       earnOutputTokens: [createEarnToken(AUSDC_ADDRESS, 'output')],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
       assets: [],
     });
 
@@ -1017,7 +1016,7 @@ describe('useEarnAssetCatalogue', () => {
       isTrxStakingEnabled: true,
       earnTokens: [],
       earnOutputTokens: [],
-      moneyDepositAssets: [],
+      moneyDepositAssetsMeetingMinimumBalance: [],
     });
 
     const { result } = renderHook(() => useEarnAssetCatalogue());

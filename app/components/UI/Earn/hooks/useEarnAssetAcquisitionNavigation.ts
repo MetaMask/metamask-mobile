@@ -50,6 +50,11 @@ const useEarnAssetAcquisitionNavigation = () => {
   });
   const { goToBuy } = useRampNavigation();
 
+  /**
+   * Resolves how to acquire an asset required by a not-ready Earn experience.
+   *
+   * @returns Swap or Buy route, or undefined when acquisition is not required.
+   */
   const resolveEarnAssetAcquisitionRoute = useCallback(
     (
       earnAsset: EarnAsset,
@@ -94,6 +99,11 @@ const useEarnAssetAcquisitionNavigation = () => {
     [store],
   );
 
+  /**
+   * Navigates to a resolved asset-acquisition route.
+   *
+   * @param route - Swap or Buy route to execute.
+   */
   const navigateToEarnAssetAcquisitionRoute = useCallback(
     async (route: EarnAssetAcquisitionRoute): Promise<void> => {
       if (route.type === 'swap') {

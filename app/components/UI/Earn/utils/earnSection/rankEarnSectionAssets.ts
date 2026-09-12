@@ -24,7 +24,7 @@ const STABLECOIN_SYMBOL_PRIORITY: Record<string, number> = {
 };
 const MAINNET_ETH_PRIORITY = 3;
 
-type NoPositiveBalanceTieBreakKey = readonly [
+type NoPositiveBalanceAssetSortKey = readonly [
   group: number,
   chainId: string,
   tokenPriority: number,
@@ -90,15 +90,15 @@ const compareByKey = (
 ) => first.assetId.localeCompare(second.assetId);
 
 /**
- * Returns tie-break key:
+ * Returns deterministic fallback sort key for assets without a positive balance:
  * - Mainnet USDT → USDC → DAI → ETH
  * - Other chains: chain ID, then USDT → USDC → DAI
  * - Tron TRX
  * - Unknown assets
  */
-const getNoPositiveBalanceTieBreakKey = (
+const getNoPositiveBalanceAssetSortKey = (
   asset: EarnSectionRankedAsset,
-): NoPositiveBalanceTieBreakKey => {
+): NoPositiveBalanceAssetSortKey => {
   const { metadata } = asset;
   const symbol = metadata.symbol.toUpperCase();
   const chainId = metadata.chainId.toLowerCase();
@@ -125,14 +125,14 @@ const getNoPositiveBalanceTieBreakKey = (
   return [3, chainId, UNKNOWN_ASSET_PRIORITY];
 };
 
-const compareNoPositiveBalanceTieBreak = (
+const compareNoPositiveBalanceAssets = (
   first: EarnSectionRankedAsset,
   second: EarnSectionRankedAsset,
 ) => {
   const [firstGroup, firstChainId, firstSymbolPriority] =
-    getNoPositiveBalanceTieBreakKey(first);
+    getNoPositiveBalanceAssetSortKey(first);
   const [secondGroup, secondChainId, secondSymbolPriority] =
-    getNoPositiveBalanceTieBreakKey(second);
+    getNoPositiveBalanceAssetSortKey(second);
 
   return (
     firstGroup - secondGroup ||
@@ -183,7 +183,7 @@ export const rankEarnAssets = (
         compareKnownNumbersDescending(
           first.highestRatePercent,
           second.highestRatePercent,
-        ) || compareNoPositiveBalanceTieBreak(first, second),
+        ) || compareNoPositiveBalanceAssets(first, second),
     );
 
   return [...positiveBalanceAssets, ...noPositiveBalanceAssets];

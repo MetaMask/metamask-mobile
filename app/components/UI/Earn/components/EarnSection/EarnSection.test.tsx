@@ -55,10 +55,11 @@ jest.mock('../../../../UI/Earn/hooks/useEarnSectionAssets');
 jest.mock('../../../../UI/Earn/hooks/useEarnOpportunityNavigation', () => ({
   __esModule: true,
   default: jest.fn(),
-  getEarnAssetEntryRedirectTarget: jest.fn(() => 'stablecoin_lending_deposit'),
+  getEarnAssetSelectionRedirectTarget: jest.fn(
+    () => 'stablecoin_lending_deposit',
+  ),
 }));
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
-jest.mock('../../../../UI/Money/selectors/visibility');
 jest.mock('../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(() => ({
     trackSurfaceClicked: mockMoneyTrackSurfaceClicked,

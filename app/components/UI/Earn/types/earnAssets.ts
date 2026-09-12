@@ -26,7 +26,7 @@ export type EarnAssetRole = 'funding' | 'underlying' | 'output';
 
 export type EarnExperienceDepositNotReadyReason =
   | 'output_asset'
-  // The asset is not tracked by the selected account wallet.
+  // The asset is not tracked by the selected account.
   | 'asset_not_tracked'
   // The asset is tracked, but its balance or fiat valuation is unavailable.
   | 'balance_unavailable'

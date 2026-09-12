@@ -18,9 +18,9 @@ import { moneyFormatFiat } from '../../Money/utils/moneyFormatFiat';
 import { earnAssetToToken } from '../utils/earnAssets';
 import type { EarnToastOptions } from './useEarnToasts';
 import useEarnOpportunityNavigation, {
-  getEarnSelectedStrategyRedirectTarget,
+  getEarnExperienceDepositRedirectTarget,
   getEarnOpportunityDestination,
-  getEarnAssetEntryRedirectTarget,
+  getEarnAssetSelectionRedirectTarget,
 } from './useEarnOpportunityNavigation';
 import {
   EARN_MODULE_ENTRY_POINTS,
@@ -119,7 +119,7 @@ jest.mock('../utils/earnAssets', () => ({
       chainId: earnAsset.wallet.asset.chainId,
     };
   },
-  requireTrackedEarnAsset: (earnAsset: EarnAsset, operation: string) => {
+  requireTrackedWalletAsset: (earnAsset: EarnAsset, operation: string) => {
     if (earnAsset.wallet.status === 'tracked') {
       return earnAsset.wallet.asset;
     }
@@ -324,17 +324,17 @@ describe('useEarnOpportunityNavigation', () => {
     expect(getEarnOpportunityDestination(earnAsset)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
     );
-    expect(getEarnAssetEntryRedirectTarget(earnAsset, true)).toBe(
+    expect(getEarnAssetSelectionRedirectTarget(earnAsset, true)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING,
     );
-    expect(getEarnAssetEntryRedirectTarget(earnAsset, false)).toBe(
+    expect(getEarnAssetSelectionRedirectTarget(earnAsset, false)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
     );
   });
 
   it('resolves non-Money strategy destinations to Earn deposit', () => {
     expect(
-      getEarnSelectedStrategyRedirectTarget(
+      getEarnExperienceDepositRedirectTarget(
         createExperience(EARN_EXPERIENCES.POOLED_STAKING),
         false,
       ),
@@ -379,7 +379,9 @@ describe('useEarnOpportunityNavigation', () => {
   it('returns no redirect target when opportunity analytics data is invalid', () => {
     const earnAsset = createEarnAsset(1, []);
 
-    expect(getEarnAssetEntryRedirectTarget(earnAsset, false)).toBeUndefined();
+    expect(
+      getEarnAssetSelectionRedirectTarget(earnAsset, false),
+    ).toBeUndefined();
     expect(mockLoggerError).toHaveBeenCalledWith(
       expect.objectContaining({
         message:
@@ -395,7 +397,7 @@ describe('useEarnOpportunityNavigation', () => {
     );
 
     expect(
-      getEarnSelectedStrategyRedirectTarget(experience, false),
+      getEarnExperienceDepositRedirectTarget(experience, false),
     ).toBeUndefined();
     expect(mockLoggerError).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -418,7 +420,7 @@ describe('useEarnOpportunityNavigation', () => {
   ] as const)(
     'resolves %s to its deposit destination',
     (experienceType, expectedDestination) => {
-      const result = getEarnSelectedStrategyRedirectTarget(
+      const result = getEarnExperienceDepositRedirectTarget(
         createExperience(experienceType),
         false,
       );

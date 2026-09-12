@@ -1,6 +1,6 @@
 import type { Hex } from '@metamask/utils';
 import type { EarnAsset } from '../../types/earnAssets';
-import { requireTrackedEarnAsset } from './requireTrackedEarnAsset';
+import { requireTrackedWalletAsset } from './requireTrackedWalletAsset';
 
 /**
  * Builds the payment token required to start a Money deposit.
@@ -12,7 +12,7 @@ import { requireTrackedEarnAsset } from './requireTrackedEarnAsset';
 export const getMoneyDepositPaymentToken = (
   earnAsset: EarnAsset,
 ): { address: Hex; chainId: Hex } => {
-  const asset = requireTrackedEarnAsset(earnAsset, 'Money deposit');
+  const asset = requireTrackedWalletAsset(earnAsset, 'Money deposit');
 
   if (!('address' in asset)) {
     throw new Error('Money deposit requires tracked asset with address');

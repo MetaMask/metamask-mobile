@@ -14,7 +14,7 @@ import type {
   EarnAssetMetadata,
   EarnExperience,
 } from '../../types/earnAssets';
-import { requireTrackedEarnAsset } from './requireTrackedEarnAsset';
+import { requireTrackedWalletAsset } from './requireTrackedWalletAsset';
 
 /**
  * Gets canonical CAIP-19 asset ID for an AssetsController asset.
@@ -59,7 +59,10 @@ const createTrackedEarnAssetMetadata = (
   asset: Asset,
   assetId: EarnAssetId,
 ): EarnAssetMetadata => {
-  const hasAddress = 'address' in asset;
+  const hasAddress =
+    'address' in asset &&
+    typeof asset.address === 'string' &&
+    asset.address.trim().length > 0;
 
   return {
     /**
@@ -135,7 +138,7 @@ export const createUntrackedEarnAsset = (
  * @throws When the operation receives an untracked asset.
  */
 export const earnAssetToToken = (earnAsset: EarnAsset): TokenI => {
-  const asset = requireTrackedEarnAsset(earnAsset, 'Earn token conversion');
+  const asset = requireTrackedWalletAsset(earnAsset, 'Earn token conversion');
 
   return {
     ...earnAsset.metadata,

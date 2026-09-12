@@ -11,12 +11,9 @@ import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnContro
 import { pooledStakingSelectors } from '../../../../selectors/earnController/pooledStaking';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
+import { isEvmCaip19AssetId } from '../../../../util/multichain/isEvmCaip19AssetId';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
-import {
-  isEvmCaip19AssetId,
-  isMoneyDepositSupportedToken,
-  selectMoneyDepositBlockedTokens,
-} from '../../Money/selectors/depositTokens';
+import { isMoneyDepositSupportedToken } from '../../Money/selectors/depositTokens';
 import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { isMoneyDepositFeeSubsidized } from '../../Money/utils/isMoneyDepositFeeSubsidized';
 import type { TokenI } from '../../Tokens/types';
@@ -42,6 +39,7 @@ import { MIN_EARN_DEPOSIT_BALANCE } from '../utils/earnAssets/earnAssetBalance';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
 import useEarnSectionTokenMetadata from './useEarnSectionTokenMetadata';
 import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
+import { EarnTokenDetails } from '../types/lending.types';
 
 const TRON_MAINNET_CHAIN_ID = ChainId.TRON_MAINNET;
 const TRON_MAINNET_CAIP_CHAIN_ID = `tron:${TRON_MAINNET_CHAIN_ID}`;
@@ -134,18 +132,18 @@ const getLendingAssetId = (chainId: number, address: string): EarnAssetId =>
   ).toLowerCase() as EarnAssetId;
 
 const getMoneyDepositReadiness = (
-  asset: EarnAsset,
+  earnAsset: EarnAsset,
   eligibleAssetIds: ReadonlySet<string>,
 ): EarnExperienceDepositReadiness => {
-  if (asset.wallet.status === 'untracked') {
+  if (earnAsset.wallet.status === 'untracked') {
     return { status: 'not_ready', reason: 'asset_not_tracked' };
   }
 
-  if (eligibleAssetIds.has(asset.assetId.toLowerCase())) {
+  if (eligibleAssetIds.has(earnAsset.assetId.toLowerCase())) {
     return { status: 'ready' };
   }
 
-  const fiatBalance = asset.wallet.asset.fiat?.balance;
+  const fiatBalance = earnAsset.wallet.asset.fiat?.balance;
   return fiatBalance === undefined ||
     fiatBalance === null ||
     !Number.isFinite(Number(fiatBalance))
@@ -154,23 +152,25 @@ const getMoneyDepositReadiness = (
 };
 
 const getTrackedEarnDepositReadiness = ({
+  token,
   role,
-  isBalanceFiatAvailable,
-  balanceFiatNumber,
 }: {
+  token: EarnTokenDetails;
   role: EarnAssetRole;
-  isBalanceFiatAvailable: boolean | undefined;
-  balanceFiatNumber: number;
 }): EarnExperienceDepositReadiness => {
+  // Output assets cannot be deposited into Earn experiences (e.g. aTokens can't be deposited into Lending strategy).
   if (role === 'output') {
     return { status: 'not_ready', reason: 'output_asset' };
   }
 
-  if (!isBalanceFiatAvailable || !Number.isFinite(balanceFiatNumber)) {
+  if (
+    !token.isBalanceFiatAvailable ||
+    !Number.isFinite(token.balanceFiatNumber)
+  ) {
     return { status: 'not_ready', reason: 'balance_unavailable' };
   }
 
-  if (balanceFiatNumber < MIN_EARN_DEPOSIT_BALANCE) {
+  if (token.balanceFiatNumber < MIN_EARN_DEPOSIT_BALANCE) {
     return { status: 'not_ready', reason: 'insufficient_balance' };
   }
 
@@ -240,11 +240,7 @@ const getTrackedEarnExperiences = ({
             : `pooled:${assetId}`,
         type: experience.type,
         role,
-        depositReadiness: getTrackedEarnDepositReadiness({
-          role,
-          isBalanceFiatAvailable: token.isBalanceFiatAvailable,
-          balanceFiatNumber: token.balanceFiatNumber,
-        }),
+        depositReadiness: getTrackedEarnDepositReadiness({ role, token }),
         rate,
         isFeeSubsidized: false,
         market,
@@ -261,13 +257,11 @@ const useEarnAssetCatalogue = ({
 }: UseEarnAssetCatalogueOptions = {}) => {
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
-  const moneyDepositBlockedTokens = useSelector(
-    selectMoneyDepositBlockedTokens,
-  );
   const {
     earnTokens,
     earnOutputTokens,
-    moneyDepositAssets,
+    moneyDepositAssetsMeetingMinimumBalance,
+    moneyDepositBlockedTokens,
     assets: walletAssets,
     isEarnEligible,
     isPooledStakingEnabled,
@@ -519,12 +513,12 @@ const useEarnAssetCatalogue = ({
   const moneyDepositEligibleAssetIds = useMemo(
     () =>
       new Set(
-        moneyDepositAssets.flatMap((asset) => {
+        moneyDepositAssetsMeetingMinimumBalance.flatMap((asset) => {
           const assetId = getAssetEarnId(asset);
           return assetId ? [assetId.toLowerCase()] : [];
         }),
       ),
-    [moneyDepositAssets],
+    [moneyDepositAssetsMeetingMinimumBalance],
   );
   const moneyRate = useMemo(
     () =>
@@ -597,7 +591,9 @@ const useEarnAssetCatalogue = ({
     );
   const hasUnresolvedMoneyAsset =
     isMoneyAccountVisible &&
-    moneyDepositAssets.some((token) => !getAssetEarnId(token));
+    moneyDepositAssetsMeetingMinimumBalance.some(
+      (token) => !getAssetEarnId(token),
+    );
   const isLendingLoading =
     enabled &&
     isStablecoinLendingEnabled &&

@@ -35,7 +35,10 @@ export const requiresEarnAssetAcquisition = (
 export const getEarnInputExperiences = (
   experiences: readonly EarnExperience[],
 ): EarnExperience[] =>
-  experiences.filter((experience) => experience.role !== 'output');
+  experiences.filter(
+    (experience) =>
+      experience.role === 'funding' || experience.role === 'underlying',
+  );
 
 /**
  * Returns deposit experiences that can currently accept a deposit.

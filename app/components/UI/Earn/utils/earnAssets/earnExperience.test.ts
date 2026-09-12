@@ -22,9 +22,15 @@ const createExperience = (
 describe('earn experience utilities', () => {
   describe('getEarnInputExperiences', () => {
     it('excludes output experiences while preserving input order', () => {
-      const firstInput = createExperience({ id: 'first' });
+      const firstInput = createExperience({
+        id: 'first',
+        role: 'underlying',
+      });
       const output = createExperience({ id: 'output', role: 'output' });
-      const secondInput = createExperience({ id: 'second' });
+      const secondInput = createExperience({
+        id: 'second',
+        role: 'funding',
+      });
 
       const result = getEarnInputExperiences([firstInput, output, secondInput]);
 

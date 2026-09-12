@@ -9,7 +9,6 @@ import {
   type MoneyDepositAsset,
   selectMoneyDepositBlockedTokens,
   selectMoneyDepositAssetsMeetingMinimumBalance,
-  selectMoneyDepositAssetsWithoutMinimumBalance,
 } from './depositTokens';
 import { selectMoneyDepositMinBalance } from './featureFlags';
 
@@ -136,8 +135,8 @@ describe('selectMoneyDepositBlockedTokens', () => {
   });
 });
 
-describe('selectMoneyDepositAssetsWithoutMinimumBalance', () => {
-  it('returns supported assets without applying the minimum balance', () => {
+describe('selectMoneyDepositAssetsMeetingMinimumBalance', () => {
+  it('excludes assets below the minimum balance', () => {
     const asset = createAsset({
       fiat: { balance: 0, currency: 'usd', conversionRate: 1 },
       rawBalance: '0x0',
@@ -151,14 +150,13 @@ describe('selectMoneyDepositAssetsWithoutMinimumBalance', () => {
       blockedTokens: { default: emptyBlockedTokens, overrides: {} },
       minimumRequiredTokenBalance: 0,
     });
+    mockSelectMoneyDepositMinBalance.mockReturnValue(0.01);
 
-    const result = selectMoneyDepositAssetsWithoutMinimumBalance(state);
+    const result = selectMoneyDepositAssetsMeetingMinimumBalance(state);
 
-    expect(result).toEqual([asset]);
+    expect(result).toEqual([]);
   });
-});
 
-describe('selectMoneyDepositAssetsMeetingMinimumBalance', () => {
   it('returns the same reference when selector inputs are unchanged', () => {
     const asset = createAsset();
     const state = {} as RootState;
