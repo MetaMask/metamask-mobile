@@ -1,7 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictPortfolioScreen } from '../../../../../../tests/component-view/renderers/predictNext';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
-import { onlineManager } from '@tanstack/react-query';
+import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
+import { focusManager, onlineManager } from '@tanstack/react-query';
 import {
   configurePredictNextFeeds,
   messengerCall,
@@ -69,6 +69,43 @@ describe('PredictPortfolioScreen', () => {
     expect(
       await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toHaveTextContent('$5.00');
+  });
+
+  it('keeps the cached Balance visible when a later refetch fails', async () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1_000);
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+
+    messengerCall.mockClear();
+    messengerCall.mockImplementation((action: string) =>
+      action === 'PredictPortfolioService:getBalance'
+        ? Promise.reject(new Error('Balance refetch failed'))
+        : Promise.resolve(undefined),
+    );
+    now.mockReturnValue(61_001);
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      ),
+    );
+    // Let the failed refetch settle before asserting the cached amount
+    // survives it.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.BALANCE_ERROR),
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps loading while the first Balance read is offline', async () => {

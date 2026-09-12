@@ -40,7 +40,7 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 - **Real:** `PredictMarketDataService`, `PredictPortfolioService`, `KalshiRemoteAdapter`, `PredictApiReadClient`, and both direct Engine service messengers
 - **Mocked:** HTTP fetch and app-shell base URL/client version configuration
 - **Factory:** `buildPredictNextIntegrationHarness(responder)`
-- **Returns:** `{ controller, messenger, fetchMock, destroy }`
+- **Returns:** `{ messenger, marketDataService, portfolioService, fetchMock, getBearerTokenMock, destroy }`
 
 ---
 

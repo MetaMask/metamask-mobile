@@ -67,7 +67,6 @@ export const PredictPortfolioScreen = () => {
         <PortfolioSummaryCard
           balance={balanceQuery.data}
           isLoading={balanceQuery.isPending}
-          isError={balanceQuery.isError}
           isPrivacyMode={Boolean(privacyMode)}
           onRetry={() => balanceQuery.refetch()}
         />

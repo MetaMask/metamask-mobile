@@ -22,7 +22,6 @@ const formatUsd = (value: string): string =>
 
 interface PortfolioSummaryCardProps {
   balance?: PredictBalance;
-  isError: boolean;
   isLoading: boolean;
   isPrivacyMode: boolean;
   onRetry: () => void;
@@ -30,7 +29,6 @@ interface PortfolioSummaryCardProps {
 
 export const PortfolioSummaryCard = ({
   balance,
-  isError,
   isLoading,
   isPrivacyMode,
   onRetry,
@@ -48,7 +46,7 @@ export const PortfolioSummaryCard = ({
         width={80}
         testID={PredictPortfolioScreenTestIds.BALANCE_LOADING}
       />
-    ) : isError || !balance ? (
+    ) : !balance ? (
       <Box alignItems={BoxAlignItems.End} gap={1}>
         <Text
           variant={TextVariant.BodyMd}
