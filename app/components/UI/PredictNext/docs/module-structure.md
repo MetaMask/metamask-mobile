@@ -31,6 +31,9 @@ PredictNext/
   views/                       # Screen compositions and private view helpers
     PredictEvent/
       internal/                # Screen-owned detail helpers
+    PredictPortfolio/
+      PredictPortfolioScreen.tsx
+      internal/                # Summary, tabs, and empty-state composition
   hooks/                       # Existing cross-screen React query integration
   navigation/
 
@@ -39,7 +42,6 @@ PredictNext/
   queries/                     # Query descriptors and cache policy
   services/                    # Product services
   adapters/                    # Venue capability implementations
-  controller/                  # Composition and lifecycle
   config/
   selectors/
   errors/

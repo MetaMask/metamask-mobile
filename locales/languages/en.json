@@ -3000,6 +3000,27 @@
       "submit": "Submit"
     }
   },
+  "predict_next": {
+    "available_balance": "Available balance",
+    "balance_unavailable": {
+      "title": "Balance unavailable",
+      "description": "Unable to load your available balance.",
+      "retry": "Try again"
+    },
+    "portfolio": {
+      "title": "Positions",
+      "positions": "Positions",
+      "active_positions": "Active positions",
+      "history": "History",
+      "add_funds": "Add Funds",
+      "withdraw": "Withdraw",
+      "empty": {
+        "title": "No positions yet",
+        "description": "Your active and resolved positions will appear here.",
+        "browse_markets": "Browse markets"
+      }
+    }
+  },
   "predict": {
     "title": "MetaMask Predictions",
     "game_status": {

@@ -63,6 +63,7 @@ const createMarketHistory = (overrides = {}) => ({
 
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchVenueStatus: jest.fn(),
+  fetchBalance: jest.fn(),
   fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
   fetchMarketHistory: jest.fn(),
@@ -299,6 +300,73 @@ describe('KalshiRemoteAdapter', () => {
 
     await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toBe(
       abortError,
+    );
+  });
+
+  it('parses canonical Balance from the Predict API', async () => {
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '123.13',
+    });
+
+    const result = await adapter.portfolio.fetchBalance();
+
+    expect(result.available).toBe('123.13');
+  });
+
+  it('forwards Balance cancellation', async () => {
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: '123.13',
+    });
+    const signal = new AbortController().signal;
+
+    await adapter.portfolio.fetchBalance({ signal });
+
+    expect(client.fetchBalance).toHaveBeenCalledWith(adapter.venueId, {
+      signal,
+    });
+  });
+
+  it('rejects Balance for another Venue', async () => {
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'other',
+      currency: 'USD',
+      available: '123.13',
+    });
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('rejects a malformed Balance payload', async () => {
+    client.fetchBalance.mockResolvedValue({
+      venueId: 'kalshi',
+      currency: 'USD',
+      available: 'free',
+    });
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('maps Balance HTTP 401 to UNAUTHENTICATED', async () => {
+    client.fetchBalance.mockRejectedValue(new PredictHttpError(401));
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.UNAUTHENTICATED }),
+    );
+  });
+
+  it('maps Balance HTTP 503 to VENUE_UNAVAILABLE', async () => {
+    client.fetchBalance.mockRejectedValue(new PredictHttpError(503));
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
     );
   });
 });
