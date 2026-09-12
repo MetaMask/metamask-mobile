@@ -6,17 +6,18 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-} from '../../../../constants/on-ramp';
-import Routes from '../../../../constants/navigation/Routes';
-import { getProviderName } from '../../../../reducers/fiatOrders';
-import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+} from '../../../../../constants/on-ramp';
+import Routes from '../../../../../constants/navigation/Routes';
+import { getProviderName } from '../../../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../../../reducers/fiatOrders/types';
 import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
-} from '../../../../util/networks';
-import ClipboardManager from '../../../../core/ClipboardManager';
-import { mapRampOrder } from '../../../../util/activity-adapters';
-import { useAccountNames } from '../../../hooks/DisplayName/useAccountNames';
+} from '../../../../../util/networks';
+import ClipboardManager from '../../../../../core/ClipboardManager';
+import { mapRampOrder } from '../../../../../util/activity-adapters';
+import { useAccountNames } from '../../../../hooks/DisplayName/useAccountNames';
+import { useRampsDetailsOrder } from './useRampsDetailsOrder';
 import { RampDetails, type RampActivityListItem } from './RampDetails';
 
 const mockNavigate = jest.fn();
@@ -30,26 +31,34 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../reducers/fiatOrders', () => ({
+jest.mock('../../../../../reducers/fiatOrders', () => ({
   getProviderName: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/networkController', () => ({
+jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../hooks/DisplayName/useAccountNames', () => ({
+jest.mock('../../../../hooks/DisplayName/useAccountNames', () => ({
   useAccountNames: jest.fn(),
 }));
 
-jest.mock('../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../util/networks'),
+jest.mock('../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../util/networks'),
   findBlockExplorerUrlForChain: jest.fn(),
   getBlockExplorerTxUrl: jest.fn(),
 }));
 
-jest.mock('../../../../core/ClipboardManager', () => ({
+jest.mock('../../../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('./useRampsDetailsOrder', () => ({
+  useRampsDetailsOrder: jest.fn(),
+}));
+
+jest.mock('../DefaultDetails', () => ({
+  DefaultDetails: () => null,
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -90,6 +99,8 @@ function makeItem(order: FiatOrder): RampActivityListItem {
   return mapRampOrder({ order }) as RampActivityListItem;
 }
 
+const useRampsDetailsOrderMock = jest.mocked(useRampsDetailsOrder);
+
 function arrange() {
   (useNavigation as jest.Mock).mockReturnValue({
     navigate: mockNavigate,
@@ -106,6 +117,7 @@ function arrange() {
     url: 'https://etherscan.io/tx/0xhash',
     title: 'etherscan.io',
   });
+  useRampsDetailsOrderMock.mockReturnValue(baseOrder);
 }
 
 describe('RampDetails', () => {
@@ -131,13 +143,15 @@ describe('RampDetails', () => {
   });
 
   it('shows provider link and copies the full FiatOrder id', async () => {
-    const item = makeItem({
+    const order = {
       ...baseOrder,
       data: {
         providerOrderLink: 'https://mercuryo.io/order/abc',
         statusDescription: 'Card purchases typically take a few minutes',
       } as FiatOrder['data'],
-    });
+    };
+    const item = makeItem(order);
+    useRampsDetailsOrderMock.mockReturnValue(order);
 
     const { getByText, getByTestId } = render(<RampDetails item={item} />);
 
@@ -159,12 +173,14 @@ describe('RampDetails', () => {
 
   it('falls back to View Order when provider name is missing', () => {
     (getProviderName as jest.Mock).mockReturnValue('');
-    const item = makeItem({
+    const order = {
       ...baseOrder,
       data: {
         providerOrderLink: 'https://example.com/order/1',
       } as FiatOrder['data'],
-    });
+    };
+    const item = makeItem(order);
+    useRampsDetailsOrderMock.mockReturnValue(order);
 
     const { getByText, queryByText } = render(<RampDetails item={item} />);
 
@@ -173,7 +189,7 @@ describe('RampDetails', () => {
   });
 
   it('renders sell-specific destination and received total rows', () => {
-    const item = makeItem({
+    const order = {
       ...baseOrder,
       orderType: OrderOrderTypeEnum.Sell,
       cryptocurrency: 'ETH',
@@ -183,7 +199,9 @@ describe('RampDetails', () => {
       fee: '3',
       txHash: undefined,
       sellTxHash: '0xsellhash',
-    });
+    };
+    const item = makeItem(order);
+    useRampsDetailsOrderMock.mockReturnValue(order);
 
     const { getByText } = render(<RampDetails item={item} />);
 
@@ -199,11 +217,13 @@ describe('RampDetails', () => {
   });
 
   it('shows Not available for missing FiatOrder transaction hash', () => {
-    const item = makeItem({
+    const order = {
       ...baseOrder,
       txHash: undefined,
       sellTxHash: undefined,
-    });
+    };
+    const item = makeItem(order);
+    useRampsDetailsOrderMock.mockReturnValue(order);
 
     const { getAllByText } = render(<RampDetails item={item} />);
 
@@ -223,7 +243,7 @@ describe('RampDetails', () => {
 
   it('renders native RampsOrder details via RampRampsOrderDetails', async () => {
     const { mapRampsOrder } = jest.requireActual(
-      '../../../../util/activity-adapters',
+      '../../../../../util/activity-adapters',
     );
     const { RampsOrderStatus } = jest.requireActual(
       '@metamask/ramps-controller',
@@ -253,6 +273,9 @@ describe('RampDetails', () => {
       statusDescription: 'Payment failed. Please place another order.',
     };
     const item = mapRampsOrder({ order }) as RampActivityListItem;
+    useRampsDetailsOrderMock.mockReturnValue(
+      order as ReturnType<typeof useRampsDetailsOrder>,
+    );
 
     const { getByText, getByTestId } = render(<RampDetails item={item} />);
 
@@ -279,7 +302,7 @@ describe('RampDetails', () => {
 
   it('renders native RampsOrder sell amounts and destination', () => {
     const { mapRampsOrder } = jest.requireActual(
-      '../../../../util/activity-adapters',
+      '../../../../../util/activity-adapters',
     );
     const { RampsOrderStatus } = jest.requireActual(
       '@metamask/ramps-controller',
@@ -306,6 +329,9 @@ describe('RampDetails', () => {
       provider: { name: 'Transak' },
     };
     const item = mapRampsOrder({ order }) as RampActivityListItem;
+    useRampsDetailsOrderMock.mockReturnValue(
+      order as ReturnType<typeof useRampsDetailsOrder>,
+    );
 
     const { getByText } = render(<RampDetails item={item} />);
 

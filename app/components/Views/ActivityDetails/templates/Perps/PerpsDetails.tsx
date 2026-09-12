@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import BigNumber from 'bignumber.js';
 import {
   FontWeight,
@@ -15,10 +15,10 @@ import {
   getPerpsDisplaySymbol,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import { useNavigateToPerpsHome } from '../../../UI/Perps/utils/perpsModeSwitch';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigateToPerpsHome } from '../../../../UI/Perps/utils/perpsModeSwitch';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
@@ -32,34 +32,31 @@ import {
   ActivityDetailsTemplateFrame,
   useActivityPayFiat,
   useFormatActivityTokenAmount,
-} from '../components';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+} from '../../components';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import {
-  asPerpsActivityItem,
   formatPerpsOrderFee,
   formatPositiveFiat,
   formatPerpsTransactionDate,
   formatSignedPerpsFiat,
   getPerpsFundsCtaLabel,
   getPerpsPositionSize,
-  getPerpsPriceLabel,
   getPerpsPriceValue,
-  getPerpsTransaction,
   shouldShowPerpsPnl,
   type PerpsActivityListItem,
   type PerpsDepositWithdrawalStatus,
   type PerpsTransaction,
-} from '../components/ActivityDetailsPerps.utils';
+} from '../../components/ActivityDetailsPerps.utils';
+import { usePerpsDetailsItem } from './usePerpsDetailsItem';
+import { DefaultDetails } from '../DefaultDetails';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
+import { usePerpsRecordedOrderFees } from '../../../../UI/Perps/hooks';
 import {
   getOrderPriceRowVisibility,
   getValidPerpsPrice,
   resolvePerpsTransactionOrderType,
-} from '../../../UI/Perps/utils/orderUtils';
-import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
-import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
-import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
+} from '../../../../UI/Perps/utils/orderUtils';
+import { resolvePerpsOrderStatusLabel } from '../../../../UI/ActivityListItemRow/titleLabels';
 
 /**
  * The local row's activity status in the terms the step timeline speaks. A
@@ -123,6 +120,12 @@ function StatusAndDateRows({
       />
     </>
   );
+}
+
+function getPerpsPriceLabel(fill: PerpsTransaction['fill']) {
+  return fill?.action === 'Closed' || fill?.action === 'Flipped'
+    ? strings('perps.transactions.position.close_price')
+    : strings('perps.transactions.position.entry_price');
 }
 
 function TradeDetails({
@@ -502,14 +505,20 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
 }
 
 export function PerpsDetails({ item }: { item: ActivityListItem }) {
-  const perpsItem = asPerpsActivityItem(item);
-  const transaction = getPerpsTransaction(item);
+  const perpsItem = item as PerpsActivityListItem;
+  const { transaction, isLoading } = usePerpsDetailsItem(
+    item.hash,
+    item.chainId,
+  );
 
   if (!transaction) {
+    if (isLoading) {
+      return null;
+    }
     if (item.type === 'perpsAddFunds' || item.type === 'perpsWithdraw') {
       return <LocalFundsDetails item={perpsItem} />;
     }
-    return null;
+    return <DefaultDetails item={item} />;
   }
 
   if (transaction.type === 'trade') {
@@ -517,13 +526,7 @@ export function PerpsDetails({ item }: { item: ActivityListItem }) {
   }
 
   if (transaction.type === 'order') {
-    return (
-      <PerpsConnectionProvider suppressErrorView>
-        <PerpsStreamProvider>
-          <OrderDetails item={perpsItem} transaction={transaction} />
-        </PerpsStreamProvider>
-      </PerpsConnectionProvider>
-    );
+    return <OrderDetails item={perpsItem} transaction={transaction} />;
   }
 
   if (transaction.type === 'funding') {

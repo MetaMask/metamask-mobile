@@ -51,7 +51,7 @@ function buildItemsByHash(
 }
 
 /** Keys that can address a local EVM Activity row (meta id + hashes). */
-export function getLocalActivityLookupKeys(item: ActivityListItem): string[] {
+function getLocalActivityLookupKeys(item: ActivityListItem): string[] {
   const keys = new Set<string>();
   if (item.hash) {
     keys.add(item.hash.toLowerCase());
@@ -85,24 +85,13 @@ function buildLocalItemsByLookupKey(
   return byKey;
 }
 
-function isProviderBackedItem(item: ActivityListItem): boolean {
-  return (
-    item.raw?.type === 'perpsTransaction' ||
-    item.raw?.type === 'predictActivity'
-  );
-}
-
 function buildItemsByIdentifier(
   items: ActivityListItem[],
 ): Map<string, ActivityListItem> {
   const byIdentifier = buildItemsByHash(items);
   for (const item of items) {
     const domainId =
-      item.raw?.type === 'perpsTransaction' ||
-      item.raw?.type === 'predictActivity' ||
-      item.raw?.type === 'rampOrder'
-        ? item.raw.data.id
-        : undefined;
+      item.raw?.type === 'rampOrder' ? item.raw.data.id : undefined;
     const normalizedDomainId = domainId?.toLowerCase();
     if (normalizedDomainId && !byIdentifier.has(normalizedDomainId)) {
       byIdentifier.set(normalizedDomainId, item);
@@ -153,7 +142,6 @@ function getPreferredApiItem(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
-  preloadedItem?: ActivityListItem,
 ): ActivityListItem | undefined {
   const localActivityItems = useLocalActivityItems();
   const rampActivityItems = useRampActivityItems();
@@ -198,13 +186,6 @@ export function useActivityDetailsItem(
     () => buildItemsByHash(filterByChain(nonEvmItems, chainId)),
     [nonEvmItems, chainId],
   );
-  const preloadedByIdentifier = useMemo(
-    () =>
-      buildItemsByIdentifier(
-        filterByChain(preloadedItem ? [preloadedItem] : [], chainId),
-      ),
-    [preloadedItem, chainId],
-  );
   const rampByIdentifier = useMemo(
     () => buildItemsByIdentifier(filterByChain(rampActivityItems, chainId)),
     [rampActivityItems, chainId],
@@ -216,63 +197,29 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
-    const preloadedResolvedItem = preloadedByIdentifier.get(id);
-
-    // Provider-backed rows can't be re-resolved from list sources — honor the
-    // hand-off first (also wins hash collisions with unrelated local txs).
-    if (preloadedResolvedItem && isProviderBackedItem(preloadedResolvedItem)) {
-      return preloadedResolvedItem;
+    const rampsActivityItem = rampByIdentifier.get(id);
+    if (rampsActivityItem) {
+      return rampsActivityItem;
     }
 
-    const preloadedMetaId =
-      preloadedResolvedItem?.raw?.type === 'localTransaction'
-        ? preloadedResolvedItem.raw.data.primaryTransaction.id?.toLowerCase()
-        : undefined;
-    const localFromPreloadMeta = preloadedMetaId
-      ? localByLookupKey.get(preloadedMetaId)
-      : undefined;
-
-    const localItem = localByLookupKey.get(id) ?? localFromPreloadMeta;
-    const apiItem = getPreferredApiItem(
-      apiByHash,
-      id,
-      localItem,
-      preloadedResolvedItem,
-    );
+    const localItem = localByLookupKey.get(id);
+    const apiItem = getPreferredApiItem(apiByHash, id, localItem);
     const nonEvmItem = nonEvmByHash.get(id);
-    const rampItem = rampByIdentifier.get(id);
-
-    if (rampItem) {
-      return rampItem;
-    }
 
     if (localItem) {
       return preferLocalOrApiActivityItem(localItem, apiItem);
-    }
-
-    // Live local missed (STX hash flip / TC prune) but we still have the
-    // stashed local snapshot from navigation — apply the same API preference
-    // so a gas-token (or richer spending-cap) fee is not discarded for a
-    // native-only API copy.
-    if (preloadedResolvedItem?.raw?.type === 'localTransaction') {
-      return preferLocalOrApiActivityItem(preloadedResolvedItem, apiItem);
     }
 
     if (nonEvmItem) {
       return nonEvmItem;
     }
 
-    if (apiItem) {
-      return apiItem;
-    }
-
-    return preloadedResolvedItem;
+    return apiItem;
   }, [
     txIdentifier,
     localByLookupKey,
     apiByHash,
     nonEvmByHash,
-    preloadedByIdentifier,
     rampByIdentifier,
   ]);
 }

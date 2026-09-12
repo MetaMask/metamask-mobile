@@ -1,11 +1,14 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
+import { InitializationState } from '@metamask/perps-controller';
 import { usePerpsActivityItems } from './usePerpsActivityItems';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
-  usePerpsConnection,
-  usePerpsTransactionHistory,
-} from '../../../UI/Perps/hooks';
+  selectPerpsInitializationState,
+  selectPerpsNetwork,
+} from '../../../UI/Perps/selectors/perpsController';
+// eslint-disable-next-line import-x/no-restricted-paths
+import { usePerpsActivityQuery } from '../../ActivityDetails/hooks/usePerpsActivityQuery';
 import {
   FillType,
   type PerpsTransaction,
@@ -22,20 +25,33 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../UI/Perps/hooks', () => ({
-  usePerpsConnection: jest.fn(),
-  usePerpsTransactionHistory: jest.fn(),
+jest.mock('../../../UI/Perps/selectors/perpsController', () => ({
+  selectPerpsInitializationState: jest.fn(),
+  selectPerpsNetwork: jest.fn(),
+}));
+
+// eslint-disable-next-line import-x/no-restricted-paths
+jest.mock('../../ActivityDetails/hooks/usePerpsActivityQuery', () => ({
+  usePerpsActivityQuery: jest.fn(),
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
   ARBITRUM_MAINNET_CAIP_CHAIN_ID: 'eip155:42161',
+  InitializationState: {
+    Initialized: 'initialized',
+    Uninitialized: 'uninitialized',
+  },
   formatAccountToCaipAccountId: jest.fn(
-    (address: string, chainId: string) => `${chainId}:${address}`,
+    (address: string, chainReference: string) =>
+      `eip155:${chainReference}:${address}`,
   ),
 }));
 
 jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
+  getCaipChainId: (isTestnet: boolean) =>
+    isTestnet ? 'eip155:421614' : 'eip155:42161',
   USDC_ARBITRUM_MAINNET_ADDRESS: '0xUSDC',
+  USDC_ARBITRUM_TESTNET_ADDRESS: '0xUSDCT',
 }));
 
 const address = '0x1234567890123456789012345678901234567890';
@@ -123,8 +139,6 @@ const depositTx = baseTx({
   },
 });
 
-// Order contents are irrelevant — the adapter drops every `type: 'order'`
-// entry, so a minimal fixture is enough to assert it is filtered out.
 const openOrderTx = baseTx({
   id: 'order-1',
   type: 'order',
@@ -132,18 +146,20 @@ const openOrderTx = baseTx({
   timestamp: 50,
 });
 
-const setHistory = (
+let initializationState = InitializationState.Initialized;
+
+const setQuery = (
   transactions: PerpsTransaction[],
-  overrides: Partial<ReturnType<typeof usePerpsTransactionHistory>> = {},
+  overrides: Record<string, unknown> = {},
 ) => {
-  (usePerpsTransactionHistory as jest.Mock).mockReturnValue({
+  (usePerpsActivityQuery as jest.Mock).mockReturnValue({
     transactions,
     isLoading: false,
     error: null,
     refetch: jest.fn(),
-    loadMoreFunding: jest.fn(),
-    hasFundingMore: false,
-    isFetchingMoreFunding: false,
+    fetchNextPage: jest.fn(),
+    hasNextPage: false,
+    isFetchingNextPage: false,
     ...overrides,
   });
 };
@@ -151,25 +167,24 @@ const setHistory = (
 describe('usePerpsActivityItems', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (usePerpsConnection as jest.Mock).mockReturnValue({ isConnected: true });
+    initializationState = InitializationState.Initialized;
+    (
+      selectSelectedAccountGroupEvmInternalAccount as unknown as jest.Mock
+    ).mockReturnValue({ address });
     (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
-      switch (selector) {
-        case selectSelectedAccountGroupEvmInternalAccount:
-          return { address };
-        default:
-          return undefined;
+      if (selector === selectPerpsInitializationState) {
+        return initializationState;
       }
+      if (selector === selectPerpsNetwork) {
+        return 'mainnet';
+      }
+      return selector({});
     });
-    setHistory([]);
+    setQuery([]);
   });
 
   it('maps trades, funding, and deposits onto the Arbitrum activity chainId', () => {
-    setHistory([
-      openLongTx,
-      closeLongLiquidatedTx,
-      receivedFundingTx,
-      depositTx,
-    ]);
+    setQuery([openLongTx, closeLongLiquidatedTx, receivedFundingTx, depositTx]);
 
     const { result } = renderHook(() => usePerpsActivityItems());
 
@@ -179,7 +194,7 @@ describe('usePerpsActivityItems', () => {
   });
 
   it('maps an open long trade with out-direction USD amount and position leg', () => {
-    setHistory([openLongTx]);
+    setQuery([openLongTx]);
 
     const { result } = renderHook(() => usePerpsActivityItems());
 
@@ -205,11 +220,10 @@ describe('usePerpsActivityItems', () => {
   });
 
   it('derives the liquidation close kind from fillType', () => {
-    setHistory([closeLongLiquidatedTx]);
+    setQuery([closeLongLiquidatedTx]);
 
     const { result } = renderHook(() => usePerpsActivityItems());
 
-    // Fixture PnL is negative (isPositive: false) — sign follows the amount.
     expect(result.current.items[0]).toMatchObject({
       type: 'perpsCloseLongLiquidated',
       data: { token: { direction: 'out' } },
@@ -217,7 +231,7 @@ describe('usePerpsActivityItems', () => {
   });
 
   it('maps positive funding to a received-fees in-direction item', () => {
-    setHistory([receivedFundingTx]);
+    setQuery([receivedFundingTx]);
 
     const { result } = renderHook(() => usePerpsActivityItems());
 
@@ -231,7 +245,7 @@ describe('usePerpsActivityItems', () => {
   });
 
   it('maps a completed deposit to perpsAddFunds using the txHash and ledger asset', () => {
-    setHistory([depositTx]);
+    setQuery([depositTx]);
 
     const { result } = renderHook(() => usePerpsActivityItems());
 
@@ -246,30 +260,31 @@ describe('usePerpsActivityItems', () => {
   });
 
   it('drops open orders and other non-history entries', () => {
-    setHistory([openOrderTx]);
+    setQuery([openOrderTx]);
 
     const { result } = renderHook(() => usePerpsActivityItems());
 
     expect(result.current.items).toEqual([]);
   });
 
-  it('passes through loading, error, and refetch from the history hook', () => {
+  it('passes through loading, error, and refetch from the query', async () => {
     const refetch = jest.fn();
-    setHistory([], { isLoading: true, error: 'boom', refetch });
+    setQuery([], { isLoading: true, error: new Error('boom'), refetch });
 
     const { result } = renderHook(() => usePerpsActivityItems());
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBe('boom');
-    expect(result.current.refetch).toBe(refetch);
+    await result.current.refetch();
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 
-  it('maps funding pagination onto loadMore/hasMore and loadMore fetches more funding', async () => {
-    const loadMoreFunding = jest.fn(() => Promise.resolve());
-    setHistory([], {
-      loadMoreFunding,
-      hasFundingMore: true,
-      isFetchingMoreFunding: false,
+  it('maps funding pagination onto loadMore/hasMore and loadMore fetches the next page', async () => {
+    const fetchNextPage = jest.fn(() => Promise.resolve());
+    setQuery([], {
+      fetchNextPage,
+      hasNextPage: true,
+      isFetchingNextPage: false,
     });
 
     const { result } = renderHook(() => usePerpsActivityItems());
@@ -278,59 +293,41 @@ describe('usePerpsActivityItems', () => {
     expect(result.current.isFetchingMore).toBe(false);
 
     await result.current.loadMore();
-    expect(loadMoreFunding).toHaveBeenCalledTimes(1);
+    expect(fetchNextPage).toHaveBeenCalledTimes(1);
   });
 
   it('loadMore is a no-op when no more funding is available', async () => {
-    const loadMoreFunding = jest.fn(() => Promise.resolve());
-    setHistory([], {
-      loadMoreFunding,
-      hasFundingMore: false,
-      isFetchingMoreFunding: false,
+    const fetchNextPage = jest.fn(() => Promise.resolve());
+    setQuery([], {
+      fetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
     });
 
     const { result } = renderHook(() => usePerpsActivityItems());
 
     await result.current.loadMore();
-    expect(loadMoreFunding).not.toHaveBeenCalled();
-  });
-
-  it('skips the initial fetch until the perps connection is established', () => {
-    (usePerpsConnection as jest.Mock).mockReturnValue({ isConnected: false });
-
-    renderHook(() => usePerpsActivityItems());
-
-    expect(usePerpsTransactionHistory).toHaveBeenCalledWith(
-      expect.objectContaining({ skipInitialFetch: true }),
-    );
+    expect(fetchNextPage).not.toHaveBeenCalled();
   });
 
   it('builds the CAIP account id on the Arbitrum perps chain, not the selected chain', () => {
-    setHistory([]);
+    setQuery([]);
 
     renderHook(() => usePerpsActivityItems());
 
-    // accountId is always scoped to the Arbitrum perps chain (eip155:42161),
-    // independent of the user's selected network.
-    expect(usePerpsTransactionHistory).toHaveBeenCalledWith(
-      expect.objectContaining({ accountId: `eip155:42161:${address}` }),
+    expect(usePerpsActivityQuery).toHaveBeenCalledWith(
+      `eip155:42161:${address}`,
+      true,
     );
   });
 
   it('passes an undefined accountId when no EVM account is selected', () => {
-    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
-      switch (selector) {
-        case selectSelectedAccountGroupEvmInternalAccount:
-          return undefined;
-        default:
-          return undefined;
-      }
-    });
+    (
+      selectSelectedAccountGroupEvmInternalAccount as unknown as jest.Mock
+    ).mockReturnValue(undefined);
 
     renderHook(() => usePerpsActivityItems());
 
-    expect(usePerpsTransactionHistory).toHaveBeenCalledWith(
-      expect.objectContaining({ accountId: undefined }),
-    );
+    expect(usePerpsActivityQuery).toHaveBeenCalledWith(undefined, true);
   });
 });

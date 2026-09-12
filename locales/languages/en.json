@@ -1134,11 +1134,17 @@
       "how_to_delete_description": "You can delete your data anytime by going to Settings > Manage data.",
       "metamask_privacy_policy": "MetaMask Privacy Policy",
       "metamask_terms": "MetaMask T&C",
-      "idos_privacy_policy": "idOS Privacy Policy",
-      "idos_terms": "idOS T&C",
-      "sumsub_privacy_policy": "Sumsub Privacy Policy",
-      "sumsub_terms": "Sumsub T&C",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
       "button": "Continue"
+    },
+    "kyc_email": {
+      "title": "What's your email?",
+      "description": "We'll use this to send account updates.",
+      "input_placeholder": "Email address",
+      "button": "Continue",
+      "error_title": "Identity verification",
+      "error_description": "We couldn't start your identity verification. Try again."
     }
   },
   "social_leaderboard": {
@@ -4312,7 +4318,7 @@
     "clear_approvals_modal_message": "All dapps will need to request access to view account information again.",
     "clear_browser_history_modal_title": "Clear browser history?",
     "clear_browser_history_modal_message": "We are about to remove all your browser history. Are you sure?",
-    "clear_cookies_modal_title": "Clear browser cookies",
+    "clear_cookies_modal_title": "Clear browser cookies?",
     "clear_cookies_modal_message": "We are about to remove your browser's cookies. Are you sure?",
     "reset_account_modal_message": "Resetting your account will clear your transaction activity.",
     "save_rpc_url": "Save",

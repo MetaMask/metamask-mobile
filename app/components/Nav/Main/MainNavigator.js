@@ -84,6 +84,7 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import GetPixKey from '../../UI/Ramp/Views/VirtualBankAccount/GetPixKey';
 import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
+import KycEmail from '../../UI/Ramp/Views/VirtualBankAccount/KycEmail';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
@@ -666,13 +667,6 @@ const HomeTabs = () => {
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       freezeOnBlur: false,
     },
@@ -685,11 +679,6 @@ const HomeTabs = () => {
     },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
-        );
-      },
       rootScreenName: Routes.REWARDS_VIEW,
       freezeOnBlur: false,
     },
@@ -701,11 +690,6 @@ const HomeTabs = () => {
     trending: {
       tabBarIconKey: TabBarIconKey.Trending,
       callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
-          ).build(),
-        );
         // Re-enable AppState listener when returning to trending tab
         // (it was disabled when leaving to prevent phantom sessions)
         TrendingFeedSessionManager.getInstance().enableAppStateListener();
@@ -725,13 +709,6 @@ const HomeTabs = () => {
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.SETTINGS_VIEW,
     },
   };
@@ -1234,6 +1211,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.RAMP.VBA_VERIFY_IDENTITY}
         component={VbaVerifyIdentity}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_KYC_EMAIL}
+        component={KycEmail}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
