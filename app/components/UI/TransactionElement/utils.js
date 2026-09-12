@@ -1008,6 +1008,7 @@ function decodeMusdClaimTx(args) {
  *
  * @param {*} args - Should contain tx, selectedAddress, ticker, conversionRate,
  * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
+ * @returns {Promise<import('./types').DecodedTransaction>}
  */
 export default async function decodeTransaction(args) {
   const { tx, selectedAddress, chainId, ticker } = args;

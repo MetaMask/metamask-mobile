@@ -1,8 +1,9 @@
 import React from 'react';
 import TransactionElement from './';
+import decodeTransaction from './utils';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import {
   TransactionType,
   WalletDevice,
@@ -95,6 +96,45 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+const mockDecodeTransaction = jest.mocked(decodeTransaction);
+
+type DecodedTransaction = [
+  {
+    actionKey: string;
+    value: string;
+    fiatValue: string;
+  },
+  {
+    summaryAmount: string;
+    summaryFiat: string;
+  },
+];
+
+const createDecodedTransaction = (actionKey: string): DecodedTransaction => [
+  { actionKey, value: '0.1 ETH', fiatValue: '$100' },
+  { summaryAmount: '0.1 ETH', summaryFiat: '$100' },
+];
+
+const createDeferredDecode = () => {
+  let resolve!: (value: DecodedTransaction) => void;
+  const promise = new Promise<DecodedTransaction>((promiseResolve) => {
+    resolve = promiseResolve;
+  });
+
+  return { promise, resolve };
+};
+
+const createTransaction = () => ({
+  id: 'transaction-id',
+  chainId: '0x1',
+  status: 'confirmed',
+  time: Date.now(),
+  txParams: {
+    to: '0x456',
+    from: '0x123',
+    nonce: '0x1',
+  },
+});
 
 describe('TransactionElement', () => {
   beforeEach(() => {
@@ -128,6 +168,85 @@ describe('TransactionElement', () => {
     );
     await waitFor(() => {
       expect(screen.getByText('Test Action')).toBeOnTheScreen();
+    });
+  });
+
+  describe('decode lifecycle', () => {
+    it('re-decodes the transaction when the chain ID changes', async () => {
+      const tx = createTransaction();
+      mockDecodeTransaction
+        .mockResolvedValueOnce(createDecodedTransaction('First decode'))
+        .mockResolvedValueOnce(createDecodedTransaction('Second decode'));
+      const { rerender } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={tx}
+            txChainId="0x1"
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+      await waitFor(() => {
+        expect(screen.getByText('First decode')).toBeOnTheScreen();
+      });
+
+      rerender(
+        <Provider store={store}>
+          <TransactionElement
+            tx={tx}
+            txChainId="0x89"
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(mockDecodeTransaction).toHaveBeenCalledTimes(2);
+        expect(screen.getByText('Second decode')).toBeOnTheScreen();
+      });
+    });
+
+    it('ignores an older decode result after a newer request resolves', async () => {
+      const tx = createTransaction();
+      const firstDecode = createDeferredDecode();
+      const secondDecode = createDeferredDecode();
+      mockDecodeTransaction
+        .mockReturnValueOnce(firstDecode.promise)
+        .mockReturnValueOnce(secondDecode.promise);
+      const { rerender } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={tx}
+            txChainId="0x1"
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      rerender(
+        <Provider store={store}>
+          <TransactionElement
+            tx={tx}
+            txChainId="0x89"
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+      await act(async () => {
+        secondDecode.resolve(createDecodedTransaction('Latest decode'));
+        await secondDecode.promise;
+      });
+      await waitFor(() => {
+        expect(screen.getByText('Latest decode')).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        firstDecode.resolve(createDecodedTransaction('Stale decode'));
+        await firstDecode.promise;
+      });
+
+      expect(screen.getByText('Latest decode')).toBeOnTheScreen();
+      expect(screen.queryByText('Stale decode')).not.toBeOnTheScreen();
     });
   });
 
