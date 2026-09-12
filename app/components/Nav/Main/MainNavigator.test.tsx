@@ -9,6 +9,7 @@ import AddBookmark from '../../Views/AddBookmark';
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
+import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
@@ -1596,13 +1597,10 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders ExploreHome', () => {
-        const Component = getScreenComponent(
-          homeTabsRoot,
-          Routes.TRENDING_VIEW,
-          'TabScreen',
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+      it('points the TrendingView tab straight at the Explore feed', () => {
+        expect(
+          getScreenComponent(homeTabsRoot, Routes.TRENDING_VIEW, 'TabScreen'),
+        ).toBe(ExploreFeed);
       });
 
       it('renders BrowserFlow', () => {
