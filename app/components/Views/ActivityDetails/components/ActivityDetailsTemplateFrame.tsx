@@ -19,13 +19,13 @@ export function ActivityDetailsTemplateFrame({
   footer: React.ReactNode;
 }) {
   return (
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1 gap-2">
       {hero}
-      {hero ? <SectionDivider marginVertical={3} /> : null}
+      {hero ? <SectionDivider marginVertical={0} /> : null}
       {metadata}
       {details ? (
         <>
-          <SectionDivider marginVertical={3} />
+          <SectionDivider marginVertical={0} />
           {details}
         </>
       ) : null}
