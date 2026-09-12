@@ -5,7 +5,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
 import { v4 as uuidv4, parse as uuidParse } from 'uuid';
-import { containsUserRejectedError } from '../../../../util/middlewares';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -29,7 +28,7 @@ import {
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 import { ensureError } from '../../../../util/errorUtils';
-import { getErrorCode, getErrorMessage } from '../utils/errorUtils';
+import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -74,13 +73,6 @@ function waitForNextFrame(): Promise<void> {
   return new Promise((resolve) => {
     requestAnimationFrame(() => resolve());
   });
-}
-
-function isUserRejectedError(error: unknown, fallbackMessage: string): boolean {
-  return containsUserRejectedError(
-    getErrorMessage(error, fallbackMessage),
-    getErrorCode(error),
-  );
 }
 
 function isMoneyConfirmationActive(): boolean {

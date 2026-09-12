@@ -49,6 +49,7 @@ const readyApyExperience = (
   id: `lending:${name}`,
   type: EARN_EXPERIENCES.STABLECOIN_LENDING,
   role: 'underlying',
+  depositReadiness: { status: 'ready' },
   rate: {
     type: 'APY',
     percentage,
@@ -56,6 +57,13 @@ const readyApyExperience = (
   },
   isFeeSubsidized: false,
 });
+
+const createAssetAddress = (symbol: string) =>
+  `0x${Array.from(symbol)
+    .map((character) => character.codePointAt(0)?.toString(16) ?? '0')
+    .join('')
+    .padEnd(40, '0')
+    .slice(0, 40)}`;
 
 const createAssetControllerAsset = ({
   symbol,
@@ -65,12 +73,14 @@ const createAssetControllerAsset = ({
   symbol: string;
   balance: string;
   rawBalance: `0x${string}`;
-}): Asset =>
-  ({
+}): Asset => {
+  const address = createAssetAddress(symbol);
+
+  return {
     accountType: EthAccountType.Eoa,
     accountId: 'account-id',
-    assetId: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
-    address: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
+    assetId: address,
+    address,
     chainId: '0x1',
     decimals: 6,
     image: `${symbol}.png`,
@@ -84,38 +94,67 @@ const createAssetControllerAsset = ({
       conversionRate: 1,
     },
     isNative: false,
-  }) as Asset;
+  } as Asset;
+};
 
 const createDiscoverySearchAsset = (
   name: string,
   overrides: Partial<EarnAssetMetadata> = {},
-): EarnAsset => ({
-  kind: 'discovery',
-  assetId: `eip155:1/erc20:${name.toLowerCase()}` as EarnAssetId,
-  metadata: {
-    address: `0x${name.toLowerCase()}`,
-    chainId: '0x1',
-    decimals: 6,
-    image: `${name}.png`,
-    name,
-    symbol: name,
-    logo: `${name}.png`,
-    isETH: false,
-    ...overrides,
-  },
-  experiences: [readyApyExperience(name, 4)],
-});
+): EarnAsset => {
+  const address = createAssetAddress(name);
 
-const createHeldSearchAsset = (symbol: string, balance: string): EarnAsset => ({
-  kind: 'held',
-  assetId: `eip155:1/erc20:${symbol.toLowerCase()}` as EarnAssetId,
-  asset: createAssetControllerAsset({
-    symbol,
-    balance,
-    rawBalance: '0x1',
-  }),
-  experiences: [readyApyExperience(symbol, 4)],
-});
+  return {
+    assetId: `eip155:1/erc20:${address.toLowerCase()}` as EarnAssetId,
+    metadata: {
+      address,
+      chainId: '0x1',
+      decimals: 6,
+      image: `${name}.png`,
+      name,
+      symbol: name,
+      logo: `${name}.png`,
+      isETH: false,
+      ...overrides,
+    },
+    wallet: { status: 'untracked' },
+    experiences: [
+      {
+        ...readyApyExperience(name, 4),
+        depositReadiness: {
+          status: 'not_ready',
+          reason: 'asset_not_tracked',
+        },
+      },
+    ],
+  };
+};
+
+const createHeldSearchAsset = (symbol: string, balance: string): EarnAsset => {
+  const address = createAssetAddress(symbol);
+
+  return {
+    assetId: `eip155:1/erc20:${address.toLowerCase()}` as EarnAssetId,
+    metadata: {
+      address,
+      chainId: '0x1',
+      decimals: 6,
+      image: `${symbol}.png`,
+      name: symbol,
+      symbol,
+      logo: `${symbol}.png`,
+      isETH: false,
+    },
+    wallet: {
+      status: 'tracked',
+      asset: createAssetControllerAsset({
+        symbol,
+        balance,
+        rawBalance: '0x1',
+      }),
+    },
+    experiences: [readyApyExperience(symbol, 4)],
+  };
+};
 
 const heldUsdc = createHeldSearchAsset('USDC', '25');
 const discoveryUsdt = createDiscoverySearchAsset('USDT');
@@ -141,11 +180,33 @@ const mockMoneyBalance = ({
   totalFiatFormatted?: string;
   isBalanceLoading?: boolean;
 } = {}) => {
-  mockUseMoneyAccountBalance.mockReturnValue({
-    totalFiatRaw,
-    totalFiatFormatted,
+  const balance: ReturnType<typeof useMoneyAccountBalance> = {
+    moneyBalanceQuery: {
+      data: undefined,
+      error: null,
+      fetchStatus: 'idle',
+      isError: false,
+      isFetching: false,
+      isLoading: false,
+      status: 'pending',
+    } as ReturnType<typeof useMoneyAccountBalance>['moneyBalanceQuery'],
     isBalanceLoading,
-  } as ReturnType<typeof useMoneyAccountBalance>);
+    isBalanceFetchError: false,
+    isBalanceUnavailable: false,
+    isBalanceDegraded: false,
+    balanceSource: 'api',
+    usedFallback: false,
+    lastKnownTotalFiatFormatted: totalFiatFormatted,
+    refetchBalance: jest.fn().mockResolvedValue(undefined),
+    tokenTotal: undefined,
+    totalFiatFormatted,
+    totalFiatRaw,
+    withdrawableFiatFormatted: undefined,
+    withdrawableFiatRaw: undefined,
+    withdrawableMusd: undefined,
+  };
+
+  mockUseMoneyAccountBalance.mockReturnValue(balance);
 };
 
 const mockCatalogue = ({
@@ -167,7 +228,6 @@ const mockCatalogue = ({
 } = {}) => {
   mockUseEarnAssetCatalogue.mockReturnValue({
     assets,
-    assetsById: {},
     isLoading,
     hasError: errors.length > 0,
     errors,
@@ -230,28 +290,27 @@ describe('useEarnSearchFeed', () => {
     expect(result.current.data.map((item) => item.id)).toEqual([
       'money-account',
       heldUsdc.assetId,
-      discoveryDai.assetId,
       discoveryUsdt.assetId,
+      discoveryDai.assetId,
     ]);
   });
 
   it('keeps Money for a non-matching query and filters assets by name, ticker, or symbol', () => {
     mockMoneyVisible(true);
+    const usdCoin = createDiscoverySearchAsset('USD Coin', {
+      symbol: 'USDC',
+      ticker: 'USDC',
+    });
+    const dai = createDiscoverySearchAsset('Dai Stablecoin', {
+      symbol: 'DAI',
+      ticker: 'DAI',
+    });
+    const tether = createDiscoverySearchAsset('Tether Token', {
+      symbol: 'USDT',
+      ticker: 'USDT',
+    });
     mockCatalogue({
-      assets: [
-        createDiscoverySearchAsset('USD Coin', {
-          symbol: 'USDC',
-          ticker: 'USDC',
-        }),
-        createDiscoverySearchAsset('Dai Stablecoin', {
-          symbol: 'DAI',
-          ticker: 'DAI',
-        }),
-        createDiscoverySearchAsset('Tether Token', {
-          symbol: 'USDT',
-          ticker: 'USDT',
-        }),
-      ],
+      assets: [usdCoin, dai, tether],
     });
 
     const { result, rerender } = renderHook(
@@ -261,19 +320,19 @@ describe('useEarnSearchFeed', () => {
 
     expect(result.current.data.map((item) => item.id)).toEqual([
       'money-account',
-      expect.stringContaining('usd coin'),
+      usdCoin.assetId,
     ]);
 
     rerender({ query: 'stablecoin' });
     expect(result.current.data.map((item) => item.id)).toEqual([
       'money-account',
-      expect.stringContaining('dai stablecoin'),
+      dai.assetId,
     ]);
 
     rerender({ query: 'usdt' });
     expect(result.current.data.map((item) => item.id)).toEqual([
       'money-account',
-      expect.stringContaining('tether token'),
+      tether.assetId,
     ]);
 
     rerender({ query: 'no-match' });
@@ -326,7 +385,40 @@ describe('useEarnSearchFeed', () => {
       'money-account',
       discoveryUsdt.assetId,
     ]);
+    expect(result.current.data[0]).toEqual({
+      kind: 'money-account',
+      id: 'money-account',
+      balanceRaw: '10',
+      balanceFiat: '$10.00',
+      isBalanceLoading: true,
+      apyPercent: 6.2,
+      rateStatus: 'loading',
+    });
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('exposes Money balance and rate fields in the visible search item', () => {
+    mockMoneyVisible(true);
+    mockMoneyBalance({
+      totalFiatRaw: '25',
+      totalFiatFormatted: '$25.00',
+    });
+    mockCatalogue({
+      moneyApyPercent: 6.35,
+      moneyRateStatus: 'ready',
+    });
+
+    const { result } = renderHook(() => useEarnSearchFeed({ query: '' }));
+
+    expect(result.current.data[0]).toEqual({
+      kind: 'money-account',
+      id: 'money-account',
+      balanceRaw: '25',
+      balanceFiat: '$25.00',
+      isBalanceLoading: false,
+      apyPercent: 6.35,
+      rateStatus: 'ready',
+    });
   });
 
   it('reports loading when no usable data exists', () => {
@@ -363,7 +455,7 @@ describe('useEarnSearchFeed', () => {
     const { result } = renderHook(() => useEarnSearchFeed({ query: '' }));
 
     let retryPromise = Promise.resolve();
-    act(() => {
+    await act(async () => {
       retryPromise = result.current.error?.retry() ?? Promise.resolve();
     });
 
@@ -392,7 +484,7 @@ describe('useEarnSearchFeed', () => {
 
     let firstRetry = Promise.resolve();
     let secondRetry = Promise.resolve();
-    act(() => {
+    await act(async () => {
       firstRetry = result.current.error?.retry() ?? Promise.resolve();
       secondRetry = result.current.error?.retry() ?? Promise.resolve();
     });

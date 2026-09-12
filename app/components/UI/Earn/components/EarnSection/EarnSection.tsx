@@ -16,6 +16,7 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -47,7 +48,7 @@ import { truncateNumber } from '../../utils';
 import { deriveEarnAssetDisplayData } from '../../utils/earnAssets';
 import type { EarnAssetDisplayData } from '../../utils/earnAssets/deriveEarnAssetDisplayData';
 import useEarnOpportunityNavigation, {
-  getEarnOpportunityRedirectTarget,
+  getEarnAssetSelectionRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -142,6 +143,7 @@ const renderAssetSecondaryText = ({
   return (
     <SensitiveText
       variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
       isHidden={privacyMode}
       length={SensitiveTextLength.Medium}
     >
@@ -359,7 +361,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         trackEarnSurfaceClicked({
           component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ASSET_CARD,
           ...getEarnModuleAssetProperties(asset, position, assetSlots.length),
-          redirect_target: getEarnOpportunityRedirectTarget(
+          redirect_target: getEarnAssetSelectionRedirectTarget(
             asset,
             isOnboardingRedirectNeeded,
           ),
@@ -405,6 +407,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       return (
         <SensitiveText
           variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           isHidden={privacyMode}
           length={SensitiveTextLength.Medium}
         >

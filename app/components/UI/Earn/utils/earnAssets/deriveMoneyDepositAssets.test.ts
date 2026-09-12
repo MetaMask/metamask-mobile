@@ -1,5 +1,5 @@
-import { EthAccountType } from '@metamask/keyring-api';
 import type { Asset } from '@metamask/assets-controllers';
+import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import type {
   EarnAsset,
@@ -18,10 +18,14 @@ const createExperience = (type: EarnExperience['type']): EarnExperience => ({
     status: 'ready',
     percentage: 4.2,
   },
+  depositReadiness: { status: 'ready' },
   isFeeSubsidized: false,
 });
 
-const createAsset = (index: number): MoneyDepositAsset =>
+const createAsset = (
+  index: number,
+  overrides: Partial<MoneyDepositAsset> = {},
+): MoneyDepositAsset =>
   ({
     accountType: EthAccountType.Eoa,
     accountId: 'account-id',
@@ -40,20 +44,32 @@ const createAsset = (index: number): MoneyDepositAsset =>
       conversionRate: 1,
     },
     isNative: false,
+    ...overrides,
   }) as MoneyDepositAsset;
 
-const createHeldAsset = (
-  asset: Asset,
+const createTrackedAsset = (
+  asset: MoneyDepositAsset,
   experiences: readonly EarnExperience[],
 ): EarnAsset => ({
-  kind: 'held',
   assetId: `eip155:1/erc20:${asset.assetId}` as EarnAssetId,
-  asset,
+  metadata: {
+    address: asset.address,
+    chainId: asset.chainId,
+    decimals: asset.decimals,
+    image: asset.image,
+    name: asset.name,
+    symbol: asset.symbol,
+    ticker: asset.symbol,
+    logo: asset.image,
+    isNative: asset.isNative,
+    isETH: false,
+    isStaked: false,
+  },
+  wallet: { status: 'tracked', asset },
   experiences,
 });
 
-const createDiscoveryAsset = (): EarnAsset => ({
-  kind: 'discovery',
+const createUntrackedAsset = (): EarnAsset => ({
   assetId:
     'eip155:1/erc20:0x0000000000000000000000000000000000000004' as EarnAssetId,
   metadata: {
@@ -66,21 +82,22 @@ const createDiscoveryAsset = (): EarnAsset => ({
     logo: undefined,
     isETH: false,
   },
+  wallet: { status: 'untracked' },
   experiences: [createExperience('MONEY_ACCOUNT_DEPOSIT')],
 });
 
 describe('deriveMoneyDepositAssets', () => {
-  it('returns held assets with Money deposit experiences in catalogue order', () => {
+  it('returns tracked assets with ready Money deposit experiences in catalogue order', () => {
     const first = createAsset(1);
     const second = createAsset(2);
     const third = createAsset(3);
     const assets = [
-      createHeldAsset(second, [createExperience('MONEY_ACCOUNT_DEPOSIT')]),
-      createHeldAsset(first, [
+      createTrackedAsset(second, [createExperience('MONEY_ACCOUNT_DEPOSIT')]),
+      createTrackedAsset(first, [
         createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING),
         createExperience('MONEY_ACCOUNT_DEPOSIT'),
       ]),
-      createHeldAsset(third, [createExperience('MONEY_ACCOUNT_DEPOSIT')]),
+      createTrackedAsset(third, [createExperience('MONEY_ACCOUNT_DEPOSIT')]),
     ];
 
     const result = deriveMoneyDepositAssets(assets);
@@ -88,19 +105,109 @@ describe('deriveMoneyDepositAssets', () => {
     expect(result).toEqual([second, first, third]);
   });
 
-  it('excludes discovery assets and held assets without Money deposit experiences', () => {
+  it('excludes untracked assets and tracked assets without Money deposit experiences', () => {
     const moneyAsset = createAsset(1);
     const nonMoneyAsset = createAsset(2);
     const assets = [
-      createDiscoveryAsset(),
-      createHeldAsset(nonMoneyAsset, [
+      createUntrackedAsset(),
+      createTrackedAsset(nonMoneyAsset, [
         createExperience(EARN_EXPERIENCES.POOLED_STAKING),
       ]),
-      createHeldAsset(moneyAsset, [createExperience('MONEY_ACCOUNT_DEPOSIT')]),
+      createTrackedAsset(moneyAsset, [
+        createExperience('MONEY_ACCOUNT_DEPOSIT'),
+      ]),
     ];
 
     const result = deriveMoneyDepositAssets(assets);
 
     expect(result).toEqual([moneyAsset]);
+  });
+
+  it('excludes tracked assets with a non-ready Money deposit experience', () => {
+    const asset = createAsset(1);
+    const earnAsset = createTrackedAsset(asset, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+    const notReadyEarnAsset: EarnAsset = {
+      ...earnAsset,
+      experiences: [
+        {
+          ...earnAsset.experiences[0],
+          depositReadiness: {
+            status: 'not_ready',
+            reason: 'insufficient_balance',
+          },
+        },
+      ],
+    };
+
+    const result = deriveMoneyDepositAssets([notReadyEarnAsset]);
+
+    expect(result).toEqual([]);
+  });
+
+  it('excludes tracked assets without an EVM address', () => {
+    const asset = createAsset(1);
+    const assetWithoutAddress = { ...asset };
+    Reflect.deleteProperty(assetWithoutAddress, 'address');
+    const earnAsset = createTrackedAsset(assetWithoutAddress, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+
+    const result = deriveMoneyDepositAssets([earnAsset]);
+
+    expect(result).toEqual([]);
+  });
+
+  it('excludes tracked assets without a chain ID', () => {
+    const asset = createAsset(1);
+    const assetWithoutChainId = { ...asset };
+    Reflect.deleteProperty(assetWithoutChainId, 'chainId');
+    const earnAsset = createTrackedAsset(assetWithoutChainId, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+
+    const result = deriveMoneyDepositAssets([earnAsset]);
+
+    expect(result).toEqual([]);
+  });
+
+  it('excludes tracked assets with an empty chain ID', () => {
+    const asset = createAsset(1, {
+      chainId: '' as MoneyDepositAsset['chainId'],
+    });
+    const earnAsset = createTrackedAsset(asset, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+
+    const result = deriveMoneyDepositAssets([earnAsset]);
+
+    expect(result).toEqual([]);
+  });
+
+  it('excludes tracked assets with an empty address', () => {
+    const asset = createAsset(1, {
+      address: '' as MoneyDepositAsset['address'],
+    });
+    const earnAsset = createTrackedAsset(asset, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+
+    const result = deriveMoneyDepositAssets([earnAsset]);
+
+    expect(result).toEqual([]);
+  });
+
+  it('excludes tracked assets from non-EVM account types', () => {
+    const asset = createAsset(1, {
+      accountType: SolAccountType.DataAccount,
+    });
+    const earnAsset = createTrackedAsset(asset, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+
+    const result = deriveMoneyDepositAssets([earnAsset]);
+
+    expect(result).toEqual([]);
   });
 });
