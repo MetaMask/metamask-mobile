@@ -1,14 +1,8 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
+import { type InputStepperProps } from '../../../../../component-library/components-temp/InputStepper';
 import { BridgeSlippageConfig } from '../../types';
-import { InputStepperDescriptionType } from '../../components/InputStepper/constants';
-import {
-  IconColor,
-  IconName,
-  IconSize,
-  TextColor,
-} from '@metamask/design-system-react-native';
-import { InputStepperProps } from '../../components/InputStepper/types';
+import { HelpTextSeverity } from '@metamask/design-system-react-native';
 
 interface Props {
   inputAmount: string;
@@ -28,45 +22,35 @@ export const useSlippageStepperDescription = ({
     const thresholds = [
       {
         threshold: slippageConfig.lower_allowed_slippage_threshold,
-        type: InputStepperDescriptionType.ERROR,
+        severity: HelpTextSeverity.Danger,
         compare: (v: number, t: number, inclusive: boolean) =>
           inclusive ? v <= t : v < t,
       },
       {
         threshold: slippageConfig.lower_suggested_slippage_threshold,
-        type: InputStepperDescriptionType.WARNING,
+        severity: HelpTextSeverity.Warning,
         compare: (v: number, t: number, inclusive: boolean) =>
           inclusive ? v <= t : v < t,
       },
       {
         threshold: slippageConfig.upper_allowed_slippage_threshold,
-        type: InputStepperDescriptionType.ERROR,
+        severity: HelpTextSeverity.Danger,
         compare: (v: number, t: number, inclusive: boolean) =>
           hasAttemptedToExceedMax || (inclusive ? v >= t : v > t),
       },
       {
         threshold: slippageConfig.upper_suggested_slippage_threshold,
-        type: InputStepperDescriptionType.WARNING,
+        severity: HelpTextSeverity.Warning,
         compare: (v: number, t: number, inclusive: boolean) =>
           inclusive ? v >= t : v > t,
       },
     ] as const;
 
-    for (const { threshold, type, compare } of thresholds) {
+    for (const { threshold, severity, compare } of thresholds) {
       if (threshold && compare(value, threshold.value, threshold.inclusive)) {
         return {
-          color:
-            type === InputStepperDescriptionType.WARNING
-              ? TextColor.WarningDefault
-              : TextColor.ErrorDefault,
-          icon: {
-            name: IconName.Danger,
-            size: IconSize.Lg,
-            color:
-              type === InputStepperDescriptionType.WARNING
-                ? IconColor.WarningDefault
-                : IconColor.ErrorDefault,
-          },
+          severity,
+          showIcon: true,
           message: strings(threshold.messageId, { value: threshold.value }),
         };
       }

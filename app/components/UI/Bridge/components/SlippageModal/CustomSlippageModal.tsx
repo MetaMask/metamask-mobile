@@ -11,8 +11,8 @@ import {
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { CaipChainId, Hex } from '@metamask/utils';
+import InputStepper from '../../../../../component-library/components-temp/InputStepper';
 import Keypad from '../../../../Base/Keypad';
-import { InputStepper } from '../InputStepper';
 import { customSlippageModalStyles } from './styles';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
@@ -45,14 +45,13 @@ export const CustomSlippageModalContent = ({
     slippageConfig,
     hasAttemptedToExceedMax,
   });
-  const { selection, handleSelectionChange, handleKeypadChange, resetCursor } =
-    useCustomSlippageCursor({
-      value: inputAmount,
-      inputMaxDecimals: slippageConfig.input_max_decimals,
-      maxAmount: slippageConfig.max_amount,
-      onValueChange: setInputAmount,
-      onAttemptExceedMaxChange: setHasAttemptedToExceedMax,
-    });
+  const { handleKeypadChange, resetCursor } = useCustomSlippageCursor({
+    value: inputAmount,
+    inputMaxDecimals: slippageConfig.input_max_decimals,
+    maxAmount: slippageConfig.max_amount,
+    onValueChange: setInputAmount,
+    onAttemptExceedMaxChange: setHasAttemptedToExceedMax,
+  });
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -115,8 +114,6 @@ export const CustomSlippageModalContent = ({
           minAmount={slippageConfig.min_amount}
           maxAmount={slippageConfig.max_amount}
           postValue="%"
-          selection={selection}
-          onSelectionChange={handleSelectionChange}
         />
       </View>
       <View style={customSlippageModalStyles.keypadContainer}>

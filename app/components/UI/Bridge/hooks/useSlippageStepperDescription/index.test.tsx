@@ -1,12 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSlippageStepperDescription } from './index';
 import { BridgeSlippageConfig } from '../../types';
-import {
-  IconColor,
-  IconName,
-  IconSize,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { HelpTextSeverity } from '@metamask/design-system-react-native';
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -84,7 +79,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Danger);
       expect(result.current?.message).toBe('bridge.lower_allowed_error [0.1]');
     });
 
@@ -97,7 +92,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Danger);
       expect(result.current?.message).toContain('bridge.lower_allowed_error');
     });
 
@@ -133,7 +128,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.WarningDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Warning);
       expect(result.current?.message).toBe(
         'bridge.lower_suggested_warning [0.5]',
       );
@@ -163,7 +158,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.WarningDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Warning);
       expect(result.current?.message).toBe(
         'bridge.upper_suggested_warning [5]',
       );
@@ -193,7 +188,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Danger);
       expect(result.current?.message).toBe('bridge.upper_allowed_error [50]');
     });
 
@@ -206,7 +201,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Danger);
       expect(result.current?.message).toContain('bridge.upper_allowed_error');
     });
 
@@ -220,7 +215,7 @@ describe('useSlippageStepperDescription', () => {
       );
 
       // Even though value is valid, hasAttemptedToExceedMax should trigger error
-      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Danger);
       expect(result.current).not.toBeUndefined();
     });
   });
@@ -271,7 +266,7 @@ describe('useSlippageStepperDescription', () => {
   });
 
   describe('icon configuration', () => {
-    it('includes icon with correct properties for ERROR', () => {
+    it('shows the severity icon for ERROR', () => {
       const { result } = renderHook(() =>
         useSlippageStepperDescription({
           inputAmount: '0.05',
@@ -280,14 +275,11 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.icon).toEqual({
-        name: IconName.Danger,
-        size: IconSize.Lg,
-        color: IconColor.ErrorDefault,
-      });
+      expect(result.current?.showIcon).toBe(true);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Danger);
     });
 
-    it('includes icon with correct properties for WARNING', () => {
+    it('shows the severity icon for WARNING', () => {
       const { result } = renderHook(() =>
         useSlippageStepperDescription({
           inputAmount: '0.3',
@@ -296,11 +288,8 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.icon).toEqual({
-        name: IconName.Danger,
-        size: IconSize.Lg,
-        color: IconColor.WarningDefault,
-      });
+      expect(result.current?.showIcon).toBe(true);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Warning);
     });
   });
 
@@ -567,7 +556,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Danger);
       expect(result.current?.message).toContain('bridge.lower_allowed_error');
     });
 
@@ -580,7 +569,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.WarningDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Warning);
       expect(result.current?.message).toContain(
         'bridge.lower_suggested_warning',
       );
@@ -595,7 +584,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.WarningDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Warning);
       expect(result.current?.message).toContain(
         'bridge.upper_suggested_warning',
       );
@@ -610,7 +599,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Danger);
       expect(result.current?.message).toContain('bridge.upper_allowed_error');
     });
 
@@ -635,7 +624,7 @@ describe('useSlippageStepperDescription', () => {
         }),
       );
 
-      expect(result.current?.color).toBe(TextColor.ErrorDefault);
+      expect(result.current?.severity).toBe(HelpTextSeverity.Danger);
       expect(result.current).not.toBeUndefined();
     });
   });

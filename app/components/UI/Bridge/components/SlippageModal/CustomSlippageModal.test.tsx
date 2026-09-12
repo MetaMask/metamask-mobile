@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
-import { type TextInputSelectionChangeEvent } from 'react-native';
 import { SwapCustomSlippageModal as CustomSlippageModal } from './SwapCustomSlippageModal';
 
 // Mock BottomSheet
@@ -23,40 +22,42 @@ jest.mock(
 );
 
 // Mock InputStepper
-jest.mock('../InputStepper', () => ({
-  InputStepper: jest.fn(
-    (props: {
-      value: string;
-      onIncrease: () => void;
-      onDecrease: () => void;
-      description: unknown;
-      selection?: { start: number; end: number };
-      onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
-    }) => {
-      const ReactNative = jest.requireActual('react-native');
-      const { View, Text, TouchableOpacity } = ReactNative;
+jest.mock(
+  '../../../../../component-library/components-temp/InputStepper',
+  () => ({
+    __esModule: true,
+    default: jest.fn(
+      (props: {
+        value: string;
+        onIncrease: () => void;
+        onDecrease: () => void;
+        description: unknown;
+      }) => {
+        const ReactNative = jest.requireActual('react-native');
+        const { View, Text, TouchableOpacity } = ReactNative;
 
-      return (
-        <View testID="input-stepper">
-          <TouchableOpacity
-            testID="input-stepper-decrease"
-            onPress={props.onDecrease}
-          >
-            <Text>-</Text>
-          </TouchableOpacity>
-          <Text testID="input-stepper-value">{props.value}</Text>
-          <TouchableOpacity
-            testID="input-stepper-increase"
-            onPress={props.onIncrease}
-          >
-            <Text>+</Text>
-          </TouchableOpacity>
-          {props.description && <View testID="input-stepper-description" />}
-        </View>
-      );
-    },
-  ),
-}));
+        return (
+          <View testID="input-stepper">
+            <TouchableOpacity
+              testID="input-stepper-decrease"
+              onPress={props.onDecrease}
+            >
+              <Text>-</Text>
+            </TouchableOpacity>
+            <Text testID="input-stepper-value">{props.value}</Text>
+            <TouchableOpacity
+              testID="input-stepper-increase"
+              onPress={props.onIncrease}
+            >
+              <Text>+</Text>
+            </TouchableOpacity>
+            {props.description && <View testID="input-stepper-description" />}
+          </View>
+        );
+      },
+    ),
+  }),
+);
 
 // Mock Keypad
 jest.mock('../../../../Base/Keypad', () => ({
@@ -143,7 +144,7 @@ import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisableCustomSlippageConfirm';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { InputStepper } from '../InputStepper';
+import InputStepper from '../../../../../component-library/components-temp/InputStepper';
 import Keypad from '../../../../Base/Keypad';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -164,16 +165,6 @@ const mockInputStepper = InputStepper as jest.MockedFunction<
   typeof InputStepper
 >;
 const mockKeypad = Keypad as jest.MockedFunction<typeof Keypad>;
-
-const createSelectionEvent = (start: number): TextInputSelectionChangeEvent =>
-  ({
-    nativeEvent: {
-      selection: {
-        start,
-        end: start,
-      },
-    },
-  }) as TextInputSelectionChangeEvent;
 
 describe('CustomSlippageModal', () => {
   const mockSlippageConfig = {
@@ -814,20 +805,11 @@ describe('CustomSlippageModal', () => {
       );
     });
 
-    it('updates the displayed value at the selected cursor position', () => {
-      mockUseSlippageConfig.mockReturnValue({
-        ...mockSlippageConfig,
-        max_amount: 1000,
-      });
+    it('appends keypad digits to the end of the value', () => {
       mockSelector.mockReturnValue('12.5');
 
       const { getByTestId } = render(<CustomSlippageModal />);
 
-      const inputStepperProps = mockInputStepper.mock.calls[0][0];
-
-      act(() => {
-        inputStepperProps.onSelectionChange?.(createSelectionEvent(1));
-      });
       const keypadOnChange =
         mockKeypad.mock.calls[mockKeypad.mock.calls.length - 1][0].onChange;
       act(() => {
@@ -838,18 +820,13 @@ describe('CustomSlippageModal', () => {
         });
       });
 
-      expect(getByTestId('input-stepper-value').props.children).toBe('152.5');
+      expect(getByTestId('input-stepper-value').props.children).toBe('12.55');
     });
 
-    it('resets the cursor when stepper buttons change the value', () => {
+    it('keeps appending to the end after stepper buttons change the value', () => {
       mockSelector.mockReturnValue('12.5');
 
       const { getByTestId } = render(<CustomSlippageModal />);
-
-      const initialInputStepperProps = mockInputStepper.mock.calls[0][0];
-      act(() => {
-        initialInputStepperProps.onSelectionChange?.(createSelectionEvent(1));
-      });
 
       fireEvent.press(getByTestId('input-stepper-increase'));
 
