@@ -52,6 +52,22 @@ describe('getTransactionPayControllerMessenger', () => {
       }),
     );
   });
+
+  it('delegates Money Account vault submission actions', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'MoneyAccountBalanceService:getMoneyAccountBalance',
+          'TransactionController:addTransactionBatch',
+        ]),
+      }),
+    );
+  });
 });
 
 describe('getTransactionPayControllerInitMessenger', () => {

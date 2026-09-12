@@ -31,6 +31,9 @@ export function getTransactionPayControllerMessenger(
       'AssetsController:getStateForTransactionPay',
       'CurrencyRateController:getState',
       'GasFeeController:getState',
+      // This action is part of the next TransactionPayController release.
+      // Keep the cast until Mobile consumes that release's messenger types.
+      'MoneyAccountBalanceService:getMoneyAccountBalance' as never,
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkConfigurationByChainId',
@@ -43,6 +46,7 @@ export function getTransactionPayControllerMessenger(
       'TokensController:getState',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
+      'TransactionController:addTransactionBatch',
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
