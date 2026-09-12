@@ -61,7 +61,8 @@ export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
 export interface PerpsToastOptionsConfig {
   accountManagement: {
     deposit: {
-      success: (amount: string) => PerpsToastOptions;
+      /** @param amountAdded - Amount credited to the Perps account, not the resulting balance. */
+      success: (amountAdded: string) => PerpsToastOptions;
       inProgress: (
         processingTimeInSeconds: number | undefined,
         transactionId: string,
@@ -426,12 +427,13 @@ const usePerpsToasts = (): {
     () => ({
       accountManagement: {
         deposit: {
-          success: (amount: string) => {
+          success: (amountAdded: string) => {
+            const numericAmountAdded = Number.parseFloat(amountAdded);
             let subtext = strings('perps.deposit.funds_are_ready_to_trade');
 
-            if (amount && amount !== '0') {
-              subtext = strings('perps.deposit.success_message', {
-                amount: formatPerpsFiat(amount),
+            if (Number.isFinite(numericAmountAdded) && numericAmountAdded > 0) {
+              subtext = strings('perps.deposit.success_amount_added', {
+                amount: formatPerpsFiat(amountAdded),
               });
             }
 
