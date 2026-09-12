@@ -1521,7 +1521,7 @@
         "view_transaction": "View transaction"
       },
       "success_toast": "Your Perps account was funded",
-      "success_message": "{{amount}} available to trade",
+      "success_amount_added": "{{amount}} was added to Perps",
       "funds_are_ready_to_trade": "Funds are ready to trade",
       "error_toast": "Transaction failed",
       "error_generic": "Funds have been returned to you",
