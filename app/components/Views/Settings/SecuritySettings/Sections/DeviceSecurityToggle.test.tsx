@@ -311,6 +311,45 @@ describe('DeviceSecurityToggle', () => {
       });
     });
 
+    it('keeps toggle on after password entry until capabilities refresh', async () => {
+      jest.useFakeTimers();
+      let onPasswordSet: ((password: string) => Promise<void>) | undefined;
+      mockUpdateAuthPreference
+        .mockRejectedValueOnce(
+          new Error(ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS),
+        )
+        .mockResolvedValueOnce(undefined);
+      mockNavigate.mockImplementation(
+        (
+          _: string,
+          params?: { onPasswordSet?: (p: string) => Promise<void> },
+        ) => {
+          if (params?.onPasswordSet) onPasswordSet = params.onPasswordSet;
+        },
+      );
+
+      const { getByTestId } = renderComponent();
+      const toggle = await waitFor(() =>
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
+      );
+      fireEvent(toggle, 'onValueChange', true);
+
+      await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+      await act(async () => {
+        if (onPasswordSet) await onPasswordSet('test-password');
+      });
+
+      expect(
+        getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE)
+          .props.value,
+      ).toBe(true);
+
+      act(() => {
+        jest.runAllTimers();
+      });
+      jest.useRealTimers();
+    });
+
     it('clears optimistic state when user cancels password entry', async () => {
       let onCancel: (() => void) | undefined;
       mockUpdateAuthPreference.mockRejectedValueOnce(
