@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
@@ -22,50 +22,49 @@ import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/Activ
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the confirmations speed-up/cancel modal; route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 /* eslint-disable import-x/no-restricted-paths -- transient row hand-off + shared pending-action logic from the activity list; route-isolation backlog */
-import { getPreloadedActivityItem } from '../ActivityList/preloadedActivityItemStore';
 import {
   useUnifiedTxActions,
   type SpeedUpCancelParams,
 } from '../ActivityList/useUnifiedTxActions';
 /* eslint-enable import-x/no-restricted-paths */
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
+import { usePerpsDetailsItem } from './templates/Perps/usePerpsDetailsItem';
+import { usePredictDetailsItem } from './templates/PredictDetails/usePredictDetailsItem';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
 import { useLocalTransactionMeta } from './hooks/useLocalTransactionMeta';
+/* eslint-disable-next-line import-x/no-restricted-paths */
+import { useTransactionsQuery } from '../ActivityList/useTransactionsQuery';
 import { ActivityDetailsPendingBanner } from './components/ActivityDetailsPendingBanner';
 import { TemplateLoader } from './templates/TemplateLoader';
 
-/**
- * Redesigned activity details screen. Re-resolves the {@link ActivityListItem}
- * from the `{ chainId, txIdentifier }` route params (mirroring the extension's
- * `ui/pages/details` flow), then dispatches to a per-type template via
- * `TemplateLoader`. Gated behind `selectIsTransactionsRedesignEnabled` at the
- * navigation call site.
- */
-const ActivityDetails = () => {
+function ActivityDetailsProviders({ children }: { children: ReactNode }) {
+  return (
+    <PerpsConnectionProvider suppressErrorView>
+      <PerpsStreamProvider>{children}</PerpsStreamProvider>
+    </PerpsConnectionProvider>
+  );
+}
+
+function ActivityDetailsScreen() {
+  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
+  const activityItem = useActivityDetailsItem(txIdentifier, chainId);
+  const { item: perpsItem, isLoading: isPerpsLoading } = usePerpsDetailsItem(
+    txIdentifier,
+    chainId,
+  );
+  const { item: predictItem, isLoading: isPredictLoading } =
+    usePredictDetailsItem(activityItem ? undefined : txIdentifier, chainId);
+  const item = perpsItem ?? activityItem ?? predictItem;
+  const isLoading = isPerpsLoading || isPredictLoading;
+  const { data: evmTransactions, isFetching } = useTransactionsQuery();
+  const waitingForApi = !item && evmTransactions === undefined && isFetching;
+  const waiting = Boolean(isLoading || waitingForApi);
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
-  const { chainId, txIdentifier, preloadKey } =
-    useParams<ActivityDetailsParams>();
-  // Provider-backed rows (Perps / Predict) are handed off via a transient store
-  // keyed by `preloadKey` (params stay serializable). Capture the row once per
-  // key and hold it, so a later store eviction can't blank a still-mounted
-  // screen on re-render; re-read only when the key changes (the screen is reused
-  // across navigations).
-  const preloadedRef = useRef<{
-    key?: string;
-    item: ReturnType<typeof getPreloadedActivityItem>;
-  }>({ item: undefined });
-  if (preloadedRef.current.key !== preloadKey) {
-    preloadedRef.current = {
-      key: preloadKey,
-      item: getPreloadedActivityItem(preloadKey),
-    };
-  }
-  const preloadedItem = preloadedRef.current.item;
-
-  const item = useActivityDetailsItem(txIdentifier, chainId, preloadedItem);
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
   const bridgeHistoryItem = findBridgeHistoryItemBySrcTxHash(
     bridgeHistoryItemsBySrcTxHash,
@@ -73,7 +72,9 @@ const ActivityDetails = () => {
   );
   const title = item
     ? resolveActivityListItemTitle(item, bridgeHistoryItem)
-    : strings('activity_details.not_found');
+    : waiting
+      ? ''
+      : strings('activity_details.not_found');
 
   // Pending speed-up / cancel: resolve the live local `TransactionMeta` for the
   // resolved item so the banner reflects current status/gas. Only local EVM
@@ -166,7 +167,7 @@ const ActivityDetails = () => {
             ) : null}
             <TemplateLoader item={item} />
           </ScrollView>
-        ) : (
+        ) : waiting ? null : (
           <Box twClassName="flex-1 items-center justify-center p-4">
             <Text
               variant={TextVariant.BodyMd}
@@ -197,6 +198,12 @@ const ActivityDetails = () => {
       </Box>
     </SafeAreaView>
   );
-};
+}
+
+const ActivityDetails = () => (
+  <ActivityDetailsProviders>
+    <ActivityDetailsScreen />
+  </ActivityDetailsProviders>
+);
 
 export default ActivityDetails;

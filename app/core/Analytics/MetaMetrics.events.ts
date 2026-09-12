@@ -219,6 +219,8 @@ enum EVENT_NAME {
 
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
+  ACCOUNT_LIST_VIEWED = 'Account List Viewed',
+  SEARCH_INTERACTED = 'Search Interacted',
 
   // Browser
   BROWSER_OPENED = 'Browser Opened',
@@ -691,6 +693,9 @@ enum EVENT_NAME {
   CARD_TRANSACTION_HISTORY_OPENED = 'Card Transaction History Opened',
   CARD_TRANSACTION_DETAILS_OPENED = 'Card Transaction Details Opened',
   CARD_TRANSACTION_REPORT_STARTED = 'Card Transaction Report Started',
+  CARD_REDEEM_PROCESS_STARTED = 'Card Redeem Process Started',
+  CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
+  CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -1143,6 +1148,11 @@ const events = {
   ),
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
+  ACCOUNT_LIST_VIEWED: generateOpt(EVENT_NAME.ACCOUNT_LIST_VIEWED),
+  SEARCH_INTERACTED: generateOpt(EVENT_NAME.SEARCH_INTERACTED),
+  // Bare form, for callers that supply `action` and `name` themselves; the
+  // legacy NAVIGATION_TAPS_* entries below bake in the old drawer values.
+  NAVIGATION_DRAWER: generateOpt(EVENT_NAME.NAVIGATION_DRAWER),
   BROWSER_OPENED: generateOpt(EVENT_NAME.BROWSER_OPENED),
   BROWSER_SEARCH_USED: generateOpt(EVENT_NAME.BROWSER_SEARCH_USED),
   BROWSER_NEW_TAB: generateOpt(EVENT_NAME.BROWSER_NEW_TAB),
@@ -1990,6 +2000,15 @@ const events = {
   ),
   CARD_TRANSACTION_REPORT_STARTED: generateOpt(
     EVENT_NAME.CARD_TRANSACTION_REPORT_STARTED,
+  ),
+  CARD_REDEEM_PROCESS_STARTED: generateOpt(
+    EVENT_NAME.CARD_REDEEM_PROCESS_STARTED,
+  ),
+  CARD_REDEEM_PROCESS_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_REDEEM_PROCESS_COMPLETED,
+  ),
+  CARD_REDEEM_PROCESS_FAILED: generateOpt(
+    EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(

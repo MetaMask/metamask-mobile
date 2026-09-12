@@ -64,10 +64,12 @@ function createStatsCache(
     loading?: boolean;
     error?: boolean;
   } = {},
+  subscriptionId: string = SUBSCRIPTION_ID,
 ): Partial<RewardsState> {
+  const key = `${subscriptionId}:${campaignId}`;
   return {
     moneyAccountSweepstakesStats: {
-      [campaignId]: {
+      [key]: {
         data: overrides.data ?? null,
         loading: overrides.loading ?? false,
         error: overrides.error ?? false,
@@ -107,6 +109,7 @@ describe('useGetMoneyAccountSweepstakesStatsMe', () => {
     await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledWith(
         setMoneyAccountSweepstakesStats({
+          subscriptionId: SUBSCRIPTION_ID,
           campaignId: CAMPAIGN_ID,
           stats: MOCK_STATS,
         }),
@@ -120,12 +123,14 @@ describe('useGetMoneyAccountSweepstakesStatsMe', () => {
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       setMoneyAccountSweepstakesStatsLoading({
+        subscriptionId: SUBSCRIPTION_ID,
         campaignId: CAMPAIGN_ID,
         loading: true,
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       setMoneyAccountSweepstakesStatsLoading({
+        subscriptionId: SUBSCRIPTION_ID,
         campaignId: CAMPAIGN_ID,
         loading: false,
       }),
@@ -140,6 +145,7 @@ describe('useGetMoneyAccountSweepstakesStatsMe', () => {
     await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledWith(
         setMoneyAccountSweepstakesStatsError({
+          subscriptionId: SUBSCRIPTION_ID,
           campaignId: CAMPAIGN_ID,
           error: true,
         }),
@@ -147,6 +153,7 @@ describe('useGetMoneyAccountSweepstakesStatsMe', () => {
     });
     expect(mockDispatch).toHaveBeenCalledWith(
       setMoneyAccountSweepstakesStatsLoading({
+        subscriptionId: SUBSCRIPTION_ID,
         campaignId: CAMPAIGN_ID,
         loading: false,
       }),

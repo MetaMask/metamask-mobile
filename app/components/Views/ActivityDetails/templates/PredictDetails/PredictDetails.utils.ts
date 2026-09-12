@@ -1,12 +1,16 @@
 import { strings } from '../../../../../../locales/i18n';
 import type { ActivityListItem } from '../../../../../util/activity-adapters';
-import {
-  formatPredictDate,
-  getPredictFundsStepLabels,
-} from './PredictDetails.types';
+import { formatPredictDate } from './PredictDetails.types';
 import type { ActivityDetailsStep } from '../../components';
 
 const POLYMARKET_BASE_URL = 'https://polymarket.com';
+
+function getPredictFundsStepLabels() {
+  return [
+    strings('predict.transactions.steps.bridge_funds'),
+    strings('predict.transactions.steps.add_funds'),
+  ];
+}
 
 export function getPolymarketActivityUrl(activity?: {
   providerId?: string;

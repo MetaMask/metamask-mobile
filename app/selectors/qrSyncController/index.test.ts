@@ -1,16 +1,27 @@
+import { AccountWalletPayloadType } from '@metamask/account-tree-controller';
 import {
-  QrSyncMessageVersion,
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
 } from '../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../core/QrSync/QrSyncController';
 import type { RootState } from '../../reducers';
 import {
   selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
+  selectQrSyncImportMnemonic,
   selectQrSyncShouldNavigateToImport,
 } from './index';
+
+jest.mock('@metamask/keyring-sdk', () => ({
+  encodeMnemonicWords: jest.fn(
+    (bytes: Uint8Array) => `decoded:${bytes.join(',')}`,
+  ),
+}));
+
+jest.mock('@metamask/account-tree-controller', () => ({
+  ...jest.requireActual('@metamask/account-tree-controller'),
+  decodeBytes: jest.fn((encoded: number[]) => new Uint8Array(encoded)),
+}));
 
 const buildState = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState>,
@@ -26,15 +37,73 @@ const buildState = (
     },
   }) as RootState;
 
-describe('qrSyncController selectors', () => {
-  const pendingSecretImports = [
+// Minimal EncodedBytes value — actual word indices don't matter for selector tests.
+const TEST_MNEMONIC_BYTES = [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6];
+
+const pendingSecretImports = {
+  version: 1 as const,
+  wallets: [
     {
-      index: 0,
-      value: 'word1 word2 word3',
-      type: QrSyncSecretTypes.MNEMONIC,
-      isPrimary: true,
+      id: 'wallet:test' as `wallet:${string}`,
+      type: AccountWalletPayloadType.Mnemonic,
+      value: TEST_MNEMONIC_BYTES,
+      metadata: { name: 'Wallet 1' },
+      groups: [
+        {
+          id: 'wallet:test/0' as `wallet:${string}/${string}`,
+          groupIndex: 0,
+          metadata: { name: 'Account 1', pinned: false, hidden: false },
+        },
+      ],
     },
-  ];
+  ],
+};
+
+const provisioningMetadata = {
+  version: 1 as const,
+  wallets: [
+    {
+      id: 'wallet:test' as `wallet:${string}`,
+      type: AccountWalletPayloadType.Mnemonic,
+      metadata: { name: 'Wallet 1' },
+      groups: [
+        {
+          id: 'wallet:test/0' as `wallet:${string}/${string}`,
+          groupIndex: 0,
+          metadata: { name: 'Account 1', pinned: false, hidden: false },
+        },
+      ],
+    },
+  ],
+};
+
+describe('qrSyncController selectors', () => {
+  describe('selectQrSyncImportMnemonic', () => {
+    it('decodes EncodedBytes value to a mnemonic phrase string', () => {
+      const result = selectQrSyncImportMnemonic(
+        buildState({ pendingSecretImports }),
+      );
+      expect(result).toBe(`decoded:${TEST_MNEMONIC_BYTES.join(',')}`);
+    });
+
+    it('returns null when pendingSecretImports is null', () => {
+      expect(
+        selectQrSyncImportMnemonic(buildState({ pendingSecretImports: null })),
+      ).toBeNull();
+    });
+
+    it('returns null when value is absent', () => {
+      const payloadWithoutValue = {
+        ...pendingSecretImports,
+        wallets: [{ ...pendingSecretImports.wallets[0], value: undefined }],
+      };
+      expect(
+        selectQrSyncImportMnemonic(
+          buildState({ pendingSecretImports: payloadWithoutValue }),
+        ),
+      ).toBeNull();
+    });
+  });
 
   describe('selectQrSyncShouldNavigateToImport', () => {
     it('returns true when awaiting password with pending secrets', () => {
@@ -71,18 +140,6 @@ describe('qrSyncController selectors', () => {
       ).toBe(false);
     });
   });
-
-  const provisioningMetadata = {
-    version: QrSyncMessageVersion.V1,
-    entries: [
-      {
-        index: 0,
-        type: QrSyncSecretTypes.MNEMONIC,
-        isPrimary: true,
-        entropySource: 'entropy-1',
-      },
-    ],
-  };
 
   describe('selectQrSyncNeedsProvisioning', () => {
     it('returns true when secrets are imported and metadata is present', () => {

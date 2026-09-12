@@ -148,12 +148,7 @@ export async function setupSwapSocialAndComplianceMocks(
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    stxMigrationBatchStatus: false,
-    stxMigrationCancel: false,
-    stxMigrationGetFees: false,
-    stxMigrationSubmitTransactions: false,
-  });
+  await setupRemoteFeatureFlagsMock(mockServer);
   await setupSpotPricesMock(mockServer);
   await setupSwapSocialAndComplianceMocks(mockServer);
 

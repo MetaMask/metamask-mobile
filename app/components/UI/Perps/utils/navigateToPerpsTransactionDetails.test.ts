@@ -58,7 +58,6 @@ describe('navigateToPerpsTransactionDetails', () => {
       expect.objectContaining({
         chainId: 'eip155:42161',
         txIdentifier: 'order-1',
-        preloadKey: expect.any(String),
       }),
     );
   });
