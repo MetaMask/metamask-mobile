@@ -1,22 +1,15 @@
 import React from 'react';
 import {
-  IconColor as DsIconColor,
   IconSize as DsIconSize,
   Spinner,
+  toast,
+  ToastSeverity,
+  type ToastOptions,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import {
-  IconColor,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import {
-  ToastOptions,
-  ToastVariants,
-} from '../../../../component-library/components/Toast/Toast.types';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
-import ToastService from '../../../../core/ToastService';
 import { renderNumber } from '../../../../util/number/bigint';
 
 export interface V2OrderToastParams {
@@ -24,6 +17,14 @@ export interface V2OrderToastParams {
   cryptocurrency: string;
   cryptoAmount?: string | number;
   status: RampsOrderStatus;
+}
+
+function dismissToast() {
+  try {
+    toast.dismiss();
+  } catch {
+    // Toaster may be unmounted in tests
+  }
 }
 
 /**
@@ -38,34 +39,23 @@ export function buildV2OrderToastOptions(
   switch (status) {
     case RampsOrderStatus.Pending: {
       return {
-        variant: ToastVariants.Plain,
         hasNoTimeout: false,
         startAccessory: React.createElement(Spinner, {
-          color: DsIconColor.IconDefault,
           spinnerIconProps: { size: DsIconSize.Lg },
         }),
-        labelOptions: [
-          {
-            label: strings('ramps_v2.notifications.purchase_pending_title', {
-              cryptocurrency,
-            }),
-            isBold: true,
-          },
-        ],
-        descriptionOptions: {
-          description: strings(
-            'ramps_v2.notifications.purchase_pending_description',
-          ),
-        },
-        linkButtonOptions: {
-          label: strings('ramps_v2.notifications.track'),
-          onPress: () => {
-            ToastService.closeToast();
-            NavigationService.navigation.navigate(
-              Routes.RAMP.RAMPS_ORDER_DETAILS,
-              { orderId, showCloseButton: true },
-            );
-          },
+        title: strings('ramps_v2.notifications.purchase_pending_title', {
+          cryptocurrency,
+        }),
+        description: strings(
+          'ramps_v2.notifications.purchase_pending_description',
+        ),
+        actionButtonLabel: strings('ramps_v2.notifications.track'),
+        actionButtonOnPress: () => {
+          dismissToast();
+          NavigationService.navigation.navigate(
+            Routes.RAMP.RAMPS_ORDER_DETAILS,
+            { orderId, showCloseButton: true },
+          );
         },
       };
     }
@@ -75,75 +65,45 @@ export function buildV2OrderToastOptions(
         ? renderNumber(String(cryptoAmount))
         : '';
       return {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: IconColor.Success,
-        backgroundColor: 'transparent',
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
-        labelOptions: [
+        title: strings('ramps_v2.notifications.purchase_completed_title', {
+          amount: formattedAmount,
+          cryptocurrency,
+        }),
+        description: strings(
+          'ramps_v2.notifications.purchase_completed_description',
           {
-            label: strings('ramps_v2.notifications.purchase_completed_title', {
-              amount: formattedAmount,
-              cryptocurrency,
-            }),
-            isBold: true,
+            cryptocurrency,
           },
-        ],
-        descriptionOptions: {
-          description: strings(
-            'ramps_v2.notifications.purchase_completed_description',
-            {
-              cryptocurrency,
-            },
-          ),
-        },
+        ),
       };
     }
 
     case RampsOrderStatus.Failed: {
       return {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: IconColor.Error,
-        backgroundColor: 'transparent',
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: strings('ramps_v2.notifications.purchase_failed_title', {
-              cryptocurrency,
-            }),
-            isBold: true,
-          },
-        ],
-        descriptionOptions: {
-          description: strings(
-            'ramps_v2.notifications.purchase_failed_description',
-          ),
-        },
+        title: strings('ramps_v2.notifications.purchase_failed_title', {
+          cryptocurrency,
+        }),
+        description: strings(
+          'ramps_v2.notifications.purchase_failed_description',
+        ),
       };
     }
 
     case RampsOrderStatus.Cancelled: {
       return {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: IconColor.Warning,
-        backgroundColor: 'transparent',
+        severity: ToastSeverity.Warning,
         hasNoTimeout: false,
-        labelOptions: [
+        title: strings('ramps_v2.notifications.purchase_cancelled_title'),
+        description: strings(
+          'ramps_v2.notifications.purchase_cancelled_description',
           {
-            label: strings('ramps_v2.notifications.purchase_cancelled_title'),
-            isBold: true,
+            cryptocurrency,
           },
-        ],
-        descriptionOptions: {
-          description: strings(
-            'ramps_v2.notifications.purchase_cancelled_description',
-            {
-              cryptocurrency,
-            },
-          ),
-        },
+        ),
       };
     }
 
@@ -163,6 +123,6 @@ export function buildV2OrderToastOptions(
 export function showV2OrderToast(params: V2OrderToastParams): void {
   const toastOptions = buildV2OrderToastOptions(params);
   if (toastOptions) {
-    ToastService.showToast(toastOptions);
+    toast(toastOptions);
   }
 }
