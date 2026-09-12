@@ -11,8 +11,11 @@ import {
 } from '../../../../constants/on-ramp';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
+import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
@@ -22,6 +25,7 @@ import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformation
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
+jest.mock('../../ActivityList/hooks/activity/useApiTransaction');
 jest.mock('../../ActivityList/hooks/useLocalActivityItems');
 jest.mock('../../ActivityList/hooks/useRampActivityItems');
 jest.mock('../../ActivityList/useTransactionsQuery');
@@ -35,6 +39,7 @@ jest.mock('../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   findBridgeHistoryItemBySrcTxHash: jest.fn(),
 }));
 
+const useApiTransactionMock = jest.mocked(useApiTransaction);
 const useLocalActivityItemsMock = jest.mocked(useLocalActivityItems);
 const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
@@ -85,6 +90,7 @@ function setSources({
   useRampActivityItemsMock.mockReturnValue(ramp);
   useTransactionsQueryMock.mockReturnValue({
     data: { pages: [{ data: confirmed }] },
+    isFetching: false,
   } as unknown as ReturnType<typeof useTransactionsQuery>);
   mapNonEvmTransactionsMock.mockReturnValue(nonEvm);
 }
@@ -92,9 +98,19 @@ function setSources({
 describe('useActivityDetailsItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useApiTransactionMock.mockReturnValue({
+      transaction: undefined,
+      isFetching: false,
+    });
     jest.mocked(useSelector).mockImplementation((selector) => {
       if (selector === selectSelectedAccountGroupInternalAccounts) {
         return [];
+      }
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return undefined;
+      }
+      if (selector === selectEvmAddress) {
+        return '0x1234567890abcdef1234567890abcdef12345678';
       }
       return { transactions: [] };
     });
@@ -103,7 +119,7 @@ describe('useActivityDetailsItem', () => {
   it('returns undefined when no identifier is provided', () => {
     setSources({});
     const { result } = renderHook(() => useActivityDetailsItem(undefined));
-    expect(result.current).toBeUndefined();
+    expect(result.current.item).toBeUndefined();
   });
 
   it('resolves a local item by hash (case-insensitive)', () => {
@@ -111,7 +127,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xabc'));
-    expect(result.current).toBe(local);
+    expect(result.current.item).toBe(local);
   });
 
   it('resolves a non-EVM item when no local/api item matches', () => {
@@ -119,7 +135,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ nonEvm: [nonEvm] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xsol'));
-    expect(result.current).toBe(nonEvm);
+    expect(result.current.item).toBe(nonEvm);
   });
 
   it('forwards bridge history and subject address into non-EVM mapping', () => {
@@ -153,7 +169,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local], confirmed: [api] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xdef'));
-    expect(result.current).toBe(api);
+    expect(result.current.item).toBe(api);
   });
 
   it('prefers the API swap over a local swap whose destination is unresolved on-device', () => {
@@ -166,7 +182,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local], confirmed: [api] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xswap'));
-    expect(result.current).toBe(api);
+    expect(result.current.item).toBe(api);
   });
 
   it('falls back to the local swap when there is no API copy', () => {
@@ -178,7 +194,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xonly'));
-    expect(result.current).toBe(local);
+    expect(result.current.item).toBe(local);
   });
 
   it('keeps the local spending-cap copy when only it carries the cap amount', () => {
@@ -191,7 +207,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local], confirmed: [api] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xcap'));
-    expect(result.current).toBe(local);
+    expect(result.current.item).toBe(local);
   });
 
   it('prefers the API spending-cap copy when the local copy also lacks an amount', () => {
@@ -200,7 +216,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local], confirmed: [api] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xnocap'));
-    expect(result.current).toBe(api);
+    expect(result.current.item).toBe(api);
   });
 
   it('keeps the local item when it is already categorized and types differ', () => {
@@ -209,7 +225,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local], confirmed: [api] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xfff'));
-    expect(result.current).toBe(local);
+    expect(result.current.item).toBe(local);
   });
 
   it('keeps the local item when only it carries a gas-token fee', () => {
@@ -236,7 +252,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local], confirmed: [api] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xgas'));
-    expect(result.current).toBe(local);
+    expect(result.current.item).toBe(local);
   });
 
   it('prefers a richer API send over a local contractInteraction that only has a gas-token fee', () => {
@@ -262,7 +278,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local], confirmed: [api] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xdegraded'));
-    expect(result.current).toBe(api);
+    expect(result.current.item).toBe(api);
   });
 
   it('resolves a local item by TransactionMeta id when the display hash changed', () => {
@@ -280,7 +296,7 @@ describe('useActivityDetailsItem', () => {
     setSources({ local: [local] });
 
     const { result } = renderHook(() => useActivityDetailsItem('meta-1'));
-    expect(result.current).toBe(local);
+    expect(result.current.item).toBe(local);
   });
 
   it('returns the API item when there is no local match', () => {
@@ -288,7 +304,48 @@ describe('useActivityDetailsItem', () => {
     setSources({ confirmed: [api] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xAPI'));
-    expect(result.current).toBe(api);
+    expect(result.current.item).toBe(api);
+  });
+
+  it('resolves a fetched API transaction when it is not in the list query pages', () => {
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        chainId: 1,
+        hash: '0xfetched',
+        from: '0x1234567890abcdef1234567890abcdef12345678',
+        to: '0x0000000000000000000000000000000000000001',
+      },
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem(
+        '0xfetched',
+        'eip155:1',
+      ),
+    );
+
+    expect(result.current.item?.hash).toBe('0xfetched');
+    expect(result.current.item?.raw?.type).toBe('apiEvmTransaction');
+  });
+
+  it('reports fetching while the single-transaction fallback is loading', () => {
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: undefined,
+      isFetching: true,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem(
+        '0x0000000000000000000000000000000000000000000000000000000000000001',
+        'eip155:1',
+      ),
+    );
+
+    expect(result.current.item).toBeUndefined();
+    expect(result.current.isFetching).toBe(true);
   });
 
   it('resolves the item matching the requested chainId when hashes collide across chains', () => {
@@ -307,7 +364,7 @@ describe('useActivityDetailsItem', () => {
     const { result } = renderHook(() =>
       useActivityDetailsItem('0xdup', 'eip155:8453'),
     );
-    expect(result.current).toBe(base);
+    expect(result.current.item).toBe(base);
   });
 
   it('resolves a Ramp item by hash from fiat orders', () => {
@@ -318,7 +375,7 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem('0xramp', 'eip155:59144'),
     );
 
-    expect(result.current).toBe(ramp);
+    expect(result.current.item).toBe(ramp);
   });
 
   it('resolves a Ramp item by order id when a transaction hash is available', () => {
@@ -329,6 +386,6 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem('ramp-order-id', 'eip155:59144'),
     );
 
-    expect(result.current).toBe(ramp);
+    expect(result.current.item).toBe(ramp);
   });
 });

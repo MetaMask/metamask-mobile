@@ -1,13 +1,21 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { mapApiTransaction } from '@metamask/client-utils';
 import type { CaipChainId } from '@metamask/utils';
 import {
   type ActivityListItem,
+  classifyPooledStakingActivity,
   preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
-import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectSelectedAccountGroupEvmInternalAccount,
+  selectSelectedAccountGroupInternalAccounts,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
+import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
+import { isValidTransactionHash } from '../../ActivityList/hooks/activity/isValidTransactionHash';
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
@@ -142,15 +150,33 @@ function getPreferredApiItem(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
-): ActivityListItem | undefined {
+): {
+  item: ActivityListItem | undefined;
+  isFetching: boolean;
+} {
   const localActivityItems = useLocalActivityItems();
   const rampActivityItems = useRampActivityItems();
-  const { data: evmTransactions } = useTransactionsQuery();
+  const { data: evmTransactions, isFetching: isListFetching } =
+    useTransactionsQuery();
+  const groupEvmAccount = useSelector(
+    selectSelectedAccountGroupEvmInternalAccount,
+  );
+  const globalEvmAddress = useSelector(selectEvmAddress);
+  const evmAddress = (groupEvmAccount?.address ?? globalEvmAddress ?? '') || '';
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
   const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+
+  const txHash =
+    chainId?.startsWith('eip155:') &&
+    txIdentifier &&
+    isValidTransactionHash(txIdentifier)
+      ? txIdentifier
+      : undefined;
+  const { transaction: apiTransaction, isFetching: isSingleTxFetching } =
+    useApiTransaction({ chainId, txHash });
 
   const confirmedEvmItems = useMemo<ActivityListItem[]>(
     () => evmTransactions?.pages.flatMap((page) => page.data) ?? [],
@@ -191,7 +217,28 @@ export function useActivityDetailsItem(
     [rampActivityItems, chainId],
   );
 
-  return useMemo(() => {
+  const fetchedApiItem = useMemo(() => {
+    if (!apiTransaction || !evmAddress) {
+      return undefined;
+    }
+
+    const activity = {
+      ...mapApiTransaction({
+        subjectAddress: evmAddress,
+        transaction: apiTransaction,
+      }),
+      raw: { type: 'apiEvmTransaction' as const, data: apiTransaction },
+    } as ActivityListItem;
+    const classified = classifyPooledStakingActivity(apiTransaction, activity);
+
+    if (chainId && classified.chainId !== chainId) {
+      return undefined;
+    }
+
+    return classified;
+  }, [apiTransaction, chainId, evmAddress]);
+
+  const item = useMemo(() => {
     const id = txIdentifier?.toLowerCase();
     if (!id) {
       return undefined;
@@ -203,7 +250,9 @@ export function useActivityDetailsItem(
     }
 
     const localItem = localByLookupKey.get(id);
-    const apiItem = getPreferredApiItem(apiByHash, id, localItem);
+    const apiItem =
+      getPreferredApiItem(apiByHash, id, localItem, fetchedApiItem) ??
+      (fetchedApiItem?.hash?.toLowerCase() === id ? fetchedApiItem : undefined);
     const nonEvmItem = nonEvmByHash.get(id);
 
     if (localItem) {
@@ -221,5 +270,20 @@ export function useActivityDetailsItem(
     apiByHash,
     nonEvmByHash,
     rampByIdentifier,
+    fetchedApiItem,
   ]);
+
+  const isFetching = useMemo(() => {
+    if (item) {
+      return false;
+    }
+
+    if (isSingleTxFetching) {
+      return true;
+    }
+
+    return evmTransactions === undefined && isListFetching;
+  }, [item, isSingleTxFetching, evmTransactions, isListFetching]);
+
+  return { item, isFetching };
 }

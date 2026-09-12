@@ -1,0 +1,22 @@
+import { useCachedEvmTransaction } from './useCachedEvmTransaction';
+import { useTransactionQuery } from './useTransactionQuery';
+
+export function useApiTransaction({
+  chainId,
+  txHash,
+}: {
+  chainId: string | undefined;
+  txHash: string | undefined;
+}) {
+  const cached = useCachedEvmTransaction({ chainId, txHash });
+  const { data: fetched, isFetching } = useTransactionQuery({
+    chainId,
+    txHash,
+    enabled: Boolean(chainId && txHash && !cached),
+  });
+
+  return {
+    transaction: cached ?? fetched,
+    isFetching: Boolean(chainId && txHash && !cached && isFetching),
+  };
+}
