@@ -384,7 +384,7 @@ function PerpsFundsDetailsBody({
         pay={pay}
         networkFeeLabel={strings('activity_details.transaction_fee')}
       />
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={0} />
       {timeline}
     </>
   );
