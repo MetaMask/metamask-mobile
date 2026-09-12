@@ -64,7 +64,7 @@
     },
     "gas_estimate_failed": {
       "title": "Tarifa inexacta",
-      "message": "No podemos proporcionar una tarifa exacta y este cálculo podría ser alto. Te sugerimos que introduzcas un límite de gas personalizado, pero existe el riesgo de que la transacción siga fallando."
+      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
     "insufficient_balance": {
       "title": "Fondos insuficientes",
@@ -500,7 +500,7 @@
     "go_back": "¿No puede desbloquear su monedero? Puede BORRAR el monedero actual y configurar uno nuevo",
     "forgot_password": "¿Olvidaste tu contraseña?",
     "cant_proceed": "No puede seguir hasta que escriba la palabra “Eliminar”. Con esta acción, opta por borrar el monedero actual.",
-    "invalid_password": "La contraseña es incorrecta, inténtalo de nuevo.",
+    "invalid_password": "Incorrect password. Try again.",
     "type_delete": "Escribe \"{{erase}}\" para confirmar",
     "erase_my": "Sí, restablecer la billetera",
     "cancel": "Cancelar",
@@ -513,8 +513,8 @@
     "metamask_does_not": "MetaMask no tiene su frase secreta de recuperación.",
     "i_understand": "Comprendo; continuar",
     "passcode_not_set_error": "Error: Código de acceso no establecido.",
-    "wrong_password_error": "Error: Error al descifrar",
-    "wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
+    "wrong_password_error": "Incorrect password. Try again.",
+    "wrong_password_error_android": "Incorrect password. Try again.",
     "vault_error": "Error: No se puede desbloquear sin una bóveda anterior.",
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "seedless_password_outdated": "Tu contraseña se cambió recientemente.",
@@ -579,7 +579,7 @@
     "create_button": "Crear una contraseña",
     "import_with_seed_phrase": "Importar con la frase secreta de recuperación",
     "password_length_error": "La contraseña debe tener al menos 8 caracteres",
-    "password_dont_match": "Las contraseñas no coinciden",
+    "password_dont_match": "Passwords don't match.",
     "password_strength": "Seguridad de la contraseña:",
     "strength_weak": "Débil",
     "strength_good": "Buena",
@@ -623,7 +623,7 @@
     "reset_button": "Restablecer contraseña",
     "import_with_seed_phrase": "Importar con la frase secreta de recuperación",
     "password_length_error": "La contraseña debe tener al menos 8 caracteres",
-    "password_dont_match": "Las contraseñas no coinciden",
+    "password_dont_match": "Passwords don't match.",
     "password_strength": "Seguridad de la contraseña:",
     "strength_weak": "Débil",
     "strength_good": "Buena",
@@ -663,7 +663,7 @@
     "import_button": "Importar",
     "cancel_button": "Cancelar",
     "password_length_error": "La contraseña debe tener al menos 8 caracteres",
-    "password_dont_match": "Las contraseñas no coinciden",
+    "password_dont_match": "Passwords don't match.",
     "seed_phrase_requirements": "Las frases secretas de recuperación contienen 12, 15, 18, 21 o 24 palabras",
     "invalid_seed_phrase": "No se encontró la frase secreta de recuperación.",
     "error": "Error",
@@ -709,7 +709,8 @@
     "settings": "Configuración",
     "rewards": "Recompensas",
     "trending": "Explorar",
-    "money": "Money"
+    "money": "Money",
+    "social": "Social"
   },
   "drawer": {
     "send_button": "Enviar",
@@ -1133,11 +1134,17 @@
       "how_to_delete_description": "Puedes eliminar tus datos en cualquier momento accediendo a Configuración > Gestionar datos.",
       "metamask_privacy_policy": "Política de privacidad de MetaMask",
       "metamask_terms": "Términos y condiciones de MetaMask",
-      "idos_privacy_policy": "Política de privacidad de idOS",
-      "idos_terms": "Términos y condiciones de idOS",
-      "sumsub_privacy_policy": "Política de privacidad de Sumsub",
-      "sumsub_terms": "Términos y condiciones de Sumsub",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
       "button": "Continuar"
+    },
+    "kyc_email": {
+      "title": "What's your email?",
+      "description": "We'll use this to send account updates.",
+      "input_placeholder": "Email address",
+      "button": "Continue",
+      "error_title": "Identity verification",
+      "error_description": "We couldn't start your identity verification. Try again."
     }
   },
   "social_leaderboard": {
@@ -1169,7 +1176,8 @@
       "title": "Traders principales",
       "tabs": {
         "leaderboard": "Clasificación",
-        "feed": "Feed"
+        "feed": "Feed",
+        "live_trades": "Live trades"
       },
       "following": "Siguiendo",
       "all": "Todas",
@@ -1217,6 +1225,19 @@
         "size_at_market_cap": "{{size}} en {{marketCap}} {{abbreviation}}"
       },
       "no_data": "Sin datos"
+    },
+    "shell": {
+      "subnav": {
+        "trending": "Trending",
+        "memecoins": "Memecoins",
+        "perps": "Perps",
+        "stocks": "Stocks",
+        "whales": "Only",
+        "top_traders": "Top traders",
+        "top_perps": "Top perps",
+        "kols": "KOLs",
+        "top_tokens": "Top tokens"
+      }
     },
     "onboarding": {
       "slide_trade": {
@@ -1905,19 +1926,19 @@
         },
         "stop_limit": {
           "title": "Detener límite",
-          "description": "El límite se ejecuta al precio de activación"
+          "description": "Place a limit order if trigger price hits"
         },
         "stop_market": {
           "title": "Detener mercado",
-          "description": "El mercado se ejecuta al precio de activación"
+          "description": "Place a market order if trigger price hits"
         },
         "take_profit_limit": {
           "title": "Toma de ganancias límite",
-          "description": "Limitar la toma de ganancias al precio de activación"
+          "description": "Place a limit order if trigger price is reached"
         },
         "take_profit_market": {
           "title": "Toma de ganancias a mercado",
-          "description": "Toma de ganancias a mercado al precio de activación"
+          "description": "Place a market order if trigger price is reached"
         },
         "twap": {
           "title": "TWAP",
@@ -2198,7 +2219,7 @@
       "exchangeClientNotAvailable": "ExchangeClient no disponible después de la inicialización",
       "exchangeAccountNotFound": "Agrega fondos a tu cuenta antes de realizar una orden",
       "exchangeMultiSigRequired": "Esta cuenta necesita sus firmantes multifirma para operar",
-      "exchangeInvalidNonce": "Se produjo un error. Inténtalo de nuevo.",
+      "exchangeInvalidNonce": "Something went wrong. Try again.",
       "infoClientNotAvailable": "InfoClient no disponible después de la inicialización",
       "subscriptionClientNotAvailable": "SubscriptionClient no está disponible tras la inicialización",
       "subscriptionClientNotInitialized": "SubscriptionClient no está inicializado",
@@ -2263,7 +2284,11 @@
         "chaseLimitReached": "Ya hay demasiadas órdenes de seguimiento en ejecución",
         "chaseAbandoned": "La orden de seguimiento se canceló porque se perdió la conexión",
         "chaseTouchUnavailable": "No hay un precio de mercado disponible para realizar esta orden de seguimiento",
-        "chaseMaxDistanceInvalid": "La distancia máx. de seguimiento está fuera del rango permitido"
+        "chaseMaxDistanceInvalid": "La distancia máx. de seguimiento está fuera del rango permitido",
+        "marginModeInvalid": "Margin mode is invalid",
+        "marginModeUnsupported": "This margin mode isn't available on this market",
+        "marginModePositionOpen": "Can't change margin mode while a position is open",
+        "marginModeOrderOpen": "Can't change margin mode while an order is open"
       },
       "networkToggleFailed": "Error al alternar la red: {{error}}",
       "accountBalanceFailed": "Error al obtener el saldo de la cuenta: {{error}}",
@@ -3982,6 +4007,20 @@
     "settings": "También puedes",
     "settings_link": "gestionar otra configuración por defecto."
   },
+  "basic_functionality_migration": {
+    "title": "Your settings have changed",
+    "social_title": "Privacy and product updates",
+    "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
+    "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
+    "social_body_2_middle": " and updated ",
+    "social_body_2_suffix": ".",
+    "blog_post_link": "blog post",
+    "privacy_notice_link": "Privacy Notice",
+    "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
+    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
+    "settings_link": "Settings > Privacy",
+    "accept_and_close": "Accept and close"
+  },
   "onboarding_interest_questionnaire": {
     "title": "¿Cómo usarás MetaMask?",
     "description": "Selecciona todas las opciones que correspondan.",
@@ -4279,7 +4318,7 @@
     "clear_approvals_modal_message": "Todas las dapps necesitará solicitar acceso para ver nuevamente la información de la cuenta.",
     "clear_browser_history_modal_title": "¿Borrar historial del explorador?",
     "clear_browser_history_modal_message": "Estamos a punto de quitar todo el historial del explorador. ¿Está seguro?",
-    "clear_cookies_modal_title": "Borrar cookies del explorador",
+    "clear_cookies_modal_title": "Clear browser cookies?",
     "clear_cookies_modal_message": "Estamos a punto de quitar todas las cookies del explorador. ¿Está seguro?",
     "reset_account_modal_message": "Restablecer la cuenta borrará el historial de transacciones.",
     "save_rpc_url": "Guardar",
@@ -4460,8 +4499,8 @@
     "metametrics_opt_out": "desactivar MetaMetrics",
     "metametrics_restart_required": "Debe reiniciar la aplicación para que los cambios surtan efecto.",
     "create_password": "Crear una contraseña",
-    "invalid_password": "Contraseña no válida",
-    "invalid_password_message": "La contraseña no era correcta. Vuelva a intentarlo.",
+    "invalid_password": "Incorrect password",
+    "invalid_password_message": "Check your password and try again.",
     "security_heading": "Seguridad",
     "general_heading": "General",
     "privacy_heading": "Privacidad",
@@ -4956,8 +4995,8 @@
     "private_key_copied_time": "(almacenada por 1 minuto)",
     "private_key_copied_ios": "Clave privada copiada temporalmente al portapapeles\n",
     "private_key_copied_android": "Clave privada copiada al portapapeles\n",
-    "warning_incorrect_password": "Contraseña incorrecta",
-    "unknown_error": "No se pudo desbloquear la cuenta. Vuelva a intentarlo.",
+    "warning_incorrect_password": "Incorrect password. Try again.",
+    "unknown_error": "Couldn't unlock your account. Try again.",
     "hardware_error": "Esta es una cuenta de monedero físico, no puede exportar su clave privada.",
     "seed_warning": "Esta es la frase de 12 palabras de su monedero. Esta frase se puede usar para controlar todas sus cuentas actuales y futuras, incluida la capacidad de transferir sus fondos. Guarde esta frase en un lugar seguro y NO la comparta con nadie.",
     "text": "Texto",
@@ -5013,9 +5052,9 @@
     "save_success": "Alerta de precio para {{ticker}} guardada correctamente.",
     "save_error": "Error al guardar la alerta de precio. Inténtalo de nuevo.",
     "delete_success": "Alerta de precio eliminada.",
-    "delete_error": "Error al eliminar la alerta de precio. Inténtalo de nuevo.",
-    "toggle_error": "Error al actualizar la alerta de precio. Inténtalo de nuevo.",
-    "fetch_error": "Error al cargar las alertas de precio. Inténtalo de nuevo.",
+    "delete_error": "Failed to delete price alert. Try again.",
+    "toggle_error": "Failed to update price alert. Try again.",
+    "fetch_error": "Failed to load price alerts. Try again.",
     "duplicate_threshold": "Ya existe una alerta a este precio.",
     "manage_title": "Alertas de precio",
     "add_alert": "Agregar alerta",
@@ -5450,7 +5489,7 @@
     "tokenContractAddressWarning_1": "Esta dirección es una ",
     "tokenContractAddressWarning_2": "dirección de contrato del token",
     "tokenContractAddressWarning_3": ". Si envía tokens a esta dirección, los perderá.",
-    "smartContractAddressWarning": "Esta dirección es una dirección de contrato inteligente. Asegúrese de entender para qué sirve esta dirección; de lo contrario, se arriesga a perder los fondos.",
+    "smartContractAddressWarning": "This address is a smart contract address. Make sure you understand what this address is for, otherwise you risk losing your funds.",
     "continueError": "Comprendo los riesgos, continuar",
     "gas_education_title_ethereum": "Tarifas de gas de Ethereum",
     "gas_education_title": "Tarifas de gas",
@@ -5464,16 +5503,16 @@
     "confusable_msg": "Se detectó un carácter que puede confundirse con otro similar en el nombre de ENS. Verifique el nombre de ENS para evitar una posible estafa.",
     "similar_to": "es parecido a",
     "contains_zero_width": "contiene un carácter de ancho cero",
-    "dapp_suggested_gas": "{{origin}} ha sugerido esta tarifa de red. Utiliza un método de estimación de gas obsoleto que podría ser inexacto. Sin embargo, modificar esta tarifa de red podría causar un problema con tu transacción. Si tienes preguntas, comunícate con {{origin}}.",
-    "dapp_suggested_eip1559_gas": "{{origin}} ha sugerido esta tarifa de red. Anularla puede causar un problema con tu transacción. Si tienes preguntas, comunícate con {{origin}}.",
+    "dapp_suggested_gas": "This network fee has been suggested by {{origin}}. It's using legacy gas estimation which may be inaccurate. However, editing this network fee may cause a problem with your transaction. Reach out to {{origin}} if you have questions.",
+    "dapp_suggested_eip1559_gas": "This network fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Reach out to {{origin}} if you have questions.",
     "address_invalid": "La dirección del destinatario no es válida.",
     "ens_not_found": "No se estableció ninguna dirección para este nombre.",
-    "unknown_qr_code": "Código QR no válido. Por favor, intente de nuevo.",
-    "invalid_qr_code_sync": "Código QR no válido. Por favor, escanee el código QR de sincronización de su monedero físico.",
-    "no_camera_permission": "La cámara no está autorizada. Por favor, otorgue acceso y vuelva a intentar",
-    "invalid_qr_code_sign": "Código QR no válido. Por favor, revise su hardware y vuelva a intentar.",
+    "unknown_qr_code": "Invalid QR code. Retry.",
+    "invalid_qr_code_sync": "Invalid QR code. Scan the sync QR code of the hardware wallet.",
+    "no_camera_permission": "Camera not authorized. Grant permission and retry",
+    "invalid_qr_code_sign": "Invalid QR code. Check your hardware and retry.",
     "no_camera_permission_android": "Debe otorgar a MetaMask acceso a su cámara para continuar. Es posible que también deba cambiar sus configuraciones del sistema.",
-    "mismatched_qr_request_id": "Datos de transacción incongruentes. Utilice su monedero físico para firmar el código QR que aparece a continuación y pulse \"Obtener firma\".",
+    "mismatched_qr_request_id": "Incongruent transaction data. Use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
     "fiat_conversion_not_available": "Las conversiones a fiat no están disponibles en este momento",
     "hex_data_copied": "Datos hexadecimales copiados al portapapeles",
     "invalid_recipient": "Destinatario inválido",
@@ -5575,7 +5614,7 @@
     "no_tabs_desc": "Para explorar la Web descentralizada, agregue una pestaña nueva",
     "got_it": "Entendido",
     "max_tabs_title": "Se alcanzó el número máximo de pestañas",
-    "max_tabs_desc": "Actualmente solo admitimos 20 pestañas abiertas a la vez. Cierre las pestañas existentes antes de añadir otras nuevas.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "No se pudo resolver ese nombre de ENS",
     "remove_bookmark_title": "Quitar favorito",
     "remove_bookmark_msg": "¿Está seguro de que quiere quitar este sitio de sus favoritos?",
@@ -6028,7 +6067,7 @@
     "show_balance": "Mostrar saldo total"
   },
   "authentication": {
-    "auth_prompt_desc": "Autentíquese para usar MetaMask",
+    "auth_prompt_desc": "Authenticate to use MetaMask",
     "labels": {
       "remember_me": "Recordarme",
       "face_id": "Face ID",
@@ -6066,7 +6105,7 @@
     "cta_text": "Importar",
     "example": "p. ej., 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "Algo salió mal",
-    "error_message": "No se pudo importar esa clave privada. Asegúrese de que la escribió correctamente.",
+    "error_message": "We couldn't import that private key. Make sure you entered it correctly.",
     "error_empty_message": "Debe escribir su clave privada.",
     "or_scan_a_qr_code": "o escanear un código QR"
   },
@@ -6088,7 +6127,7 @@
     "12_word_option": "Tengo una frase de 12 palabras",
     "24_word_option": "Tengo una frase de 24 palabras",
     "error_title": "Algo salió mal",
-    "error_message": "No se pudo importar esa frase secreta de recuperación. Asegúrese de haberla ingresado correctamente.",
+    "error_message": "We couldn't import that Secret Recovery Phrase. Make sure you entered it correctly.",
     "error_empty_message": "Debes ingresar tu frase secreta de recuperación.",
     "error_number_of_words_error_message": "Las frases secretas de recuperación contienen 12 o 24 palabras",
     "error_srp_is_case_sensitive": "¡Entrada no válida! La frase secreta de recuperación distingue entre mayúsculas y minúsculas.",
@@ -6287,21 +6326,21 @@
   "phishing": {
     "ethereum_phishing_detection": "Detección de phishing de Ethereum",
     "ethereum_phishing_detector": "Detector de phishing de Ethereum",
-    "intro": " está actualmente en la lista de advertencia de dominios de MetaMask. Esto significa que, en función de la información disponible, MetaMask cree que este dominio actualmente podría poner en riesgo su seguridad y, como función de seguridad agregada, MetaMask tiene acceso restringido al sitio. Para anular esto, lea el resto de la advertencia para ver las instrucciones sobre cómo puede continuar a su propio riesgo.",
+    "intro": " is currently on the MetaMask domain warning list. This means that based on information available to us, MetaMask believes this domain could currently compromise your security and, as an added safety feature, MetaMask has restricted access to the site. To override this, read the rest of this warning for instructions on how to continue at your own risk.",
     "reasons": "Hay muchas razones por las que los sitios pueden aparecer en la lista de advertencia, la que es una compilación de otras listas ampliamente usadas en el sector. Dichos motivos pueden incluir riesgos de seguridad o fraude conocidos, como dominios que tienen un resultado positivo en ",
     "list_content": "Los dominios que aparecen en estas listas de advertencia pueden incluir sitios web completamente malintencionados y sitios web legítimos que se han visto comprometidos por un actor malintencionado.",
     "to_read_more": "Para leer más sobre este sitio ",
-    "review_on_etherscam": "revise el dominio en Etherscam.",
+    "review_on_etherscam": "Review the domain on Etherscam.",
     "warning": "Tenga en cuenta que esta lista de advertencia se compila de manera voluntaria. Puede ser poco precisa o estar incompleta. El que un dominio no aparezca en esta lista no es una garantía implícita de que se trata de un dominio seguro. Como siempre, sus transacciones son propia responsabilidad. Si desea interactuar con algún dominio de nuestra lista de advertencia, puede hacerlo y ",
     "continue_on_your_own": "continuar a su propio riesgo.",
     "file_an_issue_intro": "Si cree que este dominio está indicado incorrectamente o si un sitio web legítimo bloqueado resolvió sus problemas de seguridad, ",
-    "file_an_issue": "presente un informe.",
+    "file_an_issue": "File an issue.",
     "back_to_safety": "Volver a Seguridad",
     "site_might_be_harmful": "Este sitio web podría ser dañino",
     "metamask_flagged_site": "MetaMask indicó que el sitio que intenta visitar es potencialmente engañoso. Los atacantes pueden engañarlo para que haga algo peligroso.",
     "you_may_proceed_anyway": "También puede",
     "proceed_anyway": "continuar de todos modos",
-    "but_please_do_so_at_your_own_risk": "pero hágalo bajo su propia responsabilidad.",
+    "but_please_do_so_at_your_own_risk": "but do so at your own risk.",
     "report_detection_problem": "Informar sobre un problema de detección",
     "share_on_twitter": "Si esto le resultó útil, ¡compártalo en X.",
     "share_text": "MetaMask me protegió de visitar un sitio potencialmente peligroso: {{url}}. ¡Manténgase seguro!"
@@ -6444,7 +6483,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Retiro solicitado",
     "prompt_title": "Recibir notificaciones push",
     "notifications_enabled_error_title": "Algo salió mal",
-    "notifications_enabled_error_desc": "No pudimos activar las notificaciones. Inténtalo de nuevo más tarde.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Try again later.",
     "prompt_desc": "Active las notificaciones desde Configuración para recibir alertas importantes sobre la actividad de su billetera y mucho más.",
     "prompt_ok": "Activar",
     "prompt_cancel": "Quizás más tarde",
@@ -6456,7 +6495,7 @@
     "wc_signed_failed_title": "Error en esta solicitud de firma",
     "wc_sent_tx_rejected_title": "Rechazó la solicitud de transacción",
     "approved_tx_rejected_title": "Ha rechazado la concesión de permiso",
-    "wc_description": "Revise su aplicación",
+    "wc_description": "Check the application",
     "wallet": "Billetera",
     "web3": "Web3",
     "staking_provider": "Proveedor de staking",
@@ -6557,7 +6596,7 @@
     "your_tokens": "Sus tokens",
     "enter_amount": "Ingrese una cantidad",
     "choose_asset": "Elija un activo para solicitar",
-    "request_error": "Solicitud no válida, vuelva a intentarlo",
+    "request_error": "Invalid request, try again",
     "reset": "Restablecer",
     "next": "Siguiente",
     "amount_placeholder": "0.00",
@@ -6595,7 +6634,7 @@
     "wallet_connect_dapps_cta": "Ver sesiones",
     "network_not_supported": "No se admite la red actual",
     "select_provider": "Seleccione su proveedor preferido",
-    "switch_network": "Cambie a la red principal o a Sepolia",
+    "switch_network": "Switch to mainnet or sepolia",
     "card_title": "Mostrar siempre el botón de la tarjeta MetaMask",
     "card_desc": "La tarjeta MetaMask solo está disponible para residentes de países seleccionados.",
     "daimo_demo_title": "Usar el entorno de demostración de DaimoPay",
@@ -6655,10 +6694,10 @@
     "pay_with": "Pagar con",
     "buying_via": "Comprando a través de {{providerName}}.",
     "change_provider": "Cambiar de proveedor.",
-    "circuit_breaker_open": "Este servicio no está disponible temporalmente. Inténtalo de nuevo en unos 30 minutos.",
-    "payment_error": "Se produjo un error. Inténtalo de nuevo.",
+    "circuit_breaker_open": "This service is temporarily unavailable. Try again in about 30 minutes.",
+    "payment_error": "Something went wrong. Try again.",
     "no_payment_methods_available": "No hay métodos de pago disponibles.",
-    "error_fetching_quotes": "Se produjo un error. Inténtalo de nuevo.",
+    "error_fetching_quotes": "Something went wrong. Try again.",
     "no_quotes_available": "No hay proveedores disponibles.",
     "quote_unavailable": "Cotización no disponible.",
     "providers": "Proveedores",
@@ -6671,7 +6710,7 @@
     "powered_by_provider": "Desarrollado por {{provider}}",
     "purchased_currency": "{{currency}} comprado",
     "network_not_supported": "No se admite la red actual",
-    "switch_network": "Cambie a la red principal",
+    "switch_network": "Switch to Mainnet",
     "switch": "Cambiar",
     "purchases": "Compras",
     "purchase_method": "Método de compra",
@@ -6855,7 +6894,7 @@
     "best_rate": "Mejor tarifa",
     "most_reliable": "Más confiable",
     "quotes_timeout": "Tiempo de espera de cotizaciones",
-    "request_new_quotes": "Solicite cotizaciones nuevas para obtener la mejor tasa actualizada.",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "wallet_pay_terms": "Al continuar, aceptas los términos de Crossmint",
     "terms_of_service": "Términos de servicio",
     "amount_to_buy": "Comprar",
@@ -6909,12 +6948,12 @@
     "return_home": "Volver a la pantalla de inicio",
     "incompatible_token_account_modal": {
       "title": "Cuenta incompatible",
-      "description": "Tu cuenta actual no admite tokens en {{networkName}}. Cambia a una cuenta compatible para continuar.",
+      "description": "Your current account cannot support tokens on {{networkName}}. Switch to a compatible account to continue.",
       "cta": "Entendido"
     },
     "eligibility_failed_modal": {
       "title": "Error en la verificación de elegibilidad",
-      "description": "No pudimos confirmar el acceso según tu región, inténtalo de nuevo. Si el problema persiste, comunícate con soporte.",
+      "description": "We couldn't confirm access based on your region. Try again. If the issue continues, contact support.",
       "contact_support": "Contactar a soporte",
       "got_it": "Entendido"
     },
@@ -6958,7 +6997,7 @@
       "failed": "Orden fallida",
       "cancelled": "Orden cancelada",
       "pending": "Orden pendiente",
-      "failed_description": "Algo salió mal y {{provider}} no pudo completar su pedido. Vuelva a intentarlo o con otro proveedor.",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Try again or use another provider.",
       "continue_order_description": "Para continuar con su órden, deberá seleccionar el botón en la parte inferior de esta página.",
       "the_provider": "el proveedor",
       "processing": "Procesando la orden",
@@ -6996,7 +7035,7 @@
       "sent": "Enviado!"
     },
     "notifications": {
-      "purchase_failed_title": "La compra de {{currency}} falló. Inténtalo de nuevo.",
+      "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "Verifica tu método de pago y las tarjetas aceptadas",
       "purchase_cancelled_title": "Se canceló la compra",
       "purchase_cancelled_description": "Verifica tu método de pago y las tarjetas aceptadas",
@@ -7033,7 +7072,7 @@
     "processing_info_modal_description": "Las compras con tarjeta suelen tardar unos minutos. Si tienes alguna pregunta, puedes comunicarte con el equipo de soporte.",
     "go_to_provider_support": "Ir a la página de soporte de {{provider}}",
     "error_title": "Algo salió mal",
-    "error_message": "No se pueden cargar los detalles de la orden. Inténtalo de nuevo.",
+    "error_message": "Unable to load order details. Try again.",
     "try_again": "Inténtalo de nuevo",
     "close": "Cerrar"
   },
@@ -7044,7 +7083,7 @@
       "purchase_completed_title": "Tu compra de {{amount}} {{cryptocurrency}} se realizó correctamente",
       "purchase_completed_description": "Su {{cryptocurrency}} ahora está disponible",
       "purchase_failed_title": "Compra de {{cryptocurrency}} fallida",
-      "purchase_failed_description": "Inténtalo de nuevo en unos momentos",
+      "purchase_failed_description": "Try again momentarily",
       "purchase_cancelled_title": "Su compra fue cancelada",
       "purchase_cancelled_description": "Se canceló tu compra de {{cryptocurrency}}",
       "track": "Hacer seguimiento"
@@ -7068,7 +7107,7 @@
       "start_swapping": "Comenzar a canjear"
     },
     "feature_off_title": "Temporalmente no disponible",
-    "feature_off_body": "MetaMask Swaps está en mantenimiento. Vuelve a comprobarlo más tarde.",
+    "feature_off_body": "MetaMask Swaps are undergoing maintenance. Check back later.",
     "wrong_network_title": "Los intercambios no están disponibles",
     "wrong_network_body": "Solo puede canjear tokens en la red principal de Ethereum.",
     "unallowed_asset_title": "No se puede canjear este token",
@@ -7101,7 +7140,7 @@
     "error_gathering_token_details": "Se produjo un error al recopilar los detalles del token.",
     "Import": "Importar",
     "invalid_token_contract_address": "Dirección de contrato de token no válida.",
-    "please_verify_on_explorer": "Verifique en",
+    "please_verify_on_explorer": "Verify on",
     "add_warning": "Cualquiera puede crear un token, incluyendo la creación de versiones falsas de tokens ya existentes que afirman estar representados en proyectos.",
     "import_token": "¿Importar token?",
     "contract": "Contrato:",
@@ -7196,11 +7235,11 @@
       "3": "que envuelve y desenvuelve tokens nativos y se puede ahorrar en costos de gas."
     },
     "quotes_timeout": "Cotizaciones vencidas",
-    "request_new_quotes": "Por favor, solicite cotizaciones nuevas para tener los costos más recientes.",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "quotes_not_available": "Cotizaciones no disponibles",
     "try_adjusting": "Intente ajustar la configuración de monto y vuelva a intentarlo.",
     "error_fetching_quote": "Error al capturar cotización",
-    "unexpected_error": "Ocurrió un error inesperado. Solicite cotizaciones nuevas para obtener la mejor tasa actualizada. (error: {{error}})",
+    "unexpected_error": "There has been an unexpected error. Request new quotes to get the latest best rate. (error: {{error}})",
     "get_new_quotes": "Obtener cotizaciones nuevas",
     "try_again": "Inténtalo de nuevo",
     "terms_of_service": "Términos de servicio",
@@ -7252,15 +7291,15 @@
     "title": "Ocurrió un error",
     "subtitle": "No se puede mostrar su información. No se preocupe, su monedero y sus fondos están seguros.",
     "try_again_button": "Inténtalo de nuevo",
-    "submit_ticket_1": "Informe este problema para que podamos corregirlo:",
+    "submit_ticket_1": "Report this issue so we can fix it:",
     "submit_ticket_2": "Tome una captura de esta pantalla.",
     "submit_ticket_3": "Copiar",
     "submit_ticket_4": "el mensaje de error en el Portapapeles.",
     "submit_ticket_5": "Envíe una incidencia",
     "submit_ticket_6": "aquí.",
-    "submit_ticket_7": "Incluya el mensaje de error y la captura de pantalla.",
+    "submit_ticket_7": "Include the error message and the screenshot.",
     "submit_ticket_8": "Envíenos un informe de error",
-    "submit_ticket_9": "Incluya detalles acerca de lo que sucedió.",
+    "submit_ticket_9": "Include details about what happened.",
     "bug_report_prompt_title": "Cuéntenos que pasó",
     "bug_report_prompt_description": "Agregue detalles para que podamos descubrir qué salió mal.",
     "bug_report_thanks": "¡Gracias! Echaremos un vistazo pronto.",
@@ -7465,8 +7504,8 @@
     "add_token_manually": "Agregarlos manualmente.",
     "got_it": "Listo",
     "error_title": "Algo salió mal",
-    "error_message": "Hubo un error al cargar la información de la red. Inténtelo de nuevo más tarde.",
-    "private_network_third_description": "Ingrese un nombre para esta red para que sea fácil de identificar.",
+    "error_message": "There was an error loading the network information. Try again later.",
+    "private_network_third_description": "Enter a name for this network to make it easy to identify.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "Habilitar la detección automática de tokens",
     "token_detection_mainnet_title": "La detección de tokens está habilitada, por lo que muchos aparecerán automáticamente en su monedero.",
@@ -7495,7 +7534,7 @@
     "action": "Desactivar Recordarme"
   },
   "dapp_connect": {
-    "warning": "Para utilizar esta función, actualice la aplicación a la versión más reciente"
+    "warning": "To use this feature, update the app to the newest version"
   },
   "confirmation_modal": {
     "cancel_cta": "Cancelar",
@@ -7509,7 +7548,7 @@
     "title": "Revisa nuestros Términos de Uso",
     "terms_of_use_check_description": "Acepto los Términos de uso, que se aplican a mi uso de MetaMask y todas sus funcionalidades",
     "accept_cta": "Aceptar",
-    "accept_helper_description": "Por favor, desplácese para leer todas las secciones",
+    "accept_helper_description": "Scroll to read all sections",
     "agree_cta": "Acepto"
   },
   "update_needed": {
@@ -7608,7 +7647,7 @@
     "open_settings": "Abrir configuración",
     "view_settings": "Ver configuración",
     "bluetooth_off": "Bluetooth está apagado",
-    "bluetooth_off_message": "Por favor, active Bluetooth en su dispositivo",
+    "bluetooth_off_message": "Turn on Bluetooth for your device",
     "bluetooth_access_blocked": "Ledger necesita acceso a Bluetooth para emparejarse con su dispositivo móvil.",
     "bluetooth_access_blocked_message": "Si deseas emparejar tu dispositivo Ledger mediante Bluetooth, actívalo en Configuración e inténtalo de nuevo.",
     "location_access_blocked": "MetaMask necesita permiso de acceso a la ubicación para vincularse con su Ledger.",
@@ -7616,22 +7655,22 @@
     "nearbyDevices_access_blocked": "MetaMask necesita permiso de dispositivos cercanos para vincularse con su Ledger.",
     "nearbyDevices_access_blocked_message": "Si deseas vincular tu dispositivo Ledger mediante Bluetooth, deberás habilitar el acceso a dispositivos cercanos en Configuración e intentarlo nuevamente.",
     "bluetooth_scanning_error": "Error al examinar el dispositivo",
-    "bluetooth_scanning_error_message": "Asegúrese de que su dispositivo esté desbloqueado y que la aplicación Ethereum se esté ejecutando",
+    "bluetooth_scanning_error_message": "Make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "Error en la conexión Bluetooth",
-    "bluetooth_connection_failed_message": "Asegúrese de que su Ledger esté desbloqueado y que su Bluetooth esté habilitado",
+    "bluetooth_connection_failed_message": "Make sure your Ledger is unlocked and your Bluetooth is enabled",
     "ethereum_app_open": "Ledger requiere confirmación",
-    "ethereum_app_open_message": "Confirme en su dispositivo para abrir la aplicación Ethereum. Pulse Aceptar una vez hecho esto.",
+    "ethereum_app_open_message": "Confirm on your device to open Ethereum app. Press OK once done.",
     "ethereum_app_unconfirmed_error": "Ha denegado la solicitud para abrir la aplicación Ethereum.",
     "failed_to_open_eth_app": "Error al abrir la aplicación Ethereum.",
-    "ethereum_app_open_error": "Instale/acepte la aplicación Ethereum en su dispositivo Ledger.",
+    "ethereum_app_open_error": "Install/accept Ethereum app on your Ledger device.",
     "running_app_close": "Error al cerrar la aplicación en ejecución.",
     "running_app_close_error": "Error al cerrar la aplicación en ejecución en su dispositivo Ledger.",
     "ethereum_app_not_installed": "La aplicación Ethereum no está instalada.",
-    "ethereum_app_not_installed_error": "Instale la aplicación Ethereum en su dispositivo Ledger.",
+    "ethereum_app_not_installed_error": "Install the Ethereum app on your Ledger device.",
     "eth_app_not_open": "La aplicación Ethereum no está abierta",
-    "eth_app_not_open_message": "Abre la aplicación Ethereum en tu dispositivo Ledger.",
+    "eth_app_not_open_message": "Open the Ethereum app on your Ledger device.",
     "ledger_is_locked": "El Ledger está bloqueado",
-    "unlock_ledger_message": "Desbloquee su dispositivo Ledger",
+    "unlock_ledger_message": "Unlock your Ledger device",
     "unlock_ledger_device": "Desbloquee su dispositivo Ledger",
     "cannot_get_account": "No se puede obtener la cuenta",
     "connect_ledger": "Conectar Ledger",
@@ -7642,7 +7681,7 @@
     "save_device_selection": "Guardar",
     "enable_bluetooth": "Active Bluetooth",
     "install_and_open_eth_app": "Instale y abra la aplicación Ethereum",
-    "ledger_reminder_message": "Asegúrese de que su dispositivo Ledger esté:",
+    "ledger_reminder_message": "Make sure your Ledger device is:",
     "ledger_reminder_message_step_one": "1. Desbloquee su dispositivo Ledger",
     "ledger_reminder_message_step_two": "2. Instale y abra la aplicación Ethereum",
     "ledger_reminder_message_step_three": "3. Active Bluetooth",
@@ -7657,14 +7696,14 @@
     "bluetooth_enabled_message": "Asegúrese de que Bluetooth esté habilitado",
     "device_unlocked_message": "El dispositivo está desbloqueado",
     "ledger_disconnected": "Su dispositivo se desconectó",
-    "ledger_disconnected_error": "Se ha perdido la conexión con su dispositivo. Vuelva a intentarlo.",
+    "ledger_disconnected_error": "The connection to your device has been lost. Try again.",
     "unknown_error": "Ocurrió un error inesperado.",
     "unknown_error_message": "Ocurrió un error inesperado. Inténtelo de nuevo.",
     "error_occured": "Ocurrió un error",
     "how_to_install_eth_app": "Cómo instalar la aplicación Ethereum en un dispositivo Ledger",
     "ledger_account_count": "Está utilizando 1 cuenta desde su Ledger con MetaMask Mobile.",
-    "open_eth_app": "Abra la aplicación Ethereum",
-    "open_eth_app_message_one": "Hemos detectado que tiene instalada la aplicación Ethereum, pero no está abierta, ",
+    "open_eth_app": "Open the Ethereum app",
+    "open_eth_app_message_one": "We've detected you have the Ethereum app installed but it's not open, ",
     "open_eth_app_message_two": "presione los dos botones en el dispositivo para aceptar la solicitud de abrir la aplicación Ethereum para continuar.",
     "toast_bluetooth_connection_error_title": "Algo salió mal",
     "toast_bluetooth_connection_error_subtitle": "El Ledger no se ha conectado",
@@ -7674,7 +7713,7 @@
     "forget_device": "Olvidar Ledger",
     "sign_with_ledger": "Firmar con Ledger",
     "ledger_pending_confirmation": "Ledger está ocupado",
-    "ledger_pending_confirmation_error": "Hay una acción pendiente en su Ledger. Borre la acción primero y luego vuelva a intentarlo.",
+    "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Clear the action first, then retry.",
     "not_supported": "Operación no admitida",
     "not_supported_error": "Solo se admite la versión 4 de la firma de datos escritos.",
     "error_during_connection": "Ocurrió un error desconocido",
@@ -7690,7 +7729,7 @@
     "ledger_bip44_path": "BIP44 (p. ej., MetaMask, Trezor)",
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Error de firma ciega",
-    "blind_sign_error_message": "La firma ciega no está habilitada en su dispositivo Ledger. Habilítela en la configuración.",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Enable it in the settings.",
     "user_reject_transaction": "El usuario rechazó la transacción",
     "user_reject_transaction_message": "El usuario rechazó la transacción en el dispositivo Ledger.",
     "multiple_devices_error_message": "Aún no se admiten múltiples dispositivos. Para agregar un nuevo dispositivo Ledger, tendrá que eliminar uno anterior.",
@@ -7698,10 +7737,10 @@
     "unspecified_error_during_connect": "Error no especificado al conectar el dispositivo Ledger,",
     "account_name_existed": "Ya existe la cuenta {{accountName}}",
     "unresponsive": "Ledger no responde",
-    "unresponsive_message": "Desconecta y vuelve a conectar tu dispositivo",
+    "unresponsive_message": "Disconnect and reconnect your device",
     "ethereum_app_closed": "La aplicación de Ethereum está cerrada",
-    "ethereum_app_closed_message": "Ábrela en tu dispositivo Ledger para continuar",
-    "ledger_locked_message_continue": "Desbloquea tu dispositivo Ledger para continuar",
+    "ethereum_app_closed_message": "Open it on your Ledger device to continue",
+    "ledger_locked_message_continue": "Unlock your Ledger device to continue",
     "bluetooth_access_denied": "Acceso a Bluetooth denegado",
     "bluetooth_access_denied_message": "Activa Bluetooth en la configuración de tu dispositivo para conectar tu dispositivo Ledger",
     "location_access_denied": "Acceso a la ubicación denegado",
@@ -8019,7 +8058,7 @@
     "apy_info_label": "Información de APY",
     "balance_unavailable": "Saldo no disponible",
     "balance_unavailable_value": "$—",
-    "balance_unavailable_banner_description": "No podemos mostrar tu saldo temporalmente. Tus fondos están a salvo; vuelve a intentarlo en breve.",
+    "balance_unavailable_banner_description": "We're temporarily unable to display your balance. Your funds are safe—try again shortly.",
     "balance_retry": "Reintentar",
     "balance_no_account": "Money Account no encontrada",
     "onboarding": {
@@ -9046,6 +9085,7 @@
     "slippage": "Deslizamiento",
     "slippage_info": "Si el precio cambia entre el momento en que se coloca la orden y cuando se confirma, se denomina \"deslizamiento\". Su intercambio se cancelará automáticamente si el deslizamiento supera la tolerancia que establezca aquí.",
     "network_fee": "Tarifa de red",
+    "relayer_fee": "Relayer fee",
     "gas_fees_sponsored": "Pagado por MetaMask",
     "included": "Incluida",
     "estimated_time": "Hora estimada",
@@ -9257,7 +9297,7 @@
   },
   "error_sheet": {
     "still_there_title": "¿Sigues ahí?",
-    "still_there_description": "Tu inicio de sesión ha expirado por inactividad. Inténtalo de nuevo cuando estés listo.",
+    "still_there_description": "Your session timed out due to inactivity. Log in again when you're ready.",
     "unable_to_login_title": "No se puede conectar",
     "unable_to_login_description": "Tu conexión a Internet es inestable. Revisa tu conexión y vuelve a intentarlo.",
     "something_went_wrong_title": "Algo salió mal",
@@ -9426,7 +9466,7 @@
       "learn_more": "Más información",
       "enter_password": "Ingresa tu contraseña",
       "password_placeholder": "Contraseña",
-      "wrong_password": "Contraseña incorrecta",
+      "wrong_password": "Incorrect password. Try again.",
       "copied": "Clave privada copiada",
       "continue": "Continuar",
       "cancel": "Cancelar"
@@ -9560,8 +9600,8 @@
       "placeholder": "Contraseña",
       "confirm": "Confirmar",
       "cancel": "Cancelar",
-      "error_empty": "Ingresa tu contraseña",
-      "error_incorrect": "Contraseña incorrecta. Inténtalo de nuevo."
+      "error_empty": "Enter your password",
+      "error_incorrect": "Incorrect password. Try again."
     },
     "view_pin_bottomsheet": {
       "title": "El PIN de tu tarjeta"
@@ -9579,7 +9619,7 @@
       "invalid_pin_error": "Ese PIN no se puede usar. Elige uno diferente.",
       "repeating_pin_error": "Ese PIN no se puede usar. Elige uno diferente.",
       "forbidden_error": "No puedes establecer un PIN en esta tarjeta ahora mismo.",
-      "network_error": "Se produjo un error. Inténtalo de nuevo.",
+      "network_error": "Something went wrong. Try again.",
       "success_title": "Tu PIN está configurado",
       "success_description": "Asegúrate de guardarlo en un lugar seguro. No podrás verlo en la aplicación."
     },
@@ -9618,7 +9658,7 @@
       "renews_annually": "Anualmente",
       "total": "Total",
       "pay": "Pagar",
-      "payment_creation_error": "Error al crear el pago. Inténtalo de nuevo."
+      "payment_creation_error": "Failed to create payment. Try again."
     },
     "order_completed": {
       "title": "TU TARJETA\nHA SIDO SOLICITADA",
@@ -9657,9 +9697,9 @@
       "confirm_button_label": "Actualizar ahora"
     },
     "daimo_pay_modal": {
-      "load_error": "Error al cargar la página de pago. Inténtalo de nuevo.",
-      "timeout_error": "Se agotó el tiempo de verificación del pago. Comprueba el estado de tu transacción.",
-      "payment_bounced_error": "Pago fallido. Inténtalo de nuevo con otro método de pago.",
+      "load_error": "Failed to load payment page. Try again.",
+      "timeout_error": "Payment verification timed out. Check your transaction status.",
+      "payment_bounced_error": "Payment failed. Try again with a different payment method.",
       "close": "Cerrar",
       "try_again": "Inténtalo de nuevo"
     },
@@ -9709,7 +9749,7 @@
         "phone_number_label": "Ingresar el número de teléfono",
         "country_area_code_label": "Código de área del país",
         "invalid_phone_number": "Número de teléfono inválido",
-        "invalid_us_phone_number": "Ingresa un número de teléfono estadounidense válido (10 dígitos) para continuar.",
+        "invalid_us_phone_number": "Enter a valid US phone number (10 digits) to proceed.",
         "legal_terms": "Al continuar, aceptas recibir SMS para verificar tu número de teléfono."
       },
       "confirm_phone_number": {
@@ -9726,7 +9766,7 @@
         "terms_2": "Necesitarás tu identificación y comprobante de domicilio para ser aprobado. Esto suele tardar 5 minutos.",
         "terms_2_us": "La ley federal (Ley Patriota de EE. UU.) nos exige verificar tu identidad con un documento de identidad y un comprobante de domicilio para ayudar a prevenir el terrorismo y el blanqueo de capitales. Esto suele tardar 5 minutos.",
         "verify_button": "Siguiente",
-        "start_verification_error": "Error al iniciar la verificación. Inténtalo de nuevo en breve."
+        "start_verification_error": "Error starting verification. Try again shortly."
       },
       "kyc_webview": {
         "close_confirmation_title": "¿Salir de la verificación?",
@@ -9749,28 +9789,29 @@
       "verifying_veriff_kyc": {
         "title": "En espera de aprobación",
         "description": "Nuestro socio necesita verificar tu identidad para aprobar tu solicitud.",
-        "helper_text": "Esto suele tardar unos segundos. No cierres la aplicación."
+        "helper_text": "This usually takes a few seconds. Do not close the app."
       },
       "immersve_kyc_processing": {
         "title": "En espera de aprobación",
         "description": "Nuestro socio necesita verificar tu identidad para aprobar tu solicitud.",
-        "helper_text": "Esto suele tardar unos segundos. No cierres la aplicación.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "incomplete_title": "Finaliza la verificación de tu identidad",
         "incomplete_description": "Cerraste la verificación de identidad antes de completarla. Continúa para finalizarla.",
         "continue_button": "Continuar con la verificación",
         "info_needed_title": "Se necesita información adicional",
         "info_needed_description": "Necesitamos un poco más de información para completar tu verificación. Continúa para proporcionarla.",
         "info_needed_button": "Continuar con la verificación",
-        "expiring_error": "Tu sesión de verificación expiró. Ponte en contacto con soporte para continuar."
+        "expiring_error": "Your verification session expired. Contact support to continue."
       },
       "immersve_kyc_modal": {
-        "load_error": "Se produjo un error al cargar la verificación de identidad. Inténtalo de nuevo.",
+        "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
+        "load_error": "Something went wrong loading identity verification. Try again.",
         "try_again": "Inténtalo de nuevo"
       },
       "immersve_funding_approval": {
         "title": "Configurar la fuente de fondos de la tarjeta",
         "description": "Aprueba la tarjeta MetaMask para usar tus USDC en Base para realizar compras.",
-        "helper_text": "Esto suele tardar unos segundos. No cierres la aplicación.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "Aprobar la fuente de fondos",
         "retry_button": "Inténtalo de nuevo"
       },
@@ -9841,7 +9882,7 @@
       },
       "mailing_address": {
         "title": "Dirección postal",
-        "description": "Proporcione una dirección postal a la que podamos enviar tu tarjeta."
+        "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
         "title": "¡Todo listo!",
@@ -9864,7 +9905,7 @@
       "close_button": "Entendido",
       "waitlist_form": {
         "title": "Únete a la lista de espera",
-        "load_error": "Se produjo un error al cargar el formulario. Inténtalo de nuevo.",
+        "load_error": "Something went wrong loading the form. Try again.",
         "try_again": "Inténtalo de nuevo",
         "success_toast": "¡Estás en la lista de espera!",
         "success_toast_description": "Te avisaremos cuando la tarjeta esté disponible en tu país."
@@ -9874,24 +9915,24 @@
       },
       "errors": {
         "no_region_results": "No se encontraron regiones que coincidan {{searchString}}",
-        "email_already_exists": "El correo electrónico ya existe. Utiliza otro.",
-        "invalid_email_format": "Formato de correo electrónico no válido. Revisa tu correo electrónico y vuelve a intentarlo.",
-        "invalid_verification_code": "Código de verificación no válido. Compruébalo y vuelve a intentarlo.",
-        "verification_code_expired": "El código de verificación ha expirado. Solicita uno nuevo.",
-        "invalid_contact_verification_id": "El ID de verificación de contacto no es válido o ha caducado. Reinicia el proceso de registro.",
-        "invalid_phone_format": "Formato de número de teléfono no válido. Verifica tu número de teléfono e inténtalo de nuevo.",
-        "phone_already_exists": "El número de teléfono ya existe. Utiliza otro.",
-        "phone_number_mismatch": "El número de teléfono no coincide con la sesión de verificación. Verifica tu número de teléfono e inténtalo de nuevo.",
-        "invalid_zip_code": "Código postal no válido. Proporciona un código postal válido e inténtalo de nuevo.",
-        "us_state_required": "Se requiere el estado de EE. UU. para los residentes de EE. UU. Proporciona un estado válido e inténtalo de nuevo.",
-        "consent_already_linked": "El usuario ya está vinculado a un conjunto de consentimiento. Utiliza un usuario diferente o comunícate con soporte.",
-        "invalid_onboard_id": "ID de incorporación no válido. Reinicia el proceso de registro.",
-        "create_user_failed": "No se pudo crear el usuario. Inténtalo de nuevo."
+        "email_already_exists": "Email already exists. Use a different email.",
+        "invalid_email_format": "Invalid email format. Check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Enter a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Enter a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Restart the registration process.",
+        "create_user_failed": "Failed to create user. Try again."
       }
     },
     "card_home": {
       "title": "Tarjeta",
-      "authentication_error": "Tu sesión ha expirado. Vuelve a iniciar sesión.",
+      "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "No pudimos continuar tu sesión de la tarjeta. Vuelve a iniciar sesión.",
       "available_balance": "Saldo disponible",
       "error_title": "No se puede obtener la fecha",
@@ -10207,7 +10248,7 @@
         "email_required": "Se requiere correo electrónico",
         "password_required": "Se requiere contraseña",
         "email_invalid": "Dirección de correo electrónico no válida",
-        "password_invalid": "Contraseña no válida",
+        "password_invalid": "Incorrect password. Try again.",
         "invalid_email_or_password": "Correo electrónico o contraseña no válidos, verifica tus credenciales y vuelve a intentarlo.",
         "network_error": "Error de red. Comprueba tu conexión y vuelve a intentarlo.",
         "timeout_error": "Se agotó el tiempo de solicitud. Comprueba tu conexión y vuelve a intentarlo.",

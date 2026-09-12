@@ -64,7 +64,7 @@
     },
     "gas_estimate_failed": {
       "title": "수수료가 정확하지 않음",
-      "message": "정확한 수수료를 산정할 수 없어 견적이 높게 책정되었을 수 있습니다. 사용자 지정 가스 한도를 입력해 보세요. 하지만 그 경우에도 거래가 실패할 가능성이 있습니다."
+      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
     "insufficient_balance": {
       "title": "자금 부족",
@@ -500,7 +500,7 @@
     "go_back": "지갑의 잠금이 해제되지 않나요? 현재 지갑을 삭제한 후 새 지갑을 생성할 수 있습니다",
     "forgot_password": "비밀번호를 잊으셨나요?",
     "cant_proceed": "'삭제(Delete)'라는 단어를 입력할 때까지 더 진행할 수 없습니다. 이 단어를 입력하시면, 현재 지갑을 지우는 것을 선택하는 것입니다.",
-    "invalid_password": "비밀번호가 올바르지 않습니다. 다시 시도하세요.",
+    "invalid_password": "Incorrect password. Try again.",
     "type_delete": "‘{{erase}}’을(를) 입력해 컨펌하세요",
     "erase_my": "예, 지갑을 초기화합니다",
     "cancel": "취소",
@@ -513,8 +513,8 @@
     "metamask_does_not": "MetaMask는 사용자의 비밀 복구 구문을 보유하고 있지 않습니다.",
     "i_understand": "이해했습니다. 계속 진행하겠습니다",
     "passcode_not_set_error": "오류: 비밀번호가 설정되지 않았습니다.",
-    "wrong_password_error": "오류: 디크립트에 실패했습니다",
-    "wrong_password_error_android": "오류: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
+    "wrong_password_error": "Incorrect password. Try again.",
+    "wrong_password_error_android": "Incorrect password. Try again.",
     "vault_error": "오류: 이전 볼트가 없으면 잠금을 해제할 수 없습니다.",
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "seedless_password_outdated": "비밀번호가 최근에 변경되었습니다.",
@@ -579,7 +579,7 @@
     "create_button": "비밀번호 생성",
     "import_with_seed_phrase": "비밀 복구 구문으로 불러오기",
     "password_length_error": "비밀번호는 8자 이상이어야 합니다",
-    "password_dont_match": "비밀번호가 일치하지 않습니다",
+    "password_dont_match": "Passwords don't match.",
     "password_strength": "비밀번호 강도:",
     "strength_weak": "약함",
     "strength_good": "좋음",
@@ -623,7 +623,7 @@
     "reset_button": "비밀번호 재설정",
     "import_with_seed_phrase": "비밀 복구 구문으로 불러오기",
     "password_length_error": "비밀번호는 8자 이상이어야 합니다",
-    "password_dont_match": "비밀번호가 일치하지 않습니다",
+    "password_dont_match": "Passwords don't match.",
     "password_strength": "비밀번호 강도:",
     "strength_weak": "약함",
     "strength_good": "좋음",
@@ -663,7 +663,7 @@
     "import_button": "가져오기",
     "cancel_button": "취소",
     "password_length_error": "비밀번호는 8자 이상이어야 합니다",
-    "password_dont_match": "비밀번호가 일치하지 않습니다",
+    "password_dont_match": "Passwords don't match.",
     "seed_phrase_requirements": "비밀 복구 구문에은 12, 15, 18, 21 또는 24 단어가 포함됩니다",
     "invalid_seed_phrase": "비밀복구구문을 찾을 수 없습니다.",
     "error": "오류",
@@ -709,7 +709,8 @@
     "settings": "설정",
     "rewards": "보상",
     "trending": "둘러보기",
-    "money": "머니"
+    "money": "머니",
+    "social": "Social"
   },
   "drawer": {
     "send_button": "보내기",
@@ -1133,11 +1134,17 @@
       "how_to_delete_description": "'설정 > 데이터 관리'에서 언제든지 개인 데이터를 삭제할 수 있습니다.",
       "metamask_privacy_policy": "MetaMask 개인정보 처리방법",
       "metamask_terms": "MetaMask 이용 약관",
-      "idos_privacy_policy": "idOS 개인정보 처리방법",
-      "idos_terms": "idOS 이용 약관",
-      "sumsub_privacy_policy": "Sumsub 개인정보 처리방법",
-      "sumsub_terms": "Sumsub 이용 약관",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
       "button": "계속"
+    },
+    "kyc_email": {
+      "title": "What's your email?",
+      "description": "We'll use this to send account updates.",
+      "input_placeholder": "Email address",
+      "button": "Continue",
+      "error_title": "Identity verification",
+      "error_description": "We couldn't start your identity verification. Try again."
     }
   },
   "social_leaderboard": {
@@ -1169,7 +1176,8 @@
       "title": "상위 트레이더",
       "tabs": {
         "leaderboard": "리더보드",
-        "feed": "피드"
+        "feed": "피드",
+        "live_trades": "Live trades"
       },
       "following": "팔로우 중",
       "all": "모두",
@@ -1217,6 +1225,19 @@
         "size_at_market_cap": "{{marketCap}} {{abbreviation}} 기준 {{size}}"
       },
       "no_data": "데이터 없음"
+    },
+    "shell": {
+      "subnav": {
+        "trending": "Trending",
+        "memecoins": "Memecoins",
+        "perps": "Perps",
+        "stocks": "Stocks",
+        "whales": "Only",
+        "top_traders": "Top traders",
+        "top_perps": "Top perps",
+        "kols": "KOLs",
+        "top_tokens": "Top tokens"
+      }
     },
     "onboarding": {
       "slide_trade": {
@@ -1905,19 +1926,19 @@
         },
         "stop_limit": {
           "title": "스탑 리밋",
-          "description": "트리거 가격 도달 시 지정가로 체결"
+          "description": "Place a limit order if trigger price hits"
         },
         "stop_market": {
           "title": "스탑 마켓",
-          "description": "트리거 가격 도달 시 시장가로 체결"
+          "description": "Place a market order if trigger price hits"
         },
         "take_profit_limit": {
           "title": "테이크 리밋",
-          "description": "트리거 가격 도달 시 지정가로 익절"
+          "description": "Place a limit order if trigger price is reached"
         },
         "take_profit_market": {
           "title": "테이크 마켓",
-          "description": "트리거 가격 도달 시 시장가로 익절"
+          "description": "Place a market order if trigger price is reached"
         },
         "twap": {
           "title": "TWAP",
@@ -2198,7 +2219,7 @@
       "exchangeClientNotAvailable": "초기화 후에는 교환 클라이언트를 사용할 수 없습니다",
       "exchangeAccountNotFound": "주문하기 전에 계정에 자금을 추가하세요",
       "exchangeMultiSigRequired": "거래하려면 이 계정의 다중 서명 서명자가 필요합니다",
-      "exchangeInvalidNonce": "오류가 발생했습니다. 다시 시도해 주세요.",
+      "exchangeInvalidNonce": "Something went wrong. Try again.",
       "infoClientNotAvailable": "초기화 후에는 정보 클라이언트를 사용할 수 없습니다",
       "subscriptionClientNotAvailable": "초기화 후 SubscriptionClient를 사용할 수 없습니다",
       "subscriptionClientNotInitialized": "구독 클라이언트가 초기화되지 않았습니다",
@@ -2263,7 +2284,11 @@
         "chaseLimitReached": "이미 실행 중인 체이스 주문이 너무 많습니다",
         "chaseAbandoned": "연결이 끊겨 체이스 주문이 취소되었습니다",
         "chaseTouchUnavailable": "이 체이스 주문을 넣는 데 사용할 시장 가격이 없습니다",
-        "chaseMaxDistanceInvalid": "최대 체이스 범위가 허용 범위를 벗어났습니다"
+        "chaseMaxDistanceInvalid": "최대 체이스 범위가 허용 범위를 벗어났습니다",
+        "marginModeInvalid": "Margin mode is invalid",
+        "marginModeUnsupported": "This margin mode isn't available on this market",
+        "marginModePositionOpen": "Can't change margin mode while a position is open",
+        "marginModeOrderOpen": "Can't change margin mode while an order is open"
       },
       "networkToggleFailed": "네트워크 전환에 실패했습니다: {{error}}",
       "accountBalanceFailed": "계정 잔액을 가져오는 데 실패했습니다: {{error}}",
@@ -3982,6 +4007,20 @@
     "settings": "다른 기본 설정을",
     "settings_link": "관리할 수도 있습니다."
   },
+  "basic_functionality_migration": {
+    "title": "Your settings have changed",
+    "social_title": "Privacy and product updates",
+    "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
+    "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
+    "social_body_2_middle": " and updated ",
+    "social_body_2_suffix": ".",
+    "blog_post_link": "blog post",
+    "privacy_notice_link": "Privacy Notice",
+    "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
+    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
+    "settings_link": "Settings > Privacy",
+    "accept_and_close": "Accept and close"
+  },
   "onboarding_interest_questionnaire": {
     "title": "MetaMask를 어떻게 사용하실 건가요?",
     "description": "해당 사항을 모두 선택하세요.",
@@ -4279,7 +4318,7 @@
     "clear_approvals_modal_message": "계정 정보를 다시 보려면 모든 디앱에서 액세스를 요청해야 합니다.",
     "clear_browser_history_modal_title": "브라우저 기록을 지울까요?",
     "clear_browser_history_modal_message": "브라우저 기록을 제거할 예정입니다. 확실합니까?",
-    "clear_cookies_modal_title": "브라우저 쿠키 지우기",
+    "clear_cookies_modal_title": "Clear browser cookies?",
     "clear_cookies_modal_message": "브라우저의 쿠키를 제거할 예정입니다. 확실합니까?",
     "reset_account_modal_message": "계정을 초기화하면 거래 활동이 지워집니다.",
     "save_rpc_url": "저장",
@@ -4460,8 +4499,8 @@
     "metametrics_opt_out": "MetaMetrics 수신 거부",
     "metametrics_restart_required": "변경 내용을 적용하려면 앱을 다시 시작해야 합니다.",
     "create_password": "비밀번호 생성",
-    "invalid_password": "잘못된 비밀번호",
-    "invalid_password_message": "비밀번호가 틀렸습니다. 다시 시도하세요.",
+    "invalid_password": "Incorrect password",
+    "invalid_password_message": "Check your password and try again.",
     "security_heading": "보안",
     "general_heading": "일반",
     "privacy_heading": "개인정보 보호",
@@ -4956,8 +4995,8 @@
     "private_key_copied_time": "(1분간 저장됨)",
     "private_key_copied_ios": "개인 키를 임시로 클립보드에 복사했습니다\n",
     "private_key_copied_android": "개인 키를 클립보드에 복사했습니다\n",
-    "warning_incorrect_password": "잘못된 비밀번호",
-    "unknown_error": "계정을 잠금 해제할 수 없습니다. 다시 시도해 주세요.",
+    "warning_incorrect_password": "Incorrect password. Try again.",
+    "unknown_error": "Couldn't unlock your account. Try again.",
     "hardware_error": "하드웨어 지갑 계정입니다. 개인 키를 내보낼 수 없습니다.",
     "seed_warning": "이것은 지갑용 12단어 구문입니다. 이 구문은 현재 계정은 물론 앞으로 만들 계정도 통제하는 데 사용됩니다. 이 구문이 있으면 지갑의 어떤 자금도 송금할 수 있는 권한이 생깁니다. 그러니 구문을 안전하게 보관하세요. 절대 이를 다른 사람과 공유하지 마세요.",
     "text": "텍스트",
@@ -5013,9 +5052,9 @@
     "save_success": "{{ticker}} 가격 알림이 설정되었습니다.",
     "save_error": "가격 알림을 저장하지 못했습니다. 다시 시도해 주세요.",
     "delete_success": "가격 알림이 삭제되었습니다.",
-    "delete_error": "가격 알림을 삭제하지 못했습니다. 다시 시도해 주세요.",
-    "toggle_error": "가격 알림을 업데이트하지 못했습니다. 다시 시도해 주세요.",
-    "fetch_error": "가격 알림을 불러오지 못했습니다. 다시 시도해 주세요.",
+    "delete_error": "Failed to delete price alert. Try again.",
+    "toggle_error": "Failed to update price alert. Try again.",
+    "fetch_error": "Failed to load price alerts. Try again.",
     "duplicate_threshold": "이 가격에 대한 알림이 이미 존재합니다.",
     "manage_title": "가격 알림",
     "add_alert": "알림 추가",
@@ -5450,7 +5489,7 @@
     "tokenContractAddressWarning_1": "이 주소는 다음에 해당합니다:",
     "tokenContractAddressWarning_2": "토큰 계약 주소입니다",
     "tokenContractAddressWarning_3": ". 이 주소로 토큰을 보내면 토큰을 잃게 됩니다.",
-    "smartContractAddressWarning": "이 주소는 스마트 계약 주소입니다. 이 주소가 어떤 용도인지 명확히 파악하시기 바랍니다. 그렇지 않으면 자금을 잃을 수 있습니다.",
+    "smartContractAddressWarning": "This address is a smart contract address. Make sure you understand what this address is for, otherwise you risk losing your funds.",
     "continueError": "위험을 인지하고 있습니다. 계속 진행해 주세요",
     "gas_education_title_ethereum": "이더리움 가스요금",
     "gas_education_title": "가스요금",
@@ -5464,16 +5503,16 @@
     "confusable_msg": "ENS 이름에 혼란을 줄 수 있는 글자가 들어 있는 것을 확인했습니다. 사기를 방지하기 위해 ENS 이름을 확인하세요.",
     "similar_to": "(은)는 다음과 유사합니다.",
     "contains_zero_width": "에 너비가 0인 문자가 있습니다.",
-    "dapp_suggested_gas": "이 네트워크 수수료는 {{origin}}에서 제안했습니다. 이는 기존 방식의 가스 예측을 사용하므로 부정확할 수 있습니다. 그러나 이 네트워크 수수료를 편집하면 트랜잭션에 문제가 생길 수 있습니다. 질문이 있으시면 {{origin}}에 문의하세요.",
-    "dapp_suggested_eip1559_gas": "이 네트워크 수수료는 {{origin}}에서 제안했습니다. 이를 변경하면 트랜잭션에 문제가 발생할 수 있습니다. 궁금한 점이 있으면 {{origin}}에 문의하세요.",
+    "dapp_suggested_gas": "This network fee has been suggested by {{origin}}. It's using legacy gas estimation which may be inaccurate. However, editing this network fee may cause a problem with your transaction. Reach out to {{origin}} if you have questions.",
+    "dapp_suggested_eip1559_gas": "This network fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Reach out to {{origin}} if you have questions.",
     "address_invalid": "수신인 주소가 올바르지 않습니다.",
     "ens_not_found": "이 이름에 설정된 주소가 없습니다.",
-    "unknown_qr_code": "잘못된 QR 코드입니다. 다시 시도하세요.",
-    "invalid_qr_code_sync": "잘못된 QR 코드입니다. 하드웨어 지갑의 동기화 QR 코드를 스캔하세요.",
-    "no_camera_permission": "카메라가 허용되지 않았습니다. 권한 허용 후 다시 시도하세요.",
-    "invalid_qr_code_sign": "잘못된 QR 코드입니다. 하드웨어를 확인하고 다시 시도하세요.",
+    "unknown_qr_code": "Invalid QR code. Retry.",
+    "invalid_qr_code_sync": "Invalid QR code. Scan the sync QR code of the hardware wallet.",
+    "no_camera_permission": "Camera not authorized. Grant permission and retry",
+    "invalid_qr_code_sign": "Invalid QR code. Check your hardware and retry.",
     "no_camera_permission_android": "진행하려면 MetaMask에서 카메라를 허용해야 합니다. 시스템 설정을 변경해야 할 수도 있습니다.",
-    "mismatched_qr_request_id": "일치하지 않는 트랜잭션 데이터입니다. 하드웨어 지갑으로 아래의 QR 코드에 서명하고 '서명받기'를 누르세요.",
+    "mismatched_qr_request_id": "Incongruent transaction data. Use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
     "fiat_conversion_not_available": "현재 명목 화폐 환율을 사용할 수 없습니다.",
     "hex_data_copied": "헥스 데이터를 클립보드에 복사했습니다",
     "invalid_recipient": "잘못된 수신자",
@@ -5575,7 +5614,7 @@
     "no_tabs_desc": "탈중앙화된 웹에서 브라우징을 할 수 있도록 새 탭을 추가하세요",
     "got_it": "컨펌",
     "max_tabs_title": "탭 최대 수에 도달했습니다",
-    "max_tabs_desc": "현재 한 번에 최대 20개의 탭만 열 수 있습니다. 새 탭을 추가하려면 기존 탭을 닫아주세요.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "해당 ENS 이름을 확인할 수 없습니다",
     "remove_bookmark_title": "즐겨찾기 제거",
     "remove_bookmark_msg": "즐겨찾기 목록에서 이 사이트를 정말 제거하기 원하십니까?",
@@ -6028,7 +6067,7 @@
     "show_balance": "총 잔액 표시"
   },
   "authentication": {
-    "auth_prompt_desc": "MetaMask를 사용하려면 인증을 받으세요",
+    "auth_prompt_desc": "Authenticate to use MetaMask",
     "labels": {
       "remember_me": "로그인 유지",
       "face_id": "Face ID",
@@ -6066,7 +6105,7 @@
     "cta_text": "가져오기",
     "example": "예: 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "문제가 발생했습니다",
-    "error_message": "개인 키를 불러올 수 없었습니다. 키를 정확히 입력했는지 확인하세요.",
+    "error_message": "We couldn't import that private key. Make sure you entered it correctly.",
     "error_empty_message": "개인 키를 입력해야 합니다.",
     "or_scan_a_qr_code": "또는 QR 코드를 스캔하세요"
   },
@@ -6088,7 +6127,7 @@
     "12_word_option": "12단어 구문이 있습니다",
     "24_word_option": "24단어 구문이 있습니다",
     "error_title": "문제가 발생했습니다",
-    "error_message": "해당 비밀복구구문을 가져올 수 없습니다. 정확히 입력했는지 확인하세요.",
+    "error_message": "We couldn't import that Secret Recovery Phrase. Make sure you entered it correctly.",
     "error_empty_message": "비밀복구구문을 입력해야 합니다.",
     "error_number_of_words_error_message": "비밀복구구문은 12개 또는 24개의 단어로 구성됩니다",
     "error_srp_is_case_sensitive": "잘못된 입력입니다! 비밀복구구문은 대소문자가 구별되어야 합니다.",
@@ -6287,21 +6326,21 @@
   "phishing": {
     "ethereum_phishing_detection": "이더리움 피싱 사기 탐지",
     "ethereum_phishing_detector": "이더리움 피싱 사기 탐지기",
-    "intro": "이 도메인은 현재 MetaMask 도메인 위험 목록에 있습니다. 즉 이용 가능한 정보를 바탕으로, MetaMask는 이 도메인이 귀하의 보안에 침투할 수 있다고 판단한 것입니다. 추가적인 안전 조치로 MetaMask는 해당 사이트의 접근을 제한했습니다. 이를 무시하고 계속 진행하고 싶으시면 나머지 경고 내용을 읽어 위험을 감수하고 계속 진행하는 방법을 확인하세요.",
+    "intro": " is currently on the MetaMask domain warning list. This means that based on information available to us, MetaMask believes this domain could currently compromise your security and, as an added safety feature, MetaMask has restricted access to the site. To override this, read the rest of this warning for instructions on how to continue at your own risk.",
     "reasons": "사이트가 위험 목록에 오르는 데에는 여러가지 이유가 있습니다. 그MetaMask은 다른 산업에서도 널리 사용되고 있는 목록을 병합한 것입니다. 사기 이력, 보안 위험 같이 테스트 결과 위험이 확인되는 것 등이 이유가 될 수 있습니다.",
     "list_content": "위험 목록에 있는 도메인은 명백히 악의적인 웹사이트이거나 악의적인 행위자에 의해 해킹을 당한 적이 있는 적법한 웹사이트 등일 수 있습니다.",
     "to_read_more": "이 웹사이트 대해 더 자세히 알아보세요",
-    "review_on_etherscam": "이더스캠(Etherscam)에 있는 도메인을 검토하세요.",
+    "review_on_etherscam": "Review the domain on Etherscam.",
     "warning": "위험 목록은 자발적 참여로 만들어진 목록입니다. 때문에 목록이 부정확하거나 완벽하지 않을 수 있습니다. 목록에 나오지 않는다고 해서 도메인의 안전이 보장된다는 의미는 아닙니다. 언제나 거래에 대한 모든 책임은 본인에게 있습니다. 위험 목록에 있는 도메인과 계속 인터렉션하기 원하시면 다음과 같이 하시면 됩니다.",
     "continue_on_your_own": "위험을 감수하고 계속하기.",
     "file_an_issue_intro": "도메인이 위험 목록으로 잘못 분류되어 있다고 생각되거나 적법한 웹사이트임에도 보안 문제로 접근이 제한된 사이트의 보안 문제가 해결된 경우,",
-    "file_an_issue": "문의를 제출하세요.",
+    "file_an_issue": "File an issue.",
     "back_to_safety": "안전성으로 돌아가기",
     "site_might_be_harmful": "이 웹사이트는 해로울 수 있습니다",
     "metamask_flagged_site": "MetaMask는 방문하려는 사이트를 잠재적인 사기성 사이트로 표시했습니다. 공격자가 사용자를 속여 위험한 행동을 유도할 수 있습니다.",
     "you_may_proceed_anyway": "아마",
     "proceed_anyway": "계속 진행",
-    "but_please_do_so_at_your_own_risk": "하지만 위험은 직접 감수하셔야 합니다.",
+    "but_please_do_so_at_your_own_risk": "but do so at your own risk.",
     "report_detection_problem": "감지 문제 보고",
     "share_on_twitter": "이 정보가 유용했다면, X를 통해 공유해 주세요.",
     "share_text": "MetaMask가 잠재적으로 위험한 사이트({{url}})로부터 저를 보호해줬어요. 모두 안전하게 이용하세요!"
@@ -6444,7 +6483,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "출금 요청됨",
     "prompt_title": "푸시 알림 받기",
     "notifications_enabled_error_title": "문제가 발생했습니다",
-    "notifications_enabled_error_desc": "알림을 켤 수 없습니다. 나중에 다시 시도해 주세요.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Try again later.",
     "prompt_desc": "설정에서 알림을 켜서 지갑 활동 등에 대한 중요한 알림을 받으세요.",
     "prompt_ok": "켜기",
     "prompt_cancel": "나중에",
@@ -6456,7 +6495,7 @@
     "wc_signed_failed_title": "이 서명 요청은 실패했습니다",
     "wc_sent_tx_rejected_title": "거래 요청을 거부했습니다",
     "approved_tx_rejected_title": "권한 승인을 거부했습니다",
-    "wc_description": "애플리케이션을 확인하세요",
+    "wc_description": "Check the application",
     "wallet": "지갑",
     "web3": "웹3",
     "staking_provider": "스테이킹 공급자",
@@ -6557,7 +6596,7 @@
     "your_tokens": "귀하의 토큰",
     "enter_amount": "금액 입력",
     "choose_asset": "요청할 자산을 선택하세요",
-    "request_error": "잘못된 요청입니다, 다시 시도해 주세요",
+    "request_error": "Invalid request, try again",
     "reset": "초기화",
     "next": "다음",
     "amount_placeholder": "0.00",
@@ -6595,7 +6634,7 @@
     "wallet_connect_dapps_cta": "세션 보기",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
     "select_provider": "선호하는 공급업체 선택",
-    "switch_network": "메인넷이나 세폴리아로 전환하세요",
+    "switch_network": "Switch to mainnet or sepolia",
     "card_title": "MetaMask 카드 버튼 항상 표시",
     "card_desc": "MetaMask 카드는 일부 국가의 거주자만 사용할 수 있습니다.",
     "daimo_demo_title": "DaimoPay 데모 환경 사용",
@@ -6655,10 +6694,10 @@
     "pay_with": "결제 수단:",
     "buying_via": "{{providerName}}을(를) 통해 구매",
     "change_provider": "공급자를 변경하세요.",
-    "circuit_breaker_open": "이 서비스는 일시적으로 사용할 수 없습니다. 30분 정도 후에 다시 시도하세요.",
-    "payment_error": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "circuit_breaker_open": "This service is temporarily unavailable. Try again in about 30 minutes.",
+    "payment_error": "Something went wrong. Try again.",
     "no_payment_methods_available": "사용 가능한 결제 방법이 없습니다.",
-    "error_fetching_quotes": "오류가 발생했습니다. 다시 시도해 주세요.",
+    "error_fetching_quotes": "Something went wrong. Try again.",
     "no_quotes_available": "공급자가 없습니다.",
     "quote_unavailable": "견적을 확인할 수 없습니다.",
     "providers": "공급자",
@@ -6671,7 +6710,7 @@
     "powered_by_provider": "제공자: {{provider}}",
     "purchased_currency": "구매한 {{currency}}",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
-    "switch_network": "메인넷으로 전환하세요",
+    "switch_network": "Switch to Mainnet",
     "switch": "전환",
     "purchases": "구매",
     "purchase_method": "구매 방법",
@@ -6855,7 +6894,7 @@
     "best_rate": "최적 환율",
     "most_reliable": "가장 신뢰할 수 있음",
     "quotes_timeout": "견적 타임아웃",
-    "request_new_quotes": "최고의 환율을 가질 수 있도록 새로운 견적을 요청하세요.",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "wallet_pay_terms": "계속하면 Crossmint의 다음 약관에 동의하는 것입니다:",
     "terms_of_service": "서비스 약관",
     "amount_to_buy": "매수",
@@ -6909,12 +6948,12 @@
     "return_home": "홈 화면으로 돌아가기",
     "incompatible_token_account_modal": {
       "title": "호환되지 않는 계정",
-      "description": "현재 사용 중인 계정은 {{networkName}} 토큰을 지원할 수 없습니다. 계속 진행하려면 호환되는 계정으로 전환해 주세요.",
+      "description": "Your current account cannot support tokens on {{networkName}}. Switch to a compatible account to continue.",
       "cta": "확인"
     },
     "eligibility_failed_modal": {
       "title": "자격 요건 확인 실패",
-      "description": "지역 기준에 따라 접근 권한을 확인할 수 없습니다. 다시 시도해 주시기 바랍니다. 문제가 계속될 경우 고객 지원팀으로 문의해 주세요.",
+      "description": "We couldn't confirm access based on your region. Try again. If the issue continues, contact support.",
       "contact_support": "지원팀에 문의",
       "got_it": "확인"
     },
@@ -6958,7 +6997,7 @@
       "failed": "주문 실패",
       "cancelled": "주문 취소 완료",
       "pending": "주문 보류 중",
-      "failed_description": "오류가 발생해 {{provider}}(이)가 주문을 완료하지 못했습니다. 나중에 다시 시도하거나 다른 공급업체를 이용하세요.",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Try again or use another provider.",
       "continue_order_description": "주문을 계속하려면 이 페이지의 하단에 있는 버튼을 선택해야 합니다.",
       "the_provider": "공급업체",
       "processing": "주문 처리 중",
@@ -6996,7 +7035,7 @@
       "sent": "보낸!"
     },
     "notifications": {
-      "purchase_failed_title": "{{currency}} 구매에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "결제 수단 및 카드의 지원 여부를 확인하세요",
       "purchase_cancelled_title": "구매가 취소되었습니다",
       "purchase_cancelled_description": "결제 수단 및 카드의 지원 여부를 확인하세요",
@@ -7033,7 +7072,7 @@
     "processing_info_modal_description": "카드 결제는 보통 몇 분 정도 소요됩니다. 문의 사항이 있으면 지원팀에 연락해 주세요.",
     "go_to_provider_support": "{{provider}} 지원 페이지로 이동",
     "error_title": "문제가 발생했습니다",
-    "error_message": "주문 정보를 불러올 수 없습니다. 다시 시도하세요.",
+    "error_message": "Unable to load order details. Try again.",
     "try_again": "다시 시도",
     "close": "닫기"
   },
@@ -7044,7 +7083,7 @@
       "purchase_completed_title": "{{amount}} {{cryptocurrency}} 매수에 성공했습니다",
       "purchase_completed_description": "{{cryptocurrency}}을(를) 사용할 수 있습니다",
       "purchase_failed_title": "{{cryptocurrency}} 구매 실패",
-      "purchase_failed_description": "잠시 후 다시 시도하세요",
+      "purchase_failed_description": "Try again momentarily",
       "purchase_cancelled_title": "매수 주문이 취소되었습니다",
       "purchase_cancelled_description": "{{cryptocurrency}} 구매가 취소되었습니다",
       "track": "조회"
@@ -7068,7 +7107,7 @@
       "start_swapping": "스와프 시작"
     },
     "feature_off_title": "일시적으로 이용이 불가합니다",
-    "feature_off_body": "MetaMask 스왑은 현재 유지 보수 중입니다. 나중에 다시 확인해 주세요.",
+    "feature_off_body": "MetaMask Swaps are undergoing maintenance. Check back later.",
     "wrong_network_title": "스와프 이용 불가",
     "wrong_network_body": "이더리움 메인 네트워크에서만 토큰 스와프가 가능합니다.",
     "unallowed_asset_title": "이 토큰은 스와프할 수 없습니다.",
@@ -7101,7 +7140,7 @@
     "error_gathering_token_details": "토큰 세부사항을 가져오는 도중 오류가 발생했습니다.",
     "Import": "불러오기",
     "invalid_token_contract_address": "잘못된 토큰 계약 주소.",
-    "please_verify_on_explorer": "다음에서 인증하세요:",
+    "please_verify_on_explorer": "Verify on",
     "add_warning": "누구든 토큰을 생성할 수 있습니다. 여기에는 프로젝트를 대표한다고 주장하는 기존 토큰의 가짜 버전 생성도 포함됩니다.",
     "import_token": "토큰을 불러오시겠습니까?",
     "contract": "계약:",
@@ -7196,11 +7235,11 @@
       "3": "스마트 계약은 가스 비용을 절약할 수 있는 네이티브 토큰을 래핑 및 래핑 해제하는 시스템입니다."
     },
     "quotes_timeout": "견적 타임아웃",
-    "request_new_quotes": "최고의 환율을 가질 수 있도록 새로운 견적을 요청하세요.",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "quotes_not_available": "견적 확인 불가",
     "try_adjusting": "수량을 조정하여 다시 시도해 보세요.",
     "error_fetching_quote": "견적 산출 중 오류 발생",
-    "unexpected_error": "예상하지 못한 오류가 있었습니다. 가장 좋은 환율을 얻을 수 있도록 새 견적을 요청하세요(오류: {{error}})",
+    "unexpected_error": "There has been an unexpected error. Request new quotes to get the latest best rate. (error: {{error}})",
     "get_new_quotes": "새 견적을 받기",
     "try_again": "다시 시도",
     "terms_of_service": "이용 약관",
@@ -7252,15 +7291,15 @@
     "title": "오류가 발생했습니다",
     "subtitle": "정보가 보이지 않습니다. 걱정하지 마세요. 귀하의 지갑과 자금은 안전합니다.",
     "try_again_button": "다시 시도하세요",
-    "submit_ticket_1": "수정할 수 있도록 이를 신고해 주세요:",
+    "submit_ticket_1": "Report this issue so we can fix it:",
     "submit_ticket_2": "화면의 스크린샷을 찍으세요.",
     "submit_ticket_3": "복사",
     "submit_ticket_4": "하시면 오류 메시지가 클립보드에 복사됩니다.",
     "submit_ticket_5": "여기에 티켓을",
     "submit_ticket_6": "제출하세요.",
-    "submit_ticket_7": "오류 메시지와 스크린샷을 포함해 주세요.",
+    "submit_ticket_7": "Include the error message and the screenshot.",
     "submit_ticket_8": "버그 리포트 전송",
-    "submit_ticket_9": "오류에 대해 자세히 설명해 주세요.",
+    "submit_ticket_9": "Include details about what happened.",
     "bug_report_prompt_title": "어떤 오류인지 알려주세요",
     "bug_report_prompt_description": "무엇이 잘못되었는지 파악할 수 있도록 세부 정보를 추가하세요.",
     "bug_report_thanks": "감사합니다! 곧 확인하겠습니다.",
@@ -7465,8 +7504,8 @@
     "add_token_manually": "수동으로 추가하세요.",
     "got_it": "확인",
     "error_title": "문제가 발생했습니다",
-    "error_message": "네트워크 정보를 불러오는 데 오류가 발생했습니다. 나중에 다시 시도하세요.",
-    "private_network_third_description": "식별하기 쉽도록 네트워크 이름을 입력해 주세요.",
+    "error_message": "There was an error loading the network information. Try again later.",
+    "private_network_third_description": "Enter a name for this network to make it easy to identify.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "자동 토큰 감지 활성화",
     "token_detection_mainnet_title": "토큰 감지가 활성화되어 여러 토큰이 자동으로 지갑에 나타납니다.",
@@ -7495,7 +7534,7 @@
     "action": "기억하기 기능 끄기"
   },
   "dapp_connect": {
-    "warning": "이 기능을 사용하려면 앱을 최신 버전으로 업데이트하세요"
+    "warning": "To use this feature, update the app to the newest version"
   },
   "confirmation_modal": {
     "cancel_cta": "취소",
@@ -7509,7 +7548,7 @@
     "title": "이용약관을 검토하세요",
     "terms_of_use_check_description": "본인은 MetaMask의 사용과 관련 모든 기능에 적용되는 이용약관에 동의합니다",
     "accept_cta": "동의",
-    "accept_helper_description": "스크롤하여 모든 섹션의 내용을 읽으세요",
+    "accept_helper_description": "Scroll to read all sections",
     "agree_cta": "동의"
   },
   "update_needed": {
@@ -7608,7 +7647,7 @@
     "open_settings": "설정 열기",
     "view_settings": "설정 보기",
     "bluetooth_off": "블루투스 꺼짐",
-    "bluetooth_off_message": "기기의 블루투스를 켜세요",
+    "bluetooth_off_message": "Turn on Bluetooth for your device",
     "bluetooth_access_blocked": "Ledger가 모바일 기기와 페어링하려면 블루투스가 필요합니다.",
     "bluetooth_access_blocked_message": "블루투스를 사용하여 Ledger 장치를 페어링하려면, 설정에서 블루투스를 켜고 다시 시도하세요.",
     "location_access_blocked": "MetaMask를 Ledger와 페어링하려면 위치 액세스 권한이 필요합니다.",
@@ -7616,22 +7655,22 @@
     "nearbyDevices_access_blocked": "MetaMask를 Ledger와 페어링하려면 주변 장치 권한이 필요합니다.",
     "nearbyDevices_access_blocked_message": "블루투스를 사용하여 Ledger 장치를 페어링하려면, 설정에서 근처 기기 권한을 허용하고 다시 시도하세요.",
     "bluetooth_scanning_error": "기기 스캐닝 중 오류 발생",
-    "bluetooth_scanning_error_message": "기기가 잠금해제되어 있고 이더리움 앱이 실행되고 있는지 확인하세요",
+    "bluetooth_scanning_error_message": "Make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "블루투스 연결 실패",
-    "bluetooth_connection_failed_message": "Ledger가 잠금해제되어 있고 Bluetooth가 활성화되어 있는지 확인하세요",
+    "bluetooth_connection_failed_message": "Make sure your Ledger is unlocked and your Bluetooth is enabled",
     "ethereum_app_open": "Ledger에 대한 컨펌이 필요합니다",
-    "ethereum_app_open_message": "기기에 이더리움 앱이 열려 있는지 컨펌하세요. 열려 있다면 컨펌(OK)을 누르세요.",
+    "ethereum_app_open_message": "Confirm on your device to open Ethereum app. Press OK once done.",
     "ethereum_app_unconfirmed_error": "이더리움 앱 열기 요청을 거부했습니다.",
     "failed_to_open_eth_app": "이더리움 앱 열기 실패",
-    "ethereum_app_open_error": "Ledger 기기에 이더리움 앱을 설치하고 권한을 허용하세요.",
+    "ethereum_app_open_error": "Install/accept Ethereum app on your Ledger device.",
     "running_app_close": "실행 중인 앱 종료 실패",
     "running_app_close_error": "Ledger 기기에 실행 중인 앱을 종료하는 데 실패했습니다.",
     "ethereum_app_not_installed": "이더리움 앱이 설치되어 있지 않습니다.",
-    "ethereum_app_not_installed_error": "Ledger 기기에 이더리움 앱을 설치하세요.",
+    "ethereum_app_not_installed_error": "Install the Ethereum app on your Ledger device.",
     "eth_app_not_open": "Ethereum 앱이 열려 있지 않습니다",
-    "eth_app_not_open_message": "Ledger 장치에서 Ethereum 앱을 열어 주세요.",
+    "eth_app_not_open_message": "Open the Ethereum app on your Ledger device.",
     "ledger_is_locked": "Ledger 잠김",
-    "unlock_ledger_message": "Ledger 기기를 잠금해제하세요",
+    "unlock_ledger_message": "Unlock your Ledger device",
     "unlock_ledger_device": "Ledger 장치를 잠금 해제하세요",
     "cannot_get_account": "계정 연결 실패",
     "connect_ledger": "Ledger 연결",
@@ -7642,7 +7681,7 @@
     "save_device_selection": "저장",
     "enable_bluetooth": "블루투스를 켜세요",
     "install_and_open_eth_app": "이더리움 앱을 설치하고 실행하세요",
-    "ledger_reminder_message": "Ledger 장치가 다음과 같은 상태인지 확인하세요.",
+    "ledger_reminder_message": "Make sure your Ledger device is:",
     "ledger_reminder_message_step_one": "1. Ledger 장치를 잠금 해제하세요",
     "ledger_reminder_message_step_two": "2. 이더리움 앱을 설치하고 실행하세요",
     "ledger_reminder_message_step_three": "3. 블루투스를 켜세요",
@@ -7657,14 +7696,14 @@
     "bluetooth_enabled_message": "블루투스가 활성화된 상태인지 확인하세요",
     "device_unlocked_message": "기기가 잠금해제 되었습니다",
     "ledger_disconnected": "기기의 연결이 해제되었습니다",
-    "ledger_disconnected_error": "기기의 연결이 끊어졌습니다. 다시 시도하세요.",
+    "ledger_disconnected_error": "The connection to your device has been lost. Try again.",
     "unknown_error": "예기치 못한 오류가 발생했습니다.",
     "unknown_error_message": "예기치 못한 오류가 발생했습니다. 다시 시도하세요.",
     "error_occured": "오류가 발생했습니다",
     "how_to_install_eth_app": "Ledger 기기에 이더리움 앱 설치하는 방법",
     "ledger_account_count": "MetaMask Mobile의 Ledger에서 1개의 계정을 사용 중입니다.",
-    "open_eth_app": "이더리움 앱을 여세요",
-    "open_eth_app_message_one": "이더리움 앱이 설치되었지만 열려있지 않습니다. ",
+    "open_eth_app": "Open the Ethereum app",
+    "open_eth_app_message_one": "We've detected you have the Ethereum app installed but it's not open, ",
     "open_eth_app_message_two": "이더리움 앱을 계속 실행할 수 있도록 기기의 두 버튼을 누르고 안내에 따라 진행하세요.",
     "toast_bluetooth_connection_error_title": "문제가 발생했습니다",
     "toast_bluetooth_connection_error_subtitle": "Ledger이 연결되지 않았습니다",
@@ -7674,7 +7713,7 @@
     "forget_device": "Ledger 연결 해제",
     "sign_with_ledger": "Ledger로 서명",
     "ledger_pending_confirmation": "Ledger가 다른 작업을 수행 중입니다",
-    "ledger_pending_confirmation_error": "Ledger에 시행을 기다리는 작업이 있습니다. 먼저 활동을 삭제하고 다시 시도하세요.",
+    "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Clear the action first, then retry.",
     "not_supported": "지원되지 않는 지역입니다",
     "not_supported_error": "입력한 데이터의 버전 4만 지원됩니다.",
     "error_during_connection": "알 수 없는 오류가 발생했습니다",
@@ -7690,7 +7729,7 @@
     "ledger_bip44_path": "BIP44 (예: MetaMask, Trezor)",
     "ledger_legacy_label": " (레거시)",
     "blind_sign_error": "블라인드 서명 오류",
-    "blind_sign_error_message": "Ledger 장치에서 블라인드 서명이 활성화되어 있지 않습니다. 설정에서 활성화해 주세요.",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Enable it in the settings.",
     "user_reject_transaction": "사용자가 트랜잭션을 거부했습니다",
     "user_reject_transaction_message": "사용자가 Ledger 장치에서 트랜잭션을 거부했습니다.",
     "multiple_devices_error_message": "다중 장치는 아직 지원되지 않습니다. 새 Ledger 장치를 추가하려면 이전 이전 장치를 제거해야 합니다.",
@@ -7698,10 +7737,10 @@
     "unspecified_error_during_connect": "Ledger 하드웨어 연결 시 불특정 오류가 발생했습니다,",
     "account_name_existed": "{{accountName}} 계정이 이미 존재합니다",
     "unresponsive": "Ledger 응답 없음",
-    "unresponsive_message": "장치를 분리한 후 다시 연결하세요",
+    "unresponsive_message": "Disconnect and reconnect your device",
     "ethereum_app_closed": "이더리움 앱이 닫혀 있습니다",
-    "ethereum_app_closed_message": "계속하려면 Ledger 장치에서 앱을 열어 주세요",
-    "ledger_locked_message_continue": "계속하려면 Ledger 장치의 잠금을 해제하세요",
+    "ethereum_app_closed_message": "Open it on your Ledger device to continue",
+    "ledger_locked_message_continue": "Unlock your Ledger device to continue",
     "bluetooth_access_denied": "블루투스가 액세스가 거부되었습니다",
     "bluetooth_access_denied_message": "Ledger 장치를 연결하려면 장치 설정에서 블루투스를 활성화하세요",
     "location_access_denied": "위치 정보 액세스가 거부되었습니다",
@@ -8019,7 +8058,7 @@
     "apy_info_label": "APY 정보",
     "balance_unavailable": "잔액을 확인할 수 없음",
     "balance_unavailable_value": "$—",
-    "balance_unavailable_banner_description": "일시적으로 잔액을 표시할 수 없습니다. 자금은 안전하게 보관되고 있습니다. 잠시 후 다시 시도해 보세요.",
+    "balance_unavailable_banner_description": "We're temporarily unable to display your balance. Your funds are safe—try again shortly.",
     "balance_retry": "다시 시도",
     "balance_no_account": "Money Account를 찾을 수 없음",
     "onboarding": {
@@ -9046,6 +9085,7 @@
     "slippage": "슬리피지",
     "slippage_info": "주문이 제출되고 확정되는 시점 사이에 가격이 변동되는 것을 '슬리피지'라고 합니다. 슬리피지가 여기 설정한 허용치를 초과하면 스왑이 자동으로 취소됩니다.",
     "network_fee": "네트워크 수수료",
+    "relayer_fee": "Relayer fee",
     "gas_fees_sponsored": "MetaMask가 지불함",
     "included": "포함됨",
     "estimated_time": "예상 시간",
@@ -9257,7 +9297,7 @@
   },
   "error_sheet": {
     "still_there_title": "아직 자리에 계세요?",
-    "still_there_description": "활동이 없는 상태에서 로그인 시간이 초과되었습니다. 준비되면 다시 시도하세요.",
+    "still_there_description": "Your session timed out due to inactivity. Log in again when you're ready.",
     "unable_to_login_title": "연결할 수 없음",
     "unable_to_login_description": "인터넷 연결이 불안정합니다. 연결을 확인하고 다시 시도하세요.",
     "something_went_wrong_title": "문제가 발생했습니다",
@@ -9426,7 +9466,7 @@
       "learn_more": "더 보기",
       "enter_password": "비밀번호를 입력하세요",
       "password_placeholder": "비밀번호",
-      "wrong_password": "잘못된 비밀번호",
+      "wrong_password": "Incorrect password. Try again.",
       "copied": "개인 키 복사 완료",
       "continue": "계속",
       "cancel": "취소"
@@ -9560,8 +9600,8 @@
       "placeholder": "비밀번호",
       "confirm": "컨펌",
       "cancel": "취소",
-      "error_empty": "비밀번호를 입력하세요",
-      "error_incorrect": "잘못된 비밀번호입니다. 다시 시도해 주세요."
+      "error_empty": "Enter your password",
+      "error_incorrect": "Incorrect password. Try again."
     },
     "view_pin_bottomsheet": {
       "title": "내 카드 PIN"
@@ -9579,7 +9619,7 @@
       "invalid_pin_error": "사용할 수 없는 PIN입니다. 다른 PIN을 선택하세요.",
       "repeating_pin_error": "사용할 수 없는 PIN입니다. 다른 PIN을 선택하세요.",
       "forbidden_error": "현재 이 카드에는 PIN을 설정할 수 없습니다.",
-      "network_error": "오류가 발생했습니다. 다시 시도해 주세요.",
+      "network_error": "Something went wrong. Try again.",
       "success_title": "PIN이 설정되었습니다",
       "success_description": "안전하게 보관하세요. 앱 내에서는 다시 확인할 수 없습니다."
     },
@@ -9618,7 +9658,7 @@
       "renews_annually": "받으세요",
       "total": "총액",
       "pay": "결제",
-      "payment_creation_error": "결제에 실패했습니다. 다시 시도해 주세요."
+      "payment_creation_error": "Failed to create payment. Try again."
     },
     "order_completed": {
       "title": "카드 주문이\n완료되었습니다",
@@ -9657,9 +9697,9 @@
       "confirm_button_label": "지금 업데이트"
     },
     "daimo_pay_modal": {
-      "load_error": "결제 페이지를 불러오지 못했습니다. 다시 시도하세요.",
-      "timeout_error": "결제 확인 시간이 초과되었습니다. 트랜잭션 상태를 확인하세요.",
-      "payment_bounced_error": "결제에 실패했습니다. 다른 결제 수단으로 다시 시도해 주세요.",
+      "load_error": "Failed to load payment page. Try again.",
+      "timeout_error": "Payment verification timed out. Check your transaction status.",
+      "payment_bounced_error": "Payment failed. Try again with a different payment method.",
       "close": "닫기",
       "try_again": "다시 시도"
     },
@@ -9709,7 +9749,7 @@
         "phone_number_label": "전화번호 입력",
         "country_area_code_label": "국가 지역 코드",
         "invalid_phone_number": "잘못된 휴대폰 번호입니다",
-        "invalid_us_phone_number": "계속하려면 유효한 미국 전화번호(10자리)를 입력하세요.",
+        "invalid_us_phone_number": "Enter a valid US phone number (10 digits) to proceed.",
         "legal_terms": "계속 진행하면 휴대폰 번호 인증을 위한 SMS 수신에 동의하는 것입니다."
       },
       "confirm_phone_number": {
@@ -9726,7 +9766,7 @@
         "terms_2": "승인에는 ID와 주소 증빙 서류가 필요하지 않습니다. 승인에는 보통 5분 정도 소요됩니다.",
         "terms_2_us": "미국 연방법(USA PATRIOT Act)에 따라 테러 및 자금 세탁 방지를 위해 신분증과 주소 증빙을 통한 본인 확인이 필요합니다. 이 절차는 보통 5분 정도 소요됩니다.",
         "verify_button": "다음",
-        "start_verification_error": "확인을 시작할 수 없습니다. 잠시 후에 다시 시도해 주세요."
+        "start_verification_error": "Error starting verification. Try again shortly."
       },
       "kyc_webview": {
         "close_confirmation_title": "인증을 종료할까요?",
@@ -9749,28 +9789,29 @@
       "verifying_veriff_kyc": {
         "title": "승인 대기 중",
         "description": "신청을 승인하려면 파트너사가 신원 확인을 진행해야 합니다.",
-        "helper_text": "보통 몇 초 정도 소요됩니다. 앱을 종료하지 마세요."
+        "helper_text": "This usually takes a few seconds. Do not close the app."
       },
       "immersve_kyc_processing": {
         "title": "승인 대기 중",
         "description": "신청을 승인하려면 파트너사가 신원 확인을 진행해야 합니다.",
-        "helper_text": "보통 몇 초 정도 소요됩니다. 앱을 종료하지 마세요.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "incomplete_title": "본인 인증 완료하기",
         "incomplete_description": "본인 인증이 완료되기 전에 닫았습니다. 계속해서 완료해 주세요.",
         "continue_button": "인증 계속하기",
         "info_needed_title": "추가 정보 필요",
         "info_needed_description": "인증을 완료하려면 정보가 조금 더 필요합니다. 계속해서 입력해 주세요.",
         "info_needed_button": "인증 계속하기",
-        "expiring_error": "인증 세션이 만료되었습니다. 계속하려면 고객 지원팀에 문의하세요."
+        "expiring_error": "Your verification session expired. Contact support to continue."
       },
       "immersve_kyc_modal": {
-        "load_error": "본인 인증을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+        "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
+        "load_error": "Something went wrong loading identity verification. Try again.",
         "try_again": "다시 시도"
       },
       "immersve_funding_approval": {
         "title": "카드 자금 설정",
         "description": "구매 시 Base의 USDC를 사용하도록 MetaMask 카드를 승인하세요.",
-        "helper_text": "보통 몇 초 정도 소요됩니다. 앱을 종료하지 마세요.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "자금 승인",
         "retry_button": "다시 시도"
       },
@@ -9841,7 +9882,7 @@
       },
       "mailing_address": {
         "title": "우편 주소",
-        "description": "카드를 발송할 수 있는 우편 주소를 입력해 주세요."
+        "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
         "title": "가입이 완료되었습니다!",
@@ -9864,7 +9905,7 @@
       "close_button": "컨펌",
       "waitlist_form": {
         "title": "대기자 명단 등록",
-        "load_error": "양식을 불러오는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+        "load_error": "Something went wrong loading the form. Try again.",
         "try_again": "다시 시도",
         "success_toast": "대기자 명단에 등록되었습니다!",
         "success_toast_description": "해당 국가에서 카드를 이용할 수 있게 되면 알려드리겠습니다."
@@ -9874,24 +9915,24 @@
       },
       "errors": {
         "no_region_results": "{{searchString}}에 일치하는 지역이 없습니다",
-        "email_already_exists": "이미 존재하는 이메일 주소입니다. 다른 이메일 주소를 사용해 주세요.",
-        "invalid_email_format": "이메일 주소 형식이 잘못되었습니다. 이메일 주소를 확인하고 다시 입력해 주세요.",
-        "invalid_verification_code": "잘못된 확인 코드입니다. 코드를 확인한 후 다시 입력해 주세요.",
-        "verification_code_expired": "만료된 확인 코드입니다. 새 코드를 요청하세요.",
-        "invalid_contact_verification_id": "잘못되었거나 만료된 연락처 인증 ID입니다. 등록 절차를 다시 시작해 주세요.",
-        "invalid_phone_format": "잘못된 형식의 전화번호입니다. 전화번호를 확인한 후 다시 입력해 주세요.",
-        "phone_already_exists": "이미 존재하는 전화번호입니다. 다른 전화번호를 사용해 주세요.",
-        "phone_number_mismatch": "전화번호가 인증 세션 정보와 일치하지 않습니다. 정확한 전화번호를 입력했는지 확인해 주세요.",
-        "invalid_zip_code": "잘못된 우편번호입니다. 올바른 우편번호를 입력한 후 다시 시도해 보세요.",
-        "us_state_required": "미국 거주자의 경우 미국 주를 입력해야 합니다. 올바른 주를 입력한 후 다시 시도해 보세요.",
-        "consent_already_linked": "해당 사용자는 이미 하나의 동의 세트와 연결되어 있습니다. 다른 사용자로 시도하거나 지원팀에 문의해 주세요.",
-        "invalid_onboard_id": "잘못된 온보딩 ID입니다. 가입 절차를 다시 시작해 주세요.",
-        "create_user_failed": "사용자를 생성할 수 없습니다. 다시 시도해 주세요."
+        "email_already_exists": "Email already exists. Use a different email.",
+        "invalid_email_format": "Invalid email format. Check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Enter a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Enter a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Restart the registration process.",
+        "create_user_failed": "Failed to create user. Try again."
       }
     },
     "card_home": {
       "title": "카드",
-      "authentication_error": "세션이 만료되었습니다. 다시 로그인하세요.",
+      "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "카드 세션을 계속할 수 없습니다. 다시 로그인해 주세요.",
       "available_balance": "사용 가능한 잔액",
       "error_title": "데이터를 가져올 수 없습니다",
@@ -10207,7 +10248,7 @@
         "email_required": "이메일 주소를 입력해야 합니다",
         "password_required": "비밀번호를 입력해야 합니다",
         "email_invalid": "잘못된 이메일 주소입니다",
-        "password_invalid": "잘못된 비밀번호입니다",
+        "password_invalid": "Incorrect password. Try again.",
         "invalid_email_or_password": "이메일 또는 비밀번호를 잘못 입력하셨습니다. 자격 증명을 확인하고 다시 시도하세요.",
         "network_error": "네트워크 오류입니다. 연결을 확인하고 다시 시도하세요.",
         "timeout_error": "요청 시간이 초과되었습니다. 연결을 확인하고 다시 시도하세요.",

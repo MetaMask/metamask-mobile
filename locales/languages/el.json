@@ -64,7 +64,7 @@
     },
     "gas_estimate_failed": {
       "title": "Ανακριβής χρέωση",
-      "message": "Δεν μπορούμε να παρέχουμε ακριβή χρέωση και αυτή η εκτίμηση ενδέχεται να είναι υψηλή. Σας προτείνουμε να εισάγετε ένα προσαρμοσμένο όριο τελών δικτύου, αλλά υπάρχει κίνδυνος η συναλλαγή να αποτύχει παρόλα αυτά."
+      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
     "insufficient_balance": {
       "title": "Ανεπαρκές ποσό",
@@ -500,7 +500,7 @@
     "go_back": "Το πορτοφόλι δεν ξεκλειδώθηκε; Μπορείτε να ΔΙΑΓΡΑΨΕΤΕ το τρέχον πορτοφόλι σας και να δημιουργήσετε ένα καινούργιο",
     "forgot_password": "Ξεχάσατε τον κωδικό πρόσβασης;",
     "cant_proceed": "Δεν μπορείτε να προχωρήσετε μέχρι να πληκτρολογήσετε τη λέξη \"Διαγραφή\". Με αυτήν την ενέργεια επιλέγετε να διαγράψετε το τρέχον πορτοφόλι σας.",
-    "invalid_password": "Ο κωδικός πρόσβασης είναι λανθασμένος, προσπαθήστε ξανά.",
+    "invalid_password": "Incorrect password. Try again.",
     "type_delete": "Πληκτρολογήστε ‘{{erase}}’ για επιβεβαίωση",
     "erase_my": "Ναι, επαναφορά πορτοφολιού",
     "cancel": "Ακύρωση",
@@ -513,8 +513,8 @@
     "metamask_does_not": "Το MetaMask δεν έχει την Μυστική σας Φράση Ανάκτησης",
     "i_understand": "Κατανοώ, συνεχίστε",
     "passcode_not_set_error": "Σφάλμα: Δεν έχει οριστεί κωδικός πρόσβασης.",
-    "wrong_password_error": "Σφάλμα: Η αποκρυπτογράφηση απέτυχε",
-    "wrong_password_error_android": "Σφάλμα: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
+    "wrong_password_error": "Incorrect password. Try again.",
+    "wrong_password_error_android": "Incorrect password. Try again.",
     "vault_error": "Σφάλμα: Δεν είναι δυνατό να ξεκλειδώσετε χωρίς προηγούμενο θησαυροφυλάκιο.",
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "seedless_password_outdated": "Ο κωδικός πρόσβασής σας άλλαξε πρόσφατα.",
@@ -579,7 +579,7 @@
     "create_button": "Δημιουργία κωδικού πρόσβασης",
     "import_with_seed_phrase": "Εισαγωγή με Μυστική Φράση Ανάκτησης",
     "password_length_error": "Ο κωδικός πρόσβασης πρέπει να αποτελείται από τουλάχιστον 8 χαρακτήρες.",
-    "password_dont_match": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
+    "password_dont_match": "Passwords don't match.",
     "password_strength": "Ισχύς κωδικού πρόσβασης:",
     "strength_weak": "Αδύναμος",
     "strength_good": "Καλός",
@@ -623,7 +623,7 @@
     "reset_button": "Επαναφορά κωδικού πρόσβασης",
     "import_with_seed_phrase": "Εισαγωγή με Μυστική Φράση Ανάκτησης",
     "password_length_error": "Ο κωδικός πρόσβασης πρέπει να αποτελείται από τουλάχιστον 8 χαρακτήρες.",
-    "password_dont_match": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
+    "password_dont_match": "Passwords don't match.",
     "password_strength": "Ισχύς κωδικού πρόσβασης:",
     "strength_weak": "Αδύναμος",
     "strength_good": "Καλός",
@@ -663,7 +663,7 @@
     "import_button": "Εισαγωγή",
     "cancel_button": "Άκυρο",
     "password_length_error": "Ο κωδικός πρόσβασης πρέπει να αποτελείται από τουλάχιστον 8 χαρακτήρες.",
-    "password_dont_match": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
+    "password_dont_match": "Passwords don't match.",
     "seed_phrase_requirements": "Οι Μυστικές Φράσεις Ανάκτησης περιέχουν 12, 15, 18, 21 ή 24 λέξεις",
     "invalid_seed_phrase": "Η Μυστική Φράση Ανάκτησης δεν βρέθηκε.",
     "error": "Σφάλμα",
@@ -709,7 +709,8 @@
     "settings": "Ρυθμίσεις",
     "rewards": "Επιβραβεύσεις",
     "trending": "Εξερεύνηση",
-    "money": "Οικονομικά"
+    "money": "Οικονομικά",
+    "social": "Social"
   },
   "drawer": {
     "send_button": "Αποστολή",
@@ -1133,11 +1134,17 @@
       "how_to_delete_description": "Μπορείτε να διαγράψετε τα δεδομένα σας ανά πάσα στιγμή, μεταβαίνοντας στις Ρυθμίσεις > Διαχείριση δεδομένων.",
       "metamask_privacy_policy": "Πολιτική απορρήτου του MetaMask",
       "metamask_terms": "Όροι και προϋποθέσεις του MetaMask",
-      "idos_privacy_policy": "Πολιτική απορρήτου του idOS",
-      "idos_terms": "Όροι και προϋποθέσεις του idOS",
-      "sumsub_privacy_policy": "Πολιτική απορρήτου της Sumsub",
-      "sumsub_terms": "Όροι και προϋποθέσεις της Sumsub",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
       "button": "Συνεχίστε"
+    },
+    "kyc_email": {
+      "title": "What's your email?",
+      "description": "We'll use this to send account updates.",
+      "input_placeholder": "Email address",
+      "button": "Continue",
+      "error_title": "Identity verification",
+      "error_description": "We couldn't start your identity verification. Try again."
     }
   },
   "social_leaderboard": {
@@ -1169,7 +1176,8 @@
       "title": "Κορυφαίοι traders",
       "tabs": {
         "leaderboard": "Πίνακας κατάταξης",
-        "feed": "Ροή"
+        "feed": "Ροή",
+        "live_trades": "Live trades"
       },
       "following": "Ακολουθείτε",
       "all": "Όλα",
@@ -1217,6 +1225,19 @@
         "size_at_market_cap": "{{size}} με {{marketCap}} {{abbreviation}}"
       },
       "no_data": "Δεν υπάρχουν δεδομένα"
+    },
+    "shell": {
+      "subnav": {
+        "trending": "Trending",
+        "memecoins": "Memecoins",
+        "perps": "Perps",
+        "stocks": "Stocks",
+        "whales": "Only",
+        "top_traders": "Top traders",
+        "top_perps": "Top perps",
+        "kols": "KOLs",
+        "top_tokens": "Top tokens"
+      }
     },
     "onboarding": {
       "slide_trade": {
@@ -1905,19 +1926,19 @@
         },
         "stop_limit": {
           "title": "Διακοπή με όριο",
-          "description": "Η εντολή ορίου εκτελείται στην τιμή ενεργοποίησης"
+          "description": "Place a limit order if trigger price hits"
         },
         "stop_market": {
           "title": "Διακοπή αγοράς",
-          "description": "Η εντολή αγοράς εκτελείται στην τιμή ενεργοποίησης"
+          "description": "Place a market order if trigger price hits"
         },
         "take_profit_limit": {
           "title": "Κατοχύρωση κερδών με όριο",
-          "description": "Κατοχύρωση κερδών με όριο στην τιμή ενεργοποίησης"
+          "description": "Place a limit order if trigger price is reached"
         },
         "take_profit_market": {
           "title": "Κατοχύρωση κερδών στην αγορά",
-          "description": "Κατοχύρωση κερδών στην αγορά στην τιμή ενεργοποίησης"
+          "description": "Place a market order if trigger price is reached"
         },
         "twap": {
           "title": "TWAP",
@@ -2198,7 +2219,7 @@
       "exchangeClientNotAvailable": "Η κλάση \"ExchangeClient\" δεν είναι διαθέσιμη μετά την αρχικοποίηση",
       "exchangeAccountNotFound": "Προσθέστε χρήματα στον λογαριασμό σας πριν υποβάλετε μια εντολή",
       "exchangeMultiSigRequired": "Αυτός ο λογαριασμός απαιτεί την έγκριση των συνυπογραφόντων για την εκτέλεση συναλλαγών",
-      "exchangeInvalidNonce": "Κάτι πήγε στραβά. Παρακαλούμε προσπαθήστε ξανά.",
+      "exchangeInvalidNonce": "Something went wrong. Try again.",
       "infoClientNotAvailable": "Η κλάση \"InfoClient\" δεν είναι διαθέσιμη μετά την αρχικοποίηση",
       "subscriptionClientNotAvailable": "Το SubscriptionClient δεν είναι διαθέσιμο μετά την αρχικοποίηση",
       "subscriptionClientNotInitialized": "Η κλάση \"SubscriptionClient\" δεν έχει αρχικοποιηθεί",
@@ -2263,7 +2284,11 @@
         "chaseLimitReached": "Υπάρχουν ήδη πάρα πολλές ενεργές εντολές παρακολούθησης τιμής",
         "chaseAbandoned": "Η εντολή παρακολούθησης τιμής ακυρώθηκε λόγω απώλειας σύνδεσης",
         "chaseTouchUnavailable": "Δεν υπάρχει διαθέσιμη τιμή αγοράς για την υποβολή αυτής της εντολής παρακολούθησης τιμής",
-        "chaseMaxDistanceInvalid": "Το μέγιστο περιθώριο αυτόματης προσαρμογής βρίσκεται εκτός επιτρεπόμενου εύρους"
+        "chaseMaxDistanceInvalid": "Το μέγιστο περιθώριο αυτόματης προσαρμογής βρίσκεται εκτός επιτρεπόμενου εύρους",
+        "marginModeInvalid": "Margin mode is invalid",
+        "marginModeUnsupported": "This margin mode isn't available on this market",
+        "marginModePositionOpen": "Can't change margin mode while a position is open",
+        "marginModeOrderOpen": "Can't change margin mode while an order is open"
       },
       "networkToggleFailed": "Αποτυχία εναλλαγής δικτύου: {{error}}",
       "accountBalanceFailed": "Αποτυχία λήψης υπολοίπου λογαριασμού: {{error}}",
@@ -3982,6 +4007,20 @@
     "settings": "Μπορείτε επίσης",
     "settings_link": "να διαχειριστείτε άλλες προεπιλεγμένες ρυθμίσεις."
   },
+  "basic_functionality_migration": {
+    "title": "Your settings have changed",
+    "social_title": "Privacy and product updates",
+    "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
+    "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
+    "social_body_2_middle": " and updated ",
+    "social_body_2_suffix": ".",
+    "blog_post_link": "blog post",
+    "privacy_notice_link": "Privacy Notice",
+    "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
+    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
+    "settings_link": "Settings > Privacy",
+    "accept_and_close": "Accept and close"
+  },
   "onboarding_interest_questionnaire": {
     "title": "Πώς θα χρησιμοποιήσετε το MetaMask;",
     "description": "Επιλέξτε όλα όσα ισχύουν.",
@@ -4279,7 +4318,7 @@
     "clear_approvals_modal_message": "Όλες οι αποκεντρωμένες εφαρμογές θα πρέπει να ζητήσουν εκ νέου πρόσβαση για προβολή πληροφοριών λογαριασμού.",
     "clear_browser_history_modal_title": "Εκκαθάριση ιστορικού περιήγησης;",
     "clear_browser_history_modal_message": "Θα αφαιρέσουμε όλο το ιστορικό του προγράμματος περιήγησής σας. Είστε σίγουροι;",
-    "clear_cookies_modal_title": "Εκκαθάριση cookies",
+    "clear_cookies_modal_title": "Clear browser cookies?",
     "clear_cookies_modal_message": "Θα αφαιρέσουμε τα cookies από το πρόγραμμα περιήγησής σας. Είστε σίγουροι;",
     "reset_account_modal_message": "Η επαναφορά του λογαριασμού σας θα διαγράψει τη δραστηριότητα των συναλλαγών σας.",
     "save_rpc_url": "Αποθήκευση",
@@ -4460,8 +4499,8 @@
     "metametrics_opt_out": "εξαίρεση από τα MetaMetrics",
     "metametrics_restart_required": "Πρέπει να επανεκκινήσετε την εφαρμογή για να τεθούν σε ισχύ οι αλλαγές.",
     "create_password": "Δημιουργία κωδικού πρόσβασης",
-    "invalid_password": "Μη έγκυρος κωδικός πρόσβασης",
-    "invalid_password_message": "Ο κωδικός πρόσβασης δεν ήταν σωστός. Προσπαθήστε ξανά.",
+    "invalid_password": "Incorrect password",
+    "invalid_password_message": "Check your password and try again.",
     "security_heading": "Ασφάλεια",
     "general_heading": "Γενικά",
     "privacy_heading": "Απόρρητο",
@@ -4956,8 +4995,8 @@
     "private_key_copied_time": "(αποθηκεύτηκε για 1 λεπτό)",
     "private_key_copied_ios": "Το ιδιωτικό κλειδί αντιγράφηκε προσωρινά στο πρόχειρο\n",
     "private_key_copied_android": "Το ιδιωτικό κλειδί αντιγράφηκε στο πρόχειρο\n",
-    "warning_incorrect_password": "Λανθασμένος κωδικός πρόσβασης",
-    "unknown_error": "Δεν μπορέσαμε να ξεκλειδώσουμε τον λογαριασμό σας. Προσπαθήστε ξανά.",
+    "warning_incorrect_password": "Incorrect password. Try again.",
+    "unknown_error": "Couldn't unlock your account. Try again.",
     "hardware_error": "Αυτός είναι ένας λογαριασμός πορτοφολιού υλικού, δεν μπορείτε να εξάγετε το ιδιωτικό σας κλειδί.",
     "seed_warning": "Αυτή είναι η φράση 12 λέξεων του πορτοφολιού σας. Αυτή η φράση μπορεί να χρησιμοποιηθεί για τον έλεγχο όλων των τρεχόντων και μελλοντικών λογαριασμών σας, όπως και της δυνατότητας να στέλνετε χρήματα στο πορτοφόλι σας. Αποθηκεύστε με ασφάλεια αυτήν τη φράση και ΜΗΝ την μοιραστείτε με κανέναν.",
     "text": "Κείμενο",
@@ -5013,9 +5052,9 @@
     "save_success": "Η ειδοποίηση τιμής για {{ticker}} αποθηκεύτηκε με επιτυχία.",
     "save_error": "Δεν ήταν δυνατή η αποθήκευση της ειδοποίησης τιμών. Προσπαθήστε ξανά.",
     "delete_success": "Η ειδοποίηση τιμής διαγράφηκε με επιτυχία.",
-    "delete_error": "Δεν ήταν δυνατή η διαγραφή της ειδοποίησης τιμών. Προσπαθήστε ξανά.",
-    "toggle_error": "Δεν ήταν δυνατή η ενημέρωση της ειδοποίησης τιμών. Προσπαθήστε ξανά.",
-    "fetch_error": "Δεν ήταν δυνατή η φόρτωση της ειδοποίησης τιμών. Προσπαθήστε ξανά.",
+    "delete_error": "Failed to delete price alert. Try again.",
+    "toggle_error": "Failed to update price alert. Try again.",
+    "fetch_error": "Failed to load price alerts. Try again.",
     "duplicate_threshold": "Υπάρχει ήδη μια ειδοποίηση για αυτή την τιμή.",
     "manage_title": "Ειδοποιήσεις τιμών",
     "add_alert": "Προσθήκη ειδοποίησης",
@@ -5450,7 +5489,7 @@
     "tokenContractAddressWarning_1": "Αυτή η διεύθυνση είναι μια ",
     "tokenContractAddressWarning_2": "διεύθυνση συμβολαίου token",
     "tokenContractAddressWarning_3": ". Εάν στείλετε tokens σε αυτήν τη διεύθυνση, θα τα χάσετε.",
-    "smartContractAddressWarning": "Αυτή η διεύθυνση είναι μια διεύθυνση έξυπνου συμβολαίου. Βεβαιωθείτε ότι έχετε κατανοήσει σε τι χρησιμεύει αυτή η διεύθυνση, διαφορετικά κινδυνεύετε να χάσετε τα χρήματά σας",
+    "smartContractAddressWarning": "This address is a smart contract address. Make sure you understand what this address is for, otherwise you risk losing your funds.",
     "continueError": "Κατανοώ τους κινδύνους, συνεχίστε",
     "gas_education_title_ethereum": "Τέλη συναλλαγής Ethereum",
     "gas_education_title": "Τέλη συναλλαγών",
@@ -5464,16 +5503,16 @@
     "confusable_msg": "Εντοπίσαμε έναν άγνωστο χαρακτήρα στο όνομα ENS. Ελέγξτε το όνομα ENS για να αποφύγετε πιθανή απάτη.",
     "similar_to": "είναι παρόμοιο με",
     "contains_zero_width": "περιλαμβάνει χαρακτήρα μηδενικού πλάτους",
-    "dapp_suggested_gas": "Αυτά τα τέλη δικτύου έχουν προταθεί από την {{origin}}. Χρησιμοποιεί παλαιότερη μέθοδο εκτίμησης χρεώσεων, η οποία ενδέχεται να μην είναι ακριβής. Ωστόσο, η αλλαγή αυτών των τελών δικτύου ενδέχεται να προκαλέσει πρόβλημα στη συναλλαγή σας. Εάν έχετε ερωτήσεις, επικοινωνήστε με την {{origin}}.",
-    "dapp_suggested_eip1559_gas": "Αυτά τα τέλη δικτύου έχουν προταθεί από την {{origin}}. Η παράκαμψη αυτής της ρύθμισης ενδέχεται να προκαλέσει πρόβλημα στη συναλλαγή σας. Εάν έχετε ερωτήσεις, επικοινωνήστε με την {{origin}}.",
+    "dapp_suggested_gas": "This network fee has been suggested by {{origin}}. It's using legacy gas estimation which may be inaccurate. However, editing this network fee may cause a problem with your transaction. Reach out to {{origin}} if you have questions.",
+    "dapp_suggested_eip1559_gas": "This network fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Reach out to {{origin}} if you have questions.",
     "address_invalid": "Η διεύθυνση παραλήπτη δεν είναι έγκυρη.",
     "ens_not_found": "Δεν έχει ορισθεί καμιά διεύθυνση γ' αυτό το όνομα.",
-    "unknown_qr_code": "Μη έγκυρος κωδικός QR. Προσπαθήστε ξανά.",
-    "invalid_qr_code_sync": "Μη έγκυρος κωδικός QR. Σαρώστε τον κωδικό QR του πορτοφολιού υλικού.",
-    "no_camera_permission": "Η κάμερα δεν είναι εξουσιοδοτημένη. Δώστε άδεια και προσπαθήστε ξανά",
-    "invalid_qr_code_sign": "Μη έγκυρος κωδικός QR. Ελέγξτε τον εξοπλισμό σας και προσπαθήστε ξανά.",
+    "unknown_qr_code": "Invalid QR code. Retry.",
+    "invalid_qr_code_sync": "Invalid QR code. Scan the sync QR code of the hardware wallet.",
+    "no_camera_permission": "Camera not authorized. Grant permission and retry",
+    "invalid_qr_code_sign": "Invalid QR code. Check your hardware and retry.",
     "no_camera_permission_android": "Για να συνεχίσετε, πρέπει να παραχωρήσετε στο MetaMask πρόσβαση στην κάμερά σας. Μπορεί επίσης να χρειαστεί να αλλάξετε τις ρυθμίσεις του συστήματός σας.",
-    "mismatched_qr_request_id": "Αναντιστοιχία δεδομένων συναλλαγών. Χρησιμοποιήστε το πορτοφόλι σας για να συνδεθείτε με τον παρακάτω κωδικό QR και πατήστε «Λήψη υπογραφής».",
+    "mismatched_qr_request_id": "Incongruent transaction data. Use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
     "fiat_conversion_not_available": "Οι μετατροπές σε παραστατικά χρήματα δεν είναι διαθέσιμες αυτή τη στιγμή",
     "hex_data_copied": "Τα δεκαεξαδικά δεδομένα αντιγράφηκαν στο πρόχειρο",
     "invalid_recipient": "Μη έγκυρος παραλήπτης",
@@ -5575,7 +5614,7 @@
     "no_tabs_desc": "Για να περιηγηθείτε στον αποκεντρωμένο ιστό, προσθέστε μια νέα καρτέλα",
     "got_it": "Κατανοητό",
     "max_tabs_title": "Επιτεύχθηκε ο μέγιστος αριθμός καρτελών",
-    "max_tabs_desc": "Προς το παρόν υποστηρίζουμε μόνο 20 ανοιχτές καρτέλες ταυτόχρονα. Κλείστε τις υπάρχουσες καρτέλες πριν προσθέσετε νέες.",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "Δεν μπορέσαμε να επιλύσουμε αυτό το όνομα ENS",
     "remove_bookmark_title": "Αφαίρεση αγαπημένου",
     "remove_bookmark_msg": "Θέλετε πραγματικά να αφαιρέσετε αυτή την ιστοσελίδα από τα αγαπημένα σας;",
@@ -6028,7 +6067,7 @@
     "show_balance": "Εμφάνιση συνολικού υπολοίπου"
   },
   "authentication": {
-    "auth_prompt_desc": "Παρακαλούμε κάντε έλεγχο ταυτοποίησης για να χρησιμοποιήσετε το MetaMask",
+    "auth_prompt_desc": "Authenticate to use MetaMask",
     "labels": {
       "remember_me": "Να με θυμάσαι",
       "face_id": "Face ID",
@@ -6066,7 +6105,7 @@
     "cta_text": "Εισαγωγή",
     "example": "π.χ.\n3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "Κάτι πήγε στραβά",
-    "error_message": "Δεν μπορούσαμε να εισάγουμε αυτό το ιδιωτικό κλειδί. Βεβαιωθείτε ότι το καταχωρήσατε σωστά.",
+    "error_message": "We couldn't import that private key. Make sure you entered it correctly.",
     "error_empty_message": "Πρέπει να καταχωρήσετε το ιδιωτικό σας κλειδί.",
     "or_scan_a_qr_code": "ή σαρώστε έναν κωδικό QR"
   },
@@ -6088,7 +6127,7 @@
     "12_word_option": "Έχω μια φράση 12 λέξεων",
     "24_word_option": "Έχω μια φράση 24 λέξεων",
     "error_title": "Κάτι πήγε στραβά",
-    "error_message": "Δεν ήταν δυνατή η εισαγωγή αυτής της Μυστικής Φράσης Ανάκτησης. Βεβαιωθείτε ότι την εισαγάγατε σωστά.",
+    "error_message": "We couldn't import that Secret Recovery Phrase. Make sure you entered it correctly.",
     "error_empty_message": "Πρέπει να εισαγάγετε τη Μυστική Φράση Ανάκτησης.",
     "error_number_of_words_error_message": "Οι Μυστικες Φράσεις Ανάκτησης περιέχουν 12 ή 24 λέξεις",
     "error_srp_is_case_sensitive": "Μη έγκυρη καταχώριση! Η Μυστική Φράση Ανάκτησης διακρίνει τα πεζά/κεφαλαία γράμματα.",
@@ -6287,21 +6326,21 @@
   "phishing": {
     "ethereum_phishing_detection": "Ανίχνευση Εξαπάτησης στο Ethereum",
     "ethereum_phishing_detector": "Ο Ανιχνευτής Εξαπάτησης στο Ethereum",
-    "intro": "είναι προς το παρόν στη λίστα προειδοποιήσεων τομέων του MetaMask. Αυτό σημαίνει ότι με βάση τις πληροφορίες που έχουμε στη διάθεσή μας, το MetaMask πιστεύει ότι αυτός ο τομέας θα μπορούσε προς το παρόν να εκθέσει σε κίνδυνο την ασφάλειά σας και, ως επιπρόσθετη λειτουργία ασφαλείας, το MetaMask έχει αποκλείσει την πρόσβαση σε αυτήν την ιστοσελίδα. Για να το παρακάμψετε, διαβάστε το υπόλοιπο αυτής της προειδοποίησης για οδηγίες σχετικά με το πώς να συνεχίσετε με δική σας ευθύνη.",
+    "intro": " is currently on the MetaMask domain warning list. This means that based on information available to us, MetaMask believes this domain could currently compromise your security and, as an added safety feature, MetaMask has restricted access to the site. To override this, read the rest of this warning for instructions on how to continue at your own risk.",
     "reasons": "Υπάρχουν πολλοί λόγοι για τους οποίους ιστοσελίδες μπορούν να εμφανιστούν στη λίστα προειδοποιήσεών μας και η λίστα προειδοποιήσεών μας καταρτίζεται από άλλες ευρέως χρησιμοποιούμενες λίστες στον χώρο. Σε αυτούς τους λόγους μπορεί να περιλαμβάνονται γνωστοί κίνδυνοι απάτης ή ασφάλειας, όπως τομείς που είναι θετικοί στο",
     "list_content": "Τομείς σε αυτές τις λίστες προειδοποιήσεων ίσως περιλαμβάνουν ξεκαθαρά κακόβουλους ιστότοπους και νόμιμους ιστότοπους που έχουν παραβιαστεί από κακόβουλους παράγοντες.",
     "to_read_more": "Για να διαβάσετε περισσότερα για αυτήν την ιστοσελίδα,",
-    "review_on_etherscam": "ελέγξτε τον τομέα στο Etherscam.",
+    "review_on_etherscam": "Review the domain on Etherscam.",
     "warning": "Σημειώστε ότι αυτή η λίστα προειδοποιήσεων καταρτίζεται σε εθελοντική βάση. Η λίστα μπορεί να είναι ανακριβής ή ελλιπής. Το γεγονός ότι ένας τομέας δεν εμφανίζεται σε αυτή την λίστα δεν αποτελεί σιωπηρή εγγύηση για την ασφάλεια αυτού του τομέα. Όπως πάντα, οι συναλλαγές σας είναι δική σας ευθύνη. Εάν επιθυμείτε να αλληλεπιδράσετε με οποιονδήποτε τομέα που περιλαμβάνεται στη λίστα προειδοποιήσεων, μπορείτε να το κάνετε ",
     "continue_on_your_own": "συνεχίζοντας με δική σας ευθύνη.",
     "file_an_issue_intro": "Αν πιστεύετε ότι αυτός ο τομέας έχει σημανθεί εσφαλμένα ή εάν ένας αποκλεισμένος νόμιμος ιστότοπος έχει επιλύσει τα ζητήματα ασφαλείας του,",
-    "file_an_issue": "παρακαλούμε υποβάλετε μια δήλωση προβλήματος.",
+    "file_an_issue": "File an issue.",
     "back_to_safety": "Πίσω στην ασφάλεια",
     "site_might_be_harmful": "Αυτός ο ιστότοπος μπορεί να είναι επιβλαβής",
     "metamask_flagged_site": "Το MetaMask χαρακτήρισε τον ιστότοπο που προσπαθείτε να επισκεφθείτε ως δυνητικά παραπλανητικό. Οι δράστες μπορεί να σας εξαπατήσουν για να κάνετε κάτι επικίνδυνο.",
     "you_may_proceed_anyway": "Μπορείτε επίσης",
     "proceed_anyway": "συνεχίστε παρόλα αυτά",
-    "but_please_do_so_at_your_own_risk": "αλλά κάντε το με δική σας ευθύνη.",
+    "but_please_do_so_at_your_own_risk": "but do so at your own risk.",
     "report_detection_problem": "Αναφορά προβλήματος ανίχνευσης",
     "share_on_twitter": "Εάν το βρήκατε χρήσιμο, κοινοποιήστε το στο X.",
     "share_text": "Το MetaMask με προστάτευσε από έναν δυνητικά επιβλαβή ιστότοπο: {{url}}. Μείνετε ασφαλείς!"
@@ -6444,7 +6483,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Αίτημα ανάληψης",
     "prompt_title": "Ενεργοποίηση push ειδοποιήσεων",
     "notifications_enabled_error_title": "Κάτι πήγε στραβά",
-    "notifications_enabled_error_desc": "Δεν ήταν δυνατή η ενεργοποίηση των ειδοποιήσεων. Προσπαθήστε ξανά αργότερα.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Try again later.",
     "prompt_desc": "Ενεργοποιήστε τις ειδοποιήσεις από τις Ρυθμίσεις για να λαμβάνετε σημαντικές ειδοποιήσεις σχετικά με τη δραστηριότητα του πορτοφολιού σας και άλλα.",
     "prompt_ok": "Ενεργοποίηση",
     "prompt_cancel": "Ίσως αργότερα",
@@ -6456,7 +6495,7 @@
     "wc_signed_failed_title": "Αυτό το αίτημα υπογραφής απέτυχε",
     "wc_sent_tx_rejected_title": "Έχετε απορρίψει το αίτημα συναλλαγής",
     "approved_tx_rejected_title": "Έχετε απορρίψει τη χορήγηση άδειας",
-    "wc_description": "Παρακαλούμε ελέγξτε την εφαρμογή",
+    "wc_description": "Check the application",
     "wallet": "Πορτοφόλι",
     "web3": "Web3",
     "staking_provider": "Πάροχος αποδέσμευσης tokens",
@@ -6557,7 +6596,7 @@
     "your_tokens": "Τα tokens σας",
     "enter_amount": "Εισαγάγετε ποσό",
     "choose_asset": "Επιλέξτε ένα περιουσιακό στοιχείο για να ζητήσετε",
-    "request_error": "Μη έγκυρο αίτημα, παρακαλούμε προσπαθήστε πάλι",
+    "request_error": "Invalid request, try again",
     "reset": "Επαναφορά",
     "next": "Επόμενο",
     "amount_placeholder": "0,00",
@@ -6595,7 +6634,7 @@
     "wallet_connect_dapps_cta": "Προβολή συνεδριών",
     "network_not_supported": "Το τρέχον δίκτυο δεν υποστηρίζεται",
     "select_provider": "Επιλέξτε τον πάροχο που προτιμάτε",
-    "switch_network": "Παρακαλούμε μεταβείτε στο mainnet ή το sepolia",
+    "switch_network": "Switch to mainnet or sepolia",
     "card_title": "Να εμφανίζεται πάντα το κουμπί MetaMask Card",
     "card_desc": "Η MetaMask Card είναι διαθέσιμη μόνο για κατοίκους επιλεγμένων χωρών.",
     "daimo_demo_title": "Χρήση του δοκιμαστικού περιβάλλοντος της DaimoPay",
@@ -6655,10 +6694,10 @@
     "pay_with": "Πληρωμή με",
     "buying_via": "Αγορά μέσω {{providerName}}.",
     "change_provider": "Αλλαγή παρόχου.",
-    "circuit_breaker_open": "Η υπηρεσία είναι προσωρινά μη διαθέσιμη. Προσπαθήστε ξανά σε περίπου 30 λεπτά.",
-    "payment_error": "Κάτι πήγε στραβά. Παρακαλούμε προσπαθήστε ξανά.",
+    "circuit_breaker_open": "This service is temporarily unavailable. Try again in about 30 minutes.",
+    "payment_error": "Something went wrong. Try again.",
     "no_payment_methods_available": "Δεν υπάρχουν διαθέσιμες μέθοδοι πληρωμής.",
-    "error_fetching_quotes": "Κάτι πήγε στραβά. Παρακαλούμε προσπαθήστε ξανά.",
+    "error_fetching_quotes": "Something went wrong. Try again.",
     "no_quotes_available": "Δεν υπάρχουν διαθέσιμοι πάροχοι.",
     "quote_unavailable": "Δεν υπάρχει διαθέσιμη προσφορά.",
     "providers": "Πάροχοι",
@@ -6671,7 +6710,7 @@
     "powered_by_provider": "Με την υποστήριξη του {{provider}}",
     "purchased_currency": "Αγοράστηκαν {{currency}}",
     "network_not_supported": "Το τρέχον δίκτυο δεν υποστηρίζεται",
-    "switch_network": "Παρακαλούμε μεταβείτε στο Mainnet",
+    "switch_network": "Switch to Mainnet",
     "switch": "Αλλαγή",
     "purchases": "Αγορές",
     "purchase_method": "Μέθοδος αγοράς",
@@ -6855,7 +6894,7 @@
     "best_rate": "Καλύτερη τιμή",
     "most_reliable": "Πιο αξιόπιστο",
     "quotes_timeout": "Οι προσφορές έληξαν",
-    "request_new_quotes": "Ζητήστε νέες προσφορές για να πάρετε την πιο πρόσφατη καλύτερη τιμή.",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "wallet_pay_terms": "Συνεχίζοντας, αποδέχεστε",
     "terms_of_service": "Όροι Χρήσης",
     "amount_to_buy": "Αγορά",
@@ -6909,12 +6948,12 @@
     "return_home": "Επιστροφή στην αρχική οθόνη",
     "incompatible_token_account_modal": {
       "title": "Μη συμβατός λογαριασμός",
-      "description": "Ο τρέχων λογαριασμός σας δεν υποστηρίζει token στο {{networkName}}. Παρακαλούμε αλλάξτε σε συμβατό λογαριασμό για να συνεχίσετε.",
+      "description": "Your current account cannot support tokens on {{networkName}}. Switch to a compatible account to continue.",
       "cta": "Εντάξει"
     },
     "eligibility_failed_modal": {
       "title": "Ο έλεγχος επιλεξιμότητας απέτυχε",
-      "description": "Δεν μπορέσαμε να επιβεβαιώσουμε την πρόσβαση με βάση την περιοχή σας. Προσπαθήστε ξανά. Αν το πρόβλημα συνεχιστεί, επικοινωνήστε με την υποστήριξη.",
+      "description": "We couldn't confirm access based on your region. Try again. If the issue continues, contact support.",
       "contact_support": "Επικοινωνήστε με την υποστήριξη",
       "got_it": "Κατανοητό"
     },
@@ -6958,7 +6997,7 @@
       "failed": "Η εντολή απέτυχε",
       "cancelled": "Η εντολή ακυρώθηκε",
       "pending": "Η εντολή βρίσκεται σε εκκρεμότητα",
-      "failed_description": "Κάτι δεν πήγε καλά και ο {{provider}} δεν μπόρεσε να ολοκληρώσει την εντολή σας. Παρακαλούμε δοκιμάστε ξανά ή με άλλον πάροχο.",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Try again or use another provider.",
       "continue_order_description": "Για να συνεχίσετε με την εντολή, θα πρέπει να επιλέξετε το κουμπί στο κάτω μέρος αυτής της σελίδας.",
       "the_provider": "ο πάροχος",
       "processing": "Επεξεργασία εντολής",
@@ -6996,7 +7035,7 @@
       "sent": "Εστάλη!"
     },
     "notifications": {
-      "purchase_failed_title": "Η αγορά των {{currency}} απέτυχε. Παρακαλούμε δοκιμάστε ξανά σε λίγο.",
+      "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "Επαληθεύστε τη μέθοδο πληρωμής και αν υποστηρίζεται η κάρτα σας",
       "purchase_cancelled_title": "Η αγορά σας ακυρώθηκε",
       "purchase_cancelled_description": "Επαληθεύστε τη μέθοδο πληρωμής και αν υποστηρίζεται η κάρτα σας",
@@ -7033,7 +7072,7 @@
     "processing_info_modal_description": "Οι αγορές με κάρτα ολοκληρώνονται συνήθως μέσα σε λίγα λεπτά. Μπορείτε να επικοινωνήσετε με την υποστήριξη αν έχετε απορίες.",
     "go_to_provider_support": "Μεταβείτε στη σελίδα υποστήριξης του {{provider}}",
     "error_title": "Κάτι πήγε στραβά",
-    "error_message": "Δεν είναι δυνατή η φόρτωση των λεπτομερειών της εντολής. Παρακαλούμε δοκιμάστε ξανά.",
+    "error_message": "Unable to load order details. Try again.",
     "try_again": "Προσπαθήστε ξανά",
     "close": "Κλείσιμο"
   },
@@ -7044,7 +7083,7 @@
       "purchase_completed_title": "Η αγορά {{amount}} {{cryptocurrency}} ήταν επιτυχής",
       "purchase_completed_description": "Τα {{cryptocurrency}} είναι τώρα διαθέσιμα",
       "purchase_failed_title": "Η αγορά του {{cryptocurrency}} απέτυχε",
-      "purchase_failed_description": "Παρακαλούμε δοκιμάστε ξανά σε λίγο",
+      "purchase_failed_description": "Try again momentarily",
       "purchase_cancelled_title": "Η αγορά σας ακυρώθηκε",
       "purchase_cancelled_description": "Η αγορά του {{cryptocurrency}} ακυρώθηκε",
       "track": "Παρακολούθηση"
@@ -7068,7 +7107,7 @@
       "start_swapping": "Ξεκινήστε τις ανταλλαγές"
     },
     "feature_off_title": "Προσωρινά μη διαθέσιμο",
-    "feature_off_body": "Οι ανταλλαγές MetaMask βρίσκονται υπό συντήρηση. Ελέγξτε ξανά αργότερα.",
+    "feature_off_body": "MetaMask Swaps are undergoing maintenance. Check back later.",
     "wrong_network_title": "Οι ανταλλαγές δεν είναι διαθέσιμες",
     "wrong_network_body": "Μπορείτε να ανταλλάξετε tokens μόνο στο Κύριο Δίκτυο του Ethereum.",
     "unallowed_asset_title": "Δεν είναι δυνατή η ανταλλαγή αυτού του token",
@@ -7101,7 +7140,7 @@
     "error_gathering_token_details": "Παρουσιάστηκε σφάλμα κατά την ανάκτηση των στοιχείων του token.",
     "Import": "Εισαγωγή",
     "invalid_token_contract_address": "Μη έγκυρη διεύθυνση συμβολαίου του token.",
-    "please_verify_on_explorer": "Επαληθεύστε στο",
+    "please_verify_on_explorer": "Verify on",
     "add_warning": "Οποιοσδήποτε μπορεί να δημιουργήσει ένα token, όπως και ψευδείς εκδόσεις υπαρχόντων tokens που ισχυρίζονται ότι αντιπροσωπεύουν έργα.",
     "import_token": "Εισαγωγή του token;",
     "contract": "Συμβόλαιο:",
@@ -7196,11 +7235,11 @@
       "3": "το οποίο δεσμεύει και αποδεσμεύει εγγενή tokens, κάτι που μπορεί να εξοικονημήσει τα τέλη συναλλαγής."
     },
     "quotes_timeout": "Οι προσφορές έληξαν",
-    "request_new_quotes": "Ζητήστε νέες προσφορές για να πάρετε την πιο πρόσφατη καλύτερη τιμή.",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "quotes_not_available": "Δεν υπάρχουν διαθέσιμες προσφορές",
     "try_adjusting": "Προσπαθήστε να προσαρμόσετε το ποσό και δοκιμάστε ξανά.",
     "error_fetching_quote": "Σφάλμα κατά την ανάκτηση της προσφοράς",
-    "unexpected_error": "Παρουσιάστηκε ένα απροσδόκητο σφάλμα, ζητήστε νέες προσφορές για να λάβετε την πιο πρόσφατη καλύτερη τιμή. (σφάλμα: {{error}})",
+    "unexpected_error": "There has been an unexpected error. Request new quotes to get the latest best rate. (error: {{error}})",
     "get_new_quotes": "Λάβετε νέες προσφορές",
     "try_again": "Προσπαθήστε ξανά",
     "terms_of_service": "Όροι χρήσης",
@@ -7252,15 +7291,15 @@
     "title": "Προέκυψε ένα σφάλμα",
     "subtitle": "Δεν είναι δυνατή η εμφάνιση των πληροφοριών σας. Μην ανησυχείτε, το πορτοφόλι και τα χρήματά σας είναι ασφαλή.",
     "try_again_button": "Προσπαθήστε ξανά",
-    "submit_ticket_1": "Παρακαλούμε αναφέρετε αυτό το ζήτημα ώστε να το διορθώσουμε:",
+    "submit_ticket_1": "Report this issue so we can fix it:",
     "submit_ticket_2": "Τραβήξτε ένα στιγμιότυπο οθόνης από αυτήν την οθόνη.",
     "submit_ticket_3": "Αντιγράψτε",
     "submit_ticket_4": "το μήνυμα σφάλματος στο πρόχειρο.",
     "submit_ticket_5": "Υποβάλετε ένα αίτημα υποστήριξης",
     "submit_ticket_6": "εδώ.",
-    "submit_ticket_7": "Συμπεριλάβετε το μήνυμα σφάλματος και το στιγμιότυπο οθόνης.",
+    "submit_ticket_7": "Include the error message and the screenshot.",
     "submit_ticket_8": "Στείλτε μας μια αναφορά σφαλμάτων",
-    "submit_ticket_9": "Παρακαλούμε να αναφέρετε λεπτομέρειες σχετικά με το τι συνέβη.",
+    "submit_ticket_9": "Include details about what happened.",
     "bug_report_prompt_title": "Πείτε μας τι συνέβη",
     "bug_report_prompt_description": "Προσθέστε λεπτομέρειες ώστε να καταλάβουμε τι πήγε στραβά.",
     "bug_report_thanks": "Ευχαριστούμε! Θα το εξετάσουμε σύντομα.",
@@ -7465,8 +7504,8 @@
     "add_token_manually": "Προσθέστε τα χειροκίνητα.",
     "got_it": "Το κατάλαβα",
     "error_title": "Κάτι πήγε στραβά",
-    "error_message": "Προέκυψε κάποιο σφάλμα κατά τη φόρτωση των πληροφοριών δικτύου. Προσπαθήστε ξανά αργότερα.",
-    "private_network_third_description": "Εισάγετε ένα όνομα για αυτό το δίκτυο, ώστε να είναι εύκολη η αναγνώρισή του.",
+    "error_message": "There was an error loading the network information. Try again later.",
+    "private_network_third_description": "Enter a name for this network to make it easy to identify.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "Ενεργοποίηση αυτόματου εντοπισμού token",
     "token_detection_mainnet_title": "Ο εντοπισμός token είναι ενεργοποιημένος και πολλά tokens θα εμφανιστούν αυτόματα στο πορτοφόλι σας.",
@@ -7495,7 +7534,7 @@
     "action": "Απενεργοποίηστε την λειτουργία «Να με θυμάστε»"
   },
   "dapp_connect": {
-    "warning": "Για να χρησιμοποιήσετε αυτή τη λειτουργία, παρακαλούμε ενημερώστε την εφαρμογή στη νεότερη έκδοση"
+    "warning": "To use this feature, update the app to the newest version"
   },
   "confirmation_modal": {
     "cancel_cta": "Άκυρο",
@@ -7509,7 +7548,7 @@
     "title": "Ελέγξτε τους Όρους Χρήσης",
     "terms_of_use_check_description": "Συμφωνώ με τους Όρους Χρήσης, οι οποίοι διέπουν τη χρήση του MetaMask και όλων των λειτουργιών του",
     "accept_cta": "Αποδοχή",
-    "accept_helper_description": "Μετακινηθείτε προς τα κάτω για να διαβάσετε όλα τα τμήματα",
+    "accept_helper_description": "Scroll to read all sections",
     "agree_cta": "Συμφωνώ"
   },
   "update_needed": {
@@ -7608,7 +7647,7 @@
     "open_settings": "Άνοιγμα ρυθμίσεων",
     "view_settings": "Προβολή ρυθμίσεων",
     "bluetooth_off": "Το Bluetooth είναι απενεργοποιημένο",
-    "bluetooth_off_message": "Ενεργοποιήστε το Bluetooth στη συσκευή σας",
+    "bluetooth_off_message": "Turn on Bluetooth for your device",
     "bluetooth_access_blocked": "Το Ledger χρειάζεται πρόσβαση μέσω Bluetooth για να συνδεθεί με την κινητή συσκευή σας.",
     "bluetooth_access_blocked_message": "Αν θέλετε να συνδέσετε τη συσκευή Ledger μέσω Bluetooth, ενεργοποιήστε το στις Ρυθμίσεις και προσπαθήστε ξανά.",
     "location_access_blocked": "Το MetaMask χρειάζεται άδεια πρόσβασης στην τοποθεσία σας για να συνδεθεί με το Lodger.",
@@ -7616,22 +7655,22 @@
     "nearbyDevices_access_blocked": "Το MetaMask χρειάζεται την άδεια των κοντινών συσκευών σας για να συνδεθεί με το Ledger.",
     "nearbyDevices_access_blocked_message": "Αν θέλετε να συνδέσετε τη συσκευή Ledger μέσω Bluetooth, θα πρέπει να ενεργοποιήσετε την πρόσβαση σε κοντινές συσκευές στις Ρυθμίσεις και να προσπαθήσετε ξανά.",
     "bluetooth_scanning_error": "Σφάλμα κατά τη σάρωση της συσκευής",
-    "bluetooth_scanning_error_message": "Βεβαιωθείτε ότι η συσκευή σας είναι ξεκλείδωτη και ότι εκτελείται η εφαρμογή Ethereum",
+    "bluetooth_scanning_error_message": "Make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "Η σύνδεση Bluetooth απέτυχε",
-    "bluetooth_connection_failed_message": "Βεβαιωθείτε ότι το Ledger είναι ξεκλείδωτο και το Bluetooth είναι ενεργοποιημένο",
+    "bluetooth_connection_failed_message": "Make sure your Ledger is unlocked and your Bluetooth is enabled",
     "ethereum_app_open": "Το Ledger απαιτεί επιβεβαίωση",
-    "ethereum_app_open_message": "Επιβεβαιώστε στη συσκευή σας για να ανοίξετε την εφαρμογή Ethereum. Πατήστε OK μόλις το κάνετε.",
+    "ethereum_app_open_message": "Confirm on your device to open Ethereum app. Press OK once done.",
     "ethereum_app_unconfirmed_error": "Απορρίψατε το αίτημα για το άνοιγμα της εφαρμογής Ethereum.",
     "failed_to_open_eth_app": "Απέτυχε το άνοιγμα της εφαρμογής Ethereum.",
-    "ethereum_app_open_error": "Εγκαταστήστε/αποδεχτείτε την εφαρμογή Ethereum στη συσκευή Ledger.",
+    "ethereum_app_open_error": "Install/accept Ethereum app on your Ledger device.",
     "running_app_close": "Το κλείσιμο της τρέχουσας εφαρμογής απέτυχε.",
     "running_app_close_error": "Το κλείσιμο της τρέχουσας εφαρμογής στη συσκευή Ledger απέτυχε.",
     "ethereum_app_not_installed": "Η εφαρμογή Ethereum δεν έχει εγκατασταθεί.",
-    "ethereum_app_not_installed_error": "Εγκαταστήστε την εφαρμογή Ethereum στη συσκευή Ledger.",
+    "ethereum_app_not_installed_error": "Install the Ethereum app on your Ledger device.",
     "eth_app_not_open": "Η εφαρμογή Ethereum δεν είναι ανοιχτή",
-    "eth_app_not_open_message": "Παρακαλούμε ανοίξτε την εφαρμογή Ethereum στη συσκευή σας Ledger.",
+    "eth_app_not_open_message": "Open the Ethereum app on your Ledger device.",
     "ledger_is_locked": "Το Ledger είναι κλειδωμένο",
-    "unlock_ledger_message": "Ξεκλειδώστε τη συσκευή Ledger",
+    "unlock_ledger_message": "Unlock your Ledger device",
     "unlock_ledger_device": "Ξεκλειδώστε τη συσκευή σας Ledger",
     "cannot_get_account": "Δεν είναι δυνατή η λήψη λογαριασμού",
     "connect_ledger": "Συνδέστε το Ledger",
@@ -7642,7 +7681,7 @@
     "save_device_selection": "Αποθήκευση",
     "enable_bluetooth": "Ενεργοποιήστε το Bluetooth",
     "install_and_open_eth_app": "Εγκαταστήστε και ανοίξτε την εφαρμογή Ethereum",
-    "ledger_reminder_message": "Βεβαιωθείτε ότι η συσκευή σας Ledger είναι:",
+    "ledger_reminder_message": "Make sure your Ledger device is:",
     "ledger_reminder_message_step_one": "1. Ξεκλειδώστε τη συσκευή σας Ledger",
     "ledger_reminder_message_step_two": "2. Εγκαταστήστε και ανοίξτε την εφαρμογή Ethereum",
     "ledger_reminder_message_step_three": "3. Ενεργοποιήστε το Bluetooth",
@@ -7657,14 +7696,14 @@
     "bluetooth_enabled_message": "Βεβαιωθείτε ότι το Bluetooth είναι ενεργοποιημένο",
     "device_unlocked_message": "Η συσκευή είναι ξεκλείδωτη",
     "ledger_disconnected": "Η συσκευή σας αποσυνδέθηκε",
-    "ledger_disconnected_error": "Η σύνδεση με τη συσκευή σας έχει χαθεί. Προσπαθήστε ξανά.",
+    "ledger_disconnected_error": "The connection to your device has been lost. Try again.",
     "unknown_error": "Προέκυψε απροσδόκητο σφάλμα.",
     "unknown_error_message": "Προέκυψε ένα μη αναμενόμενο σφάλμα. Προσπαθήστε ξανά.",
     "error_occured": "Προέκυψε ένα σφάλμα",
     "how_to_install_eth_app": "Πώς να εγκαταστήσετε την εφαρμογή Ethereum σε μια συσκευή Ledger",
     "ledger_account_count": "Χρησιμοποιείτε 1 λογαριασμό από το Ledger σας με το MetaMask Mobile.",
-    "open_eth_app": "Ανοίξτε την εφαρμογή Ethereum",
-    "open_eth_app_message_one": "Εντοπίσαμε ότι έχετε εγκαταστήσει την εφαρμογή Ethereum, αλλά δεν είναι ανοιχτή, ",
+    "open_eth_app": "Open the Ethereum app",
+    "open_eth_app_message_one": "We've detected you have the Ethereum app installed but it's not open, ",
     "open_eth_app_message_two": "πατήστε τα δύο κουμπιά στη συσκευή για να αποδεχτείτε την προτροπή να ανοίξετε την εφαρμογή Ethereum για να συνεχίσετε.",
     "toast_bluetooth_connection_error_title": "Κάτι πήγε στραβά",
     "toast_bluetooth_connection_error_subtitle": "Το Ledger δεν έχει συνδεθεί",
@@ -7674,7 +7713,7 @@
     "forget_device": "Ξεχάστε το Ledger",
     "sign_with_ledger": "Είσοδος με το Ledger",
     "ledger_pending_confirmation": "Το Ledger είναι απασχολημένο",
-    "ledger_pending_confirmation_error": "Υπάρχει μια εκκρεμής ενέργεια στο Ledger. Ακυρώστε πρώτα την ενέργεια και μετά προσπαθήστε ξανά.",
+    "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Clear the action first, then retry.",
     "not_supported": "Η λειτουργία δεν υποστηρίζεται",
     "not_supported_error": "Υποστηρίζεται μόνο η έκδοση 4 της υπογραφής τυπωμένων δεδομένων.",
     "error_during_connection": "Παρουσιάστηκε ένα άγνωστο σφάλμα",
@@ -7690,7 +7729,7 @@
     "ledger_bip44_path": "BIP44 (π.χ. MetaMask, Trezor)",
     "ledger_legacy_label": " (legacy)",
     "blind_sign_error": "Σφάλμα τυφλής υπογραφής",
-    "blind_sign_error_message": "Η τυφλή υπογραφή δεν είναι ενεργοποιημένη στη συσκευή σας Ledger. Ενεργοποιήστε την στις ρυθμίσεις.",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Enable it in the settings.",
     "user_reject_transaction": "Ο χρήστης απέρριψε τη συναλλαγή",
     "user_reject_transaction_message": "Ο χρήστης έχει απορρίψει τη συναλλαγή στη συσκευή Ledger.",
     "multiple_devices_error_message": "Δεν υποστηρίζονται ακόμη πολλές συσκευές. Για να προσθέσετε μια νέα συσκευή Ledger, θα πρέπει να αφαιρέσετε μια παλαιότερη.",
@@ -7698,10 +7737,10 @@
     "unspecified_error_during_connect": "Απροσδιόριστο σφάλμα κατά τη σύνδεση του υλικού Ledger,",
     "account_name_existed": "Ο λογαριασμός {{accountName}} υπάρχει ήδη",
     "unresponsive": "Η συσκευή Ledger δεν ανταποκρίνεται",
-    "unresponsive_message": "Αποσυνδέστε και συνδέστε ξανά τη συσκευή σας",
+    "unresponsive_message": "Disconnect and reconnect your device",
     "ethereum_app_closed": "Η εφαρμογή Ethereum είναι κλειστή",
-    "ethereum_app_closed_message": "Ανοίξτε την εφαρμογή στη συσκευή Ledger για να συνεχίσετε",
-    "ledger_locked_message_continue": "Ξεκλειδώστε τη συσκευή Ledger για να συνεχίσετε",
+    "ethereum_app_closed_message": "Open it on your Ledger device to continue",
+    "ledger_locked_message_continue": "Unlock your Ledger device to continue",
     "bluetooth_access_denied": "Η πρόσβαση στο Bluetooth απορρίφθηκε",
     "bluetooth_access_denied_message": "Ενεργοποιήστε το Bluetooth στις ρυθμίσεις της συσκευής για να συνδεθεί το Ledger",
     "location_access_denied": "Η πρόσβαση στην τοποθεσία απορρίφθηκε",
@@ -8019,7 +8058,7 @@
     "apy_info_label": "Πληροφορίες για την Ετήσια Ποσοστιαία Απόδοση (APY)",
     "balance_unavailable": "Το υπόλοιπο δεν είναι διαθέσιμο",
     "balance_unavailable_value": "$—",
-    "balance_unavailable_banner_description": "Δεν είναι δυνατή η προβολή του υπολοίπου σας προς το παρόν. Τα χρήματά σας είναι ασφαλή — προσπαθήστε ξανά σε λίγο.",
+    "balance_unavailable_banner_description": "We're temporarily unable to display your balance. Your funds are safe—try again shortly.",
     "balance_retry": "Επανάληψη",
     "balance_no_account": "Δεν βρέθηκε ο Money Account",
     "onboarding": {
@@ -9046,6 +9085,7 @@
     "slippage": "Απόκλιση",
     "slippage_info": "Εάν η τιμή αλλάξει τη στιγμή που η εντολή σας υποβάλλεται και επιβεβαιώνεται, αυτό ονομάζεται «απόκλιση». Η ανταλλαγή σας θα ακυρωθεί αυτόματα εάν η απόκλιση υπερβαίνει τα όρια ανοχής που έχετε ορίσει εδώ.",
     "network_fee": "Τέλη δικτύου",
+    "relayer_fee": "Relayer fee",
     "gas_fees_sponsored": "Πληρωμή μέσω MetaMask",
     "included": "Περιλαμβάνεται",
     "estimated_time": "Εκτιμώμενος χρόνος",
@@ -9257,7 +9297,7 @@
   },
   "error_sheet": {
     "still_there_title": "Είστε ακόμα εδώ;",
-    "still_there_description": "Η σύνδεσή σας έληξε λόγω αδράνειας. Δοκιμάστε ξανά όταν είστε έτοιμοι.",
+    "still_there_description": "Your session timed out due to inactivity. Log in again when you're ready.",
     "unable_to_login_title": "Δεν ήταν δυνατή η σύνδεση",
     "unable_to_login_description": "Η σύνδεσή σας στο διαδίκτυο είναι ασταθής. Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
     "something_went_wrong_title": "Κάτι πήγε στραβά",
@@ -9426,7 +9466,7 @@
       "learn_more": "Μάθετε περισσότερα",
       "enter_password": "Εισάγετε τον κωδικό πρόσβασης",
       "password_placeholder": "Κωδικός πρόσβασης",
-      "wrong_password": "Λάθος κωδικός πρόσβασης",
+      "wrong_password": "Incorrect password. Try again.",
       "copied": "Το ιδιωτικό κλειδί αντιγράφηκε",
       "continue": "Συνέχεια",
       "cancel": "Ακύρωση"
@@ -9560,8 +9600,8 @@
       "placeholder": "Κωδικός πρόσβασης",
       "confirm": "Επιβεβαίωση",
       "cancel": "Ακύρωση",
-      "error_empty": "Πληκτρολογήστε τον κωδικό σας",
-      "error_incorrect": "Λανθασμένος κωδικός. Παρακαλούμε δοκιμάστε ξανά."
+      "error_empty": "Enter your password",
+      "error_incorrect": "Incorrect password. Try again."
     },
     "view_pin_bottomsheet": {
       "title": "Το PIN της κάρτας σας"
@@ -9579,7 +9619,7 @@
       "invalid_pin_error": "Δεν μπορείτε να χρησιμοποιήσετε αυτό το PIN. Επιλέξτε διαφορετικό PIN.",
       "repeating_pin_error": "Δεν μπορείτε να χρησιμοποιήσετε αυτό το PIN. Επιλέξτε διαφορετικό PIN.",
       "forbidden_error": "Δεν μπορείτε να ορίσετε PIN σε αυτήν την κάρτα προς το παρόν.",
-      "network_error": "Κάτι πήγε στραβά. Παρακαλούμε προσπαθήστε ξανά.",
+      "network_error": "Something went wrong. Try again.",
       "success_title": "Το PIN σας ορίστηκε με επιτυχία",
       "success_description": "Φροντίστε να το διατηρείτε ασφαλές. Δεν θα μπορείτε να το δείτε ξανά στην εφαρμογή."
     },
@@ -9618,7 +9658,7 @@
       "renews_annually": "Ετησίως",
       "total": "Σύνολο",
       "pay": "Πληρωμή",
-      "payment_creation_error": "Αποτυχία δημιουργίας πληρωμής. Παρακαλούμε δοκιμάστε ξανά."
+      "payment_creation_error": "Failed to create payment. Try again."
     },
     "order_completed": {
       "title": "Η ΔΙΑΔΙΚΑΣΙΑ ΕΚΔΟΣΗΣ ΤΗΣ ΚΑΡΤΑΣ ΣΑΣ\nΕΧΕΙ ΟΛΟΚΛΗΡΩΘΕΙ",
@@ -9657,9 +9697,9 @@
       "confirm_button_label": "Ενημέρωση τώρα"
     },
     "daimo_pay_modal": {
-      "load_error": "Αποτυχία φόρτωσης της σελίδας πληρωμής. Παρακαλούμε δοκιμάστε ξανά.",
-      "timeout_error": "Η επαλήθευση πληρωμής έληξε λόγω χρονικού ορίου. Παρακαλούμε ελέγξτε την κατάσταση της συναλλαγής σας.",
-      "payment_bounced_error": "Η πληρωμή απέτυχε. Παρακαλούμε δοκιμάστε ξανά με διαφορετική μέθοδο πληρωμής.",
+      "load_error": "Failed to load payment page. Try again.",
+      "timeout_error": "Payment verification timed out. Check your transaction status.",
+      "payment_bounced_error": "Payment failed. Try again with a different payment method.",
       "close": "Κλείσιμο",
       "try_again": "Προσπαθήστε ξανά"
     },
@@ -9709,7 +9749,7 @@
         "phone_number_label": "Εισάγετε τον αριθμό τηλεφώνου",
         "country_area_code_label": "Διεθνής κωδικός χώρας",
         "invalid_phone_number": "Μη έγκυρος αριθμός τηλεφώνου",
-        "invalid_us_phone_number": "Πληκτρολογήστε έναν έγκυρο αριθμό τηλεφώνου ΗΠΑ (10 ψηφία) για να συνεχίσετε.",
+        "invalid_us_phone_number": "Enter a valid US phone number (10 digits) to proceed.",
         "legal_terms": "Συνεχίζοντας, αποδέχεστε την αποστολή SMS για επαλήθευση του αριθμού τηλεφώνου σας."
       },
       "confirm_phone_number": {
@@ -9726,7 +9766,7 @@
         "terms_2": "Θα χρειαστείτε την ταυτότητά σας και αποδεικτικό διεύθυνσης για την έγκριση. Συνήθως διαρκεί 5 λεπτά.",
         "terms_2_us": "Η ομοσπονδιακή νομοθεσία (USA PATRIOT Act) απαιτεί την επαλήθευση της ταυτότητάς σας με έγγραφο ταυτοποίησης και αποδεικτικό διεύθυνσης, για την πρόληψη τρομοκρατίας και νομιμοποίησης εσόδων από παράνομες δραστηριότητες. Η διαδικασία διαρκεί συνήθως 5 λεπτά.",
         "verify_button": "Επόμενο",
-        "start_verification_error": "Σφάλμα κατά την έναρξη της επαλήθευσης. Παρακαλούμε δοκιμάστε ξανά σύντομα."
+        "start_verification_error": "Error starting verification. Try again shortly."
       },
       "kyc_webview": {
         "close_confirmation_title": "Έξοδος από την επαλήθευση;",
@@ -9749,28 +9789,29 @@
       "verifying_veriff_kyc": {
         "title": "Σε αναμονή έγκρισης",
         "description": "Ο συνεργάτης μας πρέπει να επαληθεύσει την ταυτότητά σας για να εγκρίνει την αίτησή σας.",
-        "helper_text": "Αυτό συνήθως διαρκεί λίγα λεπτά. Μην κλείσετε την εφαρμογή."
+        "helper_text": "This usually takes a few seconds. Do not close the app."
       },
       "immersve_kyc_processing": {
         "title": "Σε αναμονή έγκρισης",
         "description": "Ο συνεργάτης μας πρέπει να επαληθεύσει την ταυτότητά σας για να εγκρίνει την αίτησή σας.",
-        "helper_text": "Αυτό συνήθως διαρκεί λίγα λεπτά. Μην κλείσετε την εφαρμογή.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "incomplete_title": "Ολοκληρώστε την επαλήθευση της ταυτότητάς σας",
         "incomplete_description": "Η επαλήθευση της ταυτότητάς σας δεν ολοκληρώθηκε. Συνεχίστε για να ολοκληρώσετε τη διαδικασία.",
         "continue_button": "Συνεχίστε τη διαδικασία επαλήθευσης",
         "info_needed_title": "Απαιτούνται πρόσθετες πληροφορίες",
         "info_needed_description": "Χρειαζόμαστε λίγες ακόμη πληροφορίες για να ολοκληρώσουμε την διαδικασία επαλήθευσης. Συνεχίστε για να τις παρέχετε.",
         "info_needed_button": "Συνεχίστε τη διαδικασία επαλήθευσης",
-        "expiring_error": "Η συνεδρία επαλήθευσης έληξε. Επικοινωνήστε με την ομάδα υποστήριξης για να συνεχίσετε."
+        "expiring_error": "Your verification session expired. Contact support to continue."
       },
       "immersve_kyc_modal": {
-        "load_error": "Κάτι πήγε στραβά κατά τη φόρτωση της διαδικασίας επαλήθευσης. Προσπαθήστε ξανά.",
+        "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
+        "load_error": "Something went wrong loading identity verification. Try again.",
         "try_again": "Προσπαθήστε ξανά"
       },
       "immersve_funding_approval": {
         "title": "Ρυθμίστε τη χρηματοδότηση της κάρτας",
         "description": "Εγκρίνετε τη χρήση της MetaMask Card ώστε να χρησιμοποιεί τα USDC στο Base για αγορές.",
-        "helper_text": "Αυτό συνήθως διαρκεί λίγα λεπτά. Μην κλείσετε την εφαρμογή.",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "Εγκρίνετε τη χρηματοδότηση",
         "retry_button": "Προσπαθήστε ξανά"
       },
@@ -9841,7 +9882,7 @@
       },
       "mailing_address": {
         "title": "Διεύθυνση αλληλογραφίας",
-        "description": "Παρακαλούμε καταχωρίστε την ταχυδρομική διεύθυνση για την αποστολή της κάρτας σας."
+        "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
         "title": "Τα καταφέρατε!",
@@ -9864,7 +9905,7 @@
       "close_button": "Κατανοητό",
       "waitlist_form": {
         "title": "Εγγραφή στη λίστα αναμονής",
-        "load_error": "Κάτι πήγε στραβά κατά τη φόρτωση της φόρμας. Προσπαθήστε ξανά.",
+        "load_error": "Something went wrong loading the form. Try again.",
         "try_again": "Προσπαθήστε ξανά",
         "success_toast": "Είστε στη λίστα αναμονής!",
         "success_toast_description": "Θα σας ενημερώσουμε όταν η κάρτα γίνει διαθέσιμη στη χώρα σας."
@@ -9874,24 +9915,24 @@
       },
       "errors": {
         "no_region_results": "Καμία περιοχή δεν ταιριάζει με {{searchString}}",
-        "email_already_exists": "Αυτό το email χρησιμοποιείται ήδη. Παρακαλούμε χρησιμοποιήστε διαφορετικό.",
-        "invalid_email_format": "Μη έγκυρη μορφή email. Παρακαλούμε ελέγξτε το email σας και προσπαθήστε ξανά.",
-        "invalid_verification_code": "Μη έγκυρος κωδικός επαλήθευσης. Παρακαλούμε ελέγξτε τον κωδικό και προσπαθήστε ξανά.",
-        "verification_code_expired": "Ο κωδικός επαλήθευσης έχει λήξει. Παρακαλούμε ζητήστε νέο κωδικό.",
-        "invalid_contact_verification_id": "Μη έγκυρο ή έχει λήξει το αναγνωριστικό επαλήθευσης επαφής. Παρακαλούμε ξεκινήστε ξανά τη διαδικασία εγγραφής.",
-        "invalid_phone_format": "Μη έγκυρη μορφή αριθμού τηλεφώνου. Παρακαλούμε ελέγξτε τον αριθμό και προσπαθήστε ξανά.",
-        "phone_already_exists": "Αυτός ο αριθμός τηλεφώνου χρησιμοποιείται ήδη. Παρακαλούμε χρησιμοποιήστε διαφορετικό.",
-        "phone_number_mismatch": "Ο αριθμός τηλεφώνου δεν αντιστοιχεί στη συνεδρία επαλήθευσης. Παρακαλούμε ελέγξτε τον αριθμό και προσπαθήστε ξανά.",
-        "invalid_zip_code": "Μη έγκυρος ταχυδρομικός κώδικας. Καταχωρήστε έγκυρο κωδικό και προσπαθήστε ξανά.",
-        "us_state_required": "Απαιτείται πολιτεία των ΗΠΑ για κατοίκους ΗΠΑ. Καταχωρήστε έγκυρη πολιτεία και προσπαθήστε ξανά.",
-        "consent_already_linked": "Ο χρήστης είναι ήδη συνδεδεμένος με σύνολο συγκατάθεσης. Χρησιμοποιήστε διαφορετικό χρήστη ή επικοινωνήστε με την υποστήριξη.",
-        "invalid_onboard_id": "Μη έγκυρο έγγραφο ταυτοποίησης. Ξεκινήστε ξανά τη διαδικασία εγγραφής.",
-        "create_user_failed": "Αποτυχία δημιουργίας χρήστη. Προσπαθήστε ξανά."
+        "email_already_exists": "Email already exists. Use a different email.",
+        "invalid_email_format": "Invalid email format. Check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Enter a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Enter a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Restart the registration process.",
+        "create_user_failed": "Failed to create user. Try again."
       }
     },
     "card_home": {
       "title": "Κάρτα",
-      "authentication_error": "Η συνεδρία σας έληξε. Παρακαλούμε συνδεθείτε ξανά.",
+      "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "Δεν μπορέσαμε να συνεχίσουμε τη συνεδρία της Κάρτας. Παρακαλούμε συνδεθείτε ξανά.",
       "available_balance": "Διαθέσιμο υπόλοιπο",
       "error_title": "Δεν είναι δυνατή η ανάκτηση δεδομένων",
@@ -10207,7 +10248,7 @@
         "email_required": "Το email είναι υποχρεωτικό",
         "password_required": "Ο κωδικός πρόσβασης είναι υποχρεωτικός",
         "email_invalid": "Μη έγκυρη διεύθυνση email",
-        "password_invalid": "Μη έγκυρος κωδικός πρόσβασης",
+        "password_invalid": "Incorrect password. Try again.",
         "invalid_email_or_password": "Μη έγκυρο email ή κωδικός πρόσβασης. Ελέγξτε τα στοιχεία σας και δοκιμάστε ξανά.",
         "network_error": "Σφάλμα δικτύου. Παρακαλούμε ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.",
         "timeout_error": "Το αίτημα έληξε λόγω καθυστέρησης. Παρακαλούμε ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.",
