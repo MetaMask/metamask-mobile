@@ -10,6 +10,7 @@ import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
 import { earnSelectors } from '../../../../../../selectors/earnController';
 import { selectEvmChainId } from '../../../../../../selectors/networkController';
+import Logger from '../../../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
@@ -58,11 +59,27 @@ const StakingButtons = ({
     }
   };
 
-  const { outputToken } = useSelector((state: RootState) =>
+  const { earnToken, outputToken } = useSelector((state: RootState) =>
     earnSelectors.selectEarnTokenPair(state, asset),
   );
 
+  const logMissingPairedToken = (action: 'stake' | 'unstake') => {
+    Logger.error(
+      new Error(`Cannot navigate to ${action}: paired token missing`),
+      {
+        action,
+        assetSymbol: asset.symbol,
+        chainId: asset.chainId,
+      },
+    );
+  };
+
   const onUnstakePress = async () => {
+    if (!outputToken) {
+      logMissingPairedToken('unstake');
+      return;
+    }
+
     trace({ name: TraceName.EarnWithdrawScreen });
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
@@ -84,12 +101,17 @@ const StakingButtons = ({
   };
 
   const onStakePress = async () => {
+    if (!earnToken) {
+      logMissingPairedToken('stake');
+      return;
+    }
+
     trace({ name: TraceName.EarnDepositScreen });
     await handleIsStakingSupportedChain();
     navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        token: asset,
+        token: earnToken,
       },
     });
     trackEvent(

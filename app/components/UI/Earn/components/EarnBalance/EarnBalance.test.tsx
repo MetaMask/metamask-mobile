@@ -1,20 +1,29 @@
 import React from 'react';
 import EarnBalance from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import StakingBalance from '../../../Stake/components/StakingBalance/StakingBalance';
+import StakingOverview from '../../../Stake/components/StakingBalance/StakingOverview';
 import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../selectors/featureFlags';
+import StakingDiscovery from '../../../Stake/components/StakingBalance/StakingDiscovery/StakingDiscovery';
 
 /**
  * We mock underlying components because we only care about the conditional rendering.
  * The underlying components have their own in-depth tests.
  */
-jest.mock('../../../Stake/components/StakingBalance/StakingBalance', () => ({
+jest.mock('../../../Stake/components/StakingBalance/StakingOverview', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+
+jest.mock(
+  '../../../Stake/components/StakingBalance/StakingDiscovery/StakingDiscovery',
+  () => ({
+    __esModule: true,
+    default: jest.fn(),
+  }),
+);
 
 jest.mock(
   '../../../../../selectors/featureFlagController/trxStakingEnabled',
@@ -123,12 +132,13 @@ describe('EarnBalance', () => {
   });
 
   describe('Ethereum Mainnet', () => {
-    it('renders staking balance when asset is ETH', () => {
+    it('renders discovery CTA when asset is native ETH', () => {
       const mockEth = { isETH: true, isStaked: false, chainId: '0x1' };
 
       renderWithProvider(<EarnBalance asset={mockEth as unknown as TokenI} />);
 
-      expect(StakingBalance).toHaveBeenCalled();
+      expect(StakingDiscovery).toHaveBeenCalled();
+      expect(StakingOverview).not.toHaveBeenCalled();
     });
 
     it('renders when asset is supported stablecoin', () => {
@@ -159,16 +169,17 @@ describe('EarnBalance', () => {
       renderWithProvider(
         <EarnBalance asset={mockFakeToken as unknown as TokenI} />,
       );
-      expect(StakingBalance).not.toHaveBeenCalled();
+      expect(StakingOverview).not.toHaveBeenCalled();
       expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
 
-    it('renders nothinge if Staked ETH is passed', () => {
+    it('renders active staking overview when Staked ETH is passed', () => {
       const mockEth = { isETH: true, isStaked: true, chainId: '0x1' };
 
       renderWithProvider(<EarnBalance asset={mockEth as unknown as TokenI} />);
 
-      expect(StakingBalance).not.toHaveBeenCalled();
+      expect(StakingOverview).toHaveBeenCalled();
+      expect(StakingDiscovery).not.toHaveBeenCalled();
       expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
   });
@@ -209,7 +220,7 @@ describe('EarnBalance', () => {
         <EarnBalance asset={mockFakeToken as unknown as TokenI} />,
       );
 
-      expect(StakingBalance).not.toHaveBeenCalled();
+      expect(StakingOverview).not.toHaveBeenCalled();
       expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
   });
@@ -231,7 +242,7 @@ describe('EarnBalance', () => {
       );
 
       expect(toJSON()).toBeNull();
-      expect(StakingBalance).not.toHaveBeenCalled();
+      expect(StakingOverview).not.toHaveBeenCalled();
       expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
 
@@ -250,7 +261,7 @@ describe('EarnBalance', () => {
       );
 
       expect(toJSON()).toBeNull();
-      expect(StakingBalance).not.toHaveBeenCalled();
+      expect(StakingOverview).not.toHaveBeenCalled();
       expect(EarnLendingBalance).not.toHaveBeenCalled();
     });
   });
