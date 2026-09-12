@@ -4,6 +4,7 @@
  * Open orders and unrecognized trades map to `null` and are dropped.
  */
 import { useCallback, useMemo } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { InitializationState } from '@metamask/perps-controller';
 import { selectSelectedAccountCaipId } from '../../../../selectors/activity';
@@ -41,6 +42,15 @@ export function usePerpsActivityItems({
     refetch,
     transactions,
   } = usePerpsActivityQuery(accountId, enabled && isInitialized);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!enabled || !isInitialized) {
+        return;
+      }
+      refetch();
+    }, [enabled, isInitialized, refetch]),
+  );
 
   const items = useMemo(() => {
     const result: ActivityListItem[] = [];
