@@ -1,6 +1,8 @@
 import {
   formatUsd,
   formatTradeUnitPrice,
+  formatFeedValueUsd,
+  formatSignedFeedValueUsd,
   formatSignedUsd,
   formatSignedAbbreviatedUsd,
   formatSignedFullUsdNoDecimals,
@@ -47,6 +49,36 @@ describe('formatTradeUnitPrice', () => {
   it('returns an em dash for nullish values', () => {
     expect(formatTradeUnitPrice(null)).toBe('\u2014');
     expect(formatTradeUnitPrice(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatFeedValueUsd', () => {
+  it('formats dollar-scale open position values with two decimals', () => {
+    expect(formatFeedValueUsd(92_234.5)).toBe('$92,234.50');
+  });
+
+  it('formats sub-cent open position values with tiered precision', () => {
+    expect(formatFeedValueUsd(0.002759)).toBe('$0.002759');
+  });
+
+  it('returns an em dash for nullish values', () => {
+    expect(formatFeedValueUsd(null)).toBe('\u2014');
+    expect(formatFeedValueUsd(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatSignedFeedValueUsd', () => {
+  it('formats dollar-scale realized PnL with two decimals', () => {
+    expect(formatSignedFeedValueUsd(4_659)).toBe('+$4,659.00');
+  });
+
+  it('formats sub-cent realized PnL with tiered precision', () => {
+    expect(formatSignedFeedValueUsd(0.002759)).toBe('+$0.002759');
+    expect(formatSignedFeedValueUsd(-0.002759)).toBe('-$0.002759');
+  });
+
+  it('delegates to formatSignedUsd for values at or above one cent', () => {
+    expect(formatSignedFeedValueUsd(0.12)).toBe(formatSignedUsd(0.12));
   });
 });
 
