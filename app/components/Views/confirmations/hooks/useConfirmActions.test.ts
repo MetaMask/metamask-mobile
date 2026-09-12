@@ -284,62 +284,6 @@ describe('useConfirmAction', () => {
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call signature related methods when onReject is called if confirmation is not of type signature', async () => {
-    const clearSecurityAlertResponseSpy = jest.spyOn(
-      PPOMUtil,
-      'clearSignatureSecurityAlertResponse',
-    );
-    const mockCancelQRScanRequestIfPresent = jest
-      .fn()
-      .mockResolvedValue(undefined);
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
-    const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: stakingDepositConfirmationState,
-    });
-    result?.current?.onReject();
-    expect(mockCancelQRScanRequestIfPresent).toHaveBeenCalledTimes(1);
-    await flushPromises();
-    expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
-    expect(mockCaptureSignatureMetrics).not.toHaveBeenCalled();
-    expect(clearSecurityAlertResponseSpy).not.toHaveBeenCalled();
-  });
-
-  it('call required callbacks when reject button is clicked', async () => {
-    const clearSecurityAlertResponseSpy = jest.spyOn(
-      PPOMUtil,
-      'clearSignatureSecurityAlertResponse',
-    );
-    const mockCancelQRScanRequestIfPresent = jest
-      .fn()
-      .mockResolvedValue(undefined);
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
-    const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: personalSignatureConfirmationState,
-    });
-    result?.current?.onReject();
-    expect(mockCancelQRScanRequestIfPresent).toHaveBeenCalledTimes(1);
-    await flushPromises();
-    expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
-    expect(mockCaptureSignatureMetrics).toHaveBeenCalledTimes(1);
-    expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not navigate back when onReject is called with skipNavigation as true', async () => {
-    const goBackSpy = jest.fn();
-    useNavigationMock.mockReturnValue({
-      goBack: goBackSpy,
-    } as unknown as ReturnType<typeof useNavigation>);
-    const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: personalSignatureConfirmationState,
-    });
-    result?.current?.onReject(undefined, true);
-    expect(goBackSpy).not.toHaveBeenCalled();
-  });
-
   it('sets waitForResult to false when approvalType is TransactionBatch', async () => {
     const transactionBatchState = {
       engine: {

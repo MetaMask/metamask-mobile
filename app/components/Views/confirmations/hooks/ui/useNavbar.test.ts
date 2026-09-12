@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { Theme } from '../../../../../util/theme/models';
 import { getNavbar } from '../../components/UI/navbar/navbar';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import useNavbar from './useNavbar';
@@ -16,8 +16,8 @@ jest.mock('../../components/UI/navbar/navbar', () => ({
   getNavbar: jest.fn(),
 }));
 
-jest.mock('../useConfirmActions', () => ({
-  useConfirmActions: jest.fn(),
+jest.mock('../useConfirmReject', () => ({
+  useConfirmReject: jest.fn(),
 }));
 
 jest.mock('./useFullScreenConfirmation', () => ({
@@ -43,7 +43,7 @@ describe('useNavbar', () => {
       setOptions: mockSetOptions,
     });
 
-    (useConfirmActions as jest.Mock).mockReturnValue({
+    (useConfirmReject as jest.Mock).mockReturnValue({
       onReject: mockOnReject,
     });
 
@@ -70,7 +70,7 @@ describe('useNavbar', () => {
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
-    expect(useConfirmActions).toHaveBeenCalled();
+    expect(useConfirmReject).toHaveBeenCalled();
     expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({
       title: mockTitle,
@@ -91,7 +91,7 @@ describe('useNavbar', () => {
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
-    expect(useConfirmActions).toHaveBeenCalled();
+    expect(useConfirmReject).toHaveBeenCalled();
     expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(mockSetOptions).not.toHaveBeenCalled();
     expect(getNavbar).not.toHaveBeenCalled();
@@ -105,7 +105,7 @@ describe('useNavbar', () => {
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
-    expect(useConfirmActions).toHaveBeenCalled();
+    expect(useConfirmReject).toHaveBeenCalled();
     expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(mockSetOptions).not.toHaveBeenCalled();
     expect(getNavbar).not.toHaveBeenCalled();
@@ -137,7 +137,7 @@ describe('useNavbar', () => {
 
   it('updates navigation options when onReject changes for full screen confirmations', () => {
     const newOnReject = jest.fn();
-    (useConfirmActions as jest.Mock).mockReturnValue({
+    (useConfirmReject as jest.Mock).mockReturnValue({
       onReject: newOnReject,
     });
     (useFullScreenConfirmation as jest.Mock).mockReturnValue({

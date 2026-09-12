@@ -20,7 +20,7 @@ import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
-import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useConfirmationLoadMetrics } from '../../hooks/metrics/useConfirmationLoadMetrics';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
@@ -218,7 +218,7 @@ function ConfirmInternal({
   const { approvalRequest } = useApprovalRequest();
   const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
   const { onFirstPaint } = useConfirmationLoadMetrics();
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
