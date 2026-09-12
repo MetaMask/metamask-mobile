@@ -1311,6 +1311,23 @@ describe('usePerpsToasts', () => {
     });
 
     describe('positionManagement.tpsl', () => {
+      it('returns update TPSL in progress configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.tpsl
+            .updateTPSLInProgress;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hapticsType: NotificationMoment.Warning,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Updating TP/SL', isBold: true },
+        ]);
+      });
+
       it('returns update TPSL success configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
