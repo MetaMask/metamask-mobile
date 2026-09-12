@@ -219,6 +219,7 @@ export interface PerpsToastOptionsConfig {
       };
     };
     tpsl: {
+      updateTPSLInProgress: PerpsToastOptions;
       updateTPSLSuccess: PerpsToastOptions;
       updateTPSLError: (error?: string) => PerpsToastOptions;
     };
@@ -1147,6 +1148,12 @@ const usePerpsToasts = (): {
           },
         },
         tpsl: {
+          updateTPSLInProgress: {
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.tpsl.update_in_progress'),
+            ),
+          },
           updateTPSLSuccess: {
             ...perpsBaseToastOptions.success,
             labelOptions: getPerpsToastLabels(
