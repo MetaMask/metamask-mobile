@@ -148,9 +148,13 @@ jest.mock('@metamask/chain-agnostic-permission', () => {
   };
 });
 
-jest.mock('@metamask/eth-query', () => () => ({
-  sendAsync: jest.fn().mockResolvedValue(1),
-}));
+// Must be constructable (`new EthQuery(...)`): RN 0.85's babel preset no
+// longer downlevels arrow functions, so a plain arrow mock throws under `new`.
+jest.mock('@metamask/eth-query', () =>
+  jest.fn(() => ({
+    sendAsync: jest.fn().mockResolvedValue(1),
+  })),
+);
 
 jest.mock('../../store', () => ({
   ...jest.requireActual('../../store'),
