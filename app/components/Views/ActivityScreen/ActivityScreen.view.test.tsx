@@ -526,14 +526,24 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { findByTestId, findByText } = renderActivityScreenViewWithRoutes({
-      state: emptyActivityStateFunded().build(),
-      extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+    const { getAllByText, findByTestId, findByText, queryByTestId } =
+      renderActivityScreenViewWithRoutes({
+        state: emptyActivityStateFunded().build(),
+        extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+      });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Transactions))
+          .length,
+      ).toBeGreaterThan(0);
     });
 
-    expect(
-      await findByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        queryByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE),
+      ).toBeOnTheScreen();
+    });
     expect(await findByText(fundedDescription)).toBeOnTheScreen();
 
     fireEvent.press(await findByText(swapTokensLabel));
