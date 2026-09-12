@@ -71,10 +71,12 @@ describe('PredictClaimFooter', () => {
 
   it('renders market images', () => {
     // Given 5 won positions with icons
-    const { getAllByTestId } = render();
+    const { getByTestId, getAllByTestId, getByText } = render();
 
-    // Then the avatar group shows up to 3 avatars
-    expect(getAllByTestId('token-avatar-image')).toHaveLength(3);
+    // Then the avatar group shows up to 3 avatars and an overflow count
+    expect(getByTestId('predict-claim-avatar-group')).toBeOnTheScreen();
+    expect(getAllByTestId(/^predict-claim-avatar-image-/)).toHaveLength(3);
+    expect(getByText('+2')).toBeOnTheScreen();
   });
 
   it('calls onPress when button is pressed', () => {
