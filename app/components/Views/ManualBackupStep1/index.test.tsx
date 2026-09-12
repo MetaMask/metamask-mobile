@@ -120,6 +120,13 @@ jest.mock('../../../core', () => ({
 jest.mock('../../../util/Logger', () => ({ error: jest.fn(), log: jest.fn() }));
 const Logger = jest.requireMock('../../../util/Logger');
 
+jest.mock('../../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
+  jest.fn(),
+);
+const trackErrorAsAnalytics = jest.requireMock(
+  '../../../util/metrics/TrackError/trackErrorAsAnalytics',
+);
+
 const MOCK_WORDS = [
   'abstract',
   'accident',
@@ -534,7 +541,7 @@ describe('ManualBackupStep1', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows password view and logs error when getPassword throws', async () => {
+    it('shows password view and tracks analytics when getPassword throws', async () => {
       mockGetPassword.mockRejectedValue(new Error('Test error'));
 
       const { wrapper } = renderComponent({
@@ -551,7 +558,11 @@ describe('ManualBackupStep1', () => {
         ).toBeOnTheScreen();
       });
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'ManualBackupStep1: SRP recovery failed',
+        'Test error',
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('exports seed phrase when credentials are available', async () => {
@@ -614,7 +625,11 @@ describe('ManualBackupStep1', () => {
         ).toBeOnTheScreen();
       });
 
-      expect(Logger.error).toHaveBeenCalled();
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'ManualBackupStep1: SRP recovery failed',
+        'export failed',
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 
