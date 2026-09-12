@@ -13,6 +13,7 @@ import type { AnyChainAdapter } from './types';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { tronAdapter } from './tron';
 ///: END:ONLY_INCLUDE_IF
+import { bitcoinAdapter } from './bitcoin';
 
 // Keyed by raw namespace string so lookups accept whatever a dapp proposal
 // sent, which we don't trust upfront.
@@ -49,3 +50,4 @@ export function getAllRegisteredNamespaces(): KnownCaipNamespace[] {
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 registerAdapter(tronAdapter);
 ///: END:ONLY_INCLUDE_IF
+registerAdapter(bitcoinAdapter);
