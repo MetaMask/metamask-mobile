@@ -64,7 +64,7 @@
     },
     "gas_estimate_failed": {
       "title": "गलत फीस",
-      "message": "हम सही फीस नहीं बता सकते और यह अंदाज़ा ज़्यादा हो सकता है। हमारा सुझाव है कि आप एक कस्टम गैस लिमिट डालें, हालांकि आपका ट्रांसेक्शन फेल भी हो सकता है।"
+      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
     "insufficient_balance": {
       "title": "अपर्याप्त फंड",
@@ -500,7 +500,7 @@
     "go_back": "वॉलेट अनलॉक नहीं होगा? आप अपने वर्तमान वॉलेट को हटा सकते हैं और एक नया बना सकते हैं",
     "forgot_password": "पासवर्ड भूल गए?",
     "cant_proceed": "जब तक आप ‘डिलीट’ शब्द टाइप नहीं करते तब तक आप आगे नहीं बढ़ सकते। इस कार्य के साथ आप अपने वर्तमान वॉलेट को हटाने का विकल्प चुन रहे हैं।",
-    "invalid_password": "पासवर्ड गलत है, फिर से प्रयास करें।",
+    "invalid_password": "Incorrect password. Try again.",
     "type_delete": "कन्फर्म करने के लिए '{{erase}}' टाइप करें",
     "erase_my": "हां, वॉलेट रीसेट करें",
     "cancel": "कैंसिल करें",
@@ -513,8 +513,8 @@
     "metamask_does_not": "MetaMask के पास आपका सीक्रेट रिकवरी फ्रेज नहीं है।",
     "i_understand": "मैं समझता हूं, जारी रखें",
     "passcode_not_set_error": "त्रुटि: पासकोड निर्धारित नहीं है।",
-    "wrong_password_error": "त्रुटि: Decrypt असफल हुआ",
-    "wrong_password_error_android": "त्रुटि: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
+    "wrong_password_error": "Incorrect password. Try again.",
+    "wrong_password_error_android": "Incorrect password. Try again.",
     "vault_error": "त्रुटि: पिछले वॉल्ट के बिना अनलॉक नहीं कर सकते।",
     "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "seedless_password_outdated": "आपका पासवर्ड हाल ही में बदला गया।",
@@ -579,7 +579,7 @@
     "create_button": "पासवर्ड बनाएं",
     "import_with_seed_phrase": "सीक्रेट रिकवरी फ्रेज के साथ इम्पोर्ट करें",
     "password_length_error": "पासवर्ड में कम से कम 8 कैरेक्टर होने चाहिए ",
-    "password_dont_match": "पासवर्ड मेल नहीं खाते",
+    "password_dont_match": "Passwords don't match.",
     "password_strength": "पासवर्ड की शक्ति:",
     "strength_weak": "कमजोर",
     "strength_good": "अच्छी",
@@ -623,7 +623,7 @@
     "reset_button": "पासवर्ड रीसेट करें",
     "import_with_seed_phrase": "सीक्रेट रिकवरी फ्रेज के साथ इम्पोर्ट करें",
     "password_length_error": "पासवर्ड में कम से कम 8 कैरेक्टर होने चाहिए ",
-    "password_dont_match": "पासवर्ड मेल नहीं खाते",
+    "password_dont_match": "Passwords don't match.",
     "password_strength": "पासवर्ड की शक्ति:",
     "strength_weak": "कमजोर",
     "strength_good": "अच्छी",
@@ -663,7 +663,7 @@
     "import_button": "इंपोर्ट करें",
     "cancel_button": "रद्द करें",
     "password_length_error": "पासवर्ड में कम से कम 8 कैरेक्टर होने चाहिए ",
-    "password_dont_match": "पासवर्ड मेल नहीं खाते",
+    "password_dont_match": "Passwords don't match.",
     "seed_phrase_requirements": "सीक्रेट रिकवरी फ्रेज में 12, 15, 18, 21, या 24 शब्द होते हैं",
     "invalid_seed_phrase": "सीक्रेट रिकवरी फ्रेज़ नहीं मिला।",
     "error": "त्रुटि",
@@ -709,7 +709,8 @@
     "settings": "सेटिंग्स",
     "rewards": "पुरस्कार",
     "trending": "एक्सप्लोर करें",
-    "money": "वित्त"
+    "money": "वित्त",
+    "social": "Social"
   },
   "drawer": {
     "send_button": "भेजें",
@@ -1133,11 +1134,17 @@
       "how_to_delete_description": "आप सेटिंग्स > डेटा मैनेज करें पर जाकर कभी भी अपना डेटा मिटा सकते हैं।",
       "metamask_privacy_policy": "MetaMask गोपनीयता नीति",
       "metamask_terms": "MetaMask नियम व शर्तें",
-      "idos_privacy_policy": "idOS गोपनीयता नीति",
-      "idos_terms": "idOS नियम व शर्तें",
-      "sumsub_privacy_policy": "Sumsub गोपनीयता नीति",
-      "sumsub_terms": "Sumsub नियम व शर्तें",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
       "button": "जारी रखें"
+    },
+    "kyc_email": {
+      "title": "What's your email?",
+      "description": "We'll use this to send account updates.",
+      "input_placeholder": "Email address",
+      "button": "Continue",
+      "error_title": "Identity verification",
+      "error_description": "We couldn't start your identity verification. Try again."
     }
   },
   "social_leaderboard": {
@@ -1169,7 +1176,8 @@
       "title": "टॉप ट्रेडर्स",
       "tabs": {
         "leaderboard": "लीडरबोर्ड",
-        "feed": "फीड"
+        "feed": "फीड",
+        "live_trades": "Live trades"
       },
       "following": "फ़ॉलो कर रहे हैं",
       "all": "सभी",
@@ -1217,6 +1225,19 @@
         "size_at_market_cap": "{{marketCap}} {{abbreviation}} पर {{size}}"
       },
       "no_data": "कोई डेटा नहीं"
+    },
+    "shell": {
+      "subnav": {
+        "trending": "Trending",
+        "memecoins": "Memecoins",
+        "perps": "Perps",
+        "stocks": "Stocks",
+        "whales": "Only",
+        "top_traders": "Top traders",
+        "top_perps": "Top perps",
+        "kols": "KOLs",
+        "top_tokens": "Top tokens"
+      }
     },
     "onboarding": {
       "slide_trade": {
@@ -1905,19 +1926,19 @@
         },
         "stop_limit": {
           "title": "स्टॉप लिमिट",
-          "description": "ट्रिगर प्राइस पर लिमिट पूरा होता है"
+          "description": "Place a limit order if trigger price hits"
         },
         "stop_market": {
           "title": "स्टॉप मार्केट",
-          "description": "ट्रिगर प्राइस पर मार्केट पूरा होता है"
+          "description": "Place a market order if trigger price hits"
         },
         "take_profit_limit": {
           "title": "टेक लिमिट",
-          "description": "ट्रिगर प्राइस पर लिमिट टेक-प्रॉफिट"
+          "description": "Place a limit order if trigger price is reached"
         },
         "take_profit_market": {
           "title": "टेक मार्केट",
-          "description": "ट्रिगर प्राइस पर मार्केट टेक-प्रॉफिट"
+          "description": "Place a market order if trigger price is reached"
         },
         "twap": {
           "title": "TWAP",
@@ -2198,7 +2219,7 @@
       "exchangeClientNotAvailable": "आरंभीकरण के बाद ExchangeClient उपलब्ध नहीं है",
       "exchangeAccountNotFound": "ऑर्डर देने से पहले अपने अकाउंट में फंड जोड़ें",
       "exchangeMultiSigRequired": "इस अकाउंट को ट्रेड करने के लिए इसके मल्टी-सिग्नेचर साइनर्स की ज़रूरत है",
-      "exchangeInvalidNonce": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।",
+      "exchangeInvalidNonce": "Something went wrong. Try again.",
       "infoClientNotAvailable": "आरंभीकरण के बाद InfoClient उपलब्ध नहीं है",
       "subscriptionClientNotAvailable": "आरंभीकरण के बाद SubscriptionClient उपलब्ध नहीं है",
       "subscriptionClientNotInitialized": "SubscriptionClient शुरू नहीं किया गया है",
@@ -2263,7 +2284,11 @@
         "chaseLimitReached": "बहुत सारे चेज़ ऑर्डर पहले से चल रहे हैं",
         "chaseAbandoned": "कनेक्शन ड्रॉप होने की वजह से चेज़ ऑर्डर कैंसिल कर दिया गया",
         "chaseTouchUnavailable": "इस चेज़ ऑर्डर को लगाने के लिए कोई मार्केट प्राइस उपलब्ध नहीं है",
-        "chaseMaxDistanceInvalid": "अधिकतम चेज़ दूरी अनुमत सीमा से बाहर है"
+        "chaseMaxDistanceInvalid": "अधिकतम चेज़ दूरी अनुमत सीमा से बाहर है",
+        "marginModeInvalid": "Margin mode is invalid",
+        "marginModeUnsupported": "This margin mode isn't available on this market",
+        "marginModePositionOpen": "Can't change margin mode while a position is open",
+        "marginModeOrderOpen": "Can't change margin mode while an order is open"
       },
       "networkToggleFailed": "नेटवर्क टॉगल करना नहीं हो पाया: {{error}}",
       "accountBalanceFailed": "अकाउंट बैलेंस प्राप्त करना नहीं हो पाया: {{error}}",
@@ -3982,6 +4007,20 @@
     "settings": "आप चाहें तो",
     "settings_link": "अन्य डिफॉल्ट सेटिंग्स मैनेज कर सकते हैं।"
   },
+  "basic_functionality_migration": {
+    "title": "Your settings have changed",
+    "social_title": "Privacy and product updates",
+    "social_body_1": "We’re updating how MetaMask works for social login. To enable a seamless experience across MetaMask, your social login identifier (email or handle) will now be securely linked to your user profile and associated account addresses. As part of this update, Basic Functionality and other default settings will always be enabled.",
+    "social_body_2_prefix": "We never sell your data to third parties. Read more about what we collect and why in our",
+    "social_body_2_middle": " and updated ",
+    "social_body_2_suffix": ".",
+    "blog_post_link": "blog post",
+    "privacy_notice_link": "Privacy Notice",
+    "toast_description": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is enabled. Change it any time in",
+    "toast_description_disabled": "Third-party APIs are now part of Basic Functionality. Based on your previous preferences, this setting is disabled. Change it any time in",
+    "settings_link": "Settings > Privacy",
+    "accept_and_close": "Accept and close"
+  },
   "onboarding_interest_questionnaire": {
     "title": "आप MetaMask का इस्तेमाल कैसे करेंगे?",
     "description": "जो भी लागू हो, उसे चुनें।",
@@ -4279,7 +4318,7 @@
     "clear_approvals_modal_message": "सभी dapps को पहुंच के लिए अनुरोध की जरुरत पड़ेगी ताकि अकाउंट की जानकारी को फिर से देख सकें।",
     "clear_browser_history_modal_title": "ब्राउज़र हिस्ट्री हटाएं?",
     "clear_browser_history_modal_message": "हम आपके ब्राउजर के पूरे इतिहास को हटाने ही वाले हैं। क्या आप आश्वस्त हैं?",
-    "clear_cookies_modal_title": "ब्राउज़र कुकीज को हटाएं",
+    "clear_cookies_modal_title": "Clear browser cookies?",
     "clear_cookies_modal_message": "हम आपके ब्राउजर कुकीज को हटाने ही वाले हैं। क्या आप आश्वस्त हैं?",
     "reset_account_modal_message": "आपके अकाउंट को रिसेट करने से आपके लेन-देन की गतिविधि साफ हो जाएगी।",
     "save_rpc_url": "सेव करें",
@@ -4460,8 +4499,8 @@
     "metametrics_opt_out": "MetaMetrics ऑप्ट-आउट",
     "metametrics_restart_required": "बदलाव को प्रभाव में लाने के लिए आपको ऐप को फिर से शुरु करने की जरुरत है।",
     "create_password": "पासवर्ड बनाएं",
-    "invalid_password": "अमान्य पासवर्ड",
-    "invalid_password_message": "पासवर्ड सही नहीं था। कृपया फिर से कोशिश करें।",
+    "invalid_password": "Incorrect password",
+    "invalid_password_message": "Check your password and try again.",
     "security_heading": "सुरक्षा",
     "general_heading": "सामान्य",
     "privacy_heading": "गोपनीयता",
@@ -4956,8 +4995,8 @@
     "private_key_copied_time": "(1 मिनट के लिए स्टोर की गई)",
     "private_key_copied_ios": "निजी कुंजी अस्थायी रूप से क्लिपबोर्ड पर कॉपी की गई\n",
     "private_key_copied_android": "निजी कुंजी को क्लिपबोर्ड पर कॉपी किया गया\n",
-    "warning_incorrect_password": "गलत पासवर्ड",
-    "unknown_error": "आपके अकाउंट को अनलॉक नहीं कर सके। कृपया फिर से कोशिश करें।",
+    "warning_incorrect_password": "Incorrect password. Try again.",
+    "unknown_error": "Couldn't unlock your account. Try again.",
     "hardware_error": "ये एक हार्डवेयर वॉलेट अकाउंट है, आप अपनी प्राइवेट की को एक्सपोर्ट नहीं कर सकते हैं।",
     "seed_warning": "यह आपके वॉलेट का 12 शब्दों का फ्रेज है। इस फ्रेज का उपयोग आपके सारे वर्तमान और भविष्य के अकाउंट पर नियंत्रण रखने के लिए किया जा सकता है, जिसमें उनके किसी फंड को दूर भेजने की क्षमता शामिल है। कृपया इस फ्रेज को सुरक्षित रुप से स्टोर करें, किसी के साथ साझा ना करें।",
     "text": "टेक्स्ट",
@@ -5013,9 +5052,9 @@
     "save_success": "{{ticker}} के लिए प्राइस एलर्ट सफलतापूर्वक सेव हो गया।",
     "save_error": "प्राइस अलर्ट सेव नहीं हो पाया। कृपया फिर से कोशिश करें।",
     "delete_success": "प्राइस एलर्ट हटा दिया गया।",
-    "delete_error": "प्राइस अलर्ट मिटाना नहीं हो पाया। कृपया फिर से कोशिश करें।",
-    "toggle_error": "प्राइस अलर्ट अपडेट नहीं हो पाया। कृपया फिर से कोशिश करें।",
-    "fetch_error": "प्राइस अलर्ट लोड नहीं हो पाया। कृपया फिर से कोशिश करें।",
+    "delete_error": "Failed to delete price alert. Try again.",
+    "toggle_error": "Failed to update price alert. Try again.",
+    "fetch_error": "Failed to load price alerts. Try again.",
     "duplicate_threshold": "इस प्राइस पर पहले से ही एक एलर्ट मौजूद है।",
     "manage_title": "प्राइस एलर्ट",
     "add_alert": "एलर्ट जोड़ें",
@@ -5450,7 +5489,7 @@
     "tokenContractAddressWarning_1": "यह पता है एक ",
     "tokenContractAddressWarning_2": "टोकन अनुबंध पता",
     "tokenContractAddressWarning_3": ". अगर आप इस पते पर टोकन भेजते हैं,आप उन्हें खो देंगे।",
-    "smartContractAddressWarning": "यह पता एक स्मार्ट अनुबंध पता है। कृपया सुनिश्चित करें, आप समझते हैं कि यह पता किसलिए है, अन्यथा आपको अपने फंड खोने का जोखिम हो सकता है।",
+    "smartContractAddressWarning": "This address is a smart contract address. Make sure you understand what this address is for, otherwise you risk losing your funds.",
     "continueError": "मैं जोखिम समझता हूं, जारी रखें",
     "gas_education_title_ethereum": "Ethereum गैस शुल्क",
     "gas_education_title": "गैस शुल्क",
@@ -5464,16 +5503,16 @@
     "confusable_msg": "ENS के नाम पर हमने एक भ्रमित करने वाले कैरेक्टर का पता लगाया है। संभावित स्कैम से बचने के लिए ENS नाम को जांचे",
     "similar_to": "के समान है",
     "contains_zero_width": "शून्य चौड़ाई वाला वर्ण शामिल है",
-    "dapp_suggested_gas": "यह नेटवर्क शुल्क {{origin}} द्वारा सुझाया गया है। यह लेगसी गैस के अनुमान का उपयोग कर रहा है जो गलत हो सकता है। वैसे, इस नेटवर्क शुल्क को बदलने से आपके ट्रांसेक्शन के साथ कोई समस्या हो सकती है। यदि आपके पास सवाल हैं, तो कृपया {{origin}} से संपर्क करें।",
-    "dapp_suggested_eip1559_gas": "यह नेटवर्क शुल्क {{origin}} द्वारा सुझाया गया है। इसे ओवरराइड करने से आपके ट्रांसेक्शन के साथ समस्या हो सकती है। यदि आपके पास सवाल हैं, तो कृपया {{origin}} से संपर्क करें।",
+    "dapp_suggested_gas": "This network fee has been suggested by {{origin}}. It's using legacy gas estimation which may be inaccurate. However, editing this network fee may cause a problem with your transaction. Reach out to {{origin}} if you have questions.",
+    "dapp_suggested_eip1559_gas": "This network fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Reach out to {{origin}} if you have questions.",
     "address_invalid": "प्राप्तकर्ता का पता अमान्य है।",
     "ens_not_found": "इस नाम के लिए कोई पता निर्धारित नहीं किया गया है।",
-    "unknown_qr_code": "अमान्य क्यूआर कोड। कृपया पुन: प्रयास करें।",
-    "invalid_qr_code_sync": "अमान्य QR कोड। कृपया हार्डवेयर वॉलेट के सिंक QR कोड को स्कैन करें।",
-    "no_camera_permission": "कैमरा अधिकृत नहीं है। कृपया अनुमति दें और दोबारा प्रयास करें",
-    "invalid_qr_code_sign": "अमान्य क्यूआर कोड। कृपया अपना हार्डवेयर जांचे और दोबारा प्रयास करें।",
+    "unknown_qr_code": "Invalid QR code. Retry.",
+    "invalid_qr_code_sync": "Invalid QR code. Scan the sync QR code of the hardware wallet.",
+    "no_camera_permission": "Camera not authorized. Grant permission and retry",
+    "invalid_qr_code_sign": "Invalid QR code. Check your hardware and retry.",
     "no_camera_permission_android": "आगे बढ़ने के लिए आपको MetaMask को अपने कैमरे की एक्सेस देनी होगी। आपको अपने सिस्टम की सेटिंग्स भी बदलनी पड़ सकती है।",
-    "mismatched_qr_request_id": "असंगत ट्रांसेक्शन डेटा। कृपया नीचे दिए गए QR कोड को साइन करने के लिए अपने हार्डवेयर वॉलेट का उपयोग करें और 'सिग्नेचर पाएं' पर टैप करें।",
+    "mismatched_qr_request_id": "Incongruent transaction data. Use your hardware wallet to sign the QR code below and tap 'Get Signature'.",
     "fiat_conversion_not_available": "फिएट रूपांतरण इस समय उपलब्ध नहीं हैं",
     "hex_data_copied": "Hex डेटा क्लिपबोर्ड पर कॉपी किया गया",
     "invalid_recipient": "अवैध प्राप्तकर्ता",
@@ -5575,7 +5614,7 @@
     "no_tabs_desc": "विकेन्द्रीकृत वेब ब्राउज करने के लिए, एक नया टैब जोड़ें",
     "got_it": "समझ गए",
     "max_tabs_title": "अधिकतम टैब की सीमा पूरी हो गई",
-    "max_tabs_desc": "हम वर्तमान में एक बार में केवल 20 ओपन टैब सपोर्ट करते हैं। कृपया नए टैब जोड़ने से पहले मौजूदा टैब बंद करें।",
+    "max_tabs_desc": "We currently only support 20 open tabs at once. Close existing tabs before adding new ones.",
     "failed_to_resolve_ens_name": "हम उस  ENS नाम को सुलझा नहीं सके",
     "remove_bookmark_title": "पसंदीदा हटाएं",
     "remove_bookmark_msg": "क्या आप वास्तव में इस साइट को अपने पसंदीदा से हटाना चाहते हैं?",
@@ -6028,7 +6067,7 @@
     "show_balance": "टोटल बैलेंस दिखाएं"
   },
   "authentication": {
-    "auth_prompt_desc": "MetaMask के उपयोग के लिए कृपया प्रमाणित करें",
+    "auth_prompt_desc": "Authenticate to use MetaMask",
     "labels": {
       "remember_me": "मुझे याद रखें",
       "face_id": "फेस ID",
@@ -6066,7 +6105,7 @@
     "cta_text": "इंपोर्ट करें",
     "example": "जैसे\n3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266",
     "error_title": "कुछ गलत हो गया",
-    "error_message": "हम उस निजी की को इम्पोर्ट नहीं कर सके। कृपया सुनिश्चित करें कि आपने इसे सही ढ़ंग से दर्ज किया है।",
+    "error_message": "We couldn't import that private key. Make sure you entered it correctly.",
     "error_empty_message": "आपको अपनी निजी की दर्ज करने की जरुरत है।",
     "or_scan_a_qr_code": "या एक QR कोड स्कैन करें"
   },
@@ -6088,7 +6127,7 @@
     "12_word_option": "मेरे पास 12 शब्दों का एक फ्रेज़ है",
     "24_word_option": "मेरे पास 24 शब्दों का एक फ्रेज़ है",
     "error_title": "कुछ गलत हो गया",
-    "error_message": "हम उस सीक्रेट रिकवरी फ्रेज़ को इंपोर्ट नहीं कर सके। कृपया सुनिश्चित करें कि आपने इसे सही ढंग से एंटर किया है।",
+    "error_message": "We couldn't import that Secret Recovery Phrase. Make sure you entered it correctly.",
     "error_empty_message": "आपको अपना सीक्रेट रिकवरी फ्रेज़ एंटर करना होगा।",
     "error_number_of_words_error_message": "सीक्रेट रिकवरी फ्रेज़ में 12, या 24 शब्द होते हैं",
     "error_srp_is_case_sensitive": "ग़लत इनपुट! सीक्रेट रिकवरी फ्रेज़ केस सेंसिटिव है।",
@@ -6287,21 +6326,21 @@
   "phishing": {
     "ethereum_phishing_detection": "Ethereum फिशिंग का पता लगाना",
     "ethereum_phishing_detector": "Ethereum फिशिंग का पता लगाने वाला",
-    "intro": "वर्तमान में MetaMask डोमेन की चेतावनी सूची में है। इसका अर्थ है कि हमारे पास उपलब्ध जानकारी के आधार पर, MetaMask को यकीन है कि यह डोमेन आपकी सुरक्षा से समझौता कर सकता है, एक अतिरिक्त सुरक्षा फीचर के तौर पर, MetaMask के पास इस साइट तक पहुंचने की प्रतिबंधित पहुंच है। इसे निरस्त करने के लिए, उन निर्देशों के लिए कृपया इस चेतावनी के शेष को पढ़ें कि कैसे अपने जोखिम पर जारी रखना है।",
+    "intro": " is currently on the MetaMask domain warning list. This means that based on information available to us, MetaMask believes this domain could currently compromise your security and, as an added safety feature, MetaMask has restricted access to the site. To override this, read the rest of this warning for instructions on how to continue at your own risk.",
     "reasons": "हमारी चेतावनी सूची में साइट के आने के कई कारण हैं, और हमारी चेतावनी सूची अन्य विस्तृत रुप से उपयोग की जाने वाली इंडस्ट्री सूचियों से बनाई गई है। ऐसे कारणों में ज्ञात धोखाधड़ी या सुरक्षा जोखिम शामिल हो सकते हैं, जैसे कि वो डोमेन जो सकारात्मक परीक्षण करते हैं",
     "list_content": "इन चेतावनी सूचियों पर डोमेन में शामिल हो सकती हैं प्रत्यक्ष दुर्भावनापूर्ण वेबसाइट औऱ वैध वेबसाइट जिनका एक दुर्भावनापूर्ण एक्टर द्वारा समझौता किया गया है।",
     "to_read_more": "इस साइट के बारे ज्यादा जानने के लिए",
-    "review_on_etherscam": "Etherscam पर डोमेन की समीक्षा करें।",
+    "review_on_etherscam": "Review the domain on Etherscam.",
     "warning": "ध्यान दें कि यह चेतावनी सूची स्वैच्छिक आधार पर संकलित की गई है। यह सूची अशुद्ध या अपूर्ण हो सकती है। केवल इसलिए कि एक डोमेन इस सूची में नहीं आता, यह डोमेन की सुरक्षा की विश्वसनीय गारंटी नहीं है। हमेशा की तरह, आपके लेन-देन आपकी अपनी जिम्मेदारी हैं। यदि आप हमारी चेतावनी सूची के किसी डोमेन से संपर्क करना चाहते हैं, आप ऐसा कर सकते हैं",
     "continue_on_your_own": "अपने खुद के जोखिम पर जारी रखते हुए।",
     "file_an_issue_intro": "यदि आप सोचते हैं कि यह डोमेन गलत तरीके से फ्लैग किया गया है या एक ब्लॉक की गई वैध वेबसाइट ने इसके सुरक्षा मुद्दों को सुलझा लिया है,",
-    "file_an_issue": "कृपया एक मुद्दा दायर करें।",
+    "file_an_issue": "File an issue.",
     "back_to_safety": "सुरक्षा पर वापस जाएं",
     "site_might_be_harmful": "यह वेबसाइट हानिकारक हो सकती है",
     "metamask_flagged_site": "MetaMask ने उस साइट को संभावित रूप से भ्रामक के रूप में फ्लैग किया है जिस पर आप जाने का प्रयास कर रहे हैं। हमला करने वाले आपको कुछ खतरनाक काम करने के लिए उकसा सकते हैं।",
     "you_may_proceed_anyway": "आप",
     "proceed_anyway": "कैसे भी आगे बढ़ें",
-    "but_please_do_so_at_your_own_risk": "लेकिन कृपया ऐसा अपने जोखिम पर करें।",
+    "but_please_do_so_at_your_own_risk": "but do so at your own risk.",
     "report_detection_problem": "पहचान संबंधी समस्या की रिपोर्ट करें",
     "share_on_twitter": "यदि आपको यह उपयोगी लगा तो इसे X पर साझा करें।",
     "share_text": "MetaMask ने मुझे संभावित रूप से हानिकारक साइट पर जाने से बचाया: {{url}}। सुरक्षित रहें!"
@@ -6444,7 +6483,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "विदड्रॉवल का अनुरोध किया गया",
     "prompt_title": "पुश नोटिफिकेशन को प्राप्त करें",
     "notifications_enabled_error_title": "कुछ गलत हो गया",
-    "notifications_enabled_error_desc": "हम नोटिफिकेशंस चालू नहीं कर सके। कृपया बाद में फिर से प्रयास करें।",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Try again later.",
     "prompt_desc": "वॉलेट गतिविधि और अधिक पर महत्वपूर्ण अलर्ट प्राप्त करने के लिए सेटिंग्स से नोटिफिकेशंस चालू करें।",
     "prompt_ok": "चालू करें",
     "prompt_cancel": "शायद बाद में",
@@ -6456,7 +6495,7 @@
     "wc_signed_failed_title": "यह साइन रिक्वेस्ट विफल हो गया",
     "wc_sent_tx_rejected_title": "आपने लेन-देन का अनुरोध अस्वीकार कर दिया है",
     "approved_tx_rejected_title": "आपने अनुमति देने से इनकार किया है",
-    "wc_description": "कृपया एप्लिकेशन को जांचें",
+    "wc_description": "Check the application",
     "wallet": "वॉलेट",
     "web3": "Web3",
     "staking_provider": "स्टेकिंग प्रदाता",
@@ -6557,7 +6596,7 @@
     "your_tokens": "आपके टोकन",
     "enter_amount": "रकम दर्ज करें",
     "choose_asset": "अनुरोध के लिए एक संपत्ति चुनें",
-    "request_error": "अमान्य अनुरोध, कृपया फिर से कोशिश करें",
+    "request_error": "Invalid request, try again",
     "reset": "रीसेट करें",
     "next": "अगला",
     "amount_placeholder": "0.00",
@@ -6595,7 +6634,7 @@
     "wallet_connect_dapps_cta": "सेशन देखें",
     "network_not_supported": "वर्तमान नेटवर्क समर्थन नहीं करता",
     "select_provider": "अपना पसंदीदा प्रदाता चुनें",
-    "switch_network": "कृपया Mainnet या sepolia पर बदलें",
+    "switch_network": "Switch to mainnet or sepolia",
     "card_title": "हमेशा MetaMask कार्ड बटन दिखाएं",
     "card_desc": "MetaMask कार्ड केवल कुछ चुने हुए देशों के निवासियों के लिए उपलब्ध है।",
     "daimo_demo_title": "DaimoPay का डेमो वातावरण उपयोग करें",
@@ -6655,10 +6694,10 @@
     "pay_with": "के साथ भुगतान करें",
     "buying_via": "{{providerName}} के ज़रिए खरीद रहे हैं।",
     "change_provider": "प्रोवाइडर बदलें।",
-    "circuit_breaker_open": "यह सेवा अस्थायी रूप से उपलब्ध नहीं है। कृपया लगभग 30 मिनट बाद फिर से प्रयास करें।",
-    "payment_error": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।",
+    "circuit_breaker_open": "This service is temporarily unavailable. Try again in about 30 minutes.",
+    "payment_error": "Something went wrong. Try again.",
     "no_payment_methods_available": "पेमेंट का कोई तरीका उपलब्ध नहीं है।",
-    "error_fetching_quotes": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।",
+    "error_fetching_quotes": "Something went wrong. Try again.",
     "no_quotes_available": "कोई प्रोवाइडर उपलब्ध नहीं है।",
     "quote_unavailable": "कोटेशन उपलब्ध नहीं है।",
     "providers": "प्रोवाइडर्स",
@@ -6671,7 +6710,7 @@
     "powered_by_provider": "{{provider}} द्वारा संचालित",
     "purchased_currency": "{{currency}} खरीदा गया",
     "network_not_supported": "वर्तमान नेटवर्क समर्थन नहीं करता",
-    "switch_network": "कृपया Mainnet पर बदलें",
+    "switch_network": "Switch to Mainnet",
     "switch": "बदलें",
     "purchases": "खरीद",
     "purchase_method": "खरीदने का तरीका",
@@ -6855,7 +6894,7 @@
     "best_rate": "सबसे अच्छी रेट",
     "most_reliable": "सबसे विश्वसनीय",
     "quotes_timeout": "उद्धरण का समय समाप्त हो गया",
-    "request_new_quotes": "नए सबसे बढ़िया दर को प्राप्त करने के लिए कृपया नए उद्धरण का रिक्वेस्ट करें।",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "wallet_pay_terms": "जारी रखकर, आप Crossmint की   स्वीकार करते हैं",
     "terms_of_service": "सेवा की शर्तें",
     "amount_to_buy": "खरीदें",
@@ -6909,12 +6948,12 @@
     "return_home": "होम स्क्रीन पर लौटें",
     "incompatible_token_account_modal": {
       "title": "अकाउंट कम्पेटिबल नहीं है",
-      "description": "आपका वर्तमान अकाउंट {{networkName}} पर टोकन को सपोर्ट नहीं करता है। जारी रखने के लिए कृपया एक संगत अकाउंट चुनें।",
+      "description": "Your current account cannot support tokens on {{networkName}}. Switch to a compatible account to continue.",
       "cta": "समझ गए"
     },
     "eligibility_failed_modal": {
       "title": "योग्यता की परख नहीं की जा सकी",
-      "description": "हम आपके क्षेत्र के आधार पर एक्सेस कन्फर्म नहीं कर सके। कृपया फिर से कोशिश करें। अगर समस्या बनी रहती है, तो सपोर्ट टीम से संपर्क करें।",
+      "description": "We couldn't confirm access based on your region. Try again. If the issue continues, contact support.",
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें",
       "got_it": "समझ गए"
     },
@@ -6958,7 +6997,7 @@
       "failed": "ऑर्डर नहीं हो पाया",
       "cancelled": "ऑर्डर कैंसिल किया गया",
       "pending": "ऑर्डर अभी पूरा नहीं हुआ",
-      "failed_description": "कुछ गलत हो गया, और {{provider}} आपके ऑर्डर को पूरा नहीं कर पाया। कृपया पुन: प्रयास करें या किसी अन्य प्रदाता के साथ प्रयास करें।",
+      "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Try again or use another provider.",
       "continue_order_description": "अपना ऑर्डर जारी रखने के लिए, आपको इस पृष्ठ के नीचे बटन का चयन करना होगा।",
       "the_provider": "प्रदाता",
       "processing": "ऑर्डर प्रोसेस किया जा रहा है",
@@ -6996,7 +7035,7 @@
       "sent": "भेजा गया!"
     },
     "notifications": {
-      "purchase_failed_title": "{{currency}} की खरीद नहीं हो पायी। कृपया थोड़ी देर बाद फिर से प्रयास करें।",
+      "purchase_failed_title": "Purchase of {{currency}} failed. Try again momentarily.",
       "purchase_failed_description": "अपने पेमेंट के तरीके और कार्ड सपोर्ट को वेरीफाई करें",
       "purchase_cancelled_title": "आपकी खरीद रद्द कर दी गई थी",
       "purchase_cancelled_description": "अपने पेमेंट के तरीके और कार्ड सपोर्ट को वेरीफाई करें",
@@ -7033,7 +7072,7 @@
     "processing_info_modal_description": "कार्ड से खरीदारी में आमतौर पर कुछ मिनट लगते हैं। यदि आपके पास सवाल हैं तो आप सपोर्ट से कॉन्टेक्ट कर सकते हैं।",
     "go_to_provider_support": "{{provider}} सपोर्ट पेज पर जाएँ",
     "error_title": "कुछ गलत हो गया",
-    "error_message": "ऑर्डर विवरण लोड नहीं हो पाया। कृपया फिर से प्रयास करें।",
+    "error_message": "Unable to load order details. Try again.",
     "try_again": "फिर से प्रयास करें",
     "close": "बंद करें"
   },
@@ -7044,7 +7083,7 @@
       "purchase_completed_title": "{{amount}} {{cryptocurrency}} की आपकी खरीद सफल रही",
       "purchase_completed_description": "आपकी {{cryptocurrency}} अब उपलब्ध है",
       "purchase_failed_title": "{{cryptocurrency}} की खरीद नहीं हो पायी",
-      "purchase_failed_description": "कृपया कुछ समय बाद फिर से प्रयास करें",
+      "purchase_failed_description": "Try again momentarily",
       "purchase_cancelled_title": "आपकी खरीद कैंसिल कर दी गई थी",
       "purchase_cancelled_description": "आपकी {{cryptocurrency}} की खरीद कैंसिल कर दी गई है",
       "track": "ट्रैक करें"
@@ -7068,7 +7107,7 @@
       "start_swapping": "स्वैप करना शुरु करें"
     },
     "feature_off_title": "अस्थायी रुप से उपलब्ध नहीं",
-    "feature_off_body": "MetaMask स्वैप्स में रख-रखाव का काम चल रहा है। कृपया बाद में फिर से देखें।",
+    "feature_off_body": "MetaMask Swaps are undergoing maintenance. Check back later.",
     "wrong_network_title": "स्वैप उपलब्ध नहीं है",
     "wrong_network_body": "Ethereum मुख्य नेटवर्क पर ही केवल आप टोकन स्वैप करने में सक्षम हैं।",
     "unallowed_asset_title": "इस टोकन को स्वैप नहीं कर सकते",
@@ -7101,7 +7140,7 @@
     "error_gathering_token_details": "टोकन का विवरण एकत्रित करने में एक गड़बड़ी हुई थी।",
     "Import": "इम्पोर्ट",
     "invalid_token_contract_address": "अमान्य टोकन अनुबंध पता।",
-    "please_verify_on_explorer": "कृपया सत्यापित करें",
+    "please_verify_on_explorer": "Verify on",
     "add_warning": "कोई भी टोकन बना सकता है, जिसमें वर्तमान टोकन के नकली संस्करण बनाना शामिल है जो प्रोजेक्ट के प्रतिनिधित्व का दावा करता है।",
     "import_token": "टोकन इम्पोर्ट करें?",
     "contract": "अनुबंध:",
@@ -7196,11 +7235,11 @@
       "3": "जो मूल टोकन को रैप और अनरैप करता है और जिन्हें गैस की लागत पर सहेजा जा सकता है।"
     },
     "quotes_timeout": "उद्धरण का समय समाप्त हो गया",
-    "request_new_quotes": "नए सबसे बढ़िया दर को प्राप्त करने के लिए कृपया नए उद्धरण का अनुरोध करें।",
+    "request_new_quotes": "Request new quotes to get the latest best rate.",
     "quotes_not_available": "उद्धरण उपलब्ध नहीं हैं",
     "try_adjusting": "रकम को अनुकूलित करने की कोशिश करें और फिर से कोशिश करें।",
     "error_fetching_quote": "उद्धरण को लाने में त्रुटि",
-    "unexpected_error": "वहां एक अप्रत्याशित  त्रुटि हुई है, नए सबसे बढ़िया दर प्राप्त करने के लिए कृपया नए उद्धरण का अनुरोध करें।(error: {{error}})",
+    "unexpected_error": "There has been an unexpected error. Request new quotes to get the latest best rate. (error: {{error}})",
     "get_new_quotes": "नए उद्धरण प्राप्त करें",
     "try_again": "फिर से कोशिश करें।",
     "terms_of_service": "सेवा की शर्तें",
@@ -7252,15 +7291,15 @@
     "title": "एक गड़बड़ी हुई",
     "subtitle": "आपकी जानकारी दिखाई नहीं जा सकती। चिंता ना करें, आपके वॉलेट और फंड सुरक्षित हैं।",
     "try_again_button": "फिर से कोशिश करें।",
-    "submit_ticket_1": "कृपया इस मुद्दे के बारे में बताएं ताकि हम इसे ठीक कर सकें:",
+    "submit_ticket_1": "Report this issue so we can fix it:",
     "submit_ticket_2": "इस स्क्रीन का एक स्क्रीनशॉट लें।",
     "submit_ticket_3": "कॉपी करें",
     "submit_ticket_4": "क्लिपबोर्ड पर त्रुटि संदेश।",
     "submit_ticket_5": "एक टिकट सबमिट करें",
     "submit_ticket_6": "यहां।",
-    "submit_ticket_7": "कृपया त्रुटि संदेश और स्क्रीनशॉट को शामिल करें।",
+    "submit_ticket_7": "Include the error message and the screenshot.",
     "submit_ticket_8": "हमें एक बग रिपोर्ट भेजें।",
-    "submit_ticket_9": "कृपया जो हुआ उसके बारे में विवरण शामिल करें।",
+    "submit_ticket_9": "Include details about what happened.",
     "bug_report_prompt_title": "हमें बताएं कि क्या हुआ",
     "bug_report_prompt_description": "विवरण जोड़ें ताकि हम पता लगा सकें कि क्या गलत हुआ।",
     "bug_report_thanks": "धन्यवाद! हम जल्द ही नज़र डालेंगे।",
@@ -7465,8 +7504,8 @@
     "add_token_manually": "उन्हें मैन्युअल रूप से जोड़ें।",
     "got_it": "समझ लिया",
     "error_title": "कुछ गलत हो गया",
-    "error_message": "नेटवर्क जानकारी लोड करने में त्रुटि हुई है। बाद में पुन: प्रयास करें।",
-    "private_network_third_description": "इस नेटवर्क की पहचान आसान बनाने के लिए कृपया एक नाम दर्ज करें।",
+    "error_message": "There was an error loading the network information. Try again later.",
+    "private_network_third_description": "Enter a name for this network to make it easy to identify.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
     "enable_token_detection": "ऑटो टोकन डिटेक्शन सक्षम करें",
     "token_detection_mainnet_title": "टोकन डिटेक्शन एनेबल किया हुआ है इसलिए आपके वॉलेट में कई टोकन अपने आप दिखाई देंगे।",
@@ -7495,7 +7534,7 @@
     "action": "Remember Me बंद करें"
   },
   "dapp_connect": {
-    "warning": "इस फीचर का उपयोग करने के लिए, कृपया ऐप को नवीनतम संस्करण में अपडेट करें"
+    "warning": "To use this feature, update the app to the newest version"
   },
   "confirmation_modal": {
     "cancel_cta": "कैंसिल करें",
@@ -7509,7 +7548,7 @@
     "title": "हमारी उपयोग की शर्तों की समीक्षा करें",
     "terms_of_use_check_description": "मैं उपयोग की शर्तों से सहमत हूं, जो मेरे द्वारा MetaMask और इसकी सभी फीचर्स के उपयोग पर लागू होती हैं",
     "accept_cta": "स्वीकार करें",
-    "accept_helper_description": "सभी अनुच्छेदों को पढ़ने के लिए कृपया स्क्रॉल करें",
+    "accept_helper_description": "Scroll to read all sections",
     "agree_cta": "सहमत"
   },
   "update_needed": {
@@ -7608,7 +7647,7 @@
     "open_settings": "सेटिंग्स खोलें",
     "view_settings": "सेटिंग्स देखें",
     "bluetooth_off": "ब्लूटूथ बंद है",
-    "bluetooth_off_message": "कृपया अपने डिवाइस के लिए ब्लूटूथ चालू करें",
+    "bluetooth_off_message": "Turn on Bluetooth for your device",
     "bluetooth_access_blocked": "Ledger को आपके मोबाइल डिवाइस के साथ पेयर करने के लिए ब्लूटूथ एक्सेस की आवश्यकता होती है।",
     "bluetooth_access_blocked_message": "यदि आप अपने Ledger डिवाइस को पेयर करने के लिए ब्लूटूथ का उपयोग करना चाहते हैं, तो इसे सेटिंग्स में चालू करें और फिर से कोशिश करें।",
     "location_access_blocked": "MetaMask को आपके Ledger के साथ पेयर करने के लिए लोकेशन एक्सेस की अनुमति चाहिए।",
@@ -7616,22 +7655,22 @@
     "nearbyDevices_access_blocked": "MetaMask को आपके Ledger के साथ पेयर करने के लिए नज़दीकी डिवाइसों की अनुमति चाहिए।",
     "nearbyDevices_access_blocked_message": "यदि आप अपने Ledger डिवाइस को पेयर करने के लिए ब्लूटूथ का उपयोग करना चाहते हैं, तो आपको सेटिंग्स में नज़दीकी डिवाइसें चालू करके दोबारा कोशिश करनी होगी।",
     "bluetooth_scanning_error": "डिवाइस स्कैन करते समय गड़बड़ी",
-    "bluetooth_scanning_error_message": "कृपया सुनिश्चित करें कि आपका डिवाइस अनलॉक है और Ethereum ऐप चल रहा है",
+    "bluetooth_scanning_error_message": "Make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "ब्लूटूथ कनेक्शन नही हो सका",
-    "bluetooth_connection_failed_message": "कृपया सुनिश्चित करें कि आपका Ledger अनलॉक है और आपका ब्लूटूथ सक्षम है",
+    "bluetooth_connection_failed_message": "Make sure your Ledger is unlocked and your Bluetooth is enabled",
     "ethereum_app_open": "Ledger को पुष्टि की जरूरत है",
-    "ethereum_app_open_message": "Ethereum ऐप खोलने के लिए कृपया अपने डिवाइस पर पुष्टि करें। खुल जाने पर ओके दबाएं।",
+    "ethereum_app_open_message": "Confirm on your device to open Ethereum app. Press OK once done.",
     "ethereum_app_unconfirmed_error": "आपने Ethereum ऐप खोलने के रिक्वेस्ट को अएप्रूव कर दिया।",
     "failed_to_open_eth_app": "Ethereum ऐप नहीं खुल सका।",
-    "ethereum_app_open_error": "कृपया अपने Ledger डिवाइस पर Ethereum ऐप इंस्टॉल/स्वीकार करें।",
+    "ethereum_app_open_error": "Install/accept Ethereum app on your Ledger device.",
     "running_app_close": "चल रहे ऐप को बंद करने में विफल।",
     "running_app_close_error": "आपके Ledger डिवाइस पर चल रहे ऐप को बंद करने में विफल।",
     "ethereum_app_not_installed": "Ethereum ऐप इंस्टॉल नहीं है।",
-    "ethereum_app_not_installed_error": "कृपया अपने Ledger डिवाइस पर Ethereum ऐप इंस्टॉल करें।",
+    "ethereum_app_not_installed_error": "Install the Ethereum app on your Ledger device.",
     "eth_app_not_open": "Ethereum ऐप खुला नहीं है",
-    "eth_app_not_open_message": "कृपया अपने Ledger डिवाइस पर Ethereum ऐप खोलें।",
+    "eth_app_not_open_message": "Open the Ethereum app on your Ledger device.",
     "ledger_is_locked": "Ledger लॉक है",
-    "unlock_ledger_message": "कृपया अपने Ledger डिवाइस को अनलॉक करें",
+    "unlock_ledger_message": "Unlock your Ledger device",
     "unlock_ledger_device": "अपने Ledger डिवाइस को अनलॉक करें",
     "cannot_get_account": "अकाउंट नहीं मिल रहा है",
     "connect_ledger": "Ledger कनेक्ट करें",
@@ -7642,7 +7681,7 @@
     "save_device_selection": "सेव करें",
     "enable_bluetooth": "ब्लूटूथ चालू करें",
     "install_and_open_eth_app": "Ethereum ऐप को इनस्टॉल करें और खोलें",
-    "ledger_reminder_message": "कृपया सुनिश्चित करें कि आपका Ledger डिवाइस है:",
+    "ledger_reminder_message": "Make sure your Ledger device is:",
     "ledger_reminder_message_step_one": "1. अपने Ledger डिवाइस को अनलॉक करें",
     "ledger_reminder_message_step_two": "2. Ethereum ऐप को इनस्टॉल करें और खोलें",
     "ledger_reminder_message_step_three": "3. ब्लूटूथ चालू करें",
@@ -7657,14 +7696,14 @@
     "bluetooth_enabled_message": "सुनिश्चित करें कि ब्लूटूथ सक्षम है",
     "device_unlocked_message": "डिवाइस अनलॉक है",
     "ledger_disconnected": "आपका डिवाइस डिसकनेक्ट हो गया है",
-    "ledger_disconnected_error": "आपके डिवाइस से कनेक्शन टूट गया है। कृपया फिर से कोशिश करें।",
+    "ledger_disconnected_error": "The connection to your device has been lost. Try again.",
     "unknown_error": "अनपेक्षित गड़बड़ी हुई।",
     "unknown_error_message": "एक अनपेक्षित गड़बड़ी हुई। कृपया फिर से कोशिश करें।",
     "error_occured": "एक गड़बड़ी हुई",
     "how_to_install_eth_app": "Ledger डिवाइस पर Ethereum ऐप कैसे इंस्टॉल करें",
     "ledger_account_count": "आप MetaMask मोबाइल के साथ अपने Ledger से 1 अकाउंट का उपयोग कर रहे हैं।",
-    "open_eth_app": "कृपया Ethereum ऐप खोलें",
-    "open_eth_app_message_one": "हमें पता चला है कि आपके पास Ethereum ऐप इंस्टॉल है लेकिन यह खुला नहीं है, कृपया ",
+    "open_eth_app": "Open the Ethereum app",
+    "open_eth_app_message_one": "We've detected you have the Ethereum app installed but it's not open, ",
     "open_eth_app_message_two": "जारी रखने के लिए Ethereum ऐप खोलने के प्रॉम्प्ट को स्वीकार करने के लिए डिवाइस पर दो बटन दबाएं।",
     "toast_bluetooth_connection_error_title": "कुछ गलत हो गया",
     "toast_bluetooth_connection_error_subtitle": "Ledger कनेक्ट नहीं किया गया है",
@@ -7674,7 +7713,7 @@
     "forget_device": "Ledger भूल जाएं",
     "sign_with_ledger": "Ledger के साथ साइन करें",
     "ledger_pending_confirmation": "Ledger व्यस्त है",
-    "ledger_pending_confirmation_error": "आपके Ledger पर एक ऐक्शन बाकी है। कृपया पहले इस ऐक्शन को करें और फिर से कोशिश करें।",
+    "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Clear the action first, then retry.",
     "not_supported": "ऑपरेशन समर्थित नहीं है",
     "not_supported_error": "टाइप किए गए डेटा साइनिंग का केवल संस्करण 4 समर्थित है।",
     "error_during_connection": "एक अज्ञात गड़बड़ी हुई",
@@ -7690,7 +7729,7 @@
     "ledger_bip44_path": "BIP44(जैसे, MetaMask, Trezor)",
     "ledger_legacy_label": " (लेगसी)",
     "blind_sign_error": "ब्लाइंड साइनिंग संबंधी गड़बड़ी",
-    "blind_sign_error_message": "आपके Ledger डिवाइस पर ब्लाइंड साइनिंग चालू नहीं है। कृपया इसे सेटिंग्स में चालू करें।",
+    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Enable it in the settings.",
     "user_reject_transaction": "उपयोगकर्ता ने ट्रांसेक्शन को रिजेक्ट कर दिया",
     "user_reject_transaction_message": "उपयोगकर्ता ने Ledger डिवाइस पर ट्रांसेक्शन को रिजेक्ट कर दिया है।",
     "multiple_devices_error_message": "एकाधिक डिवाइस अभी तक सपोर्ट नहीं करती हैं। एक नया Ledger डिवाइस जोड़ने के लिए, आपको एक पुराना डिवाइस हटाना होगा।",
@@ -7698,10 +7737,10 @@
     "unspecified_error_during_connect": "Ledger हार्डवेयर कनेक्ट करते समय अनजानी गड़बड़ी हुई,",
     "account_name_existed": "अकाउंट {{accountName}} पहले से मौजूद है",
     "unresponsive": "Ledger काम नहीं कर रहा है",
-    "unresponsive_message": "कृपया अपना डिवाइस डिस्कनेक्ट करें और फिर से कनेक्ट करें",
+    "unresponsive_message": "Disconnect and reconnect your device",
     "ethereum_app_closed": "Ethereum ऐप बंद है",
-    "ethereum_app_closed_message": "जारी रखने के लिए कृपया इसे अपने Ledger डिवाइस पर खोलें",
-    "ledger_locked_message_continue": "जारी रखने के लिए कृपया अपने Ledger डिवाइस को अनलॉक करें",
+    "ethereum_app_closed_message": "Open it on your Ledger device to continue",
+    "ledger_locked_message_continue": "Unlock your Ledger device to continue",
     "bluetooth_access_denied": "ब्लूटूथ एक्सेस नहीं दिया गया",
     "bluetooth_access_denied_message": "अपने Ledger डिवाइस को कनेक्ट करने के लिए अपनी डिवाइस सेटिंग्स में ब्लूटूथ चालू करें",
     "location_access_denied": "लोकेशन एक्सेस नहीं दिया गया",
@@ -8019,7 +8058,7 @@
     "apy_info_label": "एपीवाय की जानकारी",
     "balance_unavailable": "बैलेंस अनुपलब्ध है",
     "balance_unavailable_value": "$—",
-    "balance_unavailable_banner_description": "हम अस्थायी रूप से आपका बैलेंस दिखाने में असमर्थ हैं। आपके फंड सुरक्षित हैं—कृपया थोड़ी देर बाद फिर से कोशिश करें।",
+    "balance_unavailable_banner_description": "We're temporarily unable to display your balance. Your funds are safe—try again shortly.",
     "balance_retry": "फिर से प्रयास करें",
     "balance_no_account": "Money Account नहीं मिला",
     "onboarding": {
@@ -9046,6 +9085,7 @@
     "slippage": "स्लिपेज (slippage)",
     "slippage_info": "यदि आपके ऑर्डर लगाए जाने और पुष्टि किए जाने के बीच कीमत में बदलाव होता है तो इसे \"स्लिपेज (slippage)\" कहा जाता है। यदि स्लिपेज (slippage) आपके द्वारा यहां निर्धारित सहनशीलता से अधिक हो जाता है तो आपका स्वैप स्वचालित रूप से कैंसिल हो जाएगा।",
     "network_fee": "नेटवर्क फीस",
+    "relayer_fee": "Relayer fee",
     "gas_fees_sponsored": "MetaMask द्वारा भुगतान किया गया",
     "included": "शामिल किया गया",
     "estimated_time": "अनुमानित समय",
@@ -9257,7 +9297,7 @@
   },
   "error_sheet": {
     "still_there_title": "अभी तक वहीं हैं?",
-    "still_there_description": "निष्क्रियता के कारण आपका लॉगिन समय समाप्त हो गया है। जब आप तैयार हों तो फिर से प्रयास करें।",
+    "still_there_description": "Your session timed out due to inactivity. Log in again when you're ready.",
     "unable_to_login_title": "कनेक्ट करने में असमर्थ",
     "unable_to_login_description": "आपका इंटरनेट कनेक्शन अस्थिर है। अपना कनेक्शन जांचें और फिर से प्रयास करें।",
     "something_went_wrong_title": "कुछ गलत हो गया",
@@ -9426,7 +9466,7 @@
       "learn_more": "ज्यादा जानें",
       "enter_password": "अपना पासवर्ड दर्ज करें",
       "password_placeholder": "पासवर्ड",
-      "wrong_password": "गलत पासवर्ड",
+      "wrong_password": "Incorrect password. Try again.",
       "copied": "प्राइवेट की (key) कॉपी की गई",
       "continue": "जारी रखें",
       "cancel": "कैंसिल करें"
@@ -9560,8 +9600,8 @@
       "placeholder": "पासवर्ड",
       "confirm": "कन्फर्म करें",
       "cancel": "कैंसिल करें",
-      "error_empty": "कृपया अपना पासवर्ड डालें",
-      "error_incorrect": "गलत पासवर्ड। कृपया फिर से प्रयास करें।"
+      "error_empty": "Enter your password",
+      "error_incorrect": "Incorrect password. Try again."
     },
     "view_pin_bottomsheet": {
       "title": "आपके कार्ड का पिन"
@@ -9579,7 +9619,7 @@
       "invalid_pin_error": "उस पिन का इस्तेमाल नहीं किया जा सकता। कोई दूसरा पिन चुनें।",
       "repeating_pin_error": "उस पिन का इस्तेमाल नहीं किया जा सकता। कोई दूसरा पिन चुनें।",
       "forbidden_error": "आप अभी इस कार्ड पर पिन सेट नहीं कर सकते।",
-      "network_error": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।",
+      "network_error": "Something went wrong. Try again.",
       "success_title": "आपका पिन सेट हो गया है",
       "success_description": "इसे सुरक्षित रखना सुनिश्चित करें। आप इसे ऐप में नहीं देख पाएँगे।"
     },
@@ -9618,7 +9658,7 @@
       "renews_annually": "हर साल",
       "total": "कुल",
       "pay": "भुगतान करें",
-      "payment_creation_error": "भुगतान बनाना नहीं हो पाया। कृपया फिर से प्रयास करें।"
+      "payment_creation_error": "Failed to create payment. Try again."
     },
     "order_completed": {
       "title": "आपका कार्ड ऑर्डर\nकिया गया है",
@@ -9657,9 +9697,9 @@
       "confirm_button_label": "अभी अपडेट करें"
     },
     "daimo_pay_modal": {
-      "load_error": "भुगतान पेज लोड करना नहीं हो पाया। कृपया फिर से प्रयास करें।",
-      "timeout_error": "भुगतान सत्यापन का समय समाप्त हो गया। कृपया अपनी ट्रांसेक्शन स्टेटस जांचें।",
-      "payment_bounced_error": "भुगतान नहीं हो पाया। कृपया किसी अन्य भुगतान विधि से फिर से प्रयास करें।",
+      "load_error": "Failed to load payment page. Try again.",
+      "timeout_error": "Payment verification timed out. Check your transaction status.",
+      "payment_bounced_error": "Payment failed. Try again with a different payment method.",
       "close": "बंद करें",
       "try_again": "फिर से प्रयास करें"
     },
@@ -9709,7 +9749,7 @@
         "phone_number_label": "फ़ोन नंबर दर्ज करें",
         "country_area_code_label": "देश का क्षेत्र कोड",
         "invalid_phone_number": "फ़ोन नंबर ग़लत है",
-        "invalid_us_phone_number": "आगे बढ़ने के लिए कृपया एक मान्य अमरीकी फ़ोन नंबर (10 डिजिट का) डालें।",
+        "invalid_us_phone_number": "Enter a valid US phone number (10 digits) to proceed.",
         "legal_terms": "जारी रखने पर, आप अपने फ़ोन नंबर को सत्यापित करने के लिए SMS प्राप्त करने के लिए सहमति देते हैं।"
       },
       "confirm_phone_number": {
@@ -9726,7 +9766,7 @@
         "terms_2": "एप्रूवल के लिए आपको अपनी ID और एड्रेस प्रूफ की ज़रूरत होगी। इसमें आमतौर पर 5 मिनट लगते हैं।",
         "terms_2_us": "फ़ेडरल कानून (यूएसए पैट्रियट अधिनियम) के अनुसार, आतंकवाद और मनी लॉन्ड्रिंग को रोकने में मदद के लिए हमें ID और पते के प्रूफ़ के साथ आपकी पहचान सत्यापित करनी होगी। इसमें आमतौर पर 5 मिनट लगते हैं।",
         "verify_button": "आगे",
-        "start_verification_error": "वेरिफ़िकेशन शुरू करने में गड़बड़ी हुई। कृपया थोड़ी देर बाद दोबारा कोशिश करें।"
+        "start_verification_error": "Error starting verification. Try again shortly."
       },
       "kyc_webview": {
         "close_confirmation_title": "वेरिफिकेशन से बाहर निकलें?",
@@ -9749,28 +9789,29 @@
       "verifying_veriff_kyc": {
         "title": "एप्रूवल का इंतज़ार है",
         "description": "आपके एप्लीकेशन को एप्रूव करने के लिए हमारे पार्टनर को आपकी पहचान वेरिफ़ाई करनी होगी।",
-        "helper_text": "इसमें आमतौर पर कुछ सेकंड लगते हैं। कृपया ऐप बंद न करें।"
+        "helper_text": "This usually takes a few seconds. Do not close the app."
       },
       "immersve_kyc_processing": {
         "title": "एप्रूवल का इंतज़ार है",
         "description": "आपके एप्लीकेशन को एप्रूव करने के लिए हमारे पार्टनर को आपकी पहचान वेरिफ़ाई करनी होगी।",
-        "helper_text": "इसमें आमतौर पर कुछ सेकंड लगते हैं। कृपया ऐप बंद न करें।",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "incomplete_title": "अपनी पहचान का सत्यापन पूरा करें",
         "incomplete_description": "आपने पहचान सत्यापन पूरा होने से पहले ही उसे बंद कर दिया था। इसे पूरा करने के लिए जारी रखें।",
         "continue_button": "सत्यापन जारी रखें",
         "info_needed_title": "अतिरिक्त जानकारी आवश्यक है",
         "info_needed_description": "आपके सत्यापन को पूरा करने के लिए हमें थोड़ी और जानकारी चाहिए। इसे प्रदान करने के लिए आगे बढ़ें।",
         "info_needed_button": "सत्यापन जारी रखें",
-        "expiring_error": "आपका सत्यापन सत्र समाप्त हो गया है। जारी रखने के लिए कृपया सपोर्ट से संपर्क करें।"
+        "expiring_error": "Your verification session expired. Contact support to continue."
       },
       "immersve_kyc_modal": {
-        "load_error": "पहचान सत्यापन लोड करते समय कुछ गड़बड़ हो गई। कृपया फिर से प्रयास करें।",
+        "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
+        "load_error": "Something went wrong loading identity verification. Try again.",
         "try_again": "फिर से प्रयास करें"
       },
       "immersve_funding_approval": {
         "title": "कार्ड फंडिंग सेट करें",
         "description": "खरीदारी के लिए अपने बेस पर मौजूद USDC का उपयोग करने हेतु MetaMask कार्ड को एप्रूव करें।",
-        "helper_text": "इसमें आमतौर पर कुछ सेकंड लगते हैं। कृपया ऐप बंद न करें।",
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "फंडिंग एप्रूव करें",
         "retry_button": "फिर से प्रयास करें"
       },
@@ -9841,7 +9882,7 @@
       },
       "mailing_address": {
         "title": "डाक पता",
-        "description": "कृपया एक मेलिंग एड्रेस दें जिस पर हम आपका कार्ड भेज सकें।"
+        "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
         "title": "आप तैयार हैं!",
@@ -9864,7 +9905,7 @@
       "close_button": "समझ गए",
       "waitlist_form": {
         "title": "प्रतीक्षा सूची में शामिल हों",
-        "load_error": "फॉर्म लोड करते समय कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
+        "load_error": "Something went wrong loading the form. Try again.",
         "try_again": "फिर से प्रयास करें",
         "success_toast": "आप वेटलिस्ट में हैं!",
         "success_toast_description": "कार्ड आपके देश में उपलब्ध होते ही हम आपको सूचित कर देंगे।"
@@ -9874,24 +9915,24 @@
       },
       "errors": {
         "no_region_results": "कोई क्षेत्र \"{{searchString}}\" से मेल नहीं खाता",
-        "email_already_exists": "ईमेल पहले से मौजूद है। कृपया किसी अन्य ईमेल का उपयोग करें।",
-        "invalid_email_format": "ईमेल फॉर्मेट ग़लत है। कृपया अपना ईमेल जांचें और फिर से कोशिश करें।",
-        "invalid_verification_code": "वेरिफ़िकेशन कोड ग़लत है। कृपया अपना कोड जांचें और फिर से कोशिश करें।",
-        "verification_code_expired": "वेरिफ़िकेशन कोड की समय सीमा समाप्त हो गई है। कृपया एक नए कोड का अनुरोध करें।",
-        "invalid_contact_verification_id": "कॉन्टेक्ट वेरिफ़िकेशन आईडी ग़लत है या इसकी समय सीमा समाप्त हो चुकी है। कृपया पंजीकरण प्रक्रिया फिर से शुरू करें।",
-        "invalid_phone_format": "फ़ोन नंबर फॉर्मेट ग़लत है। कृपया अपना फ़ोन नंबर जांचें और फिर से कोशिश करें।",
-        "phone_already_exists": "फ़ोन नंबर पहले से मौजूद है। कृपया किसी अन्य फ़ोन नंबर का उपयोग करें।",
-        "phone_number_mismatch": "फ़ोन नंबर वेरिफ़िकेशन session से मेल नहीं खाता है। कृपया अपना फ़ोन नंबर जांचें और फिर से कोशिश करें।",
-        "invalid_zip_code": "ज़िप कोड ग़लत है। कृपया एक मान्य ज़िप कोड प्रदान करें और फिर से कोशिश करें।",
-        "us_state_required": "अमेरिकी निवासियों के लिए अमेरिकी स्टेट काम नाम डालना आवश्यक है। कृपया एक मान्य स्टेट का नाम डालें और फिर से कोशिश करें।",
-        "consent_already_linked": "उपयोगकर्ता पहले से ही एक सहमति सेट से जुड़ा हुआ है। कृपया किसी अन्य उपयोगकर्ता का नाम डालें या सपोर्ट से संपर्क करें।",
-        "invalid_onboard_id": "ऑनबोर्डिंग आईडी ग़लत है। कृपया पंजीकरण प्रक्रिया फिर से शुरू करें।",
-        "create_user_failed": "उपयोगकर्ता नहीं बन पाया। कृपया फिर से कोशिश करें।"
+        "email_already_exists": "Email already exists. Use a different email.",
+        "invalid_email_format": "Invalid email format. Check your email and try again.",
+        "invalid_verification_code": "Invalid verification code. Check your code and try again.",
+        "verification_code_expired": "Verification code has expired. Request a new code.",
+        "invalid_contact_verification_id": "Invalid or expired contact verification ID. Restart the registration process.",
+        "invalid_phone_format": "Invalid phone number format. Check your phone number and try again.",
+        "phone_already_exists": "Phone number already exists. Use a different phone number.",
+        "phone_number_mismatch": "Phone number does not match verification session. Check your phone number and try again.",
+        "invalid_zip_code": "Invalid zip code. Enter a valid zip code and try again.",
+        "us_state_required": "US state is required for US residents. Enter a valid state and try again.",
+        "consent_already_linked": "User is already linked to a consent set. Use a different user or contact support.",
+        "invalid_onboard_id": "Invalid onboarding ID. Restart the registration process.",
+        "create_user_failed": "Failed to create user. Try again."
       }
     },
     "card_home": {
       "title": "कार्ड",
-      "authentication_error": "आपका सेशन खत्म हो गया है। कृपया फिर से लॉग इन करें।",
+      "authentication_error": "Your session has expired. Log in again.",
       "onboarding_token_revoked": "हम आपका कार्ड सेशन जारी नहीं रख सके। कृपया फिर से लॉग इन करें।",
       "available_balance": "उपलब्ध बैलेंस",
       "error_title": "डेटा प्राप्त नहीं किया जा सकता",
@@ -10207,7 +10248,7 @@
         "email_required": "ईमेल की आवश्यकता है",
         "password_required": "पासवर्ड की आवश्यकता है",
         "email_invalid": "ईमेल एड्रेस ग़लत है",
-        "password_invalid": "पासवर्ड ग़लत है",
+        "password_invalid": "Incorrect password. Try again.",
         "invalid_email_or_password": "ईमेल या पासवर्ड ग़लत है, अपने क्रेडेंशियल्स की जांच करें और फिर से प्रयास करें।",
         "network_error": "नेटवर्क गड़बड़ी। कृपया अपना कनेक्शन जांचें और फिर से प्रयास करें।",
         "timeout_error": "अनुरोध का समय समाप्त हो गया। कृपया अपना कनेक्शन जांचें और फिर से प्रयास करें।",
