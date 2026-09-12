@@ -188,6 +188,7 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import ActivityDetails from '../../Views/ActivityDetails';
+import OrderDetailsView from '../../Views/OrderDetails/OrderDetailsView';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
@@ -256,6 +257,10 @@ const AssetStackFlow = (props) => (
       name={'Asset'}
       component={TokenDetails}
       initialParams={props.route.params}
+    />
+    <NativeStack.Screen
+      name={Routes.ORDER_DETAILS_VIEW}
+      component={OrderDetailsView}
     />
     <NativeStack.Screen
       name={Routes.SECURITY_TRUST}
@@ -1117,6 +1122,11 @@ const MainNavigator = () => {
         name={Routes.ACTIVITY_DETAILS}
         component={ActivityDetails}
         options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.ORDER_DETAILS_VIEW}
+        component={OrderDetailsView}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
         name={Routes.TRANSACTION_DETAILS}
