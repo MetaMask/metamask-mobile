@@ -14,6 +14,10 @@ import {
   type PerpsTransaction,
 } from '../../../UI/Perps/types/transactionHistory';
 
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
