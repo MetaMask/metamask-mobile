@@ -35,6 +35,7 @@ import {
 } from '../../core/Engine/controllers/rewards-controller/types';
 import {
   buildCampaignOutcomeToastCompositeKey,
+  buildSeasonSubscriptionCompositeKey,
   buildSubscriptionCampaignCompositeKey,
   buildSubscriptionVipTransactionCompositeKey,
 } from './compositeKeys';
@@ -121,12 +122,146 @@ export const initialFirstPredictionOnUsInteraction: FirstPredictionOnUsInteracti
     transactionHash: null,
   };
 
+export interface SeasonUserStatusEntry {
+  balanceTotal: number | null;
+  balanceUpdatedAt: Date | null;
+  currentTier: SeasonTierDto | null;
+  nextTier: SeasonTierDto | null;
+  nextTierPointsNeeded: number | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface ReferralDetailsEntry {
+  referralCode: string | null;
+  refereeCount: number;
+  referredByCode: string | null;
+  isVipReferee: boolean;
+  referredByVipCode: string | null;
+  loading: boolean;
+  error: boolean;
+}
+
+export interface BenefitsEntry {
+  benefits: SubscriptionBenefitDto[];
+  loading: boolean;
+  error: boolean;
+}
+
+export interface ActiveBoostsEntry {
+  boosts: PointsBoostDto[] | null;
+  loading: boolean;
+  error: boolean;
+}
+
+export interface UnlockedRewardsEntry {
+  rewards: RewardDto[] | null;
+  loading: boolean;
+  error: boolean;
+}
+
+function createEmptySeasonUserStatusEntry(): SeasonUserStatusEntry {
+  return {
+    balanceTotal: null,
+    balanceUpdatedAt: null,
+    currentTier: null,
+    nextTier: null,
+    nextTierPointsNeeded: null,
+    loading: false,
+    error: null,
+  };
+}
+
+function getOrCreateSeasonUserStatusEntry(
+  map: Record<string, SeasonUserStatusEntry>,
+  key: string,
+): SeasonUserStatusEntry {
+  if (!map[key]) {
+    map[key] = createEmptySeasonUserStatusEntry();
+  }
+  return map[key];
+}
+
+function createEmptyReferralDetailsEntry(): ReferralDetailsEntry {
+  return {
+    referralCode: null,
+    refereeCount: 0,
+    referredByCode: null,
+    isVipReferee: false,
+    referredByVipCode: null,
+    loading: false,
+    error: false,
+  };
+}
+
+function getOrCreateReferralDetailsEntry(
+  map: Record<string, ReferralDetailsEntry>,
+  subscriptionId: string,
+): ReferralDetailsEntry {
+  if (!map[subscriptionId]) {
+    map[subscriptionId] = createEmptyReferralDetailsEntry();
+  }
+  return map[subscriptionId];
+}
+
+function createEmptyBenefitsEntry(): BenefitsEntry {
+  return {
+    benefits: [],
+    loading: false,
+    error: false,
+  };
+}
+
+function getOrCreateBenefitsEntry(
+  map: Record<string, BenefitsEntry>,
+  subscriptionId: string,
+): BenefitsEntry {
+  if (!map[subscriptionId]) {
+    map[subscriptionId] = createEmptyBenefitsEntry();
+  }
+  return map[subscriptionId];
+}
+
+function createEmptyActiveBoostsEntry(): ActiveBoostsEntry {
+  return {
+    boosts: null,
+    loading: false,
+    error: false,
+  };
+}
+
+function getOrCreateActiveBoostsEntry(
+  map: Record<string, ActiveBoostsEntry>,
+  key: string,
+): ActiveBoostsEntry {
+  if (!map[key]) {
+    map[key] = createEmptyActiveBoostsEntry();
+  }
+  return map[key];
+}
+
+function createEmptyUnlockedRewardsEntry(): UnlockedRewardsEntry {
+  return {
+    rewards: null,
+    loading: false,
+    error: false,
+  };
+}
+
+function getOrCreateUnlockedRewardsEntry(
+  map: Record<string, UnlockedRewardsEntry>,
+  key: string,
+): UnlockedRewardsEntry {
+  if (!map[key]) {
+    map[key] = createEmptyUnlockedRewardsEntry();
+  }
+  return map[key];
+}
+
 export interface RewardsState {
   activeTab: 'overview' | 'campaigns' | 'activity';
-  seasonStatusLoading: boolean;
-  seasonStatusError: string | null;
 
-  // Season state
+  // Season catalog (global)
   seasonId: string | null;
   seasonName: string | null;
   seasonStartDate: Date | null;
@@ -135,23 +270,11 @@ export interface RewardsState {
   seasonActivityTypes: SeasonActivityTypeDto[];
   seasonWaysToEarn: SeasonWayToEarnDto[];
 
-  // Subscription Referral state
-  referralDetailsLoading: boolean;
-  referralDetailsError: boolean;
-  referralCode: string | null;
-  refereeCount: number;
-  referredByCode: string | null;
-  isVipReferee: boolean;
-  referredByVipCode: string | null;
+  // Season user status (keyed by `${seasonId}:${subscriptionId}`)
+  seasonUserStatuses: Record<string, SeasonUserStatusEntry>;
 
-  // Season tier state
-  currentTier: SeasonTierDto | null;
-  nextTier: SeasonTierDto | null;
-  nextTierPointsNeeded: number | null;
-
-  // Season Balance state
-  balanceTotal: number | null;
-  balanceUpdatedAt: Date | null;
+  // Subscription Referral state (keyed by subscriptionId)
+  referralDetails: Record<string, ReferralDetailsEntry>;
 
   // Onboarding state
   onboardingActiveStep: OnboardingStep;
@@ -170,18 +293,14 @@ export interface RewardsState {
   hideCurrentAccountNotOptedInBanner: AccountOptInBannerInfoStatus[];
   hideUnlinkedAccountsBanner: boolean;
 
-  // Points Boost state
-  activeBoosts: PointsBoostDto[] | null;
-  activeBoostsLoading: boolean;
-  activeBoostsError: boolean;
+  // Points Boost state (keyed by `${seasonId}:${subscriptionId}`)
+  activeBoosts: Record<string, ActiveBoostsEntry>;
 
-  // Points Events state
-  pointsEvents: PointsEventDto[] | null;
+  // Points Events state (keyed by `${seasonId}:${subscriptionId}`)
+  pointsEvents: Record<string, PointsEventDto[] | null>;
 
-  // Unlocked Rewards state
-  unlockedRewards: RewardDto[] | null;
-  unlockedRewardLoading: boolean;
-  unlockedRewardError: boolean;
+  // Unlocked Rewards state (keyed by `${seasonId}:${subscriptionId}`)
+  unlockedRewards: Record<string, UnlockedRewardsEntry>;
 
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
@@ -189,18 +308,15 @@ export interface RewardsState {
   // Pending Money Account Sweepstakes series opt-in (resume on dashboard focus)
   pendingMasSeriesOptIn: PendingMasSeriesOptInState;
 
-  // Benefits state
-  benefits: SubscriptionBenefitDto[];
-  benefitsLoading: boolean;
-  benefitsError: boolean;
+  // Benefits state (keyed by subscriptionId)
+  benefits: Record<string, BenefitsEntry>;
 
   // VIP dashboard state (keyed by subscriptionId)
-  vipDashboard: Record<string, VipDashboardState>;
-  vipDashboardLoading: boolean;
-  vipDashboardError: boolean;
-  vipRefereeDashboard: Record<string, VipRefereeMeState>;
-  vipRefereeDashboardLoading: boolean;
-  vipRefereeDashboardError: boolean;
+  vipDashboard: Record<string, CampaignResourceCacheEntry<VipDashboardState>>;
+  vipRefereeDashboard: Record<
+    string,
+    CampaignResourceCacheEntry<VipRefereeMeState>
+  >;
   vipSplashAccepted: Record<string, boolean>;
   vipRefereeSplashAccepted: Record<string, boolean>;
   // VIP transactions (keyed by `${subscriptionId}:${type}`)
@@ -286,7 +402,7 @@ export interface RewardsState {
     CampaignResourceCacheEntry<PredictThePitchPrizePoolDto>
   >;
 
-  // Money Account Sweepstakes stats (keyed by campaignId; auth-scoped via controller)
+  // Money Account Sweepstakes stats (keyed by `${subscriptionId}:${campaignId}`)
   moneyAccountSweepstakesStats: Record<
     string,
     CampaignResourceCacheEntry<MoneyAccountSweepstakesStatsMeDto>
@@ -332,8 +448,6 @@ export interface PendingDeeplink {
 
 export const initialState: RewardsState = {
   activeTab: 'overview',
-  seasonStatusLoading: false,
-  seasonStatusError: null,
 
   seasonId: null,
   seasonName: null,
@@ -343,20 +457,8 @@ export const initialState: RewardsState = {
   seasonActivityTypes: [],
   seasonWaysToEarn: [],
 
-  referralDetailsLoading: false,
-  referralDetailsError: false,
-  referralCode: null,
-  refereeCount: 0,
-  referredByCode: null,
-  isVipReferee: false,
-  referredByVipCode: null,
-
-  currentTier: null,
-  nextTier: null,
-  nextTierPointsNeeded: null,
-
-  balanceTotal: 0,
-  balanceUpdatedAt: null,
+  seasonUserStatuses: {},
+  referralDetails: {},
 
   onboardingActiveStep: OnboardingStep.INTRO,
   onboardingReferralCode: null,
@@ -368,15 +470,9 @@ export const initialState: RewardsState = {
   hideUnlinkedAccountsBanner: false,
   hideCurrentAccountNotOptedInBanner: [],
 
-  activeBoosts: null,
-  activeBoostsLoading: false,
-  activeBoostsError: false,
-
-  pointsEvents: null,
-
-  unlockedRewards: null,
-  unlockedRewardLoading: false,
-  unlockedRewardError: false,
+  activeBoosts: {},
+  pointsEvents: {},
+  unlockedRewards: {},
 
   // Bulk link initial state
   bulkLink: {
@@ -394,17 +490,11 @@ export const initialState: RewardsState = {
   },
 
   // Benefits initial state
-  benefits: [],
-  benefitsLoading: false,
-  benefitsError: false,
+  benefits: {},
 
   // VIP dashboard initial state
   vipDashboard: {},
-  vipDashboardLoading: false,
-  vipDashboardError: false,
   vipRefereeDashboard: {},
-  vipRefereeDashboardLoading: false,
-  vipRefereeDashboardError: false,
   vipSplashAccepted: {},
   vipRefereeSplashAccepted: {},
   vipTransactions: {},
@@ -466,6 +556,61 @@ interface RehydrateAction extends Action<'persist/REHYDRATE'> {
   };
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Persisted maps that used to be arrays (boosts, points, unlocked rewards,
+ * benefits) must not be restored as-is: reducers write string keys onto the
+ * value, and JSON.stringify drops those keys on the next persist.
+ */
+function rehydrateKeyedMap<T>(value: unknown): Record<string, T> {
+  if (!isPlainRecord(value)) {
+    return {};
+  }
+  return value as Record<string, T>;
+}
+
+function isCampaignResourceCacheEntry(
+  value: unknown,
+): value is CampaignResourceCacheEntry<unknown> {
+  return (
+    isPlainRecord(value) &&
+    'data' in value &&
+    'loading' in value &&
+    'error' in value
+  );
+}
+
+function rehydrateCampaignResourceCacheMap<T>(
+  value: unknown,
+): Record<string, CampaignResourceCacheEntry<T>> {
+  if (!isPlainRecord(value)) {
+    return {};
+  }
+  const next: Record<string, CampaignResourceCacheEntry<T>> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (isCampaignResourceCacheEntry(entry)) {
+      next[key] = entry as CampaignResourceCacheEntry<T>;
+    }
+  }
+  return next;
+}
+
+function rehydrateSubscriptionCampaignCacheMap<T>(
+  value: unknown,
+): Record<string, CampaignResourceCacheEntry<T>> {
+  const map = rehydrateCampaignResourceCacheMap<T>(value);
+  const next: Record<string, CampaignResourceCacheEntry<T>> = {};
+  for (const [key, entry] of Object.entries(map)) {
+    if (key.includes(':')) {
+      next[key] = entry;
+    }
+  }
+  return next;
+}
+
 const rewardsSlice = createSlice({
   name: 'rewards',
   initialState,
@@ -479,44 +624,66 @@ const rewardsSlice = createSlice({
 
     setSeasonStatus: (
       state,
-      action: PayloadAction<SeasonStatusState | null>,
+      action: PayloadAction<{
+        subscriptionId: string;
+        status: SeasonStatusState | null;
+      }>,
     ) => {
-      // Clear error on successful data fetch
-      state.seasonStatusError = null;
+      const { subscriptionId, status } = action.payload;
 
-      // Season state
-      state.seasonId = action.payload?.season.id || null;
-      state.seasonName = action.payload?.season.name || null;
-      state.seasonStartDate = action.payload?.season.startDate
-        ? new Date(action.payload.season.startDate)
-        : null;
-      state.seasonEndDate = action.payload?.season.endDate
-        ? new Date(action.payload.season.endDate)
-        : null;
-      state.seasonTiers = action.payload?.season.tiers || [];
-      state.seasonActivityTypes = action.payload?.season.activityTypes || [];
-      state.seasonWaysToEarn = action.payload?.season.waysToEarn || [];
+      if (!status) {
+        const seasonId = state.seasonId;
+        if (seasonId) {
+          const key = buildSeasonSubscriptionCompositeKey(
+            seasonId,
+            subscriptionId,
+          );
+          delete state.seasonUserStatuses[key];
+        }
+        return;
+      }
 
-      // Season Balance state
-      state.balanceTotal =
-        action.payload?.balance &&
-        typeof action.payload.balance.total === 'number'
-          ? action.payload.balance.total
-          : null;
-      state.balanceUpdatedAt = action.payload?.balance?.updatedAt
-        ? new Date(action.payload.balance.updatedAt)
+      // Season catalog (global)
+      state.seasonId = status.season.id || null;
+      state.seasonName = status.season.name || null;
+      state.seasonStartDate = status.season.startDate
+        ? new Date(status.season.startDate)
         : null;
+      state.seasonEndDate = status.season.endDate
+        ? new Date(status.season.endDate)
+        : null;
+      state.seasonTiers = status.season.tiers || [];
+      state.seasonActivityTypes = status.season.activityTypes || [];
+      state.seasonWaysToEarn = status.season.waysToEarn || [];
 
-      // Season tier state
-      state.currentTier = action.payload?.tier?.currentTier || null;
-      state.nextTier = action.payload?.tier?.nextTier || null;
-      state.nextTierPointsNeeded =
-        action.payload?.tier?.nextTierPointsNeeded || null;
+      if (!status.season.id) {
+        return;
+      }
+
+      const key = buildSeasonSubscriptionCompositeKey(
+        status.season.id,
+        subscriptionId,
+      );
+      state.seasonUserStatuses[key] = {
+        balanceTotal:
+          status.balance && typeof status.balance.total === 'number'
+            ? status.balance.total
+            : null,
+        balanceUpdatedAt: status.balance?.updatedAt
+          ? new Date(status.balance.updatedAt)
+          : null,
+        currentTier: status.tier?.currentTier || null,
+        nextTier: status.tier?.nextTier || null,
+        nextTierPointsNeeded: status.tier?.nextTierPointsNeeded || null,
+        loading: false,
+        error: null,
+      };
     },
 
     setReferralDetails: (
       state,
       action: PayloadAction<{
+        subscriptionId: string;
         referralCode?: string;
         refereeCount?: number;
         referredByCode?: string;
@@ -524,44 +691,100 @@ const rewardsSlice = createSlice({
         referredByVipCode?: string | null;
       }>,
     ) => {
+      const entry = getOrCreateReferralDetailsEntry(
+        state.referralDetails,
+        action.payload.subscriptionId,
+      );
       if (action.payload.referralCode !== undefined) {
-        state.referralCode = action.payload.referralCode;
+        entry.referralCode = action.payload.referralCode;
       }
       if (action.payload.refereeCount !== undefined) {
-        state.refereeCount = action.payload.refereeCount;
+        entry.refereeCount = action.payload.refereeCount;
       }
       if (action.payload.referredByCode !== undefined) {
-        state.referredByCode = action.payload.referredByCode;
+        entry.referredByCode = action.payload.referredByCode;
       }
       if (action.payload.isVipReferee !== undefined) {
-        state.isVipReferee = action.payload.isVipReferee;
+        entry.isVipReferee = action.payload.isVipReferee;
       }
       if (action.payload.referredByVipCode !== undefined) {
-        state.referredByVipCode = action.payload.referredByVipCode;
+        entry.referredByVipCode = action.payload.referredByVipCode;
       }
-      state.referralDetailsLoading = false;
+      entry.loading = false;
     },
 
-    setReferralDetailsLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.referralCode) {
+    setReferralDetailsLoading: (
+      state,
+      action: PayloadAction<{ subscriptionId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateReferralDetailsEntry(
+        state.referralDetails,
+        action.payload.subscriptionId,
+      );
+      if (action.payload.loading && entry.referralCode) {
         return;
       }
-      state.referralDetailsLoading = action.payload;
+      entry.loading = action.payload.loading;
     },
 
-    setReferralDetailsError: (state, action: PayloadAction<boolean>) => {
-      state.referralDetailsError = action.payload;
+    setReferralDetailsError: (
+      state,
+      action: PayloadAction<{ subscriptionId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateReferralDetailsEntry(
+        state.referralDetails,
+        action.payload.subscriptionId,
+      );
+      entry.error = action.payload.error;
     },
 
-    setSeasonStatusLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.seasonStartDate) {
+    setSeasonStatusLoading: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        seasonId?: string | null;
+        loading: boolean;
+      }>,
+    ) => {
+      const seasonId = action.payload.seasonId ?? state.seasonId;
+      if (!seasonId) {
         return;
       }
-      state.seasonStatusLoading = action.payload;
+      const key = buildSeasonSubscriptionCompositeKey(
+        seasonId,
+        action.payload.subscriptionId,
+      );
+      const entry = getOrCreateSeasonUserStatusEntry(
+        state.seasonUserStatuses,
+        key,
+      );
+      if (action.payload.loading && entry.balanceTotal != null) {
+        return;
+      }
+      entry.loading = action.payload.loading;
     },
 
-    setSeasonStatusError: (state, action: PayloadAction<string | null>) => {
-      state.seasonStatusError = action.payload;
+    setSeasonStatusError: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        seasonId?: string | null;
+        error: string | null;
+      }>,
+    ) => {
+      const seasonId = action.payload.seasonId ?? state.seasonId;
+      if (!seasonId) {
+        return;
+      }
+      const key = buildSeasonSubscriptionCompositeKey(
+        seasonId,
+        action.payload.subscriptionId,
+      );
+      const entry = getOrCreateSeasonUserStatusEntry(
+        state.seasonUserStatuses,
+        key,
+      );
+      entry.error = action.payload.error;
     },
 
     resetRewardsState: (state) => {
@@ -582,12 +805,14 @@ const rewardsSlice = createSlice({
       state.moneyAccountSweepstakesStats = {};
       state.moneyAccountSweepstakesPrizePools = {};
       state.moneyAccountSweepstakesDrawProofs = {};
+      state.seasonUserStatuses = {};
+      state.referralDetails = {};
+      state.activeBoosts = {};
+      state.pointsEvents = {};
+      state.unlockedRewards = {};
+      state.benefits = {};
       state.vipDashboard = {};
-      state.vipDashboardLoading = false;
-      state.vipDashboardError = false;
       state.vipRefereeDashboard = {};
-      state.vipRefereeDashboardLoading = false;
-      state.vipRefereeDashboardError = false;
       state.vipSplashAccepted = {};
       state.vipRefereeSplashAccepted = {};
       state.vipTransactions = {};
@@ -613,45 +838,6 @@ const rewardsSlice = createSlice({
       state,
       action: PayloadAction<string | 'pending' | 'error' | 'retry' | null>,
     ) => {
-      const previousCandidateId = state.candidateSubscriptionId;
-      const newCandidateId = action.payload;
-
-      // Check if candidate ID changed and old value had a value (not null, 'pending', 'error', or 'retry')
-      const hasValidPreviousId =
-        previousCandidateId &&
-        previousCandidateId !== 'pending' &&
-        previousCandidateId !== 'error' &&
-        previousCandidateId !== 'retry';
-
-      const candidateIdChanged =
-        hasValidPreviousId && previousCandidateId !== newCandidateId;
-
-      if (candidateIdChanged) {
-        // Reset all state to initial, preserving only non-subscription-scoped fields
-        Object.assign(state, initialState, {
-          activeTab: state.activeTab,
-          onboardingActiveStep: state.onboardingActiveStep,
-          onboardingReferralCode: state.onboardingReferralCode,
-          geoLocation: state.geoLocation,
-          optinAllowedForGeo: state.optinAllowedForGeo,
-          optinAllowedForGeoLoading: state.optinAllowedForGeoLoading,
-          optinAllowedForGeoError: state.optinAllowedForGeoError,
-          hideCurrentAccountNotOptedInBanner:
-            state.hideCurrentAccountNotOptedInBanner,
-          hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
-          bulkLink: state.bulkLink,
-          dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
-          subscribedCampaignReminders: state.subscribedCampaignReminders,
-          firstPredictionOnUsInteraction: state.firstPredictionOnUsInteraction,
-          vipSplashAccepted: state.vipSplashAccepted,
-          vipRefereeSplashAccepted: state.vipRefereeSplashAccepted,
-          versionGuardMinimumMobileVersion:
-            state.versionGuardMinimumMobileVersion,
-          versionGuardLoading: state.versionGuardLoading,
-          versionGuardError: state.versionGuardError,
-        });
-      }
-
       state.candidateSubscriptionId = action.payload;
     },
 
@@ -705,38 +891,143 @@ const rewardsSlice = createSlice({
 
     setActiveBoosts: (
       state,
-      action: PayloadAction<PointsBoostDto[] | null>,
+      action: PayloadAction<{
+        subscriptionId: string;
+        seasonId?: string | null;
+        boosts: PointsBoostDto[] | null;
+      }>,
     ) => {
-      state.activeBoosts = action.payload;
-      state.activeBoostsError = false; // Reset error when successful
-    },
-    setActiveBoostsLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.activeBoosts?.length) {
+      const seasonId = action.payload.seasonId ?? state.seasonId;
+      if (!seasonId) {
         return;
       }
-      state.activeBoostsLoading = action.payload;
+      const key = buildSeasonSubscriptionCompositeKey(
+        seasonId,
+        action.payload.subscriptionId,
+      );
+      const entry = getOrCreateActiveBoostsEntry(state.activeBoosts, key);
+      entry.boosts = action.payload.boosts;
+      entry.error = false;
     },
-    setActiveBoostsError: (state, action: PayloadAction<boolean>) => {
-      state.activeBoostsError = action.payload;
-    },
-    setUnlockedRewards: (state, action: PayloadAction<RewardDto[] | null>) => {
-      state.unlockedRewards = action.payload;
-      state.unlockedRewardError = false; // Reset error when successful
-    },
-    setUnlockedRewardLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.unlockedRewards?.length) {
+    setActiveBoostsLoading: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        seasonId?: string | null;
+        loading: boolean;
+      }>,
+    ) => {
+      const seasonId = action.payload.seasonId ?? state.seasonId;
+      if (!seasonId) {
         return;
       }
-      state.unlockedRewardLoading = action.payload;
+      const key = buildSeasonSubscriptionCompositeKey(
+        seasonId,
+        action.payload.subscriptionId,
+      );
+      const entry = getOrCreateActiveBoostsEntry(state.activeBoosts, key);
+      if (action.payload.loading && entry.boosts?.length) {
+        return;
+      }
+      entry.loading = action.payload.loading;
     },
-    setUnlockedRewardError: (state, action: PayloadAction<boolean>) => {
-      state.unlockedRewardError = action.payload;
+    setActiveBoostsError: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        seasonId?: string | null;
+        error: boolean;
+      }>,
+    ) => {
+      const seasonId = action.payload.seasonId ?? state.seasonId;
+      if (!seasonId) {
+        return;
+      }
+      const key = buildSeasonSubscriptionCompositeKey(
+        seasonId,
+        action.payload.subscriptionId,
+      );
+      const entry = getOrCreateActiveBoostsEntry(state.activeBoosts, key);
+      entry.error = action.payload.error;
+    },
+    setUnlockedRewards: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        seasonId?: string | null;
+        rewards: RewardDto[] | null;
+      }>,
+    ) => {
+      const seasonId = action.payload.seasonId ?? state.seasonId;
+      if (!seasonId) {
+        return;
+      }
+      const key = buildSeasonSubscriptionCompositeKey(
+        seasonId,
+        action.payload.subscriptionId,
+      );
+      const entry = getOrCreateUnlockedRewardsEntry(state.unlockedRewards, key);
+      entry.rewards = action.payload.rewards;
+      entry.error = false;
+    },
+    setUnlockedRewardLoading: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        seasonId?: string | null;
+        loading: boolean;
+      }>,
+    ) => {
+      const seasonId = action.payload.seasonId ?? state.seasonId;
+      if (!seasonId) {
+        return;
+      }
+      const key = buildSeasonSubscriptionCompositeKey(
+        seasonId,
+        action.payload.subscriptionId,
+      );
+      const entry = getOrCreateUnlockedRewardsEntry(state.unlockedRewards, key);
+      if (action.payload.loading && entry.rewards?.length) {
+        return;
+      }
+      entry.loading = action.payload.loading;
+    },
+    setUnlockedRewardError: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        seasonId?: string | null;
+        error: boolean;
+      }>,
+    ) => {
+      const seasonId = action.payload.seasonId ?? state.seasonId;
+      if (!seasonId) {
+        return;
+      }
+      const key = buildSeasonSubscriptionCompositeKey(
+        seasonId,
+        action.payload.subscriptionId,
+      );
+      const entry = getOrCreateUnlockedRewardsEntry(state.unlockedRewards, key);
+      entry.error = action.payload.error;
     },
     setPointsEvents: (
       state,
-      action: PayloadAction<PointsEventDto[] | null>,
+      action: PayloadAction<{
+        subscriptionId: string;
+        seasonId?: string | null;
+        pointsEvents: PointsEventDto[] | null;
+      }>,
     ) => {
-      state.pointsEvents = action.payload;
+      const seasonId = action.payload.seasonId ?? state.seasonId;
+      if (!seasonId) {
+        return;
+      }
+      const key = buildSeasonSubscriptionCompositeKey(
+        seasonId,
+        action.payload.subscriptionId,
+      );
+      state.pointsEvents[key] = action.payload.pointsEvents;
     },
 
     // Campaigns reducers
@@ -900,16 +1191,40 @@ const rewardsSlice = createSlice({
       }
     },
 
-    setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
-      state.benefits = action.payload.benefits ?? [];
+    setBenefits: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        benefits: SubscriptionBenefitsState;
+      }>,
+    ) => {
+      const entry = getOrCreateBenefitsEntry(
+        state.benefits,
+        action.payload.subscriptionId,
+      );
+      entry.benefits = action.payload.benefits.benefits ?? [];
     },
 
-    setBenefitsLoading: (state, action: PayloadAction<boolean>) => {
-      state.benefitsLoading = action.payload;
+    setBenefitsLoading: (
+      state,
+      action: PayloadAction<{ subscriptionId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateBenefitsEntry(
+        state.benefits,
+        action.payload.subscriptionId,
+      );
+      entry.loading = action.payload.loading;
     },
 
-    setBenefitsError: (state, action: PayloadAction<boolean>) => {
-      state.benefitsError = action.payload;
+    setBenefitsError: (
+      state,
+      action: PayloadAction<{ subscriptionId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateBenefitsEntry(
+        state.benefits,
+        action.payload.subscriptionId,
+      );
+      entry.error = action.payload.error;
     },
 
     setVipDashboard: (
@@ -919,21 +1234,34 @@ const rewardsSlice = createSlice({
         dashboard: VipDashboardState | null;
       }>,
     ) => {
-      if (action.payload.dashboard) {
-        state.vipDashboard[action.payload.subscriptionId] =
-          action.payload.dashboard;
-      } else {
-        delete state.vipDashboard[action.payload.subscriptionId];
-      }
-      state.vipDashboardError = false;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.vipDashboard,
+        action.payload.subscriptionId,
+      );
+      entry.data = action.payload.dashboard;
+      entry.error = false;
     },
 
-    setVipDashboardLoading: (state, action: PayloadAction<boolean>) => {
-      state.vipDashboardLoading = action.payload;
+    setVipDashboardLoading: (
+      state,
+      action: PayloadAction<{ subscriptionId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.vipDashboard,
+        action.payload.subscriptionId,
+      );
+      entry.loading = action.payload.loading;
     },
 
-    setVipDashboardError: (state, action: PayloadAction<boolean>) => {
-      state.vipDashboardError = action.payload;
+    setVipDashboardError: (
+      state,
+      action: PayloadAction<{ subscriptionId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.vipDashboard,
+        action.payload.subscriptionId,
+      );
+      entry.error = action.payload.error;
     },
 
     setVipRefereeDashboard: (
@@ -943,21 +1271,34 @@ const rewardsSlice = createSlice({
         dashboard: VipRefereeMeState | null;
       }>,
     ) => {
-      if (action.payload.dashboard) {
-        state.vipRefereeDashboard[action.payload.subscriptionId] =
-          action.payload.dashboard;
-      } else {
-        delete state.vipRefereeDashboard[action.payload.subscriptionId];
-      }
-      state.vipRefereeDashboardError = false;
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.vipRefereeDashboard,
+        action.payload.subscriptionId,
+      );
+      entry.data = action.payload.dashboard;
+      entry.error = false;
     },
 
-    setVipRefereeDashboardLoading: (state, action: PayloadAction<boolean>) => {
-      state.vipRefereeDashboardLoading = action.payload;
+    setVipRefereeDashboardLoading: (
+      state,
+      action: PayloadAction<{ subscriptionId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.vipRefereeDashboard,
+        action.payload.subscriptionId,
+      );
+      entry.loading = action.payload.loading;
     },
 
-    setVipRefereeDashboardError: (state, action: PayloadAction<boolean>) => {
-      state.vipRefereeDashboardError = action.payload;
+    setVipRefereeDashboardError: (
+      state,
+      action: PayloadAction<{ subscriptionId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.vipRefereeDashboard,
+        action.payload.subscriptionId,
+      );
+      entry.error = action.payload.error;
     },
 
     acceptVipInvite: (
@@ -1302,34 +1643,55 @@ const rewardsSlice = createSlice({
     setMoneyAccountSweepstakesStats: (
       state,
       action: PayloadAction<{
+        subscriptionId: string;
         campaignId: string;
         stats: MoneyAccountSweepstakesStatsMeDto | null;
       }>,
     ) => {
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       const entry = getOrCreateCampaignResourceCacheEntry(
         state.moneyAccountSweepstakesStats,
-        action.payload.campaignId,
+        key,
       );
       entry.data = action.payload.stats;
       entry.error = false;
     },
     setMoneyAccountSweepstakesStatsLoading: (
       state,
-      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        loading: boolean;
+      }>,
     ) => {
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       const entry = getOrCreateCampaignResourceCacheEntry(
         state.moneyAccountSweepstakesStats,
-        action.payload.campaignId,
+        key,
       );
       entry.loading = action.payload.loading;
     },
     setMoneyAccountSweepstakesStatsError: (
       state,
-      action: PayloadAction<{ campaignId: string; error: boolean }>,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+        error: boolean;
+      }>,
     ) => {
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       const entry = getOrCreateCampaignResourceCacheEntry(
         state.moneyAccountSweepstakesStats,
-        action.payload.campaignId,
+        key,
       );
       entry.error = action.payload.error;
       if (action.payload.error) {
@@ -1594,7 +1956,7 @@ const rewardsSlice = createSlice({
               // Reset non-persistent state (state is persisted via controller)
               ...initialState,
 
-              // UI state we want to restore from previous visit
+              // Season catalog (global)
               seasonId: action.payload.rewards.seasonId,
               seasonName: action.payload.rewards.seasonName,
               seasonStartDate: action.payload.rewards.seasonStartDate,
@@ -1603,37 +1965,65 @@ const rewardsSlice = createSlice({
               seasonActivityTypes:
                 action.payload.rewards.seasonActivityTypes ?? [],
               seasonWaysToEarn: action.payload.rewards.seasonWaysToEarn ?? [],
-              referralCode: action.payload.rewards.referralCode,
-              refereeCount: action.payload.rewards.refereeCount,
-              currentTier: action.payload.rewards.currentTier,
-              nextTier: action.payload.rewards.nextTier,
-              nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
-              balanceTotal: action.payload.rewards.balanceTotal,
-              balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
-              activeBoosts: action.payload.rewards.activeBoosts,
-              pointsEvents: action.payload.rewards.pointsEvents,
-              unlockedRewards: action.payload.rewards.unlockedRewards,
+
+              // Keyed maps — restore if present and already the new shape;
+              // legacy flat fields and same-name old types (arrays, DTO maps,
+              // campaignId-only stats) are dropped.
+              seasonUserStatuses: rehydrateKeyedMap(
+                action.payload.rewards.seasonUserStatuses,
+              ),
+              referralDetails: rehydrateKeyedMap(
+                action.payload.rewards.referralDetails,
+              ),
+              activeBoosts: rehydrateKeyedMap(
+                action.payload.rewards.activeBoosts,
+              ),
+              pointsEvents: rehydrateKeyedMap(
+                action.payload.rewards.pointsEvents,
+              ),
+              unlockedRewards: rehydrateKeyedMap(
+                action.payload.rewards.unlockedRewards,
+              ),
+              benefits: rehydrateKeyedMap(action.payload.rewards.benefits),
+
               campaigns: action.payload.rewards.campaigns ?? [],
-              vipDashboard: action.payload.rewards.vipDashboard ?? {},
-              vipRefereeDashboard:
-                action.payload.rewards.vipRefereeDashboard ?? {},
-              vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
-              vipRefereeSplashAccepted:
-                action.payload.rewards.vipRefereeSplashAccepted ?? {},
-              vipTransactions: action.payload.rewards.vipTransactions ?? {},
-              campaignParticipantStatuses:
-                action.payload.rewards.campaignParticipantStatuses ?? {},
-              ondoCampaignLeaderboardPositions:
-                action.payload.rewards.ondoCampaignLeaderboardPositions ?? {},
-              ondoCampaignPortfolio:
-                action.payload.rewards.ondoCampaignPortfolio ?? {},
-              ondoCampaignActivity:
-                action.payload.rewards.ondoCampaignActivity ?? {},
-              predictThePitchLeaderboardPositions:
-                action.payload.rewards.predictThePitchLeaderboardPositions ??
-                {},
-              predictThePitchPositions:
-                action.payload.rewards.predictThePitchPositions ?? {},
+              vipDashboard: rehydrateCampaignResourceCacheMap(
+                action.payload.rewards.vipDashboard,
+              ),
+              vipRefereeDashboard: rehydrateCampaignResourceCacheMap(
+                action.payload.rewards.vipRefereeDashboard,
+              ),
+              vipSplashAccepted: rehydrateKeyedMap(
+                action.payload.rewards.vipSplashAccepted,
+              ),
+              vipRefereeSplashAccepted: rehydrateKeyedMap(
+                action.payload.rewards.vipRefereeSplashAccepted,
+              ),
+              vipTransactions: rehydrateKeyedMap(
+                action.payload.rewards.vipTransactions,
+              ),
+              campaignParticipantStatuses: rehydrateKeyedMap(
+                action.payload.rewards.campaignParticipantStatuses,
+              ),
+              ondoCampaignLeaderboardPositions: rehydrateKeyedMap(
+                action.payload.rewards.ondoCampaignLeaderboardPositions,
+              ),
+              ondoCampaignPortfolio: rehydrateKeyedMap(
+                action.payload.rewards.ondoCampaignPortfolio,
+              ),
+              ondoCampaignActivity: rehydrateKeyedMap(
+                action.payload.rewards.ondoCampaignActivity,
+              ),
+              predictThePitchLeaderboardPositions: rehydrateKeyedMap(
+                action.payload.rewards.predictThePitchLeaderboardPositions,
+              ),
+              predictThePitchPositions: rehydrateKeyedMap(
+                action.payload.rewards.predictThePitchPositions,
+              ),
+              moneyAccountSweepstakesStats:
+                rehydrateSubscriptionCampaignCacheMap(
+                  action.payload.rewards.moneyAccountSweepstakesStats,
+                ),
               hideUnlinkedAccountsBanner:
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
