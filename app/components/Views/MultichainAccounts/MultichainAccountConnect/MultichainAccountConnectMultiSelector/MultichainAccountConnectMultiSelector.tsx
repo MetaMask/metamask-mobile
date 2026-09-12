@@ -29,14 +29,18 @@ import { ConnectedAccountsSelectorsIDs } from '../../../MultichainAccounts/share
 import { USER_INTENT } from '../../../../../constants/permissions';
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import type { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
 import { AccountGroupWithInternalAccounts } from '../../../../../selectors/multichainAccounts/accounts.type';
-import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  selectAccountGroups,
+  selectAccountGroupsByWallet,
+} from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-interface MultichainAccountConnectMultiSelectorProps {
+export interface MultichainAccountConnectMultiSelectorProps {
   accountGroups: AccountGroupWithInternalAccounts[];
   defaultSelectedAccountGroupIds: AccountGroupId[];
   isLoading: boolean;
@@ -51,6 +55,7 @@ interface MultichainAccountConnectMultiSelectorProps {
 }
 
 const MultichainAccountConnectMultiSelector = ({
+  accountGroups: accountGroupsProp,
   defaultSelectedAccountGroupIds,
   isLoading,
   screenTitle,
@@ -80,6 +85,22 @@ const MultichainAccountConnectMultiSelector = ({
   }, [defaultSelectedAccountGroupIds]);
 
   const accountGroups = useSelector(selectAccountGroups);
+  const treeSections = useSelector(selectAccountGroupsByWallet);
+
+  /**
+   * List sections: the account tree filtered down to the `accountGroups`
+   * prop, so connected hidden groups stay visible while other hidden groups
+   * do not.
+   */
+  const accountSections = useMemo<AccountSection[]>(() => {
+    const selectableIds = new Set(accountGroupsProp.map((group) => group.id));
+    return treeSections
+      .map((section) => ({
+        ...section,
+        data: section.data.filter((group) => selectableIds.has(group.id)),
+      }))
+      .filter((section) => section.data.length > 0);
+  }, [accountGroupsProp, treeSections]);
 
   const onSelectAccountGroupId = useCallback(
     (accountGroup: AccountGroupObject) => {
@@ -182,6 +203,7 @@ const MultichainAccountConnectMultiSelector = ({
         <MultichainAccountSelectorList
           onSelectAccount={onSelectAccountGroupId}
           selectedAccountGroups={selectedAccountGroups}
+          accountSections={accountSections}
           testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
           showCheckbox
         />

@@ -243,6 +243,22 @@ describe('ManageAccountRow', () => {
       expect(onRemove).toHaveBeenCalledWith(GROUP_ID);
     });
 
+    it('disables the remove control on a hidden row', () => {
+      const onRemove = jest.fn();
+      const { getByTestId } = renderRow({
+        isHidden: true,
+        variant: ManageAccountRowVariant.Remove,
+        onToggleHidden: jest.fn(),
+        onRemove,
+      });
+
+      const removeControl = getByTestId(getManageAccountRowRemoveId(GROUP_ID), {
+        includeHiddenElements: true,
+      });
+
+      expect(removeControl).toBeDisabled();
+    });
+
     it('renders no eye toggle', () => {
       const { queryByTestId } = renderRow({
         variant: ManageAccountRowVariant.Remove,
@@ -253,72 +269,6 @@ describe('ManageAccountRow', () => {
       expect(
         queryByTestId(getManageAccountRowEyeToggleId(GROUP_ID)),
       ).toBeNull();
-    });
-  });
-
-  describe('hideAndRemove variant (hardware rows)', () => {
-    it('renders both the eye and the remove controls', () => {
-      const onToggleHidden = jest.fn();
-      const onRemove = jest.fn();
-      const utils = renderRow({
-        variant: ManageAccountRowVariant.HideAndRemove,
-        onToggleHidden,
-        onRemove,
-      });
-
-      const eyeIcon = utils.getByTestId(getManageAccountRowEyeIconId(GROUP_ID));
-      const removeIcon = utils.getByTestId(
-        getManageAccountRowRemoveIconId(GROUP_ID),
-      );
-
-      expect(
-        utils.getByTestId(getManageAccountRowEyeToggleId(GROUP_ID)).props
-          .accessibilityLabel,
-      ).toBe(strings('multichain_accounts.account_details.hide_account'));
-      expect(
-        utils.getByTestId(getManageAccountRowRemoveId(GROUP_ID)),
-      ).toBeOnTheScreen();
-      expect(eyeIcon).toBeOnTheScreen();
-      expect(eyeIcon.props.name).toBe(IconName.Eye);
-      expect(removeIcon).toBeOnTheScreen();
-      expect(removeIcon.props.name).toBe(IconName.RemoveMinus);
-    });
-
-    it('fires each control independently', () => {
-      const onToggleHidden = jest.fn();
-      const onRemove = jest.fn();
-      const { getByTestId } = renderRow({
-        variant: ManageAccountRowVariant.HideAndRemove,
-        onToggleHidden,
-        onRemove,
-      });
-
-      fireEvent.press(getByTestId(getManageAccountRowEyeToggleId(GROUP_ID)));
-      fireEvent.press(getByTestId(getManageAccountRowRemoveId(GROUP_ID)));
-
-      expect(onToggleHidden).toHaveBeenCalledTimes(1);
-      expect(onToggleHidden).toHaveBeenCalledWith(GROUP_ID, true);
-      expect(onRemove).toHaveBeenCalledTimes(1);
-      expect(onRemove).toHaveBeenCalledWith(GROUP_ID);
-    });
-
-    it('disables the remove control on a hidden hardware row while keeping the eye enabled', () => {
-      const onToggleHidden = jest.fn();
-      const onRemove = jest.fn();
-      const { getByTestId } = renderRow({
-        isHidden: true,
-        variant: ManageAccountRowVariant.HideAndRemove,
-        onToggleHidden,
-        onRemove,
-      });
-
-      const eyeToggle = getByTestId(getManageAccountRowEyeToggleId(GROUP_ID));
-      const removeControl = getByTestId(getManageAccountRowRemoveId(GROUP_ID), {
-        includeHiddenElements: true,
-      });
-
-      expect(eyeToggle).toBeEnabled();
-      expect(removeControl).toBeDisabled();
     });
   });
 

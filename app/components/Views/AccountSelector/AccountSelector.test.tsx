@@ -288,6 +288,28 @@ describe('AccountSelector', () => {
       expect(addButton).toBeOnTheScreen();
       expect(addButton).toHaveTextContent('Add wallet');
     });
+
+    it('renders the Manage Accounts gear in the header and navigates on press', () => {
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      const manageAccountsButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.MANAGE_ACCOUNTS_BUTTON,
+      );
+      expect(manageAccountsButton).toBeOnTheScreen();
+      expect(manageAccountsButton).toHaveProp(
+        'accessibilityLabel',
+        'Manage accounts',
+      );
+
+      fireEvent.press(manageAccountsButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MANAGE_ACCOUNTS_VIEW);
+    });
   });
 
   describe('Add Wallet Button', () => {
