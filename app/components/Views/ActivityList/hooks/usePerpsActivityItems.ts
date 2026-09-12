@@ -42,6 +42,7 @@ export function usePerpsActivityItems({
     refetch,
     transactions,
   } = usePerpsActivityQuery(accountId, enabled && isInitialized);
+
   useFocusEffect(
     useCallback(() => {
       if (!enabled || !isInitialized) {

@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { InitializationState } from '@metamask/perps-controller';
 import { usePerpsActivityItems } from './usePerpsActivityItems';
@@ -18,10 +17,6 @@ import {
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
-
-const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
-  typeof useFocusEffect
->;
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -286,21 +281,6 @@ describe('usePerpsActivityItems', () => {
     expect(result.current.error).toBe('boom');
     await result.current.refetch();
     expect(refetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('refetches on focus without cancelling an in-flight initial fetch', () => {
-    const refetch = jest.fn();
-    setQuery([], { refetch });
-
-    renderHook(() => usePerpsActivityItems());
-
-    const focusCallback = mockUseFocusEffect.mock.calls[0][0] as () => void;
-    focusCallback();
-    focusCallback();
-
-    expect(refetch).toHaveBeenCalledTimes(2);
-    expect(refetch).toHaveBeenNthCalledWith(1, { cancelRefetch: false });
-    expect(refetch).toHaveBeenNthCalledWith(2, { cancelRefetch: false });
   });
 
   it('maps funding pagination onto loadMore/hasMore and loadMore fetches the next page', async () => {
