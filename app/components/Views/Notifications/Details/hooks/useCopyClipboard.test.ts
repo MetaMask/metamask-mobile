@@ -1,9 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import React from 'react';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import useCopyClipboard from './useCopyClipboard';
 import ClipboardManager from '../../../../../core/ClipboardManager';
-import { ToastContext } from '../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 jest.mock('../../../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
@@ -14,17 +12,15 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
-const mockShowToast = jest.fn();
-const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: jest.fn() },
-};
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
-const wrapper = ({ children }: { children: React.ReactNode }) =>
-  React.createElement(
-    ToastContext.Provider,
-    { value: { toastRef: mockToastRef } },
-    children,
-  );
+const mockToast = jest.mocked(toast);
 
 describe('useCopyClipboard', () => {
   beforeEach(() => {
@@ -37,7 +33,7 @@ describe('useCopyClipboard', () => {
   });
 
   it('copies provided value to system clipboard', async () => {
-    const { result } = renderHook(() => useCopyClipboard(), { wrapper });
+    const { result } = renderHook(() => useCopyClipboard());
     const testAddress = '0x1234567890abcdef';
 
     await act(async () => {
@@ -47,50 +43,49 @@ describe('useCopyClipboard', () => {
     expect(ClipboardManager.setString).toHaveBeenCalledWith(testAddress);
   });
 
-  it('shows toast with Icon variant after copying', async () => {
-    const { result } = renderHook(() => useCopyClipboard(), { wrapper });
+  it('shows success toast after copying', async () => {
+    const { result } = renderHook(() => useCopyClipboard());
 
     await act(async () => {
       await result.current('0x1234567890abcdef');
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: 'Icon',
-        iconName: IconName.Confirmation,
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
       }),
     );
   });
 
   it('uses custom alert text in toast when provided', async () => {
-    const { result } = renderHook(() => useCopyClipboard(), { wrapper });
+    const { result } = renderHook(() => useCopyClipboard());
     const customMessage = 'Transaction ID copied';
 
     await act(async () => {
       await result.current('0x1234', customMessage);
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(mockToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: [{ label: customMessage }],
+        title: customMessage,
       }),
     );
   });
 
   it('skips clipboard and toast when value is empty string', async () => {
-    const { result } = renderHook(() => useCopyClipboard(), { wrapper });
+    const { result } = renderHook(() => useCopyClipboard());
 
     await act(async () => {
       await result.current('');
     });
 
     expect(ClipboardManager.setString).not.toHaveBeenCalled();
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
   });
 
   it('dispatches protectWalletModalVisible after 2 second delay', async () => {
-    const { result } = renderHook(() => useCopyClipboard(), { wrapper });
+    const { result } = renderHook(() => useCopyClipboard());
 
     await act(async () => {
       await result.current('0x1234');
