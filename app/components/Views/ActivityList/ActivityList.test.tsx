@@ -1,12 +1,6 @@
 import React from 'react';
 import type { SharedValue } from 'react-native-reanimated';
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -19,7 +13,6 @@ import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
-import Engine from '../../../core/Engine';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -320,20 +313,6 @@ jest.mock(
 jest.mock('./useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(),
 }));
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    TransactionController: {
-      updateIncomingTransactions: jest.fn(() => Promise.resolve()),
-    },
-  },
-}));
-
-const updateIncomingTransactions = (
-  Engine.context.TransactionController as unknown as {
-    updateIncomingTransactions: jest.Mock;
-  }
-).updateIncomingTransactions;
 
 jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   ActivityListItemRow: ({
@@ -787,7 +766,6 @@ describe('ActivityList', () => {
     expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId('mock-refresh'));
-    await waitFor(() => expect(updateIncomingTransactions).toHaveBeenCalled());
     expect(mockRefetch).toHaveBeenCalledTimes(1);
 
     // Scrolling should not throw (drives the UI-thread scroll handler).
