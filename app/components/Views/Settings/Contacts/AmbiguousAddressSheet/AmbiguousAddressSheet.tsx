@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -17,6 +18,7 @@ import {
  *
  */
 const AmbiguousAddressSheet = () => {
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const onCancelPress = () => {
@@ -24,20 +26,19 @@ const AmbiguousAddressSheet = () => {
   };
 
   return (
-    <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader>{strings('duplicate_address.title')}</BottomSheetHeader>
-      <Box twClassName="items-center justify-center self-center p-4">
-        <Text variant={TextVariant.BodyMd}>
-          {strings('duplicate_address.body')}
-        </Text>
-      </Box>
+    <BottomSheet ref={sheetRef} goBack={() => navigation.goBack()}>
+      <BottomSheetHeader onClose={onCancelPress}>
+        {strings('duplicate_address.title')}
+      </BottomSheetHeader>
+
+      <Text twClassName="text-center px-4 mb-4">
+        {strings('duplicate_address.body')}
+      </Text>
+
       <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
         primaryButtonProps={{
           children: strings('duplicate_address.button'),
-          isFullWidth: true,
           onPress: onCancelPress,
-          size: ButtonSize.Lg,
         }}
       />
     </BottomSheet>
