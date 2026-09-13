@@ -1767,9 +1767,8 @@ describe('Authentication', () => {
         Engine.context.AuthenticationController.clearState,
       ).toHaveBeenCalled();
       expect(
-        (
-          Engine.context.AuthenticationController.clearState as jest.Mock
-        ).mock.invocationCallOrder[0],
+        (Engine.context.AuthenticationController.clearState as jest.Mock).mock
+          .invocationCallOrder[0],
       ).toBeLessThan(newWalletSpy.mock.invocationCallOrder[0]);
       expect(
         Engine.context.SeedlessOnboardingController.clearState,
