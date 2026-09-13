@@ -174,7 +174,6 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
         <AddressList
           chainId={chainId}
           onlyRenderAddressBook
-          forceAmbiguousAddresses
           reloadAddressList={reloadAddressList}
           onAccountPress={onAddressPress}
           onIconPress={onIconPress}
