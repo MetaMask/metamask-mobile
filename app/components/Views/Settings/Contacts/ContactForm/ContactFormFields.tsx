@@ -1,13 +1,10 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from 'react';
+import React, { useCallback, type RefObject } from 'react';
 import { type TextInput } from 'react-native';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
@@ -28,8 +25,6 @@ import { renderShortAddress } from '../../../../../util/address';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
-
-const COPIED_ICON_RESET_MS = 3000;
 
 interface ContactFormFieldsProps {
   address: string | null;
@@ -54,18 +49,6 @@ interface ContactFormFieldsProps {
 }
 
 const AddressCopyButton = ({ addressToCopy }: { addressToCopy: string }) => {
-  const [copied, setCopied] = useState(false);
-  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(
-    () => () => {
-      if (copiedTimeoutRef.current) {
-        clearTimeout(copiedTimeoutRef.current);
-      }
-    },
-    [],
-  );
-
   const onCopy = useCallback(async () => {
     if (!addressToCopy) {
       return;
@@ -76,14 +59,6 @@ const AddressCopyButton = ({ addressToCopy }: { addressToCopy: string }) => {
       title: strings('notifications.address_copied_to_clipboard'),
       hasNoTimeout: false,
     });
-    setCopied(true);
-
-    if (copiedTimeoutRef.current) {
-      clearTimeout(copiedTimeoutRef.current);
-    }
-    copiedTimeoutRef.current = setTimeout(() => {
-      setCopied(false);
-    }, COPIED_ICON_RESET_MS);
   }, [addressToCopy]);
 
   if (!addressToCopy) {
@@ -91,16 +66,15 @@ const AddressCopyButton = ({ addressToCopy }: { addressToCopy: string }) => {
   }
 
   return (
-    <ButtonIcon
-      iconName={copied ? IconName.CopySuccess : IconName.Copy}
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Lg}
+      isFullWidth
       onPress={onCopy}
-      accessibilityLabel={
-        copied
-          ? strings('transactions.address_copied_to_clipboard')
-          : strings('wallet_creation_error.copy')
-      }
       testID={AddContactViewSelectorsIDs.COPY_BUTTON}
-    />
+    >
+      {strings('wallet_creation_error.copy')}
+    </Button>
   );
 };
 
@@ -176,21 +150,10 @@ export const ContactFormFields = ({
         />
       ) : (
         <Box twClassName="gap-2">
-          <Box twClassName="flex-row items-center gap-2">
-            <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
-              {toEnsName || renderShortAddress(address || '')}
-            </Text>
-          </Box>
-          <Box twClassName="flex-row items-center gap-2">
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              twClassName="flex-1"
-            >
-              {address}
-            </Text>
-            <AddressCopyButton addressToCopy={toEnsAddress || address || ''} />
-          </Box>
+          <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+            {address}
+          </Text>
+          <AddressCopyButton addressToCopy={toEnsAddress || address || ''} />
         </Box>
       )}
       {isAddMode && toEnsName && toEnsAddress ? (
