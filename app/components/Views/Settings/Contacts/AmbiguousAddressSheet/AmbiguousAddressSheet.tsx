@@ -1,30 +1,22 @@
-// Third party dependencies.
 import React, { useRef } from 'react';
-import { View } from 'react-native';
 
-// External dependencies.
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../Base/Text';
-import { useTheme } from '../../../../../util/theme';
 import {
+  BottomSheet,
+  Box,
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-
-// Internal dependencies
-import createStyles from './AmbiguousAddressSheet.styles';
 
 /**
  * AmbiguousAddressSheet Component.
  *
  */
 const AmbiguousAddressSheet = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const onCancelPress = () => {
@@ -33,25 +25,26 @@ const AmbiguousAddressSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.container}>
-        <Text style={styles.heading}>{strings('duplicate_address.title')}</Text>
-        <Text style={styles.body}>
-          <Text>{strings('duplicate_address.body')}</Text>
+      <Box twClassName="items-center justify-center self-center p-4">
+        <Text variant={TextVariant.HeadingMd}>
+          {strings('duplicate_address.title')}
         </Text>
-        <View style={styles.buttonContainer}>
+        <Text variant={TextVariant.BodyMd}>
+          {strings('duplicate_address.body')}
+        </Text>
+        <Box twClassName="flex-row pt-4">
           <Button
             variant={ButtonVariant.Primary}
             isFullWidth
             size={ButtonSize.Lg}
-            style={styles.button}
             accessibilityRole={'button'}
             accessible
             onPress={onCancelPress}
           >
             {strings('duplicate_address.button')}
           </Button>
-        </View>
-      </View>
+        </Box>
+      </Box>
     </BottomSheet>
   );
 };
