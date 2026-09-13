@@ -7,6 +7,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import type { PillOption } from '../../components/PillRow';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const PAGE_SIZE = 20;
 
@@ -79,10 +80,17 @@ export const useSportsMarketsFeed = ({
     [soccer, basketball, tennis],
   );
 
-  const pills = useMemo<PillOption[]>(
-    () => TABS.map((tab) => ({ key: tab.key, name: strings(tab.labelKey) })),
-    [],
-  );
+  const pills = useMemo<PillOption[]>(() => {
+    if (SOCCER.labelKey === 'trending.football') {
+      DevLogger.log(
+        '[PR-36115] BUG_MARKER: soccer tag',
+        SOCCER.customQueryParams,
+        'labelled',
+        strings(SOCCER.labelKey),
+      );
+    }
+    return TABS.map((tab) => ({ key: tab.key, name: strings(tab.labelKey) }));
+  }, []);
 
   const select = useCallback((key: string) => {
     setActiveKey(key);
