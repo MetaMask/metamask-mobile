@@ -1,9 +1,16 @@
-import React, { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import { type TextInput } from 'react-native';
 import {
   Box,
   ButtonIcon,
   ButtonIconSize,
+  FontWeight,
   HelpText,
   HelpTextSeverity,
   IconName,
@@ -139,46 +146,63 @@ export const ContactFormFields = ({
   <>
     <Box twClassName="gap-2">
       <Label>{strings('address_book.name')}</Label>
-      <TextField
-        value={name ?? ''}
-        onChangeText={onChangeName}
-        placeholder={strings('address_book.nickname')}
-        isReadOnly={!editable}
-        inputProps={{
-          autoCapitalize: 'none',
-          autoCorrect: false,
-          spellCheck: false,
-          keyboardAppearance: themeAppearance,
-          onSubmitEditing: () => addressInputRef.current?.focus(),
-          testID: AddContactViewSelectorsIDs.NAME_INPUT,
-        }}
-      />
+      {editable ? (
+        <TextField
+          value={name ?? ''}
+          onChangeText={onChangeName}
+          placeholder={strings('address_book.nickname')}
+          isReadOnly={!editable}
+          inputProps={{
+            autoCapitalize: 'none',
+            autoCorrect: false,
+            spellCheck: false,
+            keyboardAppearance: themeAppearance,
+            onSubmitEditing: () => addressInputRef.current?.focus(),
+            testID: AddContactViewSelectorsIDs.NAME_INPUT,
+          }}
+        />
+      ) : (
+        <Text fontWeight={FontWeight.Medium}>{name}</Text>
+      )}
     </Box>
     <Box twClassName="gap-2">
       <Label>{strings('address_book.address')}</Label>
-      <TextField
-        value={toEnsName || address || ''}
-        onChangeText={onChangeAddress}
-        placeholder={strings('address_book.add_input_placeholder')}
-        isReadOnly={!isAddMode}
-        isError={Boolean(addressError)}
-        inputRef={addressInputRef}
-        endAccessory={
+      {isAddMode ? (
+        <TextField
+          value={toEnsName || address || ''}
+          onChangeText={onChangeAddress}
+          placeholder={strings('address_book.add_input_placeholder')}
+          isReadOnly={!isAddMode}
+          isError={Boolean(addressError)}
+          inputRef={addressInputRef}
+          endAccessory={
+            <AddressFieldEndAccessory
+              addressToCopy={toEnsAddress || address || ''}
+              isAddMode={isAddMode}
+              onScan={onScan}
+            />
+          }
+          inputProps={{
+            autoCapitalize: 'none',
+            autoCorrect: false,
+            spellCheck: false,
+            keyboardAppearance: themeAppearance,
+            onSubmitEditing: () => memoInputRef.current?.focus(),
+            testID: AddContactViewSelectorsIDs.ADDRESS_INPUT,
+          }}
+        />
+      ) : (
+        <Box twClassName="flex-row items-center justify-between">
+          <Text fontWeight={FontWeight.Medium} twClassName="flex-1">
+            {toEnsName || address}
+          </Text>
           <AddressFieldEndAccessory
             addressToCopy={toEnsAddress || address || ''}
-            isAddMode={isAddMode}
+            isAddMode={false}
             onScan={onScan}
           />
-        }
-        inputProps={{
-          autoCapitalize: 'none',
-          autoCorrect: false,
-          spellCheck: false,
-          keyboardAppearance: themeAppearance,
-          onSubmitEditing: () => memoInputRef.current?.focus(),
-          testID: AddContactViewSelectorsIDs.ADDRESS_INPUT,
-        }}
-      />
+        </Box>
+      )}
       {toEnsName && toEnsAddress ? (
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {renderShortAddress(toEnsAddress)}
@@ -200,18 +224,22 @@ export const ContactFormFields = ({
     </Box>
     <Box twClassName="gap-2">
       <Label>{strings('address_book.memo')}</Label>
-      <TextArea
-        ref={memoInputRef}
-        value={memo ?? ''}
-        onChangeText={onChangeMemo}
-        placeholder={strings('address_book.memo')}
-        isReadOnly={!editable}
-        autoCapitalize="none"
-        autoCorrect={false}
-        spellCheck={false}
-        keyboardAppearance={themeAppearance}
-        testID={AddContactViewSelectorsIDs.MEMO_INPUT}
-      />
+      {editable ? (
+        <TextArea
+          ref={memoInputRef}
+          value={memo ?? ''}
+          onChangeText={onChangeMemo}
+          placeholder={strings('address_book.memo')}
+          isReadOnly={!editable}
+          autoCapitalize="none"
+          autoCorrect={false}
+          spellCheck={false}
+          keyboardAppearance={themeAppearance}
+          testID={AddContactViewSelectorsIDs.MEMO_INPUT}
+        />
+      ) : (
+        <Text fontWeight={FontWeight.Medium}>{memo}</Text>
+      )}
     </Box>
   </>
 );
