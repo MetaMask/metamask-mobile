@@ -53,15 +53,7 @@ interface ContactFormFieldsProps {
   toEnsName: string | null | undefined;
 }
 
-const AddressFieldEndAccessory = ({
-  addressToCopy,
-  isAddMode,
-  onScan,
-}: {
-  addressToCopy: string;
-  isAddMode: boolean;
-  onScan: () => void;
-}) => {
+const AddressCopyButton = ({ addressToCopy }: { addressToCopy: string }) => {
   const [copied, setCopied] = useState(false);
   const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -93,17 +85,6 @@ const AddressFieldEndAccessory = ({
       setCopied(false);
     }, COPIED_ICON_RESET_MS);
   }, [addressToCopy]);
-
-  if (isAddMode) {
-    return (
-      <ButtonIcon
-        iconName={IconName.ScanBarcode}
-        size={ButtonIconSize.Sm}
-        onPress={onScan}
-        accessibilityLabel={strings('send.scan_qr_code')}
-      />
-    );
-  }
 
   if (!addressToCopy) {
     return null;
@@ -177,10 +158,11 @@ export const ContactFormFields = ({
           isError={Boolean(addressError)}
           inputRef={addressInputRef}
           endAccessory={
-            <AddressFieldEndAccessory
-              addressToCopy={toEnsAddress || address || ''}
-              isAddMode={isAddMode}
-              onScan={onScan}
+            <ButtonIcon
+              iconName={IconName.ScanBarcode}
+              size={ButtonIconSize.Sm}
+              onPress={onScan}
+              accessibilityLabel={strings('send.scan_qr_code')}
             />
           }
           inputProps={{
@@ -207,11 +189,7 @@ export const ContactFormFields = ({
             >
               {address}
             </Text>
-            <AddressFieldEndAccessory
-              addressToCopy={toEnsAddress || address || ''}
-              isAddMode={false}
-              onScan={onScan}
-            />
+            <AddressCopyButton addressToCopy={toEnsAddress || address || ''} />
           </Box>
         </Box>
       )}
