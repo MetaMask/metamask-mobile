@@ -56,6 +56,15 @@ describe('useSportsMarketsFeed', () => {
     expect(result.current.activeKey).toBe('soccer');
   });
 
+  it('labels the soccer pill Soccer to match the Predictions sports feed', () => {
+    const { result } = renderHook(() => useSportsMarketsFeed());
+
+    const soccerPill = result.current.pills.find((p) => p.key === 'soccer');
+
+    expect(soccerPill?.name).toBe('Soccer');
+    expect(result.current.pills.map((p) => p.name)).not.toContain('Football');
+  });
+
   it('select loads an additional sport and refetch calls all loaded feeds', async () => {
     const { result } = renderHook(() => useSportsMarketsFeed());
 
