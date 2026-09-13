@@ -3,9 +3,11 @@ import {
   AvatarNetwork,
   AvatarNetworkSize,
   Box,
+  FontWeight,
   SelectButton,
   SelectButtonSize,
   Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
@@ -52,6 +54,8 @@ export const ContactNetworkSelector = ({
         name={networkName}
         src={getNetworkImageSource({ chainId })}
       />
-      <Text>{networkName}</Text>
+      <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+        {networkName}
+      </Text>
     </Box>
   );
