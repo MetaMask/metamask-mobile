@@ -9,6 +9,7 @@ import {
   HeaderStandard,
   Label,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -51,7 +52,6 @@ import type {
 import type { RootState } from '../../../../../reducers';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { createStyles } from './ContactForm.styles';
 import { ContactNetworkSelector } from './ContactNetworkSelector';
 import { ContactFormFields } from './ContactFormFields';
 import {
@@ -185,8 +185,8 @@ const ContactForm = ({
   chainId,
   route,
 }: ContactFormProps) => {
-  const { colors, themeAppearance = 'light' } = useTheme();
-  const styles = createStyles(colors);
+  const { themeAppearance = 'light' } = useTheme();
+  const tw = useTailwind();
   const [state, setState] = useState<ContactFormState>(() =>
     createInitialState({
       address: route.params?.address ?? '',
@@ -401,7 +401,7 @@ const ContactForm = ({
 
   return (
     <SafeAreaView
-      style={styles.wrapper}
+      style={tw.style('flex-1 bg-default')}
       testID={AddContactViewSelectorsIDs.CONTAINER}
       edges={{ bottom: 'additive' }}
     >
@@ -413,7 +413,10 @@ const ContactForm = ({
           testID: CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON,
         }}
       />
-      <KeyboardAwareScrollView style={styles.informationWrapper}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={tw.style('px-6')}
+        style={tw.style('flex-1')}
+      >
         <Box twClassName="flex-1 gap-4 py-3">
           <ContactFormFields
             address={address}
