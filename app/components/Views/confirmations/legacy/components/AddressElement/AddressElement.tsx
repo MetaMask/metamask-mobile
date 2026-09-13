@@ -3,6 +3,7 @@
 // Third-Party dependencies
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { strings } from '../../../../../../../locales/i18n';
 
 // External dependencies
 import {
@@ -142,7 +143,9 @@ const AddressElement: React.FC<AddressElementProps> = ({
           size={ButtonIconSize.Md}
           twClassName="self-start p-1"
           onPress={onIconPress}
-          accessibilityLabel="Show ambiguous address information"
+          accessibilityLabel={strings(
+            'duplicate_address.accessibility_label',
+          )}
         />
       )}
     </TouchableOpacity>
