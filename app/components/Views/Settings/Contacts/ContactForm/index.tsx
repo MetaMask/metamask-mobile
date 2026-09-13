@@ -414,7 +414,7 @@ const ContactForm = ({
         }}
       />
       <KeyboardAwareScrollView
-        contentContainerStyle={tw.style('px-6')}
+        contentContainerStyle={tw.style('px-4')}
         style={tw.style('flex-1')}
       >
         <Box twClassName="flex-1 gap-4 py-3">
