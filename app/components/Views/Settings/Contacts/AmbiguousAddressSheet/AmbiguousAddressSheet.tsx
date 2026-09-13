@@ -24,7 +24,10 @@ const AmbiguousAddressSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef} goBack={() => navigation.goBack()}>
-      <BottomSheetHeader onClose={onCancelPress}>
+      <BottomSheetHeader
+        onClose={onCancelPress}
+        closeButtonProps={{ testID: 'ambiguous-address-sheet-close' }}
+      >
         {strings('duplicate_address.title')}
       </BottomSheetHeader>
 

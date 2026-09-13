@@ -33,21 +33,6 @@ jest.mock('@metamask/design-system-react-native', () => {
         return <ReactNative.View>{children}</ReactNative.View>;
       },
     ),
-    BottomSheetHeader: ({
-      children,
-      onClose,
-    }: {
-      children?: React.ReactNode;
-      onClose?: () => void;
-    }) => (
-      <ReactNative.View>
-        <ReactNative.Text>{children}</ReactNative.Text>
-        <ReactNative.TouchableOpacity
-          testID="ambiguous-address-sheet-close"
-          onPress={onClose}
-        />
-      </ReactNative.View>
-    ),
   };
 });
 
