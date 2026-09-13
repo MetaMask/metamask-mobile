@@ -28,9 +28,7 @@ const AmbiguousAddressSheet = () => {
         {strings('duplicate_address.title')}
       </BottomSheetHeader>
 
-      <Text twClassName="text-center px-4 mb-4">
-        {strings('duplicate_address.body')}
-      </Text>
+      <Text twClassName="px-4 mb-4">{strings('duplicate_address.body')}</Text>
 
       <BottomSheetFooter
         primaryButtonProps={{
