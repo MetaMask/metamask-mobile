@@ -1,5 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../../locales/i18n';
 import { fireEvent } from '@testing-library/react-native';
 
 import AddressElement from '.';
@@ -138,7 +139,9 @@ describe('AddressElement', () => {
       onIconPress,
     });
 
-    fireEvent.press(getByLabelText('Show ambiguous address information'));
+    fireEvent.press(
+      getByLabelText(strings('duplicate_address.accessibility_label')),
+    );
 
     expect(onIconPress).toHaveBeenCalledTimes(1);
   });
