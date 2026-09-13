@@ -8,6 +8,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { strings } from '../../../../../../locales/i18n';
 import { RootState } from '../../../../../../reducers';
 import { EngineState } from '../../../../../../core/Engine';
 
@@ -138,7 +139,9 @@ describe('AddressElement', () => {
       onIconPress,
     });
 
-    fireEvent.press(getByLabelText('Show ambiguous address information'));
+    fireEvent.press(
+      getByLabelText(strings('duplicate_address.accessibility_label')),
+    );
 
     expect(onIconPress).toHaveBeenCalledTimes(1);
   });
