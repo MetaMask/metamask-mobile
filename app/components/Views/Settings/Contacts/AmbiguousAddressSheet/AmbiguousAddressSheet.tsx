@@ -3,12 +3,12 @@ import React, { useRef } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   Box,
-  Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonsAlignment,
   Text,
-  TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 
@@ -25,26 +25,21 @@ const AmbiguousAddressSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
+      <BottomSheetHeader>{strings('duplicate_address.title')}</BottomSheetHeader>
       <Box twClassName="items-center justify-center self-center p-4">
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('duplicate_address.title')}
-        </Text>
         <Text variant={TextVariant.BodyMd}>
           {strings('duplicate_address.body')}
         </Text>
-        <Box twClassName="flex-row pt-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            isFullWidth
-            size={ButtonSize.Lg}
-            accessibilityRole={'button'}
-            accessible
-            onPress={onCancelPress}
-          >
-            {strings('duplicate_address.button')}
-          </Button>
-        </Box>
       </Box>
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Vertical}
+        primaryButtonProps={{
+          children: strings('duplicate_address.button'),
+          isFullWidth: true,
+          onPress: onCancelPress,
+          size: ButtonSize.Lg,
+        }}
+      />
     </BottomSheet>
   );
 };
