@@ -12,15 +12,14 @@ import {
 import Identicon from '../../../../../UI/Identicon';
 import { useTheme } from '../../../../../../util/theme';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 
 import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -137,16 +136,13 @@ const AddressElement: React.FC<AddressElementProps> = ({
         )}
       </View>
       {isAmbiguousAddress && (
-        <TouchableOpacity
+        <ButtonIcon
+          iconName={IconName.Danger}
+          size={ButtonIconSize.Md}
           style={styles.warningIconWrapper}
           onPress={onIconPress}
-        >
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Lg}
-            color={styles.warningIcon.color}
-          />
-        </TouchableOpacity>
+          accessibilityLabel="Show ambiguous address information"
+        />
       )}
     </TouchableOpacity>
   );

@@ -38,9 +38,6 @@ const styleSheet = (colors: Colors) =>
       padding: 4,
       alignSelf: 'flex-start',
     },
-    warningIcon: {
-      color: colors.icon.default,
-    },
   });
 
 export default styleSheet;
