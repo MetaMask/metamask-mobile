@@ -12,6 +12,7 @@ import {
 import Identicon from '../../../../../UI/Identicon';
 import { useTheme } from '../../../../../../util/theme';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
+import { strings } from '../../../../../../locales/i18n';
 
 import {
   BadgeNetwork,
@@ -141,7 +142,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
           size={ButtonIconSize.Md}
           style={styles.warningIconWrapper}
           onPress={onIconPress}
-          accessibilityLabel="Show ambiguous address information"
+          accessibilityLabel={strings('duplicate_address.title')}
         />
       )}
     </TouchableOpacity>
