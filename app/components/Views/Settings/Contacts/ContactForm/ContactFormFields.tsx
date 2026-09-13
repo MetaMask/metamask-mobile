@@ -1,4 +1,4 @@
-import React, { useCallback, type RefObject } from 'react';
+import React, { useCallback, type RefObject, useState } from 'react';
 import { type TextInput } from 'react-native';
 import {
   Box,
@@ -49,16 +49,22 @@ interface ContactFormFieldsProps {
 }
 
 const AddressCopyButton = ({ addressToCopy }: { addressToCopy: string }) => {
+  const [copied, setCopied] = useState(false);
   const onCopy = useCallback(async () => {
     if (!addressToCopy) {
       return;
     }
 
     await ClipboardManager.setString(addressToCopy);
-    toast({
-      title: strings('notifications.address_copied_to_clipboard'),
-      hasNoTimeout: false,
-    });
+    setCopied(true);
+    try {
+      toast({
+        title: strings('notifications.address_copied_to_clipboard'),
+        hasNoTimeout: false,
+      });
+    } catch {
+      // No Toaster in tests; ignore
+    }
   }, [addressToCopy]);
 
   if (!addressToCopy) {
@@ -71,6 +77,11 @@ const AddressCopyButton = ({ addressToCopy }: { addressToCopy: string }) => {
       size={ButtonSize.Lg}
       isFullWidth
       onPress={onCopy}
+      accessibilityLabel={
+        copied
+          ? strings('transactions.address_copied_to_clipboard')
+          : strings('wallet_creation_error.copy')
+      }
       testID={AddContactViewSelectorsIDs.COPY_BUTTON}
     >
       {strings('wallet_creation_error.copy')}
@@ -100,62 +111,54 @@ export const ContactFormFields = ({
   <>
     <Box twClassName="gap-2">
       <Label>{strings('address_book.name')}</Label>
-      {editable ? (
-        <TextField
-          value={name ?? ''}
-          onChangeText={onChangeName}
-          placeholder={strings('address_book.nickname')}
-          isReadOnly={!editable}
-          inputProps={{
-            autoCapitalize: 'none',
-            autoCorrect: false,
-            spellCheck: false,
-            keyboardAppearance: themeAppearance,
-            onSubmitEditing: () => addressInputRef.current?.focus(),
-            testID: AddContactViewSelectorsIDs.NAME_INPUT,
-          }}
-        />
-      ) : (
-        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
-          {name}
-        </Text>
-      )}
+      <TextField
+        value={name ?? ''}
+        onChangeText={onChangeName}
+        placeholder={strings('address_book.nickname')}
+        isReadOnly={!editable}
+        inputProps={{
+          autoCapitalize: 'none',
+          autoCorrect: false,
+          spellCheck: false,
+          keyboardAppearance: themeAppearance,
+          onSubmitEditing: () => addressInputRef.current?.focus(),
+          testID: AddContactViewSelectorsIDs.NAME_INPUT,
+        }}
+      />
     </Box>
     <Box twClassName="gap-2">
       <Label>{strings('address_book.address')}</Label>
-      {isAddMode ? (
-        <TextField
-          value={toEnsName || address || ''}
-          onChangeText={onChangeAddress}
-          placeholder={strings('address_book.add_input_placeholder')}
-          isReadOnly={!isAddMode}
-          isError={Boolean(addressError)}
-          inputRef={addressInputRef}
-          endAccessory={
+      <TextField
+        value={isAddMode ? toEnsName || address || '' : address || ''}
+        onChangeText={onChangeAddress}
+        placeholder={
+          isAddMode ? strings('address_book.add_input_placeholder') : undefined
+        }
+        isReadOnly={!isAddMode}
+        isError={isAddMode ? Boolean(addressError) : false}
+        inputRef={addressInputRef}
+        endAccessory={
+          isAddMode ? (
             <ButtonIcon
               iconName={IconName.ScanBarcode}
               size={ButtonIconSize.Sm}
               onPress={onScan}
               accessibilityLabel={strings('send.scan_qr_code')}
             />
-          }
-          inputProps={{
-            autoCapitalize: 'none',
-            autoCorrect: false,
-            spellCheck: false,
-            keyboardAppearance: themeAppearance,
-            onSubmitEditing: () => memoInputRef.current?.focus(),
-            testID: AddContactViewSelectorsIDs.ADDRESS_INPUT,
-          }}
-        />
-      ) : (
-        <Box twClassName="gap-2">
-          <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
-            {address}
-          </Text>
-          <AddressCopyButton addressToCopy={toEnsAddress || address || ''} />
-        </Box>
-      )}
+          ) : undefined
+        }
+        inputProps={{
+          autoCapitalize: 'none',
+          autoCorrect: false,
+          spellCheck: false,
+          keyboardAppearance: themeAppearance,
+          onSubmitEditing: () => memoInputRef.current?.focus(),
+          testID: AddContactViewSelectorsIDs.ADDRESS_INPUT,
+        }}
+      />
+      {!isAddMode ? (
+        <AddressCopyButton addressToCopy={toEnsAddress || address || ''} />
+      ) : null}
       {isAddMode && toEnsName && toEnsAddress ? (
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {renderShortAddress(toEnsAddress)}
