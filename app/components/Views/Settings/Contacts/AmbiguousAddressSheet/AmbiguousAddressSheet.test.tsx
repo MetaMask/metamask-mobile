@@ -18,10 +18,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     BottomSheet: ReactModule.forwardRef(
       (
-        {
-          children,
-          goBack,
-        }: { children: React.ReactNode; goBack: () => void },
+        { children, goBack }: { children: React.ReactNode; goBack: () => void },
         ref: React.Ref<{ onCloseBottomSheet: () => void }>,
       ) => {
         ReactModule.useImperativeHandle(ref, () => ({
