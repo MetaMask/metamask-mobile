@@ -178,6 +178,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -541,13 +542,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     ],
   );
 
-  // pb-6 plus whatever the floating NavBar overlays, so the last row stays
-  // reachable. The inset is 0 on control and wherever the navigator hides it.
-  const floatingTabBarInset = useFloatingTabBarInset();
-  const contentContainerStyle = useMemo(
-    () => ({ paddingBottom: 24 + floatingTabBarInset }),
-    [floatingTabBarInset],
-  );
+  const contentContainerStyle = tw.style(`pb-[${24 + floatingTabBarInset}px]`);
 
   return (
     <Box twClassName="flex-1">

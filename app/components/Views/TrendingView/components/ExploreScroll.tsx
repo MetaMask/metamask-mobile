@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 
 export interface ExploreViewportBounds {
   screenY: number;
@@ -57,6 +58,7 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollSubscribersRef = useRef(new Set<ExploreScrollSubscriber>());
 
@@ -114,7 +116,7 @@ const ExploreScroll: React.FC<ExploreScrollProps> = ({
         ref={scrollViewRef}
         testID={testID}
         style={tw.style('flex-1 pt-3')}
-        contentContainerStyle={tw.style('pb-4')}
+        contentContainerStyle={tw.style(`pb-[${16 + floatingTabBarInset}px]`)}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={50}
         onLayout={handleLayout}
