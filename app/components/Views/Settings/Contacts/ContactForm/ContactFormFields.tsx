@@ -10,7 +10,6 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
-  ButtonIconVariant,
   FontWeight,
   HelpText,
   HelpTextSeverity,
@@ -113,7 +112,6 @@ const AddressFieldEndAccessory = ({
   return (
     <ButtonIcon
       iconName={copied ? IconName.CopySuccess : IconName.Copy}
-      variant={ButtonIconVariant.Filled}
       onPress={onCopy}
       accessibilityLabel={
         copied
@@ -200,15 +198,21 @@ export const ContactFormFields = ({
             <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
               {toEnsName || renderShortAddress(address || '')}
             </Text>
+          </Box>
+          <Box twClassName="flex-row items-center gap-2">
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="flex-1"
+            >
+              {address}
+            </Text>
             <AddressFieldEndAccessory
               addressToCopy={toEnsAddress || address || ''}
               isAddMode={false}
               onScan={onScan}
             />
           </Box>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {address}
-          </Text>
         </Box>
       )}
       {isAddMode && toEnsName && toEnsAddress ? (
