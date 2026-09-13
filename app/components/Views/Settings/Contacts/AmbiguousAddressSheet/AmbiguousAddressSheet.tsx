@@ -6,9 +6,6 @@ import {
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
-  Box,
-  ButtonSize,
-  ButtonsAlignment,
   Text,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
