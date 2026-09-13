@@ -218,7 +218,7 @@ export const ContactFormFields = ({
         <Box twClassName="gap-2">
           <Box twClassName="flex-row items-center justify-between">
             <Text fontWeight={FontWeight.Medium} twClassName="flex-1">
-              {toEnsName || address}
+            {toEnsName || renderShortAddress(address || '')}
             </Text>
           </Box>
           <AddressFieldEndAccessory
