@@ -14,6 +14,7 @@ import {
   TextColor,
   TextField,
   TextVariant,
+  toast,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../../util/address';
@@ -72,6 +73,10 @@ const AddressFieldEndAccessory = ({
     }
 
     await ClipboardManager.setString(addressToCopy);
+    toast({
+      title: strings('notifications.address_copied_to_clipboard'),
+      hasNoTimeout: false,
+    });
     setCopied(true);
 
     if (copiedTimeoutRef.current) {
@@ -138,7 +143,7 @@ export const ContactFormFields = ({
         value={name ?? ''}
         onChangeText={onChangeName}
         placeholder={strings('address_book.nickname')}
-        isDisabled={!editable}
+        isReadOnly={!editable}
         inputProps={{
           autoCapitalize: 'none',
           autoCorrect: false,
@@ -155,7 +160,7 @@ export const ContactFormFields = ({
         value={toEnsName || address || ''}
         onChangeText={onChangeAddress}
         placeholder={strings('address_book.add_input_placeholder')}
-        isDisabled={!isAddMode}
+        isReadOnly={!isAddMode}
         isError={Boolean(addressError)}
         inputRef={addressInputRef}
         endAccessory={
@@ -200,7 +205,7 @@ export const ContactFormFields = ({
         value={memo ?? ''}
         onChangeText={onChangeMemo}
         placeholder={strings('address_book.memo')}
-        isDisabled={!editable}
+        isReadOnly={!editable}
         autoCapitalize="none"
         autoCorrect={false}
         spellCheck={false}
