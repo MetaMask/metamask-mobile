@@ -197,10 +197,7 @@ export const ContactFormFields = ({
       ) : (
         <Box twClassName="gap-2">
           <Box twClassName="flex-row items-center gap-2">
-            <Text
-              variant={TextVariant.BodyLg}
-              fontWeight={FontWeight.Medium}
-            >
+            <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
               {toEnsName || renderShortAddress(address || '')}
             </Text>
             <AddressFieldEndAccessory
@@ -209,9 +206,12 @@ export const ContactFormFields = ({
               onScan={onScan}
             />
           </Box>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {address}
+          </Text>
         </Box>
       )}
-      {toEnsName && toEnsAddress ? (
+      {isAddMode && toEnsName && toEnsAddress ? (
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {renderShortAddress(toEnsAddress)}
         </Text>
