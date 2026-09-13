@@ -36,7 +36,6 @@ import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet/NetworkListBottomSheet';
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type {
@@ -52,6 +51,8 @@ import type {
 import type { RootState } from '../../../../../reducers';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet/NetworkListBottomSheet';
 import { ContactNetworkSelector } from './ContactNetworkSelector';
 import { ContactFormFields } from './ContactFormFields';
 import {
@@ -420,7 +421,9 @@ const ContactForm = ({
         <Box twClassName="flex-1 gap-4 py-3">
           <ContactFormFields
             address={address}
-            addressError={addressError ? renderErrorMessage(addressError) : null}
+            addressError={
+              addressError ? renderErrorMessage(addressError) : null
+            }
             addressInputRef={addressInput}
             editable={editable}
             errorContinue={!!errorContinue}
@@ -472,9 +475,7 @@ const ContactForm = ({
               testID={AddContactViewSelectorsIDs.ADD_BUTTON}
             >
               {strings(
-                mode === ADD
-                  ? 'address_book.add_contact'
-                  : 'address_book.save',
+                mode === ADD ? 'address_book.add_contact' : 'address_book.save',
               )}
             </Button>
             {mode === EDIT ? (

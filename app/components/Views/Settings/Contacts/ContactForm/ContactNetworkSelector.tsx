@@ -2,8 +2,10 @@ import React from 'react';
 import {
   AvatarNetwork,
   AvatarNetworkSize,
+  Box,
   SelectButton,
   SelectButtonSize,
+  Text,
 } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
@@ -21,23 +23,35 @@ export const ContactNetworkSelector = ({
   editable,
   networkName,
   onOpen,
-}: ContactNetworkSelectorProps) => (
-  <SelectButton
-    isDisabled={!editable}
-    isFullWidth
-    size={SelectButtonSize.Lg}
-    twClassName="px-4"
-    value={networkName}
-    contentWrapperProps={{ twClassName: 'w-full justify-between' }}
-    textProps={{ twClassName: 'text-left grow px-1' }}
-    startAccessory={
+}: ContactNetworkSelectorProps) =>
+  editable ? (
+    <SelectButton
+      isFullWidth
+      size={SelectButtonSize.Lg}
+      twClassName="px-4"
+      value={networkName}
+      contentWrapperProps={{ twClassName: 'w-full justify-between' }}
+      textProps={{ twClassName: 'text-left grow px-1' }}
+      startAccessory={
+        <AvatarNetwork
+          size={AvatarNetworkSize.Sm}
+          name={networkName}
+          src={getNetworkImageSource({ chainId })}
+        />
+      }
+      onPress={onOpen}
+      testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
+    />
+  ) : (
+    <Box
+      twClassName="h-12 flex-row items-center gap-2 rounded-lg bg-muted px-4"
+      testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
+    >
       <AvatarNetwork
         size={AvatarNetworkSize.Sm}
         name={networkName}
         src={getNetworkImageSource({ chainId })}
       />
-    }
-    onPress={onOpen}
-    testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
-  />
-);
+      <Text>{networkName}</Text>
+    </Box>
+  );
