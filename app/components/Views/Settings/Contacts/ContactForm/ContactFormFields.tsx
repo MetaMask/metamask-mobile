@@ -217,12 +217,12 @@ export const ContactFormFields = ({
       ) : (
         <Box twClassName="gap-2">
           <Box twClassName="flex-row items-center justify-between">
-          <Text
-            variant={TextVariant.BodyLg}
-            fontWeight={FontWeight.Medium}
-            twClassName="flex-1"
-          >
-            {toEnsName || renderShortAddress(address || '')}
+            <Text
+              variant={TextVariant.BodyLg}
+              fontWeight={FontWeight.Medium}
+              twClassName="flex-1"
+            >
+              {toEnsName || renderShortAddress(address || '')}
             </Text>
           </Box>
           <AddressFieldEndAccessory
@@ -268,7 +268,9 @@ export const ContactFormFields = ({
           testID={AddContactViewSelectorsIDs.MEMO_INPUT}
         />
       ) : (
-        <Text fontWeight={FontWeight.Medium}>{memo}</Text>
+        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+          {memo}
+        </Text>
       )}
     </Box>
   </>
