@@ -40,6 +40,7 @@ const AddressList = ({
   onAccountPress,
   onAccountLongPress,
   onIconPress,
+  forceAmbiguousAddresses = false,
   onlyRenderAddressBook = false,
   reloadAddressList,
 }: AddressListProps) => {
@@ -79,10 +80,11 @@ const AddressList = ({
     (addressBookList: AddressBookEntryWithRelaxedChainId[]) => {
       const contacts = addressBookList.map((contact) => {
         const isAmbiguousAddress =
-          chainId &&
-          ambiguousAddressEntries?.[chainId] &&
-          Array.isArray(ambiguousAddressEntries?.[chainId]) &&
-          ambiguousAddressEntries[chainId].includes(contact.address);
+          forceAmbiguousAddresses ||
+          (chainId &&
+            ambiguousAddressEntries?.[chainId] &&
+            Array.isArray(ambiguousAddressEntries?.[chainId]) &&
+            ambiguousAddressEntries[chainId].includes(contact.address));
         const addressContact: InternalAddressBookEntry = {
           ...contact,
           isSmartContract: false,

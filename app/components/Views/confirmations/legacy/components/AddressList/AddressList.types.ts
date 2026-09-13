@@ -7,6 +7,7 @@ export interface AddressListProps {
   onAccountPress: (address: string, name?: string) => void;
   onAccountLongPress: (address: string) => void;
   onIconPress: () => void;
+  forceAmbiguousAddresses?: boolean;
   onlyRenderAddressBook?: boolean;
   reloadAddressList?: boolean;
 }
