@@ -8,11 +8,9 @@ import React, {
 import { type TextInput } from 'react-native';
 import {
   Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   FontWeight,
   HelpText,
   HelpTextSeverity,
@@ -60,12 +58,10 @@ const AddressFieldEndAccessory = ({
   addressToCopy,
   isAddMode,
   onScan,
-  showCopyButton = false,
 }: {
   addressToCopy: string;
   isAddMode: boolean;
   onScan: () => void;
-  showCopyButton?: boolean;
 }) => {
   const [copied, setCopied] = useState(false);
   const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -114,26 +110,10 @@ const AddressFieldEndAccessory = ({
     return null;
   }
 
-  if (showCopyButton) {
-    return (
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        isFullWidth
-        onPress={onCopy}
-        testID={AddContactViewSelectorsIDs.COPY_BUTTON}
-      >
-        {copied
-          ? strings('transactions.address_copied_to_clipboard')
-          : strings('wallet_creation_error.copy')}
-      </Button>
-    );
-  }
-
   return (
     <ButtonIcon
       iconName={copied ? IconName.CopySuccess : IconName.Copy}
-      size={ButtonIconSize.Sm}
+      variant={ButtonIconVariant.Filled}
       onPress={onCopy}
       accessibilityLabel={
         copied
@@ -216,21 +196,19 @@ export const ContactFormFields = ({
         />
       ) : (
         <Box twClassName="gap-2">
-          <Box twClassName="flex-row items-center justify-between">
+          <Box twClassName="flex-row items-center gap-2">
             <Text
               variant={TextVariant.BodyLg}
               fontWeight={FontWeight.Medium}
-              twClassName="flex-1"
             >
               {toEnsName || renderShortAddress(address || '')}
             </Text>
+            <AddressFieldEndAccessory
+              addressToCopy={toEnsAddress || address || ''}
+              isAddMode={false}
+              onScan={onScan}
+            />
           </Box>
-          <AddressFieldEndAccessory
-            addressToCopy={toEnsAddress || address || ''}
-            isAddMode={false}
-            onScan={onScan}
-            showCopyButton
-          />
         </Box>
       )}
       {toEnsName && toEnsAddress ? (
