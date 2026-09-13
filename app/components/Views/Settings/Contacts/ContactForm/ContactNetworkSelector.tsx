@@ -44,7 +44,7 @@ export const ContactNetworkSelector = ({
     />
   ) : (
     <Box
-      twClassName="h-12 flex-row items-center gap-2 rounded-lg bg-muted px-4"
+      twClassName="flex-row items-center gap-2"
       testID={AddContactViewSelectorsIDs.NETWORK_INPUT}
     >
       <AvatarNetwork
