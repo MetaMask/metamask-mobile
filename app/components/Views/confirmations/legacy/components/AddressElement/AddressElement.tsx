@@ -2,7 +2,6 @@
 
 // Third-Party dependencies
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 
 // External dependencies
@@ -17,15 +16,13 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
-  Box,
   ButtonIcon,
-  ButtonIconSize,
   IconName,
+  ListItem,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 
@@ -46,7 +43,6 @@ const AddressElement: React.FC<AddressElementProps> = ({
   ...props
 }) => {
   const [displayName, setDisplayName] = useState(name);
-  const tw = useTailwind();
 
   const allNetworks = useSelector(selectNetworkConfigurations);
   const addressElementNetwork = allNetworks[chainId];
@@ -100,55 +96,36 @@ const AddressElement: React.FC<AddressElementProps> = ({
   const accountTypeLabel = getLabelTextByAddress(address);
 
   return (
-    <TouchableOpacity
+    <ListItem
+      isInteractive
       onPress={() => onAccountPress(address)}
       onLongPress={() => onAccountLongPress(address)}
       key={address}
-      style={tw.style('flex-row p-4')}
-      {...props}
-    >
-      <Box twClassName="pr-4">{renderIdenticon()}</Box>
-      <Box twClassName="flex-1 flex-col">
-        <Box twClassName="flex-row items-center justify-start">
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="flex-1"
-            numberOfLines={1}
-          >
-            {primaryLabel}
-          </Text>
-        </Box>
-        {!!secondaryLabel && (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
-          >
-            {secondaryLabel}
-          </Text>
-        )}
-        {accountTypeLabel && (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="self-start rounded-lg border border-default px-2"
-          >
+      avatar={renderIdenticon()}
+      title={primaryLabel}
+      titleProps={{ numberOfLines: 1 }}
+      description={secondaryLabel}
+      descriptionProps={{ numberOfLines: 1 }}
+      descriptionEndAccessory={
+        accountTypeLabel ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {accountTypeLabel}
           </Text>
-        )}
-      </Box>
-      {isAmbiguousAddress && (
-        <ButtonIcon
-          iconName={IconName.Danger}
-          size={ButtonIconSize.Md}
-          twClassName="self-start p-1"
-          onPress={onIconPress}
-          accessibilityLabel={strings(
-            'duplicate_address.accessibility_label',
-          )}
-        />
-      )}
-    </TouchableOpacity>
+        ) : undefined
+      }
+      endAccessory={
+        isAmbiguousAddress ? (
+          <ButtonIcon
+            iconName={IconName.Danger}
+            onPress={onIconPress}
+            accessibilityLabel={strings(
+              'duplicate_address.accessibility_label',
+            )}
+          />
+        ) : undefined
+      }
+      {...props}
+    />
   );
 };
 
