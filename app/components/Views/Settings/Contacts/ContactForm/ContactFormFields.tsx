@@ -8,6 +8,9 @@ import React, {
 import { type TextInput } from 'react-native';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
@@ -57,10 +60,12 @@ const AddressFieldEndAccessory = ({
   addressToCopy,
   isAddMode,
   onScan,
+  showCopyButton = false,
 }: {
   addressToCopy: string;
   isAddMode: boolean;
   onScan: () => void;
+  showCopyButton?: boolean;
 }) => {
   const [copied, setCopied] = useState(false);
   const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -107,6 +112,22 @@ const AddressFieldEndAccessory = ({
 
   if (!addressToCopy) {
     return null;
+  }
+
+  if (showCopyButton) {
+    return (
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={onCopy}
+        testID={AddContactViewSelectorsIDs.COPY_BUTTON}
+      >
+        {copied
+          ? strings('transactions.address_copied_to_clipboard')
+          : strings('wallet_creation_error.copy')}
+      </Button>
+    );
   }
 
   return (
@@ -162,7 +183,9 @@ export const ContactFormFields = ({
           }}
         />
       ) : (
-        <Text fontWeight={FontWeight.Medium}>{name}</Text>
+        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+          {name}
+        </Text>
       )}
     </Box>
     <Box twClassName="gap-2">
@@ -192,14 +215,17 @@ export const ContactFormFields = ({
           }}
         />
       ) : (
-        <Box twClassName="flex-row items-center justify-between">
-          <Text fontWeight={FontWeight.Medium} twClassName="flex-1">
-            {toEnsName || address}
-          </Text>
+        <Box twClassName="gap-2">
+          <Box twClassName="flex-row items-center justify-between">
+            <Text fontWeight={FontWeight.Medium} twClassName="flex-1">
+              {toEnsName || address}
+            </Text>
+          </Box>
           <AddressFieldEndAccessory
             addressToCopy={toEnsAddress || address || ''}
             isAddMode={false}
             onScan={onScan}
+            showCopyButton
           />
         </Box>
       )}
