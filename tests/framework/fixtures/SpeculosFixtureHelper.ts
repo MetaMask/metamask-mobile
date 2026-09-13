@@ -569,6 +569,40 @@ async function ensureBluetoothEnabled(): Promise<void> {
     }
   };
 
+  // Disable guest wifi: the emulator's virtual wlan fires spurious
+  // BEACON-LOSS events; batterystats' attempt to record the wifi state
+  // change has crashed system_server mid-run (fatal in
+  // batterystats-handler, soft-rebooting the guest and dropping the adb
+  // transport). The tests don't need guest wifi — mock servers are reached
+  // over adb-reverse localhost.
+  try {
+    execSync(`adb ${adbArgs} shell svc wifi disable`, { stdio: 'pipe' });
+  } catch (error) {
+    logger.debug(`svc wifi disable failed: ${String(error)}`);
+  }
+
+  // Cycle the stack off→on first: a previous test session's GATT state can
+  // wedge the BLE scanner (adapter reports ON but the app's BLE layer fails
+  // to start discovery and shows "Bluetooth required"). Toggling restarts
+  // the bluetooth service and clears stale connections.
+  try {
+    execSync(`adb ${adbArgs} shell svc bluetooth disable`, { stdio: 'pipe' });
+    const offDeadline = Date.now() + 15000;
+    while (Date.now() < offDeadline) {
+      const dump = execSync(
+        `adb ${adbArgs} shell dumpsys bluetooth_manager`,
+        { stdio: ['pipe', 'pipe', 'pipe'] },
+      ).toString();
+      if (dump.includes('state: OFF') || dump.includes('enabled: false')) {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    await new Promise((r) => setTimeout(r, 2000));
+  } catch (error) {
+    logger.debug(`svc bluetooth disable failed: ${String(error)}`);
+  }
+
   try {
     execSync(`adb ${adbArgs} shell svc bluetooth enable`, { stdio: 'pipe' });
   } catch (error) {
@@ -756,6 +790,30 @@ export async function importLedgerAccount(): Promise<void> {
   await TestHelpers.delay(5000);
   await device.takeScreenshot('05_after_add_account');
 
+  // The accounts sheet can swallow the tap while it is mid-refresh
+  // ("Discovering accounts..."), leaving the sheet on the account list
+  // instead of navigating to the Add Wallet screen. Retry until the
+  // dedicated screen (with the connect-hardware row) is up.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await waitFor(LedgerConnectView.addHardwareWalletButton)
+        .toExist()
+        .withTimeout(10000);
+      break;
+    } catch {
+      if (attempt === 2) {
+        // Fall through — Step 6 has its own wait + scroll fallback.
+        break;
+      }
+      logger.debug(
+        `[importLedger] Step 5: Add wallet screen not up, retrying tap (attempt ${attempt + 1})`,
+      );
+      await device.takeScreenshot(`05c_retry_${attempt}`);
+      await AccountListBottomSheet.tapAddAccountButton();
+      await TestHelpers.delay(5000);
+    }
+  }
+
   logger.debug('[importLedger] Step 6: tapAddHardwareWallet');
   // Wait longer for AddWallet screen to render on debug build
   await TestHelpers.delay(5000);
@@ -768,6 +826,41 @@ export async function importLedgerAccount(): Promise<void> {
   await LedgerConnectView.tapLedgerButton();
   await TestHelpers.delay(3000);
   await device.takeScreenshot('07_after_ledger_btn');
+
+  // The hardware-wallet sheet can fail to open (tap race on the Add Wallet
+  // screen) or open onto a transient error state (e.g. "Bluetooth required"
+  // while the adapter settles). Wait for the device-selection content and
+  // recover: dismiss the error via the app's own Continue button, or re-tap
+  // the Ledger button when no sheet is showing at all.
+  const sheetIsUp = async (): Promise<boolean> => {
+    try {
+      await waitFor(LedgerConnectView.deviceSelectionContent)
+        .toExist()
+        .withTimeout(10000);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  for (let attempt = 0; attempt < 3 && !(await sheetIsUp()); attempt++) {
+    logger.debug(
+      `[importLedger] Step 7: sheet not up, recovering (attempt ${attempt + 1})`,
+    );
+    await device.takeScreenshot(`07c_sheet_retry_${attempt}`);
+    const continueButton = element(by.text('Continue'));
+    let tappedContinue = false;
+    try {
+      await waitFor(continueButton).toExist().withTimeout(3000);
+      await continueButton.tap();
+      tappedContinue = true;
+    } catch {
+      // No error dialog — assume the sheet never opened.
+    }
+    if (!tappedContinue) {
+      await LedgerConnectView.tapLedgerButton();
+    }
+    await TestHelpers.delay(5000);
+  }
 
   logger.debug('[importLedger] Step 8: waitForDeviceToAppear');
   await LedgerConnectView.waitForDeviceToAppear(60000);
@@ -804,33 +897,47 @@ export async function importLedgerAccount(): Promise<void> {
   await device.takeScreenshot('14_after_unlock');
 
   logger.debug('[importLedger] Step 15: returnToWalletHome');
-  // After unlock the app is NOT on the wallet home — it's left on the "Accounts"
-  // bottom sheet (opened by tapIdenticon in Step 3), covering the bottom tab bar
-  // (Explore) so all browser/dapp navigation fails. The Android back button
-  // dismisses this sheet → wallet home. IMPORTANT: after a press the dismissed
-  // sheet's title lingers in the element tree for a few seconds; re-checking too
-  // soon causes a spurious extra press (from the wallet home) that backgrounds
+  // Post-unlock the app STAYS on the "Select an account" screen while the
+  // Ledger session keeps deriving accounts (APDU traffic for ~30s+), then
+  // settles on the accounts bottom sheet (opened by tapIdenticon in Step 3),
+  // which covers the bottom tab bar. Wait for a terminal state first, then
+  // dismiss the sheet. IMPORTANT: after a press the dismissed sheet's title
+  // lingers in the element tree for a few seconds; re-checking too soon
+  // causes a spurious extra press (from the wallet home) that backgrounds
   // the app. So wait generously after each press before re-checking.
-  for (let i = 0; i < 3; i++) {
-    let sheetOpen = false;
-    try {
-      const title =
-        (await AccountListBottomSheet.title) as Detox.IndexableNativeElement;
-      await waitFor(title).toExist().withTimeout(3000);
-      sheetOpen = true;
-    } catch {
-      sheetOpen = false;
-    }
-    if (!sheetOpen) break;
+  const accountsSheetTitle =
+    (await AccountListBottomSheet.title) as Detox.IndexableNativeElement;
+  const walletHomeContainer =
+    (await WalletView.container) as Detox.IndexableNativeElement;
+
+  let sheetOpen = false;
+  try {
+    await waitFor(accountsSheetTitle).toExist().withTimeout(90000);
+    sheetOpen = true;
+  } catch {
+    logger.debug(
+      '[importLedger] Step 15: accounts sheet did not appear — assuming wallet home',
+    );
+  }
+
+  for (let i = 0; sheetOpen && i < 3; i++) {
     logger.debug(
       `[importLedger] Step 15: account sheet open, pressing back to dismiss (${i + 1}/3)`,
     );
     await device.pressBack();
     await TestHelpers.delay(4000); // let the dismissed title leave the tree
+    let stillOpen = false;
+    try {
+      await waitFor(accountsSheetTitle).toExist().withTimeout(3000);
+      stillOpen = true;
+    } catch {
+      stillOpen = false;
+    }
+    if (!stillOpen) break;
   }
 
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    timeout: 30000,
+  await Assertions.expectElementToBeVisible(walletHomeContainer, {
+    timeout: 60000,
   });
   await device.takeScreenshot('15_wallet_home');
 

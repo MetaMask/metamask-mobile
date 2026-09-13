@@ -8,7 +8,7 @@ import {
 
 const describeIf = process.env.LEDGER_E2E === '1' ? describe : describe.skip;
 
-jest.setTimeout(600000);
+jest.setTimeout(900000);
 
 describeIf(SmokeLedger('Import Ledger account via Speculos'), () => {
   it('discovers and imports a Ledger account from virtual device', async () => {

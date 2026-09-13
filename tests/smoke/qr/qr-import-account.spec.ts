@@ -16,7 +16,7 @@ import { execSync } from 'child_process';
 
 const describeIf = process.env.QR_E2E === '1' ? describe : describe.skip;
 
-jest.setTimeout(600000);
+jest.setTimeout(900000);
 
 const logger = {
   debug: (msg: string) =>

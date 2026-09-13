@@ -20,7 +20,7 @@ import { DappVariants } from '../../framework/Constants';
 
 const describeIf = process.env.LEDGER_E2E === '1' ? describe : describe.skip;
 
-jest.setTimeout(600000);
+jest.setTimeout(900000);
 
 describeIf(SmokeLedger('Sign dApp transaction via Ledger'), () => {
   it('should sign a dApp-initiated EIP-1559 transaction via Ledger', async () => {
