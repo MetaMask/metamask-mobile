@@ -6,9 +6,9 @@ import {
   type SpeculosTestSuiteParams,
 } from '../../framework/fixtures/SpeculosFixtureHelper';
 import Browser from '../../page-objects/detox/Browser/BrowserView';
-import TestDApp from '../../page-objects/Browser/TestDApp';
-import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
-import RequestTypes from '../../page-objects/Browser/Confirmations/RequestTypes';
+import TestDApp from '../../page-objects/detox/Browser/TestDApp';
+import FooterActions from '../../page-objects/detox/Browser/Confirmations/FooterActions';
+import RequestTypes from '../../page-objects/detox/Browser/Confirmations/RequestTypes';
 import HardwareWalletBottomSheet from '../../page-objects/Ledger/HardwareWalletBottomSheet';
 import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';

@@ -11,7 +11,11 @@ import SendView from '../../page-objects/detox/Send/RedesignedSendView';
 import HardwareWalletBottomSheet from '../../page-objects/Ledger/HardwareWalletBottomSheet';
 import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';
-import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
+import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
+import {
+  ANVIL_LOCAL_ETH_HOLDING,
+  type TokenHolding,
+} from '../../framework/fixtures/mmpay-token-holdings-registry';
 
 const logger = {
   debug: (msg: string) =>
@@ -21,9 +25,20 @@ const logger = {
 jest.setTimeout(900000);
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
+
 const LOCAL_CHAIN_ID = '0x539';
-// 1000 ETH in Wei (0x3635c9adc5dea00000)
-const ONE_THOUSAND_ETH_WEI = '0x3635c9adc5dea00000';
+
+// Fixture-state seed for the Ledger account's local-ETH balance — complements
+// live detection (Anvil pre-funds the account on-chain AND, with Multicall3
+// installed by AnvilManager, the app's batched balance reads resolve).
+const LEDGER_ETH_HOLDINGS: TokenHolding[] = [
+  {
+    ...ANVIL_LOCAL_ETH_HOLDING,
+    account: LEDGER_ACCOUNT_ADDRESS,
+    amount: '1000',
+  },
+];
+
 
 const describeIf = process.env.LEDGER_E2E === '1' ? describe : describe.skip;
 
@@ -43,6 +58,7 @@ describeIf(SmokeLedger('Send ETH from Ledger account'), () => {
               ticker: 'ETH',
             })
             .withNetworkEnabledMap({ eip155: { [LOCAL_CHAIN_ID]: true } })
+            .withTokenHoldings(LEDGER_ETH_HOLDINGS)
             .build();
 
           return fixture;
@@ -50,7 +66,7 @@ describeIf(SmokeLedger('Send ETH from Ledger account'), () => {
         startSpeculos: true,
         enableLocalNode: true,
       },
-      async ({ speculos, localNodes }: SpeculosTestSuiteParams) => {
+      async ({ speculos }: SpeculosTestSuiteParams) => {
         // Ensure Speculos Ethereum app is on main screen with blind signing enabled.
         // NVRAM from previous runs may leave the app in settings/blind-signing screen.
         logger.debug('taking pre-blind-signing screenshot...');
@@ -72,17 +88,9 @@ describeIf(SmokeLedger('Send ETH from Ledger account'), () => {
 
         await TestHelpers.delay(5000);
 
-        const anvilNode = localNodes?.[0] as unknown as AnvilManager;
-        if (anvilNode && anvilNode instanceof AnvilManager) {
-          // Anvil pre-funds the first account from SPECULOS_SEED with 1000 ETH
-          // The Ledger address is derived from that seed, so it already has balance
-          logger.debug(
-            `Anvil running, Ledger account should have 1000 ETH pre-funded`,
-          );
-        }
-
-        // Wait for ATC to sync (polls every 10s) after account import.
-        // Longer wait needed for hardware wallet accounts on custom networks.
+        // Wait for balance reads to resolve after account import (AssetsController
+        // polls every ~10s; Multicall3-backed reads on Anvil resolve the Ledger
+        // account's 1000 ETH).
         logger.debug('waiting for balance sync (60s)...');
         await TestHelpers.delay(60000);
 
@@ -90,14 +98,6 @@ describeIf(SmokeLedger('Send ETH from Ledger account'), () => {
           timeout: 60000,
         });
         logger.debug('wallet visible');
-
-        // Quick network check
-        const localRpcVisible = await waitFor(element(by.text('Local RPC')))
-          .toExist()
-          .withTimeout(5000)
-          .then(() => true)
-          .catch(() => false);
-        logger.debug(`Local RPC: ${localRpcVisible}`);
 
         await device.takeScreenshot('01_wallet_loaded');
 

@@ -11,6 +11,11 @@ require('dotenv').config({ path: '.js.env' });
 
 module.exports = {
   rootDir: '..',
+  // ESM-style `.js`-suffixed imports (used by api-mocking helpers authored for
+  // the Appium runner, e.g. holdings-mocks.ts) resolve to their .ts sources.
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
   testMatch: ['<rootDir>/tests/**/*.spec.{js,ts}'],
   testPathIgnorePatterns: [
     // Playwright + Appium smoke specs — run via tests/playwright.smoke-appium.config.ts

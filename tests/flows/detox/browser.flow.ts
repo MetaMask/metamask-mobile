@@ -3,7 +3,7 @@ import Gestures from '../../framework/detox/Gestures';
 import Matchers from '../../framework/detox/Matchers';
 import Utilities from '../../framework/detox/Utilities';
 import BrowserView from '../../page-objects/detox/Browser/BrowserView';
-import TestDApp from '../../page-objects/Browser/TestDApp';
+import TestDApp from '../../page-objects/detox/Browser/TestDApp';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import TabBarComponent from '../../page-objects/detox/wallet/TabBarComponent';
 import TrendingView from '../../page-objects/detox/Trending/TrendingView';

@@ -4,6 +4,7 @@ import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import fs from 'fs';
 import path from 'path';
 import { createAnvilClients } from './anvil-clients.ts';
+import { deployMulticall3 } from './multicall3.ts';
 import { AnvilPort } from '../framework/fixtures/FixtureUtils.ts';
 import {
   AnvilNodeOptions,
@@ -151,6 +152,16 @@ class AnvilManager implements Resource {
     await this.server.start();
     logger.debug(`Server started successfully on port ${this.serverPort}`);
     this.serverStatus = ServerStatus.STARTED;
+
+    // The app's asset detection batches balance reads through Multicall3 at
+    // its canonical address; a vanilla Anvil chain lacks it, so every batched
+    // eth_call reverts and the wallet shows no assets for accounts that need
+    // live detection (e.g. hardware-wallet accounts imported at runtime).
+    // Install it before any test traffic arrives.
+    if (this.serverPort !== undefined) {
+      await deployMulticall3(this.serverPort);
+      logger.debug('Multicall3 installed at canonical address');
+    }
   }
 
   /**

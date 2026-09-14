@@ -6,9 +6,9 @@ import {
   type SpeculosTestSuiteParams,
 } from '../../framework/fixtures/SpeculosFixtureHelper';
 import Browser from '../../page-objects/detox/Browser/BrowserView';
-import TestDApp from '../../page-objects/Browser/TestDApp';
-import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
-import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
+import TestDApp from '../../page-objects/detox/Browser/TestDApp';
+import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import FooterActions from '../../page-objects/detox/Browser/Confirmations/FooterActions';
 import HardwareWalletBottomSheet from '../../page-objects/Ledger/HardwareWalletBottomSheet';
 import Assertions from '../../framework/detox/Assertions';
 import TestHelpers from '../../helpers';
@@ -57,7 +57,13 @@ describeIf(SmokeLedger('Sign dApp transaction via Ledger'), () => {
         // option crashes the Ledger setup, so connect via the UI here. The Send
         // EIP1559 button is not tappable until the dapp is connected.
         await TestDApp.connect();
-        await ConnectBottomSheet.tapConnectButton();
+        // Detox-native equivalent of the Appium ConnectBottomSheet.tapConnectButton():
+        // wait for the connect button, tap it, and let the sheet dismiss.
+        const connectButton = element(
+          by.id(CommonSelectorsIDs.CONNECT_BUTTON),
+        ) as Detox.IndexableNativeElement;
+        await waitFor(connectButton).toBeVisible().withTimeout(30000);
+        await connectButton.tap();
         await TestHelpers.delay(3000);
 
         await TestDApp.tapSendEIP1559Button();
