@@ -2395,6 +2395,7 @@
         "unrealized_pnl": "Unrealized P&L"
       },
       "tpsl": {
+        "update_in_progress": "Updating TP/SL",
         "update_success": "TP/SL updated successfully",
         "update_failed": "Failed to update TP/SL"
       },
@@ -2998,6 +2999,27 @@
       "additional_feedback_placeholder": "How can we improve?",
       "characters_remaining": "{{count}} characters remaining",
       "submit": "Submit"
+    }
+  },
+  "predict_next": {
+    "available_balance": "Available balance",
+    "balance_unavailable": {
+      "title": "Balance unavailable",
+      "description": "Unable to load your available balance.",
+      "retry": "Try again"
+    },
+    "portfolio": {
+      "title": "Positions",
+      "positions": "Positions",
+      "active_positions": "Active positions",
+      "history": "History",
+      "add_funds": "Add Funds",
+      "withdraw": "Withdraw",
+      "empty": {
+        "title": "No positions yet",
+        "description": "Your active and resolved positions will appear here.",
+        "browse_markets": "Browse markets"
+      }
     }
   },
   "predict": {
@@ -8929,6 +8951,7 @@
       "quote_unit_fallback": "{{amount}}",
       "from_market": "(-{{percent}}% from market)",
       "from_market_above": "(+{{percent}}% from market)",
+      "trigger_price_near_market": "Trigger price is only {{percent}}% from market, your order may fill instantly.",
       "market": "Market",
       "custom": "Custom",
       "expires": "Expires",
