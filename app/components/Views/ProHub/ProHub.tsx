@@ -39,13 +39,13 @@ interface MembershipBannerProps {
 
 const MembershipBanner = ({ testID }: MembershipBannerProps) => (
   <Card
-    twClassName="w-full bg-background-section rounded-xl p-5 border border-border-alternative"
+    twClassName="w-full bg-background-section rounded-xl p-4 border-0"
     testID={testID}
   >
-    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-      {strings('pro_hub.membership_brand')}
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      {strings('pro_hub.title')}
     </Text>
-    <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+    <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
       {strings('pro_hub.membership_label')}
     </Text>
   </Card>
@@ -154,13 +154,13 @@ const ProHub = () => {
           >
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {strings('pro_hub.lifetime_earnings')}
             </Text>
             <Text
-              variant={TextVariant.AmountDisplayLg}
-              fontWeight={FontWeight.Bold}
+              variant={TextVariant.DisplayLg}
               color={TextColor.TextDefault}
             >
               {MOCK_PRO_HUB_STATS.lifetimeEarnings}
