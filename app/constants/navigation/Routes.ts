@@ -431,6 +431,7 @@ const Routes = {
     TAB: 'SocialLeaderboardTab',
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
+    MY_PROFILE: 'MyProfileView',
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',

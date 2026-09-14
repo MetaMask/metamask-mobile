@@ -13,7 +13,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
@@ -60,6 +65,8 @@ import {
 } from '../shell/tabConfig';
 import type { SocialShellTab } from '../shell/types';
 import superheroAvatar from '../../../../images/socialV1/superhero.png';
+import Routes from '../../../../constants/navigation/Routes';
+import { useMyProfile } from '../MyProfileView/hooks';
 
 const LANDING_INDEX = 0;
 
@@ -112,7 +119,9 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
  */
 const SocialV1View: React.FC = () => {
   const tw = useTailwind();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV1View'>>();
+  const { profile: myProfile } = useMyProfile();
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
@@ -283,6 +292,9 @@ const SocialV1View: React.FC = () => {
   });
 
   const handlePlaceholderHeaderAction = useCallback(() => undefined, []);
+  const handleOpenMyProfile = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.MY_PROFILE);
+  }, [navigation]);
 
   // One-shot nudge shown when onboarding reports the user tapped "Allow
   // notifications" but the OS denied it. Seeded from the route param so it only
@@ -393,12 +405,19 @@ const SocialV1View: React.FC = () => {
         }}
         startAccessory={
           <Pressable
-            onPress={handlePlaceholderHeaderAction}
+            onPress={handleOpenMyProfile}
             testID={SocialV1ViewSelectorsIDs.AVATAR_BUTTON}
             accessibilityRole="button"
+            accessibilityLabel={strings(
+              'social_leaderboard.my_profile.open_profile',
+            )}
           >
             <Image
-              source={superheroAvatar}
+              source={
+                myProfile?.imageUrl
+                  ? { uri: myProfile.imageUrl }
+                  : superheroAvatar
+              }
               style={tw.style('w-8 h-8 rounded-full')}
             />
           </Pressable>

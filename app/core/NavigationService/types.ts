@@ -1020,6 +1020,7 @@ export type RootStackParamList = {
         showNotificationsBanner?: boolean;
       }
     | undefined;
+  MyProfileView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;

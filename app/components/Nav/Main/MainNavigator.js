@@ -169,6 +169,7 @@ import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlag
 import {
   SocialV0View,
   SocialV1View,
+  MyProfileView,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -1431,6 +1432,13 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.SOCIAL.V1}
           component={SocialV1View}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL.MY_PROFILE}
+          component={MyProfileView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}

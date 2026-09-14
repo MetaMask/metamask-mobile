@@ -1249,7 +1249,7 @@ describe('MainNavigator', () => {
     });
   });
 
-  it('includes SocialV0View screen when Social Leaderboard remote flag is enabled', () => {
+  it('includes Social screens when Social Leaderboard remote flag is enabled', () => {
     const stateWithSocialLeaderboard = {
       ...initialRootState,
       engine: {
@@ -1306,6 +1306,13 @@ describe('MainNavigator', () => {
 
     expect(bundleV1Screen).toBeDefined();
     expect(bundleV1Screen?.component.name).toBe('SocialV1View');
+
+    const myProfileScreen = screenProps?.find(
+      (screen) => screen?.name === Routes.SOCIAL.MY_PROFILE,
+    );
+
+    expect(myProfileScreen).toBeDefined();
+    expect(myProfileScreen?.component.name).toBe('MyProfileView');
   });
 
   describe('Rewards route placement across the Header & NavBar arms', () => {
