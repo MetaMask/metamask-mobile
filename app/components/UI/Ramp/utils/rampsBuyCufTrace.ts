@@ -1,7 +1,10 @@
+import { AppState, type AppStateStatus } from 'react-native';
 import {
   trace,
   endTrace,
+  getPerformanceTimestamp,
   getTraceContext,
+  setTraceMeasurement,
   TraceName,
   TraceOperation,
   type TraceContext,
@@ -13,7 +16,9 @@ import {
   RAMPS_BUY_CUF_SURFACE,
   RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
   RAMPS_BUY_CUF_TIMEOUT_MS,
+  RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
   type RampsBuyCufSurface,
 } from '../constants/rampsBuyCufTags';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
@@ -26,6 +31,13 @@ const pendingChildMeta = new Map<string, Record<string, TraceValue>>();
 let parentOpId: string | null = null;
 let parentSpan: TraceContext;
 let parentTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null =
+  null;
+let currentAppState: AppStateStatus = AppState.currentState;
+let foregroundSegmentStartedAt: number | null = null;
+let foregroundActiveMs = 0;
+let backgroundCount = 0;
+let resumeCount = 0;
 let cufOpCounter = 0;
 
 function nextCufOpId(name: TraceName): string {
@@ -38,8 +50,58 @@ function clearStaleParentState(): void {
     clearTimeout(parentTimeoutId);
     parentTimeoutId = null;
   }
+  appStateSubscription?.remove();
+  appStateSubscription = null;
+  currentAppState = AppState.currentState;
+  foregroundSegmentStartedAt = null;
+  foregroundActiveMs = 0;
+  backgroundCount = 0;
+  resumeCount = 0;
   parentOpId = null;
   parentSpan = undefined;
+}
+
+function pauseForegroundSegment(now = getPerformanceTimestamp()): void {
+  if (foregroundSegmentStartedAt === null) {
+    return;
+  }
+  foregroundActiveMs += Math.max(0, now - foregroundSegmentStartedAt);
+  foregroundSegmentStartedAt = null;
+}
+
+function startForegroundSegment(now = getPerformanceTimestamp()): void {
+  if (foregroundSegmentStartedAt === null) {
+    foregroundSegmentStartedAt = now;
+  }
+}
+
+function handleAppStateChange(nextState: AppStateStatus): void {
+  const wasActive = currentAppState === 'active';
+  const isActive = nextState === 'active';
+
+  if (wasActive && !isActive) {
+    pauseForegroundSegment();
+    backgroundCount += 1;
+    endOpenRampsBuyCufChildrenByName(TraceName.RampBuyQuoteFetch, {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.APP_BACKGROUNDED,
+    });
+  } else if (!wasActive && isActive) {
+    resumeCount += 1;
+    startForegroundSegment();
+  }
+  currentAppState = nextState;
+}
+
+function startLifecycleAccounting(startTime?: number): void {
+  currentAppState = AppState.currentState;
+  if (currentAppState === 'active') {
+    startForegroundSegment(startTime);
+  }
+  appStateSubscription = AppState.addEventListener(
+    'change',
+    handleAppStateChange,
+  );
 }
 
 /** True if Buy E2E parent is still open (incl. consent-buffered starts). */
@@ -134,9 +196,11 @@ export function startRampsBuyCufTrace({
     op: TraceOperation.RampOperation,
     startTime,
     forceTransaction: true,
+    maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,
   });
+  startLifecycleAccounting(startTime);
 
   endRampsBuyCufTraceAfter(
     {
@@ -167,12 +231,27 @@ export function endRampsBuyCufTrace({
     return;
   }
 
+  pauseForegroundSegment(timestamp);
+  const measuredForegroundMs = Math.round(foregroundActiveMs);
+  const lifecycleData = {
+    [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: measuredForegroundMs,
+    [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: backgroundCount,
+    [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: resumeCount,
+    [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]:
+      backgroundCount > 0 ? 'background_resumed' : 'foreground_only',
+  };
+  setTraceMeasurement(
+    { name: TraceName.RampBuyToOrderDetails, id: targetId },
+    RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+    measuredForegroundMs,
+    'millisecond',
+  );
   abandonOpenChildTraces(RAMPS_BUY_CUF_END_REASON.ABANDONED);
   clearStaleParentState();
   endTrace({
     name: TraceName.RampBuyToOrderDetails,
     id: targetId,
-    data,
+    data: { ...data, ...lifecycleData },
     timestamp,
   });
 }

@@ -501,6 +501,7 @@ function getSpanAttributes(
 
 export interface PendingTrace {
   end: (timestamp?: number) => void;
+  maxLifetimeMs: number;
   request: TraceRequest;
   startTime: number;
   timeoutId: NodeJS.Timeout;
@@ -566,6 +567,12 @@ export interface TraceRequest {
    * Custom operation name to associate with the trace.
    */
   op?: string;
+
+  /**
+   * Maximum lifetime for a manually-ended trace.
+   * Defaults to {@link TRACES_CLEANUP_INTERVAL}.
+   */
+  maxLifetimeMs?: number;
 }
 /**
  * A request to end a pending trace.
@@ -651,7 +658,7 @@ function getEffectiveEndTime(
   pendingTrace: PendingTrace,
   requestedEndTime?: number,
 ): number {
-  const maximumEndTime = pendingTrace.startTime + TRACES_CLEANUP_INTERVAL;
+  const maximumEndTime = pendingTrace.startTime + pendingTrace.maxLifetimeMs;
   const endTime = requestedEndTime ?? getPerformanceTimestamp();
 
   // Guard against non-finite timestamps (e.g. environments without a
@@ -1259,6 +1266,7 @@ function startTrace(request: TraceRequest): TraceContext {
       finishPendingTrace(key, previousTrace);
     }
 
+    const maxLifetimeMs = request.maxLifetimeMs ?? TRACES_CLEANUP_INTERVAL;
     const timeoutId = setTimeout(() => {
       // Defensive identity check: a stale timer must never touch a newer
       // trace registered under the same key.
@@ -1277,12 +1285,13 @@ function startTrace(request: TraceRequest): TraceContext {
       // The timer only fires at or after the maximum lifetime (possibly hours
       // late when the app was backgrounded), so record the capped timestamp
       // rather than the current time.
-      end(startTime + TRACES_CLEANUP_INTERVAL);
+      end(startTime + maxLifetimeMs);
       tracesByKey.delete(key);
-    }, TRACES_CLEANUP_INTERVAL);
+    }, maxLifetimeMs);
 
     const pendingTrace: PendingTrace = {
       end,
+      maxLifetimeMs,
       request,
       startTime,
       timeoutId,
