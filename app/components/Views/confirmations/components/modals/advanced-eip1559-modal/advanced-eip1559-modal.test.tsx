@@ -150,7 +150,7 @@ describe('AdvancedEIP1559Modal', () => {
     );
   });
 
-  it('calls navigateToEstimatesModal when the back button is pressed', () => {
+  it('closes the sheet when the header close button is pressed', () => {
     const mockSetActiveModal = jest.fn();
     const mockHandleCloseModals = jest.fn();
 
@@ -161,7 +161,7 @@ describe('AdvancedEIP1559Modal', () => {
       />,
     );
 
-    const backButton = getByTestId('back-button');
+    const backButton = getByTestId('button-icon');
     fireEvent.press(backButton);
 
     expect(mockSetActiveModal).toHaveBeenCalledWith(GasModalType.ESTIMATES);

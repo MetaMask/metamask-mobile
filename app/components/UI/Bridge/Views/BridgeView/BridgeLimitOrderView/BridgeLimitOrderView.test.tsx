@@ -308,6 +308,7 @@ function buildPriceAdjustMock() {
     executionType: LimitOrderExecutionType.SELL,
     limitPrice: '1',
     marketComparison: undefined,
+    isTriggerPriceNearMarket: false,
     onAmountTypeTogglePress: undefined,
     onQuoteUnitPress: jest.fn(),
     quotedSymbol: 'USDC',
