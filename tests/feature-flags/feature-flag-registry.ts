@@ -338,7 +338,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
     },
-    status: FeatureFlagStatus.Active,
+    // All 9 controllers listed in `deprecatedControllers` have been fully
+    // removed from the app; the app no longer reads this flag.
+    status: FeatureFlagStatus.Deprecated,
   },
 
   backendWebSocketConnection: {
@@ -4373,6 +4375,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         ],
       },
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsAbtestScreenVsBottomSheet: {
+    name: 'perpsAbtestScreenVsBottomSheet',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: 'control',
     status: FeatureFlagStatus.Active,
   },
 

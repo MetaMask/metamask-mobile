@@ -9,8 +9,8 @@ export const VbaVerifyIdentitySelectorsIDs = {
   METAMASK_PRIVACY_POLICY_LINK:
     'vba-verify-identity-metamask-privacy-policy-link',
   METAMASK_TERMS_LINK: 'vba-verify-identity-metamask-terms-link',
-  IDOS_PRIVACY_POLICY_LINK: 'vba-verify-identity-idos-privacy-policy-link',
-  IDOS_TERMS_LINK: 'vba-verify-identity-idos-terms-link',
-  SUMSUB_PRIVACY_POLICY_LINK: 'vba-verify-identity-sumsub-privacy-policy-link',
-  SUMSUB_TERMS_LINK: 'vba-verify-identity-sumsub-terms-link',
+  DISCLAIMERS_LOADING: 'vba-verify-identity-disclaimers-loading',
+  DISCLAIMERS_ERROR: 'vba-verify-identity-disclaimers-error',
+  DISCLAIMERS_RETRY: 'vba-verify-identity-disclaimers-retry',
+  DISCLAIMER_LINK: 'vba-verify-identity-disclaimer-link',
 };

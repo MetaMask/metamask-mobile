@@ -55,9 +55,7 @@ describe('useBenefits', () => {
   const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
     typeof useFocusEffect
   >;
-  const mockEngineCall = Engine.controllerMessenger.call as jest.MockedFunction<
-    typeof Engine.controllerMessenger.call
-  >;
+  const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
   const mockSetBenefits = setBenefits as jest.MockedFunction<
     typeof setBenefits
   >;
@@ -74,7 +72,7 @@ describe('useBenefits', () => {
     mockUseSelector.mockReturnValue('test-subscription-id');
   });
 
-  it('clears benefits when subscriptionId is missing', async () => {
+  it('skips fetch when subscriptionId is missing', async () => {
     mockUseSelector.mockReturnValue(null);
 
     renderHook(() => useBenefits());
@@ -82,13 +80,9 @@ describe('useBenefits', () => {
     const focusCallback = mockUseFocusEffect.mock.calls[0][0];
     await focusCallback();
 
-    expect(mockSetBenefits).toHaveBeenCalledWith({
-      benefits: [],
-      limit: 200,
-      lastFetched: expect.any(Number),
-    });
-    expect(mockSetBenefitsError).toHaveBeenCalledWith(false);
-    expect(mockSetBenefitsLoading).toHaveBeenCalledWith(false);
+    expect(mockSetBenefits).not.toHaveBeenCalled();
+    expect(mockSetBenefitsError).not.toHaveBeenCalled();
+    expect(mockSetBenefitsLoading).not.toHaveBeenCalled();
     expect(mockEngineCall).not.toHaveBeenCalled();
   });
 
@@ -115,8 +109,17 @@ describe('useBenefits', () => {
       'test-subscription-id',
       200,
     );
-    expect(mockSetBenefits).toHaveBeenCalledWith(benefitsState);
-    expect(mockSetBenefitsLoading).toHaveBeenCalledWith(true);
-    expect(mockSetBenefitsLoading).toHaveBeenCalledWith(false);
+    expect(mockSetBenefits).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      benefits: benefitsState,
+    });
+    expect(mockSetBenefitsLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: true,
+    });
+    expect(mockSetBenefitsLoading).toHaveBeenCalledWith({
+      subscriptionId: 'test-subscription-id',
+      loading: false,
+    });
   });
 });
