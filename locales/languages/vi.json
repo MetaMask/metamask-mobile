@@ -26,6 +26,10 @@
     "description_line2": "Nếu bạn cho rằng đây là lỗi, hãy liên hệ bộ phận hỗ trợ để yêu cầu xem xét.",
     "contact_support": "Liên hệ bộ phận hỗ trợ"
   },
+  "arc_usage_notice": {
+    "title": "Thông báo",
+    "description": "Chào mừng đến với Arc! Để hỗ trợ và xác minh việc bạn sử dụng chuỗi Arc, chúng tôi có thể chia sẻ thông tin với đội ngũ Arc."
+  },
   "storage": {
     "device_full_alert": "Thiết bị của bạn sắp hết dung lượng lưu trữ. Hãy giải phóng dung lượng để MetaMask có thể lưu dữ liệu ví của bạn."
   },
@@ -125,7 +129,7 @@
     },
     "headless_buy_error": {
       "title": "Mua bằng tiền pháp định không thành công",
-      "message": "Đã xảy ra lỗi với giao dịch mua bằng tiền pháp định của bạn. Vui lòng thử lại."
+      "message": "Something went wrong with your fiat purchase. Try again."
     },
     "mmpay_hardware_account": {
       "title": "Ví không được hỗ trợ",
@@ -169,7 +173,7 @@
       },
       "warning": {
         "message": "Các đối tác bảo mật không có đủ lịch sử đáng tin cậy để xác minh địa chỉ này.",
-        "title": "Limited address signals"
+        "title": "Tín hiệu về địa chỉ còn hạn chế"
       }
     },
     "url_trust_signal": {
@@ -215,7 +219,7 @@
     "setting_up_alerts_description": "Chúng tôi sẽ thiết lập cảnh báo bảo mật trong thời gian nhanh nhất có thể. Vui lòng chờ đợi, chúng tôi gần xong rồi.",
     "setup_complete": "Đã thiết lập xong",
     "setup_failed": "Chúng tôi không thể hoàn tất việc thiết lập cảnh báo bảo mật. Vui lòng kiểm tra kết nối Internet của bạn và thử lại.",
-    "setup_multiple_failures": "Kết nối Internet của bạn hiện không ổn định, nên chúng tôi không thể thiết lập cảnh báo bảo mật. Vui lòng thử lại khi kết nối của bạn được khôi phục.",
+    "setup_multiple_failures": "Your internet connection isn't stable right now, so we couldn't set up security alerts. Try again when your connection is restored.",
     "setup_complete_description": "Cảnh báo bảo mật đã sẵn sàng hoạt động. Bạn có thể đóng trang này và bắt đầu khám phá ví của mình",
     "continue": "Tiếp tục",
     "cancel": "Hủy",
@@ -310,7 +314,7 @@
     "new_to_metamask": "Bạn mới sử dụng MetaMask?",
     "already_have_wallet": "Bạn đã có ví?",
     "optin_back_title": "Chú ý!",
-    "optin_back_desc": "Vui lòng đồng ý hoặc không đồng ý cho phép sử dụng tính năng phân tích dữ liệu. Bạn cũng có thể cập nhật tùy chọn này trong phần cài đặt.",
+    "optin_back_desc": "Agree or disagree to the usage of data analytics. You can also update this option in settings.",
     "warning_title": "Cảnh báo",
     "warning_text_1": "Các tài khoản và ví hiện tại của bạn sẽ bị",
     "warning_text_2": "gỡ bỏ",
@@ -512,7 +516,7 @@
     "wrong_password_error": "Lỗi: Giải mã không thành công",
     "wrong_password_error_android": "Lỗi: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "Lỗi: Không thể mở khóa nếu không có dữ liệu vault trước đó.",
-    "clean_vault_error": "MetaMask đã gặp lỗi do đạt đến giới hạn bộ nhớ. Dữ liệu cục bộ đã bị hỏng. Vui lòng cài đặt lại MetaMask và khôi phục bằng Cụm từ khôi phục bí mật của bạn.",
+    "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "seedless_password_outdated": "Mật khẩu của bạn đã được thay đổi gần đây.",
     "seedless_password_outdated_modal_title": "Mật khẩu của bạn đã được thay đổi",
     "seedless_password_outdated_modal_content": "Mật khẩu của bạn đã được thay đổi gần đây, vì vậy bạn cần nhập mật khẩu mới để tiếp tục đăng nhập vào MetaMask.",
@@ -523,8 +527,8 @@
     "seedless_controller_error_prompt_primary_button_label": "Đăng nhập",
     "security_alert_title": "Cảnh báo bảo mật",
     "security_alert_desc": "Để tiếp tục, bạn cần bật Mật mã hoặc bất kỳ phương thức xác thực sinh trắc học nào được hỗ trợ trong thiết bị của bạn (FaceID, TouchID hoặc Vân tay)",
-    "too_many_attempts": "Quá nhiều lần thử. Vui lòng thử lại sau {{remainingTime}}",
-    "biometric_too_many_attempts": "Quá nhiều lần thử, vui lòng nhập mật khẩu.",
+    "too_many_attempts": "Too many attempts. Try again in {{remainingTime}}",
+    "biometric_too_many_attempts": "Too many attempts. Enter your password.",
     "apple_button": "Đăng nhập bằng Apple",
     "google_button": "Đăng nhập bằng Google",
     "other_methods": "Sử dụng phương thức đăng nhập khác",
@@ -544,10 +548,10 @@
     "reset_wallet_desc_srp": "Để khôi phục ví, hãy đảm bảo bạn có Cụm từ khôi phục bí mật. MetaMask không lưu trữ thông tin này.",
     "biometric_authentication_cancelled": "Xác thực sinh trắc học đã bị hủy",
     "biometric_authentication_cancelled_title": "Thiết lập sinh trắc học thất bại",
-    "biometric_authentication_cancelled_description": "Vui lòng thiết lập lại xác thực sinh trắc học trong phần cài đặt.",
+    "biometric_authentication_cancelled_description": "Set up biometric authentication again from the settings.",
     "biometric_authentication_cancelled_button": "Xác nhận",
     "biometric_changed": "Sinh trắc học đã thay đổi",
-    "biometric_changed_alert_desc": "Sinh trắc học của bạn đã được thay đổi. Vui lòng bật lại sinh trắc học trong phần cài đặt.",
+    "biometric_changed_alert_desc": "Your biometric has been changed. Re-enable biometric from settings.",
     "biometric_changed_alert_confirm": "Xác nhận"
   },
   "connect_hardware": {
@@ -557,7 +561,7 @@
   },
   "enter_password": {
     "title": "Nhập mật khẩu của bạn",
-    "desc": "Vui lòng nhập mật khẩu của bạn để tiếp tục",
+    "desc": "Enter your password to continue",
     "password": "Mật khẩu",
     "confirm_button": "Xác nhận",
     "error": "Lỗi"
@@ -648,7 +652,7 @@
     "changing_password_subtitle": "Sẽ không tốn nhiều thời gian",
     "checkbox_forgot_password": "Nếu tôi quên mật khẩu này, tôi sẽ vĩnh viễn mất quyền truy cập vào ví. MetaMask không thể đặt lại mật khẩu cho tôi.",
     "seedless_change_password_error_modal_title": "Thay đổi mật khẩu không thành công",
-    "seedless_change_password_error_modal_content": "Chúng tôi không thể thay đổi mật khẩu. Vui lòng thử lại.",
+    "seedless_change_password_error_modal_content": "We were unable to change your password. Try again.",
     "seedless_change_password_error_modal_confirm": "Thử lại"
   },
   "import_from_seed": {
@@ -744,7 +748,7 @@
     "units": "đơn vị",
     "next": "Tiếp theo",
     "title": "Gửi",
-    "deeplink_failure": "Đã xảy ra lỗi! Vui lòng thử lại",
+    "deeplink_failure": "Something went wrong. Try again",
     "warn_network_change": "Mạng đã đổi thành ",
     "send_to": "Gửi cho",
     "amount": "Số tiền",
@@ -765,7 +769,7 @@
     "no_tokens_available": "Không có token khả dụng",
     "sign": "Ký",
     "network_not_found_title": "Không tìm thấy mạng",
-    "network_not_found_description": "Không tìm thấy mạng có ID chuỗi {{chain_id}} trong ví của bạn. Vui lòng thêm mạng trước.",
+    "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Add the network first.",
     "network_missing_id": "Thiếu ID chuỗi.",
     "search_tokens": "Tìm kiếm token",
     "search_tokens_and_nfts": "Tìm kiếm token và NFT",
@@ -808,7 +812,7 @@
       "kycFormsFetchError": "Tìm nạp biểu mẫu KYC không thành công.",
       "title": "Mua",
       "limitExceeded": "Khoản nạp này sẽ vượt quá hạn mức {{period}} của bạn. Khoản nạp bao gồm phí phải từ {{remaining}} trở xuống.",
-      "limitError": "Không thể kiểm tra hạn mức nạp của bạn. Vui lòng thử lại sau."
+      "limitError": "Failed to check your deposit limits. Try again later."
     },
     "token_modal": {
       "select_a_token": "Chọn token",
@@ -817,7 +821,7 @@
       "no_tokens_found": "Không có token nào khớp với \"{{searchString}}\"",
       "unsupported_token_title": "Không có sẵn",
       "unsupported_token_description": "Token này có thể không khả dụng ở khu vực của bạn hoặc không được hỗ trợ bởi bất kỳ nhà cung cấp dịch vụ thanh toán địa phương nào",
-      "error_loading_tokens": "Không thể tải token. Vui lòng thử lại sau."
+      "error_loading_tokens": "Unable to load tokens. Try again later."
     },
     "networks_filter_bar": {
       "all_networks": "Tất cả mạng"
@@ -909,7 +913,7 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "Gửi email",
       "loading": "Đang gửi email...",
-      "validation_error": "Vui lòng nhập địa chỉ email hợp lệ",
+      "validation_error": "Enter a valid email address",
       "error": "Đã xảy ra lỗi khi gửi email"
     },
     "otp_code": {
@@ -919,7 +923,7 @@
       "submit_button": "Gửi",
       "loading": "Đang xác minh mã...",
       "invalid_code_error": "Mã không hợp lệ",
-      "validation_error": "Vui lòng nhập mã hợp lệ",
+      "validation_error": "Enter a valid code",
       "need_help": "Cần trợ giúp?",
       "resend_code_description": "Không nhận được mã?",
       "resend_code_error": "Lỗi khi gửi lại mã.",
@@ -964,13 +968,13 @@
       "enter_phone_number": "Nhập số điện thoại",
       "select_region": "Chọn khu vực",
       "first_name_required": "Tên là bắt buộc",
-      "first_name_invalid": "Vui lòng nhập tên hợp lệ",
+      "first_name_invalid": "Enter a valid first name",
       "last_name_required": "Họ là bắt buộc",
-      "last_name_invalid": "Vui lòng nhập họ hợp lệ",
+      "last_name_invalid": "Enter a valid last name",
       "mobile_number_required": "Số điện thoại là bắt buộc",
-      "mobile_number_invalid": "Vui lòng nhập số điện thoại hợp lệ",
+      "mobile_number_invalid": "Enter a valid phone number",
       "dob_required": "Ngày tháng năm sinh là bắt buộc",
-      "dob_invalid": "Vui lòng nhập ngày tháng năm sinh hợp lệ",
+      "dob_invalid": "Enter a valid date of birth",
       "ssn_required": "Số an sinh xã hội là bắt buộc",
       "unexpected_error": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
       "phone_already_registered": "Số điện thoại này đã được {{email}} sử dụng. Vui lòng đăng nhập bằng email này để tiếp tục.",
@@ -989,14 +993,14 @@
       "country": "Quốc gia",
       "select_state": "Chọn bang",
       "address_line_1_required": "Địa chỉ dòng 1 là bắt buộc",
-      "address_line_1_invalid": "Vui lòng nhập địa chỉ hợp lệ",
-      "address_line_2_invalid": "Vui lòng nhập địa chỉ hợp lệ",
+      "address_line_1_invalid": "Enter a valid address",
+      "address_line_2_invalid": "Enter a valid address",
       "city_required": "Thành phố là bắt buộc",
-      "city_invalid": "Vui lòng nhập thành phố hợp lệ",
+      "city_invalid": "Enter a valid city",
       "state_required": "Bang/Khu vực là bắt buộc",
-      "state_invalid": "Vui lòng nhập bang hợp lệ",
+      "state_invalid": "Enter a valid state",
       "postal_code_required": "Cần nhập mã bưu chính",
-      "postal_code_invalid": "Vui lòng nhập mã bưu chính hợp lệ",
+      "postal_code_invalid": "Enter a valid postal code",
       "unexpected_error": "Lỗi không mong muốn."
     },
     "privacy_section": {
@@ -1360,9 +1364,9 @@
       "lite": "Lite",
       "pro": "Pro",
       "selection_title": "Chọn cách bạn giao dịch",
-      "selection_subtitle": "Change this anytime on the top right menu.",
+      "selection_subtitle": "Bạn có thể thay đổi tùy chọn này bất cứ lúc nào trong trình đơn ở góc trên bên phải.",
       "lite_description": "Mua khống hoặc bán khống chỉ với một lần nhấn. Thiết kế đơn giản.",
-      "pro_description": "Professional workstation with advanced controls.",
+      "pro_description": "Máy trạm chuyên nghiệp với các tùy chọn điều khiển nâng cao.",
       "lite_transition_title": "Chế độ Lite",
       "pro_transition_title": "Chế độ Pro",
       "active_pill_accessibility_label": "Hiện đang ở chế độ {{mode}}",
@@ -1590,34 +1594,33 @@
       "before_after": "{{before}} → {{after}}",
       "tpsl": "Chốt lời/Cắt lỗ",
       "place_order": "Đặt lệnh",
-      "keyboard_previous": "Previous field",
-      "keyboard_next": "Next field",
+      "keyboard_previous": "Trường trước đó",
+      "keyboard_next": "Trường tiếp theo",
       "keyboard_done": "Hoàn tất",
       "price_unavailable": "Không có giá thị trường. Vui lòng chờ dữ liệu giá trước khi đặt lệnh.",
       "scale": {
-        "start_price": "Start (USD)",
-        "end_price": "End (USD)",
-        "total_orders": "Order count",
-        "size_skew": "Size skew",
-        "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
+        "start_price": "Bắt đầu (USD)",
+        "end_price": "Kết thúc (USD)",
+        "total_orders": "Số lượng lệnh",
+        "size_skew": "Độ lệch kích thước",
+        "size_skew_hint": "Trọng số tăng tuyến tính từ 1 đến tỷ lệ này trên toàn phạm vi.",
         "start": "Bắt đầu",
         "end": "Kết thúc",
         "margin": "Ký quỹ",
-        "orders_submitted": "Scale orders submitted",
-        "orders_placed": "Scale orders placed",
-        "orders_partially_placed": "Scale orders partially placed",
-        "submission_summary": "Placing {{totalCount}} orders · {{size}} {{assetSymbol}}",
-        "placement_summary": "{{submittedCount}} orders placed · {{size}} {{assetSymbol}}",
-        "partial_placement_summary": "{{submittedCount}} of {{totalCount}} orders placed · {{size}} {{assetSymbol}}",
+        "orders_submitted": "Đã gửi lệnh theo thang giá",
+        "orders_placed": "Đã đặt lệnh theo thang giá",
+        "orders_partially_placed": "Đã đặt một phần lệnh theo thang giá",
+        "submission_summary": "Đang đặt {{totalCount}} lệnh · {{size}} {{assetSymbol}}",
+        "placement_summary": "Đã đặt {{submittedCount}} lệnh · {{size}} {{assetSymbol}}",
+        "partial_placement_summary": "Đã đặt {{submittedCount}}/{{totalCount}} lệnh · {{size}} {{assetSymbol}}",
         "validation": {
-          "prices_required": "Enter both Scale range prices",
-          "size_required": "Enter a Scale order size",
-          "invalid_range": "Start price must be lower than end price",
-          "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
-          "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
-          "unavailable": "Scale orders are temporarily unavailable. Select another order type."
+          "prices_required": "Nhập cả hai mức giá trong phạm vi thang giá",
+          "size_required": "Nhập kích thước lệnh theo thang giá",
+          "invalid_range": "Giá bắt đầu phải thấp hơn giá kết thúc",
+          "invalid_order_count": "Số lượng lệnh phải nằm trong khoảng từ {{minOrderCount}} đến {{maxOrderCount}}",
+          "invalid_skew": "Độ lệch kích thước phải lớn hơn 0",
+          "minimum_lot": "Lệnh nhỏ nhất phải có giá trị tối thiểu là ${{minOrderValue}}",
+          "unavailable": "Lệnh theo thang giá tạm thời không khả dụng. Chọn loại lệnh khác."
         }
       },
       "twap": {
@@ -1645,6 +1648,8 @@
       "positions_with_count": "Vị thế ({{count}})",
       "orders": "Lệnh",
       "orders_with_count": "Lệnh ({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "Chỉ {{ticker}}",
       "view_market_accessibility": "Chuyển sang thị trường {{symbol}}",
       "positions_empty": "Các vị thế đang mở của bạn sẽ hiển thị tại đây.",
@@ -1655,6 +1660,20 @@
       "orders_empty_filtered": "Không có lệnh {{ticker}} nào đang mở.",
       "orders_empty_long": "Không có lệnh mua khống.",
       "orders_empty_short": "Không có lệnh bán khống.",
+      "twap_empty": "Các lệnh TWAP đang hoạt động sẽ xuất hiện tại đây.",
+      "twap_empty_filtered": "Không có lệnh TWAP {{ticker}} nào đang hoạt động.",
+      "twap_empty_long": "Không có lệnh TWAP mua khống nào.",
+      "twap_empty_short": "Không có lệnh TWAP bán khống nào.",
+      "twap_history_empty": "Các lệnh TWAP đã hoàn tất sẽ xuất hiện tại đây.",
+      "twap_history_empty_filtered": "Không có lịch sử lệnh TWAP {{ticker}}.",
+      "twap_history_empty_long": "Không có lịch sử lệnh TWAP mua khống.",
+      "twap_history_empty_short": "Không có lịch sử lệnh TWAP bán khống.",
+      "twap_fill_history_empty": "Các lệnh đã khớp từ lệnh TWAP của bạn sẽ xuất hiện tại đây.",
+      "twap_fill_history_empty_filtered": "Không có lệnh TWAP {{ticker}} nào đã khớp.",
+      "twap_fill_history_empty_long": "Không có lệnh TWAP mua khống nào đã khớp.",
+      "twap_fill_history_empty_short": "Không có lệnh TWAP bán khống nào đã khớp.",
+      "twap_load_error": "Không thể tải lịch trình lệnh TWAP mới nhất.",
+      "twap_retry": "Thử lại",
       "side_filter": {
         "all_sides": "Tất cả các hướng",
         "long": "Mua khống",
@@ -1695,6 +1714,36 @@
         "edit": "Chỉnh sửa",
         "edit_price": "Sửa giá giới hạn",
         "edit_size": "Sửa kích thước"
+      },
+      "twap_views": {
+        "active": "Đang hoạt động",
+        "history": "Lịch sử",
+        "fill_history": "Lịch sử khớp lệnh",
+        "previous": "Trước đó",
+        "next": "Tiếp theo",
+        "page_count": "Trang {{page}}/{{total}}"
+      },
+      "twap_card": {
+        "total_size": "Tổng kích thước",
+        "filled_size": "Đã khớp",
+        "average_price": "Giá khớp lệnh trung bình",
+        "progress": "Tiến trình",
+        "elapsed": "Thời gian đã trôi qua",
+        "reduce_only": "Chỉ giảm",
+        "randomize": "Ngẫu nhiên",
+        "terminate": "Chấm dứt",
+        "status_active": "Đang hoạt động",
+        "status_completed": "Đã hoàn tất",
+        "status_completed_underfilled": "Đã hoàn tất nhưng chưa khớp đủ",
+        "status_canceled": "Đã chấm dứt",
+        "status_failed": "Không thành công"
+      },
+      "twap_terminate": {
+        "title": "Chấm dứt lệnh TWAP {{symbol}}?",
+        "description": "Kích thước còn lại sẽ không được thực hiện. Mọi kích thước đã khớp sẽ được giữ nguyên dưới dạng vị thế.",
+        "description_reduce_only": "Kích thước còn lại sẽ không được thực hiện. Mọi kích thước đã khớp đã làm giảm vị thế hiện tại của bạn.",
+        "confirm": "Chấm dứt",
+        "cancel": "Hủy"
       }
     },
     "order": {
@@ -1743,20 +1792,26 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Cần đặt giá giới hạn trước khi thiết lập mức Chốt lời/Cắt lỗ",
         "only_hyperliquid_usdc": "Hiện tại chỉ hỗ trợ USDC trên Hyperliquid khi thực hiện thanh toán",
         "limit_price_far_warning": "Giá giới hạn cách xa giá thị trường hiện tại",
+        "limit_price_far_from_market_bid": "Bạn đang sử dụng giá giới hạn cách giá mua tốt nhất {{percent}}%.",
+        "limit_price_far_from_market_ask": "Bạn đang sử dụng giá giới hạn cách giá bán tốt nhất {{percent}}%.",
         "limit_price_above_warning": "Giá giới hạn cao hơn giá hiện tại. Lệnh của bạn có thể được thực hiện như một lệnh thị trường.",
         "limit_price_below_warning": "Giá giới hạn thấp hơn giá hiện tại. Lệnh của bạn có thể được thực hiện như một lệnh thị trường.",
+        "scale_price_above_warning": "Phạm vi giá của bạn cao hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
+        "scale_price_below_warning": "Phạm vi giá của bạn thấp hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
+        "scale_price_above_partial_warning": "Một phần phạm vi giá của bạn cao hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
+        "scale_price_below_partial_warning": "Một phần phạm vi giá của bạn thấp hơn giá hiện tại và có thể khớp ngay lập tức dưới dạng lệnh Taker, đồng thời phát sinh phí Taker.",
         "trigger_must_be_above_mid": "Giá kích hoạt phải cao hơn giá trung bình",
         "trigger_must_be_below_mid": "Giá kích hoạt phải thấp hơn giá trung bình",
         "trigger_orders_unavailable": "Các lệnh kích hoạt tạm thời không khả dụng. Hãy chọn lệnh thị trường.",
         "please_set_a_trigger_price": "Vui lòng đặt giá kích hoạt",
         "oi_cap_reached": "Đã đạt giới hạn lãi suất mở. Không thể mở vị thế mới vào lúc này.",
-        "chase_limit": "You can run up to {{count}} active Chase orders at a time.",
-        "chase_max_distance_usd": "Max chase distance must be greater than $0 and less than the current price.",
-        "chase_max_distance_percent": "Max chase distance must be greater than 0% and less than 100%.",
-        "chase_account_changed": "Account changed. Review and place the Chase order again.",
-        "chase_details_changed": "Order details changed. Review and place the Chase order again.",
-        "chase_route_changed": "Market route changed. Review and place the Chase order again.",
-        "chase_unavailable": "Chase placement is not available for this provider.",
+        "chase_limit": "Bạn có thể chạy tối đa {{count}} lệnh bám giá đang hoạt động cùng lúc.",
+        "chase_max_distance_usd": "Khoảng cách bám giá tối đa phải lớn hơn $0 và nhỏ hơn giá hiện tại.",
+        "chase_max_distance_percent": "Khoảng cách bám giá tối đa phải lớn hơn 0% và nhỏ hơn 100%.",
+        "chase_account_changed": "Tài khoản đã thay đổi. Hãy xem lại và đặt lại lệnh bám giá.",
+        "chase_details_changed": "Chi tiết lệnh đã thay đổi. Hãy xem lại và đặt lại lệnh bám giá.",
+        "chase_route_changed": "Tuyến thị trường đã thay đổi. Hãy xem lại và đặt lại lệnh bám giá.",
+        "chase_unavailable": "Nhà cung cấp này không hỗ trợ đặt lệnh bám giá.",
         "reduce_only_no_position": "Bạn cần có một vị thế mở trên thị trường này để đặt lệnh chỉ giảm vị thế",
         "reduce_only_wrong_side": "Lệnh chỉ giảm vị thế chỉ có thể giảm một vị thế hiện có. Chuyển sang phía đối diện.",
         "reduce_only_too_large": "Lệnh chỉ giảm vị thế lớn hơn vị thế mở của bạn",
@@ -1841,12 +1896,12 @@
           "description": "Thực hiện ở mức giá bạn chỉ định hoặc tốt hơn"
         },
         "scale": {
-          "title": "Scale",
-          "description": "Multiple limit orders spread across a price range"
+          "title": "Thang giá",
+          "description": "Nhiều lệnh giới hạn được phân bổ trên một phạm vi giá"
         },
         "chase": {
-          "title": "Chase",
-          "description": "Post-only limit order that follows the best bid or ask"
+          "title": "Bám giá",
+          "description": "Lệnh giới hạn chỉ đăng sẽ bám theo giá mua hoặc giá bán tốt nhất"
         },
         "stop_limit": {
           "title": "Lệnh dừng giới hạn",
@@ -1870,47 +1925,47 @@
         }
       },
       "chase": {
-        "max_distance": "Max distance",
-        "switch_max_distance_unit": "Switch max distance unit to {{unit}}",
-        "reference_price_accessibility_value": "{{orderType}}, reference price {{price}}",
-        "foreground_notice": "Keep the app open while the Chase order is running.",
-        "backgrounding_title": "Securing Chase orders",
-        "backgrounding_notification": "MetaMask is stopping Chase repricing before disconnecting.",
-        "backgrounded_title": "Chase became a limit order",
-        "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",
-        "backgrounded_notification_multiple": "{{count}} Chase orders are now resting as limit orders at their last chased prices.",
-        "max_distance_reached_title": "Chase max distance reached",
-        "max_distance_reached_notification": "Your {{symbol}} Chase order reached its max distance and is now resting as a limit order.",
-        "tab": "Chase",
-        "tab_with_count": "Chase ({{count}})",
+        "max_distance": "Khoảng cách tối đa",
+        "switch_max_distance_unit": "Chuyển đơn vị khoảng cách tối đa sang {{unit}}",
+        "reference_price_accessibility_value": "{{orderType}}, giá tham chiếu {{price}}",
+        "foreground_notice": "Giữ ứng dụng luôn mở khi lệnh bám giá đang chạy.",
+        "backgrounding_title": "Đảm bảo an toàn cho các lệnh bám giá",
+        "backgrounding_notification": "MetaMask đang dừng việc định giá lại lệnh bám giá trước khi ngắt kết nối.",
+        "backgrounded_title": "Lệnh bám giá đã trở thành lệnh giới hạn",
+        "backgrounded_notification": "Lệnh bám giá của bạn hiện đang chờ khớp dưới dạng lệnh giới hạn tại mức giá bám giá gần nhất.",
+        "backgrounded_notification_multiple": "{{count}} lệnh bám giá hiện đang chờ khớp dưới dạng lệnh giới hạn tại các mức giá bám giá gần nhất.",
+        "max_distance_reached_title": "Đã đạt khoảng cách bám giá tối đa",
+        "max_distance_reached_notification": "Lệnh bám giá {{symbol}} của bạn đã đạt khoảng cách tối đa và hiện đang chờ khớp dưới dạng lệnh giới hạn.",
+        "tab": "Bám giá",
+        "tab_with_count": "Bám giá ({{count}})",
         "active": "Đang hoạt động",
         "history": "Lịch sử",
-        "filled_only": "Filled orders only",
-        "visible_count": "{{count}} visible",
-        "running": "Running",
-        "running_with_progress": "Running · {{progress}}",
+        "filled_only": "Chỉ lệnh đã khớp",
+        "visible_count": "Hiển thị {{count}}",
+        "running": "Đang chạy",
+        "running_with_progress": "Đang chạy · {{progress}}",
         "cancel": "Hủy",
-        "empty": "Your Chase orders will appear here.",
-        "empty_history": "Your Chase order history will appear here.",
-        "empty_filtered": "No Chase orders match {{ticker}}.",
-        "empty_long": "No long Chase orders.",
-        "empty_short": "No short Chase orders.",
+        "empty": "Các lệnh bám giá của bạn sẽ xuất hiện tại đây.",
+        "empty_history": "Lịch sử lệnh bám giá của bạn sẽ xuất hiện tại đây.",
+        "empty_filtered": "Không có lệnh bám giá nào khớp với {{ticker}}.",
+        "empty_long": "Không có lệnh bám giá mua khống nào.",
+        "empty_short": "Không có lệnh bám giá bán khống nào.",
         "card": {
           "size": "Kích thước",
-          "filled_size": "Filled size",
-          "max_distance": "Max distance",
-          "distance_chased": "Distance chased",
-          "distance_chased_with_max": "{{distance}} / {{max}} max"
+          "filled_size": "Kích thước đã khớp",
+          "max_distance": "Khoảng cách tối đa",
+          "distance_chased": "Khoảng cách đã bám giá",
+          "distance_chased_with_max": "{{distance}} / tối đa {{max}}"
         },
         "status": {
-          "termination_pending": "Termination pending",
+          "termination_pending": "Đang chờ chấm dứt",
           "canceled": "Đã hủy",
-          "backgrounded": "Resting after app backgrounded",
-          "max_distance_reached": "Max distance reached · resting",
-          "duration_reached": "Duration reached · resting",
-          "repricing_limit_reached": "Repricing limit reached · resting",
+          "backgrounded": "Đang chờ khớp sau khi ứng dụng chạy nền",
+          "max_distance_reached": "Đã đạt khoảng cách tối đa · đang chờ khớp",
+          "duration_reached": "Đã đạt thời lượng · đang chờ khớp",
+          "repricing_limit_reached": "Đã đạt giới hạn định giá lại · đang chờ khớp",
           "filled": "Đã khớp",
-          "failed": "Chase stopped"
+          "failed": "Đã dừng bám giá"
         }
       },
       "payment_token": "Token thanh toán",
@@ -1949,8 +2004,8 @@
       "submitting_your_trade": "Đang gửi giao dịch của bạn",
       "order_filled": "Đã khớp lệnh",
       "order_placed": "Đã đặt lệnh",
-      "chase_submitted": "Chase order submitted",
-      "chase_started": "Chase started",
+      "chase_submitted": "Đã gửi lệnh bám giá",
+      "chase_started": "Đã bắt đầu bám giá",
       "twap_started": "TWAP đã bắt đầu",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "twap_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}} trong {{duration}}",
@@ -2043,6 +2098,8 @@
       "success_title": "Đã đóng vị thế thành công",
       "position_closed": "Đã đóng vị thế",
       "funds_are_available_to_trade": "Tiền đã sẵn sàng để giao dịch",
+      "already_closed": "Vị thế đã được đóng",
+      "already_closed_subtitle": "Vị thế này đã được khớp hoặc đóng",
       "failed_to_close_position": "Đóng vị thế thất bại",
       "failed_to_partially_close_position": "Đóng một phần vị thế thất bại",
       "failed_to_place_close_order": "Không thể đặt lệnh đóng vị thế",
@@ -2112,6 +2169,7 @@
       "loss_roe_placeholder": "% Thua lỗ",
       "usd_label": "$",
       "take_profit_invalid_price": "Giá chốt lời phải {{direction}} giá {{priceType}}",
+      "trigger_price_must_be_positive": "Giá kích hoạt phải lớn hơn 0",
       "stop_loss_invalid_price": "Giá cắt lỗ phải {{direction}} giá {{priceType}}",
       "stop_loss_beyond_liquidation_error": "Giá cắt lỗ phải {{direction}} giá thanh lý",
       "stop_loss_order_view_warning": "Giá cắt lỗ {{direction}} giá thanh lý",
@@ -2205,7 +2263,7 @@
         "chaseLimitReached": "Đã có quá nhiều lệnh bám giá đang chạy",
         "chaseAbandoned": "Lệnh bám giá đã bị hủy do mất kết nối",
         "chaseTouchUnavailable": "Không có giá thị trường để đặt lệnh bám giá này",
-        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range"
+        "chaseMaxDistanceInvalid": "Khoảng cách bám giá tối đa nằm ngoài phạm vi cho phép"
       },
       "networkToggleFailed": "Không thể chuyển đổi mạng: {{error}}",
       "accountBalanceFailed": "Không thể tải số dư tài khoản: {{error}}",
@@ -2412,8 +2470,8 @@
         "discount_message": "Bạn đang tiết kiệm {{percentage}}% phí khi là thành viên VIP."
       },
       "size_skew": {
-        "title": "Size skew",
-        "content": "Size skew controls how order size is distributed across the range. Values above 1 put more size near the end, values below 1 put more near the start, and 1.00 splits size evenly."
+        "title": "Độ lệch kích thước",
+        "content": "Độ lệch kích thước kiểm soát cách kích thước lệnh được phân bổ trên toàn phạm vi. Giá trị lớn hơn 1 phân bổ nhiều kích thước hơn về gần cuối phạm vi, giá trị nhỏ hơn 1 phân bổ nhiều hơn về gần đầu phạm vi, còn 1,00 phân bổ kích thước đồng đều."
       },
       "closing_fees": {
         "title": "Phí đóng vị thế",
@@ -2685,7 +2743,7 @@
       "added": "Đã thêm {{symbol}} vào danh sách theo dõi",
       "removed": "Đã gỡ {{symbol}} khỏi danh sách theo dõi",
       "add_error": "Không thể thêm thị trường vào danh sách theo dõi",
-      "remove_error": "Failed to remove market from watchlist",
+      "remove_error": "Không thể xóa thị trường khỏi danh sách theo dõi",
       "limit_reached": "Đã đạt giới hạn danh sách theo dõi (tối đa {{limit}} thị trường)",
       "filter_badge_label": "Danh sách theo dõi",
       "suggested": "Đề xuất"
@@ -2966,13 +3024,13 @@
       "footer_price_unavailable": "giá không khả dụng"
     },
     "market_groups": {
-      "total_points": "Total points",
+      "total_points": "Tổng điểm",
       "spread": "Kèo chấp",
-      "market_option": "Market option",
-      "line_unavailable": "line unavailable",
+      "market_option": "Lựa chọn thị trường",
+      "line_unavailable": "kèo không khả dụng",
       "price_unavailable": "giá không khả dụng",
-      "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
-      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
+      "option_accessibility_label": "Lựa chọn thị trường cho {{team}}, kèo {{line}}, giá {{price}}",
+      "outcome_accessibility_label": "{{team}}, kèo {{line}}, giá {{price}}"
     },
     "rules": {
       "event_accessibility_label": "Xem quy tắc sự kiện",
@@ -3451,7 +3509,7 @@
       "unavailable_description": "Để được hỗ trợ khẩn cấp, vui lòng liên hệ Bộ phận Chăm sóc Khách hàng.",
       "unavailable_got_it": "Tôi đã hiểu",
       "error_title": "Đã xảy ra sự cố",
-      "error_description": "Không thể thực hiện yêu cầu rút tiền",
+      "error_description": "Không thể tiến hành rút tiền",
       "try_again": "Thử lại"
     },
     "fee_summary": {
@@ -4170,6 +4228,7 @@
     "resources": "Tài nguyên",
     "permissions": "Quyền",
     "card_title": "Thẻ MetaMask",
+    "card_update_badge": "Cập nhật",
     "settings": "Cài đặt",
     "networks": "Mạng",
     "log_out": "Đăng xuất",
@@ -4284,7 +4343,8 @@
       "select_all": "Chọn tất cả",
       "deselect_all": "Bỏ chọn tất cả",
       "select_accounts_title": "Tài khoản",
-      "select_accounts_desc": "Chọn những tài khoản mà bạn muốn nhận thông báo.",
+      "select_accounts_desc": "Chọn những tài khoản mà bạn muốn nhận thông báo",
+      "accounts_load_error": "Chúng tôi không thể tải cài đặt thông báo tài khoản của bạn. Hãy thử lại sau.",
       "wallet_activity_title": "Hoạt động ví",
       "wallet_activity_desc": "Mua, bán, chuyển tiền, hoán đổi",
       "perps_title": "Hoạt động giao dịch",
@@ -4570,7 +4630,7 @@
     "autodetect_nft_desc": "Cho phép MetaMask thêm các NFT mà bạn sở hữu bằng cách sử dụng dịch vụ của bên thứ ba (như OpenSea). Tính năng Tự động phát hiện NFT sẽ làm lộ địa chỉ IP và tài khoản của bạn với các dịch vụ này. Việc bật tính năng này có thể liên kết địa chỉ IP của bạn với địa chỉ Ethereum của bạn và hiển thị các NFT giả do những kẻ lừa đảo phát tán. Bạn có thể thêm token theo cách thủ công để tránh rủi ro này.",
     "display_nft_media_desc_new": "Việc hiển thị dữ liệu và phương tiện NFT sẽ làm lộ địa chỉ IP của bạn với OpenSea hoặc các bên thứ ba khác. Tính năng Tự động phát hiện NFT hoạt động dựa trên tính năng này và sẽ không khả dụng khi bị tắt. Nếu phương tiện NFT được đặt hoàn toàn trên IPFS, nó vẫn có thể được hiển thị ngay cả khi tính năng này bị tắt.",
     "use_safe_chains_list_validation_desc_1": "MetaMask sử dụng dịch vụ của bên thứ ba có tên ",
-    "use_safe_chains_list_validation_desc_2": "để hiển thị thông tin mạng chính xác và được tiêu chuẩn hóa. Điều này giúp giảm khả năng bạn kết nối với mạng độc hại hoặc mạng không chính xác. Khi sử dụng tính năng này, bạn sẽ làm lộ địa chỉ IP của mình với  ",
+    "use_safe_chains_list_validation_desc_2": "để hiển thị thông tin mạng chính xác và được chuẩn hóa. Điều này giúp giảm nguy cơ bạn kết nối với mạng độc hại hoặc không chính xác. Khi sử dụng tính năng này, địa chỉ IP của bạn sẽ được tiết lộ cho",
     "snaps": {
       "title": "Snap",
       "description": "Tổng quan và quản lý Snap của bạn",
@@ -5051,7 +5111,7 @@
     "bridge_description": "Chuyển token giữa các mạng",
     "send_description": "Gửi tiền mã hóa đến bất kỳ tài khoản nào",
     "receive_description": "Nhận tiền mã hóa",
-    "earn_description": "Kiếm phần thưởng trên token của bạn",
+    "earn_description": "Bắt đầu sinh lời với tiền mã hóa",
     "perps_description": "Giao dịch hợp đồng vĩnh cửu",
     "predict_description": "Giao dịch theo các sự kiện thực tế",
     "chart_time_period": {
@@ -5102,13 +5162,13 @@
     "malicious_token_description_no_symbol": "Các đối tác bảo mật gắn cờ token này là có rủi ro cao.",
     "malicious_token_banner_description": "Các đối tác bảo mật gắn cờ {{symbol}} là có rủi ro cao.",
     "malicious_token_banner_description_no_symbol": "Các đối tác bảo mật gắn cờ token này là có rủi ro cao.",
-    "suspicious_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
-    "suspicious_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
+    "suspicious_token_description": "Các đối tác bảo mật đã phát hiện tín hiệu rủi ro trong hợp đồng hoặc hoạt động giao dịch của {{symbol}}.",
+    "suspicious_token_description_no_symbol": "Các đối tác bảo mật đã phát hiện tín hiệu rủi ro trong hợp đồng hoặc hoạt động giao dịch của token này.",
     "verified_token_title": "Token đã xác minh",
     "verified_token_description": "{{symbol}} đang được giao dịch tích cực và được công nhận rộng rãi. Việc xác minh không phải là sự chứng thực của MetaMask.",
     "risky_token_title": "Token đáng ngờ",
-    "risky_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
-    "risky_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
+    "risky_token_description": "Các đối tác bảo mật đã phát hiện tín hiệu rủi ro trong hợp đồng hoặc hoạt động giao dịch của {{symbol}}.",
+    "risky_token_description_no_symbol": "Các đối tác bảo mật đã phát hiện tín hiệu rủi ro trong hợp đồng hoặc hoạt động giao dịch của token này.",
     "malicious_token_sheet_description": "Các đối tác bảo mật gắn cờ {{symbol}} là có rủi ro cao.",
     "malicious_token_sheet_description_no_symbol": "Các đối tác bảo mật gắn cờ token này là có rủi ro cao.",
     "got_it": "Tôi đã hiểu",
@@ -5118,7 +5178,7 @@
     "data_unavailable": "Không có dữ liệu bảo mật",
     "subtitle_known": "Không phát hiện tín hiệu rủi ro. Luôn nghiên cứu bất kỳ tài sản nào trước khi giao dịch.",
     "subtitle_no_issues": "Không phát hiện tín hiệu rủi ro. Luôn nghiên cứu bất kỳ tài sản nào trước khi giao dịch.",
-    "subtitle_suspicious": "Security partners found risk signals in this token's contract or trading activity.",
+    "subtitle_suspicious": "Các đối tác bảo mật đã phát hiện tín hiệu rủi ro trong hợp đồng hoặc hoạt động giao dịch của token này.",
     "subtitle_malicious": "Các đối tác bảo mật gắn cờ token này là có rủi ro cao.",
     "subtitle_unavailable": "Không thể tải phân tích bảo mật cho token này.",
     "token_distribution": "Phân bổ token",
@@ -5332,7 +5392,7 @@
     "invalid_amount": "Số tiền không hợp lệ",
     "invalid_gas": "Số gas không hợp lệ",
     "invalid_gas_price": "Giá gas không hợp lệ",
-    "high_gas_price": "Your network fee may be set unnecessarily high ({{currentGasPrice}}). Consider lowering the amount.",
+    "high_gas_price": "Phí mạng của bạn có thể đang được đặt cao hơn mức cần thiết ({{currentGasPrice}}). Hãy cân nhắc giảm mức phí.",
     "low_gas_price": "Giá gas đặc biệt thấp",
     "invalid_collectible_ownership": "Bạn không sở hữu bộ sưu tập này",
     "known_asset_contract": "Địa chỉ hợp đồng tài sản đã biết",
@@ -5365,7 +5425,7 @@
     "use_max": "Dùng tối đa",
     "set_gas": "Thiết lập",
     "cancel_gas": "Hủy",
-    "transaction_fee_estimated": "Estimated network fee",
+    "transaction_fee_estimated": "Phí mạng ước tính",
     "transaction_fee": "Phí mạng",
     "transaction_fee_less": "Không tốn phí",
     "total_amount": "Tổng số tiền",
@@ -5404,8 +5464,8 @@
     "confusable_msg": "Chúng tôi đã phát hiện thấy một ký tự nhầm lẫn trong tên ENS. Hãy kiểm tra tên ENS để tránh nguy cơ bị lừa đảo.",
     "similar_to": "tương tự như",
     "contains_zero_width": "chứa ký tự có chiều rộng bằng không",
-    "dapp_suggested_gas": "This network fee has been suggested by {{origin}}. It’s using legacy gas estimation which may be inaccurate. However, editing this network fee may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
-    "dapp_suggested_eip1559_gas": "This network fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
+    "dapp_suggested_gas": "Phí mạng này do {{origin}} đề xuất. Phí này sử dụng phương pháp ước tính phí gas kiểu cũ nên có thể không chính xác. Tuy nhiên, việc chỉnh sửa phí mạng này có thể gây ra sự cố với giao dịch của bạn. Vui lòng liên hệ với {{origin}} nếu bạn có thắc mắc.",
+    "dapp_suggested_eip1559_gas": "Phí mạng này do {{origin}} đề xuất. Việc ghi đè mức phí này có thể gây ra sự cố với giao dịch của bạn. Vui lòng liên hệ với {{origin}} nếu bạn có thắc mắc.",
     "address_invalid": "Địa chỉ người nhận không hợp lệ.",
     "ens_not_found": "Chưa đặt địa chỉ cho tên này.",
     "unknown_qr_code": "Mã QR không hợp lệ. Vui lòng thử lại.",
@@ -5614,6 +5674,8 @@
     "activity_market_close_long": "Lệnh thị trường — đóng vị thế mua khống",
     "activity_limit_long": "Mua khống theo lệnh giới hạn",
     "activity_limit_close_long": "Lệnh giới hạn — đóng vị thế mua khống",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "Đã khớp",
     "activity_order_status_canceled": "Đã hủy",
     "activity_order_status_rejected": "Bị từ chối",
@@ -5758,9 +5820,9 @@
     "status_submitting_description": "Thời gian hoàn tất dự kiến {{timeLeft}}",
     "status_success_header": "Giao dịch của bạn đã hoàn tất",
     "status_submitting_past_estimated_deadline_header": "Xin lỗi đã để bạn đợi lâu",
-    "status_submitting_past_estimated_deadline_description": "Nếu giao dịch của bạn không được hoàn thành trong vòng {{timeLeft}}, thì giao dịch sẽ bị hủy và bạn sẽ không bị tính phí gas.",
+    "status_submitting_past_estimated_deadline_description": "Nếu giao dịch của bạn không được hoàn tất trong vòng {{timeLeft}}, giao dịch sẽ bị hủy và bạn sẽ không bị tính phí mạng.",
     "status_cancelled_header": "Giao dịch của bạn đã bị hủy",
-    "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary network fees.",
+    "status_cancelled_description": "Không thể hoàn tất giao dịch của bạn, vì vậy giao dịch đã bị hủy để tránh việc bạn phải trả phí mạng không cần thiết.",
     "status_failed_header": "Giao dịch của bạn đã thất bại",
     "status_failed_description": "Biến động đột ngột của thị trường có thể gây ra lỗi. Nếu sự cố tiếp diễn, hãy liên hệ với bộ phận hỗ trợ khách hàng của MetaMask.",
     "view_transaction": "Xem giao dịch",
@@ -6145,8 +6207,8 @@
     "confirm": "Xác nhận"
   },
   "account_backup_step_5": {
-    "error_title": "Incorrect word order",
-    "error_message": "Make sure you wrote it down correctly and go to the previous screen if it is necessary.",
+    "error_title": "Thứ tự từ không chính xác",
+    "error_message": "Đảm bảo bạn đã ghi lại chính xác và quay lại màn hình trước nếu cần.",
     "back": "Quay lại",
     "title": "Xác nhận Cụm từ khôi phục bí mật",
     "info_text": "Nhập mỗi từ theo thứ tự đã được hiển thị cho bạn ở màn hình trước.",
@@ -6317,7 +6379,7 @@
     "pending_deposit_title": "Đang nạp tiền",
     "pending_withdrawal_title": "Đang rút tiền",
     "cancelled_title": "Đã hủy giao dịch",
-    "success_title": "Transaction #{{nonce}} complete",
+    "success_title": "Giao dịch #{{nonce}} đã hoàn tất",
     "speedup_title": "Đang tăng tốc #{{nonce}}",
     "success_deposit_title": "Nạp tiền hoàn tất",
     "success_withdrawal_title": "Rút tiền hoàn tất",
@@ -6752,7 +6814,7 @@
       "what_to_expect": "Những điều cần biết",
       "quotes": "Tính năng mua tiền mã hóa của chúng tôi sẽ tổng hợp báo giá từ các nhà cung cấp được tích hợp, cung cấp báo giá từ các nguồn đó để nhận tiền mã hóa trực tiếp vào ví của bạn mà không mất thời gian chờ đợi.",
       "quotes_sell": "Giờ đây, bạn có thể rút tiền trực tiếp trong MetaMask! Nhận báo giá cập nhật từng phút từ các nhà cung cấp đáng tin cậy trong lúc chúng tôi hướng dẫn bạn từng bước.",
-      "benefits": "Fewer network fees to pay, and numerous networks, tokens, and payment methods supported",
+      "benefits": "Trả ít phí mạng hơn, đồng thời hỗ trợ nhiều mạng, token và phương thức thanh toán",
       "benefits_sell": "Giờ đây, việc chuyển đổi tiền mã hóa sang tiền nội tệ của bạn đã trở nên dễ dàng hơn bao giờ hết.",
       "get_started": "Bắt đầu"
     },
@@ -6794,7 +6856,7 @@
     "most_reliable": "Đáng tin cậy nhất",
     "quotes_timeout": "Báo giá hết hạn",
     "request_new_quotes": "Vui lòng yêu cầu báo giá mới để nhận tỷ giá tốt nhất và mới nhất.",
-    "wallet_pay_terms": "By continuing, you accept Crossmint's",
+    "wallet_pay_terms": "Bằng cách tiếp tục, bạn chấp nhận các điều khoản của Crossmint",
     "terms_of_service": "Điều khoản dịch vụ",
     "amount_to_buy": "Mua",
     "amount_to_sell": "Bán",
@@ -6824,10 +6886,10 @@
     "minimum": "Số tiền nạp tối thiểu là",
     "maximum": "Số tiền nạp tối đa là",
     "insufficient_balance": "Số tiền này cao hơn số dư của bạn",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the network fees.",
+    "insufficient_native_balance": "Bạn không có đủ {{currency}} để trả phí mạng.",
     "enter_larger_amount": "Nhập số tiền lớn hơn để tiếp tục",
     "enter_smaller_amount": "Nhập số tiền nhỏ hơn để tiếp tục",
-    "enter_lower_gas_fees": "Enter a lower amount to pay for network fees",
+    "enter_lower_gas_fees": "Nhập số tiền thấp hơn để trả phí mạng",
     "max": "Tối đa",
     "try_again": "Thử lại",
     "error": "Lỗi",
@@ -7036,7 +7098,7 @@
     "manually_pasting": "Thêm một Token theo cách thủ công bằng cách dán địa chỉ của nó.",
     "token_address_can_be_found": "Có thể tìm địa chỉ hợp đồng của Token trên",
     "gathering_token_details": "Đang thu thập thông tin chi tiết về Token...",
-    "error_gathering_token_details": "There was an error gathering token details.",
+    "error_gathering_token_details": "Đã xảy ra lỗi khi thu thập thông tin chi tiết về token.",
     "Import": "Nhập",
     "invalid_token_contract_address": "Địa chỉ hợp đồng của Token không hợp lệ.",
     "please_verify_on_explorer": "Vui lòng xác minh trên",
@@ -7080,10 +7142,10 @@
     "saving": "Đang lưu",
     "n_quotes": "{{numberOfQuotes}} báo giá",
     "view_details": "Xem chi tiết",
-    "estimated_gas_fee": "Estimated network fee",
+    "estimated_gas_fee": "Phí mạng ước tính",
     "gas_fee": "Phí mạng",
     "included": "đã bao gồm",
-    "max_gas_fee": "Max network fee",
+    "max_gas_fee": "Phí mạng tối đa",
     "edit": "Sửa",
     "quotes_include_fee": "Báo giá bao gồm {{fee}}% phí MetaMask",
     "quotes_include_gas_and_metamask_fee": "Báo giá bao gồm phí gas và phí MetaMask {{fee}}%",
@@ -7111,7 +7173,7 @@
     "rate": "Tỷ giá",
     "quote_details_max_slippage": "Mức trượt giá tối đa",
     "source": "Nguồn",
-    "estimated_network_fees": "Estimated network fees",
+    "estimated_network_fees": "Phí mạng ước tính",
     "guaranteed_amount": "Số tiền được đảm bảo",
     "quote_source_dex": {
       "1": "Báo giá này được cung cấp trực tiếp từ một",
@@ -7155,9 +7217,9 @@
     "medium_selected_warning": "Giao dịch hoán đổi rất nhạy cảm về thời gian. Không nên chọn mức độ \"Trung bình\".",
     "high_recommendation": "Giao dịch hoán đổi thường nhạy cảm về thời gian. Mức độ \"Cao\" sẽ giúp tránh những thua lỗ tiềm ẩn do tình hình thị trường biến động.",
     "recommended": "Được đề xuất",
-    "recommended_gas": "Recommended network fee",
-    "gas_included_tooltip_explanation": "This quote incorporates network fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
-    "gas_included_tooltip_explanation_link_text": "Learn more about network fees",
+    "recommended_gas": "Phí mạng đề xuất",
+    "gas_included_tooltip_explanation": "Báo giá này đã bao gồm phí mạng bằng cách điều chỉnh số lượng token được gửi hoặc nhận. Bạn có thể nhận ETH trong một giao dịch riêng trên danh sách hoạt động của mình.",
+    "gas_included_tooltip_explanation_link_text": "Tìm hiểu thêm về phí mạng",
     "gas_education_title": "Phí gas ước tính",
     "gas_education_1": "Phí gas được trả cho những người khai thác tiền mã hóa để xử lý các giao dịch trên ",
     "gas_education_2_ethereum": "mạng Ethereum.",
@@ -7180,7 +7242,11 @@
   },
   "deeplink": {
     "invalid": "Liên kết sâu không hợp lệ",
-    "not_supported": "Không hỗ trợ liên kết sâu"
+    "not_supported": "Không hỗ trợ liên kết sâu",
+    "solana_pay_transaction_request_not_supported": "This Solana Pay QR uses a transaction request, which is not supported yet.",
+    "solana_pay_reference_not_supported": "This Solana Pay QR includes a payment reference, which is not supported yet.",
+    "solana_pay_memo_not_supported": "This Solana Pay QR includes a memo, which is not supported yet.",
+    "solana_pay_token_not_supported": "This Solana Pay QR uses a token that could not be recognized. The payment was not started."
   },
   "error_screen": {
     "title": "Đã xảy ra lỗi",
@@ -7285,7 +7351,7 @@
     "max_priority_fee": "Phí ưu tiên tối đa",
     "max_fee": "Phí tối đa",
     "estimate": "Ước tính",
-    "recommended_gas_fee": "Recommended network fee",
+    "recommended_gas_fee": "Phí mạng đề xuất",
     "swaps_warning": "Giao dịch hoán đổi rất nhạy cảm về thời gian. Mức độ \"Cao\" sẽ giúp tránh những thua lỗ tiềm ẩn do tình hình thị trường biến động.",
     "priority_fee_at_least_0_error": "Phí ưu tiên phải ít nhất là 1 GWEI",
     "learn_more": {
@@ -7312,8 +7378,8 @@
     "learn_more_gas_limit": "Giới hạn gas là số đơn vị gas tối đa mà bạn sẵn sàng sử dụng. Đơn vị gas là một hệ số nhân với \"Phí ưu tiên tối đa\" và \"Phí tối đa\". ",
     "learn_more_max_priority_fee": "Phí ưu tiên tối đa (còn gọi là \"tiền thưởng cho người khai thác\") được chuyển thẳng tới người khai thác và khuyến khích họ ưu tiên cho giao dịch của bạn. Thường thì bạn sẽ trả theo mức cài đặt tối đa của mình. ",
     "learn_more_max_fee": "Phí tối đa là số tiền tối đa bạn sẽ trả (phí cơ bản + phí ưu tiên). ",
-    "learn_more_new_gas_fee": "We have updated the network fee based on current network conditions and have increased it by at least 10% (required by the network). ",
-    "learn_more_cancel_gas_fee": "We have updated the network fee based on current network conditions and have increased it by at least 50% (required by the network). ",
+    "learn_more_new_gas_fee": "Chúng tôi đã cập nhật phí mạng dựa trên tình trạng mạng hiện tại và tăng phí ít nhất 10% (theo yêu cầu của mạng). ",
+    "learn_more_cancel_gas_fee": "Chúng tôi đã cập nhật phí mạng dựa trên tình trạng mạng hiện tại và tăng phí ít nhất 50% (theo yêu cầu của mạng). ",
     "low": "Thấp",
     "medium": "Trung bình",
     "high": "Cao",
@@ -7323,8 +7389,8 @@
     "edit_priority": "Sửa mức ưu tiên",
     "speed_up_transaction": "Tăng tốc giao dịch",
     "cancel_transaction": "Hủy giao dịch",
-    "new_gas_fee": "New network fee",
-    "edit_suggested_gas_fee": "Edit suggested network fee",
+    "new_gas_fee": "Phí mạng mới",
+    "edit_suggested_gas_fee": "Chỉnh sửa phí mạng đề xuất",
     "gas_price": "Giá gas",
     "learn_more_gas_limit_legacy": "Giới hạn gas là số đơn vị gas tối đa mà bạn sẵn sàng sử dụng. Đơn vị gas là một hệ số nhân với \"Giá gas\".",
     "learn_more_gas_price": "Mạng này yêu cầu trường \"Giá gas\" khi gửi giao dịch. Giá gas là số tiền tối đa bạn sẵn sàng trả cho mỗi đơn vị gas.",
@@ -7332,19 +7398,19 @@
     "gas_price_high": "Giá gas đang cao hơn cần thiết"
   },
   "transaction_review_eip1559": {
-    "estimated_gas_fee": "Estimated network fee",
+    "estimated_gas_fee": "Phí mạng ước tính",
     "network_fee": "Phí mạng",
     "max_fee": "Phí tối đa",
     "total": "Tổng",
     "max_amount": "Số tiền tối đa",
-    "estimated_gas_fee_tooltip": "What are network fees?",
+    "estimated_gas_fee_tooltip": "Phí mạng là gì?",
     "estimated_gas_fee_tooltip_text_1": "Phí gas được trả cho những người khai thác tiền mã hóa để xử lý các giao dịch trên",
     "estimated_gas_fee_tooltip_text_2": " Ethereum",
     "estimated_gas_fee_tooltip_text_3": " mạng.",
     "estimated_gas_fee_tooltip_text_4": "MetaMask không thu lợi nhuận từ phí gas.",
     "estimated_gas_fee_tooltip_text_5": "Phí gas do mạng thiết lập và biến động dựa trên lưu lượng mạng cũng như mức độ phức tạp của giao dịch.",
-    "learn_more": "Learn more about network fees",
-    "legacy_gas_suggestion_tooltip": "This network fee suggestion is using legacy gas estimation which may be inaccurate."
+    "learn_more": "Tìm hiểu thêm về phí mạng",
+    "legacy_gas_suggestion_tooltip": "Mức phí mạng đề xuất này sử dụng phương pháp ước tính phí gas kiểu cũ nên có thể không chính xác."
   },
   "times_eip1559": {
     "unknown": "Thời gian xử lý không xác định",
@@ -7354,8 +7420,8 @@
     "very_likely": "Rất có khả năng trong <",
     "at_least": "Ít nhất",
     "less_than": "Ít hơn",
-    "warning_very_likely": "This network fee is much higher than the other options available.",
-    "warning_very_likely_title": "Network fees too high",
+    "warning_very_likely": "Phí mạng này cao hơn nhiều so với các tùy chọn khác hiện có.",
+    "warning_very_likely_title": "Phí mạng quá cao",
     "warning_unknown": "Phí tối đa hoặc phí ưu tiên tối đa của bạn có thể thấp theo điều kiện thị trường hiện tại. Chúng tôi không biết khi nào giao dịch của bạn sẽ được xử lý hoặc liệu giao dịch có được xử lý hay không.",
     "warning_low": "Điều này làm giảm phí tối đa nhưng nếu lưu lượng mạng tăng lên, giao dịch của bạn có thể bị trì hoãn hoặc thất bại.",
     "warning_low_title": "Ưu tiên thấp",
@@ -7388,10 +7454,10 @@
   "network_information": {
     "things_to_keep_in_mind": "Những điều cần lưu ý",
     "testnet_network": "mạng thử nghiệm {{type}}",
-    "first_description": "The native token on this network is {{ticker}}. It is the token used for network fees.",
+    "first_description": "Token gốc trên mạng này là {{ticker}}. Đây là token được dùng để trả phí mạng.",
     "second_description": "Nếu bạn cố gắng gửi tài sản trực tiếp từ mạng này sang mạng khác, điều này có thể khiến tài sản bị mất vĩnh viễn. Nhớ sử dụng cầu nối.",
     "third_description": "Các token có thể không tự động hiển thị trong ví của bạn.",
-    "private_network": "This network is unknown and may use a special token for network fees.",
+    "private_network": "Mạng này chưa được xác định và có thể sử dụng một token đặc biệt để trả phí mạng.",
     "unknown_network": "Mạng chưa xác định",
     "switched_network": "Bạn đã chuyển sang",
     "learn_more": "Tìm hiểu thêm",
@@ -7726,33 +7792,33 @@
         "medium_risk": "Rủi ro trung bình",
         "high_risk": "Rủi ro cao"
       },
-      "up_to": "Up to",
+      "up_to": "Lên đến",
       "toasts": {
         "deposit_navigation": {
-          "failed": "Failed to navigate to deposit screen for selected asset"
+          "failed": "Không thể chuyển đến màn hình gửi tiền cho tài sản đã chọn"
         }
       },
       "strategies": {
-        "rate_unavailable_subtitle": "Earn on your balance",
+        "rate_unavailable_subtitle": "Sinh lời trên số dư của bạn",
         "money": {
           "title": "Money Account",
           "info_rows": {
-            "row_1": "Earn up to ~{{percentage}}% APY on your balance",
-            "row_2": "No lockups—trade or withdraw anytime",
-            "row_3": "Held in mUSD, MetaMask's 1:1 dollar-backed stablecoin"
+            "row_1": "Sinh lời lên đến ~{{percentage}}% APY trên số dư của bạn",
+            "row_2": "Không bị khóa — giao dịch hoặc rút tiền bất cứ lúc nào",
+            "row_3": "Được giữ dưới dạng mUSD, đồng ổn định được bảo chứng bằng đô-la theo tỷ lệ 1:1 của MetaMask"
           }
         },
         "stablecoin_lending": {
           "title": "Cho vay {{asset}}",
-          "subtitle": "Earn rewards daily and withdraw anytime."
+          "subtitle": "Nhận phần thưởng hằng ngày và rút bất cứ lúc nào."
         },
         "pooled_staking": {
           "title": "Ký gửi ETH",
-          "subtitle": "Earn rewards daily and unstake anytime."
+          "subtitle": "Nhận phần thưởng hằng ngày và hủy ký gửi bất cứ lúc nào."
         },
         "trx_staking": {
-          "title": "Stake TRX",
-          "subtitle": "Earn rewards daily and unstake anytime."
+          "title": "Ký gửi TRX",
+          "subtitle": "Nhận phần thưởng hằng ngày và hủy ký gửi bất cứ lúc nào."
         }
       },
       "get_started": "Bắt đầu"
@@ -7939,10 +8005,10 @@
     "asset_unavailable": "Tài sản không khả dụng",
     "assets_unavailable": "Không thể tải một số cơ hội sinh lời.",
     "retry": "Thử lại",
-    "stake_or_lend_description": "Stake or lend your crypto to earn. Rates vary by asset and strategy",
-    "money_fallback_description": "Add assets to your Money account to start earning",
-    "more_ways_to_earn": "More ways to earn",
-    "empty_state_description": "No earning opportunities are available right now.",
+    "stake_or_lend_description": "Ký gửi hoặc cho vay tiền mã hóa để sinh lời. Lãi suất thay đổi tùy theo tài sản và chiến lược",
+    "money_fallback_description": "Thêm tài sản vào Money Account của bạn để bắt đầu sinh lời",
+    "more_ways_to_earn": "Thêm nhiều cách để sinh lời",
+    "empty_state_description": "Hiện không có cơ hội sinh lời nào.",
     "view_more": "Xem thêm"
   },
   "money": {
@@ -8044,8 +8110,8 @@
     "potential_earnings": {
       "title": "Kiếm lợi nhuận từ tiền mã hóa của bạn",
       "description": "Xem tiền của bạn có thể tăng trưởng theo thời gian như thế nào bằng cách chuyển đổi tiền mã hóa sang mUSD.",
-      "description_with_amounts_prefix": "Add your",
-      "description_with_amounts_middle": "in assets to your Money account and you could earn up to",
+      "description_with_amounts_prefix": "Thêm",
+      "description_with_amounts_middle": "tài sản vào Money Account và bạn có thể sinh lời lên đến",
       "description_with_amounts_suffix": "trong một năm.",
       "add": "Thêm",
       "convert_cta": "Chuyển đổi tiền mã hóa của bạn",
@@ -8070,7 +8136,6 @@
       "link_pending_title": "Đang liên kết thẻ của bạn",
       "link_success_title": "Thẻ của bạn đã sẵn sàng để sử dụng",
       "link_error": "Đã xảy ra lỗi khi liên kết thẻ của bạn",
-      "link_error_different_card": "Ví này đã được liên kết với một thẻ MetaMask Card khác",
       "unlink_pending_title": "Đang hủy liên kết thẻ của bạn",
       "unlink_success_title": "Thẻ của bạn đã được hủy liên kết",
       "unlink_error": "Đã xảy ra lỗi khi hủy liên kết thẻ của bạn",
@@ -8442,7 +8507,7 @@
     "max_modal": {
       "title": "Tối đa",
       "eth": {
-        "description": "Max is the total amount of ETH you have, minus the network fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+        "description": "Tối đa là tổng số ETH bạn có, trừ đi phí mạng cần thiết để ký gửi. Bạn nên giữ thêm một ít ETH trong ví để dùng cho các giao dịch trong tương lai."
       }
     },
     "use_max": "Dùng tối đa",
@@ -8509,7 +8574,7 @@
     "drawer_assets_desc": "Tự động phát hiện token trong ví của bạn, hiển thị NFT và nhận hàng loạt thông tin cập nhật về số dư tài khoản",
     "drawer_security_title": "Bảo mật",
     "drawer_security_desc": "Giảm khả năng tham gia các mạng không an toàn và bảo vệ tài khoản của bạn",
-    "network_details_check_desc": "MetaMask sử dụng dịch vụ của bên thứ ba có tên chainid.network để hiển thị thông tin mạng chính xác và được tiêu chuẩn hóa. Điều này giúp hạn chế khả năng bạn kết nối với mạng độc hại hoặc mạng không chính xác. Khi sử dụng tính năng này, địa chỉ IP của bạn sẽ được hiển thị với chainid.network."
+    "network_details_check_desc": "MetaMask sử dụng dịch vụ của bên thứ ba có tên chainid.network để hiển thị thông tin mạng chính xác và được chuẩn hóa. Điều này giúp giảm nguy cơ bạn kết nối với mạng độc hại hoặc không chính xác. Khi sử dụng tính năng này, địa chỉ IP của bạn sẽ được tiết lộ cho chainid.network."
   },
   "simulation_details": {
     "failed": "Đã xảy ra lỗi khi tải kết quả ước tính.",
@@ -8542,10 +8607,10 @@
       "tooltip": "Mức tăng dự kiến hằng năm theo giá trị ký gửi của bạn, dựa trên tỷ suất phần thưởng của tuần trước."
     },
     "estimated_gas_fee": {
-      "title": "Estimated network fee",
+      "title": "Phí mạng ước tính",
       "gas_recipient": "Phí gas được trả cho thợ đào tiền mã hóa, họ là những người xử lý các giao dịch trên mạng Ethereum. MetaMask không thu lợi nhuận từ phí gas.",
       "gas_fluctuation": "Phí gas được ước tính và sẽ dao động dựa trên lưu lượng mạng và độ phức tạp của giao dịch.",
-      "gas_learn_more": "Learn more about network fees"
+      "gas_learn_more": "Tìm hiểu thêm về phí mạng"
     },
     "reward_frequency": {
       "title": "Tần suất phần thưởng",
@@ -8827,17 +8892,24 @@
       "from_market_above": "(+{{percent}}% so với thị trường)",
       "market": "Thị trường",
       "custom": "Tùy chỉnh",
-      "expires": "Expires",
-      "expiration": "Expiration",
+      "expires": "Hết hạn",
+      "expiration": "Thời hạn",
       "expiration_option": {
         "minutes": "{{count}} phút",
         "hour": "{{count}} giờ",
         "day": "{{count}} ngày",
         "days": "{{count}} ngày",
-        "week": "{{count}} week",
-        "month": "{{count}} month"
+        "week": "{{count}} tuần",
+        "month": "{{count}} tháng"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Phí mạng ước tính",
+      "create_order": "Tạo lệnh",
+      "paying": "Thanh toán",
+      "receiving": "Đang nhận",
+      "trigger_condition": "Điều kiện kích hoạt",
+      "expiry_label": "Ngày hết hạn",
+      "confirm_order": "Xác nhận lệnh",
+      "edit_slippage": "Chỉnh sửa trượt giá"
     },
     "recurring": {
       "you_get": "Bạn nhận",
@@ -8845,16 +8917,16 @@
       "repeat": "Lặp lại",
       "times": "lần",
       "confirm": "Xác nhận",
-      "preview_order": "Preview Order",
-      "confirm_title": "Confirm recurring order",
-      "paying_all_orders": "Paying (all orders)",
-      "paying_per_order": "Paying (per order)",
+      "preview_order": "Xem trước lệnh",
+      "confirm_title": "Xác nhận lệnh định kỳ",
+      "paying_all_orders": "Thanh toán (tất cả lệnh)",
+      "paying_per_order": "Thanh toán (mỗi lệnh)",
       "receiving": "Đang nhận",
-      "est_receiving_per_order": "Est. receiving (per order)",
-      "est_receiving_all_orders": "Est. receiving (all orders)",
-      "expires_after": "Expires after",
-      "slippage_all_orders": "Slippage (all orders)",
-      "est_network_fee_per_order": "Est. network fee (per order)",
+      "est_receiving_per_order": "Ước tính nhận được (mỗi lệnh)",
+      "est_receiving_all_orders": "Ước tính nhận được (tất cả lệnh)",
+      "expires_after": "Hết hạn sau",
+      "slippage_all_orders": "Trượt giá (tất cả lệnh)",
+      "est_network_fee_per_order": "Phí mạng ước tính (mỗi lệnh)",
       "repeat_info_title": "Lặp lại lệnh",
       "repeat_info_body": "Chúng tôi sẽ ngẫu nhiên hóa thời gian và kích thước lệnh của bạn để các lệnh hoán đổi không tuân theo một mô hình có thể dự đoán.",
       "max_is": "Tối đa là {{max}}",
@@ -8866,9 +8938,9 @@
         "exchange_rate": "Tỷ giá",
         "min_token_price": "Giá {{symbol}} tối thiểu",
         "max_token_price": "Giá {{symbol}} tối đa",
-        "min_placeholder": "Giá tối thiểu",
-        "max_placeholder": "Giá tối đa",
-        "clear_all": "Xóa tất cả",
+        "min_placeholder": "Giá thị trường",
+        "max_placeholder": "Giá thị trường",
+        "clear": "Xóa",
         "token_price": "1 {{symbol}} = {{price}}",
         "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
       },
@@ -8894,10 +8966,29 @@
         "month": "Tháng"
       },
       "pair": "{{source}} → {{dest}}",
-      "schedule_summary": "{{interval}} / {{count}} lệnh",
+      "schedule_summary": "{{interval}} × {{count}} orders",
       "spend_summary": "Bạn chi tiêu {{amount}} {{symbol}} sau mỗi {{everyValue}} {{unit}}, tổng cộng {{repeatCount}} lần",
       "percent_filled": "Đã khớp {{percent}}%",
-      "filled": "Đã khớp"
+      "completed": "Đã hoàn tất",
+      "you_sent": "Bạn đã gửi",
+      "you_receive": "Bạn nhận",
+      "filled_progress": "{{percent}}%",
+      "interval": "Interval",
+      "size_per_order": "Size per order",
+      "total_received": "Tổng số nhận được",
+      "average_execution_price": "Avg. execution price",
+      "start_date": "Start date",
+      "end_date": "Ngày kết thúc",
+      "history": "Lịch sử",
+      "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} filled",
+      "not_enough_gas": "Không đủ gas",
+      "out_of_price_range": "Out of price range",
+      "failed": "Không thành công",
+      "filled": "Đã khớp",
+      "order_not_found": "Không tìm thấy lệnh",
+      "cancel_order": "Hủy lệnh",
+      "duplicate_order": "Duplicate order",
+      "cancel_confirmation_body": "Do you really want to cancel your order?"
     },
     "continue": "Tiếp tục",
     "confirm_bridge": "Cầu nối",
@@ -8940,6 +9031,8 @@
     "robinhood_banner_subtitle": "Khám phá các token đang thịnh hành",
     "no_tokens_found": "Không tìm thấy token",
     "no_tokens_found_description": "Chúng tôi không tìm thấy token nào với tên này. Hãy thử từ khóa tìm kiếm khác.",
+    "no_watchlist_tokens_found": "No assets in watchlist",
+    "no_watchlist_tokens_found_description": "Tap the star icon on any asset to add it to your watchlist.",
     "select_network": "Chọn mạng",
     "all_networks": "Tất cả mạng",
     "num_networks": "{{numNetworks}} mạng",
@@ -9067,6 +9160,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Hoàn tất"
     },
+    "off_hours_trading": {
+      "title": "Giao dịch ngoài giờ",
+      "description": "Thị trường đã đóng cửa: Giá được tính bởi đơn vị phát hành, không phải dữ liệu thị trường theo thời gian thực. Giá có thể thay đổi khi thị trường mở cửa trở lại vào phiên giao dịch khả dụng tiếp theo."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Đang hoán đổi",
       "swap_success": "Hoán đổi hoàn tất",
@@ -9099,10 +9196,10 @@
     "insufficient_native_reserve_cta": "Sử dụng mức tối đa được cho phép",
     "insufficient_native_reserve_message": "Mạng này yêu cầu tối thiểu {{minimumReserve}} {{ticker}} phải còn lại trong tài khoản của bạn. Bạn có thể sử dụng tối đa {{maxSwappable}} {{ticker}}",
     "insufficient_native_reserve_title": "Yêu cầu số dư dự trữ tối thiểu {{ticker}}",
-    "dest_asset_require_activate_warning_cta": "Activate {{token}}",
-    "dest_asset_require_activate_warning_message": "This swap may fail. On {{network}} your account can't receive {{token}} until the token is activated in your wallet.",
-    "dest_asset_require_activate_warning_message_different_account": "This swap may fail. On {{network}} {{account}} can't receive {{token}} until you switch to that account and activate the token.",
-    "dest_asset_require_activate_warning_title": "Activate {{token}} on {{network}} first",
+    "dest_asset_require_activate_warning_cta": "Kích hoạt {{token}}",
+    "dest_asset_require_activate_warning_message": "Giao dịch hoán đổi này có thể thất bại. Trên {{network}}, tài khoản của bạn không thể nhận {{token}} cho đến khi token được kích hoạt trong ví của bạn.",
+    "dest_asset_require_activate_warning_message_different_account": "Giao dịch hoán đổi này có thể thất bại. Trên {{network}}, {{account}} không thể nhận {{token}} cho đến khi bạn chuyển sang tài khoản đó và kích hoạt token.",
+    "dest_asset_require_activate_warning_title": "Trước tiên, hãy kích hoạt {{token}} trên {{network}}",
     "token_warning_suspicious_banner": "{{token}} là một token đáng ngờ.",
     "token_warning_malicious_banner": "{{token}} là một token độc hại. Hãy cẩn trọng khi tương tác với token này.",
     "token_warning_modal_suspicious_title": "Token đáng ngờ",
@@ -9128,7 +9225,7 @@
     "status": "Trạng thái",
     "date": "Ngày",
     "network": "Mạng",
-    "total_gas_fee": "Total network fee",
+    "total_gas_fee": "Tổng phí mạng",
     "estimated_completion": "Dự kiến hoàn tất",
     "bridge_step_action_bridge_complete": "Đã nhận {{destSymbol}} trên {{destChainName}}",
     "bridge_step_action_bridge_pending": "Đang nhận {{destSymbol}} trên {{destChainName}}",
@@ -9313,7 +9410,9 @@
       "set_up": "Thiết lập",
       "secret_recovery_phrase": "Cụm từ khôi phục bí mật",
       "back_up": "Sao lưu",
-      "remove_account": "Xóa tài khoản"
+      "remove_account": "Xóa tài khoản",
+      "hide_account": "Ẩn tài khoản",
+      "unhide_account": "Bỏ ẩn tài khoản"
     },
     "address_list": {
       "addresses": "Địa chỉ",
@@ -9407,6 +9506,12 @@
       "search_placeholder": "Tìm kiếm mạng",
       "no_networks_found": "Không tìm thấy mạng nào",
       "no_networks_available": "Không có mạng khả dụng"
+    },
+    "manage_accounts": {
+      "title": "Quản lý tài khoản",
+      "locked": "Đã khóa",
+      "remove": "Xóa",
+      "remove_wallet": "Gỡ bỏ ví"
     }
   },
   "deep_link_modal": {
@@ -9529,15 +9634,27 @@
       "got_it": "Tôi đã hiểu"
     },
     "uk_migration_bottom_sheet": {
-      "title": "Update your MetaMask Card",
-      "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "title": "Cập nhật MetaMask Card của bạn",
+      "description": "Chúng tôi đã chuyển sang nhà cung cấp thẻ mới. Để tiếp tục chi tiêu mà không bị gián đoạn, hãy hoàn tất các bước này trước {{deadline}}.",
+      "description_no_deadline": "Chúng tôi đã chuyển sang nhà cung cấp thẻ mới. Để tiếp tục chi tiêu mà không bị gián đoạn, hãy hoàn tất các bước này.",
       "steps": {
-        "reverify_identity": "Re-verify your identity",
-        "get_new_card_number": "Get your new card number",
-        "convert_funds_usdc_base": "Convert your funds to USDC on Base"
+        "reverify_identity": "Xác minh lại danh tính của bạn",
+        "get_new_card_number": "Nhận số thẻ mới của bạn",
+        "convert_funds_usdc_base": "Chuyển đổi tiền của bạn sang USDC trên Base"
       },
       "get_started": "Bắt đầu",
       "remind_me_later": "Nhắc tôi sau"
+    },
+    "uk_migration_soft": {
+      "title": "Cập nhật MetaMask Card của bạn",
+      "description": "Thiết lập trước {{deadline}} để tránh bị gián đoạn.",
+      "description_no_deadline": "Thiết lập thẻ của bạn để tránh bị gián đoạn.",
+      "confirm_button_label": "Thiết lập thẻ"
+    },
+    "uk_migration_required": {
+      "title": "Cần cập nhật để tiếp tục",
+      "description": "Hoàn tất quá trình cập nhật MetaMask Card để tiếp tục sử dụng thẻ.",
+      "confirm_button_label": "Cập nhật ngay"
     },
     "daimo_pay_modal": {
       "load_error": "Không thể tải trang thanh toán. Vui lòng thử lại.",
@@ -9575,6 +9692,7 @@
         "clickwrap_prefix": "Bằng cách nhấn \"Tiếp theo\", bạn chấp nhận các điều khoản của Immersve về ",
         "clickwrap_and": " và ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Thẻ của bạn sẽ tạm thời không khả dụng cho đến khi hoàn tất thiết lập.",
         "legal_docs_error": "Không thể tải tài liệu pháp lý."
       },
       "confirm_email": {
@@ -10095,8 +10213,7 @@
         "timeout_error": "Đã hết thời gian chờ yêu cầu. Vui lòng kiểm tra kết nối và thử lại.",
         "server_error": "Lỗi máy chủ. Vui lòng thử lại sau.",
         "configuration_error": "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau.",
-        "forbidden_error": "Hành động này không khả dụng đối với tài khoản của bạn.",
-        "money_account_linked_to_different_card": "Ví này đã được liên kết với một thẻ MetaMask Card khác. Hãy hủy liên kết ví khỏi thẻ đó trước khi liên kết tại đây."
+        "forbidden_error": "Hành động này không khả dụng đối với tài khoản của bạn."
       }
     },
     "card_forgot_password": {
@@ -10252,7 +10369,7 @@
       "description": "Thẻ MetaMask Metal phụ thuộc vào tư cách đủ điều kiện và không khả dụng ở tất cả các khu vực. Nếu bạn không đủ điều kiện, bạn sẽ nhận được phần thưởng hàng hóa cao cấp độc quyền.",
       "contact_info": "Chia sẻ thông tin liên hệ của bạn và bạn sẽ nhận được phản hồi trong vòng 2 tuần từ @MidwitMilhouse trên Telegram hoặc christian.montoya@consensys.net.",
       "email_label": "Email",
-      "email_validation_error": "Vui lòng nhập địa chỉ email hợp lệ",
+      "email_validation_error": "Enter a valid email address",
       "telegram_label": "Tên người dùng Telegram",
       "telegram_placeholder": "Không bắt buộc"
     },
@@ -11343,34 +11460,47 @@
   },
   "pro_hub": {
     "title": "MetaMask Pro",
-    "subtitle": "Gói thành viên Pro của bạn",
     "manage": "Quản lý gói đăng ký",
-    "manage_plan": "Quản lý gói",
-    "earned_with_pro": "Đã sinh lời với gói Pro",
-    "saved_with_pro": "Đã tiết kiệm với gói Pro",
-    "next_payment": "Khoản thanh toán tiếp theo trị giá {{amount}} sẽ đến vào {{date}}.",
+    "manage_membership": "Manage membership",
+    "also_included": {
+      "title": "Also included",
+      "transaction_protection": {
+        "title": "Transaction protection",
+        "badge": "Extension",
+        "subtitle": "Up to $10,000 in on-chain protection"
+      },
+      "priority_support": {
+        "title": "Priority support",
+        "subtitle": "Hỗ trợ trực tiếp từ nhân viên, 24/7"
+      },
+      "disclaimer": "Allowances reset monthly. APY is variable and not guaranteed. Benefits and card availability vary by region."
+    },
+    "membership_brand": "METAMASK",
+    "membership_label": "Pro",
+    "lifetime_earnings": "Thu nhập trọn đời",
+    "money_balance": "Số dư Tài chính",
+    "musd_back": "3% mUSD back",
     "member_pricing": {
       "title": "Mức phí giao dịch dành cho thành viên",
       "allowance_currency": "${{amount}}",
-      "allowance_count_one": "{{count}} trade",
-      "allowance_count_other": "{{count}} trades",
+      "allowance_count_one": "{{count}} giao dịch",
+      "allowance_count_other": "{{count}} giao dịch",
       "swaps": {
         "label": "Hoán đổi",
-        "footnote": "Allowance resets monthly. Fees apply above $500."
+        "footnote": "Hạn mức được đặt lại hằng tháng. Áp dụng phí khi vượt quá $500."
       },
       "perps": {
         "label": "Vĩnh cửu",
-        "footnote": "Allowance resets monthly. Fees apply above $1,000."
+        "footnote": "Hạn mức được đặt lại hằng tháng. Áp dụng phí khi vượt quá $1.000."
       },
       "predict": {
         "label": "Dự đoán",
-        "footnote": "One prediction trade per month. Unused trades don't roll over."
+        "footnote": "Một giao dịch dự đoán mỗi tháng. Các giao dịch chưa sử dụng sẽ không được chuyển sang tháng sau."
       }
     },
     "physical_card": {
-      "title": "Nhận thẻ vật lý của bạn.",
-      "description": "Nhận hoàn 3% bằng mUSD khi chi tiêu bằng MetaMask Card tại hơn 150 triệu đơn vị bán hàng.",
-      "cta": "Nhận thẻ"
+      "title": "Get your free MetaMask Card",
+      "description": "Earn 3% mUSD back on purchases"
     },
     "earned": {
       "total_label": "Đã sinh lời kể từ khi tham gia gói Pro",
@@ -11384,7 +11514,6 @@
       "grow_description": "Mỗi $1.000 trong Money Account của bạn mang lại khoảng $70 mỗi năm với APY lên đến 7%.",
       "add_money": "Nạp tiền"
     },
-    "explore_benefits": "Khám phá quyền lợi",
     "membership": {
       "title": "Gói thành viên của bạn",
       "plan": "Gói thành viên",
@@ -11395,6 +11524,7 @@
       "paying_with": "Thanh toán bằng",
       "renews_on": "Gia hạn vào",
       "manage": "Quản lý",
+      "invoices": "Invoices",
       "contact_support": "Liên hệ bộ phận hỗ trợ",
       "cancel_membership": "Hủy gói thành viên",
       "earned_info": {
@@ -11437,7 +11567,7 @@
       },
       "cashback": {
         "title": "Hoàn 3% bằng mUSD khi mua hàng bằng thẻ",
-        "subtitle": "Up to $12,000/yr, worldwide",
+        "subtitle": "Lên đến $12.000/năm, trên toàn thế giới",
         "subtitle_monthly": "Lên đến $1.000/tháng, trên toàn thế giới"
       },
       "member_pricing": {
@@ -11474,18 +11604,18 @@
     },
     "benefits_description": {
       "apy": {
-        "description": "As a Pro member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
+        "description": "Là thành viên Pro, Money Account của bạn được hưởng lợi suất lên đến ~7% APY, được trả bằng mUSD. Người dùng không phải thành viên được hưởng lợi suất lên đến ~4% APY.",
         "description2": "APY có thể thay đổi và không được đảm bảo."
       },
       "cashback": {
-        "description": "Spend with your card and earn 3% mUSD back, paid straight to your Money balance—where it starts earning up to ~7% APY.",
+        "description": "Chi tiêu bằng thẻ và được hoàn 3% bằng mUSD, được chuyển thẳng vào số dư Money của bạn — nơi khoản tiền này bắt đầu sinh lời với APY lên đến ~7%.",
         "points": [
           "Thành viên theo tháng: Hoàn 3% cho tối đa $1.000 tiền mua hàng mỗi tháng",
           "Thành viên theo năm: Hoàn 3% cho tối đa $12.000 tiền mua hàng mỗi năm"
         ]
       },
       "member_pricing": {
-        "description": "Pay no MetaMask fees on:",
+        "description": "Không phải trả phí MetaMask đối với:",
         "points": [
           "Giao dịch hoán đổi tối đa $500/tháng",
           "Giao dịch hợp đồng vĩnh cửu tối đa $1.000/tháng",
@@ -11497,18 +11627,18 @@
         "description_monthly": "MetaMask Card được cung cấp riêng cho thành viên đăng ký theo tháng. Sử dụng thẻ tại hơn 150 triệu đơn vị chấp nhận thanh toán trên toàn cầu, ở bất kỳ đâu chấp nhận Mastercard — MetaMask không thu phí ATM hoặc phí giao dịch nước ngoài."
       },
       "protection": {
-        "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000. Members receive clear in-app alerts when a transaction is covered.",
-        "sub_description": "Protection includes:",
+        "description": "Được bảo vệ cho tối đa 100 giao dịch trên MetaMask Extension mỗi tháng, với giá trị lên đến $10.000. Thành viên sẽ nhận được cảnh báo rõ ràng trong ứng dụng khi giao dịch được bảo vệ.",
+        "sub_description": "Phạm vi bảo vệ bao gồm:",
         "points": [
-          "DeFi swaps",
-          "NFT mints",
-          "Airdrop claims"
+          "Hoán đổi DeFi",
+          "Đúc NFT",
+          "Nhận tặng thưởng"
         ],
         "learn_more": "Tìm hiểu thêm",
         "notes": "Lưu ý: Tính năng bảo vệ giao dịch sẽ không bảo vệ bạn trước các tổn thất xảy ra trước hoặc sau một giao dịch."
       },
       "support": {
-        "description": "Get priority customer support from a real human—anytime, any day."
+        "description": "Được ưu tiên hỗ trợ khách hàng từ nhân viên thực — bất cứ lúc nào, bất kỳ ngày nào."
       }
     },
     "success": {

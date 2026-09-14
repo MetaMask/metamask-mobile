@@ -19,6 +19,7 @@ export const initialStateTrending = (options?: InitialStateTrendingOptions) => {
     .withMinimalMainnetNetwork()
     .withMinimalMultichainNetwork(true)
     .withMinimalKeyringController()
+    .withMinimalTokensController()
     .withPreferences({
       basicFunctionalityEnabled: true,
       useTokenDetection: false,
@@ -45,6 +46,20 @@ export const initialStateTrending = (options?: InitialStateTrendingOptions) => {
         backgroundState: {
           NetworkController: {
             selectedNetworkClientId: 'mainnet',
+          },
+          EarnController: {
+            lastUpdated: 0,
+            pooled_staking: { isEligible: false },
+            lending: { positions: [], markets: [] },
+          },
+          MoneyAccountController: {
+            moneyAccounts: {},
+          },
+          CurrencyRateController: {
+            currentCurrency: 'USD',
+            currencyRates: {
+              ETH: { conversionRate: 2000, usdConversionRate: 2000 },
+            },
           },
         },
       },

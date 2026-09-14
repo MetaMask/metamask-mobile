@@ -1,11 +1,16 @@
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import { EXPLORE_TAB_INDEX } from '../../../../../constants/navigation/exploreTabIndices';
-import { handleTrendingUrl } from '../handleTrendingUrl';
+import { executeStartupDeeplinkIntent } from '../../../utils/executeDeeplinkIntent';
+import {
+  createTrendingDeeplinkIntent,
+  handleTrendingUrl,
+} from '../handleTrendingUrl';
 
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
+    reset: jest.fn(),
   },
 }));
 
@@ -153,35 +158,67 @@ describe('handleTrendingUrl - full-screen views (screen=...)', () => {
     {
       screenParam: 'search',
       expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: { entryPoint: 'deeplink' },
     },
     {
       screenParam: 'search',
-      actionPath: '?screen=search&q=ethereum',
+      actionPath: '?screen=search&q=Apple',
       expectedRoute: Routes.EXPLORE_SEARCH,
-      expectedParams: { initialQuery: 'ethereum' },
+      expectedParams: {
+        initialQuery: 'Apple',
+        entryPoint: 'deeplink',
+      },
     },
     {
       screenParam: 'search',
-      actionPath: '?screen=search&q=%20ethereum%20',
+      actionPath: '?screen=search&q=Apple%20Inc',
       expectedRoute: Routes.EXPLORE_SEARCH,
-      expectedParams: { initialQuery: 'ethereum' },
+      expectedParams: {
+        initialQuery: 'Apple Inc',
+        entryPoint: 'deeplink',
+      },
+    },
+    {
+      screenParam: 'search',
+      actionPath: '?screen=search&q=Apple%20%26%20Caf%C3%A9',
+      expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: {
+        initialQuery: 'Apple & Café',
+        entryPoint: 'deeplink',
+      },
     },
     {
       screenParam: 'search',
       actionPath: '?screen=search&query=bitcoin',
       expectedRoute: Routes.EXPLORE_SEARCH,
-      expectedParams: { initialQuery: 'bitcoin' },
+      expectedParams: {
+        initialQuery: 'bitcoin',
+        entryPoint: 'deeplink',
+      },
     },
     {
       screenParam: 'search',
       actionPath: '?screen=search&q=&query=bitcoin',
       expectedRoute: Routes.EXPLORE_SEARCH,
-      expectedParams: { initialQuery: 'bitcoin' },
+      expectedParams: {
+        initialQuery: 'bitcoin',
+        entryPoint: 'deeplink',
+      },
+    },
+    {
+      screenParam: 'search',
+      actionPath: '?screen=search&q=Apple&query=Microsoft',
+      expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: {
+        initialQuery: 'Apple',
+        entryPoint: 'deeplink',
+      },
     },
     {
       screenParam: 'search',
       actionPath: '?screen=search&q=%20%20',
       expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: { entryPoint: 'deeplink' },
     },
   ])(
     'activates Explore tab then navigates to the full view for screen=$screenParam',
@@ -213,6 +250,51 @@ describe('handleTrendingUrl - full-screen views (screen=...)', () => {
       2,
       Routes.WALLET.RWA_TOKENS_FULL_VIEW,
     );
+  });
+
+  it('preserves the decoded search query in cold-start navigation', async () => {
+    const intent = createTrendingDeeplinkIntent({
+      actionPath: '?screen=search&q=Apple%20Inc',
+    });
+
+    await executeStartupDeeplinkIntent(intent);
+
+    expect(NavigationService.navigation.reset).toHaveBeenCalledWith({
+      routes: [
+        {
+          name: Routes.ONBOARDING.HOME_NAV,
+          state: {
+            routes: [
+              {
+                name: Routes.MAIN_FLOW,
+                state: {
+                  index: 1,
+                  routes: [
+                    {
+                      name: Routes.HOME_TABS,
+                      state: {
+                        index: 1,
+                        routes: [
+                          { name: Routes.WALLET.HOME },
+                          { name: Routes.TRENDING_VIEW },
+                        ],
+                      },
+                    },
+                    {
+                      name: Routes.EXPLORE_SEARCH,
+                      params: {
+                        initialQuery: 'Apple Inc',
+                        entryPoint: 'deeplink',
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
   });
 });
 

@@ -8,6 +8,7 @@ const initialState = {
   avatarAccountType: AvatarAccountType.Maskicon,
   hideZeroBalanceTokens: true,
   basicFunctionalityEnabled: true,
+  isBasicFunctionalityConsolidatedEnabled: false,
   deepLinkModalDisabled: false,
   hapticsEnabled: true,
   // Whether this account is shown on the Top Traders leaderboard. Local mirror
@@ -60,6 +61,12 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         basicFunctionalityEnabled: action.basicFunctionalityEnabled,
+      };
+    case 'SET_BASIC_FUNCTIONALITY_CONSOLIDATED_ENABLED':
+      return {
+        ...state,
+        isBasicFunctionalityConsolidatedEnabled:
+          action.isBasicFunctionalityConsolidatedEnabled,
       };
     case 'TOGGLE_DEVICE_NOTIFICATIONS':
       return {

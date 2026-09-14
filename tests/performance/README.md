@@ -708,6 +708,13 @@ an inline **App profiling check** under each failed scenario that has a prior
 usable baseline on `main` (short summary + collapsed metric table). Scenarios
 without a prior baseline are omitted from that block.
 
+Baselines come from the scheduled `main` runs of
+[`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml)
+(`BASELINE_WORKFLOW` in `tests/scripts/diff-app-profiling.mjs`). The reusable
+`run-performance-e2e.yml` cannot be used as the baseline source: it is
+`workflow_call` only, so its invocations are jobs of the caller run and never
+appear in `gh run list --workflow run-performance-e2e.yml`.
+
 Header uses ⚠️ when there are failed tests.
 
 Manual re-run remains available via:
@@ -725,6 +732,9 @@ Or compare all failed scenarios from that run:
 This uses `.github/workflows/app-profiling-check.yml` (bot command /
 `workflow_dispatch`). The automatic PR path embeds profiling into the
 performance results comment from `run-performance-e2e.yml`.
+
+Both paths share `tests/scripts/diff-app-profiling.mjs`, so a `--workflow`
+override on the manual command also changes where baselines are looked up.
 
 ### Weekly app profiling report (Cursor Automation)
 

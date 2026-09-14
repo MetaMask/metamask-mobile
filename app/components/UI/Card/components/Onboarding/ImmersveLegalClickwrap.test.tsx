@@ -87,6 +87,22 @@ describe('ImmersveLegalClickwrap', () => {
     expect(getByText('Privacy Policy')).toBeOnTheScreen();
   });
 
+  it('renders a custom suffix when provided', () => {
+    const { getByTestId } = render(
+      <ImmersveLegalClickwrap
+        documents={DOCS}
+        isLoading={false}
+        error={null}
+        onRetry={jest.fn()}
+        suffix=". Your card will be temporarily unavailable until setup is complete."
+      />,
+    );
+
+    expect(getByTestId('signup-immersve-legal-clickwrap')).toHaveTextContent(
+      /temporarily unavailable until setup is complete/,
+    );
+  });
+
   it('opens document url when a linked title is pressed', () => {
     const { getByTestId } = render(
       <ImmersveLegalClickwrap

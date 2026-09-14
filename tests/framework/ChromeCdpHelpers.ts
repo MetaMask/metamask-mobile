@@ -2,17 +2,19 @@
 import { execFileSync } from 'child_process';
 import { WebSocket as WsClient } from 'ws';
 import type { Context } from '@wdio/protocols';
-import type { AndroidDetailedContext } from 'webdriverio/build/types';
+import type { AndroidDetailedContext } from 'webdriverio';
 import { APP_PACKAGE_IDS } from './Constants.ts';
 import { getDriver, executeMobileDeepLink } from './AppiumUtilities';
 import { PlatformDetector } from './PlatformLocator';
 import AppiumContextHelpers from './AppiumContextHelpers';
 import { createAppiumLogger } from './appiumLogger.ts';
+import {
+  adbDeviceArgs,
+  chromeCdpForwardPort,
+  metamaskWebViewCdpForwardPort,
+} from './e2eWorkerPorts.ts';
 
 const logger = createAppiumLogger('ChromeCdpHelpers');
-
-/** Host port for `adb forward` to Chrome's `@chrome_devtools_remote` socket. */
-const CDP_FORWARD_PORT = 9222;
 const CDP_READY_TIMEOUT_MS = 20_000;
 const DAPP_PAGE_TIMEOUT_MS = 30_000;
 /** SDK opens metamask:// only after transport `session_request` (can take several seconds). */
@@ -179,7 +181,7 @@ export default class ChromeCdpHelpers {
   /**
    * Forward host → device Chrome DevTools abstract socket.
    */
-  private static ensureAdbForward(port = CDP_FORWARD_PORT): void {
+  private static ensureAdbForward(port = chromeCdpForwardPort()): void {
     this.ensureAdbForwardToAbstractSocket(port, 'chrome_devtools_remote');
     logger.debug(`ADB forwarded tcp:${port} → chrome_devtools_remote`);
   }
@@ -193,15 +195,24 @@ export default class ChromeCdpHelpers {
     abstractSocket: string,
   ): void {
     try {
-      execFileSync('adb', ['forward', '--remove', `tcp:${port}`], {
-        stdio: 'pipe',
-      });
+      execFileSync(
+        'adb',
+        [...adbDeviceArgs(), 'forward', '--remove', `tcp:${port}`],
+        {
+          stdio: 'pipe',
+        },
+      );
     } catch {
       // No existing forward is fine.
     }
     execFileSync(
       'adb',
-      ['forward', `tcp:${port}`, `localabstract:${abstractSocket}`],
+      [
+        ...adbDeviceArgs(),
+        'forward',
+        `tcp:${port}`,
+        `localabstract:${abstractSocket}`,
+      ],
       { stdio: 'pipe' },
     );
   }
@@ -642,7 +653,7 @@ export default class ChromeCdpHelpers {
     }
 
     this.ensureAdbForward();
-    const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
+    const endpoint = `http://127.0.0.1:${chromeCdpForwardPort()}`;
     await this.waitForCdpEndpoint(endpoint);
     return endpoint;
   }
@@ -809,7 +820,6 @@ export default class ChromeCdpHelpers {
   // is cached so `mobile: getContexts` (which can be slow) is called at most
   // once per test — call `resetMetaMaskWebViewCache()` between tests.
 
-  private static readonly MM_WV_CDP_PORT = 10902;
   private static cachedMmWebViewSocket: string | null = null;
 
   /** Clear the WebView socket cache — call at the start of each test. */
@@ -821,10 +831,10 @@ export default class ChromeCdpHelpers {
     if (this.cachedMmWebViewSocket) {
       try {
         this.ensureAdbForwardToAbstractSocket(
-          this.MM_WV_CDP_PORT,
+          metamaskWebViewCdpForwardPort(),
           this.cachedMmWebViewSocket,
         );
-        const endpoint = `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+        const endpoint = `http://127.0.0.1:${metamaskWebViewCdpForwardPort()}`;
         // adb forward succeeds even when the abstract socket is gone — probe CDP.
         const response = await fetch(`${endpoint}/json/version`);
         if (response.ok) {
@@ -848,9 +858,12 @@ export default class ChromeCdpHelpers {
     if (!mmCtx?.proc) throw new Error('MetaMask WebView CDP context not found');
 
     const socketName = mmCtx.proc.replace(/^@/, '');
-    this.ensureAdbForwardToAbstractSocket(this.MM_WV_CDP_PORT, socketName);
+    this.ensureAdbForwardToAbstractSocket(
+      metamaskWebViewCdpForwardPort(),
+      socketName,
+    );
     this.cachedMmWebViewSocket = socketName;
-    return `http://127.0.0.1:${this.MM_WV_CDP_PORT}`;
+    return `http://127.0.0.1:${metamaskWebViewCdpForwardPort()}`;
   }
 
   private static async withMetaMaskWebViewSession<T>(

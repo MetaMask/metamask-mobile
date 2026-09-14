@@ -25,7 +25,7 @@ import {
   formatPercent,
   PercentageOutputFormat,
 } from '../../utils/value';
-import { Hex } from 'viem/_types/types/misc';
+import { Hex } from 'viem';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';

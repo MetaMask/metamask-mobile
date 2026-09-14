@@ -557,8 +557,10 @@ describe('HomepageBalanceBreakdown', () => {
 
     expect(mockNavigateToMoneyHome).toHaveBeenCalledWith(
       expect.objectContaining({
-        attribution: 'homescreen_balance_breakdown',
-        id: expect.any(String),
+        analyticsContext: expect.objectContaining({
+          attribution: 'homescreen_balance_breakdown',
+          id: expect.any(String),
+        }),
       }),
     );
     expect(mockNavigate).toHaveBeenNthCalledWith(

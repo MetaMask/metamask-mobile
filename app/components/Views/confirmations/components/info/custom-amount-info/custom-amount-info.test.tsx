@@ -87,6 +87,12 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
 jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
+// Reaches the Money Account balance query via `useIsMoneyAccountFlagDefault`,
+// which the `usePayWithMoneyAccountSection` mock above does not intercept.
+jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
+  // Not a jest.fn(): `jest.resetAllMocks()` below would wipe its return value.
+  usePayMoneyAccountAvailable: () => ({ isAvailable: true, isPending: false }),
+}));
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
 }));
@@ -1925,13 +1931,12 @@ describe('CustomAmountInfo', () => {
     });
 
     // Money-account deposit is the only wired surface; perps / prediction /
-    // withdraw / mUSD render this shared screen but resolve to an undefined
+    // withdraw render this shared screen but resolve to an undefined
     // surface, so the funnel stays inert (reverts FIX 1).
     it.each([
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.moneyAccountWithdraw,
-      TransactionType.musdConversion,
     ])('fires no RAMPS funnel events for %s on Done', async (type) => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',

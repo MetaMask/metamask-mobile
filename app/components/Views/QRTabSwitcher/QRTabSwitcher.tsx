@@ -21,8 +21,9 @@ import {
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
 import type { QrSyncPhase } from '../../../core/QrSync/types';
-import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { RouteMessengerInstance } from './messenger';
 import {
   selectQrSyncError,
   selectQrSyncIsSessionActive,
@@ -79,6 +80,7 @@ export const createQRScannerNavDetails =
 const QRTabSwitcher = () => {
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
+  const messenger = useMessenger<RouteMessengerInstance>();
   const { onScanError, onScanSuccess, onStartScan, origin } =
     route.params as QRTabSwitcherParams;
 
@@ -206,7 +208,9 @@ const QRTabSwitcher = () => {
 
   const goBack = () => {
     if (isAddDeviceOrigin && isSessionActive) {
-      Engine.context.QrSyncController.resetState();
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
     }
 
     navigation.goBack();

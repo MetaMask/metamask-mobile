@@ -150,7 +150,7 @@ describe('useAddressTrustSignalAlerts', () => {
         field: RowAlertKey.FromToAddress,
         message:
           "Security partners don't have enough reliable history to verify this address.",
-        title: 'Limited or mixed address signals',
+        title: 'Limited address signals',
         severity: Severity.Warning,
         isBlocking: false,
       },

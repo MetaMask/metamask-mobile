@@ -127,6 +127,10 @@ export interface TapOptions extends GestureOptions {
   waitForElementToDisappear?: boolean; // If true, waits for the element to disappear after tapping
   /** Appium: stricter enabled polling before tap (AppiumGestures.waitUntilInteractive) */
   waitForInteractive?: boolean;
+  /** Appium: consecutive interactive reads required when waitForInteractive is true */
+  enabledStableReads?: number;
+  /** Appium: extra settle time after interactive wait before tap */
+  postEnabledSettleMs?: number;
 }
 
 export interface TypeTextOptions extends GestureOptions {

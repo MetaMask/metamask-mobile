@@ -339,6 +339,13 @@ describe('useEarnAssetCatalogue', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('exposes raw and rounded Money APY values', () => {
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(result.current.moneyApyDecimal).toBe(0.062);
+    expect(result.current.moneyApyPercent).toBe(6.2);
+  });
+
   it('does not report loading while cached lending markets refresh', () => {
     mockUseEarnSectionLendingMarkets.mockReturnValue({
       markets: [market],

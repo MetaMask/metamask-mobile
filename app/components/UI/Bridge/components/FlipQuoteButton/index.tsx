@@ -12,18 +12,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
-import { useABTest } from '../../../../../hooks';
 import {
-  SWAPS_HAPTICS_AB_KEY,
-  SWAPS_HAPTICS_EXPOSURE_METADATA,
-  SWAPS_HAPTICS_VARIANTS,
-} from '../../haptics/abTestConfig';
+  FLIP_BUTTON_CUTOUT_HEIGHT,
+  FLIP_BUTTON_CUTOUT_WIDTH,
+  getFlipButtonFilletPaths,
+} from './getFlipButtonFilletPaths';
 
 const ARROW_ICON_SIZE = IconSize.Lg;
-const CUTOUT_WING_WIDTH = 77;
-const CUTOUT_WING_HEIGHT = 37;
-const CUTOUT_WING_PATH =
-  'M70.3701 18.4727L76.9141 36.9453C72.3883 28.1234 66.7174 24.2023 57.5107 22.5781H0V15.2041C50.3731 15.2041 69.4871 20.9645 76.9141 0L70.3701 18.4727Z';
+const CUTOUT_PATHS = getFlipButtonFilletPaths();
 
 interface Props {
   onPress: () => void;
@@ -38,15 +34,6 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
     disabled,
     pressed,
   });
-  const { variant: swapsHapticsVariant, isActive: isSwapsHapticsAbActive } =
-    useABTest(
-      SWAPS_HAPTICS_AB_KEY,
-      SWAPS_HAPTICS_VARIANTS,
-      SWAPS_HAPTICS_EXPOSURE_METADATA,
-    );
-  const shouldPlaySwapsHaptics = Boolean(
-    isSwapsHapticsAbActive && swapsHapticsVariant.enableSwapHaptics,
-  );
 
   const triggerOnPressedIn = useCallback(() => {
     setPressed(true);
@@ -57,9 +44,7 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
   }, [setPressed]);
 
   const triggerOnPress = useCallback(() => {
-    if (shouldPlaySwapsHaptics) {
-      playSelection().catch(() => undefined);
-    }
+    playSelection().catch(() => undefined);
     rotationValue.setValue(0);
     Animated.sequence([
       Animated.timing(rotationValue, {
@@ -76,7 +61,7 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
       }),
     ]).start();
     onPress();
-  }, [onPress, rotationValue, shouldPlaySwapsHaptics]);
+  }, [onPress, rotationValue]);
 
   const rotate = rotationValue.interpolate({
     inputRange: [0, 1],
@@ -86,22 +71,15 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
   return (
     <Box style={styles.arrowContainer}>
       <Svg
-        width={CUTOUT_WING_WIDTH}
-        height={CUTOUT_WING_HEIGHT}
-        viewBox={`0 0 ${CUTOUT_WING_WIDTH} ${CUTOUT_WING_HEIGHT}`}
-        style={[styles.cutoutWing, styles.leftCutoutWing]}
+        width={FLIP_BUTTON_CUTOUT_WIDTH}
+        height={FLIP_BUTTON_CUTOUT_HEIGHT}
+        viewBox={`0 0 ${FLIP_BUTTON_CUTOUT_WIDTH} ${FLIP_BUTTON_CUTOUT_HEIGHT}`}
+        style={styles.cutoutOverlay}
         pointerEvents="none"
       >
-        <Path d={CUTOUT_WING_PATH} fill={colors.background.default} />
-      </Svg>
-      <Svg
-        width={CUTOUT_WING_WIDTH}
-        height={CUTOUT_WING_HEIGHT}
-        viewBox={`0 0 ${CUTOUT_WING_WIDTH} ${CUTOUT_WING_HEIGHT}`}
-        style={[styles.cutoutWing, styles.rightCutoutWing]}
-        pointerEvents="none"
-      >
-        <Path d={CUTOUT_WING_PATH} fill={colors.background.default} />
+        {CUTOUT_PATHS.map((d) => (
+          <Path key={d} d={d} fill={colors.background.default} />
+        ))}
       </Svg>
       <Box style={styles.arrowCircle}>
         <TouchableOpacity

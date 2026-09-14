@@ -272,16 +272,17 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
-const HOMEPAGE_READY_TRACE_TOKEN = 1;
-const mockStartHomepageReadyTrace = jest.fn(
-  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
+const UNLOCK_TRACE_TOKENS = {
+  homepageReadyTraceToken: 1,
+  deeplinkNavigatedTraceToken: 2,
+};
+const mockStartUnlockTraces = jest.fn(
+  (..._args: unknown[]) => UNLOCK_TRACE_TOKENS,
 );
-const mockCancelHomepageReadyTrace = jest.fn();
-jest.mock('../../../core/Performance/HomepageReady', () => ({
-  startHomepageReadyTrace: (...args: unknown[]) =>
-    mockStartHomepageReadyTrace(...args),
-  cancelHomepageReadyTrace: (...args: unknown[]) =>
-    mockCancelHomepageReadyTrace(...args),
+const mockCancelUnlockTraces = jest.fn();
+jest.mock('../../../core/Performance/unlockTraces', () => ({
+  startUnlockTraces: (...args: unknown[]) => mockStartUnlockTraces(...args),
+  cancelUnlockTraces: (...args: unknown[]) => mockCancelUnlockTraces(...args),
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -316,6 +317,8 @@ jest.mock('../../../core/redux', () => ({
     },
   },
 }));
+
+const mockLoginReduxStore = jest.requireMock('../../../core/redux').default;
 
 const mockBackHandlerAddEventListener = jest
   .fn()
@@ -386,6 +389,9 @@ describe('Login', () => {
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
     mockBackHandlerAddEventListener.mockClear();
     mockBackHandlerAddEventListener.mockReturnValue({ remove: jest.fn() });
+    mockGetVaultFromBackup.mockReset();
+    mockParseVaultValue.mockReset();
+    mockLoginReduxStore.store.getState.mockReturnValue({ mock: 'state' });
 
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
@@ -395,9 +401,29 @@ describe('Login', () => {
     jest.clearAllTimers();
     jest.useRealTimers();
     Alert.alert = originalAlert;
+    jest.restoreAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation(mockRunAfterInteractions);
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
+
+  const waitForPasswordInput = async () => {
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+      ).toBeOnTheScreen();
+    });
+  };
+
+  const waitForDeviceAuthIcon = async () => {
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeOnTheScreen();
+    });
+  };
 
   it('renders matching snapshot', () => {
     renderWithProvider(<Login />);
@@ -480,13 +506,9 @@ describe('Login', () => {
         },
         isLoading: false,
       });
-      const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-      expect(
-        getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-      ).toBeOnTheScreen();
+      renderWithProvider(<Login />);
+
+      await waitForDeviceAuthIcon();
     });
 
     it('shows button when capabilities allow BIOMETRIC', async () => {
@@ -510,9 +532,9 @@ describe('Login', () => {
         params: { locked: true, oauthLoginSuccess: false },
       });
       const { queryByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+
+      await waitForPasswordInput();
+
       expect(
         queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
       ).toBeNull();
@@ -527,9 +549,9 @@ describe('Login', () => {
         isLoading: false,
       });
       const { queryByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+
+      await waitForPasswordInput();
+
       expect(
         queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
       ).toBeNull();
@@ -645,9 +667,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -672,9 +692,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -856,10 +874,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      // Wait for mount effects that call getAuthType
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+      await waitForPasswordInput();
       const getAuthTypeCallCountAfterMount = mockGetAuthType.mock.calls.length;
 
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1243,9 +1258,7 @@ describe('Login', () => {
       mockUnlockWallet.mockResolvedValueOnce(true);
 
       const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1268,9 +1281,7 @@ describe('Login', () => {
       );
 
       const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1291,9 +1302,7 @@ describe('Login', () => {
         );
 
         const { getByTestId } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
 
         const biometryButton = getByTestId(
           LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1301,8 +1310,8 @@ describe('Login', () => {
         await act(async () => {
           fireEvent.press(biometryButton);
         });
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(
@@ -1321,9 +1330,7 @@ describe('Login', () => {
         );
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
         mockLogger.error.mockClear();
 
         const biometryButton = getByTestId(
@@ -1332,8 +1339,8 @@ describe('Login', () => {
         await act(async () => {
           fireEvent.press(biometryButton);
         });
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(
@@ -1353,9 +1360,7 @@ describe('Login', () => {
         );
 
         const { getByTestId, getByText } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
         mockLogger.error.mockClear();
 
         const biometryButton = getByTestId(
@@ -1384,9 +1389,7 @@ describe('Login', () => {
         );
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
         mockLogger.error.mockClear();
 
         const biometryButton = getByTestId(
@@ -1395,8 +1398,8 @@ describe('Login', () => {
         await act(async () => {
           fireEvent.press(biometryButton);
         });
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(
@@ -1429,9 +1432,7 @@ describe('Login', () => {
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        });
+        await waitForPasswordInput();
         mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1440,10 +1441,11 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
 
         await waitFor(() => {
-          expect(
-            queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
-          ).not.toBeOnTheScreen();
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
         expect(mockLogger.error).not.toHaveBeenCalled();
       } finally {
         jest.useFakeTimers();
@@ -1471,17 +1473,15 @@ describe('Login', () => {
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        });
+        await waitForPasswordInput();
         mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
         fireEvent.changeText(passwordInput, 'valid-password123');
         fireEvent(passwordInput, 'submitEditing');
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(mockLogger.error).not.toHaveBeenCalled();
@@ -1514,17 +1514,15 @@ describe('Login', () => {
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        });
+        await waitForPasswordInput();
         mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
         fireEvent.changeText(passwordInput, 'valid-password123');
         fireEvent(passwordInput, 'submitEditing');
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(mockLogger.error).not.toHaveBeenCalled();
@@ -1593,9 +1591,7 @@ describe('Login', () => {
       mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
 
       const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+      await waitForPasswordInput();
       const getAuthTypeCallCountAfterMount = mockGetAuthType.mock.calls.length;
 
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1664,12 +1660,277 @@ describe('Login', () => {
   });
 
   describe('Navigation and lifecycle', () => {
-    it('navigates to forgot password modal when reset wallet is pressed', () => {
+    it('navigates to forgot password modal when reset wallet is pressed', async () => {
       const { getByTestId } = renderWithProvider(<Login />);
-      fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
       });
+    });
+
+    it('navigates to the delete-wallet modal once when reset wallet is pressed twice', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      let resolveBackup: (value: {
+        success: boolean;
+        vault: string;
+      }) => void = () => undefined;
+      mockGetVaultFromBackup.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveBackup = resolve;
+          }),
+      );
+      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const resetWallet = getByTestId(LoginViewSelectors.RESET_WALLET);
+      await act(async () => {
+        fireEvent.press(resetWallet);
+        fireEvent.press(resetWallet);
+        resolveBackup({ success: true, vault: 'mock-vault' });
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('does not decrypt the vault backup when password was typed but never submitted', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
+      expect(mockParseVaultValue).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+    });
+
+    it('reports Sentry when the last failed unlock password decrypts a vault backup', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: true,
+        vault: 'mock-vault',
+      });
+      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockReplace).not.toHaveBeenCalledWith(
+        Routes.VAULT_RECOVERY.RESTORE_WALLET,
+        expect.anything(),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Forgot password: submitted password decrypts on-device vault backup',
+        }),
+        expect.objectContaining({
+          tags: { feature: 'account_access' },
+          context: {
+            name: 'ForgotPasswordVaultMismatch',
+            data: {
+              local_backup_decrypts: true,
+              unlock_attempted: true,
+            },
+          },
+        }),
+      );
+    });
+
+    it('falls through to the destructive reset when the last failed unlock password does not decrypt the backup', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: true,
+        vault: 'mock-vault',
+      });
+      mockParseVaultValue.mockResolvedValueOnce(undefined);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockLogger.error).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Forgot password: submitted password decrypts on-device vault backup',
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('falls through to the destructive reset when the backup check throws after a failed unlock', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      mockGetVaultFromBackup.mockRejectedValueOnce(new Error('keychain error'));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+    });
+
+    it('reports Sentry when seedless password is outdated on forgot password', async () => {
+      mockLoginReduxStore.store.getState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'seedless-vault',
+            },
+          },
+        },
+      });
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValueOnce(true);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockReplace).not.toHaveBeenCalledWith(
+        Routes.VAULT_RECOVERY.RESTORE_WALLET,
+        expect.anything(),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: true,
+        captureSentryError: true,
+      });
+      expect(mockParseVaultValue).not.toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Forgot password: seedless local vault may be out of sync with server',
+        }),
+        expect.objectContaining({
+          tags: { feature: 'account_access' },
+          context: {
+            name: 'ForgotPasswordSeedlessDesync',
+            data: {
+              password_outdated: true,
+              local_backup_decrypts: false,
+              unlock_attempted: false,
+            },
+          },
+        }),
+      );
+    });
+
+    it('reports Sentry when seedless backup still decrypts the last failed unlock password', async () => {
+      mockLoginReduxStore.store.getState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'seedless-vault',
+            },
+          },
+        },
+      });
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: true,
+        vault: 'mock-vault',
+      });
+      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockReplace).not.toHaveBeenCalledWith(
+        Routes.VAULT_RECOVERY.RESTORE_WALLET,
+        expect.anything(),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Forgot password: seedless local vault may be out of sync with server',
+        }),
+        expect.objectContaining({
+          context: {
+            name: 'ForgotPasswordSeedlessDesync',
+            data: {
+              password_outdated: false,
+              local_backup_decrypts: true,
+              unlock_attempted: true,
+            },
+          },
+        }),
+      );
     });
 
     it('navigates to rehydrate on seedless onboarding error', async () => {
@@ -1873,9 +2134,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1905,7 +2164,24 @@ describe('Login', () => {
       );
     });
 
-    it('cancels Homepage Ready when password unlock fails', async () => {
+    it('starts the unlock CUF traces on password submit', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockStartUnlockTraces).toHaveBeenCalledWith({
+        appStartType: LOGIN_APP_START_TYPE.COLD,
+      });
+      expect(mockCancelUnlockTraces).not.toHaveBeenCalled();
+    });
+
+    it('cancels the unlock CUF traces when password unlock fails', async () => {
       mockUnlockWallet.mockRejectedValueOnce(new Error('Wrong password'));
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1915,13 +2191,10 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
+      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
     });
 
-    it('cancels Homepage Ready when device authentication fails', async () => {
+    it('cancels the unlock CUF traces when device authentication fails', async () => {
       mockUseAuthCapabilities.mockReturnValue({
         capabilities: defaultCapabilities,
         isLoading: false,
@@ -1933,19 +2206,14 @@ describe('Login', () => {
       mockUnlockWallet.mockRejectedValueOnce(new Error('Biometric failed'));
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
       await act(async () => {
         fireEvent.press(
           getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
         );
       });
 
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
+      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
     });
   });
 

@@ -334,16 +334,26 @@ describe('readAndroidWebIdText CDP path', () => {
     );
   });
 
-  it('falls back to native getText when CDP returns undefined', async () => {
-    mockDriverWithFindSequence(['hit']);
+  it('throws when CDP returns undefined so callers can retry without UiAutomator', async () => {
     (
       AndroidWebViewCdpHelpers.readElementTextById as jest.Mock
     ).mockResolvedValue(undefined);
 
+    await expect(readAndroidWebIdText('status', { pageUrl })).rejects.toThrow(
+      /CDP WebView read missed #status/,
+    );
+    expect(AndroidWebViewCdpHelpers.readElementTextById).toHaveBeenCalled();
+  });
+
+  it('returns empty CDP text without falling back to native getText', async () => {
+    (
+      AndroidWebViewCdpHelpers.readElementTextById as jest.Mock
+    ).mockResolvedValue('');
+
     const text = await readAndroidWebIdText('status', { pageUrl });
 
+    expect(text).toBe('');
     expect(AndroidWebViewCdpHelpers.readElementTextById).toHaveBeenCalled();
-    expect(text).toBe('native-text');
   });
 
   it('skips CDP read when pageUrl omitted', async () => {

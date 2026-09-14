@@ -379,7 +379,7 @@ const confirmLockAlert = async (): Promise<void> => {
 };
 
 /**
- * Locks the app from Settings.
+ * Locks the app from wallet home (Account Menu → Lock).
  */
 export const lockApp = async (): Promise<void> => {
   await TabBarComponent.tapAccountsMenu();
