@@ -5,6 +5,8 @@ import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
 import { mockTheme } from '../../../util/theme';
+import AddBookmark from '../../Views/AddBookmark';
+import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 
@@ -377,7 +379,7 @@ describe('MainNavigator', () => {
     // Then it should contain the SampleFeature screen with correct configuration
     interface ScreenChild {
       name: string;
-      component: { name: string };
+      component: React.ComponentType;
     }
     const screenProps: ScreenChild[] = container.root.children
       .filter(
@@ -397,7 +399,7 @@ describe('MainNavigator', () => {
     );
 
     expect(sampleFeatureScreen).toBeDefined();
-    expect(sampleFeatureScreen?.component.name).toBe('SampleFeatureFlow');
+    expect(sampleFeatureScreen?.component).toBe(SampleFeature);
   });
 
   it('includes FeatureFlagOverride screen when METAMASK_ENVIRONMENT is not production', () => {
@@ -1345,35 +1347,56 @@ describe('MainNavigator', () => {
         )
         .map((child) => child.props.name);
 
-    const homeTabNames = (
+    const renderHomeTabs = (
       container: { root: ReactTestInstance },
       state: ReturnType<typeof stateForArm>,
-    ): string[] => {
+    ): ReactTestInstance => {
       const HomeTabs = container.root.findAll(
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'Screen' && node.props?.name === 'Home',
       )[0]?.props?.component;
-      const { root } = renderWithProvider(<HomeTabs route={{ params: {} }} />, {
-        state,
-      });
-      return root
+      return renderWithProvider(<HomeTabs route={{ params: {} }} />, { state })
+        .root;
+    };
+
+    const homeTabNames = (
+      container: { root: ReactTestInstance },
+      state: ReturnType<typeof stateForArm>,
+    ): string[] =>
+      renderHomeTabs(container, state)
         .findAll(
           (node: ReactTestInstance) => node.type?.toString?.() === 'TabScreen',
         )
         .map((node) => node.props.name);
-    };
 
-    it('pushes Rewards onto the root stack in treatment, where it is no longer a tab', () => {
-      const state = stateForArm('searchFocused');
-      const container = renderWithProvider(<MainNavigator />, { state });
+    const renderedTabBar = (
+      root: ReactTestInstance,
+    ): React.ReactElement<{ trailingAction?: string }> =>
+      root
+        .findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        )[0]
+        ?.props?.tabBar({
+          state: { routes: [{ name: Routes.WALLET.HOME }], index: 0 },
+          descriptors: {},
+          navigation: {},
+        });
 
-      expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+    it.each(['searchFocused', 'tradeFocused'])(
+      'pushes Rewards onto the root stack in %s, where it is no longer a tab',
+      (arm) => {
+        const state = stateForArm(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
 
-      const tabs = homeTabNames(container, state);
-      expect(tabs).toContain(Routes.SOCIAL.TAB);
-      expect(tabs).not.toContain(Routes.REWARDS_VIEW);
-      expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
-    });
+        expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
+
+        const tabs = homeTabNames(container, state);
+        expect(tabs).toContain(Routes.SOCIAL.TAB);
+        expect(tabs).not.toContain(Routes.REWARDS_VIEW);
+        expect(tabs).not.toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
+      },
+    );
 
     it('keeps the root-stack fallback in control, where the nearer tab wins', () => {
       const state = stateForArm('control');
@@ -1388,8 +1411,22 @@ describe('MainNavigator', () => {
       expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
       expect(tabs).not.toContain(Routes.SOCIAL.TAB);
     });
-  });
 
+    it.each([
+      ['searchFocused', 'search'],
+      ['tradeFocused', 'trade'],
+    ])(
+      'hands the %s arm trailing action to the floating bar',
+      (arm, trailingAction) => {
+        const state = stateForArm(arm);
+        const container = renderWithProvider(<MainNavigator />, { state });
+
+        expect(
+          renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+        ).toBe(trailingAction);
+      },
+    );
+  });
   describe('Inner navigator component rendering', () => {
     const getScreenComponent = (
       root: ReactTestInstance,
@@ -1444,12 +1481,11 @@ describe('MainNavigator', () => {
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
 
-      it('renders AddBookmarkView navigator', () => {
+      it('points the AddBookmarkView route straight at the screen', () => {
         const { root } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        const Component = getScreenComponent(root, 'AddBookmarkView');
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        expect(getScreenComponent(root, 'AddBookmarkView')).toBe(AddBookmark);
       });
 
       it('renders OfflineModeView navigator', () => {

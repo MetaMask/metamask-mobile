@@ -156,6 +156,100 @@ describe('Feature Flag Registry', () => {
         minimumVersion: '8.10.0',
       });
     });
+
+    it('keeps the Money hub default-off', () => {
+      expect(
+        getRegistryEntry('earnMoneyHubEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('keeps mUSD conversion and Get-mUSD CTAs default-off', () => {
+      const musdCtaFlags = [
+        'earnMusdCtaEnabled',
+        'earnMusdConversionFlowEnabled',
+        'earnMusdConversionAssetOverviewCtaEnabled',
+        'earnMusdConversionTokenListItemCtaEnabled',
+      ];
+
+      for (const flagName of musdCtaFlags) {
+        expect(getRegistryEntry(flagName)?.productionDefault).toEqual({
+          enabled: false,
+          minimumVersion: '0.0.0',
+        });
+      }
+    });
+
+    it('version-gates the Earn banner and token-list Money CTA on at 8.4.0', () => {
+      expect(
+        getRegistryEntry('earnMoneyEarnBannerEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.4.0',
+      });
+      expect(
+        getRegistryEntry('earnMoneyTokenListItemCtaEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '8.4.0',
+      });
+    });
+
+    it('registers Earn catalog flags added in the 2026-09-08 prod sync', () => {
+      const addedFlagNames = [
+        'earnMoneyDepositCtaTokens',
+        'earnMoneyEarnBannerTokens',
+        'earnMoneyBalanceAnimationEnabled',
+        'earnMoneyCardFlipAnimationEnabled',
+        'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+        'musd1313AbtestEarnSectionOnHomepage',
+      ];
+
+      for (const flagName of addedFlagNames) {
+        expect(getRegistryEntry(flagName)?.inProd).toBe(true);
+      }
+    });
+
+    it('includes Monad in mUSD token registration chain ids', () => {
+      expect(
+        getRegistryEntry('earnMusdTokenRegistrationChainIds')
+          ?.productionDefault,
+      ).toEqual({
+        chainIds: ['0x1', '0xe708', '0x8f'],
+      });
+    });
+
+    it('pins Earn homepage and token-details A/B flags to control', () => {
+      const abTestFlags = [
+        'musd1313AbtestEarnSectionOnHomepage',
+        'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+      ];
+
+      for (const flagName of abTestFlags) {
+        const productionDefault = getRegistryEntry(flagName)?.productionDefault;
+        expect(Array.isArray(productionDefault)).toBe(true);
+
+        const variants = productionDefault as {
+          name: string;
+          scope: { type: string; value: number };
+        }[];
+        const control = variants.find((variant) => variant.name === 'control');
+        const treatment = variants.find(
+          (variant) => variant.name === 'treatment',
+        );
+
+        expect(control?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 1,
+        });
+        expect(treatment?.scope).toEqual({
+          type: 'percentage_rollout',
+          value: 0,
+        });
+      }
+    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {

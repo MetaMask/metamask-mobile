@@ -58,7 +58,7 @@ const SecurityTrustInlineBadge = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName={`rounded min-w-[22px] px-1.5 gap-1 shrink-0 ${twBg}`}
+      twClassName={`rounded-full min-w-[22px] px-1.5 gap-1 shrink-0 ${twBg}`}
     >
       {badge.iconAlertSeverity ? (
         <IconAlert severity={badge.iconAlertSeverity} size={IconSize.Sm} />
