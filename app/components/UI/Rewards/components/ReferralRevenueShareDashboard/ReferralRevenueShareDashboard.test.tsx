@@ -199,6 +199,9 @@ describe('ReferralRevenueShareDashboard', () => {
       expect(
         screen.getByTestId('prototype-scenario-ineligible-user'),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('prototype-scenario-geo-restriction'),
+      ).toBeOnTheScreen();
     });
 
     it('does not auto-open the prototype scenarios sheet in performance mode', () => {
@@ -588,6 +591,29 @@ describe('ReferralRevenueShareDashboard', () => {
           description: 'This code is no longer active.',
         },
       });
+    });
+
+    it('opens the geo restriction sheet when Geo Restriction is selected', () => {
+      renderDashboard();
+
+      fireEvent.press(screen.getByTestId('prototype-scenario-geo-restriction'));
+
+      expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('geo-restriction-sheet')).toBeOnTheScreen();
+      expect(screen.getByText('Unavailable in your region')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          "Revenue sharing isn't available in your region due to legal restrictions.",
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId('dismiss-geo-restriction-sheet-button'),
+      );
+
+      expect(
+        screen.queryByTestId('geo-restriction-sheet'),
+      ).not.toBeOnTheScreen();
     });
 
     it('reopens the sheet when the scenarios button is pressed', () => {

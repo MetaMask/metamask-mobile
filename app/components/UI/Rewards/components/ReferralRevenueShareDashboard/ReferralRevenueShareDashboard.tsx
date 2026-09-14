@@ -740,7 +740,8 @@ type PrototypeScenarioId =
   | 'onboarded-kol'
   | 'invited-new-user'
   | 'invited-existing-user'
-  | 'ineligible-user';
+  | 'ineligible-user'
+  | 'geo-restriction';
 
 interface PrototypeScenario {
   id: PrototypeScenarioId;
@@ -774,6 +775,12 @@ const PROTOTYPE_SCENARIOS: PrototypeScenario[] = [
     id: 'ineligible-user',
     title: 'Ineligible user',
     description: 'A user who cannot use this referral.',
+    isAvailable: true,
+  },
+  {
+    id: 'geo-restriction',
+    title: 'Geo Restriction',
+    description: 'A user who is ineligible based on geo.',
     isAvailable: true,
   },
 ];
@@ -1331,6 +1338,60 @@ const InvitedExistingUserSheet = ({
   );
 };
 
+const GeoRestrictionSheet = ({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) => {
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+
+  if (!visible) {
+    return null;
+  }
+
+  const handleClose = () => {
+    bottomSheetRef.current?.onCloseBottomSheet(onClose);
+  };
+
+  return (
+    <Modal visible transparent animationType="none">
+      <BottomSheet
+        ref={bottomSheetRef}
+        onClose={onClose}
+        isInteractable
+        testID="geo-restriction-sheet"
+      >
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{
+            testID: 'close-geo-restriction-sheet-button',
+          }}
+        >
+          Unavailable in your region
+        </BottomSheetHeader>
+        <Box paddingHorizontal={4} paddingBottom={4}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {
+              "Revenue sharing isn't available in your region due to legal restrictions."
+            }
+          </Text>
+        </Box>
+        <BottomSheetFooter
+          primaryButtonProps={{
+            children: 'Got it',
+            onPress: handleClose,
+            size: ButtonSize.Lg,
+            testID: 'dismiss-geo-restriction-sheet-button',
+          }}
+          twClassName="px-4"
+        />
+      </BottomSheet>
+    </Modal>
+  );
+};
+
 const PrototypeExistingUserInviteHost = () => {
   const { toastRef } = useContext(ToastContext);
   const { colors } = useTheme();
@@ -1390,6 +1451,7 @@ const ReferralRevenueShareDashboard = ({
   const [selectedScenarioId, setSelectedScenarioId] =
     useState<PrototypeScenarioId>('onboarded-kol');
   const [isInvitedNewUserVisible, setIsInvitedNewUserVisible] = useState(false);
+  const [isGeoRestrictionVisible, setIsGeoRestrictionVisible] = useState(false);
   const isClaimingEnabled = useClaimingEnabled();
   const dashboardScrollRef = useRef<ScrollView>(null);
 
@@ -1398,6 +1460,7 @@ const ReferralRevenueShareDashboard = ({
     setSelectedScenarioId(id);
     setIsScenarioSheetVisible(false);
     setIsInvitedNewUserVisible(id === 'invited-new-user');
+    setIsGeoRestrictionVisible(id === 'geo-restriction');
     setInvitedExistingUserVisible(id === 'invited-existing-user');
     if (id === 'invited-existing-user') {
       navigateToRewardsTab(navigation);
@@ -1799,6 +1862,10 @@ const ReferralRevenueShareDashboard = ({
         visible={isInvitedNewUserVisible}
         onClose={() => setIsInvitedNewUserVisible(false)}
         onAccept={() => navigateToHomeTab(navigation)}
+      />
+      <GeoRestrictionSheet
+        visible={isGeoRestrictionVisible}
+        onClose={() => setIsGeoRestrictionVisible(false)}
       />
     </Box>
   );
