@@ -6,6 +6,16 @@ export enum LimitOrderExecutionType {
   SELL = 'sell',
 }
 
+/**
+ * Which way the trigger-price copy reads, e.g. "Buy when 1 LINK is at or
+ * below". A buy above market ("buy the pump") and a sell below market (stop
+ * loss) read the opposite way from their side's default.
+ */
+export enum LimitOrderPriceComparisonDirection {
+  AT_OR_ABOVE = 'atOrAbove',
+  AT_OR_BELOW = 'atOrBelow',
+}
+
 export const LIMIT_ORDER_BUTTON_PRICE_PRESETS = [5, 10];
 
 /**
