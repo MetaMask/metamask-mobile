@@ -1,5 +1,6 @@
 import type {
   FetchFeedParams,
+  PredictBalance,
   PredictEntityId,
   PredictEvent,
   PredictFeed,
@@ -9,6 +10,10 @@ import type {
   PredictReadOptions,
   PredictVenueStatus,
 } from '../types';
+
+export interface VenuePortfolioAdapter {
+  fetchBalance(options?: PredictReadOptions): Promise<PredictBalance>;
+}
 
 export interface VenueMarketDataAdapter {
   fetchVenueStatus(options?: PredictReadOptions): Promise<PredictVenueStatus>;
