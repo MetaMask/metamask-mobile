@@ -14,7 +14,6 @@ import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
 import {
   AvatarAccount,
   AvatarAccountSize,
-  AvatarAccountVariant,
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
@@ -31,6 +30,8 @@ import { useSelector } from 'react-redux';
 // Internal dependecies
 import { AddressElementProps } from './AddressElement.types';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
+import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
 
 const AddressElement: React.FC<AddressElementProps> = ({
@@ -48,6 +49,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
 
   const allNetworks = useSelector(selectNetworkConfigurations);
   const addressElementNetwork = allNetworks[chainId];
+  const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const shouldDisplayNetworkBadge = useMemo(
     () => displayNetworkBadge,
@@ -73,7 +75,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
         >
           <AvatarAccount
             address={address}
-            variant={AvatarAccountVariant.Blockies}
+            variant={getAvatarAccountVariant(avatarAccountType)}
             size={AvatarAccountSize.Md}
           />
         </BadgeWrapper>
@@ -82,11 +84,17 @@ const AddressElement: React.FC<AddressElementProps> = ({
     return (
       <AvatarAccount
         address={address}
-        variant={AvatarAccountVariant.Blockies}
+        variant={getAvatarAccountVariant(avatarAccountType)}
         size={AvatarAccountSize.Md}
       />
     );
-  }, [address, chainId, addressElementNetwork, shouldDisplayNetworkBadge]);
+  }, [
+    address,
+    chainId,
+    addressElementNetwork,
+    shouldDisplayNetworkBadge,
+    avatarAccountType,
+  ]);
 
   const fetchENSName = useCallback(async () => {
     if (!displayName) {
