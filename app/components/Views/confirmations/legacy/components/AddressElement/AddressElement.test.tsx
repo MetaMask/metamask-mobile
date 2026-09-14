@@ -93,6 +93,7 @@ const renderComponent = (
 describe('AddressElement', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('should render correctly', () => {
