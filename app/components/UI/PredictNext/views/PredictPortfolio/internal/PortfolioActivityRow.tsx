@@ -31,11 +31,7 @@ interface PortfolioActivityRowProps {
 }
 
 const getFillTitle = (entry: Extract<PredictActivityEntry, { type: 'fill' }>) =>
-  `${strings(
-    entry.direction === 'buy'
-      ? 'predict_next.portfolio.activity_rows.bought'
-      : 'predict_next.portfolio.activity_rows.sold',
-  )} · ${entry.context?.outcomeLabel ?? entry.outcomeSide}`;
+  entry.context?.outcomeLabel ?? entry.outcomeSide;
 
 /** Renders one Activity entry (a Fill or a Settlement) as an optionally pressable row. */
 export const PortfolioActivityRow = ({

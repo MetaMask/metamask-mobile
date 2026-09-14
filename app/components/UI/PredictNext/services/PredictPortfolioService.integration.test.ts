@@ -1,4 +1,3 @@
-import { BrokenCircuitError } from '@metamask/controller-utils';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
 import { KALSHI_VENUE_ID } from '../types';
 
@@ -27,7 +26,6 @@ const fill = {
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL',
   outcomeSide: 'yes',
-  direction: 'buy',
   shares: '75.00',
   price: '0.55',
   fee: '0.10',
@@ -44,12 +42,17 @@ const settlement = {
   id: 'KXNBAGAME-20MAY01-LALBOS-LAL:2026-05-21T00:00:00.000Z',
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-20MAY01-LALBOS-LAL',
-  eventId: 'KXNBAGAME-20MAY01-LALBOS',
   result: 'yes',
+  side: 'yes',
   shares: '10.00',
   proceeds: '10.00',
   costBasis: '5.20',
   timestamp: '2026-05-21T00:00:00.000Z',
+  context: {
+    eventId: 'KXNBAGAME-20MAY01-LALBOS',
+    eventTitle: 'Lakers vs Celtics',
+    marketQuestion: 'Will the Lakers win?',
+  },
 };
 
 describe('PredictNext account-scoped Portfolio reads', () => {
@@ -156,7 +159,7 @@ describe('PredictNext account-scoped Portfolio reads', () => {
     );
   });
 
-  it('opens the shared Portfolio circuit after Activity failures exhaust their policy', async () => {
+  it('keeps Positions working when Activity failures exhaust their own policy', async () => {
     const harness = buildPredictNextIntegrationHarness((url) =>
       String(url).includes('/venues/kalshi/activity')
         ? { status: 503 }
@@ -172,16 +175,15 @@ describe('PredictNext account-scoped Portfolio reads', () => {
     ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
     expect(harness.fetchMock).toHaveBeenCalledTimes(3);
 
-    // The exhausted Activity read opens the Portfolio circuit: reads now fail
-    // fast without new requests until the breaker resets.
-    await expect(
-      harness.messenger.call(
-        'PredictPortfolioService:getPositions',
-        KALSHI_VENUE_ID,
-        { limit: 20 },
-      ),
-    ).rejects.toBeInstanceOf(BrokenCircuitError);
-    expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+    // Reads retry independently: the exhausted Activity read does not open a
+    // shared circuit, so Positions still executes and loads.
+    const result = await harness.messenger.call(
+      'PredictPortfolioService:getPositions',
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+    );
+    expect(result.positions).toEqual([position]);
+    expect(harness.fetchMock).toHaveBeenCalledTimes(4);
   });
 
   it('maps a rejected Positions request to UNAUTHENTICATED without retrying', async () => {

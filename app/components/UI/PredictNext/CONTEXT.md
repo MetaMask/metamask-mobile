@@ -119,8 +119,8 @@ The canonical result returned after a Venue accepts, rejects, or fills a submitt
 _Avoid_: Order Result, raw venue response
 
 **Fill**:
-Execution of some or all of an Order against another order. Activity should be derived from Fills rather than inferring execution from Order creation records.
-_Avoid_: Order when referring to execution
+Execution of some or all of an Order against another order. A Fill records the Outcome exposure it created — buying Yes and selling No are the same exposure — so it never claims whether the User bought or sold. Activity should be derived from Fills rather than inferring execution from Order creation records.
+_Avoid_: Order when referring to execution, Bought/Sold as Fill attributes
 
 **Cash Out**:
 Selling an existing Position before Market resolution.
@@ -135,8 +135,8 @@ A payout or portfolio adjustment produced when a resolved Market is finalized by
 _Avoid_: Claim when no user action is required, payout without context
 
 **Activity**:
-The ordered, paginated projection of a Predict User's Fills and Settlements at one Venue. Activity is derived from executions and settlements, never from Order creation records.
-_Avoid_: History, Transactions, Trades
+The ordered, paginated projection of a Predict User's Fills and Settlements at one Venue. Activity is derived from executions and settlements, never from Order creation records. The Portfolio screen presents it under the accepted display label "History", which remains a display label and not a domain term.
+_Avoid_: History as a domain term, Transactions, Trades
 
 ### Financial Terms
 

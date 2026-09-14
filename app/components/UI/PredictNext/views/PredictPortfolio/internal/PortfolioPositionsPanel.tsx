@@ -22,7 +22,6 @@ interface PortfolioPositionsPanelProps {
   isPrivacyMode: boolean;
   onOpenEvent: (eventId: PredictEntityId, titleSnapshot: string) => void;
   onBrowseMarkets: () => void;
-  style?: string;
 }
 
 /** Renders the independently cached open Positions list for one Venue. */
@@ -31,7 +30,6 @@ export const PortfolioPositionsPanel = ({
   isPrivacyMode,
   onOpenEvent,
   onBrowseMarkets,
-  style,
 }: PortfolioPositionsPanelProps) => {
   const {
     data,
@@ -127,5 +125,5 @@ export const PortfolioPositionsPanel = ({
     );
   }
 
-  return <Box twClassName={`flex-1 ${style ?? ''}`}>{content}</Box>;
+  return <Box twClassName="flex-1">{content}</Box>;
 };

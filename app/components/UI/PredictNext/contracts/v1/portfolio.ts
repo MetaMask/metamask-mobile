@@ -31,7 +31,6 @@ const entityId = refine(
   (value) => value.length > 0,
 );
 const side = enums(['yes', 'no'] as const);
-const fillDirection = enums(['buy', 'sell'] as const);
 const settlementResult = enums(['yes', 'no', 'scalar'] as const);
 
 /**
@@ -66,8 +65,11 @@ const fillSchema = object({
   id: entityId,
   venueId,
   marketId: entityId,
+  // Directional exposure the fill created. This is exposure semantics, NOT
+  // the transacted contract: buying Yes and selling No both produce 'yes',
+  // and Kalshi's canonical fields cannot distinguish the two, so the
+  // contract deliberately carries no buy/sell direction.
   outcomeSide: side,
-  direction: fillDirection,
   shares: amount,
   price: decimal,
   fee: optional(amount),
@@ -80,10 +82,10 @@ const settlementSchema = object({
   id: entityId,
   venueId,
   marketId: entityId,
-  // Catalog-sourced canonical Event identity; present only on a catalog
-  // match, so navigation degrades with the rest of the context.
-  eventId: optional(entityId),
   result: settlementResult,
+  // The side the user held at settlement (the nonzero count), not the
+  // winning side. Omitted for scalar results and fully flat positions.
+  side: optional(side),
   shares: optional(amount),
   proceeds: amount,
   costBasis: optional(amount),

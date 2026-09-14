@@ -96,7 +96,6 @@ const createFill = (overrides = {}) => ({
   venueId: 'kalshi',
   marketId: 'market-1',
   outcomeSide: 'yes',
-  direction: 'buy',
   shares: '75.00',
   price: '0.55',
   fee: '0.10',
@@ -110,8 +109,8 @@ const createSettlement = (overrides = {}) => ({
   id: 'market-1:2026-09-02T00:00:00.000Z',
   venueId: 'kalshi',
   marketId: 'market-1',
-  eventId: 'event-1',
   result: 'yes',
+  side: 'yes',
   shares: '75.00',
   proceeds: '75.00',
   costBasis: '41.25',
@@ -199,7 +198,7 @@ describe('Predict API canonical Activity parser', () => {
       venueId: 'kalshi',
       activity: [
         createFill({ context: undefined }),
-        createSettlement({ context: undefined, eventId: undefined }),
+        createSettlement({ context: undefined }),
       ],
     };
 
@@ -236,7 +235,7 @@ describe('Predict API canonical Activity parser', () => {
     ['a negative share count', { shares: '-75' }],
     ['an out-of-range price', { price: '1.5' }],
     ['a missing timestamp', { timestamp: undefined }],
-    ['an invalid direction', { direction: 'hold' }],
+    ['an invalid outcome side', { outcomeSide: 'maybe' }],
   ])('rejects a Fill with %s', (_name, overrides) => {
     const input = {
       venueId: 'kalshi',

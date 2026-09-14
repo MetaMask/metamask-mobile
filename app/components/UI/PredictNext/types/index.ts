@@ -223,14 +223,17 @@ export interface PredictPosition {
   context?: PredictEntryContext;
 }
 
-export type PredictFillDirection = 'buy' | 'sell';
-
 export interface PredictFill {
   id: PredictEntityId;
   venueId: PredictVenueId;
   marketId: PredictEntityId;
+  /**
+   * Directional exposure the fill created. This is exposure semantics, NOT
+   * the transacted contract: buying Yes and selling No both produce 'yes',
+   * and Kalshi's canonical fields cannot distinguish the two, so the
+   * contract deliberately carries no buy/sell direction.
+   */
   outcomeSide: PredictOutcomeSide;
-  direction: PredictFillDirection;
   shares: PredictAmount;
   price: PredictDecimal;
   fee?: PredictAmount;
@@ -244,9 +247,12 @@ export interface PredictSettlement {
   id: PredictEntityId;
   venueId: PredictVenueId;
   marketId: PredictEntityId;
-  /** Catalog-sourced canonical Event identity; present only on a catalog match. */
-  eventId?: PredictEntityId;
   result: PredictSettlementResult;
+  /**
+   * The side the user held at settlement (the nonzero count), not the
+   * winning side. Omitted for scalar results and fully flat positions.
+   */
+  side?: PredictOutcomeSide;
   shares?: PredictAmount;
   proceeds: PredictAmount;
   costBasis?: PredictAmount;

@@ -5,8 +5,10 @@ import {
   type DataServiceInvalidateQueriesAction,
 } from '@metamask/base-data-service';
 import {
+  createServicePolicy,
   handleWhen,
   type CreateServicePolicyOptions,
+  type ServicePolicy,
 } from '@metamask/controller-utils';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
@@ -88,6 +90,13 @@ export class PredictPortfolioService extends BaseDataService<
 > {
   readonly #portfolio: VenuePortfolioAdapter;
   readonly #venueId: PredictVenueId;
+  readonly #readPolicyOptions: Pick<
+    CreateServicePolicyOptions,
+    'backoff' | 'circuitBreakDuration' | 'maxConsecutiveFailures'
+  >;
+  readonly #balancePolicy: ServicePolicy;
+  readonly #positionsPolicy: ServicePolicy;
+  readonly #activityPolicy: ServicePolicy;
 
   constructor({
     messenger,
@@ -98,15 +107,23 @@ export class PredictPortfolioService extends BaseDataService<
     super({
       name: PREDICT_PORTFOLIO_SERVICE_NAME,
       messenger,
+      // Inert pass-through policy. Retries and circuit breaking live in the
+      // per-read policies below so that Balance, Positions, and Activity can
+      // load and retry independently: exhausting one read's retries must not
+      // open the circuit for the others.
       policyOptions: {
-        ...policyOptions,
-        maxRetries: 2,
+        maxRetries: 0,
+        maxConsecutiveFailures: Number.MAX_SAFE_INTEGER,
         retryFilterPolicy: handleWhen(isRetryablePredictError),
         isServiceFailure: isRetryablePredictError,
       },
     });
     this.#portfolio = portfolio;
     this.#venueId = venueId;
+    this.#readPolicyOptions = policyOptions ?? {};
+    this.#balancePolicy = this.#createReadPolicy();
+    this.#positionsPolicy = this.#createReadPolicy();
+    this.#activityPolicy = this.#createReadPolicy();
 
     messenger.registerActionHandler(
       'PredictPortfolioService:getBalance',
@@ -120,6 +137,15 @@ export class PredictPortfolioService extends BaseDataService<
       'PredictPortfolioService:getActivity',
       this.getActivity.bind(this),
     );
+  }
+
+  #createReadPolicy(): ServicePolicy {
+    return createServicePolicy({
+      ...this.#readPolicyOptions,
+      maxRetries: 2,
+      retryFilterPolicy: handleWhen(isRetryablePredictError),
+      isServiceFailure: isRetryablePredictError,
+    });
   }
 
   async getBalance(
@@ -141,9 +167,12 @@ export class PredictPortfolioService extends BaseDataService<
           queryKey: descriptor.queryKey,
           staleTime: descriptor.staleTime,
           queryFn: ({ signal }) =>
-            this.#portfolio.fetchBalance({
-              signal: options?.signal ?? signal,
-            }) as Promise<Json & GetBalanceResult>,
+            this.#balancePolicy.execute(
+              () =>
+                this.#portfolio.fetchBalance({
+                  signal: options?.signal ?? signal,
+                }) as Promise<Json & GetBalanceResult>,
+            ),
         }),
     );
   }
@@ -176,9 +205,11 @@ export class PredictPortfolioService extends BaseDataService<
             staleTime: descriptor.staleTime,
             initialPageParam: cursor as string | null,
             queryFn: async ({ pageParam, signal }) => {
-              const page = await this.#portfolio.fetchPositions(
-                { ...params, cursor: pageParam as string | undefined },
-                { signal: options?.signal ?? signal },
+              const page = await this.#positionsPolicy.execute(() =>
+                this.#portfolio.fetchPositions(
+                  { ...params, cursor: pageParam as string | undefined },
+                  { signal: options?.signal ?? signal },
+                ),
               );
               return {
                 ...page,
@@ -220,9 +251,11 @@ export class PredictPortfolioService extends BaseDataService<
             staleTime: descriptor.staleTime,
             initialPageParam: cursor as string | null,
             queryFn: async ({ pageParam, signal }) => {
-              const page = await this.#portfolio.fetchActivity(
-                { ...params, cursor: pageParam as string | undefined },
-                { signal: options?.signal ?? signal },
+              const page = await this.#activityPolicy.execute(() =>
+                this.#portfolio.fetchActivity(
+                  { ...params, cursor: pageParam as string | undefined },
+                  { signal: options?.signal ?? signal },
+                ),
               );
               return {
                 ...page,

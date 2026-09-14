@@ -210,7 +210,10 @@ describe('PredictPortfolioScreen', () => {
     expect(
       await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST),
     ).toBeOnTheScreen();
-    expect(view.getByText('Bought · Lakers')).toBeOnTheScreen();
+    // Fills carry exposure semantics only: the outcome label, no buy/sell
+    // claim (Kalshi's canonical fields cannot distinguish buying Yes from
+    // selling No).
+    expect(view.getByText('Lakers')).toBeOnTheScreen();
     expect(view.getByText('75 @ $0.55')).toBeOnTheScreen();
     expect(view.getByText('Settled')).toBeOnTheScreen();
     expect(view.getByText('+$10.00')).toBeOnTheScreen();
@@ -302,6 +305,159 @@ describe('PredictPortfolioScreen', () => {
     );
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_LIST),
+    ).toBeOnTheScreen();
+  });
+
+  it('fetches the next Activity page on end reached', async () => {
+    messengerCall.mockImplementation((action: string) => {
+      if (action === 'PredictPortfolioService:getBalance') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          currency: 'USD',
+          available: '123.125',
+        });
+      }
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId: 'kalshi', positions: [] });
+      }
+      if (action === 'PredictPortfolioService:getActivity') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          activity: [makePredictNextFill()],
+          nextCursor: 'page-2',
+        });
+      }
+      return Promise.resolve(undefined);
+    });
+
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
+    );
+    await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST);
+
+    let resolveNextPage: (value: unknown) => void = () => undefined;
+    await act(async () => {
+      messengerCall.mockImplementation((action: string) => {
+        if (action === 'PredictPortfolioService:getActivity') {
+          return new Promise((resolve) => {
+            resolveNextPage = resolve;
+          });
+        }
+        return Promise.resolve(undefined);
+      });
+      fireEvent(
+        view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST),
+        'onEndReached',
+      );
+    });
+
+    expect(
+      await view.findByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_NEXT_PAGE_LOADING,
+      ),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      resolveNextPage({
+        venueId: 'kalshi',
+        activity: [makePredictNextSettlement()],
+      });
+    });
+
+    await waitFor(() =>
+      expect(
+        view.queryByTestId(
+          PredictPortfolioScreenTestIds.ACTIVITY_NEXT_PAGE_LOADING,
+        ),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST),
+    ).toBeOnTheScreen();
+  });
+
+  it('retries a failed Activity read independently of Balance', async () => {
+    configurePredictNextFeeds({
+      activity: new Error('Activity failed'),
+    });
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+    await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
+    );
+    await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ERROR);
+    // Balance stays independently loaded.
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+    ).toBeOnTheScreen();
+
+    configurePredictNextFeeds({
+      activity: [makePredictNextFill()],
+    });
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_RETRY),
+    );
+
+    expect(
+      await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates an Activity entry to its Event when catalog identity is available', async () => {
+    configurePredictNextFeeds({
+      activity: [
+        makePredictNextSettlement({
+          context: {
+            eventId: 'nfl-1',
+            eventTitle: 'Lakers vs Celtics',
+            marketQuestion: 'Will the Lakers win?',
+            outcomeId: 'nfl-1-yes',
+            outcomeLabel: 'Lakers',
+          },
+        }),
+      ],
+    });
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+
+    fireEvent.press(
+      await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ROW),
+    );
+
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getEvent',
+        'kalshi',
+        'nfl-1',
+      ),
+    );
+    expect(
+      await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders first-load skeletons for Positions and Activity', async () => {
+    // Never-resolving reads keep both panels in their loading state.
+    messengerCall.mockImplementation(() => new Promise(() => undefined));
+
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+    expect(
+      await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_LOADING),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.POSITIONS_LOADING),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
+    );
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOADING),
     ).toBeOnTheScreen();
   });
 

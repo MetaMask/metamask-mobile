@@ -3008,7 +3008,7 @@
       "retry": "Try again"
     },
     "portfolio": {
-      "title": "Positions",
+      "title": "Portfolio",
       "positions": "Positions",
       "activity_empty": {
         "title": "No activity yet",
@@ -3027,8 +3027,6 @@
       },
       "activity": "History",
       "activity_rows": {
-        "bought": "Bought",
-        "sold": "Sold",
         "settled": "Settled",
         "shares_at_price": "{{shares}} @ {{price}}"
       }

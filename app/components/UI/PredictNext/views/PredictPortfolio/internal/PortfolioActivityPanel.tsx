@@ -22,7 +22,6 @@ interface PortfolioActivityPanelProps {
   isPrivacyMode: boolean;
   onOpenEvent: (eventId: PredictEntityId, titleSnapshot: string) => void;
   onBrowseMarkets: () => void;
-  style?: string;
 }
 
 /** Renders the independently cached Activity list (Fills and Settlements) for one Venue. */
@@ -31,7 +30,6 @@ export const PortfolioActivityPanel = ({
   isPrivacyMode,
   onOpenEvent,
   onBrowseMarkets,
-  style,
 }: PortfolioActivityPanelProps) => {
   const {
     data,
@@ -62,8 +60,8 @@ export const PortfolioActivityPanel = ({
 
   const handlePress = useCallback(
     (entry: PredictActivityEntry) => {
-      const eventId =
-        entry.type === 'settlement' ? entry.eventId : entry.context?.eventId;
+      // Fills and Settlements both navigate through the catalog context.
+      const eventId = entry.context?.eventId;
       if (eventId) {
         onOpenEvent(eventId, entry.context?.eventTitle ?? entry.marketId);
       }
@@ -72,18 +70,13 @@ export const PortfolioActivityPanel = ({
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: PredictActivityEntry }) => {
-      const eventId =
-        item.type === 'settlement' ? item.eventId : item.context?.eventId;
-
-      return (
-        <PortfolioActivityRow
-          entry={item}
-          isPrivacyMode={isPrivacyMode}
-          onPress={eventId ? handlePress : undefined}
-        />
-      );
-    },
+    ({ item }: { item: PredictActivityEntry }) => (
+      <PortfolioActivityRow
+        entry={item}
+        isPrivacyMode={isPrivacyMode}
+        onPress={item.context?.eventId ? handlePress : undefined}
+      />
+    ),
     [handlePress, isPrivacyMode],
   );
 
@@ -136,5 +129,5 @@ export const PortfolioActivityPanel = ({
     );
   }
 
-  return <Box twClassName={`flex-1 ${style ?? ''}`}>{content}</Box>;
+  return <Box twClassName="flex-1">{content}</Box>;
 };
