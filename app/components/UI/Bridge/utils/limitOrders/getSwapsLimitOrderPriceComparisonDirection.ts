@@ -40,13 +40,20 @@ export const getSwapsLimitOrderPriceComparisonDirection = ({
     return defaultDirection;
   }
 
-  if (limit.gt(market)) {
-    return LimitOrderPriceComparisonDirection.AT_OR_ABOVE;
+  // Use formatted price to figure out the direction, rather than
+  // real market price to avoid rounding issues.
+  const percentFromMarket = limit
+    .minus(market)
+    .dividedBy(market)
+    .multipliedBy(100);
+  if (
+    !percentFromMarket.isFinite() ||
+    percentFromMarket.abs().toFixed(2) === '0.00'
+  ) {
+    return defaultDirection;
   }
 
-  if (limit.lt(market)) {
-    return LimitOrderPriceComparisonDirection.AT_OR_BELOW;
-  }
-
-  return defaultDirection;
+  return percentFromMarket.isPositive()
+    ? LimitOrderPriceComparisonDirection.AT_OR_ABOVE
+    : LimitOrderPriceComparisonDirection.AT_OR_BELOW;
 };

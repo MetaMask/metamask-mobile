@@ -797,6 +797,23 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
         LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       );
     });
+
+    it('keeps the buy default for a market price seeded from a rate that does not round evenly', () => {
+      // A market-seeded price is rounded/truncated for display
+      // (formatLimitOrderFiatPrice, formatLimitOrderQuickPrice), so it lands
+      // a hair away from the raw live rate whenever that rate isn't a round
+      // number. It should still read as at-market rather than flipping to
+      // the opposite of the side's default.
+      mockFiatRates({ destRate: 4321.987654321 });
+
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
+      expect(result.current.limitPrice).toBe('4321.9877');
+      expect(result.current.priceComparisonDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      );
+    });
   });
 
   it('resets price fields when the token pair changes', () => {
