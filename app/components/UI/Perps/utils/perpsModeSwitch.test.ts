@@ -25,6 +25,7 @@ import {
   preserveHomeDroppedFromHistory,
   shouldPopPerpsRoute,
   isPerpsStackBackAction,
+  resetToPerpsHomeTarget,
 } from './perpsModeSwitch';
 
 jest.mock('react-redux', () => ({
@@ -560,6 +561,27 @@ describe('perpsModeSwitch', () => {
 
     it('does not pop when the parent cannot go back', () => {
       expect(shouldPopPerpsRoute(false, exploreState)).toBe(false);
+    });
+  });
+
+  describe('resetToPerpsHomeTarget', () => {
+    it('resets the stack to a single Home route', () => {
+      const mockNavReset = jest.fn();
+
+      resetToPerpsHomeTarget(
+        { reset: mockNavReset },
+        { screen: Routes.PERPS.PERPS_HOME, params: { source: 'perp_markets' } },
+      );
+
+      expect(mockNavReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.PERPS.PERPS_HOME,
+            params: { source: 'perp_markets' },
+          },
+        ],
+      });
     });
   });
 

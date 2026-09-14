@@ -60,7 +60,7 @@ export const usePerpsMarketHeaderActions = ({
   const {
     navigateBack,
     navigateToWallet,
-    navigateToHome,
+    resetToHome,
     navigateToMarketListFromHeader,
     canGoBack,
   } = usePerpsNavigation();
@@ -80,7 +80,7 @@ export const usePerpsMarketHeaderActions = ({
 
   const leaveViaFallback = useCallback(() => {
     if (backFallback === 'home') {
-      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
+      resetToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
       return;
     }
 
@@ -88,7 +88,7 @@ export const usePerpsMarketHeaderActions = ({
     // Pro mode is active is itself a market screen, so falling back to it
     // here would often be a no-op. Leave Perps entirely instead.
     navigateToWallet();
-  }, [backFallback, navigateToHome, navigateToWallet]);
+  }, [backFallback, resetToHome, navigateToWallet]);
 
   const handleBackPress = useCallback(() => {
     // Read the stack at press time: Lite -> Pro resets it while this screen

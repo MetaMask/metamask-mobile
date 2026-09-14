@@ -198,6 +198,30 @@ export const navigateToPerpsHomeTarget = (
 };
 
 /**
+ * Replaces the Perps stack with the resolved home target.
+ *
+ * `navigate(PERPS_HOME)` pushes Home onto a remaining market after Home was
+ * dropped, so hardware/swipe back from Home returns to that market. Reset
+ * leaves Home as the only Perps route (TAT-3786).
+ */
+export const resetToPerpsHomeTarget = (
+  navigation: { reset: (...args: never[]) => void },
+  target: PerpsHomeNavigationTarget,
+): void => {
+  // Same assertion rationale as `navigateToPerpsHomeTarget`: the screen name
+  // is resolved at runtime, so `reset()` cannot correlate it with its params.
+  (
+    navigation.reset as unknown as (state: {
+      index: number;
+      routes: { name: string; params?: object }[];
+    }) => void
+  )({
+    index: 0,
+    routes: [{ name: target.screen, params: target.params }],
+  });
+};
+
+/**
  * Stamped onto remaining Perps routes when {@link dropPerpsHomeFromStackHistory}
  * actually removes Home. A single-entry Perps stack looks the same whether the
  * user arrived from Explore (back should pop `PERPS.ROOT`) or Home was dropped

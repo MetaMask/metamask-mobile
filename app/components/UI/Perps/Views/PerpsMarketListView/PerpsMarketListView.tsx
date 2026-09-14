@@ -475,7 +475,7 @@ const PerpsMarketListView = ({
   }, [filteredMarkets.length, fadeAnimation]);
 
   const perpsMode = useSelector(selectPerpsMode);
-  const { navigateBack, navigateToHome, navigateToWallet, canGoBack } =
+  const { navigateBack, resetToHome, navigateToWallet, canGoBack } =
     perpsNavigation;
 
   const leaveViaFallback = useCallback(() => {
@@ -483,8 +483,8 @@ const PerpsMarketListView = ({
       navigateToWallet();
       return;
     }
-    navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS);
-  }, [navigateToHome, navigateToWallet, perpsMode]);
+    resetToHome(PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS);
+  }, [resetToHome, navigateToWallet, perpsMode]);
 
   const handleBackPressed = useCallback(() => {
     if (shouldPopPerpsRoute(canGoBack, navigation.getState())) {

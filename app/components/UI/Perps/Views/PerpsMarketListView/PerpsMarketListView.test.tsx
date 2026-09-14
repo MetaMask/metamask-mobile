@@ -99,6 +99,7 @@ const mockClearSearch = jest.fn(() => {
 const mockNavigateToMarketDetails = jest.fn();
 const mockNavigateBack = jest.fn();
 const mockNavigateToHome = jest.fn();
+const mockResetToHome = jest.fn();
 const mockNavigateToWallet = jest.fn();
 let mockPerpsCanGoBack = true;
 
@@ -133,6 +134,7 @@ jest.mock('../../hooks', () => ({
     navigateToRewards: jest.fn(),
     navigateToMarketDetails: mockNavigateToMarketDetails,
     navigateToHome: mockNavigateToHome,
+    resetToHome: mockResetToHome,
     navigateToMarketList: jest.fn(),
     navigateBack: mockNavigateBack,
     get canGoBack() {
@@ -771,6 +773,7 @@ describe('PerpsMarketListView', () => {
     mockNavigateToMarketDetails.mockClear();
     mockNavigateBack.mockClear();
     mockNavigateToHome.mockClear();
+    mockResetToHome.mockClear();
     mockNavigateToWallet.mockClear();
     mockPerpsCanGoBack = true;
     mockPerpsMode = PerpsMode.Lite;
@@ -1853,6 +1856,7 @@ describe('PerpsMarketListView', () => {
 
       expect(mockNavigateBack).toHaveBeenCalledTimes(1);
       expect(mockNavigateToHome).not.toHaveBeenCalled();
+      expect(mockResetToHome).not.toHaveBeenCalled();
       expect(mockNavigateToWallet).not.toHaveBeenCalled();
     });
 
@@ -1871,7 +1875,8 @@ describe('PerpsMarketListView', () => {
 
       pressListBack();
 
-      expect(mockNavigateToHome).toHaveBeenCalledWith('perp_markets');
+      expect(mockResetToHome).toHaveBeenCalledWith('perp_markets');
+      expect(mockNavigateToHome).not.toHaveBeenCalled();
       expect(mockNavigateBack).not.toHaveBeenCalled();
       expect(mockNavigateToWallet).not.toHaveBeenCalled();
     });
@@ -1895,6 +1900,7 @@ describe('PerpsMarketListView', () => {
       expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
       expect(mockNavigateBack).not.toHaveBeenCalled();
       expect(mockNavigateToHome).not.toHaveBeenCalled();
+      expect(mockResetToHome).not.toHaveBeenCalled();
     });
 
     it('intercepts hardware back after Home was dropped', () => {
@@ -1921,7 +1927,8 @@ describe('PerpsMarketListView', () => {
       listener?.(event);
 
       expect(event.preventDefault).toHaveBeenCalledTimes(1);
-      expect(mockNavigateToHome).toHaveBeenCalledWith('perp_markets');
+      expect(mockResetToHome).toHaveBeenCalledWith('perp_markets');
+      expect(mockNavigateToHome).not.toHaveBeenCalled();
       expect(mockNavigateBack).not.toHaveBeenCalled();
     });
   });
