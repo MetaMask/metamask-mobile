@@ -1,3 +1,4 @@
+import Logger from '../../../../../util/Logger';
 import type { PredictEntityId, PredictVenueId } from '../../types';
 import {
   PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS,
@@ -304,6 +305,20 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
+  it('preserves a path prefix on the API base URL', () => {
+    const client = new PredictLiveDataClient({
+      baseUrl: 'https://predict.example/predict',
+      WebSocket: MockWebSocket as unknown as typeof WebSocket,
+      onGameUpdate: jest.fn(),
+    });
+
+    client.subscribe(venueId, [eventId]);
+
+    expect(MockWebSocket.instances[0].url).toBe(
+      'wss://predict.example/predict/v1/stream/live-data',
+    );
+  });
+
   it('does not open a socket when the API URL is not configured', () => {
     const client = new PredictLiveDataClient({
       WebSocket: MockWebSocket as unknown as typeof WebSocket,
@@ -345,5 +360,76 @@ describe('PredictLiveDataClient', () => {
     socket.message({ type: 'game', game: { eventId } });
 
     expect(onGameUpdate).not.toHaveBeenCalled();
+  });
+
+  it('returns no released ids when unsubscribing an Event that was never watched', () => {
+    const client = createClient();
+    client.subscribe(venueId, [eventId]);
+    const socket = openAndWelcome();
+    socket.send.mockClear();
+
+    const released = client.unsubscribe(venueId, [
+      'KXOTHER' as PredictEntityId,
+    ]);
+
+    expect(released).toEqual([]);
+    expect(socket.send).not.toHaveBeenCalled();
+    expect(socket.close).not.toHaveBeenCalled();
+  });
+
+  it('logs server error frames without forwarding a Game update', () => {
+    const onGameUpdate = jest.fn();
+    const log = jest.spyOn(Logger, 'log').mockResolvedValue(undefined);
+    const client = createClient(onGameUpdate);
+    client.subscribe(venueId, [eventId]);
+    const socket = openAndWelcome();
+
+    socket.message({
+      type: 'error',
+      code: 'SUBSCRIPTION_LIMIT',
+      message: 'too many events',
+    });
+
+    expect(onGameUpdate).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith(
+      'PredictLiveDataClient: server error',
+      'SUBSCRIPTION_LIMIT',
+      'too many events',
+    );
+  });
+
+  it('stops connecting after a protocol version mismatch', () => {
+    const log = jest.spyOn(Logger, 'log').mockResolvedValue(undefined);
+    const client = createClient();
+    client.subscribe(venueId, [eventId]);
+    const socket = MockWebSocket.instances[0];
+    socket.open();
+
+    socket.message({ type: 'welcome', protocol: 2 });
+    client.subscribe(venueId, [eventId]);
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+
+    expect(socket.close).toHaveBeenCalledTimes(1);
+    expect(MockWebSocket.instances).toHaveLength(1);
+    expect(log).toHaveBeenCalledWith(
+      'PredictLiveDataClient: unsupported live-data protocol',
+      2,
+    );
+  });
+
+  it('logs once when the stream URL is not configured', () => {
+    const log = jest.spyOn(Logger, 'log').mockResolvedValue(undefined);
+    const client = new PredictLiveDataClient({
+      WebSocket: MockWebSocket as unknown as typeof WebSocket,
+      onGameUpdate: jest.fn(),
+    });
+
+    client.subscribe(venueId, [eventId]);
+    client.subscribe(venueId, [eventId]);
+
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalledWith(
+      'PredictLiveDataClient: stream URL is missing or invalid',
+    );
   });
 });

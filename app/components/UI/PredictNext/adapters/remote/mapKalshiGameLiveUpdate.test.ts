@@ -18,7 +18,7 @@ describe('mapKalshiGameLiveUpdate', () => {
         home_points: 21,
         quarter: 4,
         clock: '08:42',
-        last_updated_ts: 1_788_525_400,
+        last_updated_ts: Date.parse('2026-09-08T13:00:00.000Z') / 1000,
       },
     };
 
@@ -30,12 +30,28 @@ describe('mapKalshiGameLiveUpdate', () => {
       score: { away: '17', home: '21' },
       period: 'Q4',
       clock: '08:42',
-      observedAt: new Date(1_788_525_400 * 1000).toISOString(),
+      observedAt: '2026-09-08T13:00:00.000Z',
     });
   });
 
   it('ignores game types without a mobile mapper', () => {
     const live = { type: 'baseball_game', details: { status: 'live' } };
+
+    const result = mapKalshiGameLiveUpdate(current, live);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('keeps the current Game when the live frame is older than the read model', () => {
+    const live = {
+      type: 'football_game',
+      details: {
+        status: 'live',
+        away_points: 1,
+        home_points: 2,
+        last_updated_ts: Date.parse('2026-09-08T11:00:00.000Z') / 1000,
+      },
+    };
 
     const result = mapKalshiGameLiveUpdate(current, live);
 

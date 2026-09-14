@@ -40,9 +40,13 @@ export type PredictLiveDataServiceMessenger = Messenger<
   PredictLiveDataServiceEvents
 >;
 
+export type PredictLiveDataTransportFactory = (
+  onGameUpdate: (game: PredictGameLive) => void,
+) => PredictLiveDataTransport;
+
 export interface PredictLiveDataServiceOptions {
   messenger: PredictLiveDataServiceMessenger;
-  client: PredictLiveDataTransport;
+  createClient: PredictLiveDataTransportFactory;
   venueId: PredictVenueId;
 }
 
@@ -52,10 +56,14 @@ export class PredictLiveDataService {
   readonly #venueId: PredictVenueId;
   readonly #games = new Map<PredictEntityId, PredictGameLive>();
 
-  constructor({ messenger, client, venueId }: PredictLiveDataServiceOptions) {
+  constructor({
+    messenger,
+    createClient,
+    venueId,
+  }: PredictLiveDataServiceOptions) {
     this.#messenger = messenger;
-    this.#client = client;
     this.#venueId = venueId;
+    this.#client = createClient((game) => this.onGameUpdate(game));
 
     messenger.registerActionHandler(
       'PredictLiveDataService:watchGames',

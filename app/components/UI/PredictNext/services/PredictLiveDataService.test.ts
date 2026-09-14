@@ -26,7 +26,7 @@ describe('PredictLiveDataService', () => {
     const client = createClient();
     const service = new PredictLiveDataService({
       messenger,
-      client,
+      createClient: () => client,
       venueId,
     });
 
@@ -46,7 +46,7 @@ describe('PredictLiveDataService', () => {
     const messenger = createMessenger();
     const service = new PredictLiveDataService({
       messenger,
-      client: createClient(),
+      createClient: () => createClient(),
       venueId,
     });
     const listener = jest.fn();
@@ -71,7 +71,7 @@ describe('PredictLiveDataService', () => {
     const messenger = createMessenger();
     const service = new PredictLiveDataService({
       messenger,
-      client: createClient(),
+      createClient: () => createClient(),
       venueId,
     });
     const game = {
@@ -99,7 +99,7 @@ describe('PredictLiveDataService', () => {
     const messenger = createMessenger();
     const service = new PredictLiveDataService({
       messenger,
-      client: createClient([eventId]),
+      createClient: () => createClient([eventId]),
       venueId,
     });
     service.onGameUpdate({

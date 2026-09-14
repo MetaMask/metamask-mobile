@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import {
   type RouteProp,
@@ -35,6 +35,7 @@ import { PortfolioActions } from './internal/PortfolioActions';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 
 const PREVIEW_LIMIT = 2;
+const NO_EVENTS: readonly PredictEvent[] = [];
 const NFL_GAMES_FEED_ID = getFeedScreenTab(
   FEED_SCREENS[NFL_FEED_SCREEN_ID],
 ).feedId;
@@ -55,16 +56,27 @@ export const PredictHome = () => {
   const ncaaQuery = useFeed(KALSHI_VENUE_ID, NCAA_GAMES_FEED_ID, {
     limit: PREVIEW_LIMIT,
   });
-  const feedNflEvents =
-    nflQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? [];
-  const feedNcaaEvents =
-    ncaaQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? [];
-  const liveEvents = useEventsWithLiveGames(KALSHI_VENUE_ID, [
-    ...feedNflEvents,
-    ...feedNcaaEvents,
-  ]);
-  const nflEvents = liveEvents.slice(0, feedNflEvents.length);
-  const ncaaEvents = liveEvents.slice(feedNflEvents.length);
+  const feedNflEvents = useMemo(
+    () => nflQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? NO_EVENTS,
+    [nflQuery.data],
+  );
+  const feedNcaaEvents = useMemo(
+    () => ncaaQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? NO_EVENTS,
+    [ncaaQuery.data],
+  );
+  const feedEvents = useMemo(
+    () => [...feedNflEvents, ...feedNcaaEvents],
+    [feedNflEvents, feedNcaaEvents],
+  );
+  const liveEvents = useEventsWithLiveGames(KALSHI_VENUE_ID, feedEvents);
+  const nflEvents = useMemo(
+    () => liveEvents.slice(0, feedNflEvents.length),
+    [liveEvents, feedNflEvents.length],
+  );
+  const ncaaEvents = useMemo(
+    () => liveEvents.slice(feedNflEvents.length),
+    [liveEvents, feedNflEvents.length],
+  );
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextHomeView,

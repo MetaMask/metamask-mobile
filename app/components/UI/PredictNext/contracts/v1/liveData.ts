@@ -16,6 +16,7 @@ export interface PredictGameLive {
   venueId: PredictVenueId;
   eventId: PredictEntityId;
   type: string;
+  /** Opaque venue-native payload (Kalshi today). Not the canonical PredictGame. */
   details: Record<string, unknown>;
 }
 

@@ -43,11 +43,23 @@ const readTimestamp = (value: unknown): PredictTimestamp | undefined => {
   return date.toISOString() as PredictTimestamp;
 };
 
+// Live frames carry venue-native Kalshi `details` (`football_game`,
+// `home_points`, `last_updated_ts`). REST already returns a normalized
+// PredictGame; until the stream is normalized server-side too, each new
+// sport or venue needs a mobile mapper.
 export const mapKalshiGameLiveUpdate = (
   current: PredictGame,
   live: Pick<PredictGameLive, 'type' | 'details'>,
 ): PredictGame | undefined => {
   if (live.type !== 'football_game') {
+    return undefined;
+  }
+
+  const liveObservedAt = readTimestamp(live.details.last_updated_ts);
+  if (
+    liveObservedAt &&
+    new Date(liveObservedAt).getTime() < new Date(current.observedAt).getTime()
+  ) {
     return undefined;
   }
 
@@ -67,7 +79,6 @@ export const mapKalshiGameLiveUpdate = (
       away !== undefined && home !== undefined ? { away, home } : current.score,
     period: quarter === undefined ? current.period : `Q${quarter}`,
     clock: clock ?? current.clock,
-    observedAt:
-      readTimestamp(live.details.last_updated_ts) ?? current.observedAt,
+    observedAt: liveObservedAt ?? current.observedAt,
   };
 };

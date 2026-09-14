@@ -6,7 +6,7 @@ import {
 } from '../../contracts/v1/liveData';
 import type { PredictEntityId, PredictVenueId } from '../../types';
 
-const LIVE_DATA_PATH = '/v1/stream/live-data';
+const LIVE_DATA_PATH = 'v1/stream/live-data';
 const PROTOCOL_VERSION = 1;
 
 export const PREDICT_LIVE_DATA_RECONNECT_BASE_MS = 1000;
@@ -28,7 +28,10 @@ const parseStreamUrl = (baseUrl?: string): string | undefined => {
     return undefined;
   }
   try {
-    const url = new URL(LIVE_DATA_PATH, baseUrl);
+    const url = new URL(baseUrl);
+    url.pathname = `${url.pathname.replace(/\/$/u, '')}/${LIVE_DATA_PATH}`;
+    url.search = '';
+    url.hash = '';
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     return url.toString();
   } catch {
@@ -60,6 +63,8 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #socket?: WebSocket;
   #venueId?: PredictVenueId;
   #welcomed = false;
+  #protocolRejected = false;
+  #loggedMissingUrl = false;
   #reconnectAttempts = 0;
   #reconnectTimer?: TimerId;
   #lingerTimer?: TimerId;
@@ -159,8 +164,15 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   }
 
   #connect(): void {
+    if (this.#protocolRejected) {
+      return;
+    }
     const venueId = this.#venueId;
-    if (!venueId || !this.#url || this.#isSocketLive()) {
+    if (!venueId || this.#isSocketLive()) {
+      return;
+    }
+    if (!this.#url) {
+      this.#logMissingUrlOnce();
       return;
     }
 
@@ -201,6 +213,11 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #onFrame(frame: PredictLiveDataServerFrame, venueId: PredictVenueId): void {
     if (frame.type === 'welcome') {
       if (frame.protocol !== PROTOCOL_VERSION) {
+        this.#protocolRejected = true;
+        Logger.log(
+          'PredictLiveDataClient: unsupported live-data protocol',
+          frame.protocol,
+        );
         this.disconnect();
         return;
       }
@@ -209,6 +226,15 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       this.#sendSubscription('subscribe', venueId, [
         ...this.#watchCounts.keys(),
       ]);
+      return;
+    }
+
+    if (frame.type === 'error') {
+      Logger.log(
+        'PredictLiveDataClient: server error',
+        frame.code,
+        frame.message,
+      );
       return;
     }
 
@@ -290,5 +316,13 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       clearTimeout(this.#lingerTimer);
       this.#lingerTimer = undefined;
     }
+  }
+
+  #logMissingUrlOnce(): void {
+    if (this.#loggedMissingUrl) {
+      return;
+    }
+    this.#loggedMissingUrl = true;
+    Logger.log('PredictLiveDataClient: stream URL is missing or invalid');
   }
 }

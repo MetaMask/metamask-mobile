@@ -41,18 +41,15 @@ export const predictLiveDataServiceInit: MessengerClientInitFunction<
   PredictLiveDataService,
   PredictLiveDataServiceMessenger
 > = ({ controllerMessenger }) => {
-  const serviceRef: { current?: PredictLiveDataService } = {};
-  const client = new PredictLiveDataClient({
-    baseUrl: process.env.MM_PREDICT_API_URL,
-    onGameUpdate: (update) => serviceRef.current?.onGameUpdate(update),
-  });
-
   const controller = new PredictLiveDataService({
     messenger: controllerMessenger,
-    client,
     venueId: KALSHI_VENUE_ID,
+    createClient: (onGameUpdate) =>
+      new PredictLiveDataClient({
+        baseUrl: process.env.MM_PREDICT_API_URL,
+        onGameUpdate,
+      }),
   });
-  serviceRef.current = controller;
 
   return { controller };
 };
