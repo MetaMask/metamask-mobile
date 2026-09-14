@@ -1544,7 +1544,7 @@ describe('useMoneyTransactionStatus', () => {
 
   describe('USD formatting regardless of preferred currency', () => {
     beforeEach(() => {
-      jest.mocked(selectCurrentCurrency).mockReturnValue('EUR');
+      jest.mocked(selectCurrentCurrency).mockReturnValue('eur');
     });
 
     afterEach(() => {

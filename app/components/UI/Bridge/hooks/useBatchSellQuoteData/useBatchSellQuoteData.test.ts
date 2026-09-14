@@ -24,7 +24,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({

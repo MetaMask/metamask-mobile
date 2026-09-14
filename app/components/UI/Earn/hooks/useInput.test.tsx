@@ -16,7 +16,7 @@ jest.mock('../selectors/featureFlags', () => ({
 }));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
@@ -101,7 +101,7 @@ describe('useInputHandler', () => {
     expect(result.current.amountFiatNumber).toBe('0');
     expect(result.current.isFiat).toBe(false);
     expect(result.current.isNonZeroAmount).toBe(false);
-    expect(result.current.currentCurrency).toBe('USD');
+    expect(result.current.currentCurrency).toBe('usd');
     expect(result.current.currencyToggleValue).toBe('0 USD');
   });
 
@@ -118,7 +118,7 @@ describe('useInputHandler', () => {
     expect(result.current.amountFiatNumber).toBe('0');
     expect(result.current.isFiat).toBe(false);
     expect(result.current.isNonZeroAmount).toBe(false);
-    expect(result.current.currentCurrency).toBe('USD');
+    expect(result.current.currentCurrency).toBe('usd');
     expect(result.current.currencyToggleValue).toBe('$0');
   });
 

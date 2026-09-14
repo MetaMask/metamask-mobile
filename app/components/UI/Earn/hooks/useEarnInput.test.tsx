@@ -21,7 +21,7 @@ jest.mock('../../Earn/hooks/useEarnGasFee');
 jest.mock('../../Stake/hooks/useVaultMetadata');
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
   selectCurrencyRates: jest.fn(() => ({
     ETH: {
       conversionRate: 2000,
@@ -153,12 +153,12 @@ describe('useEarnInputHandlers', () => {
     expect(result.current.handleCurrencySwitch).toBeDefined();
     expect(result.current.percentageOptions).toBeDefined();
     expect(result.current.handleQuickAmountPress).toBeDefined();
-    expect(result.current.currentCurrency).toBe('USD');
+    expect(result.current.currentCurrency).toBe('usd');
     expect(result.current.conversionRate).toBe(2000);
     expect(result.current.estimatedAnnualRewards).toBe('-');
     expect(result.current.calculateEstimatedAnnualRewards).toBeDefined();
     expect(result.current.annualRewardsToken).toBe('0 ETH');
-    expect(result.current.annualRewardsFiat).toBe('0 USD');
+    expect(result.current.annualRewardsFiat).toBe('$0');
     expect(result.current.annualRewardRate).toBe('5%');
     expect(result.current.handleMax).toBeDefined();
     expect(result.current.isLoadingEarnGasFee).toBe(false);

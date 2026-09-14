@@ -145,7 +145,7 @@ describe('useAccountTokens', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockSelectAssetsBySelectedAccountGroup.mockReturnValue(mockAssets as any);
-    mockSelectCurrentCurrency.mockReturnValue('USD');
+    mockSelectCurrentCurrency.mockReturnValue('usd');
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectAssetsBySelectedAccountGroup) {

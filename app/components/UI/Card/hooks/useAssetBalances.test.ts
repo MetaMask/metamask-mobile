@@ -58,7 +58,7 @@ jest.mock('../../../../selectors/assets/assets-migration', () => ({
   getCurrencyRateControllerCurrencyRates: jest.fn(),
   getTokenRatesControllerMarketData: jest.fn(),
   getMultichainAssetsRatesControllerConversionRates: jest.fn(),
-  getCurrencyRateControllerCurrentCurrency: jest.fn(() => 'USD'),
+  getCurrencyRateControllerCurrentCurrency: jest.fn(() => 'usd'),
 }));
 jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn((chainId: string) => chainId.startsWith('solana:')),

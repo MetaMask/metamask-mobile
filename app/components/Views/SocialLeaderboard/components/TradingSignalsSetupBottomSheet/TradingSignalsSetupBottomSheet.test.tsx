@@ -78,7 +78,7 @@ jest.mock('../../NotificationPreferences/hooks', () => {
 });
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: () => 'USD',
+  selectCurrentCurrency: () => 'usd',
 }));
 
 jest.mock('react-redux', () => ({

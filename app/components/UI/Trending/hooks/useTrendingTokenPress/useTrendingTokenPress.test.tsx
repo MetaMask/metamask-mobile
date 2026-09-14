@@ -40,7 +40,7 @@ jest.mock('../../../../../selectors/networkController', () => ({
 }));
 jest.mock('../../../../hooks/useAddPopularNetwork');
 jest.mock('../../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 jest.mock('../../services/TrendingFeedSessionManager', () => ({
   __esModule: true,

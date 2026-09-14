@@ -25,7 +25,7 @@ const renderHook = (activeQuote?: QuoteMetadata | null) =>
 
 describe('usePriceImpactFiat', () => {
   beforeEach(() => {
-    mockSelectCurrentCurrency.mockReturnValue('USD');
+    mockSelectCurrentCurrency.mockReturnValue('usd');
   });
 
   afterEach(() => {
@@ -51,7 +51,7 @@ describe('usePriceImpactFiat', () => {
   });
 
   it('formats result with the user currency symbol', () => {
-    mockSelectCurrentCurrency.mockReturnValue('EUR');
+    mockSelectCurrentCurrency.mockReturnValue('eur');
 
     const { result } = renderHook({
       priceImpact: { valueInCurrency: '5' },

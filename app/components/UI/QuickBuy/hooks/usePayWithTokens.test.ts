@@ -46,7 +46,7 @@ jest.mock('../../../../selectors/tokenRatesController', () => ({
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(),
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({

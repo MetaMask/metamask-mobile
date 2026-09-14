@@ -20,7 +20,7 @@ jest.mock('./useEarnGasFee');
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(() => ({})),
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
 const mockSelectMultichainAssetsRates = jest.fn(() => ({}));

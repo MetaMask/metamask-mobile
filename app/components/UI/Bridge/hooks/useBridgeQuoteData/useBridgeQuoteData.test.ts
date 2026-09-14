@@ -11,7 +11,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: () => 'USD',
+  selectCurrentCurrency: () => 'usd',
 }));
 
 jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx', () => ({

@@ -393,7 +393,7 @@ const setupDefaultMocks = () => {
   (
     selectSelectedInternalAccountFormattedAddress as unknown as jest.Mock
   ).mockReturnValue('0xWALLET');
-  (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('USD');
+  (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('usd');
   // Native-currency rates + network configs power the fiat->USD conversion for
   // `amount_usd` analytics. conversionRate === usdConversionRate keeps the USD
   // case a 1:1 conversion (entered USD amount == amount_usd).
@@ -938,7 +938,7 @@ describe('useQuickBuyController', () => {
   describe('user-currency (non-USD)', () => {
     it('formats the headline in the user currency while emitting amount_usd in USD', () => {
       // EUR display currency; native ETH worth €1,000 / $1,200 → USD = EUR * 1.2.
-      (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('EUR');
+      (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('eur');
       (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
         ETH: { conversionRate: 1000, usdConversionRate: 1200 },
       });
@@ -974,7 +974,7 @@ describe('useQuickBuyController', () => {
     });
 
     it('uses two-decimal fiat state for JPY (same as Bridge fiat input)', () => {
-      (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('JPY');
+      (selectCurrentCurrency as unknown as jest.Mock).mockReturnValue('jpy');
       (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
         ETH: { conversionRate: 1000, usdConversionRate: 1000 },
       });

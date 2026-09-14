@@ -93,7 +93,7 @@ jest.mock('../../../selectors/networkController', () => ({
 
 jest.mock('../../../selectors/currencyRateController', () => ({
   selectConversionRate: jest.fn(() => 1),
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
 jest.mock('../../../selectors/tokensController', () => ({
