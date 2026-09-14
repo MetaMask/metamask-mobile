@@ -182,6 +182,10 @@ export async function setupLendingMocks(
   // Feature flags
   await setupRemoteFeatureFlagsMock(mockServer, {
     earnStablecoinLendingEnabled: { enabled: true, minimumVersion: '0.0.0' },
+    earnMoneyTokenListItemCtaEnabled: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     homepageRedesignV1: { enabled: true, minimumVersion: '0.0.0' },
   });
 
