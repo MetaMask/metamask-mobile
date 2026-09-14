@@ -163,6 +163,18 @@ describe('useBasicFunctionalityConsolidation', () => {
     );
   });
 
+  it('shows a pending migration toast after the rollout is disabled', () => {
+    setSelectorValues({
+      isFlagEnabled: false,
+      shouldShowToast: true,
+    });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(consolidateBasicFunctionality).not.toHaveBeenCalled();
+    expect(mockToast).toHaveBeenCalled();
+  });
+
   it('links to Privacy settings from inside the description', async () => {
     setSelectorValues({ shouldShowToast: true });
 
