@@ -52,7 +52,9 @@ export const mapKalshiGameLiveUpdate = (
   }
 
   const statusValue = readString(live.details.status);
-  const status = statusValue ? STATUS_MAP[statusValue.toLowerCase()] : undefined;
+  const status = statusValue
+    ? STATUS_MAP[statusValue.toLowerCase()]
+    : undefined;
   const away = readScore(live.details.away_points);
   const home = readScore(live.details.home_points);
   const quarter = readScore(live.details.quarter);
@@ -62,11 +64,10 @@ export const mapKalshiGameLiveUpdate = (
     ...current,
     status: status ?? current.status,
     score:
-      away !== undefined && home !== undefined
-        ? { away, home }
-        : current.score,
+      away !== undefined && home !== undefined ? { away, home } : current.score,
     period: quarter === undefined ? current.period : `Q${quarter}`,
     clock: clock ?? current.clock,
-    observedAt: readTimestamp(live.details.last_updated_ts) ?? current.observedAt,
+    observedAt:
+      readTimestamp(live.details.last_updated_ts) ?? current.observedAt,
   };
 };

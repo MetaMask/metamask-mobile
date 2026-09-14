@@ -78,7 +78,9 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       }
     });
 
-    if (!this.#socket) {
+    if (!this.#isSocketLive()) {
+      this.#socket = undefined;
+      this.#welcomed = false;
       this.#connect();
       return;
     }
@@ -134,9 +136,14 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     this.disconnect();
   }
 
+  #isSocketLive(): boolean {
+    const readyState = this.#socket?.readyState;
+    return readyState === 0 || readyState === 1;
+  }
+
   #connect(): void {
     const venueId = this.#venueId;
-    if (!venueId || !this.#url || this.#socket) {
+    if (!venueId || !this.#url || this.#isSocketLive()) {
       return;
     }
 

@@ -342,14 +342,21 @@ describe('PredictEventScreen', () => {
   });
 
   it('retries Market history after an initial error', async () => {
-    messengerCall.mockImplementationOnce((action: string) =>
-      action === 'PredictMarketDataService:getEvent'
-        ? Promise.resolve(createEvent())
-        : Promise.resolve(undefined),
+    let historyAttempts = 0;
+    messengerCall.mockImplementation(
+      (action: string, _venueId: string, id: string, range?: string) => {
+        if (action === 'PredictMarketDataService:getEvent') {
+          return Promise.resolve(createEvent());
+        }
+        if (action === 'PredictMarketDataService:getMarketHistory') {
+          historyAttempts += 1;
+          return historyAttempts === 1
+            ? Promise.reject(new Error('unsafe history detail'))
+            : Promise.resolve(createHistory(id, range));
+        }
+        return Promise.resolve(undefined);
+      },
     );
-    messengerCall
-      .mockRejectedValueOnce(new Error('unsafe history detail'))
-      .mockResolvedValueOnce(createHistory('market-1'));
     const view = renderPredictEventScreen(routeParams);
     const error = await view.findByTestId(PredictMarketHistoryTestIds.ERROR);
 
@@ -1532,19 +1539,15 @@ describe('PredictEventScreen', () => {
     const view = renderPredictEventScreen(routeParams);
     await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
 
-    expectMessengerCalledWith(
-      'PredictLiveDataService:watchGames',
-      venueId,
-      [eventId],
-    );
+    expectMessengerCalledWith('PredictLiveDataService:watchGames', venueId, [
+      eventId,
+    ]);
 
     view.unmount();
 
-    expectMessengerCalledWith(
-      'PredictLiveDataService:unwatchGames',
-      venueId,
-      [eventId],
-    );
+    expectMessengerCalledWith('PredictLiveDataService:unwatchGames', venueId, [
+      eventId,
+    ]);
   });
 
   it('renders a completed Game as final with its observed metadata', async () => {

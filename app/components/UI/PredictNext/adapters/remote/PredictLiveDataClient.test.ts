@@ -164,6 +164,34 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
+  it('opens a new socket when subscribe is called for already-watched Events after the socket is closed', () => {
+    const client = new PredictLiveDataClient({
+      baseUrl: 'http://localhost:3333',
+      WebSocket: MockWebSocket as unknown as typeof WebSocket,
+      onGameUpdate: jest.fn(),
+    });
+    client.subscribe(venueId, [eventId]);
+    const socket = MockWebSocket.instances[0];
+    socket.open();
+    socket.message(welcomeFrame);
+    socket.readyState = 3;
+
+    client.subscribe(venueId, [eventId]);
+    const nextSocket = MockWebSocket.instances[1];
+    nextSocket.open();
+    nextSocket.message(welcomeFrame);
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+    expect(nextSocket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'subscribe',
+        topic: 'game',
+        venueId,
+        events: [eventId],
+      }),
+    );
+  });
+
   it('does not open a socket when the API URL is not configured', () => {
     const client = new PredictLiveDataClient({
       WebSocket: MockWebSocket as unknown as typeof WebSocket,

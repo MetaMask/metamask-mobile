@@ -10,10 +10,7 @@ import {
   unknown,
   union,
 } from '@metamask/superstruct';
-import type {
-  PredictEntityId,
-  PredictVenueId,
-} from '../../types';
+import type { PredictEntityId, PredictVenueId } from '../../types';
 
 export interface PredictGameLive {
   venueId: PredictVenueId;

@@ -33,10 +33,7 @@ describe('getPredictLiveDataServiceMessenger', () => {
       type: 'football_game',
       details: { status: 'live' },
     };
-    rootMessenger.subscribe(
-      'PredictLiveDataService:gameLiveUpdated',
-      listener,
-    );
+    rootMessenger.subscribe('PredictLiveDataService:gameLiveUpdated', listener);
 
     serviceMessenger.publish('PredictLiveDataService:gameLiveUpdated', update);
 

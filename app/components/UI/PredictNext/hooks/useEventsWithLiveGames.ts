@@ -5,7 +5,8 @@ import type { PredictGameLive } from '../contracts/v1/liveData';
 import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
 import type { PredictEntityId, PredictEvent, PredictVenueId } from '../types';
 
-export const useLiveGames = (
+/** Watches live Game updates and returns the same Events with Game fields patched. */
+export const useEventsWithLiveGames = (
   venueId: PredictVenueId,
   events: readonly PredictEvent[],
 ): readonly PredictEvent[] => {
