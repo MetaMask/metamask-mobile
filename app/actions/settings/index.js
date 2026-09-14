@@ -120,6 +120,11 @@ export function consolidateBasicFunctionality() {
     const { landingState, notification } =
       getBasicFunctionalityConsolidationPlan(preferenceState, isSocialLogin);
 
+    const Engine = require('../../core/Engine').default;
+    await Engine.context.MultichainAccountService.setBasicFunctionality(
+      landingState,
+    );
+
     syncConsolidatedBasicFunctionalityPreferences(landingState);
     dispatch(setBasicFunctionality(landingState));
     dispatch(setBasicFunctionalityConsolidatedEnabled(true));
@@ -130,16 +135,6 @@ export function consolidateBasicFunctionality() {
           : notification,
       ),
     );
-
-    const Engine = require('../../core/Engine').default;
-    Engine.context.MultichainAccountService.setBasicFunctionality(
-      landingState,
-    ).catch((error) => {
-      console.error(
-        'Failed to set consolidated basic functionality on MultichainAccountService:',
-        error,
-      );
-    });
   };
 }
 

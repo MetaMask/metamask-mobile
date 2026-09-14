@@ -241,6 +241,23 @@ describe('consolidateBasicFunctionality action', () => {
     );
   });
 
+  it('leaves the wallet unmigrated when the service rejects', async () => {
+    const dispatch = jest.fn();
+    const serviceError = new Error('Service error');
+    mockSetBasicFunctionality.mockRejectedValue(serviceError);
+
+    await expect(
+      consolidateBasicFunctionality()(dispatch, () => state),
+    ).rejects.toThrow(serviceError);
+
+    // Nothing is persisted, so the migration retries instead of stranding the
+    // service out of sync with the wallet's preferences.
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
   it('does not migrate when the remote flag is off', async () => {
     const dispatch = jest.fn();
     mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
