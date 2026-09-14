@@ -1,11 +1,11 @@
 import React from 'react';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
-import { PredictFundsDetails } from './PredictDetails/PredictFundsDetails';
-import { PredictProviderActivityDetails } from './PredictDetails/PredictProviderActivityDetails';
-import { asPredictActivityItem } from './PredictDetails/PredictDetails.types';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
+import { PredictFundsDetails } from './PredictFundsDetails';
+import { PredictProviderActivityDetails } from './PredictProviderActivityDetails';
+import type { PredictActivityListItem } from './PredictDetails.types';
 
 export function PredictDetails({ item }: { item: ActivityListItem }) {
-  const predictItem = asPredictActivityItem(item);
+  const predictItem = item as PredictActivityListItem;
 
   if (
     predictItem.type === 'predictionsAddFunds' ||

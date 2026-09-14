@@ -18,6 +18,8 @@ export interface SelectedPlusPlan {
   unitDecimals: number;
   amount: number;
   trialPeriodDays?: number;
+  minBillingCycles?: number;
+  minBillingCyclesForBalance?: number;
 }
 
 /**
@@ -52,6 +54,15 @@ export const getSelectedPlusPlan = (
 
   if (pricing.trialPeriodDays !== undefined) {
     selectedPlan.trialPeriodDays = pricing.trialPeriodDays;
+  }
+
+  if (pricing.minBillingCycles !== undefined) {
+    selectedPlan.minBillingCycles = pricing.minBillingCycles;
+  }
+
+  if (pricing.minBillingCyclesForBalance !== undefined) {
+    selectedPlan.minBillingCyclesForBalance =
+      pricing.minBillingCyclesForBalance;
   }
 
   return selectedPlan;

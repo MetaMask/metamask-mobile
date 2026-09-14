@@ -30,6 +30,7 @@ enum CardScreens {
   CONFIRM_PIN = 'CONFIRM_PIN',
   CASHBACK = 'CASHBACK',
   CREDIT_REDEEM = 'CREDIT_REDEEM',
+  MIGRATION_UPDATE_SHEET = 'MIGRATION_UPDATE_SHEET',
 }
 
 enum CardActions {
@@ -96,6 +97,10 @@ enum CardActions {
   IMMERSVE_RESUME_ONBOARDING = 'IMMERSVE_RESUME_ONBOARDING',
   IMMERSVE_PROVISIONING_RESUME = 'IMMERSVE_PROVISIONING_RESUME',
   IMMERSVE_ONBOARDING_ROUTED = 'IMMERSVE_ONBOARDING_ROUTED',
+  MIGRATION_SHEET_GET_STARTED_BUTTON = 'MIGRATION_SHEET_GET_STARTED_BUTTON',
+  MIGRATION_SHEET_REMIND_ME_LATER_BUTTON = 'MIGRATION_SHEET_REMIND_ME_LATER_BUTTON',
+  MIGRATION_SHEET_CLOSE_BUTTON = 'MIGRATION_SHEET_CLOSE_BUTTON',
+  MIGRATION_ATTENTION_SET_UP_CARD_BUTTON = 'MIGRATION_ATTENTION_SET_UP_CARD_BUTTON',
 }
 
 enum CardDeeplinkActions {
@@ -119,7 +124,38 @@ enum CardEntryPoint {
 
 enum CardFlow {
   MONEY_ACCOUNT_LINKAGE = 'money_account_linkage',
+  MIGRATION = 'migration',
 }
+
+type CardUkMigrationAnalyticsPhase = 'grace_window' | 'post_cutoff';
+
+type CardBadgeReason = 'card_migration';
+
+/**
+ * Maps mobile UK migration schedule phase to Segment `migration_phase`.
+ * `off` (and unknown) omit the property.
+ */
+const mapUkMigrationPhaseToAnalytics = (
+  phase: string | null | undefined,
+): CardUkMigrationAnalyticsPhase | undefined => {
+  if (phase === 'soft') {
+    return 'grace_window';
+  }
+  if (phase === 'forced') {
+    return 'post_cutoff';
+  }
+  return undefined;
+};
+
+/**
+ * Builds Segment `badge_reasons` when the Card UK migration entry badge
+ * (Accounts menu Update label / wallet attention for card migration) is shown.
+ * Omits the property when the badge is not visible.
+ */
+const buildCardMigrationBadgeReasons = (
+  updateBadgeVisible: boolean,
+): CardBadgeReason[] | undefined =>
+  updateBadgeVisible ? ['card_migration'] : undefined;
 
 enum CardLinkingFailureReason {
   PRECONDITION_FAILED = 'PRECONDITION_FAILED',
@@ -165,7 +201,9 @@ export {
   CardEntryPoint,
   CardFlow,
   CardLinkingFailureReason,
+  buildCardMigrationBadgeReasons,
   deriveCardState,
+  mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 };
-export type { CardState };
+export type { CardState, CardUkMigrationAnalyticsPhase, CardBadgeReason };
