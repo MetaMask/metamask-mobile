@@ -2476,6 +2476,7 @@ export const initialStateActivityWithPerpsDetails = (
   transactions: TransactionMeta[] = [],
 ) =>
   initialStateActivity()
+    .withRemoteFeatureFlags(activityPerpsTradingEnabledFlag)
     .withOverrides(activityPerpsDetailsStateOverrides)
     .withOverrides({
       engine: {

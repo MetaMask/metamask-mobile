@@ -16,6 +16,7 @@ import {
   union,
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
+import { amount } from './primitives';
 import type {
   FetchFeedParams,
   PredictEvent,
@@ -54,9 +55,6 @@ const decimal = refine(
   string(),
   'PredictDecimal',
   (value) => /^(?:0(?:\.\d+)?|1(?:\.0+)?)$/.test(value) && Number(value) <= 1,
-);
-const amount = refine(string(), 'PredictAmount', (value) =>
-  /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value),
 );
 const hexColor = refine(string(), 'PredictHexColor', (value) =>
   /^#[0-9a-f]{6}$/i.test(value),

@@ -89,3 +89,8 @@ export async function checkSwapActivity(
   // Check the swap activity completed
   await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen);
 }
+
+export async function returnToWalletFromSwapActivity(): Promise<void> {
+  await ActivitiesView.tapBackButton();
+  await QuoteView.tapOnBackButton();
+}
