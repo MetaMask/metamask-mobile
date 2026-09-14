@@ -2,10 +2,8 @@
  * Position Close Flow — CV-equivalent of the perps-position.spec.ts Appium E2E tests.
  *
  * Covers the full close journey across two entry points:
- *   Lite: position on market details → press Close → ClosePositionView →
- *         confirm → stream delivers closure → close button gone
- *   Pro:  position row in Pro panel → press close icon → ClosePositionView →
- *         confirm → stream delivers closure → position row gone
+ * Lite: position on market details → press Close → ClosePositionView → confirm → close button gone
+ * Pro: position row in Pro panel → press close icon → ClosePositionView → confirm → row gone
  *
  * The E2E tests require a real device to boot and place a live order before
  * closing it.  These CV tests skip the order-placement step by seeding the
