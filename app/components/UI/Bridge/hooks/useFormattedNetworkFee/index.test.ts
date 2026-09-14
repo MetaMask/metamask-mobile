@@ -20,14 +20,14 @@ const mockSelectCurrentCurrency = selectCurrentCurrency as jest.MockedFunction<
 describe('useFormattedNetworkFee', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectCurrentCurrency.mockReturnValue('USD');
+    mockSelectCurrentCurrency.mockReturnValue('usd');
     mockFormatNetworkFee.mockReturnValue('-');
   });
 
   describe('when quote is undefined', () => {
     it('returns formatted network fee with undefined quote', () => {
       // Arrange
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
       mockFormatNetworkFee.mockReturnValue('-');
 
       // Act
@@ -38,14 +38,14 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('-');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', undefined);
+      expect(formatNetworkFee).toHaveBeenCalledWith('usd', undefined);
     });
   });
 
   describe('when quote is null', () => {
     it('returns formatted network fee with null quote', () => {
       // Arrange
-      mockSelectCurrentCurrency.mockReturnValue('EUR');
+      mockSelectCurrentCurrency.mockReturnValue('eur');
       mockFormatNetworkFee.mockReturnValue('-');
 
       // Act
@@ -56,7 +56,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('-');
-      expect(formatNetworkFee).toHaveBeenCalledWith('EUR', null);
+      expect(formatNetworkFee).toHaveBeenCalledWith('eur', null);
     });
   });
 
@@ -70,7 +70,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
       mockFormatNetworkFee.mockReturnValue('$10.50');
 
       // Act
@@ -81,7 +81,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('$10.50');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('usd', quote);
     });
 
     it('returns formatted network fee with EUR currency', () => {
@@ -93,7 +93,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('EUR');
+      mockSelectCurrentCurrency.mockReturnValue('eur');
       mockFormatNetworkFee.mockReturnValue('€25.00');
 
       // Act
@@ -104,7 +104,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('€25.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('EUR', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('eur', quote);
     });
 
     it('returns formatted network fee with GBP currency', () => {
@@ -116,7 +116,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('GBP');
+      mockSelectCurrentCurrency.mockReturnValue('gbp');
       mockFormatNetworkFee.mockReturnValue('£5.25');
 
       // Act
@@ -127,7 +127,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('£5.25');
-      expect(formatNetworkFee).toHaveBeenCalledWith('GBP', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('gbp', quote);
     });
 
     it('returns formatted network fee with JPY currency', () => {
@@ -139,7 +139,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('JPY');
+      mockSelectCurrentCurrency.mockReturnValue('jpy');
       mockFormatNetworkFee.mockReturnValue('¥1,500');
 
       // Act
@@ -150,7 +150,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('¥1,500');
-      expect(formatNetworkFee).toHaveBeenCalledWith('JPY', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('jpy', quote);
     });
   });
 
@@ -164,7 +164,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
       mockFormatNetworkFee.mockReturnValue('<$0.01');
 
       // Act
@@ -175,7 +175,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('<$0.01');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('usd', quote);
     });
   });
 
@@ -189,7 +189,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
       mockFormatNetworkFee.mockReturnValue('$1,234.56');
 
       // Act
@@ -200,7 +200,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('$1,234.56');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('usd', quote);
     });
   });
 
@@ -214,7 +214,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
       mockFormatNetworkFee.mockReturnValue('$0');
 
       // Act
@@ -225,7 +225,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('$0');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('usd', quote);
     });
   });
 
@@ -239,7 +239,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
       mockFormatNetworkFee.mockReturnValue('$10.00');
 
       // Act - initial render
@@ -250,7 +250,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert initial
       expect(result.current).toBe('$10.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', initialQuote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('usd', initialQuote);
 
       // Arrange - update mock for different quote
       const updatedQuote = toQuoteMetadataV2({
@@ -270,7 +270,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert after update
       expect(updatedResult.current).toBe('$20.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', updatedQuote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('usd', updatedQuote);
     });
   });
 
@@ -285,7 +285,7 @@ describe('useFormattedNetworkFee', () => {
       }) as unknown as QuoteResponse;
 
       // Act - initial render with USD
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
       mockFormatNetworkFee.mockReturnValue('$10.00');
 
       const { result: usdResult } = renderHookWithProvider(
@@ -295,10 +295,10 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert initial
       expect(usdResult.current).toBe('$10.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('usd', quote);
 
       // Arrange - change currency
-      mockSelectCurrentCurrency.mockReturnValue('EUR');
+      mockSelectCurrentCurrency.mockReturnValue('eur');
       mockFormatNetworkFee.mockReturnValue('€10.00');
 
       // Act - new render with EUR
@@ -309,7 +309,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert after currency change
       expect(eurResult.current).toBe('€10.00');
-      expect(formatNetworkFee).toHaveBeenCalledWith('EUR', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('eur', quote);
     });
   });
 
@@ -323,7 +323,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
       mockFormatNetworkFee.mockReturnValue('$10.00');
 
       // Act
@@ -353,7 +353,7 @@ describe('useFormattedNetworkFee', () => {
         },
       }) as unknown as QuoteResponse;
 
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
 
       // Act - first render
       mockFormatNetworkFee.mockReturnValue('$10.00');
@@ -381,7 +381,7 @@ describe('useFormattedNetworkFee', () => {
       // Arrange
       const quote = {} as never;
 
-      mockSelectCurrentCurrency.mockReturnValue('USD');
+      mockSelectCurrentCurrency.mockReturnValue('usd');
       mockFormatNetworkFee.mockClear();
       mockFormatNetworkFee.mockReturnValue('-');
 
@@ -393,7 +393,7 @@ describe('useFormattedNetworkFee', () => {
 
       // Assert
       expect(result.current).toBe('-');
-      expect(formatNetworkFee).toHaveBeenCalledWith('USD', quote);
+      expect(formatNetworkFee).toHaveBeenCalledWith('usd', quote);
     });
 
     it('handles unknown currency code', () => {
@@ -406,7 +406,8 @@ describe('useFormattedNetworkFee', () => {
       }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockClear();
-      mockSelectCurrentCurrency.mockReturnValue('XYZ');
+      // Deliberately bypass selector contract to test formatter behavior.
+      mockSelectCurrentCurrency.mockReturnValue('XYZ' as never);
       mockFormatNetworkFee.mockClear();
       mockFormatNetworkFee.mockReturnValue('10.00 XYZ');
 
@@ -431,7 +432,8 @@ describe('useFormattedNetworkFee', () => {
       }) as unknown as QuoteResponse;
 
       mockSelectCurrentCurrency.mockClear();
-      mockSelectCurrentCurrency.mockReturnValue('');
+      // Deliberately bypass selector contract to test formatter behavior.
+      mockSelectCurrentCurrency.mockReturnValue('' as never);
       mockFormatNetworkFee.mockClear();
       mockFormatNetworkFee.mockReturnValue('-');
 

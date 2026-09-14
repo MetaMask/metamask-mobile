@@ -121,7 +121,7 @@ jest.mock('../../../../../selectors/bridge', () => ({
 }));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: () => 'USD',
+  selectCurrentCurrency: () => 'usd',
 }));
 
 const mockDebounceMs = 300;

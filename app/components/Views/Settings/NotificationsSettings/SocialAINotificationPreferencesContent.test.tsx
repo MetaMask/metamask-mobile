@@ -35,7 +35,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: () => 'USD',
+  selectCurrentCurrency: () => 'usd',
 }));
 
 jest.mock(

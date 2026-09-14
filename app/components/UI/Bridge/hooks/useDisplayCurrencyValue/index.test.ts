@@ -70,7 +70,7 @@ describe('useDisplayCurrencyValue', () => {
     jest.clearAllMocks();
     mockSelectTokenMarketData.mockReturnValue(MOCK_MARKET_DATA);
     mockSelectCurrencyRates.mockReturnValue(MOCK_CURRENCY_RATES);
-    mockSelectCurrentCurrency.mockReturnValue('USD');
+    mockSelectCurrentCurrency.mockReturnValue('usd');
     mockSelectNetworkConfigurations.mockReturnValue(MOCK_NETWORK_CONFIGS);
     mockSelectMultichainAssetsRates.mockReturnValue(MOCK_MULTICHAIN_RATES);
     mockGetDisplayCurrencyValue.mockReturnValue('$0.00');
@@ -211,7 +211,7 @@ describe('useDisplayCurrencyValue', () => {
 
     it('forwards currentCurrency from selectCurrentCurrency', () => {
       // Arrange
-      mockSelectCurrentCurrency.mockReturnValue('EUR');
+      mockSelectCurrentCurrency.mockReturnValue('eur');
 
       // Act
       renderHookWithProvider(() => useDisplayCurrencyValue('1', makeToken()), {
@@ -220,7 +220,7 @@ describe('useDisplayCurrencyValue', () => {
 
       // Assert
       expect(mockGetDisplayCurrencyValue).toHaveBeenCalledWith(
-        expect.objectContaining({ currentCurrency: 'EUR' }),
+        expect.objectContaining({ currentCurrency: 'eur' }),
       );
     });
 
@@ -248,7 +248,7 @@ describe('useDisplayCurrencyValue', () => {
   describe('different currencies', () => {
     it('returns EUR-formatted value when current currency is EUR', () => {
       // Arrange
-      mockSelectCurrentCurrency.mockReturnValue('EUR');
+      mockSelectCurrentCurrency.mockReturnValue('eur');
       mockGetDisplayCurrencyValue.mockReturnValue('€42.00');
 
       // Act
@@ -260,13 +260,13 @@ describe('useDisplayCurrencyValue', () => {
       // Assert
       expect(result.current).toBe('€42.00');
       expect(mockGetDisplayCurrencyValue).toHaveBeenCalledWith(
-        expect.objectContaining({ currentCurrency: 'EUR' }),
+        expect.objectContaining({ currentCurrency: 'eur' }),
       );
     });
 
     it('returns GBP-formatted value when current currency is GBP', () => {
       // Arrange
-      mockSelectCurrentCurrency.mockReturnValue('GBP');
+      mockSelectCurrentCurrency.mockReturnValue('gbp');
       mockGetDisplayCurrencyValue.mockReturnValue('£10.50');
 
       // Act

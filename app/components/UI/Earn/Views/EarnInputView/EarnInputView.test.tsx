@@ -145,7 +145,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
   selectConversionRate: jest.fn(() => mockConversionRate),
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
   selectCurrencyRates: jest.fn(() => ({
     ETH: {
       conversionRate: mockConversionRate,
@@ -909,7 +909,7 @@ describe('EarnInputView', () => {
           amountFiat: '750',
           amountWei: '375000000000000000',
           annualRewardRate: '50%',
-          annualRewardsFiat: '375 USD',
+          annualRewardsFiat: '$375',
           annualRewardsToken: '0.1875 ETH',
           estimatedGasFee: '0.25',
           estimatedGasFeePercentage: '66%',

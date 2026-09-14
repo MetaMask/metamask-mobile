@@ -19,7 +19,7 @@ jest.mock('../../../../selectors/tokenRatesController', () => ({
 const mockSelectTokenMarketData = selectTokenMarketData as unknown as jest.Mock;
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
 jest.mock('ethereumjs-util', () => ({
@@ -354,7 +354,7 @@ describe('AggregatedPercentageCrossChains', () => {
       FORMATTED_PERCENTAGE_TEST_ID,
     );
 
-    expect(formattedValuePriceElement.props.children).toBe('+0.77 USD ');
+    expect(formattedValuePriceElement.props.children).toBe('+$0.77 ');
     expect(formattedValuePercentageElement.props.children).toBe('(+0.72%)');
   });
 
@@ -425,7 +425,7 @@ describe('AggregatedPercentageCrossChains', () => {
       FORMATTED_PERCENTAGE_TEST_ID,
     );
 
-    expect(formattedValuePriceElement.props.children).toBe('-0.85 USD ');
+    expect(formattedValuePriceElement.props.children).toBe('-$0.85 ');
     expect(formattedValuePercentageElement.props.children).toBe('(-0.77%)');
   });
 });

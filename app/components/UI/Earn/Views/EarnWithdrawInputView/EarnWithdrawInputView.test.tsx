@@ -116,7 +116,7 @@ function render(
 
 jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
   selectConversionRate: jest.fn(() => 2000),
-  selectCurrentCurrency: jest.fn(() => 'USD'),
+  selectCurrentCurrency: jest.fn(() => 'usd'),
   selectCurrencyRates: jest.fn(() => ({
     ETH: 2000,
   })),

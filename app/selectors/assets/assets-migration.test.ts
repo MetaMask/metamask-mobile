@@ -15,6 +15,7 @@ import {
   getTokenRatesControllerMarketData,
   getMultichainAssetsRatesControllerConversionRates,
 } from './assets-migration';
+import type { RootState } from '../../reducers';
 
 const mockAccountId = 'mock-account-id-1';
 const mockAccountId2 = 'mock-account-id-2';
@@ -1646,7 +1647,7 @@ describe('getCurrencyRateControllerCurrentCurrency', () => {
             AssetsController: { selectedCurrency: 'usd' },
           },
         },
-      };
+      } as RootState;
       const result = getCurrencyRateControllerCurrentCurrency(state);
 
       expect(result).toBe('usd');
