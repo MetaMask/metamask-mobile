@@ -246,7 +246,8 @@ describe('PredictLiveDataClient', () => {
     expect(MockWebSocket.instances).toHaveLength(3);
   });
 
-  it('stops reconnecting after the max number of attempts', () => {
+  it('keeps reconnecting at the max delay after the attempt cap', () => {
+    const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const client = createClient();
     client.subscribe(venueId, [eventId]);
 
@@ -266,10 +267,55 @@ describe('PredictLiveDataClient', () => {
 
     const socketsAfterCap = MockWebSocket.instances.length;
     MockWebSocket.instances[socketsAfterCap - 1].onclose?.();
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_MAX_MS - 1);
+
+    expect(MockWebSocket.instances).toHaveLength(socketsAfterCap);
+
+    jest.advanceTimersByTime(1);
+    MockWebSocket.instances[socketsAfterCap].onclose?.();
     jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_MAX_MS);
 
+    expect(MockWebSocket.instances).toHaveLength(socketsAfterCap + 2);
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalledWith(
+      'PredictLiveDataClient: capping reconnect delay after max attempts',
+    );
+  });
+
+  it('opens a new socket immediately when subscribe is called after the reconnect cap', () => {
+    const client = createClient();
+    client.subscribe(venueId, [eventId]);
+
+    for (
+      let attempt = 0;
+      attempt < PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS;
+      attempt++
+    ) {
+      MockWebSocket.instances[attempt].onclose?.();
+      jest.advanceTimersByTime(
+        Math.min(
+          PREDICT_LIVE_DATA_RECONNECT_MAX_MS,
+          PREDICT_LIVE_DATA_RECONNECT_BASE_MS * 2 ** attempt,
+        ),
+      );
+    }
+
+    MockWebSocket.instances[MockWebSocket.instances.length - 1].onclose?.();
+    client.subscribe(venueId, [eventId]);
+    const nextSocket = openAndWelcome(
+      MockWebSocket.instances[MockWebSocket.instances.length - 1],
+    );
+
     expect(MockWebSocket.instances).toHaveLength(
-      PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS + 1,
+      PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS + 2,
+    );
+    expect(nextSocket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'subscribe',
+        topic: 'game',
+        venueId,
+        events: [eventId],
+      }),
     );
   });
 

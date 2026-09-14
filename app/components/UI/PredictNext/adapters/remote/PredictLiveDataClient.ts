@@ -75,6 +75,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #welcomed = false;
   #protocolRejected = false;
   #loggedMissingUrl = false;
+  #loggedReconnectCap = false;
   #reconnectAttempts = 0;
   #reconnectTimer?: TimerId;
   #lingerTimer?: TimerId;
@@ -109,9 +110,10 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     if (!this.#isSocketLive()) {
       this.#socket = undefined;
       this.#welcomed = false;
-      if (this.#reconnectTimer === undefined) {
-        this.#connect();
-      }
+      this.#cancelReconnect();
+      this.#reconnectAttempts = 0;
+      this.#loggedReconnectCap = false;
+      this.#connect();
       return;
     }
 
@@ -163,6 +165,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     this.#welcomed = false;
     this.#venueId = undefined;
     this.#reconnectAttempts = 0;
+    this.#loggedReconnectCap = false;
     const socket = this.#socket;
     this.#socket = undefined;
     socket?.close();
@@ -237,6 +240,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       }
       this.#welcomed = true;
       this.#reconnectAttempts = 0;
+      this.#loggedReconnectCap = false;
       this.#applyWelcomeLimits(frame);
       this.#serverGameIds.clear();
       this.#sendSubscription('subscribe', venueId, [
@@ -345,10 +349,12 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
 
     this.#reconnectAttempts += 1;
     if (this.#reconnectAttempts > PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS) {
-      Logger.log(
-        'PredictLiveDataClient: stopped reconnecting after max attempts',
-      );
-      return;
+      // Keep retrying at the max delay while anyone is still watching.
+      // Giving up here froze live scores on mounted screens: the hook only
+      // calls subscribe() for newly added Event ids, so Home/Feed/Event
+      // never reset this counter after a background socket drop.
+      this.#reconnectAttempts = PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS;
+      this.#logReconnectCapOnce();
     }
 
     this.#reconnectTimer = setTimeout(() => {
@@ -394,5 +400,15 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     }
     this.#loggedMissingUrl = true;
     Logger.log('PredictLiveDataClient: stream URL is missing or invalid');
+  }
+
+  #logReconnectCapOnce(): void {
+    if (this.#loggedReconnectCap) {
+      return;
+    }
+    this.#loggedReconnectCap = true;
+    Logger.log(
+      'PredictLiveDataClient: capping reconnect delay after max attempts',
+    );
   }
 }
