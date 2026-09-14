@@ -72,11 +72,8 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
-import {
-  isPerpsStackBackAction,
-  preserveHomeDroppedFromHistory,
-  shouldPopPerpsRoute,
-} from '../../utils/perpsModeSwitch';
+import { preserveHomeDroppedFromHistory } from '../../utils/perpsModeSwitch';
+import { usePerpsDroppedHomeBack } from '../../hooks/usePerpsDroppedHomeBack';
 import {
   selectPerpsMode,
   selectPerpsWatchlistMarkets,
@@ -486,29 +483,12 @@ const PerpsMarketListView = ({
     resetToHome(PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS);
   }, [resetToHome, navigateToWallet, perpsMode]);
 
-  const handleBackPressed = useCallback(() => {
-    if (shouldPopPerpsRoute(canGoBack, navigation.getState())) {
-      navigateBack();
-      return;
-    }
-    leaveViaFallback();
-  }, [canGoBack, leaveViaFallback, navigateBack, navigation]);
-
-  // Same dropped-Home hole as the market header: list back and native
-  // GO_BACK/POP must not pop `PERPS.ROOT` to wallet (TAT-3786).
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isPerpsStackBackAction(e.data.action.type)) {
-        return;
-      }
-      if (shouldPopPerpsRoute(canGoBack, navigation.getState())) {
-        return;
-      }
-      e.preventDefault();
-      leaveViaFallback();
-    });
-    return unsubscribe;
-  }, [canGoBack, leaveViaFallback, navigation]);
+  const handleBackPressed = usePerpsDroppedHomeBack({
+    canGoBack,
+    navigateBack,
+    navigation,
+    leaveViaFallback,
+  });
 
   // emit the search query + results/no-results screen view.
   // Stored in a ref (event-callback pattern) so both the debounce timer and the

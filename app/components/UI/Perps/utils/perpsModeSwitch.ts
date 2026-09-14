@@ -213,7 +213,7 @@ export const resetToPerpsHomeTarget = (
   (
     navigation.reset as unknown as (state: {
       index: number;
-      routes: { name: string; params?: object }[];
+      routes: { name: string; params?: Record<string, unknown> }[];
     }) => void
   )({
     index: 0,

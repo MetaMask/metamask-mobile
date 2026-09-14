@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -12,11 +12,8 @@ import { usePerpsMode } from './usePerpsMode';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
-import {
-  isPerpsStackBackAction,
-  shouldPopPerpsRoute,
-  useDropPerpsHomeFromStackHistory,
-} from '../utils/perpsModeSwitch';
+import { useDropPerpsHomeFromStackHistory } from '../utils/perpsModeSwitch';
+import { usePerpsDroppedHomeBack } from './usePerpsDroppedHomeBack';
 import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
 
 export interface UsePerpsMarketHeaderActionsParams {
@@ -90,33 +87,12 @@ export const usePerpsMarketHeaderActions = ({
     navigateToWallet();
   }, [backFallback, resetToHome, navigateToWallet]);
 
-  const handleBackPress = useCallback(() => {
-    // Read the stack at press time: Lite -> Pro resets it while this screen
-    // stays mounted, so a value captured on render would be stale.
-    if (shouldPopPerpsRoute(canGoBack, navigation.getState())) {
-      navigateBack();
-      return;
-    }
-
-    leaveViaFallback();
-  }, [canGoBack, leaveViaFallback, navigateBack, navigation]);
-
-  // iOS edge-swipe and Android hardware back skip the header button and go
-  // through React Navigation `goBack()`, which is still parent-aware. Apply
-  // the same dropped-Home fallback as `<` (TAT-3786).
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isPerpsStackBackAction(e.data.action.type)) {
-        return;
-      }
-      if (shouldPopPerpsRoute(canGoBack, navigation.getState())) {
-        return;
-      }
-      e.preventDefault();
-      leaveViaFallback();
-    });
-    return unsubscribe;
-  }, [canGoBack, leaveViaFallback, navigation]);
+  const handleBackPress = usePerpsDroppedHomeBack({
+    canGoBack,
+    navigateBack,
+    navigation,
+    leaveViaFallback,
+  });
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {
