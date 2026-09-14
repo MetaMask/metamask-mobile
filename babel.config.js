@@ -180,7 +180,13 @@ module.exports = {
       plugins: [
         [
           '@babel/plugin-transform-modules-commonjs',
-          { allowTopLevelThis: true },
+          {
+            allowTopLevelThis: true,
+            // Loose mode emits `exports.foo = foo` instead of non-configurable
+            // getters, so jest.spyOn on named exports (e.g. splitScaleSizes)
+            // keeps working.
+            loose: true,
+          },
         ],
       ],
     },
