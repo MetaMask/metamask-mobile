@@ -603,6 +603,15 @@ describe('PredictPortfolioScreen', () => {
 
     expect(view.queryByText('$41.25')).not.toBeOnTheScreen();
     expect(view.queryByText('-$2.50')).not.toBeOnTheScreen();
+    expect(view.queryByText('Lakers · 75 shares')).not.toBeOnTheScreen();
     expect(view.getByText('Lakers vs Celtics')).toBeOnTheScreen();
+
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
+    );
+    await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST);
+
+    expect(view.queryByText('+$10.00')).not.toBeOnTheScreen();
+    expect(view.getByText('Settled')).toBeOnTheScreen();
   });
 });

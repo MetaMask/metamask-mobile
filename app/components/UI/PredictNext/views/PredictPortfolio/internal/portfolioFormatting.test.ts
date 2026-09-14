@@ -51,8 +51,14 @@ describe('PredictNext portfolio formatting', () => {
   });
 
   it('formats an Activity timestamp for display', () => {
-    expect(formatActivityTimestamp('2026-09-01T12:00:00.000Z')).toMatch(
-      /Sep 1/,
-    );
+    const timestamp = '2026-09-01T12:00:00.000Z';
+    const expected = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(new Date(timestamp));
+
+    expect(formatActivityTimestamp(timestamp)).toBe(expected);
   });
 });

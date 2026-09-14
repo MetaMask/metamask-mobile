@@ -130,9 +130,14 @@ export const PortfolioPositionRow = ({
             {context.marketQuestion}
           </Text>
         ) : null}
-        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+        <SensitiveText
+          variant={TextVariant.BodySm}
+          twClassName="text-alternative"
+          isHidden={isPrivacyMode}
+          length={SensitiveTextLength.Short}
+        >
           {metaLine}
-        </Text>
+        </SensitiveText>
       </Box>
       <PortfolioPositionMetrics
         position={position}
