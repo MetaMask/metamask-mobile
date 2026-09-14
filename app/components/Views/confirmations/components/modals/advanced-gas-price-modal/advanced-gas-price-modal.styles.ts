@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () => {
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     button: {
       width: '100%',
     },
@@ -10,6 +10,5 @@ const styleSheet = () => {
       marginBottom: 8,
     },
   });
-};
 
 export default styleSheet;

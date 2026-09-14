@@ -13,9 +13,10 @@ import {
   BottomSheetHeader,
   BottomSheetRef,
   Box,
+  Text,
+  TextProps,
 } from '@metamask/design-system-react-native';
 import styleSheet from './text-with-tooltip.styles';
-import { Text, TextProps } from '@metamask/design-system-react-native';
 interface TextWithTooltipProps {
   ellipsizeMode?: TextProps['ellipsizeMode'];
   label: string;

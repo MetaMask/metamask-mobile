@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () => {
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     buttonsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -18,6 +18,5 @@ const styleSheet = () => {
       marginBottom: 24,
     },
   });
-};
 
 export default styleSheet;

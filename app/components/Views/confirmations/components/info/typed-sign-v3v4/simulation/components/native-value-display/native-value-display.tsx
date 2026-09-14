@@ -25,6 +25,7 @@ import {
   BottomSheetHeader,
   BottomSheetRef,
   Box,
+  Text,
 } from '@metamask/design-system-react-native';
 
 /**
@@ -32,7 +33,6 @@ import {
  * @see {@link https://github.com/MetaMask/metamask-mobile/issues/12974}
  */
 import styleSheet from '../value-display/value-display.styles';
-import { Text } from '@metamask/design-system-react-native';
 
 const NATIVE_DECIMALS = 18;
 
