@@ -17,6 +17,7 @@ import {
 } from '../../../../util/trace';
 import {
   RAMP_SCREEN_CONTENT_STATE,
+  RAMP_SCREEN_LOAD_PREFIX,
   type RampScreenContentState,
   type RampV2ScreenId,
 } from '../constants/rampScreenPerformance';
@@ -84,9 +85,10 @@ export function useRampScreenPerformance({
     const parentContext = getRampsBuyCufParentContext();
     trace({
       name: TraceName.RampScreenLoad,
-      // Sentry shows this as span.description. Keep TraceName as the key so
-      // endTrace still matches, while the UI names the actual screen.
-      description: `${TraceName.RampScreenLoad}: ${screenId}`,
+      // Sentry derives both span.name and span.description from this. Keep
+      // TraceName as the key so endTrace still matches, while the UI names
+      // the actual screen.
+      description: `${RAMP_SCREEN_LOAD_PREFIX}${screenId}`,
       op: TraceOperation.RampOperation,
       id,
       startTime: getPerformanceTimestamp(),
