@@ -79,7 +79,7 @@ describe('isOlderKalshiLiveFrame', () => {
     expect(isOlderKalshiLiveFrame(later, earlier)).toBe(false);
   });
 
-  it('does not treat a frame without a timestamp as older', () => {
+  it('treats an unstamped frame as older than a stamped one', () => {
     const stamped = {
       details: {
         last_updated_ts: Date.parse('2026-09-08T13:00:00.000Z') / 1000,
@@ -87,7 +87,7 @@ describe('isOlderKalshiLiveFrame', () => {
     };
     const unstamped = { details: { status: 'live' } };
 
-    expect(isOlderKalshiLiveFrame(unstamped, stamped)).toBe(false);
+    expect(isOlderKalshiLiveFrame(unstamped, stamped)).toBe(true);
     expect(isOlderKalshiLiveFrame(stamped, unstamped)).toBe(false);
   });
 });

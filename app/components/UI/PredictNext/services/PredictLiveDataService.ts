@@ -56,6 +56,7 @@ export class PredictLiveDataService {
   readonly #client: PredictLiveDataTransport;
   readonly #venueId: PredictVenueId;
   readonly #games = new Map<PredictEntityId, PredictGameLive>();
+  readonly #watchCounts = new Map<PredictEntityId, number>();
 
   constructor({
     messenger,
@@ -81,6 +82,9 @@ export class PredictLiveDataService {
     eventIds: readonly PredictEntityId[],
   ): void {
     this.#assertVenue(venueId);
+    eventIds.forEach((eventId) => {
+      this.#watchCounts.set(eventId, (this.#watchCounts.get(eventId) ?? 0) + 1);
+    });
     this.#client.subscribe(venueId, eventIds);
 
     // The Venue only sends a snapshot when an Event is first subscribed, so a
@@ -99,6 +103,17 @@ export class PredictLiveDataService {
     eventIds: readonly PredictEntityId[],
   ): void {
     this.#assertVenue(venueId);
+    eventIds.forEach((eventId) => {
+      const held = this.#watchCounts.get(eventId);
+      if (held === undefined) {
+        return;
+      }
+      if (held > 1) {
+        this.#watchCounts.set(eventId, held - 1);
+        return;
+      }
+      this.#watchCounts.delete(eventId);
+    });
     this.#client
       .unsubscribe(venueId, eventIds)
       .forEach((eventId) => this.#games.delete(eventId));
@@ -106,6 +121,9 @@ export class PredictLiveDataService {
 
   onGameUpdate(game: PredictGameLive): void {
     if (game.venueId !== this.#venueId) {
+      return;
+    }
+    if (!this.#watchCounts.has(game.eventId)) {
       return;
     }
     const previous = this.#games.get(game.eventId);
@@ -124,6 +142,7 @@ export class PredictLiveDataService {
       'PredictLiveDataService:unwatchGames',
     );
     this.#games.clear();
+    this.#watchCounts.clear();
     this.#client.destroy();
   }
 

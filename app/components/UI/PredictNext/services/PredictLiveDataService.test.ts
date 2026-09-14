@@ -61,6 +61,9 @@ describe('PredictLiveDataService', () => {
       details: { status: 'live' },
     };
 
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
     service.onGameUpdate(game);
 
     expect(listener).toHaveBeenCalledWith(game);
@@ -80,6 +83,9 @@ describe('PredictLiveDataService', () => {
       type: 'football_game',
       details: { status: 'live', home_points: 7 },
     };
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
     service.onGameUpdate(game);
 
     const listener = jest.fn();
@@ -102,6 +108,9 @@ describe('PredictLiveDataService', () => {
       createClient: () => createClient([eventId]),
       venueId,
     });
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
     service.onGameUpdate({
       venueId,
       eventId,
@@ -112,6 +121,45 @@ describe('PredictLiveDataService', () => {
     messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`, venueId, [
       eventId,
     ]);
+    const listener = jest.fn();
+    messenger.subscribe(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+      listener,
+    );
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
+
+    expect(listener).not.toHaveBeenCalled();
+    service.destroy();
+  });
+
+  it('does not recache a Game from frames that arrive after the last watcher', () => {
+    const messenger = createMessenger();
+    const service = new PredictLiveDataService({
+      messenger,
+      createClient: () => createClient([eventId]),
+      venueId,
+    });
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
+    service.onGameUpdate({
+      venueId,
+      eventId,
+      type: 'football_game',
+      details: { status: 'live', home_points: 7 },
+    });
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`, venueId, [
+      eventId,
+    ]);
+    service.onGameUpdate({
+      venueId,
+      eventId,
+      type: 'football_game',
+      details: { status: 'live', home_points: 14 },
+    });
+
     const listener = jest.fn();
     messenger.subscribe(
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
@@ -156,6 +204,9 @@ describe('PredictLiveDataService', () => {
       },
     };
 
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
     service.onGameUpdate(newer);
     service.onGameUpdate(older);
 
@@ -172,6 +223,45 @@ describe('PredictLiveDataService', () => {
     ]);
 
     expect(replay).toHaveBeenCalledWith(newer);
+    service.destroy();
+  });
+
+  it('keeps the stamped Game when an unstamped frame arrives later', () => {
+    const messenger = createMessenger();
+    const service = new PredictLiveDataService({
+      messenger,
+      createClient: () => createClient(),
+      venueId,
+    });
+    const listener = jest.fn();
+    messenger.subscribe(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+      listener,
+    );
+    const stamped = {
+      venueId,
+      eventId,
+      type: 'football_game',
+      details: {
+        home_points: 21,
+        last_updated_ts: Date.parse('2026-09-08T13:00:00.000Z') / 1000,
+      },
+    };
+    const unstamped = {
+      venueId,
+      eventId,
+      type: 'football_game',
+      details: { status: 'live', home_points: 14 },
+    };
+
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
+    service.onGameUpdate(stamped);
+    service.onGameUpdate(unstamped);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledWith(stamped);
     service.destroy();
   });
 });

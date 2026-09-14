@@ -147,6 +147,26 @@ describe('PredictLiveDataClient', () => {
     expect(socket.close).toHaveBeenCalledTimes(1);
   });
 
+  it('does not forward game frames after the last watcher releases the Event', () => {
+    const onGameUpdate = jest.fn();
+    const client = createClient(onGameUpdate);
+    client.subscribe(venueId, [eventId]);
+    const socket = openAndWelcome();
+    const game = {
+      venueId,
+      eventId,
+      type: 'football_game',
+      details: { home_points: 7 },
+    };
+
+    client.unsubscribe(venueId, [eventId]);
+    onGameUpdate.mockClear();
+    socket.message({ type: 'game', game });
+    socket.message({ type: 'game_snapshot', game });
+
+    expect(onGameUpdate).not.toHaveBeenCalled();
+  });
+
   it('keeps an Event subscribed while another watcher still holds it', () => {
     const client = createClient();
     client.subscribe(venueId, [eventId]);

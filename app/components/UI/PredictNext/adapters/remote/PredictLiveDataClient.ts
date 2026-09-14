@@ -309,7 +309,9 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     }
 
     if (frame.type === 'game' || frame.type === 'game_snapshot') {
-      this.#onGameUpdate(frame.game);
+      if (this.#watchCounts.has(frame.game.eventId)) {
+        this.#onGameUpdate(frame.game);
+      }
     }
   }
 

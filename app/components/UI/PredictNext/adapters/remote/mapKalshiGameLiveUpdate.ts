@@ -50,18 +50,20 @@ const readLiveObservedAtMs = (
   return observedAt ? Date.parse(observedAt) : undefined;
 };
 
-/** True when `incoming` is strictly older than `previous` by `last_updated_ts`. */
+/** True when `incoming` must not replace `previous`. */
 export const isOlderKalshiLiveFrame = (
   incoming: Pick<PredictGameLive, 'details'>,
   previous: Pick<PredictGameLive, 'details'>,
 ): boolean => {
   const incomingMs = readLiveObservedAtMs(incoming.details);
   const previousMs = readLiveObservedAtMs(previous.details);
-  return (
-    incomingMs !== undefined &&
-    previousMs !== undefined &&
-    incomingMs < previousMs
-  );
+  if (previousMs === undefined) {
+    return false;
+  }
+  if (incomingMs === undefined) {
+    return true;
+  }
+  return incomingMs < previousMs;
 };
 
 // Live frames carry venue-native Kalshi `details` (`football_game`,
