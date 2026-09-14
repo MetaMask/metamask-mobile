@@ -168,19 +168,33 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
       selectMobileUxBftcConsolidationFlagEnabled(state);
 
     const Engine = require('../../core/Engine').default;
+    const { UserStorageController } = Engine.context;
     const isBackupAndSyncEnabled =
       state.engine?.backgroundState?.UserStorageController
         ?.isBackupAndSyncEnabled === true;
-    if (!basicFunctionalityEnabled && isBackupAndSyncEnabled) {
+    if (
+      !basicFunctionalityEnabled &&
+      isBackupAndSyncEnabled &&
+      UserStorageController
+    ) {
       const {
         BACKUPANDSYNC_FEATURES,
       } = require('@metamask/profile-sync-controller/user-storage');
-      // Backup & Sync depends on BF. Disable its master toggle before BF so a
-      // controller failure cannot persist the invalid ON/OFF combination.
-      await Engine.context.UserStorageController.setIsBackupAndSyncFeatureEnabled(
-        BACKUPANDSYNC_FEATURES.main,
-        false,
-      );
+      // Backup & Sync depends on BF, so clear its master toggle here instead of
+      // waiting for the Backup & Sync screen to mount. Turning BF off is a
+      // privacy action and must still succeed if this fails; that screen's own
+      // effect retries the cleanup.
+      try {
+        await UserStorageController.setIsBackupAndSyncFeatureEnabled(
+          BACKUPANDSYNC_FEATURES.main,
+          false,
+        );
+      } catch (error) {
+        console.error(
+          'Failed to disable Backup & Sync while turning off basic functionality:',
+          error,
+        );
+      }
     }
 
     // Persist cohort membership before flipping BF so the UI does not briefly

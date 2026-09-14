@@ -149,7 +149,7 @@ describe('toggleBasicFunctionality action', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(false));
   });
 
-  it('keeps Basic Functionality on when Backup & Sync cannot be disabled', async () => {
+  it('still turns Basic Functionality off when Backup & Sync cannot be disabled', async () => {
     const controllerError = new Error('User storage unavailable');
     mockSetIsBackupAndSyncFeatureEnabled.mockRejectedValue(controllerError);
     mockGetState.mockReturnValue({
@@ -161,14 +161,16 @@ describe('toggleBasicFunctionality action', () => {
         },
       },
     });
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
     const action = toggleBasicFunctionality(false);
 
-    await expect(action(mockDispatch, mockGetState)).rejects.toThrow(
-      controllerError,
-    );
+    await action(mockDispatch, mockGetState);
 
-    expect(mockDispatch).not.toHaveBeenCalled();
-    expect(mockSetBasicFunctionality).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(false));
+    expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
+    expect(consoleSpy).toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
   });
 
   it('handles MultichainAccountService errors gracefully', async () => {
