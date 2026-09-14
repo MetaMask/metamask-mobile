@@ -4635,8 +4635,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  perpsAbtestScreenVsBottomSheet: {
-    name: 'perpsAbtestScreenVsBottomSheet',
+  perpsTAT3938AbtestScreenVsBottomSheet: {
+    name: 'perpsTAT3938AbtestScreenVsBottomSheet',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: 'control',
