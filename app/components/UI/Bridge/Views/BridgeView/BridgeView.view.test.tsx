@@ -3,7 +3,7 @@ import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import {
   BridgeViewWithSession as BridgeView,
   renderBridgeView,
-  withBridgeSession,
+  renderBridgeViewWithTokenSelector,
 } from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -27,7 +27,6 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { FEATURE_FLAG_NAME as RWA_FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { BridgeViewMode, type BridgeToken } from '../../types';
-import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
@@ -1247,19 +1246,7 @@ describeForPlatforms('BridgeView', () => {
         .build() as unknown as Record<string, unknown>;
 
       const { getByTestId, getByText, findByText, getAllByText } =
-        renderScreenWithRoutes(
-          BridgeView as unknown as React.ComponentType,
-          { name: Routes.BRIDGE.BRIDGE_VIEW },
-          [
-            {
-              name: Routes.BRIDGE.TOKEN_SELECTOR,
-              Component: withBridgeSession(
-                BridgeTokenSelector as unknown as React.ComponentType,
-              ),
-            },
-          ],
-          { state },
-        );
+        renderBridgeViewWithTokenSelector(state);
 
       fireEvent.press(await findByText('Swap to'));
 

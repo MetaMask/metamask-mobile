@@ -1,6 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Pressable, Text } from 'react-native';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -23,18 +24,49 @@ import type { Transaction } from '@metamask/keyring-api';
 import { BridgeSessionProvider } from '../../../app/components/UI/Bridge/providers/BridgeSessionProvider';
 import { BridgeQuoteDataProvider } from '../../../app/components/UI/Bridge/hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 
+const BridgeSessionTree = ({ children }: { children: React.ReactNode }) => (
+  <BridgeSessionProvider>
+    <BridgeQuoteDataProvider>{children}</BridgeQuoteDataProvider>
+  </BridgeSessionProvider>
+);
+
 export const withBridgeSession = (Component: React.ComponentType) =>
   function BridgeViewWithSession() {
     return (
-      <BridgeSessionProvider>
-        <BridgeQuoteDataProvider>
-          <Component />
-        </BridgeQuoteDataProvider>
-      </BridgeSessionProvider>
+      <BridgeSessionTree>
+        <Component />
+      </BridgeSessionTree>
     );
   };
 
 export const BridgeViewWithSession = withBridgeSession(BridgeView);
+
+const ScreensStack = createNativeStackNavigator();
+
+const renderBridgeViewWithRoutes = (
+  extraScreens: { name: string; Component: React.ComponentType<object> }[],
+  state: DeepPartial<RootState>,
+) => {
+  const BridgeScreenStack = () => (
+    <BridgeSessionTree>
+      <ScreensStack.Navigator screenOptions={{ headerShown: false }}>
+        <ScreensStack.Screen
+          name={Routes.BRIDGE.BRIDGE_VIEW}
+          component={BridgeView}
+        />
+        {extraScreens.map(({ name, Component }) => (
+          <ScreensStack.Screen key={name} name={name} component={Component} />
+        ))}
+      </ScreensStack.Navigator>
+    </BridgeSessionTree>
+  );
+
+  return renderComponentViewScreen(
+    BridgeScreenStack,
+    { name: Routes.BRIDGE.ROOT },
+    { state },
+  );
+};
 
 interface RenderBridgeViewOptions {
   overrides?: DeepPartial<RootState>;
@@ -78,7 +110,7 @@ export function renderBridgeView(
 
 export function renderBridgeViewWithModals(
   options: RenderBridgeViewOptions = {},
-): ReturnType<typeof renderScreenWithRoutes> {
+): ReturnType<typeof renderComponentViewScreen> {
   const { overrides, deterministicFiat } = options;
   const builder = initialStateBridge({ deterministicFiat });
   if (overrides) {
@@ -86,22 +118,20 @@ export function renderBridgeViewWithModals(
   }
   const state = builder.build();
 
-  return renderScreenWithRoutes(
-    BridgeViewWithSession as unknown as React.ComponentType,
-    { name: Routes.BRIDGE.BRIDGE_VIEW },
+  return renderBridgeViewWithRoutes(
     [
       {
         name: Routes.BRIDGE.MODALS.ROOT,
         Component: BridgeModalStack,
       },
     ],
-    { state },
+    state,
   );
 }
 
 export function renderBridgeViewWithRecurringOrderDetails(
   options: RenderBridgeViewOptions = {},
-): ReturnType<typeof renderScreenWithRoutes> {
+): ReturnType<typeof renderComponentViewScreen> {
   const { overrides, deterministicFiat } = options;
   const builder = initialStateBridge({ deterministicFiat });
   if (overrides) {
@@ -109,9 +139,7 @@ export function renderBridgeViewWithRecurringOrderDetails(
   }
   const state = builder.build();
 
-  return renderScreenWithRoutes(
-    BridgeViewWithSession as unknown as React.ComponentType,
-    { name: Routes.BRIDGE.BRIDGE_VIEW },
+  return renderBridgeViewWithRoutes(
     [
       {
         name: Routes.BRIDGE.RECURRING_ORDER_DETAILS,
@@ -119,9 +147,23 @@ export function renderBridgeViewWithRecurringOrderDetails(
           RecurringOrderDetailsView as unknown as React.ComponentType<object>,
       },
     ],
-    { state },
+    state,
   );
 }
+
+export const renderBridgeViewWithTokenSelector = (
+  state: DeepPartial<RootState>,
+) =>
+  renderBridgeViewWithRoutes(
+    [
+      {
+        name: Routes.BRIDGE.TOKEN_SELECTOR,
+        Component:
+          BridgeTokenSelector as unknown as React.ComponentType<object>,
+      },
+    ],
+    state,
+  );
 
 function RecurringOrderDetailsTestEntry({
   orderId,

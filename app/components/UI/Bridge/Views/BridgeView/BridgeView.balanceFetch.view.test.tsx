@@ -1,7 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   MetaMetricsSwapsEventSource,
   RequestStatus,
@@ -12,10 +10,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { renderComponentViewScreen } from '../../../../../../tests/component-view/render';
 import {
   renderBridgeView,
+  renderBridgeViewWithModals,
   withBridgeSession,
 } from '../../../../../../tests/component-view/renderers/bridge';
-import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
-import { BridgeQuoteDataProvider } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -33,40 +30,10 @@ import { TokenWarningModalMode } from '../../components/TokenWarningModal/consta
 import { MissingPriceModal } from '../../components/MissingPriceModal';
 import { SecurityDataType } from '../../types';
 import { SwapsBannersSelectorsIDs } from '../../components/SwapsBanners/SwapsBanners.testIds';
-import BridgeView from '.';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 
 const BRIDGE_VIEW_NATIVE_SOURCE_FETCHES = 2;
 const QUOTE_MODAL_NATIVE_SOURCE_FETCHES = 1;
-
-const ModalStack = createNativeStackNavigator();
-const ScreensStack = createNativeStackNavigator();
-
-const BridgeModalsRoot = () => (
-  <ModalStack.Navigator>
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL}
-      component={TokenWarningModal}
-    />
-  </ModalStack.Navigator>
-);
-
-const BridgeViewWithTokenWarningModal = () => (
-  <BridgeSessionProvider>
-    <BridgeQuoteDataProvider>
-      <ScreensStack.Navigator>
-        <ScreensStack.Screen
-          name={Routes.BRIDGE.BRIDGE_VIEW}
-          component={BridgeView}
-        />
-        <ScreensStack.Screen
-          name={Routes.BRIDGE.MODALS.ROOT}
-          component={BridgeModalsRoot}
-        />
-      </ScreensStack.Navigator>
-    </BridgeQuoteDataProvider>
-  </BridgeSessionProvider>
-);
 
 const quotedBridgeControllerState = {
   quotes: [mockQuoteWithMetadata],
@@ -156,8 +123,9 @@ describeForPlatforms('Bridge native source balance fetches', () => {
   });
 
   it('does not fetch native source balance again when a quote modal opens over BridgeView', async () => {
-    const state = initialStateBridge({ deterministicFiat: true })
-      .withOverrides({
+    const state = renderBridgeViewWithModals({
+      deterministicFiat: true,
+      overrides: {
         bridge: {
           ...DEFAULT_BRIDGE,
           destToken: {
@@ -173,14 +141,10 @@ describeForPlatforms('Bridge native source balance fetches', () => {
             BridgeController: quotedBridgeControllerState,
           },
         },
-      } as unknown as DeepPartial<RootState>)
-      .build();
+      },
+    });
 
-    const { findByTestId, findByText, getByTestId } = renderComponentViewScreen(
-      BridgeViewWithTokenWarningModal,
-      { name: Routes.BRIDGE.ROOT },
-      { state },
-    );
+    const { findByTestId, findByText, getByTestId } = state;
 
     expect(
       await findByTestId(SwapsBannersSelectorsIDs.TOKEN_WARNING),
