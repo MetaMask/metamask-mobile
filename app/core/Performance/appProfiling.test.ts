@@ -205,6 +205,55 @@ describe('appProfiling', () => {
     expect(getLastAppProfilingError()).toContain('Hermes wrote no trace');
   });
 
+  it('propagates native start failures and records the error', async () => {
+    (Platform as { OS: typeof Platform.OS }).OS = 'android';
+    mockNativeModule({
+      startProfiling: jest
+        .fn()
+        .mockRejectedValue(new Error('sampler already enabled')),
+    });
+
+    await expect(startAppProfiling(true)).rejects.toThrow(
+      'sampler already enabled',
+    );
+    expect(isAppProfilingRecording()).toBe(false);
+    expect(getLastAppProfilingError()).toContain('sampler already enabled');
+  });
+
+  it('fails loudly on Android stop when the native module disappears mid-session', async () => {
+    (Platform as { OS: typeof Platform.OS }).OS = 'android';
+    const nativeModule = mockNativeModule();
+
+    await startAppProfiling(true);
+    expect(isAppProfilingRecording()).toBe(true);
+
+    mockGetHermesProfilerModule.mockReturnValue(null);
+
+    const path = await stopAppProfiling(true);
+
+    expect(path).toBeNull();
+    expect(isAppProfilingRecording()).toBe(false);
+    expect(getLastAppProfilingError()).toContain(
+      'MetaMaskHermesProfiler is not registered',
+    );
+    expect(Logger.error).toHaveBeenCalled();
+    expect(nativeModule.stopProfilingToAppStorage).not.toHaveBeenCalled();
+  });
+
+  it('records an error when stop returns an empty path', async () => {
+    (Platform as { OS: typeof Platform.OS }).OS = 'android';
+    mockNativeModule({
+      stopProfilingToAppStorage: jest.fn().mockResolvedValue(''),
+    });
+
+    await startAppProfiling(true);
+    const path = await stopAppProfiling(true);
+
+    expect(path).toBeNull();
+    expect(getLastAppProfilePath()).toBeNull();
+    expect(getLastAppProfilingError()).toContain('empty path');
+  });
+
   describe('initializeAppProfiling', () => {
     it('does nothing when profiling is disabled', () => {
       const nativeModule = mockNativeModule();
@@ -268,6 +317,34 @@ describe('appProfiling', () => {
 
       expect(nativeModule.stopProfilingToAppStorage).not.toHaveBeenCalled();
       expect(nativeModule.startProfiling).toHaveBeenCalledTimes(1);
+    });
+
+    it('swallows dump and re-arm failures from the background listener', async () => {
+      jest.useFakeTimers();
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      const nativeModule = mockNativeModule({
+        stopProfilingToAppStorage: jest
+          .fn()
+          .mockRejectedValue(new Error('dump failed')),
+        startProfiling: jest
+          .fn()
+          .mockResolvedValueOnce(true)
+          .mockRejectedValueOnce(new Error('re-arm failed')),
+      });
+      const getListener = captureAppStateListener();
+
+      initializeAppProfiling(true);
+      await flushPromises();
+      expect(isAppProfilingRecording()).toBe(true);
+
+      getListener()('background');
+      jest.advanceTimersByTime(500);
+      await flushPromises();
+
+      // Lifecycle callbacks must not throw; failures stay in lastError.
+      expect(nativeModule.stopProfilingToAppStorage).toHaveBeenCalledTimes(1);
+      expect(getLastAppProfilingError()).toContain('re-arm failed');
+      expect(isAppProfilingRecording()).toBe(false);
     });
 
     it('ignores transitions other than background', async () => {
