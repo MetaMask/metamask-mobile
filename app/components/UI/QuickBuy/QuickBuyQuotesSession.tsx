@@ -1,0 +1,62 @@
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import type { FeatureId } from '@metamask/bridge-controller';
+
+import { BridgeSessionContext } from '../Bridge/providers/BridgeSessionProvider';
+import { SwapsFeatureIdProvider } from '../Bridge/providers/SwapsFeatureIdProvider';
+import { BridgeTabKey } from '../Bridge/Views/BridgeView/BridgeView.constants';
+import type { buildGenericQuoteRequest } from '../Bridge/providers/SwapQuotesProvider/utils';
+
+const EMPTY_QUOTE_PARAMS: Parameters<
+  typeof buildGenericQuoteRequest
+>[0]['quoteParams'] = {
+  srcToken: undefined,
+  destToken: undefined,
+  srcAmount: undefined,
+  slippage: undefined,
+  walletAddress: undefined,
+  destWalletAddress: undefined,
+};
+
+const SetQuoteParamsContext = createContext<
+  | ((
+      next: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'],
+    ) => void)
+  | null
+>(null);
+
+export const useSetQuickBuyQuoteParams = () => {
+  const setQuoteParams = useContext(SetQuoteParamsContext);
+  return setQuoteParams ?? (() => undefined);
+};
+
+export const QuickBuyQuotesSession = ({
+  featureId,
+  children,
+}: {
+  featureId: FeatureId;
+  children: React.ReactNode;
+}) => {
+  const [quoteParams, setQuoteParams] = useState(EMPTY_QUOTE_PARAMS);
+
+  const value = useMemo(
+    () => ({
+      selectedTab: BridgeTabKey.Market,
+      renderedTab: BridgeTabKey.Market,
+      setSelectedTab: () => undefined,
+      setRenderedTab: () => undefined,
+      latestSourceBalance: undefined,
+      quoteParams,
+    }),
+    [quoteParams],
+  );
+
+  return (
+    <BridgeSessionContext.Provider value={value}>
+      <SetQuoteParamsContext.Provider value={setQuoteParams}>
+        <SwapsFeatureIdProvider featureId={featureId}>
+          {children}
+        </SwapsFeatureIdProvider>
+      </SetQuoteParamsContext.Provider>
+    </BridgeSessionContext.Provider>
+  );
+};
