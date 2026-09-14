@@ -246,6 +246,11 @@ Rules:
 - Literal segment: exact `Abtest`
 - Test name: PascalCase semantic name, for example `ButtonColor`
 
+Exception: a long-lived experiment reused by multiple tickets may omit the ticket
+ID when a single ticket-keyed name would be misleading. Document the exception
+next to the flag. The current example is `perpsAbtestScreenVsBottomSheet` in
+[`docs/perps/perps-ab-testing.md`](./perps/perps-ab-testing.md).
+
 ### Flag value
 
 Create a JSON flag and use the threshold array format:

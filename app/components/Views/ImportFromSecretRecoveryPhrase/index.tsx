@@ -121,10 +121,7 @@ import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
-import {
-  selectQrSyncImportMnemonic,
-  selectQrSyncPrimaryMnemonic,
-} from '../../../selectors/qrSyncController';
+import { selectQrSyncImportMnemonic } from '../../../selectors/qrSyncController';
 import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
@@ -241,9 +238,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     >();
   const dispatch = useDispatch();
   const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
-  const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
-  const qrSyncImportMnemonic = useSelector(selectQrSyncImportMnemonic);
-  const qrSyncMnemonic = qrSyncImportMnemonic ?? qrSyncPrimaryMnemonic;
+  const qrSyncMnemonic = useSelector(selectQrSyncImportMnemonic);
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
