@@ -50,6 +50,7 @@ export class PredictLiveDataService {
   readonly #messenger: PredictLiveDataServiceMessenger;
   readonly #client: PredictLiveDataTransport;
   readonly #venueId: PredictVenueId;
+  readonly #games = new Map<PredictEntityId, PredictGameLive>();
 
   constructor({ messenger, client, venueId }: PredictLiveDataServiceOptions) {
     this.#messenger = messenger;
@@ -72,6 +73,16 @@ export class PredictLiveDataService {
   ): void {
     this.#assertVenue(venueId);
     this.#client.subscribe(venueId, eventIds);
+
+    // The Venue only sends a snapshot when an Event is first subscribed, so a
+    // screen opened over an existing watcher would otherwise render the stale
+    // read-model Game until the next update.
+    eventIds.forEach((eventId) => {
+      const game = this.#games.get(eventId);
+      if (game) {
+        this.#messenger.publish('PredictLiveDataService:gameLiveUpdated', game);
+      }
+    });
   }
 
   unwatchGames(
@@ -79,13 +90,16 @@ export class PredictLiveDataService {
     eventIds: readonly PredictEntityId[],
   ): void {
     this.#assertVenue(venueId);
-    this.#client.unsubscribe(venueId, eventIds);
+    this.#client
+      .unsubscribe(venueId, eventIds)
+      .forEach((eventId) => this.#games.delete(eventId));
   }
 
   onGameUpdate(game: PredictGameLive): void {
     if (game.venueId !== this.#venueId) {
       return;
     }
+    this.#games.set(game.eventId, game);
     this.#messenger.publish('PredictLiveDataService:gameLiveUpdated', game);
   }
 
@@ -96,6 +110,7 @@ export class PredictLiveDataService {
     this.#messenger.unregisterActionHandler(
       'PredictLiveDataService:unwatchGames',
     );
+    this.#games.clear();
     this.#client.destroy();
   }
 

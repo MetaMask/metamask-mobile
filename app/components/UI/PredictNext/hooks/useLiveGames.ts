@@ -26,6 +26,10 @@ export const useLiveGames = (
         return;
       }
       setUpdates((current) => {
+        if (current.get(live.eventId) === live) {
+          return current;
+        }
+
         const next = new Map(current);
         next.set(live.eventId, live);
         return next;

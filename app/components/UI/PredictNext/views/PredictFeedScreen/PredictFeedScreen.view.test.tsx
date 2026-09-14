@@ -1,5 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictFeedScreen } from '../../../../../../tests/component-view/renderers/predictNext';
+import { publishPredictNextGameLiveUpdate } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, within } from '@testing-library/react-native';
 import {
@@ -99,6 +100,11 @@ type FeedResponse =
   | ((cursor?: string) => FeedResponseValue);
 
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
+
+const getFeedCalls = () =>
+  messengerCall.mock.calls.filter(
+    ([action]) => action === 'PredictMarketDataService:getFeed',
+  );
 
 const configureFeeds = (feeds: Partial<Record<string, FeedResponse>> = {}) => {
   messengerCall.mockImplementation(
@@ -284,7 +290,7 @@ describe('PredictFeedScreen', () => {
         PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
       ),
     ).toBeOnTheScreen();
-    expect(messengerCall.mock.calls).toHaveLength(3);
+    expect(getFeedCalls()).toHaveLength(3);
   });
 
   it('keeps the loaded Feed when the selected tab is pressed again', async () => {
@@ -305,7 +311,7 @@ describe('PredictFeedScreen', () => {
     expect(
       view.queryByTestId(PredictFeedScreenTestIds.LOADING),
     ).not.toBeOnTheScreen();
-    expect(messengerCall).toHaveBeenCalledTimes(1);
+    expect(getFeedCalls()).toHaveLength(1);
   });
 
   it('shows loading and then renders the loaded Events', async () => {
@@ -499,5 +505,74 @@ describe('PredictFeedScreen', () => {
     ).toBeOnTheScreen();
     expect(within(propsCard).getByText('Sports')).toBeOnTheScreen();
     expect(within(propsCard).getByText('$1.5M Vol')).toBeOnTheScreen();
+  });
+
+  it('applies live Game updates to a Feed card', async () => {
+    configureFeeds({ [NFL_GAMES_FEED_ID]: [gameEvent] });
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+    await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
+    );
+
+    act(() => {
+      publishPredictNextGameLiveUpdate({
+        venueId: KALSHI_VENUE_ID,
+        eventId: gameEvent.id,
+        type: 'football_game',
+        details: {
+          status: 'live',
+          away_points: 28,
+          home_points: 24,
+          quarter: 4,
+          clock: '01:12',
+        },
+      });
+    });
+
+    const card = within(
+      view.getByTestId(PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id)),
+    );
+    expect(card.getByText('28')).toBeOnTheScreen();
+    expect(card.getByText('24')).toBeOnTheScreen();
+    expect(card.getByText('Q4 · 01:12')).toBeOnTheScreen();
+  });
+
+  it('watches only the Events on the active tab', async () => {
+    configureFeeds({
+      [NFL_GAMES_FEED_ID]: [gameEvent],
+      [NFL_WIN_TOTALS_FEED_ID]: [propsEvent],
+    });
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+    await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
+    );
+
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictLiveDataService:watchGames',
+      KALSHI_VENUE_ID,
+      [gameEvent.id],
+    );
+
+    fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab('props')));
+    await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
+    );
+
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictLiveDataService:unwatchGames',
+      KALSHI_VENUE_ID,
+      [gameEvent.id],
+    );
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictLiveDataService:watchGames',
+      KALSHI_VENUE_ID,
+      [propsEvent.id],
+    );
   });
 });

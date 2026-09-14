@@ -372,7 +372,6 @@ import type {
   UiSlotsControllerEvents,
   UiSlotsControllerState,
 } from './controllers/ui-slots-controller/types';
-import { PredictNextController } from '../../components/UI/PredictNext/controller/PredictNextController';
 import type {
   PredictLiveDataService,
   PredictLiveDataServiceActions,

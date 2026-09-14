@@ -4,6 +4,7 @@ import {
   makePredictNextMultiMarketEvent,
   makePredictNextSpreadsEvent,
   makePredictNextTotalsEvent,
+  publishPredictNextGameLiveUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import { renderPredictEventScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
@@ -1485,6 +1486,58 @@ describe('PredictEventScreen', () => {
         PredictEventScreenTestIds.teamLogoFallback('home'),
       ),
     ).toHaveTextContent('CAR');
+  });
+
+  it('applies live Game updates to the Event header', async () => {
+    resolveEvent(createGameEvent());
+    const view = renderPredictEventScreen(routeParams);
+    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
+
+    act(() => {
+      publishPredictNextGameLiveUpdate({
+        venueId,
+        eventId,
+        type: 'football_game',
+        details: {
+          status: 'live',
+          away_points: 28,
+          home_points: 24,
+          quarter: 4,
+          clock: '01:12',
+        },
+      });
+    });
+
+    const header = view.getByTestId(PredictEventScreenTestIds.GAME_HEADER);
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamScore('away')),
+    ).toHaveTextContent('28');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.teamScore('home')),
+    ).toHaveTextContent('24');
+    expect(
+      within(header).getByTestId(PredictEventScreenTestIds.GAME_METADATA),
+    ).toHaveTextContent('Q4 · 01:12');
+  });
+
+  it('watches the Event for live Game updates and stops on unmount', async () => {
+    resolveEvent(createGameEvent());
+    const view = renderPredictEventScreen(routeParams);
+    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
+
+    expectMessengerCalledWith(
+      'PredictLiveDataService:watchGames',
+      venueId,
+      [eventId],
+    );
+
+    view.unmount();
+
+    expectMessengerCalledWith(
+      'PredictLiveDataService:unwatchGames',
+      venueId,
+      [eventId],
+    );
   });
 
   it('renders a completed Game as final with its observed metadata', async () => {

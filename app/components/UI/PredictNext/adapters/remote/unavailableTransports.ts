@@ -21,6 +21,6 @@ export const unavailableReadTransport: PredictApiReadTransport = {
 /** Live transport for builds without a Predict API URL. */
 export const unavailableLiveTransport: PredictLiveDataTransport = {
   subscribe: () => undefined,
-  unsubscribe: () => undefined,
+  unsubscribe: () => [],
   destroy: () => undefined,
 };

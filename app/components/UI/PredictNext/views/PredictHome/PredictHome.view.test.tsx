@@ -7,7 +7,11 @@ import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.t
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
-import type { PredictFeedId } from '../../types';
+import type {
+  PredictEntityId,
+  PredictFeedId,
+  PredictVenueId,
+} from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import {
   NCAA_GAMES_FEED_ID,
@@ -22,6 +26,7 @@ import {
   messengerCall,
   ncaaEvents,
   nflEvents,
+  publishPredictNextGameLiveUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
 describe('PredictHome', () => {
@@ -116,21 +121,6 @@ describe('PredictHome', () => {
   });
 
   it('renders live game updates received for a Home Event', async () => {
-    let onGameUpdate:
-      | ((game: {
-          venueId: string;
-          eventId: string;
-          type: string;
-          details: Record<string, unknown>;
-        }) => void)
-      | undefined;
-    (
-      Engine.controllerMessenger.subscribe as unknown as jest.Mock
-    ).mockImplementation((eventName: string, listener: typeof onGameUpdate) => {
-      if (eventName === 'PredictLiveDataService:gameLiveUpdated') {
-        onGameUpdate = listener;
-      }
-    });
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
     const nflSection = await view.findByTestId(
@@ -138,9 +128,9 @@ describe('PredictHome', () => {
     );
 
     act(() => {
-      onGameUpdate?.({
-        venueId: 'kalshi',
-        eventId: 'nfl-1',
+      publishPredictNextGameLiveUpdate({
+        venueId: 'kalshi' as PredictVenueId,
+        eventId: 'nfl-1' as PredictEntityId,
         type: 'football_game',
         details: {
           status: 'live',

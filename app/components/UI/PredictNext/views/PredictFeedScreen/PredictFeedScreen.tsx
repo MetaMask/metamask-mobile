@@ -20,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useFeed } from '../../hooks/useFeed';
+import { useLiveGames } from '../../hooks/useLiveGames';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import {
   getFeedScreen,
@@ -107,10 +108,11 @@ const PredictFeedContent = ({
     isLoading,
     refetch,
   } = useFeed(venueId, activeTab.feedId, FEED_PARAMS);
-  const events = useMemo(
+  const feedEvents = useMemo(
     () => data?.pages.flatMap((page) => page.events) ?? [],
     [data],
   );
+  const events = useLiveGames(venueId, feedEvents);
   const hasInitialError = isError && events.length === 0;
 
   usePredictNextMeasurement({

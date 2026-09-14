@@ -22,10 +22,11 @@ export interface PredictLiveDataTransport {
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
   ): void;
+  /** Returns the Event ids no watcher holds anymore. */
   unsubscribe(
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
-  ): void;
+  ): readonly PredictEntityId[];
   destroy(): void;
 }
 
@@ -33,8 +34,11 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   readonly #url: string;
   readonly #WebSocket: WebSocketConstructor;
   readonly #onGameUpdate: (game: PredictGameLive) => void;
-  readonly #eventIds = new Set<PredictEntityId>();
+  // Screens watch overlapping Events, so each id is held until its last
+  // watcher releases it.
+  readonly #watchCounts = new Map<PredictEntityId, number>();
   #socket?: WebSocket;
+  #venueId?: PredictVenueId;
   #welcomed = false;
 
   constructor({
@@ -54,14 +58,22 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
   ): void {
-    const fresh = eventIds.filter((eventId) => !this.#eventIds.has(eventId));
-    fresh.forEach((eventId) => this.#eventIds.add(eventId));
-    if (fresh.length === 0) {
+    this.#venueId = venueId;
+    const fresh: PredictEntityId[] = [];
+    eventIds.forEach((eventId) => {
+      const held = this.#watchCounts.get(eventId) ?? 0;
+      this.#watchCounts.set(eventId, held + 1);
+      if (held === 0) {
+        fresh.push(eventId);
+      }
+    });
+
+    if (!this.#socket) {
+      this.#connect();
       return;
     }
 
-    if (!this.#socket) {
-      this.#connect(venueId);
+    if (fresh.length === 0) {
       return;
     }
 
@@ -73,19 +85,37 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   unsubscribe(
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
-  ): void {
-    const held = eventIds.filter((eventId) => this.#eventIds.delete(eventId));
-    if (held.length > 0 && this.#welcomed) {
-      this.#sendSubscription('unsubscribe', venueId, held);
+  ): readonly PredictEntityId[] {
+    const released: PredictEntityId[] = [];
+    eventIds.forEach((eventId) => {
+      const held = this.#watchCounts.get(eventId);
+      if (held === undefined) {
+        return;
+      }
+
+      if (held > 1) {
+        this.#watchCounts.set(eventId, held - 1);
+        return;
+      }
+
+      this.#watchCounts.delete(eventId);
+      released.push(eventId);
+    });
+
+    if (released.length > 0 && this.#welcomed) {
+      this.#sendSubscription('unsubscribe', venueId, released);
     }
-    if (this.#eventIds.size === 0) {
+    if (this.#watchCounts.size === 0) {
       this.disconnect();
     }
+
+    return released;
   }
 
   disconnect(): void {
-    this.#eventIds.clear();
+    this.#watchCounts.clear();
     this.#welcomed = false;
+    this.#venueId = undefined;
     this.#socket?.close();
     this.#socket = undefined;
   }
@@ -94,7 +124,12 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     this.disconnect();
   }
 
-  #connect(venueId: PredictVenueId): void {
+  #connect(): void {
+    const venueId = this.#venueId;
+    if (!venueId || this.#socket) {
+      return;
+    }
+
     const socket = new this.#WebSocket(this.#url);
     this.#socket = socket;
 
@@ -116,9 +151,14 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       }
     };
     socket.onclose = () => {
-      if (this.#socket === socket) {
-        this.#socket = undefined;
-        this.#welcomed = false;
+      if (this.#socket !== socket) {
+        return;
+      }
+
+      this.#socket = undefined;
+      this.#welcomed = false;
+      if (this.#watchCounts.size > 0) {
+        this.#connect();
       }
     };
   }
@@ -133,7 +173,9 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
         return;
       }
       this.#welcomed = true;
-      this.#sendSubscription('subscribe', venueId, [...this.#eventIds]);
+      this.#sendSubscription('subscribe', venueId, [
+        ...this.#watchCounts.keys(),
+      ]);
       return;
     }
 

@@ -26,6 +26,7 @@ class MockWebSocket {
   send = jest.fn();
   close = jest.fn(() => {
     this.readyState = 3;
+    this.onclose?.();
   });
 
   constructor(url: string) {
@@ -105,6 +106,77 @@ describe('PredictLiveDataClient', () => {
       }),
     );
     expect(socket.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps an Event subscribed while another watcher still holds it', () => {
+    const client = new PredictLiveDataClient({
+      baseUrl: 'http://localhost:3333',
+      WebSocket: MockWebSocket as unknown as typeof WebSocket,
+      onGameUpdate: jest.fn(),
+    });
+    client.subscribe(venueId, [eventId]);
+    const socket = MockWebSocket.instances[0];
+    socket.open();
+    socket.message(welcomeFrame);
+    socket.send.mockClear();
+
+    client.subscribe(venueId, [eventId]);
+    const released = client.unsubscribe(venueId, [eventId]);
+
+    expect(released).toEqual([]);
+    expect(socket.send).not.toHaveBeenCalled();
+    expect(socket.close).not.toHaveBeenCalled();
+
+    expect(client.unsubscribe(venueId, [eventId])).toEqual([eventId]);
+    expect(socket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'unsubscribe',
+        topic: 'game',
+        venueId,
+        events: [eventId],
+      }),
+    );
+    expect(socket.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('reconnects and resubscribes after the socket closes while Events are still watched', () => {
+    const client = new PredictLiveDataClient({
+      baseUrl: 'http://localhost:3333',
+      WebSocket: MockWebSocket as unknown as typeof WebSocket,
+      onGameUpdate: jest.fn(),
+    });
+    client.subscribe(venueId, [eventId]);
+    const socket = MockWebSocket.instances[0];
+    socket.open();
+    socket.message(welcomeFrame);
+
+    socket.onclose?.();
+    const nextSocket = MockWebSocket.instances[1];
+    nextSocket.open();
+    nextSocket.message(welcomeFrame);
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+    expect(nextSocket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'subscribe',
+        topic: 'game',
+        venueId,
+        events: [eventId],
+      }),
+    );
+  });
+
+  it('does not open a new socket after disconnect', () => {
+    const client = new PredictLiveDataClient({
+      baseUrl: 'http://localhost:3333',
+      WebSocket: MockWebSocket as unknown as typeof WebSocket,
+      onGameUpdate: jest.fn(),
+    });
+    client.subscribe(venueId, [eventId]);
+
+    client.disconnect();
+
+    expect(MockWebSocket.instances).toHaveLength(1);
   });
 
   it('ignores malformed frames', () => {

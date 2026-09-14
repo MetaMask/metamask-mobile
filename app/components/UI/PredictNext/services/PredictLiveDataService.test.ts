@@ -13,10 +13,10 @@ const eventId = 'KXTEST-EVENT' as PredictEntityId;
 const createMessenger = (): PredictLiveDataServiceMessenger =>
   new Messenger({ namespace: PREDICT_LIVE_DATA_SERVICE_NAME });
 
-const createClient = () =>
+const createClient = (released: readonly PredictEntityId[] = []) =>
   ({
     subscribe: jest.fn(),
-    unsubscribe: jest.fn(),
+    unsubscribe: jest.fn(() => released),
     destroy: jest.fn(),
   }) as unknown as PredictLiveDataClient;
 
@@ -64,6 +64,64 @@ describe('PredictLiveDataService', () => {
     service.onGameUpdate(game);
 
     expect(listener).toHaveBeenCalledWith(game);
+    service.destroy();
+  });
+
+  it('replays the last known Game to a watcher that arrives after the snapshot', () => {
+    const messenger = createMessenger();
+    const service = new PredictLiveDataService({
+      messenger,
+      client: createClient(),
+      venueId,
+    });
+    const game = {
+      venueId,
+      eventId,
+      type: 'football_game',
+      details: { status: 'live', home_points: 7 },
+    };
+    service.onGameUpdate(game);
+
+    const listener = jest.fn();
+    messenger.subscribe(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+      listener,
+    );
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
+
+    expect(listener).toHaveBeenCalledWith(game);
+    service.destroy();
+  });
+
+  it('drops the cached Game once its last watcher releases it', () => {
+    const messenger = createMessenger();
+    const service = new PredictLiveDataService({
+      messenger,
+      client: createClient([eventId]),
+      venueId,
+    });
+    service.onGameUpdate({
+      venueId,
+      eventId,
+      type: 'football_game',
+      details: { status: 'live' },
+    });
+
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`, venueId, [
+      eventId,
+    ]);
+    const listener = jest.fn();
+    messenger.subscribe(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+      listener,
+    );
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
+
+    expect(listener).not.toHaveBeenCalled();
     service.destroy();
   });
 });
