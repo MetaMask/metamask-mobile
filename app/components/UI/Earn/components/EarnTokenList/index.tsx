@@ -53,7 +53,7 @@ import BN4 from 'bnjs4';
 import {
   sortByHighestBalance,
   sortByHighestRewards,
-  truncateNumber,
+  formatEarnRatePercentage,
 } from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
@@ -314,7 +314,8 @@ const EarnTokenList = () => {
   const renderTokenItem = ({ item }: { item: EarnTokenDetails }) => {
     const onItemPressScreen = params?.onItemPressScreen;
     const tokenApr = getTokenApr(item);
-    const formattedApr = tokenApr > 0 ? truncateNumber(tokenApr) : tokenApr;
+    const formattedApr =
+      tokenApr > 0 ? formatEarnRatePercentage(tokenApr) : tokenApr;
 
     return (
       <View style={styles.listItemContainer}>
