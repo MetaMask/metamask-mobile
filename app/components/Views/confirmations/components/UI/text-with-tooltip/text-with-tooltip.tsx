@@ -1,5 +1,11 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Modal, StyleProp, TextStyle, TouchableOpacity, View } from 'react-native';
+import {
+  Modal,
+  StyleProp,
+  TextStyle,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
 import {

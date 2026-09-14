@@ -149,7 +149,9 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
                 size={ButtonSize.Lg}
                 variant={ButtonVariant.Secondary}
                 isFullWidth
-                testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CANCEL_BUTTON}
+                testID={
+                  ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CANCEL_BUTTON
+                }
               >
                 {strings('confirm.cancel')}
               </Button>
