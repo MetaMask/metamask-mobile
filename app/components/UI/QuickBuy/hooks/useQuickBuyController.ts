@@ -3,6 +3,7 @@ import {
   formatChainIdToCaip,
   getNativeAssetForChainId,
   sumAmounts,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
 import {
@@ -55,10 +56,6 @@ import { useDestTokenExchangeRate } from './useDestTokenExchangeRate';
 import { usePayWithTokens } from './usePayWithTokens';
 import { usePositionTokenBalance } from './usePositionTokenBalance';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
-import {
-  useQuickBuyQuotes,
-  type EnrichedQuickBuyQuote,
-} from './useQuickBuyQuotes';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useReceiveTokens } from './useReceiveTokens';
 import I18n, { strings } from '../../../../../locales/i18n';
@@ -137,7 +134,7 @@ export interface UseQuickBuyControllerResult {
   /** True when the user holds a non-zero balance of the position token (sell is viable). */
   hasSellableBalance: boolean;
   // active quote (for QuoteDetails sub-screen)
-  activeQuote: EnrichedQuickBuyQuote | undefined;
+  activeQuote: QuoteResponse | undefined;
   // setup
   destToken: BridgeToken | undefined;
   isSetupLoading: boolean;
@@ -202,7 +199,7 @@ export interface UseQuickBuyControllerResult {
   isSubmittingTx: boolean;
   isTotalLoading: boolean;
   // all quotes for the select-quote screen
-  sortedQuotes: EnrichedQuickBuyQuote[];
+  sortedQuotes: QuoteResponse[];
   selectedQuoteRequestId: string | undefined;
   setSelectedQuoteRequestId: React.Dispatch<
     React.SetStateAction<string | undefined>
@@ -739,13 +736,6 @@ export function useQuickBuyController(
     }
   }, [sourceTokenAmount, dispatch]);
 
-  // Used for analytics passed to useQuickBuyQuotes. Must derive from
-  // quotedFiatAmount (not fiatAmount) so that mid-drag display updates don't
-  // recreate quotesAnalyticsContext and trigger spurious quote re-fetches.
-  const quotedFiatAmountNumber = useMemo(() => {
-    const v = Number(quotedFiatAmount);
-    return Number.isFinite(v) ? v : 0;
-  }, [quotedFiatAmount]);
   // Derives from fiatAmount for handleConfirm (the confirm button is disabled
   // when fiatAmount !== quotedFiatAmount, so by the time confirm is pressed they
   // are always equal — keeping separate avoids recreating handleConfirm on
@@ -754,36 +744,9 @@ export function useQuickBuyController(
     const v = Number(fiatAmount);
     return Number.isFinite(v) ? v : 0;
   }, [fiatAmount]);
-  // `amount_usd` analytics is contractually USD; the committed amount is in the
-  // user's display currency, so convert before it leaves for analytics.
-  const quotedAmountUsd = useMemo(
-    () => toAmountUsd(quotedFiatAmountNumber),
-    [toAmountUsd, quotedFiatAmountNumber],
-  );
-  const quotesAnalyticsContext = useMemo(
-    () => ({
-      traderAddress,
-      caip19,
-      amountUsd: quotedAmountUsd,
-      source: analyticsContext?.source,
-      originalEntryPoint: analyticsContext?.originalEntryPoint,
-    }),
-    [
-      traderAddress,
-      caip19,
-      quotedAmountUsd,
-      analyticsContext?.source,
-      analyticsContext?.originalEntryPoint,
-    ],
-  );
-
-  // When a buy pill exceeds balance the CTA routes to Ramp (Add funds) and no
-  // quote is ever used, so suppress the amount fed to the quotes hook. Passing
-  // undefined makes useQuickBuyQuotes short-circuit via its `!sourceTokenAmount`
-  // guard (resetQuotesIdle) — no bridge request and no blocking loading state,
-  // so the Add funds button is actionable immediately. The exported
-  // `sourceTokenAmount` is intentionally left untouched (still drives balance
-  // checks, the redux dispatch, and display).
+  // When a buy pill exceeds balance the CTA routes to Ramp. Suppress the
+  // amount so SwapQuotes does not start a request. The exported
+  // `sourceTokenAmount` still drives balance checks, redux, and display.
   const quotesSourceTokenAmount = isPresetAddFundsMode
     ? undefined
     : sourceTokenAmount;
@@ -818,58 +781,6 @@ export function useQuickBuyController(
   ]);
 
   const maybeSwapQuotes = useSwapQuotes();
-  const swapQuotes = maybeSwapQuotes
-    ? {
-        activeQuote: maybeSwapQuotes.activeQuote,
-        sortedQuotes: maybeSwapQuotes.validQuotes,
-        destTokenAmount: maybeSwapQuotes.destTokenAmount,
-        isQuoteLoading: maybeSwapQuotes.isLoading,
-        isNoQuotesAvailable: maybeSwapQuotes.isNoQuotesAvailable,
-        quoteFetchError: maybeSwapQuotes.quoteFetchError,
-        isActiveQuoteForCurrentTokenPair:
-          maybeSwapQuotes.isActiveQuoteForCurrentTokenPair,
-        isQuoteRequestStale:
-          maybeSwapQuotes.isExpired || maybeSwapQuotes.needsNewQuote,
-        quotesLastFetchedAt: maybeSwapQuotes.quotesLastFetched ?? null,
-        refreshCount: maybeSwapQuotes.quotesRefreshCount,
-        quoteRefreshRateMs: undefined,
-        maxRefreshCount: undefined,
-        refetchQuotes: maybeSwapQuotes.refreshQuotes,
-        formattedQuoteData: maybeSwapQuotes.formattedQuoteData,
-        shouldShowPriceImpactWarning:
-          maybeSwapQuotes.shouldShowPriceImpactWarning,
-      }
-    : undefined;
-
-  const prevImmediateFetchTokenRef = useRef(immediateFetchToken);
-  const flushQuoteParams = maybeSwapQuotes?.debouncedUpdateQuoteParams;
-  useEffect(() => {
-    if (!flushQuoteParams) {
-      return;
-    }
-    if (prevImmediateFetchTokenRef.current === immediateFetchToken) {
-      return;
-    }
-    prevImmediateFetchTokenRef.current = immediateFetchToken;
-    flushQuoteParams.flush();
-  }, [flushQuoteParams, immediateFetchToken]);
-  const quickBuyQuotes = useQuickBuyQuotes({
-    sourceToken,
-    destToken,
-    sourceTokenAmount: maybeSwapQuotes ? undefined : quotesSourceTokenAmount,
-    analyticsContext: quotesAnalyticsContext,
-    selectedQuoteRequestId,
-    immediateFetchToken,
-  });
-
-  const isSwapProviderActive = Boolean(swapQuotes);
-
-  const swapQuotesToUse = swapQuotes ?? {
-    ...quickBuyQuotes,
-    formattedQuoteData: undefined,
-    shouldShowPriceImpactWarning: undefined,
-  };
-
   const {
     activeQuote,
     sortedQuotes,
@@ -885,34 +796,54 @@ export function useQuickBuyController(
     maxRefreshCount,
     refetchQuotes,
     formattedQuoteData,
-  } = swapQuotesToUse;
+  } = maybeSwapQuotes
+    ? {
+        activeQuote: maybeSwapQuotes.activeQuote ?? undefined,
+        sortedQuotes: maybeSwapQuotes.validQuotes,
+        destTokenAmount: maybeSwapQuotes.destTokenAmount,
+        isQuoteLoading: maybeSwapQuotes.isLoading,
+        isNoQuotesAvailable: maybeSwapQuotes.isNoQuotesAvailable,
+        quoteFetchError: maybeSwapQuotes.quoteFetchError,
+        isActiveQuoteForCurrentTokenPair:
+          maybeSwapQuotes.isActiveQuoteForCurrentTokenPair,
+        isQuoteRequestStale:
+          maybeSwapQuotes.isExpired || maybeSwapQuotes.needsNewQuote,
+        quotesLastFetchedAt: maybeSwapQuotes.quotesLastFetched ?? null,
+        refreshCount: maybeSwapQuotes.quotesRefreshCount ?? 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: maybeSwapQuotes.refreshQuotes,
+        formattedQuoteData: maybeSwapQuotes.formattedQuoteData,
+      }
+    : {
+        activeQuote: undefined,
+        sortedQuotes: [] as QuoteResponse[],
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: () => undefined,
+        formattedQuoteData: undefined,
+      };
 
-  // Reset manual quote selection whenever the user changes amount, token, or slippage.
+  const prevImmediateFetchTokenRef = useRef(immediateFetchToken);
+  const flushQuoteParams = maybeSwapQuotes?.debouncedUpdateQuoteParams;
   useEffect(() => {
-    if (isSwapProviderActive) {
+    if (!flushQuoteParams) {
       return;
     }
-    setSelectedQuoteRequestId(undefined);
-  }, [
-    sourceToken,
-    destToken,
-    sourceTokenAmount,
-    slippage,
-    isSwapProviderActive,
-  ]);
-
-  // Each fetch (including auto-refresh) returns quotes with new requestIds.
-  useEffect(() => {
-    if (!selectedQuoteRequestId || isSwapProviderActive) {
+    if (prevImmediateFetchTokenRef.current === immediateFetchToken) {
       return;
     }
-    const hasMatchingQuote = sortedQuotes.some(
-      (quote) => quote.quote.requestId === selectedQuoteRequestId,
-    );
-    if (!hasMatchingQuote) {
-      setSelectedQuoteRequestId(undefined);
-    }
-  }, [selectedQuoteRequestId, sortedQuotes, isSwapProviderActive]);
+    prevImmediateFetchTokenRef.current = immediateFetchToken;
+    flushQuoteParams.flush();
+  }, [flushQuoteParams, immediateFetchToken]);
 
   const handleSelectQuote = useCallback(
     (requestId: string) => {
@@ -956,8 +887,9 @@ export function useQuickBuyController(
     return null;
   }, [activeQuote]);
 
+  const rawNetworkFee = formattedQuoteData?.networkFee ?? networkFeeFiat;
   const formattedNetworkFee =
-    formattedQuoteData?.networkFee ?? networkFeeFiat ?? null;
+    rawNetworkFee == null ? '' : String(rawNetworkFee);
 
   const formattedSlippage = useMemo(() => {
     if (slippage == null) return 'Auto';

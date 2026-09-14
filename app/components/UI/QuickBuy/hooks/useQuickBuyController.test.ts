@@ -65,12 +65,8 @@ jest.mock('./useDestTokenExchangeRate', () => ({
   useDestTokenExchangeRate: jest.fn(),
 }));
 
-jest.mock('./useQuickBuyQuotes', () => ({
-  useQuickBuyQuotes: jest.fn(),
-}));
-
 jest.mock('../../Bridge/hooks/useSwapQuotes', () => ({
-  useSwapQuotes: jest.fn(() => null),
+  useSwapQuotes: jest.fn(),
 }));
 
 jest.mock('../../Bridge/providers/SwapQuotesProvider', () => {
