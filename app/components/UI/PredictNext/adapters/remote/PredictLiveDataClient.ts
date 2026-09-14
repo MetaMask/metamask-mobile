@@ -1,3 +1,4 @@
+import { AppState, type AppStateStatus } from 'react-native';
 import Logger from '../../../../../util/Logger';
 import {
   parsePredictLiveDataServerFrame,
@@ -18,10 +19,12 @@ export const PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_MESSAGE = 100;
 
 type WebSocketConstructor = typeof WebSocket;
 type TimerId = ReturnType<typeof setTimeout>;
+type AppStateApi = Pick<typeof AppState, 'addEventListener'>;
 
 export interface PredictLiveDataClientOptions {
   baseUrl?: string;
   WebSocket?: WebSocketConstructor;
+  AppState?: AppStateApi;
   onGameUpdate: (game: PredictGameLive) => void;
 }
 
@@ -74,22 +77,29 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #venueId?: PredictVenueId;
   #welcomed = false;
   #protocolRejected = false;
+  #suspended = false;
   #loggedMissingUrl = false;
   #loggedReconnectCap = false;
   #reconnectAttempts = 0;
   #reconnectTimer?: TimerId;
   #lingerTimer?: TimerId;
+  #appStateSubscription?: { remove: () => void };
   #gameMaxPerConnection = PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION;
   #gameMaxPerMessage = PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_MESSAGE;
 
   constructor({
     baseUrl,
     WebSocket: WebSocketImpl = global.WebSocket,
+    AppState: AppStateImpl = AppState,
     onGameUpdate,
   }: PredictLiveDataClientOptions) {
     this.#url = parseStreamUrl(baseUrl);
     this.#WebSocket = WebSocketImpl;
     this.#onGameUpdate = onGameUpdate;
+    this.#appStateSubscription = AppStateImpl.addEventListener(
+      'change',
+      this.#onAppStateChange,
+    );
   }
 
   subscribe(
@@ -106,6 +116,10 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
         fresh.push(eventId);
       }
     });
+
+    if (this.#suspended) {
+      return;
+    }
 
     if (!this.#isSocketLive()) {
       this.#socket = undefined;
@@ -172,6 +186,8 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   }
 
   destroy(): void {
+    this.#appStateSubscription?.remove();
+    this.#appStateSubscription = undefined;
     this.disconnect();
   }
 
@@ -180,8 +196,42 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     return readyState === 0 || readyState === 1;
   }
 
+  #onAppStateChange = (nextAppState: AppStateStatus): void => {
+    if (nextAppState === 'background') {
+      this.#suspend();
+      return;
+    }
+    if (nextAppState === 'active') {
+      this.#resume();
+    }
+  };
+
+  #suspend(): void {
+    this.#suspended = true;
+    this.#cancelReconnect();
+    this.#cancelLinger();
+    this.#welcomed = false;
+    this.#serverGameIds.clear();
+    const socket = this.#socket;
+    this.#socket = undefined;
+    socket?.close();
+  }
+
+  #resume(): void {
+    if (!this.#suspended) {
+      return;
+    }
+    this.#suspended = false;
+    if (this.#watchCounts.size === 0 || this.#protocolRejected) {
+      return;
+    }
+    this.#reconnectAttempts = 0;
+    this.#loggedReconnectCap = false;
+    this.#connect();
+  }
+
   #connect(): void {
-    if (this.#protocolRejected) {
+    if (this.#protocolRejected || this.#suspended) {
       return;
     }
     const venueId = this.#venueId;
@@ -221,7 +271,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
 
       this.#socket = undefined;
       this.#welcomed = false;
-      if (this.#watchCounts.size > 0) {
+      if (this.#watchCounts.size > 0 && !this.#suspended) {
         this.#scheduleReconnect();
       }
     };
@@ -343,7 +393,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
 
   #scheduleReconnect(): void {
     this.#cancelReconnect();
-    if (this.#watchCounts.size === 0) {
+    if (this.#suspended || this.#watchCounts.size === 0) {
       return;
     }
 

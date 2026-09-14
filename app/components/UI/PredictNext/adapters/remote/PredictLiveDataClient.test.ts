@@ -1,3 +1,4 @@
+import type { AppStateStatus } from 'react-native';
 import Logger from '../../../../../util/Logger';
 import type { PredictEntityId, PredictVenueId } from '../../types';
 import {
@@ -52,10 +53,29 @@ class MockWebSocket {
   }
 }
 
-const createClient = (onGameUpdate = jest.fn()) =>
+const createAppState = () => {
+  let onChange: ((state: AppStateStatus) => void) | undefined;
+  const remove = jest.fn();
+  return {
+    addEventListener: jest.fn(
+      (_type: 'change', listener: (state: AppStateStatus) => void) => {
+        onChange = listener;
+        return { remove };
+      },
+    ),
+    change: (state: AppStateStatus) => onChange?.(state),
+    remove,
+  };
+};
+
+const createClient = (
+  onGameUpdate = jest.fn(),
+  appState = createAppState(),
+) =>
   new PredictLiveDataClient({
     baseUrl: 'http://localhost:3333',
     WebSocket: MockWebSocket as unknown as typeof WebSocket,
+    AppState: appState,
     onGameUpdate,
   });
 
@@ -558,5 +578,84 @@ describe('PredictLiveDataClient', () => {
         events: ['KX-3'],
       }),
     );
+  });
+
+  it('closes the socket on background and does not reconnect until foreground', () => {
+    const appState = createAppState();
+    const client = createClient(jest.fn(), appState);
+    client.subscribe(venueId, [eventId]);
+    const socket = openAndWelcome();
+
+    appState.change('background');
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_MAX_MS);
+
+    expect(socket.close).toHaveBeenCalledTimes(1);
+    expect(MockWebSocket.instances).toHaveLength(1);
+
+    appState.change('active');
+    const nextSocket = openAndWelcome(MockWebSocket.instances[1]);
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+    expect(nextSocket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'subscribe',
+        topic: 'game',
+        venueId,
+        events: [eventId],
+      }),
+    );
+  });
+
+  it('does not reconnect on foreground when no Events are watched', () => {
+    const appState = createAppState();
+    const client = createClient(jest.fn(), appState);
+    client.subscribe(venueId, [eventId]);
+    openAndWelcome();
+    client.unsubscribe(venueId, [eventId]);
+
+    appState.change('background');
+    appState.change('active');
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it('does not close the socket on inactive', () => {
+    const appState = createAppState();
+    const client = createClient(jest.fn(), appState);
+    client.subscribe(venueId, [eventId]);
+    const socket = openAndWelcome();
+
+    appState.change('inactive');
+
+    expect(socket.close).not.toHaveBeenCalled();
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it('does not open a socket on subscribe while backgrounded', () => {
+    const appState = createAppState();
+    const client = createClient(jest.fn(), appState);
+    client.subscribe(venueId, [eventId]);
+    openAndWelcome();
+    appState.change('background');
+
+    client.subscribe(venueId, ['KX-NEXT' as PredictEntityId]);
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+
+    appState.change('active');
+    const nextSocket = openAndWelcome(MockWebSocket.instances[1]);
+
+    expect(
+      JSON.parse(nextSocket.send.mock.calls[0][0] as string).events,
+    ).toEqual([eventId, 'KX-NEXT']);
+  });
+
+  it('removes the AppState listener on destroy', () => {
+    const appState = createAppState();
+    const client = createClient(jest.fn(), appState);
+
+    client.destroy();
+
+    expect(appState.remove).toHaveBeenCalledTimes(1);
   });
 });
