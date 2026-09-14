@@ -64,14 +64,14 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     testID={testID}
-    twClassName="py-4"
+    twClassName="py-1"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-x-3"
+      twClassName="gap-x-2"
     >
-      <Box twClassName="w-10 h-10 rounded-full bg-background-section items-center justify-center">
+      <Box twClassName="w-8 h-8 rounded-full bg-background-section items-center justify-center">
         <Icon
           name={iconName}
           size={IconSize.Sm}
@@ -81,7 +81,7 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
+        color={TextColor.TextAlternative}
       >
         {label}
       </Text>
@@ -149,24 +149,26 @@ const ProHub = () => {
           <MembershipBanner testID={ProHubTestIds.MEMBERSHIP_BANNER} />
 
           <Box
-            twClassName="gap-y-1"
+            twClassName="gap-y-4"
             testID={ProHubTestIds.LIFETIME_EARNINGS_SECTION}
           >
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {strings('pro_hub.lifetime_earnings')}
-            </Text>
-            <Text
-              variant={TextVariant.DisplayLg}
-              color={TextColor.TextDefault}
-            >
-              {MOCK_PRO_HUB_STATS.lifetimeEarnings}
-            </Text>
+            <Box twClassName="gap-y-1">
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+              >
+                {strings('pro_hub.lifetime_earnings')}
+              </Text>
+              <Text
+                variant={TextVariant.DisplayLg}
+                color={TextColor.TextDefault}
+              >
+                {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+              </Text>
+            </Box>
 
-            <Box>
+            <Box twClassName="gap-y-4">
               <StatRow
                 iconName={IconName.TrendUp}
                 label={strings('pro_hub.money_balance')}
