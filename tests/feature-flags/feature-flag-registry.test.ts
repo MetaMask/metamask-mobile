@@ -464,6 +464,13 @@ describe('Feature Flag Registry', () => {
           expect(variant.scope.value).toBe(0);
         }
       }
+
+      expect(
+        (
+          getRegistryEntry('assetsASSETS3380AbtestExploreQuickBuy')
+            ?.productionDefault as { name: string }[]
+        ).map((variant) => variant.name),
+      ).toEqual(['control', 'treatment']);
     });
   });
 
