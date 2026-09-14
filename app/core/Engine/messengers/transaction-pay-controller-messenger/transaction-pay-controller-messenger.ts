@@ -36,6 +36,7 @@ export function getTransactionPayControllerMessenger(
       'NetworkController:getNetworkConfigurationByChainId',
       'RampsController:getOrder',
       'RampsController:getQuotes',
+      'RampsController:transakGetBuyQuote',
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
       'TokenBalancesController:getState',

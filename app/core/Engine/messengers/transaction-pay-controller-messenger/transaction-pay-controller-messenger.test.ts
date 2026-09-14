@@ -52,6 +52,26 @@ describe('getTransactionPayControllerMessenger', () => {
       }),
     );
   });
+
+  it('delegates the RampsController actions the fiat pay strategy needs', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    // transakGetBuyQuote is required so the fiat estimate can read the native
+    // Transak fee; without it the estimate silently falls back to the
+    // aggregator fee.
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'RampsController:getOrder',
+          'RampsController:getQuotes',
+          'RampsController:transakGetBuyQuote',
+        ]),
+      }),
+    );
+  });
 });
 
 describe('getTransactionPayControllerInitMessenger', () => {
