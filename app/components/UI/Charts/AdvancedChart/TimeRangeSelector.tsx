@@ -44,7 +44,7 @@ const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 
 /** padding 4px 16px, gap spacing/1, rounded 8 — filter control spec */
 const SEGMENT_BUTTON_BASE =
-  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1 rounded-xl';
+  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1';
 
 /** @see TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT */
 const TIME_RANGE_SKELETON_HEIGHT = TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT;
