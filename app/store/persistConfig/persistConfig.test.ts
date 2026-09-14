@@ -233,6 +233,45 @@ describe('persistConfig', () => {
     });
   });
 
+  describe('ControllerStorage.getItemStrict()', () => {
+    const mockKey = 'persist:KeyringController';
+
+    beforeEach(() => {
+      // clearAllMocks only — resetAllMocks would wipe the lodash.debounce
+      // identity mock used by createPersistController tests in this file.
+      jest.clearAllMocks();
+    });
+
+    it('returns null when the file is missing', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await ControllerStorage.getItemStrict(mockKey);
+
+      expect(result).toBeNull();
+      expect(FilesystemStorage.getItem).toHaveBeenCalledWith(mockKey);
+    });
+
+    it('returns the file contents when present', async () => {
+      const vaultPayload = JSON.stringify({ vault: 'encrypted-vault-data' });
+      (FilesystemStorage.getItem as jest.Mock).mockResolvedValue(vaultPayload);
+
+      const result = await ControllerStorage.getItemStrict(mockKey);
+
+      expect(result).toBe(vaultPayload);
+      expect(FilesystemStorage.getItem).toHaveBeenCalledWith(mockKey);
+    });
+
+    it('propagates I/O errors from FilesystemStorage', async () => {
+      const ioError = new Error('EACCES: permission denied');
+      (FilesystemStorage.getItem as jest.Mock).mockRejectedValue(ioError);
+
+      await expect(ControllerStorage.getItemStrict(mockKey)).rejects.toThrow(
+        ioError,
+      );
+      expect(FilesystemStorage.getItem).toHaveBeenCalledWith(mockKey);
+    });
+  });
+
   describe('ControllerStorage.getAllPersistedState()', () => {
     beforeEach(() => {
       jest.clearAllMocks();

@@ -14,6 +14,7 @@ import {
 import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import { getPersistentState } from '../../store/getPersistentState/getPersistentState';
 import { setExistingUser } from '../../actions/user';
+import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -31,6 +32,10 @@ jest.mock('../../util/Logger', () => ({
 jest.mock('../BackupVault', () => ({
   getVaultFromBackup: () =>
     Promise.resolve({ success: true, vault: 'fake_vault' }),
+}));
+
+jest.mock('../Engine/controllers/social-controller-hydration', () => ({
+  hydrateSocialFollowing: jest.fn(),
 }));
 
 jest.mock('../../util/test/network-store.js', () => jest.fn());
@@ -76,6 +81,21 @@ jest.mock('../../store/getPersistentState/getPersistentState', () => ({
   getPersistentState: jest.fn((_state, _metadata) => ({ filtered: 'state' })),
 }));
 
+jest.mock('../../util/scheduleAfterPaint', () => ({
+  scheduleAfterPaint: jest.fn((cb: () => void) => {
+    if (typeof cb === 'function') {
+      cb();
+    }
+    return { cancel: jest.fn() };
+  }),
+}));
+
+import { scheduleAfterPaint } from '../../util/scheduleAfterPaint';
+
+const mockScheduleAfterPaint = scheduleAfterPaint as jest.MockedFunction<
+  typeof scheduleAfterPaint
+>;
+
 // Mock ControllerStorage and createPersistController
 jest.mock('../../store/persistConfig', () => ({
   ControllerStorage: {
@@ -84,6 +104,7 @@ jest.mock('../../store/persistConfig', () => ({
     ),
     setItem: jest.fn(),
     getItem: jest.fn(),
+    getItemStrict: jest.fn(),
     removeItem: jest.fn(),
   },
   createPersistController: jest.fn(() => jest.fn()),
@@ -203,6 +224,14 @@ describe('EngineService', () => {
     // Use fake timers to prevent timeout issues after Jest teardown
     jest.useFakeTimers();
 
+    // Restore default deferred-persistence scheduler after resetAllMocks
+    mockScheduleAfterPaint.mockImplementation((cb: () => void) => {
+      if (typeof cb === 'function') {
+        cb();
+      }
+      return { cancel: jest.fn() };
+    });
+
     // Mock the store getter by setting the store directly
     const mockStore = {
       getState: () => ({
@@ -220,8 +249,9 @@ describe('EngineService', () => {
   });
 
   afterEach(() => {
-    // Clean up any pending timers to prevent Jest teardown issues
-    // Only run pending timers if fake timers are enabled
+    // Tests may switch to real timers before waitFor (CI J8). Re-enter fake
+    // timers so pending-timer cleanup does not console.error via getTimerCount.
+    jest.useFakeTimers();
     try {
       const timerCount = jest.getTimerCount();
       if (timerCount > 0) {
@@ -235,6 +265,7 @@ describe('EngineService', () => {
 
   it('initializes Engine context', async () => {
     engineService.start();
+    jest.useRealTimers();
     await waitFor(() => {
       expect(Engine.context).toBeDefined();
     });
@@ -248,7 +279,20 @@ describe('EngineService', () => {
       },
     });
 
+    // Must set existingUser so EngineService reads from ControllerStorage
+    const mockStore = {
+      getState: () => ({
+        user: { existingUser: true },
+        engine: { backgroundState: { KeyringController: {} } },
+      }),
+      dispatch: mockDispatch,
+      subscribe: jest.fn(),
+      replaceReducer: jest.fn(),
+    } as unknown as ReduxStore;
+    ReduxService.store = mockStore;
+
     engineService.start();
+    jest.useRealTimers();
     await waitFor(() => {
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Initializing Engine:',
@@ -276,6 +320,7 @@ describe('EngineService', () => {
     ReduxService.store = mockStoreEmptyState;
 
     engineService.start();
+    jest.useRealTimers();
     await waitFor(() => {
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Initializing Engine:',
@@ -345,6 +390,46 @@ describe('EngineService', () => {
     jest.useFakeTimers();
   });
 
+  it('cancels deferred persistence before vault recovery to prevent stale callback race', async () => {
+    // Arrange — start() as fresh install defers persistence via scheduleAfterPaint
+    jest.useRealTimers();
+    const mockCancel = jest.fn();
+    mockScheduleAfterPaint.mockClear();
+    mockScheduleAfterPaint.mockImplementation(
+      () =>
+        ({
+          cancel: mockCancel,
+        }) as never,
+    );
+
+    const mockGetState = jest.fn().mockReturnValue({
+      user: { existingUser: false },
+    });
+    Object.defineProperty(ReduxService.store, 'getState', {
+      value: mockGetState,
+      writable: true,
+      configurable: true,
+    });
+
+    // No vault on disk so isNewInstall stays true → persistence is deferred
+    (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
+
+    await engineService.start();
+
+    // The deferred handle should have been created
+    expect(mockScheduleAfterPaint).toHaveBeenCalledTimes(1);
+    expect(mockCancel).not.toHaveBeenCalled();
+
+    // Act — vault recovery triggers before deferred callback executes
+    await engineService.initializeVaultFromBackup();
+
+    // Assert — the stale deferred callback was cancelled
+    expect(mockCancel).toHaveBeenCalledTimes(1);
+
+    // Restore
+    jest.useFakeTimers();
+  });
+
   it('navigates to vault recovery when Engine fails to initialize', async () => {
     jest.spyOn(Engine, 'init').mockImplementation(() => {
       throw new Error('Failed to initialize Engine');
@@ -354,6 +439,7 @@ describe('EngineService', () => {
     // Advance timers to trigger the navigation reset setTimeout (150ms)
     jest.advanceTimersByTime(150);
 
+    jest.useRealTimers();
     await waitFor(() => {
       // Logs error to Sentry
       expect(Logger.error).toHaveBeenCalledWith(
@@ -364,6 +450,95 @@ describe('EngineService', () => {
       expect(NavigationService.navigation?.reset).toHaveBeenCalledWith({
         routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
       });
+    });
+  });
+
+  it('cancels deferred persistence when error occurs after initializeControllers', async () => {
+    // Arrange — fresh-install path: initializeControllers sets a deferred handle,
+    // then hydrateSocialFollowing throws, landing in the catch block.
+    const mockCancel = jest.fn();
+    mockScheduleAfterPaint.mockClear();
+    mockScheduleAfterPaint.mockImplementation(
+      () =>
+        ({
+          cancel: mockCancel,
+        }) as never,
+    );
+
+    const mockGetState = jest.fn().mockReturnValue({
+      user: { existingUser: false },
+    });
+    Object.defineProperty(ReduxService.store, 'getState', {
+      value: mockGetState,
+      writable: true,
+      configurable: true,
+    });
+    (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
+
+    // hydrateSocialFollowing throws after initializeControllers has set the handle
+    (hydrateSocialFollowing as jest.Mock).mockImplementation(() => {
+      throw new Error('hydration failed');
+    });
+
+    // Act
+    await engineService.start();
+
+    // Assert — deferred handle was created by initializeControllers
+    expect(mockScheduleAfterPaint).toHaveBeenCalledTimes(1);
+    // Assert — catch block cancelled the stale deferred persistence
+    expect(mockCancel).toHaveBeenCalledTimes(1);
+    expect(Logger.error).toHaveBeenCalledWith(
+      new Error('hydration failed'),
+      'Failed to initialize Engine! Falling back to vault recovery.',
+    );
+
+    // Cleanup
+    (hydrateSocialFollowing as jest.Mock).mockReset();
+  });
+
+  it('routes deferred persistence setup failures to vault recovery', async () => {
+    // Arrange — fresh-install path defers setupEnginePersistence; force it to throw
+    jest.useFakeTimers();
+    mockScheduleAfterPaint.mockClear();
+    mockScheduleAfterPaint.mockImplementation((cb) => {
+      if (typeof cb === 'function') cb();
+      return {
+        cancel: jest.fn(),
+      };
+    });
+
+    const mockGetState = jest.fn().mockReturnValue({
+      user: { existingUser: false },
+    });
+    Object.defineProperty(ReduxService.store, 'getState', {
+      value: mockGetState,
+      writable: true,
+      configurable: true,
+    });
+    (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
+
+    (
+      engineService as unknown as {
+        setupEnginePersistence: (
+          initialState?: Record<string, unknown>,
+        ) => void;
+      }
+    ).setupEnginePersistence = () => {
+      throw new Error('persist setup boom');
+    };
+
+    // Act — start itself must not reject; deferred failure fails closed
+    await engineService.start();
+    jest.advanceTimersByTime(150);
+
+    // Assert — critical persistence failure must not leave onboarding running
+    // without filesystem subscriptions
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.stringContaining('Deferred persistence setup failed'),
+    );
+    expect(NavigationService.navigation?.reset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
     });
   });
 
@@ -387,6 +562,7 @@ describe('EngineService', () => {
       jest.advanceTimersByTime(250);
 
       // Wait for batcher to process
+      jest.useRealTimers();
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith({ type: INIT_BG_STATE_KEY });
       });
@@ -412,6 +588,7 @@ describe('EngineService', () => {
       jest.advanceTimersByTime(250);
 
       // Wait for batcher to process - should now handle UPDATE_BG_STATE_KEY actions
+      jest.useRealTimers();
       await waitFor(() => {
         // Each controller name should trigger an UPDATE_BG_STATE_KEY action
         expect(mockDispatch).toHaveBeenCalledTimes(keys.length);
@@ -438,6 +615,7 @@ describe('EngineService', () => {
       jest.advanceTimersByTime(250);
 
       // Wait for batcher to process
+      jest.useRealTimers();
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledTimes(3);
         expect(mockDispatch).toHaveBeenCalledWith({ type: INIT_BG_STATE_KEY });
@@ -619,7 +797,7 @@ describe('EngineService', () => {
 
       // Assert
       expect(Logger.log).toHaveBeenCalledWith(
-        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        'EngineService: Is vault defined at KeyringController before Engine init: ',
         true,
       );
     });
@@ -646,15 +824,73 @@ describe('EngineService', () => {
 
       // Assert
       expect(Logger.log).toHaveBeenCalledWith(
-        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        'EngineService: Is vault defined at KeyringController before Engine init: ',
         false,
       );
     });
 
-    it('skips vault check for new user without existing user flag', async () => {
+    it('skips vault check for fresh install without existing user flag', async () => {
       // Arrange
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // No vault on disk — truly a fresh install
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
+
+      // Act
+      await engineService.start();
+
+      // Assert
+      // Should not call the vault check log for fresh installs
+      const vaultCheckLogs = (
+        Logger.log as jest.MockedFunction<typeof Logger.log>
+      ).mock.calls.filter((call) =>
+        call[0]?.includes?.('Is vault defined at KeyringController'),
+      );
+      expect(vaultCheckLogs).toHaveLength(0);
+    });
+
+    it('skips ControllerStorage.getAllPersistedState for fresh installs (perf_fix: coldstart-v1)', async () => {
+      // Arrange
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // No vault on disk — truly a fresh install
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
+
+      // Act
+      await engineService.start();
+
+      // Assert — safety check ran but found nothing, so full read was skipped
+      expect(ControllerStorage.getItemStrict).toHaveBeenCalledWith(
+        'persist:KeyringController',
+      );
+      expect(ControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
+    });
+
+    it('reads ControllerStorage.getAllPersistedState for existing users', async () => {
+      // Arrange
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: true },
+        engine: {
+          backgroundState: {
+            KeyringController: { vault: 'encrypted-vault-data' },
+          },
+        },
       });
 
       Object.defineProperty(ReduxService.store, 'getState', {
@@ -667,13 +903,267 @@ describe('EngineService', () => {
       await engineService.start();
 
       // Assert
-      // Should not call the vault check log for new users
-      const vaultCheckLogs = (
-        Logger.log as jest.MockedFunction<typeof Logger.log>
-      ).mock.calls.filter((call) =>
-        call[0]?.includes?.('Is vault defined at KeyringController'),
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+    });
+
+    it('defers persistence setup via scheduleAfterPaint for fresh installs (perf_fix: coldstart-v1)', async () => {
+      // Arrange
+      mockScheduleAfterPaint.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // No vault on disk — truly a fresh install
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
+
+      // Act
+      await engineService.start();
+
+      // Assert — persistence setup was scheduled via scheduleAfterPaint
+      expect(mockScheduleAfterPaint).toHaveBeenCalledTimes(1);
+      expect(mockScheduleAfterPaint).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('does not defer persistence setup for existing users', async () => {
+      // Arrange
+      mockScheduleAfterPaint.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: true },
+        engine: {
+          backgroundState: {
+            KeyringController: { vault: 'encrypted-vault-data' },
+          },
+        },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert — persistence setup runs synchronously, not deferred
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
+    });
+
+    it('treats undefined existingUser as existing user defensively (reads persisted state)', async () => {
+      // Arrange — existingUser is undefined (e.g., state not yet rehydrated)
+      const mockGetState = jest.fn().mockReturnValue({
+        user: {},
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert — falls back to reading persisted state (safe default)
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+    });
+
+    it('treats missing user state as existing user defensively', async () => {
+      // Arrange — user key is missing entirely from redux state
+      mockScheduleAfterPaint.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({});
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      // Act
+      await engineService.start();
+
+      // Assert — does not defer, does not skip reads
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
+    });
+
+    it('overrides isNewInstall when existingUser is false but vault exists on disk (flag/storage mismatch)', async () => {
+      // Arrange — Redux flag lost but vault still on disk (e.g. Redux persist corruption)
+      mockScheduleAfterPaint.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      const vaultBackgroundState = {
+        KeyringController: { vault: 'encrypted-vault-data' },
+      };
+
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(
+        JSON.stringify({ vault: 'encrypted-vault-data', keyrings: [] }),
       );
-      expect(vaultCheckLogs).toHaveLength(0);
+      (ControllerStorage.getAllPersistedState as jest.Mock).mockResolvedValue({
+        backgroundState: vaultBackgroundState,
+      });
+
+      // Spy on Engine.init to verify the loaded vault state reaches it
+      const initSpy = jest.spyOn(Engine, 'init');
+
+      // Act
+      await engineService.start();
+
+      // Assert — safety check found vault, so full read was performed
+      expect(ControllerStorage.getItemStrict).toHaveBeenCalledWith(
+        'persist:KeyringController',
+      );
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'existingUser flag is false but KeyringController vault found on disk',
+        ),
+      );
+      // Vault diagnostic log should fire because isNewInstall was corrected to false
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: Is vault defined at KeyringController before Engine init: ',
+        false,
+      );
+
+      // The loaded vault state must reach Engine.init — not an empty backgroundState
+      expect(initSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        vaultBackgroundState,
+      );
+
+      initSpy.mockRestore();
+    });
+
+    it('falls back to existing-user path when KeyringController data is corrupted JSON', async () => {
+      // Arrange — existingUser false, but getItem returns unparseable data
+      mockScheduleAfterPaint.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(
+        'not-valid-json{{{',
+      );
+
+      // Act
+      await engineService.start();
+
+      // Assert — corrupted data → safe fallback to full read
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['null', 'null'],
+      ['array', '[]'],
+      ['string', '"not-an-object"'],
+      ['number', '42'],
+    ])(
+      'falls back to existing-user path when KeyringController JSON parses to %s',
+      async (_label, payload) => {
+        // Arrange — parseable but not a KeyringController object
+        mockScheduleAfterPaint.mockClear();
+        const mockGetState = jest.fn().mockReturnValue({
+          user: { existingUser: false },
+        });
+
+        Object.defineProperty(ReduxService.store, 'getState', {
+          value: mockGetState,
+          writable: true,
+          configurable: true,
+        });
+
+        (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(
+          payload,
+        );
+
+        // Act
+        await engineService.start();
+
+        // Assert — malformed-but-valid JSON → full read to avoid skipping
+        // other controller files that may still hold real state
+        expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+        expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
+        expect(Logger.log).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'KeyringController file is not a valid object',
+          ),
+        );
+      },
+    );
+
+    it('stays on fresh-install path when KeyringController exists on disk but has no vault', async () => {
+      // Arrange — KeyringController file exists but with no vault (e.g. partially initialized)
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(
+        JSON.stringify({ keyrings: [], isUnlocked: false }),
+      );
+
+      // Act
+      await engineService.start();
+
+      // Assert — no vault found, so fresh-install optimization still applies
+      expect(ControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
+    });
+
+    it('falls back to existing-install path when filesystem read fails during safety check', async () => {
+      // Arrange — existingUser false, but getItemStrict throws (I/O error, permission denied)
+      mockScheduleAfterPaint.mockClear();
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: false },
+      });
+
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
+
+      (ControllerStorage.getItemStrict as jest.Mock).mockRejectedValue(
+        new Error('EACCES: permission denied'),
+      );
+
+      // Act
+      await engineService.start();
+
+      // Assert — cannot confirm file is absent, so full read must happen
+      expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Safety-check filesystem read failed — falling back to existing-install path',
+        ),
+      );
     });
   });
 
@@ -703,6 +1193,19 @@ describe('EngineService', () => {
         >,
       );
       mockGetPersistentState.mockReturnValue({ filtered: 'state' });
+
+      // These tests exercise the existing-user persistence path (non-deferred).
+      // Set existingUser: true so EngineService.start() reads persisted state
+      // and runs setupEnginePersistence synchronously.
+      const mockGetState = jest.fn().mockReturnValue({
+        user: { existingUser: true },
+        engine: { backgroundState: { KeyringController: {} } },
+      });
+      Object.defineProperty(ReduxService.store, 'getState', {
+        value: mockGetState,
+        writable: true,
+        configurable: true,
+      });
 
       // Mock Engine.context for metadata - this will be used by the existing Engine mock
       Object.defineProperty(Engine, 'context', {
