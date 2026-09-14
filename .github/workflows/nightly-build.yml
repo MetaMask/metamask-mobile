@@ -6,6 +6,12 @@ name: Nightly Build
 #
 # rc depends on exp within each platform stream to ensure the external version
 # service produces sequential numbers (N for exp, N+1 for rc).
+#
+# Does NOT post to Slack itself: emit-nightly-metadata just uploads a
+# nightly-slack-meta artifact (version + build numbers) once all four builds
+# succeed. nightly-slack-notification.yml reads it on its own daily schedule
+# (09:00 UTC+1) so the Slack message lands in the morning EU time instead of
+# right after these ~04:00 UTC builds finish.
 
 on:
   schedule:
@@ -84,6 +90,33 @@ jobs:
       build_attribution: nightly
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
+
+  emit-nightly-metadata:
+    name: Emit nightly metadata for Slack
+    needs: [ios-exp, ios-rc, android-exp, android-rc]
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write nightly-slack-meta.json
+        run: |
+          cat > nightly-slack-meta.json <<EOF
+          {
+            "semver": "${{ needs.ios-rc.outputs.semantic_version }}",
+            "iosExpBuildNumber": "${{ needs.ios-exp.outputs.ios_version_code }}",
+            "iosRcBuildNumber": "${{ needs.ios-rc.outputs.ios_version_code }}",
+            "androidExpBuildNumber": "${{ needs.android-exp.outputs.android_version_code }}",
+            "androidRcBuildNumber": "${{ needs.android-rc.outputs.android_version_code }}",
+            "pipelineUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }
+          EOF
+          cat nightly-slack-meta.json
+      - name: Upload nightly-slack-meta artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nightly-slack-meta
+          path: nightly-slack-meta.json
+          retention-days: 3
+          if-no-files-found: error
 
   size-analysis-ios:
     name: Sentry Size Analysis (iOS)

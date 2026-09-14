@@ -1,0 +1,128 @@
+##############################################################################################
+#
+# Nightly Slack Notification
+#
+# Posts the nightly main-exp / main-rc build summary (version, iOS/Android
+# build numbers, Runway download links) to Slack once a day, independent of
+# when Nightly Build (nightly-build.yml, ~04:00 UTC) actually finishes.
+#
+# Schedule: `0 8 * * *` = 08:00 UTC = 09:00 UTC+1 (CET / Amsterdam winter)
+# year-round. GitHub cron does not follow DST, so in Amsterdam summer (CEST,
+# UTC+2) this lands at 10:00 local time.
+#
+# Reads the nightly-slack-meta artifact emitted by nightly-build.yml's
+# emit-nightly-metadata job (version + build numbers); does not rebuild
+# anything. If no successful Nightly Build run is found (or its metadata
+# artifact is missing/expired), this fails open and skips the notification.
+#
+# Required repo variable:
+#   SLACK_NIGHTLY_CHANNEL - nightly Slack channel name (e.g. '#nightly-mobile') or ID
+#
+##############################################################################################
+name: Nightly Slack Notification
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Print the Slack payload instead of posting it'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  slack-notification:
+    name: Post Nightly Slack Notification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Find latest successful Nightly Build run
+        id: find-run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_ID=$(gh run list \
+            --repo "${{ github.repository }}" \
+            --workflow "Nightly Build" \
+            --status success \
+            --branch main \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          if [[ -z "$RUN_ID" || "$RUN_ID" == "null" ]]; then
+            echo "::warning::No successful Nightly Build run found; skipping Slack notification"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Download nightly-slack-meta artifact
+        if: steps.find-run.outputs.found == 'true'
+        id: download-meta
+        continue-on-error: true
+        uses: actions/download-artifact@v7
+        with:
+          name: nightly-slack-meta
+          path: nightly-slack-meta
+          run-id: ${{ steps.find-run.outputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract nightly metadata
+        if: steps.download-meta.outcome == 'success'
+        id: meta
+        run: |
+          JSON_FILE="nightly-slack-meta/nightly-slack-meta.json"
+
+          if [ ! -f "$JSON_FILE" ]; then
+            echo "::warning::nightly-slack-meta.json not found in artifact; skipping Slack notification"
+            exit 0
+          fi
+
+          {
+            echo "found=true"
+            echo "semver=$(jq -r '.semver' "$JSON_FILE")"
+            echo "ios-exp-build=$(jq -r '.iosExpBuildNumber' "$JSON_FILE")"
+            echo "ios-rc-build=$(jq -r '.iosRcBuildNumber' "$JSON_FILE")"
+            echo "android-exp-build=$(jq -r '.androidExpBuildNumber' "$JSON_FILE")"
+            echo "android-rc-build=$(jq -r '.androidRcBuildNumber' "$JSON_FILE")"
+            echo "pipeline-url=$(jq -r '.pipelineUrl' "$JSON_FILE")"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v6
+        if: steps.meta.outputs.found == 'true'
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies
+        if: steps.meta.outputs.found == 'true'
+        run: yarn install --immutable
+
+      - name: Post Slack notification
+        if: steps.meta.outputs.found == 'true'
+        run: |
+          if node ./scripts/slack-nightly-notification.mjs; then
+            echo "Slack notification sent successfully"
+          else
+            echo "Slack notification failed, continuing (non-critical)"
+          fi
+        env:
+          SEMVER: ${{ steps.meta.outputs.semver }}
+          IOS_EXP_BUILD_NUMBER: ${{ steps.meta.outputs.ios-exp-build }}
+          IOS_RC_BUILD_NUMBER: ${{ steps.meta.outputs.ios-rc-build }}
+          ANDROID_EXP_BUILD_NUMBER: ${{ steps.meta.outputs.android-exp-build }}
+          ANDROID_RC_BUILD_NUMBER: ${{ steps.meta.outputs.android-rc-build }}
+          BUILD_PIPELINE_URL: ${{ steps.meta.outputs.pipeline-url }}
+          SLACK_NIGHTLY_CHANNEL: ${{ vars.SLACK_NIGHTLY_CHANNEL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_NIGHTLY_NOTIFICATION_DRY_RUN: ${{ inputs.dry_run }}
