@@ -377,11 +377,16 @@ import type {
   PredictLiveDataServiceActions,
   PredictLiveDataServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictLiveDataService';
-import type {
+import {
   PredictMarketDataService,
-  PredictMarketDataServiceActions,
-  PredictMarketDataServiceEvents,
+  type PredictMarketDataServiceActions,
+  type PredictMarketDataServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictMarketDataService';
+import {
+  PredictPortfolioService,
+  type PredictPortfolioServiceActions,
+  type PredictPortfolioServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictPortfolioService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -697,6 +702,7 @@ export type GlobalActions =
   | PredictControllerActions
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
+  | PredictPortfolioServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -816,6 +822,7 @@ export type GlobalEvents =
   | PredictControllerEvents
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
+  | PredictPortfolioServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -975,6 +982,7 @@ export type MessengerClients = {
   PredictController: PredictController;
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
+  PredictPortfolioService: PredictPortfolioService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -1183,6 +1191,7 @@ export type MessengerClientsToInitialize =
   | 'PredictController'
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
+  | 'PredictPortfolioService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'

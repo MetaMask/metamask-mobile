@@ -50,6 +50,10 @@ import { getPredictControllerMessenger } from './predict-controller-messenger';
 import { getPredictMarketDataServiceMessenger } from './predict-market-data-service-messenger';
 import { getPredictLiveDataServiceMessenger } from './predict-live-data-service-messenger';
 import {
+  getPredictPortfolioServiceInitMessenger,
+  getPredictPortfolioServiceMessenger,
+} from './predict-portfolio-service-messenger';
+import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
 } from './bridge-controller-messenger';
@@ -360,6 +364,10 @@ export const MESSENGER_FACTORIES = {
   PredictLiveDataService: {
     getMessenger: getPredictLiveDataServiceMessenger,
     getInitMessenger: noop,
+  },
+  PredictPortfolioService: {
+    getMessenger: getPredictPortfolioServiceMessenger,
+    getInitMessenger: getPredictPortfolioServiceInitMessenger,
   },
   BridgeController: {
     getMessenger: getBridgeControllerMessenger,

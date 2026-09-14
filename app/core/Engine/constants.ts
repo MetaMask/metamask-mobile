@@ -37,6 +37,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'SentinelApiService',
   'PredictMarketDataService',
   'PredictLiveDataService',
+  'PredictPortfolioService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [

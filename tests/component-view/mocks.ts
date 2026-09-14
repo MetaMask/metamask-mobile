@@ -365,6 +365,7 @@ jest.mock('../../app/core/Engine', () => {
       },
       PredictMarketDataService: {},
       PredictLiveDataService: {},
+      PredictPortfolioService: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],

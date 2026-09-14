@@ -132,8 +132,11 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
-import { predictMarketDataServiceInit } from './controllers/predict-market-data-service-init';
-import { predictLiveDataServiceInit } from './controllers/predict-live-data-service-init';
+import {
+  predictLiveDataServiceInit,
+  predictMarketDataServiceInit,
+  predictPortfolioServiceInit,
+} from './controllers/predict-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
@@ -386,6 +389,7 @@ export class Engine {
         PredictController: predictControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
+        PredictPortfolioService: predictPortfolioServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -683,6 +687,7 @@ export class Engine {
       PredictController: predictController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
+      PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       RewardsController: rewardsController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
