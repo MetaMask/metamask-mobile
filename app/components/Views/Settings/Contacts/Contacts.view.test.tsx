@@ -60,6 +60,9 @@ describeForPlatforms('Contacts component views', () => {
     const addressInput = await findByTestId(
       AddContactViewSelectorsIDs.ADDRESS_INPUT,
     );
+    expect(
+      await findByTestId(AddContactViewSelectorsIDs.COPY_BUTTON),
+    ).toBeOnTheScreen();
 
     await waitFor(() => {
       expect(nameInput).toHaveProp('value', SYNCED_CONTACT.name);
@@ -251,7 +254,7 @@ describeForPlatforms('Contacts component views', () => {
       },
     });
 
-    // Edit mode opens read-only; tap Edit to enable save/delete actions (matches E2E).
+    // Edit mode opens read-only; tap the bottom Edit button to enable save/delete.
     fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
 
     const deleteButton = await findByTestId(

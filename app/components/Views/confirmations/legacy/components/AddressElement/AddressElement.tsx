@@ -2,7 +2,8 @@
 
 // Third-Party dependencies
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { strings } from '../../../../../../../locales/i18n';
 
 // External dependencies
 import {
@@ -10,25 +11,25 @@ import {
   getLabelTextByAddress,
 } from '../../../../../../util/address';
 import Identicon from '../../../../../UI/Identicon';
-import { useTheme } from '../../../../../../util/theme';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 
 import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 
 // Internal dependecies
-import styleSheet from './AddressElement.styles';
 import { AddressElementProps } from './AddressElement.types';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
@@ -45,8 +46,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
   ...props
 }) => {
   const [displayName, setDisplayName] = useState(name);
-  const { colors } = useTheme();
-  const styles = styleSheet(colors);
+  const tw = useTailwind();
 
   const allNetworks = useSelector(selectNetworkConfigurations);
   const addressElementNetwork = allNetworks[chainId];
@@ -104,24 +104,24 @@ const AddressElement: React.FC<AddressElementProps> = ({
       onPress={() => onAccountPress(address)}
       onLongPress={() => onAccountLongPress(address)}
       key={address}
-      style={styles.addressElementWrapper}
+      style={tw.style('flex-row p-4')}
       {...props}
     >
-      <View style={styles.addressIdenticon}>{renderIdenticon()}</View>
-      <View style={styles.addressElementInformation}>
-        <View style={styles.accountNameLabel}>
+      <Box twClassName="pr-4">{renderIdenticon()}</Box>
+      <Box twClassName="flex-1 flex-col">
+        <Box twClassName="flex-row items-center justify-start">
           <Text
             variant={TextVariant.BodyMd}
-            style={styles.addressTextNickname}
+            twClassName="flex-1"
             numberOfLines={1}
           >
             {primaryLabel}
           </Text>
-        </View>
+        </Box>
         {!!secondaryLabel && (
           <Text
             variant={TextVariant.BodyMd}
-            style={styles.addressTextAddress}
+            color={TextColor.TextAlternative}
             numberOfLines={1}
           >
             {secondaryLabel}
@@ -130,23 +130,23 @@ const AddressElement: React.FC<AddressElementProps> = ({
         {accountTypeLabel && (
           <Text
             variant={TextVariant.BodySm}
-            style={styles.accountNameLabelText}
+            color={TextColor.TextAlternative}
+            twClassName="self-start rounded-lg border border-default px-2"
           >
             {accountTypeLabel}
           </Text>
         )}
-      </View>
+      </Box>
       {isAmbiguousAddress && (
-        <TouchableOpacity
-          style={styles.warningIconWrapper}
+        <ButtonIcon
+          iconName={IconName.Danger}
+          size={ButtonIconSize.Md}
+          twClassName="self-start p-1"
           onPress={onIconPress}
-        >
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Lg}
-            color={styles.warningIcon.color}
-          />
-        </TouchableOpacity>
+          accessibilityLabel={strings(
+            'duplicate_address.accessibility_label',
+          )}
+        />
       )}
     </TouchableOpacity>
   );
