@@ -13,13 +13,19 @@ import {
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { RankMedal, isTopRank } from '../../../Homepage/Sections/TopTraders/topRank';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import {
+  RankMedal,
+  isTopRank,
+} from '../../../Homepage/Sections/TopTraders/topRank';
 import type { TraderRowProps } from '../../../Homepage/Sections/TopTraders/types';
-import { formatCount, formatPercent, formatSignedUsd } from '../../utils/formatters';
+/* eslint-enable import-x/no-restricted-paths */
+import {
+  formatCount,
+  formatPercent,
+  formatSignedUsd,
+} from '../../utils/formatters';
 
 const AVATAR_SIZE = 40;
 // Medal height that keeps the badge tucked into the avatar's bottom-right
