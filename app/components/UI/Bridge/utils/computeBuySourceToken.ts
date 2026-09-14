@@ -16,6 +16,7 @@ export interface BuySourceAsset {
 export type BuySourceAssetEligibility = (asset: BuySourceAsset) => boolean;
 
 const hasPositiveFiatBalance = (asset: BuySourceAsset): boolean =>
+  // Check if asset has positive fiat balance
   (asset.fiat?.balance ?? 0) > 0;
 
 const toBridgeToken = (asset: BuySourceAsset): BridgeToken => ({
@@ -59,6 +60,8 @@ export const computeBuySourceToken = (
         ),
     );
 
+  // Priority 1: Find highest USD value token on same chain (with positive balance)
+  // Note: assetId contains the token address for EVM assets
   const sameChainAssets = userAssets
     .filter((asset) => asset.chainId === destinationChainId)
     .sort(
@@ -70,17 +73,30 @@ export const computeBuySourceToken = (
     return toBridgeToken(sameChainAssets[0]);
   }
 
+  // Eligible cross-chain assets: exclude exact same token (address + chain match)
+  // This allows cross-chain bridging of native tokens that share the zero address
   const crossChainAssets = userAssets
     .filter((asset) => asset.chainId !== destinationChainId)
     .sort(
       (first, second) =>
         (second.fiat?.balance ?? 0) - (first.fiat?.balance ?? 0),
     );
+
+  // Priority 2: Prefer native tokens (ETH, POL, etc.) with highest fiat balance
   const nativeAsset = crossChainAssets.find((asset) => asset.isNative);
 
-  return nativeAsset
-    ? toBridgeToken(nativeAsset)
-    : crossChainAssets[0]
-      ? toBridgeToken(crossChainAssets[0])
-      : null;
+  if (nativeAsset) {
+    return toBridgeToken(nativeAsset);
+  }
+
+  // Priority 3 – Last swapped token (needs selector/data source)
+  // Priority 4 – Most used token (needs selector/data source)
+
+  // Fallback: highest USD value token on any chain
+  if (crossChainAssets[0]) {
+    return toBridgeToken(crossChainAssets[0]);
+  }
+
+  // No eligible tokens found - return null to trigger on-ramp flow
+  return null;
 };
