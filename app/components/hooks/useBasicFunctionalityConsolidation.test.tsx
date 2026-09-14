@@ -250,6 +250,27 @@ describe('useBasicFunctionalityConsolidation', () => {
     expect(mockToast).toHaveBeenCalledTimes(1);
   });
 
+  it('hides the toast on lock without dismissing the notice', () => {
+    setSelectorValues({ shouldShowToast: true });
+
+    const { rerender } = renderHook(() => useBasicFunctionalityConsolidation());
+
+    expect(mockToast).toHaveBeenCalledTimes(1);
+
+    setSelectorValues({ shouldShowToast: true, isUnlocked: false });
+    rerender(undefined);
+
+    expect(mockToast.dismiss).toHaveBeenCalled();
+    expect(
+      dismissBasicFunctionalityMigrationNotification,
+    ).not.toHaveBeenCalled();
+
+    setSelectorValues({ shouldShowToast: true, isUnlocked: true });
+    rerender(undefined);
+
+    expect(mockToast).toHaveBeenCalledTimes(2);
+  });
+
   it('withholds the bottom sheet while locked and presents it after unlock', () => {
     setSelectorValues({ shouldShowBottomSheet: true, isUnlocked: false });
 

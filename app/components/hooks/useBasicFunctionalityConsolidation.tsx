@@ -115,6 +115,12 @@ export function useBasicFunctionalityConsolidation(): void {
 
   useEffect(() => {
     if (!shouldShowToast || !isUnlocked) {
+      // Hide the overlay without acknowledging the notice. The DS Toaster sits
+      // in FullWindowOverlay above native-stack screens, so leaving it up would
+      // keep the Settings link tappable on the lock screen.
+      if (hasPresentedToast.current) {
+        toast.dismiss();
+      }
       hasPresentedToast.current = false;
       return;
     }
