@@ -8,9 +8,6 @@ import {
   ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRoute, type RouteProp } from '@react-navigation/native';
@@ -59,6 +56,10 @@ import {
   SOCIAL_SHELL_TAB_CONFIG,
 } from '../shell/tabConfig';
 import type { SocialShellTab } from '../shell/types';
+import {
+  SocialFiltersBottomSheet,
+  useSocialShellFilters,
+} from '../shell/filters';
 import superheroAvatar from '../../../../images/socialV1/superhero.png';
 
 const LANDING_INDEX = 0;
@@ -123,6 +124,24 @@ const SocialV1View: React.FC = () => {
   const liveTradesIndex = tabOrder.indexOf('liveTrades');
   // The landing tab is the first one, so the surface always opens on index 0.
   const [activeIndex, setActiveIndex] = useState(LANDING_INDEX);
+
+  // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
+  // state; the sheet is mounted only while `openTab` is non-null.
+  const {
+    openTab,
+    draft,
+    hasActiveFilters,
+    openSheet,
+    closeSheet,
+    updateDraft,
+    applyFilters,
+  } = useSocialShellFilters();
+  const activeTab = tabOrder[activeIndex];
+  const isFilterActive = hasActiveFilters(activeTab);
+
+  const handleFilterPress = useCallback(() => {
+    openSheet(activeTab);
+  }, [activeTab, openSheet]);
 
   // Each page scrolls independently, so keep a scroll offset per tab and let a
   // derived value expose whichever one is currently visible. Sharing a single
@@ -410,7 +429,7 @@ const SocialV1View: React.FC = () => {
             gap={1}
           >
             <ButtonIcon
-              iconName={IconName.Star}
+              iconName={IconName.HeartStraight}
               size={ButtonIconSize.Md}
               onPress={handlePlaceholderHeaderAction}
               testID={SocialV1ViewSelectorsIDs.HEART_BUTTON}
@@ -453,13 +472,31 @@ const SocialV1View: React.FC = () => {
             collapsingBlockStyle,
           ]}
         >
-          <Box twClassName="bg-default mt-4">
-            <TabsBar
-              tabs={tabs}
-              activeIndex={activeIndex}
-              onTabPress={handleTabPress}
-              testID={SocialV1ViewSelectorsIDs.TABS}
-            />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="bg-default mt-4"
+          >
+            <Box twClassName="flex-1">
+              <TabsBar
+                tabs={tabs}
+                activeIndex={activeIndex}
+                onTabPress={handleTabPress}
+                testID={SocialV1ViewSelectorsIDs.TABS}
+              />
+            </Box>
+            <Box twClassName="pr-4">
+              <ButtonIcon
+                iconName={IconName.Filter}
+                size={ButtonIconSize.Md}
+                onPress={handleFilterPress}
+                testID={SocialV1ViewSelectorsIDs.FILTER_BUTTON}
+                accessibilityLabel={strings(
+                  'social_leaderboard.shell.filters.title',
+                )}
+                twClassName={isFilterActive ? 'bg-background-muted' : undefined}
+              />
+            </Box>
           </Box>
 
           {/* Pages are rendered in `tabOrder` so the pager positions stay
@@ -499,6 +536,16 @@ const SocialV1View: React.FC = () => {
           </PagerView>
         </Animated.View>
       </Box>
+
+      {openTab ? (
+        <SocialFiltersBottomSheet
+          tab={openTab}
+          draft={draft}
+          onChange={updateDraft}
+          onApply={applyFilters}
+          onClose={closeSheet}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

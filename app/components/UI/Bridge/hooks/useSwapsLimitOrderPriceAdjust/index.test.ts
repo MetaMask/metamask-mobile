@@ -366,6 +366,23 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.limitPrice).toBe('0.0005');
   });
 
+  it('caps the converted price to 6 fractional significant digits when toggling amount type', () => {
+    mockFiatRates({ sourceRate: 3, destRate: 1 });
+    const { result } = renderPriceAdjustHook();
+
+    expect(result.current.limitPrice).toBe('1');
+
+    act(() => {
+      result.current.onAmountTypeTogglePress?.();
+    });
+
+    expect(result.current.isLimitFiatMode).toBe(false);
+    // Converting $1 into ETH at a $3 rate is a repeating decimal
+    // (0.333333333333333333...); it's truncated to 6 fractional
+    // significant digits rather than the full 18 ETH decimals.
+    expect(result.current.limitPrice).toBe('0.333333');
+  });
+
   it('omits amount type toggle when a token fiat rate is unavailable', () => {
     mockUseLiveTokenFiatRate.mockReturnValue(undefined);
     const { result } = renderPriceAdjustHook();
@@ -646,6 +663,43 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       expect(result.current.isLimitFiatMode).toBe(true);
       expect(result.current.counterToken).toEqual(sourceToken);
       expect(result.current.limitPrice).toBe('1');
+    });
+  });
+
+  describe('isTriggerPriceNearMarket', () => {
+    it('flags the seeded market price as near market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.isTriggerPriceNearMarket).toBe(true);
+    });
+
+    it('flags a limit price within 1% of market as near market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handleLimitPriceChange('0.995');
+      });
+
+      expect(result.current.isTriggerPriceNearMarket).toBe(true);
+    });
+
+    it('does not flag a limit price 5% below market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handlePercentPress(5);
+      });
+
+      expect(result.current.limitPrice).toBe('0.95');
+      expect(result.current.isTriggerPriceNearMarket).toBe(false);
+    });
+
+    it('does not flag anything when the quoted token has no fiat rate', () => {
+      mockUseLiveTokenFiatRate.mockReturnValue(undefined);
+
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.isTriggerPriceNearMarket).toBe(false);
     });
   });
 

@@ -3,6 +3,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useImperativeHandle, useRef, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { SocialFeedPositionCard } from '../SocialV1View/feed/components';
+import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import SubnavPills from './SubnavPills';
 import { SOCIAL_SHELL_TAB_CONFIG } from './tabConfig';
@@ -21,8 +23,8 @@ export interface EmptyShellTabPageProps {
 }
 
 /**
- * Placeholder tab page for Social Bundle V1: subnav pills over an empty
- * scroll surface. Real lists land in later tickets.
+ * Social Bundle V1 tab page: subnav pills plus, on Feed, mocked position
+ * cards until the API supplies post/comment fields.
  */
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   tab,
@@ -37,6 +39,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const [selectedSubnav, setSelectedSubnav] = useState<SocialShellSubnavId>(
     config.defaultSubnav,
   );
+  const { items: feedItems } = useSocialV1Feed();
 
   useImperativeHandle(
     pageRef,
@@ -64,6 +67,13 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           value={selectedSubnav}
           onChange={setSelectedSubnav}
         />
+        {tab === 'feed' ? (
+          <Box twClassName="px-4 pt-4 pb-8 gap-6">
+            {feedItems.map((item) => (
+              <SocialFeedPositionCard key={item.id} item={item} />
+            ))}
+          </Box>
+        ) : null}
       </Animated.ScrollView>
     </Box>
   );
