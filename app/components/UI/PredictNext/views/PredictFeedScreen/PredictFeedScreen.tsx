@@ -45,6 +45,24 @@ const FEED_PARAMS = { limit: FEED_PAGE_LIMIT };
 
 const getEventKey = (event: PredictEvent) => `${event.venueId}-${event.id}`;
 
+const getFeedWatchEventIds = (
+  feedEvents: readonly PredictEvent[],
+  visibleEventIds: readonly PredictEntityId[],
+): PredictEntityId[] => {
+  const fallbackIds = feedEvents
+    .slice(0, FEED_PAGE_LIMIT)
+    .map((event) => event.id);
+  if (visibleEventIds.length === 0) {
+    return fallbackIds;
+  }
+
+  const presentIds = new Set(feedEvents.map((event) => event.id));
+  const visibleInFeed = visibleEventIds.filter((eventId) =>
+    presentIds.has(eventId),
+  );
+  return visibleInFeed.length > 0 ? visibleInFeed : fallbackIds;
+};
+
 interface PredictFeedContentProps {
   venueId: PredictVenueId;
   definition: FeedScreenDefinition;
@@ -120,18 +138,23 @@ const PredictFeedContent = ({
   const [visibleEventIds, setVisibleEventIds] = useState<
     readonly PredictEntityId[]
   >([]);
+  const feedEventIdsRef = useRef<ReadonlySet<PredictEntityId>>(new Set());
+  feedEventIdsRef.current = new Set(feedEvents.map((event) => event.id));
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 10,
   }).current;
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      const presentIds = feedEventIdsRef.current;
       const nextVisibleEventIds = viewableItems.flatMap((token) => {
         const event = token.item as PredictEvent | undefined;
-        return event?.id ? [event.id] : [];
+        return event?.id && presentIds.has(event.id) ? [event.id] : [];
       });
-      // A fling or bounce can report nothing viewable while the rows it landed
-      // on are still waiting for layout. Keep the last measured rows so live
-      // watches stay on them instead of falling back to the first page.
+      // A fling, bounce, or delayed callback from the previous tab can report
+      // nothing that belongs to this Feed. Keep the last measured rows so live
+      // watches stay on them instead of falling back to the first page — or,
+      // after a tab switch, so the first-page fallback is not replaced with
+      // ids the new Feed does not contain.
       if (nextVisibleEventIds.length === 0) {
         return;
       }
@@ -139,12 +162,10 @@ const PredictFeedContent = ({
       setVisibleEventIds(nextVisibleEventIds);
     },
   ).current;
-  const watchEventIds = useMemo(() => {
-    if (visibleEventIds.length > 0) {
-      return visibleEventIds;
-    }
-    return feedEvents.slice(0, FEED_PAGE_LIMIT).map((event) => event.id);
-  }, [feedEvents, visibleEventIds]);
+  const watchEventIds = useMemo(
+    () => getFeedWatchEventIds(feedEvents, visibleEventIds),
+    [feedEvents, visibleEventIds],
+  );
   const events = useEventsWithLiveGames(venueId, feedEvents, watchEventIds);
   const hasInitialError = isError && events.length === 0;
 
