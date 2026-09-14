@@ -5,6 +5,7 @@ import {
   selectPendingSmartTransactionsForSelectedAccountGroup,
 } from './smartTransactionsController';
 import { selectEvmAddress } from './accountsController';
+import { selectFirstPendingApproval } from './approvalController';
 import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
 import {
   TransactionMeta,
@@ -529,6 +530,19 @@ export const selectTransactionMetadataById = createSelector(
   (_: RootState, id: string) => id,
   (transactions, id) => transactions.find((tx) => tx.id === id),
 );
+
+/** The pending confirmation's transaction, or the gas-fee modal's override. */
+export function selectCurrentTransaction(
+  state: RootState,
+  overrideTransactionId?: string | null,
+) {
+  const transactionId =
+    overrideTransactionId ?? selectFirstPendingApproval(state)?.id;
+
+  return transactionId === undefined
+    ? undefined
+    : selectTransactionMetadataById(state, transactionId);
+}
 
 export const makeSelectTransactionMetadataById =
   (id: string) => (state: RootState) =>

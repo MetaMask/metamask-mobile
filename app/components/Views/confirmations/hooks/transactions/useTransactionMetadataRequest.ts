@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 
 import type { RootState } from '../../../../../reducers';
 import { useGasFeeModalTransaction } from '../../context/gas-fee-modal-transaction';
-import { selectCurrentTransaction } from '../../selectors/transactions';
+import { selectCurrentTransaction } from '../../../../../selectors/transactionController';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 
 export function useTransactionMetadataRequest() {
