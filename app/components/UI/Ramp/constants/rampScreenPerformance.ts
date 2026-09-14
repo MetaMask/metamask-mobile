@@ -1,5 +1,8 @@
 import Routes from '../../../../constants/navigation/Routes';
 
+/** Prefix for the Sentry span name, which the UI shows as span.description. */
+export const RAMP_SCREEN_LOAD_PREFIX = 'Ramps: ';
+
 export const RAMP_SCREEN_CONTENT_STATE = {
   POPULATED: 'populated',
   EMPTY: 'empty',

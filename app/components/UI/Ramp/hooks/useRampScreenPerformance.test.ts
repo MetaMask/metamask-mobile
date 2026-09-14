@@ -3,6 +3,7 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 import {
   RAMP_SCREEN_CONTENT_STATE,
+  RAMP_SCREEN_LOAD_PREFIX,
   RAMP_V2_SCREEN_ID,
 } from '../constants/rampScreenPerformance';
 import { getRampsBuyCufParentContext } from '../utils/rampsBuyCufTrace';
@@ -69,7 +70,7 @@ describe('useRampScreenPerformance', () => {
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RampScreenLoad,
-        description: `${TraceName.RampScreenLoad}: ${RAMP_V2_SCREEN_ID.TOKEN_SELECTION}`,
+        description: `${RAMP_SCREEN_LOAD_PREFIX}${RAMP_V2_SCREEN_ID.TOKEN_SELECTION}`,
         parentContext: { mocked: 'parent' },
         forceTransaction: true,
         tags: {
