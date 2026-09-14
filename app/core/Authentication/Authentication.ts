@@ -630,18 +630,11 @@ class AuthenticationService {
     isQrSync: boolean = false,
   ): Promise<void> => {
     try {
-      const primaryEntropySource = await this.newWalletVaultAndRestore(
-        password,
-        parsedSeed,
-        clearEngine,
-      );
+      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 
       await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
-        Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
-          primaryEntropySource,
-        );
         await Engine.context.QrSyncController.importRemainingSecrets();
       }
 
@@ -1719,7 +1712,7 @@ class AuthenticationService {
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
-    clearBrazeUser();
+    await clearBrazeUser();
     await this.resetWalletState();
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state

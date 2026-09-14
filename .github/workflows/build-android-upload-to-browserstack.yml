@@ -261,7 +261,7 @@ jobs:
         id: download-with-srp
         if: steps.candidate.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
@@ -273,7 +273,7 @@ jobs:
         id: download-without-srp
         if: steps.candidate.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
@@ -328,7 +328,7 @@ jobs:
         id: restage-with-srp
         if: steps.validate-downloads.outputs.valid == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
@@ -342,7 +342,7 @@ jobs:
         id: restage-without-srp
         if: steps.validate-downloads.outputs.valid == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
@@ -393,7 +393,7 @@ jobs:
         id: publish-lookup-with-srp
         if: steps.finalize.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
@@ -404,7 +404,7 @@ jobs:
         id: publish-lookup-without-srp
         if: steps.finalize.outputs.found == 'true'
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
@@ -560,28 +560,28 @@ jobs:
 
       - name: Download reused with-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
 
       - name: Download reused without-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp
 
       - name: Download fresh with-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
           path: artifacts/with-srp
 
       - name: Download fresh without-SRP APK
         if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
           path: artifacts/without-srp

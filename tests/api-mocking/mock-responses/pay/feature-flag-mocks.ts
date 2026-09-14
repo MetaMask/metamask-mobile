@@ -64,3 +64,36 @@ export function moneyAccountDepositFlags(): Record<string, unknown> {
     confirmationsCONF1775AbtestMoneyAccountDepositPrefill: 'control',
   };
 }
+
+/**
+ * Returns the remote feature flag overrides necessary to enable Money Account withdraw,
+ * layered on top of the base RC configuration.
+ */
+export function moneyAccountWithdrawFlags(): Record<string, unknown> {
+  return {
+    ...getBaseFlags(),
+    moneyEnableMoneyAccount: { enabled: true, minimumVersion: '0.0.0' },
+    moneyHomeScreenEnabled: { enabled: true, minimumVersion: '0.0.0' },
+    moneyAccountBalanceSource: 'api-only',
+    confirmations_pay_post_quote: {
+      default: { enabled: false },
+      overrides: {
+        // Explicitly enabled to mirror production: the flag mock helper no
+        // longer deep-merges base `versions` into scenario overrides, so
+        // without this the withdraw confirmation hides its pay-with row
+        // (canSelectWithdrawToken=false → disablePay) and no quote can start.
+        moneyAccountWithdraw: { enabled: true },
+      },
+    },
+    moneyAccountVaultConfig: {
+      chainId: '0x8f',
+      boringVault: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
+      tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
+      accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
+      lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
+    },
+    // Transfer sheet Perps/Predict rows render only when eligible and enabled.
+    perpsPerpTradingEnabled: { enabled: true, minimumVersion: '0.0.0' },
+    predictTradingEnabled: { enabled: true, minimumVersion: '0.0.0' },
+  };
+}

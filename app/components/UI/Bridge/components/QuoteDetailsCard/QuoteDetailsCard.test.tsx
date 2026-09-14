@@ -316,6 +316,50 @@ describe('QuoteDetailsCard', () => {
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
   });
 
+  it('renders the relayer fee when the selected quote includes one', () => {
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+      ...originalImpl(),
+      activeQuote: {
+        ...mockQuotes[0],
+        quote: {
+          ...mockQuotes[0].quote,
+          feeData: {
+            relayer: [
+              {
+                amount: '1000000',
+                valueInCurrency: '1.23',
+                asset: mockQuotes[0].quote.feeData.metabridge[0].asset,
+              },
+            ],
+          },
+        },
+      },
+    }));
+
+    const { getByText } = renderScreen(
+      QuoteDetailsCardTestScreen,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    expect(getByText(strings('bridge.relayer_fee'))).toBeOnTheScreen();
+    expect(getByText('$1.23')).toBeOnTheScreen();
+    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
+  });
+
+  it('does not render the relayer fee when the selected quote omits it', () => {
+    const { queryByText } = renderScreen(
+      QuoteDetailsCardTestScreen,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    expect(queryByText(strings('bridge.relayer_fee'))).toBeNull();
+  });
+
   it('displays fee amount', () => {
     const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,

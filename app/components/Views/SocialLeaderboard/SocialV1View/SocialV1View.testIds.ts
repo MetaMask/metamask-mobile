@@ -1,0 +1,15 @@
+export const SocialV1ViewSelectorsIDs = {
+  CONTAINER: 'social-v1-view-container',
+  HEADER: 'social-v1-view-header',
+  HEADER_TITLE: 'social-v1-view-header-title',
+  TITLE: 'social-v1-view-title',
+  TABS: 'social-v1-view-tabs',
+  PAGER: 'social-v1-view-pager',
+  LEADERBOARD_PAGE: 'social-v1-view-leaderboard-page',
+  FEED_PAGE: 'social-v1-view-feed-page',
+  LIVE_TRADES_PAGE: 'social-v1-view-live-trades-page',
+  NOTIFICATIONS_BANNER: 'social-v1-view-notifications-banner',
+  AVATAR_BUTTON: 'social-v1-view-avatar-button',
+  HEART_BUTTON: 'social-v1-view-heart-button',
+  PLUS_BUTTON: 'social-v1-view-plus-button',
+} as const;

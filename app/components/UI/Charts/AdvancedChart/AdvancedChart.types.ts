@@ -396,6 +396,12 @@ export type ChartInteractionType = 'zoom' | 'pan' | 'tooltip';
 
 export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
+  /** Visible candle count, present on zoom events when the WebView can compute it. */
+  candleCount?: number;
+}
+
+export interface VisibleCandleCountChangedPayload {
+  candleCount: number;
 }
 
 export interface TradeMarkerPressedPayload {
@@ -417,6 +423,10 @@ export type WebViewToRNMessage =
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
   | { type: 'TRADE_MARKER_PRESSED'; payload: TradeMarkerPressedPayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
+  | {
+      type: 'VISIBLE_CANDLE_COUNT_CHANGED';
+      payload: VisibleCandleCountChangedPayload;
+    }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
   | { type: 'ERROR'; payload: ErrorPayload }
   | { type: 'DEBUG'; payload: { message: string } }
@@ -511,14 +521,27 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         obj.interaction_type === 'pan' ||
         obj.interaction_type === 'tooltip'
       ) {
+        const candleCount = getOptionalNumber(obj, 'candleCount');
         return {
           type,
           payload: {
             interaction_type: obj.interaction_type,
+            ...(candleCount !== undefined ? { candleCount } : {}),
           },
         };
       }
       return null;
+
+    case 'VISIBLE_CANDLE_COUNT_CHANGED': {
+      const candleCount = getOptionalNumber(obj, 'candleCount');
+      if (candleCount === undefined) {
+        return null;
+      }
+      return {
+        type,
+        payload: { candleCount },
+      };
+    }
 
     case 'CHART_TRADINGVIEW_CLICKED':
       return {
@@ -726,6 +749,8 @@ export interface AdvancedChartProps {
    * crosshair tooltip (first OHLC payload per crosshair session). Suppressed during data reloads.
    */
   onChartInteracted?: (payload: ChartInteractedPayload) => void;
+  /** Pinch/zoom visible candle count for persistence (Advanced Chart WebView). */
+  onVisibleCandleCountChange?: (candleCount: number) => void;
   /**
    * WebView is about to navigate to tradingview.com (e.g. user tapped attribution logo).
    * Native layer opens the URL in the system browser and cancels in-WebView navigation.

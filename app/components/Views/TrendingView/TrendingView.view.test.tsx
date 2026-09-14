@@ -322,7 +322,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   it('exits search mode when the inline back button is pressed and restores the search button', async () => {
     const { findByTestId, getByTestId, queryByTestId } =
       renderTrendingViewWithRoutes({
-        headerNavBarVariant: HeaderNavBarVariant.TreatmentA,
+        headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
       });
 
     await waitFor(() => {

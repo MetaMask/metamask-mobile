@@ -19,8 +19,12 @@ import {
 } from '../../core/QrSync/qrSyncTelemetry';
 import { selectMobileUxBftcConsolidationFlagEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { syncConsolidatedBasicFunctionalityPreferences } from '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
+import { isBasicFunctionalitySocialLoginUser } from '../basicFunctionality/getBasicFunctionalityConsolidationPlan';
 import { store } from '../../store';
-import { setBasicFunctionalityConsolidatedEnabled } from '../../actions/settings';
+import {
+  setBasicFunctionality,
+  setBasicFunctionalityConsolidatedEnabled,
+} from '../../actions/settings';
 import { shouldMarkWalletHomeOnboardingStepsEligible } from './walletHomeOnboardingStepsEligibility';
 
 export interface FinalizeOnboardingCompletionParams {
@@ -67,20 +71,41 @@ export function finalizeOnboardingCompletion({
     const canReadRemoteFeatureFlags = Boolean(
       state?.engine?.backgroundState?.RemoteFeatureFlagController,
     );
+    let finalBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
     if (
       canReadRemoteFeatureFlags &&
       selectMobileUxBftcConsolidationFlagEnabled(state)
     ) {
+      const seedlessState =
+        state.engine.backgroundState.SeedlessOnboardingController;
+      const isSocialLogin = isBasicFunctionalitySocialLoginUser({
+        accountType,
+        authConnection: seedlessState?.authConnection,
+        hasSeedlessVault: seedlessState?.vault != null,
+      });
+      finalBasicFunctionalityEnabled = isSocialLogin
+        ? true
+        : isBasicFunctionalityEnabled;
+
+      dispatch(setBasicFunctionality(finalBasicFunctionalityEnabled));
       dispatch(setBasicFunctionalityConsolidatedEnabled(true));
       syncConsolidatedBasicFunctionalityPreferences(
-        isBasicFunctionalityEnabled,
+        finalBasicFunctionalityEnabled,
       );
+      Engine.context.MultichainAccountService.setBasicFunctionality(
+        finalBasicFunctionalityEnabled,
+      ).catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'finalizeOnboardingCompletion: Failed to set Basic Functionality',
+        );
+      });
     }
 
     const onboardingCompletedProperties =
       getOnboardingCompletedAnalyticsPropsFromSuccessFlow(successFlow, {
         accountType,
-        isBasicFunctionalityEnabled,
+        isBasicFunctionalityEnabled: finalBasicFunctionalityEnabled,
       });
 
     const onboardingCompletedEvent = AnalyticsEventBuilder.createEventBuilder(
