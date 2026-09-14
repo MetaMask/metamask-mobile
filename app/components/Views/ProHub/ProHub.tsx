@@ -187,14 +187,14 @@ const ProHub = () => {
 
         <PhysicalCardBanner onPress={handleGetCard} />
 
-        <SectionDivider marginVertical={6} />
+        <SectionDivider marginVertical={5} />
 
         <MemberPricingOnTrades />
 
-        <SectionDivider marginVertical={6} />
+        <SectionDivider marginVertical={5} />
 
         <Box testID={ProHubTestIds.ALSO_INCLUDED_SECTION}>
-          <Box twClassName="gap-y-1">
+          <Box twClassName="gap-y-6">
             <Text
               variant={TextVariant.HeadingMd}
               fontWeight={FontWeight.Bold}
@@ -202,13 +202,15 @@ const ProHub = () => {
             >
               {strings('pro_hub.also_included.title')}
             </Text>
-            {ALSO_INCLUDED_ITEMS.map((item) => (
-              <AlsoIncludedRow
-                key={item.id}
-                item={item}
-                testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
-              />
-            ))}
+            <Box twClassName="gap-y-3">
+              {ALSO_INCLUDED_ITEMS.map((item) => (
+                <AlsoIncludedRow
+                  key={item.id}
+                  item={item}
+                  testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
+                />
+              ))}
+            </Box>
           </Box>
           <SectionDivider twClassName="mb-8" />
           <Button
