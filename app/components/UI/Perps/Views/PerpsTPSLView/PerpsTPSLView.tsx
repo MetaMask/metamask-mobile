@@ -80,6 +80,35 @@ const priceValueTextProps = {
 } as const;
 
 /**
+ * Compact +/− control for %RoE fields. ButtonBase defaults to `self-start`,
+ * which pins the chip to the top of TextField's 48px row; force center so it
+ * lines up with the $ prefix, input text, and % suffix.
+ */
+const RoeSignBadge: React.FC<{
+  sign: '+' | '-';
+  onPress: () => void;
+  testID: string;
+  accessibilityLabel: string;
+  isDisabled: boolean;
+}> = ({ sign, onPress, testID, accessibilityLabel, isDisabled }) => (
+  <ButtonBase
+    size={ButtonBaseSize.Sm}
+    isDisabled={isDisabled}
+    onPress={onPress}
+    testID={testID}
+    accessibilityRole="button"
+    accessibilityLabel={accessibilityLabel}
+    twClassName="h-6 min-w-6 shrink-0 self-center rounded-md bg-muted px-1"
+    textProps={{
+      variant: TextVariant.BodyMd,
+      color: sign === '+' ? TextColor.SuccessDefault : TextColor.ErrorDefault,
+    }}
+  >
+    {sign}
+  </ButtonBase>
+);
+
+/**
  * Reserves HelpText vertical space so TP/SL sections do not jump when
  * expected PnL or validation errors appear. Uses an invisible danger+icon
  * HelpText as the in-flow sizer (tallest common single-line layout).
@@ -953,27 +982,17 @@ const PerpsTPSLView: React.FC = () => {
                   }}
                   onBlur={() => handleInputBlur('takeProfitPercentage')}
                   startAccessory={
-                    <ButtonBase
-                      size={ButtonBaseSize.Sm}
-                      isDisabled={inputsDisabled}
+                    <RoeSignBadge
+                      sign={takeProfitSign}
                       onPress={handleTakeProfitSignPress}
                       testID={
                         PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE
                       }
-                      accessibilityRole="button"
                       accessibilityLabel={strings(
                         'perps.tpsl.toggle_take_profit_sign',
                       )}
-                      twClassName="h-6 min-w-6 rounded-md bg-muted px-1"
-                      textProps={{
-                        color:
-                          takeProfitSign === '+'
-                            ? TextColor.SuccessDefault
-                            : TextColor.ErrorDefault,
-                      }}
-                    >
-                      {takeProfitSign}
-                    </ButtonBase>
+                      isDisabled={inputsDisabled}
+                    />
                   }
                   endAccessory={
                     <Text
@@ -1109,27 +1128,17 @@ const PerpsTPSLView: React.FC = () => {
                   }}
                   onBlur={() => handleInputBlur('stopLossPercentage')}
                   startAccessory={
-                    <ButtonBase
-                      size={ButtonBaseSize.Sm}
-                      isDisabled={inputsDisabled}
+                    <RoeSignBadge
+                      sign={stopLossSign}
                       onPress={handleStopLossSignPress}
                       testID={
                         PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE
                       }
-                      accessibilityRole="button"
                       accessibilityLabel={strings(
                         'perps.tpsl.toggle_stop_loss_sign',
                       )}
-                      twClassName="h-6 min-w-6 rounded-md bg-muted px-1"
-                      textProps={{
-                        color:
-                          stopLossSign === '+'
-                            ? TextColor.SuccessDefault
-                            : TextColor.ErrorDefault,
-                      }}
-                    >
-                      {stopLossSign}
-                    </ButtonBase>
+                      isDisabled={inputsDisabled}
+                    />
                   }
                   endAccessory={
                     <Text
