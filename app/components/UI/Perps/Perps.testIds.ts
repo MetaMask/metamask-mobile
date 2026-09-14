@@ -1279,7 +1279,20 @@ export const PerpsModeSelectionBottomSheetSelectorsIDs = {
   PRO_OPTION: 'perps-mode-selection-pro-option',
   LITE_ICON: 'perps-mode-selection-lite-icon',
   PRO_ICON: 'perps-mode-selection-pro-icon',
+  PRO_ICON_TILE: 'perps-mode-selection-pro-icon-tile',
   SELECTED_INDICATOR: 'perps-mode-selection-selected-indicator',
+} as const;
+
+export const PerpsSelectProviderViewSelectorsIDs = {
+  SHEET: 'perps-select-provider-sheet',
+  CLOSE_BUTTON: 'perps-select-provider-sheet-close-button',
+} as const;
+
+export const PerpsTooltipViewSelectorsIDs = {
+  BOTTOM_SHEET: 'perps-tooltip-bottom-sheet',
+  HEADER: 'perps-tooltip-bottom-sheet-header',
+  FOOTER: 'perps-tooltip-bottom-sheet-footer',
+  GOT_IT_BUTTON: 'perps-tooltip-bottom-sheet-footer-got-it-button',
 } as const;
 
 // ========================================

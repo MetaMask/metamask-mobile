@@ -19,7 +19,7 @@ import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
-import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
+import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 
 interface TouchAreaSlop {
@@ -35,8 +35,6 @@ export interface WalletHeaderProps {
   displayName: string;
   navigation: NavigationProp<ParamListBase>;
   isMoneyAccountVisible: boolean;
-  isNotificationEnabled: boolean;
-  unreadNotificationCount: number;
   handleSearchPress: () => void;
   handleActivityPress: () => void;
   handleCardPress: () => void;
@@ -48,17 +46,14 @@ export interface WalletHeaderProps {
 
 /**
  * Wallet home screen header: account picker plus the search/activity/copy/
- * card/notifications action buttons. Extracted into its own memoized
- * component so this subtree doesn't re-render every time `Wallet` re-renders
- * (e.g. on navigation focus) — none of these buttons depend on anything that
- * changes that often.
+ * card/menu action buttons. Memoized so `Wallet` re-renders (e.g. on
+ * navigation focus) skip this subtree unless its props or the Accounts menu
+ * attention hook change.
  */
 const WalletHeader = ({
   displayName,
   navigation,
   isMoneyAccountVisible,
-  isNotificationEnabled,
-  unreadNotificationCount,
   handleSearchPress,
   handleActivityPress,
   handleCardPress,
@@ -67,6 +62,8 @@ const WalletHeader = ({
   headerActionButtonsContainerStyle,
   headerAccountPickerStyle,
 }: WalletHeaderProps) => {
+  const hasAccountsMenuAttention = useAccountsMenuAttention();
+
   const handleAccountPickerPress = useCallback(() => {
     navigation.navigate(...createAccountSelectorNavDetails({}));
   }, [navigation]);
@@ -109,28 +106,18 @@ const WalletHeader = ({
               touchAreaSlop={touchAreaSlop}
             />
           )}
-          {isNotificationsFeatureEnabled() ? (
-            <BadgeWrapper
-              position={BadgeWrapperPosition.TopRight}
-              positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-              badge={
-                isNotificationEnabled && unreadNotificationCount > 0 ? (
-                  <BadgeStatus status={BadgeStatusStatus.Attention} />
-                ) : null
-              }
-            >
-              <ButtonIcon
-                iconProps={{
-                  color: MMDSIconColor.IconDefault,
-                }}
-                onPress={handleHamburgerPress}
-                iconName={MMDSIconName.Menu}
-                size={ButtonIconSize.Md}
-                testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
-                hitSlop={touchAreaSlop}
-              />
-            </BadgeWrapper>
-          ) : (
+          <BadgeWrapper
+            position={BadgeWrapperPosition.TopRight}
+            positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+            badge={
+              hasAccountsMenuAttention ? (
+                <BadgeStatus
+                  status={BadgeStatusStatus.Attention}
+                  testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE}
+                />
+              ) : null
+            }
+          >
             <ButtonIcon
               iconProps={{
                 color: MMDSIconColor.IconDefault,
@@ -141,7 +128,7 @@ const WalletHeader = ({
               testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
               hitSlop={touchAreaSlop}
             />
-          )}
+          </BadgeWrapper>
         </View>
       }
       twClassName="pl-1 pr-3"

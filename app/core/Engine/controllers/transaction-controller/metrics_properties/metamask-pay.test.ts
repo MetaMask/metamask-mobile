@@ -623,7 +623,7 @@ describe('Metamask Pay Metrics', () => {
   it('derives base properties from metamaskPay metadata', () => {
     request.transactionMeta.metamaskPay = {
       chainId: '0x3',
-      tokenAddress: '0x123',
+      tokenAddress: '0x0000000000000000000000000000000000000123',
     };
 
     getStateMock.mockReturnValue({
@@ -639,6 +639,35 @@ describe('Metamask Pay Metrics', () => {
                     decimals: 18,
                   },
                 ],
+              },
+            },
+          },
+          AssetsController: {
+            assetsInfo: {
+              'eip155:3/erc20:0x0000000000000000000000000000000000000123': {
+                type: 'erc20',
+                symbol: 'USDC',
+                name: 'USDC',
+                decimals: 18,
+              },
+            },
+            assetsBalance: {
+              'account-1': {
+                'eip155:3/erc20:0x0000000000000000000000000000000000000123': {
+                  amount: '1',
+                },
+              },
+            },
+            customAssets: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'account-1': {
+                  id: 'account-1',
+                  address: '0xabc',
+                  type: 'eip155:eoa',
+                },
               },
             },
           },
@@ -695,7 +724,7 @@ describe('Metamask Pay Metrics', () => {
   it('falls back to token selector when paymentToken is unavailable', () => {
     request.transactionMeta.metamaskPay = {
       chainId: '0x3',
-      tokenAddress: '0x123',
+      tokenAddress: '0x0000000000000000000000000000000000000123',
     };
 
     getStateMock.mockReturnValue({
@@ -711,6 +740,35 @@ describe('Metamask Pay Metrics', () => {
                     decimals: 18,
                   },
                 ],
+              },
+            },
+          },
+          AssetsController: {
+            assetsInfo: {
+              'eip155:3/erc20:0x0000000000000000000000000000000000000123': {
+                type: 'erc20',
+                symbol: 'USDC',
+                name: 'USDC',
+                decimals: 18,
+              },
+            },
+            assetsBalance: {
+              'account-1': {
+                'eip155:3/erc20:0x0000000000000000000000000000000000000123': {
+                  amount: '1',
+                },
+              },
+            },
+            customAssets: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'account-1': {
+                  id: 'account-1',
+                  address: '0xabc',
+                  type: 'eip155:eoa',
+                },
               },
             },
           },

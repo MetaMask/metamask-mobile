@@ -629,15 +629,23 @@ jest.mock(
   '../../../../../component-library/components-temp/TabEmptyState',
   () => {
     const { createElement } = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+    const { View, Text } = jest.requireActual('react-native');
     return {
       TabEmptyState: ({
         testID,
+        description,
         children,
       }: {
         testID?: string;
+        description?: React.ReactNode;
         children?: React.ReactNode;
-      }) => createElement(View, { testID }, children),
+      }) =>
+        createElement(
+          View,
+          { testID },
+          description ? createElement(Text, null, description) : null,
+          children,
+        ),
     };
   },
 );
@@ -1787,6 +1795,103 @@ describe('BridgeTokenSelector', () => {
 
       expect(getByTestId('watchlist-empty-cta-container')).toBeTruthy();
       expect(queryByTestId('bridge-token-list')).toBeNull();
+    });
+
+    it('shows the watchlist empty state when favorites exist but none are on the enabled chains', () => {
+      mockIsWatchlistEnabled = true;
+      // Picker is scoped to Ethereum only (e.g. a Limit order dest picker).
+      // selectAllowedChainRanking is mocked to read directly off
+      // bridgeFeatureFlags.chainRanking (see the module mock above), so
+      // narrowing that array is how this picker's enabled-chains scope is
+      // simulated here.
+      mockBridgeFeatureFlags = {
+        chainRanking: [{ chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' }],
+        chains: {},
+      };
+      // The user's only watchlist item is on Polygon, outside this picker's
+      // enabled chains, so it must not surface under "All".
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:137/slip44:60',
+            name: 'Polygon',
+            symbol: 'POL',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+
+      const { getByTestId, getByText, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+      expect(getByTestId('bridge-watchlist-empty-state')).toBeTruthy();
+      // strings() is mocked to return the raw key in this test file.
+      expect(getByText('bridge.no_watchlist_tokens_found')).toBeTruthy();
+      expect(
+        getByText('bridge.no_watchlist_tokens_found_description'),
+      ).toBeTruthy();
+      expect(queryByTestId('token-POL')).toBeNull();
+    });
+
+    it('shows watchlist tokens whose chain is within the enabled chains and hides the rest', () => {
+      mockIsWatchlistEnabled = true;
+      mockBridgeFeatureFlags = {
+        chainRanking: [{ chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' }],
+        chains: {},
+      };
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+          {
+            assetId: 'eip155:137/slip44:60',
+            name: 'Polygon',
+            symbol: 'POL',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+      mockBalancesByAssetIdState = {
+        tokensWithBalance: [],
+        balancesByAssetId: {
+          'eip155:1/slip44:60': {
+            balance: '1.5',
+            balanceFiat: '$3,000.00',
+            tokenFiatAmount: 3000,
+          },
+        },
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+      expect(getByTestId('token-ETH')).toBeTruthy();
+      expect(queryByTestId('token-POL')).toBeNull();
+      expect(queryByTestId('bridge-watchlist-empty-state')).toBeNull();
     });
 
     it('shows watchlist tokens for source picker when bridge balances are available', async () => {

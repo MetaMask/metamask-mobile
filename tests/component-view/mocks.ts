@@ -363,7 +363,8 @@ jest.mock('../../app/core/Engine', () => {
       BridgeStatusController: {
         submitTx: jest.fn().mockResolvedValue({ success: true }),
       },
-      PredictNextController: {},
+      PredictMarketDataService: {},
+      PredictPortfolioService: {},
       PredictController: {
         getMarkets: jest.fn().mockResolvedValue({
           markets: [],
@@ -450,6 +451,7 @@ jest.mock('../../app/core/Engine', () => {
           supportedStrategies: ['twap', 'scale', 'chase'],
         }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToOrderBook: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue({
@@ -534,6 +536,7 @@ jest.mock('../../app/core/Engine', () => {
         setProLayoutPreferences: jest.fn(),
         setSelectedOrderType: jest.fn(),
         setOrderBookPreferences: jest.fn(),
+        setVisibleCandleCount: jest.fn(),
         saveTradeConfiguration: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),

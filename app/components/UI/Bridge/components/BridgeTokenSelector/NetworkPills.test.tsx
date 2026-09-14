@@ -268,6 +268,38 @@ describe('NetworkPills', () => {
       expect(queryByTestId('network-pills-more-button')).toBeNull();
     });
 
+    it('does not render the All pill when only one network is available', () => {
+      const singleChainRanking = [
+        { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
+      ];
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockReturnValue(singleChainRanking);
+
+      const { getByText, queryByText } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(queryByText('All')).toBeNull();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+    });
+
+    it('renders the All pill when more than one network is available', () => {
+      const { getByText } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      expect(getByText('All')).toBeOnTheScreen();
+    });
+
     it('shows first MAX_VISIBLE_PILLS from any chainRanking order', () => {
       const customRanking = [
         { chainId: 'eip155:137' as CaipChainId, name: 'Polygon' },
@@ -396,6 +428,29 @@ describe('NetworkPills', () => {
       );
 
       expect(getByText('All')).toBeTruthy();
+    });
+
+    it('treats the single network as selected when no chain filter is set and All is hidden', () => {
+      const singleChainRanking = [
+        { chainId: 'eip155:1' as CaipChainId, name: 'Ethereum' },
+      ];
+      jest
+        .mocked(selectAllowedChainRanking)
+        .mockReturnValue(singleChainRanking);
+
+      const { getByText } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+        />,
+      );
+
+      // No assertion on visual active styling here (mocked ButtonToggle
+      // doesn't forward isActive), but pressing it should still behave
+      // like a normal chain selection.
+      fireEvent.press(getByText('Ethereum'));
+      expect(mockOnChainSelect).toHaveBeenCalledWith('eip155:1');
     });
   });
 

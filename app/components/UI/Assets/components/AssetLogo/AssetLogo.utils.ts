@@ -58,7 +58,10 @@ export function createRotatingSet<T>(maxSize: number = 100): {
     add(value: T): void {
       set.add(value);
       if (set.size > maxSize) {
-        set.delete(set.values().next().value);
+        const oldest = set.values().next().value;
+        if (oldest !== undefined) {
+          set.delete(oldest);
+        }
       }
     },
     has(value: T): boolean {

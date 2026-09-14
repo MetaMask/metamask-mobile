@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../../../hooks/useConfirmReject';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import { endTrace, TraceName } from '../../../../../../../util/trace';
@@ -50,6 +51,10 @@ jest.mock('../../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/useConfirmReject', () => ({
+  useConfirmReject: jest.fn(),
+}));
+
 jest.mock('../../../../components/UI/navbar/navbar', () => ({
   getNavbar: jest.fn(),
 }));
@@ -82,6 +87,7 @@ describe('StakingDeposit', () => {
   const mockSetConfirmationMetric = jest.fn();
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmReject = jest.mocked(useConfirmReject);
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
@@ -93,6 +99,7 @@ describe('StakingDeposit', () => {
       onReject: jest.fn(),
       onConfirm: jest.fn(),
     });
+    mockUseConfirmReject.mockReturnValue({ onReject: jest.fn() });
 
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackAdvancedDetailsToggledEvent: mockTrackAdvancedDetailsToggledEvent,
@@ -107,6 +114,7 @@ describe('StakingDeposit', () => {
       onConfirm: jest.fn(),
       onReject: mockOnReject,
     }));
+    mockUseConfirmReject.mockImplementation(() => ({ onReject: mockOnReject }));
 
     const { getByText } = renderWithProvider(<StakingDeposit />, {
       state: stakingDepositConfirmationState,

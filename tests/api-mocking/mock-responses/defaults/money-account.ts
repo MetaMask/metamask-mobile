@@ -41,8 +41,8 @@ export const MONEY_ACCOUNT_MOCKS: MockEventsObject = {
         },
       },
     },
-    // Money Account balance/positions — polled after unlock / during confirm
-    // flows. Unmocked hits fail fixture cleanup even when the spec body passed.
+    // Money Account positions are polled after unlock when the feature is
+    // enabled. Tests that need a funded account override this empty fallback.
     {
       urlEndpoint:
         /^https:\/\/money\.api\.cx\.metamask\.io\/v1\/positions\/0x[a-fA-F0-9]{40}$/u,
