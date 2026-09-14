@@ -3,7 +3,11 @@ import injectInpageProvider from './provider';
 import injectSolanaWalletStandard from './solanaWalletStandard';
 import injectBitcoinWalletStandard from './bitcoinWalletStandard';
 
-if (shouldInject()) {
+if (
+  typeof window !== 'undefined' &&
+  typeof window.document !== 'undefined' &&
+  shouldInject()
+) {
   injectInpageProvider();
   injectSolanaWalletStandard();
   injectBitcoinWalletStandard();
@@ -77,6 +81,7 @@ function blockedDomainCheck() {
   // If making any changes, please also update the same list found in the MetaMask-Mobile & SDK repositories
   const blockedDomains = [
     'execution.consensys.io',
+    'execution.metamask.com',
     'execution.metamask.io',
     'uscourts.gov',
     'dropbox.com',
@@ -114,6 +119,8 @@ function blockedDomainCheck() {
     )
   );
 }
+
+export { blockedDomainCheck };
 
 /**
  * Returns a promise that resolves when the DOM is loaded (does not wait for images to load)
