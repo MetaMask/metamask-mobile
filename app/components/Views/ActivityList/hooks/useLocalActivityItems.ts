@@ -5,14 +5,11 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
-  getBridgeActivityStatus,
-  getSwapTokenEnrichment,
   selectLocalActivityItems,
   selectLocalTransactionGroups,
 } from '../../../../selectors/activity';
 import { selectLocalTransactions } from '../../../../selectors/transactionController';
-
-export { getBridgeActivityStatus, getSwapTokenEnrichment };
+import { equalsIgnoreCase } from '../../../../util/string';
 
 const QUEUE_BLOCKING_STATUSES = new Set<string>([
   TransactionStatus.submitted,
@@ -44,7 +41,7 @@ function computeIsEarliestNonce(
     if (!QUEUE_BLOCKING_STATUSES.has(other.status)) return false;
     const otherNonce = Number(other.txParams?.nonce);
     return (
-      other.txParams?.from === txParams.from &&
+      equalsIgnoreCase(other.txParams?.from, txParams.from) &&
       other.chainId === tx.chainId &&
       otherNonce < ownNonce
     );

@@ -764,7 +764,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const handleActivityItemPress = useCallback(
       async (item: ActivityListItem) => {
         const { raw } = item;
-        if (!raw) return;
 
         // Ramp rows own their redesign gate: flag ON → ActivityDetails /
         // TemplateLoader; flag OFF → OrdersList destinations. Kept ahead of the
@@ -772,7 +771,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // flag-OFF never accidentally hits ActivityDetails.
         // Sell/offramp always uses legacy OrderDetails — that screen owns the
         // Continue → Send Transaction flow which ActivityDetails does not.
-        if (raw.type === 'rampOrder') {
+        if (raw?.type === 'rampOrder') {
           if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
             goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
             return;

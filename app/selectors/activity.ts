@@ -1,9 +1,7 @@
 import { createSelector } from 'reselect';
 import { formatAccountToCaipAccountId } from '@metamask/perps-controller';
 import { mapLocalTransaction } from '@metamask/client-utils';
-import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import {
-  TransactionStatus,
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
@@ -23,9 +21,10 @@ import { findBridgeHistoryItem } from '../util/bridge/findBridgeHistoryItem';
 import { isHardwareAccount } from '../util/address';
 import {
   enrichLocalActivity,
+  getBridgeActivityStatus,
+  getSwapTokenEnrichment,
   prepareLocalTransactionGroup,
   type ActivityListItem,
-  type TokenAmount,
 } from '../util/activity-adapters';
 
 const selectCaipChainId = (_state: RootState, caipChainId: CaipChainId) =>
@@ -46,12 +45,6 @@ export const selectSelectedAccountCaipId = createSelector(
 );
 
 type GroupMember = TransactionMeta & { isSmartTransaction?: boolean };
-
-const bridgeFailStatuses = [
-  TransactionStatus.failed,
-  TransactionStatus.dropped,
-  TransactionStatus.rejected,
-] as string[];
 
 function isTransactionMetaLike(
   tx: unknown,
@@ -76,8 +69,8 @@ function getTransactionGroupKey(tx: TransactionMeta) {
   return `${chainId}:${from}:${tx.id}`;
 }
 
-// Speed-up/cancel originals join an existing nonce group — they must not
-// create a row. Earliest attempt sets type/amount; latest survivor sets status.
+// Same nonce = one row. A speed-up or cancel is not a second activity item.
+// Use the original for type/amount; use the retry/cancel for status.
 function buildTransactionGroups(
   transactions: GroupMember[],
   replacedTransactions: TransactionMeta[] = [],
@@ -121,85 +114,6 @@ function buildTransactionGroups(
       transactions: sorted,
     };
   });
-}
-
-// The source tx confirms before the destination does. Treat the bridge as
-// success only after destChain.txHash; if the source failed, mark failed.
-export function getBridgeActivityStatus(
-  tx: TransactionMeta,
-  bridgeHistoryItem: BridgeHistoryItem | undefined,
-) {
-  if (tx.type !== TransactionType.bridge || !bridgeHistoryItem) {
-    return undefined;
-  }
-
-  if (bridgeHistoryItem.status?.destChain?.txHash) {
-    return 'success';
-  }
-
-  if (bridgeFailStatuses.includes(tx.status)) {
-    return 'failed';
-  }
-
-  return undefined;
-}
-
-function tokenFromQuoteAsset(
-  direction: TokenAmount['direction'],
-  asset: { symbol?: string; decimals?: number; assetId?: string } | undefined,
-  amount: string | undefined,
-) {
-  if (!asset?.symbol) {
-    return undefined;
-  }
-  return {
-    direction,
-    symbol: asset.symbol,
-    ...(amount ? { amount } : {}),
-    ...(asset.decimals === undefined ? {} : { decimals: asset.decimals }),
-    ...(asset.assetId ? { assetId: asset.assetId } : {}),
-  };
-}
-
-// Prefer the bridge/swaps quote (has amounts). Fall back to legacy
-// TransactionMeta symbols for older swaps with no quote.
-export function getSwapTokenEnrichment(
-  tx: TransactionMeta,
-  nativeSymbol: string | undefined,
-  bridgeHistoryItem: BridgeHistoryItem | undefined,
-) {
-  const quote = bridgeHistoryItem?.quote;
-  const quoteSourceToken = tokenFromQuoteAsset(
-    'out',
-    quote?.srcAsset,
-    quote?.srcTokenAmount,
-  );
-  const quoteDestinationToken = tokenFromQuoteAsset(
-    'in',
-    quote?.destAsset,
-    quote?.destTokenAmount ?? quote?.minDestTokenAmount,
-  );
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const meta = tx as any;
-  const srcSymbol: string | undefined =
-    meta.sourceTokenSymbol ?? meta.swapMetaData?.token_from;
-  const dstSymbol: string | undefined =
-    meta.destinationTokenSymbol ?? meta.swapMetaData?.token_to;
-  const effectiveSrcSymbol =
-    srcSymbol ??
-    (meta.destinationTokenAddress && nativeSymbol ? nativeSymbol : undefined);
-
-  return {
-    sourceToken:
-      quoteSourceToken ??
-      (effectiveSrcSymbol
-        ? { direction: 'out' as const, symbol: effectiveSrcSymbol }
-        : undefined),
-    destinationToken:
-      quoteDestinationToken ??
-      (dstSymbol ? { direction: 'in' as const, symbol: dstSymbol } : undefined),
-  };
 }
 
 const selectLocalTransactionMetas = createSelector(
@@ -300,26 +214,20 @@ export const selectLocalActivityItemsByIdentifier = createSelector(
   (transactionGroups, items) => {
     const itemsByIdentifier = new Map<string, ActivityListItem>();
 
-    transactionGroups.forEach((transactionGroup, index) => {
+    transactionGroups.forEach((group, index) => {
       const item = items[index];
       if (!item) {
         return;
       }
 
-      for (const transaction of [
-        transactionGroup.primaryTransaction,
-        transactionGroup.initialTransaction,
-      ]) {
-        const hash = transaction.hash?.toLowerCase();
+      for (const tx of [group.primaryTransaction, group.initialTransaction]) {
+        const hash = tx.hash?.toLowerCase();
         if (hash) {
           itemsByIdentifier.set(hash, item);
         }
 
-        if (
-          typeof transaction.id === 'string' ||
-          typeof transaction.id === 'number'
-        ) {
-          itemsByIdentifier.set(String(transaction.id).toLowerCase(), item);
+        if (typeof tx.id === 'string' || typeof tx.id === 'number') {
+          itemsByIdentifier.set(String(tx.id).toLowerCase(), item);
         }
       }
     });

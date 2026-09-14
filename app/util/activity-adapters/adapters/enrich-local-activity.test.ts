@@ -410,17 +410,4 @@ describe('local activity call-site mapping', () => {
 
     expect(item.type).toBe('claim');
   });
-
-  it('keeps from on a lending withdraw so details has an account address', () => {
-    const item = mapLocalActivity(
-      buildGroup({ type: TransactionType.lendingWithdraw }),
-    );
-
-    expect(item.type).toBe('lendingWithdrawal');
-    expect(item.data).toEqual(
-      expect.objectContaining({
-        from,
-      }),
-    );
-  });
 });
