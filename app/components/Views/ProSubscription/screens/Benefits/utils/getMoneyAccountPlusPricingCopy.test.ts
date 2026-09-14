@@ -1,5 +1,6 @@
 import { RECURRING_INTERVALS } from '@metamask/subscription-controller';
 import I18n, { strings } from '../../../../../../../locales/i18n';
+import type { PlanId } from '../Benefits.constants';
 import { formatSubscriptionFiat } from './formatSubscriptionFiat';
 import {
   getBenefitsPriceLine,
@@ -55,6 +56,30 @@ describe('getMoneyAccountPlusPricingCopy', () => {
       const result = resolveSelectedPlanId('annual', READY_BOTH);
 
       expect(result).toBe('annual');
+    });
+
+    it('keeps monthly when the monthly plan is present', () => {
+      const result = resolveSelectedPlanId('monthly', READY_BOTH);
+
+      expect(result).toBe('monthly');
+    });
+
+    it('keeps the selection when pricing is not ready', () => {
+      const result = resolveSelectedPlanId('monthly', { status: 'malformed' });
+
+      expect(result).toBe('monthly');
+    });
+
+    it('defaults an unrecognised selection to annual', () => {
+      const result = resolveSelectedPlanId('weekly', READY_BOTH);
+
+      expect(result).toBe('annual');
+    });
+
+    it('keeps the selection when pricing is ready without any plan', () => {
+      const result = resolveSelectedPlanId('monthly', { status: 'ready' });
+
+      expect(result).toBe('monthly');
     });
 
     it('falls back to monthly when annual is missing', () => {
@@ -123,6 +148,12 @@ describe('getMoneyAccountPlusPricingCopy', () => {
         }),
       );
     });
+
+    it('returns undefined when pricing is ready without any plan', () => {
+      const result = getBenefitsPriceLine({ status: 'ready' });
+
+      expect(result).toBeUndefined();
+    });
   });
 
   describe('getPlanSelectorCardCopy', () => {
@@ -182,6 +213,31 @@ describe('getMoneyAccountPlusPricingCopy', () => {
       expect(result?.trialLabel).toBe(
         strings('pro_subscription.plans.trial', { days: '7' }),
       );
+    });
+
+    it('omits the trial label when there is no trial period', () => {
+      const result = getPlanSelectorCardCopy('monthly', {
+        status: 'ready',
+        monthly: createPlan({
+          interval: RECURRING_INTERVALS.month,
+          trialPeriodDays: 0,
+        }),
+      });
+
+      expect(result?.trialLabel).toBeUndefined();
+    });
+
+    it('throws when priced against a plan the UI does not define', () => {
+      const plusPricing = {
+        status: 'ready',
+        weekly: createPlan({
+          interval: 'week' as PlanPricingView['interval'],
+        }),
+      } as unknown as MoneyAccountPlusPricingView;
+
+      expect(() =>
+        getPlanSelectorCardCopy('weekly' as PlanId, plusPricing),
+      ).toThrow('Unknown plan id: weekly');
     });
   });
 });

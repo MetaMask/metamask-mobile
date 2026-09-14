@@ -172,6 +172,31 @@ describe('useSubscriptionPricing', () => {
     expect(result.current.isLoading).toBe(false);
   });
 
+  it('does not update state when the fetch fails after unmount', async () => {
+    let rejectPricing: (error: Error) => void = () => undefined;
+    mockedGetPricing.mockReturnValue(
+      new Promise<void>((_resolve, reject) => {
+        rejectPricing = reject;
+      }),
+    );
+
+    const { result, unmount } = renderUseSubscriptionPricing();
+
+    await waitFor(() => {
+      expect(mockedGetPricing).toHaveBeenCalledTimes(1);
+    });
+
+    unmount();
+
+    await act(async () => {
+      rejectPricing(new Error('network down'));
+    });
+
+    expect(mockedLoggerError).toHaveBeenCalledTimes(1);
+    expect(result.current.hasError).toBe(false);
+    expect(result.current.isLoading).toBe(true);
+  });
+
   it('returns mapped Plus pricing from SubscriptionController state', () => {
     mockedGetPricing.mockReturnValue(new Promise(() => undefined));
     const pricing = {

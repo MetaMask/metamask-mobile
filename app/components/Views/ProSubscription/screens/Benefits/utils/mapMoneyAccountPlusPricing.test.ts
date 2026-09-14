@@ -225,6 +225,26 @@ describe('mapMoneyAccountPlusPricing', () => {
       expect(result.annual?.interval).toBe(RECURRING_INTERVALS.year);
     });
 
+    it('omits a Plus price row priced in an unsupported currency', () => {
+      const pricing = createPricing([
+        {
+          name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+          prices: [
+            createPrice({
+              currency: 'eur' as ProductPrice['currency'],
+            }),
+            ANNUAL_PRICE,
+          ],
+        },
+      ]);
+
+      const result = mapMoneyAccountPlusPricing(pricing);
+
+      expect(result.status).toBe('ready');
+      expect(result.monthly).toBeUndefined();
+      expect(result.annual?.interval).toBe(RECURRING_INTERVALS.year);
+    });
+
     it('returns malformed when Plus prices exist but none are usable', () => {
       const pricing = createPricing([
         {
