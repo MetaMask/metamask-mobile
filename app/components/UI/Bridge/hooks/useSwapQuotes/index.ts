@@ -4,7 +4,7 @@ import {
   SwapQuotesContext,
   type SwapQuotesContextValue,
 } from '../../providers/SwapQuotesProvider';
-import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import { SwapsFeatureIdContext } from '../../providers/SwapsFeatureIdProvider';
 import { MIGRATED_FEATURE_IDS } from '../../Views/BridgeView/BridgeView.constants';
 
 /**
@@ -12,14 +12,14 @@ import { MIGRATED_FEATURE_IDS } from '../../Views/BridgeView/BridgeView.constant
  */
 export const useSwapQuotes = (): SwapQuotesContextValue | null => {
   const context = useContext(SwapQuotesContext);
+  const featureId = useContext(SwapsFeatureIdContext);
 
-  const featureId = useSwapsFeatureId();
-  if (!MIGRATED_FEATURE_IDS.includes(featureId)) {
+  if (!featureId || !MIGRATED_FEATURE_IDS.includes(featureId)) {
     return null;
   }
 
   if (!context) {
-    throw new Error('useSwapQuotes must be used within SwapQuotesProvider');
+    return null;
   }
 
   return context;
