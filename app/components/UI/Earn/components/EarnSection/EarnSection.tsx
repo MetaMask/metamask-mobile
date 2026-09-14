@@ -358,9 +358,17 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     const handleAssetCardPress = useCallback(
       (asset: EarnAsset, position: number) => {
+        const availableAssetsCount = assetSlots.filter(
+          (slot) => slot.kind === 'asset',
+        ).length;
+
         trackEarnSurfaceClicked({
           component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ASSET_CARD,
-          ...getEarnModuleAssetProperties(asset, position, assetSlots.length),
+          ...getEarnModuleAssetProperties(
+            asset,
+            position,
+            availableAssetsCount,
+          ),
           redirect_target: getEarnAssetSelectionRedirectTarget(
             asset,
             isOnboardingRedirectNeeded,
@@ -381,7 +389,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         );
       },
       [
-        assetSlots.length,
+        assetSlots,
         earnEntryPoint,
         earnScreenName,
         isOnboardingRedirectNeeded,

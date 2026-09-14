@@ -261,6 +261,35 @@ describe('useEarnAssetAcquisitionNavigation', () => {
     expect(mockAreAddressesEqual).toHaveBeenCalled();
   });
 
+  it('allows equal native addresses on different chains', () => {
+    const earnAsset = createEarnAsset(
+      createExperience({ status: 'not_ready', reason: 'asset_not_tracked' }),
+    );
+    const nativeDestinationToken = {
+      ...destinationToken,
+      address: sourceToken.address,
+      symbol: 'ETH',
+      name: 'Ether',
+    };
+    let isCrossChainSourceEligible = false;
+    mockEarnAssetToBridgeToken.mockReturnValueOnce(nativeDestinationToken);
+    mockComputeBuySourceToken.mockImplementationOnce(
+      (_assets, _chainId, _address, isEligible) => {
+        isCrossChainSourceEligible = isEligible?.(createSourceAsset()) ?? false;
+        return null;
+      },
+    );
+
+    const { result } = renderHook(() => useEarnAssetAcquisitionNavigation());
+
+    result.current.resolveEarnAssetAcquisitionRoute(
+      earnAsset,
+      earnAsset.experiences[0],
+    );
+
+    expect(isCrossChainSourceEligible).toBe(true);
+  });
+
   it('resolves a buy route when no source token exists', () => {
     mockComputeBuySourceToken.mockReturnValue(null);
     const earnAsset = createEarnAsset(

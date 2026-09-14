@@ -77,8 +77,11 @@ const useEarnAssetAcquisitionNavigation = () => {
             selectAssetsBySelectedAccountGroup(state),
             destinationToken.chainId,
             destinationToken.address,
+            // Same address means same token only when chain IDs also match;
+            // EVM native assets share the zero address across chains.
             (asset) =>
-              !areAddressesEqual(asset.assetId, destinationToken.address) &&
+              (asset.chainId !== destinationToken.chainId ||
+                !areAddressesEqual(asset.assetId, destinationToken.address)) &&
               isBridgeEnabledSource(asset.chainId as Hex | CaipChainId),
           )
         : null;

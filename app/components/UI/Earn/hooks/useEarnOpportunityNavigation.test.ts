@@ -774,10 +774,7 @@ describe('useEarnOpportunityNavigation', () => {
       const { result } = renderHook(() => useEarnOpportunityNavigation());
 
       expect(
-        result.current.resolveEarnDepositNavigationRoute(
-          earnAsset,
-          experience,
-        ),
+        result.current.resolveEarnDepositNavigationRoute(earnAsset, experience),
       ).toEqual({
         type: 'money-fiat',
         redirectTarget: expectedRedirectTarget,

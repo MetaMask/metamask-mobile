@@ -207,10 +207,8 @@ const useEarnOpportunityNavigation = () => {
     resolveEarnAssetAcquisitionRoute,
     navigateToEarnAssetAcquisitionRoute,
   } = useEarnAssetAcquisitionNavigation();
-  const {
-    isOnboardingRedirectNeeded,
-    redirectToOnboardingIfNeeded,
-  } = useMoneyOnboardingNavigation();
+  const { isOnboardingRedirectNeeded, redirectToOnboardingIfNeeded } =
+    useMoneyOnboardingNavigation();
 
   const resolveEarnDepositNavigationRoute = useCallback(
     (
