@@ -8,9 +8,6 @@ import {
   ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRoute, type RouteProp } from '@react-navigation/native';
