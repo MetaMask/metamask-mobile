@@ -28,6 +28,7 @@ import {
 } from '@metamask/assets-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { NetworkState } from '@metamask/network-controller';
+import type { RootState } from '../../reducers';
 
 // CAIP-19 asset identifiers (with checksummed addresses) for the pooled-staking
 // vault token that should never surface as regular ERC-20 tokens in the wallet
@@ -557,15 +558,8 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
   },
 );
 
-export const getCurrencyRateControllerCurrentCurrency = createDeepEqualSelector(
-  [
-    (state) =>
-      state.engine?.backgroundState?.AssetsController?.selectedCurrency,
-  ],
-  (
-    selectedCurrency: AssetsControllerState['selectedCurrency'],
-  ): CurrencyRateState['currentCurrency'] => selectedCurrency,
-);
+export const getCurrencyRateControllerCurrentCurrency = (state: RootState) =>
+  state.engine?.backgroundState?.AssetsController?.selectedCurrency;
 
 // Native Symbol -> Rates (conversionRate, usdConversionRate, conversionDate)
 export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
