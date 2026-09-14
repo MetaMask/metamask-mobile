@@ -386,7 +386,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
     },
-    status: FeatureFlagStatus.Active,
+    // All 9 controllers listed in `deprecatedControllers` have been fully
+    // removed from the app; the app no longer reads this flag.
+    status: FeatureFlagStatus.Deprecated,
   },
 
   backendWebSocketConnection: {
@@ -1031,6 +1033,93 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       IS: true,
       'US-MD': true,
       'US-HI': true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersve: {
+    name: 'cardImmersve',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        scope: {
+          type: 'threshold',
+          value: 0,
+        },
+        thresholdName: 'enabled',
+        thresholdVersion: 1,
+        value: {
+          enabled: true,
+          minimumVersion: '8.8.0',
+        },
+      },
+      {
+        scope: {
+          type: 'threshold',
+          value: 1,
+        },
+        thresholdName: 'disabled',
+        thresholdVersion: 1,
+        value: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersveChains: {
+    name: 'cardImmersveChains',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersveConfig: {
+    name: 'cardImmersveConfig',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      apiBaseUrl: 'https://test.immersve.com',
+      cardProgramId: '845d18d0530d11f1939b2555262ada6d',
+      clientApplicationId: '1e49c6da65c643003b7bc83402c73884',
+      fundingChannelId: '3fb4d892192f0a7587169abc5b9fe152',
+      network: 'base-sepolia',
+      partnerAccountId: '539a7dae231e578d0da0e293d110d08d',
+      spenderAddress: '0x46E98Cc4cEfd1E8d1ac07BdB7bc06e6e0914a0A0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersveCountries: {
+    name: 'cardImmersveCountries',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [],
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardIntercomSupport: {
+    name: 'cardIntercomSupport',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  immersveOnboardingEnabled: {
+    name: 'immersveOnboardingEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4317,6 +4406,25 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyHeadlessAllProviders: {
+    name: 'moneyHeadlessAllProviders',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '0.0.0': {
+          enabled: false,
+          featureVersion: '1',
+        },
+        '8.6.0': {
+          enabled: false,
+          featureVersion: '1',
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyEnableOnboardingStepperAnimation: {
     name: 'moneyEnableOnboardingStepperAnimation',
     type: FeatureFlagType.Remote,
@@ -4430,6 +4538,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         ],
       },
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsAbtestScreenVsBottomSheet: {
+    name: 'perpsAbtestScreenVsBottomSheet',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: 'control',
     status: FeatureFlagStatus.Active,
   },
 

@@ -6,6 +6,17 @@ import { runQuoteProviderCases } from '../../hooks/useBridgeQuoteData/runQuotePr
 import { FeatureId } from '@metamask/bridge-controller';
 import { mockContext } from '../../hooks/useBridgeQuoteRequest/runQuoteRequestCases';
 
+// `@metamask/bridge-controller` is ESM-only; Babel compiles its re-exports to
+// non-configurable getters that `jest.spyOn` cannot redefine. Re-exporting the
+// real module through a plain object restores spy-able properties for the
+// `selectBridgeQuotes` / `selectBridgeFeatureFlags` spies in the shared cases.
+jest.mock('@metamask/bridge-controller', () => ({
+  // `__esModule` keeps Babel's interop from wrapping this object in a copy,
+  // so the namespace the spies patch is the one consumers read from.
+  __esModule: true,
+  ...jest.requireActual('@metamask/bridge-controller'),
+}));
+
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
 }));

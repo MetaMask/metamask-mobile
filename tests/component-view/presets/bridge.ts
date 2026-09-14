@@ -73,6 +73,26 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
             },
             conversionRate: 2000,
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2000,
+                usdPrice: 2000,
+                lastUpdated: 1700000000000,
+              },
+            },
+          },
           TokenRatesController: {
             marketData: {
               '0x1': {
