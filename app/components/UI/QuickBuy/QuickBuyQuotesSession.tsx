@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
 import type { FeatureId } from '@metamask/bridge-controller';
 
+import { useLatestBalance } from '../Bridge/hooks/useLatestBalance';
 import { BridgeSessionContext } from '../Bridge/providers/BridgeSessionProvider';
 import { SwapsFeatureIdProvider } from '../Bridge/providers/SwapsFeatureIdProvider';
 import { BridgeTabKey } from '../Bridge/Views/BridgeView/BridgeView.constants';
@@ -37,6 +38,16 @@ export const QuickBuyQuotesSession = ({
   children: React.ReactNode;
 }) => {
   const [quoteParams, setQuoteParams] = useState(EMPTY_QUOTE_PARAMS);
+  const latestSourceBalance = useLatestBalance(
+    {
+      address: quoteParams.srcToken?.address,
+      decimals: quoteParams.srcToken?.decimals,
+      chainId: quoteParams.srcToken?.chainId,
+      balance: quoteParams.srcToken?.balance,
+      refreshKey: quoteParams.srcToken?.balance,
+    },
+    featureId,
+  );
 
   const value = useMemo(
     () => ({
@@ -44,10 +55,10 @@ export const QuickBuyQuotesSession = ({
       renderedTab: BridgeTabKey.Market,
       setSelectedTab: () => undefined,
       setRenderedTab: () => undefined,
-      latestSourceBalance: undefined,
+      latestSourceBalance,
       quoteParams,
     }),
-    [quoteParams],
+    [latestSourceBalance, quoteParams],
   );
 
   return (

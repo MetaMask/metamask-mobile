@@ -1,12 +1,19 @@
+import React from 'react';
 import { renderHook } from '@testing-library/react-native';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useQuickBuyController } from './useQuickBuyController';
-import { runQuickBuyControllerCases } from './runQuickBuyControllerCases';
+import {
+  runQuickBuyControllerCases,
+  setupDefaultMocks,
+} from './runQuickBuyControllerCases';
 import {
   positionToQuickBuyTarget,
   type QuickBuyAnalyticsContext,
   type QuickBuyTarget,
 } from '../types';
 import type { Position } from '@metamask/social-controllers';
+import { useBridgeSession } from '../../Bridge/hooks/useBridgeSession';
+import { QuickBuyQuotesSession } from '../QuickBuyQuotesSession';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -60,6 +67,10 @@ jest.mock('./useDestTokenExchangeRate', () => ({
 
 jest.mock('./useQuickBuyQuotes', () => ({
   useQuickBuyQuotes: jest.fn(),
+}));
+
+jest.mock('../../Bridge/hooks/useSwapQuotes', () => ({
+  useSwapQuotes: jest.fn(() => null),
 }));
 
 jest.mock('../../Bridge/hooks/useLatestBalance', () => ({
@@ -245,6 +256,13 @@ if (!defaultTarget) {
   throw new Error('useQuickBuyController.test: default target is not mapped');
 }
 
+const SessionWrapper = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(
+    QuickBuyQuotesSession,
+    { featureId: FeatureId.QUICK_BUY_FOLLOW_TRADING },
+    children,
+  );
+
 runQuickBuyControllerCases({
   name: 'useQuickBuyController',
   renderHook: (
@@ -267,6 +285,35 @@ runQuickBuyControllerCases({
         ),
       {
         initialProps,
+        wrapper: SessionWrapper,
       },
     ),
+});
+
+describe('useQuickBuyController quote session', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setupDefaultMocks();
+  });
+
+  it('pushes quoteParams into QuickBuyQuotesSession', () => {
+    const { result } = renderHook(
+      () => ({
+        controller: useQuickBuyController(defaultTarget, jest.fn()),
+        session: useBridgeSession(),
+      }),
+      {
+        wrapper: SessionWrapper,
+      },
+    );
+
+    expect(result.current.session.quoteParams).toEqual({
+      srcToken: result.current.controller.sourceToken,
+      destToken: result.current.controller.destToken,
+      srcAmount: undefined,
+      slippage: '0.5',
+      walletAddress: '0xWALLET',
+      destWalletAddress: undefined,
+    });
+  });
 });

@@ -25,6 +25,10 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
+jest.mock('../Bridge/hooks/useLatestBalance', () => ({
+  useLatestBalance: jest.fn(),
+}));
+
 jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
   useQuickBuyQuickAmountPreferences: jest.fn(() => ({
     buyAmounts: [10, 50, 100, 250],

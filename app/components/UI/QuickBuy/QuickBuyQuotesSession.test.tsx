@@ -4,6 +4,7 @@ import { act, render, renderHook } from '@testing-library/react-native';
 import { FeatureId } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
 
+import { useLatestBalance } from '../Bridge/hooks/useLatestBalance';
 import { useBridgeSession } from '../Bridge/hooks/useBridgeSession';
 import { useSwapsFeatureId } from '../Bridge/hooks/useSwapsFeatureId';
 import { BridgeTabKey } from '../Bridge/Views/BridgeView/BridgeView.constants';
@@ -12,14 +13,23 @@ import {
   useSetQuickBuyQuoteParams,
 } from './QuickBuyQuotesSession';
 
+jest.mock('../Bridge/hooks/useLatestBalance', () => ({
+  useLatestBalance: jest.fn(),
+}));
+
 const srcToken = {
   address: '0x1111111111111111111111111111111111111111',
   decimals: 18,
   chainId: '0x1' as Hex,
   symbol: 'ETH',
+  balance: '1.25',
 };
 
 describe('QuickBuyQuotesSession', () => {
+  beforeEach(() => {
+    jest.mocked(useLatestBalance).mockReturnValue(undefined);
+  });
+
   it('keeps selectedTab and renderedTab on Market', () => {
     const { result } = renderHook(
       () => ({
@@ -103,6 +113,50 @@ describe('QuickBuyQuotesSession', () => {
         srcAmount: '1',
       }),
     ).not.toThrow();
+  });
+
+  it('fetches latestSourceBalance from quoteParams.srcToken', () => {
+    const latestSourceBalance = {
+      displayBalance: '1.25',
+      atomicBalance: undefined,
+    };
+    jest.mocked(useLatestBalance).mockReturnValue(latestSourceBalance);
+
+    const { result } = renderHook(
+      () => ({
+        session: useBridgeSession(),
+        setQuoteParams: useSetQuickBuyQuoteParams(),
+      }),
+      {
+        wrapper: ({ children }) => (
+          <QuickBuyQuotesSession featureId={FeatureId.QUICK_BUY_EXPLORE}>
+            {children}
+          </QuickBuyQuotesSession>
+        ),
+      },
+    );
+
+    act(() => {
+      result.current.setQuoteParams({
+        srcToken,
+        destToken: srcToken,
+        srcAmount: '1.25',
+      });
+    });
+
+    expect(useLatestBalance).toHaveBeenLastCalledWith(
+      {
+        address: srcToken.address,
+        decimals: srcToken.decimals,
+        chainId: srcToken.chainId,
+        balance: srcToken.balance,
+        refreshKey: srcToken.balance,
+      },
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(result.current.session.latestSourceBalance).toBe(
+      latestSourceBalance,
+    );
   });
 
   it('renders children', () => {

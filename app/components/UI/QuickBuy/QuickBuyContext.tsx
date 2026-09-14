@@ -14,6 +14,8 @@ import type {
   QuickBuyScreen,
   QuickBuyTarget,
 } from './types';
+import { QuickBuyQuotesSession } from './QuickBuyQuotesSession';
+import { getQuickBuyFeatureId } from './utils/getQuickBuyFeatureId';
 
 export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   target: QuickBuyTarget;
@@ -53,7 +55,7 @@ interface QuickBuyProviderProps {
   children: React.ReactNode;
 }
 
-export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
+const QuickBuyProviderInner: React.FC<QuickBuyProviderProps> = ({
   target,
   onClose,
   features,
@@ -80,6 +82,7 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     isPriceImpactError,
     isPresetAddFundsMode,
     handleConfirm,
+    isConfirmDisabled: controllerIsConfirmDisabled,
   } = controller;
 
   const {
@@ -112,7 +115,7 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   // When the modal feature is off the button must be disabled for any
   // high-impact quote, since there is no other safeguard in place.
   const isConfirmDisabled =
-    controller.isConfirmDisabled ||
+    controllerIsConfirmDisabled ||
     (!isPresetAddFundsMode &&
       isPriceImpactError &&
       !features.highPriceImpactModal);
@@ -141,3 +144,17 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     </QuickBuyContext.Provider>
   );
 };
+
+export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
+  analyticsContext,
+  children,
+  ...innerProps
+}) => (
+  <QuickBuyQuotesSession
+    featureId={getQuickBuyFeatureId(analyticsContext?.source)}
+  >
+    <QuickBuyProviderInner analyticsContext={analyticsContext} {...innerProps}>
+      {children}
+    </QuickBuyProviderInner>
+  </QuickBuyQuotesSession>
+);

@@ -1,6 +1,9 @@
+import { FeatureId } from '@metamask/bridge-controller';
 import { TextColor } from '@metamask/design-system-react-native';
-import { act, render } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import React, { useContext } from 'react';
+import { Text } from 'react-native';
+import { useSwapsFeatureId } from '../Bridge/hooks/useSwapsFeatureId';
 import {
   QuickBuyContext,
   QuickBuyProvider,
@@ -14,6 +17,10 @@ import type { QuickBuyFeatures, QuickBuyTarget } from './types';
 
 jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
+}));
+
+jest.mock('../Bridge/hooks/useLatestBalance', () => ({
+  useLatestBalance: jest.fn(),
 }));
 
 jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
@@ -162,6 +169,37 @@ function renderProvider(
 
   return contextRef;
 }
+
+describe('QuickBuyProvider — quote session', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useQuickBuyController as jest.Mock).mockReturnValue(buildController());
+  });
+
+  it('scopes FeatureId from analytics source', () => {
+    const Probe = () => {
+      const featureId = useSwapsFeatureId();
+      return <Text testID="quick-buy-feature-id">{featureId}</Text>;
+    };
+
+    render(
+      <QuickBuyProvider
+        target={mockTarget}
+        onClose={jest.fn()}
+        features={featuresWithModal}
+        analyticsContext={{ source: 'leaderboard' }}
+        activeScreen="amount"
+        setActiveScreen={jest.fn()}
+      >
+        <Probe />
+      </QuickBuyProvider>,
+    );
+
+    expect(screen.getByTestId('quick-buy-feature-id')).toHaveTextContent(
+      FeatureId.QUICK_BUY_FOLLOW_TRADING,
+    );
+  });
+});
 
 describe('QuickBuyProvider — handleBuy', () => {
   beforeEach(() => {
