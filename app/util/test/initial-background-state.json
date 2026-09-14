@@ -622,8 +622,10 @@
     "transactionData": {}
   },
   "ProfileMetricsController": {
+    "accountSourceBackfillEnqueued": false,
     "initialEnqueueCompleted": false,
     "proofBackfillEnqueued": false,
+    "reportedAccounts": [],
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -631,7 +633,8 @@
     "isBackupAndSyncUpdateLoading": false,
     "isAccountSyncingEnabled": true,
     "isContactSyncingEnabled": true,
-    "isContactSyncingInProgress": false
+    "isContactSyncingInProgress": false,
+    "isRampsSyncingEnabled": true
   },
   "MultichainBalancesController": {
     "balances": {}

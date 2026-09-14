@@ -15,7 +15,7 @@ import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
 import { useFeeCalculations } from './useFeeCalculations';
 import { useEthFiatAmount } from '../useEthFiatAmount';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNativeCurrencySymbol } from '../useNativeCurrencySymbol';
 
 export const RATE_WEI_NATIVE = '0xDE0B6B3A7640000'; // 1x10^18
@@ -67,7 +67,7 @@ export function useGasFeeToken({ tokenAddress }: { tokenAddress?: Hex }) {
   );
   const metamaskFeeFiat = useFiatTokenValue(gasFeeToken, metaMaskFee, chainId);
 
-  const transferTransaction = useMemo(
+  const getTransferTransaction = useCallback(
     () =>
       tokenAddress === NATIVE_TOKEN_ADDRESS
         ? getNativeTransferTransaction(gasFeeToken)
@@ -81,18 +81,18 @@ export function useGasFeeToken({ tokenAddress }: { tokenAddress?: Hex }) {
       amountFormatted,
       amountFiat,
       balanceFiat,
+      getTransferTransaction,
       metaMaskFee,
       metamaskFeeFiat,
-      transferTransaction,
     }),
     [
       gasFeeToken,
       amountFormatted,
       amountFiat,
       balanceFiat,
+      getTransferTransaction,
       metaMaskFee,
       metamaskFeeFiat,
-      transferTransaction,
     ],
   );
 }
