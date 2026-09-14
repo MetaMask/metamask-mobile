@@ -157,10 +157,11 @@ describe('PerpsProTwapFields', () => {
   it('opens the runtime tooltip when the info affordance is pressed', () => {
     // Arrange
     const onRuntimeInfoPress = jest.fn();
+    const onDurationPress = jest.fn();
     render(
       <PerpsProTwapFields
         twap={buildTwapModel({ onRuntimeInfoPress })}
-        onDurationPress={jest.fn()}
+        onDurationPress={onDurationPress}
       />,
     );
 
@@ -169,6 +170,7 @@ describe('PerpsProTwapFields', () => {
 
     // Assert
     expect(onRuntimeInfoPress).toHaveBeenCalled();
+    expect(onDurationPress).not.toHaveBeenCalled();
   });
 
   it('reports a Randomize toggle to the model', () => {

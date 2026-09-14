@@ -19,6 +19,7 @@ import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import type { PerpsProTwapModel } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const RUNTIME_INFO_HIT_SLOP = 12;
 
 interface PerpsProTwapFieldsProps {
   twap: PerpsProTwapModel;
@@ -102,27 +103,16 @@ const PerpsProTwapFields = ({
       testID={ids.TWAP_DURATION_BUTTON}
     >
       <Box twClassName="items-start">
-        <Box twClassName="w-full flex-row items-center justify-between">
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            testID={ids.TWAP_DURATION_LABEL}
-          >
-            {strings(
-              'perps.pro_order_form.twap.runtime_label',
-              PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
-            )}
-          </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSize.Xs}
-            onPress={twap.onRuntimeInfoPress}
-            testID={ids.TWAP_DURATION_INFO}
-            accessibilityLabel={strings(
-              'perps.pro_order_form.twap.runtime_info',
-            )}
-          />
-        </Box>
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          testID={ids.TWAP_DURATION_LABEL}
+        >
+          {strings(
+            'perps.pro_order_form.twap.runtime_label',
+            PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
+          )}
+        </Text>
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
@@ -132,6 +122,18 @@ const PerpsProTwapFields = ({
         </Text>
       </Box>
     </ButtonBase>
+    {/* Sibling of the runtime button, not a child: a nested button collapses
+        into the parent's accessibility node and competes for the tap. */}
+    <Box twClassName="absolute right-3 top-1.5">
+      <ButtonIcon
+        iconName={IconName.Info}
+        size={ButtonIconSize.Xs}
+        onPress={twap.onRuntimeInfoPress}
+        hitSlop={RUNTIME_INFO_HIT_SLOP}
+        testID={ids.TWAP_DURATION_INFO}
+        accessibilityLabel={strings('perps.pro_order_form.twap.runtime_info')}
+      />
+    </Box>
     <Box twClassName="h-[54px] justify-center border-t border-muted px-3">
       <Checkbox
         // A string label is wrapped in the design system's own Text with a
