@@ -22,13 +22,10 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
     (notification) => !!notification.payload.chain_id,
   ],
   createMenuItem: (notification) => ({
-    title: strings(`notifications.menu_item_title.${notification.type}`),
+    title: notification.template?.title ?? '',
 
     description: {
-      start: strings(
-        `notifications.menu_item_description.${notification.type}`,
-        { symbol: notification.payload.data.staked_eth.symbol },
-      ),
+      start: notification.template?.body ?? '',
     },
 
     image: {
@@ -43,7 +40,7 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
     const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
 
     return {
-      title: strings('notifications.modal.title_untake_ready'),
+      title: notification.template?.title ?? '',
       createdAt: notification.createdAt.toString(),
       fields: [
         {

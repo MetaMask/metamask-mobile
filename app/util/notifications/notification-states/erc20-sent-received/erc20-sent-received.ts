@@ -14,7 +14,6 @@ import {
   getNetworkImageByChainId,
 } from '../../methods/common';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
-import { formatAddress } from '../../../address';
 
 type ERC20Notification = ExtractedNotification<
   TRIGGER_TYPES.ERC20_RECEIVED | TRIGGER_TYPES.ERC20_SENT
@@ -25,27 +24,6 @@ const isERC20Notification = isOfTypeNodeGuard([
   TRIGGER_TYPES.ERC20_SENT,
 ]);
 
-const isSent = (n: ERC20Notification) => n.type === TRIGGER_TYPES.ERC20_SENT;
-
-const menuTitle = (n: ERC20Notification) => {
-  const address = formatAddress(
-    isSent(n) ? n.payload.data.to : n.payload.data.from,
-    'short',
-  );
-  return strings(`notifications.menu_item_title.${n.type}`, {
-    address,
-  });
-};
-
-const modalTitle = (n: ERC20Notification) =>
-  isSent(n)
-    ? strings('notifications.modal.title_sent', {
-        symbol: n.payload.data.token.symbol,
-      })
-    : strings('notifications.modal.title_received', {
-        symbol: n.payload.data.token.symbol,
-      });
-
 const state: NotificationState<ERC20Notification> = {
   guardFn: [
     isERC20Notification,
@@ -53,7 +31,7 @@ const state: NotificationState<ERC20Notification> = {
       !!getNetworkDetailsFromNotifPayload(notification.payload.network),
   ],
   createMenuItem: (notification) => ({
-    title: menuTitle(notification),
+    title: notification.template?.title ?? '',
 
     description: {
       start: notification.payload.data.token.name,
@@ -83,7 +61,7 @@ const state: NotificationState<ERC20Notification> = {
     );
 
     return {
-      title: modalTitle(notification),
+      title: notification.template?.title ?? '',
       createdAt: notification.createdAt.toString(),
       fields: [
         {

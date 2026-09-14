@@ -13,7 +13,6 @@ import {
   getNetworkDetailsFromNotifPayload,
   getNetworkImageByChainId,
 } from '../../methods/common';
-import { formatAddress } from '../../../address';
 
 type NativeSentReceiveNotification = ExtractedNotification<
   TRIGGER_TYPES.ETH_RECEIVED | TRIGGER_TYPES.ETH_SENT
@@ -22,19 +21,6 @@ const isNativeTokenNotification = isOfTypeNodeGuard([
   TRIGGER_TYPES.ETH_RECEIVED,
   TRIGGER_TYPES.ETH_SENT,
 ]);
-
-const isSent = (n: NativeSentReceiveNotification) =>
-  n.type === TRIGGER_TYPES.ETH_SENT;
-
-const title = (n: NativeSentReceiveNotification) => {
-  const address = formatAddress(
-    isSent(n) ? n.payload.data.to : n.payload.data.from,
-    'short',
-  );
-  return strings(`notifications.menu_item_title.${n.type}`, {
-    address,
-  });
-};
 
 const state: NotificationState<NativeSentReceiveNotification> = {
   guardFn: [
@@ -48,7 +34,7 @@ const state: NotificationState<NativeSentReceiveNotification> = {
       getNetworkDetailsFromNotifPayload(notification.payload.network);
 
     return {
-      title: title(notification),
+      title: notification.template?.title ?? '',
 
       description: {
         start: networkName,
@@ -73,13 +59,7 @@ const state: NotificationState<NativeSentReceiveNotification> = {
     const { networkName, nativeCurrencySymbol } =
       getNetworkDetailsFromNotifPayload(notification.payload.network);
     return {
-      title: isSent(notification)
-        ? strings('notifications.modal.title_sent', {
-            symbol: nativeCurrencySymbol,
-          })
-        : strings('notifications.modal.title_received', {
-            symbol: nativeCurrencySymbol,
-          }),
+      title: notification.template?.title ?? '',
       createdAt: notification.createdAt.toString(),
       fields: [
         {

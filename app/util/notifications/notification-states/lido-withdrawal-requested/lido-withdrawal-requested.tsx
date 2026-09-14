@@ -4,7 +4,6 @@ import { ModalFieldType, ModalFooterType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
-  getAmount,
   getNetworkImageByChainId,
   getNotificationBadge,
 } from '../../methods/common';
@@ -22,37 +21,26 @@ const state: NotificationState<LidoWithdrawalRequestedNotification> = {
     isLidoWithdrawalRequestedNotification,
     (notification) => !!notification.payload.chain_id,
   ],
-  createMenuItem: (notification) => {
-    const amount = getAmount(
-      notification.payload.data.stake_in.amount,
-      notification.payload.data.stake_in.decimals,
-      { shouldEllipse: true },
-    );
-    const symbol = notification.payload.data.stake_in.symbol;
-    return {
-      title: strings(`notifications.menu_item_title.${notification.type}`),
+  createMenuItem: (notification) => ({
+    title: notification.template?.title ?? '',
 
-      description: {
-        start: strings(
-          `notifications.menu_item_description.${notification.type}`,
-          { amount, symbol },
-        ),
-      },
+    description: {
+      start: notification.template?.body ?? '',
+    },
 
-      image: {
-        url: notification.payload.data.stake_in.image,
-      },
+    image: {
+      url: notification.payload.data.stake_in.image,
+    },
 
-      badgeIcon: getNotificationBadge(notification.type),
+    badgeIcon: getNotificationBadge(notification.type),
 
-      createdAt: notification.createdAt.toString(),
-    };
-  },
+    createdAt: notification.createdAt.toString(),
+  }),
   createModalDetails: (notification) => {
     const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
 
     return {
-      title: strings('notifications.modal.title_unstake_requested'),
+      title: notification.template?.title ?? '',
       createdAt: notification.createdAt.toString(),
       fields: [
         {
