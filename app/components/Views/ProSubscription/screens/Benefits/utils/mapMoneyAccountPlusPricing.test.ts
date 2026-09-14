@@ -90,6 +90,56 @@ describe('mapMoneyAccountPlusPricing', () => {
     });
   });
 
+  describe('billing cycles', () => {
+    it('maps minimum billing cycles onto each plan', () => {
+      const pricing = createPricing([
+        {
+          name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+          prices: [
+            createPrice({
+              interval: RECURRING_INTERVALS.month,
+              minBillingCycles: 12,
+              minBillingCyclesForBalance: 1,
+            }),
+            createPrice({
+              interval: RECURRING_INTERVALS.year,
+              unitAmount: 4999,
+              minBillingCycles: 1,
+              minBillingCyclesForBalance: 1,
+            }),
+          ],
+        },
+      ]);
+
+      const result = mapMoneyAccountPlusPricing(pricing);
+
+      expect(result.monthly?.minBillingCycles).toBe(12);
+      expect(result.monthly?.minBillingCyclesForBalance).toBe(1);
+      expect(result.annual?.minBillingCycles).toBe(1);
+      expect(result.annual?.minBillingCyclesForBalance).toBe(1);
+    });
+
+    it('omits minimum billing cycles when the values are not finite non-negative numbers', () => {
+      const pricing = createPricing([
+        {
+          name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+          prices: [
+            createPrice({
+              minBillingCycles: Number.NaN,
+              minBillingCyclesForBalance: -1,
+            }),
+          ],
+        },
+      ]);
+
+      const result = mapMoneyAccountPlusPricing(pricing);
+
+      expect(result.status).toBe('ready');
+      expect(result.monthly?.minBillingCycles).toBeUndefined();
+      expect(result.monthly?.minBillingCyclesForBalance).toBeUndefined();
+    });
+  });
+
   describe('product selection', () => {
     it('ignores Shield prices when mapping Plus plans', () => {
       const pricing = createPricing([

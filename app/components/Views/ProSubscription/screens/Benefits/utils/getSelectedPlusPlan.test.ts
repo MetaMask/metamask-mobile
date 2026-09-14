@@ -15,6 +15,8 @@ const monthly: PlanPricingView = {
   unitDecimals: 2,
   amount: 4.99,
   trialPeriodDays: 7,
+  minBillingCycles: 12,
+  minBillingCyclesForBalance: 1,
 };
 
 const annual: PlanPricingView = {
@@ -61,7 +63,7 @@ describe('getSelectedPlusPlan', () => {
     });
   });
 
-  it('includes trialPeriodDays when the mapped plan has a trial', () => {
+  it('includes trialPeriodDays and billing cycles when the mapped plan has them', () => {
     const result = getSelectedPlusPlan('monthly', READY_BOTH);
 
     expect(result).toEqual({
@@ -73,6 +75,8 @@ describe('getSelectedPlusPlan', () => {
       unitDecimals: 2,
       amount: 4.99,
       trialPeriodDays: 7,
+      minBillingCycles: 12,
+      minBillingCyclesForBalance: 1,
     });
   });
 });

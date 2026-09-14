@@ -14,6 +14,8 @@ export interface PlanPricingView {
   unitDecimals: number;
   amount: number;
   trialPeriodDays?: number;
+  minBillingCycles?: number;
+  minBillingCyclesForBalance?: number;
 }
 
 export interface MoneyAccountPlusPricingView {
@@ -55,6 +57,17 @@ const toPlanPricingView = (price: ProductPrice): PlanPricingView => {
 
   if (Number.isFinite(price.trialPeriodDays) && price.trialPeriodDays >= 0) {
     view.trialPeriodDays = price.trialPeriodDays;
+  }
+
+  if (Number.isFinite(price.minBillingCycles) && price.minBillingCycles >= 0) {
+    view.minBillingCycles = price.minBillingCycles;
+  }
+
+  if (
+    Number.isFinite(price.minBillingCyclesForBalance) &&
+    price.minBillingCyclesForBalance >= 0
+  ) {
+    view.minBillingCyclesForBalance = price.minBillingCyclesForBalance;
   }
 
   return view;
