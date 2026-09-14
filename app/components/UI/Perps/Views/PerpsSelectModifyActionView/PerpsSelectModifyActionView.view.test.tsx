@@ -6,7 +6,10 @@ import '../../../../../../tests/component-view/mocks';
 
 import { fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { renderPerpsSelectModifyActionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import {
+  renderPerpsSelectModifyActionView,
+  ROUTE_ORDER_CONFIRMATION_TEST_ID,
+} from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
 
 const TIMEOUT_MS = 5000;
@@ -79,7 +82,7 @@ describe('PerpsSelectModifyActionView', () => {
     // The renderer pre-registers the confirmation route with a probe element.
     expect(
       await screen.findByTestId(
-        'route-order-confirmation',
+        ROUTE_ORDER_CONFIRMATION_TEST_ID,
         {},
         { timeout: TIMEOUT_MS },
       ),
