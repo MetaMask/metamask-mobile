@@ -1,14 +1,13 @@
 import React, { useMemo } from 'react';
-import { getProviderName } from '../../../../reducers/fiatOrders';
-import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
-import { ActivityDetailsBlockExplorerButton } from '../components/ActivityDetailsFooter';
-import { ActivityDetailsTemplateFrame } from '../components/ActivityDetailsTemplateFrame';
+import { getProviderName } from '../../../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../../../reducers/fiatOrders/types';
+import { ActivityDetailsBlockExplorerButton } from '../../components/ActivityDetailsFooter';
+import { ActivityDetailsTemplateFrame } from '../../components/ActivityDetailsTemplateFrame';
 import {
   RampDetailsAmountsSection,
   RampDetailsHeroView,
   RampDetailsMetadataSection,
-} from './RampDetailsShared';
+} from '../RampDetailsShared';
 import {
   formatRampActivityDate,
   formatRampActivityFiatAmount,
@@ -21,18 +20,12 @@ import {
   getRampActivityTransactionHash,
   isRampSellOrder,
   mapRampActivityStatus,
-} from './rampDetailsUtils';
-
-export type RampFiatActivityListItem = ActivityListItem & {
-  type: 'buy' | 'sell';
-  raw: { type: 'rampOrder'; data: FiatOrder };
-};
+} from '../rampDetailsUtils';
 
 /** Legacy FiatOrder ActivityDetails template — extract of prior RampDetails. */
 export function RampFiatOrderDetails({
-  item,
-}: Readonly<{ item: RampFiatActivityListItem }>) {
-  const order = item.raw.data;
+  order,
+}: Readonly<{ order: FiatOrder }>) {
   const isSell = isRampSellOrder(order);
   const transactionHash = getRampActivityTransactionHash(order);
   const chainId = getRampActivityExplorerChainId(order.network);

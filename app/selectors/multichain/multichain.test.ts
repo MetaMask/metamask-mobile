@@ -29,6 +29,69 @@ import {
   TrxScope,
 } from '@metamask/keyring-api';
 import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
+import type {
+  AccountTrackerControllerState,
+  MultichainAssetsControllerState,
+  MultichainAssetsRatesControllerState,
+  MultichainBalancesControllerState,
+} from '@metamask/assets-controllers';
+
+// Test-only state shape that keeps the legacy `AccountTrackerController` /
+// `MultichainBalancesController` / `MultichainAssetsController` /
+// `MultichainAssetsRatesController` keys available for the mocked compat
+// selectors above, while still being assignable to `RootState` wherever the
+// real selectors are invoked.
+type MockRootState = RootState & {
+  engine: RootState['engine'] & {
+    backgroundState: RootState['engine']['backgroundState'] & {
+      AccountTrackerController: AccountTrackerControllerState;
+      MultichainBalancesController: MultichainBalancesControllerState;
+      MultichainAssetsController: MultichainAssetsControllerState;
+      MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
+    };
+  };
+};
+
+// The following AssetsController-derived compat selectors have their own
+// dedicated coverage in assets-migration.test.ts. Here we mock them to read
+// from the legacy `AccountTrackerController` / `MultichainBalancesController` /
+// `MultichainAssetsController` / `MultichainAssetsRatesController` shapes on
+// the mock state so these tests can keep exercising the composition logic in
+// `./multichain` (and `../accountTrackerController`) without needing to
+// hand-construct full AssetsController fixtures.
+// NOTE: these are plain functions (not `jest.fn(...)`) so their behavior
+// survives `jest.resetAllMocks()`/`jest.clearAllMocks()` calls elsewhere in
+// this file, which would otherwise wipe out a mocked implementation.
+jest.mock('../assets/assets-migration', () => {
+  const actual = jest.requireActual('../assets/assets-migration');
+  return {
+    ...actual,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getAccountTrackerControllerAccountsByChainId: (state: any) =>
+      state?.engine?.backgroundState?.AccountTrackerController
+        ?.accountsByChainId ?? {},
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getMultiChainBalancesControllerBalances: (state: any) =>
+      state?.engine?.backgroundState?.MultichainBalancesController?.balances ??
+      {},
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getMultiChainAssetsControllerAccountsAssets: (state: any) =>
+      state?.engine?.backgroundState?.MultichainAssetsController
+        ?.accountsAssets ?? {},
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getMultiChainAssetsControllerAssetsMetadata: (state: any) =>
+      state?.engine?.backgroundState?.MultichainAssetsController
+        ?.assetsMetadata ?? {},
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getMultiChainAssetsControllerAllIgnoredAssets: (state: any) =>
+      state?.engine?.backgroundState?.MultichainAssetsController
+        ?.allIgnoredAssets ?? {},
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getMultichainAssetsRatesControllerConversionRates: (state: any) =>
+      state?.engine?.backgroundState?.MultichainAssetsRatesController
+        ?.conversionRates ?? {},
+  };
+});
 
 const BTC_NATIVE_CURRENCY =
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[BtcScope.Mainnet].nativeCurrency;
@@ -46,7 +109,7 @@ function getEvmState(
   chainId?: Hex,
   mockEvmConversionRate: number = 1500,
   showFiatOnTestnets: boolean = true,
-): RootState {
+): MockRootState {
   const {
     MOCK_ACCOUNTS_CONTROLLER_STATE: mockEvmAccountsState,
     MOCK_ACCOUNT_BIP122_P2WPKH: mockBtcAccount,
@@ -146,7 +209,7 @@ function getEvmState(
       basicFunctionalityEnabled: true,
     },
   };
-  return state as unknown as RootState;
+  return state as unknown as MockRootState;
 }
 
 function getNonEvmState(
@@ -154,7 +217,7 @@ function getNonEvmState(
   mockBtcRate?: string,
   showFiatOnTestnets: boolean = true,
   isSolanaTestnetEnabled: boolean = false,
-): RootState {
+): MockRootState {
   const {
     MOCK_ACCOUNT_BIP122_P2WPKH: mockBtcAccount,
     MOCK_MULTICHAIN_NON_EVM_ACCOUNTS: mockNonEvmAccountsArray,
@@ -257,7 +320,7 @@ function getNonEvmState(
       },
     },
   };
-  return state as unknown as RootState;
+  return state as unknown as MockRootState;
 }
 
 describe('MultichainNonEvm Selectors', () => {
