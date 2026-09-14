@@ -132,7 +132,10 @@ import { networkEnablementControllerInit } from './controllers/network-enablemen
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
-import { predictNextControllerInit } from './controllers/predict-next-controller-init';
+import {
+  predictMarketDataServiceInit,
+  predictPortfolioServiceInit,
+} from './controllers/predict-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
@@ -189,6 +192,8 @@ import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
+import { kycServiceInit } from './controllers/kyc/kyc-service-init';
+import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
@@ -381,7 +386,8 @@ export class Engine {
         ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
-        PredictNextController: predictNextControllerInit,
+        PredictMarketDataService: predictMarketDataServiceInit,
+        PredictPortfolioService: predictPortfolioServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
@@ -404,6 +410,8 @@ export class Engine {
         QrSyncProvisioningService: qrSyncProvisioningServiceInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
+        KycService: kycServiceInit,
+        KycController: kycControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
       },
@@ -438,7 +446,6 @@ export class Engine {
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
-    const predictNextController = messengerClientsByName.PredictNextController;
     const rewardsController = messengerClientsByName.RewardsController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
@@ -484,6 +491,8 @@ export class Engine {
     const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
+    const kycService = messengerClientsByName.KycService;
+    const kycController = messengerClientsByName.KycController;
     const qrSyncProvisioningService =
       messengerClientsByName.QrSyncProvisioningService;
 
@@ -674,7 +683,8 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
-      PredictNextController: predictNextController,
+      PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
+      PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       RewardsController: rewardsController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
@@ -694,6 +704,8 @@ export class Engine {
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,
+      KycService: kycService,
+      KycController: kycController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController:
         messengerClientsByName.MoneyAccountUpgradeController,
@@ -1593,6 +1605,7 @@ export default {
       ClientController,
       SocialController,
       ComplianceController,
+      KycController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController,
       CronjobController,
@@ -1676,6 +1689,7 @@ export default {
       UiSlotsController: UiSlotsController.state,
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
+      KycController: KycController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,

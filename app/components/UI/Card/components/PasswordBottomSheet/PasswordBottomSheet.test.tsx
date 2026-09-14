@@ -152,7 +152,7 @@ describe('PasswordBottomSheet', () => {
     fireEvent.press(confirmButton);
 
     await waitFor(() => {
-      expect(getByText('Please enter your password')).toBeTruthy();
+      expect(getByText('Enter your password')).toBeTruthy();
     });
 
     expect(mockReauthenticate).not.toHaveBeenCalled();
@@ -208,7 +208,7 @@ describe('PasswordBottomSheet', () => {
     fireEvent.press(confirmButton);
 
     await waitFor(() => {
-      expect(getByText('Please enter your password')).toBeTruthy();
+      expect(getByText('Enter your password')).toBeTruthy();
     });
 
     // Type in password input
@@ -249,7 +249,7 @@ describe('PasswordBottomSheet', () => {
     fireEvent.press(confirmButton);
 
     await waitFor(() => {
-      expect(getByText('Please enter your password')).toBeTruthy();
+      expect(getByText('Enter your password')).toBeTruthy();
     });
 
     expect(mockReauthenticate).not.toHaveBeenCalled();

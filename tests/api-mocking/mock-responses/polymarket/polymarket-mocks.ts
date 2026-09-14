@@ -1494,6 +1494,14 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
       };
     });
 
+  // PredictHome Popular Today / feed chips fetch related tags for slug "all".
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/gamma-api\.polymarket\.com\/tags\/slug\/[^/]+\/related-tags\/tags/,
+    responseCode: 200,
+    response: [],
+  });
+
   // Also mock the search endpoint for market feeds
   await mockServer
     .forGet('/proxy')

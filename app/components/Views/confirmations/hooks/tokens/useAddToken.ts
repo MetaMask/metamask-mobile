@@ -2,7 +2,6 @@ import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
@@ -23,8 +22,7 @@ export function useAddToken({
   symbol: string;
   tokenAddress: Hex;
 }) {
-  const { NetworkController, TokensController, AssetsController } =
-    Engine.context;
+  const { AssetsController } = Engine.context;
 
   const addedTokens = useSelector((state) =>
     selectTokensByChainIdAndAddress(state, chainId),
@@ -34,45 +32,29 @@ export function useAddToken({
     (t) => t.address.toLowerCase() === tokenAddress.toLowerCase(),
   );
 
-  const isAssetsUnifyStateEnabled = useSelector(
-    selectIsAssetsUnifyStateEnabled,
-  );
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const accountId = evmAccount?.id;
 
   const { error } = useAsyncResult(async () => {
-    if (hasToken) {
+    if (hasToken || !accountId) {
       return;
     }
 
-    const networkClientId =
-      NetworkController.findNetworkClientIdByChainId(chainId);
+    const caipChainId = toEvmCaipChainId(chainId);
+    const caipAssetType = toAssetId(tokenAddress, caipChainId);
 
-    await TokensController.addToken({
-      address: tokenAddress,
-      decimals,
-      name,
-      networkClientId,
-      symbol,
-    });
-
-    if (isAssetsUnifyStateEnabled && accountId) {
-      const caipChainId = toEvmCaipChainId(chainId);
-      const caipAssetType = toAssetId(tokenAddress, caipChainId);
-
-      if (caipAssetType) {
-        await AssetsController.addCustomAsset(accountId, caipAssetType, {
-          address: tokenAddress,
-          chainId,
-          decimals,
-          name,
-          symbol,
-        });
-      }
+    if (caipAssetType) {
+      await AssetsController.addCustomAsset(accountId, caipAssetType, {
+        address: tokenAddress,
+        chainId,
+        decimals,
+        name,
+        symbol,
+      });
     }
 
     log('Added token', { tokenAddress, chainId });
-  }, [hasToken, isAssetsUnifyStateEnabled, accountId]);
+  }, [hasToken, accountId]);
 
   if (error) {
     log('Failed', { tokenAddress, chainId, error });

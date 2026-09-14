@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
@@ -24,8 +24,19 @@ import {
   selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
+import { selectPerpsMarketListPreferences } from '../selectors/marketListPreferences';
+import { setPerpsMarketListPreferences } from '../../../../actions/settings';
 import Engine from '../../../../core/Engine';
 import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
+
+/**
+ * The mutually-exclusive category and watchlist filters, persisted together in
+ * `settings.perpsMarketListPreferences` when the user changes them.
+ */
+interface MarketListFilters {
+  marketTypeFilter: MarketTypeFilter;
+  showFavoritesOnly: boolean;
+}
 
 interface UsePerpsMarketListViewParams {
   /**
@@ -34,13 +45,13 @@ interface UsePerpsMarketListViewParams {
    */
   enablePolling?: boolean;
   /**
-   * Show only watchlist markets initially
-   * @default false
+   * Show only watchlist markets initially.
+   * `undefined` restores the last persisted watchlist filter (TAT-3706).
    */
   showWatchlistOnly?: boolean;
   /**
-   * Initial market type filter
-   * @default 'all'
+   * Initial market type filter.
+   * `undefined` restores the last persisted category (TAT-3736).
    */
   defaultMarketTypeFilter?: MarketTypeFilter;
   /**
@@ -106,7 +117,7 @@ interface UsePerpsMarketListViewReturn {
     suggestedMarkets: PerpsMarketData[];
   };
   /**
-   * Market type filter state (not persisted, UI-only)
+   * Market type filter state (persisted across sessions)
    */
   marketTypeFilterState: {
     marketTypeFilter: MarketTypeFilter;
@@ -167,8 +178,8 @@ interface UsePerpsMarketListViewReturn {
  */
 export const usePerpsMarketListView = ({
   enablePolling = false,
-  showWatchlistOnly = false,
-  defaultMarketTypeFilter = 'all',
+  showWatchlistOnly,
+  defaultMarketTypeFilter,
   defaultSortOptionId,
   defaultSortDirection,
   showZeroVolume = false,
@@ -197,48 +208,131 @@ export const usePerpsMarketListView = ({
   const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
   const recentlyViewedSymbols = useSelector(selectPerpsRecentlyViewedMarkets);
   const savedSortPreference = useSelector(selectPerpsMarketFilterPreferences);
-
-  // Favorites filter state
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(showWatchlistOnly);
-
-  // Market type filter state (can be changed in UI, not persisted)
-  const [marketTypeFilter, setMarketTypeFilter] = useState<MarketTypeFilter>(
-    defaultMarketTypeFilter,
+  const persistedListPreferences = useSelector(
+    selectPerpsMarketListPreferences,
   );
+  const dispatch = useDispatch();
+
+  // The category and watchlist filters are mutually exclusive, so they live in
+  // one state atom: callers change them through two separate setters within a
+  // single handler (see `handleCategorySelect` in PerpsMarketListView), and
+  // independent `useState`s would make the second call clobber the first with
+  // its stale render-scope value.
+  // For each filter an explicit route/prop wins; otherwise restore last choice.
+  // An explicit category clears a saved watchlist filter — the two are mutually
+  // exclusive, and Products/Related Markets/Home/deep links pass a category
+  // without intending to keep watchlist-only mode active.
+  const [filters, setFilters] = useState<MarketListFilters>(() => {
+    if (showWatchlistOnly !== undefined) {
+      return {
+        marketTypeFilter: showWatchlistOnly
+          ? 'all'
+          : (defaultMarketTypeFilter ??
+            persistedListPreferences.marketTypeFilter),
+        showFavoritesOnly: showWatchlistOnly,
+      };
+    }
+    if (defaultMarketTypeFilter !== undefined) {
+      return {
+        marketTypeFilter: defaultMarketTypeFilter,
+        showFavoritesOnly: false,
+      };
+    }
+    return {
+      marketTypeFilter: persistedListPreferences.marketTypeFilter,
+      showFavoritesOnly: persistedListPreferences.showFavoritesOnly,
+    };
+  });
+  const { marketTypeFilter, showFavoritesOnly } = filters;
+
+  // Mirrors `filters` so back-to-back setter calls in one handler read the
+  // pending value rather than the one captured at render.
+  const filtersRef = useRef(filters);
+
+  const applyFilters = useCallback((next: MarketListFilters) => {
+    filtersRef.current = next;
+    setFilters(next);
+  }, []);
 
   // Sync favorites filter when route params change (useState ignores new initials
   // if the screen is already mounted, e.g. navigating from home watchlist header).
   // Watchlist and category filters are mutually exclusive: activating the watchlist
   // filter clears any active category so all watchlisted markets are visible.
+  // Only apply when the caller passed an explicit boolean so a missing param
+  // does not wipe a restored watchlist preference.
   useEffect(() => {
-    setShowFavoritesOnly(showWatchlistOnly);
-    if (showWatchlistOnly) {
-      setMarketTypeFilter('all');
+    if (showWatchlistOnly === undefined) {
+      return;
     }
-  }, [showWatchlistOnly]);
+    applyFilters({
+      marketTypeFilter: showWatchlistOnly
+        ? 'all'
+        : filtersRef.current.marketTypeFilter,
+      showFavoritesOnly: showWatchlistOnly,
+    });
+  }, [applyFilters, showWatchlistOnly]);
 
   // Sync filter when route params change (e.g. navigating from PerpsProducts
   // to an already-mounted market list screen — useState ignores new initials).
   useEffect(() => {
-    setMarketTypeFilter(defaultMarketTypeFilter);
-  }, [defaultMarketTypeFilter]);
+    if (defaultMarketTypeFilter === undefined) {
+      return;
+    }
+    applyFilters({
+      marketTypeFilter: defaultMarketTypeFilter,
+      showFavoritesOnly: false,
+    });
+  }, [applyFilters, defaultMarketTypeFilter]);
+
+  // Only the user's own filter choices are persisted, so this writes from the
+  // setters below rather than from an effect on the current filter state. Most
+  // entry points (Lite home, Products, related markets, Explore, deep links)
+  // pass a hardcoded `defaultMarketTypeFilter`/`showWatchlistOnly`; an effect
+  // would write those one-off route overrides back over the category the user
+  // last picked, and the next visit from a market header would then restore
+  // the override instead of their choice (TAT-3736).
+  const applyUserFilters = useCallback(
+    (next: MarketListFilters) => {
+      applyFilters(next);
+      if (
+        next.marketTypeFilter === persistedListPreferences.marketTypeFilter &&
+        next.showFavoritesOnly === persistedListPreferences.showFavoritesOnly
+      ) {
+        return;
+      }
+      dispatch(setPerpsMarketListPreferences(next));
+    },
+    [
+      applyFilters,
+      dispatch,
+      persistedListPreferences.marketTypeFilter,
+      persistedListPreferences.showFavoritesOnly,
+    ],
+  );
 
   // Wrapped setters that enforce mutual exclusivity between watchlist and category
   // filters: turning on the watchlist clears the category, and selecting a category
   // turns off the watchlist.
-  const handleSetShowFavoritesOnly = useCallback((show: boolean) => {
-    setShowFavoritesOnly(show);
-    if (show) {
-      setMarketTypeFilter('all');
-    }
-  }, []);
+  const handleSetShowFavoritesOnly = useCallback(
+    (show: boolean) => {
+      applyUserFilters({
+        marketTypeFilter: show ? 'all' : filtersRef.current.marketTypeFilter,
+        showFavoritesOnly: show,
+      });
+    },
+    [applyUserFilters],
+  );
 
-  const handleSetMarketTypeFilter = useCallback((filter: MarketTypeFilter) => {
-    setMarketTypeFilter(filter);
-    if (filter !== 'all') {
-      setShowFavoritesOnly(false);
-    }
-  }, []);
+  const handleSetMarketTypeFilter = useCallback(
+    (filter: MarketTypeFilter) => {
+      applyUserFilters({
+        marketTypeFilter: filter,
+        showFavoritesOnly:
+          filter === 'all' ? filtersRef.current.showFavoritesOnly : false,
+      });
+    },
+    [applyUserFilters],
+  );
 
   // Use search hook for search state and filtering (search bar always visible in UI)
   const searchHook = usePerpsSearch({ markets: allMarkets });
