@@ -15,9 +15,22 @@ jest.mock('react-native-reanimated', () =>
 
 jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
-jest.mock('react-native-gesture-handler', () => ({
-  ScrollView: jest.requireActual('react-native').ScrollView,
-}));
+const mockScrollTo = jest.fn();
+jest.mock('react-native-gesture-handler', () => {
+  const ReactActual = jest.requireActual('react');
+  const { ScrollView: RNScrollView } = jest.requireActual('react-native');
+
+  return {
+    ScrollView: ReactActual.forwardRef(
+      (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          scrollTo: mockScrollTo,
+        }));
+        return ReactActual.createElement(RNScrollView, props);
+      },
+    ),
+  };
+});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const actual = jest.requireActual('@metamask/design-system-twrnc-preset');
@@ -83,6 +96,9 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 
 jest.mock('../../../../../util/haptics');
 
+// Mirrors LEVERAGE_ITEM_WIDTH in the component.
+const ITEM_WIDTH = 56;
+
 const mockUsePerpsLivePrices = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsLivePrices: (options: { symbols: string[] }) =>
@@ -90,20 +106,26 @@ jest.mock('../../hooks', () => ({
 }));
 
 describe('PerpsLeverageBottomSheet', () => {
-  const defaultProps = {
-    isVisible: true,
-    onClose: jest.fn(),
-    onConfirm: jest.fn(),
-    leverage: 5,
-    minLeverage: 1,
-    maxLeverage: 20,
-    currentPrice: 3000,
-    direction: 'long' as const,
-    asset: 'BTC-USD',
+  let defaultProps: React.ComponentProps<typeof PerpsLeverageBottomSheet> & {
+    onClose: jest.Mock;
+    onConfirm: jest.Mock;
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Rebuilt per test so call history can never leak between tests that
+    // spread these props without overriding them.
+    defaultProps = {
+      isVisible: true,
+      onClose: jest.fn(),
+      onConfirm: jest.fn(),
+      leverage: 5,
+      minLeverage: 1,
+      maxLeverage: 20,
+      currentPrice: 3000,
+      direction: 'long' as const,
+      asset: 'BTC-USD',
+    };
     mockUsePerpsLivePrices.mockReturnValue({
       'BTC-USD': { price: '3000' },
     });
@@ -155,6 +177,37 @@ describe('PerpsLeverageBottomSheet', () => {
       );
 
       expect(toJSON()).toBeNull();
+    });
+
+    it('waits for a fresh layout before centering the picker on reopen', () => {
+      const fireLayout = () =>
+        fireEvent(
+          screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.PICKER),
+          'layout',
+          { nativeEvent: { layout: { width: 320 } } },
+        );
+
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} />,
+      );
+      fireLayout();
+      mockScrollTo.mockClear();
+
+      rerender(
+        <PerpsLeverageBottomSheet {...defaultProps} isVisible={false} />,
+      );
+      rerender(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      // Scrolling before the remounted picker reports its size leaves it
+      // stranded on the lowest leverage.
+      expect(mockScrollTo).not.toHaveBeenCalled();
+
+      fireLayout();
+
+      expect(mockScrollTo).toHaveBeenCalledWith({
+        x: (defaultProps.leverage - defaultProps.minLeverage) * ITEM_WIDTH,
+        animated: false,
+      });
     });
   });
 

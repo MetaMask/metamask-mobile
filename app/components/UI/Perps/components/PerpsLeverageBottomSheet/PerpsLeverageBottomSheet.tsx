@@ -220,6 +220,12 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       setPreviewLeverage(boundedInitialLeverage);
       setIsScrolling(false);
       setLeverageChanged(false);
+      // The picker unmounts while hidden, so its measured width must be
+      // discarded too. Keeping it would leave the centering effect below with
+      // unchanged dependencies on reopen, and the re-measure via onLayout
+      // reports the same width — so the picker would never scroll back to the
+      // selected leverage.
+      setPickerWidth(0);
       lastPickerIndexRef.current = null;
       lastValidLiquidationPrice.current = null;
       leverageChangeTime.current = 0;
