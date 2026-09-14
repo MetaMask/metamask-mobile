@@ -11465,7 +11465,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/phishing-controller@npm:^17.3.1, @metamask/phishing-controller@npm:^17.4.1":
+"@metamask/phishing-controller@npm:^17.4.1":
   version: 17.4.1
   resolution: "@metamask/phishing-controller@npm:17.4.1"
   dependencies:
@@ -39927,7 +39927,7 @@ __metadata:
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
     "@metamask/perps-controller": "npm:^16.2.0"
-    "@metamask/phishing-controller": "npm:^17.3.1"
+    "@metamask/phishing-controller": "npm:^17.4.1"
     "@metamask/platform-api-docs": "npm:^0.1.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
@@ -39979,7 +39979,7 @@ __metadata:
     "@metamask/transaction-controller": "npm:^69.8.1"
     "@metamask/transaction-pay-controller": "npm:^28.0.2"
     "@metamask/tron-wallet-snap": "npm:^3.2.0"
-    "@metamask/utils": "npm:^11.11.0"
+    "@metamask/utils": "npm:^11.12.1"
     "@metamask/wallet": "npm:^12.0.3"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.33.1"
