@@ -36,18 +36,18 @@ import OpenOrderRow from '../../components/OpenOrderRow';
 import { DetailRow } from '../../components/LimitOrderConfirmationModal/DetailRow';
 import type { BridgeToken } from '../../types';
 import { getTokenImageSource } from '../../utils';
-import { RecurringJobCancelOrderSheet } from './RecurringJobCancelOrderSheet';
+import { RecurringOrderCancelSheet } from './RecurringOrderCancelSheet';
 import {
-  getRecurringJobOrderCounts,
-  RECURRING_JOBS_BY_ID,
-} from './RecurringJobDetailsView.mock';
-import { RecurringJobDetailsViewSelectorsIDs } from './RecurringJobDetailsView.testIds';
+  getRecurringOrderSwapCounts,
+  RECURRING_ORDERS_BY_ID,
+} from './RecurringOrderDetailsView.mock';
+import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 import {
-  type RecurringJobDetailsRouteParams,
-  type RecurringOrder,
-  RecurringJobStatus,
+  type RecurringOrderDetailsRouteParams,
+  type RecurringSwap,
   RecurringOrderStatus,
-} from './RecurringJobDetailsView.types';
+  RecurringSwapStatus,
+} from './RecurringOrderDetailsView.types';
 
 interface RecurringTokenSummaryProps {
   label: string;
@@ -105,8 +105,8 @@ function RecurringTokenSummary({
   );
 }
 
-function getOrderAccessory(order: RecurringOrder) {
-  if (order.status === RecurringOrderStatus.Warning) {
+function getSwapAccessory(swap: RecurringSwap) {
+  if (swap.status === RecurringSwapStatus.Warning) {
     return (
       <Icon
         name={IconName.Warning}
@@ -116,19 +116,19 @@ function getOrderAccessory(order: RecurringOrder) {
     );
   }
 
-  if (order.status === RecurringOrderStatus.Failed) {
-    return <Tag severity={TagSeverity.Danger}>{order.statusLabel}</Tag>;
+  if (swap.status === RecurringSwapStatus.Failed) {
+    return <Tag severity={TagSeverity.Danger}>{swap.statusLabel}</Tag>;
   }
 
-  return <Tag severity={TagSeverity.Success}>{order.statusLabel}</Tag>;
+  return <Tag severity={TagSeverity.Success}>{swap.statusLabel}</Tag>;
 }
 
-function RecurringJobDetailsView() {
+function RecurringOrderDetailsView() {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const { jobId } = useParams<RecurringJobDetailsRouteParams>();
+  const { orderId } = useParams<RecurringOrderDetailsRouteParams>();
   const [isCancelSheetVisible, setIsCancelSheetVisible] = useState(false);
-  const job = RECURRING_JOBS_BY_ID[jobId];
+  const order = RECURRING_ORDERS_BY_ID[orderId];
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -144,19 +144,19 @@ function RecurringJobDetailsView() {
 
   const handleDuplicateOrder = useCallback(() => undefined, []);
 
-  if (!job) {
+  if (!order) {
     return (
       <SafeAreaView
         edges={['left', 'right', 'bottom']}
         style={tw.style('flex-1 bg-default')}
-        testID={RecurringJobDetailsViewSelectorsIDs.SCREEN}
+        testID={RecurringOrderDetailsViewSelectorsIDs.SCREEN}
       >
         <HeaderStandard
           title={strings('bridge.tabs.recurring')}
           includesTopInset
           onBack={handleBack}
           backButtonProps={{
-            testID: RecurringJobDetailsViewSelectorsIDs.BACK_BUTTON,
+            testID: RecurringOrderDetailsViewSelectorsIDs.BACK_BUTTON,
           }}
         />
         <Box
@@ -167,7 +167,7 @@ function RecurringJobDetailsView() {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            testID={RecurringJobDetailsViewSelectorsIDs.NOT_FOUND}
+            testID={RecurringOrderDetailsViewSelectorsIDs.NOT_FOUND}
           >
             {strings('bridge.recurring.order_not_found')}
           </Text>
@@ -176,29 +176,29 @@ function RecurringJobDetailsView() {
     );
   }
 
-  const { filledOrderCount, filledPercent, totalOrderCount } =
-    getRecurringJobOrderCounts(job);
+  const { filledSwapCount, filledPercent, totalSwapCount } =
+    getRecurringOrderSwapCounts(order);
   const pair = strings('bridge.recurring.pair', {
-    source: job.sourceToken.symbol,
-    dest: job.destinationToken.symbol,
+    source: order.sourceToken.symbol,
+    dest: order.destinationToken.symbol,
   });
   const scheduleSummary = strings('bridge.recurring.schedule_summary', {
-    interval: job.interval,
-    count: totalOrderCount,
+    interval: order.interval,
+    count: totalSwapCount,
   });
 
   return (
     <SafeAreaView
       edges={['left', 'right', 'bottom']}
       style={tw.style('flex-1 bg-default')}
-      testID={RecurringJobDetailsViewSelectorsIDs.SCREEN}
+      testID={RecurringOrderDetailsViewSelectorsIDs.SCREEN}
     >
       <HeaderStandard
         title={strings('bridge.tabs.recurring')}
         includesTopInset
         onBack={handleBack}
         backButtonProps={{
-          testID: RecurringJobDetailsViewSelectorsIDs.BACK_BUTTON,
+          testID: RecurringOrderDetailsViewSelectorsIDs.BACK_BUTTON,
         }}
       />
       <ScrollView
@@ -209,22 +209,22 @@ function RecurringJobDetailsView() {
         <Box gap={6} paddingHorizontal={4} paddingVertical={4}>
           <RecurringTokenSummary
             label={strings('bridge.recurring.you_sent')}
-            token={job.sourceToken}
+            token={order.sourceToken}
             tokenAvatarTestID={
-              RecurringJobDetailsViewSelectorsIDs.SOURCE_TOKEN_AVATAR
+              RecurringOrderDetailsViewSelectorsIDs.SOURCE_TOKEN_AVATAR
             }
             networkBadgeTestID={
-              RecurringJobDetailsViewSelectorsIDs.SOURCE_NETWORK_BADGE
+              RecurringOrderDetailsViewSelectorsIDs.SOURCE_NETWORK_BADGE
             }
           />
           <RecurringTokenSummary
             label={strings('bridge.recurring.you_receive')}
-            token={job.destinationToken}
+            token={order.destinationToken}
             tokenAvatarTestID={
-              RecurringJobDetailsViewSelectorsIDs.DESTINATION_TOKEN_AVATAR
+              RecurringOrderDetailsViewSelectorsIDs.DESTINATION_TOKEN_AVATAR
             }
             networkBadgeTestID={
-              RecurringJobDetailsViewSelectorsIDs.DESTINATION_NETWORK_BADGE
+              RecurringOrderDetailsViewSelectorsIDs.DESTINATION_NETWORK_BADGE
             }
           />
         </Box>
@@ -235,15 +235,15 @@ function RecurringJobDetailsView() {
           gap={2}
           paddingTop={2}
           paddingBottom={2}
-          testID={RecurringJobDetailsViewSelectorsIDs.SUMMARY}
+          testID={RecurringOrderDetailsViewSelectorsIDs.SUMMARY}
         >
           <DetailRow label={strings('bridge.recurring.filled')}>
             <Text
               variant={TextVariant.BodyMd}
               twClassName="text-right"
-              testID={RecurringJobDetailsViewSelectorsIDs.FILLED_VALUE}
+              testID={RecurringOrderDetailsViewSelectorsIDs.FILLED_VALUE}
             >
-              {`${job.filledAmount} / ${job.totalSourceAmount} `}
+              {`${order.filledAmount} / ${order.totalSourceAmount} `}
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
@@ -263,34 +263,34 @@ function RecurringJobDetailsView() {
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.size_per_order')}>
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {job.sizePerOrder}
+              {order.sizePerOrder}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.price_range.label')}>
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {job.priceRange}
+              {order.priceRange}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.total_received')}>
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {job.totalReceived}
+              {order.totalReceived}
             </Text>
           </DetailRow>
           <DetailRow
             label={strings('bridge.recurring.average_execution_price')}
           >
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {job.averageExecutionPrice}
+              {order.averageExecutionPrice}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.start_date')}>
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {job.startDate}
+              {order.startDate}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.end_date')}>
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {job.endDate}
+              {order.endDate}
             </Text>
           </DetailRow>
         </Box>
@@ -301,7 +301,7 @@ function RecurringJobDetailsView() {
           paddingHorizontal={4}
           paddingTop={4}
           gap={5}
-          testID={RecurringJobDetailsViewSelectorsIDs.HISTORY}
+          testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -316,25 +316,25 @@ function RecurringJobDetailsView() {
               color={TextColor.TextAlternative}
             >
               {strings('bridge.recurring.history_progress', {
-                filledOrderCount,
-                totalOrderCount,
+                filledOrderCount: filledSwapCount,
+                totalOrderCount: totalSwapCount,
               })}
             </Text>
           </Box>
           <Box gap={3}>
-            {job.orders.map((order) => {
-              const isWarning = order.status === RecurringOrderStatus.Warning;
+            {order.swaps.map((swap) => {
+              const isWarning = swap.status === RecurringSwapStatus.Warning;
               const hasZeroAmounts =
-                isWarning || order.status === RecurringOrderStatus.Failed;
+                isWarning || swap.status === RecurringSwapStatus.Failed;
 
               return (
                 <OpenOrderRow
-                  key={order.orderId}
-                  token={job.destinationToken}
+                  key={swap.swapId}
+                  token={order.destinationToken}
                   title={pair}
-                  subtitle={isWarning ? order.statusLabel : ''}
-                  primaryValue={order.receivedAmount}
-                  secondaryValue={order.spentAmount}
+                  subtitle={isWarning ? swap.statusLabel : ''}
+                  primaryValue={swap.receivedAmount}
+                  secondaryValue={swap.spentAmount}
                   titleColor={
                     isWarning ? TextColor.WarningDefault : TextColor.TextDefault
                   }
@@ -348,9 +348,9 @@ function RecurringJobDetailsView() {
                       ? TextColor.TextAlternative
                       : TextColor.SuccessDefault
                   }
-                  titleEndAccessory={getOrderAccessory(order)}
-                  testID={RecurringJobDetailsViewSelectorsIDs.HISTORY_ROW(
-                    order.orderId,
+                  titleEndAccessory={getSwapAccessory(swap)}
+                  testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
+                    swap.swapId,
                   )}
                 />
               );
@@ -359,7 +359,7 @@ function RecurringJobDetailsView() {
         </Box>
       </ScrollView>
 
-      {job.status === RecurringJobStatus.InProgress ? (
+      {order.status === RecurringOrderStatus.InProgress ? (
         <Box padding={4}>
           <Button
             variant={ButtonVariant.Primary}
@@ -367,28 +367,28 @@ function RecurringJobDetailsView() {
             isDanger
             isFullWidth
             onPress={handleOpenCancelSheet}
-            testID={RecurringJobDetailsViewSelectorsIDs.CANCEL_BUTTON}
+            testID={RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON}
           >
             {strings('bridge.recurring.cancel_order')}
           </Button>
         </Box>
       ) : null}
 
-      {job.status === RecurringJobStatus.Completed ? (
+      {order.status === RecurringOrderStatus.Completed ? (
         <Box padding={4}>
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleDuplicateOrder}
-            testID={RecurringJobDetailsViewSelectorsIDs.DUPLICATE_BUTTON}
+            testID={RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON}
           >
             {strings('bridge.recurring.duplicate_order')}
           </Button>
         </Box>
       ) : null}
 
-      <RecurringJobCancelOrderSheet
+      <RecurringOrderCancelSheet
         isVisible={isCancelSheetVisible}
         onClose={handleCloseCancelSheet}
         onConfirm={handleCloseCancelSheet}
@@ -397,4 +397,4 @@ function RecurringJobDetailsView() {
   );
 }
 
-export default RecurringJobDetailsView;
+export default RecurringOrderDetailsView;

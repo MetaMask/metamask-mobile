@@ -11,19 +11,19 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { RecurringJobDetailsViewSelectorsIDs } from './RecurringJobDetailsView.testIds';
+import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 
-interface RecurringJobCancelOrderSheetProps {
+interface RecurringOrderCancelSheetProps {
   isVisible: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
 
-export function RecurringJobCancelOrderSheet({
+export function RecurringOrderCancelSheet({
   isVisible,
   onClose,
   onConfirm,
-}: RecurringJobCancelOrderSheetProps) {
+}: RecurringOrderCancelSheetProps) {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeSheet = useCallback(() => {
@@ -42,12 +42,13 @@ export function RecurringJobCancelOrderSheet({
     <BottomSheet
       ref={sheetRef}
       onClose={onClose}
-      testID={RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET}
+      testID={RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET}
     >
       <BottomSheetHeader
         onClose={closeSheet}
         closeButtonProps={{
-          testID: RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET_CLOSE_BUTTON,
+          testID:
+            RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CLOSE_BUTTON,
         }}
       >
         {strings('bridge.recurring.cancel_order')}
@@ -68,7 +69,7 @@ export function RecurringJobCancelOrderSheet({
           size: ButtonSize.Lg,
           isFullWidth: true,
           testID:
-            RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
+            RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
         }}
       />
     </BottomSheet>
