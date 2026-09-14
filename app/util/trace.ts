@@ -71,6 +71,7 @@ export enum TraceName {
   RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
   /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
+  RampScreenLoad = 'Ramp Screen Load',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
