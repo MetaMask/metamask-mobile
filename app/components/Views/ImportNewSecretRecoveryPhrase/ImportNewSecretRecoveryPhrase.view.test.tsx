@@ -51,10 +51,13 @@ describeForPlatforms('ImportNewSecretRecoveryPhrase component views', () => {
     const { findByTestId } = renderImportNewSRP();
 
     const infoIcon = await findByTestId('info-icon');
-    const glyph = infoIcon.children[0] as { props: { size: string } };
 
     expect(infoIcon).toHaveStyle({ height: 20, width: 20 });
-    expect(glyph.props.size).toBe('sm');
+    expect(infoIcon.children[0]).toEqual(
+      expect.objectContaining({
+        props: expect.objectContaining({ size: 'sm' }),
+      }),
+    );
   });
 
   it('shows a validation error when an invalid SRP is submitted', async () => {
