@@ -89,7 +89,6 @@ appiumTest.describe(SmokePerps('Perps Pro - Position stop loss'), () => {
           await PerpsProMarketView.enterSize('500');
           await PerpsProMarketView.tapTpslSection();
           await PerpsOrderView.enterCustomStopLossTriggerPrice('2300');
-          await PerpsProMarketView.waitForFeesReady();
           await PerpsProMarketView.tapPlaceOrderButton();
 
           await PerpsProMarketView.waitForPositionRow(
@@ -101,7 +100,7 @@ appiumTest.describe(SmokePerps('Perps Pro - Position stop loss'), () => {
             PERPS_SMOKE_MARKET_SYMBOL,
             '2250.00',
             () =>
-              PerpsProMarketView.expectPositionRowNotVisible(
+              PerpsProMarketView.expectPositionRowGone(
                 PERPS_SMOKE_MARKET_SYMBOL,
               ),
             {

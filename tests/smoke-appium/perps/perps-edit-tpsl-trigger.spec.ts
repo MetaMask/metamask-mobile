@@ -86,13 +86,18 @@ appiumTest.describe(SmokePerps('Perps Pro - Edit TP/SL trigger'), () => {
             PERPS_SMOKE_MARKET_SYMBOL,
           );
           await PerpsOrderView.enterCustomStopLossTriggerPrice('2300');
+          // Auto close Set can briefly unmount the positions subtree while the
+          // Pro root stays mounted, so re-observe the row before the price push.
+          await PerpsProMarketView.waitForPositionRowRemounted(
+            PERPS_SMOKE_MARKET_SYMBOL,
+          );
 
           await PerpsE2EModifiers.waitForCloseAfterPricePush(
             commandQueueServer,
             PERPS_SMOKE_MARKET_SYMBOL,
             '2250.00',
             () =>
-              PerpsProMarketView.expectPositionRowNotVisible(
+              PerpsProMarketView.expectPositionRowGone(
                 PERPS_SMOKE_MARKET_SYMBOL,
               ),
             {

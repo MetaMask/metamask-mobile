@@ -153,18 +153,23 @@ export class WalletHomeSections {
   }
 
   async scrollAndTapPerpsSection(): Promise<void> {
-    try {
-      await WalletHomeScroll.scrollAndTapSection(
+    if (
+      await WalletHomeScroll.tapIfAlreadyVisible(
         this.perpsSectionHeader,
         'Perpetuals section',
-      );
-    } catch {
-      await WalletHomeScroll.scrollAndTapSection(
-        this.perpsSectionHeader,
-        'Perpetuals section',
-        'up',
-      );
+      )
+    ) {
+      return;
     }
+
+    await WalletHomeScroll.tryScrollDirections((scrollDirection) =>
+      WalletHomeScroll.scrollAndTapSection(
+        this.perpsSectionHeader,
+        'Perpetuals section',
+        scrollDirection,
+        { timeout: 60_000 },
+      ),
+    );
   }
 
   async scrollAndTapPredictionsSection(

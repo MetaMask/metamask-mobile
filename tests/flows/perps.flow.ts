@@ -266,7 +266,6 @@ export const openPositionInPro = async (
 ): Promise<void> => {
   await PerpsProMarketView.selectDirection(direction);
   await PerpsProMarketView.enterSize('500');
-  await PerpsProMarketView.waitForFeesReady();
   await PerpsProMarketView.tapPlaceOrderButton();
   await dismissPerpsNotificationTooltipIfPresent();
   await PerpsProMarketView.waitForPositionRow(symbol);

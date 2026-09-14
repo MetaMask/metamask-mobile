@@ -60,6 +60,10 @@ class PerpsE2EModifiers {
    * Pushes a mark price, then polls until `assertClosed` succeeds.
    * Re-enqueues the same push periodically so a busy app that misses one
    * command-queue poll still receives the SL/TP trigger price.
+   *
+   * `assertClosed` must be cheap (short hierarchy/visibility check). Do not
+   * pass helpers that re-tap tabs or run long scroll loops — those burn the
+   * outer timeout in a single attempt and prevent re-enqueue from helping.
    */
   static async waitForCloseAfterPricePush(
     commandQueueServer: CommandQueueServer,
