@@ -8,7 +8,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 import { RootState } from '../../../../../../reducers';
 import { EngineState } from '../../../../../../core/Engine';
 
@@ -91,6 +91,10 @@ const renderComponent = (
   );
 
 describe('AddressElement', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
     const { getByTestId } = renderComponent(initialState);
     expect(getByTestId('address-element')).toBeOnTheScreen();
