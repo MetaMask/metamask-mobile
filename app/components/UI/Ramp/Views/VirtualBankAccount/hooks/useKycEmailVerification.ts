@@ -55,7 +55,7 @@ export const useKycEmailVerification = (): UseKycEmailVerificationResult => {
 
       if (Engine.context.KycController.state.vendorDisclaimers.length === 0) {
         throw new Error(
-          'Terms are not loaded yet. Go back to Get your Pix Key and try again.',
+          strings('virtual_bank_account.kyc_email.terms_not_loaded_error'),
         );
       }
 
