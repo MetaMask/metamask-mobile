@@ -9,13 +9,12 @@ import {
   renderShortAddress,
   getLabelTextByAddress,
 } from '../../../../../../util/address';
-import {
-  AvatarSize,
-} from '../../../../../../component-library/components/Avatars/Avatar';
-import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
 
 import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
@@ -72,11 +71,21 @@ const AddressElement: React.FC<AddressElementProps> = ({
             ) : null
           }
         >
-          <AvatarAccount accountAddress={address} size={AvatarSize.Md} />
+          <AvatarAccount
+            address={address}
+            variant={AvatarAccountVariant.Blockies}
+            size={AvatarAccountSize.Md}
+          />
         </BadgeWrapper>
       );
     }
-    return <AvatarAccount accountAddress={address} size={AvatarSize.Md} />;
+    return (
+      <AvatarAccount
+        address={address}
+        variant={AvatarAccountVariant.Blockies}
+        size={AvatarAccountSize.Md}
+      />
+    );
   }, [address, chainId, addressElementNetwork, shouldDisplayNetworkBadge]);
 
   const fetchENSName = useCallback(async () => {
