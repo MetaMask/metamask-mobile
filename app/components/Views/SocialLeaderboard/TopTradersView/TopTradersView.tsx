@@ -123,20 +123,84 @@ const rowLayoutTransition = LinearTransition.duration(
   RANK_CHANGE_DURATION,
 ).easing(Easing.out(Easing.ease));
 
+/* TODO(TSA-1132): remove all four with the debug shuffle button. */
+/** Only the top of the list reshuffles — the tail is left alone. */
+const NUDGE_WINDOW_SIZE = 20;
+/** How far a single trader may travel in one press. */
+const MAX_NUDGE_DISTANCE = 2;
+/** Ceiling on rows that may move per press. Each swap moves two. */
+const MAX_NUDGED_ROWS = 4;
+const MAX_NUDGE_SWAPS = MAX_NUDGED_ROWS / 2;
+
 /**
  * TODO(TSA-1132): remove with the debug shuffle button.
  *
- * Randomises the order and reassigns `rank` to match, so a shuffle exercises
- * the same code path a real ranking change does — the slide is driven by the
- * new position and each row's pulse by its new `rank`.
+ * Moves one or two pairs of traders a place or two each, within the top
+ * `NUDGE_WINDOW_SIZE` rows. A full shuffle is not what real leaderboard drift
+ * looks like, and sending rows the length of the list also pushes them outside
+ * the virtualisation window mid-flight, where the slide pops instead of
+ * animating.
+ *
+ * Swaps never reuse a slot, so at most `MAX_NUDGED_ROWS` rows move and none
+ * travels further than `MAX_NUDGE_DISTANCE`.
+ *
+ * Takes and returns trader ids so repeated presses drift from the order
+ * currently on screen rather than snapping back to the ranked order first.
  */
-const shuffleOrder = (traders: TopTrader[]): TopTrader[] => {
-  const shuffled = [...traders];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+const nudgeOrder = (orderedIds: string[]): string[] => {
+  const lastIndex = Math.min(NUDGE_WINDOW_SIZE, orderedIds.length) - 1;
+  if (lastIndex < 1) return orderedIds;
+
+  const nudged = [...orderedIds];
+  const alreadyMoved = new Set<number>();
+  const swaps = 1 + Math.floor(Math.random() * MAX_NUDGE_SWAPS);
+
+  for (let swap = 0; swap < swaps; swap++) {
+    // Every in-window pair close enough to swap whose slots are both still
+    // untouched. Only ascending pairs, since a swap is symmetric.
+    const pairs: [number, number][] = [];
+    for (let from = 0; from <= lastIndex; from++) {
+      if (alreadyMoved.has(from)) continue;
+      for (let distance = 1; distance <= MAX_NUDGE_DISTANCE; distance++) {
+        const to = from + distance;
+        if (to <= lastIndex && !alreadyMoved.has(to)) pairs.push([from, to]);
+      }
+    }
+    if (pairs.length === 0) break;
+
+    const [from, to] = pairs[Math.floor(Math.random() * pairs.length)];
+    [nudged[from], nudged[to]] = [nudged[to], nudged[from]];
+    alreadyMoved.add(from);
+    alreadyMoved.add(to);
   }
-  return shuffled.map((trader, index) => ({ ...trader, rank: index + 1 }));
+
+  return nudged;
+};
+
+/**
+ * TODO(TSA-1132): remove with the debug shuffle button.
+ *
+ * Applies a debug ordering and renumbers `rank` to match, so a nudge exercises
+ * the same code path a real ranking change does — the slide is driven by the
+ * new position and each row's pulse by its new `rank`. Ids that are no longer
+ * in the list are skipped; traders the order does not mention keep their
+ * ranked position at the end.
+ */
+const reorderByIds = (
+  traders: TopTrader[],
+  orderedIds: string[],
+): TopTrader[] => {
+  const byId = new Map(traders.map((trader) => [trader.id, trader]));
+  const ordered = orderedIds
+    .map((id) => byId.get(id))
+    .filter((trader): trader is TopTrader => trader !== undefined);
+  const seen = new Set(ordered.map((trader) => trader.id));
+  const remaining = traders.filter((trader) => !seen.has(trader.id));
+
+  return [...ordered, ...remaining].map((trader, index) => ({
+    ...trader,
+    rank: index + 1,
+  }));
 };
 
 const LEADERBOARD_LIMIT = 50;
@@ -336,22 +400,34 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const activeTab = pinnedTypeFilter ?? (isPerpsEnabled ? renderedTab : 'all');
   const activeResult = resultsByTab[activeTab];
   const { traders: loadedTraders, isLoading, toggleFollow } = activeResult;
-  // TODO(TSA-1132): remove with `shuffleOrder` once the reorder animation has
-  // been signed off — this only exists to trigger a reshuffle on demand.
-  const [shuffleCount, setShuffleCount] = useState(0);
-  const handleShuffle = useCallback(() => setShuffleCount((n) => n + 1), []);
+  // TODO(TSA-1132): remove with `nudgeOrder` / `reorderByIds` once the reorder
+  // animation has been signed off — this only exists to move a trader on
+  // demand. `null` means "untouched", so the list is ranked normally until the
+  // first press.
+  const [debugOrderedIds, setDebugOrderedIds] = useState<string[] | null>(null);
 
   // The API ranks on its own (30-day) window, so the selected time frame is
   // only honoured once the loaded page is re-ranked here.
   const traders = useMemo<RankedTrader[]>(() => {
     const ranked = rankTradersByMetric(loadedTraders, sort);
     // TODO(TSA-1132): drop this branch with the debug shuffle button.
-    const ordered = shuffleCount > 0 ? shuffleOrder(ranked) : ranked;
+    const ordered = debugOrderedIds
+      ? reorderByIds(ranked, debugOrderedIds)
+      : ranked;
     return ordered.map((trader) => ({
       ...trader,
       displayMetric: getTraderMetricDisplay(trader, sort),
     }));
-  }, [loadedTraders, sort, shuffleCount]);
+  }, [loadedTraders, sort, debugOrderedIds]);
+
+  // TODO(TSA-1132): remove with the debug shuffle button. Seeds from what is
+  // currently on screen, so each press drifts the list one more step rather
+  // than re-deriving from the ranked order.
+  const handleShuffle = useCallback(() => {
+    setDebugOrderedIds((current) =>
+      nudgeOrder(current ?? traders.map((trader) => trader.id)),
+    );
+  }, [traders]);
   // The visible tab always fetches alone first; the other two are prefetched
   // behind it so switching pills is instant. Gate on `isFetching` rather than
   // `isLoading`: arriving with a warm cache (the homepage carousel shares the
