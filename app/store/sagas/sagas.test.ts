@@ -810,6 +810,7 @@ describe('handleDeeplinkSaga', () => {
             .withState({
               user: { existingUser: true },
               navigation: {},
+              engine: { backgroundState: {} },
             })
             .dispatch(setCompletedOnboarding(true))
             .silentRun();
