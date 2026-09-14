@@ -210,6 +210,43 @@ describe('PerpsCompetitionBanner', () => {
     });
   });
 
+  it('shows the banner for a later campaign after an unresolved dismissal carried forward', async () => {
+    // The unresolved dismissal carries to the first resolved campaign only; a
+    // later swap to a different campaign must read that campaign's own flag.
+    setupSelector(true, []);
+
+    const { getByTestId, queryByTestId, rerender } = render(
+      <PerpsCompetitionBanner />,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('perps-competition-banner-close'));
+
+    await waitFor(() => {
+      expect(queryByTestId('perps-competition-banner')).not.toBeOnTheScreen();
+    });
+
+    setupSelector(true, [buildCampaign({ id: 'perps-campaign-1' })]);
+    rerender(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(queryByTestId('perps-competition-banner')).not.toBeOnTheScreen();
+    });
+
+    setupSelector(true, [buildCampaign({ id: 'perps-campaign-2' })]);
+    rerender(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(StorageWrapper.getItem).toHaveBeenCalledWith(
+        perpsCompetitionBannerDismissedKey('perps-campaign-2'),
+      );
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+  });
+
   it('shows the banner for a new campaign after dismissing a different one', async () => {
     // Dismissing campaign 1 must not suppress campaign 2's banner when the
     // campaign list swaps under the component mid-session.

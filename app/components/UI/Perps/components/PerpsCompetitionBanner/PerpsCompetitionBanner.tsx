@@ -117,10 +117,13 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
     // dismissal made against a real campaign id applies only to that campaign,
     // so a second campaign still gets its own banner.
     const dismissedKey = dismissedKeyRef.current;
-    if (
-      dismissedKey === dismissedStorageKey ||
-      dismissedKey === UNRESOLVED_STORAGE_KEY
-    ) {
+    if (dismissedKey === dismissedStorageKey) {
+      return;
+    }
+    if (dismissedKey === UNRESOLVED_STORAGE_KEY) {
+      // Carry forward only to the first resolved campaign, then anchor to it so
+      // a later swap to another campaign reads its own dismissal flag.
+      dismissedKeyRef.current = dismissedStorageKey;
       return;
     }
     // The key changes under this effect when campaigns land in Redux, leaving
