@@ -656,9 +656,11 @@ describe('TradeWalletActions', () => {
       );
       // No dimmed backdrop in this arm, so the sheet needs its own edge.
       const [blurProps] = mockBlurView.mock.calls[0];
-      expect(StyleSheet.flatten(blurProps.style)).toMatchObject({
+      const blurStyle = StyleSheet.flatten(blurProps.style);
+      expect(blurStyle).toMatchObject({
         borderWidth: StyleSheet.hairlineWidth,
       });
+      expect(blurStyle.borderColor).toMatch(/^rgba\(.*, 0\.4\)$/);
     });
 
     it('keeps the plain sheet opaque outside the trade-focused arm', () => {

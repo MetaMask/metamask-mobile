@@ -98,6 +98,7 @@ import EarnTradeMenuRow from './components/EarnTradeMenuRow/EarnTradeMenuRow';
 const bottomMaskHeight = 35;
 // The trade-focused sheet sits on a blur with its own edge, so its page is not dimmed.
 const TRADE_FOCUSED_BACKDROP_OPACITY = 0.2;
+const TRADE_FOCUSED_BORDER_OPACITY = 0.4;
 const animationDuration = AnimationDuration.Fast;
 
 const batchSellIconStyle = {
@@ -426,7 +427,10 @@ function TradeWalletActions() {
               tw.style('p-4 px-0 rounded-2xl mb-4 overflow-hidden'),
               {
                 borderWidth: StyleSheet.hairlineWidth,
-                borderColor: colorWithOpacity(colors.border.muted, 0.5),
+                borderColor: colorWithOpacity(
+                  colors.border.muted,
+                  TRADE_FOCUSED_BORDER_OPACITY,
+                ),
               },
             ]}
           >
