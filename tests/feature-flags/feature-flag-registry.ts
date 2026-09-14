@@ -7484,14 +7484,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
       {
-        name: 'row1Top',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-      },
-      {
-        name: 'row2Top',
+        name: 'postOnboardingSteps',
         scope: {
           type: 'percentage_rollout',
           value: 0,

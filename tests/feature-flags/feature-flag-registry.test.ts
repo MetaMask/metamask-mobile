@@ -395,6 +395,13 @@ describe('Feature Flag Registry', () => {
           });
         }
       }
+
+      expect(
+        (
+          getRegistryEntry('homeTMCU610AbtestWalletHomePostOnboardingSteps')
+            ?.productionDefault as { name: string }[]
+        ).map((variant) => variant.name),
+      ).toEqual(['control', 'postOnboardingSteps']);
     });
   });
 
