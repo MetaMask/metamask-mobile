@@ -22,7 +22,6 @@ import {
   KALSHI_VENUE_ID,
   type PredictEntityId,
 } from '../../../components/UI/PredictNext/types';
-import Logger from '../../../util/Logger';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getPredictLiveDataServiceMessenger } from '../messengers/predict-live-data-service-messenger';
 import type { RootExtendedMessenger } from '../types';
@@ -33,10 +32,6 @@ import {
   predictMarketDataServiceInit,
   predictPortfolioServiceInit,
 } from './predict-service-init';
-import { resolvePredictApiBaseUrl } from './predict-next-config';
-
-jest.mock('../../../util/Logger');
-jest.mock('./predict-next-config');
 
 describe('Predict service initialization', () => {
   it('registers market-data actions on the Engine root messenger', async () => {
@@ -102,9 +97,6 @@ describe('Predict service initialization', () => {
   });
 
   it('publishes socket updates on the live-data service messenger', () => {
-    jest
-      .mocked(resolvePredictApiBaseUrl)
-      .mockReturnValue('https://predict.example/');
     const rootMessenger = new ExtendedMessenger<
       MockAnyNamespace,
       PredictLiveDataServiceActions,
@@ -129,34 +121,6 @@ describe('Predict service initialization', () => {
     controller.onGameUpdate(update);
 
     expect(listener).toHaveBeenCalledWith(update);
-    expect(Logger.log).not.toHaveBeenCalled();
-    controller.destroy();
-  });
-
-  it('disables live updates when the base URL is unusable', () => {
-    jest.mocked(resolvePredictApiBaseUrl).mockReturnValue(undefined);
-    const rootMessenger = new ExtendedMessenger<
-      MockAnyNamespace,
-      PredictLiveDataServiceActions,
-      PredictLiveDataServiceEvents
-    >({ namespace: MOCK_ANY_NAMESPACE });
-    const messenger = getPredictLiveDataServiceMessenger(rootMessenger);
-    const request = {
-      ...buildMessengerClientInitRequestMock(rootMessenger),
-      controllerMessenger: messenger,
-      initMessenger: undefined,
-    } as unknown as MessengerClientInitRequest<PredictLiveDataServiceMessenger>;
-
-    const { controller } = predictLiveDataServiceInit(request);
-
-    expect(() =>
-      messenger.call('PredictLiveDataService:watchGames', KALSHI_VENUE_ID, [
-        'event-1' as PredictEntityId,
-      ]),
-    ).not.toThrow();
-    expect(Logger.log).toHaveBeenCalledWith(
-      expect.stringContaining('Live game updates are disabled.'),
-    );
     controller.destroy();
   });
 });

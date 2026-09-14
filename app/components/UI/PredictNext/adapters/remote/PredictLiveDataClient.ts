@@ -11,10 +11,23 @@ const PROTOCOL_VERSION = 1;
 type WebSocketConstructor = typeof WebSocket;
 
 export interface PredictLiveDataClientOptions {
-  baseUrl: string;
+  baseUrl?: string;
   WebSocket?: WebSocketConstructor;
   onGameUpdate: (game: PredictGameLive) => void;
 }
+
+const parseStreamUrl = (baseUrl?: string): string | undefined => {
+  if (!baseUrl) {
+    return undefined;
+  }
+  try {
+    const url = new URL(LIVE_DATA_PATH, baseUrl);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+};
 
 /** Subscription surface the live-data service depends on. */
 export interface PredictLiveDataTransport {
@@ -31,7 +44,7 @@ export interface PredictLiveDataTransport {
 }
 
 export class PredictLiveDataClient implements PredictLiveDataTransport {
-  readonly #url: string;
+  readonly #url?: string;
   readonly #WebSocket: WebSocketConstructor;
   readonly #onGameUpdate: (game: PredictGameLive) => void;
   // Screens watch overlapping Events, so each id is held until its last
@@ -46,10 +59,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     WebSocket: WebSocketImpl = global.WebSocket,
     onGameUpdate,
   }: PredictLiveDataClientOptions) {
-    const url = new URL(LIVE_DATA_PATH, baseUrl);
-    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-
-    this.#url = url.toString();
+    this.#url = parseStreamUrl(baseUrl);
     this.#WebSocket = WebSocketImpl;
     this.#onGameUpdate = onGameUpdate;
   }
@@ -126,7 +136,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
 
   #connect(): void {
     const venueId = this.#venueId;
-    if (!venueId || this.#socket) {
+    if (!venueId || !this.#url || this.#socket) {
       return;
     }
 
@@ -163,10 +173,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     };
   }
 
-  #onFrame(
-    frame: PredictLiveDataServerFrame,
-    venueId: PredictVenueId,
-  ): void {
+  #onFrame(frame: PredictLiveDataServerFrame, venueId: PredictVenueId): void {
     if (frame.type === 'welcome') {
       if (frame.protocol !== PROTOCOL_VERSION) {
         this.disconnect();
@@ -189,7 +196,11 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
   ): void {
-    if (!this.#socket || this.#socket.readyState !== 1 || eventIds.length === 0) {
+    if (
+      !this.#socket ||
+      this.#socket.readyState !== 1 ||
+      eventIds.length === 0
+    ) {
       return;
     }
 

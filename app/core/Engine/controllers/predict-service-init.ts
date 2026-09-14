@@ -2,7 +2,6 @@ import packageJSON from '../../../../package.json';
 import { KalshiRemoteAdapter } from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../components/UI/PredictNext/adapters/remote/PredictApiReadClient';
 import { PredictLiveDataClient } from '../../../components/UI/PredictNext/adapters/remote/PredictLiveDataClient';
-import { unavailableLiveTransport } from '../../../components/UI/PredictNext/adapters/remote/unavailableTransports';
 import {
   PredictLiveDataService,
   type PredictLiveDataServiceMessenger,
@@ -16,10 +15,8 @@ import {
   type PredictPortfolioServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictPortfolioService';
 import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/types';
-import Logger from '../../../util/Logger';
 import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict-portfolio-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
-import { resolvePredictApiBaseUrl } from './predict-next-config';
 
 export const predictMarketDataServiceInit: MessengerClientInitFunction<
   PredictMarketDataService,
@@ -44,21 +41,13 @@ export const predictLiveDataServiceInit: MessengerClientInitFunction<
   PredictLiveDataService,
   PredictLiveDataServiceMessenger
 > = ({ controllerMessenger }) => {
-  const baseUrl = resolvePredictApiBaseUrl(process.env.MM_PREDICT_API_URL);
-
-  if (!baseUrl) {
-    Logger.log('PredictNext is unconfigured. Live game updates are disabled.');
-  }
-
   // The client and service are mutually dependent: the socket feeds updates
   // into the service, which publishes them on the messenger.
   const serviceRef: { current?: PredictLiveDataService } = {};
-  const client = baseUrl
-    ? new PredictLiveDataClient({
-        baseUrl,
-        onGameUpdate: (update) => serviceRef.current?.onGameUpdate(update),
-      })
-    : unavailableLiveTransport;
+  const client = new PredictLiveDataClient({
+    baseUrl: process.env.MM_PREDICT_API_URL,
+    onGameUpdate: (update) => serviceRef.current?.onGameUpdate(update),
+  });
 
   const controller = new PredictLiveDataService({
     messenger: controllerMessenger,

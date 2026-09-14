@@ -60,9 +60,7 @@ describe('PredictLiveDataClient', () => {
     socket.open();
     socket.message(welcomeFrame);
 
-    expect(socket.url).toBe(
-      'ws://localhost:3333/v1/stream/live-data',
-    );
+    expect(socket.url).toBe('ws://localhost:3333/v1/stream/live-data');
     expect(socket.send).toHaveBeenCalledWith(
       JSON.stringify({
         type: 'subscribe',
@@ -164,6 +162,29 @@ describe('PredictLiveDataClient', () => {
         events: [eventId],
       }),
     );
+  });
+
+  it('does not open a socket when the API URL is not configured', () => {
+    const client = new PredictLiveDataClient({
+      WebSocket: MockWebSocket as unknown as typeof WebSocket,
+      onGameUpdate: jest.fn(),
+    });
+
+    client.subscribe(venueId, [eventId]);
+
+    expect(MockWebSocket.instances).toHaveLength(0);
+  });
+
+  it('does not open a socket when the API URL is malformed', () => {
+    const client = new PredictLiveDataClient({
+      baseUrl: 'not a URL',
+      WebSocket: MockWebSocket as unknown as typeof WebSocket,
+      onGameUpdate: jest.fn(),
+    });
+
+    client.subscribe(venueId, [eventId]);
+
+    expect(MockWebSocket.instances).toHaveLength(0);
   });
 
   it('does not open a new socket after disconnect', () => {
