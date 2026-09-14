@@ -2,7 +2,6 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokePredictions } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
-import { Assertions } from '../../framework/index.js';
 import {
   remoteFeatureFlagPredictEnabled,
   confirmationFeatureFlags,
@@ -22,8 +21,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
-import PredictBalance from '../../page-objects/Predict/PredictBalance.js';
-import PredictMarketList from '../../page-objects/Predict/PredictMarketList.js';
+import PredictHome from '../../page-objects/Predict/PredictHome.js';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
 import {
@@ -92,19 +90,19 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapPredictButton();
 
-          await PredictMarketList.waitForScreenToDisplay({
-            description: 'Predict market list container should be visible',
+          await PredictHome.waitForScreenToDisplay({
+            description: 'Predict home should be visible',
           });
-          await PredictBalance.expectBalanceCardVisible();
-          await PredictBalance.tapWithdraw();
+          await PredictHome.expectPrimaryValueVisible();
+          await PredictHome.tapWithdraw();
 
           await TransactionPayConfirmation.tapKeyboardAmount('5');
           await TransactionPayConfirmation.tapKeyboardContinueButton();
           await FooterActions.tapConfirmButton();
 
-          await PredictMarketList.waitForScreenToDisplay({
+          await PredictHome.waitForScreenToDisplay({
             description:
-              'Predict market list should be visible after withdraw confirmation',
+              'Predict home should be visible after withdraw confirmation',
           });
         },
       );

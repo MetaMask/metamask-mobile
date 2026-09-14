@@ -6,7 +6,10 @@ import renderWithProvider, {
 import ApproveTransactionHeader from '.';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { APPROVAL_TAG_URL_ORIGIN_PILL } from '../../../../../UI/ApprovalTagUrl';
-import { createMockAccountsControllerState } from '../../../../../../util/test/accountsControllerTestUtils';
+import {
+  createMockAccountsControllerState,
+  createMockUuidFromAddress,
+} from '../../../../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../../../../reducers';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -44,22 +47,35 @@ jest.mock('../../../../../../core/Engine', () => {
   };
 });
 
+const MOCK_ACCOUNT_ID_1 = createMockUuidFromAddress(
+  MOCK_ADDRESS_1.toLowerCase(),
+);
+const MOCK_ACCOUNT_ID_2 = createMockUuidFromAddress(
+  MOCK_ADDRESS_2.toLowerCase(),
+);
+const NATIVE_SEPOLIA_ASSET_ID = 'eip155:11155111/slip44:60';
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
-      AccountTrackerController: {
-        accountsByChainId: {
-          [CHAIN_IDS.SEPOLIA]: {
-            [MOCK_ADDRESS_1]: {
-              balance: '200',
-            },
-            [MOCK_ADDRESS_2]: {
-              balance: '200',
-            },
+      AssetsController: {
+        assetsInfo: {
+          [NATIVE_SEPOLIA_ASSET_ID]: { type: 'native', decimals: 18 },
+        },
+        assetsBalance: {
+          [MOCK_ACCOUNT_ID_1]: {
+            [NATIVE_SEPOLIA_ASSET_ID]: { amount: '200' },
+          },
+          [MOCK_ACCOUNT_ID_2]: {
+            [NATIVE_SEPOLIA_ASSET_ID]: { amount: '200' },
           },
         },
+        assetsPrice: {},
+        assetPreferences: {},
+        customAssets: {},
+        selectedCurrency: 'usd',
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {

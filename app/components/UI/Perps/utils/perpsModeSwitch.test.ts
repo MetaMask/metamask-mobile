@@ -4,10 +4,14 @@ import { PerpsMode } from '@metamask/perps-controller';
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
-import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsMode,
+} from '../selectors/perpsController';
 import {
   PERPS_DEFAULT_PRO_MARKET_SYMBOL,
   buildDefaultProMarket,
+  resolveTradableLastViewedMarketSymbol,
   isPerpsProModeActive,
   useIsPerpsProModeActive,
   getPerpsHomeNavigationTarget,
@@ -39,6 +43,7 @@ jest.mock('../selectors/featureFlags', () => ({
 }));
 
 jest.mock('../selectors/perpsController', () => ({
+  selectPerpsLastViewedMarketSymbol: jest.fn(() => 'BTC'),
   selectPerpsMode: jest.fn(),
 }));
 
@@ -50,8 +55,32 @@ const mockSelectPerpsProModeEnabledFlag =
 const mockSelectPerpsMode = selectPerpsMode as jest.MockedFunction<
   typeof selectPerpsMode
 >;
+const mockSelectPerpsLastViewedMarketSymbol =
+  selectPerpsLastViewedMarketSymbol as jest.MockedFunction<
+    typeof selectPerpsLastViewedMarketSymbol
+  >;
 
 const mockState = {} as RootState;
+
+const stubPerpsModeSelectors = ({
+  flagEnabled,
+  mode,
+  lastViewed = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+}: {
+  flagEnabled: boolean;
+  mode: PerpsMode;
+  lastViewed?: string;
+}) => {
+  mockSelectPerpsProModeEnabledFlag.mockReturnValue(flagEnabled);
+  mockSelectPerpsMode.mockReturnValue(mode);
+  mockSelectPerpsLastViewedMarketSymbol.mockReturnValue(lastViewed);
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectPerpsProModeEnabledFlag) return flagEnabled;
+    if (selector === selectPerpsMode) return mode;
+    if (selector === selectPerpsLastViewedMarketSymbol) return lastViewed;
+    return undefined;
+  });
+};
 
 describe('perpsModeSwitch', () => {
   beforeEach(() => {
@@ -66,6 +95,32 @@ describe('perpsModeSwitch', () => {
     const market = buildDefaultProMarket();
 
     expect(market.symbol).toBe(PERPS_DEFAULT_PRO_MARKET_SYMBOL);
+  });
+
+  it('builds a Pro market payload from a last-viewed symbol', () => {
+    const market = buildDefaultProMarket('ETH');
+
+    expect(market.symbol).toBe('ETH');
+  });
+
+  it('falls back to BTC when the last-viewed symbol is empty', () => {
+    const market = buildDefaultProMarket('');
+
+    expect(market.symbol).toBe(PERPS_DEFAULT_PRO_MARKET_SYMBOL);
+  });
+
+  it('falls back to BTC when the last-viewed symbol is not tradable', () => {
+    expect(
+      resolveTradableLastViewedMarketSymbol('DELISTED', ['BTC', 'ETH']),
+    ).toBe(PERPS_DEFAULT_PRO_MARKET_SYMBOL);
+    expect(buildDefaultProMarket('DELISTED', ['BTC', 'ETH']).symbol).toBe(
+      PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+    );
+  });
+
+  it('preserves the last-viewed symbol while tradable symbols are unknown', () => {
+    expect(resolveTradableLastViewedMarketSymbol('ETH')).toBe('ETH');
+    expect(buildDefaultProMarket('ETH').symbol).toBe('ETH');
   });
 
   describe('isPerpsProModeActive', () => {
@@ -140,17 +195,35 @@ describe('perpsModeSwitch', () => {
       });
     });
 
-    it('targets the default Pro market instead of Perps Home when Pro mode is active', () => {
+    it('targets the last viewed Pro market instead of Perps Home when Pro mode is active', () => {
       mockSelectPerpsProModeEnabledFlag.mockReturnValue(true);
       mockSelectPerpsMode.mockReturnValue(PerpsMode.Pro);
+      mockSelectPerpsLastViewedMarketSymbol.mockReturnValue('ETH');
 
       expect(
         getPerpsHomeNavigationTarget(mockState, { source: 'deeplink' }),
       ).toEqual({
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
-          market: buildDefaultProMarket(),
+          market: buildDefaultProMarket('ETH'),
           source: 'deeplink',
+        },
+      });
+    });
+
+    it('lets an explicit market param win over the last viewed market', () => {
+      mockSelectPerpsProModeEnabledFlag.mockReturnValue(true);
+      mockSelectPerpsMode.mockReturnValue(PerpsMode.Pro);
+      mockSelectPerpsLastViewedMarketSymbol.mockReturnValue('ETH');
+
+      expect(
+        getPerpsHomeNavigationTarget(mockState, {
+          market: buildDefaultProMarket('SOL'),
+        }),
+      ).toEqual({
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: buildDefaultProMarket('SOL'),
         },
       });
     });
@@ -169,6 +242,41 @@ describe('perpsModeSwitch', () => {
       expect(result.current({ source: 'main_action_button' })).toEqual({
         screen: Routes.PERPS.PERPS_HOME,
         params: { source: 'main_action_button' },
+      });
+    });
+
+    it('targets the last viewed Pro market instead of Perps Home when Pro mode is active', () => {
+      stubPerpsModeSelectors({
+        flagEnabled: true,
+        mode: PerpsMode.Pro,
+        lastViewed: 'ETH',
+      });
+
+      const { result } = renderHook(() => useGetPerpsHomeNavigationTarget());
+
+      expect(result.current({ source: 'main_action_button' })).toEqual({
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: buildDefaultProMarket('ETH'),
+          source: 'main_action_button',
+        },
+      });
+    });
+
+    it('preserves the last viewed symbol without validating tradable markets', () => {
+      stubPerpsModeSelectors({
+        flagEnabled: true,
+        mode: PerpsMode.Pro,
+        lastViewed: 'DELISTED',
+      });
+
+      const { result } = renderHook(() => useGetPerpsHomeNavigationTarget());
+
+      expect(result.current()).toEqual({
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: buildDefaultProMarket('DELISTED'),
+        },
       });
     });
 
@@ -225,6 +333,24 @@ describe('perpsModeSwitch', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
         params: { source: 'activity_details' },
+        pop: true,
+      });
+    });
+
+    it('enters the Perps stack at the last viewed Pro market when Pro mode is active', () => {
+      stubPerpsModeSelectors({
+        flagEnabled: true,
+        mode: PerpsMode.Pro,
+        lastViewed: 'ETH',
+      });
+
+      const { result } = renderHook(() => useNavigateToPerpsHome());
+
+      result.current();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market: buildDefaultProMarket('ETH') },
         pop: true,
       });
     });

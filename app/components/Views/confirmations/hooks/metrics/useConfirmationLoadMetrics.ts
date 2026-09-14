@@ -9,21 +9,25 @@ import { createProjectLogger } from '@metamask/utils';
 
 const log = createProjectLogger('confirmation-load-metrics');
 
+const meansByTransactionType = new Map<
+  string,
+  {
+    sampleCount: number;
+    totalDurationMs: number;
+    warmSampleCount: number;
+    warmTotalDurationMs: number;
+  }
+>();
+
 /**
  * Records how long a transaction confirmation took to become visible, spanning
  * transaction creation to the confirmation body's first paint.
  *
- * Reports the duration twice: as the `confirmation_time_to_open_ms` metric
- * property, and as a standalone `Transaction Confirmation Load` Sentry
- * transaction.
- *
- * This is generic to every redesigned confirmation. It lives on the shared
- * `Confirm` component rather than on any feature-specific surface, so sends,
- * swaps, approvals, dapp transactions, stake, earn, predict and MetaMask Pay
- * all report the same span.
- *
  * Non-transaction confirmations (for example signature requests) have no
  * creation timestamp to anchor against and are skipped.
+ *
+ * Running means are logged per transaction type for diagnostics only, and are
+ * never dispatched as metric properties.
  *
  * @returns An object with an `onFirstPaint` callback, to be passed to the root
  * confirmation container's `onLayout`.
@@ -85,9 +89,36 @@ export function useConfirmationLoadMetrics() {
       timestamp: paintedAtMs,
     });
 
+    const stats = meansByTransactionType.get(transactionType) ?? {
+      sampleCount: 0,
+      totalDurationMs: 0,
+      warmSampleCount: 0,
+      warmTotalDurationMs: 0,
+    };
+
+    // Counted before the increment below, so the first sample of each type is
+    // treated as cold and excluded from the warm mean.
+    const isWarmSample = stats.sampleCount > 0;
+
+    stats.sampleCount += 1;
+    stats.totalDurationMs += durationMs;
+
+    if (isWarmSample) {
+      stats.warmSampleCount += 1;
+      stats.warmTotalDurationMs += durationMs;
+    }
+
+    meansByTransactionType.set(transactionType, stats);
+
     log('First paint', durationMs, {
+      averageMs: Math.round(stats.totalDurationMs / stats.sampleCount),
+      sampleCount: stats.sampleCount,
       transactionId,
       transactionType,
+      warmAverageMs: stats.warmSampleCount
+        ? Math.round(stats.warmTotalDurationMs / stats.warmSampleCount)
+        : undefined,
+      warmSampleCount: stats.warmSampleCount,
     });
   }, [canMeasure, createdAtMs, dispatch, transactionId, transactionType]);
 
