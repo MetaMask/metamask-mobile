@@ -61,7 +61,8 @@ export const getSelectedPlusPlan = (
   }
 
   if (pricing.minBillingCyclesForBalance !== undefined) {
-    selectedPlan.minBillingCyclesForBalance = pricing.minBillingCyclesForBalance;
+    selectedPlan.minBillingCyclesForBalance =
+      pricing.minBillingCyclesForBalance;
   }
 
   return selectedPlan;
