@@ -34,7 +34,9 @@ import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isHardwareAccount } from '../../../util/address';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
-import TradeWalletActions from './TradeWalletActions';
+import TradeWalletActions, {
+  TRADE_FOCUSED_BORDER_OPACITY,
+} from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -660,7 +662,9 @@ describe('TradeWalletActions', () => {
       expect(blurStyle).toMatchObject({
         borderWidth: StyleSheet.hairlineWidth,
       });
-      expect(blurStyle.borderColor).toMatch(/^rgba\(.*, 0\.4\)$/);
+      expect(blurStyle.borderColor).toMatch(
+        new RegExp(`^rgba\\(.*, ${TRADE_FOCUSED_BORDER_OPACITY}\\)$`),
+      );
     });
 
     it('keeps the plain sheet opaque outside the trade-focused arm', () => {
