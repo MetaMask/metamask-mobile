@@ -3187,7 +3187,16 @@ export const usePerpsProOrderForm = ({
       return `${PERPS_CONSTANTS.FallbackDataDisplay} ${symbol}`;
     }
 
-    return `${(baseSize / suborderCount).toFixed(szDecimals)} ${symbol}`;
+    const sizePerSuborder = baseSize / suborderCount;
+    const smallestSize = 10 ** -szDecimals;
+
+    // Long runtimes split small orders below the asset's size precision;
+    // show the bound instead of a misleading zero.
+    if (sizePerSuborder < smallestSize) {
+      return `<${smallestSize.toFixed(szDecimals)} ${symbol}`;
+    }
+
+    return `${sizePerSuborder.toFixed(szDecimals)} ${symbol}`;
   }, [
     effectiveInputPrice,
     effectiveUsdAmount,
