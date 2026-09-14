@@ -12,7 +12,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, type ViewStyle } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   Easing,
@@ -219,6 +219,11 @@ const PerpsModeSwitchPill = ({
     styles.border,
     isPro ? styles.proBorder : tw.style('border-default'),
   ];
+  const pillBorderRadius = (tw.style('rounded-lg') as ViewStyle).borderRadius;
+  const innerBorderRadius =
+    typeof pillBorderRadius === 'number'
+      ? Math.max(0, pillBorderRadius - BORDER_WIDTH)
+      : pillBorderRadius;
 
   // The sweep is identical in both directions — only the palette is theme-aware.
   const gradient = (
@@ -281,7 +286,7 @@ const PerpsModeSwitchPill = ({
               right: BORDER_WIDTH,
               bottom: BORDER_WIDTH,
               left: BORDER_WIDTH,
-              borderRadius: 8 - BORDER_WIDTH,
+              borderRadius: innerBorderRadius,
             }}
           />
 
