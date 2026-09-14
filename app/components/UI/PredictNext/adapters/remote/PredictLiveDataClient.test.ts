@@ -68,10 +68,7 @@ const createAppState = () => {
   };
 };
 
-const createClient = (
-  onGameUpdate = jest.fn(),
-  appState = createAppState(),
-) =>
+const createClient = (onGameUpdate = jest.fn(), appState = createAppState()) =>
   new PredictLiveDataClient({
     baseUrl: 'http://localhost:3333',
     WebSocket: MockWebSocket as unknown as typeof WebSocket,
