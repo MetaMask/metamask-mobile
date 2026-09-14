@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
@@ -32,7 +32,6 @@ import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
-import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
 import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
 import { isPositiveNumber } from '../../utils/number';
@@ -41,6 +40,7 @@ import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -49,15 +49,18 @@ import {
   MONEY_TOOLTIP_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { MoneyNavigationParamList } from '../../types/navigation';
 
 const MoneyPotentialEarningsView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const privacyMode = useSelector(selectPrivacyMode);
+  const { params } =
+    useRoute<RouteProp<MoneyNavigationParamList, 'MoneyPotentialEarnings'>>();
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
-    overrideToUsd: true,
+    overrideToUsd: params?.overrideToUsd ?? false,
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -130,7 +133,7 @@ const MoneyPotentialEarningsView = () => {
   }, [eligibleTokens, initiateDeposit, trackTokenButtonClicked]);
 
   const handleTokenButtonPress = useCallback(
-    (token: AssetType, tokenIndex: number) => async () => {
+    (token: MoneyDepositAsset, tokenIndex: number) => async () => {
       try {
         trackTokenButtonClicked({
           button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -161,7 +164,7 @@ const MoneyPotentialEarningsView = () => {
   );
 
   const handleTokenCardPress = useCallback(
-    (token: AssetType, tokenIndex: number) => async () => {
+    (token: MoneyDepositAsset, tokenIndex: number) => async () => {
       try {
         trackTokenSurfaceClicked({
           component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
@@ -191,7 +194,7 @@ const MoneyPotentialEarningsView = () => {
   const listHeader = useMemo(
     () => (
       <Box twClassName="px-4 py-3 gap-3">
-        <Text variant={TextVariant.HeadingMd}>
+        <Text variant={TextVariant.HeadingLg}>
           {strings('money.potential_earnings.title')}
         </Text>
 
@@ -249,7 +252,7 @@ const MoneyPotentialEarningsView = () => {
   );
 
   const renderTokenRow = useCallback(
-    ({ item, index }: { item: AssetType; index: number }) => (
+    ({ item, index }: { item: MoneyDepositAsset; index: number }) => (
       <PotentialEarningsTokenRow
         token={item}
         hasSubsidizedFee={isNoFeeToken(item)}

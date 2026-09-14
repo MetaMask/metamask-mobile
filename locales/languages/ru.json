@@ -26,8 +26,12 @@
     "description_line2": "Если вы считаете, что это ошибка, обратитесь в службу поддержки для запроса проверки.",
     "contact_support": "Связаться с поддержкой"
   },
+  "arc_usage_notice": {
+    "title": "Уведомление",
+    "description": "Добро пожаловать в Arc! Чтобы упростить и проверить использование вами сети Arc, мы можем передавать информацию команде Arc."
+  },
   "storage": {
-    "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
+    "device_full_alert": "На вашем устройстве мало места. Освободите память, чтобы MetaMask мог сохранить данные вашего кошелька."
   },
   "alert_system": {
     "alert_modal": {
@@ -39,19 +43,12 @@
       "alert_details": "Сведения об оповещении"
     },
     "confirm_modal": {
-      "title": "Высокорисковый запрос",
+      "title": "Запрос с высоким риском",
       "checkbox_label": "Я подтверждаю получение оповещения и все еще хочу продолжить",
       "review_alerts": "Просмотр всех оповещений",
       "message": "Мы предлагаем вам отклонить этот запрос. Если вы продолжите, вы можете подвергнуть свои активы риску.",
-      "title_blockaid": "Ваши активы могут быть под угрозой",
-      "blockaid": {
-        "message": "Если вы подтвердите этот запрос, вы можете потерять свои активы. Рекомендуем отменить его.",
-        "message1": "Если вы подтвердите этот запрос, вы позволите мошеннику снять и потратить ваши активы. Вы их не получите обратно.",
-        "message2": "Вы отправляете свои активы мошеннику. Если вы продолжите, вы потеряете эти активы.",
-        "message3": "Если вы продолжите, все активы, которые вы разместили на OpenSea, могут оказаться под угрозой.",
-        "message4": "Если вы продолжите, все активы, которые вы разместили на Blur, могут оказаться под угрозой.",
-        "message5": "Вы взаимодействуете с вредоносным сайтом. Если вы продолжите, вы потеряете свои активы."
-      }
+      "blockaid_message": "Партнеры по безопасности обнаружили сигналы высокого риска в этом {{requestType}}. Если вы продолжите, ваши средства невозможно будет вернуть.",
+      "blockaid_message_with_amount": "Партнеры по безопасности обнаружили сигналы высокого риска в этом {{requestType}}. Если вы продолжите, ваши {{amount}} невозможно будет вернуть."
     },
     "inline_alert_label": "Оповещение",
     "review_alerts": "Просмотр оповещений",
@@ -132,7 +129,7 @@
     },
     "headless_buy_error": {
       "title": "Сбой покупки за фиатную фалюту",
-      "message": "Что-то пошло не так при покупке за фиатную валюту. Пожалуйста, попробуйте еще раз."
+      "message": "Something went wrong with your fiat purchase. Try again."
     },
     "mmpay_hardware_account": {
       "title": "Кошелек не поддерживается",
@@ -171,12 +168,12 @@
     },
     "address_trust_signal": {
       "malicious": {
-        "message": "Если вы подтвердите этот запрос, вы, скорее всего, потеряете свои активы из-за действий мошенника.",
-        "title": "Вредоносный адрес"
+        "message": "Партнеры по безопасности отметили этот адрес как замешанный во вредоносной активности.",
+        "title": "Адрес отмечен как высокорискованный"
       },
       "warning": {
-        "message": "Мы не можем проверить этот адрес. Он может быть новым или непроверенным. Продолжайте только в том случае, если вы доверяете источнику.",
-        "title": "Адрес требует проверки"
+        "message": "У партнеров по безопасности недостаточно надежных данных для проверки этого адреса.",
+        "title": "Ограниченные сигналы адреса"
       }
     },
     "url_trust_signal": {
@@ -191,21 +188,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, может похитить все ваши активы.",
-    "blur_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, зарегистрированные в Blur.",
-    "deceptive_request_title": "Это запрос с целью обмана",
-    "failed_title": "Запрос может быть небезопасным",
-    "failed_description": "Из-за ошибки этот запрос не был подтвержден поставщиком услуг безопасности. Действуйте осторожно.",
-    "malicious_domain_description": "Вы взаимодействуете с вредоносным доменом. Если вы одобрите этот запрос, вы можете потерять свои активы.",
-    "other_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
-    "raw_signature_farming_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
-    "seaport_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, указанные в OpenSea.",
+    "high_risk_approval_title": "Одобрение с высоким риском",
+    "high_risk_transfer_title": "Перевод с высоким риском",
+    "high_risk_signature_title": "Подпись с высоким риском",
+    "site_flagged_unsafe_title": "Сайт отмечен как небезопасный",
+    "risk_signals_detected_title": "Обнаружены сигналы риска",
+    "failed_title": "Проверка безопасности недоступна",
+    "approval_farming_description": "Вы предоставляете адресу, отмеченному партнерами по безопасности, разрешение на перемещение ваших активов.",
+    "marketplace_farming_description": "Вы предоставляете адресу, отмеченному партнерами по безопасности, разрешение на перемещение ваших активов, размещенных на {{marketplace}}.",
+    "transfer_farming_description": "Вы отправляете активы на адрес, отмеченный партнерами по безопасности. Если это мошенничество, ваши средства невозможно будет вернуть.",
+    "transfer_farming_description_with_amount": "Вы отправляете активы на адрес, отмеченный партнерами по безопасности. Если это мошенничество, ваши {{amount}} невозможно будет вернуть.",
+    "malicious_domain_description": "Партнеры по безопасности отмечают этот сайт как вредоносный. Если это мошенничество, ваши средства невозможно будет вернуть.",
+    "malicious_domain_description_with_amount": "Партнеры по безопасности отмечают этот сайт как вредоносный. Если это мошенничество, ваши {{amount}} невозможно будет вернуть.",
+    "high_risk_signature_description": "Партнеры по безопасности отмечают эту подпись как высокорискованную. Подписание может разрешить действия с вашими активами без вашего разрешения.",
+    "other_description": "Партнеры по безопасности обнаружили сигналы риска в этом запросе. Проверьте перед продолжением.",
+    "failed_description": "Мы не смогли завершить эту проверку безопасности. Продолжайте только в том случае, если вы доверяете сайту и участвующим адресам.",
+    "request_type": {
+      "approval": "одобрение",
+      "transfer": "перевести",
+      "signature": "подпись",
+      "request": "запрос"
+    },
     "see_details": "См. подробности",
     "does_not_look_right": "Что-то выглядит не так?",
     "report_an_issue": "Сообщить о проблеме",
-    "suspicious_request_title": "Это подозрительный запрос",
-    "trade_order_farming_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
-    "transfer_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, похитит все ваши активы.",
     "before_you_proceed": "Прежде чем вы продолжите",
     "enable_blockaid_alerts": "Чтобы включить эту функцию, нам нужно настроить предупреждение безопасности. Эта страница должна оставаться открытой во время ее настройки. Это займет меньше минуты.",
     "enable_blockaid_alerts_description": "Эта страница должна оставаться открытой, пока настраиваются оповещения безопасности. Этот процесс займет меньше минуты.",
@@ -213,7 +219,7 @@
     "setting_up_alerts_description": "Мы делаем все возможное, чтобы настроить оповещения безопасности. Подождите, мы почти закончили.",
     "setup_complete": "Настройка завершена",
     "setup_failed": "Нам не удалось завершить настройку предупреждений безопасности. Проверьте подключение к Интернету и повторите попытку.",
-    "setup_multiple_failures": "Ваше интернет-соединение сейчас нестабильно, поэтому мы не смогли настроить оповещения системы безопасности. Повторите попытку, когда соединение будет восстановлено.",
+    "setup_multiple_failures": "Your internet connection isn't stable right now, so we couldn't set up security alerts. Try again when your connection is restored.",
     "setup_complete_description": "Оповещения безопасности готовы к работе. Вы можете закрыть эту страницу и начать изучать свой кошелек",
     "continue": "Продолжить",
     "cancel": "Отмена",
@@ -308,7 +314,7 @@
     "new_to_metamask": "Новичок в MetaMask?",
     "already_have_wallet": "Уже есть кошелек?",
     "optin_back_title": "Внимание!",
-    "optin_back_desc": "Согласитесь с использованием анализа данных или запретите его. Вы также можете изменить эту опцию в настройках.",
+    "optin_back_desc": "Agree or disagree to the usage of data analytics. You can also update this option in settings.",
     "warning_title": "Предупреждение",
     "warning_text_1": "Ваш текущий кошелек и счета будут",
     "warning_text_2": "удалены,",
@@ -344,9 +350,9 @@
     "have_existing_wallet": "У меня есть кошелек",
     "import_using_srp": "Использовать секретную фразу восстановления",
     "import_using_srp_social_login": "У меня есть кошелек",
-    "by_continuing": "Продолжая, вы соглашаетесь с MetaMask",
+    "by_continuing": "Продолжая, вы соглашаетесь с",
     "terms_of_use": "Условиями использования",
-    "privacy_notice": "Уведомлением о конфиденциальности",
+    "privacy_notice": "Уведомлением о конфиденциальности MetaMask",
     "and": "и"
   },
   "onboarding_success": {
@@ -510,7 +516,7 @@
     "wrong_password_error": "Ошибка: не удалось расшифровать",
     "wrong_password_error_android": "Ошибка: ошибка: 1e000065:Функции шифрования: OPENSSL_internal: BAD_DECRYPT",
     "vault_error": "Ошибка: невозможно разблокировать без предыдущего хранилища.",
-    "clean_vault_error": "В MetaMask возникла ошибка из-за достижения предела хранилища. Локальные данные повреждены. Переустановите MetaMask и выполните восстановление с помощью секретной фразы для восстановления.",
+    "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Reinstall MetaMask and restore with your Secret Recovery Phrase.",
     "seedless_password_outdated": "Ваш пароль был недавно изменён.",
     "seedless_password_outdated_modal_title": "Ваш пароль был изменён",
     "seedless_password_outdated_modal_content": "Ваш пароль был недавно изменён, поэтому вам нужно ввести новый пароль, чтобы оставаться в системе MetaMask.",
@@ -521,8 +527,8 @@
     "seedless_controller_error_prompt_primary_button_label": "Войти",
     "security_alert_title": "Оповещение безопасности",
     "security_alert_desc": "Чтобы продолжить, необходимо включить защиту паролем или любой метод биометрической аутентификации, поддерживаемый вашим устройством (FaceID, TouchID или отпечаток пальца).",
-    "too_many_attempts": "Слишком много попыток. Попробуйте еще раз через {{remainingTime}}",
-    "biometric_too_many_attempts": "Слишком много попыток. Введите пароль.",
+    "too_many_attempts": "Too many attempts. Try again in {{remainingTime}}",
+    "biometric_too_many_attempts": "Too many attempts. Enter your password.",
     "apple_button": "Войти через Apple",
     "google_button": "Войти через Google",
     "other_methods": "Используйте другой способ входа",
@@ -542,10 +548,10 @@
     "reset_wallet_desc_srp": "Чтобы восстановить свой кошелек, убедитесь, что у вас есть ваша секретная фраза для восстановления. У MetaMask нет этой информации.",
     "biometric_authentication_cancelled": "Биометрическая аутентификация отменена",
     "biometric_authentication_cancelled_title": "Биометрическая настройка не удалась",
-    "biometric_authentication_cancelled_description": "Повторно настройте биометрическую аутентификацию в настройках.",
+    "biometric_authentication_cancelled_description": "Set up biometric authentication again from the settings.",
     "biometric_authentication_cancelled_button": "Подтвердить",
     "biometric_changed": "Биометрия изменена",
-    "biometric_changed_alert_desc": "Ваши биометрические данные были изменены. Пожалуйста, снова включите биометрию в настройках.",
+    "biometric_changed_alert_desc": "Your biometric has been changed. Re-enable biometric from settings.",
     "biometric_changed_alert_confirm": "Подтвердить"
   },
   "connect_hardware": {
@@ -555,7 +561,7 @@
   },
   "enter_password": {
     "title": "Введите пароль",
-    "desc": "Введите пароль, чтобы продолжить",
+    "desc": "Enter your password to continue",
     "password": "Пароль",
     "confirm_button": "Подтвердить",
     "error": "Ошибка"
@@ -646,7 +652,7 @@
     "changing_password_subtitle": "Это не займет много времени",
     "checkbox_forgot_password": "Если я забуду этот пароль, я потеряю доступ к своему кошельку навсегда. MetaMask не может сбросить его для меня.",
     "seedless_change_password_error_modal_title": "Не удалось изменить пароль",
-    "seedless_change_password_error_modal_content": "Нам не удалось изменить ваш пароль. Попробуйте ещё раз.",
+    "seedless_change_password_error_modal_content": "We were unable to change your password. Try again.",
     "seedless_change_password_error_modal_confirm": "Повторить попытку"
   },
   "import_from_seed": {
@@ -742,7 +748,7 @@
     "units": "единицы",
     "next": "Далее",
     "title": "Отправить",
-    "deeplink_failure": "Ой! Возникла проблема, повторите попытку позже",
+    "deeplink_failure": "Something went wrong. Try again",
     "warn_network_change": "Сеть изменена на",
     "send_to": "Отправить в адрес",
     "amount": "Сумма",
@@ -763,7 +769,7 @@
     "no_tokens_available": "Нет доступных токенов",
     "sign": "Подписать",
     "network_not_found_title": "Сеть не найдена",
-    "network_not_found_description": "Сеть с ID блокчейна {{chain_id}} не найдена в кошельке. Сначала добавьте сеть.",
+    "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Add the network first.",
     "network_missing_id": "Отсутствует ID блокчейна.",
     "search_tokens": "Поиск токенов",
     "search_tokens_and_nfts": "Искать токены и NFT",
@@ -806,7 +812,7 @@
       "kycFormsFetchError": "Не удалось получить формы ЗСК.",
       "title": "Купить",
       "limitExceeded": "Этот депозит превысит ваш лимит {{period}}. Сумма вашего депозита с учетом комиссий должна быть {{remaining}} или меньше.",
-      "limitError": "Не удалось проверить лимиты депозита. Повторите попытку позже."
+      "limitError": "Failed to check your deposit limits. Try again later."
     },
     "token_modal": {
       "select_a_token": "Выберите токен",
@@ -815,7 +821,7 @@
       "no_tokens_found": "Нет токенов, соответствующих «{{searchString}}»",
       "unsupported_token_title": "Недоступен",
       "unsupported_token_description": "Этот токен может быть недоступен в вашем регионе или не поддерживаться местными платежными системами.",
-      "error_loading_tokens": "Не удалось загрузить токены. Повторите попытку позже."
+      "error_loading_tokens": "Unable to load tokens. Try again later."
     },
     "networks_filter_bar": {
       "all_networks": "Все сети"
@@ -907,7 +913,7 @@
       "input_placeholder": "name@domain.com",
       "submit_button": "Отправить эл. письмо",
       "loading": "Отправка эл. письма...",
-      "validation_error": "Введите действительный адрес эл. почты",
+      "validation_error": "Enter a valid email address",
       "error": "При отправке эл. письма возникла ошибка"
     },
     "otp_code": {
@@ -917,7 +923,7 @@
       "submit_button": "Отправить",
       "loading": "Отправить код...",
       "invalid_code_error": "Недействительный код",
-      "validation_error": "Введите действительный код",
+      "validation_error": "Enter a valid code",
       "need_help": "Нужна помощь?",
       "resend_code_description": "Не получили код?",
       "resend_code_error": "Ошибка повторной отправки кода.",
@@ -962,13 +968,13 @@
       "enter_phone_number": "Укажите номер телефона",
       "select_region": "Выберите регион",
       "first_name_required": "Нужно указать имя",
-      "first_name_invalid": "Введите допустимое имя",
+      "first_name_invalid": "Enter a valid first name",
       "last_name_required": "Нужно указать фамилию",
-      "last_name_invalid": "Введите допустимую фамилию",
+      "last_name_invalid": "Enter a valid last name",
       "mobile_number_required": "Нужно указать номер телефона",
-      "mobile_number_invalid": "Введите действительный номер телефона",
+      "mobile_number_invalid": "Enter a valid phone number",
       "dob_required": "Нужно указать дату рождения",
-      "dob_invalid": "Введите действительную дату рождения",
+      "dob_invalid": "Enter a valid date of birth",
       "ssn_required": "Нужно указать номер соцстрахования",
       "unexpected_error": "Произошла непредвиденная ошибка. Повторите попытку.",
       "phone_already_registered": "Этот номер телефона уже используется пользователем {{email}}. Войдите, используя этот адрес электронной почты, чтобы продолжить.",
@@ -987,14 +993,14 @@
       "country": "Страна",
       "select_state": "Выбрать штат",
       "address_line_1_required": "Необходимо заполнить строку адреса 1",
-      "address_line_1_invalid": "Введите действительный адрес",
-      "address_line_2_invalid": "Введите действительный адрес",
+      "address_line_1_invalid": "Enter a valid address",
+      "address_line_2_invalid": "Enter a valid address",
       "city_required": "Нужно указать город",
-      "city_invalid": "Введите действительный город",
+      "city_invalid": "Enter a valid city",
       "state_required": "Нужно указать штат/регион",
-      "state_invalid": "Введите действительный штат",
+      "state_invalid": "Enter a valid state",
       "postal_code_required": "Нужно указать почтовый индекс",
-      "postal_code_invalid": "Укажите действительный почтовый индекс",
+      "postal_code_invalid": "Enter a valid postal code",
       "unexpected_error": "Неожиданная ошибка."
     },
     "privacy_section": {
@@ -1025,7 +1031,7 @@
       "description": "Покупки по карте обычно занимают несколько минут",
       "bank_transfer_description": "Банковские переводы обычно доставляются в течение нескольких рабочих дней",
       "success_title": "Внесение средств завершено",
-      "success_description": "Ваш депозит на сумму {{amount}} {{currency}} внесен!",
+      "success_description": "Ваш депозит на сумму {{amount}} {{currency}} внесен",
       "error_title": "Ошибка депозита",
       "error_description": "Мы не смогли обработать ваш депозит",
       "cancel_order_description": "Вы запросили отмену депозита.",
@@ -1078,7 +1084,7 @@
       "deposit_failed_description": "Проверьте способ платежа и поддержку карты",
       "deposit_cancelled_title": "Ваш депозит отменен",
       "deposit_cancelled_description": "Вы запросили отмену депозита.",
-      "deposit_completed_title": "Ваш депозит на сумму {{amount}} {{currency}} внесен!",
+      "deposit_completed_title": "Ваш депозит на сумму {{amount}} {{currency}} внесен",
       "deposit_completed_description": "Ваши {{currency}} уже доступны в вашем кошельке",
       "deposit_pending_title": "Ваш депозит на сумму {{currency}} обрабатывается",
       "deposit_pending_description": "Это должно занять всего несколько минут..."
@@ -1096,6 +1102,42 @@
       "try_again": "Повторить попытку",
       "error_details_title": "Сведения об ошибке",
       "see_more": "Подробнее"
+    }
+  },
+  "virtual_bank_account": {
+    "get_pix_key": {
+      "navbar_title": "Банковский счет",
+      "title": "Получить ключ Pix",
+      "description": "Отправляйте средства напрямую на свой счет Money account с любого банковского счета.",
+      "benefit_deposit_pix": "Внести средства с помощью",
+      "benefit_payments": "Отправляйте местные и международные платежи",
+      "agreements_disclosures_title": "Соглашения и раскрытие информации",
+      "disclaimers_error": "Не удалось загрузить условия использования.",
+      "disclaimers_retry": "Повторить попытку",
+      "agreement_text": "Продолжая, вы соглашаетесь с приведенными выше условиями.",
+      "powered_by_moonpay": "При поддержке MoonPay.",
+      "button": "Согласиться и продолжить"
+    },
+    "verify_identity": {
+      "title": "Подтвердите свою личность",
+      "description": "Верификация проходит быстро и требуется только один раз. Для прохождения вам понадобится:",
+      "step_upload_id": "Загрузить документ, удостоверяющий личность",
+      "step_take_selfie": "Сделать селфи",
+      "step_confirm_details": "Подтвердить личные данные",
+      "data_and_privacy_title": "Данные и конфиденциальность",
+      "what_we_collect_title": "Какие данные мы собираем",
+      "what_we_collect_description": "В рамках верификации личности мы собираем личную информацию, включая полное официальное имя, адрес и другие данные.",
+      "how_we_store_data_title": "Как мы храним данные",
+      "how_we_store_data_description": "Данные верификации надежно хранятся на серверах под управлением MetaMask. Они зашифрованы с помощью энтропии вашей секретной фразы для восстановления, и у нас нет к ним доступа. Ваше согласие потребуется для их будущего использования с другим поставщикам.",
+      "how_to_delete_title": "Как удалить",
+      "how_to_delete_description": "Вы можете удалить свои данные в любое время, перейдя в «Настройки > Управление данными».",
+      "metamask_privacy_policy": "Политика конфиденциальности MetaMask",
+      "metamask_terms": "Условия использования MetaMask",
+      "idos_privacy_policy": "Политика конфиденциальности idOS",
+      "idos_terms": "Условия использования idOS",
+      "sumsub_privacy_policy": "Политика конфиденциальности Sumsub",
+      "sumsub_terms": "Условия использования Sumsub",
+      "button": "Продолжить"
     }
   },
   "social_leaderboard": {
@@ -1132,15 +1174,19 @@
       "following": "Подписки",
       "all": "Все",
       "trade": "Торговать",
+      "just_now": "Только что",
       "action": {
-        "bought": "куплено",
-        "sold": "продано",
-        "opened": "открыто",
-        "closed": "закрыто"
+        "perps_opened": "открыто",
+        "perps_added": "добавлено",
+        "perps_reduced": "сократил(а)",
+        "perps_closed": "закрыто",
+        "spot_bought": "куплено",
+        "spot_sold": "продано",
+        "traded": "совершил(а) торговую операцию"
       },
       "new_position": {
-        "bought": "Удержание",
-        "opened": "Открыть"
+        "spot": "Удержание",
+        "perps": "Открыть"
       },
       "empty_following": {
         "title": "Пока нет активности",
@@ -1243,8 +1289,15 @@
       "buy": "Купить",
       "trade": "Торговать",
       "unsupported_market": "Неподдерживаемый рынок",
-      "bought": "Куплено",
-      "sold": "Продано",
+      "action": {
+        "perps_opened": "Открыто",
+        "perps_added": "Добавлено",
+        "perps_reduced": "Сокращена",
+        "perps_closed": "Закрыто",
+        "spot_bought": "Куплено",
+        "spot_sold": "Продано",
+        "traded": "Совершил(а) торговую операцию"
+      },
       "no_trades": "Пока нет сделок",
       "closed_position": "Закрытая позиция",
       "fallback_title": "Позиция недоступна",
@@ -1253,9 +1306,7 @@
       "fallback_back_to_leaderboard": "Вернуться к таблице лидеров",
       "sell": "Продать",
       "long": "Длинные",
-      "short": "Короткие",
-      "opened": "Открыто",
-      "closed_action": "Закрыто"
+      "short": "Короткие"
     },
     "quick_buy": {
       "title": "Купить {{symbol}}",
@@ -1313,8 +1364,9 @@
       "lite": "Lite",
       "pro": "Pro",
       "selection_title": "Выберите способ торговли",
+      "selection_subtitle": "Это можно изменить в любое время в меню в правом верхнем углу.",
       "lite_description": "Длинные или короткие позиции в одно касание. Просто по своей сути.",
-      "pro_description": "Книга ордеров, расширенные типы ордеров и кредитное плечо.",
+      "pro_description": "Профессиональная рабочая станция с расширенными элементами управления.",
       "lite_transition_title": "Режим Lite",
       "pro_transition_title": "Режим Pro",
       "active_pill_accessibility_label": "В настоящее время режим {{mode}}",
@@ -1408,7 +1460,7 @@
       "processing": {
         "title": "Обработка депозита..."
       },
-      "deposit_completed": "Депозит успешно внесен!",
+      "deposit_completed": "Депозит успешно внесен",
       "deposit_failed": "Ошибка депозита",
       "retry_deposit": "Повторить депозит",
       "go_back": "Назад",
@@ -1438,7 +1490,7 @@
       "bridge_quote_timeout": "Не удалось получить цитату моста. Повторите попытку или выберите другой токен.",
       "no_quotes_available": "Нет доступных маршрутов для этого обмена. Попробуйте другой токен или сумму.",
       "success": {
-        "title": "Депозит успешно внесен!",
+        "title": "Депозит успешно внесен",
         "description": "Ваши USDC успешно зачислены на ваш торговый счет HyperLiquid.",
         "amount": "Сумма",
         "processing_time": "Время обработки",
@@ -1539,17 +1591,65 @@
       "available_balance": "Доступно: {{amount}}",
       "available_balance_unavailable": "-- доступно",
       "est_liquidation": "Ожид. ликвидация",
+      "before_after": "{{before}} → {{after}}",
       "tpsl": "ТП/СЛ",
       "place_order": "Разместить ордер",
-      "close_keyboard": "Закрыть клавиатуру"
+      "keyboard_previous": "Предыдущее поле",
+      "keyboard_next": "Следующее поле",
+      "keyboard_done": "Готово",
+      "price_unavailable": "Рыночная цена недоступна. Пожалуйста, дождитесь данных о ценах перед размещением ордера.",
+      "scale": {
+        "start_price": "Начало (USD)",
+        "end_price": "Конец (USD)",
+        "total_orders": "Количество ордеров",
+        "size_skew": "Смещение размера",
+        "size_skew_hint": "Веса линейно возрастают от 1 до этого коэффициента во всем диапазоне.",
+        "start": "Начать",
+        "end": "Завершить",
+        "margin": "Маржа",
+        "orders_submitted": "Масштабные ордера отправлены",
+        "orders_placed": "Масштабные ордера размещены",
+        "orders_partially_placed": "Масштабные ордера частично размещены",
+        "submission_summary": "Размещение {{totalCount}} ордеров · {{size}} {{assetSymbol}}",
+        "placement_summary": "Размещено ордеров: {{submittedCount}} · {{size}} {{assetSymbol}}",
+        "partial_placement_summary": "Размещено ордеров: {{submittedCount}} из {{totalCount}} · {{size}} {{assetSymbol}}",
+        "validation": {
+          "prices_required": "Введите обе цены диапазона масштабирования",
+          "size_required": "Введите размер масштабного ордера",
+          "invalid_range": "Начальная цена должна быть ниже конечной",
+          "invalid_order_count": "Количество ордеров должно быть от {{minOrderCount}} до {{maxOrderCount}}",
+          "invalid_skew": "Смещение размера должно быть больше 0",
+          "minimum_lot": "Наименьший ордер должен иметь минимальную стоимость ${{minOrderValue}}",
+          "unavailable": "Масштабные ордера временно недоступны. Выберите другой тип ордера."
+        }
+      },
+      "twap": {
+        "running_time": "Время выполнения",
+        "runtime_label": "Длительность ({{minDurationMinutes}} мин. – {{maxDurationHours}} ч)",
+        "valid_range": "{{minDurationMinutes}} мин. – {{maxDurationHours}} ч",
+        "days_short": "д",
+        "hours_short": "ч",
+        "minutes_short": "мин.",
+        "randomize": "Рандомизировать",
+        "randomize_description": "Изменять размер каждого субордера в пределах ±{{randomizeVariancePercent}}%.",
+        "minimum_size": "Общий размер TWAP должен быть не менее ${{minNotionalUsd}}.",
+        "duration_range": "Время выполнения должно составлять от {{minDurationMinutes}} минут до {{maxDurationHours}} часов."
+      }
     },
     "pro_positions_panel": {
       "order_history": "История ордеров",
       "close_count": "Закрыть ({{count}})",
+      "cancel_all": "Отменить все",
+      "open_orders": {
+        "one": "{{count}} ордер",
+        "other": "{{count}} ордера(-ов)"
+      },
       "positions": "Позиции",
       "positions_with_count": "Позиции ({{count}})",
       "orders": "Ордеры",
       "orders_with_count": "Ордера ({{count}})",
+      "twap": "TWAP (Средневзвешенная по времени цена)",
+      "twap_with_count": "Средневзвешенная по времени цена (TWAP) ({{count}})",
       "ticker_only": "Только {{ticker}}",
       "view_market_accessibility": "Переключиться на рынок {{symbol}}",
       "positions_empty": "Здесь будут отображаться ваши открытые позиции.",
@@ -1560,6 +1660,20 @@
       "orders_empty_filtered": "Нет открытых ордеров {{ticker}}.",
       "orders_empty_long": "Нет ордеров на длинные позиции.",
       "orders_empty_short": "Нет ордеров на короткие позиции.",
+      "twap_empty": "Ваши активные TWAP появятся здесь.",
+      "twap_empty_filtered": "Нет активных TWAP для {{ticker}}.",
+      "twap_empty_long": "Нет длинных TWAP.",
+      "twap_empty_short": "Нет коротких TWAP.",
+      "twap_history_empty": "Ваши завершенные TWAP появятся здесь.",
+      "twap_history_empty_filtered": "Нет истории TWAP для {{ticker}}.",
+      "twap_history_empty_long": "Нет истории длинных TWAP.",
+      "twap_history_empty_short": "Нет истории коротких TWAP.",
+      "twap_fill_history_empty": "Исполнения ваших TWAP появятся здесь.",
+      "twap_fill_history_empty_filtered": "Нет исполнений TWAP для {{ticker}}.",
+      "twap_fill_history_empty_long": "Нет исполнений длинных TWAP.",
+      "twap_fill_history_empty_short": "Нет исполнений коротких TWAP.",
+      "twap_load_error": "Не удалось загрузить последние расписания TWAP.",
+      "twap_retry": "Повторить попытку",
       "side_filter": {
         "all_sides": "Все стороны",
         "long": "Длинные",
@@ -1600,6 +1714,36 @@
         "edit": "Изменить",
         "edit_price": "Изменить лимитную цену",
         "edit_size": "Изменить размер"
+      },
+      "twap_views": {
+        "active": "Активно",
+        "history": "История",
+        "fill_history": "История исполнений",
+        "previous": "Предыдущее",
+        "next": "Далее",
+        "page_count": "Страница {{page}} из {{total}}"
+      },
+      "twap_card": {
+        "total_size": "Общий размер",
+        "filled_size": "Выполнен",
+        "average_price": "Ср. цена исполнения",
+        "progress": "Прогресс",
+        "elapsed": "Прошло",
+        "reduce_only": "Только уменьшить",
+        "randomize": "Рандомизировано",
+        "terminate": "Завершить",
+        "status_active": "Активно",
+        "status_completed": "Завершено",
+        "status_completed_underfilled": "Завершено недоисполненным",
+        "status_canceled": "Завершено",
+        "status_failed": "Ошибка"
+      },
+      "twap_terminate": {
+        "title": "Завершить TWAP для {{symbol}}?",
+        "description": "Оставшийся объем не будет исполнен. Любой уже исполненный объем останется как позиция.",
+        "description_reduce_only": "Оставшийся объем не будет исполнен. Любой уже исполненный объем сократил вашу существующую позицию.",
+        "confirm": "Завершить",
+        "cancel": "Отмена"
       }
     },
     "order": {
@@ -1648,10 +1792,30 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Предельная цена должна быть установлена до настройки ТП/СЛ.",
         "only_hyperliquid_usdc": "В настоящее время оплата на Hyperliquid выполняется только в USDC",
         "limit_price_far_warning": "Предельная цена далека от текущей рыночной цены",
+        "limit_price_far_from_market_bid": "Вы используете лимитную цену, которая на {{percent}}% отличается от лучшей цены спроса.",
+        "limit_price_far_from_market_ask": "Вы используете лимитную цену, которая на {{percent}}% отличается от лучшей цены предложения.",
+        "limit_price_above_warning": "Лимитная цена выше текущей. Ваш ордер может быть исполнен как рыночный.",
+        "limit_price_below_warning": "Лимитная цена ниже текущей. Ваш ордер может быть исполнен как рыночный.",
+        "scale_price_above_warning": "Ваш ценовой диапазон выше текущей цены и может быть исполнен немедленно как ордер тейкера с начислением комиссии тейкера.",
+        "scale_price_below_warning": "Ваш ценовой диапазон ниже текущей цены и может быть исполнен немедленно как ордер тейкера с начислением комиссии тейкера.",
+        "scale_price_above_partial_warning": "Часть вашего ценового диапазона выше текущей цены и может быть исполнена немедленно как ордер тейкера с начислением комиссии тейкера.",
+        "scale_price_below_partial_warning": "Часть вашего ценового диапазона ниже текущей цены и может быть исполнена немедленно как ордер тейкера с начислением комиссии тейкера.",
+        "trigger_must_be_above_mid": "Триггерная цена должна быть выше средней цены",
+        "trigger_must_be_below_mid": "Триггерная цена должна быть ниже средней цены",
+        "trigger_orders_unavailable": "Триггерные ордера временно недоступны. Выберите рыночный ордер.",
+        "please_set_a_trigger_price": "Установите триггерную цену",
         "oi_cap_reached": "Достигнут лимит открытого процента. Открытие новых позиций пока невозможно.",
+        "chase_limit": "Вы можете одновременно запустить до {{count}} активных следящих ордеров.",
+        "chase_max_distance_usd": "Максимальная дистанция преследования должна быть больше $0 и меньше текущей цены.",
+        "chase_max_distance_percent": "Максимальная дистанция преследования должна быть больше 0% и меньше 100%.",
+        "chase_account_changed": "Счет изменен. Проверьте и разместите следящий ордер снова.",
+        "chase_details_changed": "Детали ордера изменены. Проверьте и разместите следящий ордер снова.",
+        "chase_route_changed": "Рыночный маршрут изменен. Проверьте и разместите следящий ордер снова.",
+        "chase_unavailable": "Размещение следящих ордеров недоступно для этого провайдера.",
         "reduce_only_no_position": "У вас должна быть открытая позиция на этом рынке, чтобы размещать ордера только на уменьшение",
         "reduce_only_wrong_side": "Ордера только на уменьшение могут только уменьшить существующую позицию. Переключитесь на противоположную сторону.",
-        "reduce_only_too_large": "Размер ордера только на уменьшение превышает вашу открытую позицию"
+        "reduce_only_too_large": "Размер ордера только на уменьшение превышает вашу открытую позицию",
+        "twap_unavailable": "Размещение TWAP недоступно для этого поставщика."
       },
       "error": {
         "placement_failed": "Не удалось разместить ордер",
@@ -1722,6 +1886,7 @@
         "title": "Тип ордера",
         "basic": "Базовые",
         "triggered": "Сработал",
+        "advanced": "Дополнительные",
         "market": {
           "title": "Рынок",
           "description": "Исполнить мгновенно по лучшей доступной цене"
@@ -1730,21 +1895,77 @@
           "title": "Лимит",
           "description": "Исполнить по указанной вами цене или лучше"
         },
+        "scale": {
+          "title": "Масштабный (Scale)",
+          "description": "Несколько лимитных ордеров, распределенных в ценовом диапазоне"
+        },
+        "chase": {
+          "title": "Следящий",
+          "description": "Лимитный пассивный (Post-only) ордер, следующий за лучшей ценой спроса или предложения"
+        },
         "stop_limit": {
           "title": "Стоп-лимит",
-          "description": "Place a limit order if trigger price hits"
+          "description": "Лимитное исполнение по триггерной цене"
         },
         "stop_market": {
           "title": "Стоп-маркет",
-          "description": "Place a market order if trigger price hits"
+          "description": "Рыночное исполнение по триггерной цене"
         },
         "take_profit_limit": {
           "title": "Тейк-лимит",
-          "description": "Place a limit order if trigger price is reached"
+          "description": "Лимитный тейк-профит по триггерной цене"
         },
         "take_profit_market": {
           "title": "Тейк-маркет",
-          "description": "Place a market order if trigger price is reached"
+          "description": "Рыночный тейк-профит по триггерной цене"
+        },
+        "twap": {
+          "title": "TWAP (Средневзвешенная по времени цена)",
+          "description": "Разбивка ордеров для выполнения через равные промежутки времени"
+        }
+      },
+      "chase": {
+        "max_distance": "Макс. дистанция",
+        "switch_max_distance_unit": "Переключить единицу макс. дистанции на {{unit}}",
+        "reference_price_accessibility_value": "{{orderType}}, базовая цена {{price}}",
+        "foreground_notice": "Держите приложение открытым, пока выполняется следящий ордер.",
+        "backgrounding_title": "Защита следящий ордеров",
+        "backgrounding_notification": "MetaMask останавливает переоценку следящего ордера перед отключением.",
+        "backgrounded_title": "Следящий ордер стал лимитным ордером",
+        "backgrounded_notification": "Ваш следящий ордер теперь является лимитным ордером по последней достигнутой цене.",
+        "backgrounded_notification_multiple": "{{count}} следящих ордера(-ов) теперь являются лимитными ордерами по их последним достигнутым ценам.",
+        "max_distance_reached_title": "Достигнута макс. дистанция следящего ордера",
+        "max_distance_reached_notification": "Ваш следящий ордер для {{symbol}} достиг максимальной дистанции и теперь является лимитным ордером.",
+        "tab": "Следящий ордер",
+        "tab_with_count": "Следящий ({{count}})",
+        "active": "Активно",
+        "history": "История",
+        "filled_only": "Только исполненные ордера",
+        "visible_count": "{{count}} отображается",
+        "running": "Выполняется",
+        "running_with_progress": "Выполняется · {{progress}}",
+        "cancel": "Отмена",
+        "empty": "Ваши следящие ордера появятся здесь.",
+        "empty_history": "История ваших следящий ордеров появится здесь.",
+        "empty_filtered": "Нет следящих ордеров, соответствующих {{ticker}}.",
+        "empty_long": "Нет длинных следящих ордеров.",
+        "empty_short": "Нет коротких следящих ордеров.",
+        "card": {
+          "size": "Размер",
+          "filled_size": "Исполненный объем",
+          "max_distance": "Макс. дистанция",
+          "distance_chased": "Пройденная дистанция",
+          "distance_chased_with_max": "{{distance}} / {{max}} макс."
+        },
+        "status": {
+          "termination_pending": "Ожидание завершения",
+          "canceled": "Отменен",
+          "backgrounded": "Остановлен после перехода приложения в фон",
+          "max_distance_reached": "Достигнута макс. дистанция · остановлен",
+          "duration_reached": "Время истекло · остановлен",
+          "repricing_limit_reached": "Достигнут лимит переоценки · остановлен",
+          "filled": "Выполнен",
+          "failed": "Следящий ордер остановлен"
         }
       },
       "payment_token": "Платежный токен",
@@ -1783,7 +2004,17 @@
       "submitting_your_trade": "Ваша сделка отправляется",
       "order_filled": "Ордер выполнен",
       "order_placed": "Ордер размещен",
+      "chase_submitted": "следящий ордер отправлен",
+      "chase_started": "Чейз-ордер запущен",
+      "twap_started": "TWAP запущена",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "twap_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}} в течение {{duration}}",
+      "twap_duration_day": "{{count}} день",
+      "twap_duration_days": "{{count}} дн.",
+      "twap_duration_hour": "{{count}} час",
+      "twap_duration_hours": "{{count}} часа(-ов)",
+      "twap_duration_minute": "{{count}} минута",
+      "twap_duration_minutes": "{{count}} минут(-ы)",
       "order_failed": "Ошибка ордера",
       "your_funds_have_been_returned_to_you": "Ваши средства возвращены вам",
       "order_cancelled_success": "Ордер {{detailedOrderType}} отменен",
@@ -1802,8 +2033,9 @@
       "cancel": "Отмена",
       "custom": "Пользовательские",
       "use_custom_title": "Использовать пользовательское проскальзывание",
-      "row_format": "Расчетное: {{est}}% / Макс.: {{value}}%",
-      "row_format_pending": "Расчетное: -- / Макс.: {{value}}%",
+      "row_format": "Расч.: {{est}}% / Макс.: {{value}}%",
+      "row_format_pending": "Расч.: -- / Макс.: {{value}}%",
+      "row_format_max": "Макс: {{value}}%",
       "input_label": "Макс. процент проскальзывания",
       "decrement_label": "Уменьшить проскальзывание",
       "increment_label": "Увеличить проскальзывание",
@@ -1866,6 +2098,8 @@
       "success_title": "Позиция успешно закрыта",
       "position_closed": "Позиция закрыта",
       "funds_are_available_to_trade": "Средства доступны для торговли",
+      "already_closed": "Позиция уже закрыта",
+      "already_closed_subtitle": "Эта позиция уже исполнена или закрыта",
       "failed_to_close_position": "Не удалось закрыть позицию",
       "failed_to_partially_close_position": "Не удалось частично закрыть позицию",
       "failed_to_place_close_order": "Не удалось разместить ордер на закрытие",
@@ -1935,6 +2169,7 @@
       "loss_roe_placeholder": "% Поражение",
       "usd_label": "$",
       "take_profit_invalid_price": "Тейк-профит должен быть по цене {{direction}} {{priceType}}",
+      "trigger_price_must_be_positive": "Триггерная цена должна быть больше нуля",
       "stop_loss_invalid_price": "Стоп-лосс должен быть по цене {{direction}} {{priceType}}",
       "stop_loss_beyond_liquidation_error": "Стоп-лосс должен быть равен цене ликвидации {{direction}}",
       "stop_loss_order_view_warning": "Стоп-лосс — это цена ликвидации {{direction}}",
@@ -2009,25 +2244,26 @@
         "timeInForceNotSupported": "Время действия можно установить только для лимитных ордеров",
         "editTriggerUnsupported": "Стоп-ордера и ордера тейк-профит нельзя редактировать. Отмените ордер и разместите новый.",
         "editOrderUnverifiable": "Этот ордер больше не может быть найден. Обновите список ордеров и попробуйте снова.",
-        "strategyParamsNotSupported": "These order settings aren't supported for this order type",
-        "strategyFieldUnsupported": "This field can't be used with a TWAP, scale, or chase order",
-        "strategyMarketUnsupported": "TWAP, scale, and chase orders aren't available on this market",
-        "strategyHandleUnknown": "This strategy order can no longer be found. Refresh your orders and try again.",
-        "strategyCancelIncomplete": "Some parts of this strategy order couldn't be cancelled. Try again.",
-        "strategyEditUnsupported": "TWAP, scale, and chase orders can't be edited. Cancel the order and place a new one.",
-        "twapDurationRequired": "A duration is required for TWAP orders",
-        "twapDurationInvalid": "TWAP duration must be between 5 and 1440 minutes",
-        "twapNotionalTooSmall": "TWAP order value is below the exchange minimum",
-        "scaleRangeRequired": "Scale orders need a minimum and maximum price",
-        "scaleRangeInvalid": "Scale order maximum price must be above the minimum",
-        "scaleCountInvalid": "Scale order count is invalid",
-        "scaleSizeTooSmall": "Each scale order is below the minimum size",
-        "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
-        "chaseIntervalInvalid": "Chase interval is invalid",
-        "chaseDurationInvalid": "Chase duration is invalid",
-        "chaseLimitReached": "Too many chase orders are already running",
-        "chaseAbandoned": "Chase order was cancelled because the connection dropped",
-        "chaseTouchUnavailable": "No market price is available to place this chase order"
+        "strategyParamsNotSupported": "Эти настройки ордера не поддерживаются для данного типа ордера",
+        "strategyFieldUnsupported": "Это поле нельзя использовать с TWAP, scale или chase ордерами",
+        "strategyMarketUnsupported": "TWAP-ордера, масштабируемые и преследующие ордeра недоступны на этом рынке",
+        "strategyHandleUnknown": "Этот стратегический ордер больше не найден. Обновите список ордеров и попробуйте снова.",
+        "strategyCancelIncomplete": "Некоторые части этого стратегического ордера не удалось отменить. Попробуйте еще раз.",
+        "strategyEditUnsupported": "TWAP-ордера, масштабируемые и преследующие ордера нельзя редактировать. Отмените ордер и разместите новый.",
+        "twapDurationRequired": "Для TWAP-ордеров требуется указать продолжительность",
+        "twapDurationInvalid": "Продолжительность TWAP должна составлять от 5 до 1440 минут",
+        "twapNotionalTooSmall": "Стоимость TWAP-ордера ниже минимума биржи",
+        "scaleRangeRequired": "Для масштабируемых ордеров требуются минимальная и максимальная цена",
+        "scaleRangeInvalid": "Максимальная цена масштабируемого ордера должна быть выше минимальной",
+        "scaleCountInvalid": "Недопустимое количество масштабируемых ордеров",
+        "scaleSizeTooSmall": "Все масштабируемые ордера меньше минимальной суммы",
+        "scaleNotionalTooSmall": "Все масштабируемые ордера ниже минимальной биржевой стоимости",
+        "chaseIntervalInvalid": "Недопустимый интервал преследования",
+        "chaseDurationInvalid": "Недопустимая продолжительность преследования",
+        "chaseLimitReached": "Уже запущено слишком много преследующих ордеров",
+        "chaseAbandoned": "Преследующий ордер был отменен из-за разрыва соединения",
+        "chaseTouchUnavailable": "Нет доступной рыночной цены для размещения этого преследующего ордера",
+        "chaseMaxDistanceInvalid": "Максимальная дистанция следящего ордера находится вне допустимого диапазона"
       },
       "networkToggleFailed": "Не удалось сменить сеть: {{error}}",
       "accountBalanceFailed": "Не удалось получить баланс счета: {{error}}",
@@ -2233,6 +2469,10 @@
         "total": "Итого комиссий",
         "discount_message": "Вы экономите {{percentage}}% на комиссиях как VIP."
       },
+      "size_skew": {
+        "title": "Смещение размера",
+        "content": "Смещение размера контролирует распределение объема ордера по диапазону. Значения больше 1 концентрируют объем ближе к концу, значения меньше 1 — ближе к началу, а 1.00 распределяет объем равномерно."
+      },
       "closing_fees": {
         "title": "Комиссии за закрытие",
         "metamask_fee": "Комиссия MetaMask",
@@ -2353,7 +2593,7 @@
         "high": "Высокий",
         "low": "Низкая",
         "close": "Закрыть",
-        "volume": "Объем",
+        "volume": "По объему",
         "change": "Изменить"
       }
     },
@@ -2411,13 +2651,17 @@
     },
     "close_all_modal": {
       "title": "Закрыть все позиции",
-      "description": "Мы закроем все ваши открытые позиции по текущей рыночной цене.",
+      "title_filtered": "Закрыть позиции",
+      "description": {
+        "one": "Мы закроем вашу открытую позицию по текущей рыночной цене.",
+        "other": "Мы закроем ваши {{count}} открытые позиции(-ий) по текущей рыночной цене."
+      },
       "margin": "Маржа",
       "includes_pnl": "включает {{pnlAmount}}",
       "fees": "Комиссии",
       "you_will_receive": "Вы получите",
       "keep_positions": "Сохранить позиции",
-      "close_all": "Закрыть все",
+      "close_count": "Закрыть ({{count}})",
       "closing": "Закрытие...",
       "success_title": "Позиции закрыты",
       "success_message": "Успешно закрыта(-о) {{count}} позция(-ии/ий)",
@@ -2426,10 +2670,13 @@
       "error_message": "Не удалось закрыть {{count}} позицию(-ии/ий)"
     },
     "cancel_all_modal": {
-      "title": "Отменить все ордера",
-      "description": "Мы отменим все ваши открытые ордера.",
+      "title": "Отменить ордера",
+      "description": {
+        "one": "Мы отменим {{count}} ожидающий ордер. Любые неисполненные ордера будут немедленно удалены.",
+        "other": "Мы отменим {{count}} ожидающих ордеров. Любые неисполненные ордера будут немедленно удалены."
+      },
       "keep_orders": "Сохранить ордера",
-      "confirm": "Подтвердить",
+      "confirm": "Отменить все",
       "canceling": "Отмена...",
       "success_title": "Ордера отменены",
       "success_message": "{{count}} ордер(-а/ов) успешно отменен(-ы)",
@@ -2470,7 +2717,8 @@
       "past_24_hours": "Последние 24 часа",
       "time": "Время",
       "apply": "Применить",
-      "clear": "Очистить"
+      "clear": "Очистить",
+      "reset": "Сброс"
     },
     "provider_selector": {
       "title": "Выбор поставщика"
@@ -2495,6 +2743,7 @@
       "added": "{{symbol}} добавлен в список наблюдения",
       "removed": "{{symbol}} удален из списка наблюдения",
       "add_error": "Не удалось добавить рынок в список наблюдения",
+      "remove_error": "Не удалось удалить рынок из списка наблюдения",
       "limit_reached": "Достигнут лимит списка наблюдения (макс. {{limit}} рынков)",
       "filter_badge_label": "Список наблюдения",
       "suggested": "Рекомендуемые"
@@ -2605,6 +2854,9 @@
       "listed_by": "Размещено",
       "value_type": "Тип стоимости",
       "group_by": "Группировать по",
+      "layout": "Макет книги ордеров",
+      "layout_left": "Слева",
+      "layout_right": "Справа",
       "apply": "Применить",
       "save": "Сохранить",
       "collapse": "Скрыть книгу ордеров",
@@ -2699,8 +2951,8 @@
     "card_footer_disclaimer": "Сгенерировано ИИ",
     "footer_disclaimer": "ИИ-сводка только для информации",
     "disclaimer_modal": {
-      "title": "Контент, сгенерированный ИИ",
-      "body": "Этот обзор создан сторонней организацией с помощью ИИ и может быть неточным или неперсонализированным. Не используйте его для торговых, инвестиционных, юридических или налоговых решений. Прошлая доходность не может служить основой для прогнозирования будущих результатов.",
+      "title": "Сгенерированный ИИ контент",
+      "body": "Эта сводка сгенерирована ИИ от третьей стороны и может быть неточной или неперсонализированной. Не используйте ее для принятия торговых, инвестиционных, юридических или налоговых решений. Прошлые результаты не гарантируют будущих.",
       "got_it": "Понятно"
     },
     "swap_button": "Обменять",
@@ -2725,6 +2977,15 @@
   },
   "predict": {
     "title": "Прогнозы MetaMask",
+    "game_status": {
+      "live": "В ПРОЦЕССЕ",
+      "scheduled": "ЗАПЛАНИРОВАНО",
+      "delayed": "ЗАДЕРЖИВАЕТСЯ",
+      "suspended": "ПРИОСТАНОВЛЕНО",
+      "postponed": "ОТЛОЖЕНО",
+      "final": "ЗАВЕРШЕНО",
+      "canceled": "ОТМЕНЕНО"
+    },
     "send_to_predictions": "Отправить в Прогнозы",
     "select_predict_account": "Выберите счет для прогнозов",
     "search_account": "Поиск счета",
@@ -2757,6 +3018,46 @@
     },
     "prediction_markets": "Рынки прогнозов",
     "market_list": "Список рынков",
+    "market": {
+      "volume": "Объем: {{value}}",
+      "draw": "Ничья",
+      "footer_price_unavailable": "цена недоступна"
+    },
+    "market_groups": {
+      "total_points": "Всего очков",
+      "spread": "Спреды",
+      "market_option": "Опция рынка",
+      "line_unavailable": "линия недоступна",
+      "price_unavailable": "цена недоступна",
+      "option_accessibility_label": "Опция рынка для {{team}}, линия {{line}}, цена {{price}}",
+      "outcome_accessibility_label": "{{team}}, линия {{line}}, цена {{price}}"
+    },
+    "rules": {
+      "event_accessibility_label": "Посмотреть правила события",
+      "market_accessibility_label": "Посмотреть правила рынка",
+      "close_accessibility_label": "Закрыть правила",
+      "event_title": "Правила события",
+      "market_title": "Правила рынка",
+      "title": "Правила",
+      "settlement_sources": {
+        "prefix": "Исход подтвержден на основе данных из ",
+        "separator": ", ",
+        "last_separator": " и ",
+        "suffix": ".",
+        "open_hint": "Открывает источник в вашем браузере."
+      }
+    },
+    "event": {
+      "loading_accessibility_label": "Загрузка события",
+      "unable_to_load": "Не удалось загрузить это событие."
+    },
+    "history": {
+      "loading_accessibility_label": "Загрузка истории рынка",
+      "unable_to_load": "Не удалось загрузить историю рынка.",
+      "unavailable_for_range": "История рынка недоступна для этого диапазона.",
+      "chart_accessibility_label": "История рыночной вероятности. {{values}}",
+      "chart_scrub_accessibility_label": "История рыночной вероятности на {{time}}. {{values}}"
+    },
     "loading": "Загрузка...",
     "buttons": {
       "back": "Назад",
@@ -2777,7 +3078,7 @@
       "market_resulted_to": "Рынок привел к {{outcome}}",
       "waiting_for_final_resolution": "Ждем окончательного решения",
       "no_positions_found": "Позиций не найдено",
-      "volume": "Объем",
+      "volume": "По объему",
       "end_date": "Дата окончания",
       "resolver": "Решатель",
       "powered_by": "На основе",
@@ -2935,7 +3236,7 @@
     "buy_yes": "Да",
     "buy_no": "Нет",
     "outcomes": "итоги",
-    "volume_abbreviated": "Объем",
+    "volume_abbreviated": "По объему",
     "recurrence": {
       "none": "Нет",
       "daily": "Дневной",
@@ -3351,6 +3652,7 @@
   "wallet": {
     "title": "Кошелек",
     "search_accessibility_label": "Поиск",
+    "rewards_accessibility_label": "Награды",
     "tokens": "Токены",
     "view_all_nfts": "Просмотреть все NFT",
     "view_all_tokens": "Просмотреть все токены",
@@ -3363,7 +3665,7 @@
     "no_collectibles": "Не видите свои NFT?",
     "no_available_tokens": "Не видите свой токен?",
     "add_tokens": "Импорт токенов",
-    "are_you_sure_exit": "Are you sure you want to exit?",
+    "are_you_sure_exit": "Уверены, что хотите выйти?",
     "import_token": "Would you like to import this token?",
     "import_tokens": "Хотите импортировать эти токены?",
     "tokens_detected_in_account": "{{tokenCount}} новый {{tokensLabel}} найден в этом счете",
@@ -3407,7 +3709,7 @@
       "fund_subtitle": "Никто не любит пустые кошельки. Легко пополняйте счет, чтобы начать торговать.",
       "fund_primary": "Внести средства",
       "trade_title": "Совершите свою первую сделку",
-      "trade_subtitle": "Торгуйте популярными токенами в разных сетях, чтобы увеличить свой портфель.",
+      "trade_subtitle": "Торгуйте популярными токенами в нескольких сетях, чтобы увеличить свой портфель.",
       "trade_primary": "Торговать",
       "notifications_title": "Включить уведомления",
       "notifications_subtitle": "Оставайтесь в курсе изменений на рынке, чтобы принимать лучшие решения для своего портфеля.",
@@ -3926,12 +4228,18 @@
     "resources": "Ресурсы",
     "permissions": "Разрешения",
     "card_title": "Карта MetaMask",
+    "card_update_badge": "Обновить",
     "settings": "Настройки",
     "networks": "Сети",
     "log_out": "Выйти",
     "notifications": "Уведомления",
     "buy": "Купить",
     "scan": "Сканировать"
+  },
+  "account_hub": {
+    "info": "Информация",
+    "scan": "Сканировать",
+    "activity": "Деятельность"
   },
   "app_settings": {
     "enabling_notifications": "Включение уведомлений...",
@@ -4035,13 +4343,14 @@
       "select_all": "Выбрать все",
       "deselect_all": "Отменить выбор всех",
       "select_accounts_title": "Счета",
-      "select_accounts_desc": "Выберите счета, для которых вы хотите получать уведомления.",
+      "select_accounts_desc": "Выберите счета, для которых вы хотите получать уведомления",
+      "accounts_load_error": "Не удалось загрузить настройки уведомлений вашего счета. Попробуйте позже.",
       "wallet_activity_title": "Активность кошелька",
       "wallet_activity_desc": "Покупки, продажи, переводы, свопы",
       "perps_title": "Торговая активность",
       "perps_desc": "Изменения позиций бессрочных контрактов, ликвидации, ставки финансирования и обновления маржи",
-      "agentic_cli_title": "Agent wallet",
-      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agent wallet",
+      "agentic_cli_title": "Агентский кошелек",
+      "agentic_cli_desc": "Запросы на подключение CLI, одобрения и обновления сессий для кошелька Agent",
       "social_ai_title": "Торговые сигналы",
       "social_ai_desc": "Обновления от трейдеров и активов, за которыми вы следите, а также подобранные новости рынка",
       "marketing_title": "Обновления и вознаграждения",
@@ -4321,7 +4630,7 @@
     "autodetect_nft_desc": "Разрешить MetaMask добавлять принадлежащие вам NFT с помощью сторонних сервисов (например, OpenSea). Автоматическое обнаружение NFT раскрывает ваш IP-адрес и адрес аккаунта этим сервисам. Включение этой функции может связать ваш IP-адрес с вашим адресом Ethereum, а также отображать поддельные NFT, отправленные мошенниками через airdrop. Чтобы избежать этого риска, вы можете добавлять NFT вручную.",
     "display_nft_media_desc_new": "Отображение носителей и данных NFT раскрывает ваш IP-адрес OpenSea или другим третьим сторонам. Автоопределение NFT основано на этой функции и не будет доступно, если оно отключено. Если носитель NFT полностью расположен в IPFS, он все равно может отображаться, даже если эта функция отключена.",
     "use_safe_chains_list_validation_desc_1": "MetaMask использует сторонний сервис под названием ",
-    "use_safe_chains_list_validation_desc_2": "для отображения точных и стандартизированных сведений о сети. Это снижает ваши шансы подключиться к вредоносной или неправильной сети. При использовании этой функции ваш IP-адрес доступен сети  ",
+    "use_safe_chains_list_validation_desc_2": "чтобы показывать точные и стандартизированные данные сети. Это снижает вероятность подключения к вредоносной или неверной сети. При использовании этой функции ваш IP-адрес раскрывается для",
     "snaps": {
       "title": "Snaps",
       "description": "Обзор ваших snaps и управление ими",
@@ -4802,7 +5111,7 @@
     "bridge_description": "Передача токенов между сетями",
     "send_description": "Отправляйте криптовалюту на любой счет",
     "receive_description": "Получить криптовалюту",
-    "earn_description": "Зарабатывайте награды за свои токены",
+    "earn_description": "Заставьте вашу криптовалюту работать",
     "perps_description": "Торгуйте бессрочными фьючерсными контрактами",
     "predict_description": "Торгуйте на реальных событиях",
     "chart_time_period": {
@@ -4849,19 +5158,19 @@
     "malicious": "Вредоносный",
     "risky": "Рискованный",
     "malicious_token_title": "Вредоносный токен",
-    "malicious_token_description": "{{symbol}} — это вредоносный токен. Избегайте взаимодействия с ним или торговли им.",
-    "malicious_token_description_no_symbol": "Это вредоносный токен. Избегайте взаимодействия с ним и не торгуйте им.",
-    "malicious_token_banner_description": "{{symbol}} отмечен как вредоносный. Он может украсть средства у любого, кто с ним взаимодействует.",
-    "malicious_token_banner_description_no_symbol": "Этот токен отмечен как вредоносный. Вероятно, он крадет средства у всех, кто с ним взаимодействует.",
-    "suspicious_token_description": "{{symbol}} — подозрительный токен.",
-    "suspicious_token_description_no_symbol": "Это подозрительный токен.",
+    "malicious_token_description": "Партнеры по безопасности отмечают {{symbol}} как высокорискованный.",
+    "malicious_token_description_no_symbol": "Партнеры по безопасности отмечают этот токен как высокорискованный.",
+    "malicious_token_banner_description": "Партнеры по безопасности отмечают {{symbol}} как высокорискованный.",
+    "malicious_token_banner_description_no_symbol": "Партнеры по безопасности отмечают этот токен как высокорискованный.",
+    "suspicious_token_description": "Партнеры по безопасности обнаружили сигналы риска в смарт-контракте или торговой активности {{symbol}}.",
+    "suspicious_token_description_no_symbol": "Партнеры по безопасности обнаружили сигналы риска в смарт-контракте или торговой активности этого токена.",
     "verified_token_title": "Проверенный токен",
     "verified_token_description": "{{symbol}} активно торгуется и широко известен. Подтверждение не является одобрением со стороны MetaMask.",
     "risky_token_title": "Подозрительный токен",
-    "risky_token_description": "{{symbol}} отмечен как подозрительный. Ознакомьтесь с рисками, прежде чем продолжить.",
-    "risky_token_description_no_symbol": "Этот токен отмечен как подозрительный. Ознакомьтесь с рисками, прежде чем продолжить.",
-    "malicious_token_sheet_description": "Обнаружены серьезные сигналы риска для {{symbol}}. Мы рекомендуем воздержаться от торговли этим токеном.",
-    "malicious_token_sheet_description_no_symbol": "По этому токену обнаружены серьезные сигналы риска. Мы рекомендуем не торговать им.",
+    "risky_token_description": "Партнеры по безопасности обнаружили сигналы риска в смарт-контракте или торговой активности {{symbol}}.",
+    "risky_token_description_no_symbol": "Партнеры по безопасности обнаружили сигналы риска в смарт-контракте или торговой активности этого токена.",
+    "malicious_token_sheet_description": "Партнеры по безопасности отмечают {{symbol}} как высокорискованный.",
+    "malicious_token_sheet_description_no_symbol": "Партнеры по безопасности отмечают этот токен как высокорискованный.",
     "got_it": "Понятно",
     "proceed": "Продолжить",
     "continue_anyway": "Все равно продолжить",
@@ -4869,8 +5178,8 @@
     "data_unavailable": "Данные о безопасности недоступны",
     "subtitle_known": "Сигналы риска не обнаружены. Всегда проводите анализ любого актива перед совершением сделки.",
     "subtitle_no_issues": "Сигналы риска не обнаружены. Всегда проводите анализ любого актива перед совершением сделки.",
-    "subtitle_suspicious": "Обнаружены предупреждающие сигналы. Внимательно изучите отмеченные проблемы, прежде чем совершать сделки с этим активом.",
-    "subtitle_malicious": "Обнаружены серьезные сигналы риска. Рекомендуем воздержаться от покупки этого актива.",
+    "subtitle_suspicious": "Партнеры по безопасности обнаружили сигналы риска в смарт-контракте или торговой активности этого токена.",
+    "subtitle_malicious": "Партнеры по безопасности отмечают этот токен как высокорискованный.",
     "subtitle_unavailable": "Не удалось загрузить анализ безопасности для этого токена.",
     "token_distribution": "Распределение токенов",
     "total_supply": "Общий запас",
@@ -5048,7 +5357,7 @@
     "sign_with_keystone": "Подписать аппаратным кошельком",
     "sign_with_ledger": "Подписать с помощью Ledger",
     "from": "От",
-    "gas_fee": "Плата за газ",
+    "gas_fee": "Комиссия сети",
     "gas_fee_fast": "Быстро",
     "gas_fee_average": "Средне",
     "gas_fee_slow": "Медленно",
@@ -5083,7 +5392,7 @@
     "invalid_amount": "Неверная сумма",
     "invalid_gas": "Неверное количество газа",
     "invalid_gas_price": "Неверная цена газа",
-    "high_gas_price": "Может быть установлена неоправданно высокая плата за газ ({{currentGasPrice}}). Подумайте об уменьшении суммы.",
+    "high_gas_price": "Ваша комиссия сети может быть неоправданно высокой ({{currentGasPrice}}). Подумайте о ее снижении.",
     "low_gas_price": "Цена на газ очень низкая",
     "invalid_collectible_ownership": "Вы не являетесь владельцем этого коллекционного актива",
     "known_asset_contract": "Известный адрес контракта актива",
@@ -5109,15 +5418,15 @@
     "cancel_speedup_cancel_title": "Отменить транзакцию",
     "cancel_speedup_speedup_message": "Эта комиссия сети заменит исходную.",
     "cancel_speedup_cancel_message": "Эта транзакция будет отменена, а эта комиссия сети заменит исходную.",
-    "edit_network_fee": "Изменить плату за газ",
+    "edit_network_fee": "Изменить комиссию сети",
     "edit_priority": "Изменить приоритет",
     "gas_cancel_fee": "Плата за газ при отмене",
     "gas_speedup_fee": "Плата за газ при ускорении",
     "use_max": "Использовать макс.",
     "set_gas": "Установить",
     "cancel_gas": "Отмена",
-    "transaction_fee_estimated": "Примерная плата за газ",
-    "transaction_fee": "Плата за газ",
+    "transaction_fee_estimated": "Примерная комиссия сети",
+    "transaction_fee": "Комиссия сети",
     "transaction_fee_less": "Без платы",
     "total_amount": "Общая сумма",
     "view_data": "Просмотр данных",
@@ -5155,8 +5464,8 @@
     "confusable_msg": "Мы обнаружили непонятный символ в имени ENS. Проверьте имя ENS, чтобы избежать возможного мошенничества.",
     "similar_to": "похоже на",
     "contains_zero_width": "содержит знак с нулевой шириной",
-    "dapp_suggested_gas": "Эта плата за газ предложена {{origin}}. В ней используется устаревшая оценка стоимости газа, которая может быть неточной. Однако изменение этой платы за газ может привести к проблемам с вашей транзакцией. При наличии вопросов свяжитесь с {{origin}}.",
-    "dapp_suggested_eip1559_gas": "Эта плата за газ была предложена {{origin}}. Ее изменение может привести к проблемам с вашей транзакцией. При наличии вопросов обратитесь к {{origin}}.",
+    "dapp_suggested_gas": "Эта комиссия сети была предложена {{origin}}. Она использует устаревшую оценку газа, которая может быть неточной. Однако изменение этой комиссии может вызвать проблемы с вашей транзакцией. Пожалуйста, обратитесь к {{origin}}, если у вас есть вопросы.",
+    "dapp_suggested_eip1559_gas": "Эта комиссия сети была предложена {{origin}}. Ее изменение может вызвать проблемы с вашей транзакцией. Пожалуйста, обратитесь к {{origin}}, если у вас есть вопросы.",
     "address_invalid": "Недействительный адрес получателя.",
     "ens_not_found": "Для этого имени не задан адрес.",
     "unknown_qr_code": "Недействительный QR-код. Повторите попытку.",
@@ -5365,6 +5674,8 @@
     "activity_market_close_long": "Рыночный — закрыть длинную позицию",
     "activity_limit_long": "Лимитная длинная позиция",
     "activity_limit_close_long": "Лимитная — закрыть длинную позицию",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "Выполнен",
     "activity_order_status_canceled": "Отменен",
     "activity_order_status_rejected": "Неудачно",
@@ -5414,7 +5725,7 @@
     "mint": "Выполнить минтинг",
     "tx_details_free": "Бесплатно",
     "tx_details_not_available": "Недоступен",
-    "smart_contract_interaction": "Взаимодействие со смарт-контрактом",
+    "smart_contract_interaction": "Взаимодействие с контрактом",
     "money_account_deposit": "Внести на Money Account",
     "money_account_withdraw": "Перевести с Money Account",
     "swaps_transaction": "Транзакция свопа",
@@ -5509,9 +5820,9 @@
     "status_submitting_description": "Предполагаемое завершение {{timeLeft}}",
     "status_success_header": "Ваша транзакция завершена",
     "status_submitting_past_estimated_deadline_header": "Извините за ожидание",
-    "status_submitting_past_estimated_deadline_description": "Если ваша транзакция не будет завершена в течение {{timeLeft}}, она будет отменена и с вас не будет взиматься плата за газ.",
+    "status_submitting_past_estimated_deadline_description": "Если ваша транзакция не будет завершена в течение {{timeLeft}}, она будет отменена, и комиссия сети не будет списана.",
     "status_cancelled_header": "Ваша транзакция отменена",
-    "status_cancelled_description": "Не удалось завершить вашу транзакцию, поэтому она была отменена, чтобы избавить вас от ненужной платы за газ.",
+    "status_cancelled_description": "Вашу транзакцию не удалось завершить, поэтому она была отменена, чтобы избавить вас от оплаты ненужных комиссий сети.",
     "status_failed_header": "Ваша транзакция не удалась",
     "status_failed_description": "Внезапные изменения на рынке могут привести к неудачам. Если проблема не исчезнет, ​​обратитесь в поддержку MetaMask.",
     "view_transaction": "Смотреть транзакцию",
@@ -5896,13 +6207,13 @@
     "confirm": "Подтвердить"
   },
   "account_backup_step_5": {
-    "error_title": "Ой!",
-    "error_message": "Порядок слов неправильный. Убедитесь, что вы записали фразу правильно, и перейдите к предыдущему экрану, если это необходимо.",
+    "error_title": "Неверный порядок слов",
+    "error_message": "Убедитесь, что вы записали всё правильно, и вернитесь на предыдущий экран, если необходимо.",
     "back": "Назад",
     "title": "Подтвердить секретную фразу для восстановления",
     "info_text": "Вставьте каждое слово в том порядке, в котором оно было показано вам на предыдущем экране.",
     "cta_text": "Подтвердить фразу",
-    "modal_title": "Секретная фраза для восстановления подтверждена!",
+    "modal_title": "Секретная фраза для восстановления подтверждена",
     "modal_text": "Это было сделано для того, чтобы вы соблюдали эту меру безопасности.",
     "modal_button": "Далее"
   },
@@ -6068,11 +6379,11 @@
     "pending_deposit_title": "Выполняется внесение депозита",
     "pending_withdrawal_title": "Выполняется вывод средств",
     "cancelled_title": "Транзакция отменена",
-    "success_title": "Транзакция #{{nonce}} выполнена!",
+    "success_title": "Транзакция #{{nonce}} завершена",
     "speedup_title": "#{{nonce}} ускоряется",
-    "success_deposit_title": "Депозит внесен!",
-    "success_withdrawal_title": "Вывод средств завершен!",
-    "error_title": "Ой, что-то пошло не так :/",
+    "success_deposit_title": "Внесение средств завершено",
+    "success_withdrawal_title": "Вывод средств завершен",
+    "error_title": "Что-то пошло не так",
     "received_title": "Вы получили {{amount}} {{assetType}}",
     "erc20_sent_title": "Средства отправлены",
     "erc20_received_title": "Средства получены",
@@ -6091,6 +6402,15 @@
         "preview": {
           "title": "ETH вырос на 4,2% сегодня",
           "message": "Сейчас на уровне 2668,51 $ — выше вашего ценового оповещения",
+          "timestamp": "сейчас"
+        }
+      },
+      "social_ai": {
+        "title": "Не пропустите торговый сигнал",
+        "description": "Включите уведомления, чтобы мы могли предупреждать вас о действиях трейдеров, на которых вы подписаны.",
+        "preview": {
+          "title": "Новая сделка от трейдера, на которого вы подписаны",
+          "message": "Длинная позиция по ETH лонг · 10 000 $",
           "timestamp": "сейчас"
         }
       },
@@ -6124,7 +6444,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Запрошен вывод средств",
     "prompt_title": "Получать push-уведомления",
     "notifications_enabled_error_title": "Что-то пошло не так",
-    "notifications_enabled_error_desc": "Нам не удалось включить уведомления. Повторите попытку позже.",
+    "notifications_enabled_error_desc": "Мы не смогли включить уведомления. Пожалуйста, повторите попытку позже.",
     "prompt_desc": "Включите уведомления в Настройках, чтобы получать важные оповещения об активности кошелька и многом другом.",
     "prompt_ok": "Включить",
     "prompt_cancel": "Может быть, позже",
@@ -6214,7 +6534,7 @@
         }
       },
       "toast_enabled": "Уведомления включены",
-      "toast_settings_hint": "Вы можете включить уведомления в любое время в разделе «Настройки > Уведомления»"
+      "toast_settings_hint": "Вы можете включить уведомления в любое время в Настройки > Уведомления"
     }
   },
   "protect_your_wallet_modal": {
@@ -6494,7 +6814,7 @@
       "what_to_expect": "Чего ожидать",
       "quotes": "Наша функция покупки криптовалюты объединяет котировки от интегрированных поставщиков, предоставляя котировки из этих источников, чтобы вы могли получить криптовалюту прямо в ваш кошелек без периода ожидания.",
       "quotes_sell": "Теперь вы можете вывести деньги прямо в MetaMask! Получайте самые свежие котировки от надежных поставщиков, пока мы будем сопровождать вас на каждом этапе пути.",
-      "benefits": "Меньше плата за газ и имеется поддержка многочисленных сетей, токенов и способов оплаты",
+      "benefits": "Меньше комиссий сети для оплаты, а также поддержка множества сетей, токенов и способов оплаты",
       "benefits_sell": "Вывод криптовалюты в вашу местную валюту теперь стал проще, чем когда-либо прежде.",
       "get_started": "С чего начать"
     },
@@ -6536,6 +6856,7 @@
     "most_reliable": "Самый надежный",
     "quotes_timeout": "Тайм-аут котировок",
     "request_new_quotes": "Запросите новые котировки, чтобы получить последний лучший курс.",
+    "wallet_pay_terms": "Продолжая, вы принимаете условия Crossmint",
     "terms_of_service": "Условия обслуживания",
     "amount_to_buy": "Купить",
     "amount_to_sell": "Продать",
@@ -6565,14 +6886,14 @@
     "minimum": "Минимальный депозит равен",
     "maximum": "Максимальный депозит равен",
     "insufficient_balance": "Эта сумма превышает ваш баланс",
-    "insufficient_native_balance": "У вас недостаточно {{currency}} для оплаты платы за газ.",
+    "insufficient_native_balance": "У вас недостаточно {{currency}} для оплаты комиссий сети.",
     "enter_larger_amount": "Введите большую сумму, чтобы продолжить",
     "enter_smaller_amount": "Введите меньшую сумму, чтобы продолжить",
-    "enter_lower_gas_fees": "Введите меньшую сумму для оплаты газа",
+    "enter_lower_gas_fees": "Введите меньшую сумму для оплаты комиссий сети",
     "max": "Максимум",
     "try_again": "Повторить попытку",
     "error": "Ошибка",
-    "something_went_wrong": "Ой, что-то пошло не так",
+    "something_went_wrong": "Что-то пошло не так",
     "report_this_issue": "Сообщить об этой проблеме",
     "no_providers_available": "Нет доступных поставщиков",
     "try_different_amount_to_buy_input": "Попробуйте либо выбрать другой способ оплаты, либо увеличить или уменьшить сумму, которую вы хотите купить.",
@@ -6777,7 +7098,7 @@
     "manually_pasting": "Вручную добавьте токен, вставив его адрес.",
     "token_address_can_be_found": "Адреса контракта токенов можно найти на",
     "gathering_token_details": "Сбор сведений о токене...",
-    "error_gathering_token_details": "К сожалению, при сборе сведений о токене произошла ошибка.",
+    "error_gathering_token_details": "Произошла ошибка при получении данных токена.",
     "Import": "Импорт",
     "invalid_token_contract_address": "Неверный адрес контракта токена.",
     "please_verify_on_explorer": "Проверьте на",
@@ -6821,10 +7142,10 @@
     "saving": "Сохранение...",
     "n_quotes": "{{numberOfQuotes}} котировки(-ок)",
     "view_details": "Просмотр подробностей",
-    "estimated_gas_fee": "Примерная плата за газ",
-    "gas_fee": "Плата за газ",
+    "estimated_gas_fee": "Примерная комиссия сети",
+    "gas_fee": "Комиссия сети",
     "included": "включен",
-    "max_gas_fee": "Макс. плата за газ",
+    "max_gas_fee": "Макс. комиссия сети",
     "edit": "Изменить",
     "quotes_include_fee": "Котировки включают комиссию MetaMask в размере {{fee}}%",
     "quotes_include_gas_and_metamask_fee": "В стоимость включен газ и комиссия MetaMask {{fee}}%",
@@ -6852,7 +7173,7 @@
     "rate": "Курс",
     "quote_details_max_slippage": "Максимальное проскальзывание",
     "source": "Источник",
-    "estimated_network_fees": "Примерная плата за газ",
+    "estimated_network_fees": "Примерные комиссии сети",
     "guaranteed_amount": "Гарантированная сумма",
     "quote_source_dex": {
       "1": "Эта котировка поступила напрямую из",
@@ -6896,9 +7217,9 @@
     "medium_selected_warning": "Выполнение свопа зависит от времени. Не рекомендуется использовать настройку «Средняя».",
     "high_recommendation": "Обычно время — важный фактор в операциях обмена. Настройка «Высокая» поможет избежать возможных потерь из-за изменения конъюнктуры рынка.",
     "recommended": "Рекомендуется",
-    "recommended_gas": "Рекомендуемая плата за газ",
-    "gas_included_tooltip_explanation": "Эта котировка включает в себя плату за газ путем корректировки суммы отправленных или полученных токенов. Вы можете получить ETH в отдельной транзакции в вашем списке активности.",
-    "gas_included_tooltip_explanation_link_text": "Подробнее о плате за газ",
+    "recommended_gas": "Рекомендуемая комиссия сети",
+    "gas_included_tooltip_explanation": "Эта котировка включает комиссии сети, корректируя количество отправленных или полученных токенов. Вы можете получить ETH отдельной транзакцией в вашем списке активности.",
+    "gas_included_tooltip_explanation_link_text": "Узнать больше о комиссиях сети",
     "gas_education_title": "Примерная плата за газ",
     "gas_education_1": "Плата за газ выплачивается криптомайнерам, которые обрабатывают транзакции в ",
     "gas_education_2_ethereum": "сети Ethereum.",
@@ -6921,7 +7242,11 @@
   },
   "deeplink": {
     "invalid": "Недействительный диплинк",
-    "not_supported": "Диплинк не поддерживается"
+    "not_supported": "Диплинк не поддерживается",
+    "solana_pay_transaction_request_not_supported": "This Solana Pay QR uses a transaction request, which is not supported yet.",
+    "solana_pay_reference_not_supported": "This Solana Pay QR includes a payment reference, which is not supported yet.",
+    "solana_pay_memo_not_supported": "This Solana Pay QR includes a memo, which is not supported yet.",
+    "solana_pay_token_not_supported": "This Solana Pay QR uses a token that could not be recognized. The payment was not started."
   },
   "error_screen": {
     "title": "Произошла ошибка",
@@ -7026,7 +7351,7 @@
     "max_priority_fee": "Максимальная плата за приоритет",
     "max_fee": "Максимальная комиссия",
     "estimate": "Примерная сумма",
-    "recommended_gas_fee": "Рекомендуемая плата за газ",
+    "recommended_gas_fee": "Рекомендуемая комиссия сети",
     "swaps_warning": "Свопы сильно зависят от времени. Настройка «Высокая» поможет избежать возможных убытков из-за изменения рыночной конъюнктуры.",
     "priority_fee_at_least_0_error": "Максимальная плата за приоритет должна быть по меньшей мере 1 Гвей",
     "learn_more": {
@@ -7053,8 +7378,8 @@
     "learn_more_gas_limit": "Лимит газа — это максимальное количество единиц газа, которое вы готовы использовать. Единицы газа являются множителем «Максимальной платы за приоритет» и «Максимальной комиссии».",
     "learn_more_max_priority_fee": "Максимальная плата за приоритет (также известная как «чаевые» майнеру) направляется непосредственно майнерам, чтобы они уделили приоритетное внимание вашей транзакции. ",
     "learn_more_max_fee": "Максимальная комиссия — это наибольшая сумма, которую вы заплатите (базовая комиссия + плата за приоритет).",
-    "learn_more_new_gas_fee": "Мы изменили плату за газ с учетом текущих условий сети и увеличили ее как минимум на 10% (требуется сетью).",
-    "learn_more_cancel_gas_fee": "Мы изменили плату за газ с учетом текущих условий сети и увеличили ее как минимум на 50% (требуется сетью).",
+    "learn_more_new_gas_fee": "Мы обновили комиссию сети с учетом текущих условий и увеличили ее как минимум на 10% (требуется сетью). ",
+    "learn_more_cancel_gas_fee": "Мы обновили комиссию сети с учетом текущих условий и увеличили ее как минимум на 50% (требуется сетью). ",
     "low": "Низкий",
     "medium": "Средний",
     "high": "Высокий",
@@ -7064,8 +7389,8 @@
     "edit_priority": "Изменить приоритет",
     "speed_up_transaction": "Ускорить транзакцию",
     "cancel_transaction": "Отменить транзакцию",
-    "new_gas_fee": "Новая плата за газ",
-    "edit_suggested_gas_fee": "Изменить рекомендуемую плату за газ",
+    "new_gas_fee": "Новая комиссия сети",
+    "edit_suggested_gas_fee": "Изменить предложенную комиссию сети",
     "gas_price": "Цена газа",
     "learn_more_gas_limit_legacy": "Лимит газа — это максимальное количество единиц газа, которое вы готовы использовать. Единицы газа являются множителем «Цены газа».",
     "learn_more_gas_price": "В этой сети необходимо заполнить поле «Цена газа» при отправке транзакции. Цена газа — это максимальный сумма, которую вы готовы заплатить за единицу газа.",
@@ -7073,19 +7398,19 @@
     "gas_price_high": "Цена газа выше, чем необходимо"
   },
   "transaction_review_eip1559": {
-    "estimated_gas_fee": "Примерная плата за газ",
+    "estimated_gas_fee": "Примерная комиссия сети",
     "network_fee": "Комиссия сети",
     "max_fee": "Максимальная комиссия",
     "total": "Итого",
     "max_amount": "Maкс. сумма",
-    "estimated_gas_fee_tooltip": "Какой размер платы за газ?",
+    "estimated_gas_fee_tooltip": "Что такое комиссии сети?",
     "estimated_gas_fee_tooltip_text_1": "Плата за газ выплачивается криптомайнерам, которые обрабатывают транзакции в",
     "estimated_gas_fee_tooltip_text_2": " Ethereum",
     "estimated_gas_fee_tooltip_text_3": "сети.",
     "estimated_gas_fee_tooltip_text_4": "MetaMask не получает прибыли от платы за газ.",
     "estimated_gas_fee_tooltip_text_5": "Плата за газ устанавливается сетью и колеблется в зависимости от сетевого трафика и сложности транзакции.",
-    "learn_more": "Подробнее о плате за газ",
-    "legacy_gas_suggestion_tooltip": "В этом предложении по плате за газ используется устаревшая оценка газа, которая может быть неточной."
+    "learn_more": "Узнать больше о комиссиях сети",
+    "legacy_gas_suggestion_tooltip": "Это предложение комиссии сети использует устаревшую оценку газа, которая может быть неточной."
   },
   "times_eip1559": {
     "unknown": "Время обработки неизвестно",
@@ -7095,8 +7420,8 @@
     "very_likely": "Весьма вероятно через <",
     "at_least": "По меньшей мере",
     "less_than": "Менее чем",
-    "warning_very_likely": "Эта плата за газ намного выше, чем другие доступные варианты.",
-    "warning_very_likely_title": "Плата за газ слишком высока",
+    "warning_very_likely": "Эта комиссия сети намного выше других доступных вариантов.",
+    "warning_very_likely_title": "Комиссии сети слишком высоки",
     "warning_unknown": "Ваша максимальная комиссия или максимальная плата за приоритет могут быть низкими для текущих рыночных условий. Мы не знаем, когда ваша транзакция будет выполнена (и будет ли она вообще выполнена).",
     "warning_low": "Это снижает вашу максимальную комиссию, но, если трафик в сети увеличивается, ваша транзакция может быть отложена или завершиться ошибкой.",
     "warning_low_title": "Низкий приоритет",
@@ -7129,17 +7454,17 @@
   "network_information": {
     "things_to_keep_in_mind": "Что нужно помнить",
     "testnet_network": "тестнет {{type}}",
-    "first_description": "Нативный токен этой сети — {{ticker}}. Этот токен используется для оплаты газа.",
+    "first_description": "Нативным токеном в этой сети является {{ticker}}. Этот токен используется для оплаты комиссий сети.",
     "second_description": "Попытка отправки активов напрямую из одной сети в другую может привести к необратимой потере активов. Следует использовать мост.",
     "third_description": "Ваши токены могут не отображаться автоматически в вашем кошельке.",
-    "private_network": "Это неизвестная сеть, для внесения платы за газ могут использоваться специальные токены.",
+    "private_network": "Эта сеть неизвестна и может использовать специальный токен для комиссий сети.",
     "unknown_network": "Неизвестная сеть",
     "switched_network": "Вы переключились на",
     "learn_more": "Подробнее",
     "add_token": "Нажмите для добавления токенов вручную",
     "add_token_manually": "Добавьте их вручную.",
     "got_it": "Понятно",
-    "error_title": "Произошла ошибка.",
+    "error_title": "Что-то пошло не так",
     "error_message": "При загрузке информации сети произошла ошибка. Попробуйте позже.",
     "private_network_third_description": "Введите название для этой сети, чтобы ее было проще идентифицировать.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -7341,7 +7666,7 @@
     "open_eth_app": "Откройте приложение Ethereum",
     "open_eth_app_message_one": "Мы обнаружили, что у вас установлено приложение Ethereum, но оно не открыто. Пожалуйста, ",
     "open_eth_app_message_two": "нажмите две кнопки на устройстве, чтобы принять предложение открыть приложение Ethereum и продолжить.",
-    "toast_bluetooth_connection_error_title": "Ой, что-то пошло не так :/",
+    "toast_bluetooth_connection_error_title": "Что-то пошло не так",
     "toast_bluetooth_connection_error_subtitle": "Леджер не подключен",
     "try_again": "Повторить попытку",
     "device_not_found": "Устройство не найдено",
@@ -7434,7 +7759,7 @@
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Шлюз IPFS",
-    "ipfs_gateway_banner_content1": "Это веб-сайт IPFS. Чтобы увидеть его, нужно включить",
+    "ipfs_gateway_banner_content1": "Это веб-сайт IPFS. Чтобы просмотреть этот сайт, вам нужно включить",
     "ipfs_gateway_banner_content2": "Шлюз IPFS",
     "ipfs_gateway_banner_content3": "в",
     "ipfs_gateway_banner_content4": "Настройки."
@@ -7459,6 +7784,45 @@
     "error_description": "Не удалось установить {{snap}}."
   },
   "earn": {
+    "strategy_selection": {
+      "title": "Выберите способ заработка",
+      "tags": {
+        "recommended": "Рекомендуется",
+        "low_risk": "Низкий риск",
+        "medium_risk": "Средний риск",
+        "high_risk": "Высокий риск"
+      },
+      "up_to": "До",
+      "toasts": {
+        "deposit_navigation": {
+          "failed": "Не удалось перейти к экрану депозита для выбранного актива"
+        }
+      },
+      "strategies": {
+        "rate_unavailable_subtitle": "Зарабатывайте на вашем балансе",
+        "money": {
+          "title": "Money Account",
+          "info_rows": {
+            "row_1": "Зарабатывайте до ~{{percentage}}% годовых на вашем балансе",
+            "row_2": "Без блокировок — торгуйте или выводите в любое время",
+            "row_3": "Хранится в mUSD, стейблкойне MetaMask, обеспеченном долларами в соотношении 1:1"
+          }
+        },
+        "stablecoin_lending": {
+          "title": "Передайть взаймы {{asset}}",
+          "subtitle": "Получайте вознаграждения ежедневно и выводите в любое время."
+        },
+        "pooled_staking": {
+          "title": "Выполнить стейкинг ETH",
+          "subtitle": "Получайте вознаграждения ежедневно и снимайте со стейкинга в любое время."
+        },
+        "trx_staking": {
+          "title": "В стейкинг TRX",
+          "subtitle": "Получайте вознаграждения ежедневно и снимайте со стейкинга в любое время."
+        }
+      },
+      "get_started": "С чего начать"
+    },
     "claimable_bonus_tooltip": "Годовой бонус, который вы заработали за хранение mUSD. Ваш бонус можно получить ежедневно на Linea.",
     "earn_a_percentage_bonus": "Заработайте бонус в размере {{percentage}}%",
     "percentage_bonus": "Бонус {{percentage}}%",
@@ -7628,9 +7992,27 @@
     },
     "your_stablecoins": "Ваши стейблкоины"
   },
+  "earn_module": {
+    "new_tag": "Новые",
+    "money_account": "Money Account",
+    "get_started": "С чего начать",
+    "rate_apy": "{{percentage}}% годовых",
+    "rate_apr": "{{percentage}}% годовых (APR)",
+    "get_rate_apy": "Получить {{percentage}}% APY",
+    "get_rate_apr": "Получить {{percentage}}% годовых (APR)",
+    "rate_unavailable": "Ставка недоступна",
+    "balance_unavailable": "Баланс недоступен",
+    "asset_unavailable": "Актив недоступен",
+    "assets_unavailable": "Не удалось загрузить некоторые возможности для заработка.",
+    "retry": "Повтор",
+    "stake_or_lend_description": "Отправьте свою криптовалюту в стейкинг или лендинг, чтобы зарабатывать. Ставки зависят от актива и стратегии",
+    "money_fallback_description": "Добавьте активы на ваш счет Money account, чтобы начать зарабатывать",
+    "more_ways_to_earn": "Больше способов заработать",
+    "empty_state_description": "В данный момент нет доступных возможностей для заработка.",
+    "view_more": "Показать еще"
+  },
   "money": {
     "title": "Деньги",
-    "get_pro": "Get Pro",
     "your_balance": "Ваш баланс",
     "apy_label": "{{percentage}}% годовых",
     "apy_currency_suffix": " • mUSD",
@@ -7728,8 +8110,8 @@
     "potential_earnings": {
       "title": "Зарабатывайте на своей криптовалюте",
       "description": "Посмотрите, как сумма ваших средств может вырасти со временем, если конвертировать вашу криптовалюту в mUSD.",
-      "description_with_amounts_prefix": "Преобразуйте свою",
-      "description_with_amounts_middle": "в активы на сумму, и вы сможете заработать до",
+      "description_with_amounts_prefix": "Добавьте ваши",
+      "description_with_amounts_middle": "в активах на ваш счет Money account, и вы сможете зарабатывать до",
       "description_with_amounts_suffix": "за один год.",
       "add": "Добавить",
       "convert_cta": "Конвертировать криптовалюту",
@@ -7754,7 +8136,6 @@
       "link_pending_title": "Привязка вашей карты",
       "link_success_title": "Ваша карта готова к использованию",
       "link_error": "Что-то пошло не так при привязке вашей карты",
-      "link_error_different_card": "Этот кошелек уже привязан к другой карте MetaMask Card",
       "unlink_pending_title": "Отвязка вашей карты",
       "unlink_success_title": "Ваша карта отвязана",
       "unlink_error": "Что-то пошло не так при отвязке вашей карты",
@@ -7795,7 +8176,8 @@
       "bank_account": "Банковский счет",
       "add_musd": "Добавить mUSD",
       "receive_external": "Внешний адрес",
-      "coming_soon": "Скоро появятся"
+      "coming_soon": "Скоро появятся",
+      "new_badge": "Новые"
     },
     "more_sheet": {
       "title": "Еще",
@@ -8125,7 +8507,7 @@
     "max_modal": {
       "title": "Максимум",
       "eth": {
-        "description": "«Максимум» — это общая сумма ETH, которая у вас есть, за вычетом комиссии за газ, необходимой для стейкинга. Рекомендуется сохранить немного ETH в своем кошельке для будущих транзакций."
+        "description": "Максимум — это общее количество имеющегося у вас ETH за вычетом комиссии сети, необходимой для стейкинга. Рекомендуется оставить немного ETH в кошельке для будущих транзакций."
       }
     },
     "use_max": "Использовать макс.",
@@ -8192,7 +8574,7 @@
     "drawer_assets_desc": "Автоматически обнаруживайте токены в своем кошельке, отображайте NFT и получайте пакетные обновления баланса счета",
     "drawer_security_title": "Безопасность",
     "drawer_security_desc": "Уменьшите свои шансы присоединиться к небезопасным сетям и защитите свои счета",
-    "network_details_check_desc": "MetaMask использует сторонний сервис под названием chainid.network для отображения точных и стандартизированных сведений о сети. Это снижает ваши шансы подключиться к вредоносной или неправильной сети. При использовании этой функции chainid.network может просматривать ваш IP-адрес."
+    "network_details_check_desc": "MetaMask использует сторонний сервис под названием chainid.network для отображения точной и стандартизированной информации о сети. Это снижает вероятность подключения к вредоносной или неверной сети. При использовании этой функции ваш IP-адрес раскрывается для chainid.network."
   },
   "simulation_details": {
     "failed": "Не удалось загрузить прогноз.",
@@ -8225,10 +8607,10 @@
       "tooltip": "Ожидаемое ежегодное увеличение стоимости ваших активов в стейкинге, основанное на размере вознаграждения за последнюю неделю."
     },
     "estimated_gas_fee": {
-      "title": "Примерная плата за газ",
+      "title": "Примерная комиссия сети",
       "gas_recipient": "Плата за газ переводится криптомайнерам, которые обрабатывают транзакции в сети Ethereum. MetaMask не получает прибыли от платы за газ.",
       "gas_fluctuation": "Плата за газ является примерной и будет меняться в зависимости от сетевого трафика и сложности транзакции.",
-      "gas_learn_more": "Подробнее о плате за газ"
+      "gas_learn_more": "Узнать больше о комиссиях сети"
     },
     "reward_frequency": {
       "title": "Частота вознаграждений",
@@ -8481,6 +8863,133 @@
       "limit": "Лимит",
       "recurring": "Повторяющееся"
     },
+    "orders": {
+      "tabs": {
+        "open_orders": "Открытые ордера",
+        "history": "История"
+      },
+      "empty": {
+        "open_orders": "Открытые ордера появятся здесь",
+        "history": "История ордеров появится здесь"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Истекает: {{timeLeft}}",
+      "limit_price": "Лимитная цена {{symbol}}",
+      "not_enough_gas": "Недостаточно газа",
+      "filled": "Выполнен",
+      "filled_at": "Исполнен в {{date}}",
+      "expired": "Просрочено",
+      "expired_after": "Истек через {{duration}}",
+      "buy_when": "Купить, когда",
+      "sell_when": "Продать, когда",
+      "is_at_or_below": "равно или ниже",
+      "is_at_or_above": "равно или выше",
+      "quote_unit": "{{amount}} {{symbol}}",
+      "quote_unit_fallback": "{{amount}}",
+      "from_market": "(-{{percent}}% от рыночной цены)",
+      "from_market_above": "(+{{percent}}% от рыночной цены)",
+      "market": "Рынок",
+      "custom": "Пользовательские",
+      "expires": "Истекает",
+      "expiration": "Срок действия",
+      "expiration_option": {
+        "minutes": "{{count}} минут(-ы)",
+        "hour": "{{count}} час",
+        "day": "{{count}} день",
+        "days": "{{count}} дн.",
+        "week": "{{count}} нед.",
+        "month": "{{count}} мес."
+      },
+      "est_network_fee": "Прим. комиссия сети",
+      "create_order": "Создать ордер",
+      "paying": "Оплата",
+      "receiving": "Получено",
+      "trigger_condition": "Условие срабатывания",
+      "expiry_label": "Срок действия",
+      "confirm_order": "Подтвердить ордер",
+      "edit_slippage": "Изменить проскальзывание"
+    },
+    "recurring": {
+      "you_get": "Вы получаете",
+      "every": "Каждые",
+      "repeat": "Повторять",
+      "times": "раз(-а)",
+      "confirm": "Подтвердить",
+      "preview_order": "Предпросмотр ордера",
+      "confirm_title": "Подтвердить регулярный ордер",
+      "paying_all_orders": "Оплата (все ордера)",
+      "paying_per_order": "Оплата (за ордер)",
+      "receiving": "Получено",
+      "est_receiving_per_order": "Прим. получение (за ордер)",
+      "est_receiving_all_orders": "Прим. получение (все ордера)",
+      "expires_after": "Истекает после",
+      "slippage_all_orders": "Проскальзывание (все ордера)",
+      "est_network_fee_per_order": "Прим. комиссия сети (за ордер)",
+      "repeat_info_title": "Повторяющиеся ордера",
+      "repeat_info_body": "Мы рандомизируем время и размер ваших ордеров, чтобы ваши обмены не следовали предсказуемому шаблону.",
+      "max_is": "Максимум — {{max}}",
+      "price_range": {
+        "label": "Диапазон цен",
+        "not_set": "Не заданы",
+        "token": "Токен",
+        "price": "Цена",
+        "exchange_rate": "Обменный курс",
+        "min_token_price": "Мин. цена {{symbol}}",
+        "max_token_price": "Макс. цена {{symbol}}",
+        "min_placeholder": "Рыночная цена",
+        "max_placeholder": "Рыночная цена",
+        "clear": "Очистить",
+        "token_price": "1 {{symbol}} = {{price}}",
+        "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
+      },
+      "unit": {
+        "minute": "минута",
+        "hour": "час",
+        "day": "день",
+        "week": "неделя",
+        "month": "месяц"
+      },
+      "unit_plural": {
+        "minute": "минуты",
+        "hour": "часы",
+        "day": "дни",
+        "week": "недели",
+        "month": "месяцы"
+      },
+      "unit_option": {
+        "minute": "Минута",
+        "hour": "Час",
+        "day": "День",
+        "week": "Неделя",
+        "month": "Месяц"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} × {{count}} orders",
+      "spend_summary": "Вы тратите {{amount}} {{symbol}} каждые {{everyValue}} {{unit}} {{repeatCount}} раз(а)",
+      "percent_filled": "{{percent}}% исполнено",
+      "completed": "Завершено",
+      "you_sent": "Вы отправили",
+      "you_receive": "Вы получаете",
+      "filled_progress": "{{percent}}%",
+      "interval": "Interval",
+      "size_per_order": "Size per order",
+      "total_received": "Всего получено",
+      "average_execution_price": "Avg. execution price",
+      "start_date": "Start date",
+      "end_date": "Дата окончания",
+      "history": "История",
+      "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} filled",
+      "not_enough_gas": "Недостаточно газа",
+      "out_of_price_range": "Out of price range",
+      "failed": "Ошибка",
+      "filled": "Выполнен",
+      "order_not_found": "Ордер не найден",
+      "cancel_order": "Отменить ордер",
+      "duplicate_order": "Duplicate order",
+      "cancel_confirmation_body": "Do you really want to cancel your order?"
+    },
     "continue": "Продолжить",
     "confirm_bridge": "Мост",
     "confirm_swap": "Обменять",
@@ -8522,6 +9031,8 @@
     "robinhood_banner_subtitle": "Изучайте популярные токены",
     "no_tokens_found": "Токены не найдены",
     "no_tokens_found_description": "Не удалось найти токены с этим именем. Попробуйте другой поисковый запрос.",
+    "no_watchlist_tokens_found": "No assets in watchlist",
+    "no_watchlist_tokens_found_description": "Tap the star icon on any asset to add it to your watchlist.",
     "select_network": "Выбрать сеть",
     "all_networks": "Все сети",
     "num_networks": "{{numNetworks}} сети(-ей)",
@@ -8649,6 +9160,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Готово"
     },
+    "off_hours_trading": {
+      "title": "Торговля в нерабочее время",
+      "description": "Рынок закрыт: цена рассчитывается эмитентом, а не берется из реальных рыночных данных. Она может отличаться при открытии рынков в следующую торговую сессию."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Обмен в процессе",
       "swap_success": "Обмен завершен",
@@ -8664,8 +9179,8 @@
     "submit": "Отправить",
     "default_slippage_description": "Ваша транзакция не будет завершена, если изменение цены превысит допустимый процент проскальзывания.",
     "confirm": "Подтвердить",
-    "exceeding_upper_slippage_warning": "Высокое проскальзывание может привести к невыгодному свопу",
-    "exceeding_lower_slippage_warning": "Низкое проскальзывание может привести к невыгодному свопу",
+    "exceeding_upper_slippage_warning": "Высокое проскальзывание, это может привести к невыгодному обмену",
+    "exceeding_lower_slippage_warning": "Низкое проскальзывание, это может привести к невыгодному обмену",
     "exceeding_lower_slippage_error": "Введите значение более {{value}}%",
     "exceeding_upper_slippage_error": "Вы не можете ввести значение более {{value}}%",
     "custom": "Пользовательские",
@@ -8681,6 +9196,10 @@
     "insufficient_native_reserve_cta": "Использовать максимум",
     "insufficient_native_reserve_message": "Эта сеть требует, чтобы на вашем счете оставалось не менее {{minimumReserve}} {{ticker}}. Вы можете использовать максимум {{maxSwappable}} {{ticker}}",
     "insufficient_native_reserve_title": "Требуется минимальный резервный баланс в размере {{ticker}}",
+    "dest_asset_require_activate_warning_cta": "Активировать {{token}}",
+    "dest_asset_require_activate_warning_message": "Этот обмен может завершиться ошибкой. В сети {{network}} ваш счета не сможет получить {{token}}, пока этот токен не будет активирован в вашем кошельке.",
+    "dest_asset_require_activate_warning_message_different_account": "Этот обмен может завершиться ошибкой. В сети {{network}} счет {{account}} не сможет получить {{token}}, пока вы не переключитесь на этот счет и не активируете токен.",
+    "dest_asset_require_activate_warning_title": "Сначала активируйте {{token}} в сети {{network}}",
     "token_warning_suspicious_banner": "{{token}} — подозрительный токен.",
     "token_warning_malicious_banner": "{{token}} — это вредоносный токен. Будьте осторожны при взаимодействии с ним.",
     "token_warning_modal_suspicious_title": "Подозрительный токен",
@@ -8706,7 +9225,7 @@
     "status": "Статус",
     "date": "Дата",
     "network": "Сеть",
-    "total_gas_fee": "Итого платы за газ",
+    "total_gas_fee": "Общая комиссия сети",
     "estimated_completion": "Прим. завершение",
     "bridge_step_action_bridge_complete": "{{destSymbol}} получено в {{destChainName}}",
     "bridge_step_action_bridge_pending": "Выполняется получение {{destSymbol}} в {{destChainName}}",
@@ -8891,7 +9410,9 @@
       "set_up": "Настроить",
       "secret_recovery_phrase": "Секретная фраза для восстановления",
       "back_up": "Создать резервную копию",
-      "remove_account": "Удалить счет"
+      "remove_account": "Удалить счет",
+      "hide_account": "Скрыть счет",
+      "unhide_account": "Показать счет"
     },
     "address_list": {
       "addresses": "Адреса",
@@ -8985,6 +9506,12 @@
       "search_placeholder": "Поиск сетей",
       "no_networks_found": "Сети не найдены",
       "no_networks_available": "Сети недоступны"
+    },
+    "manage_accounts": {
+      "title": "Управление счетами",
+      "locked": "Заблокировано",
+      "remove": "Удалить",
+      "remove_wallet": "Удалить кошелек"
     }
   },
   "deep_link_modal": {
@@ -9106,6 +9633,29 @@
       "learn_more": "Подробнее",
       "got_it": "Понятно"
     },
+    "uk_migration_bottom_sheet": {
+      "title": "Обновите вашу карту MetaMask Card",
+      "description": "Мы перешли к новому провайдеру карт. Чтобы продолжать расплачиваться без перебоев, выполните эти шаги до {{deadline}}.",
+      "description_no_deadline": "Мы перешли к новому провайдеру карт. Чтобы продолжать расплачиваться без перебоев, выполните эти шаги.",
+      "steps": {
+        "reverify_identity": "Повторно подтвердите вашу личность",
+        "get_new_card_number": "Получите ваш новый номер карты",
+        "convert_funds_usdc_base": "Конвертируйте ваши средства в USDC в сети Base"
+      },
+      "get_started": "С чего начать",
+      "remind_me_later": "Что-то пошло не так"
+    },
+    "uk_migration_soft": {
+      "title": "Обновите вашу карту MetaMask Card",
+      "description": "Настройте до {{deadline}}, чтобы избежать перебоев.",
+      "description_no_deadline": "Настройте вашу карту, чтобы избежать перебоев.",
+      "confirm_button_label": "Настроить карту"
+    },
+    "uk_migration_required": {
+      "title": "Для продолжения требуется обновление",
+      "description": "Завершите обновление вашей карты MetaMask Card, чтобы продолжить ее использование.",
+      "confirm_button_label": "Обновить сейчас"
+    },
     "daimo_pay_modal": {
       "load_error": "Не удалось загрузить страницу оплаты. Повторите попытку.",
       "timeout_error": "Время подтверждения платежа истекло. Проверьте статус своей транзакции.",
@@ -9142,6 +9692,7 @@
         "clickwrap_prefix": "Нажимая «Далее», вы принимаете условия Immersve ",
         "clickwrap_and": " и ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Ваша карта будет временно недоступна до завершения настройки.",
         "legal_docs_error": "Не удалось загрузить юридические документы."
       },
       "confirm_email": {
@@ -9464,6 +10015,12 @@
       }
     },
     "transactions": {
+      "title": "Транзакции",
+      "empty": "Пока нет транзакций",
+      "load_error": "Не удалось загрузить транзакции",
+      "load_error_more": "Не удалось загрузить больше",
+      "retry": "Повторить попытку",
+      "end_of_list": "Все сделано",
       "pending": "Ожидающий",
       "completed": "Завершено",
       "reversed": "Отменена",
@@ -9488,7 +10045,21 @@
         "misc": "Другое"
       },
       "view_on_explorer": "Просмотр в обозревателе блоков",
-      "report_cta": "Сообщить о транзакции"
+      "report_cta": "Сообщить о проблеме",
+      "report_title": "Вы связывались с продавцом?",
+      "report_body_merchant": "Большинство проблем с транзакциями решаются быстрее при прямом обращении к продавцу.",
+      "report_body_continue": "Если вы уже пробовали, мы готовы помочь.",
+      "report_file": "Отправить отчет",
+      "report_open_error": "Не удалось открыть почтовое приложение",
+      "report_link_error": "Не удалось открыть форму отчета",
+      "report_email_subject": "Отчет о транзакции по карте — {{transactionId}}",
+      "report_email_body": "Ид. транзакции: {{transactionId}}",
+      "report_back": "Отмена",
+      "you_withdrew": "Вы сняли",
+      "you_deposited": "Вы внесли",
+      "you_received": "Вы получили",
+      "manage_entry_title": "История транзакций",
+      "manage_entry_description": "Покупки и операции по карте"
     },
     "card_spending_limit": {
       "title_change_token": "Измените токен и сеть",
@@ -9642,8 +10213,7 @@
         "timeout_error": "Время ожидания ответа на запрос истекло. Проверьте подключение и повторите попытку.",
         "server_error": "Ошибка сервера. Повторите попытку позже.",
         "configuration_error": "Сервис временно недоступен. Повторите попытку позже.",
-        "forbidden_error": "Это действие недоступно для вашего счета.",
-        "money_account_linked_to_different_card": "Этот кошелек уже привязан к другой карте MetaMask Card. Отвяжите его от той карты, прежде чем привязывать его здесь."
+        "forbidden_error": "Это действие недоступно для вашего счета."
       }
     },
     "card_forgot_password": {
@@ -9799,7 +10369,7 @@
       "description": "Карта MetaMask Metal Card предоставляется при соблюдении определенных условий и доступна не во всех регионах. Если вы не соответствуете условиям, вместо карты вы получите эксклюзивный премиальный сувенир.",
       "contact_info": "Оставьте свои контактные данные, и вы получите ответ в течение 2 недель от @MidwitMilhouse в Telegram или по адресу christian.montoya@consensys.net.",
       "email_label": "Эл. почта",
-      "email_validation_error": "Введите действительный адрес эл. почты",
+      "email_validation_error": "Enter a valid email address",
       "telegram_label": "Ник в Telegram",
       "telegram_placeholder": "Необязательно"
     },
@@ -10138,10 +10708,12 @@
       "geo_locked_cta": "Проверить доступность",
       "geo_loading": "Проверка региона...",
       "remind_me_success_toast": "Мы сообщим вам, когда начнется эта кампания.",
-      "remind_me_save_error": "Не удалось сохранить ваше напоминание. Пожалуйста, попробуйте еще раз."
+      "remind_me_save_error": "Не удалось сохранить ваше напоминание. Пожалуйста, попробуйте еще раз.",
+      "view_details": "Просмотр подробностей",
+      "view_details_accessibility": "Посмотреть детали для {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Механизм"
+      "title": "Правила и условия участия"
     },
     "campaign_details": {
       "start_date": "Начинается: {{date}}",
@@ -10158,6 +10730,12 @@
       "swap_ondo_assets": "Обменять активы Ondo",
       "open_position": "Торговать сейчас",
       "how_it_works": "Как это работает",
+      "error_title": "Не удалось загрузить эту кампанию",
+      "error_description": "Мы не смогли загрузить эту кампанию. Попробуйте снова.",
+      "stats_error_title": "Не удалось загрузить статистику",
+      "stats_error_description": "У нас возникла проблема с загрузкой вашей статистики. Пожалуйста, попробуйте еще раз.",
+      "retry": "Повтор",
+      "last_checked_at": "Последняя проверка в",
       "ondo": {
         "entries_closed_title": "Прием заявок закрыт",
         "entries_closed_description": "Вы пропустили окно для присоединения. Возвращайтесь, чтобы узнать о будущих кампаниях."
@@ -10281,7 +10859,7 @@
       "label_rank": "Рейтинг",
       "label_your_rank": "Ваш ранг",
       "label_pnl": "П/У",
-      "label_volume": "Объем",
+      "label_volume": "По объему",
       "label_notional_volume": "Номинальный объем",
       "pending": "Ожидающий",
       "qualified": "Квалифицирован",
@@ -10446,8 +11024,8 @@
       "you_received": "Вы получили",
       "token_received": "Токен получен",
       "money_account": "Money Account",
-      "perps_account": "Счет перпов 1",
-      "predictions_account": "Счет прогнозов 1",
+      "perps_account": "Перпы по счету 1",
+      "predictions_account": "Прогнозы по счету 1",
       "steps_completed": "Шаги (завершено: {{count}})",
       "summary": "Сводка"
     },
@@ -10485,7 +11063,7 @@
     "bandwidth_fee": "Пропускная способность",
     "energy_fee": "Энергия",
     "bridge_fee": "Комиссия моста",
-    "gas_token_fee": "Плата за газ",
+    "gas_token_fee": "Комиссия сети",
     "transaction_fee": "Комиссия за транзакцию",
     "unknown_token": "Неизвестно",
     "total_amount": "Общая сумма",
@@ -10521,7 +11099,7 @@
       "description": "Чтобы продолжить, вернитесь в приложение."
     },
     "show_cli_link_success": {
-      "title": "Agent wallet successfully linked",
+      "title": "Агентский кошелек успешно привязан",
       "description": "Вернитесь в CLI, чтобы продолжить."
     },
     "push_nudge": {
@@ -10535,8 +11113,8 @@
     "show_otp": {
       "title": "Введите этот код",
       "description": "Введите {{otp}} в {{dappName}}, чтобы завершить подключение. Срок действия этого кода истекает через {{seconds}} секунд.",
-      "modal_title": "Link MetaMask Agent wallet",
-      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent wallet.",
+      "modal_title": "Привязать агентский кошелек MetaMask",
+      "modal_description": "Свяжите MetaMask Mobile с вашим агентским кошельком MetaMask.",
       "code_label": "ВВЕДИТЕ КОД В ТЕРМИНАЛЕ",
       "expires_in": "Истекает через {{time}}",
       "expired": "Срок действия кода истек",
@@ -10600,7 +11178,7 @@
     "all_sports_no_markets": "В этой категории пока нет открытых рынков. Загляните позже или выберите другой вид спорта выше.",
     "load_more": "Загрузить еще",
     "sort_by": "Сортировать",
-    "volume": "Объем",
+    "volume": "По объему",
     "market_cap": "По рыночной капитализации",
     "high_to_low": "По убыванию",
     "low_to_high": "По возрастанию",
@@ -10649,6 +11227,7 @@
       "all": "Все",
       "crypto": "Крипто",
       "perps": "Перпы",
+      "earn": "Заработать",
       "stocks": "Акции",
       "predictions": "Прогнозы",
       "sites": "Сайты"
@@ -10812,6 +11391,7 @@
       "import_nfts": "Импорт NFT",
       "import_nfts_description": "Легко добавляйте свои предметы коллекционирования",
       "view_more": "Показать еще",
+      "earn": "Заработать",
       "more": {
         "title": "Еще",
         "import_token": "Импорт токена",
@@ -10833,7 +11413,6 @@
   "whats_happening": {
     "title": "Что происходит",
     "ai": "ИИ",
-    "ai_generated": "Создано ИИ",
     "outdated": "Устарело",
     "impact": {
       "bullish": "Бычий",
@@ -10879,86 +11458,192 @@
     "deactivate_error": "Что-то пошло не так при удалении этой линии доверия (trustline). Попробуйте снова.",
     "deactivate_error_non_zero_balance_stellar": "В вашем кошельке все еще осталось {{balance}} {{symbol}}. Вы должны отправить или обменять их все перед деактивацией этого актива в сети Stellar."
   },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "manage": "Управление подпиской",
+    "manage_membership": "Manage membership",
+    "also_included": {
+      "title": "Also included",
+      "transaction_protection": {
+        "title": "Transaction protection",
+        "badge": "Extension",
+        "subtitle": "Up to $10,000 in on-chain protection"
+      },
+      "priority_support": {
+        "title": "Priority support",
+        "subtitle": "Поддержка живыми людьми, круглосуточно"
+      },
+      "disclaimer": "Allowances reset monthly. APY is variable and not guaranteed. Benefits and card availability vary by region."
+    },
+    "membership_brand": "METAMASK",
+    "membership_label": "Pro",
+    "lifetime_earnings": "Заработок за все время",
+    "money_balance": "Баланс Money",
+    "musd_back": "3% mUSD back",
+    "member_pricing": {
+      "title": "Цены для участников на сделки",
+      "allowance_currency": "${{amount}}",
+      "allowance_count_one": "{{count}} сделка",
+      "allowance_count_other": "{{count}} сделок",
+      "swaps": {
+        "label": "Свопы",
+        "footnote": "Лимит обновляется ежемесячно. Комиссии применяются свыше $500."
+      },
+      "perps": {
+        "label": "Перпы",
+        "footnote": "Лимит обновляется ежемесячно. Комиссии применяются свыше $1000."
+      },
+      "predict": {
+        "label": "Прогнозы",
+        "footnote": "Одна сделка на прогнозах в месяц. Неиспользованные сделки не переносятся."
+      }
+    },
+    "physical_card": {
+      "title": "Get your free MetaMask Card",
+      "description": "Earn 3% mUSD back on purchases"
+    },
+    "earned": {
+      "total_label": "Заработано с момента подключения Pro",
+      "interest_title": "Проценты",
+      "interest_subtitle": "До 7% годовых на баланс Money",
+      "card_cashback_title": "Кэшбэк по карте",
+      "card_cashback_subtitle": "3% в mUSD на {{amount}}",
+      "paid_for_itself_title": "Подписка Pro окупилась",
+      "paid_for_itself_description": "Возвращено с момента регистрации — {{multiplier}}x от вашей абонентской платы в размере {{fee}}.",
+      "grow_title": "Увеличивайте свой баланс",
+      "grow_description": "Каждая 1000 долларов на вашем счете Money account приносит около 70 $ в год при доходности до 7% годовых.",
+      "add_money": "Пополнить"
+    },
+    "membership": {
+      "title": "Ваша подписка",
+      "plan": "Подписка",
+      "earned_this_month": "Заработано в этом месяце",
+      "payment_details": "Детали платежа",
+      "total": "Итого",
+      "paying_with": "Оплата с помощью",
+      "renews_on": "Продлевается",
+      "manage": "Управление",
+      "invoices": "Invoices",
+      "contact_support": "Связаться с поддержкой",
+      "cancel_membership": "Отменить подписку",
+      "earned_info": {
+        "title": "Заработано в этом месяце",
+        "description": "Сумма, которую вы заработали в виде APY и кешбэка в mUSD как участник Pro."
+      },
+      "saved_info": {
+        "title": "Сэкономлено в этом месяце",
+        "description": "Сумма, которую вы сэкономили как участник Pro на комиссиях MetaMask при свопах, перпах и прогнозах в этом месяце, плюс комиссии банкоматов и конвертации."
+      }
+    },
+    "cancel_membership": {
+      "title": "Почему вы отменяете подписку?",
+      "subtitle": "Опрос необязателен.",
+      "earned_as_member": "Заработано за время подписки",
+      "membership_cost": "Стоимость подписки",
+      "reason_issue": "У меня проблема с моей подпиской",
+      "reason_no_value": "Не получаю достаточной выгоды",
+      "reason_no_benefits": "Мне не нужны эти преимущества",
+      "reason_support": "Недоволен службой поддержки",
+      "reason_other": "Другое",
+      "keep_membership": "Оставить подписку",
+      "cancel": "Отмена",
+      "success": {
+        "title": "План отменен",
+        "description_prefix": "Ваш план Pro успешно отменен. Он не будет продлен, и вы сохраните все свои преимущества до ",
+        "description_suffix": ".",
+        "done": "Готово"
+      }
+    }
+  },
   "pro_subscription": {
-    "title": "Earn more with Pro",
-    "description": "$4.99/mo ($49.99 for annual membership)",
-    "join_pro": "Join Pro",
+    "title": "Зарабатывайте больше с Pro",
+    "description": "4,99 $/мес (49,99 $ за годовую подписку)",
+    "join_pro": "Присоединиться к Pro",
     "benefits": {
       "apy": {
-        "title": "Up to 7% APY on Money account",
-        "subtitle": "Paid in mUSD, no lockups"
+        "title": "До 7% годовых по счету Money Account",
+        "subtitle": "Выплачивается в mUSD, без блокировок"
       },
       "cashback": {
-        "title": "3% mUSD back on card purchases",
-        "subtitle": "Up to $1,000/mo, worldwide"
+        "title": "3% кешбэк в mUSD за покупки по карте",
+        "subtitle": "До $12,000 в год по всему миру",
+        "subtitle_monthly": "До 1000 $/мес, по всему миру"
       },
       "member_pricing": {
-        "title": "Member pricing on trades",
-        "subtitle": "Including swaps, perps, and predictions"
+        "title": "Цены для участников на сделки",
+        "subtitle": "Включая свопы, перпы и прогнозы"
       },
       "atm_fees": {
-        "title": "No added ATM or FX fees",
-        "subtitle": "Physical card included"
+        "title": "Без дополнительных комиссий банкоматов и конвертации",
+        "subtitle": "Физическая карта входит в пакет",
+        "subtitle_monthly": "Физическая карта доступна отдельно"
       },
       "protection": {
-        "title": "Up to $10,000 in protection",
-        "subtitle": "On eligible extension transactions"
+        "title": "Защита до 10 000 $",
+        "subtitle": "На соответствующие транзакции в расширении"
       },
       "support": {
-        "title": "Real human support, around the clock",
-        "subtitle": "Response in minutes"
+        "title": "Поддержка живыми людьми, круглосуточно",
+        "subtitle": "Ответ за считанные минуты"
       }
     },
     "plans": {
       "annual": {
         "label": "За год",
-        "price": "$49.99",
-        "sub_price": "($4.15/mo)",
-        "badge": "2 months free",
-        "cta": "Join Pro for $4.15/month"
+        "price": "49,99 $",
+        "sub_price": "(4,15 $/мес)",
+        "badge": "2 месяца бесплатно",
+        "cta": "Присоединиться к Pro за 4,15 $/мес"
       },
       "monthly": {
         "label": "Месячный",
-        "price": "$4.99/mo",
-        "cta": "Join Pro for $4.99/month"
+        "price": "4,99 $/мес",
+        "cta": "Присоединиться к Pro за 4,99 $/мес"
       }
     },
     "benefits_description": {
       "apy": {
-        "description": "Money account gives you up to ~4% APY on your balance. Members earn up to ~7% APY—accrued daily, paid in mUSD. APY is variable and not guaranteed."
+        "description": "Как у участника Pro, ваш счет Money account зарабатывает до ~7% годовых, выплачиваемых в mUSD. Обычные пользователи получают до ~4% годовых.",
+        "description2": "Годовая процентная доходность является переменной величиной и не гарантируется."
       },
       "cashback": {
-        "description": "Spend with your card and earn 3% mUSD back, paid straight to your Money balance—where it starts earning the member rate immediately.",
+        "description": "Расплачивайтесь картой и получайте 3% кэшбэка в mUSD прямиком на ваш баланс Money, где они начнут приносить до ~7% APY.",
         "points": [
-          "Monthly members: 3% back on up to $1,000 in purchases every month",
-          "Annual members: 3% back on up to $12,000 in purchases every year"
+          "Участники с месячной подпиской: 3% кешбэк на покупки до 1000 $ каждый месяц",
+          "Участники с годовой подпиской: 3% кешбэк на покупки до 12 000 $ каждый год"
         ]
       },
       "member_pricing": {
-        "description": "Members pay no MetaMask fees on:",
+        "description": "Не платите комиссии MetaMask за:",
         "points": [
-          "$500/mo in swaps",
-          "$1,000/mo in perps",
-          "Up to 1 prediction/mo"
+          "500 $/мес. по свопам",
+          "1000 $/мес. по перпам",
+          "До 1 прогноза в месяц"
         ]
       },
       "atm_fees": {
-        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
+        "description": "Карта MetaMask Card доставляется бесплатно для участников с годовой подпиской. Используйте ее в более чем 150 млн торговых точек по всему миру, везде, где принимается Mastercard, — без комиссий банкоматов или комиссий за иностранные транзакции от MetaMask.",
+        "description_monthly": "MetaMask Card доступна отдельно для подписчиков с ежемесячной оплатой. Используйте её в более чем 150 миллионах торговых точек по всему миру, везде, где принимают Mastercard — без комиссий за снятие в банкоматах или за иностранные транзакции от MetaMask."
       },
       "protection": {
-        "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000.",
-        "sub_description": "Transaction protection offers asset coverage for extension across a range of supported interactions on popular blockchain networks. Members receive clear in-app alerts when a transaction is covered.",
+        "description": "Получите защиту до 100 транзакций расширения MetaMask в месяц на сумму до $10 000. Участники получают четкие уведомления в приложении, когда транзакция застрахована.",
+        "sub_description": "Защита включает:",
+        "points": [
+          "DeFi-свопы",
+          "Минт NFT",
+          "Клейм аирдропов"
+        ],
         "learn_more": "Узнайте подробнее",
-        "notes": "Note: Transaction protection does not protect against losses that occur before or after a transaction."
+        "notes": "Примечание: защита транзакций не защищает от убытков, возникших до или после транзакции."
       },
       "support": {
-        "description": "When something goes wrong, a real person responds in minutes—anytime, any day."
+        "description": "Получите приоритетную поддержку от реального человека — в любое время и в любой день."
       }
     },
     "success": {
-      "title": "You just leveled up, {{name}}",
-      "description": "Time to start earning.",
-      "cta": "Continue"
+      "title": "Вы только что перешли на новый уровень, {{name}}",
+      "description": "Пора начинать зарабатывать.",
+      "cta": "Продолжить"
     }
   }
 }

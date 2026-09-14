@@ -94,6 +94,10 @@ export function buildRelayQuoteMock(
     }
   }
 
+  if (params.recipient) {
+    quote.details.recipient = params.recipient;
+  }
+
   quote.details.route = [
     {
       action: 'send',

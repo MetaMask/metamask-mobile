@@ -1,8 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
-import Text from '../../../../../../component-library/components/Texts/Text';
 import AnimatedPulse from './animated-pulse';
+import { Text } from '@metamask/design-system-react-native';
 
 describe('AnimatedPulse', () => {
   it('should render correctly', () => {

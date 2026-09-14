@@ -1,4 +1,10 @@
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -17,6 +23,7 @@ import {
 } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import {
   defaultMinimumOrderAmountMock,
   defaultPerpsClosePositionMock,
@@ -30,6 +37,7 @@ import {
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
 import PerpsClosePositionView from './PerpsClosePositionView';
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 
 // Mock navigation
 const mockGoBack = jest.fn();
@@ -37,6 +45,11 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
+  useIsFocused: jest.fn(),
+}));
+jest.mock('../../../../../util/haptics');
+jest.mock('../../services/PerpsCacheInvalidator', () => ({
+  PerpsCacheInvalidator: { invalidate: jest.fn() },
 }));
 
 // Mock React Native Linking specifically for this test to prevent NavigationContainer errors
@@ -180,6 +193,7 @@ const defaultPerpsToastsMock = {
   PerpsToastOptions: {
     positionManagement: {
       closePosition: {
+        positionAlreadyClosed: { label: 'already-closed' },
         limitClose: {
           partial: {
             switchToMarketOrderMissingLimitPrice: {},
@@ -208,6 +222,9 @@ describe('PerpsClosePositionView', () => {
   );
   const useRouteMock = jest.mocked(
     jest.requireMock('@react-navigation/native').useRoute,
+  );
+  const useIsFocusedMock = jest.mocked(
+    jest.requireMock('@react-navigation/native').useIsFocused,
   );
   const usePerpsLivePositionsMock = jest.mocked(
     jest.requireMock('../../hooks/stream').usePerpsLivePositions,
@@ -255,6 +272,8 @@ describe('PerpsClosePositionView', () => {
       goBack: mockGoBack,
       addListener: jest.fn(() => jest.fn()),
     });
+
+    useIsFocusedMock.mockReturnValue(true);
 
     // Setup default route params
     useRouteMock.mockReturnValue({
@@ -393,13 +412,199 @@ describe('PerpsClosePositionView', () => {
       await waitFor(() => {
         expect(handleClosePosition).toHaveBeenCalled();
       });
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('plays PrimaryCTA once for an opted-in close confirmation', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          enableHaptics: true,
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('dismisses the sheet with already-closed toast when live position is gone', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+      expect(defaultPerpsToastsMock.showToast).toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
+      expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+        'positions',
+      );
+      expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+        'accountState',
+      );
+      expect(handleClosePosition).not.toHaveBeenCalled();
+    });
+
+    it('does not dismiss a second time when the stream drops the position after a confirmed close', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { rerender } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      rerender(<PerpsClosePositionView />);
+
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
+    });
+
+    it('keeps the sheet open while positions are still loading', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: true,
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalled();
+    });
+
+    it('defers the already-closed dismissal while the sheet is not focused', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      useIsFocusedMock.mockReturnValue(false);
+
+      const { rerender } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalled();
+
+      useIsFocusedMock.mockReturnValue(true);
+      rerender(<PerpsClosePositionView />);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(defaultPerpsToastsMock.showToast).toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
     });
 
     it('disables confirm button when closing is in progress', () => {
       // Arrange
+      const handleClosePosition = jest.fn();
       usePerpsClosePositionMock.mockReturnValue({
-        handleClosePosition: jest.fn(),
+        handleClosePosition,
         isClosing: true,
+      });
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          enableHaptics: true,
+        },
       });
 
       const { getByTestId } = renderWithProvider(
@@ -420,6 +625,9 @@ describe('PerpsClosePositionView', () => {
         confirmButton.props.disabled ||
           confirmButton.props.accessibilityState?.disabled,
       ).toBe(true);
+      fireEvent.press(confirmButton);
+      expect(handleClosePosition).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('shows loading state on confirm button when closing', () => {

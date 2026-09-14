@@ -6,12 +6,17 @@ import {
   preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
+import {
+  findBridgeHistoryItemBySrcTxHash,
+  useBridgeHistoryItemBySrcTxHash,
+} from '../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 
 /**
  * Re-resolves a single {@link ActivityListItem} by its transaction identifier
@@ -21,11 +26,8 @@ import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformation
  *
  * Mirrors the extension's `ui/pages/details/transaction-details.tsx` resolution:
  * a more-categorized API item takes precedence over a local item when the local
- * item is less-categorized than the API copy — either a generic
- * `contractInteraction` or a `swapIncomplete` (a swap whose destination token
- * could not be resolved on-device, which the API often resolves to a full
- * `swap`). This keeps the details page in sync with the list, which dedups
- * confirmed swaps to the API copy.
+ * item is less-categorized than the API copy — a generic
+ * `contractInteraction`. This keeps the details page in sync with the list.
  *
  * Local gasless/STX rows may temporarily change their displayed hash while the
  * meta `id` stays stable. Lookup therefore indexes local rows by meta id and
@@ -49,7 +51,7 @@ function buildItemsByHash(
 }
 
 /** Keys that can address a local EVM Activity row (meta id + hashes). */
-export function getLocalActivityLookupKeys(item: ActivityListItem): string[] {
+function getLocalActivityLookupKeys(item: ActivityListItem): string[] {
   const keys = new Set<string>();
   if (item.hash) {
     keys.add(item.hash.toLowerCase());
@@ -83,24 +85,13 @@ function buildLocalItemsByLookupKey(
   return byKey;
 }
 
-function isProviderBackedItem(item: ActivityListItem): boolean {
-  return (
-    item.raw?.type === 'perpsTransaction' ||
-    item.raw?.type === 'predictActivity'
-  );
-}
-
 function buildItemsByIdentifier(
   items: ActivityListItem[],
 ): Map<string, ActivityListItem> {
   const byIdentifier = buildItemsByHash(items);
   for (const item of items) {
     const domainId =
-      item.raw?.type === 'perpsTransaction' ||
-      item.raw?.type === 'predictActivity' ||
-      item.raw?.type === 'rampOrder'
-        ? item.raw.data.id
-        : undefined;
+      item.raw?.type === 'rampOrder' ? item.raw.data.id : undefined;
     const normalizedDomainId = domainId?.toLowerCase();
     if (normalizedDomainId && !byIdentifier.has(normalizedDomainId)) {
       byIdentifier.set(normalizedDomainId, item);
@@ -151,7 +142,6 @@ function getPreferredApiItem(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
-  preloadedItem?: ActivityListItem,
 ): ActivityListItem | undefined {
   const localActivityItems = useLocalActivityItems();
   const rampActivityItems = useRampActivityItems();
@@ -159,6 +149,8 @@ export function useActivityDetailsItem(
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
+  const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const confirmedEvmItems = useMemo<ActivityListItem[]>(
     () => evmTransactions?.pages.flatMap((page) => page.data) ?? [],
@@ -166,8 +158,16 @@ export function useActivityDetailsItem(
   );
 
   const nonEvmItems = useMemo<ActivityListItem[]>(
-    () => mapNonEvmTransactions(nonEvmState?.transactions ?? []),
-    [nonEvmState?.transactions],
+    () =>
+      mapNonEvmTransactions(
+        nonEvmState?.transactions ?? [],
+        (txId) =>
+          findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, txId),
+        (transaction) =>
+          accounts.find((account) => account.id === transaction.account)
+            ?.address,
+      ),
+    [nonEvmState?.transactions, bridgeHistoryItemsBySrcTxHash, accounts],
   );
 
   const chainedLocalItems = useMemo(
@@ -186,13 +186,6 @@ export function useActivityDetailsItem(
     () => buildItemsByHash(filterByChain(nonEvmItems, chainId)),
     [nonEvmItems, chainId],
   );
-  const preloadedByIdentifier = useMemo(
-    () =>
-      buildItemsByIdentifier(
-        filterByChain(preloadedItem ? [preloadedItem] : [], chainId),
-      ),
-    [preloadedItem, chainId],
-  );
   const rampByIdentifier = useMemo(
     () => buildItemsByIdentifier(filterByChain(rampActivityItems, chainId)),
     [rampActivityItems, chainId],
@@ -204,63 +197,29 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
-    const preloadedResolvedItem = preloadedByIdentifier.get(id);
-
-    // Provider-backed rows can't be re-resolved from list sources — honor the
-    // hand-off first (also wins hash collisions with unrelated local txs).
-    if (preloadedResolvedItem && isProviderBackedItem(preloadedResolvedItem)) {
-      return preloadedResolvedItem;
+    const rampsActivityItem = rampByIdentifier.get(id);
+    if (rampsActivityItem) {
+      return rampsActivityItem;
     }
 
-    const preloadedMetaId =
-      preloadedResolvedItem?.raw?.type === 'localTransaction'
-        ? preloadedResolvedItem.raw.data.primaryTransaction.id?.toLowerCase()
-        : undefined;
-    const localFromPreloadMeta = preloadedMetaId
-      ? localByLookupKey.get(preloadedMetaId)
-      : undefined;
-
-    const localItem = localByLookupKey.get(id) ?? localFromPreloadMeta;
-    const apiItem = getPreferredApiItem(
-      apiByHash,
-      id,
-      localItem,
-      preloadedResolvedItem,
-    );
+    const localItem = localByLookupKey.get(id);
+    const apiItem = getPreferredApiItem(apiByHash, id, localItem);
     const nonEvmItem = nonEvmByHash.get(id);
-    const rampItem = rampByIdentifier.get(id);
-
-    if (rampItem) {
-      return rampItem;
-    }
 
     if (localItem) {
       return preferLocalOrApiActivityItem(localItem, apiItem);
-    }
-
-    // Live local missed (STX hash flip / TC prune) but we still have the
-    // stashed local snapshot from navigation — apply the same API preference
-    // so a gas-token (or richer spending-cap) fee is not discarded for a
-    // native-only API copy.
-    if (preloadedResolvedItem?.raw?.type === 'localTransaction') {
-      return preferLocalOrApiActivityItem(preloadedResolvedItem, apiItem);
     }
 
     if (nonEvmItem) {
       return nonEvmItem;
     }
 
-    if (apiItem) {
-      return apiItem;
-    }
-
-    return preloadedResolvedItem;
+    return apiItem;
   }, [
     txIdentifier,
     localByLookupKey,
     apiByHash,
     nonEvmByHash,
-    preloadedByIdentifier,
     rampByIdentifier,
   ]);
 }

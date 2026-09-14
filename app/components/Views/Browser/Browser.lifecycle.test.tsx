@@ -13,7 +13,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
+import { IndependentNavigationContainer } from '../../../util/test/IndependentNavigationContainer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -177,7 +177,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -194,7 +194,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -219,7 +219,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -236,7 +236,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -260,7 +260,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       const { rerender } = renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -277,7 +277,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -297,7 +297,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       rerender(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -314,7 +314,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
       );
 
@@ -331,7 +331,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -348,7 +348,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -373,7 +373,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -390,7 +390,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -421,7 +421,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -438,7 +438,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -466,7 +466,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -483,7 +483,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -507,7 +507,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -529,7 +529,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         { state: mockInitialState },
       );
@@ -542,7 +542,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -559,7 +559,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         { state: mockInitialState },
       );
@@ -577,7 +577,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -594,7 +594,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -634,7 +634,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -651,7 +651,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -684,7 +684,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -703,7 +703,7 @@ describe('Browser - Lifecycle and Callbacks', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {

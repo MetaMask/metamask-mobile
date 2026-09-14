@@ -101,7 +101,7 @@ const NotifCard = ({
 
       {/* Border overlay — MaskedView fades the border top-to-transparent */}
       <MaskedView
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         maskElement={
           <LinearGradient
             colors={['black', 'black', 'transparent']}
@@ -112,7 +112,7 @@ const NotifCard = ({
       >
         <View
           style={[
-            StyleSheet.absoluteFillObject,
+            StyleSheet.absoluteFill,
             styles.border,
             { borderColor: mutedBorderColor },
           ]}

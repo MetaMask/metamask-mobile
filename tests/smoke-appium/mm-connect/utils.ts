@@ -1,10 +1,16 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { sleep, createLogger } from '../../framework';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
+import {
+  adbDeviceArgs,
+  hostListenPortForDevicePort,
+  isIosAppiumSmokeEnv,
+  localDappBrowserUrl,
+} from '../../framework/e2eWorkerPorts.ts';
 
 const logger = createLogger({
   name: 'MMConnectUtils',
@@ -45,24 +51,44 @@ export async function waitForDappServerReady(
  * Get the dapp URL for mobile browser access.
  * Uses localhost on both platforms. On Android, pair with {@link setupAdbReverse}
  * so the emulator reaches the host dapp server (preferred over 10.0.2.2 for
- * stable URL / CDP matching).
+ * stable URL / CDP matching). On iOS, uses the worker host listen port because
+ * adb reverse is a no-op and N=2 workers listen on shifted ports.
  */
 export function getDappUrlForBrowser(
   _platform: string,
   port = DEFAULT_DAPP_PORT,
 ): string {
-  return `http://localhost:${port}`;
+  return localDappBrowserUrl(port);
 }
 
 /**
- * Set up ADB reverse port forwarding for Android emulator.
+ * Set up ADB reverse so the emulator's `devicePort` reaches `hostPort` on the
+ * worker host. Worker 1 listens on a shifted host port to avoid EADDRINUSE.
+ * No-ops on iOS (simulators share the host network; adb is not available).
  */
-export function setupAdbReverse(port: number): void {
+export function setupAdbReverse(
+  devicePort: number,
+  hostPort: number = devicePort,
+): void {
+  if (isIosAppiumSmokeEnv()) {
+    return;
+  }
+
+  const deviceArgs = adbDeviceArgs();
   try {
-    execSync(`adb reverse tcp:${port} tcp:${port}`, { stdio: 'pipe' });
-    logger.info(`ADB reverse port ${port} configured`);
+    execFileSync(
+      'adb',
+      [...deviceArgs, 'reverse', `tcp:${devicePort}`, `tcp:${hostPort}`],
+      { stdio: 'pipe' },
+    );
+    logger.info(`ADB reverse tcp:${devicePort} → tcp:${hostPort} configured`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (deviceArgs.length > 0) {
+      throw new Error(
+        `Could not set up ADB reverse tcp:${devicePort} → tcp:${hostPort}: ${message}`,
+      );
+    }
     logger.warn(
       `Could not set up ADB reverse (may be expected on iOS): ${message}`,
     );
@@ -70,15 +96,51 @@ export function setupAdbReverse(port: number): void {
 }
 
 /**
- * Clean up ADB reverse port forwarding.
+ * Clean up ADB reverse port forwarding for the device-facing port.
  */
-export function cleanupAdbReverse(port: number): void {
+export function cleanupAdbReverse(devicePort: number): void {
+  if (isIosAppiumSmokeEnv()) {
+    return;
+  }
+
   try {
-    execSync(`adb reverse --remove tcp:${port}`, { stdio: 'pipe' });
-    logger.info(`ADB reverse port ${port} removed`);
+    execFileSync(
+      'adb',
+      [...adbDeviceArgs(), 'reverse', '--remove', `tcp:${devicePort}`],
+      { stdio: 'pipe' },
+    );
+    logger.info(`ADB reverse port ${devicePort} removed`);
   } catch {
     // Ignore cleanup errors
   }
+}
+
+export async function startLocalDappServerOnWorker(
+  server: {
+    setServerPort: (port: number) => void;
+    start: () => Promise<void>;
+    stop: () => Promise<void>;
+  },
+  devicePort: number,
+): Promise<void> {
+  const hostPort = hostListenPortForDevicePort(devicePort);
+  server.setServerPort(hostPort);
+  await server.start();
+  await waitForDappServerReady(hostPort);
+  try {
+    setupAdbReverse(devicePort, hostPort);
+  } catch (error) {
+    await server.stop();
+    throw error;
+  }
+}
+
+export async function stopLocalDappServerOnWorker(
+  server: { stop: () => Promise<void> },
+  devicePort: number,
+): Promise<void> {
+  cleanupAdbReverse(devicePort);
+  await server.stop();
 }
 
 // Candidate paths for the playground release APK, checked in priority order:
@@ -132,7 +194,13 @@ export function ensurePlaygroundInstalled(
 
   // Uninstall any existing version (debug or release) to guarantee a clean state
   try {
-    execSync(`adb uninstall ${PLAYGROUND_PACKAGE_ID}`, { stdio: 'pipe' });
+    execFileSync(
+      'adb',
+      [...adbDeviceArgs(), 'uninstall', PLAYGROUND_PACKAGE_ID],
+      {
+        stdio: 'pipe',
+      },
+    );
     logger.info(`Uninstalled existing ${PLAYGROUND_PACKAGE_ID}`);
   } catch {
     // Package was not installed; nothing to uninstall
@@ -140,7 +208,9 @@ export function ensurePlaygroundInstalled(
 
   logger.info(`Installing playground release APK from ${apkPath}...`);
   try {
-    execSync(`adb install "${apkPath}"`, { stdio: 'pipe' });
+    execFileSync('adb', [...adbDeviceArgs(), 'install', apkPath], {
+      stdio: 'pipe',
+    });
     logger.info('Playground APK installed successfully');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

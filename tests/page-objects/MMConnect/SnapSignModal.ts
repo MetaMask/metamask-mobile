@@ -1,17 +1,17 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { sleep, type EncapsulatedElementType } from '../../framework';
+import { sleep, type AppiumElement } from '../../framework';
 import { TestSnapBottomSheetSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 
 class SnapSignModal {
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
     );
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): Promise<AppiumElement> {
     return Matchers.getElementByNativeXPath(
       `//*[contains(@resource-id,"cancel") ` +
         `and contains(@resource-id,"${TestSnapBottomSheetSelectorWebIDS.SNAP_FOOTER_BUTTON_ID}")]`,

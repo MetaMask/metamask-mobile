@@ -36,6 +36,7 @@ import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -156,6 +157,12 @@ export interface TopTradersViewProps {
    * title stays put when the user switches tabs.
    */
   pageRef?: React.Ref<SocialTabPageHandle>;
+  /**
+   * Fires once the visible leaderboard query is no longer in flight (success
+   * or error). The parent uses this to start feed prefetch only after the
+   * landing list has loaded, so those requests never contend with it.
+   */
+  onVisibleLeaderboardSettled?: () => void;
 }
 
 /**
@@ -166,10 +173,12 @@ export interface TopTradersViewProps {
 const TopTradersView: React.FC<TopTradersViewProps> = ({
   onScroll,
   pageRef,
+  onVisibleLeaderboardSettled,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -281,6 +290,11 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     isPerpsEnabled &&
     !activeResult.isFetching &&
     TYPE_FILTER_OPTIONS.some((tab) => !queryEnabledTabs[tab]);
+  // Gate on `isFetching` (not `isLoading`) for the same warm-cache reason as
+  // secondary-tab prefetch: a homepage-warmed Tokens query paints immediately
+  // but still revalidates, and feed fetches must wait until that finishes.
+  const isVisibleLeaderboardSettled =
+    !activeResult.isFetching && activeResult.hasFetched;
   const shouldRefreshAll = queryEnabledTabs.all;
   const shouldRefreshTokens = isPerpsEnabled && queryEnabledTabs.tokens;
   const shouldRefreshPerps = isPerpsEnabled && queryEnabledTabs.perps;
@@ -337,6 +351,13 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       setQueryEnabledTabs({ all: true, tokens: true, perps: true });
     });
   }, [shouldPrefetchSecondaryTabs]);
+
+  useEffect(() => {
+    if (!isVisibleLeaderboardSettled) {
+      return;
+    }
+    onVisibleLeaderboardSettled?.();
+  }, [isVisibleLeaderboardSettled, onVisibleLeaderboardSettled]);
 
   const handleTabPress = useCallback(
     (next: TabFilter) => {
@@ -447,7 +468,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           [SocialLeaderboardEventProperties.CHAIN_FILTER]: activeTab,
         });
       }
-      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
         traderName,
         traderAddress: trader?.address,
@@ -521,7 +542,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     ],
   );
 
-  const contentContainerStyle = tw.style('pb-6');
+  const contentContainerStyle = tw.style(`pb-[${24 + floatingTabBarInset}px]`);
 
   return (
     <Box twClassName="flex-1">

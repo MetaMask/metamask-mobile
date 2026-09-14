@@ -394,13 +394,10 @@ describe('SocialAINotificationPreferencesContent', () => {
       ),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.PROFILE,
-      {
-        traderId: 'trader-1',
-        traderName: 'trader1',
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
+      traderId: 'trader-1',
+      traderName: 'trader1',
+    });
   });
 
   it('omits the global push toggle when showPushToggle is false', () => {

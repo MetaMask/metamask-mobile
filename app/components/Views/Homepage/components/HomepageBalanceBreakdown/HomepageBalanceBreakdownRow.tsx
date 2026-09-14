@@ -9,6 +9,7 @@ import {
   FontWeight,
   Icon,
   IconColor,
+  IconName,
   IconSize,
   ListItem,
   ListItemVariant,
@@ -49,6 +50,7 @@ export interface HomepageBalanceBreakdownRowProps {
   userCurrency: string;
   onPress: () => void;
   layout: HomepageBalanceBreakdownLayout;
+  showArrow: boolean;
 }
 
 const HomepageBalanceBreakdownRow = ({
@@ -56,6 +58,7 @@ const HomepageBalanceBreakdownRow = ({
   userCurrency,
   onPress,
   layout,
+  showArrow,
 }: HomepageBalanceBreakdownRowProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { formatCurrency } = useFormatters();
@@ -224,6 +227,17 @@ const HomepageBalanceBreakdownRow = ({
     <ListItem
       accessibilityLabel={accessibilityLabel}
       avatar={avatar}
+      endAccessory={
+        showArrow ? (
+          <Icon
+            color={IconColor.IconAlternative}
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            testID={HomepageBalanceBreakdownTestIds.ARROW(slice.key)}
+            twClassName="ml-1"
+          />
+        ) : undefined
+      }
       isInteractive
       onPress={onPress}
       testID={HomepageBalanceBreakdownTestIds.ROW(slice.key)}

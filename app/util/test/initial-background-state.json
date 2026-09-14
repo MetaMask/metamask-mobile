@@ -370,6 +370,7 @@
     "tokenDisplayData": []
   },
   "TransactionController": {
+    "batchTransactionCounts": {},
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
@@ -533,12 +534,16 @@
       "direction": "desc"
     },
     "mode": "lite",
+    "orderBookPreferences": {
+      "currency": "usd",
+      "metric": "total"
+    },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
     "proLayoutPreferences": {
-      "chartExpanded": false,
-      "orderBookExpanded": false,
-      "orderBookPosition": "left",
+      "chartExpanded": true,
+      "orderBookExpanded": true,
+      "orderBookPosition": "right",
       "orderFormPosition": "right",
       "ordersSideFilter": "all",
       "ordersSortDirection": "desc",
@@ -547,7 +552,9 @@
       "positionsSortDirection": "desc",
       "positionsSortField": "positionValue"
     },
+    "selectedOrderType": "market",
     "selectedPaymentToken": null,
+    "visibleCandleCount": 30,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
   },
@@ -591,7 +598,8 @@
   },
   "AuthenticationController": {
     "isSignedIn": false,
-    "needsProfilePairing": true
+    "needsProfilePairing": true,
+    "needsSocialPairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -757,12 +765,19 @@
     "cardHomeData": null,
     "cardHomeDataAddress": null,
     "cardHomeDataStatus": "idle",
+    "cardHomeDataError": null,
     "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
-    "lastUnauthenticatedReason": null
+    "lastUnauthenticatedReason": null,
+    "redeemWithdrawal": null
+  },
+  "UiSlotsController": {
+    "enabled": false,
+    "screenConfigurations": {},
+    "activeConfigurations": {}
   },
   "ConfigRegistryController": {
     "configs": {
@@ -776,6 +791,42 @@
     "isUiOpen": false
   },
   "ComplianceController": {},
+  "KycController": {
+    "phase": "idle",
+    "statusMessage": "",
+    "error": null,
+    "email": null,
+    "vendorDisclaimersAccepted": {
+      "moonpay": null,
+      "iron": null
+    },
+    "providerDisclaimersAccepted": {
+      "sumsub": null
+    },
+    "idosDisclaimersAccepted": null,
+    "credentialReusabilityConsentGiven": null,
+    "vendorDisclaimers": [],
+    "vendorError": null,
+    "sessionDisclaimers": null,
+    "geoCountry": null,
+    "moonpaySessionToken": null,
+    "moonpayAccessToken": null,
+    "moonpayCustomerId": null,
+    "activeVendor": "moonpay",
+    "activeProduct": null,
+    "kycRequiredByProduct": {},
+    "lastCheckedAt": null,
+    "userStatus": null,
+    "userStatusSumsubSessionId": null,
+    "userStatusErrorCode": null,
+    "sumsub": {
+      "status": "idle",
+      "result": null,
+      "sessionId": null,
+      "applicantAccessToken": null,
+      "sessionStatus": null
+    }
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -861,10 +912,14 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "perpsTradingCampaignPrizePool": {},
     "predictThePitchLeaderboard": {},
     "predictThePitchLeaderboardPositions": {},
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
+    "moneyAccountSweepstakesStats": {},
+    "moneyAccountSweepstakesPrizePool": {},
+    "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
     "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
@@ -882,6 +937,7 @@
   },
   "PredictController": {
     "eligibility": {
+      "status": "checking",
       "eligible": false
     },
     "lastError": null,
@@ -905,11 +961,9 @@
     "otp": null,
     "error": null
   },
-  "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
-  },
+  "AiDigestController": {},
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],

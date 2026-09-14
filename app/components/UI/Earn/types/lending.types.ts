@@ -24,7 +24,7 @@ export type EarnTokenDetails = TokenI & {
     estimatedAnnualRewardsFiatNumber: number;
     estimatedAnnualRewardsTokenMinimalUnit: string;
     estimatedAnnualRewardsTokenFormatted: string;
-    market?: LendingMarketWithPosition;
+    market?: LendingMarketWithPosition; // Markets only available for stablecoin lending.
     vault?: VaultData;
   }[];
   // Token name (e.g. Aave Linea)

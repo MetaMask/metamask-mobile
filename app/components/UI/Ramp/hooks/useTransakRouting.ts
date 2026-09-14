@@ -218,7 +218,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   );
 
   const { userRegion } = useRampsUserRegion();
-  const { selectedPaymentMethod } = useRampsPaymentMethods();
+  const { selectedPaymentMethod } = useRampsPaymentMethods({ catalog: 'buy' });
   const { selectedProvider } = useRampsProviders();
 
   const { selected: selectedToken } = useSelector(selectTokens);

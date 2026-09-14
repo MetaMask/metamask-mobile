@@ -1,9 +1,8 @@
 import { act, fireEvent } from '@testing-library/react-native';
-import { BackHandler } from 'react-native';
+import { BackHandler, StyleSheet } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
-import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
   DeepPartial,
@@ -14,7 +13,6 @@ import { PerpsMode } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { RootState } from '../../../reducers';
-import { earnSelectors } from '../../../selectors/earnController/earn';
 import {
   expectedUuid2,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -22,11 +20,9 @@ import {
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
 import {
-  selectPooledStakingEnabledFlag,
+  selectEarnTradeMenuRowRedesignEnabled,
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
-import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
-import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import {
@@ -54,6 +50,9 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
+const mockWithTiming = jest.fn<number, [value: number, config?: unknown]>(
+  (value) => value,
+);
 jest.mock('react-native-reanimated', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -98,6 +97,8 @@ jest.mock('react-native-reanimated', () => {
       }),
     },
     runOnJS: (fn: () => void) => fn,
+    withTiming: (value: number, config?: unknown) =>
+      mockWithTiming(value, config),
   };
 });
 
@@ -112,6 +113,7 @@ jest.mock('../../UI/Perps/selectors/perpsController', () => {
   return {
     selectIsFirstTimePerpsUser: jest.fn(),
     selectPerpsMode: jest.fn(() => MockedPerpsMode.Lite),
+    selectPerpsLastViewedMarketSymbol: jest.fn(() => 'BTC'),
   };
 });
 
@@ -136,9 +138,14 @@ jest.mock('../../UI/Predict', () => ({
   selectPredictEnabledFlag: jest.fn(),
 }));
 
+jest.mock('../../UI/Earn/selectors/eligibility', () => ({
+  selectIsEarnSectionEligible: jest.fn(),
+}));
+
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
-  selectStablecoinLendingEnabledFlag: jest.fn(),
-  selectPooledStakingEnabledFlag: jest.fn(),
+  selectEarnTradeMenuRowRedesignEnabled: jest.fn().mockReturnValue(false),
+  selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(false),
+  selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../../selectors/earnController/earn', () => ({
@@ -147,6 +154,16 @@ jest.mock('../../../selectors/earnController/earn', () => ({
       earnTokens: [],
     }),
   },
+}));
+
+jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    isEligible: true,
+    isLoadingEligibility: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  }),
 }));
 
 jest.mock('@metamask/bridge-controller', () => {
@@ -161,6 +178,56 @@ jest.mock('@metamask/bridge-controller', () => {
       }
       return actual.getNativeAssetForChainId(chainId);
     }),
+  };
+});
+
+let mockIsTradeFocusedArm = false;
+jest.mock('../../../hooks/useABTest', () => ({
+  useABTest: () => {
+    const { HEADER_NAV_BAR_VARIANTS } = jest.requireActual(
+      '../Homepage/abTestConfig',
+    );
+    const variantName = mockIsTradeFocusedArm ? 'tradeFocused' : 'control';
+    return {
+      variant: HEADER_NAV_BAR_VARIANTS[variantName],
+      variantName,
+      isActive: mockIsTradeFocusedArm,
+    };
+  },
+}));
+
+let mockIsBlurAvailable = true;
+jest.mock('../../../component-library/hooks/useBlurMaterial', () => ({
+  BLUR_INTENSITY: 60,
+  useBlurMaterial: () => ({
+    isBlurAvailable: mockIsBlurAvailable,
+    colorScheme: 'dark',
+    tint: 'systemChromeMaterialDark',
+  }),
+}));
+
+const mockOverlayWithHole = jest.fn();
+jest.mock('./components/OverlayWithHole', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockOverlayWithHole(props);
+      return ReactActual.createElement(View, props);
+    },
+  };
+});
+
+const mockBlurView = jest.fn();
+jest.mock('expo-blur', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    BlurView: (props: Record<string, unknown>) => {
+      mockBlurView(props);
+      return ReactActual.createElement(View, props);
+    },
   };
 });
 
@@ -231,9 +298,24 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
-jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+jest.mock('../../UI/Earn/hooks/useEarnHighestRate', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockLegacyEvent = { event: 'EARN_BUTTON_CLICKED' };
+const mockLegacyEventBuilder = {
+  addProperties: jest.fn(),
+  build: jest.fn().mockReturnValue(mockLegacyEvent),
+};
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 const mockGoToSwaps = jest.fn();
@@ -369,10 +451,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
-  typeof useStakingEligibility
->;
-
 const pressActionButton = async (
   getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
   testId: string,
@@ -397,6 +475,8 @@ describe('TradeWalletActions', () => {
     jest.clearAllMocks();
     mockParentCanGoBack = true;
     mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
+    jest.mocked(selectEarnTradeMenuRowRedesignEnabled).mockReturnValue(false);
+    jest.mocked(selectStablecoinLendingEnabledFlag).mockReturnValue(false);
     (
       selectPerpsProModeEnabledFlag as jest.MockedFunction<
         typeof selectPerpsProModeEnabledFlag
@@ -421,12 +501,10 @@ describe('TradeWalletActions', () => {
     });
     jest.mocked(isHardwareAccount).mockReturnValue(false);
 
-    mockUseStakingEligibility.mockReturnValue({
-      isEligible: true,
-      isLoadingEligibility: false,
-      error: null,
-      refreshPooledStakingEligibility: jest.fn(),
-    });
+    mockCreateEventBuilder.mockReturnValue(mockLegacyEventBuilder);
+    mockLegacyEventBuilder.addProperties.mockReturnValue(
+      mockLegacyEventBuilder,
+    );
 
     mockUseParams.mockReturnValue({
       onDismiss: mockOnDismiss,
@@ -481,12 +559,171 @@ describe('TradeWalletActions', () => {
     ).toBeNull();
   });
 
-  it('should render earn button if the stablecoin lending feature is enabled', () => {
-    (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
-    ).mockReturnValue(true);
+  it('renders the notched bottom edge by default', () => {
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
+    ).toBeOnTheScreen();
+  });
+
+  it('drops the bottom notch when the opener asks for a plain sheet', () => {
+    mockUseParams.mockReturnValue({
+      onDismiss: mockOnDismiss,
+      buttonLayout: { height: 100, width: 100, x: 654, y: 321 },
+      hasBottomNotch: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  describe('blur in the trade-focused arm', () => {
+    const plainSheetParams = {
+      onDismiss: mockOnDismiss,
+      buttonLayout: { height: 100, width: 100, x: 654, y: 321 },
+      hasBottomNotch: false,
+    };
+
+    beforeEach(() => {
+      mockBlurView.mockClear();
+      mockOverlayWithHole.mockClear();
+      mockWithTiming.mockClear();
+      mockIsBlurAvailable = true;
+    });
+
+    afterEach(() => {
+      mockIsTradeFocusedArm = false;
+    });
+
+    it('dims the backdrop lightly in the trade-focused arm', () => {
+      mockIsTradeFocusedArm = true;
+
+      renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockOverlayWithHole).toHaveBeenCalled();
+      expect(mockWithTiming).toHaveBeenCalledWith(0.2, expect.anything());
+    });
+
+    it('dims the backdrop fully outside the trade-focused arm', () => {
+      renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockOverlayWithHole).toHaveBeenCalled();
+      expect(mockWithTiming).not.toHaveBeenCalledWith(0.2, expect.anything());
+      expect(mockWithTiming).toHaveBeenCalledWith(1, expect.anything());
+    });
+
+    it('draws the plain sheet on the system blur in the trade-focused arm', () => {
+      mockIsTradeFocusedArm = true;
+      mockUseParams.mockReturnValue(plainSheetParams);
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(mockBlurView).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tint: 'systemChromeMaterialDark',
+          intensity: 60,
+        }),
+      );
+      // No dimmed backdrop in this arm, so the sheet needs its own edge.
+      const [blurProps] = mockBlurView.mock.calls[0];
+      expect(StyleSheet.flatten(blurProps.style)).toMatchObject({
+        borderWidth: StyleSheet.hairlineWidth,
+      });
+    });
+
+    it('keeps the plain sheet opaque outside the trade-focused arm', () => {
+      mockUseParams.mockReturnValue(plainSheetParams);
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(mockBlurView).not.toHaveBeenCalled();
+    });
+
+    it('keeps the plain sheet opaque where no blur can be drawn', () => {
+      mockIsTradeFocusedArm = true;
+      mockIsBlurAvailable = false;
+      mockUseParams.mockReturnValue(plainSheetParams);
+
+      renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(mockBlurView).not.toHaveBeenCalled();
+    });
+
+    it('never blurs the notched sheet, whose seam needs a solid fill', () => {
+      mockIsTradeFocusedArm = true;
+
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
+      ).toBeOnTheScreen();
+      expect(mockBlurView).not.toHaveBeenCalled();
+    });
+  });
+
+  it('renders without the overlay cut-out when the opener has not measured yet', () => {
+    // Both openers measure asynchronously; a tap can beat the measurement.
+    mockUseParams.mockReturnValue({ onDismiss: mockOnDismiss });
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the legacy Earn button when user is eligible and feature is enabled', () => {
+    jest.mocked(selectEarnTradeMenuRowRedesignEnabled).mockReturnValue(false);
+    jest.mocked(selectStablecoinLendingEnabledFlag).mockReturnValue(true);
 
     const { getByTestId } = renderScreen(
       TradeWalletActions,
@@ -497,9 +734,10 @@ describe('TradeWalletActions', () => {
         state: mockInitialState,
       },
     );
+
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('does not render Batch Sell for hardware wallets', () => {
@@ -538,83 +776,6 @@ describe('TradeWalletActions', () => {
 
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeNull();
-  });
-
-  it('does not render earn button when user is not eligible', () => {
-    (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
-    ).mockReturnValue(true);
-
-    mockUseStakingEligibility.mockReturnValue({
-      isEligible: false,
-      isLoadingEligibility: false,
-      error: null,
-      refreshPooledStakingEligibility: jest.fn(),
-    });
-
-    const { queryByTestId } = renderScreen(
-      TradeWalletActions,
-      { name: 'TradeWalletActions' },
-      { state: mockInitialState },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
-    ).toBeNull();
-  });
-
-  it('should hide the earn button if there are no elements to show and pooled staking is disabled', () => {
-    (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPooledStakingEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingEnabledFlag
-      >
-    ).mockReturnValue(false);
-
-    (
-      earnSelectors.selectEarnTokens as jest.MockedFunction<
-        typeof earnSelectors.selectEarnTokens
-      >
-    ).mockReturnValue({
-      earnTokens: [
-        {
-          address: '0x0',
-          chainId: '0x1',
-          decimals: 18,
-          image: '',
-          name: 'ETH',
-          isETH: true,
-          isStaked: false,
-        },
-      ] as unknown as EarnTokenDetails[],
-      earnOutputTokens: [],
-      earnTokensByChainIdAndAddress: {},
-      earnOutputTokensByChainIdAndAddress: {},
-      earnTokenPairsByChainIdAndAddress: {},
-      earnOutputTokenPairsByChainIdAndAddress: {},
-      earnableTotalFiatNumber: 0,
-      earnableTotalFiatFormatted: '$0',
-    });
-
-    const { queryByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeNull();
   });
 
@@ -833,16 +994,7 @@ describe('TradeWalletActions', () => {
   });
 
   it('registers a hardware back handler that dismisses the sheet', () => {
-    (
-      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-        typeof selectStablecoinLendingEnabledFlag
-      >
-    ).mockReturnValue(true);
-    (
-      selectPooledStakingEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingEnabledFlag
-      >
-    ).mockReturnValue(true);
+    jest.mocked(selectStablecoinLendingEnabledFlag).mockReturnValue(true);
     (
       selectPerpsEnabledFlag as jest.MockedFunction<
         typeof selectPerpsEnabledFlag
@@ -1190,38 +1342,6 @@ describe('TradeWalletActions', () => {
         screen: Routes.PREDICT.MARKET_LIST,
         params: {
           entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
-        },
-      });
-    });
-
-    it('navigates to Earn token list after dismissing RootModalFlow', async () => {
-      (
-        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
-          typeof selectStablecoinLendingEnabledFlag
-        >
-      ).mockReturnValue(true);
-
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      await pressActionButton(
-        getByTestId,
-        WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
-        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
-        params: {
-          tokenFilter: {
-            includeNativeTokens: true,
-            includeStakingTokens: false,
-            includeLendingTokens: true,
-            includeReceiptTokens: false,
-          },
-          onItemPressScreen: EARN_INPUT_VIEW_ACTIONS.DEPOSIT,
         },
       });
     });

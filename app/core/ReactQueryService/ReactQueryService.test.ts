@@ -43,12 +43,11 @@ describe('ReactQueryService', () => {
 
   describe('constructor', () => {
     it('creates a QueryClient with expected default options', () => {
-      // @ts-expect-error Accessing private property.
-      expect(service.queryClient.defaultOptions).toStrictEqual({
+      expect(service.queryClient.getDefaultOptions()).toStrictEqual({
         queries: {
           staleTime: 1000 * 60 * 5,
           retry: 2,
-          cacheTime: 1000 * 60 * 60 * 24,
+          gcTime: 1000 * 60 * 60 * 24,
           queryFn: expect.any(Function),
         },
         mutations: undefined,

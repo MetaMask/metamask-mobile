@@ -239,9 +239,11 @@ describe('ManualBackupStep2', () => {
       Platform.OS = 'android';
       const { wrapper, mockNavigation } = setupTest();
 
-      const gridItem = wrapper.getByTestId(
-        `${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-0`,
-      );
+      // Filled cells use grid-item-N; empty confirmation slots use grid-item-empty-N.
+      // Which indexes are empty depends on shuffle, so pick any filled cell.
+      const gridItem = wrapper.getAllByTestId(
+        new RegExp(`^${ManualBackUpStepsSelectorsIDs.GRID_ITEM}-\\d+$`),
+      )[0];
       fireEvent.press(gridItem);
 
       expect(gridItem).toHaveStyle({ backgroundColor: expect.any(String) });
@@ -828,6 +830,55 @@ describe('ManualBackupStep2', () => {
       onClose();
 
       expect(mockNavigationDispatch).toHaveBeenCalled();
+    });
+  });
+
+  describe('with duplicate BIP-39 words in the seed phrase', () => {
+    it('always shows three uniquely labeled missing-word options', () => {
+      // Restore real Math.random so selection exercises retries / uniqueness.
+      global.Math = Math;
+
+      const wordsWithDuplicate = [
+        'abstract',
+        'accident',
+        'abstract',
+        'announce',
+        'artefact',
+        'attitude',
+        'bachelor',
+        'broccoli',
+        'business',
+        'category',
+        'champion',
+        'cinnamon',
+      ];
+
+      const navProps = createMockNavigationProps();
+      (useNavigation as jest.Mock).mockReturnValue(navProps);
+
+      const { getByTestId } = renderWithProvider(
+        <Provider store={store}>
+          <ManualBackupStep2
+            route={{
+              params: {
+                ...defaultRouteParams,
+                words: wordsWithDuplicate,
+              },
+            }}
+            navigation={navProps}
+          />
+        </Provider>,
+      );
+
+      const labels = [0, 1, 2].map(
+        (index) =>
+          getByTestId(
+            `${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${index}`,
+          ).props.children,
+      );
+
+      expect(labels).toHaveLength(3);
+      expect(new Set(labels).size).toBe(3);
     });
   });
 });

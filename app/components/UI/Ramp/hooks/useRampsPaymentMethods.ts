@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   selectPaymentMethods,
@@ -8,13 +9,20 @@ import {
   selectTokens,
   selectUserRegion,
 } from '../../../../selectors/rampsController';
+import { selectFiatDepositAssetOverride } from '../../../../selectors/featureFlagController/deposit';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { useMMPayFiatConfig } from '../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { useTransactionPayFiatPayment } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { rampsQueries } from '../queries';
+import type { PaymentMethodsQueryParams } from '../queries/paymentMethods';
+import { deriveFiatDepositAssetId } from '../utils/fiatDepositAsset';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
-import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
 
 export type RampsQueryStatus = 'idle' | 'loading' | 'success' | 'error';
+
+const NO_PAYMENT_METHODS: PaymentMethod[] = [];
 
 /**
  * Result returned by the useRampsPaymentMethods hook.
@@ -56,30 +64,66 @@ export interface UseRampsPaymentMethodsResult {
 }
 
 /**
- * Hook to get payment methods via React Query.
+ * Payment methods for the current fiat context, via React Query.
  *
- * The query fires only when a provider is selected (provider change is the
- * sole trigger). Token is passed to the API call but is NOT part of the query
- * key, so changing it does not cause a refetch.
+ * By default the query is scoped to the pending MM Pay fiat deposit: that
+ * deposit's asset, the user's region, the providers that serve the asset, and
+ * `updateState: false`. With no such transaction it stays idle, so a plain send
+ * or a signature never fetches.
  *
+ * Buy surfaces pass `{ catalog: 'buy' }`, which pins them to Buy's own token
+ * and provider so an open deposit confirmation can never re-scope what they
+ * see mid-flow. `RampsBootstrap` mounts the Buy binding at app root.
+ *
+ * @param options - Which catalog to read. Omit for the active fiat context.
  * @returns Payment methods state.
  */
-export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
-  const { selected: selectedPaymentMethod } = useSelector(selectPaymentMethods);
+export function useRampsPaymentMethods(
+  options: { catalog?: 'buy' | 'active-fiat-context' } = {},
+): UseRampsPaymentMethodsResult {
+  const isBuyCatalog = options.catalog === 'buy';
+
+  const { selected: buySelectedPaymentMethod } =
+    useSelector(selectPaymentMethods);
   const { selected: selectedProvider } = useSelector(selectProviders);
   const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
 
-  const queryEnabled = Boolean(userRegion?.regionCode && selectedProvider?.id);
+  const transactionMeta = useTransactionMetadataRequest();
+  const depositAssetId = useFiatDepositAssetId(transactionMeta);
+  const fiatSelectedPaymentMethodId =
+    useTransactionPayFiatPayment()?.selectedPaymentMethodId;
 
-  const paymentMethodsQuery = useQuery({
-    ...rampsQueries.paymentMethods.options({
-      regionCode: userRegion?.regionCode ?? '',
-      assetId: normalizeAssetIdForApi(selectedToken?.assetId),
-      providerId: selectedProvider?.id ?? '',
-    }),
-    enabled: queryEnabled,
-  });
+  const regionCode = userRegion?.regionCode ?? '';
+
+  const queryContext = useMemo<PaymentMethodsQueryParams>(
+    () =>
+      isBuyCatalog
+        ? {
+            regionCode,
+            assetId: selectedToken?.assetId ?? '',
+            providerId: selectedProvider?.id ?? '',
+            updateState: true,
+          }
+        : {
+            regionCode,
+            assetId: depositAssetId,
+            autoSelectProvider: true,
+            restrictToKnownOrNativeProviders: true,
+            updateState: false,
+          },
+    [
+      depositAssetId,
+      isBuyCatalog,
+      regionCode,
+      selectedProvider?.id,
+      selectedToken?.assetId,
+    ],
+  );
+
+  const context = useRampsPaymentMethodsForContext(queryContext);
+  const { paymentMethods, suggestedPaymentMethod, isFetching, isSuccess } =
+    context;
 
   const setSelectedPaymentMethod = useCallback(
     (paymentMethod: PaymentMethod | null) =>
@@ -93,59 +137,155 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     [],
   );
 
-  useEffect(() => {
-    const methods = paymentMethodsQuery.data;
-    if (!methods || methods.length === 0) return;
+  useClearMissingFiatPaymentMethod({
+    enabled: !isBuyCatalog,
+    isFetching,
+    isSuccess,
+    paymentMethods,
+    selectedPaymentMethodId: fiatSelectedPaymentMethodId,
+    transactionId: transactionMeta?.id ?? '',
+  });
 
-    let target: PaymentMethod | null = null;
+  const selectedPaymentMethod = useMemo(() => {
+    const inContext = (method: PaymentMethod | null) =>
+      method
+        ? (paymentMethods.find(({ id }) => id === method.id) ?? null)
+        : null;
 
-    if (selectedPaymentMethod) {
-      target = methods.find((m) => m.id === selectedPaymentMethod.id) ?? null;
+    if (isBuyCatalog) {
+      return (
+        inContext(buySelectedPaymentMethod) ?? inContext(suggestedPaymentMethod)
+      );
     }
 
-    if (!target) {
-      target = methods[0];
-    }
-
-    if (target.id !== selectedPaymentMethod?.id) {
-      setSelectedPaymentMethod(target);
-    }
+    return (
+      paymentMethods.find(({ id }) => id === fiatSelectedPaymentMethodId) ??
+      null
+    );
   }, [
-    paymentMethodsQuery.data,
-    selectedPaymentMethod,
-    setSelectedPaymentMethod,
+    buySelectedPaymentMethod,
+    fiatSelectedPaymentMethodId,
+    isBuyCatalog,
+    paymentMethods,
+    suggestedPaymentMethod,
   ]);
 
-  const isAutoSelecting = Boolean(
-    paymentMethodsQuery.data?.length &&
-      (!selectedPaymentMethod ||
-        paymentMethodsQuery.data.every(
-          (m) => m.id !== selectedPaymentMethod.id,
-        )),
+  return {
+    paymentMethods,
+    selectedPaymentMethod,
+    setSelectedPaymentMethod,
+    isLoading: context.isLoading,
+    isFetching,
+    status: context.status,
+    isSuccess,
+    error: context.error,
+  };
+}
+
+/** CAIP-19 asset id the pending MM Pay fiat deposit settles in, or `''`. */
+function useFiatDepositAssetId(
+  transactionMeta: TransactionMeta | undefined,
+): string {
+  const { enabledTransactionTypes } = useMMPayFiatConfig();
+  const assetPerTransactionType = useSelector(selectFiatDepositAssetOverride);
+
+  return useMemo(
+    () =>
+      deriveFiatDepositAssetId(
+        transactionMeta,
+        enabledTransactionTypes,
+        assetPerTransactionType,
+      ),
+    [assetPerTransactionType, enabledTransactionTypes, transactionMeta],
   );
+}
+
+/**
+ * Clears TPC `fiatPayment.selectedPaymentMethodId` once a successful fetch
+ * proves the id is not servable for the deposit asset: users who picked a
+ * Buy-only method through the previously leaked catalog would otherwise keep
+ * hitting "This payment route isn't available right now". Never clears while
+ * loading, refetching, or on a transient empty result.
+ */
+function useClearMissingFiatPaymentMethod({
+  enabled,
+  isFetching,
+  isSuccess,
+  paymentMethods,
+  selectedPaymentMethodId,
+  transactionId,
+}: {
+  enabled: boolean;
+  isFetching: boolean;
+  isSuccess: boolean;
+  paymentMethods: PaymentMethod[];
+  selectedPaymentMethodId: string | undefined;
+  transactionId: string;
+}): void {
+  useEffect(() => {
+    if (
+      !enabled ||
+      !isSuccess ||
+      isFetching ||
+      !transactionId ||
+      !selectedPaymentMethodId ||
+      paymentMethods.length === 0 ||
+      paymentMethods.some(({ id }) => id === selectedPaymentMethodId)
+    ) {
+      return;
+    }
+
+    Engine.context.TransactionPayController.updateFiatPayment({
+      transactionId,
+      callback: (fiatPayment) => {
+        fiatPayment.selectedPaymentMethodId = undefined;
+      },
+    });
+  }, [
+    enabled,
+    isFetching,
+    isSuccess,
+    paymentMethods,
+    selectedPaymentMethodId,
+    transactionId,
+  ]);
+}
+
+/** Payment methods for a caller-supplied context; reads no globals itself. */
+export function useRampsPaymentMethodsForContext(
+  context: PaymentMethodsQueryParams,
+) {
+  const { regionCode, assetId, providerId, autoSelectProvider } = context;
+  const queryEnabled = Boolean(
+    regionCode.trim() &&
+      assetId.trim() &&
+      (providerId?.trim() || autoSelectProvider),
+  );
+
+  const paymentMethodsQuery = useQuery({
+    ...rampsQueries.paymentMethods.options(context),
+    enabled: queryEnabled,
+  });
+
+  const activeResponse = queryEnabled ? paymentMethodsQuery.data : undefined;
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {
       return 'idle';
     }
-    if (paymentMethodsQuery.isLoading) {
-      return 'loading';
-    }
     if (paymentMethodsQuery.isError) {
       return 'error';
     }
-    return 'success';
-  }, [
-    paymentMethodsQuery.isError,
-    paymentMethodsQuery.isLoading,
-    queryEnabled,
-  ]);
+    if (paymentMethodsQuery.data !== undefined) {
+      return 'success';
+    }
+    return 'loading';
+  }, [paymentMethodsQuery.data, paymentMethodsQuery.isError, queryEnabled]);
 
   return {
-    paymentMethods: paymentMethodsQuery.data ?? [],
-    selectedPaymentMethod,
-    setSelectedPaymentMethod,
-    isLoading: status === 'loading' || isAutoSelecting,
+    paymentMethods: activeResponse?.methods ?? NO_PAYMENT_METHODS,
+    suggestedPaymentMethod: activeResponse?.selected ?? null,
+    isLoading: status === 'loading',
     isFetching: paymentMethodsQuery.isFetching,
     status,
     isSuccess: status === 'success',

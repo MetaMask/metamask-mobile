@@ -37,7 +37,3 @@ export const ActivitiesViewSelectorsText = {
   LENDING_DEPOSIT: enContent.transactions.tx_review_lending_deposit,
   LENDING_WITHDRAWAL: enContent.transactions.tx_review_lending_withdraw,
 };
-
-export const sentMessageTokenIDs = {
-  eth: ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(enContent.unit.eth),
-};

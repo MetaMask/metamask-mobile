@@ -368,3 +368,46 @@ export const selectMusdBalanceChainIds = createSelector(
     return MUSD_BALANCE_CHAIN_IDS_FALLBACK;
   },
 );
+
+/**
+ * Selects whether the Earn section is rendered on Wallet Home.
+ */
+export const selectEarnHomeSectionEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_EARN_HOME_SECTION_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnHomeSectionEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the Earn section is rendered on Explore page.
+ */
+export const selectExploreEarnSectionEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_EXPLORE_EARN_SECTION_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnExploreSectionEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the redesigned Earn row is rendered in the Trade menu.
+ */
+export const selectEarnTradeMenuRowRedesignEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_EARN_TRADE_MENU_ROW_REDESIGN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnTradeMenuRowRedesignEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);

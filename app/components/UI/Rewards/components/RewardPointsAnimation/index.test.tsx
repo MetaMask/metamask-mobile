@@ -33,13 +33,6 @@ jest.mock('../../../../../util/theme', () => {
   };
 });
 
-jest.mock('rive-react-native', () => ({
-  __esModule: true,
-  default: 'Rive',
-  Alignment: { CenterRight: 'center-right' },
-  Fit: { FitHeight: 'fit-height' },
-}));
-
 jest.mock('../../../../../animations/rewards_icon_animations.riv', () => ({}));
 
 describe('RewardPointsAnimation', () => {
@@ -53,6 +46,7 @@ describe('RewardPointsAnimation', () => {
 
   const mockHookReturn = {
     riveRef: { current: null },
+    setRiveHybridRef: { f: jest.fn() },
     animatedStyle: {},
     rivePositionStyle: {},
     displayValue: 1000,

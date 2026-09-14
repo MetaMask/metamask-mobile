@@ -20,11 +20,17 @@ export type {
   RewardsDataServiceGetVIPDashboardAction,
   RewardsDataServiceGetVipRefereeDashboardAction,
   RewardsDataServiceGetVipFeesAction,
+  RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
   RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
   RewardsDataServiceGetPredictThePitchPositionsAction,
   RewardsDataServiceGetPredictThePitchParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
+  RewardsDataServiceRegisterMoneyAccountBindingAction,
   RewardsDataServiceGetFirstPredictOnUsAction,
 } from './rewards-data-service';
 

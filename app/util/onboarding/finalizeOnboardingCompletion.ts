@@ -17,6 +17,14 @@ import {
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from '../../core/QrSync/qrSyncTelemetry';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { syncConsolidatedBasicFunctionalityPreferences } from '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
+import { isBasicFunctionalitySocialLoginUser } from '../basicFunctionality/getBasicFunctionalityConsolidationPlan';
+import { store } from '../../store';
+import {
+  setBasicFunctionality,
+  setBasicFunctionalityConsolidatedEnabled,
+} from '../../actions/settings';
 import { shouldMarkWalletHomeOnboardingStepsEligible } from './walletHomeOnboardingStepsEligibility';
 
 export interface FinalizeOnboardingCompletionParams {
@@ -54,10 +62,50 @@ export function finalizeOnboardingCompletion({
   }
 
   if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
+    // BFT cohort enrollment is gated by the same first-time onboarding
+    // eligibility check above so SETTINGS_BACKUP / REMINDER_BACKUP do not
+    // overwrite existing users' granular privacy preferences.
+    // Skip when engine/RFF state is unavailable (e.g. partial test stores);
+    // defaults to OFF, matching the production kill-switch default.
+    const state = store.getState();
+    const canReadRemoteFeatureFlags = Boolean(
+      state?.engine?.backgroundState?.RemoteFeatureFlagController,
+    );
+    let finalBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
+    if (
+      canReadRemoteFeatureFlags &&
+      selectMobileUxBftcConsolidationFlagEnabled(state)
+    ) {
+      const seedlessState =
+        state.engine.backgroundState.SeedlessOnboardingController;
+      const isSocialLogin = isBasicFunctionalitySocialLoginUser({
+        accountType,
+        authConnection: seedlessState?.authConnection,
+        hasSeedlessVault: seedlessState?.vault != null,
+      });
+      finalBasicFunctionalityEnabled = isSocialLogin
+        ? true
+        : isBasicFunctionalityEnabled;
+
+      dispatch(setBasicFunctionality(finalBasicFunctionalityEnabled));
+      dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+      syncConsolidatedBasicFunctionalityPreferences(
+        finalBasicFunctionalityEnabled,
+      );
+      Engine.context.MultichainAccountService.setBasicFunctionality(
+        finalBasicFunctionalityEnabled,
+      ).catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'finalizeOnboardingCompletion: Failed to set Basic Functionality',
+        );
+      });
+    }
+
     const onboardingCompletedProperties =
       getOnboardingCompletedAnalyticsPropsFromSuccessFlow(successFlow, {
         accountType,
-        isBasicFunctionalityEnabled,
+        isBasicFunctionalityEnabled: finalBasicFunctionalityEnabled,
       });
 
     const onboardingCompletedEvent = AnalyticsEventBuilder.createEventBuilder(

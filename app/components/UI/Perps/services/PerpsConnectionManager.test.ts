@@ -24,6 +24,7 @@ jest.mock('../../../../core/Engine', () => ({
       getAccountState: jest.fn(),
       disconnect: jest.fn(),
       reconnectWithNewContext: jest.fn(),
+      suspendChaseOrders: jest.fn(),
       getActiveProvider: jest.fn(() => ({
         ping: jest.fn().mockResolvedValue(undefined),
       })),
@@ -55,6 +56,17 @@ jest.mock('../utils/perpsCufTrace', () => ({
   endPerpsCufTrace: jest.fn(),
 }));
 
+jest.mock('../utils/perpsLoadingSession', () => ({
+  getActivePerpsLoadingSessionTraceData: jest.fn(),
+  markPerpsLoadingSessionConnectionValidated: jest.fn(),
+  setPerpsLoadingSessionLifecycle: jest.fn(),
+  startPerpsLoadingSession: jest.fn(),
+}));
+
+jest.mock('../utils/perpsLifecycleContext', () => ({
+  getPerpsLifecycleContext: jest.fn(() => 'warm'),
+}));
+
 // Mock selectors
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
@@ -79,9 +91,18 @@ const mockStreamManagerInstance = {
   account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   prices: { clearCache: jest.fn(), prewarm: jest.fn(async () => jest.fn()) },
-  oiCaps: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  oiCaps: {
+    clearCache: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    reconnect: jest.fn(),
+  },
   fills: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
-  topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  topOfBook: {
+    clearCache: jest.fn(),
+    prewarm: jest.fn(() => jest.fn()),
+    reconnect: jest.fn(),
+  },
+  focusedPrice: { clearCache: jest.fn(), reconnect: jest.fn() },
   candles: {
     clearCache: jest.fn(),
     prewarm: jest.fn(() => jest.fn()),
@@ -120,12 +141,24 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectPerpsNetwork } from '../selectors/perpsController';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import {
   clearPendingPerpsCufTraces,
   endPerpsCufTrace,
 } from '../utils/perpsCufTrace';
 import { TraceName } from '../../../../util/trace';
+import {
+  setPerpsLoadingSessionLifecycle,
+  startPerpsLoadingSession,
+} from '../utils/perpsLoadingSession';
+import {
+  resetSuspendedChaseOrderBufferForTests,
+  subscribeToSuspendedChaseOrders,
+} from './ChaseOrderSuspensionEvents';
+import { subscribeToChaseOrderStoreReconciliation } from './ChaseOrderStoreReconciliationEvents';
 
 const mockClearPendingPerpsCufTraces =
   clearPendingPerpsCufTraces as jest.MockedFunction<
@@ -135,21 +168,28 @@ const mockEndPerpsCufTrace = endPerpsCufTrace as jest.MockedFunction<
   typeof endPerpsCufTrace
 >;
 import {
+  ChaseOrderSuspensionError,
   PERPS_CONSTANTS,
   TradingReadinessCache,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
 import { AppState } from 'react-native';
 import Device from '../../../../util/device';
+import Logger from '../../../../util/Logger';
 import { PerpsConnectionManager } from './PerpsConnectionManager';
-import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
+import {
+  CHASE_ORDER_UI_CONFIG,
+  PERPS_CONNECTION_SOURCE,
+} from '../constants/perpsConfig';
 
 // Get reference to the mocked TradingReadinessCache
 const mockTradingReadinessCache = TradingReadinessCache as jest.Mocked<
   typeof TradingReadinessCache
 >;
+const secondaryProvider = 'secondary-provider' as PerpsProviderType;
 
 // Helper to reset private properties for testing
 const resetManager = (manager: unknown) => {
@@ -157,12 +197,28 @@ const resetManager = (manager: unknown) => {
     isConnected: boolean;
     isConnecting: boolean;
     isInitialized: boolean;
+    initializedMarketContextKey: string | null;
+    initializedConnectionGeneration: number | null;
+    initializedUserContextKey: string | null;
+    initializedChaseRouteIdentity: {
+      account: string;
+      provider: string;
+      network: string;
+    } | null;
+    connectionGeneration: number;
     isDisconnecting: boolean;
     connectionRefCount: number;
     initPromise: Promise<void> | null;
+    initializationGeneration: number;
+    initializationTraceId: string | null;
     disconnectPromise: Promise<void> | null;
     pendingReconnectPromise: Promise<void> | null;
+    pendingReconnectRequest: {
+      userContextKey: string;
+      force: boolean;
+    } | null;
     ensureConnectedPromise: Promise<void> | null;
+    pendingConnectionGenerationAdvanced: boolean;
     unsubscribeFromStore: (() => void) | null;
     previousAddress: string | undefined;
     previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
@@ -176,6 +232,8 @@ const resetManager = (manager: unknown) => {
     wasOffline: boolean;
     stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null;
     pendingSkipMarketNotify: boolean;
+    contextChangePreparationPromise: Promise<void> | null;
+    isContextChangePrepared: boolean;
   };
   // Call unsubscribe if it exists before resetting
   if (m.unsubscribeFromStore) {
@@ -191,6 +249,8 @@ const resetManager = (manager: unknown) => {
   }
   m.stateChangeDebounceTimer = null;
   m.pendingSkipMarketNotify = false;
+  m.contextChangePreparationPromise = null;
+  m.isContextChangePrepared = false;
   // Clean up any prewarm subscriptions
   m.prewarmCleanups.forEach((cleanup) => cleanup());
   m.prewarmCleanups = [];
@@ -199,12 +259,21 @@ const resetManager = (manager: unknown) => {
   m.isConnected = false;
   m.isConnecting = false;
   m.isInitialized = false;
+  m.initializedMarketContextKey = null;
+  m.initializedConnectionGeneration = null;
+  m.initializedUserContextKey = null;
+  m.initializedChaseRouteIdentity = null;
+  m.connectionGeneration = 0;
   m.isDisconnecting = false;
   m.connectionRefCount = 0;
   m.initPromise = null;
+  m.initializationGeneration = 0;
+  m.initializationTraceId = null;
   m.disconnectPromise = null;
   m.pendingReconnectPromise = null;
+  m.pendingReconnectRequest = null;
   m.ensureConnectedPromise = null;
+  m.pendingConnectionGenerationAdvanced = false;
   m.unsubscribeFromStore = null;
   m.previousAddress = undefined;
   m.previousPerpsNetwork = undefined;
@@ -224,6 +293,8 @@ describe('PerpsConnectionManager', () => {
     >;
     disconnect: jest.MockedFunction<() => Promise<void>>;
     reconnectWithNewContext: jest.MockedFunction<() => Promise<void>>;
+    suspendChaseOrders: jest.MockedFunction<() => Promise<never[]>>;
+    getActiveProvider: jest.Mock;
   };
 
   // No need for beforeAll - singleton is created on first access
@@ -244,6 +315,10 @@ describe('PerpsConnectionManager', () => {
         },
       },
     });
+    (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
+    (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(
+      'hyperliquid',
+    );
 
     // Clear StreamManager mock calls
     mockStreamManagerInstance.positions.clearCache.mockClear();
@@ -263,6 +338,7 @@ describe('PerpsConnectionManager', () => {
     mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
     mockPerpsController = Engine.context
       .PerpsController as unknown as typeof mockPerpsController;
+    mockPerpsController.suspendChaseOrders.mockResolvedValue([]);
   });
 
   describe('getInstance', () => {
@@ -271,6 +347,172 @@ describe('PerpsConnectionManager', () => {
       const instance2 = PerpsConnectionManager;
 
       expect(instance1).toBe(instance2);
+    });
+  });
+
+  describe('context change preparation', () => {
+    it('rejects a provider transition when suspension exceeds the deadline', async () => {
+      jest.useFakeTimers();
+      try {
+        mockPerpsController.suspendChaseOrders.mockReturnValueOnce(
+          new Promise(() => undefined),
+        );
+        const transition = jest.fn().mockResolvedValue({ success: true });
+
+        const result =
+          PerpsConnectionManager.runWithContextChangePreparation(transition);
+        const rejection = result.catch((error) => error);
+        await jest.advanceTimersByTimeAsync(
+          CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+        );
+
+        await expect(rejection).resolves.toEqual(
+          new Error('Chase context suspension timed out'),
+        );
+        expect(transition).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('reports a late partial suspension against the last initialized route', async () => {
+      jest.useFakeTimers();
+      resetSuspendedChaseOrderBufferForTests();
+      const listener = jest.fn();
+      const unsubscribe = subscribeToSuspendedChaseOrders(listener);
+      const storeListener = jest.fn();
+      const unsubscribeStore =
+        subscribeToChaseOrderStoreReconciliation(storeListener);
+      const partialOrder = {
+        handle: 'late-context-partial',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      } as never;
+      let rejectSuspension: ((error: Error) => void) | undefined;
+      mockPerpsController.suspendChaseOrders.mockReturnValueOnce(
+        new Promise((_resolve, reject) => {
+          rejectSuspension = reject;
+        }),
+      );
+      const transition = jest.fn().mockResolvedValue({ success: true });
+      const loggerError = jest.spyOn(Logger, 'error').mockImplementation();
+      const manager = PerpsConnectionManager as unknown as {
+        setInitializedUserContextKey: (key: string) => void;
+      };
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xold-account' }));
+      manager.setInitializedUserContextKey('old-route');
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xnew-account' }));
+      try {
+        const result =
+          PerpsConnectionManager.runWithContextChangePreparation(transition);
+        const rejection = result.catch((error) => error);
+        await jest.advanceTimersByTimeAsync(
+          CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+        );
+        expect(await rejection).toEqual(
+          new Error('Chase context suspension timed out'),
+        );
+
+        rejectSuspension?.(
+          new ChaseOrderSuspensionError({
+            suspendedOrders: [partialOrder],
+            failures: [
+              {
+                providerId: secondaryProvider,
+                reason: new Error('late provider failure'),
+              },
+            ],
+          }),
+        );
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(listener).toHaveBeenCalledWith([partialOrder]);
+        expect(storeListener).toHaveBeenCalledTimes(1);
+        expect(storeListener).toHaveBeenCalledWith({
+          orders: [partialOrder],
+          route: {
+            account: '0xold-account',
+            provider: 'hyperliquid',
+            network: 'testnet',
+          },
+        });
+        expect(transition).not.toHaveBeenCalled();
+        expect(loggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            context: expect.objectContaining({
+              name: 'PerpsConnectionManager.lateContextSuspension',
+            }),
+          }),
+        );
+      } finally {
+        unsubscribe();
+        unsubscribeStore();
+        loggerError.mockRestore();
+        resetSuspendedChaseOrderBufferForTests();
+        jest.useRealTimers();
+      }
+    });
+
+    it('retries partial suspension within the deadline before transition', async () => {
+      const suspendedOrder = {
+        handle: 'partial-order',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      } as never;
+      mockPerpsController.suspendChaseOrders
+        .mockRejectedValueOnce(
+          new ChaseOrderSuspensionError({
+            suspendedOrders: [suspendedOrder],
+            failures: [
+              {
+                providerId: secondaryProvider,
+                reason: new Error('partial failure'),
+              },
+            ],
+          }),
+        )
+        .mockResolvedValueOnce([]);
+      const transition = jest.fn().mockResolvedValue({ success: true });
+
+      await PerpsConnectionManager.runWithContextChangePreparation(transition);
+
+      expect(mockPerpsController.suspendChaseOrders).toHaveBeenCalledTimes(2);
+      expect(transition).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects transition when partial suspension retry fails', async () => {
+      const suspendedOrder = {
+        handle: 'partial-order',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      } as never;
+      mockPerpsController.suspendChaseOrders
+        .mockRejectedValueOnce(
+          new ChaseOrderSuspensionError({
+            suspendedOrders: [suspendedOrder],
+            failures: [
+              {
+                providerId: secondaryProvider,
+                reason: new Error('partial failure'),
+              },
+            ],
+          }),
+        )
+        .mockRejectedValueOnce(new Error('retry failed'));
+      const transition = jest.fn().mockResolvedValue({ success: true });
+
+      const result =
+        PerpsConnectionManager.runWithContextChangePreparation(transition);
+
+      await expect(result).rejects.toBeInstanceOf(ChaseOrderSuspensionError);
+      expect(transition).not.toHaveBeenCalled();
     });
   });
 
@@ -329,6 +571,65 @@ describe('PerpsConnectionManager', () => {
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('refCount: 2'),
       );
+    });
+
+    it('reconnects when the selected account changes during initial preload', async () => {
+      const initialAddress = '0x1111111111111111111111111111111111111111';
+      const nextAddress = '0x2222222222222222222222222222222222222222';
+      let notifyPrewarmStarted: () => void = () => undefined;
+      const prewarmStarted = new Promise<void>((resolve) => {
+        notifyPrewarmStarted = resolve;
+      });
+      let resolveInitialPrewarm: (() => void) | undefined;
+
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: initialAddress }));
+      mockPerpsController.init.mockResolvedValue();
+      mockStreamManagerInstance.prices.prewarm.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveInitialPrewarm = () => resolve(jest.fn());
+            notifyPrewarmStarted();
+          }),
+      );
+
+      const connectPromise = PerpsConnectionManager.connect();
+      await prewarmStarted;
+      if (!resolveInitialPrewarm) {
+        throw new Error('Initial preload did not start.');
+      }
+
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: nextAddress }));
+      storeCallbacks[storeCallbacks.length - 1]();
+
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      resolveInitialPrewarm();
+      await connectPromise;
+
+      for (let attempt = 0; attempt < 10; attempt++) {
+        if (mockPerpsController.init.mock.calls.length >= 2) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+      const pendingReconnect = (
+        PerpsConnectionManager as unknown as {
+          pendingReconnectPromise: Promise<void> | null;
+        }
+      ).pendingReconnectPromise;
+      await pendingReconnect;
+
+      expect(mockPerpsController.init).toHaveBeenCalledTimes(2);
+      expect(PerpsConnectionManager.isSelectedUserContextReady()).toBe(true);
+
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({
+        address: '0x1234567890123456789012345678901234567890',
+      }));
     });
 
     it('sets error state and resets flags when connection fails', async () => {
@@ -515,6 +816,11 @@ describe('PerpsConnectionManager', () => {
     });
 
     it('returns connecting state while connection is in progress', async () => {
+      const marketContextListener = jest.fn();
+      const unsubscribe =
+        PerpsConnectionManager.subscribeToInitializedMarketContext(
+          marketContextListener,
+        );
       mockPerpsController.init.mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 100)),
       );
@@ -532,6 +838,11 @@ describe('PerpsConnectionManager', () => {
       expect(finalState.isConnecting).toBe(false);
       expect(finalState.isConnected).toBe(true);
       expect(finalState.isInitialized).toBe(true);
+      expect(PerpsConnectionManager.getInitializedMarketContextKey()).toBe(
+        'testnet|hyperliquid|0',
+      );
+      expect(marketContextListener).toHaveBeenCalledTimes(1);
+      unsubscribe();
     });
   });
 
@@ -688,6 +999,13 @@ describe('PerpsConnectionManager', () => {
       // Trigger the store callback with the changed value
       storeCallback();
 
+      // Cleared user channels must not subscribe to the old provider while the
+      // account reconnect is still inside its debounce window.
+      expect(PerpsConnectionManager.getConnectionState().isInitialized).toBe(
+        false,
+      );
+      expect(PerpsConnectionManager.getInitializedUserContextKey()).toBeNull();
+
       // Wait for async operations
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -705,6 +1023,84 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.marketData.clearCache,
       ).not.toHaveBeenCalled();
+      expect(startPerpsLoadingSession).not.toHaveBeenCalled();
+    });
+
+    it('completes old-account Chase suspension before account reconnect', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      mockPerpsController.suspendChaseOrders.mockResolvedValue([]);
+      await PerpsConnectionManager.connect();
+      const latestStoreCallback = storeCallbacks[storeCallbacks.length - 1];
+      let resolveSuspension: ((orders: never[]) => void) | undefined;
+      const suspension = new Promise<never[]>((resolve) => {
+        resolveSuspension = resolve;
+      });
+      mockPerpsController.suspendChaseOrders.mockReturnValueOnce(suspension);
+      const reconnectSpy = jest
+        .spyOn(PerpsConnectionManager, 'reconnectWithNewContext')
+        .mockResolvedValue();
+      jest.useFakeTimers();
+      try {
+        (
+          selectSelectedInternalAccountByScope as unknown as jest.Mock
+        ).mockReturnValue(() => ({ address: '0xdef456' }));
+
+        latestStoreCallback();
+        await jest.advanceTimersByTimeAsync(60);
+
+        expect(mockPerpsController.suspendChaseOrders).toHaveBeenCalledTimes(1);
+        expect(reconnectSpy).not.toHaveBeenCalled();
+        resolveSuspension?.([]);
+        await suspension;
+        await jest.runAllTimersAsync();
+
+        expect(reconnectSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        reconnectSpy.mockRestore();
+        jest.useRealTimers();
+      }
+    });
+
+    it('logs suspension timeout and continues required account reconnect', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+      const latestStoreCallback = storeCallbacks[storeCallbacks.length - 1];
+      mockPerpsController.suspendChaseOrders.mockReturnValueOnce(
+        new Promise(() => undefined),
+      );
+      const reconnectSpy = jest
+        .spyOn(PerpsConnectionManager, 'reconnectWithNewContext')
+        .mockResolvedValue();
+      const loggerErrorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      jest.useFakeTimers();
+      try {
+        (
+          selectSelectedInternalAccountByScope as unknown as jest.Mock
+        ).mockReturnValue(() => ({ address: '0xdef456' }));
+
+        latestStoreCallback();
+        await jest.advanceTimersByTimeAsync(
+          CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs + 60,
+        );
+
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            context: expect.objectContaining({
+              name: 'PerpsConnectionManager.accountContextPreparation',
+            }),
+          }),
+        );
+        expect(reconnectSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        loggerErrorSpy.mockRestore();
+        reconnectSpy.mockRestore();
+        jest.useRealTimers();
+      }
     });
 
     it('detects network changes and triggers reconnection', async () => {
@@ -744,6 +1140,27 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.marketData.clearCache,
       ).toHaveBeenCalledWith();
+      expect(startPerpsLoadingSession).not.toHaveBeenCalled();
+    });
+
+    it('does not start a homepage session while disconnected', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+      const callback = storeCallbacks[storeCallbacks.length - 1];
+      (
+        PerpsConnectionManager as unknown as { isConnected: boolean }
+      ).isConnected = false;
+      jest.mocked(startPerpsLoadingSession).mockClear();
+
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xdisconnected' }));
+      callback();
+
+      expect(startPerpsLoadingSession).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.positions.clearCache,
+      ).not.toHaveBeenCalled();
     });
 
     it('debounces rapid state changes into a single reconnection', async () => {
@@ -876,6 +1293,233 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.reconnectWithNewContext.mockResolvedValue();
     });
 
+    it('runs a queued force request after the current reconnect fails', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        performReconnection: () => Promise<void>;
+        reconnectWithNewContext: (options?: {
+          force?: boolean;
+        }) => Promise<void>;
+      };
+      let rejectFirst: ((error: Error) => void) | undefined;
+      const firstAttempt = new Promise<void>((_resolve, reject) => {
+        rejectFirst = reject;
+      });
+      const reconnect = jest
+        .spyOn(manager, 'performReconnection')
+        .mockImplementationOnce(() => firstAttempt)
+        .mockResolvedValueOnce();
+
+      const first = manager.reconnectWithNewContext();
+      await Promise.resolve();
+      const queued = manager.reconnectWithNewContext({ force: true });
+      rejectFirst?.(new Error('first reconnect failed'));
+
+      await expect(first).resolves.toBeUndefined();
+      await expect(queued).resolves.toBeUndefined();
+      expect(reconnect).toHaveBeenCalledTimes(2);
+      reconnect.mockRestore();
+    });
+
+    it('does not reject a healthy connection at the retry cap', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        pendingReconnectRequest: {
+          userContextKey: string;
+          force: boolean;
+        } | null;
+        performReconnection: () => Promise<void>;
+        isSelectedUserContextReady: () => boolean;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      manager.isConnected = true;
+      const readiness = jest
+        .spyOn(manager, 'isSelectedUserContextReady')
+        .mockReturnValue(true);
+      const reconnect = jest
+        .spyOn(manager, 'performReconnection')
+        .mockImplementation(async () => {
+          manager.pendingReconnectRequest = {
+            userContextKey: 'queued',
+            force: true,
+          };
+        });
+
+      await expect(manager.reconnectWithNewContext()).resolves.toBeUndefined();
+      expect(reconnect).toHaveBeenCalledTimes(3);
+      reconnect.mockRestore();
+      readiness.mockRestore();
+    });
+
+    it('rejects the retry cap when the selected user is not ready', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        pendingReconnectRequest: {
+          userContextKey: string;
+          force: boolean;
+        } | null;
+        performReconnection: () => Promise<void>;
+        isSelectedUserContextReady: () => boolean;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      manager.isConnected = true;
+      const readiness = jest
+        .spyOn(manager, 'isSelectedUserContextReady')
+        .mockReturnValue(false);
+      const reconnect = jest
+        .spyOn(manager, 'performReconnection')
+        .mockImplementation(async () => {
+          manager.pendingReconnectRequest = {
+            userContextKey: 'queued',
+            force: true,
+          };
+        });
+
+      await expect(manager.reconnectWithNewContext()).rejects.toThrow(
+        'Perps reconnect did not settle',
+      );
+      expect(reconnect).toHaveBeenCalledTimes(3);
+      reconnect.mockRestore();
+      readiness.mockRestore();
+    });
+
+    it('rejects a falsy reconnect failure', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        performReconnection: () => Promise<void>;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      const reconnect = jest
+        .spyOn(manager, 'performReconnection')
+        .mockRejectedValueOnce(undefined);
+
+      await expect(manager.reconnectWithNewContext()).rejects.toBeInstanceOf(
+        Error,
+      );
+      reconnect.mockRestore();
+    });
+
+    it('bounds force handoff and blocks the obsolete initialization commit', async () => {
+      jest.useFakeTimers();
+      let resolveInitialization: (() => void) | undefined;
+      mockPerpsController.init.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveInitialization = resolve;
+          }),
+      );
+      const endTrace = jest.spyOn(
+        jest.requireActual('../../../../util/trace'),
+        'endTrace',
+      );
+      const obsoleteInitialization = PerpsConnectionManager.connect();
+      await Promise.resolve();
+      const manager = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        isInitialized: boolean;
+        initializedUserContextKey: string | null;
+        initializationTraceId: string | null;
+        performSerializedReconnection: () => Promise<void>;
+        reconnectWithNewContext: (options?: {
+          force?: boolean;
+        }) => Promise<void>;
+      };
+      const reconnect = jest
+        .spyOn(manager, 'performSerializedReconnection')
+        .mockImplementation(async () => {
+          manager.isConnected = true;
+          manager.isInitialized = true;
+          manager.initializedUserContextKey = 'replacement';
+        });
+      const retiredTraceId = manager.initializationTraceId;
+
+      const forced = manager.reconnectWithNewContext({ force: true });
+      await jest.advanceTimersByTimeAsync(
+        PERPS_CONSTANTS.ConnectionAttemptTimeoutMs,
+      );
+      await forced;
+
+      expect(reconnect).toHaveBeenCalledTimes(1);
+      expect(manager.initializationTraceId).toBeNull();
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsConnectionEstablishment,
+        id: retiredTraceId,
+        data: { success: false, reason: 'superseded' },
+      });
+
+      resolveInitialization?.();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockPerpsController.getActiveProvider).not.toHaveBeenCalled();
+      expect(manager.isConnected).toBe(true);
+      expect(manager.isInitialized).toBe(true);
+      expect(manager.initializedUserContextKey).toBe('replacement');
+      expect(
+        endTrace.mock.calls.filter(
+          ([request]) => (request as { id?: string }).id === retiredTraceId,
+        ),
+      ).toHaveLength(1);
+      await obsoleteInitialization;
+      reconnect.mockRestore();
+      endTrace.mockRestore();
+      jest.useRealTimers();
+    });
+
+    it('reconnects again when account changes during reconnection preload', async () => {
+      jest.useFakeTimers();
+      const addressA = '0x1111111111111111111111111111111111111111';
+      const addressB = '0x2222222222222222222222222222222222222222';
+      const addressC = '0x3333333333333333333333333333333333333333';
+      let notifyBPreloadStarted: () => void = () => undefined;
+      const bPreloadStarted = new Promise<void>((resolve) => {
+        notifyBPreloadStarted = resolve;
+      });
+      let resolveBPreload: (() => void) | undefined;
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: addressA }));
+      mockPerpsController.init.mockResolvedValue();
+      mockStreamManagerInstance.prices.prewarm
+        .mockResolvedValueOnce(jest.fn())
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveBPreload = () => resolve(jest.fn());
+              notifyBPreloadStarted();
+            }),
+        )
+        .mockResolvedValueOnce(jest.fn());
+      await PerpsConnectionManager.connect();
+      const storeCallback = storeCallbacks[storeCallbacks.length - 1];
+      const manager = PerpsConnectionManager as unknown as {
+        pendingReconnectPromise: Promise<void> | null;
+      };
+
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: addressB }));
+      storeCallback();
+      jest.advanceTimersByTime(50);
+      await bPreloadStarted;
+      const reconnectPromise = manager.pendingReconnectPromise;
+      if (!reconnectPromise || !resolveBPreload) {
+        throw new Error('Account B reconnection preload did not start.');
+      }
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: addressC }));
+      storeCallback();
+      jest.advanceTimersByTime(50);
+      await Promise.resolve();
+      resolveBPreload();
+      await reconnectPromise;
+
+      expect(mockPerpsController.init).toHaveBeenCalledTimes(3);
+      expect(mockStreamManagerInstance.prices.prewarm).toHaveBeenCalledTimes(3);
+      expect(PerpsConnectionManager.isSelectedUserContextReady()).toBe(true);
+      jest.useRealTimers();
+    });
+
     it('clears all StreamManager caches on reconnection', async () => {
       // Setup connected state first
       mockPerpsController.init.mockResolvedValue();
@@ -897,7 +1541,7 @@ describe('PerpsConnectionManager', () => {
       expect(mockStreamManagerInstance.prices.clearCache).toHaveBeenCalled();
     });
 
-    it('reinitializes the controller and mounted candle subscriptions', async () => {
+    it('reinitializes the controller and mounted screen subscriptions', async () => {
       mockPerpsController.init.mockResolvedValue();
 
       await (
@@ -912,9 +1556,79 @@ describe('PerpsConnectionManager', () => {
       expect(mockStreamManagerInstance.candles.reconnect).toHaveBeenCalledTimes(
         1,
       );
+      expect(
+        mockStreamManagerInstance.focusedPrice.reconnect,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockStreamManagerInstance.oiCaps.reconnect).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(
+        mockStreamManagerInstance.topOfBook.reconnect,
+      ).toHaveBeenCalledTimes(1);
       expect(mockPerpsController.init.mock.invocationCallOrder[0]).toBeLessThan(
         mockStreamManagerInstance.candles.reconnect.mock.invocationCallOrder[0],
       );
+    });
+
+    it('invalidates market readiness during a non-account reconnect', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        initializedMarketContextKey: string | null;
+        initializedConnectionGeneration: number | null;
+        pendingSkipMarketNotify: boolean;
+        getSelectedMarketContextKey: () => string;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      const selectedMarketContextKey = manager.getSelectedMarketContextKey();
+      manager.initializedMarketContextKey = selectedMarketContextKey;
+      manager.initializedConnectionGeneration = 0;
+      manager.pendingSkipMarketNotify = false;
+      const listener = jest.fn();
+      const unsubscribe =
+        PerpsConnectionManager.subscribeToInitializedMarketContext(listener);
+
+      await manager.reconnectWithNewContext();
+
+      expect(listener).toHaveBeenCalledTimes(2);
+      expect(PerpsConnectionManager.getInitializedMarketContextKey()).toBe(
+        selectedMarketContextKey,
+      );
+      unsubscribe();
+    });
+
+    it('preserves market readiness during an account-only reconnect', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        initializedMarketContextKey: string | null;
+        initializedConnectionGeneration: number | null;
+        pendingSkipMarketNotify: boolean;
+        getSelectedMarketContextKey: () => string;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      const selectedMarketContextKey = manager.getSelectedMarketContextKey();
+      const initialConnectionGeneration =
+        PerpsConnectionManager.getConnectionGeneration();
+      manager.initializedMarketContextKey = selectedMarketContextKey;
+      manager.initializedConnectionGeneration = 0;
+      manager.pendingSkipMarketNotify = true;
+      const listener = jest.fn();
+      const unsubscribe =
+        PerpsConnectionManager.subscribeToInitializedMarketContext(listener);
+
+      await manager.reconnectWithNewContext();
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(PerpsConnectionManager.getInitializedMarketContextKey()).toBe(
+        selectedMarketContextKey,
+      );
+      expect(PerpsConnectionManager.getConnectionGeneration()).toBe(
+        initialConnectionGeneration + 1,
+      );
+      expect(mockStreamManagerInstance.oiCaps.reconnect).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(
+        mockStreamManagerInstance.topOfBook.reconnect,
+      ).toHaveBeenCalledTimes(1);
+      unsubscribe();
     });
 
     it('waits for concurrent controller reinit before health-check ping', async () => {
@@ -946,6 +1660,11 @@ describe('PerpsConnectionManager', () => {
 
     it('logs error and resets connecting flag when reconnection fails', async () => {
       const error = new Error('Reconnection failed');
+      (
+        PerpsConnectionManager as unknown as {
+          initializedMarketContextKey: string | null;
+        }
+      ).initializedMarketContextKey = 'mainnet|hyperliquid|0';
       mockPerpsController.init.mockRejectedValueOnce(error);
 
       // Reconnection errors are caught, logged, and re-thrown (so caller can handle)
@@ -964,6 +1683,9 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.candles.reconnect,
       ).not.toHaveBeenCalled();
+      expect(
+        PerpsConnectionManager.getInitializedMarketContextKey(),
+      ).toBeNull();
     });
   });
 
@@ -1265,6 +1987,9 @@ describe('PerpsConnectionManager', () => {
       expect(mockStreamManagerInstance.oiCaps.clearCache).toHaveBeenCalled();
       expect(mockStreamManagerInstance.fills.clearCache).toHaveBeenCalled();
       expect(mockStreamManagerInstance.topOfBook.clearCache).toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.focusedPrice.clearCache,
+      ).toHaveBeenCalled();
       expect(mockStreamManagerInstance.candles.clearCache).toHaveBeenCalled();
       // Hard teardown must also abandon pending confirmation CUFs.
       expect(mockClearPendingPerpsCufTraces).toHaveBeenCalled();
@@ -1407,10 +2132,10 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
-    it('ignores a timer armed on the inactive edge, which is what a real iOS lock arms on', async () => {
-      // PerpsAlwaysOnProvider disconnects on the `active -> inactive` edge and
-      // iOS backgrounding fires active -> inactive -> background, so `inactive`
-      // is the state production actually arms in.
+    it('ignores a grace timer incorrectly armed on the inactive edge', async () => {
+      // Non-deferred lifecycle disconnects immediately on active → inactive.
+      // Only Chase-deferred callers wait for background, so neither path should
+      // arm a grace timer while inactive.
       armGracePeriodWhileAppIs('inactive');
 
       jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);
@@ -1716,6 +2441,32 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
+    it('advances the connection generation before re-registering streams', async () => {
+      await PerpsConnectionManager.connect();
+      const initialGeneration =
+        PerpsConnectionManager.getConnectionGeneration();
+      const listener = jest.fn();
+      const unsubscribe =
+        PerpsConnectionManager.subscribeToConnectionGeneration(listener);
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
+        suppressError: true,
+      });
+
+      expect(PerpsConnectionManager.getConnectionGeneration()).toBe(
+        initialGeneration + 1,
+      );
+      expect(PerpsConnectionManager.getInitializedConnectionGeneration()).toBe(
+        initialGeneration + 1,
+      );
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(listener.mock.invocationCallOrder[0]).toBeLessThan(
+        mockStreamManagerInstance.clearAllChannels.mock.invocationCallOrder[0],
+      );
+      unsubscribe();
+    });
+
     it('retries ping after delay and skips reconnect when retry succeeds', async () => {
       // Establish an initial connection
       await PerpsConnectionManager.connect();
@@ -1831,6 +2582,7 @@ describe('PerpsConnectionManager', () => {
     it('calls ensureConnected when not currently connected', async () => {
       // Manager starts disconnected (from resetManager in beforeEach)
       (Engine.context.PerpsController.init as jest.Mock).mockClear();
+      jest.mocked(setPerpsLoadingSessionLifecycle).mockClear();
 
       await PerpsConnectionManager.resumeFromForeground({
         source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
@@ -1839,6 +2591,17 @@ describe('PerpsConnectionManager', () => {
       expect(Engine.context.PerpsController.init).toHaveBeenCalled();
       expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
         true,
+      );
+      expect(setPerpsLoadingSessionLifecycle).not.toHaveBeenCalled();
+    });
+
+    it('upgrades a disconnected foreground resume to reconnect', async () => {
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
+      });
+
+      expect(setPerpsLoadingSessionLifecycle).toHaveBeenCalledWith(
+        'background_reconnect',
       );
     });
 
@@ -1865,8 +2628,10 @@ describe('PerpsConnectionManager', () => {
         startConnectionTimeout: (suppressError?: boolean) => void;
         error: string | null;
         isConnecting: boolean;
+        initializedMarketContextKey: string | null;
       };
       m.isConnecting = true;
+      m.initializedMarketContextKey = 'testnet|hyperliquid|1';
 
       m.startConnectionTimeout(true);
 
@@ -1875,6 +2640,7 @@ describe('PerpsConnectionManager', () => {
 
       // Error should NOT be set because suppressError=true
       expect(m.error).toBeNull();
+      expect(m.initializedMarketContextKey).toBeNull();
 
       jest.useRealTimers();
     });

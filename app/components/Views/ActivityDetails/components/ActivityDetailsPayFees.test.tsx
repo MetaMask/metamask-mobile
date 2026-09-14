@@ -13,13 +13,15 @@ import {
   useActivityPayFiat,
 } from './ActivityDetailsPayFees';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+import {
+  createMockAccountsControllerState,
+  createMockUuidFromAddress,
+} from '../../../../util/test/accountsControllerTestUtils';
 
 const { NETWORK_FEE_ROW, BRIDGE_FEE_ROW, TOTAL_ROW } =
   ActivityDetailsSelectorsIDs;
 
-function payItem(
-  metamaskPay: Record<string, string> | undefined,
-): ActivityListItem {
+function payItem(): ActivityListItem {
   return {
     type: 'predictionsAddFunds',
     chainId: 'eip155:137',
@@ -27,15 +29,31 @@ function payItem(
     timestamp: 1,
     hash: '0xfund',
     data: { token: { amount: '100000', decimals: 6, symbol: 'USDC' } },
-    raw: {
-      type: 'localTransaction',
-      data: {
-        primaryTransaction: { id: 'tx-1', chainId: '0x89', metamaskPay },
-        initialTransaction: { id: 'tx-1', chainId: '0x89' },
-        transactions: [],
+  } as unknown as ActivityListItem;
+}
+
+function stateWithPayOnLocalTx(
+  metamaskPay: Record<string, string> | undefined,
+  hash = '0xfund',
+) {
+  return {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        TransactionController: {
+          ...backgroundState.TransactionController,
+          transactions: [
+            {
+              id: 'tx-1',
+              chainId: '0x89',
+              hash,
+              metamaskPay,
+            } as unknown as TransactionMeta,
+          ],
+        },
       },
     },
-  } as unknown as ActivityListItem;
+  };
 }
 
 /** A provider-backed row — its Pay metadata lives on the local tx behind `hash`. */
@@ -56,17 +74,29 @@ function pay(metamaskPay: Record<string, string>): MetamaskPayMetadata {
 
 const USDC_MAINNET = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const ACCOUNT = '0x0000000000000000000000000000000000000001';
+const ACCOUNT_ID = createMockUuidFromAddress(ACCOUNT.toLowerCase());
+const USDC_MAINNET_ASSET_ID = `eip155:1/erc20:${USDC_MAINNET}`;
 
 /** State where the payment token is a tracked ERC-20 on mainnet. */
 const stateWithPayToken = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      TokensController: {
-        ...backgroundState.TokensController,
-        allTokens: {
-          '0x1': {
-            [ACCOUNT]: [{ address: USDC_MAINNET, symbol: 'USDC', decimals: 6 }],
+      AccountsController: createMockAccountsControllerState([ACCOUNT]),
+      AssetsController: {
+        ...backgroundState.AssetsController,
+        assetsInfo: {
+          ...backgroundState.AssetsController.assetsInfo,
+          [USDC_MAINNET_ASSET_ID]: {
+            type: 'erc20',
+            symbol: 'USDC',
+            decimals: 6,
+          },
+        },
+        assetsBalance: {
+          ...backgroundState.AssetsController.assetsBalance,
+          [ACCOUNT_ID]: {
+            [USDC_MAINNET_ASSET_ID]: { amount: '100' },
           },
         },
       },
@@ -99,11 +129,6 @@ const eurState = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      CurrencyRateController: {
-        ...backgroundState.CurrencyRateController,
-        currentCurrency: 'eur',
-      },
-      // Read instead of `CurrencyRateController` once assets state unifies.
       AssetsController: {
         ...backgroundState.AssetsController,
         selectedCurrency: 'eur' as const,
@@ -228,9 +253,26 @@ describe('useActivityPayFiat', () => {
     renderHookWithProvider(() => useActivityPayFiat(item), { state }).result
       .current;
 
-  it('reads Pay metadata straight off a local row', () => {
+  it('reads Pay metadata from the local transaction behind the row hash', () => {
     expect(
-      renderPayFiat(payItem({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' })),
+      renderPayFiat(
+        payItem(),
+        stateWithPayOnLocalTx({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' }),
+      ),
+    ).toMatchObject({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' });
+  });
+
+  it('reads Pay metadata when the row hash is the pending transaction id', () => {
+    const pendingItem = { ...payItem(), hash: 'tx-1' };
+
+    expect(
+      renderPayFiat(
+        pendingItem,
+        stateWithPayOnLocalTx(
+          { networkFeeFiat: '0', bridgeFeeFiat: '0.04' },
+          undefined,
+        ),
+      ),
     ).toMatchObject({ networkFeeFiat: '0', bridgeFeeFiat: '0.04' });
   });
 
@@ -274,10 +316,14 @@ describe('useActivityPayFiat', () => {
     ['a total with no fees resolves', { totalFiat: '0.14' }, true],
     ['empty Pay metadata does not', {}, false],
   ])('%s', (_name, metamaskPay, resolved) => {
-    expect(Boolean(renderPayFiat(payItem(metamaskPay)))).toBe(resolved);
+    expect(
+      Boolean(renderPayFiat(payItem(), stateWithPayOnLocalTx(metamaskPay))),
+    ).toBe(resolved);
   });
 
   it('is undefined when the local transaction has no Pay metadata', () => {
-    expect(renderPayFiat(payItem(undefined))).toBeUndefined();
+    expect(
+      renderPayFiat(payItem(), stateWithPayOnLocalTx(undefined)),
+    ).toBeUndefined();
   });
 });

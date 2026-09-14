@@ -15,7 +15,7 @@ import { DappVariants } from '../../../framework/Constants.js';
 import Browser from '../../../page-objects/Browser/BrowserView.js';
 import EnsWebsite from '../../../page-objects/Browser/ExternalWebsites/EnsWebsite.js';
 import RedirectWebsite from '../../../page-objects/Browser/ExternalWebsites/RedirectWebsite.js';
-import { Assertions, Utilities } from '../../../framework/index.js';
+import { Utilities } from '../../../framework/index.js';
 import { PlatformDetector } from '../../../framework/PlatformLocator.js';
 import { TestSpecificMock } from '../../../framework/types.js';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers.js';
@@ -147,14 +147,7 @@ appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
     },
   );
 
-  // Skipped: BrowserTab.handleSuccessfulPageResolution only updates the URL bar
-  // when its onLoadEnd "started && ended" condition is met. For JS-initiated
-  // cross-origin redirects (window.location.href) this condition is not
-  // reliably satisfied, so the URL bar keeps showing the previous origin.
-  // Re-enable once the app fixes URL bar updates after cross-origin
-  // in-page navigations (MCWP-540)
-  // TO-DO: Remove when bug fixed https://github.com/MetaMask/metamask-mobile/issues/33815.
-  appiumTest.skip(
+  appiumTest(
     'displays redirected URL after cross-origin redirect',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
@@ -177,31 +170,23 @@ appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
           await navigateToBrowserView();
 
-          // Build redirect URL with dynamic target from second dapp server
-          const redirectTarget = encodeURIComponent(
-            `${getDappUrl(1)}/redirect-target.html`,
-          );
-          const redirectUrl = `${getDappUrl(0)}/redirect.html?target=${redirectTarget}`;
+          // serve-handler cleanUrls maps redirect.html → /redirect and drops
+          // query strings, so pass the target into the WebView from the test.
+          const startUrl = `${getDappUrl(0)}/redirect.html`;
+          const webViewUrl = `${getDappUrl(0)}/redirect`;
+          const targetUrl = `${getDappUrl(1)}/redirect-target.html`;
 
           await Browser.tapUrlInputBox();
-          await Browser.navigateToURL(redirectUrl);
-          await Assertions.expectElementToHaveText(
-            Browser.urlInputBoxID,
+          await Browser.navigateToURL(startUrl);
+          await Browser.expectUrlToContain(
             getOriginFromURL(getDappUrl(0)),
-            {
-              description:
-                'URL bar shows the origin of the initial redirect page',
-            },
+            'URL bar shows the origin of the initial redirect page',
           );
 
-          await RedirectWebsite.tapRedirectButton(redirectUrl);
-          await Assertions.expectElementToHaveText(
-            Browser.urlInputBoxID,
+          await RedirectWebsite.redirectToTarget(webViewUrl, targetUrl);
+          await Browser.expectUrlToContain(
             getOriginFromURL(getDappUrl(1)),
-            {
-              description:
-                'URL bar shows the origin of the redirect target page',
-            },
+            'URL bar shows the origin of the redirect target page',
           );
         },
       );

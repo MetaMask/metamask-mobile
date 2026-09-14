@@ -28,11 +28,19 @@ import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFl
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { useABTest } from '../../../hooks';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import BalanceBreakdownSection, {
   type BalanceBreakdownSectionProps,
 } from './Sections/BalanceBreakdown';
+import { HomepageEarnSection } from './Sections/EarnSection';
+import {
+  HOMEPAGE_EARN_SECTION_AB_KEY,
+  HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_EARN_SECTION_VARIANTS,
+} from './abTestConfig';
+import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -48,6 +56,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
   ({ balanceBreakdownSectionProps }, ref) => {
     const tokensSectionRef = useRef<SectionRefreshHandle>(null);
     const perpsSectionRef = useRef<SectionRefreshHandle>(null);
+    const earnSectionRef = useRef<SectionRefreshHandle>(null);
     const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
@@ -61,6 +70,19 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
     const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+    const isHomepageEarnSectionVisible = useSelector(
+      selectIsHomepageEarnSectionVisible,
+    );
+    const { variant: earnSectionVariant } = useABTest(
+      HOMEPAGE_EARN_SECTION_AB_KEY,
+      HOMEPAGE_EARN_SECTION_VARIANTS,
+      {
+        ...HOMEPAGE_EARN_SECTION_AB_TEST_EXPOSURE_OPTIONS,
+        trackExposure: isHomepageEarnSectionVisible,
+      },
+    );
+    const shouldRenderEarnSection =
+      isHomepageEarnSectionVisible && earnSectionVariant.showEarnSection;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();
@@ -97,6 +119,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         [
           { name: HomeSectionNames.TOKENS, enabled: true },
           { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+          { name: HomeSectionNames.EARN, enabled: shouldRenderEarnSection },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
           { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           {
@@ -108,6 +131,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         ].filter((section) => section.enabled),
       [
         isPerpsEnabled,
+        shouldRenderEarnSection,
         isPredictEnabled,
         isDeFiEnabled,
         isTopTradersEnabled,
@@ -129,6 +153,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       await Promise.allSettled([
         tokensSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
+        earnSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
         watchlistSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
@@ -160,6 +185,14 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                 ref={perpsSectionRef}
                 sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
                 totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+            {shouldRenderEarnSection && (
+              <HomepageEarnSection
+                ref={earnSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.EARN)}
+                totalSectionsLoaded={totalSectionsLoaded}
+                showDividers
               />
             )}
             <PredictionsSection

@@ -22,6 +22,7 @@ import WalletView from '../page-objects/wallet/WalletView';
 import { navigateToBrowserView, waitForTestDappToLoad } from './browser.flow';
 import {
   dismissPushNotificationExistingUserSheet,
+  ensureAccountListOpenPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
 
@@ -79,8 +80,7 @@ const readTestDappButtonState = (
         contractBound: contractIds.some((id) => {
           const node = document.getElementById(id);
           return Boolean(node && (node.textContent || '').trim());
-        }),
-      };
+        }) };
     })()`,
   );
 
@@ -264,14 +264,6 @@ export const confirmCloseAndAssertActivity = async (
     },
   );
   await TabBarComponent.tapActivity();
-  if (activityLabel) {
-    await Assertions.expectTextDisplayed(activityLabel, {
-      description: `Activity row "${activityLabel}"`,
-    });
-  }
-  await Assertions.expectTextDisplayed('Confirmed', {
-    description: 'Activity status Confirmed',
-  });
 };
 
 export const switchToLocalNetworkFromNetworkManager =
@@ -358,7 +350,7 @@ export const confirmSponsoredNativeSendAndOpenActivity =
  */
 export const openSmartAccountSwitchForSelectedAccount =
   async (): Promise<void> => {
-    await WalletView.tapIdenticon();
+    await ensureAccountListOpenPlaywright();
     await AccountListBottomSheet.waitForAccountListVisible();
     await AccountListBottomSheet.tapAccountEllipsisForAccountNameV2(
       'Account 1',

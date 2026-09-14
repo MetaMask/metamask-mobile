@@ -19,7 +19,9 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import type { RootState } from '../../../../../reducers';
 import {
   selectAllowedChainRanking,
+  selectOrdersNetworkFilter,
   selectTokenSelectorNetworkFilter,
+  setOrdersNetworkFilter,
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import { useABTest } from '../../../../../hooks';
@@ -35,25 +37,37 @@ interface ChainRankingEntry {
   name: string;
 }
 
+export type NetworkListModalFilterTarget = 'tokenSelector' | 'orders';
+
 export interface NetworkListModalParams {
   /**
    * When provided, restricts the network list to these chains instead
    * of the default allowed chainRanking.
    */
   enabledChainIds?: CaipChainId[];
+  /**
+   * Which Redux network filter this modal reads and writes.
+   * Defaults to the token selector filter.
+   */
+  filterTarget?: NetworkListModalFilterTarget;
 }
 
 interface NetworkListModalContentProps {
   chainRanking: ChainRankingEntry[];
+  filterTarget: NetworkListModalFilterTarget;
 }
 
 const NetworkListModalContent: React.FC<NetworkListModalContentProps> = ({
   chainRanking,
+  filterTarget,
 }) => {
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
+  const tokenSelectorFilter = useSelector(selectTokenSelectorNetworkFilter);
+  const ordersFilter = useSelector(selectOrdersNetworkFilter);
+  const selectedChainId =
+    filterTarget === 'orders' ? ordersFilter : tokenSelectorFilter;
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -61,10 +75,14 @@ const NetworkListModalContent: React.FC<NetworkListModalContentProps> = ({
 
   const handleNetworkPress = useCallback(
     (chainId?: CaipChainId) => {
-      dispatch(setTokenSelectorNetworkFilter(chainId));
+      dispatch(
+        filterTarget === 'orders'
+          ? setOrdersNetworkFilter(chainId)
+          : setTokenSelectorNetworkFilter(chainId),
+      );
       sheetRef.current?.onCloseBottomSheet();
     },
-    [dispatch],
+    [dispatch, filterTarget],
   );
 
   const isAllSelected = !selectedChainId;
@@ -121,16 +139,23 @@ const NetworkListModalContent: React.FC<NetworkListModalContentProps> = ({
 
 const NetworkValueOrderedListModal: React.FC<NetworkListModalContentProps> = ({
   chainRanking,
+  filterTarget,
 }) => {
   const orderedChainRanking = useChainValueOrder(chainRanking);
 
-  return <NetworkListModalContent chainRanking={orderedChainRanking} />;
+  return (
+    <NetworkListModalContent
+      chainRanking={orderedChainRanking}
+      filterTarget={filterTarget}
+    />
+  );
 };
 
 const NetworkListModal: React.FC = () => {
   const route =
     useRoute<RouteProp<{ params: NetworkListModalParams }, 'params'>>();
   const enabledChainIds = route.params?.enabledChainIds;
+  const filterTarget = route.params?.filterTarget ?? 'tokenSelector';
   const chainRanking: ChainRankingEntry[] = useSelector((state: RootState) =>
     selectAllowedChainRanking(state, enabledChainIds),
   );
@@ -141,10 +166,20 @@ const NetworkListModal: React.FC = () => {
   );
 
   if (variant.orderByValue) {
-    return <NetworkValueOrderedListModal chainRanking={chainRanking} />;
+    return (
+      <NetworkValueOrderedListModal
+        chainRanking={chainRanking}
+        filterTarget={filterTarget}
+      />
+    );
   }
 
-  return <NetworkListModalContent chainRanking={chainRanking} />;
+  return (
+    <NetworkListModalContent
+      chainRanking={chainRanking}
+      filterTarget={filterTarget}
+    />
+  );
 };
 
 export default NetworkListModal;

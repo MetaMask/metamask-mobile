@@ -6,6 +6,11 @@ interface ProvidersQueryParams {
   regionCode: string;
 }
 
+interface ProvidersResponse {
+  providers: Provider[];
+  sorted?: { sortBy: string; ids: string[] }[];
+}
+
 export const rampsProvidersKeys = {
   all: () => ['ramps', 'providers'] as const,
   detail: ({ regionCode }: ProvidersQueryParams) =>
@@ -15,12 +20,9 @@ export const rampsProvidersKeys = {
 export const rampsProvidersOptions = (params: ProvidersQueryParams) =>
   queryOptions({
     queryKey: rampsProvidersKeys.detail(params),
-    queryFn: async (): Promise<Provider[]> => {
-      const response = await Engine.context.RampsController.getProviders(
+    queryFn: async (): Promise<ProvidersResponse> =>
+      Engine.context.RampsController.getProviders(
         params.regionCode,
-      );
-
-      return response.providers;
-    },
+      ) as Promise<ProvidersResponse>,
     staleTime: 15 * 60 * 1000, // 15 minutes
   });

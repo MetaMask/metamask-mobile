@@ -7,6 +7,13 @@ import { TokenI } from '../../Tokens/types';
 import { EarnTokenDetails } from '../types/lending.types';
 import { getEstimatedAnnualRewards } from '../utils/token';
 
+/**
+ * Legacy adapter for staking and lending transaction flows.
+ *
+ * Prefer useEarnAssetCatalogue going forward.
+ * This hook preserves direct Earn token and receipt-token pair lookups needed
+ * by existing staking and lending transaction flows.
+ */
 const useEarnTokens = () => {
   const earnTokensData = useSelector(earnSelectors.selectEarnTokens);
   const currentCurrency = useSelector(selectCurrentCurrency);

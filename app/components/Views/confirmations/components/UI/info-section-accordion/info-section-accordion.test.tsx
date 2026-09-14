@@ -1,9 +1,9 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { stakingDepositConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import InfoSectionAccordion from './info-section-accordion';
+import { Text } from '@metamask/design-system-react-native';
 
 describe('InfoSectionAccordion', () => {
   it("opens and closes the accordion when it's collapsed by default", async () => {

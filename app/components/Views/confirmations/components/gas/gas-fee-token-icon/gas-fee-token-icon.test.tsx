@@ -72,7 +72,7 @@ describe('GasFeeTokenIcon', () => {
     );
 
     expect(getByTestId('token-icon')).toBeOnTheScreen();
-    expect(getByTestId('gas-fee-token-network-badge')).toBeOnTheScreen();
+    expect(getByTestId('badgenetwork')).toBeOnTheScreen();
   });
 
   it('renders token icon without network badge when network image is missing', () => {
@@ -85,7 +85,7 @@ describe('GasFeeTokenIcon', () => {
     );
 
     expect(getByTestId('token-icon')).toBeOnTheScreen();
-    expect(queryByTestId('gas-fee-token-network-badge')).not.toBeOnTheScreen();
+    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
   });
 
   it('falls back to CDN token image when TokensController image is missing', () => {

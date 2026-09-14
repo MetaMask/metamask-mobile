@@ -1,9 +1,9 @@
-import React, { memo, useCallback } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { memo, useCallback, useMemo } from 'react';
+import { ScrollView } from 'react-native';
 import {
-  FontWeight,
+  Box,
+  BoxFlexDirection,
   SectionHeader,
-  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -12,14 +12,15 @@ import {
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
+import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
-import { PerpsLeverage } from '../PerpsLeverage';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import { formatPercentage } from '../../utils/formatUtils';
 import { PerpsRecentlyViewedRailSelectorsIDs } from '../../Perps.testIds';
-import styleSheet from './PerpsRecentlyViewedRail.styles';
 
 /** `source_section` value for market-details navigation and analytics originating from this rail. */
 export const RECENTLY_VIEWED_SOURCE_SECTION = 'recently_viewed';
@@ -39,65 +40,51 @@ export interface PerpsRecentlyViewedRailProps {
 
 /** Mirrors the core `PERPS_CONSTANTS.RecentlyViewedMarketsLimit`; belt-and-suspenders cap. */
 const MAX_TILES = 10;
+const LOGO_SIZE = 24;
 
-const PerpsRecentlyViewedTile: React.FC<{
+const PerpsRecentlyViewedPill: React.FC<{
   market: PerpsMarketData;
   index: number;
   onPress: (market: PerpsMarketData, index: number) => void;
 }> = ({ market, index, onPress }) => {
-  const { styles } = useStyles(styleSheet, {});
-
   const handlePress = useCallback(() => {
     onPress(market, index);
   }, [onPress, market, index]);
 
-  const isPositiveChange = !market.change24h.startsWith('-');
-  const changeColor = isPositiveChange
-    ? TextColor.SuccessDefault
-    : TextColor.ErrorDefault;
-  const displaySymbol = getPerpsDisplaySymbol(market.symbol);
+  // Same live-price overlay as PerpsMarketRowItem so the pill % matches the list.
+  const livePrices = usePerpsLivePrices({
+    symbols: [market.symbol],
+    throttleMs: 3000,
+  });
+
+  const change24hPercent = useMemo(() => {
+    const livePercentChange = livePrices[market.symbol]?.percentChange24h;
+    if (livePercentChange === undefined || livePercentChange === '') {
+      return market.change24hPercent;
+    }
+    return formatPercentage(Number.parseFloat(livePercentChange));
+  }, [livePrices, market.change24hPercent, market.symbol]);
+
+  const { changeTextColor } = useMemo(
+    () => formatPercentChange(change24hPercent),
+    [change24hPercent],
+  );
 
   return (
-    <TouchableOpacity
+    <ExplorePill
       onPress={handlePress}
-      activeOpacity={0.7}
-      style={styles.tile}
       testID={`perps-recently-viewed-tile-${market.symbol}`}
-      accessibilityRole="button"
-      accessibilityLabel={`${displaySymbol} recently viewed market`}
-    >
-      <PerpsTokenLogo symbol={market.symbol} size={32} />
-
-      <View style={styles.symbolRow}>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {displaySymbol}
-        </Text>
-        <PerpsLeverage maxLeverage={market.maxLeverage} />
-      </View>
-
-      <View style={styles.priceRow}>
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextDefault}
-          style={styles.priceLabel}
-          numberOfLines={1}
-        >
-          {market.price}
-        </Text>
-        <Text
-          variant={TextVariant.BodyXs}
-          color={changeColor}
-          numberOfLines={1}
-        >
-          {market.change24hPercent}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      leading={
+        <PerpsTokenLogo
+          symbol={market.symbol}
+          size={LOGO_SIZE}
+          recyclingKey={market.symbol}
+        />
+      }
+      title={getPerpsDisplaySymbol(market.symbol)}
+      changeLabel={change24hPercent}
+      changeTextColor={changeTextColor}
+    />
   );
 };
 
@@ -110,7 +97,6 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
   markets,
   onMarketPress,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
   const { track } = usePerpsEventTracking();
 
   const handlePress = useCallback(
@@ -132,7 +118,7 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
   const visibleMarkets = markets.slice(0, MAX_TILES);
 
   return (
-    <View style={styles.rail} testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL}>
+    <Box testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL} twClassName="pb-1">
       <SectionHeader
         title={strings('perps.recently_viewed')}
         twClassName="pt-1"
@@ -145,19 +131,24 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
         testID={PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID}
       >
-        {visibleMarkets.map((market, index) => (
-          <PerpsRecentlyViewedTile
-            key={market.symbol}
-            market={market}
-            index={index}
-            onPress={handlePress}
-          />
-        ))}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          gap={3}
+          twClassName="px-4 pb-1"
+        >
+          {visibleMarkets.map((market, index) => (
+            <PerpsRecentlyViewedPill
+              key={market.symbol}
+              market={market}
+              index={index}
+              onPress={handlePress}
+            />
+          ))}
+        </Box>
       </ScrollView>
-    </View>
+    </Box>
   );
 };
 

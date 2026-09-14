@@ -7,7 +7,9 @@ export const TrendingViewSelectorsIDs = {
   BROWSER_BUTTON: 'trending-view-browser-button',
   SEARCH_INPUT: 'explore-view-search-input',
   SEARCH_TEXT_INPUT: 'explore-view-search-text-input',
-  SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
+  SEARCH_BACK_BUTTON: AppTrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON,
+  SEARCH_BROWSER_TABS_BUTTON:
+    ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON,
   SEARCH_PILL_ALL: ExploreSearchScreenSelectorsIDs.PILL_ALL,
   SEARCH_PILL_CRYPTOS: ExploreSearchScreenSelectorsIDs.PILL_CRYPTOS,
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',

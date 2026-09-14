@@ -43,14 +43,22 @@ import {
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
-> = ({ position, sheetRef: externalSheetRef, onClose, onConfirm }) => {
+> = ({
+  position,
+  sheetRef: externalSheetRef,
+  onClose,
+  onConfirm,
+  enableHaptics = false,
+}) => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
+  const { playImpact } = useHaptics();
 
   // Measure bottom sheet display
   usePerpsMeasurement({ traceName: TraceName.PerpsFlipPositionSheet });
@@ -135,6 +143,12 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   const vipTier = useVipTier();
 
   const handleReverse = useCallback(async () => {
+    if (isFlipping || !hasValidAmount) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    }
     await handleFlipPosition(position, {
       totalFee: feeResults.totalFee,
       metamaskFee: feeResults.metamaskFee,
@@ -152,7 +166,11 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     });
   }, [
     position,
+    enableHaptics,
     handleFlipPosition,
+    hasValidAmount,
+    isFlipping,
+    playImpact,
     feeResults.totalFee,
     feeResults.metamaskFee,
     feeResults.metamaskFeeRate,

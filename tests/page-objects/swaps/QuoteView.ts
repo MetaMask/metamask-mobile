@@ -4,7 +4,8 @@ import {
   Matchers,
   PlatformDetector,
   sleep,
-  type EncapsulatedElementType,
+  Utilities,
+  type AppiumElement,
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import {
@@ -24,37 +25,37 @@ const TIMEOUT = {
 } as const;
 
 class QuoteView {
-  get selectAmountLabel(): EncapsulatedElementType {
+  get selectAmountLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_AMOUNT);
   }
 
-  get confirmBridge(): EncapsulatedElementType {
+  get confirmBridge(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
-  get confirmSwap(): EncapsulatedElementType {
+  get confirmSwap(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
-  get sourceTokenArea(): EncapsulatedElementType {
+  get sourceTokenArea(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
   }
 
-  get amountInput(): EncapsulatedElementType {
+  get amountInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
   }
 
-  get destinationTokenArea(): EncapsulatedElementType {
+  get destinationTokenArea(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA);
   }
 
-  get destinationTokenInput(): EncapsulatedElementType {
+  get destinationTokenInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT,
     );
   }
 
-  get searchToken(): EncapsulatedElementType {
+  get searchToken(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
         `//*[@name='${QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT}' or @name='textfieldsearch' or contains(@label,'Enter token name') or contains(@name,'Enter token name')]`,
@@ -63,34 +64,34 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
   }
 
-  get seeAllButton(): EncapsulatedElementType {
+  get seeAllButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_ALL);
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
   }
 
-  get moreNetworksButton(): EncapsulatedElementType {
+  get moreNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('network-pills-more-button');
   }
 
-  get networkFeeLabel(): EncapsulatedElementType {
+  get networkFeeLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  get bridgeViewScroll(): EncapsulatedElementType {
+  get bridgeViewScroll(): Promise<AppiumElement> {
     return Matchers.getElementByID(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
   }
 
   /** Fee disclaimer (e.g. "Includes 0.875% MetaMask fee") - used for isQuoteDisplayed. */
-  get feeDisclaimerLabel(): EncapsulatedElementType {
+  get feeDisclaimerLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       QuoteViewSelectorIDs.PRICE_IMPACT_INFO_BUTTON,
     );
   }
 
-  get keypadDeleteButton(): EncapsulatedElementType {
+  get keypadDeleteButton(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
         `//*[contains(@name,'${QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON}')]`,
@@ -99,15 +100,15 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON);
   }
 
-  get maxLink(): EncapsulatedElementType {
+  get maxLink(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.MAX);
   }
 
-  get includedLabel(): EncapsulatedElementType {
+  get includedLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
   }
 
-  get rateLabel(): EncapsulatedElementType {
+  get rateLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(QuoteViewSelectorText.RATE);
   }
 
@@ -116,7 +117,7 @@ class QuoteView {
     return getAssetTestId(`${chainId}-${symbol}`);
   }
 
-  getTokenElement(chainId: string, symbol: string): EncapsulatedElementType {
+  getTokenElement(chainId: string, symbol: string): Promise<AppiumElement> {
     const testId = this.getTokenElementId(chainId, symbol);
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(testId);
@@ -175,7 +176,7 @@ class QuoteView {
           tokenElement = this.getTokenElement(chainId, symbol);
           // Gestures.scrollToElement uses Detox direction semantics and inverts
           // for Appium scrollIntoView. Pass 'down' so Appium receives 'up'
-          // (matches prior PlaywrightGestures.scrollIntoView direction: 'up').
+          // (matches prior AppiumGestures.scrollIntoView direction: 'up').
           await Gestures.scrollToElement(
             tokenElement,
             Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
@@ -326,6 +327,29 @@ class QuoteView {
   }
 
   async tapOnBackButton(): Promise<void> {
+    // Android: header back shares the generic `button-icon` testID with the
+    // settings gear, so a single UI tap can miss dismiss. Retry tap + verify.
+    if (PlatformDetector.isAndroid()) {
+      await Utilities.executeWithRetry(
+        async () => {
+          await Gestures.waitAndTap(this.backButton, {
+            timeout: 2000,
+            elemDescription: 'Back button on Quote View (retry loop)',
+          });
+          await Assertions.expectElementToNotBeVisible(this.sourceTokenArea, {
+            timeout: 3000,
+            description: 'Swap screen dismissed after back',
+          });
+        },
+        {
+          timeout: 15000,
+          description: 'dismiss Swap with back and verify navigation',
+          elemDescription: 'Swap source token area',
+        },
+      );
+      return;
+    }
+
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back button on Quote View',
     });
@@ -418,7 +442,7 @@ class QuoteView {
    * Gets the slippage display text element (e.g., "2.5%")
    * @param value - The slippage value to match (e.g., "2.5" for 2.5%)
    */
-  slippageDisplayText(value: string): EncapsulatedElementType {
+  slippageDisplayText(value: string): Promise<AppiumElement> {
     return Matchers.getElementByText(`${value}%`);
   }
 

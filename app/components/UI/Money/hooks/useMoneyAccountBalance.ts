@@ -45,7 +45,7 @@ interface UseMoneyAccountBalanceResult {
   /** Whether the last successful balance used the secondary source. */
   usedFallback: boolean;
   lastKnownTotalFiatFormatted: string | undefined;
-  refetchBalance: () => void;
+  refetchBalance: () => Promise<void>;
   tokenTotal: BigNumber | undefined;
   totalFiatFormatted: string | undefined;
   totalFiatRaw: string | undefined;
@@ -186,7 +186,7 @@ const useMoneyAccountBalance = ({
   const withdrawableMusdRaw = moneyBalanceQuery.data?.vmusdValueInMusd;
 
   useEffect(() => {
-    if (isBalanceFetchError || isBalanceLoading) {
+    if (!enabled || isBalanceFetchError || isBalanceLoading) {
       return;
     }
     dispatch(
@@ -200,6 +200,7 @@ const useMoneyAccountBalance = ({
     dispatch,
     moneyAccountAddress,
     withdrawableMusdRaw,
+    enabled,
     isBalanceFetchError,
     isBalanceLoading,
   ]);

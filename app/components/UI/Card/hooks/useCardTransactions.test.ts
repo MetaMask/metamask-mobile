@@ -114,7 +114,6 @@ describe('useCardTransactions', () => {
     expect(mockListTransactions).toHaveBeenCalledWith({
       limit: 20,
       cursor: undefined,
-      searchQuery: undefined,
       fromDate: undefined,
       toDate: undefined,
     });
@@ -164,42 +163,6 @@ describe('useCardTransactions', () => {
     expect(mockListTransactions).toHaveBeenCalledTimes(1);
   });
 
-  it('debounces the search query before refetching', async () => {
-    jest.useFakeTimers();
-    try {
-      const { Wrapper } = createWrapper();
-
-      const { result, rerender } = renderHook(
-        ({ searchQuery }: { searchQuery?: string }) =>
-          useCardTransactions({ searchQuery }),
-        {
-          wrapper: Wrapper,
-          initialProps: { searchQuery: undefined as string | undefined },
-        },
-      );
-      await act(async () => {
-        jest.advanceTimersByTime(300);
-      });
-
-      rerender({ searchQuery: 'uber' });
-      // Not yet debounced: no new request with the search term.
-      expect(mockListTransactions).not.toHaveBeenCalledWith(
-        expect.objectContaining({ searchQuery: 'uber' }),
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(300);
-      });
-
-      expect(mockListTransactions).toHaveBeenCalledWith(
-        expect.objectContaining({ searchQuery: 'uber' }),
-      );
-      expect(result.current).toBeDefined();
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
   it('passes fromDate and toDate through to the controller', async () => {
     const { Wrapper } = createWrapper();
 
@@ -234,7 +197,6 @@ describe('useCardTransactions', () => {
       cardQueries.transactions.keys.list(
         'baanx',
         'user-1',
-        '',
         undefined,
         undefined,
       ),
@@ -255,7 +217,6 @@ describe('useCardTransactions', () => {
           cardQueries.transactions.keys.list(
             'baanx',
             'user-1',
-            '',
             undefined,
             undefined,
           ),
@@ -280,7 +241,6 @@ describe('useCardTransactions', () => {
         cardQueries.transactions.keys.list(
           'baanx',
           'user-1',
-          '',
           undefined,
           undefined,
         ),
@@ -291,7 +251,6 @@ describe('useCardTransactions', () => {
         cardQueries.transactions.keys.list(
           'immersve',
           'user-1',
-          '',
           undefined,
           undefined,
         ),
@@ -302,7 +261,6 @@ describe('useCardTransactions', () => {
         cardQueries.transactions.keys.list(
           'baanx',
           'user-2',
-          '',
           undefined,
           undefined,
         ),
@@ -337,5 +295,96 @@ describe('useCardTransactions', () => {
       resolveSecondPage(buildPage(['tx-2']));
     });
     await waitFor(() => expect(result.current.isLoadingMore).toBe(false));
+  });
+
+  it('sets isLoadMoreError after a later page fails', async () => {
+    mockListTransactions
+      .mockResolvedValueOnce(buildPage(['tx-1'], 'cursor-1'))
+      .mockRejectedValueOnce(new Error('page 2 failed'));
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(() => useCardTransactions(), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.hasMore).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.error).toBeTruthy());
+    expect(result.current.isLoadMoreError).toBe(true);
+    expect(result.current.items).toHaveLength(1);
+  });
+
+  it('does not set isLoadMoreError when a refresh fails', async () => {
+    mockListTransactions
+      .mockResolvedValueOnce(buildPage(['tx-1'], 'cursor-1'))
+      .mockRejectedValueOnce(new Error('refresh failed'));
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(() => useCardTransactions(), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+    await act(async () => {
+      await result.current.refetch();
+    });
+
+    await waitFor(() => expect(result.current.error).toBeTruthy());
+    expect(result.current.isLoadMoreError).toBe(false);
+    expect(result.current.items).toHaveLength(1);
+  });
+
+  it('clears isLoadMoreError after a later page loads', async () => {
+    mockListTransactions
+      .mockResolvedValueOnce(buildPage(['tx-1'], 'cursor-1'))
+      .mockRejectedValueOnce(new Error('page 2 failed'))
+      .mockResolvedValueOnce(buildPage(['tx-2']));
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(() => useCardTransactions(), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.hasMore).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+    await waitFor(() => expect(result.current.isLoadMoreError).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+    expect(result.current.isLoadMoreError).toBe(false);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('does not treat a later query error as a load-more error after pagination succeeds', async () => {
+    mockListTransactions
+      .mockResolvedValueOnce(buildPage(['tx-1'], 'cursor-1'))
+      .mockResolvedValueOnce(buildPage(['tx-2']))
+      .mockRejectedValueOnce(new Error('background fail'));
+    const { Wrapper, queryClient } = createWrapper();
+
+    const { result } = renderHook(() => useCardTransactions(), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.hasMore).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+    expect(result.current.isLoadMoreError).toBe(false);
+
+    await act(async () => {
+      await queryClient.refetchQueries();
+    });
+
+    await waitFor(() => expect(result.current.error).toBeTruthy());
+    expect(result.current.isLoadMoreError).toBe(false);
   });
 });

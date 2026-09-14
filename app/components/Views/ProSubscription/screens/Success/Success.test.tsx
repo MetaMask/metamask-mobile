@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import Success from './index';
+import Success from './Success';
 import { SuccessTestIds } from './Success.testIds';
 import { strings } from '../../../../../../locales/i18n';
 

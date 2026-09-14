@@ -18,6 +18,7 @@ import {
   formatCurrency,
   getCurrencySymbol,
 } from '../../Bridge/utils/currencyUtils';
+import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../Views/SocialLeaderboard/utils/formatters';
 
@@ -236,7 +237,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
       justifyContent={BoxJustifyContent.Center}
       gap={2}
       twClassName="px-4 pt-6 pb-4"
-      testID="quick-buy-amount-area"
+      testID={QuickBuySheetSelectorsIDs.AMOUNT_AREA}
     >
       {editingPrimary ?? (
         <Text
@@ -289,7 +290,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         activeOpacity={1}
         onPress={onAmountAreaPress}
         accessibilityRole="button"
-        testID="quick-buy-amount-area-pressable"
+        testID={QuickBuySheetSelectorsIDs.AMOUNT_AREA_PRESSABLE}
       >
         {content}
       </TouchableOpacity>

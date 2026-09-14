@@ -78,12 +78,18 @@ import {
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
   RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
+  RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
   RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
   RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
   RewardsDataServiceGetPredictThePitchPositionsAction,
   RewardsDataServiceGetPredictThePitchParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
+  RewardsDataServiceRegisterMoneyAccountBindingAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -140,6 +146,7 @@ type AllowedActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
@@ -152,7 +159,12 @@ type AllowedActions =
   | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
   | RewardsDataServiceGetPredictThePitchPositionsAction
   | RewardsDataServiceGetPredictThePitchParticipantOutcomeAction
-  | RewardsDataServiceGetPredictThePitchPrizePoolAction;
+  | RewardsDataServiceGetPredictThePitchPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
+  | RewardsDataServiceRegisterMoneyAccountBindingAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -250,12 +262,18 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsTradingCampaignLeaderboard',
       'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
       'RewardsDataService:getPerpsTradingCampaignVolume',
+      'RewardsDataService:getPerpsTradingCampaignPrizePool',
       'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
       'RewardsDataService:getPredictThePitchLeaderboard',
       'RewardsDataService:getPredictThePitchLeaderboardPosition',
       'RewardsDataService:getPredictThePitchPositions',
       'RewardsDataService:getPredictThePitchParticipantOutcome',
       'RewardsDataService:getPredictThePitchPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesStatsMe',
+      'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
+      'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
+      'RewardsDataService:registerMoneyAccountBinding',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

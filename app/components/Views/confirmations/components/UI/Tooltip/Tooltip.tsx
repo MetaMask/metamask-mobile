@@ -1,12 +1,11 @@
 import React, { ReactNode, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import { HeaderStandard, Text } from '@metamask/design-system-react-native';
 import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import BottomModal from '../bottom-modal';
 import styleSheet from './Tooltip.styles';

@@ -5,29 +5,31 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  type RouteProp,
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import Animated from 'react-native-reanimated';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import type { MoneyNavigationParamList } from '../../types/navigation';
-import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
+import { useFloatingTabBarInset } from '../../../../../component-library/components/Navigation/TabBarFloating';
+import {
+  navigateWithDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import {
   Box,
   BannerAlert,
   BannerAlertSeverity,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
-import MoneyHeader from '../../components/MoneyHeader';
+import MoneyHeader, {
+  type MoneyHeaderProps,
+} from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
@@ -73,7 +75,9 @@ import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
-import { AssetType } from '../../../../Views/confirmations/types/token';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
+import type { MoneyHomeParams } from '../../types/navigation';
+import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -112,9 +116,16 @@ const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<MoneyNavigationParamList, 'MoneyHome'>>();
+  const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
+  // Pushed over another stack (e.g. a Rewards campaign funding flow) rather
+  // than rooted in the tab bar, which is the only case that gets a back
+  // affordance and the title that collapses into the header on scroll.
+  const isPushed = Boolean(showBackButton);
+  const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
+    useHeaderStandardAnimated();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
@@ -150,24 +161,10 @@ const MoneyHomeView = () => {
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
 
-  const trackMoneyHomeViewed = useCallback(
-    () =>
-      trackScreenViewed({
-        entry_point: route.params?.entryPoint,
-      }),
-    [route.params?.entryPoint, trackScreenViewed],
-  );
-
   useFocusEffect(
     useCallback(() => {
-      trackMoneyHomeViewed();
-
-      return () => {
-        if (route.params?.entryPoint) {
-          navigation.setParams({ entryPoint: undefined });
-        }
-      };
-    }, [navigation, route.params?.entryPoint, trackMoneyHomeViewed]),
+      trackScreenViewed();
+    }, [trackScreenViewed]),
   );
 
   const handlePullRefresh = useCallback(async () => {
@@ -396,6 +393,34 @@ const MoneyHomeView = () => {
     });
   }, [navigation]);
 
+  // Only set when this stack was pushed over the caller's (e.g. a Rewards
+  // campaign funding flow), so back returns there instead of to a tab.
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleTitleSectionLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTitleSectionHeight(event.nativeEvent.layout.height);
+    },
+    [setTitleSectionHeight],
+  );
+
+  // Built as a whole object so each arm matches one side of the header's
+  // props union; spreading a partial would widen both arms to optional.
+  const headerProps: MoneyHeaderProps = isPushed
+    ? {
+        onMenuPress: handleMenuPress,
+        onGetProPress: handleGetProPress,
+        onBack: handleBackPress,
+        scrollY,
+        titleSectionHeight: titleSectionHeightSv,
+      }
+    : {
+        onMenuPress: handleMenuPress,
+        onGetProPress: handleGetProPress,
+      };
+
   const handleAddPress = useCallback(
     ({
       labelKey,
@@ -422,9 +447,14 @@ const MoneyHomeView = () => {
 
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        // A Rewards-originated Money home is already on the stack, so the
+        // deposit it starts should return here rather than switch tabs.
+        ...(launchedFrom && {
+          params: { launchedFrom: ConfirmationLaunchSource.RewardsMoneyHome },
+        }),
       });
     },
-    [navigation, trackButtonClicked],
+    [navigation, trackButtonClicked, launchedFrom],
   );
 
   const handleTransferPress = useCallback(() => {
@@ -580,7 +610,11 @@ const MoneyHomeView = () => {
   );
 
   const handleTokenButtonPress = useCallback(
-    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
+    async (
+      token: MoneyDepositAsset,
+      tokenIndex: number,
+      tokenCount: number,
+    ) => {
       try {
         trackTokenButtonClicked({
           button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -613,7 +647,11 @@ const MoneyHomeView = () => {
   );
 
   const handleTokenCardPress = useCallback(
-    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
+    async (
+      token: MoneyDepositAsset,
+      tokenIndex: number,
+      tokenCount: number,
+    ) => {
       try {
         trackTokenSurfaceClicked({
           component_name:
@@ -651,7 +689,9 @@ const MoneyHomeView = () => {
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
-    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
+    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS, {
+      overrideToUsd: true,
+    });
   }, [navigation, trackButtonClicked]);
 
   const handleWhatYouGetPress = useCallback(() => {
@@ -894,14 +934,16 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader
-        onMenuPress={handleMenuPress}
-        onGetProPress={handleGetProPress}
-      />
-      <ScrollView
+      <MoneyHeader {...headerProps} />
+      <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 40 + floatingTabBarInset },
+        ]}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -911,26 +953,35 @@ const MoneyHomeView = () => {
           />
         }
       >
-        {showBalanceUnavailableBanner && (
-          <Box twClassName="px-4 pt-2">
-            <BannerAlert
-              severity={BannerAlertSeverity.Warning}
-              title={strings('money.balance_unavailable')}
-              description={strings(
-                'money.balance_unavailable_banner_description',
-              )}
-              style={styles.balanceUnavailableBanner}
-              testID={MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER}
-            />
-          </Box>
-        )}
-        <MoneyBalanceSummary
-          apy={apyPercent}
-          displayState={displayState}
-          onApyInfoPress={handleApyInfoPress}
-          privacyMode={privacyMode}
-          onBalancePress={handleBalancePress}
-        />
+        {/* Everything above the action buttons is measured as one block: the
+            header's compact title should only appear once the large title has
+            scrolled away, which the banner pushes further down when shown. */}
+        <Box
+          testID={MoneyHomeViewTestIds.TITLE_SECTION}
+          onLayout={isPushed ? handleTitleSectionLayout : undefined}
+        >
+          {showBalanceUnavailableBanner && (
+            <Box twClassName="px-4 pt-2">
+              <BannerAlert
+                severity={BannerAlertSeverity.Warning}
+                title={strings('money.balance_unavailable')}
+                description={strings(
+                  'money.balance_unavailable_banner_description',
+                )}
+                style={styles.balanceUnavailableBanner}
+                testID={MoneyHomeViewTestIds.BALANCE_UNAVAILABLE_BANNER}
+              />
+            </Box>
+          )}
+          <MoneyBalanceSummary
+            apy={apyPercent}
+            displayState={displayState}
+            onApyInfoPress={handleApyInfoPress}
+            privacyMode={privacyMode}
+            onBalancePress={handleBalancePress}
+            showTitle={isPushed}
+          />
+        </Box>
         <MoneyActionButtonRow
           add={{
             onPress: () =>
@@ -954,7 +1005,7 @@ const MoneyHomeView = () => {
             {section.node}
           </React.Fragment>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     </Box>
   );
 };

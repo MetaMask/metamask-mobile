@@ -6,6 +6,10 @@ import React, {
   useCallback,
 } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import {
+  FeatureId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import ScreenView from '../../../../../Base/ScreenView';
 import {
   MAX_INPUT_LENGTH,
@@ -33,6 +37,7 @@ import {
   selectIsNonEvmNonEvmBridge,
   selectBridgeBalanceRefreshKey,
   selectBridgeControllerState,
+  selectQuoteStreamComplete,
   selectSlippage,
   selectIsSlippageUserOverride,
 } from '../../../../../../core/redux/slices/bridge';
@@ -68,16 +73,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../../util/address';
-import { endTrace, TraceName } from '../../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../../hooks/useInitialSlippage';
 import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../../hooks/useRecipientInitialization';
 import {
   selectGasIncludedQuoteParams,
+  selectIsDestAssetRequireActivate,
   selectSourceWalletAddress,
 } from '../../../../../../selectors/bridge';
 import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../../hooks/useBridgeQuoteEvents/index.ts';
+import { useSwapBridgePageLoadTrace } from '../../../hooks/useSwapBridgePageLoadTrace';
 import { SwapsKeypad } from '../../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength.ts';
@@ -88,7 +94,7 @@ import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRef
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { SwapsKeypadRef } from '../../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions/index.tsx';
-import { SwapsConfirmButton } from '../../../components/SwapsConfirmButton/index.tsx';
+import { SwapsMarketOrderConfirmButton } from '../../../components/SwapsMarketOrderConfirmButton/index.tsx';
 import { useBridgeViewOnFocus } from '../../../hooks/useBridgeViewOnFocus/index.ts';
 import { type BridgeRouteParams } from '../../../hooks/useSwapBridgeNavigation/index.ts';
 import SwapDiscoveryFeed from '../../../components/SwapDiscoveryFeed/SwapDiscoveryFeed';
@@ -105,13 +111,15 @@ import {
 import { useABTest } from '../../../../../../hooks/useABTest';
 import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../../reducers';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeMarketViewFooter } from './BridgeMarketViewFooter.tsx';
 import {
   InsufficientNativeReserveBanner,
-  MissingPriceDataBanner,
+  MarketClosedBanner,
+  MissingQuotePriceDataBanner,
+  OffHoursTradingBanner,
   QuoteErrorBanner,
+  DestAssetRequireActivateBanner,
   SwapsBanners,
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
@@ -122,6 +130,7 @@ import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../../utils/postTradeNotifications';
+import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -133,6 +142,10 @@ const BridgeMarketViewContent = ({
   latestSourceBalance,
 }: BridgeMarketViewContentProps) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
+
+  const { isStockMarketClosed } = useStockMarketHours();
+  const wasStockMarketClosedRef = useRef(isStockMarketClosed);
+
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
   const isFiatToggleEnabled = useSelector(
@@ -196,6 +209,7 @@ const BridgeMarketViewContent = ({
     sourceAmount,
     sourceToken,
     onSourceAmountChange: handleSourceAmountChange,
+    featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
@@ -260,11 +274,6 @@ const BridgeMarketViewContent = ({
     }
   }, [route.params?.bridgeViewMode, dispatch, bridgeViewMode]);
 
-  // End trace when component mounts
-  useEffect(() => {
-    endTrace({ name: TraceName.SwapViewLoaded, timestamp: Date.now() });
-  }, []);
-
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
   const updateQuoteParams = useBridgeQuoteRequest({
@@ -292,8 +301,25 @@ const BridgeMarketViewContent = ({
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const slippage = useSelector(selectSlippage);
   const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
+
+  const isQuoteSurfaceReady = Boolean(
+    (activeQuote && isActiveQuoteForCurrentTokenPair) ||
+      isNoQuotesAvailable ||
+      quoteFetchError ||
+      (quoteStreamComplete && !isLoading),
+  );
+
+  useSwapBridgePageLoadTrace({
+    traceId: route.params?.swapViewTraceId,
+    sourceToken,
+    destToken,
+    latestSourceBalance,
+    sourceAmount: route.params?.sourceAmount,
+    isQuoteSurfaceReady,
+  });
   const previousSlippageRef = useRef(slippage);
   const nonSlippageQuoteRequestKey = JSON.stringify([
     sourceAmount,
@@ -306,10 +332,7 @@ const BridgeMarketViewContent = ({
   );
 
   const isFooterVisible = useMemo(() => {
-    if (isLoading && !activeQuote && !needsNewQuote) {
-      return false;
-    }
-    if (needsNewQuote) {
+    if (needsNewQuote || (isLoading && !activeQuote)) {
       return true;
     }
     if (!activeQuote) {
@@ -387,7 +410,12 @@ const BridgeMarketViewContent = ({
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
     hasInsufficientGas ||
-    !walletAddress;
+    !walletAddress ||
+    isStockMarketClosed;
+
+  const isDestAssetRequireActivate = useSelector(
+    selectIsDestAssetRequireActivate,
+  );
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,
@@ -398,6 +426,8 @@ const BridgeMarketViewContent = ({
     isNetworkFeeUnavailable,
     isSubmitDisabled,
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+    hasDestAssetRequireActivate: isDestAssetRequireActivate,
+    hasUsableQuote: Boolean(activeQuote && isActiveQuoteForCurrentTokenPair),
   });
 
   const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
@@ -431,6 +461,17 @@ const BridgeMarketViewContent = ({
     isSlippageUserOverride,
   ]);
 
+  // Quote stream errors (e.g. RWA_MARKET_UNAVAILABLE) persist until a new
+  // request. Re-fetch when the market-hours clock leaves the fully-closed
+  // window so the error does not stick until the user changes tokens.
+  useEffect(() => {
+    const wasClosed = wasStockMarketClosedRef.current;
+    wasStockMarketClosedRef.current = isStockMarketClosed;
+    if (wasClosed && !isStockMarketClosed && hasValidBridgeInputs) {
+      updateQuoteParams();
+    }
+  }, [isStockMarketClosed, hasValidBridgeInputs, updateQuoteParams]);
+
   useTrackSwapPageViewed(location);
 
   const handleSourceMaxPress = () => {
@@ -460,6 +501,7 @@ const BridgeMarketViewContent = ({
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Source,
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
 
   const handleFlipTokensPress = useCallback(() => {
@@ -472,6 +514,7 @@ const BridgeMarketViewContent = ({
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: TokenSelectorType.Dest,
+      featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
 
   const getContentMode = () => {
@@ -606,8 +649,11 @@ const BridgeMarketViewContent = ({
           >
             <QuoteErrorBanner />
             <TokenWarningBanner />
+            <DestAssetRequireActivateBanner />
             <InsufficientNativeReserveBanner />
-            <MissingPriceDataBanner />
+            <MissingQuotePriceDataBanner />
+            <OffHoursTradingBanner />
+            <MarketClosedBanner />
           </SwapsBanners>
 
           <Box
@@ -658,7 +704,7 @@ const BridgeMarketViewContent = ({
           decimals={sourceAmountInput.keypadDecimals}
         >
           {sourceAmount && sourceAmount !== '0' ? (
-            <SwapsConfirmButton
+            <SwapsMarketOrderConfirmButton
               location={location}
               latestSourceBalance={latestSourceBalance}
               transactionActiveAbTests={transactionActiveAbTests}

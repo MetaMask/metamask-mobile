@@ -80,17 +80,8 @@ jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => mockNetworkConfigurations),
 }));
 
-jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
-  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
-}));
-
 jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHubEnabledFlag: jest.fn(() => false),
-}));
-
-const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
-jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
 }));
 
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
@@ -370,14 +361,10 @@ describe('TokensSection', () => {
       error: null,
       refetch: jest.fn(),
     });
-    // Cash section disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
-    jest
-      .requireMock('../../../../UI/Earn/selectors/featureFlags')
-      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    // Money hub disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
     jest
       .requireMock('../../../../UI/Money/selectors/featureFlags')
       .selectMoneyHubEnabledFlag.mockReturnValue(false);
-    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
   });
 
   it('renders section title for account with balance', () => {
@@ -527,15 +514,11 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
   });
 
-  it('filters out mUSD from displayed tokens when Cash section is enabled', () => {
+  it('filters out mUSD from displayed tokens when the Money hub is enabled', () => {
     const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
-    jest
-      .requireMock('../../../../UI/Earn/selectors/featureFlags')
-      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
     jest
       .requireMock('../../../../UI/Money/selectors/featureFlags')
       .selectMoneyHubEnabledFlag.mockReturnValue(true);
-    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: MUSD_ADDRESS, isStaked: false },

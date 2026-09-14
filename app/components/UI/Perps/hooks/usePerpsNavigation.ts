@@ -56,11 +56,19 @@ export interface PerpsNavigationHandlers {
   navigateToTutorial: (
     params?: PerpsNavigationParamList['PerpsTutorial'],
   ) => void;
-  navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
+  navigateToAdjustMargin: (
+    position: Position,
+    mode: 'add' | 'remove',
+    options?: { enableHaptics?: boolean },
+  ) => void;
   navigateToClosePosition: (
     position: Position,
     source?: string,
-    entry?: { buttonClicked?: string; buttonLocation?: string },
+    entry?: {
+      buttonClicked?: string;
+      buttonLocation?: string;
+      enableHaptics?: boolean;
+    },
   ) => void;
   navigateToOrderDetails: (order: Order) => void;
 
@@ -150,6 +158,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  // Keep this stream-free: usePerpsNavigation is also used by screens that can
+  // mount outside PerpsStreamProvider (e.g. select-modify sheet in view tests).
+  // Tradable-symbol validation belongs in stream-backed flows such as
+  // usePerpsRecordMarketViewed.
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const navigateToHome = useCallback(
@@ -262,8 +274,16 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const navigateToAdjustMargin = useCallback(
-    (position: Position, mode: 'add' | 'remove') => {
-      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, { position, mode });
+    (
+      position: Position,
+      mode: 'add' | 'remove',
+      options?: { enableHaptics?: boolean },
+    ) => {
+      navigation.navigate(Routes.PERPS.ADJUST_MARGIN, {
+        position,
+        mode,
+        enableHaptics: options?.enableHaptics,
+      });
     },
     [navigation],
   );
@@ -272,13 +292,18 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     (
       position: Position,
       source?: string,
-      entry?: { buttonClicked?: string; buttonLocation?: string },
+      entry?: {
+        buttonClicked?: string;
+        buttonLocation?: string;
+        enableHaptics?: boolean;
+      },
     ) => {
       navigation.navigate(Routes.PERPS.CLOSE_POSITION, {
         position,
         source,
         buttonClicked: entry?.buttonClicked,
         buttonLocation: entry?.buttonLocation,
+        enableHaptics: entry?.enableHaptics,
       });
     },
     [navigation],

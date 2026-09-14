@@ -399,4 +399,152 @@ describe('usePerpsCancelAllOrders', () => {
       expect(result.current.error).toBeNull();
     });
   });
+  it('cancels only the passed orders when the view is filtered', async () => {
+    // Arrange
+    const orders = [
+      createMockOrder({ orderId: 'eth-1', symbol: 'ETH' }),
+      createMockOrder({ orderId: 'eth-2', symbol: 'ETH' }),
+    ];
+    (
+      Engine.context.PerpsController.cancelOrders as jest.Mock
+    ).mockResolvedValue({
+      success: true,
+      successCount: 2,
+      failureCount: 0,
+      results: [],
+    });
+    const { result } = renderHook(() =>
+      usePerpsCancelAllOrders(orders, { isFiltered: true }),
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    // Assert
+    expect(Engine.context.PerpsController.cancelOrders).toHaveBeenCalledWith({
+      orderIds: ['eth-1', 'eth-2'],
+    });
+    expect(
+      Engine.context.PerpsController.cancelOrders,
+    ).not.toHaveBeenCalledWith({ cancelAll: true });
+  });
+
+  it('cancels the whole book when the view is not filtered', async () => {
+    // Arrange
+    const orders = [
+      createMockOrder({ orderId: 'eth-1', symbol: 'ETH' }),
+      createMockOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+    ];
+    (
+      Engine.context.PerpsController.cancelOrders as jest.Mock
+    ).mockResolvedValue({
+      success: true,
+      successCount: 2,
+      failureCount: 0,
+      results: [],
+    });
+    const { result } = renderHook(() =>
+      usePerpsCancelAllOrders(orders, { isFiltered: false }),
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    // Assert
+    expect(Engine.context.PerpsController.cancelOrders).toHaveBeenCalledWith({
+      cancelAll: true,
+    });
+  });
+
+  it('scopes by order id rather than symbol so a side filter cannot over-cancel', async () => {
+    // Arrange - one market holding both a long and a short order, only the long listed
+    const orders = [createMockOrder({ orderId: 'eth-long', symbol: 'ETH' })];
+    (
+      Engine.context.PerpsController.cancelOrders as jest.Mock
+    ).mockResolvedValue({
+      success: true,
+      successCount: 1,
+      failureCount: 0,
+      results: [],
+    });
+    const { result } = renderHook(() =>
+      usePerpsCancelAllOrders(orders, { isFiltered: true }),
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    // Assert
+    expect(Engine.context.PerpsController.cancelOrders).toHaveBeenCalledWith({
+      orderIds: ['eth-long'],
+    });
+    const [params] = (Engine.context.PerpsController.cancelOrders as jest.Mock)
+      .mock.calls[0];
+    expect(params.symbols).toBeUndefined();
+  });
+  it('surfaces an error when the request matches no cancelable order', async () => {
+    // Arrange
+    const orders = [
+      createMockOrder({ orderId: 'tp-1' }),
+      createMockOrder({ orderId: 'sl-1' }),
+    ];
+    const onError = jest.fn();
+    (
+      Engine.context.PerpsController.cancelOrders as jest.Mock
+    ).mockResolvedValue({
+      success: false,
+      successCount: 0,
+      failureCount: 0,
+      results: [],
+    });
+    const { result } = renderHook(() =>
+      usePerpsCancelAllOrders(orders, { onError }),
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(result.current.isCanceling).toBe(false);
+    });
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(result.current.error).not.toBeNull();
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
+  });
+
+  it('reports every listed order as failed when none could be cancelled', async () => {
+    // Arrange
+    const orders = [
+      createMockOrder({ orderId: 'tp-1' }),
+      createMockOrder({ orderId: 'sl-1' }),
+    ];
+    (
+      Engine.context.PerpsController.cancelOrders as jest.Mock
+    ).mockResolvedValue({
+      success: false,
+      successCount: 0,
+      failureCount: 0,
+      results: [],
+    });
+    const { result } = renderHook(() => usePerpsCancelAllOrders(orders));
+
+    // Act
+    await act(async () => {
+      await result.current.handleCancelAll();
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(result.current.error?.message).toBe('Failed to cancel 2 orders');
+    });
+  });
 });

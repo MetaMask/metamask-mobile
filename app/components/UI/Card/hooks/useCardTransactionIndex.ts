@@ -109,6 +109,7 @@ export function useCardTransactionIndex({
       });
     },
     getNextPageParam: (lastPage: CardTransactionPage) => lastPage.nextCursor,
+    initialPageParam: undefined as string | undefined,
     enabled: queryEnabled,
   });
 

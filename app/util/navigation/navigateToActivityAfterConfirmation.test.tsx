@@ -6,6 +6,7 @@ import {
   StackActions,
   createNavigationContainerRef,
   useNavigation,
+  type NavigationContainerRefWithCurrent,
   type NavigationState,
   type PartialState,
 } from '@react-navigation/native';
@@ -70,7 +71,7 @@ const SendNavigator = () => (
 
 const renderTree = (
   initialState: PartialState<NavigationState>,
-  ref: ReturnType<typeof createNavigationContainerRef>,
+  ref: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
 ) =>
   render(
     <NavigationContainer ref={ref} initialState={initialState}>
@@ -101,12 +102,12 @@ const renderTree = (
 
 // Name of the currently focused leaf route in the whole tree.
 const focusedRouteName = (
-  ref: ReturnType<typeof createNavigationContainerRef>,
+  ref: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
 ): string | undefined => ref.getCurrentRoute()?.name;
 
 // Names of the top-level (root) routes, in order.
 const rootRouteNames = (
-  ref: ReturnType<typeof createNavigationContainerRef>,
+  ref: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
 ): string[] => (ref.getRootState()?.routes ?? []).map((route) => route.name);
 
 describe('navigateToActivityAfterConfirmation', () => {

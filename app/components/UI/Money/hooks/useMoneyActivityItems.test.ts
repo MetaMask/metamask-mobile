@@ -642,6 +642,43 @@ describe('useMoneyActivityItems', () => {
     expect(result.current.cardEnrichmentByHash.size).toBe(0);
   });
 
+  it('keeps enrichment off for Immersve even when transaction history is supported', () => {
+    mockEnrichmentFlags({
+      master: true,
+      enrichment: true,
+      moneyAccount: true,
+      geoEligible: true,
+    });
+    mockUseCardCapabilities.mockReturnValue({
+      supportsTransactionHistory: true,
+      supportsMoneyAccountLinking: false,
+    } as never);
+
+    const declined: CardTransaction = {
+      id: 'declined-immersve',
+      providerId: 'immersve',
+      timestamp: 280,
+      status: CardTransactionStatus.Failed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '1.00', currency: 'USD' },
+      fundingSources: [],
+    };
+    mockUseCardTransactionIndex.mockReturnValue({
+      ...defaultIndexResult,
+      declined: [declined],
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(
+      result.current.buckets[MoneyActivityFilter.All].map((i) => i.id),
+    ).not.toContain('declined-immersve');
+    expect(mockUseCardTransactionIndex).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
   it('drops declined rows and enrichment when the Card index errors', () => {
     enableEnrichment();
     const declined: CardTransaction = {

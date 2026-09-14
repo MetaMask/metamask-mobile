@@ -73,10 +73,10 @@ const PerpsProUnrealizedPnl = ({
           >{`${formatPnl(pnl)} (${formatPercentage(roe, 1)})`}</SensitiveText>
         </Box>
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Tertiary}
           size={ButtonSize.Sm}
           isDanger
-          twClassName="self-center border-muted bg-transparent"
+          twClassName="self-center"
           onPress={onCloseAll}
           testID={PerpsProMarketViewSelectorsIDs.POSITIONS_CLOSE_ALL}
         >

@@ -255,6 +255,29 @@ describe('PerpsBottomSheetTooltip', () => {
     expect(getByText('0.045%')).toBeTruthy();
   });
 
+  // TAT-3758: this component must NOT wrap itself in a SafeAreaProvider. Many
+  // call sites (PerpsOrderView, PerpsAdjustMarginView, PerpsMarketDetailsView,
+  // PerpsProOrderFormPanel, ...) render it inline with no Modal. SafeAreaProvider
+  // applies flex: 1, so wrapping here would inject a flex sibling into those
+  // screens and shrink their content whenever a tooltip opens. The provider
+  // belongs at the Modal roots that actually need it.
+  it('does not wrap itself in a SafeAreaProvider, so inline call sites keep their layout', () => {
+    const customTestID = 'geo-block-tooltip';
+
+    const { queryByTestId, getByTestId } = renderBottomSheetTooltip({
+      isVisible: true,
+      onClose: mockOnClose,
+      contentKey: 'geo_block',
+      testID: customTestID,
+    });
+
+    expect(queryByTestId(`${customTestID}-safe-area-provider`)).toBeNull();
+    expect(getByTestId(customTestID)).toBeTruthy();
+    expect(
+      getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+    ).toBeTruthy();
+  });
+
   it('uses custom testID when provided', () => {
     const customTestID = 'custom-tooltip-test-id';
     const { getByTestId } = renderBottomSheetTooltip({

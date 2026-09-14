@@ -5,6 +5,7 @@ import { MOCK_ADDRESS_1 } from '../../../../../util/test/accountsControllerTestU
 import { MOCK_STATE_NFT } from '../../../../../util/test/mock-data/root-state/nft';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import useNetworkInfo from '../../hooks/useNetworkInfo';
 import { HeroNft } from './hero-nft';
 
 const mockNft = MOCK_STATE_NFT.engine.backgroundState.NftController.allNfts[
@@ -31,9 +32,26 @@ jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
   useFullScreenConfirmation: () => ({ isFullScreenConfirmation: false }),
 }));
 
+jest.mock('../../hooks/useNetworkInfo', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    networkName: 'Ethereum Mainnet',
+    networkImage: { uri: 'https://example.com/eth.png' },
+    networkNativeCurrency: 'ETH',
+  })),
+}));
+
 describe('HeroNft', () => {
+  const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
+
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockUseNetworkInfo.mockReturnValue({
+      networkName: 'Ethereum Mainnet',
+      networkImage: { uri: 'https://example.com/eth.png' },
+      networkNativeCurrency: 'ETH',
+    });
 
     const mockTransaction =
       MOCK_STATE_NFT.engine.backgroundState.TransactionController
@@ -106,11 +124,11 @@ describe('HeroNft', () => {
       state: MOCK_STATE_NFT,
     });
 
-    expect(getByTestId('nft-image')).toBeDefined();
+    expect(getByTestId('nft-image')).toBeOnTheScreen();
     expect(getByTestId('hero-nft-badge-network')).toBeOnTheScreen();
-    expect(getByText('Test Dapp NFTs')).toBeDefined();
+    expect(getByText('Test Dapp NFTs')).toBeOnTheScreen();
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    expect(getByText('#12345')).toBeDefined();
+    expect(getByText('#12345')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('nft-image'));
 
@@ -157,11 +175,11 @@ describe('HeroNft', () => {
       }),
     });
 
-    expect(getByTestId('nft-image')).toBeDefined();
+    expect(getByTestId('nft-image')).toBeOnTheScreen();
     expect(getByTestId('hero-nft-badge-network')).toBeOnTheScreen();
-    expect(getByText('Test Dapp NFTs')).toBeDefined();
+    expect(getByText('Test Dapp NFTs')).toBeOnTheScreen();
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    expect(getByText('#12345')).toBeDefined();
+    expect(getByText('#12345')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('nft-image'));
 
@@ -172,5 +190,16 @@ describe('HeroNft', () => {
         collection: { imageUrl: 'testURI//:333' },
       },
     });
+  });
+
+  it('hides network badge when network image is missing', () => {
+    mockUseNetworkInfo.mockReturnValue({});
+
+    const { queryByTestId } = renderWithProvider(<HeroNft />, {
+      state: MOCK_STATE_NFT,
+    });
+
+    expect(queryByTestId('nft-image')).toBeOnTheScreen();
+    expect(queryByTestId('hero-nft-badge-network')).not.toBeOnTheScreen();
   });
 });

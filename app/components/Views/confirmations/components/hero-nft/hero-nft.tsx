@@ -7,11 +7,10 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import CollectibleMedia from '../../../../UI/CollectibleMedia';
 import { useNft } from '../../hooks/nft/useNft';
@@ -93,14 +92,14 @@ const HeroNftHorizontal = () => {
   return (
     <View style={styles.horizontalContainer}>
       <View style={styles.textContainer}>
-        <Text style={styles.label} variant={TextVariant.BodyMD}>
+        <Text style={styles.label} variant={TextVariant.BodyMd}>
           {strings('confirm.label.sending')}
         </Text>
-        <Text style={styles.nameText} variant={TextVariant.HeadingLG}>
+        <Text style={styles.nameText} variant={TextVariant.HeadingLg}>
           {name}
         </Text>
         {tokenId !== undefined && (
-          <Text style={styles.tokenIdText} variant={TextVariant.BodyMD}>
+          <Text style={styles.tokenIdText} variant={TextVariant.BodyMd}>
             {`#${tokenId}`}
           </Text>
         )}

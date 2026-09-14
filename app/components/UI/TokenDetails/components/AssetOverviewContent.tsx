@@ -46,12 +46,7 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import EarnBalance from '../../Earn/components/EarnBalance';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
-import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
-import { isMusdToken } from '../../Earn/constants/musd';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -59,6 +54,9 @@ import {
   MarketInsightsEntryCard,
   MarketInsightsEntryCardSkeleton,
   useMarketInsights,
+  useMarketInsightsEntryTrace,
+  getMarketInsightsTraceId,
+  getMarketInsightsTraceTags,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
 import { isCaipAssetType } from '@metamask/utils';
@@ -94,12 +92,8 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../../util/trace';
+import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -257,7 +251,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-  const { isTokenTradingOpen } = useRWAToken();
+  const { isTokenTradable } = useRWAToken();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -370,15 +364,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
 
-  const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
-  const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
-  const showMusdConvertSection =
-    isMusdToken(token.address) &&
-    isMusdConversionFlowEnabled &&
-    isMusdGeoEligible;
-
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
 
@@ -405,7 +390,23 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     report: marketInsightsReport,
     timeAgo: marketInsightsTimeAgo,
     isLoading: isMarketInsightsLoading,
-  } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
+    error: marketInsightsError,
+    cacheState: marketInsightsCacheState,
+  } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled, {
+    source: 'token_details',
+    stage: 'entry_card',
+    assetType: 'token',
+  });
+  const marketInsightsEntryTraceId = useMarketInsightsEntryTrace({
+    assetIdentifier: marketInsightsCaip19Id,
+    assetType: 'token',
+    cacheState: marketInsightsCacheState,
+    enabled: isMarketInsightsEnabled,
+    error: marketInsightsError,
+    isLoading: isMarketInsightsLoading,
+    report: marketInsightsReport,
+    source: 'token_details',
+  });
 
   useEffect(() => {
     const severity = securityData?.resultType;
@@ -415,13 +416,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     }
     if (isMarketInsightsLoading) {
       return;
-    }
-    if (!marketInsightsReport && marketInsightsCaip19Id) {
-      // No report available — cancel the orphaned trace that was started during render
-      endTrace({
-        name: TraceName.MarketInsightsEntryCardLoad,
-        id: marketInsightsCaip19Id,
-      });
     }
     onMarketInsightsDisplayResolved?.({
       isDisplayed: Boolean(marketInsightsReport),
@@ -436,27 +430,29 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     securityData?.resultType,
   ]);
 
-  // Runs during render (not useEffect) so the trace is registered before any
-  // child's endTrace(); useMemo's deps guard against restarting it per render.
-  useMemo(() => {
-    if (isMarketInsightsEnabled && marketInsightsCaip19Id) {
-      trace({
-        name: TraceName.MarketInsightsEntryCardLoad,
-        op: TraceOperation.MarketInsightsLoad,
-        id: marketInsightsCaip19Id,
-      });
-    }
-  }, [isMarketInsightsEnabled, marketInsightsCaip19Id]);
-
   const goToBrowserUrl = (url: string) => {
     navigateWithDetails(navigation, createWebviewNavDetails({ url }));
   };
 
   const handleMarketInsightsPress = useCallback(() => {
     if (marketInsightsCaip19Id) {
+      const traceId = getMarketInsightsTraceId(
+        marketInsightsCaip19Id,
+        'token_details',
+        'full_view',
+      );
       trace({
         name: TraceName.MarketInsightsViewLoad,
         op: TraceOperation.MarketInsightsLoad,
+        id: traceId,
+        tags: getMarketInsightsTraceTags(
+          {
+            source: 'token_details',
+            stage: 'full_view',
+            assetType: 'token',
+          },
+          'warm',
+        ),
       });
       const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({
@@ -613,7 +609,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onPriceDirectionChange={onPriceDirectionChange}
             useAmbientColor={useAmbientColor}
           />
-          {!isTokenTradingOpen(token as BridgeToken) && (
+          {!isTokenTradable(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton
                 iconName={ComponentLibraryIconName.Info}
@@ -647,6 +643,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   onPress={handleMarketInsightsPress}
                   onDisclaimerPress={onMarketInsightsDisclaimerPress}
                   caip19Id={marketInsightsCaip19Id ?? undefined}
+                  traceId={marketInsightsEntryTraceId}
                   source="token_details"
                   testID="market-insights-entry-card"
                 />
@@ -682,11 +679,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
               <EarnBalance asset={token} />
             </>
-          )}
-          {showMusdConvertSection && (
-            <MoneyConvertStablecoins
-              location={MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
-            />
           )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -747,12 +739,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 animationType="none"
                 statusBarTranslucent
               >
-                <PerpsBottomSheetTooltip
-                  isVisible
-                  onClose={closeEligibilityModal}
-                  contentKey="geo_block"
-                  testID="token-details-geo-block-tooltip"
-                />
+                <ModalSafeAreaProvider>
+                  <PerpsBottomSheetTooltip
+                    isVisible
+                    onClose={closeEligibilityModal}
+                    contentKey="geo_block"
+                    testID="token-details-geo-block-tooltip"
+                  />
+                </ModalSafeAreaProvider>
               </Modal>
             </View>
           )}

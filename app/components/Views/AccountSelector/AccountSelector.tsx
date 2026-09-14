@@ -7,12 +7,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
@@ -20,22 +15,11 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  HeaderStandard,
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import AddWalletButton from '../../../component-library/components-temp/MultichainAccounts/AddWalletButton';
 import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
 import Engine from '../../../core/Engine';
 import { store } from '../../../store';
@@ -57,6 +41,11 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
+  SearchInteractedSource,
+  SearchInteractionType,
+  buildSearchInteractedProperties,
+} from '../../../core/Analytics/events/navigation';
+import {
   TraceName,
   TraceOperation,
   endTrace,
@@ -64,7 +53,6 @@ import {
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
-import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
 import Routes from '../../../constants/navigation/Routes';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
@@ -94,20 +82,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [selectedAccountGroup],
   );
 
-  const {
-    isAccountSyncingInProgress,
-    loadingMessage: accountOperationLoadingMessage,
-  } = useAccountsOperationsLoadingStates();
-
   useSyncSRPs();
-
-  const buttonLabel = useMemo(() => {
-    if (isAccountSyncingInProgress) {
-      return accountOperationLoadingMessage;
-    }
-
-    return strings('multichain_accounts.add_wallet');
-  }, [isAccountSyncingInProgress, accountOperationLoadingMessage]);
 
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(
@@ -212,6 +187,30 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigation.navigate(Routes.SHEET.ADD_WALLET);
   }, [navigation]);
 
+  const trackSearchInteracted = useCallback(
+    (interactionType: SearchInteractionType) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SEARCH_INTERACTED)
+          .addProperties(
+            buildSearchInteractedProperties(
+              SearchInteractedSource.AccountList,
+              interactionType,
+            ),
+          )
+          .build(),
+      );
+    },
+    [createEventBuilder, trackEvent],
+  );
+  const handleSearchFocus = useCallback(
+    () => trackSearchInteracted(SearchInteractionType.Focused),
+    [trackSearchInteracted],
+  );
+  const handleSearchSettled = useCallback(
+    () => trackSearchInteracted(SearchInteractionType.Searched),
+    [trackSearchInteracted],
+  );
+
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
@@ -226,41 +225,17 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
             showFooter={!disableAddAccountButton}
+            onSearchFocus={handleSearchFocus}
+            onSearchSettled={handleSearchSettled}
           />
         ) : null}
         {!disableAddAccountButton && (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="px-4 pt-6 pb-5"
-          >
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              onPress={handleAddAccount}
-              isDisabled={isAccountSyncingInProgress}
-              testID={
-                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-              }
-              twClassName="flex-1"
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                gap={2}
-              >
-                {isAccountSyncingInProgress ? (
-                  <ActivityIndicator size="small" />
-                ) : null}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {buttonLabel}
-                </Text>
-              </Box>
-            </Button>
-          </Box>
+          <AddWalletButton
+            onPress={handleAddAccount}
+            testID={
+              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+            }
+          />
         )}
       </Fragment>
     ),
@@ -270,8 +245,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       _onSelectMultichainAccount,
       disableAddAccountButton,
       handleAddAccount,
-      buttonLabel,
-      isAccountSyncingInProgress,
+      handleSearchFocus,
+      handleSearchSettled,
     ],
   );
 
