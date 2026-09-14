@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -13,8 +13,9 @@ import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsWatchlistActions } from './usePerpsWatchlistActions';
 import { createSelectIsWatchlistMarket } from '../selectors/perpsController';
 import {
+  isPerpsStackBackAction,
+  shouldPopPerpsRoute,
   useDropPerpsHomeFromStackHistory,
-  wasPerpsHomeDroppedFromHistory,
 } from '../utils/perpsModeSwitch';
 import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection';
 
@@ -77,26 +78,7 @@ export const usePerpsMarketHeaderActions = ({
   );
   const isWatchlist = useSelector(selectIsWatchlist);
 
-  const handleBackPress = useCallback(() => {
-    // Read the stack at press time: Lite -> Pro resets it while this screen
-    // stays mounted, so a value captured on render would be stale.
-    const perpsState = navigation.getState();
-    const hasPerpsStackHistory = (perpsState?.index ?? 0) > 0;
-
-    // `canGoBack()` is parent-aware. A single-entry Perps stack still reports
-    // true when the main stack can pop `PERPS.ROOT` — that's correct for
-    // Explore/homepage (return to that screen) and wrong after Lite -> Pro
-    // dropped Perps Home (TAT-3786), which would dump the user on wallet.
-    // `dropPerpsHomeFromStackHistory` stamps remaining routes so we can tell
-    // those two single-entry stacks apart.
-    if (
-      canGoBack &&
-      (hasPerpsStackHistory || !wasPerpsHomeDroppedFromHistory(perpsState))
-    ) {
-      navigateBack();
-      return;
-    }
-
+  const leaveViaFallback = useCallback(() => {
     if (backFallback === 'home') {
       navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
       return;
@@ -106,14 +88,35 @@ export const usePerpsMarketHeaderActions = ({
     // Pro mode is active is itself a market screen, so falling back to it
     // here would often be a no-op. Leave Perps entirely instead.
     navigateToWallet();
-  }, [
-    backFallback,
-    canGoBack,
-    navigateBack,
-    navigateToHome,
-    navigateToWallet,
-    navigation,
-  ]);
+  }, [backFallback, navigateToHome, navigateToWallet]);
+
+  const handleBackPress = useCallback(() => {
+    // Read the stack at press time: Lite -> Pro resets it while this screen
+    // stays mounted, so a value captured on render would be stale.
+    if (shouldPopPerpsRoute(canGoBack, navigation.getState())) {
+      navigateBack();
+      return;
+    }
+
+    leaveViaFallback();
+  }, [canGoBack, leaveViaFallback, navigateBack, navigation]);
+
+  // iOS edge-swipe and Android hardware back skip the header button and go
+  // through React Navigation `goBack()`, which is still parent-aware. Apply
+  // the same dropped-Home fallback as `<` (TAT-3786).
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (!isPerpsStackBackAction(e.data.action.type)) {
+        return;
+      }
+      if (shouldPopPerpsRoute(canGoBack, navigation.getState())) {
+        return;
+      }
+      e.preventDefault();
+      leaveViaFallback();
+    });
+    return unsubscribe;
+  }, [canGoBack, leaveViaFallback, navigation]);
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {

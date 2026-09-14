@@ -23,6 +23,8 @@ import {
   wasPerpsHomeDroppedFromHistory,
   withHomeDroppedFromHistory,
   preserveHomeDroppedFromHistory,
+  shouldPopPerpsRoute,
+  isPerpsStackBackAction,
 } from './perpsModeSwitch';
 
 jest.mock('react-redux', () => ({
@@ -522,6 +524,51 @@ describe('perpsModeSwitch', () => {
       });
 
       expect(result).toBe(params);
+    });
+  });
+
+  describe('shouldPopPerpsRoute', () => {
+    const droppedHomeState = {
+      index: 0,
+      routes: [
+        { params: withHomeDroppedFromHistory({ source: 'perps_home' }) },
+      ],
+    };
+    const exploreState = {
+      index: 0,
+      routes: [{ params: { source: 'explore' } }],
+    };
+    const stackedState = {
+      index: 1,
+      routes: [
+        { params: withHomeDroppedFromHistory({ source: 'perps_home' }) },
+        { params: { market: buildDefaultProMarket() } },
+      ],
+    };
+
+    it('pops when Perps itself has history', () => {
+      expect(shouldPopPerpsRoute(true, stackedState)).toBe(true);
+    });
+
+    it('pops a single-entry Explore stack when the parent can go back', () => {
+      expect(shouldPopPerpsRoute(true, exploreState)).toBe(true);
+    });
+
+    it('does not pop a dropped-Home single-entry stack', () => {
+      expect(shouldPopPerpsRoute(true, droppedHomeState)).toBe(false);
+    });
+
+    it('does not pop when the parent cannot go back', () => {
+      expect(shouldPopPerpsRoute(false, exploreState)).toBe(false);
+    });
+  });
+
+  describe('isPerpsStackBackAction', () => {
+    it('returns true for native back action types', () => {
+      expect(isPerpsStackBackAction('GO_BACK')).toBe(true);
+      expect(isPerpsStackBackAction('POP')).toBe(true);
+      expect(isPerpsStackBackAction('NAVIGATE')).toBe(false);
+      expect(isPerpsStackBackAction('RESET')).toBe(false);
     });
   });
 

@@ -246,6 +246,29 @@ export const wasPerpsHomeDroppedFromHistory = (
   );
 
 /**
+ * Whether Back should pop the current Perps route rather than using the
+ * header/list fallback.
+ *
+ * `canGoBack` is parent-aware, so a single-entry Perps stack still reports
+ * true when the main stack can pop `PERPS.ROOT`. That is correct for
+ * Explore/homepage and wrong after Lite → Pro dropped Home (TAT-3786).
+ */
+export const shouldPopPerpsRoute = (
+  canGoBack: boolean,
+  state: PerpsHistoryState | undefined,
+): boolean => {
+  const hasPerpsStackHistory = (state?.index ?? 0) > 0;
+  return (
+    canGoBack &&
+    (hasPerpsStackHistory || !wasPerpsHomeDroppedFromHistory(state))
+  );
+};
+
+/** Native-stack iOS swipe and Android hardware back use these action types. */
+export const isPerpsStackBackAction = (actionType: string): boolean =>
+  actionType === 'GO_BACK' || actionType === 'POP';
+
+/**
  * Copies {@link PERPS_HOME_DROPPED_FROM_HISTORY_PARAM} onto new route params
  * when any stack entry already carries it. The header market picker rebuilds
  * `MARKET_DETAILS` without inheriting the previous params, which would look

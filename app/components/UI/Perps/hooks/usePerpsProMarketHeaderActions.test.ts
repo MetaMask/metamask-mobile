@@ -59,6 +59,13 @@ jest.mock('../utils/perpsModeSwitch', () => ({
 }));
 
 const mockNavigate = jest.fn();
+interface BeforeRemoveEvent {
+  preventDefault: () => void;
+  data: { action: { type: string } };
+}
+const mockAddListener = jest.fn(
+  (_event: string, _listener?: (event: BeforeRemoveEvent) => void) => jest.fn(),
+);
 // Index within the Perps stack itself: 0 means this screen is the only entry,
 // so there is nothing to pop without leaving Perps.
 let mockPerpsStackIndex = 1;
@@ -67,6 +74,7 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    addListener: mockAddListener,
     getState: () => ({
       index: mockPerpsStackIndex,
       routes: [
@@ -97,6 +105,18 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('usePerpsProMarketHeaderActions', () => {
+  const fireBeforeRemove = (type: string) => {
+    const listener = mockAddListener.mock.calls.find(
+      (call) => call[0] === 'beforeRemove',
+    )?.[1];
+    const event: BeforeRemoveEvent = {
+      preventDefault: jest.fn(),
+      data: { action: { type } },
+    };
+    listener?.(event);
+    return event;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack = true;
@@ -221,6 +241,64 @@ describe('usePerpsProMarketHeaderActions', () => {
     );
     expect(mockNavigateToWallet).not.toHaveBeenCalled();
     expect(mockNavigateBack).not.toHaveBeenCalled();
+  });
+
+  it('intercepts GO_BACK after Home was dropped and uses the home fallback', () => {
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    const event = fireBeforeRemove('GO_BACK');
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+  });
+
+  it('lets a parent-aware POP through when Home was not dropped', () => {
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = false;
+
+    renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    const event = fireBeforeRemove('POP');
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
+  });
+
+  it('does not intercept NAVIGATE when Home was dropped', () => {
+    mockCanGoBack = true;
+    mockPerpsStackIndex = 0;
+    mockHomeDroppedFromHistory = true;
+
+    renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    const event = fireBeforeRemove('NAVIGATE');
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
   });
 
   it('opens the market list and tracks the identity press', () => {
