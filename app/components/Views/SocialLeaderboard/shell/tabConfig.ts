@@ -9,12 +9,20 @@ const FEED_CONFIG: SocialShellTabConfig<FeedSubnavId> = {
   labelKey: 'social_leaderboard.feed.tabs.feed',
   subnav: [
     {
+      id: 'following',
+      labelKey: 'social_leaderboard.feed.following',
+    },
+    {
       id: 'trending',
       labelKey: 'social_leaderboard.shell.subnav.trending',
     },
     {
-      id: 'following',
-      labelKey: 'social_leaderboard.feed.following',
+      id: 'hotRightNow',
+      labelKey: 'social_leaderboard.shell.subnav.hot_right_now',
+    },
+    {
+      id: 'pumping',
+      labelKey: 'social_leaderboard.shell.subnav.pumping',
     },
   ],
   defaultSubnav: 'trending',
@@ -24,19 +32,19 @@ const LIVE_TRADES_CONFIG: SocialShellTabConfig<LiveTradesSubnavId> = {
   labelKey: 'social_leaderboard.feed.tabs.live_trades',
   subnav: [
     {
-      id: 'memecoins',
-      labelKey: 'social_leaderboard.shell.subnav.memecoins',
+      id: 'topGainers',
+      labelKey: 'social_leaderboard.shell.subnav.top_gainers',
     },
     {
-      id: 'perps',
-      labelKey: 'social_leaderboard.shell.subnav.perps',
+      id: 'topLosers',
+      labelKey: 'social_leaderboard.shell.subnav.top_losers',
     },
     {
-      id: 'stocks',
-      labelKey: 'social_leaderboard.shell.subnav.stocks',
+      id: 'newMarkets',
+      labelKey: 'social_leaderboard.shell.subnav.new_markets',
     },
   ],
-  defaultSubnav: 'memecoins',
+  defaultSubnav: 'topGainers',
 };
 
 const LEADERBOARD_CONFIG: SocialShellTabConfig<LeaderboardSubnavId> = {
@@ -45,10 +53,6 @@ const LEADERBOARD_CONFIG: SocialShellTabConfig<LeaderboardSubnavId> = {
     {
       id: 'topTraders',
       labelKey: 'social_leaderboard.shell.subnav.top_traders',
-    },
-    {
-      id: 'topPerps',
-      labelKey: 'social_leaderboard.shell.subnav.top_perps',
     },
     {
       id: 'kols',
