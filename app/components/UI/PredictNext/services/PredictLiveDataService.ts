@@ -1,4 +1,5 @@
 import type { Messenger } from '@metamask/messenger';
+import { isOlderKalshiLiveFrame } from '../adapters/remote/mapKalshiGameLiveUpdate';
 import type { PredictLiveDataTransport } from '../adapters/remote/PredictLiveDataClient';
 import type { PredictGameLive } from '../contracts/v1/liveData';
 import { PredictError, PredictErrorCode } from '../errors';
@@ -105,6 +106,10 @@ export class PredictLiveDataService {
 
   onGameUpdate(game: PredictGameLive): void {
     if (game.venueId !== this.#venueId) {
+      return;
+    }
+    const previous = this.#games.get(game.eventId);
+    if (previous && isOlderKalshiLiveFrame(game, previous)) {
       return;
     }
     this.#games.set(game.eventId, game);

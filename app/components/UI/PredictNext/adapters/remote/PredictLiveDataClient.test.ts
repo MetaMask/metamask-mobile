@@ -1,6 +1,7 @@
 import Logger from '../../../../../util/Logger';
 import type { PredictEntityId, PredictVenueId } from '../../types';
 import {
+  PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION,
   PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS,
   PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS,
   PREDICT_LIVE_DATA_RECONNECT_BASE_MS,
@@ -430,6 +431,87 @@ describe('PredictLiveDataClient', () => {
     expect(log).toHaveBeenCalledTimes(1);
     expect(log).toHaveBeenCalledWith(
       'PredictLiveDataClient: stream URL is missing or invalid',
+    );
+  });
+
+  it('caps game subscribes at the welcome maxPerConnection and fills freed slots', () => {
+    const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
+    const eventIds = Array.from(
+      { length: PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION + 1 },
+      (_, index) => `KX-${index}` as PredictEntityId,
+    );
+    const client = createClient();
+    client.subscribe(venueId, eventIds);
+    const socket = openAndWelcome();
+
+    expect(
+      JSON.parse(socket.send.mock.calls[0][0] as string).events,
+    ).toHaveLength(PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION);
+    expect(log).toHaveBeenCalledWith(
+      'PredictLiveDataClient: truncating game subscribe to connection limit',
+      eventIds.length,
+      PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION,
+      PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION,
+    );
+
+    socket.send.mockClear();
+    client.unsubscribe(venueId, [eventIds[0]]);
+
+    expect(socket.send).toHaveBeenNthCalledWith(
+      1,
+      JSON.stringify({
+        type: 'unsubscribe',
+        topic: 'game',
+        venueId,
+        events: [eventIds[0]],
+      }),
+    );
+    expect(socket.send).toHaveBeenNthCalledWith(
+      2,
+      JSON.stringify({
+        type: 'subscribe',
+        topic: 'game',
+        venueId,
+        events: [eventIds[PREDICT_LIVE_DATA_DEFAULT_GAME_MAX_PER_CONNECTION]],
+      }),
+    );
+  });
+
+  it('chunks subscribe messages using the welcome maxPerMessage', () => {
+    const client = createClient();
+    client.subscribe(venueId, [
+      'KX-1' as PredictEntityId,
+      'KX-2' as PredictEntityId,
+      'KX-3' as PredictEntityId,
+    ]);
+    const socket = MockWebSocket.instances[0];
+    socket.open();
+
+    socket.message({
+      ...welcomeFrame,
+      limits: {
+        ...welcomeFrame.limits,
+        game: { maxPerConnection: 50, maxPerMessage: 2 },
+      },
+    });
+
+    expect(socket.send).toHaveBeenNthCalledWith(
+      1,
+      JSON.stringify({
+        type: 'subscribe',
+        topic: 'game',
+        venueId,
+        events: ['KX-1', 'KX-2'],
+      }),
+    );
+    expect(socket.send).toHaveBeenNthCalledWith(
+      2,
+      JSON.stringify({
+        type: 'subscribe',
+        topic: 'game',
+        venueId,
+        events: ['KX-3'],
+      }),
     );
   });
 });

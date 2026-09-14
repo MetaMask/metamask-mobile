@@ -3,6 +3,7 @@ import {
   enums,
   mask,
   number,
+  optional,
   record,
   string,
   type Struct,
@@ -20,10 +21,19 @@ export interface PredictGameLive {
   details: Record<string, unknown>;
 }
 
+export interface PredictLiveDataTopicLimits {
+  maxPerConnection: number;
+  maxPerMessage: number;
+}
+
 export type PredictLiveDataServerFrame =
   | {
       type: 'welcome';
       protocol: number;
+      limits?: {
+        game?: PredictLiveDataTopicLimits;
+        market?: PredictLiveDataTopicLimits;
+      };
     }
   | {
       type: 'game_snapshot' | 'game';
@@ -51,10 +61,21 @@ const gameLive = structType({
   details: record(string(), unknown()),
 });
 
+const topicLimits = structType({
+  maxPerConnection: number(),
+  maxPerMessage: number(),
+});
+
 const serverFrame = union([
   structType({
     type: enums(['welcome'] as const),
     protocol: number(),
+    limits: optional(
+      structType({
+        game: optional(topicLimits),
+        market: optional(topicLimits),
+      }),
+    ),
   }),
   structType({
     type: enums(['game_snapshot', 'game'] as const),

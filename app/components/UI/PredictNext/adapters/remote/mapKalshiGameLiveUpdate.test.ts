@@ -1,5 +1,8 @@
 import type { PredictGame, PredictTimestamp } from '../../types';
-import { mapKalshiGameLiveUpdate } from './mapKalshiGameLiveUpdate';
+import {
+  isOlderKalshiLiveFrame,
+  mapKalshiGameLiveUpdate,
+} from './mapKalshiGameLiveUpdate';
 
 const current: PredictGame = {
   status: 'scheduled',
@@ -56,5 +59,35 @@ describe('mapKalshiGameLiveUpdate', () => {
     const result = mapKalshiGameLiveUpdate(current, live);
 
     expect(result).toBeUndefined();
+  });
+});
+
+describe('isOlderKalshiLiveFrame', () => {
+  it('reports an earlier live frame as older than a later one', () => {
+    const later = {
+      details: {
+        last_updated_ts: Date.parse('2026-09-08T13:00:00.000Z') / 1000,
+      },
+    };
+    const earlier = {
+      details: {
+        last_updated_ts: Date.parse('2026-09-08T12:30:00.000Z') / 1000,
+      },
+    };
+
+    expect(isOlderKalshiLiveFrame(earlier, later)).toBe(true);
+    expect(isOlderKalshiLiveFrame(later, earlier)).toBe(false);
+  });
+
+  it('does not treat a frame without a timestamp as older', () => {
+    const stamped = {
+      details: {
+        last_updated_ts: Date.parse('2026-09-08T13:00:00.000Z') / 1000,
+      },
+    };
+    const unstamped = { details: { status: 'live' } };
+
+    expect(isOlderKalshiLiveFrame(unstamped, stamped)).toBe(false);
+    expect(isOlderKalshiLiveFrame(stamped, unstamped)).toBe(false);
   });
 });

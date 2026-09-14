@@ -124,4 +124,54 @@ describe('PredictLiveDataService', () => {
     expect(listener).not.toHaveBeenCalled();
     service.destroy();
   });
+
+  it('keeps the newer Game when an older snapshot arrives later', () => {
+    const messenger = createMessenger();
+    const service = new PredictLiveDataService({
+      messenger,
+      createClient: () => createClient(),
+      venueId,
+    });
+    const listener = jest.fn();
+    messenger.subscribe(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+      listener,
+    );
+    const newer = {
+      venueId,
+      eventId,
+      type: 'football_game',
+      details: {
+        home_points: 21,
+        last_updated_ts: Date.parse('2026-09-08T13:00:00.000Z') / 1000,
+      },
+    };
+    const older = {
+      venueId,
+      eventId,
+      type: 'football_game',
+      details: {
+        home_points: 14,
+        last_updated_ts: Date.parse('2026-09-08T12:30:00.000Z') / 1000,
+      },
+    };
+
+    service.onGameUpdate(newer);
+    service.onGameUpdate(older);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledWith(newer);
+
+    const replay = jest.fn();
+    messenger.subscribe(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+      replay,
+    );
+    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
+      eventId,
+    ]);
+
+    expect(replay).toHaveBeenCalledWith(newer);
+    service.destroy();
+  });
 });

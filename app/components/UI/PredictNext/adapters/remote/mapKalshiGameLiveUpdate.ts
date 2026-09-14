@@ -43,6 +43,27 @@ const readTimestamp = (value: unknown): PredictTimestamp | undefined => {
   return date.toISOString() as PredictTimestamp;
 };
 
+const readLiveObservedAtMs = (
+  details: PredictGameLive['details'],
+): number | undefined => {
+  const observedAt = readTimestamp(details.last_updated_ts);
+  return observedAt ? Date.parse(observedAt) : undefined;
+};
+
+/** True when `incoming` is strictly older than `previous` by `last_updated_ts`. */
+export const isOlderKalshiLiveFrame = (
+  incoming: Pick<PredictGameLive, 'details'>,
+  previous: Pick<PredictGameLive, 'details'>,
+): boolean => {
+  const incomingMs = readLiveObservedAtMs(incoming.details);
+  const previousMs = readLiveObservedAtMs(previous.details);
+  return (
+    incomingMs !== undefined &&
+    previousMs !== undefined &&
+    incomingMs < previousMs
+  );
+};
+
 // Live frames carry venue-native Kalshi `details` (`football_game`,
 // `home_points`, `last_updated_ts`). REST already returns a normalized
 // PredictGame; until the stream is normalized server-side too, each new
@@ -58,7 +79,7 @@ export const mapKalshiGameLiveUpdate = (
   const liveObservedAt = readTimestamp(live.details.last_updated_ts);
   if (
     liveObservedAt &&
-    new Date(liveObservedAt).getTime() < new Date(current.observedAt).getTime()
+    Date.parse(liveObservedAt) < Date.parse(current.observedAt)
   ) {
     return undefined;
   }

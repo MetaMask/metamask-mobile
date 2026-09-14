@@ -5,27 +5,50 @@ import type { PredictGameLive } from '../contracts/v1/liveData';
 import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
 import type { PredictEntityId, PredictEvent, PredictVenueId } from '../types';
 
+const eventIdsKey = (eventIds: readonly PredictEntityId[]) =>
+  JSON.stringify(eventIds);
+
+/** Event ids that can receive live Game patches. */
+export const getLiveGameWatchIds = (
+  events: readonly PredictEvent[],
+  watchEventIds?: readonly PredictEntityId[],
+): PredictEntityId[] => {
+  const presentWithGame = new Set(
+    events.filter((event) => event.sports?.game).map((event) => event.id),
+  );
+  const requested = watchEventIds ?? events.map((event) => event.id);
+  return requested.filter((eventId) => presentWithGame.has(eventId));
+};
+
 /** Watches live Game updates and returns the same Events with Game fields patched. */
 export const useEventsWithLiveGames = (
   venueId: PredictVenueId,
   events: readonly PredictEvent[],
+  watchEventIds?: readonly PredictEntityId[],
 ): readonly PredictEvent[] => {
   const [updates, setUpdates] = useState(
     () => new Map<PredictEntityId, PredictGameLive>(),
   );
-  const eventIdsKey = JSON.stringify(events.map(({ id }) => id));
+  const idsToWatch = useMemo(
+    () => getLiveGameWatchIds(events, watchEventIds),
+    [events, watchEventIds],
+  );
+  const watchKey = eventIdsKey(idsToWatch);
+  const presentKey = eventIdsKey(events.map(({ id }) => id));
   const watchedIdsRef = useRef<PredictEntityId[]>([]);
 
   useEffect(() => {
-    const eventIds = JSON.parse(eventIdsKey) as PredictEntityId[];
-    const eventIdSet = new Set(eventIds);
+    const eventIds = JSON.parse(watchKey) as PredictEntityId[];
+    const presentIds = new Set(JSON.parse(presentKey) as PredictEntityId[]);
     const previousIds = watchedIdsRef.current;
     const previousSet = new Set(previousIds);
     const added = eventIds.filter((eventId) => !previousSet.has(eventId));
-    const removed = previousIds.filter((eventId) => !eventIdSet.has(eventId));
+    const removed = previousIds.filter(
+      (eventId) => !eventIds.includes(eventId),
+    );
 
     const onUpdate = (live: PredictGameLive) => {
-      if (live.venueId !== venueId || !eventIdSet.has(live.eventId)) {
+      if (live.venueId !== venueId || !presentIds.has(live.eventId)) {
         return;
       }
       setUpdates((current) => {
@@ -56,11 +79,6 @@ export const useEventsWithLiveGames = (
         venueId,
         removed,
       );
-      setUpdates((current) => {
-        const next = new Map(current);
-        removed.forEach((eventId) => next.delete(eventId));
-        return next;
-      });
     }
     watchedIdsRef.current = eventIds;
 
@@ -70,7 +88,22 @@ export const useEventsWithLiveGames = (
         onUpdate,
       );
     };
-  }, [eventIdsKey, venueId]);
+  }, [presentKey, watchKey, venueId]);
+
+  useEffect(() => {
+    const presentIds = new Set(JSON.parse(presentKey) as PredictEntityId[]);
+    setUpdates((current) => {
+      let changed = false;
+      const next = new Map(current);
+      current.forEach((_live, eventId) => {
+        if (!presentIds.has(eventId)) {
+          next.delete(eventId);
+          changed = true;
+        }
+      });
+      return changed ? next : current;
+    });
+  }, [presentKey]);
 
   useEffect(
     () => () => {
