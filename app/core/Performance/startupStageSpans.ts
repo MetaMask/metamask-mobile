@@ -10,6 +10,7 @@ import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
  */
 let postInitGapOpen = false;
 let postInitGapClosed = false;
+let unlockLaidOutOpen = false;
 let unlockLaidOutClosed = false;
 
 /**
@@ -49,8 +50,17 @@ export function endPostInitGap(): void {
  * `UIStartup` ends at `App`'s first render, and `HomepageReady` only starts at
  * unlock submit on the locked path, so for a locked cold start — the common
  * case — nothing measures the wait before the user can even begin typing.
+ *
+ * Opens at most once per launch. The span is anchored on process start, so a
+ * second open after a mid-session re-lock would measure the whole session; the
+ * caller is also expected not to ask (see `App.tsx`), but the guard makes the
+ * bad value unreachable rather than merely unlikely.
  */
 export function startAppStartToUnlockLaidOut(): void {
+  if (unlockLaidOutOpen) {
+    return;
+  }
+  unlockLaidOutOpen = true;
   trace({
     name: TraceName.AppStartToUnlockLaidOut,
     op: TraceOperation.UIStartup,
@@ -70,7 +80,7 @@ export function startAppStartToUnlockLaidOut(): void {
  * are separable; a single "user can unlock" number would hide it.
  */
 export function endAppStartToUnlockLaidOut(): void {
-  if (unlockLaidOutClosed) {
+  if (!unlockLaidOutOpen || unlockLaidOutClosed) {
     return;
   }
   unlockLaidOutClosed = true;
@@ -81,5 +91,6 @@ export function endAppStartToUnlockLaidOut(): void {
 export function resetStartupStageSpansForTesting(): void {
   postInitGapOpen = false;
   postInitGapClosed = false;
+  unlockLaidOutOpen = false;
   unlockLaidOutClosed = false;
 }

@@ -1608,7 +1608,7 @@ const App: React.FC = () => {
   const existingUser = useSelector(selectExistingUser);
   const isUnlocked = useSelector(selectIsUnlocked);
   const hasQueuedColdHomepageReadyTrace = useRef(false);
-  const hasStartedUnlockLaidOutTrace = useRef(false);
+  const hasResolvedUnlockLaidOutTrace = useRef(false);
 
   useEffect(() => {
     if (
@@ -1627,12 +1627,28 @@ const App: React.FC = () => {
   // common case and the one nothing measured. `HomepageReady` only starts at
   // unlock submit on this path, so the entire wait before the user can begin
   // typing was untracked.
+  //
+  // This resolves **once**, on the first observation that says which path this
+  // launch took, and deliberately resolves even when it decides not to open.
+  // Only arming the guard on the open path would leave it armed after an
+  // already-unlocked start (finishing onboarding, or biometrics winning the
+  // race), so a later manual or idle re-lock would open a span anchored on
+  // `Performance.appLaunchTime` — process start, possibly hours earlier — and
+  // record a whole session as cold-start time. A re-lock is not a cold start.
+  //
+  // `!existingUser` means "not known yet" during rehydration and onboarding,
+  // so it waits rather than resolving.
   useEffect(() => {
-    if (hasStartedUnlockLaidOutTrace.current || !existingUser || isUnlocked) {
+    if (hasResolvedUnlockLaidOutTrace.current || !existingUser) {
       return;
     }
 
-    hasStartedUnlockLaidOutTrace.current = true;
+    hasResolvedUnlockLaidOutTrace.current = true;
+
+    if (isUnlocked) {
+      return;
+    }
+
     startAppStartToUnlockLaidOut();
   }, [existingUser, isUnlocked]);
 

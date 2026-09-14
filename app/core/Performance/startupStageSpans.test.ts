@@ -76,6 +76,21 @@ describe('startupStageSpans', () => {
       );
     });
 
+    it('opens at most once per launch', () => {
+      // The span is anchored on process start, so a second open after a
+      // mid-session re-lock would measure the whole session, not cold start.
+      startAppStartToUnlockLaidOut();
+      startAppStartToUnlockLaidOut();
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not close a span that never opened', () => {
+      endAppStartToUnlockLaidOut();
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
     it('closes only on the first native layout', () => {
       // `onLayout` fires repeatedly; only the first is the moment the field
       // finished laying out and could accept input.
