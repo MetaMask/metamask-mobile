@@ -109,6 +109,7 @@ const BridgeLimitOrderViewContent = ({
     handlePercentPress,
     isCustomActive,
     isLimitFiatMode,
+    isTriggerPriceNearMarket,
     executionType,
     limitPrice,
     marketComparison,
@@ -380,6 +381,7 @@ const BridgeLimitOrderViewContent = ({
               secondaryLimitPrice={secondaryValue}
               onAmountTypeTogglePress={onAmountTypeTogglePress}
               marketComparison={marketComparison}
+              isTriggerPriceNearMarket={isTriggerPriceNearMarket}
               pricePresets={LIMIT_ORDER_BUTTON_PRICE_PRESETS}
               isCustomPercentActive={isCustomActive}
               customPercent={customValue}
@@ -394,15 +396,6 @@ const BridgeLimitOrderViewContent = ({
               limitPriceInputRef={limitPriceInputRef}
               customPercentInputRef={customPercentInputRef}
             />
-
-            <Box twClassName="flex-grow-0" onTouchEnd={dismissInputAndKeypad}>
-              <LimitOrderDetails
-                expiration={expiration}
-                onExpirationPress={handleExpirationPress}
-                slippage={slippageLabel}
-                onPricePress={handleSlippagePress}
-              />
-            </Box>
 
             <Box
               twClassName="flex-grow-0 pb-3"
@@ -419,6 +412,15 @@ const BridgeLimitOrderViewContent = ({
                   <MissingAssetsPriceDataBanner />
                 </SwapsBanners>
               </Box>
+            </Box>
+
+            <Box twClassName="flex-grow-0" onTouchEnd={dismissInputAndKeypad}>
+              <LimitOrderDetails
+                expiration={expiration}
+                onExpirationPress={handleExpirationPress}
+                slippage={slippageLabel}
+                onPricePress={handleSlippagePress}
+              />
             </Box>
 
             <Box onTouchEnd={dismissInputAndKeypad}>

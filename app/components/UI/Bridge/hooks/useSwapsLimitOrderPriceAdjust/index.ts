@@ -14,12 +14,14 @@ import { getSwapsLimitOrderPriceFromMarketPercent } from '../../utils/limitOrder
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
 import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
 import { getSwapsLimitOrderSecondaryValue } from '../../utils/limitOrders/getSwapsLimitOrderSecondaryValue';
+import { isSwapsLimitOrderPriceWithinMarketPercent } from '../../utils/limitOrders/isSwapsLimitOrderPriceWithinMarketPercent';
 import {
   getInitialLimitOrderPriceAdjustState,
   limitOrderPriceAdjustReducer,
 } from '../../reducers/limitOrderPriceAdjustReducer';
 import {
   LIMIT_ORDER_CUSTOM_PERCENT_MAX,
+  LIMIT_ORDER_NEAR_MARKET_PERCENT,
   LimitOrderExecutionType,
 } from '../../constants/limitOrders';
 
@@ -247,6 +249,11 @@ export const useSwapsLimitOrderPriceAdjust = ({
     executionType,
     threshold: 0,
   });
+  const isTriggerPriceNearMarket = isSwapsLimitOrderPriceWithinMarketPercent({
+    price: limitFiat,
+    marketPrice: quotedFiatRate,
+    percent: LIMIT_ORDER_NEAR_MARKET_PERCENT,
+  });
 
   return {
     commitCustomPercent,
@@ -260,6 +267,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     handlePercentPress,
     isCustomActive,
     isLimitFiatMode,
+    isTriggerPriceNearMarket,
     executionType,
     limitPrice,
     marketComparison,

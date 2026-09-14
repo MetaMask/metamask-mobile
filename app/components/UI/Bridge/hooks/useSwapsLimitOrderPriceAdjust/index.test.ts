@@ -666,6 +666,43 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     });
   });
 
+  describe('isTriggerPriceNearMarket', () => {
+    it('flags the seeded market price as near market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.isTriggerPriceNearMarket).toBe(true);
+    });
+
+    it('flags a limit price within 1% of market as near market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handleLimitPriceChange('0.995');
+      });
+
+      expect(result.current.isTriggerPriceNearMarket).toBe(true);
+    });
+
+    it('does not flag a limit price 5% below market', () => {
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handlePercentPress(5);
+      });
+
+      expect(result.current.limitPrice).toBe('0.95');
+      expect(result.current.isTriggerPriceNearMarket).toBe(false);
+    });
+
+    it('does not flag anything when the quoted token has no fiat rate', () => {
+      mockUseLiveTokenFiatRate.mockReturnValue(undefined);
+
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.isTriggerPriceNearMarket).toBe(false);
+    });
+  });
+
   it('resets price fields when the token pair changes', () => {
     const { result, rerender } = renderPriceAdjustHook();
 
