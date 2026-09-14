@@ -551,9 +551,9 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --no-build-android
 
-      # RSS samples go to /tmp so they survive exit 137 (OOM kill of Metro).
-      # Retry is for the same flake: the process sits near the 16 GB ceiling, so a
-      # later attempt often fits. Does not fix the cliff; do not raise NODE_OPTIONS.
+      # Sample RSS to /tmp (survives Metro 137). Do not tee samples to the log.
+      # Retry: the process sits near the 16 GB ceiling; a later attempt often fits.
+      # Do not raise NODE_OPTIONS.
       - name: Generate iOS bundle
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         env:
@@ -568,16 +568,7 @@ jobs:
           command: |
             set -euo pipefail
             MEM_LOG=/tmp/js-bundle-rss.log
-            echo "=== attempt $(date -u +%Y-%m-%dT%H:%M:%SZ) NODE_OPTIONS=${NODE_OPTIONS:-<unset>} ===" | tee -a "${MEM_LOG}"
-            {
-              grep -E '^(MemTotal|MemAvailable|SwapTotal)' /proc/meminfo || true
-              echo "swapon=$(swapon --show --noheadings 2>/dev/null || echo none)"
-              for CG in memory.max memory.high memory.peak memory.current; do
-                if [ -r "/sys/fs/cgroup/${CG}" ]; then
-                  echo "cgroup ${CG}=$(tr '\n' ' ' < "/sys/fs/cgroup/${CG}")"
-                fi
-              done
-            } 2>&1 | tee -a "${MEM_LOG}"
+            echo "=== attempt $(date -u +%Y-%m-%dT%H:%M:%SZ) NODE_OPTIONS=${NODE_OPTIONS:-<unset>} ===" >> "${MEM_LOG}"
 
             monitor_resources() {
               while true; do
@@ -587,7 +578,7 @@ jobs:
                 if [ -r /sys/fs/cgroup/memory.current ]; then
                   CGCUR="$(( $(cat /sys/fs/cgroup/memory.current) / 1048576 ))MB"
                 fi
-                echo "[rss $(date -u +%H:%M:%S)] ${MEM} cgroup=${CGCUR} top=[${TOP}]" | tee -a "${MEM_LOG}"
+                echo "[rss $(date -u +%H:%M:%S)] ${MEM} cgroup=${CGCUR} top=[${TOP}]" >> "${MEM_LOG}"
                 sleep 5
               done
             }
@@ -596,30 +587,27 @@ jobs:
             trap 'kill "${MONITOR_PID}" 2>/dev/null || true' EXIT
             yarn gen-bundle:ios
 
-      - name: Report bundle-step RSS
+      - name: Report bundle-step peak memory
         if: ${{ always() }}
         run: |
           set -euo pipefail
           MEM_LOG=/tmp/js-bundle-rss.log
           if [ ! -s "${MEM_LOG}" ]; then
-            echo "No RSS samples captured."
+            echo "No memory samples captured."
             exit 0
           fi
           PEAK="$(grep '\[rss ' "${MEM_LOG}" | awk -F'mem=' '{ split($2, a, "/"); if (a[1] + 0 > max) { max = a[1] + 0; line = $0 } } END { print line }')"
+          CGPEAK=""
+          if [ -r /sys/fs/cgroup/memory.peak ]; then
+            CGPEAK=" (cgroup peak $(( $(cat /sys/fs/cgroup/memory.peak) / 1048576 ))MB)"
+          fi
+          LINE="JS bundle peak: ${PEAK}${CGPEAK}"
+          echo "${LINE}"
           {
-            echo "### JS bundle size check: RSS"
+            echo "### JS bundle size check: memory"
             echo
-            echo '```'
-            grep -v '\[rss ' "${MEM_LOG}" || true
-            echo "samples=$(grep -c '\[rss ' "${MEM_LOG}" || true)"
-            echo "peak: ${PEAK}"
-            if [ -r /sys/fs/cgroup/memory.peak ]; then
-              echo "cgroup memory.peak: $(tr '\n' ' ' < /sys/fs/cgroup/memory.peak)"
-            fi
-            echo '```'
+            echo "${LINE}"
           } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
-          echo "--- last 30 samples ---"
-          tail -30 "${MEM_LOG}"
 
       - name: Check bundle size
         if: github.event_name == 'pull_request'
