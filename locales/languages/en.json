@@ -1892,6 +1892,7 @@
       },
       "leverage_modal": {
         "title": "Leverage",
+        "set": "Set",
         "confirm": "Confirm",
         "entry_price": "Entry price",
         "current_price": "Current price",
