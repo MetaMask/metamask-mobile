@@ -31,6 +31,12 @@ export interface LimitOrderPriceAdjustCardProps {
    */
   isLimitFiatMode: boolean;
   /**
+   * Symbol of the counter token the limit price is quoted against, e.g.
+   * "ETH". Rendered as a non-editable suffix after the amount; omitted in
+   * fiat mode, where the amount is already labeled by a currency prefix.
+   */
+  priceUnitSymbol?: string;
+  /**
    * Press handler for the quote-unit chip. When omitted the chip is not
    * interactive.
    */

@@ -369,6 +369,9 @@ const BridgeLimitOrderViewContent = ({
               orderSide={executionType}
               quoteTokenSymbol={quotedSymbol}
               isLimitFiatMode={isLimitFiatMode}
+              priceUnitSymbol={
+                isLimitFiatMode ? undefined : counterToken?.symbol
+              }
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
               onLimitPriceInputPress={onLimitPriceInputPress}

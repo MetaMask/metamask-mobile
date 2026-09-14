@@ -11,6 +11,7 @@ export const LimitOrderPriceAdjustCard = ({
   orderSide,
   quoteTokenSymbol,
   isLimitFiatMode,
+  priceUnitSymbol,
   onQuoteUnitPress,
   limitPrice,
   onLimitPriceInputPress,
@@ -45,6 +46,7 @@ export const LimitOrderPriceAdjustCard = ({
         executionType={orderSide}
         quotedSymbol={quoteTokenSymbol}
         isLimitFiatMode={isLimitFiatMode}
+        unitSymbol={priceUnitSymbol}
         value={limitPrice}
         selection={limitPriceSelection}
         onSelectionChange={onLimitPriceSelectionChange}
