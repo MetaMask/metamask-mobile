@@ -302,6 +302,10 @@ export const PerpsHomeViewSelectorsIDs = {
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
   TAB_BAR_ACTIONS: 'tab-bar-item-actions',
   TAB_BAR_ACTIVITY: 'tab-bar-item-activity',
+  /** Geo-block eligibility tooltip shown when a restricted user presses Add Funds (footer or card) */
+  GEO_BLOCK_TOOLTIP: 'perps-home-geo-block-tooltip',
+  /** Separate geo-block tooltip shown when a restricted user presses Close All on the positions section */
+  CLOSE_ALL_GEO_BLOCK_TOOLTIP: 'perps-home-close-all-geo-block-tooltip',
 };
 
 export const PerpsPositionsViewSelectorsIDs = {

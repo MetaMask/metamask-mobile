@@ -170,27 +170,33 @@ describe('basicFunctionalityConsolidation selectors', () => {
   });
 
   describe('migration notification selectors', () => {
-    it('shows only the scheduled bottom sheet while the flag is enabled', () => {
+    it('shows only the scheduled bottom sheet', () => {
       expect(
         selectShouldShowBasicFunctionalityMigrationBottomSheet.resultFunc(
-          true,
           'bottom-sheet',
           false,
         ),
       ).toBe(true);
       expect(
         selectShouldShowBasicFunctionalityMigrationToast.resultFunc(
-          true,
           'bottom-sheet',
           false,
         ),
       ).toBe(false);
     });
 
+    it('shows a pending toast after a feature-flag rollback', () => {
+      expect(
+        selectShouldShowBasicFunctionalityMigrationToast.resultFunc(
+          'toast',
+          false,
+        ),
+      ).toBe(true);
+    });
+
     it('does not show a dismissed toast', () => {
       expect(
         selectShouldShowBasicFunctionalityMigrationToast.resultFunc(
-          true,
           'toast',
           true,
         ),
@@ -203,6 +209,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
       expect(
         selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
           true,
+          true,
           AccountType.MetamaskGoogle,
           undefined,
           false,
@@ -210,9 +217,22 @@ describe('basicFunctionalityConsolidation selectors', () => {
       ).toBe(true);
     });
 
+    it('keeps an off social-login toggle enabled for recovery', () => {
+      expect(
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
+          false,
+          AccountType.MetamaskGoogle,
+          undefined,
+          false,
+        ),
+      ).toBe(false);
+    });
+
     it('does not lock Basic Functionality for an SRP user', () => {
       expect(
         selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
           true,
           AccountType.Metamask,
           undefined,
