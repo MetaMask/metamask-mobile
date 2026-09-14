@@ -1782,10 +1782,10 @@ class AuthenticationService {
 
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
-
-        // Throwaway vault may have signed in while unlocked. Wipe that too.
-        this.clearAuthSession();
       } finally {
+        // Throwaway vault may have signed in while unlocked. Always wipe,
+        // including when a later step throws and resetWalletState swallows it.
+        this.clearAuthSession();
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
         // ALWAYS re-enable Card reactive fetching, even if an error occurs

@@ -4731,6 +4731,23 @@ describe('Authentication', () => {
       });
     });
 
+    it('clears auth state after a later reset step throws', async () => {
+      const clearAuthStateSpy = jest.spyOn(
+        Engine.context.AuthenticationController,
+        'clearState',
+      );
+      jest
+        .spyOn(Authentication, 'lockApp')
+        .mockRejectedValueOnce(new Error('lock failed'));
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(clearAuthStateSpy).toHaveBeenCalledTimes(2);
+      expect(analytics.identify).toHaveBeenCalledTimes(2);
+    });
+
     it('logs error when resetWalletState fails', async () => {
       // Arrange
       const newWalletAndKeychain = jest.spyOn(
