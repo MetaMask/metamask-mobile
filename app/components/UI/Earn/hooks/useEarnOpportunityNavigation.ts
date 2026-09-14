@@ -47,7 +47,9 @@ export type EarnOpportunityRedirectTarget =
 export type EarnDepositNavigationRoute =
   | {
       type: 'money-fiat';
-      redirectTarget: EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT;
+      redirectTarget:
+        | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
+        | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING;
     }
   | EarnAssetAcquisitionRoute;
 
@@ -205,7 +207,10 @@ const useEarnOpportunityNavigation = () => {
     resolveEarnAssetAcquisitionRoute,
     navigateToEarnAssetAcquisitionRoute,
   } = useEarnAssetAcquisitionNavigation();
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const {
+    isOnboardingRedirectNeeded,
+    redirectToOnboardingIfNeeded,
+  } = useMoneyOnboardingNavigation();
 
   const resolveEarnDepositNavigationRoute = useCallback(
     (
@@ -218,13 +223,15 @@ const useEarnOpportunityNavigation = () => {
       ) {
         return {
           type: 'money-fiat',
-          redirectTarget: EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
+          redirectTarget: isOnboardingRedirectNeeded
+            ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+            : EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
         };
       }
 
       return resolveEarnAssetAcquisitionRoute(earnAsset, experience);
     },
-    [resolveEarnAssetAcquisitionRoute],
+    [isOnboardingRedirectNeeded, resolveEarnAssetAcquisitionRoute],
   );
 
   const navigateToAssetOverview = useCallback(
@@ -353,6 +360,18 @@ const useEarnOpportunityNavigation = () => {
 
         if (resolvedDepositNavigationRoute) {
           if (resolvedDepositNavigationRoute.type === 'money-fiat') {
+            const redirectedToOnboarding = redirectToOnboardingIfNeeded({
+              postOnboardingRedirect: {
+                type: MoneyPostOnboardingRedirectType.DEPOSIT,
+                autoSelectFiatPayment: true,
+                intent: 'card',
+              },
+            });
+
+            if (redirectedToOnboarding) {
+              return;
+            }
+
             try {
               await initiateDeposit({
                 autoSelectFiatPayment: true,
@@ -419,6 +438,7 @@ const useEarnOpportunityNavigation = () => {
       initiateDeposit,
       navigateToEarnAssetAcquisitionRoute,
       resolveEarnDepositNavigationRoute,
+      redirectToOnboardingIfNeeded,
       showToast,
       EarnToastOptions.earnStrategySelection.navigationToDeposit,
     ],

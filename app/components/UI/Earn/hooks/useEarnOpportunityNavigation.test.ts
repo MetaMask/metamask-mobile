@@ -43,6 +43,7 @@ const mockNavigateToEarnAssetAcquisitionRoute = jest.fn<
   [EarnAssetAcquisitionRoute]
 >();
 const mockRedirectToOnboardingIfNeeded = jest.fn();
+let mockIsOnboardingRedirectNeeded = false;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -71,6 +72,9 @@ jest.mock('../../Money/hooks/useMoneyAccount', () => ({
 jest.mock('../../Money/hooks/useMoneyNavigation', () => ({
   __esModule: true,
   useMoneyOnboardingNavigation: jest.fn(() => ({
+    get isOnboardingRedirectNeeded() {
+      return mockIsOnboardingRedirectNeeded;
+    },
     redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
   })),
 }));
@@ -313,6 +317,7 @@ describe('useEarnOpportunityNavigation', () => {
     mockEngineSetActiveNetwork.mockResolvedValue(undefined);
     mockEngineSetMultichainActiveNetwork.mockResolvedValue(undefined);
     mockInitiateDeposit.mockResolvedValue(undefined);
+    mockIsOnboardingRedirectNeeded = false;
     mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
   });
 
@@ -720,6 +725,65 @@ describe('useEarnOpportunityNavigation', () => {
       onDepositSetupFailure: expect.any(Function),
     });
   });
+
+  it('redirects an untracked Money experience to onboarding before fiat deposit', async () => {
+    mockIsOnboardingRedirectNeeded = true;
+    mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
+    const earnAsset = createUntrackedEarnAsset();
+    const experience = {
+      ...createExperience('MONEY_ACCOUNT_DEPOSIT'),
+      depositReadiness: {
+        status: 'not_ready' as const,
+        reason: 'asset_not_tracked' as const,
+      },
+    };
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    await act(async () => {
+      await result.current.navigateToDepositForExperience(
+        earnAsset,
+        experience,
+      );
+    });
+
+    expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
+      postOnboardingRedirect: {
+        type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        autoSelectFiatPayment: true,
+        intent: 'card',
+      },
+    });
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [false, EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT],
+    [true, EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING],
+  ])(
+    'tracks the %s redirect target for an untracked Money experience',
+    (isOnboardingNeeded, expectedRedirectTarget) => {
+      mockIsOnboardingRedirectNeeded = isOnboardingNeeded;
+      const earnAsset = createUntrackedEarnAsset();
+      const experience = {
+        ...createExperience('MONEY_ACCOUNT_DEPOSIT'),
+        depositReadiness: {
+          status: 'not_ready' as const,
+          reason: 'asset_not_tracked' as const,
+        },
+      };
+      const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+      expect(
+        result.current.resolveEarnDepositNavigationRoute(
+          earnAsset,
+          experience,
+        ),
+      ).toEqual({
+        type: 'money-fiat',
+        redirectTarget: expectedRedirectTarget,
+      });
+    },
+  );
 
   it('does not show an Earn navigation error when an untracked Money deposit is rejected', async () => {
     mockInitiateDeposit.mockRejectedValue(
