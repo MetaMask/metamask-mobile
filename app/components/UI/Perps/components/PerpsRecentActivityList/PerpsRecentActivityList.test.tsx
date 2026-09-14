@@ -325,7 +325,6 @@ describe('PerpsRecentActivityList', () => {
         expect.objectContaining({
           chainId: 'eip155:42161',
           txIdentifier: mockTransactions[0].id,
-          preloadKey: expect.any(String),
         }),
       );
     });
@@ -341,7 +340,6 @@ describe('PerpsRecentActivityList', () => {
         expect.objectContaining({
           chainId: 'eip155:42161',
           txIdentifier: mockTransactions[1].id,
-          preloadKey: expect.any(String),
         }),
       );
     });

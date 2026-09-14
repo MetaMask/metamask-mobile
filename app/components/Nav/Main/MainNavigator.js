@@ -84,6 +84,7 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import GetPixKey from '../../UI/Ramp/Views/VirtualBankAccount/GetPixKey';
 import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
+import KycEmail from '../../UI/Ramp/Views/VirtualBankAccount/KycEmail';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
@@ -115,6 +116,7 @@ import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
+  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -681,13 +683,6 @@ const HomeTabs = () => {
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       freezeOnBlur: false,
     },
@@ -700,11 +695,6 @@ const HomeTabs = () => {
     },
     rewards: {
       tabBarIconKey: TabBarIconKey.Rewards,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
-        );
-      },
       rootScreenName: Routes.REWARDS_VIEW,
       freezeOnBlur: false,
     },
@@ -716,11 +706,6 @@ const HomeTabs = () => {
     trending: {
       tabBarIconKey: TabBarIconKey.Trending,
       callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRENDING,
-          ).build(),
-        );
         // Re-enable AppState listener when returning to trending tab
         // (it was disabled when leaving to prevent phantom sessions)
         TrendingFeedSessionManager.getInstance().enableAppStateListener();
@@ -740,13 +725,6 @@ const HomeTabs = () => {
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-          ).build(),
-        );
-      },
       rootScreenName: Routes.SETTINGS_VIEW,
     },
   };
@@ -807,6 +785,7 @@ const HomeTabs = () => {
           descriptors={descriptors}
           navigation={navigation}
           onHeightChange={setFloatingTabBarHeight}
+          trailingAction={headerNavBarVariant.trailingNavBarAction}
         />
       ) : (
         <TabBar
@@ -921,26 +900,6 @@ const Webview = () => (
   </NativeStack.Navigator>
 );
 
-const AddBookmarkView = () => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen name="AddBookmark" component={AddBookmark} />
-  </NativeStack.Navigator>
-);
-
-const OfflineModeView = (props) => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name="OfflineMode"
-      component={OfflineMode}
-      options={OfflineMode.navigationOptions}
-      initialParams={{
-        autoDismissOnReconnect:
-          props.route.params?.autoDismissOnReconnect === true,
-      }}
-    />
-  </NativeStack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
@@ -994,17 +953,6 @@ const SetPasswordFlow = () => (
     <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
   </NativeStack.Navigator>
 );
-
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-const SampleFeatureFlow = () => (
-  <NativeStack.Navigator>
-    <NativeStack.Screen
-      name={Routes.SAMPLE_FEATURE}
-      component={SampleFeature}
-    />
-  </NativeStack.Navigator>
-);
-///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
   const dispatch = useDispatch();
@@ -1145,7 +1093,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        options={{ headerShown: false, ...slideFromLeftNativeOptions }}
       />
       <NativeStack.Screen
         name="Asset"
@@ -1183,8 +1131,12 @@ const MainNavigator = () => {
           ...slideFromRightNativeOptions,
         }}
       />
-      <NativeStack.Screen name="AddBookmarkView" component={AddBookmarkView} />
-      <NativeStack.Screen name="OfflineModeView" component={OfflineModeView} />
+      <NativeStack.Screen name="AddBookmarkView" component={AddBookmark} />
+      <NativeStack.Screen
+        name="OfflineModeView"
+        component={OfflineMode}
+        options={OfflineMode.navigationOptions}
+      />
       <NativeStack.Screen
         name={Routes.NOTIFICATIONS.VIEW}
         component={NotificationsModeView}
@@ -1265,6 +1217,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.RAMP.VBA_VERIFY_IDENTITY}
         component={VbaVerifyIdentity}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_KYC_EMAIL}
+        component={KycEmail}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
@@ -1558,7 +1515,7 @@ const MainNavigator = () => {
       }
       <NativeStack.Screen
         name={Routes.SAMPLE_FEATURE}
-        component={SampleFeatureFlow}
+        component={SampleFeature}
       />
       {
         ///: END:ONLY_INCLUDE_IF

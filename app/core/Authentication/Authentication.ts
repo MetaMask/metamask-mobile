@@ -409,6 +409,8 @@ class AuthenticationService {
     // Restore vault with empty password
     await KeyringController.submitPassword('');
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      Engine.context.AuthenticationController.clearState();
       await SeedlessOnboardingController.clearState();
     }
     await this.resetPassword();
@@ -1099,6 +1101,11 @@ class AuthenticationService {
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
 
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      // Must run before the temporary vault unlocks so pairing/sync cannot
+      // attach that wallet to the previous profile.
+      Engine.context.AuthenticationController.clearState();
+
       // Disable automatic vault backups during OAuth error recovery
       EngineClass.disableAutomaticVaultBackup = true;
 
@@ -1743,6 +1750,11 @@ class AuthenticationService {
       Engine.context.CardController.setResetInProgress(true);
 
       try {
+        // Sign out and re-arm profile/social pairing for the next wallet.
+        // Must run before the temporary vault unlocks so pairing/sync cannot
+        // attach that wallet to the previous profile.
+        Engine.context.AuthenticationController.clearState();
+
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
         });
