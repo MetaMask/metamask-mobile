@@ -68,7 +68,6 @@ const openAndWelcome = (socket = MockWebSocket.instances[0]): MockWebSocket => {
 describe('PredictLiveDataClient', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.spyOn(Math, 'random').mockReturnValue(1);
     MockWebSocket.instances = [];
   });
 

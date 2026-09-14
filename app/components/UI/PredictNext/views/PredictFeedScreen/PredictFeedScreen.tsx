@@ -125,12 +125,18 @@ const PredictFeedContent = ({
   }).current;
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      setVisibleEventIds(
-        viewableItems.flatMap((token) => {
-          const event = token.item as PredictEvent | undefined;
-          return event?.id ? [event.id] : [];
-        }),
-      );
+      const nextVisibleEventIds = viewableItems.flatMap((token) => {
+        const event = token.item as PredictEvent | undefined;
+        return event?.id ? [event.id] : [];
+      });
+      // A fling or bounce can report nothing viewable while the rows it landed
+      // on are still waiting for layout. Keep the last measured rows so live
+      // watches stay on them instead of falling back to the first page.
+      if (nextVisibleEventIds.length === 0) {
+        return;
+      }
+
+      setVisibleEventIds(nextVisibleEventIds);
     },
   ).current;
   const watchEventIds = useMemo(() => {

@@ -358,11 +358,10 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   }
 
   #reconnectDelayMs(): number {
-    const exponential = Math.min(
+    return Math.min(
       PREDICT_LIVE_DATA_RECONNECT_MAX_MS,
       PREDICT_LIVE_DATA_RECONNECT_BASE_MS * 2 ** (this.#reconnectAttempts - 1),
     );
-    return Math.round(exponential * (0.5 + Math.random() * 0.5));
   }
 
   #scheduleLinger(): void {

@@ -141,6 +141,44 @@ const gameEvent = makeGameEvent('game-1');
 const secondGameEvent = makeGameEvent('game-2');
 const propsEvent = makeEvent('props-1', 'NFL Win Total');
 
+const liveDataCalls = () =>
+  messengerCall.mock.calls.filter(([action]: [string]) =>
+    action.startsWith('PredictLiveDataService:'),
+  );
+
+const renderFeedScrolledToSecondPage = async () => {
+  configureFeeds({
+    [NFL_GAMES_FEED_ID]: (cursor?: string) =>
+      cursor
+        ? { events: [secondGameEvent] }
+        : { events: [gameEvent], nextCursor: 'page-2' },
+  });
+  const view = renderPredictFeedScreen({
+    venueId: KALSHI_VENUE_ID,
+    feedScreenId: NFL_FEED_SCREEN_ID,
+  });
+  await view.findByTestId(
+    PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
+  );
+
+  await act(async () => {
+    fireEvent(view.getByTestId(PredictFeedScreenTestIds.LIST), 'onEndReached');
+  });
+  await view.findByTestId(
+    PredictHomeTestIds.event(KALSHI_VENUE_ID, secondGameEvent.id),
+  );
+
+  await act(async () => {
+    fireEvent(
+      view.getByTestId(PredictFeedScreenTestIds.LIST),
+      'onViewableItemsChanged',
+      { viewableItems: [{ item: secondGameEvent }] },
+    );
+  });
+
+  return view;
+};
+
 const invalidFeedScreenParams = {
   venueId: KALSHI_VENUE_ID,
   feedScreenId: 'missing-feed-screen',
@@ -577,39 +615,7 @@ describe('PredictFeedScreen', () => {
   });
 
   it('watches only the visible Feed Events after pagination', async () => {
-    configureFeeds({
-      [NFL_GAMES_FEED_ID]: (cursor?: string) =>
-        cursor
-          ? { events: [secondGameEvent] }
-          : { events: [gameEvent], nextCursor: 'page-2' },
-    });
-    const view = renderPredictFeedScreen({
-      venueId: KALSHI_VENUE_ID,
-      feedScreenId: NFL_FEED_SCREEN_ID,
-    });
-    await view.findByTestId(
-      PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
-    );
-
-    await act(async () => {
-      fireEvent(
-        view.getByTestId(PredictFeedScreenTestIds.LIST),
-        'onEndReached',
-      );
-    });
-    await view.findByTestId(
-      PredictHomeTestIds.event(KALSHI_VENUE_ID, secondGameEvent.id),
-    );
-
-    await act(async () => {
-      fireEvent(
-        view.getByTestId(PredictFeedScreenTestIds.LIST),
-        'onViewableItemsChanged',
-        {
-          viewableItems: [{ item: secondGameEvent }],
-        },
-      );
-    });
+    await renderFeedScrolledToSecondPage();
 
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictLiveDataService:unwatchGames',
@@ -621,5 +627,20 @@ describe('PredictFeedScreen', () => {
       KALSHI_VENUE_ID,
       [secondGameEvent.id],
     );
+  });
+
+  it('keeps watching the last measured Events when a scroll reports nothing viewable', async () => {
+    const view = await renderFeedScrolledToSecondPage();
+    messengerCall.mockClear();
+
+    await act(async () => {
+      fireEvent(
+        view.getByTestId(PredictFeedScreenTestIds.LIST),
+        'onViewableItemsChanged',
+        { viewableItems: [] },
+      );
+    });
+
+    expect(liveDataCalls()).toEqual([]);
   });
 });

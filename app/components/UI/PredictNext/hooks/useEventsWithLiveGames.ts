@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import { mapKalshiGameLiveUpdate } from '../adapters/remote/mapKalshiGameLiveUpdate';
+import {
+  isOlderKalshiLiveFrame,
+  mapKalshiGameLiveUpdate,
+} from '../adapters/remote/mapKalshiGameLiveUpdate';
 import type { PredictGameLive } from '../contracts/v1/liveData';
 import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
 import type { PredictEntityId, PredictEvent, PredictVenueId } from '../types';
@@ -52,7 +55,11 @@ export const useEventsWithLiveGames = (
         return;
       }
       setUpdates((current) => {
-        if (current.get(live.eventId) === live) {
+        const previous = current.get(live.eventId);
+        if (
+          previous === live ||
+          (previous && isOlderKalshiLiveFrame(live, previous))
+        ) {
           return current;
         }
 

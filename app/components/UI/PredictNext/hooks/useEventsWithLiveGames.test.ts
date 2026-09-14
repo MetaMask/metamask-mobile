@@ -1,4 +1,5 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
+import type { PredictGameLive } from '../contracts/v1/liveData';
 import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
 import type {
   PredictEntityId,
@@ -85,7 +86,7 @@ describe('getLiveGameWatchIds', () => {
 describe('useEventsWithLiveGames', () => {
   beforeEach(() => {
     mockCall.mockClear();
-    mockSubscribe.mockClear();
+    mockSubscribe.mockReset();
     mockUnsubscribe.mockClear();
   });
 
@@ -163,6 +164,48 @@ describe('useEventsWithLiveGames', () => {
     expect(unwatchCalls()).toEqual([
       [`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`, venueId, [eventA.id]],
     ]);
+  });
+
+  it('keeps the newer live Game when an older snapshot arrives later', () => {
+    let onUpdate: (live: PredictGameLive) => void = () => undefined;
+    mockSubscribe.mockImplementation((_event, listener) => {
+      onUpdate = listener as (live: PredictGameLive) => void;
+    });
+    const { result } = renderHook(() =>
+      useEventsWithLiveGames(venueId, [eventA]),
+    );
+
+    act(() => {
+      onUpdate({
+        venueId,
+        eventId: eventA.id,
+        type: 'football_game',
+        details: {
+          status: 'live',
+          away_points: 17,
+          home_points: 21,
+          last_updated_ts: Date.parse('2026-09-08T13:00:00.000Z') / 1000,
+        },
+      });
+    });
+    act(() => {
+      onUpdate({
+        venueId,
+        eventId: eventA.id,
+        type: 'football_game',
+        details: {
+          status: 'live',
+          away_points: 14,
+          home_points: 7,
+          last_updated_ts: Date.parse('2026-09-08T12:30:00.000Z') / 1000,
+        },
+      });
+    });
+
+    expect(result.current[0]?.sports?.game?.score).toEqual({
+      away: '17',
+      home: '21',
+    });
   });
 
   it('unwatches remaining Event ids on unmount', () => {
