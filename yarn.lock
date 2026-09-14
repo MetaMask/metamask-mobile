@@ -11614,9 +11614,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^32.0.0":
-  version: 32.1.0
-  resolution: "@metamask/profile-sync-controller@npm:32.1.0"
+"@metamask/profile-sync-controller@npm:^32.1.1":
+  version: 32.1.1
+  resolution: "@metamask/profile-sync-controller@npm:32.1.1"
   dependencies:
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^10.0.0"
@@ -11624,7 +11624,7 @@ __metadata:
     "@metamask/keyring-controller": "npm:^28.0.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/seedless-onboarding-controller": "npm:^11.0.0"
-    "@metamask/utils": "npm:^11.12.0"
+    "@metamask/utils": "npm:^12.0.0"
     "@noble/ciphers": "npm:^1.3.0"
     "@noble/curves": "npm:^1.9.2"
     "@noble/hashes": "npm:^1.8.0"
@@ -11634,7 +11634,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/5a2d6ca7cc0846a1bf2492bd1633effe351aa597f881eed38d478f99511e441387c020de588d217fd3a36e4e87d1242ca4d35c426b912deaa2f1498924da0bc1
+  checksum: 10/9bcda46b4200852f680df5ab92f1cb254be0a44928e9a43a3e71704a9ec973511bdbe050b76219a2bdedd362c22a5daa9e74df8a45b0f2321e2ff02aad3fd85c
   languageName: node
   linkType: hard
 
@@ -39933,7 +39933,7 @@ __metadata:
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
-    "@metamask/profile-sync-controller": "npm:^32.0.0"
+    "@metamask/profile-sync-controller": "npm:^32.1.1"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^20.2.0"
     "@metamask/react-data-query": "npm:^1.0.0"
