@@ -1,20 +1,19 @@
 import React, { useMemo } from 'react';
 import type { RampsOrder } from '@metamask/ramps-controller';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
   getRampsOrderCreatedAt,
   getRampsOrderTransactionHash,
   mapRampsOrderType,
   toRampsOrderCaipChainId,
   toRampsOrderToken,
-} from '../../../../util/activity-adapters/adapters/ramps-order-helpers';
-import { ActivityDetailsBlockExplorerButton } from '../components/ActivityDetailsFooter';
-import { ActivityDetailsTemplateFrame } from '../components/ActivityDetailsTemplateFrame';
+} from '../../../../../util/activity-adapters/adapters/ramps-order-helpers';
+import { ActivityDetailsBlockExplorerButton } from '../../components/ActivityDetailsFooter';
+import { ActivityDetailsTemplateFrame } from '../../components/ActivityDetailsTemplateFrame';
 import {
   RampDetailsAmountsSection,
   RampDetailsHeroView,
   RampDetailsMetadataSection,
-} from './RampDetailsShared';
+} from '../RampDetailsShared';
 import {
   formatRampActivityDate,
   formatRampActivityFiatAmount,
@@ -22,12 +21,7 @@ import {
   getRampActivityExplorerChainId,
   getRampsOrderStatusDescription,
   mapRampsOrderActivityStatus,
-} from './rampDetailsUtils';
-
-export type RampRampsActivityListItem = ActivityListItem & {
-  type: 'buy' | 'sell';
-  raw: { type: 'rampOrder'; data: RampsOrder };
-};
+} from '../rampDetailsUtils';
 
 function isRampsSellOrder(order: RampsOrder) {
   return mapRampsOrderType(order.orderType) === 'sell';
@@ -56,9 +50,8 @@ function getRampsExplorerChainId(order: RampsOrder) {
 
 /** Native RampsOrder ActivityDetails template — visual parity with Fiat path. */
 export function RampRampsOrderDetails({
-  item,
-}: Readonly<{ item: RampRampsActivityListItem }>) {
-  const order = item.raw.data;
+  order,
+}: Readonly<{ order: RampsOrder }>) {
   const isSell = isRampsSellOrder(order);
   const transactionHash = getRampsOrderTransactionHash(order);
   const chainId = getRampsExplorerChainId(order);

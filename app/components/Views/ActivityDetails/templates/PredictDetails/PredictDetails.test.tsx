@@ -1,11 +1,13 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
-import Routes from '../../../../constants/navigation/Routes';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+import type { PredictActivity } from '#app/components/UI/Predict/types';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
+import Routes from '../../../../../constants/navigation/Routes';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+import { usePredictDetailsItem } from './usePredictDetailsItem';
 import { PredictDetails } from './PredictDetails';
 
 const mockNavigate = jest.fn();
@@ -14,11 +16,17 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+jest.mock('./usePredictDetailsItem', () => ({
+  usePredictDetailsItem: jest.fn(),
+}));
+
+const usePredictDetailsItemMock = jest.mocked(usePredictDetailsItem);
+
 jest.mock(
-  '../../../../selectors/multichainAccounts/accountTreeController',
+  '../../../../../selectors/multichainAccounts/accountTreeController',
   () => {
     const actual = jest.requireActual(
-      '../../../../selectors/multichainAccounts/accountTreeController',
+      '../../../../../selectors/multichainAccounts/accountTreeController',
     );
     return {
       ...actual,
@@ -34,7 +42,17 @@ jest.mock(
  * @param overrides - Fields to replace on the base row.
  * @returns A Predict row, on the injected Polygon chain id.
  */
-function predictItem(overrides: Partial<ActivityListItem>): ActivityListItem {
+function predictItem(
+  overrides: Partial<ActivityListItem> = {},
+  activity?: PredictActivity,
+): ActivityListItem {
+  if (activity) {
+    usePredictDetailsItemMock.mockReturnValue({
+      activity,
+      item: undefined,
+      isLoading: false,
+    });
+  }
   return {
     type: 'predictionPlaced',
     chainId: 'eip155:137',
@@ -73,33 +91,38 @@ function stateWithPayOnLocalTx(
 }
 
 describe('PredictDetails', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    usePredictDetailsItemMock.mockReturnValue({
+      activity: undefined,
+      item: undefined,
+      isLoading: false,
+    });
+  });
 
   it('renders placed prediction rows and CTA', () => {
     const { getByText, getAllByText } = renderWithProvider(
       <PredictDetails
-        item={predictItem({
-          raw: {
-            type: 'predictActivity',
-            data: {
-              id: 'predict-1',
-              providerId: 'polymarket',
-              title: 'Will the Denver Broncos win the AFC West?',
-              outcome: 'Yes',
-              icon: 'https://example.com/broncos.png',
-              eventSlug: 'broncos-afc-west',
-              entry: {
-                type: 'buy',
-                timestamp: 1_765_361_640,
-                marketId: 'market-1',
-                outcomeId: 'outcome-1',
-                outcomeTokenId: 1,
-                amount: 55,
-                price: 10,
-              },
+        item={predictItem(
+          {},
+          {
+            id: 'predict-1',
+            providerId: 'polymarket',
+            title: 'Will the Denver Broncos win the AFC West?',
+            outcome: 'Yes',
+            icon: 'https://example.com/broncos.png',
+            eventSlug: 'broncos-afc-west',
+            entry: {
+              type: 'buy',
+              timestamp: 1_765_361_640,
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 1,
+              amount: 55,
+              price: 10,
             },
           },
-        })}
+        )}
       />,
     );
 
@@ -128,29 +151,26 @@ describe('PredictDetails', () => {
   it('renders cashed out activity with prediction context instead of an amount header', () => {
     const { getByText, queryByTestId } = renderWithProvider(
       <PredictDetails
-        item={predictItem({
-          type: 'predictionCashedOut',
-          raw: {
-            type: 'predictActivity',
-            data: {
-              id: 'predict-2',
-              providerId: 'polymarket',
-              title: 'Will the Denver Broncos win the AFC West?',
-              outcome: 'Yes',
-              icon: 'https://example.com/broncos.png',
-              netPnlUsd: -2.5,
-              entry: {
-                type: 'sell',
-                timestamp: 1_765_361_640,
-                marketId: 'market-1',
-                outcomeId: 'outcome-1',
-                outcomeTokenId: 1,
-                amount: 10,
-                price: 0.7,
-              },
+        item={predictItem(
+          { type: 'predictionCashedOut' },
+          {
+            id: 'predict-2',
+            providerId: 'polymarket',
+            title: 'Will the Denver Broncos win the AFC West?',
+            outcome: 'Yes',
+            icon: 'https://example.com/broncos.png',
+            netPnlUsd: -2.5,
+            entry: {
+              type: 'sell',
+              timestamp: 1_765_361_640,
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 1,
+              amount: 10,
+              price: 0.7,
             },
           },
-        })}
+        )}
       />,
     );
 
@@ -168,28 +188,25 @@ describe('PredictDetails', () => {
   it('omits the Net P&L row for a sell when the provider does not supply net P&L', () => {
     const { getByText, queryByText } = renderWithProvider(
       <PredictDetails
-        item={predictItem({
-          type: 'predictionCashedOut',
-          raw: {
-            type: 'predictActivity',
-            data: {
-              id: 'predict-2b',
-              providerId: 'polymarket',
-              title: 'Will the Denver Broncos win the AFC West?',
-              outcome: 'Yes',
-              icon: 'https://example.com/broncos.png',
-              entry: {
-                type: 'sell',
-                timestamp: 1_765_361_640,
-                marketId: 'market-1',
-                outcomeId: 'outcome-1',
-                outcomeTokenId: 1,
-                amount: 10,
-                price: 0.7,
-              },
+        item={predictItem(
+          { type: 'predictionCashedOut' },
+          {
+            id: 'predict-2b',
+            providerId: 'polymarket',
+            title: 'Will the Denver Broncos win the AFC West?',
+            outcome: 'Yes',
+            icon: 'https://example.com/broncos.png',
+            entry: {
+              type: 'sell',
+              timestamp: 1_765_361_640,
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 1,
+              amount: 10,
+              price: 0.7,
             },
           },
-        })}
+        )}
       />,
     );
 
@@ -201,22 +218,19 @@ describe('PredictDetails', () => {
   it('renders claimed winnings total and available market payout row', () => {
     const { getAllByText, getByText } = renderWithProvider(
       <PredictDetails
-        item={predictItem({
-          type: 'predictionClaimWinnings',
-          raw: {
-            type: 'predictActivity',
-            data: {
-              id: 'predict-3',
-              providerId: 'polymarket',
-              title: 'Han Duck-soo in jail by August 10?',
-              entry: {
-                type: 'claimWinnings',
-                timestamp: 1_765_361_640,
-                amount: 5.49,
-              },
+        item={predictItem(
+          { type: 'predictionClaimWinnings' },
+          {
+            id: 'predict-3',
+            providerId: 'polymarket',
+            title: 'Han Duck-soo in jail by August 10?',
+            entry: {
+              type: 'claimWinnings',
+              timestamp: 1_765_361_640,
+              amount: 5.49,
             },
           },
-        })}
+        )}
       />,
     );
 
@@ -229,24 +243,21 @@ describe('PredictDetails', () => {
   it('uses totalNetPnlUsd / netPnlUsd for the claim breakdown rows when provided', () => {
     const { getByText } = renderWithProvider(
       <PredictDetails
-        item={predictItem({
-          type: 'predictionClaimWinnings',
-          raw: {
-            type: 'predictActivity',
-            data: {
-              id: 'predict-3b',
-              providerId: 'polymarket',
-              title: 'Han Duck-soo in jail by August 10?',
-              totalNetPnlUsd: 12.5,
-              netPnlUsd: 4.25,
-              entry: {
-                type: 'claimWinnings',
-                timestamp: 1_765_361_640,
-                amount: 5.49,
-              },
+        item={predictItem(
+          { type: 'predictionClaimWinnings' },
+          {
+            id: 'predict-3b',
+            providerId: 'polymarket',
+            title: 'Han Duck-soo in jail by August 10?',
+            totalNetPnlUsd: 12.5,
+            netPnlUsd: 4.25,
+            entry: {
+              type: 'claimWinnings',
+              timestamp: 1_765_361_640,
+              amount: 5.49,
             },
           },
-        })}
+        )}
       />,
     );
 

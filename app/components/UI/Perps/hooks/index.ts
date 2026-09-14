@@ -99,6 +99,9 @@ export {
   getPerpsToastLabels,
 } from './usePerpsToasts';
 
+// A/B tests
+export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
+
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsMarketFills } from './usePerpsMarketFills';

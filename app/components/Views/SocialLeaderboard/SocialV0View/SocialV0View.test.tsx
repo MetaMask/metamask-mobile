@@ -12,6 +12,9 @@ const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+
+let mockRouteName = 'SocialV0View';
 const mockOpenSystemSettings = jest.fn();
 const mockHasNotificationPreferences = jest.fn(() => false);
 let mockRouteParams: {
@@ -73,16 +76,22 @@ jest.mock(
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
-  let navigation: { goBack: jest.Mock; navigate: jest.Mock } | undefined;
+  let navigation:
+    | { goBack: jest.Mock; navigate: jest.Mock; canGoBack: jest.Mock }
+    | undefined;
   return {
     ...actual,
     useNavigation: () => {
       if (!navigation) {
-        navigation = { goBack: mockGoBack, navigate: mockNavigate };
+        navigation = {
+          goBack: mockGoBack,
+          navigate: mockNavigate,
+          canGoBack: mockCanGoBack,
+        };
       }
       return navigation;
     },
-    useRoute: () => ({ params: mockRouteParams, name: 'SocialV0View' }),
+    useRoute: () => ({ params: mockRouteParams, name: mockRouteName }),
   };
 });
 
@@ -266,6 +275,62 @@ describe('SocialV0View', () => {
     fireEvent.press(screen.getByTestId(SocialV0ViewSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('as a tab root rather than a pushed screen', () => {
+    beforeEach(() => {
+      mockRouteName = Routes.SOCIAL.TAB;
+    });
+    afterEach(() => {
+      mockRouteName = 'SocialV0View';
+    });
+
+    it('renders the surface title and notification bell, with no back button', () => {
+      renderWithProvider(<SocialV0View />);
+
+      expect(
+        screen.getByTestId(SocialV0ViewSelectorsIDs.HEADER_TITLE),
+      ).toHaveTextContent('homepage.sections.top_traders');
+      expect(
+        screen.getByTestId(SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(SocialV0ViewSelectorsIDs.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens notification settings from the bell, same as the pushed screen', () => {
+      mockHasNotificationPreferences.mockReturnValue(false);
+
+      renderWithProvider(<SocialV0View />);
+      fireEvent.press(
+        screen.getByTestId(SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
+        screen: Routes.SETTINGS.NOTIFICATIONS,
+      });
+    });
+
+    it('drops the in-content title so it is not shown twice', () => {
+      renderWithProvider(<SocialV0View />);
+
+      expect(
+        screen.queryByTestId(SocialV0ViewSelectorsIDs.TITLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('still renders the tabs and both pages', () => {
+      renderWithProvider(<SocialV0View />);
+
+      for (const present of [
+        SocialV0ViewSelectorsIDs.TABS,
+        SocialV0ViewSelectorsIDs.LEADERBOARD_PAGE,
+        SocialV0ViewSelectorsIDs.FEED_PAGE,
+      ]) {
+        expect(screen.getByTestId(present)).toBeOnTheScreen();
+      }
+    });
   });
 
   it('navigates to the socialAI notification settings section when the bell is pressed and preferences exist', () => {

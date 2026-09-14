@@ -164,6 +164,9 @@ export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
               },
             },
           },
+          AssetsController: {
+            selectedCurrency: 'usd',
+          },
           GasFeeController: {
             gasFeeEstimatesByChainId: {},
           },

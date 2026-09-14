@@ -58,6 +58,8 @@ import {
   TabsBar,
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
+import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
+import Routes from '../../../../constants/navigation/Routes';
 import { SocialV0ViewSelectorsIDs } from './SocialV0View.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
@@ -107,7 +109,10 @@ const getTabAnalyticsValue = (tab: SocialTradersTab) =>
 const SocialV0View: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
+  const route =
+    useRoute<
+      RouteProp<RootStackParamList, 'SocialV0View' | 'SocialLeaderboardTab'>
+    >();
   const { track } = useSocialLeaderboardAnalytics();
   // Wait until the visible leaderboard query settles before warming feed
   // pages, so those requests never contend with the landing list fetch.
@@ -420,7 +425,88 @@ const SocialV0View: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
   const title = strings('homepage.sections.top_traders');
+
+  const notificationButtonProps = useMemo(
+    () => ({
+      iconName: IconName.Notification,
+      onPress: openNotificationPreferences,
+      testID: SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON,
+    }),
+    [openNotificationPreferences],
+  );
+
+  const titleTabsAndPager = (
+    <>
+      {isPushedScreen ? (
+        <Box
+          twClassName="px-4 pt-2 pb-3 bg-default"
+          onLayout={handleTitleLayout}
+        >
+          <Text
+            variant={TextVariant.HeadingLg}
+            color={TextColor.TextDefault}
+            testID={SocialV0ViewSelectorsIDs.TITLE}
+          >
+            {title}
+          </Text>
+        </Box>
+      ) : null}
+
+      <Box twClassName="bg-default">
+        <TabsBar
+          tabs={tabs}
+          activeIndex={activeIndex}
+          onTabPress={handleTabPress}
+          testID={SocialV0ViewSelectorsIDs.TABS}
+        />
+      </Box>
+
+      {/* Pages are rendered in `tabOrder` so the pager positions stay
+          aligned with the tabs bar. */}
+      <PagerView
+        ref={pagerRef}
+        style={tw.style('flex-1')}
+        initialPage={LANDING_INDEX}
+        onPageSelected={handlePageSelected}
+        testID={SocialV0ViewSelectorsIDs.PAGER}
+      >
+        {tabOrder.map((tab) =>
+          tab === 'leaderboard' ? (
+            <View
+              key="leaderboard"
+              style={tw.style('flex-1')}
+              collapsable={false}
+              testID={SocialV0ViewSelectorsIDs.LEADERBOARD_PAGE}
+            >
+              <TopTradersView
+                onScroll={leaderboardScrollHandler}
+                pageRef={leaderboardPageRef}
+                onVisibleLeaderboardSettled={handleVisibleLeaderboardSettled}
+              />
+            </View>
+          ) : (
+            <View
+              key="feed"
+              style={tw.style('flex-1')}
+              collapsable={false}
+              testID={SocialV0ViewSelectorsIDs.FEED_PAGE}
+            >
+              <FeedView
+                isActive={activeIndex === feedIndex}
+                initialAudience={route.params?.landingFeedAudience}
+                onQuickBuy={handleQuickBuy}
+                onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
+                onScroll={feedScrollHandler}
+                pageRef={feedPageRef}
+              />
+            </View>
+          ),
+        )}
+      </PagerView>
+    </>
+  );
 
   return (
     // Top and bottom edges are deliberately off — see
@@ -431,27 +517,36 @@ const SocialV0View: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={SocialV0ViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandardAnimated
-        includesTopInset
-        scrollY={scrollY}
-        titleSectionHeight={titleHeightSv}
-        title={title}
-        titleProps={{
-          testID: SocialV0ViewSelectorsIDs.HEADER_TITLE,
-        }}
-        onBack={handleBack}
-        backButtonProps={{
-          testID: SocialV0ViewSelectorsIDs.BACK_BUTTON,
-        }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Notification,
-            onPress: openNotificationPreferences,
-            testID: SocialV0ViewSelectorsIDs.NOTIFICATION_BUTTON,
-          },
-        ]}
-        testID={SocialV0ViewSelectorsIDs.HEADER}
-      />
+      {isPushedScreen ? (
+        <HeaderStandardAnimated
+          includesTopInset
+          scrollY={scrollY}
+          titleSectionHeight={titleHeightSv}
+          title={title}
+          titleProps={{
+            testID: SocialV0ViewSelectorsIDs.HEADER_TITLE,
+          }}
+          onBack={handleBack}
+          backButtonProps={{
+            testID: SocialV0ViewSelectorsIDs.BACK_BUTTON,
+          }}
+          endButtonIconProps={[notificationButtonProps]}
+          testID={SocialV0ViewSelectorsIDs.HEADER}
+        />
+      ) : (
+        <HeaderRoot
+          includesTopInset
+          endButtonIconProps={[notificationButtonProps]}
+          testID={SocialV0ViewSelectorsIDs.HEADER}
+        >
+          <Text
+            variant={TextVariant.HeadingLg}
+            testID={SocialV0ViewSelectorsIDs.HEADER_TITLE}
+          >
+            {title}
+          </Text>
+        </HeaderRoot>
+      )}
 
       {showNotificationsBanner && (
         <Box twClassName="px-4 pt-2">
@@ -470,84 +565,24 @@ const SocialV0View: React.FC = () => {
         </Box>
       )}
 
-      {/* `overflow-hidden` clips the title as the block slides up so it
+      {/* Pushed: `overflow-hidden` clips the title as the block slides up so it
           disappears *under* the fixed header (revealing the compact title)
-          instead of scrolling over the back button / notification bell. */}
-      <Box twClassName="flex-1 overflow-hidden">
-        <Animated.View
-          style={[
-            tw.style('absolute top-0 left-0 right-0'),
-            collapsingBlockStyle,
-          ]}
-        >
-          <Box
-            twClassName="px-4 pt-2 pb-3 bg-default"
-            onLayout={handleTitleLayout}
+          instead of scrolling over the back button / notification bell.
+          As a tab the header is static, so the block stays in normal flow. */}
+      {isPushedScreen ? (
+        <Box twClassName="flex-1 overflow-hidden">
+          <Animated.View
+            style={[
+              tw.style('absolute top-0 left-0 right-0'),
+              collapsingBlockStyle,
+            ]}
           >
-            <Text
-              variant={TextVariant.HeadingLg}
-              color={TextColor.TextDefault}
-              testID={SocialV0ViewSelectorsIDs.TITLE}
-            >
-              {title}
-            </Text>
-          </Box>
-
-          <Box twClassName="bg-default">
-            <TabsBar
-              tabs={tabs}
-              activeIndex={activeIndex}
-              onTabPress={handleTabPress}
-              testID={SocialV0ViewSelectorsIDs.TABS}
-            />
-          </Box>
-
-          {/* Pages are rendered in `tabOrder` so the pager positions stay
-              aligned with the tabs bar. */}
-          <PagerView
-            ref={pagerRef}
-            style={tw.style('flex-1')}
-            initialPage={LANDING_INDEX}
-            onPageSelected={handlePageSelected}
-            testID={SocialV0ViewSelectorsIDs.PAGER}
-          >
-            {tabOrder.map((tab) =>
-              tab === 'leaderboard' ? (
-                <View
-                  key="leaderboard"
-                  style={tw.style('flex-1')}
-                  collapsable={false}
-                  testID={SocialV0ViewSelectorsIDs.LEADERBOARD_PAGE}
-                >
-                  <TopTradersView
-                    onScroll={leaderboardScrollHandler}
-                    pageRef={leaderboardPageRef}
-                    onVisibleLeaderboardSettled={
-                      handleVisibleLeaderboardSettled
-                    }
-                  />
-                </View>
-              ) : (
-                <View
-                  key="feed"
-                  style={tw.style('flex-1')}
-                  collapsable={false}
-                  testID={SocialV0ViewSelectorsIDs.FEED_PAGE}
-                >
-                  <FeedView
-                    isActive={activeIndex === feedIndex}
-                    initialAudience={route.params?.landingFeedAudience}
-                    onQuickBuy={handleQuickBuy}
-                    onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
-                    onScroll={feedScrollHandler}
-                    pageRef={feedPageRef}
-                  />
-                </View>
-              ),
-            )}
-          </PagerView>
-        </Animated.View>
-      </Box>
+            {titleTabsAndPager}
+          </Animated.View>
+        </Box>
+      ) : (
+        <Box twClassName="flex-1">{titleTabsAndPager}</Box>
+      )}
 
       {feedHasSpotItem && (
         <FeedSpotBuyAction
