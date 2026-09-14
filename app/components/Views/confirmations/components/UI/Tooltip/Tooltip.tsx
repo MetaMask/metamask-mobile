@@ -54,37 +54,41 @@ export const TooltipModal = ({
   }, [setOpen]);
 
   return (
-    <Modal
-      visible={open}
-      animationType="none"
-      transparent
-      presentationStyle="overFullScreen"
-      onRequestClose={handleRequestClose}
-    >
-      <BottomSheet
-        ref={bottomSheetRef}
-        keyboardAvoidingViewEnabled={false}
-        onClose={handleSheetClosed}
-      >
-        <BottomSheetHeader
-          onClose={handleRequestClose}
-          closeButtonProps={{
-            testID: `${tooltipTestId}-close-btn`,
-          }}
+    <>
+      {open && (
+        <Modal
+          visible
+          animationType="none"
+          transparent
+          presentationStyle="overFullScreen"
+          onRequestClose={handleRequestClose}
         >
-          {title}
-        </BottomSheetHeader>
-        <Box twClassName="flex flex-col">
-          <View style={styles.modalContent}>
-            {typeof content === 'string' ? (
-              <Text style={styles.modalContentValue}>{content}</Text>
-            ) : (
-              content
-            )}
-          </View>
-        </Box>
-      </BottomSheet>
-    </Modal>
+          <BottomSheet
+            ref={bottomSheetRef}
+            keyboardAvoidingViewEnabled={false}
+            onClose={handleSheetClosed}
+          >
+            <BottomSheetHeader
+              onClose={handleRequestClose}
+              closeButtonProps={{
+                testID: `${tooltipTestId}-close-btn`,
+              }}
+            >
+              {title}
+            </BottomSheetHeader>
+            <Box twClassName="flex flex-col">
+              <View style={styles.modalContent}>
+                {typeof content === 'string' ? (
+                  <Text style={styles.modalContentValue}>{content}</Text>
+                ) : (
+                  content
+                )}
+              </View>
+            </Box>
+          </BottomSheet>
+        </Modal>
+      )}
+    </>
   );
 };
 
