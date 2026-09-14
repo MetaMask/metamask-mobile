@@ -9,7 +9,10 @@ import {
   renderShortAddress,
   getLabelTextByAddress,
 } from '../../../../../../util/address';
-import Identicon from '../../../../../UI/Identicon';
+import {
+  AvatarSize,
+} from '../../../../../../component-library/components/Avatars/Avatar';
+import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { doENSReverseLookup } from '../../../../../../util/ENSUtils';
 
 import {
@@ -69,11 +72,11 @@ const AddressElement: React.FC<AddressElementProps> = ({
             ) : null
           }
         >
-          <Identicon address={address} diameter={28} />
+          <AvatarAccount accountAddress={address} size={AvatarSize.Md} />
         </BadgeWrapper>
       );
     }
-    return <Identicon address={address} diameter={28} />;
+    return <AvatarAccount accountAddress={address} size={AvatarSize.Md} />;
   }, [address, chainId, addressElementNetwork, shouldDisplayNetworkBadge]);
 
   const fetchENSName = useCallback(async () => {
