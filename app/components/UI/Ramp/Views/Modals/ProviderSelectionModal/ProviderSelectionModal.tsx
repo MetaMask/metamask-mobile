@@ -31,6 +31,11 @@ import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { strings } from '../../../../../../../locales/i18n';
+import { useRampScreenPerformance } from '../../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../../constants/rampScreenPerformance';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -138,6 +143,16 @@ function ProviderSelectionModal() {
     loading: quotesLoading,
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.PROVIDER_SELECTION_MODAL,
+    contentReady: skipQuotes || quoteFetchParams === null || !quotesLoading,
+    contentState: quotesError
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : displayProviders.length === 0
+        ? RAMP_SCREEN_CONTENT_STATE.EMPTY
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const handleDismiss = useCallback(
     (hasPendingAction?: boolean) => {
