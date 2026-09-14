@@ -119,7 +119,7 @@ The canonical result returned after a Venue accepts, rejects, or fills a submitt
 _Avoid_: Order Result, raw venue response
 
 **Fill**:
-Execution of some or all of an Order against another order. A Fill records the Outcome exposure it created — buying Yes and selling No are the same exposure — so it never claims whether the User bought or sold. Activity should be derived from Fills rather than inferring execution from Order creation records.
+Execution of some or all of an Order against another order. A Fill carries an Outcome side but never claims whether the User bought or sold — the Venue's canonical fields do not distinguish the two directions of the same exposure (buying Yes and selling No are economically identical). Activity should be derived from Fills rather than inferring execution from Order creation records.
 _Avoid_: Order when referring to execution, Bought/Sold as Fill attributes
 
 **Cash Out**:

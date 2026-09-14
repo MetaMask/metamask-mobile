@@ -65,10 +65,12 @@ const fillSchema = object({
   id: entityId,
   venueId,
   marketId: entityId,
-  // Directional exposure the fill created. This is exposure semantics, NOT
-  // the transacted contract: buying Yes and selling No both produce 'yes',
-  // and Kalshi's canonical fields cannot distinguish the two, so the
-  // contract deliberately carries no buy/sell direction.
+  // Kalshi's canonical fill direction field: documented as the exposure the
+  // fill created (buy-yes ≡ sell-no → 'yes'), while the demo API currently
+  // echoes the transacted side. The contract deliberately carries no
+  // buy/sell direction — the legacy action/side fields are deprecated — and
+  // outcomeSide plus the matching leg's price are correct under either
+  // semantics.
   outcomeSide: side,
   shares: amount,
   price: decimal,
