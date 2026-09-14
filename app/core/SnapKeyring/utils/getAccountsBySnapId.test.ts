@@ -70,6 +70,27 @@ describe('getAccountsBySnapId', () => {
     expect(result).toEqual([]);
   });
 
+  it('selects the snap keyring matching the given snap ID', async () => {
+    mockIsSnapKeyring.mockImplementation(
+      (keyring) => 'snapId' in (keyring as object),
+    );
+    const keyring = mockKeyringWithAccounts([]);
+    const otherSnapKeyring = {
+      snapId: 'npm:@metamask/other-snap',
+    } as unknown as KeyringV2;
+    const nonSnapKeyring = {} as KeyringV2;
+
+    await getAccountsBySnapId(MOCK_SNAP_ID);
+
+    const [selector] = mockWithKeyringV2.mock.calls[0];
+    const { filter } = selector as {
+      filter: (keyring: KeyringV2) => boolean;
+    };
+    expect(filter(keyring)).toBe(true);
+    expect(filter(otherSnapKeyring)).toBe(false);
+    expect(filter(nonSnapKeyring)).toBe(false);
+  });
+
   it('returns an empty array when the keyring is not a snap keyring', async () => {
     mockIsSnapKeyring.mockReturnValue(false);
     mockKeyringWithAccounts([]);

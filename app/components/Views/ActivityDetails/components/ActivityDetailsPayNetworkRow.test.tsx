@@ -30,21 +30,8 @@ function payItem(overrides: Partial<ActivityListItem> = {}): ActivityListItem {
  * @param payChainId - Chain the local transaction records as the payment chain.
  * @returns A row whose own local transaction carries the Pay metadata.
  */
-function localPayItem(payChainId: string): ActivityListItem {
-  return payItem({
-    raw: {
-      type: 'localTransaction',
-      data: {
-        primaryTransaction: {
-          id: 'perps-withdraw-tx',
-          chainId: '0xa4b1',
-          metamaskPay: { chainId: payChainId },
-        },
-        initialTransaction: { id: 'perps-withdraw-tx', chainId: '0xa4b1' },
-        transactions: [],
-      },
-    },
-  } as unknown as Partial<ActivityListItem>);
+function localPayItem(): ActivityListItem {
+  return payItem();
 }
 
 /**
@@ -85,7 +72,7 @@ function payTransaction(hash: string, payChainId: string): TransactionMeta {
 describe('ActivityDetailsPayNetworkRow', () => {
   it('renders no row at all for a deposit', () => {
     const { queryByTestId, queryByText } = renderWithProvider(
-      <ActivityDetailsPayNetworkRow item={localPayItem('0x1')} isDeposit />,
+      <ActivityDetailsPayNetworkRow item={localPayItem()} isDeposit />,
       { state: stateWithNetworks() },
     );
 
@@ -95,11 +82,8 @@ describe('ActivityDetailsPayNetworkRow', () => {
 
   it('names the payment chain from the local transaction, not the row chain', () => {
     const { getByTestId, getByText, queryByText } = renderWithProvider(
-      <ActivityDetailsPayNetworkRow
-        item={localPayItem('0x1')}
-        isDeposit={false}
-      />,
-      { state: stateWithNetworks() },
+      <ActivityDetailsPayNetworkRow item={localPayItem()} isDeposit={false} />,
+      { state: stateWithNetworks([payTransaction('0xperpsfunds', '0x1')]) },
     );
 
     expect(

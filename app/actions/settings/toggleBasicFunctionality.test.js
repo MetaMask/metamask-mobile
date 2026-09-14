@@ -1,7 +1,10 @@
 import {
   toggleBasicFunctionality,
+  consolidateBasicFunctionality,
+  dismissBasicFunctionalityMigrationNotification,
   setBasicFunctionality,
   setBasicFunctionalityConsolidatedEnabled,
+  setBasicFunctionalityMigrationNotification,
 } from './index';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { syncConsolidatedBasicFunctionalityPreferences } from '../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
@@ -12,6 +15,12 @@ const mockSyncConsolidatedBasicFunctionalityPreferences = jest.mocked(
 const mockSelectIsBasicFunctionalityConsolidationEnabled = jest.mocked(
   selectIsBasicFunctionalityConsolidationEnabled,
 );
+const mockSelectMobileUxBftcConsolidationFlagEnabled = jest.fn(() => true);
+const mockGetBasicFunctionalityConsolidationPlan = jest.fn(() => ({
+  landingState: true,
+  notification: 'toast',
+}));
+const mockIsBasicFunctionalitySocialLoginUser = jest.fn(() => false);
 
 // Mock Engine
 const mockSetBasicFunctionality = jest.fn().mockResolvedValue(undefined);
@@ -30,6 +39,12 @@ jest.mock(
   '../../selectors/featureFlagController/basicFunctionalityConsolidation',
   () => ({
     selectIsBasicFunctionalityConsolidationEnabled: jest.fn(() => false),
+    selectMobileUxBftcConsolidationFlagEnabled: (...args) =>
+      mockSelectMobileUxBftcConsolidationFlagEnabled(...args),
+    BFT_CHILD_PREFERENCES: [
+      'useTransactionSimulations',
+      'securityAlertsEnabled',
+    ],
   }),
 );
 
@@ -37,6 +52,16 @@ jest.mock(
   '../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences',
   () => ({
     syncConsolidatedBasicFunctionalityPreferences: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../util/basicFunctionality/getBasicFunctionalityConsolidationPlan',
+  () => ({
+    getBasicFunctionalityConsolidationPlan: (...args) =>
+      mockGetBasicFunctionalityConsolidationPlan(...args),
+    isBasicFunctionalitySocialLoginUser: (...args) =>
+      mockIsBasicFunctionalitySocialLoginUser(...args),
   }),
 );
 
@@ -48,6 +73,7 @@ describe('toggleBasicFunctionality action', () => {
     mockDispatch = jest.fn();
     mockGetState = jest.fn(() => ({}));
     jest.clearAllMocks();
+    mockSetBasicFunctionality.mockResolvedValue(undefined);
     mockSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(false);
   });
 
@@ -156,5 +182,96 @@ describe('toggleBasicFunctionality action', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setBasicFunctionalityConsolidatedEnabled(true),
     );
+  });
+});
+
+describe('consolidateBasicFunctionality action', () => {
+  const state = {
+    settings: {
+      basicFunctionalityEnabled: false,
+      isBasicFunctionalityConsolidatedEnabled: false,
+      basicFunctionalityMigrationNotificationDismissed: false,
+    },
+    onboarding: {
+      accountType: 'metamask',
+    },
+    engine: {
+      backgroundState: {
+        PreferencesController: {
+          useTransactionSimulations: true,
+          securityAlertsEnabled: false,
+        },
+        SeedlessOnboardingController: {},
+      },
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSetBasicFunctionality.mockResolvedValue(undefined);
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(true);
+    mockGetBasicFunctionalityConsolidationPlan.mockReturnValue({
+      landingState: true,
+      notification: 'toast',
+    });
+  });
+
+  it('aligns preferences and schedules the one-time notification', async () => {
+    const dispatch = jest.fn();
+
+    await consolidateBasicFunctionality()(dispatch, () => state);
+
+    expect(mockGetBasicFunctionalityConsolidationPlan).toHaveBeenCalledWith(
+      {
+        basicFunctionalityEnabled: false,
+        useTransactionSimulations: true,
+        securityAlertsEnabled: false,
+      },
+      false,
+    );
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).toHaveBeenCalledWith(true);
+    expect(dispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
+    expect(dispatch).toHaveBeenCalledWith(
+      setBasicFunctionalityConsolidatedEnabled(true),
+    );
+    expect(dispatch).toHaveBeenCalledWith(
+      setBasicFunctionalityMigrationNotification('toast'),
+    );
+  });
+
+  it('does not migrate when the remote flag is off', async () => {
+    const dispatch = jest.fn();
+    mockSelectMobileUxBftcConsolidationFlagEnabled.mockReturnValue(false);
+
+    await consolidateBasicFunctionality()(dispatch, () => state);
+
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('does not reschedule a notification after dismissal', async () => {
+    const dispatch = jest.fn();
+
+    await consolidateBasicFunctionality()(dispatch, () => ({
+      ...state,
+      settings: {
+        ...state.settings,
+        basicFunctionalityMigrationNotificationDismissed: true,
+      },
+    }));
+
+    expect(dispatch).toHaveBeenCalledWith(
+      setBasicFunctionalityMigrationNotification(null),
+    );
+  });
+
+  it('creates the persisted dismissal action', () => {
+    expect(dismissBasicFunctionalityMigrationNotification()).toStrictEqual({
+      type: 'DISMISS_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION',
+    });
   });
 });
