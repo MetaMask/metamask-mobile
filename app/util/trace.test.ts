@@ -299,6 +299,25 @@ describe('Trace', () => {
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
     });
 
+    it('uses description as the Sentry span name', () => {
+      updateCachedConsent(true);
+
+      trace({
+        id: ID_MOCK,
+        name: NAME_MOCK,
+        description: 'Middleware: login',
+        parentContext: PARENT_CONTEXT_MOCK,
+      });
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      expect(startSpanManualMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Middleware: login',
+        }),
+        expect.any(Function),
+      );
+    });
+
     it('starts a new trace when forceTransaction is set without parentContext', () => {
       updateCachedConsent(true);
 

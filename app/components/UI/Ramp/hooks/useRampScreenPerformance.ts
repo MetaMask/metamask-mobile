@@ -84,6 +84,9 @@ export function useRampScreenPerformance({
     const parentContext = getRampsBuyCufParentContext();
     trace({
       name: TraceName.RampScreenLoad,
+      // Sentry shows this as span.description. Keep TraceName as the key so
+      // endTrace still matches, while the UI names the actual screen.
+      description: `${TraceName.RampScreenLoad}: ${screenId}`,
       op: TraceOperation.RampOperation,
       id,
       startTime: getPerformanceTimestamp(),

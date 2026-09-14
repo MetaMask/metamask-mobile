@@ -544,6 +544,12 @@ export interface TraceRequest {
   name: TraceName;
 
   /**
+   * Human-readable span name shown as `span.description` in Sentry.
+   * The pending-trace key still uses {@link name}.
+   */
+  description?: string;
+
+  /**
    * The parent context of the trace.
    * If provided, the trace will be nested under the parent trace.
    */
@@ -1319,12 +1325,13 @@ function startSpan<T>(
   request: TraceRequest,
   callback: (spanOptions: StartSpanOptions) => T,
 ) {
-  const { name, parentContext, startTime, op, forceTransaction } = request;
+  const { name, description, parentContext, startTime, op, forceTransaction } =
+    request;
   const parentSpan = (parentContext ?? null) as Span | null;
 
   const spanOptions: StartSpanOptions = {
     attributes: getSpanAttributes(request),
-    name,
+    name: description ?? name,
     op: op || OP_DEFAULT,
     parentSpan,
     startTime,

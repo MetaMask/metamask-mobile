@@ -69,6 +69,7 @@ describe('useRampScreenPerformance', () => {
     expect(mockTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RampScreenLoad,
+        description: `${TraceName.RampScreenLoad}: ${RAMP_V2_SCREEN_ID.TOKEN_SELECTION}`,
         parentContext: { mocked: 'parent' },
         forceTransaction: true,
         tags: {
