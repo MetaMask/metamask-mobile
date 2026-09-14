@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import MoneyHeader from './MoneyHeader';
+import type { SharedValue } from 'react-native-reanimated';
+import MoneyHeader, { type MoneyHeaderProps } from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -15,8 +16,13 @@ jest.mock('../../../../../hooks/useMoneyAccountPlusAccess', () => ({
 
 const mockUseMoneyAccountPlusAccess = jest.mocked(useMoneyAccountPlusAccess);
 
+// Only the handlers both header variants share: overriding the pushed screen's
+// scroll inputs through here would widen the props union and stop matching
+// either arm.
 const renderMoneyHeader = (
-  props: Partial<React.ComponentProps<typeof MoneyHeader>> = {},
+  props: Partial<
+    Pick<MoneyHeaderProps, 'onMenuPress' | 'onGetProPress' | 'onProHubPress'>
+  > = {},
 ) =>
   render(
     <MoneyHeader
@@ -26,6 +32,16 @@ const renderMoneyHeader = (
       {...props}
     />,
   );
+
+const sharedValue = (value: number): SharedValue<number> =>
+  ({ value }) as unknown as SharedValue<number>;
+
+// The pushed screen drives the collapsing title from its ScrollView, so its
+// header only renders with both scroll inputs.
+const pushedProps = {
+  scrollY: sharedValue(0),
+  titleSectionHeight: sharedValue(0),
+};
 
 describe('MoneyHeader', () => {
   beforeEach(() => {
@@ -73,7 +89,11 @@ describe('MoneyHeader', () => {
   describe('back button', () => {
     it('is not rendered without an onBack handler', () => {
       const { queryByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
+        <MoneyHeader
+          onMenuPress={jest.fn()}
+          onGetProPress={jest.fn()}
+          onProHubPress={jest.fn()}
+        />,
       );
 
       expect(
@@ -86,7 +106,9 @@ describe('MoneyHeader', () => {
         <MoneyHeader
           onMenuPress={jest.fn()}
           onGetProPress={jest.fn()}
+          onProHubPress={jest.fn()}
           onBack={jest.fn()}
+          {...pushedProps}
         />,
       );
 
@@ -99,7 +121,9 @@ describe('MoneyHeader', () => {
         <MoneyHeader
           onMenuPress={jest.fn()}
           onGetProPress={jest.fn()}
+          onProHubPress={jest.fn()}
           onBack={mockOnBack}
+          {...pushedProps}
         />,
       );
 
@@ -113,13 +137,34 @@ describe('MoneyHeader', () => {
         <MoneyHeader
           onMenuPress={jest.fn()}
           onGetProPress={jest.fn()}
+          onProHubPress={jest.fn()}
           onBack={jest.fn()}
+          {...pushedProps}
         />,
       );
 
       expect(getByTestId(MoneyHeaderTestIds.TITLE)).toHaveTextContent(
         strings('money.title'),
       );
+      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('keeps the "Get Pro" button alongside the back button', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+
+      const { getByTestId } = render(
+        <MoneyHeader
+          onMenuPress={jest.fn()}
+          onGetProPress={jest.fn()}
+          onProHubPress={jest.fn()}
+          onBack={jest.fn()}
+          {...pushedProps}
+        />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toBeOnTheScreen();
       expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
   });

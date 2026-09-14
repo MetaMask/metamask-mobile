@@ -20,10 +20,9 @@ import {
   formatPrice,
 } from '../../../../UI/Predict/utils/format';
 /* eslint-enable import-x/no-restricted-paths */
-import {
-  getPredictActivity,
-  type PredictActivityListItem,
-} from './PredictDetails.types';
+import { type PredictActivityListItem } from './PredictDetails.types';
+import { usePredictDetailsItem } from './usePredictDetailsItem';
+import { DefaultDetails } from '../DefaultDetails';
 import {
   ClaimWinningsBreakdown,
   PredictHero,
@@ -38,11 +37,14 @@ export function PredictProviderActivityDetails({
 }: {
   item: PredictActivityListItem;
 }) {
-  const activity = getPredictActivity(item);
+  const { activity, isLoading } = usePredictDetailsItem(item.hash);
   const openPredictHome = useOpenPredictHome();
 
   if (!activity) {
-    return null;
+    if (isLoading) {
+      return null;
+    }
+    return <DefaultDetails item={item} />;
   }
 
   const { entry } = activity;

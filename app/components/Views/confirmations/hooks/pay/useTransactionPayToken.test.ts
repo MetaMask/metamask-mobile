@@ -65,12 +65,10 @@ const REQUIRED_TOKEN_MOCK = {
 } as unknown as TransactionPayRequiredToken;
 
 function runHook({
-  currency,
   payToken,
   type,
   requiredTokens,
 }: {
-  currency?: string;
   payToken?: TransactionPaymentToken;
   type?: TransactionType;
   requiredTokens?: TransactionPayRequiredToken[];
@@ -86,19 +84,6 @@ function runHook({
       },
     },
   };
-
-  if (currency) {
-    mockState.engine.backgroundState.CurrencyRateController = {
-      currentCurrency: currency,
-      currencyRates: {
-        ETH: {
-          conversionDate: 1732887955.694,
-          conversionRate: 2,
-          usdConversionRate: 4,
-        },
-      },
-    };
-  }
 
   if (type) {
     mockState.engine.backgroundState.TransactionController.transactions[0].type =

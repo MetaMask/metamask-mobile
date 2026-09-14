@@ -580,7 +580,7 @@ const SecurityTrustScreen: React.FC = () => {
                   }
                   size={ButtonBaseSize.Md}
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-full bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
                   }
                   startIconName={IconName.Global}
                   startIconProps={{
@@ -608,7 +608,7 @@ const SecurityTrustScreen: React.FC = () => {
                   }
                   size={ButtonBaseSize.Md}
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-full bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
                   }
                   startIconName={IconName.X}
                   startIconProps={{
@@ -636,7 +636,7 @@ const SecurityTrustScreen: React.FC = () => {
                   }
                   size={ButtonBaseSize.Md}
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-full bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
                   }
                   startIconName={IconName.Global}
                   startIconProps={{
@@ -679,7 +679,7 @@ const SecurityTrustScreen: React.FC = () => {
                       }
                       size={ButtonBaseSize.Md}
                       twClassName={(pressed) =>
-                        `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
+                        `rounded-full bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
                       }
                       startIconName={IconName.Global}
                       startIconProps={{
