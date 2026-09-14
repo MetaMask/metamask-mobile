@@ -1,3 +1,4 @@
+import { parsePredictBalance } from '../../contracts/v1/portfolio';
 import {
   parsePredictEvent,
   parsePredictFeed,
@@ -6,7 +7,7 @@ import {
 } from '../../contracts/v1/marketData';
 import { PredictError, PredictErrorCode } from '../../errors';
 import { KALSHI_VENUE_ID } from '../../types';
-import type { VenueMarketDataAdapter } from '../types';
+import type { VenueMarketDataAdapter, VenuePortfolioAdapter } from '../types';
 import {
   type PredictApiReadTransport,
   PredictHttpError,
@@ -25,6 +26,9 @@ const mapError = (error: unknown): never => {
   }
 
   if (error instanceof PredictHttpError) {
+    if (error.status === 401) {
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);
+    }
     if (error.status === 429) {
       throw PredictError.from(PredictErrorCode.RATE_LIMITED);
     }
@@ -42,8 +46,23 @@ const mapError = (error: unknown): never => {
 export class KalshiRemoteAdapter {
   readonly venueId = KALSHI_VENUE_ID;
   readonly marketData: VenueMarketDataAdapter;
+  readonly portfolio: VenuePortfolioAdapter;
 
   constructor(client: PredictApiReadTransport) {
+    this.portfolio = {
+      fetchBalance: async (options) => {
+        try {
+          const value = await client.fetchBalance(this.venueId, options);
+          const result = parsePredictBalance(value);
+          if (result.venueId !== this.venueId) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
+    };
     this.marketData = {
       fetchVenueStatus: async (options) => {
         try {
