@@ -120,6 +120,9 @@ describe('Predict service initialization', () => {
     };
 
     const { controller } = predictLiveDataServiceInit(request);
+    messenger.call('PredictLiveDataService:watchGames', KALSHI_VENUE_ID, [
+      update.eventId,
+    ]);
     controller.onGameUpdate(update);
 
     expect(listener).toHaveBeenCalledWith(update);
