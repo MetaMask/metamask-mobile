@@ -696,7 +696,6 @@ describe('useContinueWithQuote', () => {
         'eip155:143',
         '/payments/debit-credit-card',
         '15',
-        false,
       );
       expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 15);
     });

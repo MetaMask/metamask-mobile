@@ -179,7 +179,7 @@ describe('useFiatConfirm', () => {
       );
     });
 
-    it('uses the entered $15 amount for a Brazil Transak aggregator checkout', () => {
+    it('uses the fee-on-top amount for a Brazil Transak aggregator checkout', () => {
       const rampsQuote = {
         provider: '/providers/transak',
         providerInfo: { type: 'aggregator' },
@@ -206,7 +206,7 @@ describe('useFiatConfirm', () => {
 
       expect(startHeadlessBuyMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          amount: 15,
+          amount: 52,
           quote: rampsQuote,
         }),
         expect.any(Object),

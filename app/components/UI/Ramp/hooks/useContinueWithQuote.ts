@@ -25,7 +25,6 @@ import { reportRampsError } from '../utils/reportRampsError';
 import { isMonadMusdAssetId } from '../utils/fiatDepositAsset';
 import {
   acceptedAmountMatchesRequest,
-  logTransakFeeInclusiveMismatch,
   logTransakQuoteMismatch,
 } from '../utils/transakQuoteParity';
 import {
@@ -208,19 +207,11 @@ export function useContinueWithQuote(
             effectivePaymentMethodId,
             String(amount),
           ] as const;
-          const isFeeInclusiveHeadless =
-            Boolean(ctx.headlessSessionId) && isMonadMusdAssetId(assetId);
-          const transakQuote = isFeeInclusiveHeadless
-            ? await transakGetBuyQuote(...quoteArguments, false)
-            : await transakGetBuyQuote(...quoteArguments);
+          // Fee-on-top: request the native quote with the default fee mode
+          // (the fee is added on top of the amount).
+          const transakQuote = await transakGetBuyQuote(...quoteArguments);
           if (!transakQuote) {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
-          }
-          if (isFeeInclusiveHeadless && ctx.headlessSessionId) {
-            logTransakFeeInclusiveMismatch(quote, transakQuote, {
-              assetId,
-              paymentMethod: effectivePaymentMethodId,
-            });
           }
           await transakRouteAfterAuth(transakQuote, amount);
         } else if (hasAgreedTransakNativePolicy) {

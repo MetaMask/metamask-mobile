@@ -8,7 +8,6 @@ import {
   type HeadlessBuyError,
 } from '../../../../UI/Ramp/headless';
 import type { Quote } from '../../../../UI/Ramp/types';
-import { isMonadMusdAssetId } from '../../../../UI/Ramp/utils/fiatDepositAsset';
 import {
   RAMP_SURFACE,
   type RampSurface,
@@ -88,12 +87,12 @@ export function useFiatConfirm() {
 
     setIsHeadlessBuyInProgress(true);
 
-    const isDirectMonadMusd = isMonadMusdAssetId(assetId);
-    const totalAmountToBuy = isDirectMonadMusd
-      ? amountFiat
-      : new BigNumber(totals?.total?.usd ?? 0)
-          .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
-          .toNumber();
+    // Fee-on-top: the on-ramp adds its provider fee on top of what we request,
+    // so subtract that fee from the total to get the amount to buy. The user is
+    // charged the full total (entered amount plus fees).
+    const totalAmountToBuy = new BigNumber(totals?.total?.usd ?? 0)
+      .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
+      .toNumber();
 
     // `rampSurface` is analytics-only; it does not filter the quote.
     const rampSurface = transactionMetadata?.type

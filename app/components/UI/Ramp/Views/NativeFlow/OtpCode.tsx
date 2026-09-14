@@ -50,8 +50,6 @@ import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { getChainIdFromAssetId, getSession } from '../../headless';
-import { isMonadMusdAssetId } from '../../utils/fiatDepositAsset';
-import { logTransakFeeInclusiveMismatch } from '../../utils/transakQuoteParity';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 
@@ -298,25 +296,9 @@ const V2OtpCode = () => {
               paymentMethod,
               amount,
             ] as const;
-            const isFeeInclusiveHeadless =
-              Boolean(headlessSessionId) && isMonadMusdAssetId(assetId);
-            const quote = isFeeInclusiveHeadless
-              ? await transakGetBuyQuote(...quoteArguments, false)
-              : await transakGetBuyQuote(...quoteArguments);
-            if (
-              isFeeInclusiveHeadless &&
-              headlessSessionId &&
-              headlessSession?.params.quote
-            ) {
-              logTransakFeeInclusiveMismatch(
-                headlessSession.params.quote,
-                quote,
-                {
-                  assetId,
-                  paymentMethod,
-                },
-              );
-            }
+            // Fee-on-top: request the native quote with the default fee mode
+            // (the fee is added on top of the amount).
+            const quote = await transakGetBuyQuote(...quoteArguments);
             await routeAfterAuthentication(quote);
           } catch (routeError) {
             const nativeFlowError = parseUserFacingError(

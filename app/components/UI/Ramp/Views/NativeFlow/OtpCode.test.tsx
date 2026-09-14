@@ -268,7 +268,7 @@ describe('V2OtpCode', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('requests a fee-inclusive $15 quote after headless OTP verification', async () => {
+  it('requests a $15 quote after headless OTP verification', async () => {
     jest.useRealTimers();
     mockUseParams.mockReturnValue({
       email: 'test@example.com',
@@ -331,13 +331,12 @@ describe('V2OtpCode', () => {
         'eip155:143',
         '/payments/apple-pay',
         '15',
-        false,
       );
       expect(mockRouteAfterAuthentication).toHaveBeenCalled();
     });
   });
 
-  it('logs but continues routing when post-OTP fees change', async () => {
+  it('continues routing when post-OTP fees change', async () => {
     jest.useRealTimers();
     const assetId =
       'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da';
