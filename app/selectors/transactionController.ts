@@ -532,17 +532,21 @@ export const selectTransactionMetadataById = createSelector(
 );
 
 /** The pending confirmation's transaction, or the gas-fee modal's override. */
-export function selectCurrentTransaction(
-  state: RootState,
-  overrideTransactionId?: string | null,
-) {
-  const transactionId =
-    overrideTransactionId ?? selectFirstPendingApproval(state)?.id;
+export const selectCurrentTransaction = createSelector(
+  [
+    (state: RootState) => state,
+    selectFirstPendingApproval,
+    (_: RootState, overrideTransactionId?: string | null) =>
+      overrideTransactionId,
+  ],
+  (state, approvalRequest, overrideTransactionId) => {
+    const transactionId = overrideTransactionId ?? approvalRequest?.id;
 
-  return transactionId === undefined
-    ? undefined
-    : selectTransactionMetadataById(state, transactionId);
-}
+    return transactionId === undefined
+      ? undefined
+      : selectTransactionMetadataById(state, transactionId);
+  },
+);
 
 export const makeSelectTransactionMetadataById =
   (id: string) => (state: RootState) =>
