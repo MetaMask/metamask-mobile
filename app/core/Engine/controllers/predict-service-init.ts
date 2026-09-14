@@ -41,8 +41,6 @@ export const predictLiveDataServiceInit: MessengerClientInitFunction<
   PredictLiveDataService,
   PredictLiveDataServiceMessenger
 > = ({ controllerMessenger }) => {
-  // The client and service are mutually dependent: the socket feeds updates
-  // into the service, which publishes them on the messenger.
   const serviceRef: { current?: PredictLiveDataService } = {};
   const client = new PredictLiveDataClient({
     baseUrl: process.env.MM_PREDICT_API_URL,
