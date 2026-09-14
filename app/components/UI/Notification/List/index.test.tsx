@@ -204,6 +204,10 @@ describe('NotificationsListItem', () => {
 });
 
 describe('useNotificationOnClick', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const arrangeMocks = () => {
     const mockMarkNotificationAsRead = jest.fn();
     jest
