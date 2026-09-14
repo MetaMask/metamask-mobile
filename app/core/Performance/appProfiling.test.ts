@@ -277,8 +277,7 @@ describe('appProfiling', () => {
       expect(isAppProfilingRecording()).toBe(true);
     });
 
-    it('dumps and re-arms after the background grace period', async () => {
-      jest.useFakeTimers();
+    it('dumps and re-arms immediately when the app is backgrounded', async () => {
       (Platform as { OS: typeof Platform.OS }).OS = 'android';
       const nativeModule = mockNativeModule();
       const getListener = captureAppStateListener();
@@ -288,12 +287,9 @@ describe('appProfiling', () => {
 
       getListener()('background');
       await flushPromises();
-      // Still within the grace period — no dump yet.
-      expect(nativeModule.stopProfilingToAppStorage).not.toHaveBeenCalled();
 
-      jest.advanceTimersByTime(500);
-      await flushPromises();
-
+      // Must be immediate: RN Android pauses JS timers on host pause, so a
+      // deferred dump would never fire while backgroundApp(-1) keeps us paused.
       expect(nativeModule.stopProfilingToAppStorage).toHaveBeenCalledTimes(1);
       // Specs background the app mid-test, so the rest of the run still needs
       // to be profiled.
@@ -301,26 +297,7 @@ describe('appProfiling', () => {
       expect(isAppProfilingRecording()).toBe(true);
     });
 
-    it('cancels a pending dump when the app returns to the foreground', async () => {
-      jest.useFakeTimers();
-      (Platform as { OS: typeof Platform.OS }).OS = 'android';
-      const nativeModule = mockNativeModule();
-      const getListener = captureAppStateListener();
-
-      initializeAppProfiling(true);
-      await flushPromises();
-
-      getListener()('background');
-      getListener()('active');
-      jest.advanceTimersByTime(500);
-      await flushPromises();
-
-      expect(nativeModule.stopProfilingToAppStorage).not.toHaveBeenCalled();
-      expect(nativeModule.startProfiling).toHaveBeenCalledTimes(1);
-    });
-
     it('swallows dump and re-arm failures from the background listener', async () => {
-      jest.useFakeTimers();
       (Platform as { OS: typeof Platform.OS }).OS = 'android';
       const nativeModule = mockNativeModule({
         stopProfilingToAppStorage: jest
@@ -338,7 +315,6 @@ describe('appProfiling', () => {
       expect(isAppProfilingRecording()).toBe(true);
 
       getListener()('background');
-      jest.advanceTimersByTime(500);
       await flushPromises();
 
       // Lifecycle callbacks must not throw; failures stay in lastError.

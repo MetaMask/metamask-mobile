@@ -130,15 +130,15 @@ async function waitForSegment(
 }
 
 /**
- * Highest `segment-N` already on the device, or 0 when the directory is empty.
- * Used as the fixture baseline so leftover files from a previous session are
- * not attributed to the current test.
+ * Contiguous `segment-N` files already on the device, keyed by index.
+ * Pulls each file once so callers can reuse the buffers instead of
+ * re-downloading multi-MB traces over the BrowserStack tunnel.
  */
-async function probeHighestExistingSegment(
+async function probeExistingSegments(
   appiumDriver: PullFileDriver,
   directory: string,
-): Promise<number> {
-  let highest = 0;
+): Promise<Map<number, Buffer>> {
+  const segments = new Map<number, Buffer>();
   for (let index = 1; index <= MAX_SEGMENTS_PER_TEST; index += 1) {
     const buffer = await pullSegment(
       appiumDriver,
@@ -147,7 +147,17 @@ async function probeHighestExistingSegment(
     if (!buffer) {
       break;
     }
-    highest = index;
+    segments.set(index, buffer);
+  }
+  return segments;
+}
+
+function highestSegmentIndex(segments: Map<number, Buffer>): number {
+  let highest = 0;
+  for (const index of segments.keys()) {
+    if (index > highest) {
+      highest = index;
+    }
   }
   return highest;
 }
@@ -160,10 +170,11 @@ export async function resetAppProfilingSegments(
   appiumDriver: WebdriverIO.Browser = getDriver(),
 ): Promise<void> {
   const directory = deviceProfileDirectory(appiumDriver);
-  collectedSegmentCount = await probeHighestExistingSegment(
+  const existing = await probeExistingSegments(
     appiumDriver as PullFileDriver,
     directory,
   );
+  collectedSegmentCount = highestSegmentIndex(existing);
   if (collectedSegmentCount > 0) {
     logger.info(
       `Hermes profile baseline on device is segment-${collectedSegmentCount}; new segments start at ${collectedSegmentCount + 1}`,
@@ -217,9 +228,10 @@ async function saveSegment(
  * their own (the warm-start specs and the seedless OAuth hand-offs do), so a
  * single collection can pick up more than one segment.
  *
- * Segments that already existed before this call are pulled once. The segment
- * triggered by this background is waited for — a single-shot pull would race
- * the dump that just started and silently drop the measured-flow trace.
+ * Segments already on the device are probed once and those buffers are reused
+ * for catch-up saves — no second download over the BrowserStack tunnel. The
+ * segment triggered by this background is waited for; a single-shot pull would
+ * race the dump that just started and silently drop the measured-flow trace.
  */
 export async function collectAppProfiling(
   testInfo: TestInfo,
@@ -235,10 +247,11 @@ export async function collectAppProfiling(
   const appiumDriver = getDriver() as PullFileDriver;
   const directory = deviceProfileDirectory(appiumDriver);
 
-  const highestBeforeBackground = await probeHighestExistingSegment(
+  const existingBeforeBackground = await probeExistingSegments(
     appiumDriver,
     directory,
   );
+  const highestBeforeBackground = highestSegmentIndex(existingBeforeBackground);
 
   // A negative duration leaves the app in the background instead of restoring
   // it, so the dump is not racing a resume.
@@ -247,22 +260,22 @@ export async function collectAppProfiling(
   const triggeredIndex = highestBeforeBackground + 1;
   let collected = 0;
 
-  // Catch up on any segments that landed before this collection (e.g. mid-test
-  // backgrounding by the warm-start specs) without waiting — they are already
-  // on disk.
+  // Catch up on segments that landed before this collection (e.g. mid-test
+  // backgrounding by the warm-start specs) using the buffers we already
+  // pulled — do not re-download them.
   while (
     collectedSegmentCount < highestBeforeBackground &&
     collectedSegmentCount < MAX_SEGMENTS_PER_TEST
   ) {
     const nextIndex = collectedSegmentCount + 1;
-    const existing = await pullSegment(
-      appiumDriver,
-      segmentRemotePath(directory, nextIndex),
-    );
+    const existing = existingBeforeBackground.get(nextIndex);
     if (!existing) {
       logger.warn(
-        `Expected Hermes profile segment ${nextIndex} to already be on device for "${testInfo.title}", but pull missed`,
+        `Expected Hermes profile segment ${nextIndex} to already be on device for "${testInfo.title}", but probe missed`,
       );
+      // Keep the device index aligned even when a mid-range pull is missing so
+      // the triggered segment is not saved under the wrong `.segment-N` name.
+      collectedSegmentCount = highestBeforeBackground;
       break;
     }
     collectedSegmentCount = nextIndex;
@@ -283,12 +296,22 @@ export async function collectAppProfiling(
     return collected;
   }
 
+  // Pin the counter to the device index before saving so a broken catch-up
+  // path cannot renumber the triggered segment.
+  collectedSegmentCount = triggeredIndex;
+  await saveSegment(testInfo, buffer, collectedSegmentCount);
+  collected += 1;
+
+  // Further segments (unexpected extras) are single-shot — only the one we
+  // triggered needs the wait budget.
+  buffer = await pullSegment(
+    appiumDriver,
+    segmentRemotePath(directory, collectedSegmentCount + 1),
+  );
   while (buffer && collectedSegmentCount < MAX_SEGMENTS_PER_TEST) {
     collectedSegmentCount += 1;
     await saveSegment(testInfo, buffer, collectedSegmentCount);
     collected += 1;
-    // Further segments (unexpected extras) are single-shot — only the one we
-    // triggered needs the wait budget.
     buffer = await pullSegment(
       appiumDriver,
       segmentRemotePath(directory, collectedSegmentCount + 1),

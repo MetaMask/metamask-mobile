@@ -12,9 +12,15 @@
  * there yet.
  *
  * The session is driven entirely by the app process, not by the test: it arms
- * itself as soon as JS runs and dumps whenever the app stays backgrounded long
- * enough to clear a short grace period. A profiling session cannot outlive the
- * process that opened it, so a process that never armed itself never dumps.
+ * itself as soon as JS runs and dumps as soon as the app is backgrounded. A
+ * profiling session cannot outlive the process that opened it, so a process
+ * that never armed itself never dumps.
+ *
+ * Dumping must be immediate (no `setTimeout` grace): on Android, RN pauses JS
+ * timers in `JavaTimerManager.onHostPause`, which is the same pause that emits
+ * `AppState` `'background'`. A deferred dump therefore never fires while the
+ * app stays backgrounded via `backgroundApp(-1)`, which is exactly how the
+ * fixture collects traces.
  */
 
 import { AppState, Platform, type NativeEventSubscription } from 'react-native';
@@ -25,26 +31,10 @@ import { getHermesProfilerModule } from './hermesProfilerModule';
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';
 
-/**
- * Transient Android pauses (biometric prompts, permission dialogs, share
- * sheets, Custom Tabs) also fire `AppState` `'background'`. Waiting this long
- * before dumping avoids spending a multi-MB write on those brief pauses; a
- * real test-driven background lasts well past this window.
- */
-const BACKGROUND_DUMP_GRACE_MS = 500;
-
 let isRecording = false;
 let lastProfilePath: string | null = null;
 let lastError: string | null = null;
 let appStateSubscription: NativeEventSubscription | null = null;
-let backgroundDumpTimeout: ReturnType<typeof setTimeout> | null = null;
-
-function clearBackgroundDumpTimeout(): void {
-  if (backgroundDumpTimeout !== null) {
-    clearTimeout(backgroundDumpTimeout);
-    backgroundDumpTimeout = null;
-  }
-}
 
 /**
  * Starts a Hermes CPU profiling session.
@@ -178,12 +168,16 @@ function dumpAndRearm(enabled: boolean): void {
  *
  * Backgrounding is the dump trigger. It is the only signal available to the app
  * that both the test can produce on demand (`mobile: backgroundApp`) and that
- * cannot be swallowed by whatever is on screen. A short grace period filters
- * out transient Android pauses (biometric prompts, permission dialogs, Custom
- * Tabs) that also fire `AppState` `'background'`. Profiling re-arms afterwards
- * because specs background the app mid-test — the warm-start specs and the
- * OAuth hand-offs in seedless onboarding do — and the work after that point
- * still belongs to the test.
+ * cannot be swallowed by whatever is on screen. The dump runs immediately —
+ * deferred JS timers do not fire while Android has paused the host Activity.
+ * Profiling re-arms afterwards because specs background the app mid-test — the
+ * warm-start specs and the OAuth hand-offs in seedless onboarding do — and the
+ * work after that point still belongs to the test.
+ *
+ * Transient Android pauses (biometric prompts, permission dialogs, Custom Tabs)
+ * also fire `'background'` and will dump a segment. In this suite that has not
+ * produced unexpected segments; if it ever does, the grace period must live in
+ * native code (`LifecycleEventListener` + `Handler.postDelayed`), not in JS.
  */
 export function initializeAppProfiling(
   enabled: boolean = isPerformanceProfilingEnabled,
@@ -197,17 +191,10 @@ export function initializeAppProfiling(
   });
 
   appStateSubscription = AppState.addEventListener('change', (nextState) => {
-    if (nextState === 'background') {
-      clearBackgroundDumpTimeout();
-      backgroundDumpTimeout = setTimeout(() => {
-        backgroundDumpTimeout = null;
-        dumpAndRearm(enabled);
-      }, BACKGROUND_DUMP_GRACE_MS);
+    if (nextState !== 'background') {
       return;
     }
-
-    // Foreground (or inactive) again before the grace elapsed — cancel the dump.
-    clearBackgroundDumpTimeout();
+    dumpAndRearm(enabled);
   });
 }
 
@@ -231,7 +218,6 @@ export function __resetAppProfilingForTests(): void {
   isRecording = false;
   lastProfilePath = null;
   lastError = null;
-  clearBackgroundDumpTimeout();
   appStateSubscription?.remove();
   appStateSubscription = null;
 }
