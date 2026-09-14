@@ -1,12 +1,16 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { SmokeWalletPlatform } from '../../tags.js';
 import Assertions from '../../framework/Assertions.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 import DeeplinkModal from '../../page-objects/swaps/Deeplink.js';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal.js';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions.js';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks.js';
 import { openE2EUrl } from '../../framework/DeepLink.js';
 
@@ -47,6 +51,9 @@ appiumTest.describe(SmokeWalletPlatform('Deeplink Navigation'), () => {
             timeout: 10000,
             description: 'Source token USDC is pre-filled from deeplink params',
           });
+          // Leave Swap before the next PUBLIC deeplink so the interstitial can appear
+          await QuoteView.tapOnBackButton();
+          await waitForWalletHomePlaywright();
 
           // Verify send deeplink shows correct amount
           await openE2EUrl(SEND_DEEPLINK);
@@ -59,6 +66,9 @@ appiumTest.describe(SmokeWalletPlatform('Deeplink Navigation'), () => {
             timeout: 10000,
             description: 'Send amount 3 ETH matches deeplink value param',
           });
+          // Dismiss send confirmation before home deeplink
+          await FooterActions.tapCancelButton();
+          await waitForWalletHomePlaywright();
 
           // Verify home deeplink opens wallet with network selector
           await openE2EUrl(HOME_DEEPLINK);
@@ -71,6 +81,8 @@ appiumTest.describe(SmokeWalletPlatform('Deeplink Navigation'), () => {
                 'Network selector opens from home deeplink openNetworkSelector param',
             },
           );
+          await NetworkListModal.swipeToDismissModal();
+          await waitForWalletHomePlaywright();
 
           // Verify NFT deeplink
           await openE2EUrl(NFT_DEEPLINK);

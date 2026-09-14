@@ -15,9 +15,9 @@ describe('getTwapOrderIdentityKey', () => {
   it('includes the venue so aggregated order IDs cannot collide', () => {
     expect(
       getTwapOrderIdentityKey(
-        buildIdentity({ providerId: 'myx', orderId: 'shared' }),
+        buildIdentity({ providerId: 'lighter', orderId: 'shared' }),
       ),
-    ).toBe('myx:shared');
+    ).toBe('lighter:shared');
   });
 
   it('uses the default venue for legacy rows without a provider ID', () => {

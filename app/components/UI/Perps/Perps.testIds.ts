@@ -302,6 +302,10 @@ export const PerpsHomeViewSelectorsIDs = {
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
   TAB_BAR_ACTIONS: 'tab-bar-item-actions',
   TAB_BAR_ACTIVITY: 'tab-bar-item-activity',
+  /** Geo-block eligibility tooltip shown when a restricted user presses Add Funds (footer or card) */
+  GEO_BLOCK_TOOLTIP: 'perps-home-geo-block-tooltip',
+  /** Separate geo-block tooltip shown when a restricted user presses Close All on the positions section */
+  CLOSE_ALL_GEO_BLOCK_TOOLTIP: 'perps-home-close-all-geo-block-tooltip',
 };
 
 export const PerpsPositionsViewSelectorsIDs = {
@@ -555,6 +559,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   GEO_BLOCK_TOOLTIP: 'perps-pro-positions-panel-geo-block-tooltip',
   POSITIONS_PANEL_TAB_TWAP: 'perps-pro-market-positions-panel-tab-twap',
   TWAP_LIST: 'perps-pro-market-twap-list',
+  TWAP_TAB_BODY: 'perps-pro-market-twap-tab-body',
   TWAP_VIEW_TABS: 'perps-pro-market-twap-view-tabs',
   TWAP_VIEW_TAB_ACTIVE: 'perps-pro-market-twap-view-tab-active',
   TWAP_VIEW_TAB_HISTORY: 'perps-pro-market-twap-view-tab-history',
@@ -672,6 +677,9 @@ export const getPerpsProTwapRowSelector = (
     providerId,
     orderId,
   );
+
+export const getPerpsProTwapMarketSelector = (symbol: string) =>
+  `${PerpsProMarketViewSelectorsIDs.TWAP_MARKET}-${symbol}`;
 
 export const getPerpsProTwapTerminateSelector = (
   providerId: string,
@@ -1275,7 +1283,20 @@ export const PerpsModeSelectionBottomSheetSelectorsIDs = {
   PRO_OPTION: 'perps-mode-selection-pro-option',
   LITE_ICON: 'perps-mode-selection-lite-icon',
   PRO_ICON: 'perps-mode-selection-pro-icon',
+  PRO_ICON_TILE: 'perps-mode-selection-pro-icon-tile',
   SELECTED_INDICATOR: 'perps-mode-selection-selected-indicator',
+} as const;
+
+export const PerpsSelectProviderViewSelectorsIDs = {
+  SHEET: 'perps-select-provider-sheet',
+  CLOSE_BUTTON: 'perps-select-provider-sheet-close-button',
+} as const;
+
+export const PerpsTooltipViewSelectorsIDs = {
+  BOTTOM_SHEET: 'perps-tooltip-bottom-sheet',
+  HEADER: 'perps-tooltip-bottom-sheet-header',
+  FOOTER: 'perps-tooltip-bottom-sheet-footer',
+  GOT_IT_BUTTON: 'perps-tooltip-bottom-sheet-footer-got-it-button',
 } as const;
 
 // ========================================

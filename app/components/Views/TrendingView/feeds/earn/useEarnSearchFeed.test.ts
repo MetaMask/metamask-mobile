@@ -153,6 +153,7 @@ const mockCatalogue = ({
   isLoading = false,
   errors = [],
   refresh = jest.fn().mockResolvedValue(undefined),
+  moneyApyDecimal = 0.062,
   moneyApyPercent = 6.2,
   moneyRateStatus = 'ready',
 }: {
@@ -160,6 +161,7 @@ const mockCatalogue = ({
   isLoading?: boolean;
   errors?: Error[];
   refresh?: () => Promise<void>;
+  moneyApyDecimal?: number;
   moneyApyPercent?: number;
   moneyRateStatus?: 'loading' | 'ready' | 'error' | 'unavailable';
 } = {}) => {
@@ -170,6 +172,7 @@ const mockCatalogue = ({
     hasError: errors.length > 0,
     errors,
     refresh,
+    moneyApyDecimal,
     moneyApyPercent,
     moneyRateStatus,
   });

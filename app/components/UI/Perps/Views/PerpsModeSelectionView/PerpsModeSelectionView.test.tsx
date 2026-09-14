@@ -65,6 +65,10 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
 
+jest.mock('../../selectors/perpsController', () => ({
+  selectPerpsLastViewedMarketSymbol: () => 'BTC',
+}));
+
 jest.mock('../../selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: () => mockIsProModeEnabled,
 }));

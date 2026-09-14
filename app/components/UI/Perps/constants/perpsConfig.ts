@@ -19,6 +19,7 @@ import {
   PERPS_ADL_URL,
   METAMASK_SUPPORT_URL,
 } from '../../../../constants/urls';
+import { DAY } from '../../../../constants/time';
 
 /** Address used to represent "Perps balance" as the payment token (synthetic option). */
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
@@ -255,6 +256,10 @@ export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 
+export const PAGE_WINDOW_MS = 30 * DAY;
+
+export const MAX_LOOKBACK_MS = 365 * DAY;
+
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
@@ -389,18 +394,12 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 /**
  * Provider configuration
  * Controls which perpetual DEX providers are available
- *
- * Note: MYX provider enablement is now controlled via LaunchDarkly feature flag
- * (perpsMyxProviderEnabled) and MM_PERPS_MYX_PROVIDER_ENABLED environment variable.
- * See selectPerpsMYXProviderEnabledFlag selector for details.
  */
 export const PROVIDER_CONFIG = {
   /** Default perpetual DEX provider when no explicit selection exists */
   DefaultProvider: 'hyperliquid' as const,
   /** Controller mode that aggregates reads across active providers. */
   AggregatedProvider: 'aggregated' as const,
-  /** Force MYX to testnet only (mainnet credentials not yet available) */
-  MYX_TESTNET_ONLY: false,
 } as const;
 
 /** Network mode for perps (testnet vs mainnet). */
@@ -410,7 +409,7 @@ export type PerpsNetwork = 'mainnet' | 'testnet';
  * Chain IDs for each perps provider by network.
  * Identifies the provider's native chain (where "Perps balance" lives) so callers
  * can exclude it from pay-with-any-token allowlist or filter tokens.
- * Add entries when integrating new providers (e.g. MYX).
+ * Add entries when integrating new providers.
  */
 export const PERPS_PROVIDER_CHAIN_IDS: Record<
   string,
@@ -420,7 +419,6 @@ export const PERPS_PROVIDER_CHAIN_IDS: Record<
     mainnet: HYPERLIQUID_MAINNET_CHAIN_ID,
     testnet: HYPERLIQUID_TESTNET_CHAIN_ID,
   },
-  // myx: add mainnet/testnet chain IDs when MYX integration provides them
 };
 
 /**

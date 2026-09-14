@@ -117,8 +117,8 @@ describe('usePerpsTwapOrders', () => {
       startedAt: 1_000,
     });
     const newest = buildTwapOrder({
-      orderId: 'myx-newest',
-      providerId: 'myx',
+      orderId: 'lighter-newest',
+      providerId: 'lighter',
       startedAt: 3_000,
     });
     const middle = buildTwapOrder({
@@ -167,9 +167,9 @@ describe('usePerpsTwapOrders', () => {
       startedAt: 2_500,
       fills: [historicalFill],
     });
-    const myxHistory = buildTwapOrder({
+    const lighterHistory = buildTwapOrder({
       orderId: 'shared-order-id',
-      providerId: 'myx',
+      providerId: 'lighter',
       status: 'completed',
       startedAt: 2_000,
     });
@@ -191,11 +191,11 @@ describe('usePerpsTwapOrders', () => {
         hyperliquidActive,
         hyperliquidHistory,
         hyperliquidHistory,
-        myxHistory,
+        lighterHistory,
       ])
-      .mockResolvedValueOnce([myxHistory])
+      .mockResolvedValueOnce([lighterHistory])
       .mockResolvedValueOnce([
-        myxHistory,
+        lighterHistory,
         hyperliquidTerminal,
         recoveredHistory,
       ]);
@@ -204,11 +204,11 @@ describe('usePerpsTwapOrders', () => {
       expect(result.current.twapOrders).toStrictEqual([
         hyperliquidActive,
         hyperliquidHistory,
-        myxHistory,
+        lighterHistory,
       ]),
     );
 
-    // Act: this is indistinguishable from Hyperliquid rejecting while MYX
+    // Act: this is indistinguishable from Hyperliquid rejecting while Lighter
     // returns its successful partition.
     await act(async () => {
       await result.current.refresh();
@@ -218,7 +218,7 @@ describe('usePerpsTwapOrders', () => {
     expect(result.current.twapOrders).toStrictEqual([
       hyperliquidActive,
       hyperliquidHistory,
-      myxHistory,
+      lighterHistory,
     ]);
     expect(result.current.twapOrders[1].fills).toStrictEqual([historicalFill]);
     expect(result.current.error).not.toBeNull();
@@ -232,7 +232,7 @@ describe('usePerpsTwapOrders', () => {
     expect(result.current.twapOrders).toStrictEqual([
       hyperliquidTerminal,
       recoveredHistory,
-      myxHistory,
+      lighterHistory,
     ]);
     expect(result.current.error).toBeNull();
   });
@@ -247,9 +247,9 @@ describe('usePerpsTwapOrders', () => {
       status: 'completed',
       fills: [retainedFill],
     });
-    const myxHistory = buildTwapOrder({
-      orderId: 'myx-history',
-      providerId: 'myx',
+    const lighterHistory = buildTwapOrder({
+      orderId: 'lighter-history',
+      providerId: 'lighter',
       status: 'completed',
     });
     const recoveredHyperliquidHistory = buildTwapOrder({
@@ -259,9 +259,9 @@ describe('usePerpsTwapOrders', () => {
       startedAt: 3_000,
     });
     mockController.getTwapOrders
-      .mockResolvedValueOnce([staleHyperliquidHistory, myxHistory])
-      .mockResolvedValueOnce([myxHistory])
-      .mockResolvedValueOnce([myxHistory, recoveredHyperliquidHistory]);
+      .mockResolvedValueOnce([staleHyperliquidHistory, lighterHistory])
+      .mockResolvedValueOnce([lighterHistory])
+      .mockResolvedValueOnce([lighterHistory, recoveredHyperliquidHistory]);
     const { result } = renderHook(() => usePerpsTwapOrders());
     await waitFor(() => expect(result.current.twapOrders).toHaveLength(2));
 
@@ -285,7 +285,7 @@ describe('usePerpsTwapOrders', () => {
     // Assert
     expect(result.current.twapOrders).toStrictEqual([
       recoveredHyperliquidHistory,
-      myxHistory,
+      lighterHistory,
     ]);
     expect(result.current.error).toBeNull();
   });
@@ -655,14 +655,14 @@ describe('usePerpsTwapOrders', () => {
       providerId: 'hyperliquid',
       startedAt: 2_000,
     });
-    const myxOrder = buildTwapOrder({
-      orderId: 'myx-order',
-      providerId: 'myx',
+    const lighterOrder = buildTwapOrder({
+      orderId: 'lighter-order',
+      providerId: 'lighter',
       startedAt: 1_000,
     });
     mockController.getTwapOrders.mockResolvedValue([
       hyperliquidOrder,
-      myxOrder,
+      lighterOrder,
     ]);
     let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
     mockController.subscribeToTwapOrders.mockImplementation(
@@ -686,22 +686,25 @@ describe('usePerpsTwapOrders', () => {
     // Assert
     expect(result.current.twapOrders).toStrictEqual([
       { ...hyperliquidOrder, executedSize: '5', lastUpdated: 3_000 },
-      myxOrder,
+      lighterOrder,
     ]);
   });
 
   it('retains fills by provider and order ID when venue order IDs collide', async () => {
     // Arrange
     const hyperliquidFill = buildTwapFill({ fillId: 'hyperliquid-fill' });
-    const myxFill = buildTwapFill({ fillId: 'myx-fill' });
+    const lighterFill = buildTwapFill({ fillId: 'lighter-fill' });
     const hyperliquidOrder = buildTwapOrder({
       providerId: 'hyperliquid',
       fills: [hyperliquidFill],
     });
-    const myxOrder = buildTwapOrder({ providerId: 'myx', fills: [myxFill] });
+    const lighterOrder = buildTwapOrder({
+      providerId: 'lighter',
+      fills: [lighterFill],
+    });
     mockController.getTwapOrders.mockResolvedValue([
       hyperliquidOrder,
-      myxOrder,
+      lighterOrder,
     ]);
     let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
     mockController.subscribeToTwapOrders.mockImplementation(
@@ -727,9 +730,9 @@ describe('usePerpsTwapOrders', () => {
       )?.fills,
     ).toStrictEqual([hyperliquidFill]);
     expect(
-      result.current.twapOrders.find((order) => order.providerId === 'myx')
+      result.current.twapOrders.find((order) => order.providerId === 'lighter')
         ?.fills,
-    ).toStrictEqual([myxFill]);
+    ).toStrictEqual([lighterFill]);
   });
 
   it('retains unbounded REST terminal history through stream snapshots and deltas', async () => {
@@ -822,8 +825,8 @@ describe('usePerpsTwapOrders', () => {
       fills: [priorStreamFill, restFill],
     };
     const recoveredProviderOrder = buildTwapOrder({
-      orderId: 'myx-recovered',
-      providerId: 'myx',
+      orderId: 'lighter-recovered',
+      providerId: 'lighter',
       status: 'completed',
       startedAt: 2_000,
     });
@@ -873,9 +876,9 @@ describe('usePerpsTwapOrders', () => {
 
   it('uses direct-provider ownership for an empty authoritative snapshot', async () => {
     // Arrange
-    mockProvider = 'myx';
-    const myxActive = buildTwapOrder({ providerId: 'myx' });
-    mockController.getTwapOrders.mockResolvedValue([myxActive]);
+    mockProvider = 'lighter';
+    const lighterActive = buildTwapOrder({ providerId: 'lighter' });
+    mockController.getTwapOrders.mockResolvedValue([lighterActive]);
     let pushStreamed:
       | ((orders: TwapOrder[], isSnapshot?: boolean) => void)
       | undefined;
@@ -887,7 +890,7 @@ describe('usePerpsTwapOrders', () => {
       usePerpsTwapOrders({ enableLiveUpdates: true }),
     );
     await waitFor(() =>
-      expect(result.current.twapOrders).toContainEqual(myxActive),
+      expect(result.current.twapOrders).toContainEqual(lighterActive),
     );
 
     // Act
@@ -905,21 +908,21 @@ describe('usePerpsTwapOrders', () => {
       providerId: 'hyperliquid',
       startedAt: 2_000,
     });
-    const myxActive = buildTwapOrder({
-      orderId: 'myx-active',
-      providerId: 'myx',
+    const lighterActive = buildTwapOrder({
+      orderId: 'lighter-active',
+      providerId: 'lighter',
       startedAt: 1_000,
     });
-    const myxHistory = buildTwapOrder({
-      orderId: 'myx-history',
-      providerId: 'myx',
+    const lighterHistory = buildTwapOrder({
+      orderId: 'lighter-history',
+      providerId: 'lighter',
       status: 'completed',
       startedAt: 1_000,
     });
     mockController.getTwapOrders.mockResolvedValue([
       hyperliquidActive,
-      myxActive,
-      myxHistory,
+      lighterActive,
+      lighterHistory,
     ]);
     let pushStreamed:
       | ((orders: TwapOrder[], isSnapshot?: boolean) => void)
@@ -933,14 +936,14 @@ describe('usePerpsTwapOrders', () => {
     );
     await waitFor(() => expect(result.current.twapOrders).toHaveLength(3));
 
-    // Act: this snapshot owns MYX only. It removes the absent MYX active row,
-    // retains capped MYX history, and cannot corrupt Hyperliquid.
-    act(() => pushStreamed?.([myxHistory], true));
+    // Act: this snapshot owns Lighter only. It removes the absent Lighter active
+    // row, retains capped Lighter history, and cannot corrupt Hyperliquid.
+    act(() => pushStreamed?.([lighterHistory], true));
 
     // Assert
     expect(result.current.twapOrders).toStrictEqual([
       hyperliquidActive,
-      myxHistory,
+      lighterHistory,
     ]);
   });
 

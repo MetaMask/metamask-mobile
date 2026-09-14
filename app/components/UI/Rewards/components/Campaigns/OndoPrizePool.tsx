@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import CampaignPrizePool, {
   CAMPAIGN_PRIZE_POOL_TEST_IDS,
-  type CampaignPrizePoolMilestone,
+  type CampaignPrizePoolSchedule,
 } from './CampaignPrizePool';
 
 export const ONDO_PRIZE_POOL_TEST_IDS = CAMPAIGN_PRIZE_POOL_TEST_IDS;
@@ -13,11 +13,14 @@ export const BREAKPOINTS = [
   { deposit: 6_000_000, prize: 100_000 },
 ] as const;
 
-const ONDO_PRIZE_POOL_MILESTONES: CampaignPrizePoolMilestone[] =
-  BREAKPOINTS.map((breakpoint) => ({
-    threshold: breakpoint.deposit,
-    prize: breakpoint.prize,
-  }));
+const ONDO_PRIZE_POOL_SCHEDULE: Omit<
+  CampaignPrizePoolSchedule,
+  'totalVolumeUsd'
+> = {
+  unlockedPoolUsd: BREAKPOINTS[BREAKPOINTS.length - 1].prize,
+  thresholdsUsd: BREAKPOINTS.map((breakpoint) => breakpoint.deposit),
+  poolScheduleUsd: BREAKPOINTS.map((breakpoint) => breakpoint.prize),
+};
 
 interface OndoPrizePoolProps {
   totalUsdDeposited: string | null;
@@ -31,16 +34,26 @@ const OndoPrizePool: React.FC<OndoPrizePoolProps> = ({
   isLoading,
   hasError,
   refetch,
-}) => (
-  <CampaignPrizePool
-    milestones={ONDO_PRIZE_POOL_MILESTONES}
-    currentVolume={
-      totalUsdDeposited == null ? null : Number.parseFloat(totalUsdDeposited)
-    }
-    isLoading={isLoading}
-    hasError={hasError}
-    refetch={refetch}
-  />
-);
+}) => {
+  const prizePool = useMemo(
+    (): CampaignPrizePoolSchedule | null =>
+      totalUsdDeposited == null
+        ? null
+        : {
+            ...ONDO_PRIZE_POOL_SCHEDULE,
+            totalVolumeUsd: Number.parseFloat(totalUsdDeposited),
+          },
+    [totalUsdDeposited],
+  );
+
+  return (
+    <CampaignPrizePool
+      prizePool={prizePool}
+      isLoading={isLoading}
+      hasError={hasError}
+      refetch={refetch}
+    />
+  );
+};
 
 export default OndoPrizePool;

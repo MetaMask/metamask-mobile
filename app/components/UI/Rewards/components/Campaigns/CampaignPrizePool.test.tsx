@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import CampaignPrizePool, {
   CAMPAIGN_PRIZE_POOL_TEST_IDS,
+  type CampaignPrizePoolSchedule,
 } from './CampaignPrizePool';
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -91,15 +92,15 @@ jest.mock('../../utils/formatUtils', () => ({
 
 const mockRefetch = jest.fn();
 
-const milestones = [
-  { threshold: 0, prize: 10_000 },
-  { threshold: 100, prize: 20_000 },
-  { threshold: 200, prize: 30_000 },
-] as const;
+const prizePool: CampaignPrizePoolSchedule = {
+  totalVolumeUsd: 150,
+  unlockedPoolUsd: 20_000,
+  thresholdsUsd: [0, 100, 200],
+  poolScheduleUsd: [10_000, 20_000, 30_000],
+};
 
 const baseProps = {
-  milestones,
-  currentVolume: 150 as number | null,
+  prizePool: prizePool as CampaignPrizePoolSchedule | null,
   isLoading: false,
   hasError: false,
   refetch: mockRefetch,
@@ -137,7 +138,10 @@ describe('CampaignPrizePool', () => {
 
   it('shows max badge and full progress at top tier', () => {
     const { getByTestId, getByText, queryByText } = render(
-      <CampaignPrizePool {...baseProps} currentVolume={250} />,
+      <CampaignPrizePool
+        {...baseProps}
+        prizePool={{ ...prizePool, totalVolumeUsd: 250 }}
+      />,
     );
 
     expect(getByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
@@ -150,16 +154,16 @@ describe('CampaignPrizePool', () => {
     expect(innerBar.props.style).toEqual({ width: '100%' });
   });
 
-  it('shows skeleton when loading with no volume data', () => {
+  it('shows skeleton when loading with no prize-pool data', () => {
     const { getByTestId, queryByTestId } = render(
-      <CampaignPrizePool {...baseProps} currentVolume={null} isLoading />,
+      <CampaignPrizePool {...baseProps} prizePool={null} isLoading />,
     );
 
     expect(getByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.CONTAINER)).toBeDefined();
     expect(queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.PROGRESS_BAR)).toBeNull();
   });
 
-  it('shows stale content when loading but volume already exists', () => {
+  it('shows stale content when loading but prize-pool data already exists', () => {
     const { getByTestId } = render(
       <CampaignPrizePool {...baseProps} isLoading />,
     );
@@ -169,9 +173,9 @@ describe('CampaignPrizePool', () => {
     ).toBeDefined();
   });
 
-  it('shows error banner when hasError and no volume data', () => {
+  it('shows error banner when hasError and no prize-pool data', () => {
     const { getByTestId, queryByTestId } = render(
-      <CampaignPrizePool {...baseProps} currentVolume={null} hasError />,
+      <CampaignPrizePool {...baseProps} prizePool={null} hasError />,
     );
 
     expect(
@@ -180,9 +184,20 @@ describe('CampaignPrizePool', () => {
     expect(queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.PROGRESS_BAR)).toBeNull();
   });
 
+  it('keeps stale content when hasError but prize-pool data already exists', () => {
+    const { queryByTestId, getByTestId } = render(
+      <CampaignPrizePool {...baseProps} hasError />,
+    );
+
+    expect(queryByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.ERROR_BANNER)).toBeNull();
+    expect(
+      getByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.PROGRESS_BAR),
+    ).toBeDefined();
+  });
+
   it('calls refetch when error retry is pressed', () => {
     const { getByTestId } = render(
-      <CampaignPrizePool {...baseProps} currentVolume={null} hasError />,
+      <CampaignPrizePool {...baseProps} prizePool={null} hasError />,
     );
 
     fireEvent.press(
@@ -191,21 +206,98 @@ describe('CampaignPrizePool', () => {
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it('sorts unsorted milestones before computing progress', () => {
+  it('sorts unsorted thresholds before computing progress', () => {
     const { getByTestId } = render(
       <CampaignPrizePool
         {...baseProps}
-        milestones={[
-          { threshold: 200, prize: 30_000 },
-          { threshold: 0, prize: 10_000 },
-          { threshold: 100, prize: 20_000 },
-        ]}
-        currentVolume={150}
+        prizePool={{
+          ...prizePool,
+          thresholdsUsd: [200, 0, 100],
+          poolScheduleUsd: [30_000, 10_000, 20_000],
+        }}
       />,
     );
 
     const progressBar = getByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.PROGRESS_BAR);
     const innerBar = progressBar.props.children;
     expect(innerBar.props.style).toEqual({ width: '50%' });
+  });
+
+  it('prepends a zero-threshold milestone when the ladder starts above zero', () => {
+    const { getAllByText } = render(
+      <CampaignPrizePool
+        {...baseProps}
+        prizePool={{
+          ...prizePool,
+          totalVolumeUsd: 0,
+          thresholdsUsd: [100, 200],
+          poolScheduleUsd: [10_000, 20_000],
+        }}
+      />,
+    );
+
+    expect(getAllByText('$10,000.00')).toHaveLength(2);
+  });
+
+  it('does not duplicate an existing zero-threshold milestone', () => {
+    const { getByText, queryAllByText } = render(
+      <CampaignPrizePool
+        {...baseProps}
+        prizePool={{
+          ...prizePool,
+          totalVolumeUsd: 0,
+          thresholdsUsd: [0, 100, 200],
+          poolScheduleUsd: [5_000, 10_000, 20_000],
+        }}
+      />,
+    );
+
+    expect(getByText('$5,000.00')).toBeDefined();
+    expect(getByText('$10,000.00')).toBeDefined();
+    expect(queryAllByText('$5,000.00')).toHaveLength(1);
+  });
+
+  it('uses the unlocked pool when a threshold has no matching schedule entry', () => {
+    const { getByText } = render(
+      <CampaignPrizePool
+        {...baseProps}
+        prizePool={{
+          ...prizePool,
+          totalVolumeUsd: 0,
+          thresholdsUsd: [0, 100],
+          poolScheduleUsd: [10_000],
+          unlockedPoolUsd: 9_000,
+        }}
+      />,
+    );
+
+    expect(getByText('$10,000.00')).toBeDefined();
+    expect(getByText('$9,000.00')).toBeDefined();
+  });
+
+  it('renders a single unlocked-pool tier when the API returns no thresholds', () => {
+    const { getByText, getByTestId } = render(
+      <CampaignPrizePool
+        {...baseProps}
+        prizePool={{
+          ...prizePool,
+          thresholdsUsd: [],
+          poolScheduleUsd: [],
+          unlockedPoolUsd: 2_000,
+        }}
+      />,
+    );
+
+    expect(getByText('$2,000.00')).toBeDefined();
+    expect(getByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
+  });
+
+  it('renders an empty ladder when no prize pool is available', () => {
+    const { getByText, getByTestId } = render(
+      <CampaignPrizePool {...baseProps} prizePool={null} />,
+    );
+
+    expect(getByText('$0.00')).toBeDefined();
+    expect(getByTestId(CAMPAIGN_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
   });
 });

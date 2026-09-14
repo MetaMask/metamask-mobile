@@ -100,7 +100,7 @@ describe('dual-upload-e2e-artifact', () => {
   it('uploads to GitHub once without retry orchestration', () => {
     const actionMetadata = loadActionMetadata();
     const githubUploadSteps = actionMetadata.runs.steps.filter(
-      (step) => step.uses === 'actions/upload-artifact@v4',
+      (step) => step.uses === 'actions/upload-artifact@v7',
     );
 
     expect(githubUploadSteps).toHaveLength(1);
@@ -109,6 +109,18 @@ describe('dual-upload-e2e-artifact', () => {
       name: 'Upload to GitHub',
       if: "${{ inputs.skip-github != 'true' || !contains(inputs.runner-provider, 'namespace') }}",
     });
+    expect(githubUploadSteps[0]?.with?.path).toBe(
+      "${{ contains(inputs.runner-provider, 'namespace') && inputs.github-path != '' && inputs.github-path || inputs.path }}",
+    );
+  });
+
+  it('exposes github-path as an optional input defaulting to empty', () => {
+    const actionMetadata = loadActionMetadata();
+
+    expect(actionMetadata.inputs['github-path']).toMatchObject({
+      required: false,
+    });
+    expect(actionMetadata.inputs['github-path'].default).toBe('');
   });
 
   it('exposes skip-github as an optional input defaulting to false', () => {

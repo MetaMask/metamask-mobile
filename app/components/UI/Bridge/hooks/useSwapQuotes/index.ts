@@ -3,7 +3,7 @@ import { useContext } from 'react';
 import {
   SwapQuotesContext,
   type SwapQuotesContextValue,
-} from './SwapQuotesContext';
+} from '../../providers/SwapQuotesProvider';
 
 /**
  * Hook for updating the bridge-controller's quoteRequest state and returning quote data

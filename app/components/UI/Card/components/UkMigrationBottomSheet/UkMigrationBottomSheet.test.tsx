@@ -1,20 +1,47 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
 import UkMigrationBottomSheet from './UkMigrationBottomSheet';
 import { UkMigrationBottomSheetSelectors } from './UkMigrationBottomSheet.testIds';
-import I18n from '../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
+import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardActions, CardFlow, CardScreens } from '../../util/metrics';
+import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 
 const mockOnCloseBottomSheet = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: () => ({}) }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
 
-const expectedDeadlineLabel = getIntlDateTimeFormatter(I18n.locale, {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-}).format(new Date(2026, 8, 30));
+const remoteDeadline = new Date('2026-09-30T23:59:59.999Z');
+const expectedDeadlineLabel = formatUkMigrationDeadline(remoteDeadline, {
+  includeYear: true,
+});
+
+const mockStore = configureMockStore()({});
+
+jest.mock('../../hooks/useCardUkMigrationState', () => ({
+  useCardUkMigrationState: jest.fn(() => ({
+    state: {
+      phase: 'soft',
+      isActive: true,
+      deadline: new Date('2026-09-30T23:59:59.999Z'),
+    },
+    refresh: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useCardUkMigrationUpdateBadge', () => ({
+  useCardUkMigrationUpdateBadge: jest.fn(() => 'warning'),
+}));
+
+const mockUseCardUkMigrationState = jest.mocked(useCardUkMigrationState);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -27,6 +54,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
@@ -35,6 +69,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.uk_migration_bottom_sheet.title': 'Update your MetaMask Card',
       'card.uk_migration_bottom_sheet.description':
         "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      'card.uk_migration_bottom_sheet.description_no_deadline':
+        "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       'card.uk_migration_bottom_sheet.steps.reverify_identity':
         'Re-verify your identity',
       'card.uk_migration_bottom_sheet.steps.get_new_card_number':
@@ -81,25 +117,38 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+const renderSheet = () =>
+  render(
+    <Provider store={mockStore}>
+      <UkMigrationBottomSheet />
+    </Provider>,
+  );
+
 describe('UkMigrationBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseCardUkMigrationState.mockReturnValue({
+      state: {
+        phase: 'soft',
+        isActive: true,
+        deadline: remoteDeadline,
+      },
+      refresh: jest.fn(),
+    });
   });
 
   it('renders title, description, steps, and actions', () => {
-    const { getByTestId } = render(<UkMigrationBottomSheet />);
+    const { getByTestId } = renderSheet();
 
     expect(
       getByTestId(UkMigrationBottomSheetSelectors.CONTAINER),
     ).toBeOnTheScreen();
     expect(
       getByTestId(UkMigrationBottomSheetSelectors.TITLE),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent('Update your MetaMask Card');
     expect(
       getByTestId(UkMigrationBottomSheetSelectors.DESCRIPTION),
-    ).toHaveTextContent(
-      `We've switched to a new card provider. To keep spending without interruption, complete these steps before ${expectedDeadlineLabel}.`,
-    );
+    ).toHaveTextContent(new RegExp(expectedDeadlineLabel));
     expect(
       getByTestId(UkMigrationBottomSheetSelectors.STEPS),
     ).toBeOnTheScreen();
@@ -120,8 +169,46 @@ describe('UkMigrationBottomSheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('uses description without deadline when deadline is missing', () => {
+    mockUseCardUkMigrationState.mockReturnValue({
+      state: {
+        phase: 'soft',
+        isActive: true,
+        deadline: null,
+      },
+      refresh: jest.fn(),
+    });
+
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(UkMigrationBottomSheetSelectors.DESCRIPTION),
+    ).toHaveTextContent(
+      "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
+    );
+  });
+
+  it('tracks CARD_VIEWED once on mount with migration props', () => {
+    renderSheet();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      flow: CardFlow.MIGRATION,
+      migration_phase: 'grace_window',
+      badge_reasons: ['card_migration'],
+      screen: CardScreens.MIGRATION_UPDATE_SHEET,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
   it('closes the sheet and navigates to SignUp with fromMigration when Get started is pressed', () => {
-    const { getByTestId } = render(<UkMigrationBottomSheet />);
+    const { getByTestId } = renderSheet();
+    mockAddProperties.mockClear();
+    mockCreateEventBuilder.mockClear();
+    mockTrackEvent.mockClear();
 
     fireEvent.press(
       getByTestId(UkMigrationBottomSheetSelectors.GET_STARTED_BUTTON),
@@ -132,10 +219,22 @@ describe('UkMigrationBottomSheet', () => {
       screen: Routes.CARD.ONBOARDING.SIGN_UP,
       params: { fromMigration: true },
     });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      flow: CardFlow.MIGRATION,
+      migration_phase: 'grace_window',
+      badge_reasons: ['card_migration'],
+      action: CardActions.MIGRATION_SHEET_GET_STARTED_BUTTON,
+    });
   });
 
   it('closes the sheet when Remind me later is pressed', () => {
-    const { getByTestId } = render(<UkMigrationBottomSheet />);
+    const { getByTestId } = renderSheet();
+    mockAddProperties.mockClear();
+    mockCreateEventBuilder.mockClear();
 
     fireEvent.press(
       getByTestId(UkMigrationBottomSheetSelectors.REMIND_LATER_BUTTON),
@@ -143,14 +242,29 @@ describe('UkMigrationBottomSheet', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      flow: CardFlow.MIGRATION,
+      migration_phase: 'grace_window',
+      badge_reasons: ['card_migration'],
+      action: CardActions.MIGRATION_SHEET_REMIND_ME_LATER_BUTTON,
+    });
   });
 
   it('closes the sheet when the close button is pressed', () => {
-    const { getByTestId } = render(<UkMigrationBottomSheet />);
+    const { getByTestId } = renderSheet();
+    mockAddProperties.mockClear();
 
     fireEvent.press(getByTestId(UkMigrationBottomSheetSelectors.CLOSE_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: 'baanx',
+      flow: CardFlow.MIGRATION,
+      migration_phase: 'grace_window',
+      badge_reasons: ['card_migration'],
+      action: CardActions.MIGRATION_SHEET_CLOSE_BUTTON,
+    });
   });
 });

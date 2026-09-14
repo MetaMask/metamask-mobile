@@ -8,6 +8,8 @@ import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
 import {
   adbDeviceArgs,
   hostListenPortForDevicePort,
+  isIosAppiumSmokeEnv,
+  localDappBrowserUrl,
 } from '../../framework/e2eWorkerPorts.ts';
 
 const logger = createLogger({
@@ -49,23 +51,29 @@ export async function waitForDappServerReady(
  * Get the dapp URL for mobile browser access.
  * Uses localhost on both platforms. On Android, pair with {@link setupAdbReverse}
  * so the emulator reaches the host dapp server (preferred over 10.0.2.2 for
- * stable URL / CDP matching).
+ * stable URL / CDP matching). On iOS, uses the worker host listen port because
+ * adb reverse is a no-op and N=2 workers listen on shifted ports.
  */
 export function getDappUrlForBrowser(
   _platform: string,
   port = DEFAULT_DAPP_PORT,
 ): string {
-  return `http://localhost:${port}`;
+  return localDappBrowserUrl(port);
 }
 
 /**
  * Set up ADB reverse so the emulator's `devicePort` reaches `hostPort` on the
  * worker host. Worker 1 listens on a shifted host port to avoid EADDRINUSE.
+ * No-ops on iOS (simulators share the host network; adb is not available).
  */
 export function setupAdbReverse(
   devicePort: number,
   hostPort: number = devicePort,
 ): void {
+  if (isIosAppiumSmokeEnv()) {
+    return;
+  }
+
   const deviceArgs = adbDeviceArgs();
   try {
     execFileSync(
@@ -91,6 +99,10 @@ export function setupAdbReverse(
  * Clean up ADB reverse port forwarding for the device-facing port.
  */
 export function cleanupAdbReverse(devicePort: number): void {
+  if (isIosAppiumSmokeEnv()) {
+    return;
+  }
+
   try {
     execFileSync(
       'adb',

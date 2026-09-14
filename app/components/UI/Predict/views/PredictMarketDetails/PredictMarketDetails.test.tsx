@@ -884,7 +884,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(
-        screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowLeft')),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.BACK_BUTTON),
       ).toBeOnTheScreen();
     });
 
@@ -1035,7 +1035,7 @@ describe('PredictMarketDetails', () => {
       const { mockGoBack, mockCanGoBack } = setupPredictMarketDetailsTest();
 
       const backButton = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowLeft'),
+        PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
       );
       fireEvent.press(backButton);
 
@@ -1757,7 +1757,13 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         singleOutcomeMarket,
         {},
-        { eligibility: { isEligible: false } },
+        {
+          eligibility: {
+            isEligible: false,
+            isIneligible: true,
+            status: 'ineligible',
+          },
+        },
       );
 
       const yesButton = findActionButtonByPrice(65);
@@ -1802,7 +1808,13 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         singleOutcomeMarket,
         {},
-        { eligibility: { isEligible: false } },
+        {
+          eligibility: {
+            isEligible: false,
+            isIneligible: true,
+            status: 'ineligible',
+          },
+        },
       );
 
       const noButton = findActionButtonByPrice(35);

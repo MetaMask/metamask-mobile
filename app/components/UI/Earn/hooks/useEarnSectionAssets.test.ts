@@ -19,6 +19,7 @@ const createCatalogueResult = (
   hasError: false,
   errors: [],
   refresh: jest.fn().mockResolvedValue(undefined),
+  moneyApyDecimal: undefined,
   moneyApyPercent: undefined,
   moneyRateStatus: 'unavailable',
   ...overrides,

@@ -79,7 +79,7 @@ const EarnStrategyCard = ({
       <Box
         twClassName={`w-full rounded-xl border bg-muted p-3 ${
           isPrimary ? 'min-h-[196px]' : 'min-h-[100px]'
-        } ${isActive ? 'border-white' : 'border-muted'}`}
+        } ${isActive ? 'border-default' : 'border-muted'}`}
         accessible={false}
       >
         <Box

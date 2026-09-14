@@ -166,8 +166,8 @@ const defaultState: DeepPartial<RootState> = {
           '0x1': true,
         },
       },
-      CurrencyRateController: {
-        currentCurrency: 'USD',
+      AssetsController: {
+        selectedCurrency: 'usd',
       },
       MultichainNetworkController: {
         isEvmSelected: true,

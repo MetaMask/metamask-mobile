@@ -92,6 +92,7 @@ export const SocialLeaderboardEventValues = {
     CLOSED: 'closed',
     FEED: 'tab_feed',
     LEADERBOARD: 'tab_leaderboard',
+    LIVE_TRADES: 'tab_live_trades',
     OPEN: 'open',
   },
   TAB_CHANGE_METHOD: {
