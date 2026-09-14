@@ -322,6 +322,8 @@ function enrichLocalActivityKind(
         ...activity,
         type: 'claim',
         data: {
+          from,
+          to,
           ...(fees ? { fees } : {}),
         },
       };
@@ -330,6 +332,8 @@ function enrichLocalActivityKind(
         ...activity,
         type: 'unstake',
         data: {
+          from,
+          to,
           ...(fees ? { fees } : {}),
         },
       };
@@ -471,6 +475,8 @@ function enrichStakingDeposit(
     ...activity,
     type: 'stake',
     data: {
+      from: transactionGroup.initialTransaction.txParams.from ?? '',
+      to: transactionGroup.initialTransaction.txParams.to ?? '',
       token: getNativeTokenAmount(
         transactionGroup,
         'out',
