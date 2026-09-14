@@ -1,16 +1,17 @@
-import { useContext, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import {
+  Text,
+  TextButton,
+  TextColor,
+  TextVariant,
+  toast,
+} from '@metamask/design-system-react-native';
 
 import {
   consolidateBasicFunctionality,
   dismissBasicFunctionalityMigrationNotification,
 } from '../../actions/settings';
-import { ToastContext } from '../../component-library/components/Toast';
-import {
-  ButtonIconVariant,
-  ToastVariants,
-} from '../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../component-library/components/Icons/Icon';
 import Routes from '../../constants/navigation/Routes';
 import NavigationService from '../../core/NavigationService';
 import Logger from '../../util/Logger';
@@ -33,7 +34,6 @@ export const selectCompletedOnboardingSafely = (state: RootState) =>
 
 export function useBasicFunctionalityConsolidation(): void {
   const dispatch = useThunkDispatch();
-  const { toastRef } = useContext(ToastContext);
   const isRunning = useRef(false);
   const hasPresentedBottomSheet = useRef(false);
   const hasPresentedToast = useRef(false);
@@ -115,55 +115,53 @@ export function useBasicFunctionalityConsolidation(): void {
 
   useEffect(() => {
     if (!shouldShowToast || !isUnlocked) {
+      // Hide the overlay without acknowledging the notice. The DS Toaster sits
+      // in FullWindowOverlay above native-stack screens, so leaving it up would
+      // keep the Settings link tappable on the lock screen.
+      if (hasPresentedToast.current) {
+        toast.dismiss();
+      }
       hasPresentedToast.current = false;
       return;
     }
-    if (hasPresentedToast.current || !toastRef?.current) {
+    if (hasPresentedToast.current) {
       return;
     }
 
-    const dismissToast = () => {
+    const dismissNotification = () => {
       dispatch(dismissBasicFunctionalityMigrationNotification());
-      toastRef.current?.closeToast();
     };
 
     hasPresentedToast.current = true;
-    toastRef.current.showToast({
-      variant: ToastVariants.Plain,
+    toast({
       hasNoTimeout: true,
-      labelOptions: [
-        {
-          label: strings('basic_functionality_migration.title'),
-          isBold: true,
-        },
-      ],
-      descriptionOptions: {
-        // The migration has already persisted the landing state by the time the
-        // toast presents, so the copy must follow it rather than assume "on".
-        description: basicFunctionalityEnabled
-          ? strings('basic_functionality_migration.toast_description')
-          : strings('basic_functionality_migration.toast_description_disabled'),
-      },
-      closeButtonOptions: {
-        variant: ButtonIconVariant.Icon,
-        iconName: IconName.Close,
-        onPress: dismissToast,
-      },
-      linkButtonOptions: {
-        label: strings('basic_functionality_migration.settings_link'),
-        onPress: () => {
-          dismissToast();
-          NavigationService.navigation.navigate(Routes.SETTINGS_VIEW, {
-            screen: Routes.SETTINGS.SECURITY_SETTINGS,
-          });
-        },
-      },
+      title: strings('basic_functionality_migration.title'),
+      // A node rather than a string so the settings link flows inline with the
+      // sentence instead of sitting below it as a separate action button.
+      description: (
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {/* The migration has already persisted the landing state by the time
+          the toast presents, so the copy must follow it rather than assume "on". */}
+          {basicFunctionalityEnabled
+            ? strings('basic_functionality_migration.toast_description')
+            : strings(
+                'basic_functionality_migration.toast_description_disabled',
+              )}{' '}
+          <TextButton
+            variant={TextVariant.BodySm}
+            onPress={() => {
+              dismissNotification();
+              toast.dismiss();
+              NavigationService.navigation.navigate(Routes.SETTINGS_VIEW, {
+                screen: Routes.SETTINGS.SECURITY_SETTINGS,
+              });
+            }}
+          >
+            {strings('basic_functionality_migration.settings_link')}
+          </TextButton>
+        </Text>
+      ),
+      onClose: dismissNotification,
     });
-  }, [
-    basicFunctionalityEnabled,
-    dispatch,
-    isUnlocked,
-    shouldShowToast,
-    toastRef,
-  ]);
+  }, [basicFunctionalityEnabled, dispatch, isUnlocked, shouldShowToast]);
 }
