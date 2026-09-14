@@ -29,7 +29,7 @@ import {
   selectSourceWalletAddress,
 } from '../../../../selectors/bridge';
 import Logger from '../../../../util/Logger';
-import { buildGenericQuoteRequest } from '../../Bridge/hooks/useSwapQuotes/utils';
+import { buildGenericQuoteRequest } from '../../Bridge/providers/SwapQuotesProvider/utils';
 
 const useSelectorMock = useSelector as jest.Mock;
 const isQuoteStreamingEnabledMock = isQuoteStreamingEnabled as jest.Mock;

@@ -56,7 +56,7 @@ import {
 } from '../utils/streamQuickBuyQuotes';
 import { parseCaipAssetType } from '@metamask/utils';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
-import { buildGenericQuoteRequest } from '../../Bridge/hooks/useSwapQuotes/utils';
+import { buildGenericQuoteRequest } from '../../Bridge/providers/SwapQuotesProvider/utils';
 
 export type QuickBuyQuote = QuoteResponse;
 
@@ -279,9 +279,8 @@ export function useQuickBuyQuotes({
         sourceTokenAmount === '.' ? '0' : sourceTokenAmount,
         sourceToken.decimals,
       ).toFixed(0);
-    } catch {}
-
-    if (normalizedSourceAmount === '0') {
+    } catch {
+      normalizedSourceAmount = null;
     }
 
     const featureId = getQuickBuyFeatureId(analyticsContext?.source);

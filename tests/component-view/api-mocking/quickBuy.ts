@@ -138,3 +138,67 @@ export function createQuickBuyFetchedQuote(
     },
   };
 }
+
+/** v2 quote written into Redux by the SwapQuotes CV mock. */
+export function createQuickBuyStoreQuote(
+  srcTokenAmount: string,
+  extras?: { priceImpactAmount?: string },
+) {
+  const srcAsset = {
+    address: QUICK_BUY_ETH_ASSET.address,
+    decimals: 18,
+    symbol: 'ETH',
+    name: 'Ethereum',
+    assetId: QUICK_BUY_ETH_ASSET.assetId,
+  };
+
+  return {
+    namespace: 'eip155',
+    chainId: 'eip155:1',
+    quote: {
+      aggregator: 'bridge-1',
+      protocols: ['bridge-1'],
+      steps: [],
+      requestId: 'quick-buy-quote-1',
+      src: {
+        asset: srcAsset,
+        amount: srcTokenAmount,
+      },
+      dest: {
+        asset: {
+          address: USDC_DEST.address,
+          decimals: USDC_DEST.decimals,
+          symbol: USDC_DEST.symbol,
+          name: USDC_DEST.name,
+          assetId: QUICK_BUY_USDC_ASSET_ID,
+        },
+        amount: '10000000',
+        minAmount: '9900000',
+      },
+      feeData: {
+        metabridge: [{ amount: '0', asset: srcAsset }],
+        network: [
+          {
+            amount: QUICK_BUY_QUOTE_TX_FEE_AMOUNT,
+            normalizedAmount: '0.001',
+            valueInCurrency: '2',
+            asset: srcAsset,
+          },
+        ],
+      },
+      gasIncluded: false,
+      priceData: {
+        priceImpact: { amount: extras?.priceImpactAmount ?? '0.01' },
+      },
+    },
+    estimatedProcessingTimeInSeconds: 30,
+    trade: {
+      chainId: 1,
+      value: '0x0',
+      data: '0x0',
+      from: '0x0000000000000000000000000000000000000001',
+      to: USDC_DEST.address,
+      gasLimit: 100,
+    },
+  };
+}

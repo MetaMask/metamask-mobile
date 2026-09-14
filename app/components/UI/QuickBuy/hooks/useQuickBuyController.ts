@@ -802,8 +802,8 @@ export function useQuickBuyController(
       destToken,
       srcAmount: quotesSourceTokenAmount,
       slippage,
-      walletAddress,
-      destWalletAddress: destAddress ?? undefined,
+      walletAddress: walletAddress ?? selectedAddress,
+      destWalletAddress: destAddress ?? selectedAddress ?? undefined,
     });
   }, [
     setQuoteParams,
@@ -814,6 +814,7 @@ export function useQuickBuyController(
     slippage,
     walletAddress,
     destAddress,
+    selectedAddress,
   ]);
 
   const maybeSwapQuotes = useSwapQuotes();
@@ -827,21 +828,35 @@ export function useQuickBuyController(
         quoteFetchError: maybeSwapQuotes.quoteFetchError,
         isActiveQuoteForCurrentTokenPair:
           maybeSwapQuotes.isActiveQuoteForCurrentTokenPair,
-        isQuoteRequestStale: undefined,
-        quotesLastFetchedAt: undefined, // Controller polls so this is irrelevant
-        refreshCount: undefined, // Controller polls so this is irrelevant
-        quoteRefreshRateMs: undefined, // Controller polls so this is irrelevant
-        maxRefreshCount: undefined, // Controller polls so this is irrelevant
+        isQuoteRequestStale:
+          maybeSwapQuotes.isExpired || maybeSwapQuotes.needsNewQuote,
+        quotesLastFetchedAt: maybeSwapQuotes.quotesLastFetched ?? null,
+        refreshCount: maybeSwapQuotes.quotesRefreshCount,
+        quoteRefreshRateMs: undefined,
+        maxRefreshCount: undefined,
         refetchQuotes: maybeSwapQuotes.refreshQuotes,
         formattedQuoteData: maybeSwapQuotes.formattedQuoteData,
         shouldShowPriceImpactWarning:
           maybeSwapQuotes.shouldShowPriceImpactWarning,
       }
     : undefined;
+
+  const prevImmediateFetchTokenRef = useRef(immediateFetchToken);
+  const flushQuoteParams = maybeSwapQuotes?.debouncedUpdateQuoteParams;
+  useEffect(() => {
+    if (!flushQuoteParams) {
+      return;
+    }
+    if (prevImmediateFetchTokenRef.current === immediateFetchToken) {
+      return;
+    }
+    prevImmediateFetchTokenRef.current = immediateFetchToken;
+    flushQuoteParams.flush();
+  }, [flushQuoteParams, immediateFetchToken]);
   const quickBuyQuotes = useQuickBuyQuotes({
     sourceToken,
     destToken,
-    sourceTokenAmount: quotesSourceTokenAmount,
+    sourceTokenAmount: maybeSwapQuotes ? undefined : quotesSourceTokenAmount,
     analyticsContext: quotesAnalyticsContext,
     selectedQuoteRequestId,
     immediateFetchToken,
@@ -870,7 +885,6 @@ export function useQuickBuyController(
     maxRefreshCount,
     refetchQuotes,
     formattedQuoteData,
-    shouldShowPriceImpactWarning,
   } = swapQuotesToUse;
 
   // Reset manual quote selection whenever the user changes amount, token, or slippage.
@@ -1011,12 +1025,11 @@ export function useQuickBuyController(
 
   const isPriceImpactError = useMemo(
     () =>
-      shouldShowPriceImpactWarning ??
       exceedsPriceImpactErrorThreshold(
         parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact?.amount),
         bridgeFeatureFlags?.priceImpactThreshold?.error,
       ),
-    [activeQuote, bridgeFeatureFlags, shouldShowPriceImpactWarning],
+    [activeQuote, bridgeFeatureFlags],
   );
 
   const totalAmountFiat = useMemo(() => {

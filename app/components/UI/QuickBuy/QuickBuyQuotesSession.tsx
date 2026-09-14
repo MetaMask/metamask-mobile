@@ -3,6 +3,7 @@ import type { FeatureId } from '@metamask/bridge-controller';
 
 import { useLatestBalance } from '../Bridge/hooks/useLatestBalance';
 import { BridgeSessionContext } from '../Bridge/providers/BridgeSessionProvider';
+import { SwapQuotesProvider } from '../Bridge/providers/SwapQuotesProvider';
 import { SwapsFeatureIdProvider } from '../Bridge/providers/SwapsFeatureIdProvider';
 import { BridgeTabKey } from '../Bridge/Views/BridgeView/BridgeView.constants';
 import type { buildGenericQuoteRequest } from '../Bridge/providers/SwapQuotesProvider/utils';
@@ -65,7 +66,7 @@ export const QuickBuyQuotesSession = ({
     <BridgeSessionContext.Provider value={value}>
       <SetQuoteParamsContext.Provider value={setQuoteParams}>
         <SwapsFeatureIdProvider featureId={featureId}>
-          {children}
+          <SwapQuotesProvider>{children}</SwapQuotesProvider>
         </SwapsFeatureIdProvider>
       </SetQuoteParamsContext.Provider>
     </BridgeSessionContext.Provider>

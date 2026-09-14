@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useMemo } from 'react';
+import React, { createContext, useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber as EthersBigNumber } from 'ethers';
 
@@ -53,8 +53,10 @@ interface UseQuoteRequestParams
  * Hook for handling bridge quote request updates
  * @returns An object with a debounced function to update quote parameters and a function to refresh quotes
  */
-const useQuoteRequest = (params: UseQuoteRequestParams) => {
-  const { quoteParams, latestSourceAtomicBalance } = params;
+const useQuoteRequest = (
+  params: UseQuoteRequestParams & { isActive?: boolean },
+) => {
+  const { quoteParams, latestSourceAtomicBalance, isActive = true } = params;
   const {
     srcAmount,
     srcToken,
@@ -126,6 +128,13 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
     rawSrcAmount: srcAmount,
   });
 
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+    debouncedUpdateQuoteParams();
+  }, [debouncedUpdateQuoteParams, isActive]);
+
   const refreshQuotes = useCallback(() => {
     debouncedUpdateQuoteParams({ isRefresh: true });
   }, [debouncedUpdateQuoteParams]);
@@ -144,9 +153,12 @@ const useQuoteData = ({
   quoteParams,
   isActive,
 }: UseQuoteDataParams) => {
-  const { quoteFetchError, quotesLoadingStatus } = useSelector(
-    selectBridgeControllerState,
-  );
+  const {
+    quoteFetchError,
+    quotesLoadingStatus,
+    quotesLastFetched,
+    quotesRefreshCount,
+  } = useSelector(selectBridgeControllerState);
 
   // Resolve active quote and availability status
   const {
@@ -185,7 +197,9 @@ const useQuoteData = ({
       isNoQuotesAvailable,
       needsNewQuote,
       quoteFetchError,
+      quotesLastFetched,
       quotesLoadingStatus,
+      quotesRefreshCount,
       shouldShowPriceImpactWarning,
       validQuotes,
       willRefresh,
@@ -202,7 +216,9 @@ const useQuoteData = ({
       isNoQuotesAvailable,
       needsNewQuote,
       quoteFetchError,
+      quotesLastFetched,
       quotesLoadingStatus,
+      quotesRefreshCount,
       shouldShowPriceImpactWarning,
       validQuotes,
       willRefresh,
@@ -249,7 +265,10 @@ export const SwapQuotesProvider = ({
     debounceWait: DEBOUNCE_WAIT,
   };
 
-  const requestData = useQuoteRequest(resolvedParams);
+  const requestData = useQuoteRequest({
+    ...resolvedParams,
+    isActive,
+  });
   const quoteData = useQuoteData({
     ...resolvedParams,
     isActive,

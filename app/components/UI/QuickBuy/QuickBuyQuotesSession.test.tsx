@@ -17,6 +17,15 @@ jest.mock('../Bridge/hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
 
+jest.mock('../Bridge/providers/SwapQuotesProvider', () => {
+  const ReactActual = jest.requireActual<typeof React>('react');
+  return {
+    SwapQuotesProvider: ({ children }: { children: React.ReactNode }) =>
+      children,
+    SwapQuotesContext: ReactActual.createContext(null),
+  };
+});
+
 const srcToken = {
   address: '0x1111111111111111111111111111111111111111',
   decimals: 18,

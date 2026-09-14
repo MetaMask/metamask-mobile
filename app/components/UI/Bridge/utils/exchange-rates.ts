@@ -238,6 +238,28 @@ interface GetDisplayCurrencyValueParams extends CalcTokenFiatValueParams {
   currentCurrency: string;
 }
 
+export const getDisplayCurrencyValueForFiat = ({
+  valueInCurrency,
+  currentCurrency,
+}: {
+  valueInCurrency?: string;
+  currentCurrency: string;
+}): string => {
+  if (!valueInCurrency) {
+    return formatCurrency('0', currentCurrency);
+  }
+
+  const formattedCurrencyValue = formatCurrency(
+    valueInCurrency,
+    currentCurrency,
+  );
+  if (Number(valueInCurrency) >= 0.01 || Number(valueInCurrency) === 0) {
+    return formattedCurrencyValue;
+  }
+
+  return `< ${formatCurrency('0.01', currentCurrency)}`;
+};
+
 export const getDisplayCurrencyValue = ({
   token,
   amount,
@@ -256,16 +278,11 @@ export const getDisplayCurrencyValue = ({
     nonEvmMultichainAssetRates,
   });
 
-  if (!token || !amount) {
-    return formatCurrency('0', currentCurrency);
-  }
-
-  const formattedCurrencyValue = formatCurrency(currencyValue, currentCurrency);
-  if (currencyValue >= 0.01 || currencyValue === 0) {
-    return formattedCurrencyValue;
-  }
-
-  return `< ${formatCurrency('0.01', currentCurrency)}`;
+  return getDisplayCurrencyValueForFiat({
+    valueInCurrency:
+      token && currencyValue ? currencyValue.toString() : undefined,
+    currentCurrency,
+  });
 };
 
 /**

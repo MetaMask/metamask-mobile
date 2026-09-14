@@ -73,6 +73,15 @@ jest.mock('../../Bridge/hooks/useSwapQuotes', () => ({
   useSwapQuotes: jest.fn(() => null),
 }));
 
+jest.mock('../../Bridge/providers/SwapQuotesProvider', () => {
+  const ReactActual = jest.requireActual<typeof React>('react');
+  return {
+    SwapQuotesProvider: ({ children }: { children: React.ReactNode }) =>
+      children,
+    SwapQuotesContext: ReactActual.createContext(null),
+  };
+});
+
 jest.mock('../../Bridge/hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
 }));
@@ -313,7 +322,7 @@ describe('useQuickBuyController quote session', () => {
       srcAmount: undefined,
       slippage: '0.5',
       walletAddress: '0xWALLET',
-      destWalletAddress: undefined,
+      destWalletAddress: '0xWALLET',
     });
   });
 });

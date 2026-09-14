@@ -29,4 +29,6 @@ export const MIGRATED_FEATURE_IDS: FeatureId[] = [
   FeatureId.QUICK_BUY_EXPLORE,
   FeatureId.QUICK_BUY_FOLLOW_TRADING,
   FeatureId.QUICK_BUY_TOKEN_DETAILS,
+  // Quick Buy with no analytics source.
+  FeatureId.UNKNOWN,
 ];

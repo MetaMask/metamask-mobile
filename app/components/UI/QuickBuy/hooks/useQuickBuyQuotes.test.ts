@@ -70,8 +70,10 @@ jest.mock('../utils/streamQuickBuyQuotes', () => ({
   streamQuickBuyQuotes: jest.fn(),
 }));
 
-jest.mock('../../Bridge/hooks/useSwapQuotes/utils', () => {
-  const actual = jest.requireActual('../../Bridge/hooks/useSwapQuotes/utils');
+jest.mock('../../Bridge/providers/SwapQuotesProvider/utils', () => {
+  const actual = jest.requireActual(
+    '../../Bridge/providers/SwapQuotesProvider/utils',
+  );
 
   return {
     ...actual,

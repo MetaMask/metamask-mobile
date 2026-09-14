@@ -13,6 +13,8 @@ import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import I18n from '../../../../../../locales/i18n';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { getDisplayCurrencyValueForFiat } from '../../utils/exchange-rates';
 
 /**
  * Hook for formatting quote-related data
@@ -53,6 +55,11 @@ export const useFormattedQuoteData = ({
   const priceImpactFiat = usePriceImpactFiat(activeQuote);
   const networkFee = useFormattedNetworkFee(activeQuote);
   const slippage = quoteParams.slippage;
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const minimumReceivedFiat = getDisplayCurrencyValueForFiat({
+    valueInCurrency: activeQuote?.quote.dest.minAmountValueInCurrency,
+    currentCurrency,
+  });
 
   const quoteRate =
     Number(quoteParams.srcAmount) === 0
@@ -100,6 +107,7 @@ export const useFormattedQuoteData = ({
       priceImpact: priceImpactPercentage,
       priceImpactFiat,
       slippage: slippage ? `${slippage}%` : 'Auto',
+      minimumReceivedFiat,
     };
   }, [
     activeQuote,
@@ -110,6 +118,7 @@ export const useFormattedQuoteData = ({
     locale,
     networkFee,
     priceImpactFiat,
+    minimumReceivedFiat,
   ]);
 
   const shouldShowPriceImpactWarning = Boolean(
