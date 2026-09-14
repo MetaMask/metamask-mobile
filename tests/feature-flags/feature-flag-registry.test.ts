@@ -419,6 +419,12 @@ describe('Feature Flag Registry', () => {
       for (const flagName of addedFlagNames) {
         expect(getRegistryEntry(flagName)?.inProd).toBe(true);
       }
+      expect(
+        getRegistryEntry('networkAssetsSnapsMigrationSolana')?.status,
+      ).toBe(FeatureFlagStatus.Active);
+      expect(
+        getRegistryEntry('networkAssetsSnapsMigrationStellar')?.status,
+      ).toBe(FeatureFlagStatus.Active);
     });
 
     it('version-gates global watchlist on at 8.9.0 and price alerts on at 8.2.0', () => {
