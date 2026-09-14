@@ -91,12 +91,12 @@ import { useTransactionsQuery } from './useTransactionsQuery';
 import { type ActivityListItem } from './types';
 import {
   getGroupedActivityListItemKey,
-  getLastEvmItemIndex,
   groupActivityListItems,
   preferLocalOrApiActivityItem,
   type ActivityKind,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
+import { getLastEvmItemIndex } from '../../../util/activity-adapters/activity-list-helpers';
 import {
   mergeTransactionsByTime,
   mapNonEvmTransactions,
@@ -239,13 +239,16 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     }
     const shouldMountPredictSource =
       isPredictEnabled && predictActivatedRef.current;
-    const predict = usePredictActivityItems({
+    const predictSource = usePredictActivityItems({
       enabled: shouldMountPredictSource,
     });
     const localTransactions = useSelector(selectLocalTransactions);
     const localTransactionByLookupKey = useMemo(() => {
       const byKey = new Map<string, TransactionMeta>();
       for (const tx of localTransactions) {
+        if (!('id' in tx) || !('txParams' in tx) || !tx.txParams) {
+          continue;
+        }
         if (tx.id) {
           byKey.set(String(tx.id).toLowerCase(), tx);
         }
@@ -485,7 +488,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         confirmedEvmItems,
         nonEvmItems,
         isPerpsEnabled ? perps.items : [],
-        isPredictEnabled ? predict.items : [],
+        isPredictEnabled ? predictSource.items : [],
         rampActivityItems,
       );
 
@@ -516,7 +519,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       isPerpsEnabled,
       perps.items,
       isPredictEnabled,
-      predict.items,
+      predictSource.items,
       rampActivityItems,
     ]);
     const groupedData = useMemo(() => groupActivityListItems(data), [data]);
@@ -675,7 +678,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         Boolean(perps.isFetchingMore)) ||
       (isPredictEnabled &&
         predictRelevantForFilter &&
-        Boolean(predict.isFetchingMore));
+        Boolean(predictSource.isFetchingMore));
 
     const footerComponent = useMemo(() => {
       if (isFetchingMoreActivity) {
@@ -748,7 +751,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     } = useUnifiedTxActions();
 
     const perpsRefetch = perps.refetch;
-    const predictRefetch = predict.refetch;
+    const predictRefetch = predictSource.refetch;
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
       try {
@@ -799,6 +802,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       [goToBuy, navigation],
     );
 
+    // Index of the last API-confirmed EVM item — used to trigger pagination.
     const lastConfirmedEvmIndex = useMemo(
       () =>
         getLastEvmItemIndex(
@@ -857,10 +861,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (
           isPredictEnabled &&
           predictRelevantForFilter &&
-          predict.hasMore &&
-          !predict.isFetchingMore
+          predictSource.hasMore &&
+          !predictSource.isFetchingMore
         ) {
-          predict.loadMore();
+          predictSource.loadMore?.();
         }
       },
       [
@@ -875,7 +879,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         perps,
         isPredictEnabled,
         predictRelevantForFilter,
-        predict,
+        predictSource,
       ],
     );
 
@@ -892,7 +896,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     );
 
     const isPerpsLoading = perps.isLoading;
-    const isPredictLoading = shouldMountPredictSource && predict.isLoading;
+    const isPredictLoading =
+      shouldMountPredictSource && predictSource.isLoading;
     const isRelevantActivityLoading = (() => {
       switch (typeFilter) {
         case ActivityTypeFilter.Perps:

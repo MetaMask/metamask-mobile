@@ -323,7 +323,6 @@ function enrichLocalActivityKind(
         type: 'claim',
         data: {
           from,
-          to,
           ...(fees ? { fees } : {}),
         },
       };
@@ -352,6 +351,7 @@ function enrichLocalActivityKind(
         ...activity,
         type: 'lendingWithdrawal',
         data: {
+          from,
           ...(fees ? { fees } : {}),
         },
       };
@@ -417,6 +417,8 @@ function enrichLocalActivityKind(
         ? 'predictionsAddFunds'
         : 'predictionsWithdrawFunds',
       data: {
+        from,
+        to,
         token: fundsTx
           ? getPredictFundsToken(
               fundsTx,

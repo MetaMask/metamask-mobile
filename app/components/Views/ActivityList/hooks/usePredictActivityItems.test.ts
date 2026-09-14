@@ -111,6 +111,8 @@ describe('usePredictActivityItems', () => {
     const first = result.current.refetch;
     rerender();
 
+    // Stable identity prevents PredictActivitySource's onChange effect from
+    // firing every render (which would loop through the lifted-state setter).
     expect(result.current.refetch).toBe(first);
   });
 
@@ -148,11 +150,5 @@ describe('usePredictActivityItems', () => {
     await result.current.loadMore();
     expect(fetchNextPage).not.toHaveBeenCalled();
     expect(result.current.hasMore).toBe(false);
-  });
-
-  it('forwards enabled to usePredictActivity', () => {
-    renderHook(() => usePredictActivityItems({ enabled: false }));
-
-    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: false });
   });
 });

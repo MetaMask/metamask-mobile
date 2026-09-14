@@ -261,8 +261,10 @@ export const getGroupedActivityListItemKey = (
     return `date-header-${item.date}`;
   }
 
-  const identity = item.item.hash ?? String(index);
-  return `${item.item.chainId ?? ''}:${item.item.timestamp}:${item.item.type}:${identity}`;
+  const { chainId = '', timestamp, type, hash } = item.item;
+  const identity = hash ?? String(index);
+
+  return `${chainId}:${timestamp}:${type}:${identity}`;
 };
 
 function parseDate(timestamp: number) {

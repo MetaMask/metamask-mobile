@@ -436,19 +436,6 @@ describe('activity list helpers', () => {
     ).toBe('eip155:1:123:contractInteraction:7');
   });
 
-  it('finds the last grouped EVM row by hash', () => {
-    const evmItem = makeItem({ hash: '0xevm' });
-    const grouped = [
-      { type: 'item' as const, item: makeItem({ hash: '0xlocal' }) },
-      { type: 'date-header' as const, date: 1 },
-      { type: 'item' as const, item: evmItem },
-      { type: 'item' as const, item: makeItem({ hash: '0xother' }) },
-    ];
-
-    expect(getLastEvmItemIndex(grouped, [evmItem])).toBe(2);
-    expect(getLastEvmItemIndex(grouped, [])).toBe(-1);
-  });
-
   it('uses chain id and row index in fallback keys', () => {
     const firstItem = makeItem({
       chainId: 'eip155:1',

@@ -3,13 +3,8 @@ import type { ActivityListItem } from '../../../util/activity-adapters';
 import type { ActivityDetailsParams } from '../ActivityDetails/ActivityDetails.types';
 
 /**
- * Route params for the redesigned `ActivityDetails` screen, or `null` when the
- * row has no stable identifier — callers then fall back to their legacy detail
- * flow. Shared so every list routes identically.
- *
- * Uses `item.hash`. `mapLocalTransaction` already sets that to `TransactionMeta.id`
- * when there is no on-chain hash yet (pending / STX). Details rematch live
- * sources by that identifier.
+ * ActivityDetails route, or null if the row has no hash. Uses `item.hash`.
+ * Pending locals with no on-chain hash already have that set to the meta id.
  */
 export function getActivityDetailsRoute(
   item: ActivityListItem,

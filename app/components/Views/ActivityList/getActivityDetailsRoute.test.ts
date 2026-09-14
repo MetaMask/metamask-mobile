@@ -61,6 +61,8 @@ describe('getActivityDetailsRoute', () => {
       type: 'bridge',
     });
 
+    // Bridges used to be excluded in favour of the legacy bridge-status
+    // screen, which predates the BridgeDetails template.
     expect(getActivityDetailsRoute(bridgeItem)).toEqual(
       expect.objectContaining({ txIdentifier: 'bridge-meta-1' }),
     );

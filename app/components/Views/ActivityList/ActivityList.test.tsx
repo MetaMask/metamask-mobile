@@ -824,47 +824,50 @@ describe('ActivityList', () => {
       originalType?: TransactionType;
       initialTransactionType?: TransactionType;
     } = {},
-  ) => ({
-    type: 'contractInteraction' as const,
-    chainId: 'eip155:1',
-    status: 'pending' as const,
-    timestamp: 9,
-    hash: '0xperpsdep',
-    data: { from: '0xevm', to: '0xusdc' },
-    raw: {
-      type: 'localTransaction',
-      data: {
-        primaryTransaction: {
+  ) => {
+    const primaryTransaction = {
+      chainId: '0x1',
+      hash: '0xperpsdep',
+      id: 'perps-dep-id',
+      type: txType,
+      ...(options.originalType ? { originalType: options.originalType } : {}),
+      ...(options.nestedTxTypes
+        ? {
+            nestedTransactions: options.nestedTxTypes.map((type) => ({
+              type,
+            })),
+          }
+        : {}),
+      txParams: { from: '0xevm', nonce: '0x1' },
+    };
+    const initialTransaction = options.initialTransactionType
+      ? {
           chainId: '0x1',
-          hash: '0xperpsdep',
-          id: 'perps-dep-id',
-          type: txType,
-          ...(options.originalType
-            ? { originalType: options.originalType }
-            : {}),
-          ...(options.nestedTxTypes
-            ? {
-                nestedTransactions: options.nestedTxTypes.map((type) => ({
-                  type,
-                })),
-              }
-            : {}),
+          hash: '0xperpsdep-initial',
+          id: 'perps-dep-id-initial',
+          type: options.initialTransactionType,
           txParams: { from: '0xevm', nonce: '0x1' },
+        }
+      : undefined;
+    selectorValues.localTransactions = initialTransaction
+      ? [primaryTransaction, initialTransaction]
+      : [primaryTransaction];
+    return {
+      type: 'contractInteraction' as const,
+      chainId: 'eip155:1',
+      status: 'pending' as const,
+      timestamp: 9,
+      hash: '0xperpsdep',
+      data: { from: '0xevm', to: '0xusdc' },
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction,
+          ...(initialTransaction ? { initialTransaction } : {}),
         },
-        ...(options.initialTransactionType
-          ? {
-              initialTransaction: {
-                chainId: '0x1',
-                hash: '0xperpsdep-initial',
-                id: 'perps-dep-id-initial',
-                type: options.initialTransactionType,
-                txParams: { from: '0xevm', nonce: '0x1' },
-              },
-            }
-          : {}),
       },
-    },
-  });
+    };
+  };
 
   it.each([
     ['perpsDeposit', TransactionType.perpsDeposit],
@@ -874,9 +877,9 @@ describe('ActivityList', () => {
     'suppresses the generic EVM copy of a %s tx when perps is enabled',
     (_label, txType) => {
       selectorValues.perpsEnabled = true;
-      const item = makePerpsLocalTx(txType);
-      selectorValues.localTransactions = [item.raw.data.primaryTransaction];
-      (useLocalActivityItems as jest.Mock).mockReturnValue([item]);
+      (useLocalActivityItems as jest.Mock).mockReturnValue([
+        makePerpsLocalTx(txType),
+      ]);
       (useTransactionsQuery as jest.Mock).mockReturnValue({
         data: { pages: [{ data: [] }] },
         fetchNextPage: mockFetchNextPage,
@@ -894,11 +897,11 @@ describe('ActivityList', () => {
 
   it('suppresses the generic EVM copy of a batch-wrapped perps withdraw when perps is enabled', () => {
     selectorValues.perpsEnabled = true;
-    const item = makePerpsLocalTx(TransactionType.batch, {
-      nestedTxTypes: [TransactionType.perpsWithdraw],
-    });
-    selectorValues.localTransactions = [item.raw.data.primaryTransaction];
-    (useLocalActivityItems as jest.Mock).mockReturnValue([item]);
+    (useLocalActivityItems as jest.Mock).mockReturnValue([
+      makePerpsLocalTx(TransactionType.batch, {
+        nestedTxTypes: [TransactionType.perpsWithdraw],
+      }),
+    ]);
     (useTransactionsQuery as jest.Mock).mockReturnValue({
       data: { pages: [{ data: [] }] },
       fetchNextPage: mockFetchNextPage,
@@ -923,15 +926,12 @@ describe('ActivityList', () => {
     'suppresses the generic EVM copy of a %s perps deposit when perps is enabled',
     (_label, replacementType) => {
       selectorValues.perpsEnabled = true;
-      const item = makePerpsLocalTx(replacementType, {
-        originalType: TransactionType.perpsDeposit,
-        initialTransactionType: TransactionType.perpsDeposit,
-      });
-      selectorValues.localTransactions = [
-        item.raw.data.primaryTransaction,
-        item.raw.data.initialTransaction,
-      ].filter(Boolean);
-      (useLocalActivityItems as jest.Mock).mockReturnValue([item]);
+      (useLocalActivityItems as jest.Mock).mockReturnValue([
+        makePerpsLocalTx(replacementType, {
+          originalType: TransactionType.perpsDeposit,
+          initialTransactionType: TransactionType.perpsDeposit,
+        }),
+      ]);
       (useTransactionsQuery as jest.Mock).mockReturnValue({
         data: { pages: [{ data: [] }] },
         fetchNextPage: mockFetchNextPage,
@@ -949,9 +949,9 @@ describe('ActivityList', () => {
 
   it('keeps the generic EVM copy of a perps deposit when perps is disabled', () => {
     selectorValues.perpsEnabled = false;
-    const item = makePerpsLocalTx(TransactionType.perpsDeposit);
-    selectorValues.localTransactions = [item.raw.data.primaryTransaction];
-    (useLocalActivityItems as jest.Mock).mockReturnValue([item]);
+    (useLocalActivityItems as jest.Mock).mockReturnValue([
+      makePerpsLocalTx(TransactionType.perpsDeposit),
+    ]);
     (useTransactionsQuery as jest.Mock).mockReturnValue({
       data: { pages: [{ data: [] }] },
       fetchNextPage: mockFetchNextPage,

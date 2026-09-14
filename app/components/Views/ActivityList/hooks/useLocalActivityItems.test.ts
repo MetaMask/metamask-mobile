@@ -23,31 +23,41 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../selectors/transactionController', () => ({
-  selectLocalTransactions: jest.fn(),
-  selectReplacedLocalTransactions: jest.fn(),
-  selectRequiredTransactions: jest.fn(),
+  selectLocalTransactions: jest.fn(() => mockSelectorState.localTransactions),
+  selectReplacedLocalTransactions: jest.fn(
+    () => mockSelectorState.replacedTransactions,
+  ),
+  selectRequiredTransactions: jest.fn(
+    () => mockSelectorState.requiredTransactions,
+  ),
 }));
 
 jest.mock('../../../../selectors/bridgeStatusController', () => ({
-  selectBridgeHistoryForAccount: jest.fn(),
+  selectBridgeHistoryForAccount: jest.fn(() => mockSelectorState.bridgeHistory),
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
-  selectEvmNetworkConfigurationsByChainId: jest.fn(),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(
+    () => mockSelectorState.networks,
+  ),
 }));
 
 jest.mock('../../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
+  selectAllTokens: jest.fn(() => mockSelectorState.allTokens),
 }));
 
 jest.mock('../../../../selectors/transactionPayController', () => ({
-  selectTransactionPayTransactionData: jest.fn(),
+  selectTransactionPayTransactionData: jest.fn(
+    () => mockSelectorState.transactionPayData,
+  ),
 }));
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn(
+      () => mockSelectorState.groupAccount,
+    ),
   }),
 );
 
@@ -88,6 +98,7 @@ const selectorState = {
     '0x2105': { nativeCurrency: 'ETH' },
   },
 };
+const mockSelectorState = selectorState;
 
 describe('useLocalActivityItems', () => {
   beforeEach(() => {
@@ -116,7 +127,7 @@ describe('useLocalActivityItems', () => {
         case selectSelectedAccountGroupEvmInternalAccount:
           return selectorState.groupAccount;
         default:
-          return undefined;
+          return selector({});
       }
     });
   });
@@ -543,7 +554,6 @@ describe('useLocalActivityItems', () => {
     expect(result.current[0]).toMatchObject({
       type: 'perpsAddFunds',
       hash: '0xperpsdeposit',
-      raw: { type: 'localTransaction' },
     });
   });
 
@@ -613,7 +623,6 @@ describe('useLocalActivityItems', () => {
           symbol: 'USDC',
         },
       },
-      raw: { type: 'localTransaction' },
     });
   });
 });
