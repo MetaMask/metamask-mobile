@@ -900,6 +900,19 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Watchlist Filtering', () => {
+    it('forces watchlist-only off while the Watchlist V2 flag is disabled', () => {
+      mockUseRoute.mockReturnValue({
+        name: 'PerpsMarketListView',
+        params: { showWatchlistOnly: true },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(mockUsePerpsMarketListView).toHaveBeenCalledWith(
+        expect.objectContaining({ showWatchlistOnly: false }),
+      );
+    });
+
     it('shows all markets when showWatchlistOnly is false', () => {
       // Mock watchlistMarkets to only include BTC
       const { selectPerpsWatchlistMarkets } = jest.requireMock(

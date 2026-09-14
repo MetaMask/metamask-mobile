@@ -409,6 +409,8 @@ class AuthenticationService {
     // Restore vault with empty password
     await KeyringController.submitPassword('');
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      Engine.context.AuthenticationController.clearState();
       await SeedlessOnboardingController.clearState();
     }
     await this.resetPassword();
@@ -630,18 +632,11 @@ class AuthenticationService {
     isQrSync: boolean = false,
   ): Promise<void> => {
     try {
-      const primaryEntropySource = await this.newWalletVaultAndRestore(
-        password,
-        parsedSeed,
-        clearEngine,
-      );
+      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 
       await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
-        Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
-          primaryEntropySource,
-        );
         await Engine.context.QrSyncController.importRemainingSecrets();
       }
 
@@ -1105,6 +1100,11 @@ class AuthenticationService {
     } catch (error) {
       // Clear vault backups BEFORE creating temporary wallet
       await clearAllVaultBackups();
+
+      // Sign out and re-arm profile/social pairing for the next wallet.
+      // Must run before the temporary vault unlocks so pairing/sync cannot
+      // attach that wallet to the previous profile.
+      Engine.context.AuthenticationController.clearState();
 
       // Disable automatic vault backups during OAuth error recovery
       EngineClass.disableAutomaticVaultBackup = true;
@@ -1719,7 +1719,7 @@ class AuthenticationService {
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
-    clearBrazeUser();
+    await clearBrazeUser();
     await this.resetWalletState();
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state
@@ -1750,6 +1750,11 @@ class AuthenticationService {
       Engine.context.CardController.setResetInProgress(true);
 
       try {
+        // Sign out and re-arm profile/social pairing for the next wallet.
+        // Must run before the temporary vault unlocks so pairing/sync cannot
+        // attach that wallet to the previous profile.
+        Engine.context.AuthenticationController.clearState();
+
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
         });

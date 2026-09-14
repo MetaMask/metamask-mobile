@@ -528,7 +528,7 @@ describe('TraderProfileView', () => {
 
   const runDeferredSetupAction = async () => {
     const setupCall = mockNavigate.mock.calls.find(
-      ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      ([route]) => route === Routes.SOCIAL.TRADING_SIGNALS_SETUP,
     );
     const onSetupComplete = setupCall?.[1]?.onSetupComplete;
     await act(async () => {
@@ -555,7 +555,7 @@ describe('TraderProfileView', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.objectContaining({ onSetupComplete: expect.any(Function) }),
     );
     expect(mockToggleFollow).not.toHaveBeenCalled();
@@ -593,7 +593,7 @@ describe('TraderProfileView', () => {
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.anything(),
     );
   });
@@ -633,7 +633,7 @@ describe('TraderProfileView', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.objectContaining({ onSetupComplete: expect.any(Function) }),
     );
     expect(mockToggleTraderNotification).not.toHaveBeenCalled();
@@ -694,7 +694,7 @@ describe('TraderProfileView', () => {
     expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      Routes.SOCIAL.TRADING_SIGNALS_SETUP,
       expect.anything(),
     );
   });
@@ -723,20 +723,17 @@ describe('TraderProfileView', () => {
 
     fireEvent.press(screen.getByTestId('position-row-STARKBOT'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SOCIAL_LEADERBOARD.POSITION,
-      {
-        traderId: 'trader-1',
-        traderName: 'trader1',
-        traderImageUrl: 'https://example.com/avatar.png',
-        traderAddress: '0xabc',
-        tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
-        position: fixtureOpenPositions[0],
-        source: 'profile_position',
-        originalEntryPoint: 'leaderboard',
-        isClosed: false,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
+      traderId: 'trader-1',
+      traderName: 'trader1',
+      traderImageUrl: 'https://example.com/avatar.png',
+      traderAddress: '0xabc',
+      tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
+      position: fixtureOpenPositions[0],
+      source: 'profile_position',
+      originalEntryPoint: 'leaderboard',
+      isClosed: false,
+    });
   });
 
   it('tracks Trader Profile Position Clicked with perps_market for a perp row', () => {

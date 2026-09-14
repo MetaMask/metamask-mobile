@@ -17,10 +17,7 @@ perfTest.describe(
     perfTest(
       'Asset View, SRP 1 + SRP 2 + SRP 3',
       { tag: '@assets-dev-team' },
-      async (
-        { currentDeviceDetails, driver, performanceTracker },
-        testInfo,
-      ) => {
+      async ({ currentDeviceDetails, performanceTracker }) => {
         await loginToAppPlaywright();
 
         const assetViewScreen = new TimerHelper(

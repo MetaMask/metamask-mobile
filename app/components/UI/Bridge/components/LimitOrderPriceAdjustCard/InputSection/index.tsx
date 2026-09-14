@@ -1,5 +1,14 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
-import { TextInput, TouchableOpacity } from 'react-native';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+} from 'react';
+import {
+  TextInput,
+  TouchableOpacity,
+  type TextInputSelectionChangeEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -31,6 +40,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
       executionType,
       quotedSymbol,
       isLimitFiatMode,
+      unitSymbol,
       onQuoteUnitPress,
       value,
       onInputPress,
@@ -65,8 +75,39 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
       : undefined;
     const displayValue =
       value && value !== '0' ? formatAmountWithLocaleSeparators(value) : value;
+    // The unit symbol is a non-editable suffix: it's appended to what is
+    // rendered in the input, but it's never part of the editable amount, so
+    // the caret is clamped to never move into or past it.
+    const numericDisplayValue = displayValue ?? '';
+    const maxCaretIndex = numericDisplayValue.length;
+    const inputDisplayValue =
+      unitSymbol && numericDisplayValue.length > 0
+        ? `${numericDisplayValue} ${unitSymbol}`
+        : numericDisplayValue;
+    const clampedSelection = selection
+      ? {
+          start: Math.min(selection.start, maxCaretIndex),
+          end: Math.min(selection.end, maxCaretIndex),
+        }
+      : selection;
+    const handleInputSelectionChange = useCallback(
+      (event: TextInputSelectionChangeEvent) => {
+        const { start, end } = event.nativeEvent.selection;
+        onSelectionChange?.({
+          ...event,
+          nativeEvent: {
+            ...event.nativeEvent,
+            selection: {
+              start: Math.min(start, maxCaretIndex),
+              end: Math.min(end, maxCaretIndex),
+            },
+          },
+        });
+      },
+      [maxCaretIndex, onSelectionChange],
+    );
     const { fontSize, onContainerLayout } = useAutoSizingFont({
-      text: `${inputPrefix ?? ''}${displayValue || '0'}`,
+      text: `${inputPrefix ?? ''}${inputDisplayValue || '0'}`,
     });
     const amountTextStyle = tw.style({
       fontSize,
@@ -158,15 +199,15 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             <Input
               ref={inputRef}
               testID={LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT}
-              value={displayValue}
+              value={inputDisplayValue}
               isStateStylesDisabled
               showSoftInputOnFocus={false}
               caretHidden={false}
               autoFocus={false}
               placeholder="0"
               textVariant={TextVariant.BodyMd}
-              selection={selection}
-              onSelectionChange={onSelectionChange}
+              selection={clampedSelection}
+              onSelectionChange={handleInputSelectionChange}
               onPressIn={onInputPress}
               onFocus={onInputPress}
               style={amountTextStyle}

@@ -3,10 +3,14 @@ import {
   MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME,
   selectIsBasicFunctionalityConsistent,
   selectIsBasicFunctionalityConsolidationEnabled,
+  selectIsSocialLoginBasicFunctionalityLocked,
   selectMobileUxBftcConsolidationFlagEnabled,
+  selectShouldShowBasicFunctionalityMigrationBottomSheet,
+  selectShouldShowBasicFunctionalityMigrationToast,
 } from './index';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
+import { AccountType } from '../../../constants/onboarding';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.60.0'),
@@ -162,6 +166,79 @@ describe('basicFunctionalityConsolidation selectors', () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('migration notification selectors', () => {
+    it('shows only the scheduled bottom sheet', () => {
+      expect(
+        selectShouldShowBasicFunctionalityMigrationBottomSheet.resultFunc(
+          'bottom-sheet',
+          false,
+        ),
+      ).toBe(true);
+      expect(
+        selectShouldShowBasicFunctionalityMigrationToast.resultFunc(
+          'bottom-sheet',
+          false,
+        ),
+      ).toBe(false);
+    });
+
+    it('shows a pending toast after a feature-flag rollback', () => {
+      expect(
+        selectShouldShowBasicFunctionalityMigrationToast.resultFunc(
+          'toast',
+          false,
+        ),
+      ).toBe(true);
+    });
+
+    it('does not show a dismissed toast', () => {
+      expect(
+        selectShouldShowBasicFunctionalityMigrationToast.resultFunc(
+          'toast',
+          true,
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('selectIsSocialLoginBasicFunctionalityLocked', () => {
+    it('locks Basic Functionality for a social-login user during rollout', () => {
+      expect(
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
+          true,
+          AccountType.MetamaskGoogle,
+          undefined,
+          false,
+        ),
+      ).toBe(true);
+    });
+
+    it('keeps an off social-login toggle enabled for recovery', () => {
+      expect(
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
+          false,
+          AccountType.MetamaskGoogle,
+          undefined,
+          false,
+        ),
+      ).toBe(false);
+    });
+
+    it('does not lock Basic Functionality for an SRP user', () => {
+      expect(
+        selectIsSocialLoginBasicFunctionalityLocked.resultFunc(
+          true,
+          true,
+          AccountType.Metamask,
+          undefined,
+          false,
+        ),
+      ).toBe(false);
     });
   });
 });

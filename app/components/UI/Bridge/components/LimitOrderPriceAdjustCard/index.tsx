@@ -1,5 +1,14 @@
 import React from 'react';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+import { LIMIT_ORDER_NEAR_MARKET_PERCENT } from '../../constants/limitOrders';
 import { LimitOrderPriceAdjustCardProps } from './types';
 import { InputSection } from './InputSection';
 import { ButtonPricePresetsSection } from './ButtonPricePresetsSection';
@@ -11,6 +20,7 @@ export const LimitOrderPriceAdjustCard = ({
   orderSide,
   quoteTokenSymbol,
   isLimitFiatMode,
+  priceUnitSymbol,
   onQuoteUnitPress,
   limitPrice,
   onLimitPriceInputPress,
@@ -19,6 +29,7 @@ export const LimitOrderPriceAdjustCard = ({
   secondaryLimitPrice,
   onAmountTypeTogglePress,
   marketComparison,
+  isTriggerPriceNearMarket = false,
   pricePresets,
   isCustomPercentActive,
   customPercent,
@@ -45,6 +56,7 @@ export const LimitOrderPriceAdjustCard = ({
         executionType={orderSide}
         quotedSymbol={quoteTokenSymbol}
         isLimitFiatMode={isLimitFiatMode}
+        unitSymbol={priceUnitSymbol}
         value={limitPrice}
         selection={limitPriceSelection}
         onSelectionChange={onLimitPriceSelectionChange}
@@ -69,5 +81,19 @@ export const LimitOrderPriceAdjustCard = ({
         onCustomSelectionChange={onCustomPercentSelectionChange}
       />
     </Box>
+    {isTriggerPriceNearMarket ? (
+      <BannerAlert
+        testID={LimitOrderPriceAdjustCardSelectorsIDs.NEAR_MARKET_WARNING}
+        severity={BannerAlertSeverity.Warning}
+        description={strings('bridge.limit.trigger_price_near_market', {
+          percent: LIMIT_ORDER_NEAR_MARKET_PERCENT,
+        })}
+        descriptionProps={{
+          variant: TextVariant.BodySm,
+          color: TextColor.TextDefault,
+        }}
+        twClassName="mt-3"
+      />
+    ) : null}
   </Box>
 );
