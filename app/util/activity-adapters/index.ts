@@ -51,6 +51,7 @@ export {
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
+  getLastEvmItemIndex,
   groupActivityListItems,
   isFailedOrCancelledTransfer,
   preferLocalOrApiActivityItem,

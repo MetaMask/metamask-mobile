@@ -12,6 +12,7 @@ import {
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
+import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
@@ -34,11 +35,15 @@ jest.mock('../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   })),
   findBridgeHistoryItemBySrcTxHash: jest.fn(),
 }));
+jest.mock('./useLocalTransactionMeta', () => ({
+  useLocalTransactionMeta: jest.fn(),
+}));
 
 const useLocalActivityItemsMock = jest.mocked(useLocalActivityItems);
 const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
+const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
 
 const rampOrder: FiatOrder = {
   id: 'ramp-order-id',
@@ -92,6 +97,7 @@ function setSources({
 describe('useActivityDetailsItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useLocalTransactionMetaMock.mockReturnValue(undefined);
     jest.mocked(useSelector).mockImplementation((selector) => {
       if (selector === selectSelectedAccountGroupInternalAccounts) {
         return [];
@@ -269,14 +275,11 @@ describe('useActivityDetailsItem', () => {
     const local = makeItem({
       type: 'send',
       hash: '0xnewhash',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-1', hash: '0xnewhash' },
-          initialTransaction: { id: 'meta-1', hash: '0xoldhash' },
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    });
+    useLocalTransactionMetaMock.mockReturnValue({
+      id: 'meta-1',
+      hash: '0xnewhash',
+    } as ReturnType<typeof useLocalTransactionMeta>);
     setSources({ local: [local] });
 
     const { result } = renderHook(() => useActivityDetailsItem('meta-1'));
