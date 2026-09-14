@@ -1,5 +1,6 @@
 import React from 'react';
 import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
+import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { useSwapQuotes } from './index';
 import { useBridgeSession } from '../useBridgeSession';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
@@ -146,6 +147,7 @@ const Wrapper = ({
   quoteRequestIndex,
   quoteRequestCount,
   featureId,
+  isActive,
   ...options
 }: {
   children: React.ReactNode;
@@ -153,6 +155,7 @@ const Wrapper = ({
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
   featureId: FeatureId;
+  isActive?: boolean;
 }) => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -162,7 +165,7 @@ const Wrapper = ({
   const destAddress = useSelector(selectDestAddress);
 
   mockUseBridgeSession.mockReturnValue({
-    selectedTab: BridgeTabKey.Limit,
+    selectedTab: isActive === false ? BridgeTabKey.Market : BridgeTabKey.Limit,
     renderedTab: BridgeTabKey.Limit,
     setSelectedTab: jest.fn(),
     setRenderedTab: jest.fn(),
@@ -183,20 +186,40 @@ const Wrapper = ({
         : undefined,
   });
 
-  return <SwapQuotesProvider>{children}</SwapQuotesProvider>;
+  return (
+    <SwapsFeatureIdProvider featureId={featureId}>
+      <SwapQuotesProvider>{children}</SwapQuotesProvider>
+    </SwapsFeatureIdProvider>
+  );
 };
 
 describe('useSwapQuotes', () => {
-  it('throws an error if used outside of SwapQuotesProvider', () => {
-    expect(() => renderHook(() => useSwapQuotes())).toThrow(
-      'useSwapQuotes must be used within SwapQuotesProvider',
-    );
+  it('returns null when rendered outside SwapQuotesProvider', () => {
+    const { result } = renderHook(() => useSwapQuotes());
+
+    expect(result.current).toBeNull();
   });
 
   it('returns null when the feature is not a migrated quote source', () => {
-    mockUseSwapsFeatureId.mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE);
+    const { result } = renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          {children}
+        </SwapsFeatureIdProvider>
+      ),
+    });
 
-    const { result } = renderHook(() => useSwapQuotes());
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null when the feature is migrated but SwapQuotesProvider is missing', () => {
+    const { result } = renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+          {children}
+        </SwapsFeatureIdProvider>
+      ),
+    });
 
     expect(result.current).toBeNull();
   });
@@ -236,4 +259,41 @@ runQuoteDataCases({
       ),
     }),
   featureId: FeatureId.LIMIT_ORDER,
+});
+
+runQuoteRequestCases({
+  name: 'useQuickBuyRequest',
+  debounceMs: mockDebounceMs,
+  renderHook: (options) =>
+    // @ts-expect-error - this returns a defined update function
+    renderHook(
+      () => {
+        const value = useSwapQuotes();
+        return value?.debouncedUpdateQuoteParams;
+      },
+      {
+        wrapper: ({ children }) => (
+          <Wrapper {...options} featureId={FeatureId.QUICK_BUY_EXPLORE}>
+            {children}
+          </Wrapper>
+        ),
+      },
+    ),
+  featureId: FeatureId.QUICK_BUY_EXPLORE,
+});
+
+runQuoteDataCases({
+  name: 'useQuickBuyQuoteData',
+  mockDispatch,
+
+  renderHook: (options) =>
+    // @ts-expect-error - this returns quote data
+    renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <Wrapper {...options} featureId={FeatureId.QUICK_BUY_FOLLOW_TRADING}>
+          {children}
+        </Wrapper>
+      ),
+    }),
+  featureId: FeatureId.QUICK_BUY_FOLLOW_TRADING,
 });

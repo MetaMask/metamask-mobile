@@ -141,6 +141,8 @@ export const useValidQuotes = ({
 
     const srcChainId = activeQuote.chainId;
 
+    if (!quoteParams.srcToken.chainId) return false;
+
     const quoteSourceAddress = isNonEvmChainId(quoteParams.srcToken.chainId)
       ? srcAsset.assetId
       : formatAddressToCaipReference(srcAsset.assetId);
@@ -161,6 +163,8 @@ export const useValidQuotes = ({
         dest: { asset: destAsset },
       } = quote.quote;
       const destChainId = parseCaipAssetType(destAsset.assetId).chainId;
+
+      if (!quoteParams.destToken.chainId) return false;
 
       // For non-EVM chains (e.g., Solana), destAsset.address is in raw format (e.g., "EPj...")
       // or zero address for native tokens, while destToken.address uses CAIP format

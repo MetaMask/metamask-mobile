@@ -3,6 +3,7 @@ import {
   formatChainIdToCaip,
   getNativeAssetForChainId,
   sumAmounts,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
 import {
@@ -55,10 +56,6 @@ import { useDestTokenExchangeRate } from './useDestTokenExchangeRate';
 import { usePayWithTokens } from './usePayWithTokens';
 import { usePositionTokenBalance } from './usePositionTokenBalance';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
-import {
-  useQuickBuyQuotes,
-  type EnrichedQuickBuyQuote,
-} from './useQuickBuyQuotes';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useReceiveTokens } from './useReceiveTokens';
 import I18n, { strings } from '../../../../../locales/i18n';
@@ -96,7 +93,6 @@ import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance'
 import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useIsNetworkFeeUnavailable } from '../../Bridge/hooks/useIsNetworkFeeUnavailable';
-import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
 import { usePriceImpactViewData } from '../../Bridge/hooks/usePriceImpactViewData';
 import { useRecipientInitialization } from '../../Bridge/hooks/useRecipientInitialization';
 import {
@@ -114,6 +110,9 @@ import {
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
+import { useBridgeSession } from '../../Bridge/hooks/useBridgeSession';
+import { useSetQuickBuyQuoteParams } from '../QuickBuyQuotesSession';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -135,7 +134,7 @@ export interface UseQuickBuyControllerResult {
   /** True when the user holds a non-zero balance of the position token (sell is viable). */
   hasSellableBalance: boolean;
   // active quote (for QuoteDetails sub-screen)
-  activeQuote: EnrichedQuickBuyQuote | undefined;
+  activeQuote: QuoteResponse | undefined;
   // setup
   destToken: BridgeToken | undefined;
   isSetupLoading: boolean;
@@ -200,7 +199,7 @@ export interface UseQuickBuyControllerResult {
   isSubmittingTx: boolean;
   isTotalLoading: boolean;
   // all quotes for the select-quote screen
-  sortedQuotes: EnrichedQuickBuyQuote[];
+  sortedQuotes: QuoteResponse[];
   selectedQuoteRequestId: string | undefined;
   setSelectedQuoteRequestId: React.Dispatch<
     React.SetStateAction<string | undefined>
@@ -694,18 +693,7 @@ export function useQuickBuyController(
       ? liveSelectedSourceBalance?.balance
       : positionToken?.balance;
 
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: liveSourceBalance,
-    // `useLatestBalance` does a one-shot on-chain RPC fetch that shadows the
-    // cached value until its token identity or this key changes. Keying it off
-    // the live balance itself means any change to the underlying balance — for
-    // ANY reason — triggers a fresh on-chain read and re-render, independent of
-    // QuickBuy's own state.
-    refreshKey: liveSourceBalance ?? '',
-  });
+  const { latestSourceBalance } = useBridgeSession();
 
   const sourceTokenAmount = useMemo(() => {
     // Max ("sell all"): spend the exact on-chain balance. `displayBalance` is
@@ -748,13 +736,6 @@ export function useQuickBuyController(
     }
   }, [sourceTokenAmount, dispatch]);
 
-  // Used for analytics passed to useQuickBuyQuotes. Must derive from
-  // quotedFiatAmount (not fiatAmount) so that mid-drag display updates don't
-  // recreate quotesAnalyticsContext and trigger spurious quote re-fetches.
-  const quotedFiatAmountNumber = useMemo(() => {
-    const v = Number(quotedFiatAmount);
-    return Number.isFinite(v) ? v : 0;
-  }, [quotedFiatAmount]);
   // Derives from fiatAmount for handleConfirm (the confirm button is disabled
   // when fiatAmount !== quotedFiatAmount, so by the time confirm is pressed they
   // are always equal — keeping separate avoids recreating handleConfirm on
@@ -763,40 +744,43 @@ export function useQuickBuyController(
     const v = Number(fiatAmount);
     return Number.isFinite(v) ? v : 0;
   }, [fiatAmount]);
-  // `amount_usd` analytics is contractually USD; the committed amount is in the
-  // user's display currency, so convert before it leaves for analytics.
-  const quotedAmountUsd = useMemo(
-    () => toAmountUsd(quotedFiatAmountNumber),
-    [toAmountUsd, quotedFiatAmountNumber],
-  );
-  const quotesAnalyticsContext = useMemo(
-    () => ({
-      traderAddress,
-      caip19,
-      amountUsd: quotedAmountUsd,
-      source: analyticsContext?.source,
-      originalEntryPoint: analyticsContext?.originalEntryPoint,
-    }),
-    [
-      traderAddress,
-      caip19,
-      quotedAmountUsd,
-      analyticsContext?.source,
-      analyticsContext?.originalEntryPoint,
-    ],
-  );
-
-  // When a buy pill exceeds balance the CTA routes to Ramp (Add funds) and no
-  // quote is ever used, so suppress the amount fed to the quotes hook. Passing
-  // undefined makes useQuickBuyQuotes short-circuit via its `!sourceTokenAmount`
-  // guard (resetQuotesIdle) — no bridge request and no blocking loading state,
-  // so the Add funds button is actionable immediately. The exported
-  // `sourceTokenAmount` is intentionally left untouched (still drives balance
-  // checks, the redux dispatch, and display).
+  // When a buy pill exceeds balance the CTA routes to Ramp. Suppress the
+  // amount so SwapQuotes does not start a request. The exported
+  // `sourceTokenAmount` still drives balance checks, redux, and display.
   const quotesSourceTokenAmount = isPresetAddFundsMode
     ? undefined
     : sourceTokenAmount;
 
+  const setQuoteParams = useSetQuickBuyQuoteParams();
+  useEffect(() => {
+    setQuoteParams({
+      srcToken: sourceToken
+        ? {
+            ...sourceToken,
+            ...(liveSourceBalance != null
+              ? { balance: liveSourceBalance }
+              : {}),
+          }
+        : sourceToken,
+      destToken,
+      srcAmount: quotesSourceTokenAmount,
+      slippage,
+      walletAddress: walletAddress ?? selectedAddress,
+      destWalletAddress: destAddress ?? selectedAddress ?? undefined,
+    });
+  }, [
+    setQuoteParams,
+    sourceToken,
+    liveSourceBalance,
+    destToken,
+    quotesSourceTokenAmount,
+    slippage,
+    walletAddress,
+    destAddress,
+    selectedAddress,
+  ]);
+
+  const maybeSwapQuotes = useSwapQuotes();
   const {
     activeQuote,
     sortedQuotes,
@@ -811,32 +795,55 @@ export function useQuickBuyController(
     quoteRefreshRateMs,
     maxRefreshCount,
     refetchQuotes,
-  } = useQuickBuyQuotes({
-    sourceToken,
-    destToken,
-    sourceTokenAmount: quotesSourceTokenAmount,
-    analyticsContext: quotesAnalyticsContext,
-    selectedQuoteRequestId,
-    immediateFetchToken,
-  });
+    formattedQuoteData,
+  } = maybeSwapQuotes
+    ? {
+        activeQuote: maybeSwapQuotes.activeQuote ?? undefined,
+        sortedQuotes: maybeSwapQuotes.validQuotes,
+        destTokenAmount: maybeSwapQuotes.destTokenAmount,
+        isQuoteLoading: maybeSwapQuotes.isLoading,
+        isNoQuotesAvailable: maybeSwapQuotes.isNoQuotesAvailable,
+        quoteFetchError: maybeSwapQuotes.quoteFetchError,
+        isActiveQuoteForCurrentTokenPair:
+          maybeSwapQuotes.isActiveQuoteForCurrentTokenPair,
+        isQuoteRequestStale:
+          maybeSwapQuotes.isExpired || maybeSwapQuotes.needsNewQuote,
+        quotesLastFetchedAt: maybeSwapQuotes.quotesLastFetched ?? null,
+        refreshCount: maybeSwapQuotes.quotesRefreshCount ?? 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: maybeSwapQuotes.refreshQuotes,
+        formattedQuoteData: maybeSwapQuotes.formattedQuoteData,
+      }
+    : {
+        activeQuote: undefined,
+        sortedQuotes: [] as QuoteResponse[],
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: () => undefined,
+        formattedQuoteData: undefined,
+      };
 
-  // Reset manual quote selection whenever the user changes amount, token, or slippage.
+  const prevImmediateFetchTokenRef = useRef(immediateFetchToken);
+  const flushQuoteParams = maybeSwapQuotes?.debouncedUpdateQuoteParams;
   useEffect(() => {
-    setSelectedQuoteRequestId(undefined);
-  }, [sourceToken, destToken, sourceTokenAmount, slippage]);
-
-  // Each fetch (including auto-refresh) returns quotes with new requestIds.
-  useEffect(() => {
-    if (!selectedQuoteRequestId) {
+    if (!flushQuoteParams) {
       return;
     }
-    const hasMatchingQuote = sortedQuotes.some(
-      (quote) => quote.quote.requestId === selectedQuoteRequestId,
-    );
-    if (!hasMatchingQuote) {
-      setSelectedQuoteRequestId(undefined);
+    if (prevImmediateFetchTokenRef.current === immediateFetchToken) {
+      return;
     }
-  }, [selectedQuoteRequestId, sortedQuotes]);
+    prevImmediateFetchTokenRef.current = immediateFetchToken;
+    flushQuoteParams.flush();
+  }, [flushQuoteParams, immediateFetchToken]);
 
   const handleSelectQuote = useCallback(
     (requestId: string) => {
@@ -866,8 +873,6 @@ export function useQuickBuyController(
     }
   }, [slippage, isSlippageUserOverride, trackSlippageChanged]);
 
-  const formattedNetworkFee = useFormattedNetworkFee(activeQuote ?? null);
-
   const networkFeeFiat = useMemo(() => {
     if (!activeQuote) return null;
     if (isGaslessQuote(activeQuote.quote)) {
@@ -882,6 +887,10 @@ export function useQuickBuyController(
     return null;
   }, [activeQuote]);
 
+  const rawNetworkFee = formattedQuoteData?.networkFee ?? networkFeeFiat;
+  const formattedNetworkFee =
+    rawNetworkFee == null ? '' : String(rawNetworkFee);
+
   const formattedSlippage = useMemo(() => {
     if (slippage == null) return 'Auto';
     return `${slippage}%`;
@@ -895,11 +904,7 @@ export function useQuickBuyController(
     return `${formatted} ${symbol}`;
   }, [activeQuote, destToken]);
 
-  const minReceivedTokenAmount = activeQuote?.quote?.dest?.minAmountNormalized;
-  const formattedMinimumReceivedFiat = useDisplayCurrencyValue(
-    minReceivedTokenAmount,
-    destToken,
-  );
+  const formattedMinimumReceivedFiat = formattedQuoteData?.minimumReceivedFiat;
 
   // Derive both sides of the ratio from the same activeQuote so the rate is
   // always internally consistent. Previously we mixed the live
@@ -908,6 +913,9 @@ export function useQuickBuyController(
   // dest amount), producing nonsensical rates during the in-flight window
   // between drag-end and the new quote arriving.
   const formattedRate = useMemo(() => {
+    if (formattedQuoteData?.rate) {
+      return formattedQuoteData.rate;
+    }
     if (!sourceToken || !destToken || !activeQuote || !estimatedReceiveAmount) {
       return undefined;
     }
@@ -926,13 +934,22 @@ export function useQuickBuyController(
         : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 },
     );
     return `1 ${sourceToken.symbol} = ${formattedRateValue} ${destToken.symbol}`;
-  }, [sourceToken, destToken, activeQuote, estimatedReceiveAmount]);
+  }, [
+    sourceToken,
+    destToken,
+    activeQuote,
+    estimatedReceiveAmount,
+    formattedQuoteData,
+  ]);
 
   const formattedPriceImpact = useMemo(() => {
+    if (formattedQuoteData?.priceImpact) {
+      return formattedQuoteData.priceImpact;
+    }
     const priceImpact = activeQuote?.quote?.priceData?.priceImpact?.amount;
     if (!priceImpact) return '-';
     return `${(Number(priceImpact) * 100).toFixed(2)}%`;
-  }, [activeQuote]);
+  }, [activeQuote, formattedQuoteData]);
 
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote?.priceData?.priceImpact?.amount,

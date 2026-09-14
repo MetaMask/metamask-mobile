@@ -25,6 +25,19 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
+jest.mock('../Bridge/hooks/useLatestBalance', () => ({
+  useLatestBalance: jest.fn(),
+}));
+
+jest.mock('../Bridge/providers/SwapQuotesProvider', () => {
+  const ReactActual = jest.requireActual<typeof React>('react');
+  return {
+    SwapQuotesProvider: ({ children }: { children: React.ReactNode }) =>
+      children,
+    SwapQuotesContext: ReactActual.createContext(null),
+  };
+});
+
 jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
   useQuickBuyQuickAmountPreferences: jest.fn(() => ({
     buyAmounts: [10, 50, 100, 250],

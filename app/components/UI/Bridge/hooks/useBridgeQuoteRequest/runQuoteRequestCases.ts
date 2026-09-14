@@ -104,11 +104,6 @@ export const runQuoteRequestCases = ({
   name: string;
   featureId: FeatureId;
 }) => {
-  /**
-   * @deprecated only use to preserve coverage for old hooks
-   */
-  const isCombinedQuoteHook = name === 'useQuoteRequest';
-
   const renderUseBridgeQuoteRequest = (
     overrides: Partial<BridgeState> = {},
     options?: {
@@ -191,37 +186,17 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      if (isCombinedQuoteHook) {
-        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
-          expect.objectContaining({
-            srcChainId: sourceToken?.chainId,
-            destChainId: mockBridgeReducerState.selectedDestChainId,
-            srcTokenAddress: sourceToken?.address ?? '',
-            destTokenAddress: destToken?.address ?? '',
-          }),
-          mockContext,
-          0,
-          1,
-        );
-      } else {
-        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
-          expect.objectContaining({
-            srcChainId: getDecimalChainId(sourceToken?.chainId),
-            destChainId: getDecimalChainId(
-              mockBridgeReducerState.selectedDestChainId,
-            ),
-            srcTokenAddress: formatAddressToCaipReference(
-              sourceToken?.address ?? '',
-            ),
-            destTokenAddress: formatAddressToCaipReference(
-              destToken?.address ?? '',
-            ),
-          }),
-          mockContext,
-          0,
-          1,
-        );
-      }
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          srcChainId: sourceToken?.chainId,
+          destChainId: destToken?.chainId,
+          srcTokenAddress: sourceToken?.address ?? '',
+          destTokenAddress: destToken?.address ?? '',
+        }),
+        mockContext,
+        0,
+        1,
+      );
     });
 
     it('starts the quote trace before the debounce delay', async () => {
@@ -525,7 +500,7 @@ export const runQuoteRequestCases = ({
         Number.isNaN(
           spyUpdateBridgeQuoteRequestParams.mock.calls[0][0].slippage,
         ),
-      ).toBe(!isCombinedQuoteHook);
+      ).toBe(false);
     });
 
     it('omits slippage from quote parameters for Auto', async () => {
@@ -636,7 +611,9 @@ export const runQuoteRequestCases = ({
       expect(mockTrace).not.toHaveBeenCalled();
     });
 
-    it('skips update when selectedDestChainId is missing even if destToken has a chainId', async () => {
+    it('updates using destToken.chainId when selectedDestChainId is missing', async () => {
+      const sourceToken = mockBridgeReducerState.sourceToken;
+      const destToken = mockBridgeReducerState.destToken;
       const { result } = renderUseBridgeQuoteRequest({
         selectedDestChainId: undefined,
       });
@@ -646,26 +623,21 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      if (isCombinedQuoteHook) {
-        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
-          expect.objectContaining({
-            destChainId: '0xa',
-            srcChainId: '0x1',
-            srcTokenAddress: '0x0000000000000000000000000000000000000000',
-            destTokenAddress: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
-          }),
-          mockContext,
-          0,
-          1,
-        );
-        expect(mockTrace).toHaveBeenCalled();
-      } else {
-        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
-        expect(mockTrace).not.toHaveBeenCalled();
-      }
+      expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          destChainId: destToken?.chainId,
+          srcChainId: sourceToken?.chainId,
+          srcTokenAddress: sourceToken?.address ?? '',
+          destTokenAddress: destToken?.address ?? '',
+        }),
+        mockContext,
+        0,
+        1,
+      );
+      expect(mockTrace).toHaveBeenCalled();
     });
 
-    it('updates using selectedDestChainId when destToken.chainId is missing', async () => {
+    it('skips update when destToken.chainId is missing', async () => {
       const { result } = renderUseBridgeQuoteRequest({
         destToken: {
           ...mockBridgeReducerState.destToken,
@@ -678,21 +650,8 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      if (isCombinedQuoteHook) {
-        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
-        expect(mockTrace).not.toHaveBeenCalled();
-      } else {
-        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
-        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
-          expect.objectContaining({
-            destChainId: '10',
-          }),
-          mockContext,
-          0,
-          1,
-        );
-        expect(mockTrace).toHaveBeenCalled();
-      }
+      expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      expect(mockTrace).not.toHaveBeenCalled();
     });
 
     // Public flush is a no-op unless a call is pending. Both request test
