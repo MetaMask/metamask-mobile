@@ -51,10 +51,15 @@ export const appProfilingFixture: Fixtures<
         return;
       }
 
-      // Probe the device so leftover segments from a previous session are not
-      // attributed to this test. Relies on fullReset in BrowserStack, but stays
-      // correct when that is off.
-      await resetAppProfilingSegments();
+      // Baseline probe is Android-only: it resolves appPackage + an
+      // /sdcard/Android/data/... path. iOS sessions expose bundleId instead, and
+      // Hermes export/pull is not implemented there (collectAppProfiling no-ops).
+      if (currentDeviceDetails.platform === 'android') {
+        // Probe so leftover segments from a previous session are not attributed
+        // to this test. Relies on fullReset in BrowserStack, but stays correct
+        // when that is off.
+        await resetAppProfilingSegments();
+      }
 
       const removeTerminateHook = onBeforeAppTerminate(async () => {
         await collectAppProfiling(testInfo, currentDeviceDetails.platform);
