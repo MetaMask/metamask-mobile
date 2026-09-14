@@ -158,6 +158,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
+  // Keep this stream-free: usePerpsNavigation is also used by screens that can
+  // mount outside PerpsStreamProvider (e.g. select-modify sheet in view tests).
+  // Tradable-symbol validation belongs in stream-backed flows such as
+  // usePerpsRecordMarketViewed.
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const navigateToHome = useCallback(

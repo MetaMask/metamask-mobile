@@ -109,17 +109,21 @@ jest.mock('./BridgeLimitOrderFooterView', () => ({
 
 jest.mock('../../../components/SwapsInputs', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, TextInput } = jest.requireActual('react-native');
+  const { View, Text, TextInput } = jest.requireActual('react-native');
 
   return {
     SwapsInputs: ({
       sourceTokenAreaTestID,
       destTokenAreaTestID,
+      destTokenAmount,
       onSourceInputPress,
+      onFlipPress,
     }: {
       sourceTokenAreaTestID?: string;
       destTokenAreaTestID?: string;
+      destTokenAmount?: string;
       onSourceInputPress?: () => void;
+      onFlipPress?: () => void;
     }) => (
       <View>
         <TextInput
@@ -129,6 +133,8 @@ jest.mock('../../../components/SwapsInputs', () => {
         <View testID={sourceTokenAreaTestID} />
         <View testID={destTokenAreaTestID} />
         <TextInput testID="limit-dest-token-area-input" />
+        <Text testID="limit-dest-token-amount">{destTokenAmount}</Text>
+        <View testID="limit-flip-tokens" onTouchEnd={onFlipPress} />
       </View>
     ),
   };
@@ -246,6 +252,7 @@ const mockHandleCustomPress = jest.fn();
 const mockFocusCustomPercent = jest.fn();
 const mockFocusAmount = jest.fn();
 const mockFocusLimitPrice = jest.fn();
+const mockHandleFlipTokensPress = jest.fn();
 
 let mockIsAmountFocused = false;
 let mockIsCustomPercentFocused = false;
@@ -254,11 +261,9 @@ let mockSourceAmount = '';
 function buildSwapInputsMock() {
   return {
     destToken: mockDestToken,
-    // Limit orders do not quote a destination amount.
-    destTokenAmount: '',
     enabledChainIds: ['eip155:1'] as CaipChainId[],
     handleDestTokenPress: jest.fn(),
-    handleFlipTokensPress: jest.fn(),
+    handleFlipTokensPress: mockHandleFlipTokensPress,
     handleSourceMaxPress: jest.fn(),
     handleSourcePresetAmountSelect: jest.fn(),
     handleSourceTokenPress: jest.fn(),
@@ -290,6 +295,7 @@ function buildSwapInputsMock() {
 function buildPriceAdjustMock() {
   return {
     commitCustomPercent: mockCommitCustomPercent,
+    counterFiatRate: undefined,
     counterToken: mockSourceToken,
     customValue: '',
     handleCustomPress: mockHandleCustomPress,
@@ -390,6 +396,51 @@ describe('BridgeLimitOrderView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.LIMIT_DEST_TOKEN_INPUT),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the destination amount the source amount buys at the limit price', () => {
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '3000',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    // 2 * 3000 = 6000, minus the 0.875% quote fee.
+    expect(getByTestId('limit-dest-token-amount')).toHaveTextContent('5947.5');
+  });
+
+  it('renders a zero destination amount before a source amount is entered', () => {
+    mockSourceAmount = '';
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(getByTestId('limit-dest-token-amount')).toHaveTextContent('0');
+  });
+
+  it('flips the tokens with the destination amount as the new source amount', () => {
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '3000',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-flip-tokens'), 'touchEnd');
+
+    expect(mockHandleFlipTokensPress).toHaveBeenCalledWith('5947.5');
+  });
+
+  it('flips the tokens without an amount when the destination amount is zero', () => {
+    mockSourceAmount = '';
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('limit-flip-tokens'), 'touchEnd');
+
+    expect(mockHandleFlipTokensPress).toHaveBeenCalledWith(undefined);
   });
 
   it('does not render recurring You get copy on the dest token row', () => {

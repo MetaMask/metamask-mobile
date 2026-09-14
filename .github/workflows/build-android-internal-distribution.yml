@@ -61,7 +61,7 @@ jobs:
       apk_file_name: ${{ steps.rename.outputs.apk_file_name }}
     steps:
       - name: Download main-prod APK artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-apk-main-prod
           path: artifacts/android-apk
@@ -103,7 +103,7 @@ jobs:
           echo "Prepared ${APK_FILE_NAME}"
 
       - name: Upload branch-named APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.rename.outputs.apk_artifact_name }}
           path: publish/${{ steps.rename.outputs.apk_file_name }}
