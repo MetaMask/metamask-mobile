@@ -372,11 +372,16 @@ import type {
   UiSlotsControllerEvents,
   UiSlotsControllerState,
 } from './controllers/ui-slots-controller/types';
-import { PredictNextController } from '../../components/UI/PredictNext/controller/PredictNextController';
-import type {
-  PredictMarketDataServiceActions,
-  PredictMarketDataServiceEvents,
+import {
+  PredictMarketDataService,
+  type PredictMarketDataServiceActions,
+  type PredictMarketDataServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictMarketDataService';
+import {
+  PredictPortfolioService,
+  type PredictPortfolioServiceActions,
+  type PredictPortfolioServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictPortfolioService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -548,6 +553,15 @@ import {
   ComplianceServiceEvents,
 } from '@metamask/compliance-controller';
 import {
+  KycController,
+  KycControllerActions,
+  KycControllerEvents,
+  KycControllerState,
+  KycService,
+  KycServiceActions,
+  KycServiceEvents,
+} from '@metamask/kyc-controller';
+import {
   ChompApiService,
   ChompApiServiceActions,
   type ChompApiServiceEvents,
@@ -574,6 +588,7 @@ type RequiredControllers = Omit<
   | 'ShieldApiService'
   | 'ClaimsService'
   | 'ComplianceService'
+  | 'KycService'
   | 'ChompApiService'
 >;
 
@@ -590,6 +605,7 @@ type OptionalControllers = Pick<
   | 'ShieldApiService'
   | 'ClaimsService'
   | 'ComplianceService'
+  | 'KycService'
   | 'ChompApiService'
 >;
 
@@ -680,6 +696,7 @@ export type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | PredictMarketDataServiceActions
+  | PredictPortfolioServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -713,6 +730,8 @@ export type GlobalActions =
   | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
+  | KycControllerActions
+  | KycServiceActions
   | TransakServiceActions
   | ConfigRegistryControllerActions
   | ConfigRegistryApiServiceActions
@@ -796,6 +815,7 @@ export type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | PredictMarketDataServiceEvents
+  | PredictPortfolioServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -820,6 +840,8 @@ export type GlobalEvents =
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
+  | KycControllerEvents
+  | KycServiceEvents
   | TransakServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
@@ -951,7 +973,8 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
-  PredictNextController: PredictNextController;
+  PredictMarketDataService: PredictMarketDataService;
+  PredictPortfolioService: PredictPortfolioService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -972,6 +995,8 @@ export type MessengerClients = {
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
+  KycService: KycService;
+  KycController: KycController;
   TransakService: TransakService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
@@ -1066,6 +1091,7 @@ export type EngineState = {
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
   ComplianceController: ComplianceControllerState;
+  KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
 };
 
@@ -1155,7 +1181,8 @@ export type MessengerClientsToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
-  | 'PredictNextController'
+  | 'PredictMarketDataService'
+  | 'PredictPortfolioService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'
@@ -1183,6 +1210,8 @@ export type MessengerClientsToInitialize =
   | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController'
+  | 'KycService'
+  | 'KycController'
   | 'ChompApiService'
   | 'MoneyAccountUpgradeController';
 

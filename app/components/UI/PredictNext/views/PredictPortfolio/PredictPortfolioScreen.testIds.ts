@@ -1,0 +1,17 @@
+export const PredictPortfolioScreenTestIds = {
+  CONTAINER: 'predict-next-portfolio',
+  HEADER: 'predict-next-portfolio-header',
+  BACK: 'predict-next-portfolio-back',
+  SUMMARY_CARD: 'predict-next-portfolio-summary-card',
+  BALANCE_VALUE: 'predict-next-portfolio-balance-value',
+  BALANCE_LOADING: 'predict-next-portfolio-balance-loading',
+  BALANCE_ERROR: 'predict-next-portfolio-balance-error',
+  BALANCE_RETRY: 'predict-next-portfolio-balance-retry',
+  TABS: 'predict-next-portfolio-tabs',
+  POSITIONS_TAB: 'predict-next-portfolio-positions-tab',
+  HISTORY_TAB: 'predict-next-portfolio-history-tab',
+  POSITIONS_CONTENT: 'predict-next-portfolio-positions-content',
+  HISTORY_CONTENT: 'predict-next-portfolio-history-content',
+  EMPTY_STATE: 'predict-next-portfolio-empty-state',
+  BROWSE_MARKETS: 'predict-next-portfolio-browse-markets',
+} as const;

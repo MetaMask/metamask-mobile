@@ -3,17 +3,12 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
-import { RequestStatus } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
-import { mockUseBridgeQuoteData } from '../../../_mocks_/useBridgeQuoteData.mock';
-import { mockQuoteWithMetadata } from '../../../_mocks_/bridgeQuoteWithMetadata';
 import { ethToken1Address } from '../../../_mocks_/initialState';
 import { createBridgeTestState, createMockToken } from '../../../testUtils';
 import type { RootState } from '../../../../../../reducers';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
-import { strings } from '../../../../../../../locales/i18n';
 import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
-import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 
 const pricedDestToken = createMockToken({
@@ -32,51 +27,24 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest
-    .fn()
-    .mockImplementation(() => mockUseBridgeQuoteData),
-}));
-
 jest.mock('../../../hooks/useInsufficientBalance', () => ({
   __esModule: true,
   default: jest.fn(() => false),
 }));
 
-jest.mock('../../../hooks/useHasSufficientGas', () => ({
-  useHasSufficientGas: jest.fn(() => true),
-}));
-
-jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
-  const { useBridgeQuoteData } = jest.requireMock(
-    '../../../hooks/useBridgeQuoteData',
-  );
-  return {
-    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
-  };
-});
-
 /**
- * Builds Redux state that satisfies BridgeLimitOrderFooterView render
- * conditions: a valid source amount and a quotesLastFetched timestamp.
+ * Builds Redux state that satisfies the footer's only render condition: a
+ * source token with decimals and a source amount that is not a bare decimal
+ * point. Limit orders no longer fetch quotes, so no quote state is needed.
  *
- * CV cannot cover these branches: Limit remounts on tab switch and resets
- * the token pair, which clears seeded BridgeController quotes before the
- * footer can read them.
+ * CV cannot cover these branches: Limit remounts on tab switch and resets the
+ * token pair, so the footer's source amount cannot be held steady from a
+ * rendered screen.
  */
-function buildActiveQuoteState(
-  overrides: {
-    bridgeControllerOverrides?: Record<string, unknown>;
-    bridgeReducerOverrides?: Record<string, unknown>;
-  } = {},
+function buildFooterState(
+  bridgeReducerOverrides: Record<string, unknown> = {},
 ) {
   return createBridgeTestState({
-    bridgeControllerOverrides: {
-      quotesLoadingStatus: RequestStatus.FETCHED,
-      quotes: [mockQuoteWithMetadata],
-      quotesLastFetched: Date.now(),
-      ...(overrides.bridgeControllerOverrides ?? {}),
-    },
     bridgeReducerOverrides: {
       sourceAmount: '1.0',
       sourceToken: {
@@ -88,7 +56,7 @@ function buildActiveQuoteState(
         symbol: 'ETH',
       },
       destToken: pricedDestToken,
-      ...(overrides.bridgeReducerOverrides ?? {}),
+      ...bridgeReducerOverrides,
     },
   });
 }
@@ -111,43 +79,47 @@ describe('BridgeLimitOrderFooterView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
-    jest.mocked(useHasSufficientGas).mockReturnValue(true);
   });
 
   it('renders nothing when source amount is missing', () => {
-    const state = buildActiveQuoteState({
-      bridgeReducerOverrides: { sourceAmount: undefined },
-    });
+    const state = buildFooterState({ sourceAmount: undefined });
 
     const { queryByTestId } = renderFooter(state);
 
     expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
   });
 
-  it('renders nothing when quotesLastFetched is null', () => {
-    const state = buildActiveQuoteState({
-      bridgeControllerOverrides: { quotesLastFetched: null },
-    });
+  it('renders nothing when source amount is only a decimal point', () => {
+    const state = buildFooterState({ sourceAmount: '.' });
 
     const { queryByTestId } = renderFooter(state);
 
     expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
   });
 
-  it('renders an enabled confirm button when ctaDisabled is not set', () => {
-    const { getByTestId } = renderFooter(buildActiveQuoteState());
+  it('renders the confirm button without waiting on a fetched quote', () => {
+    const { getByTestId } = renderFooter(buildFooterState());
 
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('renders an enabled confirm button when ctaDisabled is not set', () => {
+    const { getByTestId } = renderFooter(buildFooterState());
+
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBeFalsy();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.busy,
+    ).not.toBe(true);
   });
 
-  it('disables the confirm button when ctaDisabled is true', () => {
-    const { getByTestId } = renderFooter(buildActiveQuoteState(), {
+  it('disables the confirm button without a loading state when ctaDisabled is true', () => {
+    const { getByTestId } = renderFooter(buildFooterState(), {
       ctaDisabled: true,
     });
 
@@ -155,12 +127,19 @@ describe('BridgeLimitOrderFooterView', () => {
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.busy,
+    ).not.toBe(true);
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent('Create Order');
   });
 
   it('calls onCTAPress when the confirm button is pressed', () => {
     const onCTAPress = jest.fn();
 
-    const { getByTestId } = renderFooter(buildActiveQuoteState(), {
+    const { getByTestId } = renderFooter(buildFooterState(), {
       onCTAPress,
     });
     fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
@@ -168,36 +147,19 @@ describe('BridgeLimitOrderFooterView', () => {
     expect(onCTAPress).toHaveBeenCalledTimes(1);
   });
 
-  it('disables the confirm button and shows insufficient funds when source balance is too low', () => {
+  it('disables the confirm button when source balance is too low', () => {
     jest.mocked(useIsInsufficientBalance).mockReturnValue(true);
 
     const onCTAPress = jest.fn();
-    const { getByTestId } = renderFooter(buildActiveQuoteState(), {
+    const { getByTestId } = renderFooter(buildFooterState(), {
       onCTAPress,
     });
     fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
 
     expect(
-      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
-    ).toHaveTextContent(strings('bridge.insufficient_funds'));
-    expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
     expect(onCTAPress).not.toHaveBeenCalled();
-  });
-
-  it('disables the confirm button and shows insufficient gas when gas token balance is too low', () => {
-    jest.mocked(useHasSufficientGas).mockReturnValue(false);
-
-    const { getByTestId } = renderFooter(buildActiveQuoteState());
-
-    expect(
-      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
-    ).toHaveTextContent(strings('bridge.insufficient_gas'));
-    expect(
-      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
   });
 });

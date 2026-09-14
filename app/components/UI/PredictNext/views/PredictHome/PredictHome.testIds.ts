@@ -2,6 +2,15 @@ export const PredictHomeTestIds = {
   HOME: 'predict-next-home',
   BACK: 'predict-next-home-back',
   SCROLL: 'predict-next-home-scroll',
+  BALANCE: 'predict-next-home-balance',
+  BALANCE_AMOUNT: 'predict-next-home-balance-amount',
+  BALANCE_LOADING: 'predict-next-home-balance-loading',
+  BALANCE_ERROR: 'predict-next-home-balance-error',
+  BALANCE_RETRY: 'predict-next-home-balance-retry',
+  ACTIONS: 'predict-next-home-portfolio-actions',
+  POSITIONS: 'predict-next-home-positions',
+  ADD_FUNDS: 'predict-next-home-add-funds',
+  WITHDRAW: 'predict-next-home-withdraw',
   section: (feedScreenId: string) =>
     `predict-next-home-section-${feedScreenId}`,
   sectionHeader: (feedScreenId: string) =>
