@@ -161,11 +161,15 @@ export const runQuoteDataCases = ({
     hookOptions?: {
       latestSourceAtomicBalance?: BigNumber;
       isActive?: boolean;
+      featureId?: FeatureId;
     },
   ) => {
     const { selectSourceAmountSpy } = applyQuoteDataState(overrides);
     return {
-      ...renderHook({ ...hookOptions, featureId }),
+      ...renderHook({
+        ...hookOptions,
+        featureId: hookOptions?.featureId ?? featureId,
+      }),
       selectSourceAmountSpy,
     };
   };
@@ -312,14 +316,15 @@ export const runQuoteDataCases = ({
         recommendedQuote: mockQuoteWithMetadata,
       }));
 
-      mockUseSwapsFeatureId.mockReturnValue(
+      const inactiveFeatureId =
         MIGRATED_FEATURE_IDS.find((id) => id !== featureId) ??
-          FeatureId.UNIFIED_SWAP_BRIDGE,
-      );
+        FeatureId.UNIFIED_SWAP_BRIDGE;
+
+      mockUseSwapsFeatureId.mockReturnValue(inactiveFeatureId);
 
       const { result } = renderUseBridgeQuoteData(
         { bridgeReducerOverrides: createSolanaSwapTokens() },
-        { isActive: false },
+        { isActive: false, featureId: inactiveFeatureId },
       );
 
       await act(async () => {

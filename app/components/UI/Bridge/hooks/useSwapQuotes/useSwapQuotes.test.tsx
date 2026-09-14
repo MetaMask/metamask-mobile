@@ -1,5 +1,6 @@
 import React from 'react';
 import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
+import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { useSwapQuotes } from './index';
 import { useBridgeSession } from '../useBridgeSession';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
@@ -191,20 +192,40 @@ const Wrapper = ({
         : undefined,
   });
 
-  return <SwapQuotesProvider>{children}</SwapQuotesProvider>;
+  return (
+    <SwapsFeatureIdProvider featureId={featureId}>
+      <SwapQuotesProvider>{children}</SwapQuotesProvider>
+    </SwapsFeatureIdProvider>
+  );
 };
 
 describe('useSwapQuotes', () => {
-  it('throws an error if used outside of SwapQuotesProvider', () => {
-    expect(() => renderHook(() => useSwapQuotes())).toThrow(
-      'useSwapQuotes must be used within SwapQuotesProvider',
-    );
+  it('returns null when rendered outside SwapQuotesProvider', () => {
+    const { result } = renderHook(() => useSwapQuotes());
+
+    expect(result.current).toBeNull();
   });
 
   it('returns null when the feature is not a migrated quote source', () => {
-    mockUseSwapsFeatureId.mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE);
+    const { result } = renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+          {children}
+        </SwapsFeatureIdProvider>
+      ),
+    });
 
-    const { result } = renderHook(() => useSwapQuotes());
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null when the feature is migrated but SwapQuotesProvider is missing', () => {
+    const { result } = renderHook(() => useSwapQuotes(), {
+      wrapper: ({ children }) => (
+        <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+          {children}
+        </SwapsFeatureIdProvider>
+      ),
+    });
 
     expect(result.current).toBeNull();
   });
@@ -238,7 +259,10 @@ runQuoteDataCases({
     // @ts-expect-error - this returns quote data
     renderHook(() => useSwapQuotes(), {
       wrapper: ({ children }) => (
-        <Wrapper {...options} featureId={FeatureId.LIMIT_ORDER}>
+        <Wrapper
+          {...options}
+          featureId={options?.featureId ?? FeatureId.LIMIT_ORDER}
+        >
           {children}
         </Wrapper>
       ),
