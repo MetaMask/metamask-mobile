@@ -8,7 +8,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds';
 
 interface PortfolioPanelErrorProps {
   onRetry: () => void;

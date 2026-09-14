@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box, Skeleton } from '@metamask/design-system-react-native';
-import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds';
 
 const SKELETON_ROW_COUNT = 3;
 

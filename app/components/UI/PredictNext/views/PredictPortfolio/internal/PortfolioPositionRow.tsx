@@ -29,6 +29,56 @@ interface PortfolioPositionRowProps {
   onPress?: (position: PredictPosition) => void;
 }
 
+interface PortfolioPositionMetricsProps {
+  position: PredictPosition;
+  isPrivacyMode: boolean;
+}
+
+/** Trailing exposure and signed realized PnL; renders nothing when both are absent. */
+const PortfolioPositionMetrics = ({
+  position,
+  isPrivacyMode,
+}: PortfolioPositionMetricsProps) => {
+  const { marketExposure, realizedPnl } = position;
+  const realizedPnlText =
+    realizedPnl && isNonZeroAmount(realizedPnl)
+      ? formatSignedUsdAmount(realizedPnl)
+      : undefined;
+
+  if (!marketExposure && !realizedPnlText) {
+    return null;
+  }
+
+  return (
+    <Box alignItems={BoxAlignItems.End}>
+      {marketExposure ? (
+        <SensitiveText
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          isHidden={isPrivacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {formatUsdAmount(marketExposure)}
+        </SensitiveText>
+      ) : null}
+      {realizedPnlText ? (
+        <SensitiveText
+          variant={TextVariant.BodySm}
+          twClassName={
+            realizedPnlText.startsWith('-')
+              ? 'text-error-default'
+              : 'text-success-default'
+          }
+          isHidden={isPrivacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {realizedPnlText}
+        </SensitiveText>
+      ) : null}
+    </Box>
+  );
+};
+
 /** Renders one open Position as an optionally pressable row. */
 export const PortfolioPositionRow = ({
   position,
@@ -84,35 +134,10 @@ export const PortfolioPositionRow = ({
           {metaLine}
         </Text>
       </Box>
-      {position.marketExposure ||
-      (position.realizedPnl && isNonZeroAmount(position.realizedPnl)) ? (
-        <Box alignItems={BoxAlignItems.End}>
-          {position.marketExposure ? (
-            <SensitiveText
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              isHidden={isPrivacyMode}
-              length={SensitiveTextLength.Short}
-            >
-              {formatUsdAmount(position.marketExposure)}
-            </SensitiveText>
-          ) : null}
-          {position.realizedPnl && isNonZeroAmount(position.realizedPnl) ? (
-            <SensitiveText
-              variant={TextVariant.BodySm}
-              twClassName={
-                position.realizedPnl.startsWith('-')
-                  ? 'text-error-default'
-                  : 'text-success-default'
-              }
-              isHidden={isPrivacyMode}
-              length={SensitiveTextLength.Short}
-            >
-              {formatSignedUsdAmount(position.realizedPnl)}
-            </SensitiveText>
-          ) : null}
-        </Box>
-      ) : null}
+      <PortfolioPositionMetrics
+        position={position}
+        isPrivacyMode={isPrivacyMode}
+      />
     </TouchableOpacity>
   );
 };
