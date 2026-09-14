@@ -24,8 +24,10 @@ import {
 } from '../../../components/UI/PredictNext/types';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getPredictLiveDataServiceMessenger } from '../messengers/predict-live-data-service-messenger';
-import type { RootExtendedMessenger } from '../types';
-import type { MessengerClientInitRequest } from '../types';
+import type {
+  MessengerClientInitRequest,
+  RootExtendedMessenger,
+} from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import {
   predictLiveDataServiceInit,
