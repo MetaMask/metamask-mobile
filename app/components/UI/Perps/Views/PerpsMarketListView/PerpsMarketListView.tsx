@@ -71,6 +71,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
+import { preserveHomeDroppedFromHistory } from '../../utils/perpsModeSwitch';
 import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 
 // Stable empty reference so the always-mounted list header doesn't churn when
@@ -350,7 +351,10 @@ const PerpsMarketListView = ({
                 ...routes,
                 {
                   name: Routes.PERPS.MARKET_DETAILS,
-                  params: detailsParams,
+                  params: preserveHomeDroppedFromHistory(detailsParams, {
+                    index: state.index,
+                    routes: state.routes,
+                  }),
                 },
               ],
             });

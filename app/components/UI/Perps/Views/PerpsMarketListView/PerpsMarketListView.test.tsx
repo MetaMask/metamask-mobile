@@ -1633,6 +1633,71 @@ describe('PerpsMarketListView', () => {
       );
     });
 
+    it('copies homeDroppedFromHistory onto the replacement market when Home was dropped', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-picker',
+        name: 'PerpsMarketListView',
+        params: {
+          animation: 'slide_from_bottom',
+          replaceOnSelect: true,
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      const stackReducer = mockNavigation.dispatch.mock.calls[0][0] as (state: {
+        key: string;
+        index: number;
+        routeNames: string[];
+        routes: { key: string; name: string; params?: object }[];
+        type: string;
+        stale: boolean;
+      }) => unknown;
+
+      expect(
+        stackReducer({
+          key: 'stack',
+          index: 1,
+          routeNames: ['PerpsMarketDetails', 'PerpsMarketListView'],
+          routes: [
+            {
+              key: 'details-btc',
+              name: 'PerpsMarketDetails',
+              params: {
+                market: mockMarketData[0],
+                homeDroppedFromHistory: true,
+              },
+            },
+            {
+              key: 'picker',
+              name: 'PerpsMarketListView',
+              params: { replaceOnSelect: true },
+            },
+          ],
+          type: 'stack',
+          stale: false,
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          type: 'RESET',
+          payload: expect.objectContaining({
+            index: 0,
+            routes: [
+              expect.objectContaining({
+                name: 'PerpsMarketDetails',
+                params: expect.objectContaining({
+                  market: mockMarketData[1],
+                  homeDroppedFromHistory: true,
+                }),
+              }),
+            ],
+          }),
+        }),
+      );
+    });
+
     it('plays selection haptics when enableHaptics is opted in', () => {
       mockUseRoute.mockReturnValue({
         key: 'PerpsMarketListView-picker',

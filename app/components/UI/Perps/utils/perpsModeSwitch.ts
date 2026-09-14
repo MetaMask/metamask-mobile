@@ -224,13 +224,10 @@ export const withHomeDroppedFromHistory = <T extends object>(
   [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true,
 });
 
-export const wasPerpsHomeDroppedFromHistory = (
-  state: PerpsHistoryState | undefined,
+const routeCarriesHomeDroppedFromHistory = (
+  route: { params?: object } | undefined,
 ): boolean => {
-  if (!state) {
-    return false;
-  }
-  const params = state.routes[state.index]?.params;
+  const params = route?.params;
   if (!params || typeof params !== 'object') {
     return false;
   }
@@ -239,6 +236,29 @@ export const wasPerpsHomeDroppedFromHistory = (
       PERPS_HOME_DROPPED_FROM_HISTORY_PARAM
     ] === true
   );
+};
+
+export const wasPerpsHomeDroppedFromHistory = (
+  state: PerpsHistoryState | undefined,
+): boolean =>
+  Boolean(
+    state && routeCarriesHomeDroppedFromHistory(state.routes[state.index]),
+  );
+
+/**
+ * Copies {@link PERPS_HOME_DROPPED_FROM_HISTORY_PARAM} onto new route params
+ * when any stack entry already carries it. The header market picker rebuilds
+ * `MARKET_DETAILS` without inheriting the previous params, which would look
+ * like an Explore single-entry stack to the back handler (TAT-3786).
+ */
+export const preserveHomeDroppedFromHistory = <T extends object>(
+  params: T,
+  state: PerpsHistoryState | undefined,
+): T => {
+  if (!state?.routes.some(routeCarriesHomeDroppedFromHistory)) {
+    return params;
+  }
+  return withHomeDroppedFromHistory(params);
 };
 
 const stampHomeDroppedFromHistory = <T extends { params?: object }>(
@@ -338,6 +358,7 @@ export const useNavigateToPerpsHome = (): ((
       // Same assertion rationale as `navigateToPerpsHomeTarget`: the nested
       // screen name is resolved at runtime, so `navigate()`'s overloads can't
       // correlate it with its params.
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- two-arg navigate; nested screen name is resolved at runtime
       const navigate = navigation.navigate as unknown as (
         screen: string,
         params: NavigatorScreenParams<PerpsStackParamList>,

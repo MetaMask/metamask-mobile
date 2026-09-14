@@ -22,6 +22,7 @@ import {
   toPerpsNavigatorScreenParams,
   wasPerpsHomeDroppedFromHistory,
   withHomeDroppedFromHistory,
+  preserveHomeDroppedFromHistory,
 } from './perpsModeSwitch';
 
 jest.mock('react-redux', () => ({
@@ -488,6 +489,39 @@ describe('perpsModeSwitch', () => {
       };
 
       expect(wasPerpsHomeDroppedFromHistory(state)).toBe(true);
+    });
+  });
+
+  describe('preserveHomeDroppedFromHistory', () => {
+    it('copies the stamp onto new params when a buried stack entry carries it', () => {
+      const params = { market: buildDefaultProMarket('ETH') };
+      const state = {
+        index: 1,
+        routes: [
+          {
+            params: withHomeDroppedFromHistory({ source: 'perps_home' }),
+          },
+          { params: { replaceOnSelect: true } },
+        ],
+      };
+
+      const result = preserveHomeDroppedFromHistory(params, state);
+
+      expect(result).toEqual({
+        ...params,
+        [PERPS_HOME_DROPPED_FROM_HISTORY_PARAM]: true,
+      });
+    });
+
+    it('leaves params unchanged when no stack entry carries the stamp', () => {
+      const params = { market: buildDefaultProMarket('ETH') };
+
+      const result = preserveHomeDroppedFromHistory(params, {
+        index: 0,
+        routes: [{ params: { source: 'explore' } }],
+      });
+
+      expect(result).toBe(params);
     });
   });
 
