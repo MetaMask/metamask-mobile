@@ -51,6 +51,8 @@ import {
   resolvePerpsTriggerOrderTitle,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useApiEvmTransaction } from '../../Views/ActivityList/hooks/useApiEvmTransaction';
 
 function isPerpsFundsKind(type: ActivityKind): boolean {
   return type === 'perpsAddFunds' || type === 'perpsWithdraw';
@@ -263,10 +265,8 @@ function predictMarketSubtitle(item: ActivityListItem): string | undefined {
   return getPredictActivity(item)?.title;
 }
 
-function protocolSubtitle(item: ActivityListItem): string | undefined {
-  const rawData =
-    item.raw?.type === 'apiEvmTransaction' ? item.raw.data : undefined;
-  const protocol = rawData?.transactionProtocol;
+function protocolSubtitle(transactionProtocol?: string) {
+  const protocol = transactionProtocol;
 
   if (
     !protocol ||
@@ -514,6 +514,7 @@ function resolveCoreContent(
   bridgeHistoryItem?: BridgeHistoryItem,
   counterpartyName?: string,
   isMoneyAccountCounterparty = false,
+  transactionProtocol?: string,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -579,7 +580,7 @@ function resolveCoreContent(
             ),
             failed: strings('transactions.activity_swap_failed'),
           }),
-          subtitle: protocolSubtitle(item),
+          subtitle: protocolSubtitle(transactionProtocol),
           primaryToken: sourceToken,
         };
       }
@@ -592,7 +593,7 @@ function resolveCoreContent(
         }),
         subtitle:
           tokenPairSubtitle(sourceToken, destinationToken) ??
-          protocolSubtitle(item),
+          protocolSubtitle(transactionProtocol),
         primaryToken: destinationToken,
         secondaryToken: sourceToken,
       };
@@ -694,7 +695,7 @@ function resolveCoreContent(
           pending: withOptionalSymbol(labels.pending, displayNoun),
           failed: labels.failed,
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle: protocolSubtitle(transactionProtocol),
         primaryToken: isNamelessNftBuy ? undefined : token,
       };
     }
@@ -761,7 +762,7 @@ function resolveCoreContent(
               ? 'Deposit failed'
               : 'Withdrawal failed',
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle: protocolSubtitle(transactionProtocol),
         primaryToken,
         secondaryToken:
           primaryToken === destinationToken ? sourceToken : destinationToken,
@@ -781,7 +782,7 @@ function resolveCoreContent(
           pending: withOptionalSymbol(labels.pending, nftName),
           failed: labels.failed,
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle: protocolSubtitle(transactionProtocol),
         primaryToken: item.data.paymentToken,
       };
     }
@@ -844,7 +845,7 @@ function resolveCoreContent(
           failed: 'Interaction failed',
         }),
         subtitle:
-          protocolSubtitle(item) ??
+          protocolSubtitle(transactionProtocol) ??
           (item.data.to ? `With ${shortAddress(item.data.to)}` : undefined),
         primaryToken: item.data.token,
       };
@@ -895,7 +896,8 @@ function resolveCoreContent(
       return {
         title: resolveFallbackTitle(item),
         subtitle:
-          perpsPositionSubtitle(item, formatters) ?? protocolSubtitle(item),
+          perpsPositionSubtitle(item, formatters) ??
+          protocolSubtitle(transactionProtocol),
         primaryToken: 'token' in item.data ? item.data.token : undefined,
       };
   }
@@ -1171,12 +1173,14 @@ export function useActivityListItemRowContent(
     ? strings('transaction_details.label.money_account')
     : accountGroupName;
 
+  const apiEvmTransaction = useApiEvmTransaction(item.hash);
   const content = resolveCoreContent(
     item,
     formatters,
     bridgeHistoryItem,
     counterpartyName,
     isMoneyAccountCounterparty,
+    apiEvmTransaction?.transactionProtocol,
   );
 
   let basePrimaryToken: TokenAmount | undefined;

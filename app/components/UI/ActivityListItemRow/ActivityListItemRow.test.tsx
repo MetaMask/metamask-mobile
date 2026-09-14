@@ -180,6 +180,16 @@ jest.mock('../../hooks/useTokensData/useTokensData', () => ({
   useTokensData: jest.fn(() => ({})),
 }));
 
+const mockApiEvmTransactions = new Map<
+  string,
+  { transactionProtocol?: string }
+>();
+
+jest.mock('../../Views/ActivityList/hooks/useApiEvmTransaction', () => ({
+  useApiEvmTransaction: (hash?: string) =>
+    (hash && mockApiEvmTransactions.get(hash.toLowerCase())) || undefined,
+}));
+
 jest.mock('../Earn/constants/musd', () => ({
   MUSD_DECIMALS: 6,
   MUSD_TOKEN: { symbol: 'mUSD' },
@@ -413,6 +423,12 @@ const makeItem = (
     isEarliestNonce: overrides.isEarliestNonce,
   };
 
+  if (overrides.transactionProtocol) {
+    mockApiEvmTransactions.set(base.hash.toLowerCase(), {
+      transactionProtocol: overrides.transactionProtocol,
+    });
+  }
+
   if (type === 'send' || type === 'receive') {
     return {
       ...base,
@@ -437,14 +453,6 @@ const makeItem = (
     return {
       ...base,
       type,
-      raw: overrides.transactionProtocol
-        ? {
-            type: 'apiEvmTransaction',
-            data: {
-              transactionProtocol: overrides.transactionProtocol,
-            },
-          }
-        : undefined,
       data: {
         sourceToken: overrides.sourceToken as never,
         destinationToken: overrides.destinationToken as never,
@@ -455,14 +463,6 @@ const makeItem = (
   return {
     ...base,
     type,
-    raw: overrides.transactionProtocol
-      ? {
-          type: 'apiEvmTransaction',
-          data: {
-            transactionProtocol: overrides.transactionProtocol,
-          },
-        }
-      : undefined,
     data: {
       from: overrides.from ?? '0xfrom',
       to: overrides.to ?? '0xto',
@@ -473,6 +473,7 @@ const makeItem = (
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockApiEvmTransactions.clear();
   jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
   jest.mocked(selectConversionRateByChainId).mockReturnValue(2500);
   jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);
