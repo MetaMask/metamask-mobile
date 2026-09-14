@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { mapKalshiGameLiveUpdate } from '../adapters/remote/mapKalshiGameLiveUpdate';
 import type { PredictGameLive } from '../contracts/v1/liveData';
@@ -13,14 +13,16 @@ export const useEventsWithLiveGames = (
   const [updates, setUpdates] = useState(
     () => new Map<PredictEntityId, PredictGameLive>(),
   );
-  const eventIdsKey = events.map(({ id }) => id).join(',');
+  const eventIdsKey = JSON.stringify(events.map(({ id }) => id));
+  const watchedIdsRef = useRef<PredictEntityId[]>([]);
 
   useEffect(() => {
-    if (!eventIdsKey) {
-      return;
-    }
-    const eventIds = eventIdsKey.split(',') as PredictEntityId[];
+    const eventIds = JSON.parse(eventIdsKey) as PredictEntityId[];
     const eventIdSet = new Set(eventIds);
+    const previousIds = watchedIdsRef.current;
+    const previousSet = new Set(previousIds);
+    const added = eventIds.filter((eventId) => !previousSet.has(eventId));
+    const removed = previousIds.filter((eventId) => !eventIdSet.has(eventId));
 
     const onUpdate = (live: PredictGameLive) => {
       if (live.venueId !== venueId || !eventIdSet.has(live.eventId)) {
@@ -41,24 +43,50 @@ export const useEventsWithLiveGames = (
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
       onUpdate,
     );
-    Engine.controllerMessenger.call(
-      `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`,
-      venueId,
-      eventIds,
-    );
+    if (added.length > 0) {
+      Engine.controllerMessenger.call(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`,
+        venueId,
+        added,
+      );
+    }
+    if (removed.length > 0) {
+      Engine.controllerMessenger.call(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`,
+        venueId,
+        removed,
+      );
+      setUpdates((current) => {
+        const next = new Map(current);
+        removed.forEach((eventId) => next.delete(eventId));
+        return next;
+      });
+    }
+    watchedIdsRef.current = eventIds;
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
         `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
         onUpdate,
       );
+    };
+  }, [eventIdsKey, venueId]);
+
+  useEffect(
+    () => () => {
+      const eventIds = watchedIdsRef.current;
+      watchedIdsRef.current = [];
+      if (eventIds.length === 0) {
+        return;
+      }
       Engine.controllerMessenger.call(
         `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`,
         venueId,
         eventIds,
       );
-    };
-  }, [eventIdsKey, venueId]);
+    },
+    [venueId],
+  );
 
   return useMemo(
     () =>

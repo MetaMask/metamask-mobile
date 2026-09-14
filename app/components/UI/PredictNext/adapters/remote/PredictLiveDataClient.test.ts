@@ -1,5 +1,11 @@
 import type { PredictEntityId, PredictVenueId } from '../../types';
-import { PredictLiveDataClient } from './PredictLiveDataClient';
+import {
+  PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS,
+  PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS,
+  PREDICT_LIVE_DATA_RECONNECT_BASE_MS,
+  PREDICT_LIVE_DATA_RECONNECT_MAX_MS,
+  PredictLiveDataClient,
+} from './PredictLiveDataClient';
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'KXTEST-EVENT' as PredictEntityId;
@@ -23,6 +29,7 @@ class MockWebSocket {
   readyState = 0;
   onmessage: ((event: MessageEvent) => void) | null = null;
   onclose: (() => void) | null = null;
+  onerror: (() => void) | null = null;
   send = jest.fn();
   close = jest.fn(() => {
     this.readyState = 3;
@@ -43,22 +50,36 @@ class MockWebSocket {
   }
 }
 
+const createClient = (onGameUpdate = jest.fn()) =>
+  new PredictLiveDataClient({
+    baseUrl: 'http://localhost:3333',
+    WebSocket: MockWebSocket as unknown as typeof WebSocket,
+    onGameUpdate,
+  });
+
+const openAndWelcome = (socket = MockWebSocket.instances[0]): MockWebSocket => {
+  socket.open();
+  socket.message(welcomeFrame);
+  return socket;
+};
+
 describe('PredictLiveDataClient', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.spyOn(Math, 'random').mockReturnValue(1);
     MockWebSocket.instances = [];
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
   it('subscribes to game updates after the welcome frame', () => {
-    const client = new PredictLiveDataClient({
-      baseUrl: 'http://localhost:3333',
-      WebSocket: MockWebSocket as unknown as typeof WebSocket,
-      onGameUpdate: jest.fn(),
-    });
+    const client = createClient();
 
     client.subscribe(venueId, [eventId]);
-    const socket = MockWebSocket.instances[0];
-    socket.open();
-    socket.message(welcomeFrame);
+    const socket = openAndWelcome();
 
     expect(socket.url).toBe('ws://localhost:3333/v1/stream/live-data');
     expect(socket.send).toHaveBeenCalledWith(
@@ -71,7 +92,7 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('forwards game and game_snapshot frames and disconnects after the last unsubscribe', () => {
+  it('forwards game and game_snapshot frames and disconnects after the linger', () => {
     const onGameUpdate = jest.fn();
     const client = new PredictLiveDataClient({
       baseUrl: 'https://predict.example',
@@ -79,9 +100,7 @@ describe('PredictLiveDataClient', () => {
       onGameUpdate,
     });
     client.subscribe(venueId, [eventId]);
-    const socket = MockWebSocket.instances[0];
-    socket.open();
-    socket.message(welcomeFrame);
+    const socket = openAndWelcome();
     const game = {
       venueId,
       eventId,
@@ -103,19 +122,17 @@ describe('PredictLiveDataClient', () => {
         events: [eventId],
       }),
     );
+    expect(socket.close).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS);
+
     expect(socket.close).toHaveBeenCalledTimes(1);
   });
 
   it('keeps an Event subscribed while another watcher still holds it', () => {
-    const client = new PredictLiveDataClient({
-      baseUrl: 'http://localhost:3333',
-      WebSocket: MockWebSocket as unknown as typeof WebSocket,
-      onGameUpdate: jest.fn(),
-    });
+    const client = createClient();
     client.subscribe(venueId, [eventId]);
-    const socket = MockWebSocket.instances[0];
-    socket.open();
-    socket.message(welcomeFrame);
+    const socket = openAndWelcome();
     socket.send.mockClear();
 
     client.subscribe(venueId, [eventId]);
@@ -134,24 +151,50 @@ describe('PredictLiveDataClient', () => {
         events: [eventId],
       }),
     );
+    expect(socket.close).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS);
+
     expect(socket.close).toHaveBeenCalledTimes(1);
   });
 
-  it('reconnects and resubscribes after the socket closes while Events are still watched', () => {
-    const client = new PredictLiveDataClient({
-      baseUrl: 'http://localhost:3333',
-      WebSocket: MockWebSocket as unknown as typeof WebSocket,
-      onGameUpdate: jest.fn(),
-    });
+  it('keeps the socket open when a new subscribe arrives during the linger', () => {
+    const client = createClient();
     client.subscribe(venueId, [eventId]);
-    const socket = MockWebSocket.instances[0];
-    socket.open();
-    socket.message(welcomeFrame);
+    const socket = openAndWelcome();
+    client.unsubscribe(venueId, [eventId]);
+    socket.send.mockClear();
+
+    client.subscribe(venueId, [eventId]);
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS);
+
+    expect(socket.close).not.toHaveBeenCalled();
+    expect(socket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'subscribe',
+        topic: 'game',
+        venueId,
+        events: [eventId],
+      }),
+    );
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it('reconnects with backoff and resubscribes after the socket closes while Events are still watched', () => {
+    const client = createClient();
+    client.subscribe(venueId, [eventId]);
+    const socket = openAndWelcome();
 
     socket.onclose?.();
-    const nextSocket = MockWebSocket.instances[1];
-    nextSocket.open();
-    nextSocket.message(welcomeFrame);
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS - 1);
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+
+    jest.advanceTimersByTime(1);
+    const nextSocket = openAndWelcome(MockWebSocket.instances[1]);
 
     expect(MockWebSocket.instances).toHaveLength(2);
     expect(nextSocket.send).toHaveBeenCalledWith(
@@ -164,22 +207,91 @@ describe('PredictLiveDataClient', () => {
     );
   });
 
-  it('opens a new socket when subscribe is called for already-watched Events after the socket is closed', () => {
-    const client = new PredictLiveDataClient({
-      baseUrl: 'http://localhost:3333',
-      WebSocket: MockWebSocket as unknown as typeof WebSocket,
-      onGameUpdate: jest.fn(),
-    });
+  it('doubles the reconnect delay after a second close', () => {
+    const client = createClient();
     client.subscribe(venueId, [eventId]);
-    const socket = MockWebSocket.instances[0];
-    socket.open();
-    socket.message(welcomeFrame);
+    openAndWelcome();
+
+    MockWebSocket.instances[0].onclose?.();
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    MockWebSocket.instances[1].onclose?.();
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS * 2 - 1);
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+
+    jest.advanceTimersByTime(1);
+
+    expect(MockWebSocket.instances).toHaveLength(3);
+  });
+
+  it('resets reconnect backoff after a welcome frame', () => {
+    const client = createClient();
+    client.subscribe(venueId, [eventId]);
+    openAndWelcome();
+    MockWebSocket.instances[0].onclose?.();
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+    openAndWelcome(MockWebSocket.instances[1]);
+    MockWebSocket.instances[1].onclose?.();
+
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS - 1);
+
+    expect(MockWebSocket.instances).toHaveLength(2);
+
+    jest.advanceTimersByTime(1);
+
+    expect(MockWebSocket.instances).toHaveLength(3);
+  });
+
+  it('stops reconnecting after the max number of attempts', () => {
+    const client = createClient();
+    client.subscribe(venueId, [eventId]);
+
+    for (
+      let attempt = 0;
+      attempt < PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS;
+      attempt++
+    ) {
+      MockWebSocket.instances[attempt].onclose?.();
+      jest.advanceTimersByTime(
+        Math.min(
+          PREDICT_LIVE_DATA_RECONNECT_MAX_MS,
+          PREDICT_LIVE_DATA_RECONNECT_BASE_MS * 2 ** attempt,
+        ),
+      );
+    }
+
+    const socketsAfterCap = MockWebSocket.instances.length;
+    MockWebSocket.instances[socketsAfterCap - 1].onclose?.();
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_MAX_MS);
+
+    expect(MockWebSocket.instances).toHaveLength(
+      PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS + 1,
+    );
+  });
+
+  it('cancels a pending reconnect when disconnect is called', () => {
+    const client = createClient();
+    client.subscribe(venueId, [eventId]);
+    openAndWelcome();
+    MockWebSocket.instances[0].onclose?.();
+
+    client.disconnect();
+    jest.advanceTimersByTime(PREDICT_LIVE_DATA_RECONNECT_BASE_MS);
+
+    expect(MockWebSocket.instances).toHaveLength(1);
+  });
+
+  it('opens a new socket when subscribe is called for already-watched Events after the socket is closed', () => {
+    const client = createClient();
+    client.subscribe(venueId, [eventId]);
+    const socket = openAndWelcome();
     socket.readyState = 3;
 
     client.subscribe(venueId, [eventId]);
-    const nextSocket = MockWebSocket.instances[1];
-    nextSocket.open();
-    nextSocket.message(welcomeFrame);
+    const nextSocket = openAndWelcome(MockWebSocket.instances[1]);
 
     expect(MockWebSocket.instances).toHaveLength(2);
     expect(nextSocket.send).toHaveBeenCalledWith(
@@ -216,11 +328,7 @@ describe('PredictLiveDataClient', () => {
   });
 
   it('does not open a new socket after disconnect', () => {
-    const client = new PredictLiveDataClient({
-      baseUrl: 'http://localhost:3333',
-      WebSocket: MockWebSocket as unknown as typeof WebSocket,
-      onGameUpdate: jest.fn(),
-    });
+    const client = createClient();
     client.subscribe(venueId, [eventId]);
 
     client.disconnect();
@@ -230,14 +338,9 @@ describe('PredictLiveDataClient', () => {
 
   it('ignores malformed frames', () => {
     const onGameUpdate = jest.fn();
-    const client = new PredictLiveDataClient({
-      baseUrl: 'http://localhost:3333',
-      WebSocket: MockWebSocket as unknown as typeof WebSocket,
-      onGameUpdate,
-    });
+    const client = createClient(onGameUpdate);
     client.subscribe(venueId, [eventId]);
-    const socket = MockWebSocket.instances[0];
-    socket.open();
+    const socket = openAndWelcome();
 
     socket.message({ type: 'game', game: { eventId } });
 

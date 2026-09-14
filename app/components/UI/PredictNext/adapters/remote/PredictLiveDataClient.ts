@@ -1,3 +1,4 @@
+import Logger from '../../../../../util/Logger';
 import {
   parsePredictLiveDataServerFrame,
   type PredictGameLive,
@@ -8,7 +9,13 @@ import type { PredictEntityId, PredictVenueId } from '../../types';
 const LIVE_DATA_PATH = '/v1/stream/live-data';
 const PROTOCOL_VERSION = 1;
 
+export const PREDICT_LIVE_DATA_RECONNECT_BASE_MS = 1000;
+export const PREDICT_LIVE_DATA_RECONNECT_MAX_MS = 30_000;
+export const PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS = 4000;
+export const PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS = 20;
+
 type WebSocketConstructor = typeof WebSocket;
+type TimerId = ReturnType<typeof setTimeout>;
 
 export interface PredictLiveDataClientOptions {
   baseUrl?: string;
@@ -53,6 +60,9 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #socket?: WebSocket;
   #venueId?: PredictVenueId;
   #welcomed = false;
+  #reconnectAttempts = 0;
+  #reconnectTimer?: TimerId;
+  #lingerTimer?: TimerId;
 
   constructor({
     baseUrl,
@@ -68,6 +78,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     venueId: PredictVenueId,
     eventIds: readonly PredictEntityId[],
   ): void {
+    this.#cancelLinger();
     this.#venueId = venueId;
     const fresh: PredictEntityId[] = [];
     eventIds.forEach((eventId) => {
@@ -81,7 +92,9 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     if (!this.#isSocketLive()) {
       this.#socket = undefined;
       this.#welcomed = false;
-      this.#connect();
+      if (this.#reconnectTimer === undefined) {
+        this.#connect();
+      }
       return;
     }
 
@@ -118,18 +131,22 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       this.#sendSubscription('unsubscribe', venueId, released);
     }
     if (this.#watchCounts.size === 0) {
-      this.disconnect();
+      this.#scheduleLinger();
     }
 
     return released;
   }
 
   disconnect(): void {
+    this.#cancelReconnect();
+    this.#cancelLinger();
     this.#watchCounts.clear();
     this.#welcomed = false;
     this.#venueId = undefined;
-    this.#socket?.close();
+    this.#reconnectAttempts = 0;
+    const socket = this.#socket;
     this.#socket = undefined;
+    socket?.close();
   }
 
   destroy(): void {
@@ -150,6 +167,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     const socket = new this.#WebSocket(this.#url);
     this.#socket = socket;
 
+    socket.onerror = () => undefined;
     socket.onmessage = ({ data }) => {
       if (typeof data !== 'string') {
         return;
@@ -175,7 +193,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       this.#socket = undefined;
       this.#welcomed = false;
       if (this.#watchCounts.size > 0) {
-        this.#connect();
+        this.#scheduleReconnect();
       }
     };
   }
@@ -187,6 +205,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
         return;
       }
       this.#welcomed = true;
+      this.#reconnectAttempts = 0;
       this.#sendSubscription('subscribe', venueId, [
         ...this.#watchCounts.keys(),
       ]);
@@ -219,5 +238,57 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
         events: eventIds,
       }),
     );
+  }
+
+  #scheduleReconnect(): void {
+    this.#cancelReconnect();
+    if (this.#watchCounts.size === 0) {
+      return;
+    }
+
+    this.#reconnectAttempts += 1;
+    if (this.#reconnectAttempts > PREDICT_LIVE_DATA_MAX_RECONNECT_ATTEMPTS) {
+      Logger.log(
+        'PredictLiveDataClient: stopped reconnecting after max attempts',
+      );
+      return;
+    }
+
+    this.#reconnectTimer = setTimeout(() => {
+      this.#reconnectTimer = undefined;
+      this.#connect();
+    }, this.#reconnectDelayMs());
+  }
+
+  #reconnectDelayMs(): number {
+    const exponential = Math.min(
+      PREDICT_LIVE_DATA_RECONNECT_MAX_MS,
+      PREDICT_LIVE_DATA_RECONNECT_BASE_MS * 2 ** (this.#reconnectAttempts - 1),
+    );
+    return Math.round(exponential * (0.5 + Math.random() * 0.5));
+  }
+
+  #scheduleLinger(): void {
+    this.#cancelLinger();
+    this.#lingerTimer = setTimeout(() => {
+      this.#lingerTimer = undefined;
+      if (this.#watchCounts.size === 0) {
+        this.disconnect();
+      }
+    }, PREDICT_LIVE_DATA_DISCONNECT_LINGER_MS);
+  }
+
+  #cancelReconnect(): void {
+    if (this.#reconnectTimer !== undefined) {
+      clearTimeout(this.#reconnectTimer);
+      this.#reconnectTimer = undefined;
+    }
+  }
+
+  #cancelLinger(): void {
+    if (this.#lingerTimer !== undefined) {
+      clearTimeout(this.#lingerTimer);
+      this.#lingerTimer = undefined;
+    }
   }
 }
