@@ -64,6 +64,8 @@ const createMarketHistory = (overrides = {}) => ({
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchVenueStatus: jest.fn(),
   fetchBalance: jest.fn(),
+  fetchPositions: jest.fn(),
+  fetchActivity: jest.fn(),
   fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
   fetchMarketHistory: jest.fn(),
@@ -366,6 +368,148 @@ describe('KalshiRemoteAdapter', () => {
     client.fetchBalance.mockRejectedValue(new PredictHttpError(503));
 
     await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
+    );
+  });
+
+  it('parses canonical Positions from the Predict API', async () => {
+    const page = {
+      venueId: 'kalshi',
+      positions: [
+        {
+          venueId: 'kalshi',
+          marketId: 'market-1',
+          side: 'yes',
+          shares: '75.00',
+          marketExposure: '41.25',
+          realizedPnl: '-2.50',
+          context: {
+            eventId: 'event-1',
+            eventTitle: 'Lakers vs Celtics',
+            marketQuestion: 'Will the Lakers win?',
+          },
+        },
+      ],
+      nextCursor: 'opaque',
+    };
+    client.fetchPositions.mockResolvedValue(page);
+
+    const result = await adapter.portfolio.fetchPositions({ limit: 20 });
+
+    expect(result).toEqual(page);
+    expect(client.fetchPositions).toHaveBeenCalledWith(
+      adapter.venueId,
+      { limit: 20 },
+      undefined,
+    );
+  });
+
+  it('forwards Positions cancellation', async () => {
+    client.fetchPositions.mockResolvedValue({
+      venueId: 'kalshi',
+      positions: [],
+    });
+    const signal = new AbortController().signal;
+
+    await adapter.portfolio.fetchPositions({ limit: 20 }, { signal });
+
+    expect(client.fetchPositions).toHaveBeenCalledWith(
+      adapter.venueId,
+      { limit: 20 },
+      { signal },
+    );
+  });
+
+  it('rejects Positions for another Venue', async () => {
+    client.fetchPositions.mockResolvedValue({
+      venueId: 'other',
+      positions: [],
+    });
+
+    await expect(adapter.portfolio.fetchPositions({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('rejects a malformed Positions payload', async () => {
+    client.fetchPositions.mockResolvedValue({
+      venueId: 'kalshi',
+      positions: [{ marketId: 'market-1' }],
+    });
+
+    await expect(adapter.portfolio.fetchPositions({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('maps Positions HTTP 401 to UNAUTHENTICATED', async () => {
+    client.fetchPositions.mockRejectedValue(new PredictHttpError(401));
+
+    await expect(adapter.portfolio.fetchPositions({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.UNAUTHENTICATED }),
+    );
+  });
+
+  it('parses canonical Activity from the Predict API', async () => {
+    const page = {
+      venueId: 'kalshi',
+      activity: [
+        {
+          type: 'fill',
+          id: 'fill-1',
+          venueId: 'kalshi',
+          marketId: 'market-1',
+          outcomeSide: 'yes',
+          direction: 'buy',
+          shares: '75.00',
+          price: '0.55',
+          timestamp: '2026-09-01T12:00:00.000Z',
+        },
+        {
+          type: 'settlement',
+          id: 'market-1:2026-09-02T00:00:00.000Z',
+          venueId: 'kalshi',
+          marketId: 'market-1',
+          eventId: 'event-1',
+          result: 'yes',
+          proceeds: '75.00',
+          timestamp: '2026-09-02T00:00:00.000Z',
+        },
+      ],
+    };
+    client.fetchActivity.mockResolvedValue(page);
+
+    const result = await adapter.portfolio.fetchActivity({ limit: 20 });
+
+    expect(result).toEqual(page);
+  });
+
+  it('rejects Activity for another Venue', async () => {
+    client.fetchActivity.mockResolvedValue({
+      venueId: 'other',
+      activity: [],
+    });
+
+    await expect(adapter.portfolio.fetchActivity({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('rejects a malformed Activity payload', async () => {
+    client.fetchActivity.mockResolvedValue({
+      venueId: 'kalshi',
+      activity: [{ type: 'fill', id: 'fill-1' }],
+    });
+
+    await expect(adapter.portfolio.fetchActivity({})).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+    );
+  });
+
+  it('maps Activity HTTP 503 to VENUE_UNAVAILABLE', async () => {
+    client.fetchActivity.mockRejectedValue(new PredictHttpError(503));
+
+    await expect(adapter.portfolio.fetchActivity({})).rejects.toEqual(
       expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
     );
   });

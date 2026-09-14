@@ -134,6 +134,10 @@ _Avoid_: Redeem, collect
 A payout or portfolio adjustment produced when a resolved Market is finalized by a Venue. A Settlement may be automatic, as with Kalshi, or may follow an explicit Claim, as with Polymarket.
 _Avoid_: Claim when no user action is required, payout without context
 
+**Activity**:
+The ordered, paginated projection of a Predict User's Fills and Settlements at one Venue. Activity is derived from executions and settlements, never from Order creation records.
+_Avoid_: History, Transactions, Trades
+
 ### Financial Terms
 
 **Deposit**:
@@ -266,6 +270,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - A Deposit increases Venue Account Balance.
 - A Withdraw decreases Venue Account Balance.
 - A Settlement records winnings paid after a Market is finalized.
+- Activity contains Fills and Settlements; Order creation records never appear as Activity.
 - A Cash Out reduces or closes a Position; it is not a Withdraw.
 - A crypto up/down Market compares asset prices against a Reference Price.
 - A Live Update refreshes the current understanding of an existing domain object; it is not a separate Event or Order.

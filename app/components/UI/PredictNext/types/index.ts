@@ -10,6 +10,10 @@ export type PredictTimestamp = string & {
 export type PredictDecimal = string & { readonly __brand: 'PredictDecimal' };
 /** Non-negative decimal string with no upper bound, used for money amounts. */
 export type PredictAmount = string & { readonly __brand: 'PredictAmount' };
+/** Signed decimal string with an optional leading '-', used for PnL. */
+export type PredictSignedAmount = string & {
+  readonly __brand: 'PredictSignedAmount';
+};
 export type PredictHttpsUrl = string & { readonly __brand: 'PredictHttpsUrl' };
 export type PredictHexColor = string & { readonly __brand: 'PredictHexColor' };
 
@@ -184,6 +188,87 @@ export interface PredictBalance {
   venueId: PredictVenueId;
   currency: 'USD';
   available: PredictAmount;
+}
+
+export interface FetchPortfolioPageParams {
+  cursor?: string;
+  limit?: number;
+}
+
+/**
+ * Catalog-derived presentation data for an account-scoped entry. Present only
+ * when the entry's venue market exists in the canonical catalog; a missing
+ * match omits the context and the entry is never enriched from tickers or
+ * labels.
+ */
+export interface PredictEntryContext {
+  eventId: PredictEntityId;
+  eventTitle: string;
+  eventImageUrl?: PredictHttpsUrl;
+  marketQuestion: string;
+  outcomeId?: PredictEntityId;
+  outcomeLabel?: string;
+}
+
+export interface PredictPosition {
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  side: PredictOutcomeSide;
+  shares: PredictAmount;
+  marketExposure?: PredictAmount;
+  realizedPnl?: PredictSignedAmount;
+  feesPaid?: PredictAmount;
+  totalTraded?: PredictAmount;
+  updatedAt?: PredictTimestamp;
+  context?: PredictEntryContext;
+}
+
+export type PredictFillDirection = 'buy' | 'sell';
+
+export interface PredictFill {
+  id: PredictEntityId;
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  outcomeSide: PredictOutcomeSide;
+  direction: PredictFillDirection;
+  shares: PredictAmount;
+  price: PredictDecimal;
+  fee?: PredictAmount;
+  timestamp: PredictTimestamp;
+  context?: PredictEntryContext;
+}
+
+export type PredictSettlementResult = 'yes' | 'no' | 'scalar';
+
+export interface PredictSettlement {
+  id: PredictEntityId;
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  /** Catalog-sourced canonical Event identity; present only on a catalog match. */
+  eventId?: PredictEntityId;
+  result: PredictSettlementResult;
+  shares?: PredictAmount;
+  proceeds: PredictAmount;
+  costBasis?: PredictAmount;
+  fee?: PredictAmount;
+  timestamp: PredictTimestamp;
+  context?: PredictEntryContext;
+}
+
+export type PredictActivityEntry =
+  | (PredictFill & { type: 'fill' })
+  | (PredictSettlement & { type: 'settlement' });
+
+export interface PredictPositionsPage {
+  venueId: PredictVenueId;
+  positions: PredictPosition[];
+  nextCursor?: string;
+}
+
+export interface PredictActivityPage {
+  venueId: PredictVenueId;
+  activity: PredictActivityEntry[];
+  nextCursor?: string;
 }
 
 export interface PredictReadOptions {
