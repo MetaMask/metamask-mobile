@@ -384,6 +384,8 @@ function createDockerManager(config: SpeculosConfig): DockerManager {
     display: 'headless',
     loadNvram: true,
     startTimeout: 180000, // 3 minutes (default 60s is too short when Docker is under load)
+    stopTimeout: 120000, // default 30s kills compose down mid-stop; the error
+    // then propagates from the finally block and fails an otherwise-passed test.
   });
 }
 
@@ -536,7 +538,15 @@ export async function withSpeculosFixtures(
     }
     if (dockerManager) {
       logger.debug('Stopping Speculos Docker via DockerManager...');
-      await dockerManager.stop();
+      // Best-effort: a teardown failure must never fail a passed test —
+      // cleanupStaleSpeculos at the next run's start handles leftovers.
+      try {
+        await dockerManager.stop();
+      } catch (error) {
+        logger.debug(
+          `Speculos Docker teardown failed (best-effort, ignored): ${String(error)}`,
+        );
+      }
     }
   }
 }
