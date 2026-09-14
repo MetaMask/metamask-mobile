@@ -12,6 +12,13 @@ export interface PredictNextEventParams {
   titleSnapshot: string;
 }
 
+export type PredictPortfolioTab = 'positions' | 'history';
+
+export interface PredictNextPortfolioParams {
+  venueId: PredictVenueId;
+  initialTab?: PredictPortfolioTab;
+}
+
 export interface PredictNextFeedParams {
   venueId: PredictVenueId;
   feedScreenId: FeedScreenId;
@@ -24,4 +31,5 @@ export type PredictNextStackParamList = {
   PredictNextHome: PredictNextHomeParams | undefined;
   PredictNextFeed: PredictNextFeedParams;
   PredictNextEvent: PredictNextEventParams;
+  PredictNextPortfolio: PredictNextPortfolioParams;
 };

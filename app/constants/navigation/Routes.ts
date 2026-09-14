@@ -42,6 +42,7 @@ const Routes = {
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
     GET_PIX_KEY: 'RampGetPixKey',
     VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
+    VBA_KYC_EMAIL: 'RampVbaKycEmail',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -381,6 +382,7 @@ const Routes = {
       RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
       RECURRING_PRICE_RANGE_MODAL: 'RecurringPriceRangeModal',
       RECURRING_CONFIRM_ORDER_MODAL: 'RecurringConfirmOrderModal',
+      RECURRING_DELEGATION_FEE_INFO_MODAL: 'RecurringDelegationFeeInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },

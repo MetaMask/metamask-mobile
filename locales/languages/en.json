@@ -64,7 +64,7 @@
     },
     "gas_estimate_failed": {
       "title": "Inaccurate fee",
-      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you to input a custom gas limit, but there's a risk the transaction will still fail."
+      "message": "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail."
     },
     "insufficient_balance": {
       "title": "Insufficient funds",
@@ -1134,11 +1134,17 @@
       "how_to_delete_description": "You can delete your data anytime by going to Settings > Manage data.",
       "metamask_privacy_policy": "MetaMask Privacy Policy",
       "metamask_terms": "MetaMask T&C",
-      "idos_privacy_policy": "idOS Privacy Policy",
-      "idos_terms": "idOS T&C",
-      "sumsub_privacy_policy": "Sumsub Privacy Policy",
-      "sumsub_terms": "Sumsub T&C",
+      "disclaimers_error": "Couldn't load the terms and conditions.",
+      "disclaimers_retry": "Try again",
       "button": "Continue"
+    },
+    "kyc_email": {
+      "title": "What's your email?",
+      "description": "We'll use this to send account updates.",
+      "input_placeholder": "Email address",
+      "button": "Continue",
+      "error_title": "Identity verification",
+      "error_description": "We couldn't start your identity verification. Try again."
     }
   },
   "social_leaderboard": {
@@ -1223,14 +1229,58 @@
     "shell": {
       "subnav": {
         "trending": "Trending",
-        "memecoins": "Memecoins",
-        "perps": "Perps",
-        "stocks": "Stocks",
-        "whales": "Only",
+        "hot_right_now": "Hot right now",
+        "pumping": "Pumping",
+        "top_gainers": "Top gainers",
+        "top_losers": "Top losers",
+        "new_markets": "New markets",
         "top_traders": "Top traders",
-        "top_perps": "Top perps",
-        "kols": "KOLs",
-        "top_tokens": "Top tokens"
+        "kols": "KOLs"
+      },
+      "filters": {
+        "title": "Filters",
+        "show_results": "Show results",
+        "section": {
+          "type": "Type",
+          "trader_cohort": "Trader cohort",
+          "timeframe": "Time frame",
+          "network": "Network",
+          "market_cap": "Market cap",
+          "volume_24h": "24h volume"
+        },
+        "type": {
+          "all": "All",
+          "tokens": "Tokens",
+          "perps": "Perps",
+          "predictions": "Predictions"
+        },
+        "trader_cohort": {
+          "all": "All",
+          "following": "Following",
+          "shrimp": "Shrimp",
+          "dolphin": "Dolphin",
+          "whale": "Whale",
+          "kol": "KOL"
+        },
+        "timeframe": {
+          "1h": "1H",
+          "24h": "24H",
+          "7d": "7D",
+          "30d": "30D"
+        },
+        "network": {
+          "all": "All",
+          "robinhood": "Robinhood",
+          "bnb": "BNB",
+          "solana": "Solana",
+          "base": "Base"
+        },
+        "range": {
+          "market_cap_min": "$0",
+          "market_cap_max": "$1000B",
+          "volume_24h_min": "$0",
+          "volume_24h_max": "$100M"
+        }
       }
     },
     "onboarding": {
@@ -1920,19 +1970,19 @@
         },
         "stop_limit": {
           "title": "Stop limit",
-          "description": "Limit fills at trigger price"
+          "description": "Place a limit order if trigger price hits"
         },
         "stop_market": {
           "title": "Stop market",
-          "description": "Market fills at trigger price"
+          "description": "Place a market order if trigger price hits"
         },
         "take_profit_limit": {
           "title": "Take limit",
-          "description": "Limit take-profit at trigger price"
+          "description": "Place a limit order if trigger price is reached"
         },
         "take_profit_market": {
           "title": "Take market",
-          "description": "Market take-profit at trigger price"
+          "description": "Place a market order if trigger price is reached"
         },
         "twap": {
           "title": "TWAP",
@@ -2389,6 +2439,7 @@
         "unrealized_pnl": "Unrealized P&L"
       },
       "tpsl": {
+        "update_in_progress": "Updating TP/SL",
         "update_success": "TP/SL updated successfully",
         "update_failed": "Failed to update TP/SL"
       },
@@ -2992,6 +3043,27 @@
       "additional_feedback_placeholder": "How can we improve?",
       "characters_remaining": "{{count}} characters remaining",
       "submit": "Submit"
+    }
+  },
+  "predict_next": {
+    "available_balance": "Available balance",
+    "balance_unavailable": {
+      "title": "Balance unavailable",
+      "description": "Unable to load your available balance.",
+      "retry": "Try again"
+    },
+    "portfolio": {
+      "title": "Positions",
+      "positions": "Positions",
+      "active_positions": "Active positions",
+      "history": "History",
+      "add_funds": "Add Funds",
+      "withdraw": "Withdraw",
+      "empty": {
+        "title": "No positions yet",
+        "description": "Your active and resolved positions will appear here.",
+        "browse_markets": "Browse markets"
+      }
     }
   },
   "predict": {
@@ -4312,7 +4384,7 @@
     "clear_approvals_modal_message": "All dapps will need to request access to view account information again.",
     "clear_browser_history_modal_title": "Clear browser history?",
     "clear_browser_history_modal_message": "We are about to remove all your browser history. Are you sure?",
-    "clear_cookies_modal_title": "Clear browser cookies",
+    "clear_cookies_modal_title": "Clear browser cookies?",
     "clear_cookies_modal_message": "We are about to remove your browser's cookies. Are you sure?",
     "reset_account_modal_message": "Resetting your account will clear your transaction activity.",
     "save_rpc_url": "Save",
@@ -8923,6 +8995,7 @@
       "quote_unit_fallback": "{{amount}}",
       "from_market": "(-{{percent}}% from market)",
       "from_market_above": "(+{{percent}}% from market)",
+      "trigger_price_near_market": "Trigger price is only {{percent}}% from market, your order may fill instantly.",
       "market": "Market",
       "custom": "Custom",
       "expires": "Expires",
@@ -8960,6 +9033,10 @@
       "expires_after": "Expires after",
       "slippage_all_orders": "Slippage (all orders)",
       "est_network_fee_per_order": "Est. network fee (per order)",
+      "delegation_fee_one_time": "Delegation fee (one time)",
+      "delegation_fee_info_title": "Delegation fee",
+      "delegation_fee_info_body": "placeholder",
+      "got_it": "Got it",
       "repeat_info_title": "Repeat orders",
       "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
       "max_is": "Max is {{max}}",
@@ -9798,6 +9875,7 @@
         "expiring_error": "Your verification session expired. Contact support to continue."
       },
       "immersve_kyc_modal": {
+        "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
         "load_error": "Something went wrong loading identity verification. Try again.",
         "try_again": "Try again"
       },

@@ -279,8 +279,8 @@ describe('useLimitOrderSwapInputs', () => {
     });
   });
 
-  describe('destination amount', () => {
-    it('is empty because limit orders do not quote a destination amount', () => {
+  describe('handleFlipTokensPress', () => {
+    it('switches the tokens with the destination amount so it becomes the source amount', () => {
       const { result } = renderLimitOrderSwapInputsHook(
         {
           sourceToken: getNativeSourceToken('eip155:1'),
@@ -290,12 +290,14 @@ describe('useLimitOrderSwapInputs', () => {
         ENABLED_CHAIN_IDS,
       );
 
-      expect(result.current.destTokenAmount).toBe('');
-    });
-  });
+      result.current.handleFlipTokensPress('3000');
 
-  describe('handleFlipTokensPress', () => {
-    it('switches the tokens with an empty amount so the source input is cleared', () => {
+      expect(mockResetToTokenMode).toHaveBeenCalledTimes(1);
+      expect(mockHandleSwitchTokens).toHaveBeenCalledWith('3000');
+      expect(mockSwitchTokens).toHaveBeenCalledTimes(1);
+    });
+
+    it('switches the tokens without an amount so the source input is cleared', () => {
       const { result } = renderLimitOrderSwapInputsHook(
         {
           sourceToken: getNativeSourceToken('eip155:1'),
@@ -307,8 +309,7 @@ describe('useLimitOrderSwapInputs', () => {
 
       result.current.handleFlipTokensPress();
 
-      expect(mockResetToTokenMode).toHaveBeenCalledTimes(1);
-      expect(mockHandleSwitchTokens).toHaveBeenCalledWith('');
+      expect(mockHandleSwitchTokens).toHaveBeenCalledWith(undefined);
       expect(mockSwitchTokens).toHaveBeenCalledTimes(1);
     });
   });

@@ -20,7 +20,7 @@ import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
-import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../hooks/useConfirmReject';
 import { useConfirmationLoadMetrics } from '../../hooks/metrics/useConfirmationLoadMetrics';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
@@ -172,27 +172,15 @@ export const Confirm = ({
   fullscreenStyle,
 }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
-  const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation<AppNavigationProp>();
-  const { onReject } = useConfirmActions();
-  const { onFirstPaint } = useConfirmationLoadMetrics();
-  const { styles } = useStyles(styleSheet, {
-    isFullScreenConfirmation,
-    disableSafeArea,
-  });
 
   useEffect(() => {
-    const options: NativeStackNavigationOptions = {
-      // If not, keep the loading state in place until there is a request that can be rejected.
-      gestureEnabled: Boolean(approvalRequest),
-    };
-
-    if (approvalRequest) {
-      options.headerShown = Boolean(isFullScreenConfirmation);
+    if (!approvalRequest) {
+      // Keep the loading state in place until there is a request that can be rejected.
+      const options: NativeStackNavigationOptions = { gestureEnabled: false };
+      navigation.setOptions(options);
     }
-
-    navigation.setOptions(options);
-  }, [approvalRequest, isFullScreenConfirmation, navigation]);
+  }, [approvalRequest, navigation]);
 
   useEffect(() => {
     if (!approvalRequest) {
@@ -212,6 +200,39 @@ export const Confirm = ({
   if (!approvalRequest) {
     return <Loader />;
   }
+
+  return (
+    <ConfirmInternal
+      disableSafeArea={disableSafeArea}
+      fullscreenStyle={fullscreenStyle}
+      route={route}
+    />
+  );
+};
+
+function ConfirmInternal({
+  route,
+  disableSafeArea = false,
+  fullscreenStyle,
+}: ConfirmProps) {
+  const { approvalRequest } = useApprovalRequest();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { onReject } = useConfirmReject();
+  const { onFirstPaint } = useConfirmationLoadMetrics();
+  const { styles } = useStyles(styleSheet, {
+    isFullScreenConfirmation,
+    disableSafeArea,
+  });
+
+  useEffect(() => {
+    const options: NativeStackNavigationOptions = {
+      gestureEnabled: true,
+      headerShown: Boolean(isFullScreenConfirmation),
+    };
+
+    navigation.setOptions(options);
+  }, [isFullScreenConfirmation, navigation]);
 
   // Show confirmation in a flat container if the confirmation is full screen
   if (isFullScreenConfirmation) {
@@ -238,7 +259,7 @@ export const Confirm = ({
       </View>
     </BottomSheet>
   );
-};
+}
 
 function ConfirmationAlerts({ children }: { children: ReactNode }) {
   const alerts = useConfirmationAlerts();

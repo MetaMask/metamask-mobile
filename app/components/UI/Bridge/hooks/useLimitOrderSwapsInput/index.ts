@@ -88,7 +88,6 @@ export const useLimitOrderSwapInputs = ({
     onSourceAmountChange: handleSourceAmountChange,
     featureId: FeatureId.LIMIT_ORDER,
   });
-  const destTokenAmount: string | undefined = '';
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
   const { handleSwitchTokens } = useSwitchTokens();
@@ -125,12 +124,15 @@ export const useLimitOrderSwapInputs = ({
     [dispatch, syncFiatAmountToTokenAmount],
   );
 
-  const handleFlipTokensPress = useCallback(() => {
-    resetToTokenMode();
-    handleSwitchTokens(destTokenAmount)().catch((error) => {
-      console.error('Error switching swap tokens:', error);
-    });
-  }, [destTokenAmount, handleSwitchTokens, resetToTokenMode]);
+  const handleFlipTokensPress = useCallback(
+    (destTokenAmount?: string) => {
+      resetToTokenMode();
+      handleSwitchTokens(destTokenAmount)().catch((error) => {
+        console.error('Error switching swap tokens:', error);
+      });
+    },
+    [handleSwitchTokens, resetToTokenMode],
+  );
 
   const handleSourceTokenPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
@@ -155,7 +157,6 @@ export const useLimitOrderSwapInputs = ({
   return {
     enabledChainIds,
     destToken,
-    destTokenAmount,
     handleDestTokenPress,
     handleFlipTokensPress,
     handleSourceMaxPress,

@@ -83,7 +83,7 @@ jobs:
       previous_ref: ${{ steps.out.outputs.previous_ref }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - id: out
         shell: bash
@@ -121,14 +121,14 @@ jobs:
       # Kept in this job to avoid a separate runner just for the metadata read.
       - name: Checkout repository
         if: needs.resolve-bases.outputs.is_ota != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.resolve-bases.outputs.checkout_base }}
           fetch-depth: 1
 
       - name: Setup Node.js
         if: needs.resolve-bases.outputs.is_ota != 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -176,7 +176,7 @@ jobs:
 
       - name: Checkout release branch (OTA hotfix — OTA_VERSION only)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: release/${{ inputs.semver-version }}-ota
           token: ${{ steps.get-token.outputs.token }}
@@ -211,7 +211,7 @@ jobs:
       # tag match exactly (both v<X.Y.Z>). The `-ota` suffix is a branch-name convention only.
       - name: Checkout github-tools (release changelog)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: MetaMask/github-tools
           path: github-tools

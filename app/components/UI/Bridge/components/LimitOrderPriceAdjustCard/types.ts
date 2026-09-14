@@ -66,6 +66,11 @@ export interface LimitOrderPriceAdjustCardProps {
    */
   marketComparison?: { label: string; isNegative: boolean };
   /**
+   * When true, warns that the limit price sits close enough to market that the
+   * order may fill instantly.
+   */
+  isTriggerPriceNearMarket?: boolean;
+  /**
    * Percent offsets from market rendered as preset buttons, e.g. `[5, 10]`.
    */
   pricePresets: number[];
