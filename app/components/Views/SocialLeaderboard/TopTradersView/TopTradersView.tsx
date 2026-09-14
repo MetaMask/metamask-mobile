@@ -13,6 +13,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -21,7 +24,7 @@ import {
   type FlatList,
   type ScrollView,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { Easing, LinearTransition } from 'react-native-reanimated';
 import {
   useNavigation,
   useRoute,
@@ -66,6 +69,7 @@ import {
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
+import { RANK_CHANGE_DURATION } from './components/useRankChangeAnimation';
 import {
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,
@@ -109,6 +113,31 @@ const buildQueryEnabledTabs = (
   tokens: activeTab === 'tokens',
   perps: activeTab === 'perps',
 });
+
+/**
+ * Slide a row runs when the ranking reshuffles. Eased out so rows leave quickly
+ * and settle gently, and matched to `RANK_CHANGE_DURATION` so the row's own
+ * pulse resolves exactly as it lands.
+ */
+const rowLayoutTransition = LinearTransition.duration(
+  RANK_CHANGE_DURATION,
+).easing(Easing.out(Easing.ease));
+
+/**
+ * TODO(TSA-1132): remove with the debug shuffle button.
+ *
+ * Randomises the order and reassigns `rank` to match, so a shuffle exercises
+ * the same code path a real ranking change does — the slide is driven by the
+ * new position and each row's pulse by its new `rank`.
+ */
+const shuffleOrder = (traders: TopTrader[]): TopTrader[] => {
+  const shuffled = [...traders];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.map((trader, index) => ({ ...trader, rank: index + 1 }));
+};
 
 const LEADERBOARD_LIMIT = 50;
 const INITIAL_TRADER_ROWS_TO_RENDER = 6;
@@ -182,6 +211,12 @@ export interface TopTradersViewProps {
    * sits above this list. `tokens` and `perps` still require the perps flag.
    */
   pinnedTypeFilter?: SocialTypeFilter;
+  /**
+   * Slides rows to their new offsets when the ranking changes, instead of
+   * snapping. Rows pair this with their own rank-change pulse. Off by default
+   * so the legacy leaderboard keeps its instant re-sort.
+   */
+  animateReorder?: boolean;
 }
 
 /**
@@ -197,6 +232,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   SkeletonComponent = TraderRowSkeleton,
   rowHeight = TRADER_ROW_HEIGHT,
   pinnedTypeFilter,
+  animateReorder = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
@@ -300,16 +336,22 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const activeTab = pinnedTypeFilter ?? (isPerpsEnabled ? renderedTab : 'all');
   const activeResult = resultsByTab[activeTab];
   const { traders: loadedTraders, isLoading, toggleFollow } = activeResult;
+  // TODO(TSA-1132): remove with `shuffleOrder` once the reorder animation has
+  // been signed off — this only exists to trigger a reshuffle on demand.
+  const [shuffleCount, setShuffleCount] = useState(0);
+  const handleShuffle = useCallback(() => setShuffleCount((n) => n + 1), []);
+
   // The API ranks on its own (30-day) window, so the selected time frame is
   // only honoured once the loaded page is re-ranked here.
-  const traders = useMemo<RankedTrader[]>(
-    () =>
-      rankTradersByMetric(loadedTraders, sort).map((trader) => ({
-        ...trader,
-        displayMetric: getTraderMetricDisplay(trader, sort),
-      })),
-    [loadedTraders, sort],
-  );
+  const traders = useMemo<RankedTrader[]>(() => {
+    const ranked = rankTradersByMetric(loadedTraders, sort);
+    // TODO(TSA-1132): drop this branch with the debug shuffle button.
+    const ordered = shuffleCount > 0 ? shuffleOrder(ranked) : ranked;
+    return ordered.map((trader) => ({
+      ...trader,
+      displayMetric: getTraderMetricDisplay(trader, sort),
+    }));
+  }, [loadedTraders, sort, shuffleCount]);
   // The visible tab always fetches alone first; the other two are prefetched
   // behind it so switching pills is instant. Gate on `isFetching` rather than
   // `isLoading`: arriving with a warm cache (the homepage carousel shares the
@@ -562,15 +604,34 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
             testID={TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR}
           />
         </Box>
-        <SortFilterSelector
-          value={sort}
-          onPress={openSortSheet}
-          testID={TopTradersViewSelectorsIDs.SORT_SELECTOR}
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+        >
+          {/* TODO(TSA-1132): remove once the reorder animation is signed off. */}
+          {animateReorder && (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              onPress={handleShuffle}
+              testID={TopTradersViewSelectorsIDs.DEBUG_SHUFFLE_BUTTON}
+            >
+              Shuffle
+            </Button>
+          )}
+          <SortFilterSelector
+            value={sort}
+            onPress={openSortSheet}
+            testID={TopTradersViewSelectorsIDs.SORT_SELECTOR}
+          />
+        </Box>
       </Box>
     ),
     [
       activeTab,
+      animateReorder,
+      handleShuffle,
       isPerpsEnabled,
       openSortSheet,
       openTimeframeSheet,
@@ -614,6 +675,10 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           ref={listRef}
           data={traders}
           keyExtractor={(item) => item.id}
+          // Stable keys are what let a reorder read as movement rather than a
+          // re-render: the cell for a given trader survives the sort, so
+          // Reanimated has an old and new offset to interpolate between.
+          itemLayoutAnimation={animateReorder ? rowLayoutTransition : undefined}
           renderItem={renderTraderRow}
           ListHeaderComponent={listHeader}
           showsVerticalScrollIndicator={false}
