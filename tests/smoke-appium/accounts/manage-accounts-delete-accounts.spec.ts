@@ -63,11 +63,12 @@ appiumTest.describe(SmokeAccounts('Manage accounts delete'), () => {
           await assertAccountCount(MANAGE_ACCOUNTS_ACCOUNT_1, 1, 5000, true);
 
           await ManageAccounts.tapManageAccountsButton();
-          await ManageAccounts.tapRemoveButton(MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_GROUP_ID);
+          await ManageAccounts.tapRemoveButton(
+            MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_GROUP_ID,
+          );
           await Assertions.expectElementToBeVisible(DeleteAccount.container, {
             timeout: 10_000,
-            description:
-              'Delete account confirmation sheet should be visible',
+            description: 'Delete account confirmation sheet should be visible',
           });
           await DeleteAccount.tapDeleteAccount();
 
@@ -76,7 +77,11 @@ appiumTest.describe(SmokeAccounts('Manage accounts delete'), () => {
           await WalletView.tapIdenticon();
           await AccountListBottomSheet.waitForAccountListVisible();
 
-          await assertAccountCount(MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_NAME, 0, 10_000);
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_NAME,
+            0,
+            10_000,
+          );
           await assertAccountCount(MANAGE_ACCOUNTS_ACCOUNT_1, 1, 5000, true);
         },
       );
@@ -100,19 +105,29 @@ appiumTest.describe(SmokeAccounts('Manage accounts delete'), () => {
           // Baseline: the fixture's QR hardware account shows up in the
           // account list next to the primary HD accounts.
           await assertAccountCount(MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_NAME, 1);
-          await assertAccountCount(MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME, 1, 5000, true);
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME,
+            1,
+            5000,
+            true,
+          );
 
           await ManageAccounts.tapManageAccountsButton();
-          await ManageAccounts.tapRemoveButton(MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID);
+          await ManageAccounts.tapRemoveButton(
+            MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID,
+          );
 
           // The sheet's container wrapper reports isDisplayed=false while on
           // screen (bottom-sheet flattening) — assert existence, not
           // visibility, per the framework guidance in AppiumAssertions.
-          await Assertions.expectElementToExist(RemoveHardwareAccount.container, {
-            timeout: 10_000,
-            description:
-              'Remove hardware account confirmation sheet should be present',
-          });
+          await Assertions.expectElementToExist(
+            RemoveHardwareAccount.container,
+            {
+              timeout: 10_000,
+              description:
+                'Remove hardware account confirmation sheet should be present',
+            },
+          );
           // Its children DO report visible — assert one for a stronger check.
           await Assertions.expectElementToBeVisible(
             RemoveHardwareAccount.removeButton,
@@ -129,8 +144,17 @@ appiumTest.describe(SmokeAccounts('Manage accounts delete'), () => {
           // count change.
           await manageAccountsBackAndReopenAccountList();
 
-          await assertAccountCount(MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_NAME, 0, 10_000);
-          await assertAccountCount(MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME, 1, 5000, true);
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_NAME,
+            0,
+            10_000,
+          );
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME,
+            1,
+            5000,
+            true,
+          );
         },
       );
     },

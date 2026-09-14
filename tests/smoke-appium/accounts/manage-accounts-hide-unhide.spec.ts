@@ -119,15 +119,18 @@ appiumTest.describe(SmokeAccounts('Manage accounts hide/unhide'), () => {
             },
           );
           await Assertions.expectElementToBeVisible(
-            ManageAccounts.getRemoveButton(MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_GROUP_ID),
+            ManageAccounts.getRemoveButton(
+              MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_GROUP_ID,
+            ),
             {
               timeout: 10_000,
-              description:
-                'Imported account remove control should be visible',
+              description: 'Imported account remove control should be visible',
             },
           );
           await Assertions.expectElementToNotBeVisible(
-            ManageAccounts.getHideToggle(MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_GROUP_ID),
+            ManageAccounts.getHideToggle(
+              MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_GROUP_ID,
+            ),
             {
               timeout: 5_000,
               description:
@@ -162,7 +165,12 @@ appiumTest.describe(SmokeAccounts('Manage accounts hide/unhide'), () => {
           // Baseline: the fixture's QR hardware account shows up in the
           // account list next to the primary HD accounts.
           await assertAccountCount(MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_NAME, 1);
-          await assertAccountCount(MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME, 1, 5000, true);
+          await assertAccountCount(
+            MANAGE_ACCOUNTS_ACCOUNT_2_CONTROL_NAME,
+            1,
+            5000,
+            true,
+          );
 
           await ManageAccounts.tapManageAccountsButton();
           await Assertions.expectElementToBeVisible(
@@ -173,7 +181,9 @@ appiumTest.describe(SmokeAccounts('Manage accounts hide/unhide'), () => {
             },
           );
           await Assertions.expectElementToBeVisible(
-            ManageAccounts.getRemoveButton(MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID),
+            ManageAccounts.getRemoveButton(
+              MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID,
+            ),
             {
               timeout: 10_000,
               description:
@@ -181,7 +191,9 @@ appiumTest.describe(SmokeAccounts('Manage accounts hide/unhide'), () => {
             },
           );
           await Assertions.expectElementToNotBeVisible(
-            ManageAccounts.getHideToggle(MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID),
+            ManageAccounts.getHideToggle(
+              MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID,
+            ),
             {
               timeout: 5_000,
               description:

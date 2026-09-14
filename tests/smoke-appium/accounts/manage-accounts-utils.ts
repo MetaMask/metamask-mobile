@@ -16,8 +16,7 @@ export const MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_ADDRESS =
  * Group ID `keyring:Simple Key Pair/<address>`. KeyringController stores
  * EVM addresses lower-cased, so the group ID uses the lower-case address.
  */
-export const MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_GROUP_ID =
-  `keyring:Simple Key Pair/${MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_ADDRESS}`;
+export const MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_GROUP_ID = `keyring:Simple Key Pair/${MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_ADDRESS}`;
 
 /** Computed default name for the first Simple Key Pair group. */
 export const MANAGE_ACCOUNTS_IMPORTED_ACCOUNT_NAME = 'Imported Account 1';
@@ -31,8 +30,7 @@ export const MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_ADDRESS =
  * is always recomputed at startup, so the fixture's seeded `/ethereum`
  * group ID is never valid at runtime.
  */
-export const MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID =
-  `keyring:QR Hardware Wallet Device/${MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_ADDRESS}`;
+export const MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_GROUP_ID = `keyring:QR Hardware Wallet Device/${MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_ADDRESS}`;
 
 /** Computed default name for the first QR hardware wallet group. */
 export const MANAGE_ACCOUNTS_HARDWARE_ACCOUNT_NAME = 'QR Account 1';
