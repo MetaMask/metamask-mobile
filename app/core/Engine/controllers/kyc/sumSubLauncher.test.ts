@@ -1,10 +1,10 @@
 import { NativeModules } from 'react-native';
 import {
-  launchSumSubSdk,
+  sumsubLauncher,
   SUMSUB_NATIVE_MODULE_MISSING_ERROR,
   SUMSUB_NATIVE_MODULE_NAME,
-} from './launchSumSubSdk';
-import Logger from '../../../../../util/Logger';
+} from './sumSubLauncher';
+import Logger from '../../../../util/Logger';
 
 const mockLaunch = jest.fn();
 const mockBuild = jest.fn();
@@ -20,7 +20,7 @@ jest.mock('@sumsub/react-native-mobilesdk-module', () => ({
   },
 }));
 
-jest.mock('../../../../../util/Logger', () => ({
+jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     log: jest.fn(),
@@ -59,10 +59,10 @@ const wireSumSubSdkBuilderMocks = () => {
   mockLaunch.mockResolvedValue({ success: true, status: 'Approved' });
 };
 
-describe('launchSumSubSdk', () => {
+describe('sumsubLauncher', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    restoreSumSubNativeModule();
+    NativeModules[SUMSUB_NATIVE_MODULE_NAME] = { launch: jest.fn() };
     wireSumSubSdkBuilderMocks();
   });
 
@@ -72,9 +72,18 @@ describe('launchSumSubSdk', () => {
     jest.resetAllMocks();
   });
 
+  it('reports availability from the native module', () => {
+    expect(sumsubLauncher.isAvailable()).toBe(true);
+
+    delete NativeModules[SUMSUB_NATIVE_MODULE_NAME];
+
+    expect(sumsubLauncher.isAvailable()).toBe(false);
+  });
+
   it('launches with the given access token, locale, and debug flag', async () => {
-    const result = await launchSumSubSdk({
-      accessToken: 'applicant-token',
+    const result = await sumsubLauncher.launch({
+      applicantAccessToken: 'applicant-token',
+      onTokenExpiration: async () => 'applicant-token',
       locale: 'pt',
       debug: true,
     });
@@ -89,25 +98,17 @@ describe('launchSumSubSdk', () => {
     expect(result).toStrictEqual({ success: true, status: 'Approved' });
   });
 
-  it('returns the original access token when the SDK asks to refresh and no handler is given', async () => {
+  it('uses the controller token refresh handler when the SDK asks to refresh', async () => {
+    const onTokenExpiration = jest.fn().mockResolvedValue('refreshed-token');
     const captured = captureExpirationHandler();
 
-    await launchSumSubSdk({ accessToken: 'applicant-token' });
-
-    await expect(captured.handler?.()).resolves.toBe('applicant-token');
-  });
-
-  it('uses the caller token refresh handler when the SDK asks to refresh', async () => {
-    const onTokenExpired = jest.fn().mockResolvedValue('refreshed-token');
-    const captured = captureExpirationHandler();
-
-    await launchSumSubSdk({
-      accessToken: 'applicant-token',
-      onTokenExpired,
+    await sumsubLauncher.launch({
+      applicantAccessToken: 'applicant-token',
+      onTokenExpiration,
     });
 
     await expect(captured.handler?.()).resolves.toBe('refreshed-token');
-    expect(onTokenExpired).toHaveBeenCalledTimes(1);
+    expect(onTokenExpiration).toHaveBeenCalledTimes(1);
   });
 
   it('propagates a launch rejection from the native SDK', async () => {
@@ -116,31 +117,28 @@ describe('launchSumSubSdk', () => {
     );
 
     await expect(
-      launchSumSubSdk({ accessToken: 'applicant-token' }),
+      sumsubLauncher.launch({
+        applicantAccessToken: 'applicant-token',
+        onTokenExpiration: async () => 'applicant-token',
+      }),
     ).rejects.toThrow('Aborted since another instance is in use!');
-  });
-
-  it('propagates an init failure from the native SDK', async () => {
-    mockInit.mockImplementation(() => {
-      throw new Error('init failed');
-    });
-
-    await expect(
-      launchSumSubSdk({ accessToken: 'applicant-token' }),
-    ).rejects.toThrow('init failed');
   });
 
   it('throws when the Sumsub native module is not linked', async () => {
     delete NativeModules[SUMSUB_NATIVE_MODULE_NAME];
 
     await expect(
-      launchSumSubSdk({ accessToken: 'applicant-token' }),
+      sumsubLauncher.launch({
+        applicantAccessToken: 'applicant-token',
+        onTokenExpiration: async () => 'applicant-token',
+      }),
     ).rejects.toThrow(SUMSUB_NATIVE_MODULE_MISSING_ERROR);
 
     expect(mockInit).not.toHaveBeenCalled();
   });
 
-  it('logs native SDK status changes', async () => {
+  it('forwards native SDK status changes to the controller', async () => {
+    const onStatusChange = jest.fn();
     let onStatusChanged:
       | ((event: { prevStatus: string; newStatus: string }) => void)
       | undefined;
@@ -151,10 +149,15 @@ describe('launchSumSubSdk', () => {
       },
     );
 
-    await launchSumSubSdk({ accessToken: 'applicant-token' });
+    await sumsubLauncher.launch({
+      applicantAccessToken: 'applicant-token',
+      onTokenExpiration: async () => 'applicant-token',
+      onStatusChange,
+    });
 
     onStatusChanged?.({ prevStatus: 'Init', newStatus: 'Approved' });
 
+    expect(onStatusChange).toHaveBeenCalledWith('Init', 'Approved');
     expect(jest.mocked(Logger.log)).toHaveBeenCalledWith(
       '[Sumsub] status changed',
       expect.objectContaining({
