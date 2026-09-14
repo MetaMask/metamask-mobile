@@ -11,16 +11,32 @@ import { addMMOriginatedTransaction } from '../../utils/transaction';
 export const EIP_7702_REVOKE_ADDRESS =
   '0x0000000000000000000000000000000000000000';
 
-export function useEIP7702Accounts(networkConfiguration: NetworkConfiguration) {
+interface UseEIP7702AccountsOptions {
+  requireApproval?: boolean;
+}
+
+export function useEIP7702Accounts(
+  networkConfiguration: NetworkConfiguration | undefined,
+  { requireApproval = true }: UseEIP7702AccountsOptions = {},
+) {
   const defaultRpcEndpoint =
-    networkConfiguration.rpcEndpoints[
+    networkConfiguration?.rpcEndpoints[
       networkConfiguration.defaultRpcEndpointIndex
     ];
-  const { networkClientId } = defaultRpcEndpoint as { networkClientId: string };
+  const networkClientId = (
+    defaultRpcEndpoint as { networkClientId?: string } | undefined
+  )?.networkClientId;
+
+  const requireNetworkClientId = useCallback(() => {
+    if (!networkClientId) {
+      throw new Error('Network client ID is required to update account type');
+    }
+    return networkClientId;
+  }, [networkClientId]);
 
   const downgradeAccount = useCallback(
-    async (address: Hex) => {
-      await addMMOriginatedTransaction(
+    (address: Hex) =>
+      addMMOriginatedTransaction(
         {
           authorizationList: [
             {
@@ -32,17 +48,17 @@ export function useEIP7702Accounts(networkConfiguration: NetworkConfiguration) {
           type: TransactionEnvelopeType.setCode,
         },
         {
-          networkClientId,
+          networkClientId: requireNetworkClientId(),
+          requireApproval,
           type: TransactionType.revokeDelegation,
         },
-      );
-    },
-    [networkClientId],
+      ),
+    [requireApproval, requireNetworkClientId],
   );
 
   const upgradeAccount = useCallback(
-    async (address: Hex, upgradeContractAddress: Hex) => {
-      await addMMOriginatedTransaction(
+    (address: Hex, upgradeContractAddress: Hex) =>
+      addMMOriginatedTransaction(
         {
           authorizationList: [
             {
@@ -54,12 +70,12 @@ export function useEIP7702Accounts(networkConfiguration: NetworkConfiguration) {
           type: TransactionEnvelopeType.setCode,
         },
         {
-          networkClientId,
+          networkClientId: requireNetworkClientId(),
+          requireApproval,
           type: TransactionType.batch,
         },
-      );
-    },
-    [networkClientId],
+      ),
+    [requireApproval, requireNetworkClientId],
   );
 
   return { downgradeAccount, upgradeAccount };
