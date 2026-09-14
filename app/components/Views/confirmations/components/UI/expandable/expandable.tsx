@@ -1,12 +1,11 @@
 import React, { ReactNode, useCallback, useRef, useState } from 'react';
-import { Modal } from 'react-native';
+import { Modal, TouchableOpacity, View } from 'react-native';
 import {
   BottomSheet,
   BottomSheetHeader,
   BottomSheetRef,
   Box,
 } from '@metamask/design-system-react-native';
-import { TouchableOpacity, View } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
 import CopyButton from '../copy-button';
