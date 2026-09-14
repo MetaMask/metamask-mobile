@@ -16,3 +16,25 @@ replacement signs those IDs using a disposable key with network access
 disabled. The public lighter-go source does not contain the replacement's
 revision; this artifact must not be described as a reproducible local build
 of that revision. Mainnet financial compatibility has not been validated.
+
+## Runtime containment
+
+Because this artifact is not a reproducible build, it is treated as untrusted
+code that happens to receive a SecureKeychain-backed private key. Two
+independent controls keep a compromised artifact from exfiltrating that key:
+
+- **Deny-all CSP** in `wasm-wrapper.standalone.html` — `default-src 'none'`
+  with an explicit `connect-src 'none'` blocks `fetch`, XHR, WebSocket, beacon
+  and every subresource. The WASM payload is inlined as base64 and
+  instantiated from memory, so the page needs no network access.
+- **Navigation deny** on the host `WebView` — `onShouldStartLoadWithRequest`
+  returns `false` for every request. `originWhitelist` stays `['*']` on
+  purpose: a URL that _fails_ the whitelist is not blocked but forwarded to
+  `Linking.openURL`, which would hand an attacker-chosen URL to the system
+  browser. Keeping it permissive routes every request to the guard, which
+  denies it in-process.
+
+These are separate surfaces: `originWhitelist` gates navigation only and does
+not stop `fetch`/XHR/WebSocket from the embedded JS or WASM. Both are asserted
+in `LighterSignerWebView.test.tsx` under `outbound-network boundary`, including
+a check that the shipped page contains no outbound-request primitive.

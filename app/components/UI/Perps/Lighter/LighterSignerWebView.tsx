@@ -7,7 +7,7 @@ import type {
 } from '@metamask/react-native-webview/src/WebViewTypes';
 // Inlined as a string by babel-plugin-inline-import (scoped override in
 // babel.config.js). The page embeds the Lighter Go/WASM signer as base64 —
-// fully local, NO network access.
+// fully local, and its deny-all CSP enforces NO network access.
 // @ts-expect-error HTML import handled by babel-plugin-inline-import.
 import lighterSdkHtml from './wasm-wrapper.standalone.html';
 import {
@@ -179,6 +179,28 @@ export function isValidLighterSignerResult(
   return (
     typeof result.txInfo === 'string' && hasOptionalString(result, 'txHash')
   );
+}
+
+/**
+ * Deny every navigation the signer page attempts.
+ *
+ * The page is served from an inline `html` source and needs no navigation
+ * whatsoever: the Go/WASM payload is inlined as base64 and instantiated from
+ * memory. Denying every request keeps a compromised signer artifact from
+ * navigating the SecureKeychain-backed key out of the process.
+ *
+ * `originWhitelist` deliberately stays permissive so that every request
+ * reaches this callback. A URL that *fails* the whitelist does not simply get
+ * blocked — react-native-webview hands it to `Linking.openURL`, which would
+ * hand an attacker-chosen URL to the system browser. Denying here instead
+ * keeps the request inside the WebView, where it dies silently.
+ *
+ * This complements, and does not replace, the page's deny-all CSP: navigation
+ * and fetch/XHR/WebSocket are separate surfaces, and neither control covers
+ * the other.
+ */
+export function denyLighterSignerNavigation(): boolean {
+  return false;
 }
 
 /**
@@ -369,7 +391,11 @@ export const LighterSignerWebView = () => {
         ref={webviewRef}
         style={styles.hidden}
         source={{ html: lighterSdkHtml, baseUrl: 'https://localhost' }}
+        // Every request must reach onShouldStartLoadWithRequest, which denies
+        // it. A non-matching originWhitelist would instead escalate the URL to
+        // Linking.openURL (the system browser) — see the guard's docblock.
         originWhitelist={['*']}
+        onShouldStartLoadWithRequest={denyLighterSignerNavigation}
         javaScriptEnabled
         webviewDebuggingEnabled={__DEV__}
         onMessage={onMessage}

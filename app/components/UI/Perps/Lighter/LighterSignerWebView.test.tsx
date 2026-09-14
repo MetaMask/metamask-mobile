@@ -3,6 +3,7 @@ import { act, render } from '@testing-library/react-native';
 import type { WebViewMessageEvent } from '@metamask/react-native-webview/src/WebViewTypes';
 
 import {
+  denyLighterSignerNavigation,
   isValidLighterSignerResult,
   LIGHTER_SIGNER_RELOAD_BASE_DELAY_MS,
   LighterSignerWebView,
@@ -19,6 +20,8 @@ interface MockWebViewProps {
   onMessage?: (event: WebViewMessageEvent) => void;
   onError?: (event: never) => void;
   onContentProcessDidTerminate?: () => void;
+  originWhitelist?: string[];
+  onShouldStartLoadWithRequest?: () => boolean;
 }
 
 let mockWebViewProps: MockWebViewProps = {};
@@ -45,10 +48,23 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
+// The component imports this page as an inlined string (babel-plugin-inline-import).
+// The mock keeps the 10 MB payload out of the component tests, while
+// `readSignerPageSource` reads the real artifact for the boundary assertions —
+// the CSP only matters on the page that actually ships.
 jest.mock('./wasm-wrapper.standalone.html', () => ({
   __esModule: true,
   default: '<html />',
 }));
+
+function readSignerPageSource(): string {
+  // Resolved through jest.requireActual rather than a static import: `fs` and
+  // `path` imports are banned in app code by import-x/no-nodejs-modules, and
+  // this only ever runs inside the Jest (Node) environment.
+  const { readFileSync } = jest.requireActual<typeof import('fs')>('fs');
+  const { join } = jest.requireActual<typeof import('path')>('path');
+  return readFileSync(join(__dirname, 'wasm-wrapper.standalone.html'), 'utf8');
+}
 
 jest.mock('react-native-quick-crypto', () => ({
   __esModule: true,
@@ -346,5 +362,64 @@ describe('LighterSignerWebView', () => {
         params: [28, 7],
       }),
     ).rejects.toThrow('unavailable after repeated WebView load failures');
+  });
+
+  describe('outbound-network boundary', () => {
+    // The signer receives a SecureKeychain-backed private key, so a
+    // compromised WASM artifact must have no way to send it anywhere.
+    // Navigation and fetch/XHR/WebSocket are separate surfaces and are
+    // asserted separately below.
+
+    it('denies every navigation the signer page attempts', () => {
+      render(<LighterSignerWebView />);
+
+      expect(mockWebViewProps.onShouldStartLoadWithRequest).toBe(
+        denyLighterSignerNavigation,
+      );
+      expect(denyLighterSignerNavigation()).toBe(false);
+    });
+
+    it('routes every request through the deny guard instead of escalating it to the OS', () => {
+      // A URL that fails originWhitelist is not blocked — react-native-webview
+      // forwards it to Linking.openURL. Keeping the whitelist permissive means
+      // the guard above sees every request and denies it in-process.
+      render(<LighterSignerWebView />);
+
+      expect(mockWebViewProps.originWhitelist).toStrictEqual(['*']);
+      expect(mockWebViewProps.onShouldStartLoadWithRequest?.()).toBe(false);
+    });
+
+    it('serves a page whose CSP blocks fetch, XHR, WebSocket and every subresource', () => {
+      // Reads the real asset, not the mocked HTML: the CSP is the only control
+      // that stops requests originWhitelist cannot gate, so it must be
+      // asserted against the artifact that actually ships.
+      const html = readSignerPageSource();
+      const csp =
+        /<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"/u.exec(
+          html,
+        )?.[1];
+
+      expect(csp).toBeDefined();
+      expect(csp).toContain("default-src 'none'");
+      expect(csp).toContain("connect-src 'none'");
+      expect(csp).toContain("form-action 'none'");
+      expect(csp).toContain("base-uri 'none'");
+    });
+
+    it('ships a signer page that makes no outbound request of its own', () => {
+      const html = readSignerPageSource();
+      // The WASM payload is inlined as base64 and instantiated from memory,
+      // so the page has no legitimate reason to reach the network. If this
+      // ever fails, the deny-all CSP above would break the signer — which is
+      // the point: the boundary is enforced, not assumed.
+      const scriptBody = html.slice(html.indexOf('<body>'));
+
+      expect(scriptBody).not.toMatch(/\bfetch\s*\(/u);
+      expect(scriptBody).not.toMatch(/\bXMLHttpRequest\b/u);
+      expect(scriptBody).not.toMatch(/\bnew\s+WebSocket\b/u);
+      expect(scriptBody).not.toMatch(/\bnavigator\.sendBeacon\b/u);
+      expect(scriptBody).not.toMatch(/\bimportScripts\s*\(/u);
+      expect(scriptBody).not.toMatch(/WebAssembly\.instantiateStreaming/u);
+    });
   });
 });
