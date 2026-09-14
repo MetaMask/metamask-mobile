@@ -27,6 +27,8 @@ import {
   BottomSheetFooter,
   ButtonsAlignment,
   Button,
+  ButtonBase,
+  ButtonBaseSize,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
@@ -253,7 +255,14 @@ const PerpsTPSLView: React.FC = () => {
   });
 
   // Extract form state and handlers for easier access
-  const { takeProfitPrice, stopLossPrice } = tpslForm.formState;
+  const {
+    takeProfitPrice,
+    stopLossPrice,
+    takeProfitPercentage,
+    stopLossPercentage,
+    takeProfitSign,
+    stopLossSign,
+  } = tpslForm.formState;
 
   const {
     handleTakeProfitPriceChange,
@@ -275,6 +284,8 @@ const PerpsTPSLView: React.FC = () => {
     handleStopLossPercentageButton,
     handleTakeProfitOff,
     handleStopLossOff,
+    handleTakeProfitSignToggle,
+    handleStopLossSignToggle,
   } = tpslForm.buttons;
 
   const {
@@ -309,7 +320,7 @@ const PerpsTPSLView: React.FC = () => {
     ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
     : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
 
-  usePerpsEventTracking({
+  const { track } = usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: tpslScreenType,
@@ -414,12 +425,7 @@ const PerpsTPSLView: React.FC = () => {
       } else if (focusedInput === 'stopLossPrice') {
         handleStopLossPriceChange(value);
       } else if (focusedInput === 'stopLossPercentage') {
-        const trimmedValue = value.trim();
-        const valueToUse =
-          trimmedValue.length === 1 && trimmedValue !== '0'
-            ? `-${value}`
-            : value.trim();
-        handleStopLossPercentageChange(valueToUse);
+        handleStopLossPercentageChange(value.trim());
       }
     },
     [
@@ -542,11 +548,13 @@ const PerpsTPSLView: React.FC = () => {
       source: riskSource,
       ...toPerpsEntryAttribution({ source: riskSource }),
       positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
-      takeProfitPercentage: formattedTakeProfitPercentage
-        ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
+      takeProfitPercentage: takeProfitPercentage
+        ? (takeProfitSign === '-' ? -1 : 1) *
+          Math.abs(parseFloat(takeProfitPercentage.replace(/[^\d.-]/g, '')))
         : undefined,
-      stopLossPercentage: formattedStopLossPercentage
-        ? parseFloat(formattedStopLossPercentage.replace('%', ''))
+      stopLossPercentage: stopLossPercentage
+        ? (stopLossSign === '-' ? -1 : 1) *
+          Math.abs(parseFloat(stopLossPercentage.replace(/[^\d.-]/g, '')))
         : undefined,
       isEditingExistingPosition,
       entryPrice: effectiveEntryPrice,
@@ -573,8 +581,10 @@ const PerpsTPSLView: React.FC = () => {
     navigation,
     actualDirection,
     position,
-    formattedTakeProfitPercentage,
-    formattedStopLossPercentage,
+    takeProfitPercentage,
+    stopLossPercentage,
+    takeProfitSign,
+    stopLossSign,
     isEditingExistingPosition,
     effectiveEntryPrice,
     enableHaptics,
@@ -588,6 +598,54 @@ const PerpsTPSLView: React.FC = () => {
   const confirmDisabled =
     !hasChanges || !isValid || isUpdating || isPositionGone;
   const inputsDisabled = isUpdating;
+
+  const handleTakeProfitSignPress = useCallback(() => {
+    if (inputsDisabled) {
+      return;
+    }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+    const nextSign = takeProfitSign === '+' ? '-' : '+';
+    handleTakeProfitSignToggle();
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TPSL_ROE_SIGN_TOGGLED,
+      [PERPS_EVENT_PROPERTY.ACTION]: 'tp',
+      [PERPS_EVENT_PROPERTY.ROE_SIGN]: nextSign,
+    });
+  }, [
+    enableHaptics,
+    handleTakeProfitSignToggle,
+    inputsDisabled,
+    playSelection,
+    takeProfitSign,
+    track,
+  ]);
+
+  const handleStopLossSignPress = useCallback(() => {
+    if (inputsDisabled) {
+      return;
+    }
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+    const nextSign = stopLossSign === '-' ? '+' : '-';
+    handleStopLossSignToggle();
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.TPSL_ROE_SIGN_TOGGLED,
+      [PERPS_EVENT_PROPERTY.ACTION]: 'sl',
+      [PERPS_EVENT_PROPERTY.ROE_SIGN]: nextSign,
+    });
+  }, [
+    enableHaptics,
+    handleStopLossSignToggle,
+    inputsDisabled,
+    playSelection,
+    stopLossSign,
+    track,
+  ]);
 
   const handleTakeProfitPresetPress = useCallback(
     (percentage: number) => {
@@ -884,12 +942,39 @@ const PerpsTPSLView: React.FC = () => {
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleTakeProfitPercentageChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.profit_roe_placeholder')}
+                  placeholder={
+                    takeProfitSign === '-'
+                      ? strings('perps.tpsl.loss_roe_placeholder')
+                      : strings('perps.tpsl.profit_roe_placeholder')
+                  }
                   isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPercentage');
                   }}
                   onBlur={() => handleInputBlur('takeProfitPercentage')}
+                  startAccessory={
+                    <ButtonBase
+                      size={ButtonBaseSize.Sm}
+                      isDisabled={inputsDisabled}
+                      onPress={handleTakeProfitSignPress}
+                      testID={
+                        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel={strings(
+                        'perps.tpsl.toggle_take_profit_sign',
+                      )}
+                      twClassName="h-6 min-w-6 rounded-md bg-muted px-1"
+                      textProps={{
+                        color:
+                          takeProfitSign === '+'
+                            ? TextColor.SuccessDefault
+                            : TextColor.ErrorDefault,
+                      }}
+                    >
+                      {takeProfitSign}
+                    </ButtonBase>
+                  }
                   endAccessory={
                     <Text
                       variant={TextVariant.BodyMd}
@@ -1013,12 +1098,39 @@ const PerpsTPSLView: React.FC = () => {
                     if (digitCount > TP_SL_VIEW_CONFIG.MaxInputDigits) return;
                     handleStopLossPercentageChange(text);
                   }}
-                  placeholder={strings('perps.tpsl.loss_roe_placeholder')}
+                  placeholder={
+                    stopLossSign === '+'
+                      ? strings('perps.tpsl.gain_roe_placeholder')
+                      : strings('perps.tpsl.loss_roe_placeholder')
+                  }
                   isDisabled={inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPercentage');
                   }}
                   onBlur={() => handleInputBlur('stopLossPercentage')}
+                  startAccessory={
+                    <ButtonBase
+                      size={ButtonBaseSize.Sm}
+                      isDisabled={inputsDisabled}
+                      onPress={handleStopLossSignPress}
+                      testID={
+                        PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel={strings(
+                        'perps.tpsl.toggle_stop_loss_sign',
+                      )}
+                      twClassName="h-6 min-w-6 rounded-md bg-muted px-1"
+                      textProps={{
+                        color:
+                          stopLossSign === '+'
+                            ? TextColor.SuccessDefault
+                            : TextColor.ErrorDefault,
+                      }}
+                    >
+                      {stopLossSign}
+                    </ButtonBase>
+                  }
                   endAccessory={
                     <Text
                       variant={TextVariant.BodyMd}

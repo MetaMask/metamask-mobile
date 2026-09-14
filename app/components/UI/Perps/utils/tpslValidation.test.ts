@@ -1511,6 +1511,12 @@ describe('TPSL Validation Utilities', () => {
       expect(formatRoEPercentageDisplay('++5', true)).toBe(''); // Invalid pattern not preserved
       expect(formatRoEPercentageDisplay('++5', false)).toBe(''); // Clean up when unfocused
     });
+
+    it('omits the sign when includeSign is false', () => {
+      expect(formatRoEPercentageDisplay('10', false, false)).toBe('10');
+      expect(formatRoEPercentageDisplay('-10', false, false)).toBe('10');
+      expect(formatRoEPercentageDisplay('10.5', false, false)).toBe('10.50');
+    });
   });
 
   describe('sanitizePercentageInput', () => {
