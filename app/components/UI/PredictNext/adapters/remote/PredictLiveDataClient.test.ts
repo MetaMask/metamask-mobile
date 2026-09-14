@@ -379,7 +379,7 @@ describe('PredictLiveDataClient', () => {
 
   it('logs server error frames without forwarding a Game update', () => {
     const onGameUpdate = jest.fn();
-    const log = jest.spyOn(Logger, 'log').mockResolvedValue(undefined);
+    const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const client = createClient(onGameUpdate);
     client.subscribe(venueId, [eventId]);
     const socket = openAndWelcome();
@@ -399,7 +399,7 @@ describe('PredictLiveDataClient', () => {
   });
 
   it('stops connecting after a protocol version mismatch', () => {
-    const log = jest.spyOn(Logger, 'log').mockResolvedValue(undefined);
+    const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const client = createClient();
     client.subscribe(venueId, [eventId]);
     const socket = MockWebSocket.instances[0];
@@ -418,7 +418,7 @@ describe('PredictLiveDataClient', () => {
   });
 
   it('logs once when the stream URL is not configured', () => {
-    const log = jest.spyOn(Logger, 'log').mockResolvedValue(undefined);
+    const log = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
     const client = new PredictLiveDataClient({
       WebSocket: MockWebSocket as unknown as typeof WebSocket,
       onGameUpdate: jest.fn(),
