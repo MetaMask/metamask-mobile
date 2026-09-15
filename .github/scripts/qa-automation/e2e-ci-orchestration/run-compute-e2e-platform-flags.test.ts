@@ -73,7 +73,7 @@ function runEntrypoint(scenarioEnv: Record<string, string>) {
 
 const bothPlatformsPR = {
   ALL_CHANGES_COUNT: '1',
-  IGNORABLE_COUNT: '0',
+  E2E_IGNORABLE_COUNT: '0',
   E2E_TEST_FILES_COUNT: '0',
   E2E_TEST_OR_IGNORABLE_COUNT: '0',
   E2E_WORKFLOWS_COUNT: '0',
@@ -159,7 +159,7 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         PR_BASE_REF: 'main',
         LABEL_BLOCKS_MERGE: 'true',
         ...bothPlatformsPR,
-        IGNORABLE_COUNT: '1',
+        E2E_IGNORABLE_COUNT: '1',
         E2E_TEST_FILES_COUNT: '0',
         E2E_TEST_OR_IGNORABLE_COUNT: '1',
       });
@@ -303,6 +303,22 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
     });
   });
 
+  describe('pull requests targeting other branches', () => {
+    it('suppresses iOS without an explicit request', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'feature/1',
+        ...bothPlatformsPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'true',
+        ios_final: 'false',
+      });
+      expect(stdout).toContain('iOS not requested for this PR');
+    });
+  });
+
   describe('non-pull-request events', () => {
     it('skips E2E for merge queue events', () => {
       const { stdout, outputs } = runEntrypoint({
@@ -336,7 +352,7 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'push',
         ...bothPlatformsPR,
-        IGNORABLE_COUNT: '1',
+        E2E_IGNORABLE_COUNT: '1',
         E2E_TEST_FILES_COUNT: '0',
         E2E_TEST_OR_IGNORABLE_COUNT: '1',
       });
