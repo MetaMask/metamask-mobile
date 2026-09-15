@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import { useSelector } from 'react-redux';
 import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
 import {
   Text,
@@ -8,6 +9,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
 import styleSheet from '../../../DeFiPositions/DeFiProtocolPositionGroups.styles';
 import DeFiProtocolPositionGroupTokens from '../../../DeFiPositions/DeFiProtocolPositionGroupTokens';
 import Summary from '../../../../Base/Summary';
@@ -27,6 +29,7 @@ const DeFiProtocolPositionGroupsV2: React.FC<
   DeFiProtocolPositionGroupsV2Props
 > = ({ protocolPositionGroup, networkIconAvatar, privacyMode }) => {
   const { styles } = useStyles(styleSheet, undefined);
+  const currency = useSelector(getSelectedCurrency);
 
   const listItems = useMemo(
     () =>
@@ -59,10 +62,11 @@ const DeFiProtocolPositionGroupsV2: React.FC<
           tokens={[item.token]}
           networkIconAvatar={networkIconAvatar}
           privacyMode={privacyMode}
+          currency={currency}
         />
       );
     },
-    [networkIconAvatar, privacyMode],
+    [currency, networkIconAvatar, privacyMode],
   );
 
   return (
