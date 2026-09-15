@@ -219,20 +219,6 @@ const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
   capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
 });
 
-const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
-  animation: 'slide_from_right',
-  presentation: 'card',
-  gestureEnabled: true,
-  fullScreenGestureEnabled: true,
-};
-
-const addWalletTransitionOptions: NativeStackNavigationOptions = {
-  animation: 'slide_from_right',
-  presentation: 'card',
-  gestureEnabled: true,
-  fullScreenGestureEnabled: true,
-};
-
 const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
   presentation: 'transparentModal',
   animation: 'none',
@@ -1228,6 +1214,26 @@ const AppFlow = () => {
           component={ImportPrivateKeyView}
         />
         <NativeStack.Screen name="ImportSRPView" component={ImportSRPView} />
+        <NativeStack.Screen
+          name={Routes.HW.CONNECT}
+          component={ConnectHardwareWalletFlow}
+        />
+        <NativeStack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+          component={MultichainAccountGroupDetails}
+        />
+        <NativeStack.Screen
+          name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+          component={RevealPrivateCredential}
+        />
+        <NativeStack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
+          component={AccountSelector}
+        />
+        <NativeStack.Screen
+          name={Routes.SHEET.ADD_WALLET}
+          component={AddWallet}
+        />
       </NativeStack.Group>
       <NativeStack.Screen
         name="ConnectQRHardwareFlow"
@@ -1236,16 +1242,6 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.HW.CONNECT_LEDGER}
         component={LedgerConnectFlow}
-      />
-      <NativeStack.Screen
-        name={Routes.HW.CONNECT}
-        component={ConnectHardwareWalletFlow}
-        options={{
-          animation: 'slide_from_right',
-          presentation: 'card',
-          gestureEnabled: true,
-          fullScreenGestureEnabled: true,
-        }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
@@ -1267,27 +1263,6 @@ const AppFlow = () => {
         component={MultichainAccountDetails}
       />
       <NativeStack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
-        component={MultichainAccountGroupDetails}
-        options={{
-          animation: 'slide_from_right',
-          presentation: 'card',
-          gestureEnabled: true,
-          fullScreenGestureEnabled: true,
-        }}
-      />
-      <NativeStack.Screen
-        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
-        options={{
-          headerShown: false,
-          animation: 'slide_from_right',
-          presentation: 'card',
-          gestureEnabled: true,
-          fullScreenGestureEnabled: true,
-        }}
-      />
-      <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
         component={MultichainAccountActions}
       />
@@ -1305,16 +1280,6 @@ const AppFlow = () => {
           fullScreenGestureEnabled: true,
           contentStyle: { backgroundColor: colors.background.default },
         }}
-      />
-      <NativeStack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
-        component={AccountSelector}
-        options={accountSelectorTransitionOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.SHEET.ADD_WALLET}
-        component={AddWallet}
-        options={addWalletTransitionOptions}
       />
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
