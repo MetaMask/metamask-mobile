@@ -52,6 +52,8 @@ interface UseHomeViewedEventParams {
    * @default true
    */
   fireImmediateWhenNoView?: boolean;
+  /** Supplied only by the Perps section. */
+  isActivePerpsTrader?: boolean;
 }
 
 /**
@@ -78,6 +80,7 @@ const useHomeViewedEvent = ({
   onSectionViewed,
   isVisible,
   fireImmediateWhenNoView = true,
+  isActivePerpsTrader,
 }: UseHomeViewedEventParams) => {
   const {
     subscribeToScroll,
@@ -120,6 +123,9 @@ const useHomeViewedEvent = ({
           entry_point: entryPoint,
           app_session_id: appSessionId,
           visit_number: visitId,
+          ...(isActivePerpsTrader === undefined
+            ? {}
+            : { perps_priority_eligible: isActivePerpsTrader }),
         })
         .build(),
     );
@@ -140,6 +146,7 @@ const useHomeViewedEvent = ({
     createEventBuilder,
     notifySectionViewed,
     sectionRef,
+    isActivePerpsTrader,
     onSectionViewed,
   ]);
 
