@@ -42,7 +42,7 @@ export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
 
 const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 
-/** Padding 4px 16px with fully rounded pill cornersr. */
+/** Padding 4px 16px with fully rounded pill corners. */
 const SEGMENT_BUTTON_BASE =
   'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-full px-4 py-1';
 
