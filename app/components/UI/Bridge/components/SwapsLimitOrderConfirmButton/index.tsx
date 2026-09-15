@@ -10,10 +10,9 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import type { useLatestBalance } from '../../hooks/useLatestBalance';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
 
 interface Props {
-  latestSourceBalance?: ReturnType<typeof useLatestBalance>;
   loading?: boolean;
   onPress: () => void;
   testID?: string;
@@ -22,7 +21,6 @@ interface Props {
 }
 
 export const SwapsLimitOrderConfirmButton = ({
-  latestSourceBalance,
   loading,
   onPress,
   testID,
@@ -31,6 +29,7 @@ export const SwapsLimitOrderConfirmButton = ({
 }: Props) => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
+  const { latestSourceBalance } = useBridgeSession();
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,

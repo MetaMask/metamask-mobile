@@ -338,7 +338,6 @@ const BridgeLimitOrderViewContent = () => {
               inputRef={inputRef}
               sourceToken={sourceToken}
               sourceAmountInput={sourceAmountInput}
-              latestSourceBalance={latestSourceBalance}
               destToken={destToken}
               destTokenAmount={destTokenAmount}
               isDestAmountLoading={false}
@@ -398,7 +397,6 @@ const BridgeLimitOrderViewContent = () => {
             >
               <Box onLayout={handleBannersLayout}>
                 <SwapsBanners
-                  latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
                   onAdjustSourceAmount={handleSourcePresetAmountSelect}
                 >
                   <HardwareWalletUnsupportedBanner />
@@ -432,7 +430,6 @@ const BridgeLimitOrderViewContent = () => {
           ctaDisabled={isMissingPrice || isHardwareWallet}
           onCTAPress={handleCreateOrderPress}
           ctaLabel={strings('bridge.limit.create_order')}
-          latestSourceBalance={latestSourceBalance}
         />
 
         <SwapsKeypad
@@ -446,7 +443,6 @@ const BridgeLimitOrderViewContent = () => {
               label={strings('bridge.limit.create_order')}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={isMissingPrice || isHardwareWallet}
-              latestSourceBalance={latestSourceBalance}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions

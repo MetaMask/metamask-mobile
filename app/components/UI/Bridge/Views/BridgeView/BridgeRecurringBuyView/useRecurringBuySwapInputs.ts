@@ -23,19 +23,13 @@ import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../../../hooks/useIsNetworkGasSponsored';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
 import { getDefaultTokenPairForChains } from '../../../utils/tokenUtils';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
-interface UseRecurringBuySwapInputsOptions {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-export const useRecurringBuySwapInputs = ({
-  latestSourceBalance,
-}: UseRecurringBuySwapInputsOptions) => {
+export const useRecurringBuySwapInputs = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -98,6 +92,7 @@ export const useRecurringBuySwapInputs = ({
   const isSourceNetworkGasSponsored = useIsNetworkGasSponsored(
     sourceToken?.chainId,
   );
+  const { latestSourceBalance } = useBridgeSession();
 
   // Gas sponsorship only covers trades that stay on a single sponsored chain.
   const isQuoteSponsored =

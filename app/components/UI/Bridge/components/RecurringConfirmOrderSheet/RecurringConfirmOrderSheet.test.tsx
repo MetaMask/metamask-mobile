@@ -11,6 +11,7 @@ import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { createBridgeTestState } from '../../testUtils';
 import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
@@ -123,8 +124,13 @@ function renderSheet({
     | undefined;
 } = {}) {
   jest.mocked(useBridgeSession).mockReturnValue({
+    selectedTab: BridgeTabKey.Recurring,
+    renderedTab: BridgeTabKey.Recurring,
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
     latestSourceBalance,
-  } as ReturnType<typeof useBridgeSession>);
+    quoteParams: {},
+  });
   return renderWithProvider(
     <RecurringConfirmOrderSheet
       delegationFee={delegationFee}

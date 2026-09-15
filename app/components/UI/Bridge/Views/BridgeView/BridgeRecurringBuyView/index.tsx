@@ -63,7 +63,7 @@ const BridgeRecurringBuyViewContent = () => {
     sourceAmountInput,
     sourceToken,
     sourceAmount,
-  } = useRecurringBuySwapInputs({ latestSourceBalance });
+  } = useRecurringBuySwapInputs();
 
   const priceRange = useSelector(selectRecurringPriceRange);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -164,7 +164,6 @@ const BridgeRecurringBuyViewContent = () => {
             inputRef={inputRef}
             sourceToken={sourceToken}
             sourceAmountInput={sourceAmountInput}
-            latestSourceBalance={latestSourceBalance}
             destToken={destToken}
             destTokenAmount={destTokenAmount}
             isDestAmountLoading={isDestAmountLoading}
@@ -191,10 +190,7 @@ const BridgeRecurringBuyViewContent = () => {
           />
 
           <Box onTouchEnd={dismissInputAndKeypad}>
-            <SwapsBanners
-              latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-              onAdjustSourceAmount={handleSourcePresetAmountSelect}
-            >
+            <SwapsBanners onAdjustSourceAmount={handleSourcePresetAmountSelect}>
               <HardwareWalletUnsupportedBanner />
               <QuoteErrorBanner />
               <TokenWarningBanner />

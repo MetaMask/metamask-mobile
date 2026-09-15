@@ -667,7 +667,6 @@ const BridgeMarketViewContent = () => {
           </Box>
 
           <SwapsBanners
-            latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
             location={location}
             onAdjustSourceAmount={handleSourcePresetAmountSelect}
           >
@@ -720,7 +719,6 @@ const BridgeMarketViewContent = () => {
 
         <BridgeMarketViewFooter
           location={location}
-          latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}
         />
 
@@ -734,7 +732,6 @@ const BridgeMarketViewContent = () => {
           {sourceAmount && sourceAmount !== '0' ? (
             <SwapsMarketOrderConfirmButton
               location={location}
-              latestSourceBalance={latestSourceBalance}
               transactionActiveAbTests={transactionActiveAbTests}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
             />

@@ -79,6 +79,12 @@ jest.mock('../../../hooks/useSwitchTokens', () => ({
   useSwitchTokens: () => ({ handleSwitchTokens: jest.fn(() => jest.fn()) }),
 }));
 
+jest.mock('../../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn().mockReturnValue({
+    latestSourceBalance: undefined,
+  }),
+}));
+
 import { useSelector } from 'react-redux';
 const mockUseSelector = jest.mocked(useSelector);
 
@@ -118,9 +124,7 @@ const renderRecurringBuySwapInputsHook = (
     return undefined;
   });
 
-  return renderHook(() =>
-    useRecurringBuySwapInputs({ latestSourceBalance: undefined }),
-  );
+  return renderHook(() => useRecurringBuySwapInputs());
 };
 
 describe('useRecurringBuySwapInputs', () => {
