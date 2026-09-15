@@ -34,7 +34,7 @@ function computeE2EPlatformFlags(input) {
 
   // PRs into main/release/* do not build iOS from path filters alone. Two
   // labels opt back in — see applyE2ELabelOverrides.
-  const isIOSRequestOnlyPullRequest =
+  const isIOSOptInRequiredForPullRequest =
     githubEventName === 'pull_request' &&
     (prBaseRef === 'main' || prBaseRef.startsWith('release/'));
 
@@ -86,7 +86,7 @@ function computeE2EPlatformFlags(input) {
     changed = changedSpecFiles;
   }
 
-  if (isIOSRequestOnlyPullRequest && ios) {
+  if (isIOSOptInRequiredForPullRequest && ios) {
     ios = false;
     message = `${message} — iOS not requested for this PR (add run-appium-ios-tests or skip-smart-e2e-selection)`;
   }
@@ -156,11 +156,13 @@ function applyE2ELabelOverrides(flags, input) {
   }
 
   const widenToBothPlatforms = skipSmartSelection || smokeInfraRequest;
+  const overrideAlreadySatisfied =
+    flags.ios && (!widenToBothPlatforms || flags.android);
 
   if (
     !isEligiblePullRequest ||
     !reason ||
-    (flags.ios && (!widenToBothPlatforms || flags.android))
+    overrideAlreadySatisfied
   ) {
     return flags;
   }
@@ -206,13 +208,18 @@ function resolveE2EPlatformRequirements(input) {
 }
 
 /**
+ * Classifies the changed files for E2E requirements.
+ * `ignorableOnly` means all changed files are safe to skip E2E.
+ * `testOnlyChanges` means changes are limited to E2E test files and ignorable
+ * files, with at least one E2E test file and no E2E-relevant workflow changes.
+ *
  * @param {object} input
  * @returns {{ ignorableOnly: boolean, testOnlyChanges: boolean }}
  */
 function classifyE2EChanges(input) {
   const {
     allChangesCount,
-    ignorableCount,
+    e2eIgnorableCount,
     e2eTestFilesCount,
     e2eTestOrIgnorableCount,
     e2eWorkflowsCount,
@@ -221,11 +228,11 @@ function classifyE2EChanges(input) {
   return {
     ignorableOnly:
       allChangesCount > 0 &&
-      ignorableCount === allChangesCount &&
+      e2eIgnorableCount === allChangesCount &&
       e2eWorkflowsCount === 0,
     testOnlyChanges:
       allChangesCount > 0 &&
-      e2eTestOrIgnorableCount >= allChangesCount &&
+      e2eTestOrIgnorableCount === allChangesCount &&
       e2eTestFilesCount > 0 &&
       e2eWorkflowsCount === 0,
   };

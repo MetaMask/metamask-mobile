@@ -10,7 +10,7 @@ describe('computeE2EPlatformFlags', () => {
     isFork: false,
     shouldSkipE2E: false,
     allChangesCount: 1,
-    ignorableCount: 0,
+    e2eIgnorableCount: 0,
     e2eTestFilesCount: 1,
     e2eTestOrIgnorableCount: 1,
     e2eWorkflowsCount: 0,
@@ -32,6 +32,16 @@ describe('computeE2EPlatformFlags', () => {
       runSmartE2ESelection: true,
       message: expect.stringContaining('test-only'),
     });
+  });
+
+  it('does not classify inconsistent filter counts as test-only changes', () => {
+    const result = computeE2EPlatformFlags({
+      ...baseInput,
+      e2eTestOrIgnorableCount: 2,
+    });
+
+    expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
+    expect(result.message).toBe('E2E for both platforms');
   });
 
   it('uses the current source for app code changes', () => {
@@ -56,7 +66,7 @@ describe('computeE2EPlatformFlags', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       e2eTestFilesCount: 0,
-      ignorableCount: 1,
+      e2eIgnorableCount: 1,
       e2eTestOrIgnorableCount: 1,
       changedSpecFiles: '',
     });
@@ -243,7 +253,7 @@ describe('computeE2EPlatformFlags', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
-      ignorableCount: 1,
+      e2eIgnorableCount: 1,
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 1,
     });
@@ -260,7 +270,7 @@ describe('computeE2EPlatformFlags', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'schedule',
-      ignorableCount: 1,
+      e2eIgnorableCount: 1,
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 1,
     });
@@ -375,7 +385,7 @@ describe('applyE2ELabelOverrides', () => {
     isFork: false,
     shouldSkipE2E: false,
     allChangesCount: 1,
-    ignorableCount: 0,
+    e2eIgnorableCount: 0,
     e2eTestFilesCount: 0,
     e2eTestOrIgnorableCount: 0,
     e2eWorkflowsCount: 0,
@@ -535,7 +545,7 @@ describe('applyE2ELabelOverrides', () => {
       isFork: false,
       shouldSkipE2E: false,
       allChangesCount: 1,
-      ignorableCount: 1,
+      e2eIgnorableCount: 1,
       e2eTestFilesCount: 0,
       e2eTestOrIgnorableCount: 1,
       e2eWorkflowsCount: 0,
@@ -577,7 +587,7 @@ describe('resolveE2EPlatformRequirements', () => {
     isFork: false,
     shouldSkipE2E: false,
     allChangesCount: 1,
-    ignorableCount: 0,
+    e2eIgnorableCount: 0,
     e2eTestFilesCount: 0,
     e2eTestOrIgnorableCount: 0,
     e2eWorkflowsCount: 0,
@@ -700,7 +710,7 @@ describe('resolveE2EPlatformRequirements', () => {
         ...androidOnlyPathFilters,
         androidCount: 0,
         androidOrIgnorableCount: 0,
-        ignorableCount: 1,
+        e2eIgnorableCount: 1,
         e2eTestOrIgnorableCount: 1,
       },
       labelOverrideInput: {
