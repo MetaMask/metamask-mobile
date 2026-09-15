@@ -617,6 +617,12 @@ function buildAiBriefing(report) {
       skillAudit: profile.skillAudit,
     })),
   }));
+  const hasResolvedSourcePaths = skillEvidence.some((scenario) =>
+    scenario.profiles.some(
+      (profile) =>
+        profile.skillAudit != null && profile.skillAudit.caveat == null,
+    ),
+  );
   return `# Hermes CPU-profile analysis
 
 Follow the installed \`mms-swaps-cpu-profile-audit\` skill's reasoning and
@@ -639,6 +645,14 @@ Rules:
   it swaps-owned, called by swaps, or hosted by swaps.
 - The profiles are unsymbolicated unless \`topSwapsFrames\` has resolved paths.
   Do not invent source files or detailed fixes without file/line evidence.
+- Source paths resolved in this run: ${hasResolvedSourcePaths ? 'yes' : 'no'}.
+${
+  hasResolvedSourcePaths
+    ? '- Ownership conclusions are allowed only where a resolved source path supports them.'
+    : '- HARD RULE: every profile lacks matching sourcemaps. Omit all probable-cause/fix tables. Do not recommend memoization, batching, workers, deferral, or any code change. Report timing and hot function names only, then add one factual caveat line.'
+}
+- Without resolved paths, never say that no swaps-owned work ran. Say swaps
+  ownership is indeterminate because the trace is unsymbolicated.
 - Mark causal interpretations as UNVALIDATED.
 - Only add a probable-cause/fix row for meaningful work (roughly >=5% of
   attributable JS work) that can be explained in plain language.
@@ -648,8 +662,15 @@ Rules:
 Output:
 1. Executive summary (maximum 5 bullets)
 2. One subsection per scenario with timing table and outcome
-3. Probable-cause/fix table only when the evidence supports one
+3. Probable-cause/fix table only when resolved file/line evidence supports one
 4. One caveat line when source maps are missing
+
+Metric definitions (do not rename or derive a second overlapping metric):
+- \`captureLengthMs\`: wall-clock capture length.
+- \`jsWorkMs\`: attributable JS work after Runtime / idle and GC exclusion.
+- \`runtimeAndIdleMs\`: runtime, idle, and GC excluded from JS work.
+- Area lists are classifications of portions of \`jsWorkMs\`; do not call
+  their partial sum "attributable JS" or compare it as a separate total.
 
 Run: ${report.meta.runId || 'local'}
 

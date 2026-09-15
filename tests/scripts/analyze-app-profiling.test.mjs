@@ -282,6 +282,10 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
     buildAiBriefing(report),
     /skill-generated timing evidence only/,
   );
+  assert.match(
+    buildAiBriefing(report),
+    /HARD RULE: every profile lacks matching sourcemaps/,
+  );
   assert.match(buildMarkdown(report), /BrowserStack app-profiling metrics are excluded/);
   assert.match(buildSlack(report), /Hermes CPU sampling only/);
 });
