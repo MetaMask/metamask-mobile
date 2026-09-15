@@ -162,14 +162,15 @@ describe('backupVault file', () => {
         'clearAllVaultBackups failed',
       );
 
-      // A later backup must still be able to run through the queue.
+      // A later backup must still be able to run through backupQueue itself
+      // (calling backupVault directly here wouldn't prove anything about the
+      // queue's health, since it never touches backupQueue).
       const vault = 'vault-after-failed-reset';
-      const response = await backupVault({
-        vault,
-        keyrings: [],
-        isUnlocked: true,
-      });
-      expect(response).toEqual({ success: true, vault });
+      scheduleVaultBackup({ vault, keyrings: [], isUnlocked: true });
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(vault);
     });
   });
 
