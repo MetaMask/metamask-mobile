@@ -28,8 +28,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonVariant,
+  ButtonBase,
   FontWeight,
   Text,
   TextColor,
@@ -1010,34 +1009,34 @@ const OutcomeButtons = React.memo(
 
     const buttons = (
       <>
-        <Button
+        <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
           onPress={() => onBuyPress(upToken)}
-          variant={ButtonVariant.Secondary}
           twClassName="h-10 flex-1 bg-success-muted"
           disabled={!upToken || !isMarketOpen}
-          textProps={{
-            variant: TextVariant.BodyMd,
-            fontWeight: FontWeight.Medium,
-            color: TextColor.SuccessDefault,
-          }}
         >
-          Up · {formatCents(upPrice)}
-        </Button>
-        <Button
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.SuccessDefault}
+          >
+            Up · {formatCents(upPrice)}
+          </Text>
+        </ButtonBase>
+        <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
           onPress={() => onBuyPress(downToken)}
-          variant={ButtonVariant.Secondary}
           twClassName="h-10 flex-1 bg-error-muted"
           disabled={!downToken || !isMarketOpen}
-          textProps={{
-            variant: TextVariant.BodyMd,
-            fontWeight: FontWeight.Medium,
-            color: TextColor.ErrorDefault,
-          }}
         >
-          Down · {formatCents(downPrice)}
-        </Button>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.ErrorDefault}
+          >
+            Down · {formatCents(downPrice)}
+          </Text>
+        </ButtonBase>
       </>
     );
 
