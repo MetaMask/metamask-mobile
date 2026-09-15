@@ -190,7 +190,6 @@
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/geolocation-controller": "^1.0.0",
-    "@metamask/kyc-controller": "file:../core/packages/kyc-controller",
     "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@20.0.0-preview-c34a16a37",
     "@metamask/remote-feature-flag-controller": "^6.1.1",
     "@metamask/wallet": "^12.0.3",
