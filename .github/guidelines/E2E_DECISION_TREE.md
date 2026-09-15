@@ -68,11 +68,16 @@ Runs only when all of the following are true:
 - No hard E2E skip signal (label `skip-e2e`)
 - No `skip-smart-e2e-selection` label
 
-For eligible PRs targeting `main` or `release/*`, Smart E2E selects test tags for the platforms selected by the final platform policy.
+For eligible pull requests, Smart E2E selects test tags for the platforms
+selected by the final platform policy. PRs targeting `main` or `release/*`
+also apply the iOS request-only policy described above.
 
 When `skip-smart-e2e-selection` is present, Smart E2E is bypassed and the full `ALL` tag set runs on **both Android and iOS**. This applies after the global eligibility checks, so an ignorable-only PR still cannot be revived by this label.
 
-When an E2E-relevant workflow changes, Smart E2E Selection applies a hard rule before calling AI: it returns the `ALL` tag set with 100% confidence. This protects workflow and runner changes that can affect every E2E suite.
+When an E2E test-execution workflow or shared E2E runner infrastructure
+changes, Smart E2E Selection applies a hard rule before calling AI: it returns
+the `ALL` tag set with 100% confidence. Performance-only workflow changes are
+handled by performance selection and do not force all smoke tags. This protects workflow and runner changes that can affect every E2E suite.
 
 ## (Exceptional) skip builds and all E2E tests
 
