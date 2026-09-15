@@ -7,9 +7,9 @@ import {
   IconName,
   IconSize,
   FilterButton,
-  FilterButtonGroup,
   FilterButtonSize,
-  FilterButtonVariant,
+  SegmentedControl,
+  SegmentedControlSize,
 } from '@metamask/design-system-react-native';
 import { ChartType } from './AdvancedChart.types';
 
@@ -36,11 +36,11 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
       alignItems={BoxAlignItems.Center}
       twClassName={containerTwClassName}
     >
-      <FilterButtonGroup
+      <SegmentedControl
         value={chartType}
         onChange={(value) => onChartTypeSelect(value as ChartType)}
-        variant={FilterButtonVariant.Primary}
-        twClassName="w-full rounded-lg"
+        size={SegmentedControlSize.Sm}
+        isFullWidth
       >
         <FilterButton
           value={ChartType.Line}
@@ -72,7 +72,7 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
             }
           />
         </FilterButton>
-      </FilterButtonGroup>
+      </SegmentedControl>
     </Box>
   );
 };
