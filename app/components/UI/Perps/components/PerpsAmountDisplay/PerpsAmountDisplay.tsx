@@ -46,6 +46,7 @@ interface PerpsAmountDisplayProps {
   variant?: 'default' | 'tradeSheet';
   onDisplayToggle?: () => void;
   displayToggleAccessibilityLabel?: string;
+  displayToggleTestID?: string;
 }
 
 const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
@@ -65,6 +66,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   variant = 'default',
   onDisplayToggle,
   displayToggleAccessibilityLabel,
+  displayToggleTestID,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -196,6 +198,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
                 size={ButtonIconSize.Sm}
                 variant={ButtonIconVariant.Filled}
                 accessibilityLabel={displayToggleAccessibilityLabel}
+                testID={displayToggleTestID}
                 onPress={onDisplayToggle}
               />
             ) : null}

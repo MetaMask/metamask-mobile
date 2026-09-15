@@ -82,12 +82,11 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsTradeBottomSheet from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
-import PerpsTradeScreen, {
-  PerpsTradePlaceholderScreen,
-} from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
+import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
   PerpsTradeLeverageScreen,
   PerpsTradePayWithScreen,
+  PerpsTradeSettingsScreen,
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
   DECIMAL_PRECISION_CONFIG,
@@ -409,6 +408,33 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       commitAmount(liveDragAmount);
     }
   }, [commitAmount, isDraggingSlider, liveDragAmount]);
+
+  // The Trade sheet currently supports market orders only. Clear restored
+  // advanced-order fields before they can silently affect an order that does
+  // not expose controls for editing them.
+  useEffect(() => {
+    if (
+      useBottomSheet &&
+      (orderForm.type !== 'market' ||
+        orderForm.limitPrice ||
+        orderForm.takeProfitPrice ||
+        orderForm.stopLossPrice)
+    ) {
+      updateOrderForm({
+        type: 'market',
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      });
+    }
+  }, [
+    orderForm.limitPrice,
+    orderForm.stopLossPrice,
+    orderForm.takeProfitPrice,
+    orderForm.type,
+    updateOrderForm,
+    useBottomSheet,
+  ]);
 
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);
@@ -1303,6 +1329,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { onConfirm: onDepositConfirm } = useTransactionConfirm();
   const validateOrderNow = orderValidation.validateNow;
+  const navigateToMarketAfterOrder = useCallback(() => {
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: navigationMarketData ?? {
+          symbol: orderForm.asset,
+          name: orderForm.asset,
+        },
+        monitoringIntent: {
+          asset: orderForm.asset,
+          monitorOrders: true,
+          monitorPositions: true,
+        },
+      },
+      pop: true,
+    });
+  }, [navigation, navigationMarketData, orderForm.asset]);
 
   const handlePlaceOrder = useCallback(
     async (forceTrade = false) => {
@@ -1504,31 +1547,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // - Market orders: Usually create positions immediately
         // - Limit orders: Usually stay pending BUT can fill immediately in volatile markets
         // Monitoring both ensures we route to the correct tab regardless of execution speed
-        const monitorOrders = true;
-        const monitorPositions = true;
-
         // Real placement is underway; leaving now is not an abandon.
         hasPlacedOrderRef.current = true;
 
-        navigation.navigate(Routes.PERPS.ROOT, {
-          screen: Routes.PERPS.MARKET_DETAILS,
-          params: {
-            market: navigationMarketData ?? {
-              symbol: orderForm.asset,
-              name: orderForm.asset,
-            },
-            // Pass monitoring intent to destination screen for data-driven tab selection
-            monitoringIntent: {
-              asset: orderForm.asset,
-              monitorOrders,
-              monitorPositions,
-            },
-          },
-          // The market page the user came from is still below this screen, so pop
-          // back to it. Without `pop` React Navigation pushes a duplicate market
-          // page, leaving this order screen underneath so Back returns to it.
-          pop: true,
-        });
+        // Keep the treatment sheet mounted until execution succeeds so a
+        // controller error can be rendered in its footer. The control path
+        // retains its existing optimistic navigation behavior.
+        if (!useBottomSheet) {
+          navigateToMarketAfterOrder();
+        }
 
         // Execute order using the new hook
         // Only include TP/SL if they have valid, non-empty values
@@ -1613,6 +1640,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           }
         }
 
+        if (useBottomSheet) {
+          navigateToMarketAfterOrder();
+        }
+
         // Clear pending trade config after successful submission to prevent
         // stale TP/SL values from being restored on the next order form visit.
         // Size, TP/SL, and limit price reset; leverage and order type persist.
@@ -1653,6 +1684,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       assetData.price,
       navigation,
       navigationMarketData,
+      navigateToMarketAfterOrder,
       currentMarketPosition,
       executeOrder,
       showToast,
@@ -1680,6 +1712,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       estimatedSlippageBps,
       exceedsMaxSlippage,
       vipTier,
+      useBottomSheet,
     ],
   );
 
@@ -1742,6 +1775,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
     });
   }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
+
+  const handleSlippageSave = useCallback(
+    (valueBps: number) => {
+      setMaxSlippage(valueBps);
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_CHANGED,
+        [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+        [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(valueBps),
+        [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]:
+          PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.USER_CONFIGURED,
+        [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
+          PERPS_EVENT_VALUE.SETTING_TYPE.SLIPPAGE,
+      });
+    },
+    [orderForm.asset, setMaxSlippage, track],
+  );
 
   useInitPerpsPaymentToken(orderForm.asset ?? '');
 
@@ -1877,6 +1927,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       shouldBlockBecauseOfFeesLoading ||
       hasBlockingPayAlerts;
     const bottomSheetErrors = [
+      ...(hasInsufficientFundsError
+        ? [
+            {
+              key: 'insufficient-funds',
+              message: strings(
+                'perps.order.validation.insufficient_funds_to_cover_trade',
+              ),
+            },
+          ]
+        : []),
       ...(!isLoadingMarketData && currentPrice != null
         ? footerErrors.map((error) => ({
             key: `validation-${error}`,
@@ -1890,6 +1950,47 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 blockingPayAlerts[0]?.key ??
                 `pay-alert-${String(blockingPayAlertMessage)}`,
               message: blockingPayAlertMessage,
+            },
+          ]
+        : []),
+      ...(!hideTPSL && doesStopLossRiskLiquidation
+        ? [
+            {
+              key: 'stop-loss-liquidation',
+              message: strings('perps.tpsl.stop_loss_order_view_warning', {
+                direction:
+                  orderForm.direction === 'long'
+                    ? strings('perps.tpsl.below')
+                    : strings('perps.tpsl.above'),
+              }),
+            },
+          ]
+        : []),
+      ...(!hideTPSL && isTakeProfitPriceInvalid
+        ? [
+            {
+              key: 'take-profit-invalid',
+              message: strings('perps.tpsl.take_profit_wrong_side_warning', {
+                direction:
+                  orderForm.direction === 'long'
+                    ? strings('perps.tpsl.above')
+                    : strings('perps.tpsl.below'),
+                priceType: tpslPriceType,
+              }),
+            },
+          ]
+        : []),
+      ...(!hideTPSL && isStopLossPriceInvalid
+        ? [
+            {
+              key: 'stop-loss-invalid',
+              message: strings('perps.tpsl.stop_loss_wrong_side_warning', {
+                direction:
+                  orderForm.direction === 'long'
+                    ? strings('perps.tpsl.below')
+                    : strings('perps.tpsl.above'),
+                priceType: tpslPriceType,
+              }),
             },
           ]
         : []),
@@ -1910,6 +2011,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           trade: (
             <PerpsTradeScreen
               asset={getPerpsDisplaySymbol(orderForm.asset)}
+              oiCapSymbol={orderForm.asset}
               assetIconUrl={assetUrl}
               direction={orderForm.direction}
               leverage={orderForm.leverage}
@@ -1919,6 +2021,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               isAmountDisabled={isAmountDisabled}
               isAmountLoading={isLoadingAccount}
               hasAmountError={spendableBalance > 0 && filteredErrors.length > 0}
+              showAmountWarning={!isLoadingAccount && spendableBalance === 0}
+              amountWarningMessage={strings(
+                'perps.order.validation.insufficient_funds_to_cover_trade',
+              )}
               isInputFocused={isInputFocused}
               liquidationPrice={
                 hasValidAmount
@@ -1933,6 +2039,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               feePercentage={feePercentage}
               isSubmitting={isPlacingOrder}
               isSubmitDisabled={submitDisabled}
+              submitLabel={placeOrderLabel}
               errorMessages={bottomSheetErrors}
               isAtOICap={isAtOICap}
               showServiceInterruptionBanner={isServiceInterruptionBannerEnabled}
@@ -1961,13 +2068,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           ),
           payWith: <PerpsTradePayWithScreen />,
           settings: (
-            <PerpsTradePlaceholderScreen
-              title={strings('perps.trade_sheet.settings')}
-            />
-          ),
-          orderSummary: (
-            <PerpsTradePlaceholderScreen
-              title={strings('perps.trade_sheet.order_summary')}
+            <PerpsTradeSettingsScreen
+              currentValueBps={maxSlippageBps}
+              onSave={handleSlippageSave}
             />
           ),
         }}
@@ -2560,19 +2663,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         isVisible={isSlippageVisible}
         currentValueBps={maxSlippageBps}
         onClose={() => setIsSlippageVisible(false)}
-        onSave={(valueBps) => {
-          setMaxSlippage(valueBps);
-          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-              PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_CHANGED,
-            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(valueBps),
-            [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]:
-              PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.USER_CONFIGURED,
-            [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
-              PERPS_EVENT_VALUE.SETTING_TYPE.SLIPPAGE,
-          });
-        }}
+        onSave={handleSlippageSave}
       />
 
       {selectedTooltip && (

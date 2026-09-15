@@ -1,12 +1,14 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { Pressable, Text } from 'react-native';
+import { BackHandler, Pressable, StyleSheet, Text } from 'react-native';
 import PerpsTradeBottomSheet, {
   PerpsTradeSheetTitleBanner,
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
+import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 let openCallback: (() => void) | undefined;
+let hardwareBackHandler: (() => boolean | null | undefined) | undefined;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -84,6 +86,17 @@ const TitleBannerScreen = () => {
 describe('PerpsTradeBottomSheet', () => {
   beforeEach(() => {
     openCallback = undefined;
+    hardwareBackHandler = undefined;
+    jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockImplementation((_event, handler) => {
+        hardwareBackHandler = handler;
+        return { remove: jest.fn() };
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('navigates forward to a nested screen and back to Trade', () => {
@@ -95,7 +108,6 @@ describe('PerpsTradeBottomSheet', () => {
           leverage: <LeverageTestScreen />,
           settings: <Text>Settings</Text>,
           payWith: <Text>Pay with</Text>,
-          orderSummary: <Text>Order summary</Text>,
         }}
       />,
     );
@@ -110,6 +122,56 @@ describe('PerpsTradeBottomSheet', () => {
     expect(screen.getByText('Trade')).toBeOnTheScreen();
   });
 
+  it('returns to Trade when Android back is pressed on a nested screen', () => {
+    render(
+      <PerpsTradeBottomSheet
+        onClose={jest.fn()}
+        screens={{
+          trade: <TradeTestScreen />,
+          leverage: <LeverageTestScreen />,
+          settings: <Text>Settings</Text>,
+          payWith: <Text>Pay with</Text>,
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    fireEvent.press(screen.getByTestId('open-leverage'));
+    act(() => {
+      expect(hardwareBackHandler?.()).toBe(true);
+    });
+
+    expect(screen.getByText('Trade')).toBeOnTheScreen();
+  });
+
+  it('locks nested screens to the measured Trade screen height', () => {
+    render(
+      <PerpsTradeBottomSheet
+        onClose={jest.fn()}
+        screens={{
+          trade: <TradeTestScreen />,
+          leverage: <LeverageTestScreen />,
+          settings: <Text>Settings</Text>,
+          payWith: <Text>Pay with</Text>,
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    fireEvent(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT),
+      'layout',
+      { nativeEvent: { layout: { height: 480 } } },
+    );
+    fireEvent.press(screen.getByTestId('open-leverage'));
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.CONTENT).props.style,
+      ),
+    ).toMatchObject({ height: expect.any(Number) });
+  });
+
   it('closes the dialog through the nested screen API', () => {
     const onClose = jest.fn();
 
@@ -121,7 +183,6 @@ describe('PerpsTradeBottomSheet', () => {
           leverage: null,
           settings: null,
           payWith: null,
-          orderSummary: null,
         }}
       />,
     );
@@ -141,7 +202,6 @@ describe('PerpsTradeBottomSheet', () => {
           leverage: null,
           settings: null,
           payWith: null,
-          orderSummary: null,
         }}
       />,
     );
@@ -163,7 +223,6 @@ describe('PerpsTradeBottomSheet', () => {
           leverage: null,
           settings: null,
           payWith: null,
-          orderSummary: null,
         }}
       />,
     );

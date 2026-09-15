@@ -1,11 +1,16 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import PerpsTradeScreen from './PerpsTradeScreen';
+import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
+
+const mockNavigateTo = jest.fn();
+const mockClose = jest.fn();
 
 jest.mock('./PerpsTradeBottomSheet', () => ({
   PerpsTradeSheetTitleBanner: () => null,
   usePerpsTradeSheet: () => ({
-    navigateTo: jest.fn(),
+    navigateTo: mockNavigateTo,
+    close: mockClose,
     title: undefined,
     banner: undefined,
   }),
@@ -28,6 +33,7 @@ jest.mock('../PerpsServiceInterruptionBanner', () => ({
 
 const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   asset: 'SOL',
+  oiCapSymbol: 'SOL',
   direction: 'long',
   leverage: 3,
   amount: '10',
@@ -36,6 +42,7 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   isAmountDisabled: false,
   isAmountLoading: false,
   hasAmountError: false,
+  showAmountWarning: false,
   isInputFocused: false,
   liquidationPrice: '$68.292',
   liquidationPercentage: '30.05%',
@@ -58,6 +65,10 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
 };
 
 describe('PerpsTradeScreen errors', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('propagates every form error to an accessible alert', () => {
     render(
       <PerpsTradeScreen
@@ -77,6 +88,49 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByRole('alert', { name: 'No payment quote available' }),
     ).toBeOnTheScreen();
+  });
+
+  it('wires primary Trade actions to the sheet and order handlers', () => {
+    const onSubmit = jest.fn();
+    render(<PerpsTradeScreen {...defaultProps} onSubmit={onSubmit} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON),
+    );
+    expect(mockNavigateTo).toHaveBeenCalledWith('settings');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LEVERAGE_ROW),
+    );
+    expect(mockNavigateTo).toHaveBeenCalledWith('leverage');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW),
+    );
+    expect(mockNavigateTo).toHaveBeenCalledWith('payWith');
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_ROW),
+    ).toBeOnTheScreen();
+    expect(mockNavigateTo).not.toHaveBeenCalledWith('orderSummary');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    );
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON),
+    );
+    expect(mockClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the order CTA while the market is at its OI cap', () => {
+    render(<PerpsTradeScreen {...defaultProps} isAtOICap />);
+
+    expect(
+      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('propagates an order execution error to the footer', () => {

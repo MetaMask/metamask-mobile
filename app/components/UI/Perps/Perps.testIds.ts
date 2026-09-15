@@ -1001,6 +1001,18 @@ export const PerpsOrderViewSelectorsIDs = {
   SERVICE_INTERRUPTION_BANNER: 'perps-order-view-service-interruption-banner',
 };
 
+export const PerpsTradeSheetSelectorsIDs = {
+  SHEET: 'perps-trade-sheet',
+  CONTENT: 'perps-trade-sheet-content',
+  SETTINGS_BUTTON: 'perps-trade-sheet-settings-button',
+  CLOSE_BUTTON: 'perps-trade-sheet-close-button',
+  AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
+  LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
+  PAY_WITH_ROW: 'perps-trade-sheet-pay-with-row',
+  LIQUIDATION_ROW: 'perps-trade-sheet-liquidation-row',
+  PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
+};
+
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
 // ========================================

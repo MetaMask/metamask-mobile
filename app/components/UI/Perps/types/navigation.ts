@@ -27,6 +27,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsModeSelection: undefined;
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
   PerpsSelectAdjustMarginAction: {
     position: Position;
@@ -201,6 +202,7 @@ export type PerpsStackParamList = {
   // Action selection routes
   PerpsSelectModifyAction: {
     position: Position;
+    useBottomSheet?: boolean;
   };
 
   PerpsSelectAdjustMarginAction: {

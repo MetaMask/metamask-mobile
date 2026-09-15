@@ -846,6 +846,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
           testID={PerpsOrderBookViewSelectorsIDs.MODIFY_ACTION_SHEET}
+          useBottomSheet={useBottomSheet}
         />
       )}
 

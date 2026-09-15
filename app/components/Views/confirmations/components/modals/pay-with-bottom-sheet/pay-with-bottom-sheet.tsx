@@ -69,7 +69,7 @@ export function PayWithBottomSheet() {
       testID={PAY_WITH_BOTTOM_SHEET_TEST_ID}
       keyboardAvoidingViewEnabled={false}
     >
-      <PayWithScreenContent onBack={handleGoBack} onClose={handleClose} />
+      <PayWithScreenContent onClose={handleClose} />
     </BottomSheet>
   );
 }

@@ -2274,6 +2274,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
           testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_ACTION_SHEET}
+          useBottomSheet={useBottomSheet}
         />
       )}
 

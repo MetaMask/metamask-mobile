@@ -27,6 +27,7 @@ import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Keypad from '../../../../Base/Keypad';
+import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import { formatPerpsFiat } from '../../utils/formatUtils';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsOICapWarning from '../PerpsOICapWarning';
@@ -39,6 +40,7 @@ import {
 
 interface PerpsTradeScreenProps {
   asset: string;
+  oiCapSymbol: string;
   assetIconUrl?: string;
   direction: 'long' | 'short';
   leverage: number;
@@ -48,6 +50,8 @@ interface PerpsTradeScreenProps {
   isAmountDisabled: boolean;
   isAmountLoading: boolean;
   hasAmountError: boolean;
+  showAmountWarning: boolean;
+  amountWarningMessage?: string;
   isInputFocused: boolean;
   liquidationPrice?: string;
   liquidationPercentage?: string;
@@ -56,6 +60,7 @@ interface PerpsTradeScreenProps {
   feePercentage?: string;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
+  submitLabel?: string;
   errorMessages: readonly PerpsTradeError[];
   isAtOICap: boolean;
   showServiceInterruptionBanner: boolean;
@@ -78,8 +83,10 @@ interface ActionRowProps {
   label: string;
   accessibilityLabel: string;
   value: React.ReactNode;
-  onPress: () => void;
+  onPress?: () => void;
+  testID?: string;
   showInfo?: boolean;
+  showEndIcon?: boolean;
   endIconName?: IconName;
   endIconSize?: IconSize;
   endIconColor?: IconColor;
@@ -90,16 +97,14 @@ const ActionRow: React.FC<ActionRowProps> = ({
   accessibilityLabel,
   value,
   onPress,
+  testID,
   showInfo,
+  showEndIcon = true,
   endIconName = IconName.ArrowRight,
   endIconSize = IconSize.Xs,
   endIconColor = IconColor.IconAlternative,
-}) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityLabel={accessibilityLabel}
-    onPress={onPress}
-  >
+}) => {
+  const content = (
     <Box
       accessible={false}
       flexDirection={BoxFlexDirection.Row}
@@ -132,14 +137,32 @@ const ActionRow: React.FC<ActionRowProps> = ({
         gap={1}
       >
         {value}
-        <Icon name={endIconName} size={endIconSize} color={endIconColor} />
+        {showEndIcon ? (
+          <Icon name={endIconName} size={endIconSize} color={endIconColor} />
+        ) : null}
       </Box>
     </Box>
-  </Pressable>
-);
+  );
+
+  if (!onPress) {
+    return <Box testID={testID}>{content}</Box>;
+  }
+
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      onPress={onPress}
+    >
+      {content}
+    </Pressable>
+  );
+};
 
 const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   asset,
+  oiCapSymbol,
   assetIconUrl,
   direction,
   leverage,
@@ -149,6 +172,8 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   isAmountDisabled,
   isAmountLoading,
   hasAmountError,
+  showAmountWarning,
+  amountWarningMessage,
   isInputFocused,
   liquidationPrice,
   liquidationPercentage,
@@ -157,6 +182,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   feePercentage,
   isSubmitting,
   isSubmitDisabled,
+  submitLabel,
   errorMessages,
   isAtOICap,
   showServiceInterruptionBanner,
@@ -169,7 +195,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onDonePress,
   onSubmit,
 }) => {
-  const { navigateTo, title, banner } = usePerpsTradeSheet();
+  const { close, navigateTo, title, banner } = usePerpsTradeSheet();
   const [showAssetValue, setShowAssetValue] = useState(false);
   const directionLabel =
     direction === 'long'
@@ -193,15 +219,22 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           accessible={false}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={2}
           paddingHorizontal={2}
-          twClassName="flex-1 overflow-hidden"
+          twClassName="w-20"
         >
           <AvatarToken
             name={asset}
             src={assetIconUrl ? { uri: assetIconUrl } : undefined}
             size={AvatarTokenSize.Md}
           />
+        </Box>
+        <Box
+          accessible={false}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-1"
+        >
           <Box
             accessible={false}
             flexDirection={BoxFlexDirection.Row}
@@ -237,16 +270,27 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
         </Box>
         <Box
           accessible={false}
+          flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="h-10 w-10"
+          gap={1}
+          twClassName="w-20"
         >
           <ButtonIcon
             iconName={IconName.Setting}
             size={ButtonIconSize.Md}
             variant={ButtonIconVariant.Default}
             accessibilityLabel={strings('perps.trade_sheet.settings')}
+            testID={PerpsTradeSheetSelectorsIDs.SETTINGS_BUTTON}
             onPress={() => navigateTo('settings')}
+          />
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            variant={ButtonIconVariant.Default}
+            accessibilityLabel={strings('navigation.close')}
+            testID={PerpsTradeSheetSelectorsIDs.CLOSE_BUTTON}
+            onPress={close}
           />
         </Box>
       </Box>
@@ -271,9 +315,12 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 ? 'perps.trade_sheet.show_fiat_value'
                 : 'perps.trade_sheet.show_asset_value',
             )}
+            displayToggleTestID={PerpsTradeSheetSelectorsIDs.AMOUNT_TOGGLE}
             isActive={isInputFocused}
             isLoading={isAmountLoading}
             hasError={hasAmountError}
+            showWarning={showAmountWarning}
+            warningMessage={amountWarningMessage}
           />
           {isInputFocused ? (
             <Box accessible={false} gap={2}>
@@ -344,6 +391,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
         {!isInputFocused ? (
           <Box accessible={false} paddingHorizontal={4}>
             <ActionRow
+              testID={PerpsTradeSheetSelectorsIDs.LEVERAGE_ROW}
               label={strings('perps.order.leverage')}
               accessibilityLabel={`${strings(
                 'perps.order.leverage',
@@ -362,6 +410,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               onPress={() => navigateTo('leverage')}
             />
             <ActionRow
+              testID={PerpsTradeSheetSelectorsIDs.PAY_WITH_ROW}
               label={strings('confirm.label.pay_with')}
               accessibilityLabel={`${strings(
                 'confirm.label.pay_with',
@@ -383,6 +432,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               onPress={() => navigateTo('payWith')}
             />
             <ActionRow
+              testID={PerpsTradeSheetSelectorsIDs.LIQUIDATION_ROW}
               label={strings('perps.order.liquidation_price')}
               accessibilityLabel={`${strings(
                 'perps.order.liquidation_price',
@@ -414,8 +464,8 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   ) : null}
                 </>
               }
-              onPress={() => navigateTo('orderSummary')}
               showInfo
+              showEndIcon={false}
             />
           </Box>
         ) : null}
@@ -424,7 +474,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       {!isInputFocused && (isAtOICap || showServiceInterruptionBanner) ? (
         <Box accessible={false} paddingHorizontal={4} paddingBottom={3} gap={2}>
           {isAtOICap ? (
-            <PerpsOICapWarning symbol={asset} variant="banner" />
+            <PerpsOICapWarning symbol={oiCapSymbol} variant="banner" />
           ) : null}
           {showServiceInterruptionBanner ? (
             <PerpsServiceInterruptionBanner />
@@ -432,7 +482,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
         </Box>
       ) : null}
 
-      {!isInputFocused ? (
+      {!isInputFocused && !isAtOICap ? (
         <Box
           accessible={false}
           paddingHorizontal={4}
@@ -465,9 +515,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               isDisabled={isSubmitDisabled}
               isLoading={isSubmitting}
               onPress={onSubmit}
+              testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
               twClassName="rounded-xl"
             >
-              {directionLabel}
+              {submitLabel ?? directionLabel}
             </ButtonSemantic>
             {feePercentage ? (
               <Text
@@ -481,41 +532,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
           </Box>
         </Box>
       ) : null}
-    </Box>
-  );
-};
-
-export const PerpsTradePlaceholderScreen: React.FC<{ title: string }> = ({
-  title,
-}) => {
-  const { close, goBack } = usePerpsTradeSheet();
-  return (
-    <Box accessible={false} twClassName="min-h-[420px]">
-      <Box
-        accessible={false}
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        padding={2}
-      >
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          variant={ButtonIconVariant.Default}
-          accessibilityLabel={strings('navigation.back')}
-          onPress={goBack}
-        />
-        <Text variant={TextVariant.HeadingSm} accessibilityRole="header">
-          {title}
-        </Text>
-        <ButtonIcon
-          iconName={IconName.Close}
-          size={ButtonIconSize.Md}
-          variant={ButtonIconVariant.Default}
-          accessibilityLabel={strings('navigation.close')}
-          onPress={close}
-        />
-      </Box>
     </Box>
   );
 };

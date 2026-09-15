@@ -15,27 +15,28 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { BackHandler, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   useSharedValue,
   type EntryExitAnimationFunction,
   type SharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnimationDuration } from '@metamask/design-tokens';
+import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 export type PerpsTradeSheetScreen =
   | 'trade'
   | 'settings'
   | 'leverage'
-  | 'payWith'
-  | 'orderSummary';
+  | 'payWith';
 
 const SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   trade: 0,
   settings: 1,
   leverage: 1,
   payWith: 1,
-  orderSummary: 1,
 };
 
 type ScreenDirection = 1 | -1;
@@ -145,10 +146,12 @@ const PerpsTradeBottomSheet: React.FC<PerpsTradeBottomSheetProps> = ({
   screens,
 }) => {
   const tw = useTailwind();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
   const [isReady, setIsReady] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [hasNavigated, setHasNavigated] = useState(false);
+  const [rootHeight, setRootHeight] = useState<number | null>(null);
   const [activeScreen, setActiveScreen] =
     useState<PerpsTradeSheetScreen>('trade');
   const direction = useSharedValue<ScreenDirection>(1);
@@ -174,6 +177,32 @@ const PerpsTradeBottomSheet: React.FC<PerpsTradeBottomSheetProps> = ({
 
   const goBack = useCallback(() => navigateTo('trade'), [navigateTo]);
 
+  useEffect(() => {
+    if (activeScreen === 'trade') {
+      return;
+    }
+
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        goBack();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [activeScreen, goBack]);
+
+  const handleContentLayout = useCallback(
+    ({ nativeEvent }: LayoutChangeEvent) => {
+      if (activeScreen === 'trade' && nativeEvent.layout.height > 0) {
+        setRootHeight(nativeEvent.layout.height);
+      }
+    },
+    [activeScreen],
+  );
+  const isHeightLocked = activeScreen !== 'trade' && rootHeight !== null;
+  const hasBottomCta = activeScreen !== 'payWith';
+
   const close = useCallback(() => {
     setIsClosing(true);
     const sheet = bottomSheetRef.current;
@@ -190,15 +219,34 @@ const PerpsTradeBottomSheet: React.FC<PerpsTradeBottomSheetProps> = ({
   );
 
   return (
-    <BottomSheetDialog ref={bottomSheetRef} onClose={onClose}>
+    <BottomSheetDialog
+      ref={bottomSheetRef}
+      onClose={onClose}
+      testID={PerpsTradeSheetSelectorsIDs.SHEET}
+    >
       {isReady ? (
         <PerpsTradeSheetContext.Provider value={contextValue}>
-          <Box accessible={false} twClassName="overflow-hidden">
+          <Box
+            accessible={false}
+            testID={PerpsTradeSheetSelectorsIDs.CONTENT}
+            onLayout={handleContentLayout}
+            twClassName="overflow-hidden"
+            style={
+              isHeightLocked
+                ? {
+                    height: hasBottomCta
+                      ? rootHeight
+                      : rootHeight + bottomInset,
+                    ...(hasBottomCta ? {} : { marginBottom: -bottomInset }),
+                  }
+                : undefined
+            }
+          >
             <Animated.View
               key={activeScreen}
               entering={hasNavigated ? entering : undefined}
               exiting={isClosing ? undefined : exiting}
-              style={tw.style('w-full')}
+              style={tw.style('w-full', isHeightLocked && 'flex-1')}
             >
               {screens[activeScreen]}
             </Animated.View>
