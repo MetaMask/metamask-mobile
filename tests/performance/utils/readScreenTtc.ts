@@ -1,6 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import AppiumMatchers from '../../framework/AppiumMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { withImplicitWait } from '../../framework/AppiumUtilities';
 import {
   parseScreenTtcAccessibilityLabel,
   screenTtcTestId,
@@ -12,7 +13,12 @@ import TimerHelper, {
 import type { PerformanceTracker } from '../../reporters/PerformanceTracker';
 import type { AppiumElement } from '../../framework/AppiumElement';
 
-/** Keep optional reads short so missing probes never stall seedless OAuth flows. */
+/**
+ * Keep optional reads short so missing probes never stall seedless OAuth flows.
+ * Must be paired with `withImplicitWait(0, …)` in `waitForAppScreenTtc` — otherwise
+ * each probe lookup still burns DEFAULT_IMPLICIT_WAIT_MS (~3.5s) before the
+ * deadline can fire.
+ */
 const DEFAULT_OPTIONAL_TIMEOUT_MS = 2_000;
 const DEFAULT_REQUIRED_TIMEOUT_MS = 20_000;
 const POLL_MS = 250;
@@ -102,6 +108,10 @@ async function readProbeLabel(screenId: OnboardingScreenId): Promise<string> {
 /**
  * Waits for the in-app TTC probe written by `useScreenPerformance` (same
  * mount→contentReady duration as Sentry Onboarding Screen Time To Content).
+ *
+ * Probe lookups run with implicit wait 0 so a short `timeoutMs` (e.g. optional
+ * 2s) is actually respected — otherwise each missing-element strategy would
+ * block for DEFAULT_IMPLICIT_WAIT_MS (~3.5s) before the deadline is checked.
  */
 export async function waitForAppScreenTtc(
   screenId: OnboardingScreenId,
@@ -113,26 +123,28 @@ export async function waitForAppScreenTtc(
   let lastLabel = '';
   let lastError = '';
 
-  while (Date.now() < deadline) {
-    try {
-      lastLabel = await readProbeLabel(screenId);
-      const parsed = parseScreenTtcAccessibilityLabel(lastLabel);
-      if (
-        parsed &&
-        parsed.screenId === screenId &&
-        parsed.generation >= minGeneration
-      ) {
-        return parsed.durationMs;
+  return withImplicitWait(0, async () => {
+    while (Date.now() < deadline) {
+      try {
+        lastLabel = await readProbeLabel(screenId);
+        const parsed = parseScreenTtcAccessibilityLabel(lastLabel);
+        if (
+          parsed &&
+          parsed.screenId === screenId &&
+          parsed.generation >= minGeneration
+        ) {
+          return parsed.durationMs;
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : String(error);
       }
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
+      await new Promise((resolve) => setTimeout(resolve, POLL_MS));
     }
-    await new Promise((resolve) => setTimeout(resolve, POLL_MS));
-  }
 
-  throw new Error(
-    `Timed out waiting for in-app TTC probe for [${screenId}] within ${timeoutMs}ms (last label: "${lastLabel}"; last error: ${lastError})`,
-  );
+    throw new Error(
+      `Timed out waiting for in-app TTC probe for [${screenId}] within ${timeoutMs}ms (last label: "${lastLabel}"; last error: ${lastError})`,
+    );
+  });
 }
 
 /**
