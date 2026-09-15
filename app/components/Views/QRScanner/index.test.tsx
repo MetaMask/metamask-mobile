@@ -75,7 +75,7 @@ jest.mock('../../../core/SDKConnectV2', () => ({
 }));
 
 jest.mock(
-  '../../../core/DeeplinkManager/handlers/legacy/handleBrowserUrl',
+  '../../../core/DeeplinkManager/handlers/intent/handleBrowserUrl',
   () => ({
     __esModule: true,
     default: jest.fn(),
@@ -198,7 +198,7 @@ const initialState = {
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
-import handleBrowserUrl from '../../../core/DeeplinkManager/handlers/legacy/handleBrowserUrl';
+import handleBrowserUrl from '../../../core/DeeplinkManager/handlers/intent/handleBrowserUrl';
 
 const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
   typeof handleBrowserUrl
