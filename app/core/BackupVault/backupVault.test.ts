@@ -18,6 +18,7 @@ import {
   type Result,
   STORAGE_TYPE,
 } from 'react-native-keychain';
+import Logger from '../../util/Logger';
 
 let mockKeychainState: Record<string, { username: string; password: string }> =
   {};
@@ -141,6 +142,34 @@ describe('backupVault file', () => {
 
       // The reset must be the last word: no vault left behind.
       expect(await getInternetCredentials(VAULT_BACKUP_KEY)).toBeUndefined();
+    });
+
+    it('logs and keeps the queue usable when the reset itself fails', async () => {
+      const resetError = new Error('resetInternetCredentials failed');
+      const loggerErrorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      (resetInternetCredentials as jest.Mock).mockImplementationOnce(() => {
+        throw resetError;
+      });
+
+      await expect(clearAllVaultBackups()).rejects.toThrow(resetError);
+
+      // Flush the internal .catch that keeps backupQueue alive for later work
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        resetError,
+        'clearAllVaultBackups failed',
+      );
+
+      // A later backup must still be able to run through the queue.
+      const vault = 'vault-after-failed-reset';
+      const response = await backupVault({
+        vault,
+        keyrings: [],
+        isUnlocked: true,
+      });
+      expect(response).toEqual({ success: true, vault });
     });
   });
 
@@ -347,6 +376,33 @@ describe('backupVault file', () => {
       // One getPrimary for the first schedule; second schedule skipped entirely
       expect(getInternetCredentials).toHaveBeenCalledTimes(1);
       expect(setInternetCredentials).not.toHaveBeenCalled();
+    });
+
+    it('logs the failure and clears pendingVault when the underlying backup fails', async () => {
+      const loggerErrorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      (setInternetCredentials as jest.Mock).mockImplementationOnce(() => false);
+
+      const vault = 'vault-that-fails-to-back-up';
+      scheduleVaultBackup({ vault, keyrings: [], isUnlocked: true });
+
+      // Flush the serialized backup chain
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        new Error('Vault backup failed'),
+        'Engine Vault backup failed',
+      );
+
+      // pendingVault must be cleared so a retry for the same vault can run.
+      (setInternetCredentials as jest.Mock).mockClear();
+      scheduleVaultBackup({ vault, keyrings: [], isUnlocked: true });
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(setInternetCredentials).toHaveBeenCalled();
     });
   });
 
