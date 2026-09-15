@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
+import { strings } from '../../../../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   FeatureId,
@@ -131,6 +132,14 @@ import {
   showPostTradeNotificationSurface,
 } from '../../../utils/postTradeNotifications';
 import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
+import { isGaslessQuote } from '../../../utils/isGaslessQuote';
+import { getGaslessFeeAsset } from '../../../utils/getGaslessFeeAsset';
+import { useShouldRenderGasSponsoredBanner } from '../../../hooks/useShouldRenderGasSponsoredBanner';
+import {
+  GASLESS_SWAP_REDESIGN_AB_KEY,
+  GASLESS_SWAP_REDESIGN_EXPOSURE_METADATA,
+  GASLESS_SWAP_REDESIGN_VARIANTS,
+} from '../../../components/QuoteDetailsCard/abTestConfig';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -282,6 +291,7 @@ const BridgeMarketViewContent = ({
 
   const {
     activeQuote,
+    formattedQuoteData,
     isLoading,
     destTokenAmount,
     isNoQuotesAvailable,
@@ -396,6 +406,10 @@ const BridgeMarketViewContent = ({
     destToken?.chainId,
     isGasFeesSponsoredNetworkEnabled,
   ]);
+  const shouldShowGasSponsored = useShouldRenderGasSponsoredBanner({
+    quoteGasSponsored: activeQuote?.quote?.gasSponsored ?? false,
+    hasInsufficientBalance,
+  });
 
   const hasInsufficientNativeReserveError = Boolean(
     insufficientNativeReserveError,
@@ -530,6 +544,30 @@ const BridgeMarketViewContent = ({
     return 'quote';
   };
   const contentMode = getContentMode();
+  const networkFee = formattedQuoteData?.networkFee;
+  const gaslessFeeAsset = getGaslessFeeAsset(
+    activeQuote?.quote?.feeData?.txFee,
+  );
+  const isGaslessSwapRedesignEligible =
+    contentMode === 'quote' &&
+    isGaslessQuote(activeQuote?.quote) &&
+    !shouldShowGasSponsored;
+  const { variant: gaslessSwapRedesignVariant } = useABTest(
+    GASLESS_SWAP_REDESIGN_AB_KEY,
+    GASLESS_SWAP_REDESIGN_VARIANTS,
+    {
+      ...GASLESS_SWAP_REDESIGN_EXPOSURE_METADATA,
+      trackExposure: isGaslessSwapRedesignEligible,
+    },
+  );
+  const showGaslessRedesign =
+    isGaslessSwapRedesignEligible && gaslessSwapRedesignVariant.redesigned;
+  const destinationGasFeeLabel =
+    showGaslessRedesign && networkFee && networkFee !== '-'
+      ? strings('bridge.gas_fee_deduction', {
+          fee: networkFee,
+        })
+      : undefined;
   const shouldShowDiscoveryFeed = contentMode === 'zero';
   const hasInteractiveDiscoverySurface =
     shouldShowDiscoveryFeed && discoveryFeedVariant.mode !== 'empty';
@@ -637,6 +675,7 @@ const BridgeMarketViewContent = ({
                   style={styles.destTokenArea}
                   isQuoteSponsored={isQuoteSponsored}
                   showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  destinationGasFeeLabel={destinationGasFeeLabel}
                 />
               </Box>
             </Box>
@@ -672,6 +711,10 @@ const BridgeMarketViewContent = ({
                 <QuoteDetailsCard
                   location={location}
                   hasInsufficientBalance={hasInsufficientBalance}
+                  gaslessFeeAsset={
+                    showGaslessRedesign ? gaslessFeeAsset : undefined
+                  }
+                  isGaslessSwapRedesignTreatment={showGaslessRedesign}
                 />
               </Box>
             ) : null}
