@@ -1689,8 +1689,8 @@ jobs:
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
-  # Runs on Android only, so on PRs into main it runs only when Android was requested via
-  # run-appium-android-tests or skip-smart-e2e-selection. It still runs on PRs into
+  # Runs on Android only, so on PRs into main it runs when path filters select
+  # Android or skip-smart-e2e-selection requests it. It still runs on PRs into
   # release/* that build Android.
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
