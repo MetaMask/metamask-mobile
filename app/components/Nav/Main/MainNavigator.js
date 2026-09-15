@@ -16,6 +16,7 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
+import ManageAccounts from '../../Views/ManageAccounts';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -1111,6 +1112,11 @@ const MainNavigator = () => {
         name={Routes.ACCOUNT_HUB_VIEW}
         component={AccountHub}
         options={{ headerShown: false, ...slideFromLeftNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.MANAGE_ACCOUNTS_VIEW}
+        component={ManageAccounts}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
         name="Asset"
