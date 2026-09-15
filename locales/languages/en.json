@@ -3092,17 +3092,29 @@
       "description": "Unable to load your available balance.",
       "retry": "Try again"
     },
+    "home_title": "Predictions",
     "portfolio": {
-      "title": "Positions",
+      "title": "Portfolio",
       "positions": "Positions",
+      "activity_empty": {
+        "title": "No activity yet",
+        "description": "Your fills and settlements will appear here."
+      },
+      "load_failed": "Couldn't load.",
+      "load_failed_retry": "Try again",
+      "outcome_shares": "{{outcome}} · {{shares}} shares",
       "active_positions": "Active positions",
-      "history": "History",
       "add_funds": "Add Funds",
       "withdraw": "Withdraw",
       "empty": {
         "title": "No positions yet",
         "description": "Your active and resolved positions will appear here.",
         "browse_markets": "Browse markets"
+      },
+      "activity": "History",
+      "activity_rows": {
+        "settled": "Settled",
+        "shares_at_price": "{{shares}} @ {{price}}"
       }
     }
   },
