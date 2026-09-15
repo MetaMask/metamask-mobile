@@ -59,6 +59,14 @@ export interface PerpsProOrderSummaryProps {
   feeDiscountPercentage?: number;
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
+  /**
+   * Present only for TWAP orders. The Figma TWAP summary lists Runtime and Size
+   * per suborder in place of Est Liquidation and Slippage.
+   */
+  twapSummary?: {
+    runtime: string;
+    sizePerSuborder: string;
+  };
 }
 
 export interface PerpsProTwapModel {
@@ -71,6 +79,7 @@ export interface PerpsProTwapModel {
   onHoursChange: (value: string) => void;
   onMinutesChange: (value: string) => void;
   onRandomizeChange: (value: boolean) => void;
+  onRuntimeInfoPress: () => void;
 }
 
 export interface PerpsProScaleOrderModel {

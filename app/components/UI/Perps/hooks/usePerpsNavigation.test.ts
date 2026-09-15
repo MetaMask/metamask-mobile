@@ -53,6 +53,7 @@ jest.mock(
 
 describe('usePerpsNavigation', () => {
   const mockNavigate = jest.fn();
+  const mockReset = jest.fn();
   const mockCanGoBack = jest.fn();
   const mockGoBack = jest.fn();
   const mockDispatch = jest.fn();
@@ -105,6 +106,7 @@ describe('usePerpsNavigation', () => {
     mockGetState.mockReturnValue({ routeNames: [] });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      reset: mockReset,
       canGoBack: mockCanGoBack,
       goBack: mockGoBack,
       dispatch: mockDispatch,
@@ -253,6 +255,23 @@ describe('usePerpsNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME, {
         source: 'market_list',
       });
+    });
+
+    it('resets the Perps stack to home instead of pushing it', () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+
+      result.current.resetToHome('market_list');
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: Routes.PERPS.PERPS_HOME,
+            params: { source: 'market_list' },
+          },
+        ],
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('navigates to the default Pro market instead of home when Pro mode is active', () => {

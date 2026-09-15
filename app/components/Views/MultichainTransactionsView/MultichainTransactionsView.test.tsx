@@ -627,7 +627,8 @@ describe('MultichainTransactionsView', () => {
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
       Routes.ACTIVITY_DETAILS,
       expect.objectContaining({
-        txIdentifier: 'bridge-arrival-1',
+        chainId: 'eip155:8453',
+        txIdentifier: '0xbase-source-hash',
       }),
     );
   });
