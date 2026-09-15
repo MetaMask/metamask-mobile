@@ -324,7 +324,6 @@ describe('QuickPickButtons', () => {
         });
       });
     });
-
   });
 
   describe('re-rendering behavior', () => {
