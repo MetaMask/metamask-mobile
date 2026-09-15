@@ -4978,6 +4978,7 @@ export const runQuickBuyControllerCases = ({
         });
         rerender(props);
 
+        expect(result.current.amountDisplayMode).toBe('fiat');
         expect(result.current.fiatAmount).toBe('20.00');
       });
 
