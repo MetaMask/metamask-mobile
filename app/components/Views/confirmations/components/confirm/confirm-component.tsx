@@ -12,7 +12,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
-import { BottomSheet, Spinner } from '@metamask/design-system-react-native';
+import { BottomSheet } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
@@ -35,6 +35,7 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import {
   AdvancedCustomAmountInfoSkeleton,
   CustomAmountInfoSkeleton,
@@ -333,7 +334,7 @@ function Loader() {
 
   return (
     <View style={styles.spinnerContainer} testID="confirm-loader-default">
-      <Spinner />
+      <AnimatedSpinner size={SpinnerSize.MD} />
     </View>
   );
 }

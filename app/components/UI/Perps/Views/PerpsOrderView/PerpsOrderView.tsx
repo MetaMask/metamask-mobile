@@ -81,7 +81,9 @@ import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
-import PerpsTradeBottomSheet from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
+import PerpsTradeBottomSheet, {
+  type PerpsTradeSheetScreen,
+} from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
   PerpsTradeLeverageScreen,
@@ -217,6 +219,15 @@ interface PerpsOrderViewContentProps {
   defaultMaxLeverage?: number;
   useBottomSheet?: boolean;
 }
+
+const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
+  trade: 0,
+  settings: 1,
+  leverage: 1,
+  payWith: 1,
+};
+
+const TRADE_SHEET_SCREENS_WITHOUT_BOTTOM_CTA = ['payWith'] as const;
 
 /**
  * PerpsOrderViewContentBase
@@ -2005,8 +2016,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ];
 
     return (
-      <PerpsTradeBottomSheet
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
         onClose={() => navigation.goBack()}
+        rootScreen="trade"
+        screenDepth={TRADE_SHEET_SCREEN_DEPTH}
+        screensWithoutBottomCta={TRADE_SHEET_SCREENS_WITHOUT_BOTTOM_CTA}
         screens={{
           trade: (
             <PerpsTradeScreen

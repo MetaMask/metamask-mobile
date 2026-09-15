@@ -32,13 +32,6 @@ export type PerpsTradeSheetScreen =
   | 'leverage'
   | 'payWith';
 
-const SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
-  trade: 0,
-  settings: 1,
-  leverage: 1,
-  payWith: 1,
-};
-
 type ScreenDirection = 1 | -1;
 const SCREEN_SLIDE_OFFSET = 24;
 
@@ -88,9 +81,11 @@ const makeScreenTransitions = (
   return { entering, exiting };
 };
 
-export interface PerpsTradeSheetContextValue {
-  activeScreen: PerpsTradeSheetScreen;
-  navigateTo: (screen: PerpsTradeSheetScreen) => void;
+export interface PerpsTradeSheetContextValue<
+  Screen extends string = PerpsTradeSheetScreen,
+> {
+  activeScreen: Screen;
+  navigateTo: (screen: Screen) => void;
   goBack: () => void;
   close: () => void;
   title?: string;
@@ -98,16 +93,18 @@ export interface PerpsTradeSheetContextValue {
 }
 
 const PerpsTradeSheetContext =
-  createContext<PerpsTradeSheetContextValue | null>(null);
+  createContext<PerpsTradeSheetContextValue<string> | null>(null);
 
-export const usePerpsTradeSheet = (): PerpsTradeSheetContextValue => {
+export const usePerpsTradeSheet = <
+  Screen extends string = PerpsTradeSheetScreen,
+>(): PerpsTradeSheetContextValue<Screen> => {
   const context = useContext(PerpsTradeSheetContext);
   if (!context) {
     throw new Error(
       'usePerpsTradeSheet must be used within PerpsTradeBottomSheet',
     );
   }
-  return context;
+  return context as unknown as PerpsTradeSheetContextValue<Screen>;
 };
 
 export const PerpsTradeSheetTitleBanner: React.FC<{
@@ -130,21 +127,27 @@ export const PerpsTradeSheetTitleBanner: React.FC<{
   );
 };
 
-export interface PerpsTradeBottomSheetProps {
+export interface PerpsTradeBottomSheetProps<Screen extends string> {
   onClose: () => void;
-  screens: Record<PerpsTradeSheetScreen, React.ReactNode>;
-  /** Optional heading shown on the root Trade screen. */
+  screens: Record<Screen, React.ReactNode>;
+  rootScreen: Screen;
+  screenDepth: Record<Screen, number>;
+  screensWithoutBottomCta?: readonly Screen[];
+  /** Optional heading shown on the root screen. */
   title?: string;
-  /** Optional banner rendered directly below `title` on the root Trade screen. */
+  /** Optional banner rendered directly below `title` on the root screen. */
   banner?: React.ReactNode;
 }
 
-const PerpsTradeBottomSheet: React.FC<PerpsTradeBottomSheetProps> = ({
+const PerpsTradeBottomSheet = <Screen extends string>({
   onClose,
   title,
   banner,
   screens,
-}) => {
+  rootScreen,
+  screenDepth,
+  screensWithoutBottomCta = [],
+}: PerpsTradeBottomSheetProps<Screen>) => {
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
@@ -152,8 +155,7 @@ const PerpsTradeBottomSheet: React.FC<PerpsTradeBottomSheetProps> = ({
   const [isClosing, setIsClosing] = useState(false);
   const [hasNavigated, setHasNavigated] = useState(false);
   const [rootHeight, setRootHeight] = useState<number | null>(null);
-  const [activeScreen, setActiveScreen] =
-    useState<PerpsTradeSheetScreen>('trade');
+  const [activeScreen, setActiveScreen] = useState<Screen>(rootScreen);
   const direction = useSharedValue<ScreenDirection>(1);
   const { entering, exiting } = useMemo(
     () => makeScreenTransitions(direction),
@@ -165,20 +167,23 @@ const PerpsTradeBottomSheet: React.FC<PerpsTradeBottomSheetProps> = ({
   }, []);
 
   const navigateTo = useCallback(
-    (next: PerpsTradeSheetScreen) => {
+    (next: Screen) => {
       setHasNavigated(true);
       setActiveScreen((current) => {
-        direction.value = SCREEN_DEPTH[next] >= SCREEN_DEPTH[current] ? 1 : -1;
+        direction.value = screenDepth[next] >= screenDepth[current] ? 1 : -1;
         return next;
       });
     },
-    [direction],
+    [direction, screenDepth],
   );
 
-  const goBack = useCallback(() => navigateTo('trade'), [navigateTo]);
+  const goBack = useCallback(
+    () => navigateTo(rootScreen),
+    [navigateTo, rootScreen],
+  );
 
   useEffect(() => {
-    if (activeScreen === 'trade') {
+    if (activeScreen === rootScreen) {
       return;
     }
 
@@ -190,18 +195,18 @@ const PerpsTradeBottomSheet: React.FC<PerpsTradeBottomSheetProps> = ({
       },
     );
     return () => subscription.remove();
-  }, [activeScreen, goBack]);
+  }, [activeScreen, goBack, rootScreen]);
 
   const handleContentLayout = useCallback(
     ({ nativeEvent }: LayoutChangeEvent) => {
-      if (activeScreen === 'trade' && nativeEvent.layout.height > 0) {
+      if (activeScreen === rootScreen && nativeEvent.layout.height > 0) {
         setRootHeight(nativeEvent.layout.height);
       }
     },
-    [activeScreen],
+    [activeScreen, rootScreen],
   );
-  const isHeightLocked = activeScreen !== 'trade' && rootHeight !== null;
-  const hasBottomCta = activeScreen !== 'payWith';
+  const isHeightLocked = activeScreen !== rootScreen && rootHeight !== null;
+  const hasBottomCta = !screensWithoutBottomCta.includes(activeScreen);
 
   const close = useCallback(() => {
     setIsClosing(true);
@@ -225,7 +230,9 @@ const PerpsTradeBottomSheet: React.FC<PerpsTradeBottomSheetProps> = ({
       testID={PerpsTradeSheetSelectorsIDs.SHEET}
     >
       {isReady ? (
-        <PerpsTradeSheetContext.Provider value={contextValue}>
+        <PerpsTradeSheetContext.Provider
+          value={contextValue as unknown as PerpsTradeSheetContextValue<string>}
+        >
           <Box
             accessible={false}
             testID={PerpsTradeSheetSelectorsIDs.CONTENT}

@@ -3,12 +3,23 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { BackHandler, Pressable, StyleSheet, Text } from 'react-native';
 import PerpsTradeBottomSheet, {
   PerpsTradeSheetTitleBanner,
+  type PerpsTradeSheetScreen,
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
 let openCallback: (() => void) | undefined;
 let hardwareBackHandler: (() => boolean | null | undefined) | undefined;
+const tradeSheetConfig = {
+  rootScreen: 'trade' as const,
+  screenDepth: {
+    trade: 0,
+    leverage: 1,
+    settings: 1,
+    payWith: 1,
+  },
+  screensWithoutBottomCta: ['payWith'] as const,
+};
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -83,6 +94,17 @@ const TitleBannerScreen = () => {
   return <PerpsTradeSheetTitleBanner title={title} banner={banner} />;
 };
 
+type CustomTestScreen = 'root' | 'details';
+
+const CustomRootScreen = () => {
+  const { navigateTo } = usePerpsTradeSheet<CustomTestScreen>();
+  return (
+    <Pressable testID="open-details" onPress={() => navigateTo('details')}>
+      <Text>Custom root</Text>
+    </Pressable>
+  );
+};
+
 describe('PerpsTradeBottomSheet', () => {
   beforeEach(() => {
     openCallback = undefined;
@@ -101,8 +123,9 @@ describe('PerpsTradeBottomSheet', () => {
 
   it('navigates forward to a nested screen and back to Trade', () => {
     render(
-      <PerpsTradeBottomSheet
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
         onClose={jest.fn()}
+        {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
@@ -124,8 +147,9 @@ describe('PerpsTradeBottomSheet', () => {
 
   it('returns to Trade when Android back is pressed on a nested screen', () => {
     render(
-      <PerpsTradeBottomSheet
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
         onClose={jest.fn()}
+        {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
@@ -146,8 +170,9 @@ describe('PerpsTradeBottomSheet', () => {
 
   it('locks nested screens to the measured Trade screen height', () => {
     render(
-      <PerpsTradeBottomSheet
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
         onClose={jest.fn()}
+        {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
           leverage: <LeverageTestScreen />,
@@ -176,8 +201,9 @@ describe('PerpsTradeBottomSheet', () => {
     const onClose = jest.fn();
 
     render(
-      <PerpsTradeBottomSheet
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
         onClose={onClose}
+        {...tradeSheetConfig}
         screens={{
           trade: <CloseTestScreen />,
           leverage: null,
@@ -195,8 +221,9 @@ describe('PerpsTradeBottomSheet', () => {
 
   it('does not render a title or banner when the parent omits them', () => {
     render(
-      <PerpsTradeBottomSheet
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
         onClose={jest.fn()}
+        {...tradeSheetConfig}
         screens={{
           trade: <TradeTestScreen />,
           leverage: null,
@@ -214,8 +241,9 @@ describe('PerpsTradeBottomSheet', () => {
 
   it('renders an optional title with the banner directly below it', () => {
     render(
-      <PerpsTradeBottomSheet
+      <PerpsTradeBottomSheet<PerpsTradeSheetScreen>
         onClose={jest.fn()}
+        {...tradeSheetConfig}
         title="Close position"
         banner={<Text>Risk warning</Text>}
         screens={{
@@ -232,5 +260,25 @@ describe('PerpsTradeBottomSheet', () => {
     const [title, banner] = screen.getAllByText(/Close position|Risk warning/);
     expect(title).toHaveTextContent('Close position');
     expect(banner).toHaveTextContent('Risk warning');
+  });
+
+  it('supports caller-defined screen keys and navigation depth', () => {
+    render(
+      <PerpsTradeBottomSheet<CustomTestScreen>
+        onClose={jest.fn()}
+        rootScreen="root"
+        screenDepth={{ root: 0, details: 1 }}
+        screensWithoutBottomCta={['details']}
+        screens={{
+          root: <CustomRootScreen />,
+          details: <Text>Custom details</Text>,
+        }}
+      />,
+    );
+
+    act(() => openCallback?.());
+    fireEvent.press(screen.getByTestId('open-details'));
+
+    expect(screen.getByText('Custom details')).toBeOnTheScreen();
   });
 });
