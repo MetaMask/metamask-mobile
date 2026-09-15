@@ -33,10 +33,10 @@ on:
         type: boolean
         default: false
       post_to_slack:
-        description: 'Post a short summary to the performance Slack webhook'
+        description: 'Post the analysis summary to the personal debug Slack DM (DEZ9UAP8T)'
         required: false
         type: boolean
-        default: false
+        default: true
 
 permissions:
   contents: read
@@ -107,8 +107,12 @@ jobs:
 
       - name: Post Slack summary
         if: ${{ success() && inputs.post_to_slack }}
+        continue-on-error: true
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          # Personal debug DM while this workflow is ad-hoc.
+          SLACK_CHANNEL_ID: DEZ9UAP8T
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
           if [ ! -f /tmp/analyze-app-profiling/slack.md ]; then
@@ -118,20 +122,46 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          import urllib.error
           import urllib.request
 
-          webhook = os.environ["SLACK_WEBHOOK_URL"]
+          token = os.environ.get("SLACK_BOT_TOKEN", "")
+          channel = os.environ["SLACK_CHANNEL_ID"]
+          run_url = os.environ.get("GITHUB_RUN_URL", "")
+          if not token:
+              raise SystemExit("SLACK_BOT_TOKEN is empty")
+
           with open("/tmp/analyze-app-profiling/slack.md", encoding="utf-8") as handle:
               text = handle.read().strip()
-          if not webhook:
-              raise SystemExit("PERFORMANCE_E2E_SLACK_WEBHOOK_URL is empty")
-          payload = json.dumps({"text": text}).encode("utf-8")
+          if run_url:
+              text = f"{text}\n<{run_url}|GitHub run>"
+          if len(text) > 39000:
+              text = text[:39000] + "\n_Truncated for Slack._"
+
+          payload = json.dumps(
+              {
+                  "channel": channel,
+                  "text": text,
+                  "unfurl_links": False,
+                  "unfurl_media": False,
+              }
+          ).encode("utf-8")
           request = urllib.request.Request(
-              webhook,
+              "https://slack.com/api/chat.postMessage",
               data=payload,
-              headers={"Content-Type": "application/json"},
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Content-Type": "application/json; charset=utf-8",
+              },
               method="POST",
           )
-          with urllib.request.urlopen(request) as response:
-              print(f"Slack webhook status: {response.status}")
+          try:
+              with urllib.request.urlopen(request) as response:
+                  body = json.loads(response.read().decode("utf-8"))
+          except urllib.error.HTTPError as error:
+              raise SystemExit(f"Slack HTTP {error.code}: {error.read().decode('utf-8', errors='replace')}") from error
+
+          if not body.get("ok"):
+              raise SystemExit(f"Slack chat.postMessage failed: {body}")
+          print(f"Slack message sent to {channel} ts={body.get('ts')}")
           PY

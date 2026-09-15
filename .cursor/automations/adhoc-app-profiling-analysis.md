@@ -19,7 +19,7 @@ This is complementary to:
 ## Tools required
 
 - GitHub (`gh`) authenticated with `actions:read`
-- Slack MCP only if the user asks to DM the result
+- Slack MCP (`slack_send_message`) to channel `DEZ9UAP8T` (personal debug DM)
 - Shell access to run the collector script
 
 ## Prompt (copy into Cursor Automation)
@@ -32,6 +32,9 @@ E2E run (scheduled every 6 hours on main).
 For **each scenario** in the run, review BrowserStack app-profiling metrics
 and Hermes CPU-profile hot frames, then report any issues that the data
 supports.
+
+After the write-up, send the Slack summary to channel `DEZ9UAP8T` using
+`slack_send_message`. Do not post to a public channel.
 
 ## Steps
 
@@ -65,6 +68,11 @@ supports.
 4. Then write:
    - at most 5 executive-summary bullets
    - at most 5 priority actions
+
+5. Send the final summary to Slack channel `DEZ9UAP8T` with `slack_send_message`.
+   Keep it short (executive summary + high-severity findings + actions).
+   Start from `/tmp/analyze-app-profiling/slack.md` and replace the agent
+   section with your findings. Do not wrap the message in a code fence.
 
 ## Rules
 
