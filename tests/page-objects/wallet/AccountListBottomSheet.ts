@@ -305,6 +305,42 @@ class AccountListBottomSheet {
     });
   }
 
+  /**
+   * Tap "Add account" and prove the new account row exists.
+   * Appium can report a successful click while FlashList / InteractionManager
+   * abandons create — re-tap until the named row is visible (scroll-aware).
+   */
+  async addAccountAndExpectVisibleV2(
+    accountName: string,
+    options?: {
+      srpIndex?: number;
+      shouldWait?: boolean;
+      timeout?: number;
+    },
+  ): Promise<void> {
+    const timeout = options?.timeout ?? 50_000;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const existing =
+          await this.getAccountElementsByAccountNameV2(accountName);
+        if (existing.length === 0) {
+          await this.tapAddAccountButtonV2(options);
+        }
+
+        await this.expectAccountVisibleByNameV2(accountName, {
+          timeout: 15_000,
+          description: `${accountName} visible after Add account`,
+        });
+      },
+      {
+        timeout,
+        interval: 1_000,
+        description: `Add account and expect "${accountName}" visible`,
+      },
+    );
+  }
+
   async tapAddEthereumAccountButton(): Promise<void> {
     await Gestures.waitAndTap(this.addEthereumAccountButton, {
       elemDescription: 'Add Ethereum Account button',
