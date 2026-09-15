@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { IconName } from '@metamask/design-system-react-native';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import {
   ImpactMoment,
   playImpact,
@@ -150,6 +151,10 @@ describe('PerpsLeverageBottomSheet', () => {
     );
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('layout', () => {
     it('renders the redesigned content when visible', () => {
       render(<PerpsLeverageBottomSheet {...defaultProps} />);
@@ -259,18 +264,28 @@ describe('PerpsLeverageBottomSheet', () => {
       render(
         <PerpsLeverageBottomSheet {...defaultProps} onConfirm={onConfirm} />,
       );
+      const picker = screen.getByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.PICKER,
+      );
 
       fireEvent.press(
         screen.getByTestId(
           `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
         ),
       );
+      fireEvent.scroll(picker, {
+        nativeEvent: { contentOffset: { x: 9 * ITEM_WIDTH, y: 0 } },
+      });
+      fireEvent(picker, 'momentumScrollEnd', {
+        nativeEvent: { contentOffset: { x: 9 * ITEM_WIDTH, y: 0 } },
+      });
       fireEvent.press(
         screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
       );
 
-      expect(onConfirm).toHaveBeenCalledWith(10, 'slider');
+      expect(onConfirm).toHaveBeenCalledWith(10, 'preset');
       expect(playSelection).toHaveBeenCalledTimes(1);
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('selects the centered value after scrolling', () => {
@@ -432,7 +447,7 @@ describe('PerpsLeverageBottomSheet', () => {
       ).toHaveTextContent('100.00%');
     });
 
-    it('uses the theoretical distance when the API price is unavailable', () => {
+    it('hides the distance when the API price is unavailable', () => {
       mockUsePerpsLiquidationPrice.mockReturnValue({
         liquidationPrice: '0',
         isCalculating: false,
@@ -446,10 +461,69 @@ describe('PerpsLeverageBottomSheet', () => {
         ),
       ).toHaveTextContent('--');
       expect(
+        screen.queryByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows a skeleton until recalculation finishes', () => {
+      jest.useFakeTimers();
+      let isCalculating = true;
+      mockUsePerpsLiquidationPrice.mockImplementation(
+        (params: { entryPrice: number; leverage: number }) => ({
+          liquidationPrice: (
+            params.entryPrice *
+            (1 - 1 / params.leverage)
+          ).toFixed(2),
+          isCalculating,
+          error: null,
+        }),
+      );
+      const { rerender } = render(
+        <PerpsLeverageBottomSheet {...defaultProps} />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).not.toBeOnTheScreen();
+
+      isCalculating = false;
+      rerender(<PerpsLeverageBottomSheet {...defaultProps} />);
+      act(() => {
+        jest.advanceTimersByTime(
+          PERFORMANCE_CONFIG.LiquidationPriceDebounceMs + 200,
+        );
+      });
+
+      expect(
+        screen.queryByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('$2,700');
+      expect(
         screen.getByTestId(
           PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
         ),
-      ).toHaveTextContent('20.00%');
+      ).toHaveTextContent('10.00%');
     });
 
     it('uses the limit price as the liquidation calculation entry price', () => {
@@ -525,6 +599,26 @@ describe('PerpsLeverageBottomSheet', () => {
 
       expect(DevLogger.log).toHaveBeenCalledWith(
         'Confirming leverage: 5, method: slider',
+      );
+    });
+
+    it('logs preset input after tapping a leverage', () => {
+      const { DevLogger } = jest.requireMock(
+        '../../../../../core/SDKConnect/utils/DevLogger',
+      );
+      render(<PerpsLeverageBottomSheet {...defaultProps} />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+      );
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Confirming leverage: 10, method: preset',
       );
     });
   });

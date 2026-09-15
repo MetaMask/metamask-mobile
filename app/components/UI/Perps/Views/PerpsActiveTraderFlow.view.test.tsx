@@ -288,10 +288,10 @@ describe('Active Trader Flow', () => {
     renderPerpsView(LeverageVisibleWrapper, 'LeverageTest');
     expect(await screen.findByText(LEVERAGE_MODAL_TITLE)).toBeOnTheScreen();
     expect(
-      screen.getByTestId(
+      screen.queryByTestId(
         PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
       ),
-    ).toBeOnTheScreen();
+    ).not.toBeOnTheScreen();
     fireEvent.press(
       screen.getByTestId(
         `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
@@ -305,7 +305,7 @@ describe('Active Trader Flow', () => {
     fireEvent.press(
       screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
     );
-    expect(mockOnLeverageConfirm).toHaveBeenCalledWith(10, 'slider');
+    expect(mockOnLeverageConfirm).toHaveBeenCalledWith(10, 'preset');
 
     // Trader dismisses leverage sheet — title disappears
     cleanup();

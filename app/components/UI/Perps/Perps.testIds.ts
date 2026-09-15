@@ -1098,6 +1098,7 @@ export const PerpsLeverageBottomSheetSelectorsIDs = {
   PICKER_ITEM: 'perps-leverage-picker-item',
   CURRENT_PRICE_VALUE: 'perps-leverage-current-price-value',
   LIQUIDATION_PRICE_VALUE: 'perps-leverage-liquidation-price-value',
+  LIQUIDATION_PRICE_SKELETON: 'perps-leverage-liquidation-price-skeleton',
   LIQUIDATION_DISTANCE_VALUE: 'perps-leverage-liquidation-distance-value',
   LIQUIDATION_TREND_ICON: 'perps-leverage-liquidation-trend-icon',
   SET_BUTTON: 'perps-leverage-set-button',

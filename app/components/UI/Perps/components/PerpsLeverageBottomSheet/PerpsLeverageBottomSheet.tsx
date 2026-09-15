@@ -2,7 +2,6 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import LinearGradient from 'react-native-linear-gradient';
 import React, {
-  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -27,6 +26,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
   type OrderType,
 } from '@metamask/perps-controller';
@@ -82,6 +82,10 @@ interface PerpsLeverageBottomSheetProps {
 const LEVERAGE_ITEM_WIDTH = 56;
 const LEVERAGE_PICKER_HEIGHT = 48;
 const LEVERAGE_PICKER_FADE_WIDTH = 48;
+// Matches paddingTop={3} (12px) plus paddingBottom={6} (24px).
+const LEVERAGE_PICKER_VERTICAL_PADDING = 36;
+const LEVERAGE_PICKER_CONTAINER_HEIGHT =
+  LEVERAGE_PICKER_HEIGHT + LEVERAGE_PICKER_VERTICAL_PADDING;
 
 const clampLeverage = (
   value: number,
@@ -108,6 +112,8 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const pickerRef = useRef<ScrollView>(null);
   const lastPickerIndexRef = useRef<number | null>(null);
+  const isProgrammaticScrollRef = useRef(false);
+  const inputMethodRef = useRef<'slider' | 'preset'>('slider');
   const [pickerWidth, setPickerWidth] = useState(0);
   const boundedInitialLeverage = clampLeverage(
     initialLeverage,
@@ -227,6 +233,8 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       // selected leverage.
       setPickerWidth(0);
       lastPickerIndexRef.current = null;
+      isProgrammaticScrollRef.current = false;
+      inputMethodRef.current = 'slider';
       lastValidLiquidationPrice.current = null;
       leverageChangeTime.current = 0;
     }
@@ -331,6 +339,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       return;
     }
     lastPickerIndexRef.current = index;
+    isProgrammaticScrollRef.current = true;
     pickerRef.current?.scrollTo({
       x: index * LEVERAGE_ITEM_WIDTH,
       animated: false,
@@ -339,6 +348,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const handlePickerScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (isProgrammaticScrollRef.current) {
+        return;
+      }
+
       const nextLeverage = getLeverageForOffset(
         event.nativeEvent.contentOffset.x,
       );
@@ -352,6 +365,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const handlePickerScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      isProgrammaticScrollRef.current = false;
       const offset =
         event.nativeEvent.targetContentOffset?.x ??
         event.nativeEvent.contentOffset.x;
@@ -371,10 +385,18 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     [handlePickerScrollEnd],
   );
 
+  const handlePickerScrollBeginDrag = useCallback(() => {
+    isProgrammaticScrollRef.current = false;
+    inputMethodRef.current = 'slider';
+    setIsScrolling(true);
+  }, []);
+
   const handleLeveragePress = useCallback(
     (value: number) => {
       const index = value - minLeverage;
       lastPickerIndexRef.current = index;
+      isProgrammaticScrollRef.current = true;
+      inputMethodRef.current = 'preset';
       pickerRef.current?.scrollTo({
         x: index * LEVERAGE_ITEM_WIDTH,
         animated: true,
@@ -387,13 +409,16 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const handleConfirm = useCallback(() => {
     const leverageToConfirm = isScrolling ? previewLeverage : tempLeverage;
+    const inputMethod = inputMethodRef.current;
 
-    DevLogger.log(`Confirming leverage: ${leverageToConfirm}, method: slider`);
+    DevLogger.log(
+      `Confirming leverage: ${leverageToConfirm}, method: ${inputMethod}`,
+    );
 
     if (enableConfirmHaptics) {
       playSelection().catch(() => undefined);
     }
-    onConfirm(leverageToConfirm, 'slider');
+    onConfirm(leverageToConfirm, inputMethod);
     onClose();
   }, [
     enableConfirmHaptics,
@@ -453,7 +478,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               keyLabel={strings('perps.order.leverage_modal.liquidation_price')}
               value={
                 isRecalculating ? (
-                  <Skeleton width={112} height={16} />
+                  <Skeleton
+                    width={112}
+                    height={16}
+                    testID={
+                      PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON
+                    }
+                  />
                 ) : (
                   <Box
                     flexDirection={BoxFlexDirection.Row}
@@ -472,33 +503,34 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                         ? formatPerpsFiat(displayLiquidationPrice, {
                             ranges: PRICE_RANGES_UNIVERSAL,
                           })
-                        : '--'}
+                        : PERPS_CONSTANTS.FallbackDataDisplay}
                     </Text>
-                    {displayLiquidationPercentage && (
-                      <>
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          color={TextColor.TextAlternative}
-                          testID={
-                            PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
-                          }
-                        >
-                          {` ${displayLiquidationPercentage}`}
-                        </Text>
-                        <Icon
-                          name={
-                            direction === 'long'
-                              ? IconName.TrendDown
-                              : IconName.TrendUp
-                          }
-                          size={IconSize.Sm}
-                          color={IconColor.IconAlternative}
-                          testID={
-                            PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON
-                          }
-                        />
-                      </>
-                    )}
+                    {(tempLeverage === 1 || displayLiquidationPrice !== null) &&
+                      displayLiquidationPercentage && (
+                        <>
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                            testID={
+                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                            }
+                          >
+                            {` ${displayLiquidationPercentage}`}
+                          </Text>
+                          <Icon
+                            name={
+                              direction === 'long'
+                                ? IconName.TrendDown
+                                : IconName.TrendUp
+                            }
+                            size={IconSize.Sm}
+                            color={IconColor.IconAlternative}
+                            testID={
+                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON
+                            }
+                          />
+                        </>
+                      )}
                   </Box>
                 )
               }
@@ -519,7 +551,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         <Box
           paddingTop={3}
           paddingBottom={6}
-          twClassName={`h-[${LEVERAGE_PICKER_HEIGHT + 36}px]`}
+          twClassName={`h-[${LEVERAGE_PICKER_CONTAINER_HEIGHT}px]`}
           accessible={false}
         >
           <MaskedView
@@ -544,7 +576,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               })}
               testID={PerpsLeverageBottomSheetSelectorsIDs.PICKER}
               onLayout={handlePickerLayout}
-              onScrollBeginDrag={() => setIsScrolling(true)}
+              onScrollBeginDrag={handlePickerScrollBeginDrag}
               onScroll={handlePickerScroll}
               onScrollEndDrag={handlePickerScrollEndDrag}
               onMomentumScrollEnd={handlePickerScrollEnd}
@@ -609,4 +641,4 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
 PerpsLeverageBottomSheet.displayName = 'PerpsLeverageBottomSheet';
 
-export default memo(PerpsLeverageBottomSheet);
+export default PerpsLeverageBottomSheet;

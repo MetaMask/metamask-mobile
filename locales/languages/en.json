@@ -1965,10 +1965,6 @@
         "current_price": "Current price",
         "liquidation_price": "Liquidation price",
         "liquidation_distance": "Liquidation distance",
-        "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
-        "drops": "drops",
-        "rises": "rises",
-        "set_leverage": "Set {{leverage}}x",
         "price_unavailable": "Price information unavailable"
       },
       "type": {
