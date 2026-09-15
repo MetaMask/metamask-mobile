@@ -4,13 +4,14 @@ import { render, fireEvent } from '@testing-library/react-native';
 import CancelMembership from './CancelMembership';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { POST_CANCELLATION_PRO_HUB_SOURCE } from './CancelMembership.utils';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 const mockGoBack = jest.fn();
-const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockSetOptions = jest.fn();
-const mockAddListener = jest.fn().mockReturnValue(jest.fn());
+const mockAddListener = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -18,12 +19,50 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       goBack: mockGoBack,
-      navigate: mockNavigate,
+      dispatch: mockDispatch,
       setOptions: mockSetOptions,
       addListener: mockAddListener,
     }),
   };
 });
+
+const mockProFlowState = {
+  key: 'stack',
+  index: 3,
+  routeNames: ['Home', 'ProHub', 'ProHubMembership', 'ProHubCancelMembership'],
+  routes: [
+    { key: 'home', name: 'Home' },
+    { key: 'hub', name: Routes.PRO_HUB.ROOT },
+    { key: 'membership', name: Routes.PRO_HUB.MEMBERSHIP },
+    { key: 'cancel', name: Routes.PRO_HUB.CANCEL_MEMBERSHIP },
+  ],
+  type: 'stack',
+  stale: false,
+};
+
+const expectPostCancellationReset = () => {
+  expect(mockDispatch).toHaveBeenCalledTimes(1);
+  const stackReducer = mockDispatch.mock.calls[0][0] as (
+    state: typeof mockProFlowState,
+  ) => unknown;
+
+  expect(typeof stackReducer).toBe('function');
+  expect(stackReducer(mockProFlowState)).toEqual(
+    expect.objectContaining({
+      type: 'RESET',
+      payload: expect.objectContaining({
+        index: 1,
+        routes: [
+          { key: 'home', name: 'Home' },
+          {
+            name: Routes.PRO_HUB.ROOT,
+            params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },
+          },
+        ],
+      }),
+    }),
+  );
+};
 
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
 
@@ -41,7 +80,8 @@ const renderScreen = () => render(<CancelMembership />);
 
 describe('CancelMembership', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    mockAddListener.mockReturnValue(jest.fn());
   });
 
   afterEach(() => {
@@ -89,18 +129,16 @@ describe('CancelMembership', () => {
     ).toBeOnTheScreen();
     expect(queryByTestId(CancelMembershipTestIds.TITLE)).not.toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('navigates back to the existing ProHub root when done is pressed on the success step', () => {
+  it('resets the stack to Pro Hub on top of the origin screen when done is pressed on the success step', () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
     fireEvent.press(getByTestId(CancelMembershipTestIds.SUCCESS_DONE_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
-      source: 'pro_subscription_cancellation_success',
-    });
+    expectPostCancellationReset();
   });
 
   // ── Gesture / navigation interception ─────────────────────────────────────
@@ -117,7 +155,7 @@ describe('CancelMembership', () => {
       );
     });
 
-    it('beforeRemove handler prevents default and calls navigate to ProHub root', () => {
+    it('beforeRemove handler prevents default and resets to Pro Hub on top of the origin screen', () => {
       let beforeRemoveHandler:
         | ((e: { preventDefault: () => void }) => void)
         | undefined;
@@ -142,9 +180,7 @@ describe('CancelMembership', () => {
       beforeRemoveHandler?.({ preventDefault: mockPreventDefault });
 
       expect(mockPreventDefault).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
-        source: 'pro_subscription_cancellation_success',
-      });
+      expectPostCancellationReset();
     });
   });
 
@@ -171,7 +207,7 @@ describe('CancelMembership', () => {
       );
     });
 
-    it('behaves like pressing Done (navigates to ProHub root) instead of popping the screen', () => {
+    it('behaves like pressing Done (resets to Pro Hub on top of the origin screen) instead of popping the screen', () => {
       let backPressHandler: (() => boolean) | undefined;
       jest
         .spyOn(BackHandler, 'addEventListener')
@@ -188,9 +224,7 @@ describe('CancelMembership', () => {
 
       expect(handled).toBe(true);
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
-        source: 'pro_subscription_cancellation_success',
-      });
+      expectPostCancellationReset();
     });
 
     it('removes the BackHandler listener on unmount so it cannot leak into other screens', () => {

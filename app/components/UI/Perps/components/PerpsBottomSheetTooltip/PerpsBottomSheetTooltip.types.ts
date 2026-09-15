@@ -64,4 +64,6 @@ export type PerpsTooltipContentKey =
   | 'oracle_price'
   | 'spread'
   | 'pay_with'
-  | 'slippage';
+  | 'slippage'
+  | 'size_skew'
+  | 'twap_runtime';

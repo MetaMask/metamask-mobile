@@ -11,20 +11,18 @@ import { strings } from '../../../../../locales/i18n';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import Routes from '../../../../constants/navigation/Routes';
-import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { isMusdToken } from '../../../UI/Earn/constants/musd';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import useAssetVisibility from './useAssetVisibility';
 import { TokenDetailsAction } from '../constants/constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
@@ -78,9 +76,6 @@ const MoreTokenActionsMenu = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const explorer = useBlockExplorer(asset.chainId);
 
-  const isAssetsUnifyStateEnabled = useSelector(
-    selectIsAssetsUnifyStateEnabled,
-  );
   const selectInternalAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -103,14 +98,24 @@ const MoreTokenActionsMenu = () => {
   const goToBrowserUrl = useCallback(
     (url: string, title: string) => {
       closeBottomSheetAndNavigate(async () => {
-        if (await InAppBrowser.isAvailable()) {
-          await InAppBrowser.open(url);
-        } else {
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: { url, title },
-          });
+        navigation.navigate('WalletView');
+
+        try {
+          if (await InAppBrowser.isAvailable()) {
+            await InAppBrowser.open(url);
+            return;
+          }
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'MoreTokenActionsMenu: Failed to open InAppBrowser',
+          );
         }
+
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: { url, title },
+        });
       });
     },
     [closeBottomSheetAndNavigate, navigation],
@@ -172,18 +177,9 @@ const MoreTokenActionsMenu = () => {
                   tokenChainId: asset.chainId,
                   selectInternalAccountByScope,
                 });
-              } else {
-                const { TokensController, NetworkController } = Engine.context;
-                const networkClientId =
-                  NetworkController.findNetworkClientIdByChainId(
-                    asset.chainId as Hex,
-                  );
-                TokensController.ignoreTokens([asset.address], networkClientId);
               }
 
-              if (isAssetsUnifyStateEnabled) {
-                handleHideToken();
-              }
+              handleHideToken();
 
               const tokenSymbol = asset.symbol || null;
 
@@ -220,7 +216,6 @@ const MoreTokenActionsMenu = () => {
     asset.chainId,
     asset.address,
     asset.symbol,
-    isAssetsUnifyStateEnabled,
     handleHideToken,
     selectInternalAccountByScope,
     trackEvent,

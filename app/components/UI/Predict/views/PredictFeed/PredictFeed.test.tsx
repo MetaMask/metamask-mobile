@@ -1,7 +1,7 @@
 /**
  * Unit tests for PredictFeed.
  */
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import {
   PredictMarketListSelectorsIDs,
@@ -99,9 +99,12 @@ import {
   type UsePredictMarketDataOptions,
 } from '../../hooks/usePredictMarketData';
 import { usePredictSearchMarketData } from '../../hooks/usePredictSearchMarketData';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TraceName } from '../../../../../util/trace';
 
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
 const mockUsePredictSearchMarketData = usePredictSearchMarketData as jest.Mock;
+const mockUsePredictMeasurement = usePredictMeasurement as jest.Mock;
 
 const mockUseSelector = jest.fn();
 const mockHotTabFlag: { enabled: boolean; queryParams?: string } = {
@@ -1034,6 +1037,62 @@ describe('PredictFeed', () => {
       expect(getEnabledForCategory('hot')).toBe(true);
       expect(getEnabledForCategory('trending')).toBe(false);
       expect(getEnabledForCategory('new')).toBe(false);
+    });
+  });
+
+  describe('feed TTI measurement', () => {
+    const getLatestMeasurementConditions = (): boolean[] | undefined => {
+      const calls = mockUsePredictMeasurement.mock.calls as [
+        { conditions?: boolean[]; traceName?: string },
+      ][];
+      return calls[calls.length - 1]?.[0]?.conditions;
+    };
+
+    it('keeps PredictFeedView open while the active tab is in its initial fetch', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockUsePredictMeasurement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          traceName: TraceName.PredictFeedView,
+          conditions: [true, false],
+        }),
+      );
+    });
+
+    it('ends PredictFeedView after the active tab leaves its initial skeleton', async () => {
+      render(<PredictFeed />);
+
+      await waitFor(() => {
+        expect(getLatestMeasurementConditions()).toEqual([true, true]);
+      });
+    });
+
+    it('keeps PredictFeedView open until tabs mount', () => {
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: false,
+        onTabSwitch: jest.fn(),
+        scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
+      });
+
+      render(<PredictFeed />);
+
+      expect(getLatestMeasurementConditions()).toEqual([true, false]);
     });
   });
 });

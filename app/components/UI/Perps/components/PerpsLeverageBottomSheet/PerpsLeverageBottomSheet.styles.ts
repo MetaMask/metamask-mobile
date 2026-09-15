@@ -5,7 +5,7 @@ export const createStyles = () =>
     // Offscreen remount target after a slider gesture — keep StyleSheet for
     // absoluteFill; Tailwind cannot express this cleanly.
     sliderIncoming: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       opacity: 0,
     },
     helpTextContainer: {

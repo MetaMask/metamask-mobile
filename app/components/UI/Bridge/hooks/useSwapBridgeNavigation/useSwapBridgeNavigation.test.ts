@@ -132,6 +132,10 @@ jest.mock('../../utils/tokenUtils', () => ({
   getNativeSourceToken: jest.fn(),
 }));
 
+jest.mock('../../utils/swapBridgePageLoadTrace', () => ({
+  startSwapBridgePageLoadTrace: jest.fn((params: object) => params),
+}));
+
 const mockFetchPopularTokens = jest.fn().mockResolvedValue(undefined);
 jest.mock('../useFetchPopularTokens', () => ({
   useFetchPopularTokens: jest.fn(
@@ -502,6 +506,33 @@ describe('useSwapBridgeNavigation', () => {
       }),
       { pop: true },
     );
+  });
+
+  it('preserves explicit destination with matching address on another chain', () => {
+    const sourceTokenOnPolygon: BridgeToken = {
+      ...mockSourceToken,
+      address: mockNativeAsset.address,
+      chainId: '0x89',
+    };
+    const destOverride: BridgeToken = {
+      ...mockNativeAsset,
+      chainId: mockChainId,
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+          sourceToken: sourceTokenOnPolygon,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps(undefined, destOverride);
+
+    expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(true);
+    expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
   });
 
   it('uses home page filter network when no token is provided', () => {

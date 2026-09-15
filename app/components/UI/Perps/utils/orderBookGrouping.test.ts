@@ -11,6 +11,7 @@ import {
   formatColumnValue,
   formatOrderBookPrice,
   getOrderBookPriceFormat,
+  getOrderBookPriceValue,
 } from './orderBookGrouping';
 import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
 import type { OrderBookData } from '@metamask/perps-controller';
@@ -641,6 +642,58 @@ describe('orderBookGrouping', () => {
           decimals: 2,
         }),
       ).toBe('—');
+    });
+  });
+
+  describe('getOrderBookPriceValue', () => {
+    it('drops a decimal the BTC ladder never displayed', () => {
+      // "$64,123" is what the row reads, so tapping it must not fill 64123.4.
+      const format = getOrderBookPriceFormat(1, 64123, 5);
+
+      expect(formatOrderBookPrice('64123.4', format)).toBe('$64,123');
+      expect(getOrderBookPriceValue('64123.4', format)).toBe('64123');
+    });
+
+    it('keeps the precision an ETH ladder does display', () => {
+      const format = getOrderBookPriceFormat(0.1, 3452, 4);
+
+      expect(getOrderBookPriceValue('3452.1', format)).toBe('3452.1');
+    });
+
+    it('resolves an abbreviated row to the price it stands for', () => {
+      const format = getOrderBookPriceFormat(10, 61470, 5);
+
+      expect(formatOrderBookPrice('61470', format)).toBe('$61.47K');
+      expect(getOrderBookPriceValue('61470', format)).toBe('61470');
+    });
+
+    it('keeps sub-cent prices in plain decimal notation', () => {
+      const format = getOrderBookPriceFormat(0.000001, 0.0021, 0);
+
+      expect(getOrderBookPriceValue('0.002100999', format)).toBe('0.002101');
+    });
+
+    it('leaves the venue price untouched when the format is unknown', () => {
+      expect(getOrderBookPriceValue('0.0682341', null)).toBe('0.0682341');
+    });
+
+    it('leaves the venue price untouched rather than rounding it away', () => {
+      // A stale mid can set a grouping magnitudes coarser than the ladder that
+      // arrives for the next asset; filling 0 would be worse than filling
+      // more precision than the row showed.
+      const format = getOrderBookPriceFormat(10, 90000, 5);
+
+      expect(getOrderBookPriceValue('0.0682341', format)).toBe('0.0682341');
+    });
+
+    it('leaves unparseable prices untouched', () => {
+      expect(
+        getOrderBookPriceValue('not-a-number', {
+          divisor: 1,
+          suffix: '',
+          decimals: 2,
+        }),
+      ).toBe('not-a-number');
     });
   });
 });

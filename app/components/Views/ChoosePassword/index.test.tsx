@@ -42,6 +42,13 @@ jest.mock('../../../util/password', () => ({
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
   trace: jest.fn(),
@@ -66,11 +73,6 @@ jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn((_phrase) => new Uint8Array([1, 2, 3])),
 }));
 
-const mockResolveFirstPredictOnUsLaunch = jest.fn();
-jest.mock('../../UI/Rewards/utils/resolveFirstPredictOnUs', () => ({
-  resolveFirstPredictOnUsLaunch: () => mockResolveFirstPredictOnUsLaunch(),
-}));
-
 import ChoosePassword from './index.tsx';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
@@ -89,6 +91,8 @@ import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import { RouteMessengerContext } from '../../../contexts/route-messenger';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -102,8 +106,7 @@ OAuthLoginService.updateMarketingOptInStatus = jest
   .fn()
   .mockResolvedValue({ is_opt_in: true });
 
-const mockRefreshGeolocation = Engine.context.GeolocationController
-  .refreshGeolocation as jest.Mock;
+const mockRefreshGeolocation = jest.fn().mockResolvedValue('GB');
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -138,9 +141,6 @@ jest.mock('../../../core/Engine', () => ({
     },
     AccountTrackerController: {
       refresh: jest.fn().mockResolvedValue(undefined),
-    },
-    GeolocationController: {
-      refreshGeolocation: jest.fn().mockResolvedValue('GB'),
     },
   },
 }));
@@ -299,7 +299,15 @@ const VALID_PASSWORD = 'Test123456!';
 const renderWithProviders = (ui: React.ReactElement) =>
   render(
     <Provider store={store}>
-      <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>
+      <ThemeContext.Provider value={mockTheme}>
+        <RouteMessengerContext.Provider
+          value={createMockRouteMessenger({
+            'GeolocationController:refreshGeolocation': mockRefreshGeolocation,
+          })}
+        >
+          {ui}
+        </RouteMessengerContext.Provider>
+      </ThemeContext.Provider>
     </Provider>,
   );
 
@@ -604,6 +612,23 @@ describe('ChoosePassword', () => {
       expect(
         component.getByText(strings('choose_password.password_error')),
       ).toBeOnTheScreen();
+    });
+
+    it('does not show a password mismatch error before confirm reaches the minimum length', async () => {
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const { passwordInput, confirmPasswordInput } =
+        getFormElements(component);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'Test123456!');
+        fireEvent.changeText(confirmPasswordInput, 'x');
+      });
+
+      expect(
+        component.queryByText(strings('choose_password.password_error')),
+      ).toBeNull();
     });
 
     it('submit button is disabled when passwords do not match', async () => {
@@ -974,152 +999,6 @@ describe('ChoosePassword', () => {
       });
 
       mockNewWalletAndKeychain.mockRestore();
-    });
-
-    it('resets to the First Predict On Us splash as a flat onboarding step when the campaign resolves (no questionnaire)', async () => {
-      mockEligibility.shouldShowQuestionnaire = false;
-
-      const firstPredictContent = {
-        name: 'First Predict On Us',
-        image: null,
-        localizedText: {},
-        usdAmount: 5,
-        markets: [{ eventId: '30615', conditionId: '0xabc' }],
-        termsUrl: null,
-      };
-      const firstPredictMarkets = [{ id: '30615', outcomes: [] }];
-      mockResolveFirstPredictOnUsLaunch.mockResolvedValue({
-        content: firstPredictContent,
-        markets: firstPredictMarkets,
-      });
-
-      (
-        Authentication.requestBiometricsAccessControlForIOS as jest.Mock
-      ).mockResolvedValue({
-        currentAuthType: 'biometrics',
-        availableBiometryType: 'faceID',
-      });
-      const mockNewWalletAndKeychain = jest.spyOn(
-        Authentication,
-        'newWalletAndKeychain',
-      );
-      mockNewWalletAndKeychain.mockResolvedValue(undefined);
-      jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
-
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-        provider: 'google',
-      };
-
-      try {
-        const component = renderWithProviders(<ChoosePassword />);
-        await fillAndSubmitForm(component);
-
-        await waitFor(() => {
-          expect(mockNavigation.reset).toHaveBeenCalledWith({
-            index: 0,
-            routes: [
-              {
-                name: 'FirstPredictOnUsSplash',
-                params: {
-                  content: firstPredictContent,
-                  markets: firstPredictMarkets,
-                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-                },
-              },
-            ],
-          });
-        });
-      } finally {
-        mockEligibility.shouldShowQuestionnaire = true;
-        mockResolveFirstPredictOnUsLaunch.mockReset();
-        mockNewWalletAndKeychain.mockRestore();
-      }
-    });
-
-    it('resets to the First Predict On Us splash from the questionnaire onComplete when the campaign resolves', async () => {
-      mockEligibility.shouldShowQuestionnaire = true;
-
-      const firstPredictContent = {
-        name: 'First Predict On Us',
-        image: null,
-        localizedText: {},
-        usdAmount: 5,
-        markets: [{ eventId: '30615', conditionId: '0xabc' }],
-        termsUrl: null,
-      };
-      const firstPredictMarkets = [{ id: '30615', outcomes: [] }];
-      mockResolveFirstPredictOnUsLaunch.mockResolvedValue({
-        content: firstPredictContent,
-        markets: firstPredictMarkets,
-      });
-
-      (
-        Authentication.requestBiometricsAccessControlForIOS as jest.Mock
-      ).mockResolvedValue({
-        currentAuthType: 'biometrics',
-        availableBiometryType: 'faceID',
-      });
-      const mockNewWalletAndKeychain = jest.spyOn(
-        Authentication,
-        'newWalletAndKeychain',
-      );
-      mockNewWalletAndKeychain.mockResolvedValue(undefined);
-      jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
-
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-        provider: 'google',
-      };
-
-      try {
-        const component = renderWithProviders(<ChoosePassword />);
-        await fillAndSubmitForm(component);
-
-        // Splash is shown after the survey: it is triggered by the
-        // questionnaire's onComplete callback, not directly on wallet creation.
-        let questionnaireOnComplete: (() => void) | undefined;
-        await waitFor(() => {
-          const call = mockNavigation.navigate.mock.calls.find(
-            ([routeName]) =>
-              routeName === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
-          );
-          expect(call).toBeDefined();
-          questionnaireOnComplete = call?.[1]?.onComplete;
-          expect(questionnaireOnComplete).toEqual(expect.any(Function));
-        });
-
-        await act(async () => {
-          await questionnaireOnComplete?.();
-        });
-
-        await waitFor(() => {
-          expect(mockNavigation.reset).toHaveBeenCalledWith({
-            index: 0,
-            routes: [
-              {
-                name: 'FirstPredictOnUsSplash',
-                params: {
-                  content: firstPredictContent,
-                  markets: firstPredictMarkets,
-                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-                },
-              },
-            ],
-          });
-        });
-      } finally {
-        mockResolveFirstPredictOnUsLaunch.mockReset();
-        mockNewWalletAndKeychain.mockRestore();
-      }
     });
 
     it('navigates to the support article when the learn more link is pressed', async () => {

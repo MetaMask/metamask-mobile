@@ -8,7 +8,6 @@ import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import ActivityScreen from '../../../app/components/Views/ActivityScreen/ActivityScreen';
 import ActivityList from '../../../app/components/Views/ActivityList';
-import ActivityView from '../../../app/components/Views/ActivityView';
 import ActivityDetails from '../../../app/components/Views/ActivityDetails';
 import ActivityTypeFilterSheet from '../../../app/components/Views/ActivityScreen/components/ActivityTypeFilterSheet';
 import PerpsActivityFilterSheet from '../../../app/components/Views/ActivityScreen/components/PerpsActivityFilterSheet';
@@ -20,25 +19,24 @@ import {
   renderComponentViewScreen,
   renderScreenWithRoutes,
 } from '../render';
-import {
-  initialStateActivity,
-  initialStateActivityWithRedesignEnabled,
-} from '../presets/activity';
+import { initialStateActivityWithRedesignEnabled } from '../presets/activity';
 import type { ActivityDetailsParams } from '../../../app/components/Views/ActivityDetails/ActivityDetails.types';
 import type { ActivityListItem } from '../../../app/util/activity-adapters';
-import { stashPreloadedActivityItem } from '../../../app/components/Views/ActivityList/preloadedActivityItemStore';
 import { getActivityDetailsRoute } from '../../../app/components/Views/ActivityList/getActivityDetailsRoute';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import type { Json } from '@metamask/utils';
+import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import Engine from '../../../app/core/Engine';
 import { DATA_SERVICES } from '../../../app/constants/data-services';
 import { Text } from 'react-native';
 
 notifyManager.setBatchNotifyFunction((callback) => callback());
 
-type JsonSubscriptionCallback = (data: Json) => void;
+type JsonSubscriptionCallback = (
+  data: DataServiceGranularCacheUpdatedPayload,
+) => void;
 
 const dataServiceMessenger = {
   call: async (method: string, ...params: Json[]) =>
@@ -93,29 +91,11 @@ interface RenderActivityListViewWithRoutesOptions
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[];
 }
 
-interface RenderActivityViewOptions {
-  overrides?: DeepPartial<RootState>;
-  redesignEnabled?: boolean;
-}
-
-interface RenderActivityViewWithRoutesOptions
-  extends RenderActivityViewOptions {
-  extraRoutes: { name: string; Component?: React.ComponentType<object> }[];
-}
-
 interface RenderActivityDetailsViewOptions {
   overrides?: DeepPartial<RootState>;
   state?: DeepPartial<RootState>;
   params: ActivityDetailsParams;
   extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
-}
-
-function ActivityViewWithProviders() {
-  return React.createElement(
-    HardwareWalletProvider,
-    null,
-    React.createElement(ActivityView as unknown as React.ComponentType),
-  );
 }
 
 function ActivityScreenWithProviders() {
@@ -142,18 +122,18 @@ function ActivityDetailsWithProviders() {
   );
 }
 
+/** ActivityDetails wrapped for CV route registration (HardwareWalletProvider). */
+export { ActivityDetailsWithProviders };
+
 function buildActivityState(options: {
   overrides?: DeepPartial<RootState>;
   state?: DeepPartial<RootState>;
-  redesignEnabled?: boolean;
 }) {
   if (options.state) {
     return options.state;
   }
 
-  const builder = options.redesignEnabled
-    ? initialStateActivityWithRedesignEnabled()
-    : initialStateActivity();
+  const builder = initialStateActivityWithRedesignEnabled();
   if (options.overrides) {
     builder.withOverrides(options.overrides);
   }
@@ -276,44 +256,12 @@ export function renderActivityListViewWithRoutes(
   );
 }
 
-export function renderActivityView(
-  options: RenderActivityViewOptions = {},
-): ReturnType<typeof renderComponentViewScreen> {
-  const state = buildActivityState({
-    overrides: options.overrides,
-    redesignEnabled: options.redesignEnabled,
-  });
-
-  return renderComponentViewScreen(
-    ActivityViewWithProviders,
-    { name: Routes.TRANSACTIONS_VIEW },
-    { state },
-  );
-}
-
-export function renderActivityViewWithRoutes(
-  options: RenderActivityViewWithRoutesOptions,
-): ReturnType<typeof renderScreenWithRoutes> {
-  const state = buildActivityState({
-    overrides: options.overrides,
-    redesignEnabled: options.redesignEnabled,
-  });
-
-  return renderScreenWithRoutes(
-    ActivityViewWithProviders,
-    { name: Routes.TRANSACTIONS_VIEW },
-    options.extraRoutes,
-    { state },
-  );
-}
-
 export function renderActivityDetailsView(
   options: RenderActivityDetailsViewOptions,
 ): ReturnType<typeof renderScreenWithRoutes> {
   const state = buildActivityState({
     overrides: options.overrides,
     state: options.state,
-    redesignEnabled: true,
   });
 
   return renderScreenWithRoutes(
@@ -335,29 +283,7 @@ export function renderActivityDetailsView(
 }
 
 /**
- * Stashes a provider-backed Activity row (Perps / Predict) and opens Details
- * with the serializable `{ chainId, txIdentifier, preloadKey }` params used in
- * production.
- */
-export function renderPreloadedActivityDetailsView(
-  item: ActivityListItem,
-  options: Omit<RenderActivityDetailsViewOptions, 'params'> = {},
-): ReturnType<typeof renderScreenWithRoutes> {
-  const preloadKey = stashPreloadedActivityItem(item);
-
-  return renderActivityDetailsView({
-    ...options,
-    params: {
-      chainId: item.chainId,
-      txIdentifier: item.hash,
-      preloadKey,
-    },
-  });
-}
-
-/**
- * Builds Activity Details route params (including preload stash) the same way
- * ActivityList navigates. Use for provider-backed rows that are not in Redux.
+ * Builds Activity Details route params the same way ActivityList navigates.
  */
 export function getActivityDetailsViewParams(
   item: ActivityListItem,

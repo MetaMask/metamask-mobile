@@ -7,19 +7,30 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 
 const DURATION_MS = 1000;
+
+// IconSize values are tailwind tokens rather than pixel values, so the pixel
+// dimensions the rotation container needs are mapped explicitly.
+const ICON_SIZE_PX: Record<IconSize, number> = {
+  [IconSize.Xs]: 12,
+  [IconSize.Sm]: 16,
+  [IconSize.Md]: 20,
+  [IconSize.Lg]: 24,
+  [IconSize.Xl]: 32,
+};
 
 export interface PendingSpinnerProps {
   /** Icon size. Defaults to Sm (16px). */
   size?: IconSize;
   /** Icon colour. Defaults to the standard icon colour. */
-  color?: string | IconColor;
+  color?: IconColor;
   testID?: string;
 }
 
@@ -28,7 +39,7 @@ export interface PendingSpinnerProps {
  */
 const PendingSpinner = ({
   size = IconSize.Sm,
-  color = IconColor.Default,
+  color = IconColor.IconDefault,
   testID,
 }: PendingSpinnerProps) => {
   const rotation = useSharedValue(0);
@@ -46,7 +57,7 @@ const PendingSpinner = ({
   }));
 
   // Explicit dimensions so the rotation pivots around the icon's centre
-  const dimension = Number(size);
+  const dimension = ICON_SIZE_PX[size];
   const containerStyle = useMemo(
     () => ({
       width: dimension,

@@ -162,12 +162,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     ipfsGateway,
     newTab,
     activeChainId,
+    fromExploreSearch,
     fromPerps,
     fromBenefit,
     fromCard,
     fromWhatsHappening,
     fromMarketInsights,
     fromMoney,
+    fromEarnStrategySelection,
   }) => {
     // Opted out of the React Compiler since it's a large component and we don't want to risk breaking changes.
     'use no memo';
@@ -1473,7 +1475,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, []);
 
     const handleClosePress = useCallback(() => {
-      if (fromPerps) {
+      if (fromExploreSearch) {
+        navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
+      } else if (fromPerps) {
         navigateToPerpsHome();
       } else if (fromBenefit) {
         navigation.goBack();
@@ -1489,6 +1493,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         navigation.goBack();
       } else if (fromMarketInsights) {
         // MarketInsightsView is in the stack navigator so goBack() works correctly.
+        navigation.goBack();
+      } else if (fromEarnStrategySelection) {
         navigation.goBack();
       } else if (fromMoney) {
         navigation.navigate(
@@ -1511,11 +1517,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [
       navigation,
       navigateToPerpsHome,
+      fromExploreSearch,
       fromPerps,
       fromBenefit,
       fromCard,
       fromWhatsHappening,
       fromMarketInsights,
+      fromEarnStrategySelection,
       fromMoney,
     ]);
 

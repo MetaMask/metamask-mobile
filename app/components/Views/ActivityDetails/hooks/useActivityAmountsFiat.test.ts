@@ -417,7 +417,7 @@ describe('useActivityAmountsFiat', () => {
     // Gas fee: 1 USDT * conversionRate 2 * marketRate 1 -> $2
     expect(result.current.feeRows).toStrictEqual([
       {
-        label: 'Gas fee',
+        label: 'Network fee',
         value: '$2.00',
         fee: gasTokenFee,
       },

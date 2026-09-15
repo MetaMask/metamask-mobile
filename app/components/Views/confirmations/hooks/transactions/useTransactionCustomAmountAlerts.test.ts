@@ -28,18 +28,18 @@ const ALERT_MOCK = {
 function runHook({
   isInputChanged = false,
   isKeyboardVisible = false,
-  pendingTokenAmount = '0',
+  pendingFiatAmount = '0',
 }: {
   isInputChanged?: boolean;
   isKeyboardVisible?: boolean;
-  pendingTokenAmount?: string;
+  pendingFiatAmount?: string;
 } = {}) {
   return renderHookWithProvider(
     () =>
       useTransactionCustomAmountAlerts({
         isInputChanged,
         isKeyboardVisible,
-        pendingTokenAmount,
+        pendingFiatAmount,
       }),
     {
       state: merge(

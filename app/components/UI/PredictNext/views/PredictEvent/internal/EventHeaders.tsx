@@ -8,58 +8,45 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
-import type {
-  PredictEvent,
-  PredictGame,
-  PredictGameStatus,
-  PredictTeam,
-} from '../../../types';
+import { strings } from '../../../../../../../locales/i18n';
+import {
+  createGamePresentation,
+  getEventGame,
+  type GameSelection,
+  type GameStatusLine,
+} from '../../../events/game';
+import type { PredictEvent, PredictTeam } from '../../../types';
 import { PredictEventScreenTestIds } from '../PredictEventScreen.testIds';
 
-const STATUS_KEYS: Record<PredictGameStatus, string> = {
-  scheduled: 'scheduled',
-  in_progress: 'live',
-  delayed: 'delayed',
-  suspended: 'suspended',
-  postponed: 'postponed',
-  completed: 'final',
-  canceled: 'canceled',
-};
-
-const EventTitle = ({ children }: { children: string }) => (
-  <Text
-    testID={PredictEventScreenTestIds.TITLE}
-    accessibilityRole="header"
-    variant={TextVariant.HeadingLg}
+export const EventLoadingHeader = () => (
+  <Box
+    testID={PredictEventScreenTestIds.LOADING}
+    accessibilityLabel={strings('predict.event.loading_accessibility_label')}
+    twClassName="gap-3"
   >
-    {children}
-  </Text>
-);
-
-export const EventLoadingHeader = ({ title }: { title: string }) => (
-  <Box twClassName="gap-4">
-    <EventTitle>{title}</EventTitle>
-    <Box
-      testID={PredictEventScreenTestIds.LOADING}
-      accessibilityLabel="Loading event"
-      twClassName="gap-3"
-    >
-      <Box twClassName="h-24 rounded-xl bg-muted" />
-      <Box twClassName="h-4 w-2/3 rounded bg-muted" />
-    </Box>
+    <Box twClassName="h-24 rounded-xl bg-muted" />
+    <Box twClassName="h-4 w-2/3 rounded bg-muted" />
   </Box>
 );
 
 export const StandardEventHeader = ({ event }: { event: PredictEvent }) => {
   const tw = useTailwind();
   const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(event.imageUrl && !imageFailed);
+
+  if (!showImage && !event.subtitle) {
+    return (
+      <Box
+        testID={PredictEventScreenTestIds.STANDARD_HEADER}
+        twClassName="h-0"
+      />
+    );
+  }
 
   return (
     <Box testID={PredictEventScreenTestIds.STANDARD_HEADER} twClassName="gap-3">
       <Box twClassName="flex-row items-start gap-3">
-        {event.imageUrl && !imageFailed ? (
+        {showImage ? (
           <ExpoImage
             testID={PredictEventScreenTestIds.IMAGE}
             source={event.imageUrl}
@@ -70,58 +57,54 @@ export const StandardEventHeader = ({ event }: { event: PredictEvent }) => {
             accessible={false}
           />
         ) : null}
-        <Box twClassName="min-w-0 flex-1 gap-1">
-          <EventTitle>{event.title}</EventTitle>
-          {event.subtitle ? (
-            <Text
-              testID={PredictEventScreenTestIds.SUBTITLE}
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {event.subtitle}
-            </Text>
-          ) : null}
-        </Box>
+        {event.subtitle ? (
+          <Text
+            testID={PredictEventScreenTestIds.SUBTITLE}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="min-w-0 flex-1"
+          >
+            {event.subtitle}
+          </Text>
+        ) : null}
       </Box>
     </Box>
   );
 };
 
-const getTeamAbbreviation = (team: PredictTeam) =>
-  (team.abbreviation ?? team.name.slice(0, 3)).toUpperCase();
-
 const TeamLogo = ({
   team,
+  abbreviation,
   selection,
 }: {
   team: PredictTeam;
-  selection: 'away' | 'home';
+  abbreviation: string;
+  selection: GameSelection;
 }) => {
   const tw = useTailwind();
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <Box
-      twClassName="h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-muted"
-      accessible={false}
-    >
+    <Box twClassName="h-14 w-14 items-center justify-center" accessible={false}>
       {team.logoUrl && !imageFailed ? (
         <ExpoImage
           testID={PredictEventScreenTestIds.teamLogo(selection)}
           source={team.logoUrl}
           recyclingKey={team.logoUrl}
           contentFit="contain"
-          style={tw.style('h-12 w-12')}
+          style={tw.style('h-14 w-14')}
           onError={() => setImageFailed(true)}
         />
       ) : (
-        <Text
-          testID={PredictEventScreenTestIds.teamLogoFallback(selection)}
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Bold}
-        >
-          {getTeamAbbreviation(team)}
-        </Text>
+        <Box twClassName="h-14 w-14 items-center justify-center rounded-full bg-muted">
+          <Text
+            testID={PredictEventScreenTestIds.teamLogoFallback(selection)}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Bold}
+          >
+            {abbreviation}
+          </Text>
+        </Box>
       )}
     </Box>
   );
@@ -129,12 +112,14 @@ const TeamLogo = ({
 
 const GameTeam = ({
   team,
+  abbreviation,
   score,
   selection,
 }: {
   team: PredictTeam;
+  abbreviation: string;
   score?: string;
-  selection: 'away' | 'home';
+  selection: GameSelection;
 }) => (
   <Box
     testID={PredictEventScreenTestIds.team(selection)}
@@ -144,7 +129,7 @@ const GameTeam = ({
     }
     twClassName="min-w-0 flex-1 items-center gap-2"
   >
-    <TeamLogo team={team} selection={selection} />
+    <TeamLogo team={team} abbreviation={abbreviation} selection={selection} />
     {score !== undefined ? (
       <Text
         testID={PredictEventScreenTestIds.teamScore(selection)}
@@ -165,85 +150,60 @@ const GameTeam = ({
   </Box>
 );
 
-const formatStart = (startsAt: string | undefined): string | undefined => {
-  if (!startsAt) {
-    return undefined;
-  }
-
-  const date = new Date(startsAt);
-  const day = getIntlDateTimeFormatter(I18n.locale, {
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
-  const time = getIntlDateTimeFormatter(I18n.locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date);
-  return `${day} · ${time}`;
-};
-
 const GameStatus = ({
-  game,
-  startsAt,
+  line,
+  isLive,
 }: {
-  game: PredictGame;
-  startsAt?: string;
-}) => {
-  const metadata = [
-    game.status === 'scheduled' ? formatStart(startsAt) : undefined,
-    game.period,
-    game.clock,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
-  return (
-    <Box twClassName="w-24 shrink-0 items-center gap-1">
+  line: GameStatusLine;
+  isLive: boolean;
+}) => (
+  <Box twClassName="w-24 shrink-0 items-center gap-1">
+    <Text
+      testID={PredictEventScreenTestIds.GAME_STATUS}
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Bold}
+      color={isLive ? TextColor.SuccessDefault : TextColor.TextAlternative}
+      twClassName="text-center"
+    >
+      {line.label}
+    </Text>
+    {line.metadata ? (
       <Text
-        testID={PredictEventScreenTestIds.GAME_STATUS}
+        testID={PredictEventScreenTestIds.GAME_METADATA}
         variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Bold}
-        color={
-          game.status === 'in_progress'
-            ? TextColor.SuccessDefault
-            : TextColor.TextAlternative
-        }
+        color={TextColor.TextAlternative}
         twClassName="text-center"
       >
-        {strings(`predict.game_status.${STATUS_KEYS[game.status]}`)}
+        {line.metadata}
       </Text>
-      {metadata ? (
-        <Text
-          testID={PredictEventScreenTestIds.GAME_METADATA}
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {metadata}
-        </Text>
-      ) : null}
-    </Box>
-  );
-};
+    ) : null}
+  </Box>
+);
 
 export const GameEventHeader = ({ event }: { event: PredictEvent }) => {
-  const game = event.sports?.game;
+  const game = getEventGame(event);
   if (!game) {
     return null;
   }
 
+  const presentation = createGamePresentation(event, game);
+
   return (
     <Box testID={PredictEventScreenTestIds.GAME_HEADER} twClassName="gap-6">
-      <EventTitle>{event.title}</EventTitle>
       <Box twClassName="flex-row items-start gap-2">
         <GameTeam
-          team={game.awayTeam}
+          team={presentation.teams.away.team}
+          abbreviation={presentation.teams.away.abbreviation}
           score={game.score?.away}
           selection="away"
         />
-        <GameStatus game={game} startsAt={event.startsAt} />
+        <GameStatus
+          line={presentation.status.detail}
+          isLive={game.status === 'in_progress'}
+        />
         <GameTeam
-          team={game.homeTeam}
+          team={presentation.teams.home.team}
+          abbreviation={presentation.teams.home.abbreviation}
           score={game.score?.home}
           selection="home"
         />

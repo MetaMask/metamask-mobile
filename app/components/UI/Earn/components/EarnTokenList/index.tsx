@@ -5,11 +5,13 @@ import React, {
   useReducer,
   useMemo,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
@@ -327,7 +329,7 @@ const EarnTokenList = () => {
             onPress={handleRedirectToInputScreen}
             primaryText={{
               value: `${formattedApr}% APR`,
-              color: TextColor.Success,
+              color: TextColor.SuccessDefault,
             }}
             {...(!isEmptyBalance(item) && {
               secondaryText: {

@@ -37,7 +37,6 @@ import {
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
 import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
-import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
 
 const showPendingToast = ({
   showToast,
@@ -149,9 +148,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
-  const isTransactionsRedesignEnabled = useSelector(
-    selectIsTransactionsRedesignEnabled,
-  );
   const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
   const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const handleTransactionStatusChanged = useCallback(
@@ -209,7 +205,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               navigateToTransactionDetails(navigation, {
                 transactionId,
                 initialTypeFilter: ActivityTypeFilter.Predictions,
-                isTransactionsRedesignEnabled,
                 ...(depositMeta?.chainId
                   ? { chainId: toEvmCaipChainId(depositMeta.chainId) }
                   : {}),
@@ -456,7 +451,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       bottomSheetEnabled,
       claim,
       deposit,
-      isTransactionsRedesignEnabled,
       navigation,
       normalizedSelectedAddress,
       queryClient,

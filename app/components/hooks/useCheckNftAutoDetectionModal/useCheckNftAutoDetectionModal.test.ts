@@ -47,7 +47,7 @@ describe('useCheckNftAutoDetectionModal', () => {
           return false;
       }
     });
-    (isMainNet as jest.Mock).mockReturnValue(true);
+    (isMainNet as unknown as jest.Mock).mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -66,7 +66,7 @@ describe('useCheckNftAutoDetectionModal', () => {
   });
 
   it('should not navigate or dispatch action when conditions are not met', () => {
-    (isMainNet as jest.Mock).mockReturnValue(false);
+    (isMainNet as unknown as jest.Mock).mockReturnValue(false);
 
     renderHook(() => useCheckNftAutoDetectionModal());
 

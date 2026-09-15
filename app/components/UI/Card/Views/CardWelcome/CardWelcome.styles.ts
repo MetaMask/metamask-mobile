@@ -3,7 +3,7 @@ import { Platform, StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 import { Theme } from '@metamask/design-tokens';
 
-export const GRADIENT_COLORS = ['#1D002E', '#3D065F'];
+export const GRADIENT_COLORS = ['#1D002E', '#360853'];
 
 // Platform-specific base dimensions
 const BASE_WIDTH = 375;
@@ -77,6 +77,9 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       paddingHorizontal: scaleHorizontal(16),
       paddingVertical: scaleVertical(16),
       zIndex: 2,
+    },
+    hiddenText: {
+      opacity: 0,
     },
     title: {
       fontFamily: 'MMPoly-Regular',

@@ -1,14 +1,14 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { sleep, type EncapsulatedElementType } from '../../framework';
+import { sleep, type AppiumElement } from '../../framework';
 
 class AddChainModal {
-  get confirmButton(): EncapsulatedElementType {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID('approve-network-approve-button');
   }
 
-  getText(value: string): EncapsulatedElementType {
+  getText(value: string): Promise<AppiumElement> {
     return Matchers.getElementByNativeXPath(
       `//android.widget.TextView[@text="${value}"]`,
     );

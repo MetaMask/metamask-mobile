@@ -1,11 +1,11 @@
 import React from 'react';
-import { withMessenger } from './route-messenger-helpers';
+import { withRouteMessenger } from './route-messenger-helpers';
 
-describe('withMessenger', () => {
+describe('withRouteMessenger', () => {
   const FooComponent = () => <div>Foo</div>;
 
   it('returns a Route component with the expected shape', () => {
-    const Route = withMessenger(FooComponent, {
+    const Route = withRouteMessenger(FooComponent, {
       capabilities: {
         actions: ['SnapController:installSnaps'],
         events: ['SnapController:snapInstalled'],
@@ -38,7 +38,7 @@ describe('withMessenger', () => {
         }}
       />,
     ).toMatchInlineSnapshot(`
-      <RouteWithMessengerElement
+      <RouteMessengerProviderWrapper
         navigation={
           {
             "addListener": [MockFunction],

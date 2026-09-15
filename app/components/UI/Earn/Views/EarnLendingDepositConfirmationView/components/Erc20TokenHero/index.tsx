@@ -3,22 +3,24 @@ import { TokenI } from '../../../../../Tokens/types';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './Erc20TokenHero.styles';
 import { View } from 'react-native';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../../component-library/components/Badges/Badge';
 import NetworkAssetLogo from '../../../../../NetworkAssetLogo';
-import { AvatarTokenSize } from '@metamask/design-system-react-native';
+import {
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import AssetLogo from '../../../../../Assets/components/AssetLogo/AssetLogo';
 import { renderFromTokenMinimalUnit } from '../../../../../../../util/number';
-import Text, {
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import useFiatFormatter from '../../../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import BigNumber from 'bignumber.js';
+
+const NATIVE_TOKEN_BADGE_CLASSNAME = 'h-3 w-3 rounded-[3px] bg-default';
+
+const ERC20_TOKEN_BADGE_CLASSNAME = 'h-6 w-6 rounded-md bg-default';
 
 const TokenAvatar = ({ token }: { token: TokenI }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -47,12 +49,16 @@ const NetworkAndTokenImage = ({ token }: { token: TokenI }) => {
   return (
     <View style={styles.networkAndTokenContainer}>
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          <BadgeNetwork
+            twClassName={
+              token.isNative
+                ? NATIVE_TOKEN_BADGE_CLASSNAME
+                : ERC20_TOKEN_BADGE_CLASSNAME
+            }
             // @ts-expect-error The utils/network file is still JS and this function expects a networkType that should be optional
-            imageSource={getNetworkImageSource({ chainId: token?.chainId })}
+            src={getNetworkImageSource({ chainId: token?.chainId })}
           />
         }
       >
@@ -85,12 +91,12 @@ const Erc20TokenHero = ({
     <View style={styles.container}>
       <NetworkAndTokenImage token={token} />
       <View style={styles.assetAmountContainer}>
-        <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
+        <Text style={styles.assetAmountText} variant={TextVariant.HeadingLg}>
           {displayTokenAmount} {token.symbol}
         </Text>
         <Text
           style={styles.assetFiatConversionText}
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
         >
           {fiatFormatter(new BigNumber(fiatValue))}
         </Text>

@@ -29,6 +29,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   perpsTradingCampaignLeaderboard: {},
   perpsTradingCampaignLeaderboardPositions: {},
   perpsTradingCampaignVolume: {},
+  perpsTradingCampaignPrizePool: {},
   predictThePitchLeaderboard: {},
   predictThePitchLeaderboardPositions: {},
   predictThePitchPositions: {},
@@ -37,7 +38,6 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   moneyAccountSweepstakesPrizePool: {},
   moneyAccountSweepstakesDrawProof: {},
   clientVersionRequirements: null,
-  firstPredictOnUs: null,
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });

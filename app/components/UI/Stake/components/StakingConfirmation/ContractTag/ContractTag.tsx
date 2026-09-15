@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react';
-import { ImageSourcePropType } from 'react-native';
-import TagBase, {
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  Tag,
   TagSeverity,
-  TagShape,
-} from '../../../../../../component-library/base-components/TagBase';
-import Text from '../../../../../../component-library/components/Texts/Text';
+  Text,
+} from '@metamask/design-system-react-native';
 import { ContractTagProps } from './ContractTag.types';
-import Avatar, {
-  AvatarVariant,
-  AvatarSize,
-  AvatarAccountType,
-} from '../../../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
+import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import imageIcons from '../../../../../../images/image-icons';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../../../Earn/utils/tempLending';
 
@@ -31,29 +31,33 @@ const ContractTag = ({
   );
 
   return (
-    <TagBase
+    <Tag
+      twClassName="rounded-full px-2 py-0.5 bg-alternative"
       startAccessory={
         aaveAddresses.has(contractAddress.toLowerCase()) ? (
-          <Avatar
-            variant={AvatarVariant.Network}
-            size={AvatarSize.Xs}
+          <AvatarNetwork
+            twClassName="rounded bg-default"
+            size={AvatarNetworkSize.Xs}
             name={contractName}
-            imageSource={imageIcons.AAVE as ImageSourcePropType}
+            src={
+              imageIcons.AAVE as React.ComponentProps<
+                typeof AvatarNetwork
+              >['src']
+            }
           />
         ) : (
-          <Avatar
-            variant={AvatarVariant.Account}
-            size={AvatarSize.Xs}
-            accountAddress={contractAddress}
-            type={avatarAccountType}
+          <AvatarAccount
+            twClassName="rounded bg-default"
+            size={AvatarAccountSize.Xs}
+            address={contractAddress}
+            variant={getAvatarAccountVariant(avatarAccountType)}
           />
         )
       }
-      shape={TagShape.Pill}
       severity={TagSeverity.Neutral}
     >
       <Text>{contractName}</Text>
-    </TagBase>
+    </Tag>
   );
 };
 

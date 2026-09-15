@@ -16,12 +16,8 @@ import {
 } from '../constants/moneyActivityFilters';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { areAddressesEqual } from '../../../../util/address';
-import { decodeTransferData } from '../../../../util/transactions';
+import { decodeErc20Transfer } from '../../../../util/transactions/erc20-transfer';
 import { isMusdOnMoneyAccountChain } from '../../Earn/constants/musd';
-import {
-  ERC20_TRANSFER_CALLDATA_LENGTH,
-  ERC20_TRANSFER_FROM_CALLDATA_LENGTH,
-} from '../constants/activityStyles';
 import { getMoneyActivityStatus } from '../utils/classifyMoneyActivity';
 import { isPerpsPredictMoneyActivity } from '../utils/moneyTransactionGuards';
 
@@ -54,36 +50,10 @@ function isMoneyAccountTxVisible(tx: TransactionMeta): boolean {
 /**
  * Extracts the call's recipient from ERC-20 `transfer`/`transferFrom` calldata.
  * For both types, `txParams.to` is the token contract, not the recipient — the
- * recipient must be decoded from the calldata. Returns `undefined` if the
- * calldata is missing or truncated; `decodeTransferData` does not throw on
- * short input, so length must be checked.
+ * recipient must be decoded from the calldata.
  */
 function getErc20TransferRecipient(tx: TransactionMeta): string | undefined {
-  const data = tx.txParams?.data;
-  if (!data) return undefined;
-  try {
-    if (
-      tx.type === TransactionType.tokenMethodTransfer &&
-      data.length >= ERC20_TRANSFER_CALLDATA_LENGTH
-    ) {
-      const [recipient] = decodeTransferData('transfer', data) as string[];
-      return recipient;
-    }
-    if (
-      tx.type === TransactionType.tokenMethodTransferFrom &&
-      data.length >= ERC20_TRANSFER_FROM_CALLDATA_LENGTH
-    ) {
-      // transferFrom(address from, address to, uint256 amount) → recipient at [1].
-      const [, recipient] = decodeTransferData(
-        'transferFrom',
-        data,
-      ) as string[];
-      return recipient;
-    }
-    return undefined;
-  } catch {
-    return undefined;
-  }
+  return decodeErc20Transfer(tx.txParams?.data, tx.type)?.recipient;
 }
 
 export interface UseMoneyAccountTransactionsResult {

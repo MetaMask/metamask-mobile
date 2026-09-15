@@ -8,12 +8,15 @@ import {
 } from '@react-navigation/native';
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsMode,
+} from '../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import type { PerpsStackParamList } from '../types/navigation';
 
 /**
- * Default market a user lands on when switching to Pro mode (TAT-3551, AC #4).
+ * Default market a user lands on when switching to Pro mode.
  */
 export const PERPS_DEFAULT_PRO_MARKET_SYMBOL = 'BTC';
 
@@ -24,9 +27,28 @@ export const PERPS_DEFAULT_PRO_MARKET_SYMBOL = 'BTC';
  * the remaining fields from the live markets stream, so a symbol-only payload
  * is sufficient to open `MARKET_DETAILS`.
  */
-export const buildDefaultProMarket = (): PerpsMarketData =>
+export const resolveTradableLastViewedMarketSymbol = (
+  lastViewed: string,
+  tradableSymbols?: ReadonlySet<string> | readonly string[],
+): string => {
+  const symbol =
+    typeof lastViewed === 'string' && lastViewed.length > 0
+      ? lastViewed
+      : PERPS_DEFAULT_PRO_MARKET_SYMBOL;
+  if (!tradableSymbols) {
+    return symbol;
+  }
+  const tradableSet =
+    tradableSymbols instanceof Set ? tradableSymbols : new Set(tradableSymbols);
+  return tradableSet.has(symbol) ? symbol : PERPS_DEFAULT_PRO_MARKET_SYMBOL;
+};
+
+export const buildDefaultProMarket = (
+  symbol: string = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  tradableSymbols?: ReadonlySet<string> | readonly string[],
+): PerpsMarketData =>
   ({
-    symbol: PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+    symbol: resolveTradableLastViewedMarketSymbol(symbol, tradableSymbols),
   }) as unknown as PerpsMarketData;
 
 /**
@@ -65,19 +87,27 @@ export interface PerpsHomeNavigationTarget {
  * has not re-rendered yet.
  *
  * While Pro mode is active, `PerpsHomeView` must never be shown (TAT-3612):
- * every entry point instead lands on the default Pro market, so the user
- * only ever moves between a market page and the market list. Centralizing
- * this here keeps every entry point (Trade sheet, Wallet actions, Homepage
- * grid/pill, deeplinks, etc.) consistent.
+ * every entry point instead lands on the last viewed market (falling back
+ * to BTC), so the user only ever moves between a market page and the market
+ * list. Centralizing this here keeps every entry point (Trade sheet, Wallet
+ * actions, Homepage grid/pill, deeplinks, etc.) consistent.
+ *
+ * `extraParams.market` still wins when a caller already knows the destination
+ * (deeplinks with `symbol=`, Lite↔Pro from an open market screen).
  */
 export const resolvePerpsHomeNavigationTarget = (
   isProModeActive: boolean,
   extraParams: Record<string, unknown> = {},
+  lastViewedMarketSymbol: string = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  tradableSymbols?: ReadonlySet<string> | readonly string[],
 ): PerpsHomeNavigationTarget => {
   if (isProModeActive) {
     return {
       screen: Routes.PERPS.MARKET_DETAILS,
-      params: { market: buildDefaultProMarket(), ...extraParams },
+      params: {
+        market: buildDefaultProMarket(lastViewedMarketSymbol, tradableSymbols),
+        ...extraParams,
+      },
     };
   }
 
@@ -96,7 +126,11 @@ export const getPerpsHomeNavigationTarget = (
   state: RootState,
   extraParams: Record<string, unknown> = {},
 ): PerpsHomeNavigationTarget =>
-  resolvePerpsHomeNavigationTarget(isPerpsProModeActive(state), extraParams);
+  resolvePerpsHomeNavigationTarget(
+    isPerpsProModeActive(state),
+    extraParams,
+    selectPerpsLastViewedMarketSymbol(state),
+  );
 
 /**
  * React hook returning a function that resolves the "go to Perps home"
@@ -106,11 +140,18 @@ export const useGetPerpsHomeNavigationTarget = (): ((
   extraParams?: Record<string, unknown>,
 ) => PerpsHomeNavigationTarget) => {
   const isProModeActive = useIsPerpsProModeActive();
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
 
   return useCallback(
     (extraParams?: Record<string, unknown>) =>
-      resolvePerpsHomeNavigationTarget(isProModeActive, extraParams),
-    [isProModeActive],
+      resolvePerpsHomeNavigationTarget(
+        isProModeActive,
+        extraParams,
+        typeof lastViewedMarketSymbol === 'string'
+          ? lastViewedMarketSymbol
+          : PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+      ),
+    [isProModeActive, lastViewedMarketSymbol],
   );
 };
 
@@ -125,11 +166,18 @@ export const useGetPerpsHomeNavigationTarget = (): ((
  * in `usePerpsNavigationHandlers.ts`, or `app/components/UI/Rewards/utils.ts`).
  * Centralized here so every "go to Perps home" call site shares one
  * reviewed assertion instead of repeating it.
+ *
+ * Pass `pop: true` when the destination is already below the caller in the
+ * Perps stack: React Navigation pushes a duplicate entry otherwise.
  */
 export const toPerpsNavigatorScreenParams = (
   target: PerpsHomeNavigationTarget,
+  options: { pop?: boolean } = {},
 ): NavigatorScreenParams<PerpsStackParamList> =>
-  target as unknown as NavigatorScreenParams<PerpsStackParamList>;
+  ({
+    ...target,
+    ...options,
+  }) as unknown as NavigatorScreenParams<PerpsStackParamList>;
 
 /**
  * Navigates directly (not nested under `Routes.PERPS.ROOT`) to a resolved
@@ -156,7 +204,7 @@ export const navigateToPerpsHomeTarget = (
  * Switching to Pro from a market screen swaps the rendered layout in place —
  * `PerpsMarketDetailsRouter` keeps the same route — so a Perps Home entry the
  * user came through stays in history and the back button would reveal the Lite
- * hub while Pro is active (TAT-3612). Screens that switch mode by navigating
+ * hub while Pro is active. Screens that switch mode by navigating
  * (Perps Home itself, the Trade sheet) already avoid seeding Home instead.
  */
 export const dropPerpsHomeFromStackHistory = (navigation: {
@@ -237,7 +285,12 @@ export const useNavigateToPerpsHome = (): ((
 
       navigate(
         Routes.PERPS.ROOT,
-        toPerpsNavigatorScreenParams(getTarget(extraParams)),
+        // When the target is already below the caller (e.g. the deposit
+        // confirmation stacked over it), pop back to it: without `pop` React
+        // Navigation pushes a duplicate and leaves that confirmation
+        // underneath, so Back returns to it. When the target is not in the
+        // stack at all, `pop` finds nothing and the push happens as before.
+        toPerpsNavigatorScreenParams(getTarget(extraParams), { pop: true }),
       );
     },
     [navigation, getTarget],

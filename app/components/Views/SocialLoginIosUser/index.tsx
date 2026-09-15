@@ -31,6 +31,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { getSocialAccountType } from '../../../constants/onboarding';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 interface SocialLoginIosUserProps {
@@ -58,6 +59,14 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       ? OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_NEW_USER
       : OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
     destinationReady: true,
+  });
+
+  useScreenPerformance({
+    screenId: isUserTypeNew
+      ? OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_NEW_USER
+      : OnboardingScreenIds.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
+    contentReady: true,
+    isEmpty: false,
   });
 
   const hasTrackedView = useRef(false);

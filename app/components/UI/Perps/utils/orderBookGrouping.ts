@@ -2,6 +2,7 @@ import {
   type OrderBookData,
   type OrderBookLevel,
 } from '@metamask/perps-controller';
+import { BigNumber } from 'bignumber.js';
 import {
   type FiatRangeConfig,
   formatPerpsFiat,
@@ -478,6 +479,49 @@ export function formatOrderBookPrice(
     stripTrailingZeros: false,
   });
   return `${formatted}${format.suffix}`;
+}
+
+/**
+ * The numeric value a ladder row stands for, at the precision that row is
+ * rendered with.
+ *
+ * Tapping a row prefills the order form, and the price it fills has to be the
+ * one the user read. `formatOrderBookPrice` rounds every level to the shared
+ * format, so a level carrying more precision than the ladder shows — a BTC row
+ * displaying "$64,123" that sits on a raw `64123.4` — otherwise fills a decimal
+ * that neither the row nor the market price ever displayed.
+ *
+ * Rounding here only ever drops digits, so the result keeps no more decimals
+ * and no more significant figures than the venue's own price and stays on a
+ * valid tick. Abbreviated formats round the scaled mantissa, since that is the
+ * figure on screen ("$64.12K" means `64120`, not `64123.4`).
+ *
+ * @param price - Raw level price from the venue.
+ * @param format - The ladder's shared price format, or null when unknown.
+ * @returns The row's price as a plain decimal string.
+ */
+export function getOrderBookPriceValue(
+  price: string,
+  format: OrderBookPriceFormat | null,
+): string {
+  if (format === null) {
+    return price;
+  }
+
+  const value = new BigNumber(price);
+  if (!value.isFinite()) {
+    return price;
+  }
+
+  const rounded = value
+    .dividedBy(format.divisor)
+    .decimalPlaces(format.decimals, BigNumber.ROUND_HALF_UP)
+    .multipliedBy(format.divisor);
+
+  // A format coarser than the level itself rounds it away entirely (a stale mid
+  // sets the grouping while a fresh ladder arrives for a far cheaper asset).
+  // Committing that zero would be worse than committing extra precision.
+  return rounded.isGreaterThan(0) ? rounded.toFixed() : price;
 }
 
 /**

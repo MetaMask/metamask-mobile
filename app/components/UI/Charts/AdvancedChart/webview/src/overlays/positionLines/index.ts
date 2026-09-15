@@ -92,6 +92,8 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
   const takeProfitColor = colors.takeProfit || theme.successColor;
   const stopLossColor = colors.stopLoss || theme.borderColor;
   const liquidationColor = colors.liquidation || theme.errorColor;
+  const limitBuyColor = colors.limitBuy || theme.successColor;
+  const limitSellColor = colors.limitSell || theme.errorColor;
 
   const lines: PositionLineConfig[] = [];
 
@@ -153,6 +155,24 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
       showPrice: true,
       horzLabelsAlign: 'left',
     });
+  }
+  if (position.limitOrders) {
+    for (const order of position.limitOrders) {
+      if (!Number.isFinite(order.price)) {
+        continue;
+      }
+      const isSell = order.side === 'short';
+      lines.push({
+        price: order.price,
+        text: 'Limit',
+        color: isSell ? limitSellColor : limitBuyColor,
+        lineStyle: 2,
+        lineWidth: 1,
+        showLabel: true,
+        showPrice: true,
+        horzLabelsAlign: 'left',
+      });
+    }
   }
 
   try {
