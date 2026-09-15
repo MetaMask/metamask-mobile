@@ -24481,25 +24481,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"appium-adb@npm:^14.0.0":
-  version: 14.0.1
-  resolution: "appium-adb@npm:14.0.1"
-  dependencies:
-    "@appium/support": "npm:^7.0.0-rc.1"
-    async-lock: "npm:^1.0.0"
-    asyncbox: "npm:^3.0.0"
-    bluebird: "npm:^3.4.7"
-    ini: "npm:^6.0.0"
-    lodash: "npm:^4.0.0"
-    lru-cache: "npm:^11.1.0"
-    semver: "npm:^7.0.0"
-    source-map-support: "npm:^0.x"
-    teen_process: "npm:^3.0.0"
-  checksum: 10/098960411057d81a4f0bbb82eef89ee6a8e4da32cc28f9c51f0b23e57c87515ca09de7a7bc0d7fc0c88dbdf5c89788c9b9c7917e429c09d5a8bfb1ad3e05290a
-  languageName: node
-  linkType: hard
-
-"appium-adb@npm:^14.5.0":
+"appium-adb@npm:^14.0.0, appium-adb@npm:^14.5.0":
   version: 14.6.1
   resolution: "appium-adb@npm:14.6.1"
   dependencies:
@@ -26148,7 +26130,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bluebird@npm:3.7.2, bluebird@npm:^3.4.7, bluebird@npm:^3.5.1, bluebird@npm:^3.7.2, bluebird@npm:~3.7.2":
+"bluebird@npm:3.7.2, bluebird@npm:^3.5.1, bluebird@npm:^3.7.2, bluebird@npm:~3.7.2":
   version: 3.7.2
   resolution: "bluebird@npm:3.7.2"
   checksum: 10/007c7bad22c5d799c8dd49c85b47d012a1fe3045be57447721e6afbd1d5be43237af1db62e26cb9b0d9ba812d2e4ca3bac82f6d7e016b6b88de06ee25ceb96e7
