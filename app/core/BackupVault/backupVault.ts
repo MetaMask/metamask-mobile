@@ -19,16 +19,13 @@ const options: SetOptions = {
   accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 };
 
-// Vault encryption is only re-run by KeyringController when its content
-// actually changes (new password, new account, etc.); a plain unlock does
-// not re-encrypt. So an exact string match against the last known-good
-// vault reliably means "nothing to back up" — no hashing or diffing needed.
-
-/** Vault string already backed up, or confirmed identical to keychain. */
-let lastConfirmedVault: string | undefined;
 /** Vault string currently claimed by an in-flight/queued backup attempt. */
 let pendingVault: string | undefined;
-/** Serializes attempts so overlapping stateChanges can't race on keychain I/O. */
+/**
+ * Serializes all keychain access for this module (backups and resets) so
+ * overlapping calls can't race on keychain I/O, and so a reset always runs
+ * after any backup that was already queued ahead of it.
+ */
 let backupQueue: Promise<void> = Promise.resolve();
 
 interface KeyringBackupResponse {
@@ -36,7 +33,7 @@ interface KeyringBackupResponse {
   vault?: string;
   error?: string;
   skipped?: boolean;
-  skipReason?: 'identical_keychain' | 'unchanged_since_last_confirm';
+  skipReason?: 'identical_keychain';
 }
 
 /**
@@ -44,7 +41,6 @@ interface KeyringBackupResponse {
  * Called from {@link clearAllVaultBackups}.
  */
 export function resetVaultBackupDedupState(): void {
-  lastConfirmedVault = undefined;
   pendingVault = undefined;
 }
 
@@ -65,12 +61,24 @@ const _resetTemporaryVaultBackup = async (): Promise<void> => {
 };
 
 /**
- * Clears all vault backups from react-native-keychain
+ * Clears all vault backups from react-native-keychain.
+ *
+ * Runs through the same {@link backupQueue} as {@link scheduleVaultBackup} so
+ * it always executes after any backup already queued ahead of it — otherwise
+ * a stale queued write could land after the reset and resurrect a vault this
+ * call was meant to erase.
  */
 export async function clearAllVaultBackups() {
   resetVaultBackupDedupState();
-  await _resetVaultBackup();
-  await _resetTemporaryVaultBackup();
+  const reset = backupQueue.then(async () => {
+    await _resetVaultBackup();
+    await _resetTemporaryVaultBackup();
+  });
+  // Keep the queue alive for future backups even if this reset throws.
+  backupQueue = reset.catch((error) => {
+    Logger.error(error as Error, 'clearAllVaultBackups failed');
+  });
+  await reset;
 }
 
 /**
@@ -88,16 +96,6 @@ export async function backupVault(
   const keyringVault = keyringState.vault as string;
 
   try {
-    // Fast path: we already confirmed this exact vault blob in-process.
-    if (keyringVault && lastConfirmedVault === keyringVault) {
-      return {
-        success: true,
-        vault: keyringVault,
-        skipped: true,
-        skipReason: 'unchanged_since_last_confirm',
-      };
-    }
-
     // Does a primary backup exist?
     // Wrapped in its own try/catch because Android Keystore key invalidation
     // (e.g. biometric enrollment change, Android 16 behavioural change) causes
@@ -120,7 +118,6 @@ export async function backupVault(
       existingBackup &&
       existingBackup.password === keyringVault
     ) {
-      lastConfirmedVault = keyringVault;
       return {
         success: true,
         vault: keyringVault,
@@ -169,10 +166,6 @@ export async function backupVault(
     // Clear the temporary backup
     await _resetTemporaryVaultBackup();
 
-    if (keyringVault) {
-      lastConfirmedVault = keyringVault;
-    }
-
     return {
       success: true,
       vault: keyringState.vault,
@@ -194,7 +187,7 @@ export async function backupVault(
  */
 export function scheduleVaultBackup(state: KeyringControllerState): void {
   const vault = state.vault;
-  if (!vault || vault === lastConfirmedVault || vault === pendingVault) {
+  if (!vault || vault === pendingVault) {
     return;
   }
 
