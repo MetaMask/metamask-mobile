@@ -44,7 +44,22 @@ After the write-up, send the Slack summary to channel `DEZ9UAP8T` using
 
 ## Steps
 
-1. From the repo root, run (latest scheduled successful run on main):
+1. Sync and load the canonical MetaMask profiling skill:
+
+   ```bash
+   yarn skills
+   ```
+
+   Read:
+   - `.agents/skills/mms-swaps-cpu-profile-audit/SKILL.md`
+   - `.agents/skills/mms-performance/SKILL.md`
+
+   Follow `mms-swaps-cpu-profile-audit` fully for swaps/bridge scenarios.
+   For non-swaps scenarios, reuse its parsing/timing protocol and the general
+   `mms-performance` reasoning guardrails, but do not make swaps ownership or
+   relation claims.
+
+2. From the repo root, run (latest scheduled successful run on main):
 
    ```bash
    node tests/scripts/analyze-app-profiling.mjs --skip-ai --out-dir /tmp/analyze-app-profiling
@@ -59,22 +74,22 @@ After the write-up, send the Slack summary to channel `DEZ9UAP8T` using
    `--skip-ai` is required here: you are the agent pass. The GitHub workflow
    can call Claude itself when `E2E_CLAUDE_API_KEY` is present.
 
-2. Read:
+3. Read:
    - `/tmp/analyze-app-profiling/report.json`
    - `/tmp/analyze-app-profiling/ai-briefing.md`
    - `/tmp/analyze-app-profiling/scenarios/*.json`
 
-3. Write findings **per scenario**:
+4. Write findings **per scenario**:
    - Status: issue | watch | healthy
    - Sample counts and hottest self/inclusive JavaScript frames
    - One recommended next step
    - Append a BrowserStack recording link when `videoURL` is present
 
-4. Then write:
+5. Then write:
    - at most 5 executive-summary bullets
    - at most 5 priority actions
 
-5. Send the final summary to Slack channel `DEZ9UAP8T` with `slack_send_message`.
+6. Send the final summary to Slack channel `DEZ9UAP8T` with `slack_send_message`.
    Keep it short (executive summary + high-severity findings + actions).
    Start from `/tmp/analyze-app-profiling/slack.md` and replace the agent
    section with your findings. Do not wrap the message in a code fence.

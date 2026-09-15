@@ -40,6 +40,11 @@ const KNOWN_PROJECTS = [
   'browserstack-android',
   'android-onboarding',
 ];
+const SKILL_ANALYZER_CANDIDATES = [
+  '.claude/skills/mms-swaps-cpu-profile-audit/scripts/analyze-cpuprofile.cjs',
+  '.cursor/rules/mms-swaps-cpu-profile-audit/scripts/analyze-cpuprofile.cjs',
+  '.agents/skills/mms-swaps-cpu-profile-audit/scripts/analyze-cpuprofile.cjs',
+];
 
 function fail(message) {
   console.error(`❌ ${message}`);
@@ -206,6 +211,101 @@ function downloadArtifactPattern(runId, pattern, destination, repo) {
   }
 }
 
+function findSkillAnalyzer(repoRoot = process.cwd()) {
+  for (const candidate of SKILL_ANALYZER_CANDIDATES) {
+    const fullPath = path.join(repoRoot, candidate);
+    if (fs.existsSync(fullPath)) {
+      return fullPath;
+    }
+  }
+  throw new Error(
+    'mms-swaps-cpu-profile-audit analyzer not found; run `yarn skills` first',
+  );
+}
+
+function microsToMs(value) {
+  return Number(((value || 0) / 1000).toFixed(2));
+}
+
+function compactSkillFrame(frame) {
+  return {
+    name: frame.name,
+    url: frame.url || null,
+    line: frame.line ?? null,
+    category: frame.category || null,
+    selfMs: microsToMs(frame.selfMicros),
+    inclusiveMs: microsToMs(frame.totalMicros),
+    calls: frame.calls || 0,
+    relation: frame.relation,
+    area: frame.area,
+    ownedBySwaps: Boolean(frame.ownedBySwaps),
+  };
+}
+
+/**
+ * Runs the parser bundled by the installed mms-swaps-cpu-profile-audit skill.
+ * Its timing model (sample deltas, runtime/idle exclusion, self vs inclusive)
+ * is the canonical evidence used by the AI reasoning pass.
+ */
+function runSkillAnalyzer(profilePath, analyzerPath) {
+  const result = spawnSync(
+    process.execPath,
+    [analyzerPath, '--profile', profilePath, '--json', '--top', '20'],
+    {
+      encoding: 'utf8',
+      maxBuffer: 32 * 1024 * 1024,
+    },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      (result.stderr ||
+        result.stdout ||
+        `skill analyzer failed for ${profilePath}`).trim(),
+    );
+  }
+  const audit = JSON.parse(result.stdout);
+  return {
+    analyzer: 'mms-swaps-cpu-profile-audit',
+    format: audit.format,
+    captureLengthMs: Number((audit.durationMs || 0).toFixed(2)),
+    distinctFrames: audit.totalFrames || 0,
+    jsWorkMs: microsToMs(audit.attributableSelfMicros),
+    runtimeAndIdleMs: microsToMs(audit.runtimeSelfMicros),
+    swapsOwnedSelfMs: microsToMs(audit.swapsSelfMicros),
+    swapsWidestInclusiveMs: microsToMs(audit.swapsInclusiveMicros),
+    swapsOwnedAreas: (audit.areas || []).map((area) => ({
+      area: area.area,
+      selfMs: microsToMs(area.selfMicros),
+      inclusiveMs: microsToMs(area.totalMicros),
+    })),
+    nonSwapsOnPathAreas: (audit.contextPathAreas || []).map((area) => ({
+      area: area.area,
+      relation: area.relation,
+      selfMs: microsToMs(area.selfMicros),
+    })),
+    nonSwapsConcurrentAreas: (audit.contextConcurrentAreas || [])
+      .slice(0, 8)
+      .map((area) => ({
+        area: area.area,
+        selfMs: microsToMs(area.selfMicros),
+      })),
+    runtimeAreas: (audit.runtimeAreas || []).map((area) => ({
+      area: area.area,
+      selfMs: microsToMs(area.selfMicros),
+    })),
+    topSwapsFrames: (audit.topInScope || [])
+      .slice(0, 10)
+      .map(compactSkillFrame),
+    topNonSwapsFrames: (audit.topContext || [])
+      .slice(0, 15)
+      .map(compactSkillFrame),
+    caveat:
+      (audit.topInScope || []).length === 0
+        ? 'No matching source map was available; ownership and file/line attribution are unreliable.'
+        : null,
+  };
+}
+
 function findHermesProfiles(directory, output = []) {
   if (!directory || !fs.existsSync(directory)) {
     return output;
@@ -366,7 +466,7 @@ function summarizeHermesProfile(profile) {
   };
 }
 
-function loadProfile(filePath) {
+function loadProfile(filePath, skillAnalyzerPath) {
   const stat = fs.statSync(filePath);
   const metadata = parseProfileFileName(filePath);
   if (stat.size > MAX_PROFILE_BYTES) {
@@ -380,6 +480,7 @@ function loadProfile(filePath) {
     return {
       ...metadata,
       skipped: false,
+      skillAudit: runSkillAnalyzer(filePath, skillAnalyzerPath),
       ...summarizeHermesProfile(JSON.parse(fs.readFileSync(filePath, 'utf8'))),
     };
   } catch (error) {
@@ -505,33 +606,55 @@ function displayName(scenario) {
 }
 
 function buildAiBriefing(report) {
+  const skillEvidence = report.scenarios.map((scenario) => ({
+    scenario: scenario.scenario,
+    projectName: scenario.projectName,
+    profileCount: scenario.profileCount,
+    attempts: scenario.attempts,
+    profiles: scenario.profiles.map((profile) => ({
+      retry: profile.retry,
+      segment: profile.segment,
+      skillAudit: profile.skillAudit,
+    })),
+  }));
   return `# Hermes CPU-profile analysis
 
-Analyze the sampled Hermes JavaScript stacks below **per scenario**.
+Follow the installed \`mms-swaps-cpu-profile-audit\` skill's reasoning and
+reporting standard. The JSON below was produced by that skill's bundled
+\`analyze-cpuprofile.cjs\` parser. Analyze it **per scenario**.
 
 Rules:
-- Use only this Hermes CPU-profile data. Do not discuss BrowserStack CPU,
-  memory, slow frames, app profiling, network calls, or quality gates.
+- Use the skill-generated timing evidence only. Do not discuss BrowserStack
+  CPU, memory, slow frames, app profiling, network calls, or quality gates.
 - Logical segment 1 is the plain \`.cpuprofile\`; \`.segment-2\`,
   \`.segment-3\`, etc. continue the same scenario.
 - Retries are additional attempts of the same scenario. Separate retry-specific
   observations from patterns that repeat across attempts.
-- \`topSelfFrames\` identifies leaf frames where samples landed.
-- \`topInclusiveFrames\` identifies stacks containing a frame.
-- Cite sample percentages and the retry/segment locations.
-- Runtime names may be unsymbolicated. Do not invent source files.
+- Exclude Runtime / idle and GC from JS-work percentages and never make either
+  a probable-cause/fix row.
+- Read self and inclusive time separately. Cite milliseconds, calls, retry,
+  and segment.
+- Apply swaps ownership/relation conclusions only to swaps/bridge scenarios.
+  For every other scenario, reuse the skill's timing protocol but do not call
+  it swaps-owned, called by swaps, or hosted by swaps.
+- The profiles are unsymbolicated unless \`topSwapsFrames\` has resolved paths.
+  Do not invent source files or detailed fixes without file/line evidence.
 - Mark causal interpretations as UNVALIDATED.
-- If no suspicious concentration exists, say the scenario looks healthy.
+- Only add a probable-cause/fix row for meaningful work (roughly >=5% of
+  attributable JS work) that can be explained in plain language.
+- Lead each scenario with a compact Metric | Value table, then one factual
+  outcome line. Keep prose minimal, as required by the skill.
 
 Output:
 1. Executive summary (maximum 5 bullets)
-2. One subsection per scenario: status, evidence, hottest frames, next step
-3. Priority actions (maximum 5)
+2. One subsection per scenario with timing table and outcome
+3. Probable-cause/fix table only when the evidence supports one
+4. One caveat line when source maps are missing
 
 Run: ${report.meta.runId || 'local'}
 
 \`\`\`json
-${JSON.stringify(report.scenarios, null, 2)}
+${JSON.stringify(skillEvidence, null, 2)}
 \`\`\`
 `;
 }
@@ -724,7 +847,13 @@ async function main() {
   }
   console.log(`🧠 Hermes CPU profiles: ${files.length}`);
 
-  const profiles = files.map(loadProfile);
+  const skillAnalyzerPath = findSkillAnalyzer();
+  console.log(
+    `🧭 Reasoning parser: ${path.relative(process.cwd(), skillAnalyzerPath)}`,
+  );
+  const profiles = files.map((filePath) =>
+    loadProfile(filePath, skillAnalyzerPath),
+  );
   const scenarios = groupProfiles(profiles, args.scenario);
   if (scenarios.length === 0) {
     fail(
@@ -745,6 +874,8 @@ async function main() {
       createdAt: run?.createdAt || null,
       generatedAt: new Date().toISOString(),
       source: 'Hermes CPU sampling profiles only',
+      reasoningSkill: 'mms-swaps-cpu-profile-audit',
+      reasoningParser: path.relative(process.cwd(), skillAnalyzerPath),
       profileCount: profiles.length,
       ai: false,
     },
@@ -772,6 +903,8 @@ export {
   parseArgs,
   resolveLatestRun,
   findHermesProfiles,
+  findSkillAnalyzer,
+  runSkillAnalyzer,
   parseProfileFileName,
   summarizeHermesProfile,
   mergeFrameLists,

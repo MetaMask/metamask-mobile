@@ -72,10 +72,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
+      - name: Setup JavaScript dependencies
+        uses: ./.github/actions/setup-ci-js-deps
+
+      - name: Load MetaMask performance analysis skills
+        run: yarn skills
 
       - name: Analyze app profiling
         env:

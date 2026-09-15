@@ -7,6 +7,8 @@ import {
   parseArgs,
   resolveLatestRun,
   findHermesProfiles,
+  findSkillAnalyzer,
+  runSkillAnalyzer,
   parseProfileFileName,
   summarizeHermesProfile,
   groupProfiles,
@@ -81,6 +83,53 @@ test('findHermesProfiles excludes hashed Playwright attachment copies', () => {
   assert.deepEqual(findHermesProfiles(root), [
     path.join(named, 'scenario.cpuprofile'),
   ]);
+});
+
+test('findSkillAnalyzer locates the analyzer installed by yarn skills', () => {
+  assert.match(
+    findSkillAnalyzer(),
+    /mms-swaps-cpu-profile-audit\/scripts\/analyze-cpuprofile\.cjs$/,
+  );
+});
+
+test('runSkillAnalyzer compacts canonical skill timing output', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skill-analyzer-'));
+  const analyzer = path.join(root, 'analyzer.cjs');
+  fs.writeFileSync(
+    analyzer,
+    `console.log(JSON.stringify({
+      format: 'raw-hermes',
+      durationMs: 1000,
+      totalFrames: 50,
+      attributableSelfMicros: 600000,
+      runtimeSelfMicros: 400000,
+      swapsSelfMicros: 100000,
+      swapsInclusiveMicros: 200000,
+      areas: [],
+      contextPathAreas: [],
+      contextConcurrentAreas: [],
+      runtimeAreas: [{ area: 'Garbage collection', selfMicros: 50000 }],
+      topInScope: [{
+        name: 'useQuotes',
+        url: 'app/components/UI/Bridge/hooks/useQuotes.ts',
+        line: 10,
+        category: 'JavaScript',
+        selfMicros: 100000,
+        totalMicros: 200000,
+        calls: 2,
+        relation: 'Swaps-owned',
+        area: 'Bridge hooks',
+        ownedBySwaps: true
+      }],
+      topContext: []
+    }));`,
+  );
+  const audit = runSkillAnalyzer('/tmp/profile.cpuprofile', analyzer);
+  assert.equal(audit.analyzer, 'mms-swaps-cpu-profile-audit');
+  assert.equal(audit.jsWorkMs, 600);
+  assert.equal(audit.runtimeAndIdleMs, 400);
+  assert.equal(audit.topSwapsFrames[0].selfMs, 100);
+  assert.equal(audit.caveat, null);
 });
 
 test('parseProfileFileName treats plain file as logical segment 1', () => {
@@ -225,7 +274,14 @@ test('reports explicitly state that BrowserStack metrics are excluded', () => {
     ]),
     aiAnalysis: null,
   };
-  assert.match(buildAiBriefing(report), /Use only this Hermes CPU-profile data/);
+  assert.match(
+    buildAiBriefing(report),
+    /mms-swaps-cpu-profile-audit.*reasoning/s,
+  );
+  assert.match(
+    buildAiBriefing(report),
+    /skill-generated timing evidence only/,
+  );
   assert.match(buildMarkdown(report), /BrowserStack app-profiling metrics are excluded/);
   assert.match(buildSlack(report), /Hermes CPU sampling only/);
 });
