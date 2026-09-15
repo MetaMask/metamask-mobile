@@ -3,9 +3,7 @@ import { type TextInputSelectionChangeEvent } from 'react-native';
 import { Keys } from '../../../../Base/Keypad';
 import { useCostToleranceCursor } from './useCostToleranceCursor';
 
-const createSelectionEvent = (
-  start: number,
-): TextInputSelectionChangeEvent =>
+const createSelectionEvent = (start: number): TextInputSelectionChangeEvent =>
   ({
     nativeEvent: {
       selection: {
