@@ -26,10 +26,3 @@ export function setBrazeResetInProgress(value: boolean): void {
 export function isBrazeResetInProgress(): boolean {
   return resetInProgress;
 }
-
-/**
- * @internal Test helper only — do not use in production code.
- */
-export function resetBrazeResetInProgressForTesting(): void {
-  resetInProgress = false;
-}

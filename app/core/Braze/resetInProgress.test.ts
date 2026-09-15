@@ -1,12 +1,11 @@
 import {
   isBrazeResetInProgress,
-  resetBrazeResetInProgressForTesting,
   setBrazeResetInProgress,
 } from './resetInProgress';
 
 describe('resetInProgress', () => {
   afterEach(() => {
-    resetBrazeResetInProgressForTesting();
+    setBrazeResetInProgress(false);
   });
 
   it('defaults to false', () => {
