@@ -33,6 +33,24 @@ on:
           - ios
           - android
         default: all
+      allow_fingerprint_mismatch:
+        description: >-
+          Escape hatch: push despite a fingerprint mismatch that a human has manually
+          verified is safe (e.g. a dependency bump that doesn't change bridge/native
+          behavior). Requires fingerprint_mismatch_justification and mobile
+          release-team approval regardless of channel. Only available via direct
+          workflow_dispatch — Runway (workflow_call) cannot set this.
+        required: false
+        type: boolean
+        default: false
+      fingerprint_mismatch_justification:
+        description: >-
+          Required when allow_fingerprint_mismatch is true. Explain what the
+          mismatch is, why it can't ship via OTA cleanly, and why it's safe anyway
+          (recorded in the run summary for audit).
+        required: false
+        type: string
+        default: ''
 
   workflow_call:
     inputs:
@@ -69,6 +87,10 @@ env:
   UPDATE_MESSAGE: ${{ inputs.message }}
   TARGET_CHANNEL: ${{ inputs.channel }}
   OTA_PUSH_PLATFORM: ${{ inputs.platform }}
+  # Only ever set on workflow_dispatch — undefined (falsy) for workflow_call (Runway),
+  # which has no such inputs, so the Runway-driven paths stay strict.
+  ALLOW_FINGERPRINT_MISMATCH: ${{ inputs.allow_fingerprint_mismatch }}
+  FINGERPRINT_MISMATCH_JUSTIFICATION: ${{ inputs.fingerprint_mismatch_justification }}
 
 jobs:
   validate-pr:
@@ -91,6 +113,24 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           .github/scripts/validate-pr-commit.sh
+
+  validate-fingerprint-override:
+    name: Validate Fingerprint Override Inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a justification when the override is set
+        env:
+          OVERRIDE: ${{ env.ALLOW_FINGERPRINT_MISMATCH }}
+          JUSTIFICATION: ${{ env.FINGERPRINT_MISMATCH_JUSTIFICATION }}
+        run: |
+          set -euo pipefail
+          if [ "$OVERRIDE" = "true" ] && [ -z "$JUSTIFICATION" ]; then
+            echo "::error title=Missing justification::allow_fingerprint_mismatch is true but fingerprint_mismatch_justification is empty. Explain why the mismatch is safe to ship (recorded in the run summary for audit)."
+            exit 1
+          fi
+          if [ "$OVERRIDE" = "true" ]; then
+            echo "::warning title=Fingerprint override requested::This run may push an OTA update even if its Expo fingerprint doesn't match ${{ inputs.base_branch }}. Justification: $JUSTIFICATION"
+          fi
 
   verify-release-branch:
     name: Verify release branch (production only)
@@ -389,9 +429,13 @@ jobs:
     needs:
       - fingerprint-comparison
       - validate-pr
+      - validate-fingerprint-override
     if: >
-      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      inputs.channel == 'production'
+      needs.validate-fingerprint-override.result == 'success' &&
+      (
+        (needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' && inputs.channel == 'production') ||
+        inputs.allow_fingerprint_mismatch == true
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Get token
@@ -415,6 +459,7 @@ jobs:
       - fingerprint-comparison
       - approval
       - validate-pr
+      - validate-fingerprint-override
       - verify-release-branch
       - setup-dependencies
       - prepare
@@ -424,11 +469,15 @@ jobs:
       always() && !cancelled() &&
       needs.fingerprint-comparison.result == 'success' &&
       needs.validate-pr.result == 'success' &&
+      needs.validate-fingerprint-override.result == 'success' &&
       needs.verify-release-branch.result == 'success' &&
       needs.setup-dependencies.result == 'success' &&
       needs.prepare.result == 'success' &&
-      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
+      (needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' || inputs.allow_fingerprint_mismatch == true) &&
+      (
+        needs.approval.result == 'success' ||
+        (needs.approval.result == 'skipped' && inputs.channel != 'production' && inputs.allow_fingerprint_mismatch != true)
+      ) &&
       (inputs.platform == 'all' || inputs.platform == 'ios')
     uses: ./.github/workflows/eas-update-platform.yml
     with:
@@ -448,6 +497,7 @@ jobs:
       - fingerprint-comparison
       - approval
       - validate-pr
+      - validate-fingerprint-override
       - setup-dependencies
       - prepare
     # approval is intentionally skipped for non-production channels, so the default implicit
@@ -456,10 +506,14 @@ jobs:
       always() && !cancelled() &&
       needs.fingerprint-comparison.result == 'success' &&
       needs.validate-pr.result == 'success' &&
+      needs.validate-fingerprint-override.result == 'success' &&
       needs.setup-dependencies.result == 'success' &&
       needs.prepare.result == 'success' &&
-      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
+      (needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' || inputs.allow_fingerprint_mismatch == true) &&
+      (
+        needs.approval.result == 'success' ||
+        (needs.approval.result == 'skipped' && inputs.channel != 'production' && inputs.allow_fingerprint_mismatch != true)
+      ) &&
       (inputs.platform == 'all' || inputs.platform == 'android')
     uses: ./.github/workflows/eas-update-platform.yml
     with:
@@ -475,13 +529,37 @@ jobs:
 
   fingerprint-mismatch:
     name: Fingerprint Mismatch Guard
-    needs: fingerprint-comparison
+    needs:
+      - fingerprint-comparison
+      - validate-fingerprint-override
     if: ${{ needs.fingerprint-comparison.outputs.fingerprints_equal != 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Fail on native changes
+      - name: Fail (or warn, if overridden) on native changes
+        env:
+          BRANCH_FP: ${{ needs.fingerprint-comparison.outputs.branch_fingerprint }}
+          MAIN_FP: ${{ needs.fingerprint-comparison.outputs.main_fingerprint }}
+          OVERRIDE: ${{ env.ALLOW_FINGERPRINT_MISMATCH }}
+          JUSTIFICATION: ${{ env.FINGERPRINT_MISMATCH_JUSTIFICATION }}
         run: |
-          echo "::error title=Fingerprint mismatch::Current branch fingerprint differs from main. Native changes detected; aborting workflow."
-          echo "Current fingerprint: ${{ needs.fingerprint-comparison.outputs.branch_fingerprint }}"
-          echo "Main fingerprint:    ${{ needs.fingerprint-comparison.outputs.main_fingerprint }}"
-          exit 1
+          set -euo pipefail
+          if [ "$OVERRIDE" = "true" ]; then
+            echo "::warning title=Fingerprint mismatch overridden::Fingerprints differ but allow_fingerprint_mismatch was set, so this run is proceeding anyway. This bypasses the guard that prevents shipping an OTA update over a native binary it doesn't match — the actor and justification below are the only record of why this was judged safe."
+            {
+              echo "### ⚠️ Fingerprint Mismatch Guard overridden"
+              echo ""
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| Actor | \`${{ github.actor }}\` |"
+              echo "| Current fingerprint | \`$BRANCH_FP\` |"
+              echo "| Base fingerprint | \`$MAIN_FP\` |"
+              echo "| Justification | $JUSTIFICATION |"
+              echo ""
+              echo "This push proceeded **without** a verified fingerprint match. See \`docs/nightly-ota-updates.md\` for when this override is appropriate."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error title=Fingerprint mismatch::Current branch fingerprint differs from main. Native changes detected; aborting workflow."
+            echo "Current fingerprint: $BRANCH_FP"
+            echo "Main fingerprint:    $MAIN_FP"
+            exit 1
+          fi
