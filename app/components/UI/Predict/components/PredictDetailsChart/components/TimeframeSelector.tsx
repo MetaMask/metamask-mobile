@@ -36,7 +36,7 @@ const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
           onPress={() => onTimeframeChange(timeframe)}
           style={({ pressed }) =>
             tw.style(
-              'flex-1 py-2 rounded-full',
+              'flex-1 py-2 rounded-lg',
               selectedTimeframe === timeframe ? 'bg-muted' : 'bg-default',
               pressed && 'bg-pressed',
             )
