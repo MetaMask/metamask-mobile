@@ -10,7 +10,6 @@ import {
   returnToWalletFromSwapActivity,
 } from '../../helpers/swap/swap-unified-ui.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
-import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment.js';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks.js';
 import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks.js';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.js';
@@ -56,7 +55,6 @@ appiumTest.describe(SmokeSwap('Swap from Actions'), () => {
         },
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
-          await prepareSwapsTestEnvironment();
           await WalletView.tapWalletSwapButton();
 
           // Submit first swap: ETH->ERC20 (USDC) with custom slippage

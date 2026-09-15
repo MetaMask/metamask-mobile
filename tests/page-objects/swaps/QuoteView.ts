@@ -23,6 +23,8 @@ const TIMEOUT = {
   KEYPAD_DIGIT: 10000,
   /** Matches useSearchTokens debouncedSearch (300ms) + list settle. */
   TOKEN_SEARCH_SETTLE: 1000,
+  /** Overall Android Activity → Quote → Wallet dismiss retry budget. */
+  ANDROID_SWAP_DISMISS: 12000,
 } as const;
 
 class QuoteView {
@@ -339,60 +341,43 @@ class QuoteView {
     });
   }
 
-  async tapBackAndVerifyDismiss(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton, {
-      timeout: 5000,
-      elemDescription: 'Bridge header back (retry loop)',
-    });
-    await Assertions.expectElementToNotBeVisible(this.sourceTokenArea, {
-      timeout: 8000,
-      description: 'Swap screen dismissed after back',
-    });
+  async dismissSwapOnAndroid(): Promise<void> {
+    const walletTab = Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+    await Utilities.executeWithRetry(
+      async () => {
+        // Wallet chrome is the success signal — source-token-area can stay in
+        // the stack (displayed:true) after a missed back, which used to burn
+        // 8s per retry on expectElementToNotBeVisible.
+        if (await Utilities.isElementVisible(walletTab, 800)) {
+          return;
+        }
+        if (await Utilities.isElementVisible(this.backButton, 1500)) {
+          await Gestures.waitAndTap(this.backButton, {
+            timeout: 2500,
+            checkEnabled: false,
+            delay: 0,
+            elemDescription: 'Bridge header back (retry loop)',
+          });
+        }
+        if (await Utilities.isElementVisible(walletTab, 2500)) {
+          return;
+        }
+        throw new Error('Wallet tab not visible after Swap back');
+      },
+      {
+        timeout: TIMEOUT.ANDROID_SWAP_DISMISS,
+        description: 'dismiss Swap with back and verify wallet tab',
+        elemDescription: 'Wallet tab after Swap back',
+      },
+    );
   }
 
   async tapOnBackButton(): Promise<void> {
     // Prefer the dedicated `bridge-back-button` testID. On Android still retry
-    // + verify dismiss — post-trade Activity → Quote stacks can leave the
-    // Swap screen up after a missed tap, and TabBar Wallet then hangs.
+    // + verify wallet chrome — post-trade Activity → Quote stacks can leave
+    // Swap up after a missed tap, and TabBar Wallet then hangs.
     if (PlatformDetector.isAndroid()) {
-      await Utilities.executeWithRetry(
-        async () => {
-          const swapVisible = await Utilities.isElementVisible(
-            this.sourceTokenArea,
-            1000,
-          );
-          if (swapVisible) {
-            await this.tapBackAndVerifyDismiss();
-            return;
-          }
-
-          // Source can be displayed:false while Quote is still mounting after
-          // Activity back — do not treat a short miss as dismissed. Tap if
-          // back is present; only stop when wallet chrome is actually showing.
-          const backVisible = await Utilities.isElementVisible(
-            this.backButton,
-            2000,
-          );
-          if (backVisible) {
-            await this.tapBackAndVerifyDismiss();
-            return;
-          }
-
-          const walletTab = Matchers.getElementByID(TabBarSelectorIDs.WALLET);
-          if (await Utilities.isElementVisible(walletTab, 1000)) {
-            return;
-          }
-
-          throw new Error(
-            'Swap screen still unresolved: source and back not displayed, wallet tab not visible',
-          );
-        },
-        {
-          timeout: 20000,
-          description: 'dismiss Swap with back and verify navigation',
-          elemDescription: 'Swap source token area',
-        },
-      );
+      await this.dismissSwapOnAndroid();
       return;
     }
 
