@@ -164,6 +164,21 @@ describe('MoneyEarningsInfoSheet', () => {
     });
   });
 
+  it('centers the title and body when translations wrap', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <MoneyEarningsInfoSheet />,
+    );
+
+    expect(
+      getByText(strings('money.earnings_tooltip.monthly.title')),
+    ).toHaveStyle({
+      textAlign: 'center',
+    });
+    expect(getByTestId(MoneyEarningsInfoSheetTestIds.BODY)).toHaveStyle({
+      textAlign: 'center',
+    });
+  });
+
   describe('analytics', () => {
     it('initialises useMoneyAnalytics with the monthly bottom sheet name', () => {
       renderWithProvider(<MoneyEarningsInfoSheet />);
