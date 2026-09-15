@@ -1,0 +1,131 @@
+#!/usr/bin/env node
+
+/**
+ * Posts an app-profiling analysis summary to Slack.
+ *
+ * A bot cannot post into a DM conversation it is not part of, so a personal
+ * `D...` conversation id taken from the Slack client fails with
+ * `channel_not_found`. Pass a user id (`U.../W...`) instead and this opens the
+ * bot's own DM with that user first.
+ *
+ * Usage:
+ *   node tests/scripts/post-app-profiling-slack.mjs <path-to-markdown>
+ *
+ * Environment:
+ *   SLACK_BOT_TOKEN   required
+ *   SLACK_TARGET      user id (U.../W...) or channel id (C.../G...)
+ *   GITHUB_RUN_URL    optional footer link
+ */
+
+import fs from 'fs';
+
+const SLACK_API = 'https://slack.com/api';
+/** Slack rejects text over 40k; leave room for the footer. */
+const MAX_TEXT_LENGTH = 38_000;
+
+function fail(message) {
+  console.error(`❌ ${message}`);
+  process.exit(1);
+}
+
+async function slackApi(method, token, payload, { fetchFn = fetch } = {}) {
+  const response = await fetchFn(`${SLACK_API}/${method}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json; charset=utf-8',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    throw new Error(`Slack ${method} HTTP ${response.status}`);
+  }
+  const body = await response.json();
+  if (!body.ok) {
+    throw new Error(`Slack ${method} failed: ${body.error || 'unknown error'}`);
+  }
+  return body;
+}
+
+function isUserId(target) {
+  return /^[UW][A-Z0-9]+$/.test(String(target || ''));
+}
+
+/**
+ * Resolves the channel to post into. User ids are converted to the bot's own
+ * DM channel, which is the only DM a bot token can write to.
+ */
+async function resolveChannel(target, token, options = {}) {
+  if (!isUserId(target)) {
+    return target;
+  }
+  const body = await slackApi('conversations.open', token, { users: target }, options);
+  const channelId = body.channel?.id;
+  if (!channelId) {
+    throw new Error(`conversations.open returned no channel for ${target}`);
+  }
+  return channelId;
+}
+
+function buildText(markdown, runUrl) {
+  let text = String(markdown || '').trim();
+  if (text.length > MAX_TEXT_LENGTH) {
+    text = `${text.slice(0, MAX_TEXT_LENGTH)}\n_Truncated for Slack._`;
+  }
+  if (runUrl) {
+    text = `${text}\n<${runUrl}|GitHub run>`;
+  }
+  return text;
+}
+
+async function postSummary({ markdown, target, token, runUrl }, options = {}) {
+  const channel = await resolveChannel(target, token, options);
+  const body = await slackApi(
+    'chat.postMessage',
+    token,
+    {
+      channel,
+      text: buildText(markdown, runUrl),
+      unfurl_links: false,
+      unfurl_media: false,
+    },
+    options,
+  );
+  return { channel, ts: body.ts };
+}
+
+async function main() {
+  const [markdownPath] = process.argv.slice(2);
+  const token = process.env.SLACK_BOT_TOKEN;
+  const target = process.env.SLACK_TARGET;
+
+  if (!markdownPath) {
+    fail('Usage: post-app-profiling-slack.mjs <path-to-markdown>');
+  }
+  if (!token) {
+    fail('SLACK_BOT_TOKEN is not set');
+  }
+  if (!target) {
+    fail('SLACK_TARGET is not set');
+  }
+  if (!fs.existsSync(markdownPath)) {
+    console.log(`No summary at ${markdownPath}; nothing to post`);
+    return;
+  }
+
+  const result = await postSummary({
+    markdown: fs.readFileSync(markdownPath, 'utf8'),
+    target,
+    token,
+    runUrl: process.env.GITHUB_RUN_URL,
+  });
+  console.log(`✅ Slack message sent to ${result.channel} (ts=${result.ts})`);
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((error) => {
+    fail(error instanceof Error ? error.message : String(error));
+  });
+}
+
+export { isUserId, resolveChannel, buildText, postSummary };
