@@ -116,6 +116,7 @@ const renderComponent = ({
   status = 'confirmed',
   networkId = '0x1',
   transactionObj = {},
+  transactionDetailsObj = {},
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state?: any;
@@ -126,6 +127,7 @@ const renderComponent = ({
   shouldUseSmartTransaction?: boolean;
   networkId?: string;
   transactionObj?: Record<string, unknown>;
+  transactionDetailsObj?: Record<string, unknown>;
 }) =>
   renderWithProvider(
     <Stack.Navigator>
@@ -154,6 +156,7 @@ const renderComponent = ({
               txChainId: networkId,
               hash: '0x3',
               ...(hash ? { hash } : {}),
+              ...transactionDetailsObj,
             }}
             navigation={navigationMock}
           />
@@ -176,6 +179,59 @@ describe('TransactionDetails', () => {
     expect(screen.queryByText('Nonce')).not.toBeOnTheScreen();
     expect(screen.getByText('Total amount')).toBeOnTheScreen();
     expect(screen.getByText('Date')).toBeOnTheScreen();
+  });
+
+  it('renders updated transaction details after props change', async () => {
+    const { rerender } = renderComponent({
+      state: initialState,
+      transactionDetailsObj: {
+        summaryAmount: '1 ETH',
+        summaryFee: '0.001 ETH',
+        summaryTotalAmount: '1.001 ETH',
+      },
+    });
+
+    expect(screen.getByText('1.001 ETH')).toBeOnTheScreen();
+
+    rerender(
+      <Stack.Navigator>
+        <Stack.Screen name="Amount" options={{}}>
+          {() => (
+            <TransactionDetails
+              transactionObject={{
+                networkID: '1',
+                status: 'confirmed',
+                transaction: {
+                  nonce: '',
+                },
+                chainId: '0x1',
+              }}
+              transactionDetails={{
+                renderFrom: '0x0',
+                renderTo: '0x1',
+                transactionHash: '0x2',
+                renderValue: '2 TKN',
+                renderGas: '21000',
+                renderGasPrice: '2',
+                renderTotalValue: '2 TKN / 0.001 ETH',
+                renderTotalValueFiat: '',
+                txChainId: '0x1',
+                hash: '0x3',
+                summaryAmount: '2 ETH',
+                summaryFee: '0.002 ETH',
+                summaryTotalAmount: '2.002 ETH',
+              }}
+              navigation={navigationMock}
+            />
+          )}
+        </Stack.Screen>
+      </Stack.Navigator>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('2.002 ETH')).toBeOnTheScreen();
+    });
+    expect(screen.queryByText('1.001 ETH')).not.toBeOnTheScreen();
   });
 
   it('should render correctly for multi-layer fee network', async () => {
