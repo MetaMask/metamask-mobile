@@ -13,6 +13,7 @@ import SensitiveText, {
 import DeFiAvatarWithBadge from './DeFiAvatarWithBadge';
 import styleSheet from './DeFiProtocolPositionGroupTokens.styles';
 import { PositionType } from './position-types';
+import { getLocaleLanguageCode } from '../../hooks/useFormatters';
 import { useStyles } from '../../hooks/useStyles';
 import { getTokenAvatarUrl } from './get-token-avatar-url';
 
@@ -35,6 +36,8 @@ interface DeFiProtocolPositionGroupTokensProps {
   }[];
   networkIconAvatar: ImageSourcePropType | undefined;
   privacyMode: boolean;
+  /** Fiat currency the market values are priced in. V1 positions are USD-only. */
+  currency?: string;
 }
 
 const DeFiProtocolPositionGroupTokens: React.FC<
@@ -44,6 +47,7 @@ const DeFiProtocolPositionGroupTokens: React.FC<
   tokens,
   networkIconAvatar,
   privacyMode,
+  currency = 'USD',
 }: DeFiProtocolPositionGroupTokensProps) => {
   const { styles } = useStyles(styleSheet, undefined);
 
@@ -93,10 +97,15 @@ const DeFiProtocolPositionGroupTokens: React.FC<
               length={SensitiveTextLength.Medium}
             >
               {token.marketValue
-                ? formatWithThreshold(token.marketValue, 0.01, I18n.locale, {
-                    style: 'currency',
-                    currency: 'USD',
-                  })
+                ? formatWithThreshold(
+                    token.marketValue,
+                    0.01,
+                    getLocaleLanguageCode(),
+                    {
+                      style: 'currency',
+                      currency,
+                    },
+                  )
                 : null}
             </SensitiveText>
             <SensitiveText
