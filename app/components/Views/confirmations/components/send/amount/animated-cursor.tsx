@@ -5,46 +5,41 @@ import { Theme } from '../../../../../../util/theme/models';
 import { useStyles } from '../../../../../hooks/useStyles';
 
 const { View: AnimatedView } = Animated;
+const STYLE_VARS = {};
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: {
-    cursorOpacity: Animated.Value;
-  };
-}) => {
-  const {
-    theme,
-    vars: { cursorOpacity },
-  } = params;
+const styleSheet = (params: { theme: Theme; vars: Record<string, never> }) => {
+  const { theme } = params;
   return StyleSheet.create({
     amountCursor: {
       backgroundColor: theme.colors.primary.default,
       height: 40,
       marginHorizontal: 5,
-      opacity: cursorOpacity ?? 1,
       width: 1,
     },
   });
 };
 
-export const AnimatedCursor = () => {
+export const AnimatedCursor = ({ animated = true }: { animated?: boolean }) => {
   const cursorOpacity = useRef(new Animated.Value(0.6)).current;
 
-  const { styles } = useStyles(styleSheet, {
-    cursorOpacity,
-  });
+  const { styles } = useStyles(styleSheet, STYLE_VARS);
 
   useEffect(() => {
+    if (!animated) {
+      cursorOpacity.setValue(1);
+      return undefined;
+    }
+
     const blinkAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(cursorOpacity, {
           duration: 800,
-          easing: () => Easing.bounce(1),
+          easing: Easing.bounce,
           toValue: 0,
           useNativeDriver: true,
         }),
         Animated.timing(cursorOpacity, {
-          easing: () => Easing.bounce(1),
+          easing: Easing.bounce,
           duration: 800,
           toValue: 1,
           useNativeDriver: true,
@@ -53,7 +48,8 @@ export const AnimatedCursor = () => {
     );
 
     blinkAnimation.start();
-  }, [cursorOpacity]);
+    return () => blinkAnimation.stop();
+  }, [animated, cursorOpacity]);
 
   return (
     <AnimatedView style={[styles.amountCursor, { opacity: cursorOpacity }]} />

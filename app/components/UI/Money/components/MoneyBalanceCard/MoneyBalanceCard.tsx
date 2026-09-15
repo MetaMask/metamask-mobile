@@ -20,7 +20,6 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
-  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -50,6 +49,9 @@ import {
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
+
+const MONEY_ZERO_BALANCE = '$0.00';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
@@ -92,6 +94,7 @@ const MoneyBalanceCard = () => {
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
   const isError = hasMoneyAccount && isBalanceFetchError && !isBalanceFetching;
+  const isBalancePending = !hasMoneyAccount || isBalanceLoading || isRetrying;
 
   // Queries succeeded (no error, not loading) but a dependency required to
   // format the balance (e.g. musdFiatRate) is missing.
@@ -207,15 +210,6 @@ const MoneyBalanceCard = () => {
   }, [navigation, trackTooltipClicked]);
 
   const renderBalanceSlot = () => {
-    if (!hasMoneyAccount || isBalanceLoading || isRetrying) {
-      return (
-        <Skeleton
-          height={24}
-          width={100}
-          testID={MoneyBalanceCardTestIds.BALANCE_SKELETON}
-        />
-      );
-    }
     if (isError) {
       return (
         <Box
@@ -254,19 +248,31 @@ const MoneyBalanceCard = () => {
         </Text>
       );
     }
-    return (
+    return privacyMode ? (
       <SensitiveText
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-        isHidden={privacyMode}
+        color={isBalancePending ? TextColor.TextMuted : TextColor.TextDefault}
+        isHidden
         length={SensitiveTextLength.Medium}
         numberOfLines={1}
         twClassName="shrink"
         testID={MoneyBalanceCardTestIds.BALANCE}
       >
-        {balanceText}
+        {isBalancePending ? MONEY_ZERO_BALANCE : balanceText}
       </SensitiveText>
+    ) : (
+      <AnimatedBalanceText
+        color={TextColor.TextDefault}
+        fontWeight={FontWeight.Medium}
+        isLoading={isBalancePending}
+        loadingValue={MONEY_ZERO_BALANCE}
+        containerStyle={tw.style('shrink overflow-hidden')}
+        testID={MoneyBalanceCardTestIds.BALANCE}
+        twClassName="shrink"
+        value={balanceText || MONEY_ZERO_BALANCE}
+        variant={TextVariant.HeadingMd}
+      />
     );
   };
 
@@ -318,24 +324,21 @@ const MoneyBalanceCard = () => {
           twClassName="gap-2"
         >
           {renderBalanceSlot()}
-          {vaultApyQuery.isLoading ? (
-            <Skeleton
-              height={20}
-              width={60}
-              twClassName="shrink-0"
-              testID={MoneyBalanceCardTestIds.APY_TAG_SKELETON}
-            />
-          ) : (
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-              twClassName="shrink-0"
-              testID={MoneyBalanceCardTestIds.APY_TAG}
-            >
-              {strings('money.apy_label', { percentage: apyPercent ?? 0 })}
-            </Text>
-          )}
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={
+              vaultApyQuery.isLoading
+                ? TextColor.TextMuted
+                : TextColor.SuccessDefault
+            }
+            twClassName="shrink-0"
+            testID={MoneyBalanceCardTestIds.APY_TAG}
+          >
+            {strings('money.apy_label', {
+              percentage: vaultApyQuery.isLoading ? 0 : (apyPercent ?? 0),
+            })}
+          </Text>
         </Box>
       </Box>
       <Box

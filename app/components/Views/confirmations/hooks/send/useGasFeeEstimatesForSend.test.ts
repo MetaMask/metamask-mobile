@@ -3,9 +3,9 @@ import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useGasFeeEstimatesForSend } from './useGasFeeEstimatesForSend';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({
-  useGasFeeEstimates: () => ({
+  useGasFeeEstimates: jest.fn(() => ({
     gasFeeEstimates: { medium: { suggestedMaxFeePerGas: 1.5 } },
-  }),
+  })),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
