@@ -1,5 +1,8 @@
 import type { TextInputSelectionChangeEvent } from 'react-native';
-import { LimitOrderExecutionType } from '../../../constants/limitOrders';
+import {
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../../constants/limitOrders';
 
 export interface InputSectionRef {
   blur: () => void;
@@ -20,6 +23,11 @@ export interface InputSectionProps {
    * When true the primary amount is fiat and a currency prefix is shown.
    */
   isLimitFiatMode: boolean;
+  /**
+   * Symbol of the counter token the price is quoted against, e.g. "ETH".
+   * Rendered as a non-editable suffix after the amount, whenever provided.
+   */
+  unitSymbol?: string;
   /**
    * Press handler for the quote-unit chip. When omitted the chip is not interactive.
    */
@@ -57,6 +65,11 @@ export interface InputSectionProps {
    * Market comparison shown after the secondary value.
    */
   marketComparison?: { label: string; isNegative: boolean };
+  /**
+   * Which way the headline comparison reads ("is at or above" / "is at or
+   * below"). Defaults to the execution type's comparison when omitted.
+   */
+  priceComparisonDirection?: LimitOrderPriceComparisonDirection;
   /**
    * Optional test ID for the root element.
    */

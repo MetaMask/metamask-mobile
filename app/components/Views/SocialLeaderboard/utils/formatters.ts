@@ -9,11 +9,23 @@ import {
 } from '../../../../util/number';
 import { DAY, HOUR, MINUTE } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
-import { strings } from '../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../util/intl';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { tradeTimestampToMs } from './tradeTimestamp';
 
 /** Placeholder rendered wherever a numeric value is unavailable. */
 export const EM_DASH = '\u2014';
+
+/**
+ * Whole count with locale digit grouping (e.g. `48,707`). Use for tallies such
+ * as follower counts, where there is no currency, sign or decimal component.
+ */
+export function formatCount(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  return getIntlNumberFormatter(I18n.locale, {
+    maximumFractionDigits: 0,
+  }).format(value);
+}
 
 /**
  * USD for social leaderboard rows/cards: match perps-style fiat (always two

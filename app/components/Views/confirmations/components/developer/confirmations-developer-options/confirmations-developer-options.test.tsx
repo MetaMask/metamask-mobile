@@ -203,6 +203,120 @@ describe('ConfirmationsDeveloperOptions', () => {
     });
   });
 
+  describe('Predict developer options', () => {
+    it('adds overwriteUpgrade for the Predict Deposit batch', async () => {
+      const { getByText } = render(<ConfirmationsDeveloperOptions />);
+
+      await act(async () => {
+        fireEvent.press(getByText('Deposit'));
+      });
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PREDICT.ROOT,
+      });
+      expect(mockAddTransactionBatch).toHaveBeenCalledWith({
+        from: MOCK_ACCOUNT,
+        origin: ORIGIN_METAMASK,
+        networkClientId: MOCK_NETWORK_CLIENT_ID,
+        disableHook: true,
+        disableSequential: true,
+        overwriteUpgrade: true,
+        transactions: [
+          {
+            params: {
+              to: MOCK_PROXY_ADDRESS,
+              data: '0x',
+              value: '0x1',
+            },
+          },
+          {
+            params: {
+              to: MOCK_POLYGON_USDCE,
+              data: MOCK_TRANSFER_DATA,
+            },
+            type: TransactionType.predictDeposit,
+          },
+        ],
+      });
+    });
+
+    it('adds overwriteUpgrade for the Predict Claim batch', async () => {
+      const { getByText } = render(<ConfirmationsDeveloperOptions />);
+
+      await act(async () => {
+        fireEvent.press(getByText('Claim'));
+      });
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+        headerShown: false,
+        loader: ConfirmationLoader.PredictClaim,
+        stack: Routes.PREDICT.ROOT,
+      });
+      expect(mockAddTransactionBatch).toHaveBeenCalledWith({
+        from: MOCK_ACCOUNT,
+        origin: ORIGIN_METAMASK,
+        networkClientId: MOCK_NETWORK_CLIENT_ID,
+        disableHook: true,
+        disableSequential: true,
+        overwriteUpgrade: true,
+        transactions: [
+          {
+            params: {
+              to: MOCK_PROXY_ADDRESS,
+              data: '0x',
+              value: '0x1',
+            },
+          },
+          {
+            params: {
+              to: MOCK_POLYGON_USDCE,
+              data: MOCK_TRANSFER_DATA,
+            },
+            type: TransactionType.predictClaim,
+          },
+        ],
+      });
+    });
+
+    it('adds overwriteUpgrade for the Predict Withdraw batch', async () => {
+      const { getAllByText } = render(<ConfirmationsDeveloperOptions />);
+
+      await act(async () => {
+        fireEvent.press(getAllByText('Withdraw')[0]);
+      });
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PREDICT.ROOT,
+      });
+      expect(mockAddTransactionBatch).toHaveBeenCalledWith({
+        from: MOCK_ACCOUNT,
+        origin: ORIGIN_METAMASK,
+        networkClientId: MOCK_NETWORK_CLIENT_ID,
+        disableHook: true,
+        disableSequential: true,
+        overwriteUpgrade: true,
+        transactions: [
+          {
+            params: {
+              to: MOCK_PROXY_ADDRESS,
+              data: '0x',
+              value: '0x1',
+            },
+          },
+          {
+            params: {
+              to: MOCK_POLYGON_USDCE,
+              data: MOCK_TRANSFER_DATA,
+            },
+            type: TransactionType.predictWithdraw,
+          },
+        ],
+      });
+    });
+  });
+
   describe('Money Account Deposit', () => {
     it('renders when moneyAccountDepositEnabled flag is true', () => {
       mockSelectMoneyAccountDepositEnabledFlag.mockReturnValue(true);

@@ -205,11 +205,25 @@ export async function setupLendingMocks(
     responseCode: 200,
   });
 
+  const accountsApiV5OrV6BalancesResponse = buildAccountsApiV5Response(
+    usdcBalance,
+    hasExistingPosition,
+  );
   await setupMockRequest(
     mockServer,
     {
       url: /accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances/,
-      response: buildAccountsApiV5Response(usdcBalance, hasExistingPosition),
+      response: accountsApiV5OrV6BalancesResponse,
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /accounts\.api\.cx\.metamask\.io\/v6\/multiaccount\/balances/,
+      response: accountsApiV5OrV6BalancesResponse,
       requestMethod: 'GET',
       responseCode: 200,
     },

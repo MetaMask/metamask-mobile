@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added support for `link.metamask.com` and `metamask.com` iOS Universal Links and Android App Links
+
 ### Fixed
 
 - Fixed the in-app browser address bar so it matches the page shown after back/forward navigation (#35040)
