@@ -54,6 +54,46 @@ export const getValidOrderPrice = (order: Order): number | null =>
   getValidPerpsPrice(order.price);
 
 /**
+ * Mark price is HyperLiquid's reference for the oracle price band. Falls back
+ * to the mid price when the mark price is missing or does not parse to a finite
+ * positive number, so a NaN reference cannot silently skip the band check in
+ * {@link isPriceOutsideDeviationBand}.
+ */
+export const resolveOracleReferencePrice = (
+  markPrice: string | undefined,
+  currentPrice: number,
+): number => {
+  const parsedMarkPrice = markPrice ? parseFloat(markPrice) : NaN;
+  return Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
+    ? parsedMarkPrice
+    : currentPrice;
+};
+
+/**
+ * Applies a percentage offset to the current limit price, falling back to the
+ * market price when no limit price is set yet. Returns '' when there is no
+ * usable base price.
+ */
+export const calculateLimitPriceForPercentage = (
+  limitPrice: string,
+  currentPrice: number,
+  percentage: number,
+): string => {
+  const parsedLimitPrice = limitPrice
+    ? parseFloat(limitPrice.replace(/[$,]/g, ''))
+    : 0;
+  const basePrice = parsedLimitPrice > 0 ? parsedLimitPrice : currentPrice;
+
+  if (!basePrice || basePrice === 0) {
+    return '';
+  }
+
+  return BigNumber(basePrice)
+    .multipliedBy(1 + percentage / 100)
+    .toString();
+};
+
+/**
  * Whether an order price is outside HyperLiquid's allowed band relative to a
  * reference (oracle/mark) price. HyperLiquid rejects orders whose price is more
  * than `maxDeviation` away from the reference price ("oracleRejected").

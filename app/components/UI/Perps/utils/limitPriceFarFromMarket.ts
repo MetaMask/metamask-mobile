@@ -117,3 +117,53 @@ export const getLimitPriceFarFromMarketWarning = ({
     { percent },
   );
 };
+
+export interface LimitPriceDirectionWarningInput {
+  limitPrice: string;
+  currentPrice?: number;
+  /** Side of the order being placed, not of the position being closed. */
+  direction: 'long' | 'short';
+  isClosingPosition: boolean;
+}
+
+/**
+ * Warning when a limit price sits on the unfavourable side of the market.
+ * Distinct from {@link getLimitPriceFarFromMarketWarning}, which measures
+ * distance from the near-touch rather than which side of it the price is on.
+ *
+ * Opening: long above market, short below market.
+ * Closing: `direction` is the opposite of the position, so `short` means
+ * closing a long — warn below market — and `long` means closing a short.
+ */
+export const getLimitPriceDirectionWarning = ({
+  limitPrice,
+  currentPrice,
+  direction,
+  isClosingPosition,
+}: LimitPriceDirectionWarningInput): string => {
+  const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
+  const price = Number(currentPrice);
+
+  if (!limitPrice || isNaN(parsedLimit) || !price || price <= 0) {
+    return '';
+  }
+
+  if (!isClosingPosition) {
+    if (direction === 'long' && parsedLimit > price) {
+      return strings('perps.order.limit_price_modal.limit_price_above');
+    }
+    if (direction === 'short' && parsedLimit < price) {
+      return strings('perps.order.limit_price_modal.limit_price_below');
+    }
+    return '';
+  }
+
+  if (direction === 'short' && parsedLimit < price) {
+    return strings('perps.order.limit_price_modal.limit_price_below');
+  }
+  if (direction === 'long' && parsedLimit > price) {
+    return strings('perps.order.limit_price_modal.limit_price_above');
+  }
+
+  return '';
+};
