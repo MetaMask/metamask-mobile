@@ -43,6 +43,9 @@ import { enableFreeze } from 'react-native-screens';
 
 if (__DEV__) {
   require('./ReactotronConfig');
+  // Auth Debugging entries live in the Expo dev menu, which only exists in
+  // debug builds. Registering here keeps them out of production bundles.
+  require('./app/core/DevMenu').registerAuthDebugMenuItems();
 }
 
 enableFreeze(true);
