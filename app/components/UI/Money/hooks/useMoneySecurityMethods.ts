@@ -237,8 +237,7 @@ export const useMoneySecurityMethods = (passkeyCount = 0) => {
     addSocial,
     authenticatorCreatedAt,
     defaultVerificationMethod,
-    hasAlternativeSecurityMethod:
-      isSmsAdded || isAuthenticatorAdded || (!isSocialLogin && isSocialAdded),
+    hasAlternativeSecurityMethod: isSmsAdded || isAuthenticatorAdded,
     isAuthenticatorAdded,
     isSocialAdded,
     isSocialLogin,

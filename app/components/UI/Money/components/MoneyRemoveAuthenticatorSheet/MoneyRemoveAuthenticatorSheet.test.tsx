@@ -5,7 +5,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import MoneyRemoveAuthenticatorSheet from './MoneyRemoveAuthenticatorSheet';
 import { MoneyRemoveAuthenticatorSheetTestIds } from './MoneyRemoveAuthenticatorSheet.testIds';
 
-const mockRemoveAuthenticator = jest.fn();
 const mockNavigate = jest.fn();
 const mockCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 let mockPasskeyCount = 1;
@@ -22,7 +21,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useMoneySecurityMethods', () => ({
   useMoneySecurityMethods: () => ({
     isSmsAdded: mockIsSmsAdded,
-    removeAuthenticator: mockRemoveAuthenticator,
   }),
 }));
 
@@ -76,10 +74,12 @@ describe('MoneyRemoveAuthenticatorSheet', () => {
       getByTestId(MoneyRemoveAuthenticatorSheetTestIds.CONFIRM_BUTTON),
     );
 
-    expect(mockRemoveAuthenticator).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY, {
-      successToast: 'Authenticator app removed',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MONEY.SECURITY_VERIFICATION,
+      {
+        action: { type: 'remove-authenticator' },
+      },
+    );
   });
 
   it('prevents removing the only security method', () => {

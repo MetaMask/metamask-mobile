@@ -5,8 +5,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import MoneyRemoveSmsSheet from './MoneyRemoveSmsSheet';
 import { MoneyRemoveSmsSheetTestIds } from './MoneyRemoveSmsSheet.testIds';
 
-const mockRemoveSms = jest.fn();
-const mockShowSuccessToast = jest.fn();
 const mockNavigate = jest.fn();
 const mockCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 let mockPasskeyCount = 1;
@@ -23,7 +21,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useMoneySecurityMethods', () => ({
   useMoneySecurityMethods: () => ({
     isAuthenticatorAdded: mockIsAuthenticatorAdded,
-    removeSms: mockRemoveSms,
   }),
 }));
 
@@ -31,10 +28,6 @@ jest.mock('../../hooks/useMoneyFinishSetup', () => ({
   useMoneyFinishSetup: () => ({
     passkeyCount: mockPasskeyCount,
   }),
-}));
-
-jest.mock('../../hooks/useMoneySecurityToast', () => ({
-  useMoneySecurityToast: () => mockShowSuccessToast,
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -70,9 +63,12 @@ describe('MoneyRemoveSmsSheet', () => {
 
     fireEvent.press(getByTestId(MoneyRemoveSmsSheetTestIds.CONFIRM_BUTTON));
 
-    expect(mockRemoveSms).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY);
-    expect(mockShowSuccessToast).toHaveBeenCalledWith('SMS removed');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MONEY.SECURITY_VERIFICATION,
+      {
+        action: { type: 'remove-sms' },
+      },
+    );
   });
 
   it('prevents removing the only security method', () => {

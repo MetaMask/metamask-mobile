@@ -130,6 +130,7 @@ import {
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MoneySecurityView from '../../UI/Money/Views/MoneySecurityView';
+import MoneySecurityVerificationView from '../../UI/Money/Views/MoneySecurityVerificationView';
 import MoneyPasskeysView from '../../UI/Money/Views/MoneyPasskeysView';
 import MoneyPasskeyDetailsView from '../../UI/Money/components/MoneyPasskeyDetailsSheet';
 import MoneyAuthenticatorView from '../../UI/Money/Views/MoneyAuthenticatorView';
@@ -1270,6 +1271,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.MONEY.MANAGE_SECURITY}
             component={MoneySecurityView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.SECURITY_VERIFICATION}
+            component={MoneySecurityVerificationView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen

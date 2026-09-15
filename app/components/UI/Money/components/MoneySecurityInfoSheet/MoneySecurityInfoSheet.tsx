@@ -25,7 +25,7 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { MoneyModalsNavigationParamList } from '../../types/navigation';
 import { strings } from '../../../../../../locales/i18n';
-import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const styles = StyleSheet.create({
   content: {
@@ -49,7 +49,6 @@ const MoneySecurityInfoSheet = () => {
     useRoute<
       RouteProp<MoneyModalsNavigationParamList, 'MoneySecurityInfoSheet'>
     >();
-  const { setTransactionVerificationEnabled } = useMoneySecurityMethods();
   const isDisableConfirmation =
     route.params?.variant === 'disable-transaction-verification';
   const defaultMethod =
@@ -61,9 +60,12 @@ const MoneySecurityInfoSheet = () => {
   }, []);
 
   const handleDisable = useCallback(() => {
-    setTransactionVerificationEnabled(false);
-    closeSheet();
-  }, [closeSheet, setTransactionVerificationEnabled]);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.MONEY.SECURITY_VERIFICATION, {
+        action: { type: 'disable-transaction-verification' },
+      });
+    });
+  }, [navigation]);
 
   if (isDisableConfirmation) {
     return (

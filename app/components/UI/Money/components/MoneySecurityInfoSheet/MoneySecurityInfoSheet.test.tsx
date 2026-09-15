@@ -1,10 +1,11 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
 import MoneySecurityInfoSheet from './MoneySecurityInfoSheet';
 
-const mockCloseBottomSheet = jest.fn();
-const mockSetTransactionVerificationEnabled = jest.fn();
+const mockCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
+const mockNavigate = jest.fn();
 let mockRouteParams:
   | {
       defaultMethod?: string;
@@ -14,14 +15,8 @@ let mockRouteParams:
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: jest.fn() }),
+  useNavigation: () => ({ goBack: jest.fn(), navigate: mockNavigate }),
   useRoute: () => ({ params: mockRouteParams }),
-}));
-
-jest.mock('../../hooks/useMoneySecurityMethods', () => ({
-  useMoneySecurityMethods: () => ({
-    setTransactionVerificationEnabled: mockSetTransactionVerificationEnabled,
-  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -81,8 +76,13 @@ describe('MoneySecurityInfoSheet', () => {
 
     fireEvent.press(getByText('Disable'));
 
-    expect(mockSetTransactionVerificationEnabled).toHaveBeenCalledWith(false);
     expect(mockCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MONEY.SECURITY_VERIFICATION,
+      {
+        action: { type: 'disable-transaction-verification' },
+      },
+    );
   });
 
   it('keeps transaction verification enabled when cancelled', () => {
@@ -91,7 +91,7 @@ describe('MoneySecurityInfoSheet', () => {
 
     fireEvent.press(getByText('Cancel'));
 
-    expect(mockSetTransactionVerificationEnabled).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 });

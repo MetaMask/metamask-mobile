@@ -27,7 +27,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
 import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
-import { useMoneySecurityToast } from '../../hooks/useMoneySecurityToast';
 import { MoneyRemoveSmsSheetTestIds } from './MoneyRemoveSmsSheet.testIds';
 
 const styles = StyleSheet.create({
@@ -47,21 +46,20 @@ const MoneyRemoveSmsSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { passkeyCount } = useMoneyFinishSetup();
-  const { isAuthenticatorAdded, removeSms } = useMoneySecurityMethods();
+  const { isAuthenticatorAdded } = useMoneySecurityMethods();
   const canRemove = passkeyCount > 0 || isAuthenticatorAdded;
-  const showSuccessToast = useMoneySecurityToast();
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
   const handleRemove = useCallback(() => {
-    removeSms();
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
-      showSuccessToast(strings('money.sms_details.removed_toast'));
+      navigation.navigate(Routes.MONEY.SECURITY_VERIFICATION, {
+        action: { type: 'remove-sms' },
+      });
     });
-  }, [navigation, removeSms, showSuccessToast]);
+  }, [navigation]);
 
   return (
     <BottomSheet

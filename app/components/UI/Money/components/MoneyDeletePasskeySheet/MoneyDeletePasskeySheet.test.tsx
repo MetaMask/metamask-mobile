@@ -1,12 +1,10 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import MoneyDeletePasskeySheet from './MoneyDeletePasskeySheet';
 import { MoneyDeletePasskeySheetTestIds } from './MoneyDeletePasskeySheet.testIds';
 
-const mockDeletePasskey = jest.fn();
-const mockShowSuccessToast = jest.fn();
 const mockNavigate = jest.fn();
 const mockCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 let mockHasAlternativeSecurityMethod = true;
@@ -24,7 +22,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/useMoneyFinishSetup', () => ({
   useMoneyFinishSetup: () => ({
-    deletePasskey: mockDeletePasskey,
     passkeys: [{ name: 'Passkey #1' }],
   }),
 }));
@@ -33,10 +30,6 @@ jest.mock('../../hooks/useMoneySecurityMethods', () => ({
   useMoneySecurityMethods: () => ({
     hasAlternativeSecurityMethod: mockHasAlternativeSecurityMethod,
   }),
-}));
-
-jest.mock('../../hooks/useMoneySecurityToast', () => ({
-  useMoneySecurityToast: () => mockShowSuccessToast,
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -62,29 +55,24 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 describe('MoneyDeletePasskeySheet', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
     jest.clearAllMocks();
     mockHasAlternativeSecurityMethod = true;
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
   it('confirms deletion in the bottom sheet', () => {
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByTestId, getAllByText } = renderWithProvider(
       <MoneyDeletePasskeySheet />,
     );
 
-    expect(getByText('Delete passkey')).toBeOnTheScreen();
+    expect(getAllByText('Delete passkey')).toHaveLength(2);
     fireEvent.press(getByTestId(MoneyDeletePasskeySheetTestIds.CONFIRM_BUTTON));
-    act(() => jest.advanceTimersByTime(900));
 
-    expect(mockDeletePasskey).toHaveBeenCalledWith(0);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.PASSKEYS, {
-      entryPoint: 'security',
-    });
-    expect(mockShowSuccessToast).toHaveBeenCalledWith('Passkey deleted');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MONEY.SECURITY_VERIFICATION,
+      {
+        action: { type: 'delete-passkey', passkeyIndex: 0 },
+      },
+    );
   });
 
   it('prevents deleting the only security method', () => {

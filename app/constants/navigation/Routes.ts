@@ -480,6 +480,7 @@ const Routes = {
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     MANAGE_SECURITY: 'MoneyManageSecurity',
+    SECURITY_VERIFICATION: 'MoneySecurityVerification',
     PASSKEYS: 'MoneyPasskeys',
     PASSKEY_DETAILS: 'MoneyPasskeyDetails',
     AUTHENTICATOR: 'MoneyAuthenticator',

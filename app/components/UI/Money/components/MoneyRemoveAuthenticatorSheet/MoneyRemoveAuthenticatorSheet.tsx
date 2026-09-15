@@ -46,23 +46,20 @@ const MoneyRemoveAuthenticatorSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { passkeyCount } = useMoneyFinishSetup();
-  const { isSmsAdded, isSocialAdded, isSocialLogin, removeAuthenticator } =
-    useMoneySecurityMethods();
-  const canRemove =
-    passkeyCount > 0 || isSmsAdded || (!isSocialLogin && isSocialAdded);
+  const { isSmsAdded } = useMoneySecurityMethods();
+  const canRemove = passkeyCount > 0 || isSmsAdded;
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
   const handleRemove = useCallback(() => {
-    removeAuthenticator();
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.MONEY.MANAGE_SECURITY, {
-        successToast: strings('money.authenticator_details.removed_toast'),
+      navigation.navigate(Routes.MONEY.SECURITY_VERIFICATION, {
+        action: { type: 'remove-authenticator' },
       });
     });
-  }, [navigation, removeAuthenticator]);
+  }, [navigation]);
 
   return (
     <BottomSheet
