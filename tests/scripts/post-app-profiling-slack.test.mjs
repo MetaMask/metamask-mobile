@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   isUserId,
-  resolveChannel,
+  openDirectMessage,
   buildText,
   postSummary,
 } from './post-app-profiling-slack.mjs';
@@ -24,28 +24,18 @@ test('isUserId distinguishes user ids from conversation ids', () => {
   assert.equal(isUserId(''), false);
 });
 
-test('resolveChannel opens a DM for a user id', async () => {
+test('openDirectMessage resolves the bot DM channel for a user id', async () => {
   const calls = [];
   const fetchFn = async (url, init) => {
     calls.push({ url, body: JSON.parse(init.body) });
     return jsonResponse({ ok: true, channel: { id: 'D123RESOLVED' } });
   };
 
-  const channel = await resolveChannel('UEYQL2PEV', 'token', { fetchFn });
+  const channel = await openDirectMessage('UEYQL2PEV', 'token', { fetchFn });
 
   assert.equal(channel, 'D123RESOLVED');
   assert.match(calls[0].url, /conversations\.open$/);
   assert.equal(calls[0].body.users, 'UEYQL2PEV');
-});
-
-test('resolveChannel passes channel ids straight through', async () => {
-  const fetchFn = async () => {
-    throw new Error('should not call Slack for a channel id');
-  };
-  assert.equal(
-    await resolveChannel('C0BTXK2MAE5', 'token', { fetchFn }),
-    'C0BTXK2MAE5',
-  );
 });
 
 test('buildText appends the run link and truncates long input', () => {
@@ -60,13 +50,10 @@ test('buildText appends the run link and truncates long input', () => {
   assert.match(long, /Truncated for Slack\./);
 });
 
-test('postSummary opens the DM then posts with unfurling disabled', async () => {
+test('postSummary addresses a user id directly, without needing im:write', async () => {
   const calls = [];
   const fetchFn = async (url, init) => {
     calls.push({ url, body: JSON.parse(init.body) });
-    if (url.endsWith('conversations.open')) {
-      return jsonResponse({ ok: true, channel: { id: 'D999' } });
-    }
     return jsonResponse({ ok: true, ts: '1789.0001' });
   };
 
@@ -80,21 +67,50 @@ test('postSummary opens the DM then posts with unfurling disabled', async () => 
     { fetchFn },
   );
 
-  assert.deepEqual(result, { channel: 'D999', ts: '1789.0001' });
-  const post = calls[1];
-  assert.match(post.url, /chat\.postMessage$/);
-  assert.equal(post.body.channel, 'D999');
-  assert.match(post.body.text, /\*summary\*/);
-  assert.equal(post.body.unfurl_links, false);
+  assert.deepEqual(result, { channel: 'UEYQL2PEV', ts: '1789.0001' });
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].url, /chat\.postMessage$/);
+  assert.equal(calls[0].body.channel, 'UEYQL2PEV');
+  assert.match(calls[0].body.text, /\*summary\*/);
+  assert.equal(calls[0].body.unfurl_links, false);
 });
 
-test('postSummary surfaces Slack API errors', async () => {
-  const fetchFn = async () => jsonResponse({ ok: false, error: 'channel_not_found' });
+test('postSummary falls back to opening a DM when the direct post is rejected', async () => {
+  const calls = [];
+  const fetchFn = async (url, init) => {
+    calls.push(url.split('/').pop());
+    if (url.endsWith('chat.postMessage')) {
+      const body = JSON.parse(init.body);
+      if (body.channel === 'UEYQL2PEV') {
+        return jsonResponse({ ok: false, error: 'channel_not_found' });
+      }
+      return jsonResponse({ ok: true, ts: '1789.0002' });
+    }
+    return jsonResponse({ ok: true, channel: { id: 'D999' } });
+  };
+
+  const result = await postSummary(
+    { markdown: 'x', target: 'UEYQL2PEV', token: 'token' },
+    { fetchFn },
+  );
+
+  assert.deepEqual(result, { channel: 'D999', ts: '1789.0002' });
+  assert.deepEqual(calls, [
+    'chat.postMessage',
+    'conversations.open',
+    'chat.postMessage',
+  ]);
+});
+
+test('postSummary surfaces Slack errors for a channel target without retrying', async () => {
+  const calls = [];
+  const fetchFn = async (url) => {
+    calls.push(url);
+    return jsonResponse({ ok: false, error: 'channel_not_found' });
+  };
   await assert.rejects(
-    postSummary(
-      { markdown: 'x', target: 'C123', token: 'token' },
-      { fetchFn },
-    ),
+    postSummary({ markdown: 'x', target: 'C123', token: 'token' }, { fetchFn }),
     /channel_not_found/,
   );
+  assert.equal(calls.length, 1);
 });

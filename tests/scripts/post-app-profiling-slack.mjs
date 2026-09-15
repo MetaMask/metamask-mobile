@@ -52,14 +52,17 @@ function isUserId(target) {
 }
 
 /**
- * Resolves the channel to post into. User ids are converted to the bot's own
- * DM channel, which is the only DM a bot token can write to.
+ * Opens the bot's own DM with a user. Needs `im:write`, which the token may
+ * not carry, so callers treat a failure here as non-fatal and fall back to
+ * addressing the user id directly.
  */
-async function resolveChannel(target, token, options = {}) {
-  if (!isUserId(target)) {
-    return target;
-  }
-  const body = await slackApi('conversations.open', token, { users: target }, options);
+async function openDirectMessage(target, token, options = {}) {
+  const body = await slackApi(
+    'conversations.open',
+    token,
+    { users: target },
+    options,
+  );
   const channelId = body.channel?.id;
   if (!channelId) {
     throw new Error(`conversations.open returned no channel for ${target}`);
@@ -78,20 +81,42 @@ function buildText(markdown, runUrl) {
   return text;
 }
 
-async function postSummary({ markdown, target, token, runUrl }, options = {}) {
-  const channel = await resolveChannel(target, token, options);
+async function post(channel, text, token, options) {
   const body = await slackApi(
     'chat.postMessage',
     token,
     {
       channel,
-      text: buildText(markdown, runUrl),
+      text,
       unfurl_links: false,
       unfurl_media: false,
     },
     options,
   );
   return { channel, ts: body.ts };
+}
+
+/**
+ * Posts the summary, addressing a user id directly first because that only
+ * needs `chat:write`. Opening the DM explicitly needs the extra `im:write`
+ * scope, so it is a fallback rather than the default path.
+ */
+async function postSummary({ markdown, target, token, runUrl }, options = {}) {
+  const text = buildText(markdown, runUrl);
+
+  try {
+    return await post(target, text, token, options);
+  } catch (error) {
+    if (!isUserId(target)) {
+      throw error;
+    }
+    console.log(
+      `Direct post to ${target} failed (${error.message}); opening a DM instead`,
+    );
+  }
+
+  const channel = await openDirectMessage(target, token, options);
+  return post(channel, text, token, options);
 }
 
 async function main() {
@@ -128,4 +153,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { isUserId, resolveChannel, buildText, postSummary };
+export { isUserId, openDirectMessage, buildText, postSummary };
