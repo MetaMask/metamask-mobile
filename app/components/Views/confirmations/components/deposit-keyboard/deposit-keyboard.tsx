@@ -106,9 +106,11 @@ export const DepositKeyboard = memo(
             buttons.map(({ label, value: buttonValue }) => (
               <Button
                 key={buttonValue}
-                style={styles.button}
+                size={ButtonBaseSize.Lg}
                 onPress={() => handlePercentagePress(buttonValue)}
                 variant={ButtonVariant.Secondary}
+                // Match Keypad.Button border radius
+                twClassName="flex-1 rounded-xl mb-3"
               >
                 {label}
               </Button>
@@ -120,8 +122,8 @@ export const DepositKeyboard = memo(
               isDisabled={isDoneDisabled}
               size={ButtonBaseSize.Lg}
               isFullWidth
-              twClassName="mb-3"
               variant={ButtonVariant.Primary}
+              twClassName="mb-3"
             >
               {doneLabel ?? strings('confirm.edit_amount_done')}
             </Button>
