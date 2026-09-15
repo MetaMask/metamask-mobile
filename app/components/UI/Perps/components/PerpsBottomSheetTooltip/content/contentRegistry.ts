@@ -40,4 +40,5 @@ export const tooltipContentRegistry: ContentRegistry = {
   pay_with: undefined,
   slippage: undefined,
   size_skew: undefined,
+  twap_runtime: undefined,
 };

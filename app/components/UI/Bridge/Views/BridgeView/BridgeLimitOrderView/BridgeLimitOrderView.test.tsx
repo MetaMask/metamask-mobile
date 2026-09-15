@@ -15,6 +15,7 @@ import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
 import {
   LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
   getSwapsLimitOrderExpirationLabel,
 } from '../../../constants/limitOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
@@ -309,6 +310,7 @@ function buildPriceAdjustMock() {
     limitPrice: '1',
     marketComparison: undefined,
     isTriggerPriceNearMarket: false,
+    priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
     onAmountTypeTogglePress: undefined,
     onQuoteUnitPress: jest.fn(),
     quotedSymbol: 'USDC',

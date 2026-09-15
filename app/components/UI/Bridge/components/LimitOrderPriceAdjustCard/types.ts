@@ -1,6 +1,9 @@
 import type { Ref } from 'react';
 import type { TextInputSelectionChangeEvent } from 'react-native';
-import type { LimitOrderExecutionType } from '../../constants/limitOrders';
+import type {
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../constants/limitOrders';
 import type { InputSectionRef } from './InputSection/types';
 import type { ButtonPricePresetsSectionRef } from './ButtonPricePresetsSection/types';
 
@@ -76,6 +79,11 @@ export interface LimitOrderPriceAdjustCardProps {
    * order may fill instantly.
    */
   isTriggerPriceNearMarket?: boolean;
+  /**
+   * Which way the trigger-price copy reads. Defaults to the order side's
+   * comparison when omitted.
+   */
+  priceComparisonDirection?: LimitOrderPriceComparisonDirection;
   /**
    * Percent offsets from market rendered as preset buttons, e.g. `[5, 10]`.
    */
