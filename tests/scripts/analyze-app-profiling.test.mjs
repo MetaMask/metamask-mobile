@@ -142,6 +142,32 @@ test('summarizeHermesProfile reads samples and stackFrames', () => {
   assert.equal(summary.topInclusiveFrames[0].sharePct, 100);
 });
 
+test('inclusive frame percentages deduplicate recursion within one sample', () => {
+  const summary = summarizeHermesProfile({
+    samples: [{ sf: 3, weight: '1', ts: '1000' }],
+    stackFrames: {
+      1: { name: '[root]', category: 'root' },
+      2: {
+        name: 'recursiveWalk',
+        category: 'JavaScript',
+        parent: 1,
+        funcVirtAddr: '1',
+        offset: '10',
+      },
+      3: {
+        name: 'recursiveWalk',
+        category: 'JavaScript',
+        parent: 2,
+        funcVirtAddr: '1',
+        offset: '10',
+      },
+    },
+  });
+  assert.equal(summary.topInclusiveFrames[0].name, 'recursiveWalk');
+  assert.equal(summary.topInclusiveFrames[0].samples, 1);
+  assert.equal(summary.topInclusiveFrames[0].sharePct, 100);
+});
+
 test('groupProfiles combines logical segment 1 through N into one scenario', () => {
   const grouped = groupProfiles([
     profile('browserstack-android-Cold_Start.cpuprofile'),

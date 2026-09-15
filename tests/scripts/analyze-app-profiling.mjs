@@ -286,10 +286,11 @@ function summarizeHermesProfile(profile) {
     totalWeight += weight;
     let frameId = String(sample.sf);
     let isLeaf = true;
-    const visited = new Set();
+    const visitedFrameIds = new Set();
+    const inclusiveKeysInSample = new Set();
 
-    while (frameId && !visited.has(frameId)) {
-      visited.add(frameId);
+    while (frameId && !visitedFrameIds.has(frameId)) {
+      visitedFrameIds.add(frameId);
       const frame = frames[frameId];
       if (!frame) {
         break;
@@ -307,9 +308,15 @@ function summarizeHermesProfile(profile) {
         selfCounts.set(key, current);
         isLeaf = false;
       }
-      const inclusive = inclusiveCounts.get(key) || { ...base, samples: 0 };
-      inclusive.samples += weight;
-      inclusiveCounts.set(key, inclusive);
+      // Recursion can put the same function at several frame ids in one
+      // sampled stack. Count its inclusive presence once per sample so a
+      // percentage can never exceed 100%.
+      if (!inclusiveKeysInSample.has(key)) {
+        inclusiveKeysInSample.add(key);
+        const inclusive = inclusiveCounts.get(key) || { ...base, samples: 0 };
+        inclusive.samples += weight;
+        inclusiveCounts.set(key, inclusive);
+      }
       frameId = frame.parent == null ? null : String(frame.parent);
     }
   }
