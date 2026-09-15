@@ -8,9 +8,14 @@
  * requests that is pure noise. Sign-out (`clearBrazeUser`) is intentionally
  * left ungated so the previous user's session-end event is preserved.
  *
+ * The flag is held for the whole reset, not just the vault creation: the
+ * throwaway vault is signed in by `useAutoSignIn` from a React effect on a
+ * later tick (after `dispatchLogin`), so clearing the flag as soon as the
+ * vault promise resolves would let that deferred effect slip through. It is
+ * cleared only after the app is locked.
+ *
  * Module-level (not Redux) because it is read synchronously from the Braze
- * hook's effect and must be set/cleared within the same tick as the temp
- * vault creation, without going through a dispatch.
+ * hook's effect and must be set/cleared without going through a dispatch.
  */
 let resetInProgress = false;
 

@@ -1761,21 +1761,21 @@ class AuthenticationService {
       // data (with the still-present old tokens) only to discard it in resetAll.
       Engine.context.CardController.setResetInProgress(true);
 
+      // Suppress Braze identity sync for the whole reset. The throwaway vault
+      // below is signed in by `useAutoSignIn` from a React effect on a later
+      // tick (after `dispatchLogin`), so the flag must stay set until the app
+      // is locked — clearing it when `newWalletAndKeychain` returns would let
+      // that deferred effect fire a `changeUser` + banner refresh for a wallet
+      // that is discarded immediately, which is pure request noise.
+      setBrazeResetInProgress(true);
+
       // Previous profile must be gone before the throwaway vault unlocks.
       this.clearAuthSession();
 
       try {
-        // Suppress Braze identity sync for the throwaway vault below: its
-        // sign-in would fire a `changeUser` + banner refresh for a wallet that
-        // is discarded immediately, which is pure request noise.
-        setBrazeResetInProgress(true);
-        try {
-          await this.newWalletAndKeychain(`${Date.now()}`, {
-            currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-          });
-        } finally {
-          setBrazeResetInProgress(false);
-        }
+        await this.newWalletAndKeychain(`${Date.now()}`, {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
 
         Engine.context.SeedlessOnboardingController.clearState();
 
@@ -1795,6 +1795,9 @@ class AuthenticationService {
         // Throwaway vault may have signed in while unlocked. Always wipe,
         // including when a later step throws and resetWalletState swallows it.
         this.clearAuthSession();
+        // The deferred `useAutoSignIn` effect has run by now (the app is
+        // locked), so Braze identity sync can react to sign-in again.
+        setBrazeResetInProgress(false);
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
         // ALWAYS re-enable Card reactive fetching, even if an error occurs
