@@ -36,6 +36,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ChompApiService',
   'SentinelApiService',
   'PredictMarketDataService',
+  'PredictLiveDataService',
   'PredictPortfolioService',
 ] as const;
 
