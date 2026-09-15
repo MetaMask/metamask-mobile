@@ -26,6 +26,7 @@ interface PerpsAmountDisplayProps {
   showWarning?: boolean;
   warningMessage?: string;
   onPress?: () => void;
+  accessibilityLabel?: string;
   isActive?: boolean;
   label?: string;
   showTokenAmount?: boolean;
@@ -41,6 +42,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   showWarning = false,
   warningMessage = strings('perps.deposit.no_funds_available'),
   onPress,
+  accessibilityLabel,
   isActive = false,
   label,
   showTokenAmount = false,
@@ -160,6 +162,8 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     return (
       <TouchableOpacity
         testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
         onPress={onPress}
         activeOpacity={0.7}
       >

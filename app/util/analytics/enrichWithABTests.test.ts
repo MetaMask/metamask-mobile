@@ -351,7 +351,7 @@ describe('enrichWithABTests', () => {
     ]);
   });
 
-  it('does not attach the Perps screen-vs-bottom-sheet assignment to unrelated Perps events', () => {
+  it('attaches the Perps screen-vs-bottom-sheet assignment to Trade screen events', () => {
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     ).build();
@@ -360,7 +360,12 @@ describe('enrichWithABTests', () => {
       [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: 'treatment',
     });
 
-    expect(result.properties.active_ab_tests).toBeUndefined();
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+        'treatment',
+      ),
+    ]);
   });
 
   it('leaves non-A/B properties and sensitive properties unchanged', () => {

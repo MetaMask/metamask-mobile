@@ -223,6 +223,7 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
+      const useBottomSheet = Boolean(params.useBottomSheet);
       withPendingTransactionActiveAbTests(
         params.transactionActiveAbTests,
         depositWithOrder,
@@ -232,8 +233,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             {
               ...params,
-              showPerpsHeader:
-                CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
+              showPerpsHeader: useBottomSheet
+                ? false
+                : CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
           );
         })

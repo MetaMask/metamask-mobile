@@ -140,6 +140,20 @@ describe('PerpsAmountDisplay', () => {
       expect(onPressMock).toHaveBeenCalledTimes(1);
     });
 
+    it('exposes an accessible button label when interactive', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          onPress={jest.fn()}
+          accessibilityLabel="Order amount, 1000"
+        />,
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Order amount, 1000' }),
+      ).toBeOnTheScreen();
+    });
+
     it('handles press gracefully when onPress is not provided', () => {
       // Arrange
       const amount = '1000';

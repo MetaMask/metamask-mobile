@@ -81,6 +81,14 @@ import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
+import PerpsTradeBottomSheet from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
+import PerpsTradeScreen, {
+  PerpsTradePlaceholderScreen,
+} from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
+import {
+  PerpsTradeLeverageScreen,
+  PerpsTradePayWithScreen,
+} from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
@@ -136,6 +144,7 @@ import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
+import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import {
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -200,12 +209,14 @@ interface OrderRouteParams {
   chartLibrary?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
+  useBottomSheet?: boolean;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
+  useBottomSheet?: boolean;
 }
 
 /**
@@ -223,6 +234,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
   defaultSzDecimals,
   defaultMaxLeverage,
+  useBottomSheet = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
@@ -337,6 +349,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     balanceForValidation: spendableBalance,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
+  const { assetUrl } = usePerpsAssetMetadata(orderForm.asset);
 
   // Live slider display value for immediate UI feedback while dragging. The
   // committed `orderForm.amount` only updates on drag end, since it drives
@@ -1772,6 +1785,165 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     rewardAnimationState = RewardAnimationState.ErrorState;
   }
 
+  const handleLeverageConfirm = useCallback(
+    (leverage: number, inputMethod?: 'slider' | 'preset') => {
+      setLeverage(leverage);
+
+      const effectiveAmount = isDraggingSlider
+        ? liveDragAmount
+        : orderForm.amount;
+      const currentAmount = parseFloat(effectiveAmount || '0');
+      const newMaxAmount = spendableBalance * leverage;
+      if (currentAmount > newMaxAmount) {
+        commitAmount(Math.floor(newMaxAmount).toString());
+      } else if (isDraggingSlider) {
+        commitAmount(effectiveAmount);
+      }
+
+      setIsLeverageVisible(false);
+
+      const eventProperties: Record<string, string | number> = {
+        [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+        [PERPS_EVENT_PROPERTY.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PERPS_EVENT_VALUE.DIRECTION.LONG
+            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+        [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: leverage,
+        [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: orderForm.leverage,
+      };
+      if (inputMethod) {
+        eventProperties[PERPS_EVENT_PROPERTY.INPUT_METHOD] =
+          inputMethod === 'slider'
+            ? PERPS_EVENT_VALUE.INPUT_METHOD.SLIDER
+            : PERPS_EVENT_VALUE.INPUT_METHOD.PRESET;
+      }
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        ...eventProperties,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.LEVERAGE_CHANGED,
+        [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
+          PERPS_EVENT_VALUE.SETTING_TYPE.LEVERAGE,
+      });
+    },
+    [
+      commitAmount,
+      isDraggingSlider,
+      liveDragAmount,
+      orderForm.amount,
+      orderForm.asset,
+      orderForm.direction,
+      orderForm.leverage,
+      setLeverage,
+      spendableBalance,
+      track,
+    ],
+  );
+
+  if (useBottomSheet) {
+    const currentMarketPrice = assetData.price;
+    const numericLiquidationPrice = Number.parseFloat(liquidationPrice);
+    const liquidationPercentage =
+      currentMarketPrice > 0 &&
+      Number.isFinite(numericLiquidationPrice) &&
+      numericLiquidationPrice > 0
+        ? `${(
+            (Math.abs(currentMarketPrice - numericLiquidationPrice) /
+              currentMarketPrice) *
+            100
+          ).toFixed(2)}%`
+        : undefined;
+    const totalFeeRate =
+      (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
+    const feePercentage =
+      totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+    const payWithLabel = isPayTokenPerpsBalance
+      ? `${strings('perps.adjust_margin.perps_balance')} (${formatPerpsFiat(
+          account?.totalBalance ?? '0',
+          { ranges: PRICE_RANGES_MINIMAL_VIEW },
+        )})`
+      : `${payToken?.symbol ?? ''} (${formatPerpsFiat(payTokenBalanceUsd, {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        })})`;
+    const submitDisabled =
+      !orderValidation.isValid ||
+      isPlacingOrder ||
+      doesStopLossRiskLiquidation ||
+      hasInvalidTPSL ||
+      isAtOICap ||
+      shouldBlockBecauseOfFeesLoading ||
+      hasBlockingPayAlerts;
+
+    return (
+      <PerpsTradeBottomSheet
+        onClose={() => navigation.goBack()}
+        screens={{
+          trade: (
+            <PerpsTradeScreen
+              asset={getPerpsDisplaySymbol(orderForm.asset)}
+              assetIconUrl={assetUrl}
+              direction={orderForm.direction}
+              leverage={orderForm.leverage}
+              maxLeverage={maxLeverage ?? defaultMaxLeverage ?? 40}
+              amount={displayAmount}
+              tokenAmount={livePositionSize}
+              sliderMaximum={maxPossibleAmount}
+              isAmountDisabled={isAmountDisabled}
+              isAmountLoading={isLoadingAccount}
+              isInputFocused={isInputFocused}
+              liquidationPrice={
+                hasValidAmount
+                  ? formatPerpsFiat(liquidationPrice, {
+                      ranges: PRICE_RANGES_UNIVERSAL,
+                    })
+                  : undefined
+              }
+              liquidationPercentage={liquidationPercentage}
+              payWithLabel={payWithLabel}
+              feePercentage={feePercentage}
+              isSubmitting={isPlacingOrder}
+              isSubmitDisabled={submitDisabled}
+              onAmountPress={handleAmountPress}
+              onSliderValueChange={handleSliderValueChange}
+              onSliderDragEnd={handleSliderDragEnd}
+              onKeypadChange={handleKeypadChange}
+              onPercentagePress={handlePercentagePress}
+              onMaxPress={handleMaxPress}
+              onDonePress={handleDonePress}
+              onLeverageChange={(value) =>
+                handleLeverageConfirm(value, 'preset')
+              }
+              onSubmit={() => handlePlaceOrder()}
+            />
+          ),
+          leverage: (
+            <PerpsTradeLeverageScreen
+              onConfirm={handleLeverageConfirm}
+              leverage={orderForm.leverage}
+              minLeverage={1}
+              maxLeverage={maxLeverage ?? defaultMaxLeverage ?? 40}
+              currentPrice={assetData.price}
+              direction={orderForm.direction}
+              asset={orderForm.asset}
+              limitPrice={orderForm.limitPrice}
+              orderType={orderForm.type}
+            />
+          ),
+          payWith: <PerpsTradePayWithScreen />,
+          settings: (
+            <PerpsTradePlaceholderScreen
+              title={strings('perps.trade_sheet.settings')}
+            />
+          ),
+          orderSummary: (
+            <PerpsTradePlaceholderScreen
+              title={strings('perps.trade_sheet.order_summary')}
+            />
+          ),
+        }}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header */}
@@ -2433,6 +2605,7 @@ const PerpsOrderView: React.FC = () => {
     hideTPSL = false,
     defaultSzDecimals,
     defaultMaxLeverage,
+    useBottomSheet = false,
   } = route.params || {};
 
   // `payToken.balanceUsd` is a one-time controller snapshot taken when the
@@ -2460,6 +2633,7 @@ const PerpsOrderView: React.FC = () => {
         hideTPSL={hideTPSL}
         defaultSzDecimals={defaultSzDecimals}
         defaultMaxLeverage={defaultMaxLeverage}
+        useBottomSheet={useBottomSheet}
       />
     </PerpsOrderProvider>
   );

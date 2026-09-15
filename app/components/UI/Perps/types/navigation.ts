@@ -75,6 +75,8 @@ export type PerpsOrderRouteParams = {
   /** Analytics: chart library active when the order flow started */
   chartLibrary?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
+  useBottomSheet?: boolean;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.

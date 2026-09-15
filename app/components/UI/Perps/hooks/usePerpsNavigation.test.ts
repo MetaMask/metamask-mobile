@@ -71,7 +71,6 @@ describe('usePerpsNavigation', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
@@ -354,6 +353,28 @@ describe('usePerpsNavigation', () => {
             ...params,
             showPerpsHeader:
               CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
+          },
+        );
+      });
+    });
+
+    it('opens order confirmation as a headerless bottom sheet for treatment', async () => {
+      const { result } = renderHook(() => usePerpsNavigation());
+      const params = {
+        direction: 'long' as const,
+        asset: 'SOL',
+        useBottomSheet: true,
+      };
+
+      result.current.navigateToOrder(params);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            ...params,
+            useBottomSheet: true,
+            showPerpsHeader: false,
           },
         );
       });
