@@ -23,6 +23,11 @@ export interface TabItem {
   content: React.ReactNode;
   isDisabled?: boolean;
   testID?: string;
+  /**
+   * Renders a dot after the label, for a tab holding something the user has
+   * not seen or acted on yet
+   */
+  showsIndicatorDot?: boolean;
 }
 
 /**
@@ -49,4 +54,12 @@ export interface TabsBarProps extends BoxComponentProps {
    * Tailwind CSS classes to apply to the main container
    */
   twClassName?: string;
+  /**
+   * Whether the tabs stretch to share the bar's width equally instead of
+   * hugging their labels. Full-width tabs never overflow, so the bar does not
+   * scroll.
+   *
+   * @default false
+   */
+  isFullWidth?: boolean;
 }
