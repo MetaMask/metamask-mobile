@@ -92,9 +92,6 @@ jest.mock('../Braze/resetInProgress', () => {
       value = next;
     }),
     isBrazeResetInProgress: () => value,
-    resetBrazeResetInProgressForTesting: () => {
-      value = false;
-    },
   };
 });
 

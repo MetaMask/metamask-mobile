@@ -10,10 +10,7 @@ import {
   selectIsSignedIn,
 } from '../../../../selectors/identity';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import {
-  resetBrazeResetInProgressForTesting,
-  setBrazeResetInProgress,
-} from '../../resetInProgress';
+import { setBrazeResetInProgress } from '../../resetInProgress';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -124,7 +121,6 @@ describe('useBrazeIdentity', () => {
     mockClearBrazeUser.mockResolvedValue(true);
     mockRetryPendingBrazePushUnregistration.mockResolvedValue(true);
     mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
-    resetBrazeResetInProgressForTesting();
     mockUseSelector.mockImplementation((selector) => {
       const state = createState(
         mockIsSignedIn,
