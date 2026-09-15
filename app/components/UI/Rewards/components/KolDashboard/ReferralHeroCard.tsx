@@ -24,6 +24,7 @@ import {
   KOL_EARNINGS_FIXTURE,
   KOL_REFERRAL_CODE_FALLBACK,
 } from './rewardsUiFixtures';
+import { HistoryKindAvatar } from './EarningsHistoryRows';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
 import RewardsMetricCard from './RewardsMetricCard';
 import ShareCodeSheet from './ShareCodeSheet';
@@ -98,7 +99,7 @@ const ReferralHeroCard: React.FC<ReferralHeroCardProps> = ({
       </Box>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         <RewardsMetricCard
-          avatar={<MetricAvatar iconName={IconName.UserCircleAdd} />}
+          avatar={<HistoryKindAvatar kind="referrals" />}
           label={strings('rewards.kol.referrals')}
           amount={formatUsd(KOL_EARNINGS_FIXTURE.referralsRecorded)}
           onPress={onViewEarnings}

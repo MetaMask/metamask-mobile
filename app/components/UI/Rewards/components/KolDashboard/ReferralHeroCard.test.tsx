@@ -14,6 +14,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../../../../../images/rewards/users-three.svg', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockUsersThreeIcon() {
+    return ReactActual.createElement(View, { testID: 'mock-users-three-icon' });
+  };
+});
+
 jest.mock('./ShareCodeSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
