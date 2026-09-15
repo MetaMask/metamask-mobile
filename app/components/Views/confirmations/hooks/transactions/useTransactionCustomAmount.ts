@@ -141,13 +141,13 @@ export function useTransactionCustomAmount({
     setPrefetchedQuotePayTokenKey(undefined);
   }, [payToken?.address, payToken?.chainId]);
 
-  const { isAmountUpdateQuotePipelineEnabled, updateTransactionPayAmount } =
+  const { isAmountPrefetchEnabled, updateTransactionPayAmount } =
     useUpdateTransactionPayAmount();
 
   const depositPrefill = useDepositPrefillAmount({ autoSelectFiatPayment });
 
   useEffect(() => {
-    if (!isMoneyAccountDeposit || !isAmountUpdateQuotePipelineEnabled) {
+    if (!isAmountPrefetchEnabled) {
       return;
     }
 
@@ -176,12 +176,7 @@ export function useTransactionCustomAmount({
       setPrefetchedQuoteAmountHuman(prefetchRequest.amountHuman);
       setPrefetchedQuotePayTokenKey(prefetchRequest.payTokenKey);
     }
-  }, [
-    isAmountUpdateQuotePipelineEnabled,
-    isMoneyAccountDeposit,
-    isQuoteLoading,
-    quotesLastUpdated,
-  ]);
+  }, [isAmountPrefetchEnabled, isQuoteLoading, quotesLastUpdated]);
 
   // Gating mirrors useFiatBuyLimitAlert so the keypad cap and the limit alert agree.
   const { enabledTransactionTypes } = useMMPayFiatConfig();
@@ -228,7 +223,7 @@ export function useTransactionCustomAmount({
   }, [amountHumanDebounced]);
 
   useEffect(() => {
-    if (!isAmountUpdateQuotePipelineEnabled || amountHumanDebounced === '0') {
+    if (!isAmountPrefetchEnabled || amountHumanDebounced === '0') {
       return;
     }
 
@@ -278,7 +273,7 @@ export function useTransactionCustomAmount({
     );
   }, [
     amountHumanDebounced,
-    isAmountUpdateQuotePipelineEnabled,
+    isAmountPrefetchEnabled,
     payTokenKey,
     updateTransactionPayAmount,
   ]);
@@ -504,7 +499,7 @@ export function useTransactionCustomAmount({
   ]);
 
   const hasPrefetchedQuote =
-    isAmountUpdateQuotePipelineEnabled &&
+    isAmountPrefetchEnabled &&
     prefetchedQuoteAmountHuman === amountHuman &&
     prefetchedQuotePayTokenKey === payTokenKey;
 
