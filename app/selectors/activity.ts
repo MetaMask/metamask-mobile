@@ -102,7 +102,7 @@ function buildTransactionGroups(
       : sortedRepresentatives;
     const initialTransaction = sorted[0];
     const primaryTransaction =
-      sortedRepresentatives[sortedRepresentatives.length - 1];
+      sortedRepresentatives.at(-1) ?? initialTransaction;
     const nonce = initialTransaction.txParams?.nonce;
 
     return {

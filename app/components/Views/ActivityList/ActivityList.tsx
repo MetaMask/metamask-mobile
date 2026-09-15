@@ -322,7 +322,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // chainId is a CaipChainId like eip155:1 — extract hex part
         const hexChainId = item.chainId.split(':')[1];
         if (!hexChainId) return false;
-        const hexFormatted = `0x${parseInt(hexChainId, 10).toString(16)}`;
+        const hexFormatted = `0x${Number.parseInt(hexChainId, 10).toString(16)}`;
         return allowed.has(hexFormatted.toLowerCase());
       });
     }, [allConfirmedFiltered, configuredEVMChainIds]);
@@ -396,7 +396,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         }
 
         const hexChainId = item.chainId.split(':')[1]
-          ? `0x${parseInt(item.chainId.split(':')[1], 10).toString(16)}`
+          ? `0x${Number.parseInt(item.chainId.split(':')[1], 10).toString(16)}`
           : '';
         const txChainId = (tx?.chainId ?? hexChainId).toLowerCase();
         const relatedChainIds = tx
