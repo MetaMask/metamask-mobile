@@ -187,8 +187,8 @@
     ]
   },
   "resolutions": {
-    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@22.0.0-preview-b7ffa92bf",
-    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@28.0.2-preview-b7ffa92bf",
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@22.0.0-preview-56ced5c22",
+    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@28.0.2-preview-56ced5c22",
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",
     "@metamask/geolocation-controller": "^1.0.0",
