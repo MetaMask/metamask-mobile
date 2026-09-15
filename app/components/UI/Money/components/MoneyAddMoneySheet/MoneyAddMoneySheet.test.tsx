@@ -204,7 +204,7 @@ describe('MoneyAddMoneySheet', () => {
     // It is a standalone VBA screen, not part of the crypto deposit flow.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampGetPixKey');
+    expect(mockNavigate).toHaveBeenCalledWith('RampVbaOnboarding');
   });
 
   it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {

@@ -167,7 +167,7 @@ const MoneyAddMoneySheet: React.FC = () => {
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.GET_PIX_KEY);
+      navigation.navigate(Routes.RAMP.VBA_ONBOARDING);
     });
   }, [navigation, trackSurfaceClicked]);
 
