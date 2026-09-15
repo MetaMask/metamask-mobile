@@ -12,19 +12,16 @@ const mockShowToast = jest.fn();
 const mockNavigate = jest.fn();
 const mockCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 let mockReturnToMoneyHome = false;
-let mockShowAuthenticatorAlternative = false;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: jest.fn(), navigate: mockNavigate }),
   useRoute: () => ({
-    params:
-      mockReturnToMoneyHome || mockShowAuthenticatorAlternative
-        ? {
-            returnToMoneyHome: mockReturnToMoneyHome,
-            showAuthenticatorAlternative: mockShowAuthenticatorAlternative,
-          }
-        : undefined,
+    params: mockReturnToMoneyHome
+      ? {
+          returnToMoneyHome: mockReturnToMoneyHome,
+        }
+      : undefined,
   }),
 }));
 
@@ -63,11 +60,10 @@ describe('MoneyAddSocialSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockReturnToMoneyHome = false;
-    mockShowAuthenticatorAlternative = false;
   });
 
   it('adds the selected provider and shows success', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <ToastContext.Provider
         value={{
           toastRef: {
@@ -82,9 +78,6 @@ describe('MoneyAddSocialSheet', () => {
       </ToastContext.Provider>,
     );
 
-    expect(
-      queryByTestId(MoneyAddSocialSheetTestIds.AUTHENTICATOR_BUTTON),
-    ).toBeNull();
     fireEvent.press(getByTestId(MoneyAddSocialSheetTestIds.GOOGLE_BUTTON));
 
     expect(mockAddSocial).toHaveBeenCalledWith('google');
@@ -129,26 +122,5 @@ describe('MoneyAddSocialSheet', () => {
         ],
       }),
     );
-  });
-
-  it('offers authenticator setup only from finish setup recovery', () => {
-    mockShowAuthenticatorAlternative = true;
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneyAddSocialSheet />,
-    );
-
-    expect(
-      getByText(
-        "Use this as a backup method to access your wallet in case you lose your Secret Recovery Phrase. You won't be able to disconnect this later.",
-      ),
-    ).toBeOnTheScreen();
-    expect(getByText('or')).toBeOnTheScreen();
-
-    fireEvent.press(
-      getByTestId(MoneyAddSocialSheetTestIds.AUTHENTICATOR_BUTTON),
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.AUTHENTICATOR, {
-      entryPoint: 'finish_setup',
-    });
   });
 });

@@ -98,7 +98,6 @@ const MoneyFinishSetupSheet = () => {
             screen: Routes.MONEY.MODALS.ADD_SOCIAL_SHEET,
             params: {
               returnToMoneyHome: true,
-              showAuthenticatorAlternative: true,
             },
           });
         });

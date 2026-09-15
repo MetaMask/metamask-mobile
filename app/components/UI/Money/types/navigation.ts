@@ -9,6 +9,11 @@ export enum MoneyPostOnboardingRedirectType {
 
 export type MoneyPasskeysEntryPoint = 'finish_setup' | 'security';
 export type MoneyAuthenticatorEntryPoint = 'finish_setup' | 'security';
+export type MoneySecurityVerificationAction =
+  | { type: 'disable-transaction-verification' }
+  | { type: 'delete-passkey'; passkeyIndex: number }
+  | { type: 'remove-authenticator' }
+  | { type: 'remove-sms' };
 
 export interface MoneyPreferredPaymentToken {
   address: Hex;
@@ -77,7 +82,6 @@ export type MoneyModalsNavigationParamList = {
   MoneyAddSocialSheet:
     | {
         returnToMoneyHome?: boolean;
-        showAuthenticatorAlternative?: boolean;
       }
     | undefined;
   MoneyRemoveSocialSheet: undefined;
@@ -96,6 +100,9 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: undefined;
     MoneyManageSecurity: { successToast?: string } | undefined;
+    MoneySecurityVerification: {
+      action: MoneySecurityVerificationAction;
+    };
     MoneyPasskeys: { entryPoint: MoneyPasskeysEntryPoint };
     MoneyPasskeyDetails: { passkeyIndex: number };
     MoneyAuthenticator: {

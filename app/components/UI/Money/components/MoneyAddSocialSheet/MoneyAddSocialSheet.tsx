@@ -9,9 +9,6 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -95,14 +92,6 @@ const MoneyAddSocialSheet = () => {
     ],
   );
 
-  const handleAuthenticatorAlternative = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.MONEY.AUTHENTICATOR, {
-        entryPoint: 'finish_setup',
-      });
-    });
-  }, [navigation]);
-
   return (
     <BottomSheet
       ref={sheetRef}
@@ -135,29 +124,6 @@ const MoneyAddSocialSheet = () => {
             appleTestID={MoneyAddSocialSheetTestIds.APPLE_BUTTON}
             telegramTestID={MoneyAddSocialSheetTestIds.TELEGRAM_BUTTON}
           />
-          {route.params?.showAuthenticatorAlternative && (
-            <>
-              <Box twClassName="flex-row items-center gap-3">
-                <Box twClassName="h-px flex-1 bg-border-muted" />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('money.social.or')}
-                </Text>
-                <Box twClassName="h-px flex-1 bg-border-muted" />
-              </Box>
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Lg}
-                isFullWidth
-                onPress={handleAuthenticatorAlternative}
-                testID={MoneyAddSocialSheetTestIds.AUTHENTICATOR_BUTTON}
-              >
-                {strings('money.passkeys.add_authenticator_instead')}
-              </Button>
-            </>
-          )}
         </Box>
       </Box>
     </BottomSheet>
