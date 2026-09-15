@@ -51,6 +51,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
+import { setBrazeResetInProgress } from '../Braze/resetInProgress';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
 import OAuthService from '../OAuthService/OAuthService';
 import {
@@ -1764,9 +1765,17 @@ class AuthenticationService {
       this.clearAuthSession();
 
       try {
-        await this.newWalletAndKeychain(`${Date.now()}`, {
-          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
-        });
+        // Suppress Braze identity sync for the throwaway vault below: its
+        // sign-in would fire a `changeUser` + banner refresh for a wallet that
+        // is discarded immediately, which is pure request noise.
+        setBrazeResetInProgress(true);
+        try {
+          await this.newWalletAndKeychain(`${Date.now()}`, {
+            currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+          });
+        } finally {
+          setBrazeResetInProgress(false);
+        }
 
         Engine.context.SeedlessOnboardingController.clearState();
 
