@@ -9065,6 +9065,8 @@
       "confirm": "Confirm",
       "preview_order": "Preview Order",
       "confirm_title": "Confirm recurring order",
+      "order_created_toast_title": "Order created",
+      "order_created_toast_body": "We'll let you know when it's filled.",
       "paying_all_orders": "Paying (all orders)",
       "paying_per_order": "Paying (per order)",
       "receiving": "Receiving",
