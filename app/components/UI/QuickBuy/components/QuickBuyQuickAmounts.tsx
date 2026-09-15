@@ -51,7 +51,7 @@ const QUICK_AMOUNT_PILL_PROPS = {
   textProps: QUICK_AMOUNT_PILL_TEXT_PROPS,
 } as const;
 
-const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 rounded-lg px-2';
+const QUICK_AMOUNT_PILL_TW_CLASS = 'min-w-0 flex-1 px-2';
 const QUICK_AMOUNT_PILL_COUNT = 4;
 const QUICK_AMOUNT_PILL_SKELETON_LABEL = 'quick-buy-quick-amount-pill-skeleton';
 
