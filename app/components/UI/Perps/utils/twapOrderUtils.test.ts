@@ -143,6 +143,8 @@ describe('reconcileTwapOrderExecution', () => {
 
     expect(reconciled.executedSize).toBe('0.0002');
     expect(reconciled.remainingSize).toBe('0');
+    expect(reconciled.executedNotional).toBe('16');
+    expect(reconciled.averagePrice).toBe('80000');
     expect(reconciled.fillProgressBps).toBe(10000);
   });
 

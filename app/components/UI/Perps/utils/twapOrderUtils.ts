@@ -47,7 +47,9 @@ export const getTwapDirectionLabelKey = (
  * the authoritative floor for what has executed.
  *
  * Totals are only ever raised: a venue snapshot that is ahead of the fills in
- * hand (capped or paginated fill history) stays authoritative.
+ * hand (capped or paginated fill history) stays authoritative. Fills summing
+ * past the scheduled size are capped at it, and the notional is scaled by the
+ * same cap so executed size, notional and average price stay in agreement.
  */
 export const reconcileTwapOrderExecution = (
   twapOrder: TwapOrder,
@@ -83,12 +85,17 @@ export const reconcileTwapOrderExecution = (
   const executedSize = totalSize.isGreaterThan(0)
     ? BigNumber.min(filledSize, totalSize)
     : filledSize;
+  // Scale the notional with the cap so the row never reports a notional that
+  // contradicts its own executed size and average price.
+  const executedNotional = executedSize.isEqualTo(filledSize)
+    ? filledNotional
+    : filledNotional.multipliedBy(executedSize).dividedBy(filledSize);
 
   return {
     ...twapOrder,
     executedSize: executedSize.toFixed(),
     remainingSize: BigNumber.max(totalSize.minus(executedSize), 0).toFixed(),
-    executedNotional: filledNotional.toFixed(),
+    executedNotional: executedNotional.toFixed(),
     averagePrice: filledNotional.dividedBy(filledSize).toFixed(),
     fillProgressBps: totalSize.isGreaterThan(0)
       ? executedSize
