@@ -187,7 +187,7 @@
     ]
   },
   "resolutions": {
-    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@20.2.0-preview-24ff6e049",
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@22.0.0-preview-95a403d7b",
     "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@28.0.2-preview-95a403d7b",
     "@metamask/network-controller": "36.0.0",
     "@metamask/analytics-controller": "^2.0.0",
