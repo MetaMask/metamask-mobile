@@ -1,0 +1,137 @@
+# Ad-hoc per-scenario app profiling analysis
+#
+# Downloads BrowserStack app-profiling JSON (and Hermes CPU profiles when
+# present) from a scheduled performance E2E run, flags heuristic issues, then
+# asks Claude to review each scenario.
+#
+# Ad-hoc only for now (workflow_dispatch). Does not replace the 6-hour
+# performance suite or the weekly rollup automation.
+
+name: Analyze App Profiling
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Performance workflow run id (blank = latest successful scheduled run on main)'
+        required: false
+        type: string
+        default: ''
+      scenario:
+        description: 'Optional exact scenario title filter (blank = all scenarios in the run)'
+        required: false
+        type: string
+        default: ''
+      baseline_run_id:
+        description: 'Optional prior run id to compare metrics against'
+        required: false
+        type: string
+        default: ''
+      skip_ai:
+        description: 'Skip Claude analysis (heuristics only)'
+        required: false
+        type: boolean
+        default: false
+      post_to_slack:
+        description: 'Post a short summary to the performance Slack webhook'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze per-scenario profiling
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Analyze app profiling
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          RUN_ID: ${{ inputs.run_id }}
+          SCENARIO: ${{ inputs.scenario }}
+          BASELINE_RUN_ID: ${{ inputs.baseline_run_id }}
+          SKIP_AI: ${{ inputs.skip_ai }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/analyze-app-profiling
+          ARGS=(
+            node tests/scripts/analyze-app-profiling.mjs
+            --out-dir /tmp/analyze-app-profiling
+            --repo "${GITHUB_REPOSITORY}"
+          )
+          if [ -n "${RUN_ID}" ]; then
+            ARGS+=(--run "${RUN_ID}")
+          fi
+          if [ -n "${SCENARIO}" ]; then
+            ARGS+=(--scenario "${SCENARIO}")
+          fi
+          if [ -n "${BASELINE_RUN_ID}" ]; then
+            ARGS+=(--baseline-run "${BASELINE_RUN_ID}")
+          fi
+          if [ "${SKIP_AI}" = "true" ]; then
+            ARGS+=(--skip-ai)
+          fi
+          "${ARGS[@]}"
+
+      - name: Write job summary
+        if: always()
+        run: |
+          if [ -f /tmp/analyze-app-profiling/github-summary.md ]; then
+            cat /tmp/analyze-app-profiling/github-summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No analysis summary was produced." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload analysis artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: app-profiling-analysis
+          path: /tmp/analyze-app-profiling/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Post Slack summary
+        if: ${{ success() && inputs.post_to_slack }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          if [ ! -f /tmp/analyze-app-profiling/slack.md ]; then
+            echo "No slack.md to post"
+            exit 0
+          fi
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          webhook = os.environ["SLACK_WEBHOOK_URL"]
+          with open("/tmp/analyze-app-profiling/slack.md", encoding="utf-8") as handle:
+              text = handle.read().strip()
+          if not webhook:
+              raise SystemExit("PERFORMANCE_E2E_SLACK_WEBHOOK_URL is empty")
+          payload = json.dumps({"text": text}).encode("utf-8")
+          request = urllib.request.Request(
+              webhook,
+              data=payload,
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(request) as response:
+              print(f"Slack webhook status: {response.status}")
+          PY
