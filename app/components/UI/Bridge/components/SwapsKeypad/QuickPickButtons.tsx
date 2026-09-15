@@ -27,7 +27,7 @@ export const QuickPickButtons = ({ options, show }: Props) => {
           size={ButtonBaseSize.Lg}
           onPress={option.onPress}
           style={styles.button}
-          twClassName="rounded-lg"
+          twClassName="rounded-xl"
         >
           {option.label}
         </Button>
