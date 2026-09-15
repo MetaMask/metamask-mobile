@@ -89,7 +89,10 @@ async function findProbeElement(
 
   for (const attempt of attempts) {
     try {
-      return await attempt();
+      const el = await attempt();
+      if (await el.unwrap().isExisting()) {
+        return el;
+      }
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
     }
@@ -180,6 +183,9 @@ export async function addAppScreenTtcTimer(options: {
       options.platform,
     );
     timer.recordDuration(durationMs);
+    // Keep TTC as a report step, but do not double-count it in scenario total
+    // (nav/flow timers already include wall time overlapping this screen).
+    timer.includeInTotal = false;
     options.performanceTracker.addTimer(timer);
     return durationMs;
   } catch (error) {

@@ -22,6 +22,8 @@ class TimerHelper {
   private _baseThreshold: number | null;
   private readonly _platform?: 'android' | 'ios';
 
+  includeInTotal = true;
+
   /**
    * Creates a new TimerHelper and registers a timer in the store.
    * @param id - Timer description/identifier
