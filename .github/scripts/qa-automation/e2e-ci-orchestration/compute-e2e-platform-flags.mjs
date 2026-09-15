@@ -32,11 +32,10 @@ function computeE2EPlatformFlags(input) {
   const isStableTarget =
     githubEventName === 'pull_request' && prBaseRef === 'stable';
 
-  // PRs into main/release/* do not build iOS from path filters alone. Two
-  // labels opt back in — see applyE2ELabelOverrides.
+  // PRs do not build iOS from path filters alone. Labels opt back in — see
+  // applyE2ELabelOverrides.
   const isIOSOptInRequiredForPullRequest =
-    githubEventName === 'pull_request' &&
-    (prBaseRef === 'main' || prBaseRef.startsWith('release/'));
+    githubEventName === 'pull_request';
 
   if (isStableTarget) {
     message = 'Skipping E2E (stable branch synchronization PR)';

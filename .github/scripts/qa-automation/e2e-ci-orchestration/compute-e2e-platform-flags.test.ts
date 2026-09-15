@@ -26,7 +26,7 @@ describe('computeE2EPlatformFlags', () => {
 
     expect(result).toMatchObject({
       android: true,
-      ios: true,
+      ios: false,
       e2eNeeded: true,
       useMainBuildsForTestOnlyPrs: true,
       runSmartE2ESelection: true,
@@ -41,7 +41,8 @@ describe('computeE2EPlatformFlags', () => {
     });
 
     expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
-    expect(result.message).toBe('E2E for both platforms');
+    expect(result.ios).toBe(false);
+    expect(result.message).toContain('E2E for both platforms');
   });
 
   it('uses the current source for app code changes', () => {
@@ -56,7 +57,7 @@ describe('computeE2EPlatformFlags', () => {
 
     expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
     expect(result.android).toBe(true);
-    expect(result.ios).toBe(true);
+    expect(result.ios).toBe(false);
     expect(result.changedSpecFiles).toBe(
       'tests/smoke-appium/wallet/foo.spec.ts',
     );
@@ -185,7 +186,7 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.useMainBuildsForTestOnlyPrs).toBe(false);
   });
 
-  it('selects iOS only for iOS-only path filters outside request-only branches', () => {
+  it('suppresses iOS for iOS-only path filters on any PR target', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'feature/1',
@@ -197,10 +198,11 @@ describe('computeE2EPlatformFlags', () => {
 
     expect(result).toMatchObject({
       android: false,
-      ios: true,
-      e2eNeeded: true,
-      runSmartE2ESelection: true,
+      ios: false,
+      e2eNeeded: false,
+      runSmartE2ESelection: false,
     });
+    expect(result.message).toContain('iOS not requested for this PR');
   });
 
   it('runs both platforms for E2E test-only pushes', () => {
@@ -282,7 +284,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('drops iOS from both-platform selection for PRs targeting main', () => {
+  it('drops iOS from both-platform selection for PRs', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'main',
@@ -303,7 +305,7 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.message).toContain('iOS not requested for this PR');
   });
 
-  it('drops iOS from test-only selection for PRs targeting main', () => {
+  it('drops iOS from test-only selection for PRs', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'main',
@@ -317,7 +319,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('leaves no E2E to run when an iOS-only PR targets main', () => {
+  it('leaves no E2E to run when an iOS-only PR has no request label', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'main',
@@ -336,7 +338,7 @@ describe('computeE2EPlatformFlags', () => {
     });
   });
 
-  it('suppresses iOS for cherry-pick PRs targeting release/* without a request', () => {
+  it('suppresses iOS for any PR target without a request', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       prBaseRef: 'release/1.0.0',
@@ -356,7 +358,7 @@ describe('computeE2EPlatformFlags', () => {
     expect(result.message).toContain('iOS not requested for this PR');
   });
 
-  it('keys the main-PR iOS suppression off the event, not the ref', () => {
+  it('keys iOS suppression off the event, not the target branch', () => {
     const result = computeE2EPlatformFlags({
       ...baseInput,
       githubEventName: 'push',
