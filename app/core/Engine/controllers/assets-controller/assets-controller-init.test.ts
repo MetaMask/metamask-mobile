@@ -12,10 +12,6 @@ import {
   AssetsControllerMessenger,
 } from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import {
-  ASSETS_UNIFY_STATE_FLAG,
-  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-} from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
@@ -39,13 +35,7 @@ jest.mock('../../../../util/trace', () => ({
 
 const mockRemoteFeatureFlagController = {
   state: {
-    remoteFeatureFlags: {
-      [ASSETS_UNIFY_STATE_FLAG]: {
-        enabled: true,
-        featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-        minimumVersion: '1.0.0',
-      },
-    },
+    remoteFeatureFlags: {},
   },
 };
 
@@ -239,62 +229,7 @@ describe('assetsControllerInit', () => {
   });
 
   describe('isEnabled callback', () => {
-    it('returns true when feature flag is enabled with correct version', () => {
-      const requestMock = getInitRequestMock();
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(true);
-    });
-
-    it('returns false when feature flag is disabled', () => {
-      const requestMock = getInitRequestMock({
-        remoteFeatureFlagState: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: false,
-              featureVersion: null,
-              minimumVersion: null,
-            },
-          },
-        },
-      });
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(false);
-    });
-
-    it('returns true when feature version does not match while hardcoded on for development', () => {
-      const requestMock = getInitRequestMock({
-        remoteFeatureFlagState: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: '99',
-              minimumVersion: '1.0.0',
-            },
-          },
-        },
-      });
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(false);
-    });
-
-    it('returns false when the keyring is locked, regardless of feature flag', () => {
+    it('returns false when the keyring is locked', () => {
       jest.mocked(store.getState).mockReturnValue({
         settings: { basicFunctionalityEnabled: true },
         onboarding: { completedOnboarding: false },
@@ -315,7 +250,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns true when keyring is unlocked and feature flag is enabled', () => {
+    it('returns true when the keyring is unlocked', () => {
       jest.mocked(store.getState).mockReturnValue({
         settings: { basicFunctionalityEnabled: true },
         onboarding: { completedOnboarding: false },
@@ -334,34 +269,6 @@ describe('assetsControllerInit', () => {
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
       expect(isEnabled()).toBe(true);
-    });
-
-    it('returns true when RemoteFeatureFlagController:getState throws while hardcoded on for development', () => {
-      const requestMock = getInitRequestMock({
-        remoteFeatureFlagGetStateThrows: true,
-      });
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(false);
-    });
-
-    it('returns true when feature flag is undefined while hardcoded on for development', () => {
-      const requestMock = getInitRequestMock({
-        remoteFeatureFlagState: { remoteFeatureFlags: {} },
-      });
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(false);
     });
   });
 
@@ -455,22 +362,8 @@ describe('assetsControllerInit', () => {
   });
 
   describe('tempMigrateAssetsInfoMetadataAssets3346', () => {
-    it('returns the persisted TokensController and AccountsController state', () => {
+    it('returns the persisted AccountsController state', () => {
       const requestMock = getInitRequestMock();
-      const mockTokensControllerState = {
-        allTokens: {
-          '0x64': {
-            '0x0000000000000000000000000000000000000001': [
-              {
-                address: '0x0000000000000000000000000000000000000002',
-                symbol: 'TST',
-                decimals: 18,
-              },
-            ],
-          },
-        },
-        allIgnoredTokens: {},
-      };
       const mockAccountsControllerState = {
         internalAccounts: {
           accounts: {
@@ -483,7 +376,6 @@ describe('assetsControllerInit', () => {
         },
       };
       requestMock.persistedState = {
-        TokensController: mockTokensControllerState,
         AccountsController: mockAccountsControllerState,
       } as typeof requestMock.persistedState;
 
@@ -496,12 +388,11 @@ describe('assetsControllerInit', () => {
 
       expect(getMigrationState).toBeDefined();
       expect(getMigrationState?.()).toStrictEqual({
-        TokensController: mockTokensControllerState,
         AccountsController: mockAccountsControllerState,
       });
     });
 
-    it('returns undefined slices when no legacy state is persisted', () => {
+    it('returns an undefined slice when no legacy state is persisted', () => {
       const requestMock = getInitRequestMock();
       requestMock.persistedState = {};
 
@@ -513,7 +404,6 @@ describe('assetsControllerInit', () => {
         constructorCall.tempMigrateAssetsInfoMetadataAssets3346;
 
       expect(getMigrationState?.()).toStrictEqual({
-        TokensController: undefined,
         AccountsController: undefined,
       });
     });
@@ -555,8 +445,8 @@ describe('assetsControllerInit', () => {
     });
   });
 
-  describe('trace feature flag (assetsUnifyState.tracesEnabled)', () => {
-    it('skips Sentry tracing when tracesEnabled is absent / off', async () => {
+  describe('trace callback', () => {
+    it('skips Sentry tracing (tracing for AssetsController is currently disabled)', async () => {
       assetsControllerInit(getInitRequestMock());
 
       const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
@@ -572,37 +462,6 @@ describe('assetsControllerInit', () => {
 
       expect(fn).toHaveBeenCalledWith();
       expect(trace).not.toHaveBeenCalled();
-    });
-
-    it('forwards to util/trace when assetsUnifyState.tracesEnabled is on', async () => {
-      assetsControllerInit(
-        getInitRequestMock({
-          remoteFeatureFlagState: {
-            remoteFeatureFlags: {
-              [ASSETS_UNIFY_STATE_FLAG]: {
-                enabled: true,
-                featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-                minimumVersion: '7.60.0',
-                tracesEnabled: true,
-              },
-            },
-          },
-        }),
-      );
-
-      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
-      const traceCallback = constructorCall.trace;
-      if (!traceCallback) {
-        throw new Error('Expected trace callback to be defined');
-      }
-
-      const fn = jest.fn(() => 'result');
-      await expect(
-        traceCallback({ name: 'AssetsControllerFirstInitFetch' }, fn),
-      ).resolves.toBe('result');
-
-      expect(trace).toHaveBeenCalled();
-      expect(fn).toHaveBeenCalledWith('traced-context');
     });
   });
 });
