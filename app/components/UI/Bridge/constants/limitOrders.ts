@@ -1,4 +1,5 @@
 import { strings } from '../../../../../locales/i18n';
+import AppConstants from '../../../../core/AppConstants';
 
 export enum LimitOrderExecutionType {
   BUY = 'buy',
@@ -28,6 +29,10 @@ export const LIMIT_ORDER_CUSTOM_PERCENT_MAX = 99;
  * shown. The order may fill immediately when the limit sits this close.
  */
 export const LIMIT_ORDER_NEAR_MARKET_PERCENT = 1;
+
+export const LIMIT_ORDER_DEFAULT_SLIPPAGE = String(
+  AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+);
 
 /**
  * Cost tolerance in % that limit orders start with until the user picks
