@@ -70,15 +70,15 @@ const homeMarket = createMarket(
 const renderFooter = (
   overrides: Partial<React.ComponentProps<typeof MarketFooterCard>> = {},
 ) => {
-  const onSelectMarket = overrides.onSelectMarket ?? jest.fn();
+  const onOrder = overrides.onOrder ?? jest.fn();
   return {
-    onSelectMarket,
+    onOrder,
     ...render(
       <MarketFooterCard
         game={createGame()}
         awayQuote={createQuote(awayMarket, awayYes)}
         homeQuote={createQuote(homeMarket, homeYes)}
-        onSelectMarket={onSelectMarket}
+        onOrder={onOrder}
         {...overrides}
       />,
     ),
@@ -170,27 +170,12 @@ describe('MarketFooterCard', () => {
     });
   });
 
-  it('emits the Market id when a Team control is pressed', () => {
-    const { onSelectMarket } = renderFooter({
-      selectedMarketId: homeMarket.id,
-    });
+  it('starts the Order flow for the Yes Outcome when a Team control is pressed', () => {
+    const { onOrder } = renderFooter();
 
     fireEvent.press(screen.getByTestId(MarketFooterCardTestIds.button('away')));
 
-    expect(onSelectMarket).toHaveBeenCalledWith(awayMarket.id);
-    expect(onSelectMarket).toHaveBeenCalledTimes(1);
-  });
-
-  it('marks the selected Market control without disabling it', () => {
-    renderFooter({ selectedMarketId: awayMarket.id });
-
-    expect(
-      screen.getByTestId(MarketFooterCardTestIds.button('away')).props
-        .accessibilityState,
-    ).toEqual({ selected: true, disabled: false });
-    expect(
-      screen.getByTestId(MarketFooterCardTestIds.button('home')).props
-        .accessibilityState,
-    ).toEqual({ selected: false, disabled: false });
+    expect(onOrder).toHaveBeenCalledWith(createQuote(awayMarket, awayYes));
+    expect(onOrder).toHaveBeenCalledTimes(1);
   });
 });

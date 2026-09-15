@@ -3154,6 +3154,25 @@
         "settled": "Settled",
         "shares_at_price": "{{shares}} @ {{price}}"
       }
+    },
+    "order_preview": {
+      "title": "Buy",
+      "amount": "USD amount",
+      "max_spend_hint": "This amount is the maximum you can spend on contracts. Fees are added on top.",
+      "minimum_amount": "Enter at least ${{amount}}.",
+      "estimated_contracts": "Est. contracts",
+      "average_price": "Avg. price",
+      "potential_payout": "Potential payout",
+      "potential_profit": "Potential profit",
+      "fee": "Fee",
+      "total_debit": "Total debit",
+      "approve": "Approve",
+      "submitting": "Submitting your order…",
+      "success_title": "Order submitted",
+      "done": "Done",
+      "expired": "This quote expired. Refresh to get a new one.",
+      "refresh": "Refresh",
+      "retry": "Try again"
     }
   },
   "predict": {

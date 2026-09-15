@@ -190,6 +190,50 @@ export interface PredictBalance {
   available: PredictAmount;
 }
 
+/** A canonical buy intent: the Outcome side of one Market plus the entered
+ * maximum USD spend before fees. */
+export interface PredictOrderPreviewParams {
+  marketId: PredictEntityId;
+  side: PredictOutcomeSide;
+  amount: PredictAmount;
+}
+
+/** Wire-shape twin of PredictOrderPreviewParams for the API transport. */
+export interface FetchOrderPreviewParams {
+  marketId: string;
+  side: PredictOutcomeSide;
+  amount: string;
+}
+
+export interface PredictOrderPreviewFeeComponent {
+  label: string;
+  amount: PredictAmount;
+}
+
+/** A server-authoritative Order Preview. All monetary values are quoted by
+ * the backend; the client never calculates them. */
+export interface PredictOrderPreview {
+  /** Opaque expiring token binding the quote to the authenticated intent. */
+  previewId: string;
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  side: PredictOutcomeSide;
+  /** The entered maximum USD spend before fees. */
+  requestedAmount: PredictAmount;
+  /** Estimated cost of the quoted contracts; never above requestedAmount. */
+  orderAmount: PredictAmount;
+  estimatedContracts: number;
+  averagePrice: PredictDecimal;
+  fee: PredictAmount;
+  /** Backend-owned breakdown of the fee; present when the backend reports it. */
+  feeBreakdown: readonly PredictOrderPreviewFeeComponent[];
+  /** The Order amount plus the fee: the total expected debit. */
+  totalDebit: PredictAmount;
+  potentialPayout: PredictAmount;
+  potentialProfit: PredictSignedAmount;
+  expiresAt: PredictTimestamp;
+}
+
 export interface FetchPortfolioPageParams {
   cursor?: string;
   limit?: number;

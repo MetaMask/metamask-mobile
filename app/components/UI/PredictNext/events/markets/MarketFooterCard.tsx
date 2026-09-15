@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Box,
@@ -22,18 +21,12 @@ export interface MarketFooterCardProps {
   awayQuote: GameSelectionQuote;
   homeQuote: GameSelectionQuote;
   drawQuote?: GameSelectionQuote;
-  selectedMarketId?: string;
-  onSelectMarket: (marketId: string) => void;
+  /** Starts the Order flow for the Yes side of the quote's Outcome. */
+  onOrder: (quote: GameSelectionQuote) => void;
 }
 
 const teamAbbreviation = (team: PredictTeam): string =>
   (team.abbreviation ?? team.name.slice(0, 3)).toUpperCase();
-
-const styles = StyleSheet.create({
-  selectedButton: {
-    borderWidth: 2,
-  },
-});
 
 const FooterButton = ({
   selection,
@@ -42,8 +35,7 @@ const FooterButton = ({
   accessibilityName,
   backgroundColor,
   textColor,
-  isSelected,
-  onSelectMarket,
+  onOrder,
 }: {
   selection: 'away' | 'home' | 'draw';
   quote: GameSelectionQuote;
@@ -51,8 +43,7 @@ const FooterButton = ({
   accessibilityName: string;
   backgroundColor?: string;
   textColor?: string;
-  isSelected: boolean;
-  onSelectMarket: (marketId: string) => void;
+  onOrder: (quote: GameSelectionQuote) => void;
 }) => {
   const price = formatAskPrice(quote.outcome.askPrice);
   const displayLabel = price ? `${label} · ${price}` : label;
@@ -65,14 +56,11 @@ const FooterButton = ({
           ? `${accessibilityName}, ${price}`
           : `${accessibilityName}, ${strings('predict.market.footer_price_unavailable')}`
       }
-      accessibilityState={{ selected: isSelected, disabled: false }}
+      accessibilityState={{ disabled: false }}
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
-      onPress={() => onSelectMarket(quote.market.id)}
-      style={[
-        { backgroundColor },
-        isSelected ? styles.selectedButton : undefined,
-      ]}
+      onPress={() => onOrder(quote)}
+      style={[{ backgroundColor }]}
       twClassName="h-12 min-w-0 flex-1 rounded-xl px-2"
     >
       <Text
@@ -92,8 +80,7 @@ export const MarketFooterCard = ({
   awayQuote,
   homeQuote,
   drawQuote,
-  selectedMarketId,
-  onSelectMarket,
+  onOrder,
 }: MarketFooterCardProps) => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -112,8 +99,7 @@ export const MarketFooterCard = ({
         accessibilityName={game.awayTeam.name}
         backgroundColor={game.awayTeam.primaryColor ?? colors.info.default}
         textColor={inverseText}
-        isSelected={selectedMarketId === awayQuote.market.id}
-        onSelectMarket={onSelectMarket}
+        onOrder={onOrder}
       />
       <FooterButton
         selection="home"
@@ -122,8 +108,7 @@ export const MarketFooterCard = ({
         accessibilityName={game.homeTeam.name}
         backgroundColor={game.homeTeam.primaryColor ?? colors.success.default}
         textColor={inverseText}
-        isSelected={selectedMarketId === homeQuote.market.id}
-        onSelectMarket={onSelectMarket}
+        onOrder={onOrder}
       />
       {drawQuote ? (
         <FooterButton
@@ -131,8 +116,7 @@ export const MarketFooterCard = ({
           quote={drawQuote}
           label={strings('predict.market.draw')}
           accessibilityName={strings('predict.market.draw')}
-          isSelected={selectedMarketId === drawQuote.market.id}
-          onSelectMarket={onSelectMarket}
+          onOrder={onOrder}
         />
       ) : null}
     </Box>

@@ -69,6 +69,7 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
   fetchMarketHistory: jest.fn(),
+  fetchOrderPreview: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter', () => {
